@@ -248,6 +248,8 @@ public class MapResource implements Resource, XMLUnmarshalListener  {
     }
     
     public void setTitleFromContent() {
+        if (isImage())
+            return;
         URL _url = null;
         try {
             _url = toURL();

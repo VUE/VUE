@@ -43,7 +43,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.305 2005-08-23 22:34:44 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.306 2005-08-27 21:34:40 sfraize Exp $
     
 /**
  * Vue application class.
@@ -1023,55 +1023,64 @@ public class VUE
         }
     }
     
-    
     public static int openMapCount() {
         return mMapTabsLeft == null ? 0 : mMapTabsLeft.getTabCount();
     }
     
+    private static Object LOCK = new Object();
+    
     public static void addActiveMapListener(ActiveMapListener l) {
-        sActiveMapListeners.add(l);
+        synchronized (LOCK) {
+            sActiveMapListeners.add(l);
+        }
     }
     public static void removeActiveMapListener(ActiveMapListener l) {
-        sActiveMapListeners.remove(l);
+        synchronized (LOCK) {
+            sActiveMapListeners.remove(l);
+        }
     }
     public static void addActiveViewerListener(ActiveViewerListener l) {
-        sActiveViewerListeners.add(l);
+        synchronized (LOCK) {
+            sActiveViewerListeners.add(l);
+        }
     }
     public static void removeActiveViewerListener(ActiveViewerListener l) {
-        sActiveViewerListeners.remove(l);
+        synchronized (LOCK) {
+            sActiveViewerListeners.remove(l);
+        }
     }
-    
     
     /**
      * Viewer can be null, which happens when we close the active viewer
      * and until another grabs the application focus (unles it was the last viewer).
      */
     public static void setActiveViewer(MapViewer viewer) {
-        // todo: does this make sense?
-        //if (ActiveViewer == null || viewer == null || viewer.getMap() != ActiveViewer.getMap()) {
-        if (ActiveViewer != viewer) {
-            LWMap oldActiveMap = null;
-            if (ActiveViewer != null)
-                oldActiveMap = ActiveViewer.getMap();
-            ActiveViewer = viewer;
-            out("ActiveViewer set to " + viewer);
-            if (ActiveViewer != null) {
-                java.util.Iterator i = sActiveViewerListeners.iterator();
-                while (i.hasNext())
-                    ((ActiveViewerListener)i.next()).activeViewerChanged(viewer);
-                if (oldActiveMap != ActiveViewer.getMap()) {
-                    LWMap activeMap = viewer.getMap();
-                    i = sActiveMapListeners.iterator();
-                    out("ActiveMap set to " + activeMap);
-                    while (i.hasNext()) {
-                        ActiveMapListener aml = (ActiveMapListener) i.next();
-                        if (DEBUG.EVENTS) out("activeMapChanged -> " + aml);
-                        aml.activeMapChanged(activeMap);
+        synchronized (LOCK) {
+            if (ActiveViewer != viewer) {
+                LWMap oldActiveMap = null;
+                if (ActiveViewer != null)
+                    oldActiveMap = ActiveViewer.getMap();
+                ActiveViewer = viewer;
+                out("ActiveViewer set to " + viewer);
+                if (ActiveViewer != null) {
+                    java.util.Iterator i = sActiveViewerListeners.iterator();
+                    while (i.hasNext())
+                        ((ActiveViewerListener)i.next()).activeViewerChanged(viewer);
+                    if (oldActiveMap != ActiveViewer.getMap()) {
+                        LWMap activeMap = viewer.getMap();
+                        i = sActiveMapListeners.iterator();
+                        out("ActiveMap set to " + activeMap);
+                        while (i.hasNext()) {
+                            ActiveMapListener aml = (ActiveMapListener) i.next();
+                            if (DEBUG.EVENTS) out("activeMapChanged -> " + aml);
+                            aml.activeMapChanged(activeMap);
+                        }
                     }
                 }
+            } else {
+                // prob don't need this now that we're synchronized
+                ActiveViewer = viewer;
             }
-        } else {
-            ActiveViewer = viewer;
         }
     }
     

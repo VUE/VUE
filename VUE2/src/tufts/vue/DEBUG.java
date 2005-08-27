@@ -23,7 +23,7 @@ public class DEBUG
     public static boolean Enabled = false; // can user turn debug switches on
     
     // Can leave these as static for runtime tweaking, or
-    // make final to have compiler strip them out entirely.
+    // make final static to have compiler strip them out entirely.
     public static boolean CONTAINMENT = false;
     public static boolean PARENTING = false;
     public static boolean LAYOUT = false;

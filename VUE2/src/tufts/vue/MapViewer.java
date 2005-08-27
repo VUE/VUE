@@ -92,7 +92,7 @@ public class MapViewer extends javax.swing.JComponent
     // Selection support
     //-------------------------------------------------------
     
-    /** an alias for the global selection -- sometimes taking on the value null */
+    /** an alias for the global selection, reset to null when we're not the active map */
     protected LWSelection VueSelection = null;
     /** a group that contains everything in the current selection.
      *  Used for doing operations on the entire group (selection) at once */
@@ -1064,22 +1064,26 @@ public class MapViewer extends javax.swing.JComponent
         final Object key = e.getKey();
 
         if (DEBUG.DYNAMIC_UPDATE == false) {
-            // this prevents other viewers of same map from updating until an
-            // action is completed in the active viewer.
-            if (VUE.getActiveViewer() != this) {
+            if (key == LWKey.RepaintAsync) {
+                repaint();
+                return;
+            } else if (VUE.getActiveViewer() != this) {
+                // this prevents other viewers of same map from updating until an
+                // action is completed in the active viewer.
                 if (sDragUnderway || key != LWKey.UserActionCompleted)
                     return;
             } else {
+                // The ACTIVE viewer can ignore these events,
+                // because we've been repainting all the updates
+                // due to events as they've been happening.
                 if (key == LWKey.UserActionCompleted)
                     return;
             }
         }
         
-        // ignore size & location events during drag as performance enhancement
-        //if (sDragUnderway && (key == LWKey.Size || key == LWKey.Location))
-        // TODO: OPTIMIZE -- we get tons of location events
-        // when dragging, esp if there are children if
-        // we have those events turned in...
+        // ? todo: optimize -- we get lots of extra location events
+        // when dragging if there are children of the dragged
+        // object (still true?)
         
         //if (isBoundsEvent(key))
             adjustCanvasSize();
@@ -1652,6 +1656,12 @@ public class MapViewer extends javax.swing.JComponent
         //-------------------------------------------------------
         
         //if (VueSelection != null && !VueSelection.isEmpty() && activeTool != PathwayTool)
+        // todo: currently, the selection is application wide, and has no idea what map
+        // it's contents come from, so it's theoretically possible for us to be drawing
+        // a selection of a component that's actually from another map.  Maybe have
+        // a per-map selection (there is a selection bit in LWComponents after all)
+        // We currently prevent this by setting local VueSelection to null if we're
+        // not the active map, but if we miss doing that for any reason...
         if (VueSelection != null && !VueSelection.isEmpty() && activeTool.supportsResizeControls())
             drawSelection(dc);
         else
@@ -2865,7 +2875,7 @@ public class MapViewer extends javax.swing.JComponent
                 //else if (c == '&') { tufts.macosx.Screen.fadeFromBlack(); }
                 //else if (c == '@') { tufts.macosx.Screen.setMainAlpha(.5f); }
                 //else if (c == '$') { tufts.macosx.Screen.setMainAlpha(1f); }
-                else if (c == '~') { System.err.println("ABORT!"); System.exit(-1); }
+                else if (c == '~') { System.err.println("MapViewer debug abort."); System.exit(-1); }
                 else if (c == '\\') {
                     VUE.toggleFullScreen();
                 }
@@ -3672,7 +3682,7 @@ public class MapViewer extends javax.swing.JComponent
             if (dragComponent == null && dragControl == null)
                 return;
             
-            if (!OPTIMIZED_REPAINT) {
+            if (OPTIMIZED_REPAINT == false) {
                 
                 repaint();
                 
@@ -3722,8 +3732,11 @@ public class MapViewer extends javax.swing.JComponent
                     //i = new VueUtil.GroupIterator(movingComponent.getAllConnectedNodes(),
                     //movingComponent.getLinks());//won't work! dragComponent is always an LWGroup
                     
+                    // TODO: if this isn't the active map, dragComponent/movingCompontent will be null!
+
                     //i = movingComponent.getAllConnectedComponents().iterator();
-                    i = movingComponent.getAllLinks().iterator();
+                    if (movingComponent != null)
+                        i = movingComponent.getAllLinks().iterator();
                     // actually, we probably do NOT need to add the nodes at the other
                     // ends of the links anymore sinde the link always connects at the
                     // edge of the node...

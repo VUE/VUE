@@ -185,8 +185,7 @@ public class LWComponent
             new Throwable("FYI: Unhandled Property").printStackTrace();
         }
     }
-    
-    
+
 
     /** Create a component with duplicate content & style.
      * Does not duplicate any links to this component,
@@ -231,6 +230,13 @@ public class LWComponent
             throw new IllegalStateException("LWComponent has null parent; needs a parent instance subclassed from LWContainer that implements getNextUniqueID: " + this);
         else
             return getParent().getNextUniqueID();
+    }
+
+    public LWMap getMap() {
+        if (this.parent == null)
+            return null;
+        else
+            return this.parent.getMap();
     }
     
 

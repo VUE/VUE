@@ -126,9 +126,9 @@ public class MapPanner extends javax.swing.JPanel
     }
 
     public void LWCChanged(LWCEvent e) {
-        if (e.getWhat() == LWKey.UserActionCompleted || DEBUG.DYNAMIC_UPDATE) {
+        final Object key = e.getWhat();
+        if (DEBUG.DYNAMIC_UPDATE || key == LWKey.UserActionCompleted || key == LWKey.RepaintAsync)
             repaint();
-        }
     }
 
     public void mousePressed(MouseEvent e)
@@ -248,7 +248,9 @@ public class MapPanner extends javax.swing.JPanel
             return;
         }
 
-        final Rectangle2D allComponentBounds = viewer.getMap().getBounds();
+        final LWMap map = viewer.getMap();
+        
+        final Rectangle2D allComponentBounds = map.getBounds();
         final Rectangle2D canvasRect = viewer.getCanvasMapBounds();
         final Rectangle2D viewerRect = viewer.getVisibleMapBounds();
         final Rectangle2D pannerRect;
@@ -303,7 +305,8 @@ public class MapPanner extends javax.swing.JPanel
         
         // need to offset fill, so can't just use existing canvasRect
         final Rectangle2D canvas = viewer.screenToMapRect(new Rectangle(1,1, viewer.getWidth(), viewer.getHeight()));
-        dc.g.setColor(viewer.getBackground());
+        //dc.g.setColor(viewer.getBackground());
+        dc.g.setColor(map.getFillColor());
         // round size of canvas down...
         dc.g.fill(canvas);
         
@@ -311,7 +314,7 @@ public class MapPanner extends javax.swing.JPanel
          * Now tell the active LWMap to draw itself here on the panner.
          */
         
-        viewer.getMap().draw(dc);
+        map.draw(dc);
         
         /*
          * Show where the edge of the *visible* viewer region overlaps the map

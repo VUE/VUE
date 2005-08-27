@@ -213,13 +213,37 @@ class MapDropTarget
      */
     public boolean processTransferable(Transferable transfer, DropTargetDropEvent e)
     {
+        // Make us the active viewer.  Otherwise we'll need special code for
+        // repaint updates and setting the selection.
+        // Okay, that's no good: they can still switch to another viewer after the drop begins.
+        //VUE.setActiveViewer(viewer);
+        
         Point dropLocation = null;
-        int dropAction = DnDConstants.ACTION_MOVE; // default action
-        boolean modifierKeyWasDown = false;
+        int dropAction = DnDConstants.ACTION_COPY; // default action, in case no DropTargetDropEvent
+        //boolean modifierKeyWasDown = false;
+
+        // On current JVM's on Mac and PC, default action for dragging
+        // a desktop item is MOVE, and holding CTRL down (both
+        // platforms) changes action to COPY.  However, when dragging
+        // a link from Internet Explorer on Win2k, or Safari on OS X
+        // 10.4.2, CTRL doesn't change drop action at all, SHIFT
+        // changes drop action to NONE, and only CTRL-SHIFT changes
+        // action to LINK, which fortunately is at least the same on
+        // the mac: CTRL-SHIFT gets you LINK.
+        //
+        // Note: In both Safari & IE6/W2K, dragging an image from
+        // within a web page will NOT allow ACTION_LINK, so we can't
+        // change a resource that way on the mac.  Also note that
+        // Safari will give you the real URL of the image, where as at
+        // least as of IE 6 on Win2k, it will only give you the image
+        // file from your cache.  (IE does also give you HTML snippets
+        // as data transfer options, with the IMG tag, but it gives
+        // you no base URL to add to the relative locations usually
+        // named in IMG tags!)
         
         if (e != null) {
             dropLocation = e.getLocation();
-            //dropAction = e.getDropAction();
+            dropAction = e.getDropAction();
 
             if (DEBUG.DND) System.out.println("MapDropTarget: processTransferable: dropAction is " + dropName(e.getDropAction()));
 
@@ -259,9 +283,14 @@ class MapDropTarget
 
         if (dropLocation != null) {
             hitComponent = viewer.getMap().findChildAt(dropToMapLocation(dropLocation));
-            System.out.println("\thitComponent=" + hitComponent);
+            if (hitComponent instanceof LWImage) { // todo: does LWComponent accept drop events...
+                System.out.println("\thitComponent=" + hitComponent + " (ignored)");
+                hitComponent = null;
+            } else 
+                System.out.println("\thitComponent=" + hitComponent);
         }
-
+        
+        /*
         // Now: when either CTRl or ALT is down on the mac, drop action changes from
         // default of 2 (MOVE) to 1 (COPY)
         if (VueUtil.isMacPlatform()) {
@@ -272,10 +301,12 @@ class MapDropTarget
             //if (dropAction == 1)
             //modifierKeyWasDown = true;
         }
-            
-        
         boolean createAsChildren = !modifierKeyWasDown && hitComponent instanceof LWNode;
         boolean overwriteResource = modifierKeyWasDown;
+        */
+            
+        boolean overwriteResource = (dropAction == DnDConstants.ACTION_LINK);
+        boolean createAsChildren = !overwriteResource && hitComponent instanceof LWNode;
 
         // if no drop location (e.g., we did a "Paste") then assume where
         // they last clicked.
@@ -471,6 +502,14 @@ class MapDropTarget
                 final String query = url.getQuery();
                 // special case for google image search:
                 System.out.println("host " + url.getHost() + " query " + url.getQuery());
+
+                if (DEBUG.DND) {
+                    String[] pairs = query.split("&");
+                    for (int i = 0; i < pairs.length; i++) {
+                        System.out.println("query pair " + pairs[i]);
+                    }
+                }
+                
                 if ("images.google.com".equals(url.getHost()) && query.startsWith("imgurl=")) {
                     int endURLindex = query.indexOf('&');
                     String imageURL = query.substring(7, endURLindex);
@@ -488,13 +527,17 @@ class MapDropTarget
 
                 
             if (url != null) {
-
                 if (hitComponent != null) {
-                    if (createAsChildren)
+                    if (createAsChildren) {
                         ((LWNode)hitComponent).addChild(createNewNode(url.toString(), resourceTitle, dropLocation));
-                    else
+                    } else {
                         hitComponent.setResource(url.toString());
+                        // HACK: clean this up:  resource should load meta-data on CREATION.
+                        ((MapResource)hitComponent.getResource()).setTitleFromContentAsync(hitComponent);
+                    }
                 } else {
+                    // if action is LINK and this is an image, create a node, not the image,
+                    // otherwise LINK when not over a node does nothing special.
                     createNewNode(url.toString(), resourceTitle, dropLocation);
                 }
             } else {
@@ -504,13 +547,13 @@ class MapDropTarget
         }
 
         if (success)
-            VUE.getUndoManager().mark("Drop");
+            viewer.getMap().getUndoManager().mark("Drop");
 
         return success;
     }
 
     private static final Pattern URL_Line = Pattern.compile(".*^URL=([^\r\n]+).*", Pattern.MULTILINE|Pattern.DOTALL);
-    private String convertWindowsURLShortCutToURL(File file)
+    private static String convertWindowsURLShortCutToURL(File file)
     {
         String url = null;
         try {
@@ -594,7 +637,10 @@ class MapDropTarget
     // TODO: handle case of a dropped reference to a local HTML file, where we want to use
     // the file name as the generated node name, and yet ALSO want to set the resourceTitle
     // via an HTML scan of the file (if one can be found).
-    private LWNode createNewNode(String resourceSpec, String resourceName, java.awt.Point p)
+
+    // HANDLES DROP OF A URL
+    
+    private LWComponent createNewNode(String resourceSpec, String resourceName, java.awt.Point p)
     {
         MapResource resource = new MapResource(resourceSpec);
 
@@ -609,23 +655,34 @@ class MapDropTarget
             resource.setTitleFromContent();
         }
 
-        LWNode node = NodeTool.createNode(resourceName);
-        node.setResource(resource);
+        final LWComponent node;
+
+        if (resource.isImage()) {
+            System.out.println("IMAGE DROP ON " + viewer);
+            node = new LWImage(resource, viewer.getMap().getUndoManager());
+        } else {
+            node = NodeTool.createNode(resourceName);
+            node.setResource(resource);
+        }
+
         if (p != null) {
             if (CenterNodesOnDrop)
                 node.setCenterAt(dropToMapLocation(p));
             else
                 node.setLocation(dropToMapLocation(p));
-            viewer.getMap().addNode(node);            //set selection to node?
-        } // else: special case: no node location, so we're creating a child node -- don't add to map
-
-// test code
-if (resource.isImage())
-    node.addChild(new LWImage(resource));
+        }
         
+        viewer.getMap().addLWC(node);
+
+        // maybe just set us to be the active map?
+        // In any case, do NOT set the selection to anything that is NOT from the active map.
+        if (VUE.getActiveViewer() == this.viewer)
+            VUE.getSelection().setTo(node);
+
         return node;
     }
 
+    // HANDLES DROP OF EXISTING RESOURCE (from our own DR browser)
     private LWNode createNewNode(Resource resource, java.awt.Point p)
     {
         String title;

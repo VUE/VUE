@@ -484,6 +484,10 @@ implements ConceptMap//, Printable
         return c == this ? null : c;
     }
      */
+
+    public LWMap getMap() {
+        return this;
+    }
     
     /** override of LWContainer: default hit component on the map
      * is nothing -- we just @return null.

@@ -25,20 +25,24 @@ import java.awt.Shape;
 import java.awt.BasicStroke;
 import java.awt.geom.*;
 import java.awt.AlphaComposite;
+import java.awt.image.ImageObserver;
 import javax.swing.ImageIcon;
 
 /**
  * Handle the presentation of an image resource, allowing cropping.
  */
 public class LWImage extends LWComponent
-    implements LWSelection.ControlListener, java.awt.image.ImageObserver
+    implements LWSelection.ControlListener, ImageObserver
 {
     private final static int MinWidth = 10;
     private final static int MinHeight = 10;
     
-    protected ImageIcon imageIcon;
-    private Point2D.Float offset = new Point2D.Float(); // x & y always <= 0
+    private Image mImage;
+    private int mImageWidth = -1;
+    private int  mImageHeight = -1;
     private double rotation = 0;
+    private Point2D.Float offset = new Point2D.Float(); // x & y always <= 0
+    private Object mThreadedUndoKey;
     
     //private LWIcon.Resource resourceIcon = new LWIcon.Resource(this);
     private transient LWIcon.Block mIconBlock =
@@ -48,10 +52,18 @@ public class LWImage extends LWComponent
                          LWIcon.Block.VERTICAL,
                          LWIcon.Block.COORDINATES_COMPONENT);
 
-    public LWImage(Resource r) {
-        setResource(r);
+    public LWImage(Resource r, UndoManager undoManager) {
+        setResource(r, undoManager);
     }
 
+    /**
+     * @deprecated because images can load asynchronously, we need an undo manager.
+    * Using this constructor may cause irregularities in the undo queue if more than one map is loaded.
+    **/
+    public LWImage(Resource r) {
+        this(r, null);
+    }
+    
     public LWComponent duplicate()
     {
         // todo: if had list of property keys in object, LWComponent
@@ -78,9 +90,17 @@ public class LWImage extends LWComponent
             super.setScale(scale * adjustment); // produce ChildImageScale at top level child
         }
     }
+
+    public void layout() {
+        mIconBlock.layout();
+    }
     
-    private Image mImage; // test
     public void setResource(Resource r) {
+        setResource(r, null);
+    }
+    
+    // todo: find a better way to do this than passing in an undo manager, which is dead ugly
+    public void setResource(Resource r, UndoManager undoManager) {
         super.setResource(r);
         if (r instanceof MapResource) {
 
@@ -94,27 +114,83 @@ public class LWImage extends LWComponent
             // complete.
 
             try {
-                if (false) {
-                    mImage = java.awt.Toolkit.getDefaultToolkit().getImage(mr.toURL());
+                
+                Image image = java.awt.Toolkit.getDefaultToolkit().getImage(mr.toURL());
+
+                // don't bother set mImage here: JVM's no longer do drawing of available bits
+                
+                if (java.awt.Toolkit.getDefaultToolkit().prepareImage(image, -1, -1, this)) {
+                    out("ALREADY LOADED");
+                    mImage = image;
+                    mImageWidth = image.getWidth(null);
+                    mImageHeight = image.getHeight(null);
+                    if (getAbsoluteWidth() < 10 && getAbsoluteHeight() < 10)
+                        setSize(mImageWidth, mImageHeight);
                 } else {
-                    if (DEBUG.CASTOR == false) {
-                        new Thread("LWImage loader for " + mr) {
-                            public void run() { loadImageAsync(mr); }
-                        }.start();
-                    } else {
-                        loadImageAsync(mr);
-                    }
+                    mDebugChar = sDebugChar;
+                    if (++sDebugChar > 'Z')
+                        sDebugChar = 'A';
+                    // save a key that marks the current location in the undo-queue,
+                    // to be applied to the subsequent thread that make calls
+                    // to imageUpdate, so that all further property changes eminating
+                    // from that thread are applied to the same location in the undo queue.
+                    if (undoManager == null)
+                        mThreadedUndoKey = UndoManager.getKeyForUpcomingMark(this);
+                    else
+                        mThreadedUndoKey = undoManager.getKeyForUpcomingMark();
                 }
+                    
+                /*
+                new UndoableThread(mr + " LWImage loader") {
+                    public void run() { loadImageAsync(mr); }
+                }.start();
+                */
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public void layout() {
-        mIconBlock.layout();
-    }
 
+    private static char sDebugChar = 'A';
+    private char mDebugChar;
+    public boolean imageUpdate(Image img, int flags, int x, int y, int width, int height)
+    {
+        if ((flags & ImageObserver.SOMEBITS) == 0) {
+            Thread t = Thread.currentThread();
+            System.out.println("\n" + getResource() + " (" + flags + ") "
+                               + t + " 0x" + Integer.toHexString(t.hashCode())
+                               + " " + sun.awt.AppContext.getAppContext()
+                               );
+        } else
+            System.err.print(mDebugChar);
+        
+        if ((flags & ImageObserver.WIDTH) != 0 && (flags & ImageObserver.HEIGHT) != 0) {
+            mImageWidth = width;
+            mImageHeight = height;
+            UndoManager.attachCurrentThreadToMark(mThreadedUndoKey);
+            System.out.println(getResource() + " SETSIZE");
+            setSize(width, height);
+            layout();
+            notify(LWKey.RepaintAsync);
+        }
+        
+        if ((flags & ImageObserver.ALLBITS) != 0) {
+            // Be sure to set the image before detaching from the thread,
+            // or when the detach issues repaint events, we won't see the image.
+            mImage = img;
+            if (mThreadedUndoKey == null) {
+                notify(LWKey.RepaintAsync);
+            } else {
+                UndoManager.detachCurrentThread(mThreadedUndoKey); // in case our ImageFetcher get's re-used
+                mThreadedUndoKey = null;
+            }
+            return false;
+        } else
+            return true;
+    }
+    
+    /*
     private void loadImageAsync(MapResource r) {
         Object content = new Object();
         try {
@@ -139,14 +215,11 @@ public class LWImage extends LWComponent
             int h = imageIcon.getIconHeight();
             if (w > 0 && h > 0)
                 setSize(w, h);
-            // todo: WHOA -- if this happens in thread, Undo manager can get this setSize AFTER the
-            // user mark has been made, leaving us with unmarked changes that get noticed if
-            // move back & then forward thru the undo chain.
         }
         layout();
         notify(LWKey.RepaintComponent);
     }
-
+    */
 
     /**
      * Don't let us get bigger than the size of our image, or
@@ -154,10 +227,10 @@ public class LWImage extends LWComponent
      */
     public void userSetSize(float width, float height) {
         if (DEBUG.IMAGE) out("userSetSize0 " + width + "x" + height);
-        if (imageIcon.getIconWidth() + offset.x < width)
-            width = imageIcon.getIconWidth() + offset.x;
-        if (imageIcon.getIconHeight() + offset.y < height)
-            height = imageIcon.getIconHeight() + offset.y;
+        if (mImageWidth + offset.x < width)
+            width = mImageWidth + offset.x;
+        if (mImageHeight + offset.y < height)
+            height = mImageHeight + offset.y;
         if (width < MinWidth)
             width = MinWidth;
         if (height < MinHeight)
@@ -241,18 +314,20 @@ public class LWImage extends LWComponent
     }
     
     public int getImageWidth() {
-        return imageIcon.getIconWidth();
+        return mImageWidth;
     }
     public int getImageHeight() {
-        return imageIcon.getIconHeight();
+        return mImageHeight;
     }
 
+    /*
     static LWImage testImage() {
         LWImage i = new LWImage();
         i.imageIcon = VueResources.getImageIcon("vueIcon32x32");
-        i.setSize(i.imageIcon.getIconWidth(), i.imageIcon.getIconHeight());
+        i.setSize(i.mImageWidth, i.mImageHeight);
         return i;
     }
+    */
 
     private static final AlphaComposite HudTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f);
     public void draw(DrawContext dc)
@@ -296,27 +371,16 @@ public class LWImage extends LWComponent
 
     private static final AlphaComposite MatteTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
 
-    public boolean imageUpdate(Image img,
-                               int flags,
-                               int x,
-                               int y,
-                               int width,
-                               int height)
-    {
-        out("IUF=" + flags);
-        notify(LWKey.RepaintComponent);
-        return true;
-    }
-
-    protected void XdrawImage(DrawContext dc) {
-        if (mImage != null)
-            dc.g.drawImage(mImage, null, this);
-    }
-
     protected void drawImage(DrawContext dc)
     {
-        if (imageIcon == null) // it's loading
+        if (mImage == null) {
+            float w = getWidth();
+            float h = getHeight();
+            dc.g.setColor(Color.darkGray);
+            dc.g.fillRect(0, 0, (int)w, (int)h);
+            //dc.g.drawRect(0, 0, (int)w, (int)h); // can't see this line at small scales
             return;
+        }
         
         AffineTransform transform = AffineTransform.getTranslateInstance(offset.x, offset.y);
         if (rotation != 0 && rotation != 360)
@@ -324,13 +388,13 @@ public class LWImage extends LWComponent
         
         if (isSelected() && !dc.isPrinting() && dc.getActiveTool() instanceof ImageTool) {
             dc.g.setComposite(MatteTransparency);
-            dc.g.drawImage(imageIcon.getImage(), transform, null);
+            dc.g.drawImage(mImage, transform, null);
             dc.g.setComposite(AlphaComposite.Src);
         }
         Shape oldClip = dc.g.getClip();
         dc.g.clip(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
         //dc.g.clip(new Ellipse2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
-        dc.g.drawImage(imageIcon.getImage(), transform, null);
+        dc.g.drawImage(mImage, transform, null);
         dc.g.setClip(oldClip);
     }
 
