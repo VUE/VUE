@@ -27,6 +27,7 @@ public class VueTextPane extends JTextPane
     private boolean keyWasPressed = false; // TODO: also need to know if cut or paste happened!
     private boolean styledText = false;
     private String undoName;
+    private String loadedText;
 	
     public VueTextPane(LWComponent c, Object propertyKey, String undoName)
     {
@@ -76,8 +77,10 @@ public class VueTextPane extends JTextPane
     }
 
 
+    // TODO: DROP OF TEXT (this is a paste, but with no keypress!)
     protected void saveText() {
-        if (keyWasPressed && lwc != null) {
+        final String currentText = getText();
+        if (lwc != null && (keyWasPressed || !currentText.equals(loadedText))) {
             if (DEBUG.KEYS) System.out.println(this + " saveText [" + getText() + "]");
             /*
             Document doc = getDocument();
@@ -95,7 +98,8 @@ public class VueTextPane extends JTextPane
             }
             lwc.setProperty(propertyKey, text);
             */
-            lwc.setProperty(propertyKey, getText());
+            lwc.setProperty(propertyKey, currentText);
+            loadedText = currentText;
             if (undoName != null)
                 VUE.markUndo(undoName);
             else
@@ -117,10 +121,13 @@ public class VueTextPane extends JTextPane
             //setEditable(false);
             setEnabled(false);
         }
-        if (text == null)
+        if (text == null) {
             setText("");
-        else
+            loadedText = "";
+        } else {
             setText(text);
+            loadedText = text;
+        }
     }
     
     public void LWCChanged(LWCEvent e)
