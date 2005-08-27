@@ -388,6 +388,17 @@ public class VueUtil extends tufts.Util
         
         return result;
     }
+
+    public static String pad(char c, int wide, String s) {
+        int pad = wide - s.length();
+        StringBuffer buf = new StringBuffer(wide);
+        while (pad-- > 0) {
+            buf.append(c);
+        }
+        buf.append(s);
+        return buf.toString();
+    }
+    
     
     public static void alert(javax.swing.JComponent component,String message,String title) {
         javax.swing.JOptionPane.showMessageDialog(component,message,title,javax.swing.JOptionPane.ERROR_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));                                      
