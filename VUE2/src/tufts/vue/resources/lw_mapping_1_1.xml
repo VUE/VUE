@@ -88,41 +88,21 @@
 		<field name="resource" type="tufts.vue.Resource">
 			<bind-xml name="resource" node="element"/>
 		</field>
-		<field name="x" type="float"><bind-xml node="attribute"/></field>
-		<field name="y" type="float"><bind-xml node="attribute"/></field>
-                
-                <!-- impl data -->
 
-		<field name="absoluteWidth">
-			<bind-xml name="width" node="attribute"/>
-		</field>
-		<field name="absoluteHeight">
-			<bind-xml name="height" node="attribute"/>
-		</field>
-		<field name="XMLfillColor">
-			<bind-xml name="fillColor" node="element"/>
-		</field>
-		<field name="XMLstrokeColor">
-			<bind-xml name="strokeColor" node="element"/>
-		</field>
-		<field name="XMLtextColor">
-			<bind-xml name="textColor" node="element"/>
-		</field>
-		<field name="XMLfont" type="string">
-			<bind-xml name="font" node="element"/>
-		</field>
-		<field name="XMLhidden">
-			<bind-xml name="hidden" node="attribute"/>
-		</field>
-		<field name="strokeWidth" type="float">
-			<bind-xml name="strokeWidth" node="attribute"/>
-		</field>
-		<field name="autoSized" type="boolean">
-			<bind-xml name="autoSized" node="attribute"/>
-		</field>
-                 <field name="nodeFilter">
-                    <bind-xml name="nodeFilter" node="element"/>
-                 </field> 
+		<field name="x" type="float">   <bind-xml node="attribute"/></field>
+		<field name="y" type="float">   <bind-xml node="attribute"/></field>
+		<field name="absoluteWidth">    <bind-xml name="width" node="attribute"/></field>
+		<field name="absoluteHeight">   <bind-xml name="height" node="attribute"/></field>
+		<field name="XMLfillColor">     <bind-xml name="fillColor" node="element"/></field>
+		<field name="XMLstrokeColor">   <bind-xml name="strokeColor" node="element"/></field>
+		<field name="XMLtextColor">     <bind-xml name="textColor" node="element"/></field>
+		<field name="XMLfont">          <bind-xml name="font" node="element"/></field>
+		<field name="XMLhidden">        <bind-xml name="hidden" node="attribute"/></field>
+		<field name="strokeWidth">      <bind-xml name="strokeWidth" node="attribute"/></field>
+                
+		<field name="autoSized" type="boolean"><bind-xml name="autoSized" node="attribute"/></field>
+                
+                <field name="nodeFilter">      <bind-xml name="nodeFilter" node="element"/></field> 
                 <!-- We can save a shape interface, but it won't restore properly -->
 		<!-- field name="shape" type="java.awt.Shape">
 			<bind-xml name="shape" node="element"/>
