@@ -81,10 +81,14 @@ public class OpenAction extends VueAction {
         try {
             if (DEBUG.CASTOR) System.err.println("\nUnmarshalling from " + filename);
             File file = new File(filename);
-            String extension = file.getName().substring(file.getName().length()-3);
-            System.out.println("Extension = "+extension);
+            int dotIndex = file.getName().lastIndexOf('.');
+            String extension = "";
+            if (dotIndex >= 0 && file.getName().length() > 1)
+                extension = file.getName().substring(dotIndex + 1).toLowerCase();
+            //System.out.println("Extension = "+extension);
             Vector resourceVector = new Vector();
-            if(extension.compareToIgnoreCase("zip") >= 0) {
+            if (extension.equals("zip")) {
+                System.out.println("Unpacking Zip file " + file);
                 ZipFile zipFile = new ZipFile(file);
                 if(zipFile.getEntry(IMSCP.MAP_FILE)!= null && zipFile.getEntry(IMSCP.MANIFEST_FILE) != null) {
                     File resourceFolder = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+IMSCP.RESOURCE_FILES);
@@ -119,16 +123,17 @@ public class OpenAction extends VueAction {
                 LWMap map = ActionUtil.unmarshallMap(file);
                 return map;
             }
-        }
-        catch (Exception e) {
-            // todo bug: need to notice simple file-not-found exceptions.
+        } catch (FileNotFoundException e) {
             // maybe move all exception code here, taking the file-not-found handling
-            // out of the Open File dialog box.
-            VueUtil.alert(null, "\"" + filename + "\" cannot be opened in this version of VUE.", "Map Open Error");
             System.err.println("OpenAction.loadMap[" + filename + "]: " + e);
+            VueUtil.alert(null, "\"" + filename + "\": file not found.", "Map Not Found");
+        } catch (Exception e) {
+            // out of the Open File dialog box.
+            System.err.println("OpenAction.loadMap[" + filename + "]: " + e);
+            VueUtil.alert(null, "\"" + filename + "\" cannot be opened in this version of VUE.", "Map Open Error");
             e.printStackTrace();
-            return null;
         }
+        return null;
     }
     
     public static LWMap loadMap(java.net.URL url) {
