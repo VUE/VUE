@@ -378,8 +378,9 @@ public abstract class LWIcon extends Rectangle2D.Float
                 hadTitle = hasTitle;
                 ttLastString = mLWC.getResource().getSpec();
                 // todo perf: use StringBuffer
+                String prettyURL = VueUtil.decodeURL(ttLastString);
                 ttResource = new AALabel("<html>&nbsp;<b>"
-                                         + ttLastString + "</b>"
+                                         + prettyURL + "</b>"
                                          + (hasTitle?("<font size=-2><br>&nbsp;"+mLWC.getResource().getTitle()+"</font>"):"")
                                          + "<font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;");
 
