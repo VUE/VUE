@@ -47,6 +47,7 @@ public class DEBUG
     public static boolean IMAGE = false; // images
     public static boolean CASTOR = false; // castor persist (save/restore)
     public static boolean XML = false; // castor persist (save/restore)
+    public static boolean THREAD = false; // threading
 
     public static boolean DR = false; // digital repository & data sources
     
@@ -55,7 +56,8 @@ public class DEBUG
     public static  void setAllEnabled(boolean t) {
         CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
-            PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=t;
+            PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
+            CASTOR=XML=THREAD=t;
         if (t == false)
             META = false;
     }
