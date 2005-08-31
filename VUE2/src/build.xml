@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.59 $ / $Date: 2005-08-22 22:33:34 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.59 2005-08-22 22:33:34 sfraize Exp $ -->
+<!-- $Revision: 1.60 $ / $Date: 2005-08-31 00:18:03 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.60 2005-08-31 00:18:03 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -110,8 +110,14 @@
   <!-- Notes about individual jar files: -->
   <!-- jlfgr-1_0.jar: Contains Java toolbarButtonGraphics -->
   <!-- castor-0.9.7.jar contains XML, JDO & DAX: we only need the XML in castor-0.9.7-xml.jar -->
+  <!-- Have started to move most recently updated libraries to the top, so any overlapping
+       sub-libraries will get the latest version (as when jar'd togeter, first found is what's used).  SMF 8/29/05  -->
   <property name="thirdparty.jarfiles.names"
             value="
+                   xercesImpl-2.7.1.jar
+                   xerces-2.7.1-xml-apis.jar
+                   castor-0.9.7-xml.jar
+                   
                    connectionTamino.jar
                    jaxb-api-unsigned.jar
                    jaxb-impl-unsigned.jar
@@ -146,7 +152,6 @@
                    batik-svggen.jar
                    batik-util.jar
                    batik.jar
-                   castor-0.9.7-xml.jar
                    commons-discovery.jar
                    commons-httpclient.jar
                    commons-httpclient-2.0.jar
@@ -209,8 +214,6 @@
                    wsdl4j.jar
                    xalan.jar
                    xalan-2.4.1.jar
-                   xercesImpl-2.7.1.jar
-                   xerces-2.7.1-xml-apis.jar
                    xmlrpc-1.1.jar
                    "/>
 
@@ -332,6 +335,7 @@
     <pathelement path="${lib.home}/saaj-api.jar" />
     <pathelement path="${lib.home}/saaj-impl.jar" />
     <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
+    <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
     <pathelement path="${lib.home}/dom.jar" />
 <!--
     <pathelement path="${lib.home}/ELNClient.jar" />
@@ -343,8 +347,9 @@
     <pathelement path="${lib.home}/tufts/TuftsOSIDTypes.jar"/>
 
     <!-- I'm not sure it's safe to include a prior build's class files in the current build's
-         classpath - can we remove this? SMF 8/5/05 -->
-    <pathelement path="${lib.home}/tufts/VUE-core.jar" />
+         classpath - can we remove this? SMF 8/5/05.
+      If we were to require this, the build would never work from scratch! -->
+    <!-- pathelement path="${lib.home}/tufts/VUE-core.jar" / -->
     
     <pathelement path="${lib.home}/srw/srw.jar"/>
     <pathelement path="${lib.home}/uva/UvaOSIDTypes.jar"/>
@@ -370,8 +375,6 @@
     <pathelement path="${lib.home}/log4j-1.2.4.jar" />
     <pathelement path="${lib.home}/saaj.jar" />
     <pathelement path="${lib.home}/xalan.jar" />
-    <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
-    <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
 
     <pathelement path="${lib.home}" />
     <pathelement path="${lib.home}/iPhotos" />
