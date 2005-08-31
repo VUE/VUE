@@ -230,7 +230,7 @@ public class LWCToolPanel extends JPanel
          buildBox();
          add(mBox);
          initDefaultState();
-         out("CONSTRUCTED.");
+         if (DEBUG.INIT) out("CONSTRUCTED.");
     }
 
     /*
@@ -277,7 +277,7 @@ public class LWCToolPanel extends JPanel
     protected void initDefaultState() {
         //System.out.println("NodeToolPanel.initDefaultState");
         mDefaultState = getDefaultState();
-        if (DEBUG.Enabled) out("default state initialized to " + mDefaultState);
+        if (DEBUG.INIT) out("default state initialized to " + mDefaultState);
         loadValues(mDefaultState);
     }
 

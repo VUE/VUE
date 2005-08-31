@@ -1833,12 +1833,13 @@ public class LWComponent
      (return super.paramString() + new info) */
     public String paramString()
     {
-        return " " + x+","+y
-            +  " " + width + "x" + height;
+        return
+            //" " + x+","+y +
+            VueUtil.oneDigitDecimal(width) + "x" + VueUtil.oneDigitDecimal(height);
     }
 
     protected void out(String s) {
-        System.out.println(this + ": " + s);
+        System.out.println(this + " " + s);
     }
     /*
     static protected void out(Object o) {
@@ -1854,20 +1855,21 @@ public class LWComponent
     {
         String cname = getClass().getName();
         String s = cname.substring(cname.lastIndexOf('.')+1);
-        s += "[" + getID();
-        if (getID() != null && getID().length() < 2)
-            s += " ";
+        s += "[";
+        if (getID() != null)
+            s += VueUtil.pad(' ', 2, getID()) + " ";
         if (getLabel() != null) {
             if (isAutoSized())
-                s += " \"" + getDisplayLabel() + "\"";
+                s += "\"" + getDisplayLabel() + "\" ";
             else
-                s += " (" + getDisplayLabel() + ")";
+                s += "(" + getDisplayLabel() + ") ";
         }
         if (getScale() != 1f)
-            s += " z" + getScale();
-        s += paramString();
+            s += "z" + getScale() + " ";
+        s += paramString() + " ";
         if (getResource() != null)
-            s += " <" + getResource() + ">";
+            s += getResource();
+        //s += " <" + getResource() + ">";
         s += "]";
         return s;
     }

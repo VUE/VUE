@@ -156,13 +156,13 @@ public class LWCEvent
     public String toString()
     {
         String s = "LWCEvent[" + key
-            + " s=" + source;
+            + " " + source;
         
         if (component != null && component != source)
             s += " c:" + component;
         //basic information.. if more information wants to be stringfied, need to code this part
         else if (components != null)
-            s += " cl:" + components;
+            s += " l:" + components;
         //s += " ArrayList";
               
         return s + "]";

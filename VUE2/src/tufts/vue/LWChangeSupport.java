@@ -221,7 +221,8 @@ public class LWChangeSupport
             System.err.println("ZOMBIE EVENT: deleted component attempting event notification:"
                                + "\n\tdeleted=" + mClient
                                + "\n\tattempted notification=" + e);
-            new Throwable("ZOMBIE EVENT").printStackTrace();
+            // this situation not so serious at this point: we may have no listeners
+            if (DEBUG.Enabled) new Throwable("ZOMBIE EVENT").printStackTrace();
         }
         
         if (listeners != null && listeners.size() > 0) {

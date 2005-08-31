@@ -119,8 +119,13 @@ public class FontEditorPanel extends Box
         if (mSizeField.getEditor().getEditorComponent() instanceof JTextField) {
             JTextField sizeEditor = (JTextField) mSizeField.getEditor().getEditorComponent();
             sizeEditor.setColumns(2); // not exactly character columns
-            if (!VueUtil.isMacAquaLookAndFeel())
-                sizeEditor.setBackground(VueTheme.getTheme().getMenuBackground());
+            if (!VueUtil.isMacAquaLookAndFeel()) {
+                try {
+                    sizeEditor.setBackground(VueTheme.getTheme().getMenuBackground());
+                } catch (Exception e) {
+                    System.err.println("FontEditorPanel: " + e);
+                }
+            }
             //sizeEditor.setPreferredSize(new Dimension(20,10)); // does squat
             
             // the default size for a combo-box editor field is 9 chars
@@ -228,7 +233,7 @@ public class FontEditorPanel extends Box
     {
         synchronized (sFontNamesLock) {
             if (sFontNames == null){
-                if (DEBUG.Enabled)
+                if (DEBUG.INIT)
                     new Throwable("FYI: loading system fonts...").printStackTrace();
                 sFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
             }
