@@ -65,7 +65,9 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
     /** Creates a new instance of NodeFilterEditor */
     public NodeFilterEditor( NodeFilter nodeFilter,boolean editable) {
         this.nodeFilter = nodeFilter;
-        tufts.vue.VUE.getActiveMap().getMapFilterModel().addListener(this);
+        tufts.vue.LWMap map = tufts.vue.VUE.getActiveMap();
+        if (map != null) 
+            map.getMapFilterModel().addListener(this);
         tufts.vue.VUE.addActiveMapListener(this);
         questionLabel.setToolTipText(this.NODE_FILTER_INFO);
         setNodeFilterPanel();
