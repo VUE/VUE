@@ -16,12 +16,6 @@
  * -----------------------------------------------------------------------------
  */
 
-/*
- * ResourcePropertiesEditor.java
- *
- * Created on February 3, 2004, 8:37 PM
- */
-
 package tufts.vue;
 
 import tufts.vue.gui.VueButton;
@@ -39,10 +33,13 @@ import fedora.server.utilities.DateUtility;
 import java.util.ArrayList;
 
 /**
+ * A field:value editor currently specialized for resource properties displayed on
+ * the object inspector info tab.
  *
  * @author  akumar03
  */
 
+// todo: generalize
 public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     
     PropertiesTableModel tableModel;
@@ -72,8 +69,13 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         // TODO: make table resize with window just like the JTable in the
         // NodeFilterEditor.  
         propertiesTable=new JTable(tableModel);
+        //propertiesTable.setCellSelectionEnabled(true);
+        //propertiesTable.setBackground(Color.red);
+        //propertiesTable.setOpaque(false); // will need to subclass and make transparent the returned renderers
         propertiesTable.setPreferredScrollableViewportSize(new Dimension(200,150));
         propertiesTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        propertiesTable.getColumnModel().getColumn(0).setPreferredWidth(300);
+        propertiesTable.getColumnModel().getColumn(1).setPreferredWidth(700);
         propertiesTable.addFocusListener(new FocusListener() {
             public void focusLost(FocusEvent e) {
                 if(propertiesTable.isEditing()) {
@@ -93,12 +95,14 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
                 }
             }
         });
+
+        
         JScrollPane conditionsScrollPane=new JScrollPane(propertiesTable);
         conditionsScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
         JPanel propertiesPanel=new JPanel();
         propertiesPanel.setLayout(new BorderLayout());
         propertiesPanel.add(conditionsScrollPane, BorderLayout.CENTER);
-        propertiesPanel.setBorder(BorderFactory.createEmptyBorder(8,0,3,0));
+        propertiesPanel.setBorder(BorderFactory.createEmptyBorder(2,0,3,0));
         
         
         // setting the properties editor for fields
@@ -156,8 +160,21 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     }
     
     public void setProperties(Properties properties,boolean editable) {
+
+        tableModel.setEditable(editable);
+        tableModel.setProperties(properties);
+
+        /*
         tableModel = new PropertiesTableModel(properties,editable);
+        // todo: do NOT set a new table model here: just tell
+        // the old one to load new data and send a refresh.
+        // That way user dragged settings of column widths
+        // aren't blown away every time we display new data.
         propertiesTable.setModel(tableModel);
+        propertiesTable.getColumnModel().getColumn(0).setPreferredWidth(300);
+        propertiesTable.getColumnModel().getColumn(1).setPreferredWidth(700);
+        */
+
         if(tableModel.isEditable()) {
             addPropertyButton.setEnabled(true);
             deletePropertyButton.setEnabled(true);
@@ -179,13 +196,15 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     }
     
     public void clear() {
-        setProperties(new Properties(), true);
+        //setProperties(new Properties(), tableModel.isEditable());
+        tableModel.setProperties(new Properties());
     }
     
     public PropertiesTableModel getPropertiesTableModel() {
         return tableModel;
     }
     // a model for Properties table
+    private static String PROPERTY_NOT_SET = "";
     public class PropertiesTableModel extends AbstractTableModel {
         java.util.List m_conditions;
         Properties properties;
@@ -228,10 +247,15 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
                 cond.setValue(properties.getProperty(key));
                 m_conditions.add(cond);
             }
-            
-            if(m_conditions.size() == 0) {
-                addProperty(DC_FIELDS[0], "");
-            }
+
+            if (isEditable() && m_conditions.size() == 0)
+                addProperty(DC_FIELDS[0], PROPERTY_NOT_SET);
+
+            fireTableDataChanged();
+        }
+
+        public void setEditable(boolean canEdit) {
+            this.editable = canEdit;
         }
         
         
@@ -273,12 +297,13 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             cond.setProperty(key);
             cond.setOperator(ComparisonOperator.eq);
             cond.setValue(value);
-            properties.put(key, value);
+            if (value != PROPERTY_NOT_SET)
+                properties.put(key, value);
             m_conditions.add(cond);
             fireTableDataChanged();
         }
         public void addDefaultProperty() {
-            addProperty(DC_FIELDS[0], "");
+            addProperty(DC_FIELDS[0], PROPERTY_NOT_SET);
         }
         
         
