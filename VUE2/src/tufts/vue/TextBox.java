@@ -367,7 +367,7 @@ class TextBox extends JTextPane
             if (e.isShiftDown())
                 setText(t.toUpperCase()); // upper whole string
             else
-                setText(Character.toUpperCase(t.charAt(0)) + t.substring(1)); // upper first char
+                setText(Character.toTitleCase(t.charAt(0)) + t.substring(1)); // upper first char
         } else
             keyWasPressed = true;
     }
