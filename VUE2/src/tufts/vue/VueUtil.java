@@ -29,23 +29,38 @@ import javax.swing.border.*;
 public class VueUtil extends tufts.Util
 {
     private static String currentDirectoryPath = "";
+    private static String VueExtension = null;
     
     public static void openURL(String platformURL)
         throws java.io.IOException
     {
+        if (VueExtension == null) {
+            VueExtension = VueResources.getString("vue.extension");
+            if (VueExtension == null)
+                VueExtension = ".vue";
+            else
+                VueExtension = VueExtension.toLowerCase();
+        }
+
         // todo: spawn this in another thread just in case it hangs
         
-        System.err.println("Opening URL [" + platformURL + "]");
+        System.err.println("Opening URL  [" + platformURL + "]");
         
-        if (platformURL.endsWith(VueResources.getString("vue.extension"))) {
+        if (platformURL.toLowerCase().endsWith(VueExtension)) {
             if (platformURL.startsWith("resource:")) {
                 java.net.URL url = VueResources.getURL(platformURL.substring(9));
                 VUE.displayMap(tufts.vue.action.OpenAction.loadMap(url));
             }
             try {
                 tufts.vue.VUE.displayMap(new File(new java.net.URL(platformURL).getFile()));
-            } catch(Exception ex) {
-                tufts.Util.openURL(platformURL);
+            } catch (java.net.MalformedURLException e) {
+                System.out.println(e + " " + platformURL);
+                try {
+                    tufts.vue.VUE.displayMap(new File(platformURL));
+                } catch (Exception ex) {
+                    System.out.println(ex + " " + platformURL);
+                    tufts.Util.openURL(platformURL);
+                }
             }
         } else {
             if (VUE.isApplet()) {
@@ -390,6 +405,8 @@ public class VueUtil extends tufts.Util
     }
 
     public static String pad(char c, int wide, String s) {
+        if (s.length() >= wide)
+            return s;
         int pad = wide - s.length();
         StringBuffer buf = new StringBuffer(wide);
         while (pad-- > 0) {
@@ -398,7 +415,73 @@ public class VueUtil extends tufts.Util
         buf.append(s);
         return buf.toString();
     }
+
+
+    public static void dumpBytes(String s) {
+        try {
+            dumpBytes(s.getBytes("UTF-8"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void dumpBytes(byte[] bytes) {
+        for (int i = 0; i < bytes.length; i++) {
+            byte b = bytes[i];
+            System.out.println("byte " + (i<10?" ":"") + i
+                               + " (" + ((char)b) + ")"
+                               + " " + pad(' ', 4, new Byte(b).toString())
+                               + "  " + pad(' ', 2, Integer.toHexString( ((int)b) & 0xFF))
+                               + "  " + pad('X', 8, toBinary(b))
+                               );
+        }
+    }
     
+    public static String toBinary(byte b) {
+        StringBuffer buf = new StringBuffer(8);
+        buf.append((b & (1<<7)) == 0 ? '0' : '1');
+        buf.append((b & (1<<6)) == 0 ? '0' : '1');
+        buf.append((b & (1<<5)) == 0 ? '0' : '1');
+        buf.append((b & (1<<4)) == 0 ? '0' : '1');
+        buf.append((b & (1<<3)) == 0 ? '0' : '1');
+        buf.append((b & (1<<2)) == 0 ? '0' : '1');
+        buf.append((b & (1<<1)) == 0 ? '0' : '1');
+        buf.append((b & (1<<0)) == 0 ? '0' : '1');
+	return buf.toString();
+    }
+    
+    public static void dumpString(String s) {
+        char[] chars = s.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            int cv = (int) chars[i];
+            System.out.println("char " + (i<10?" ":"") + i
+                               + " (" + chars[i] + ")"
+                               + " " + pad(' ', 6, new Integer(cv).toString())
+                               + " " + pad(' ', 4, Integer.toHexString(cv))
+                               + "  " + pad('0', 16, Integer.toBinaryString(cv))
+                               );
+        }
+    }
+    
+
+    
+    public static Map getQueryData(String query) {
+        String[] pairs = query.split("&");
+        Map map = new HashMap();
+        for (int i = 0; i < pairs.length; i++) {
+            String pair = pairs[i];
+            if (DEBUG.Enabled) System.out.println("query pair " + pair);
+            int eqIdx = pair.indexOf('=');
+            if (eqIdx > 0) {
+                String key = pair.substring(0, eqIdx);
+                String value = pair.substring(eqIdx+1, pair.length());
+                map.put(key.toLowerCase(), value);
+            }
+        }
+        return map;
+    }
+    
+
     
     public static void alert(javax.swing.JComponent component,String message,String title) {
         javax.swing.JOptionPane.showMessageDialog(component,message,title,javax.swing.JOptionPane.ERROR_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));                                      
