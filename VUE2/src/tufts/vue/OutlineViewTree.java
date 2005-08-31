@@ -223,8 +223,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, LWSe
     /**A method for handling a LWC event*/
     public void LWCChanged(LWCEvent e)
     {
-        System.out.println(this + " Lwc+" +e);
-
         if (e.getComponent() instanceof LWPathway)
             return;
 
