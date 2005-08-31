@@ -41,8 +41,9 @@ public class LWImage extends LWComponent
     private int mImageWidth = -1;
     private int  mImageHeight = -1;
     private double rotation = 0;
-    private Point2D.Float offset = new Point2D.Float(); // x & y always <= 0
+    private Point2D.Float mOffset = new Point2D.Float(); // x & y always <= 0
     private Object mThreadedUndoKey;
+    private boolean mImageError = false;
     
     //private LWIcon.Resource resourceIcon = new LWIcon.Resource(this);
     private transient LWIcon.Block mIconBlock =
@@ -69,7 +70,11 @@ public class LWImage extends LWComponent
         // todo: if had list of property keys in object, LWComponent
         // could handle all the duplicate code.
         LWImage i = (LWImage) super.duplicate();
-        i.setOffset(this.offset);
+        i.mImage = mImage;
+        i.mImageWidth = mImageWidth;
+        i.mImageHeight = mImageHeight;
+        i.mImageError = mImageError;
+        i.setOffset(this.mOffset);
         i.setRotation(this.rotation);
         return i;
     }
@@ -102,53 +107,74 @@ public class LWImage extends LWComponent
     // todo: find a better way to do this than passing in an undo manager, which is dead ugly
     public void setResource(Resource r, UndoManager undoManager) {
         super.setResource(r);
-        if (r instanceof MapResource) {
+        if (r instanceof MapResource)
+            loadImage((MapResource)r, undoManager);
+    }
 
-            final MapResource mr = (MapResource) r;
+    private void loadImage(MapResource mr, UndoManager undoManager)
+    {
+        // todo: have the LWMap make a call at the end of a
+        // restore to all LWComponents telling them to start
+        // loading any media they need.  Pass in a media tracker
+        // that the LWMap and/or MapViewer can use to track/report
+        // the status of loading, and know when it's 100%
+        // complete.
 
-            // todo: have the LWMap make a call at the end of a
-            // restore to all LWComponents telling them to start
-            // loading any media they need.  Pass in a media tracker
-            // that the LWMap and/or MapViewer can use to track/report
-            // the status of loading, and know when it's 100%
-            // complete.
-
-            try {
+        if (DEBUG.IMAGE) out("getImage");
                 
-                Image image = java.awt.Toolkit.getDefaultToolkit().getImage(mr.toURL());
-
-                // don't bother set mImage here: JVM's no longer do drawing of available bits
-                
-                if (java.awt.Toolkit.getDefaultToolkit().prepareImage(image, -1, -1, this)) {
-                    out("ALREADY LOADED");
-                    mImage = image;
-                    mImageWidth = image.getWidth(null);
-                    mImageHeight = image.getHeight(null);
-                    if (getAbsoluteWidth() < 10 && getAbsoluteHeight() < 10)
-                        setSize(mImageWidth, mImageHeight);
-                } else {
-                    mDebugChar = sDebugChar;
-                    if (++sDebugChar > 'Z')
-                        sDebugChar = 'A';
-                    // save a key that marks the current location in the undo-queue,
-                    // to be applied to the subsequent thread that make calls
-                    // to imageUpdate, so that all further property changes eminating
-                    // from that thread are applied to the same location in the undo queue.
-                    if (undoManager == null)
-                        mThreadedUndoKey = UndoManager.getKeyForUpcomingMark(this);
-                    else
-                        mThreadedUndoKey = undoManager.getKeyForUpcomingMark();
-                }
-                    
-                /*
-                new UndoableThread(mr + " LWImage loader") {
-                    public void run() { loadImageAsync(mr); }
-                }.start();
-                */
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        Image image = null;
+        try {
+            // will need to put this in a thread: if the host isn't responding,
+            // we hang here for a while.  It will apparently ALWAYS eventually
+            // get an Image object, but then we just get an eventually callback to
+            // imageUpdate with an error code.
+            image = java.awt.Toolkit.getDefaultToolkit().getImage(mr.toURL());
+        } catch (java.net.MalformedURLException e) {
+            out("BAD MapResource URL " + mr);
+            e.printStackTrace();
+            return;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
+        // don't bother to set mImage here: JVM's no longer do drawing of available bits
+
+        if (DEBUG.IMAGE) out("prepareImage");
+                
+        if (java.awt.Toolkit.getDefaultToolkit().prepareImage(image, -1, -1, this)) {
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("ALREADY LOADED");
+            mImage = image;
+            mImageWidth = image.getWidth(null);
+            mImageHeight = image.getHeight(null);
+            if (getAbsoluteWidth() < 10 && getAbsoluteHeight() < 10)
+                setSize(mImageWidth, mImageHeight);
+        } else {
+            mDebugChar = sDebugChar;
+            if (++sDebugChar > 'Z')
+                sDebugChar = 'A';
+            // save a key that marks the current location in the undo-queue,
+            // to be applied to the subsequent thread that make calls
+            // to imageUpdate, so that all further property changes eminating
+            // from that thread are applied to the same location in the undo queue.
+            if (undoManager == null)
+                mThreadedUndoKey = UndoManager.getKeyForUpcomingMark(this);
+            else
+                mThreadedUndoKey = undoManager.getKeyForUpcomingMark();
+        }
+    }
+
+    public void setSize(float w, float h) {
+        super.setSize(w, h);
+        // Even if we don't have an image yet, we need to keep these set in case user attemps to resize the frame.
+        // They can still crop down if they like, but this prevents them from making it any bigger.
+        if (mImageWidth < 0)
+            mImageWidth = (int) getAbsoluteWidth();
+        if (mImageHeight < 0)
+            mImageHeight = (int) getAbsoluteHeight();
+    }
+
+    public boolean isCropped() {
+        return mOffset.x < 0 || mOffset.y < 0;
     }
 
 
@@ -156,21 +182,43 @@ public class LWImage extends LWComponent
     private char mDebugChar;
     public boolean imageUpdate(Image img, int flags, int x, int y, int width, int height)
     {
+        if ((flags & ImageObserver.ERROR) != 0) {
+            if (DEBUG.IMAGE) out("ERROR");
+            mImageError = true;
+            // set image dimensions so if we resize w/out image it works
+            mImageWidth = (int) getAbsoluteWidth();
+            mImageHeight = (int) getAbsoluteHeight();
+            return false;
+        }
+            
+        Thread thread = Thread.currentThread();
+
         if ((flags & ImageObserver.SOMEBITS) == 0) {
-            Thread t = Thread.currentThread();
-            System.out.println("\n" + getResource() + " (" + flags + ") "
-                               + t + " 0x" + Integer.toHexString(t.hashCode())
-                               + " " + sun.awt.AppContext.getAppContext()
-                               );
-        } else
-            System.err.print(mDebugChar);
+            if (DEBUG.IMAGE || DEBUG.THREAD)
+                System.out.println("\n" + getResource() + " (" + flags + ") "
+                                   + thread + " 0x" + Integer.toHexString(thread.hashCode())
+                                   + " " + sun.awt.AppContext.getAppContext()
+                                   );
+        } else {
+            if (DEBUG.IMAGE || DEBUG.THREAD) System.err.print(mDebugChar);
+        }
         
         if ((flags & ImageObserver.WIDTH) != 0 && (flags & ImageObserver.HEIGHT) != 0) {
             mImageWidth = width;
             mImageHeight = height;
+            if (DEBUG.IMAGE || DEBUG.THREAD) System.out.println(getResource() + " GOT SIZE " + width + "x" + height);
+
+            // For the events triggered by the setSize below, make sure they go
+            // to the right point in the undo queue.
             UndoManager.attachCurrentThreadToMark(mThreadedUndoKey);
-            System.out.println(getResource() + " SETSIZE");
-            setSize(width, height);
+            
+            // If we're interrupted before this happens, and this is the drop of a new image,
+            // we'll see a zombie event complaint from this setSize which is safely ignorable.
+            // todo: suspend events if our thread was interrupted
+            if (isCropped() == false) {
+                // don't set size if we are cropped: we're probably reloading from a saved .vue
+                setSize(width, height);
+            }
             layout();
             notify(LWKey.RepaintAsync);
         }
@@ -186,6 +234,14 @@ public class LWImage extends LWComponent
                 mThreadedUndoKey = null;
             }
             return false;
+        }
+
+        if (Thread.interrupted()) {
+            if (DEBUG.IMAGE || DEBUG.THREAD)
+                System.err.println("\n" + getResource() + " *** INTERRUPTED *** (lowering priority) " + thread);
+            thread.setPriority(Thread.MIN_PRIORITY);
+            return true; // let it finish anyway
+            //return false;
         } else
             return true;
     }
@@ -227,10 +283,10 @@ public class LWImage extends LWComponent
      */
     public void userSetSize(float width, float height) {
         if (DEBUG.IMAGE) out("userSetSize0 " + width + "x" + height);
-        if (mImageWidth + offset.x < width)
-            width = mImageWidth + offset.x;
-        if (mImageHeight + offset.y < height)
-            height = mImageHeight + offset.y;
+        if (mImageWidth + mOffset.x < width)
+            width = mImageWidth + mOffset.x;
+        if (mImageHeight + mOffset.y < height)
+            height = mImageHeight + mOffset.y;
         if (width < MinWidth)
             width = MinWidth;
         if (height < MinHeight)
@@ -261,7 +317,7 @@ public class LWImage extends LWComponent
                 y -= MinHeight - h;
             h = MinHeight;
         }
-        Point2D.Float off = new Point2D.Float(offset.x, offset.y);
+        Point2D.Float off = new Point2D.Float(mOffset.x, mOffset.y);
         off.x += getX() - x;
         off.y += getY() - y;
         //if (DEBUG.IMAGE) out("tmpoff " + VueUtil.out(off));
@@ -301,16 +357,16 @@ public class LWImage extends LWComponent
         };
 
     public void setOffset(Point2D p) {
-        if (p.getX() == offset.x && p.getY() == offset.y)
+        if (p.getX() == mOffset.x && p.getY() == mOffset.y)
             return;
-        Object oldValue = new Point2D.Float(offset.x, offset.y);
+        Object oldValue = new Point2D.Float(mOffset.x, mOffset.y);
         if (DEBUG.IMAGE) out("LWImage setOffset " + VueUtil.out(p));
-        this.offset.setLocation(p.getX(), p.getY());
+        this.mOffset.setLocation(p.getX(), p.getY());
         notify(Key_ImageOffset, oldValue);
     }
 
     public Point2D getOffset() {
-        return new Point2D.Float(offset.x, offset.y);
+        return new Point2D.Float(mOffset.x, mOffset.y);
     }
     
     public int getImageWidth() {
@@ -370,19 +426,24 @@ public class LWImage extends LWComponent
     }
 
     private static final AlphaComposite MatteTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+    private static final Color ErrorColor = new Color(255,128,128, 64);
 
     protected void drawImage(DrawContext dc)
     {
         if (mImage == null) {
             float w = getWidth();
             float h = getHeight();
-            dc.g.setColor(Color.darkGray);
+            if (mImageError)
+                dc.g.setColor(ErrorColor);
+            else
+                dc.g.setColor(Color.darkGray);
             dc.g.fillRect(0, 0, (int)w, (int)h);
-            //dc.g.drawRect(0, 0, (int)w, (int)h); // can't see this line at small scales
+            dc.g.setColor(Color.lightGray);
+            dc.g.drawRect(0, 0, (int)w, (int)h); // can't see this line at small scales
             return;
         }
         
-        AffineTransform transform = AffineTransform.getTranslateInstance(offset.x, offset.y);
+        AffineTransform transform = AffineTransform.getTranslateInstance(mOffset.x, mOffset.y);
         if (rotation != 0 && rotation != 360)
             transform.rotate(rotation, getImageWidth() / 2, getImageHeight() / 2);
         
@@ -416,16 +477,20 @@ public class LWImage extends LWComponent
     public void controlPointPressed(int index, MapMouseEvent e)
     {
         //out("control point " + index + " pressed");
-        offsetStart = new Point2D.Float(offset.x, offset.y);
+        offsetStart = new Point2D.Float(mOffset.x, mOffset.y);
         locationStart = new Point2D.Float(getX(), getY());
         dragStart = e.getMapPoint();
-        imageStart = new Point2D.Float(getX() + offset.x, getY() + offset.y);
+        imageStart = new Point2D.Float(getX() + mOffset.x, getY() + mOffset.y);
     }
     
     /** interface ControlListener handler */
     public void controlPointMoved(int index, MapMouseEvent e)
     {
         if (index == 0) {
+
+            if (mImageError) // don't let user play with offset if no image visible
+                return;
+            
             float deltaX = dragStart.x - e.getMapX();
             float deltaY = dragStart.y - e.getMapY();
             Point2D.Float off = new Point2D.Float();
@@ -472,11 +537,11 @@ public class LWImage extends LWComponent
     private void constrainLocationToImage(Point2D.Float loc, Point2D.Float off)
     {
         if (off.x > 0) {
-            loc.x += offset.x;
+            loc.x += mOffset.x;
             off.x = 0;
         }
         if (off.y > 0) {
-            loc.y += offset.y;
+            loc.y += mOffset.y;
             off.y = 0;
         }
         // absolute image image location should never change from imageStart
