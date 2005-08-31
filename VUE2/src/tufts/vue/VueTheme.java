@@ -144,7 +144,7 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
      */
     public static class VueTabbedPaneUI extends MetalTabbedPaneUI {
         public static ComponentUI createUI( JComponent x ) {
-            if (DEBUG.Enabled) System.out.println("Creating VueTabbedPaneUI");
+            if (DEBUG.INIT) System.out.println("Creating VueTabbedPaneUI");
             return new VueTabbedPaneUI();
         }  
         protected void paintFocusIndicator(Graphics g, int tabPlacement,
