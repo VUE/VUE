@@ -124,19 +124,42 @@ public class Util
     private static void openURL_Windows(String url)
         throws java.io.IOException
     {
-        System.out.println("openURL_Windows[" + url + "]");
+        System.err.println("openURL_Win  [" + url + "]");
 
         // On at least Windows 2000, %20's don't work when given to url.dll FileProtocolHandler
+        // (Should be using some kind of URLProtocolHanlder ?)
         
         // Also at least Win2K: file:///C:/foo/bar.html works, but start that with file:/ or file://
         // and it DOES NOT work -- you MUST have the three slashes, OR, you can have NO SLASHES,
         // and it will work... (file:C:/foo/bar.html)
         // ALSO, file:// or // file:/// works BY ITSELF (file:/ by itself still doesn't work).
         
-        url = url.replaceAll("%20", " ");
-        url = url.replaceFirst("^file:/+", "file:");
+        //url = url.replaceAll("%20", " ");
+        url = decodeURL(url);
+        url = decodeURL(url); // run twice in case any %2520 double encoded spaces
+        if (url.toLowerCase().startsWith("file:")) {
+            // below works, but we're doing a full conversion to windows path names now
+            //url = url.replaceFirst("^file:/+", "file:");
+            url = url.replaceFirst("^file:/+", "");
+            url = url.replace('/', '\\');
+            char c1 = 0;
+            try { c1 = url.charAt(1); } catch (StringIndexOutOfBoundsException e) {}
+            if (c1 == ':' || c1 == '|') {
+                // Windows drive letter specification, e.g., "C:".
+                // Also, I've seen D|/dir/file.txt in a shortcut file, so we allow that too.
+                // In any case, we do noting: this string should be workable to url.dll
+            } else {
+                // if this does NOT start with a drive specification, assume
+                // the first component is a host for a windows network
+                // drive, and thus we have to pre-pend \\ to it, to get \\host\file
+                url = "\\\\" + url; 
+            }
+            // at this point, "url" is really just a local windows file
+            // in full windows syntax (backslashes, drive specs, etc)
+        }
+
         String cmd = PC_OPENURL_CMD + " " + url;
-        System.out.println("exec[" + cmd + "]");
+        System.err.println("exec[" + cmd + "]");
         Process p = Runtime.getRuntime().exec(cmd);
         if (false) {
             try {
@@ -153,14 +176,18 @@ public class Util
     private static void openURL_Mac(String url)
         throws java.io.IOException
     {
+        // In Mac OS X, you MUST have %20 and NO spaces in the URL's -- reverse of Windows.
+        // (Actually, that may only be for local files?).
+        
         url = url.replaceAll(" ", "%20");
-        System.err.println("Opening Mac URL: [" + url + "]");
+        System.err.println("openURL_Mac  [" + url + "]");
         if ( (url.indexOf(':') < 0) && (!(url.startsWith("/"))) ) {
+            // Hack to make relative references relative to user home directory.
             // OSX won't default to use current directory
             // for a relative reference, so we prepend
             // the current directory manually.
             url = "file://" + System.getProperty("user.dir") + "/" + url;
-            System.err.println("Opening Mac URL: [" + url + "]");
+            System.err.println("openURL_Mac  [" + url + "]");
         }
         if (getJavaVersion() >= 1.4f) {
             // Can't call this directly because wont compile on the PC
@@ -224,6 +251,55 @@ public class Util
         }
     }
 
+
+    /**
+     * Fast impl of replacing %xx hexidecimal codes with actual characters (e.g., %20 is a space, %2F is '/').
+     * Leaves untouched any bad hex digits, or %xx strings that represent control characters (less than space/0x20
+     * or greater than tilde/0x7E).
+     *
+     * @return String with replaced %xx codes.  If there are no '%' characters in the input string,
+     * the original String object is returned.
+     */
+    public static String decodeURL(final String s)
+    {
+        //System.out.println("DECODING " + s);
+        int i = s.indexOf('%');
+        if (i < 0)
+            return s;
+        final int len = s.length();
+        final StringBuffer buf = new StringBuffer(len);
+        // copy in everything we've skipped in the original string up to now
+        buf.append(s.substring(0, i));
+        //System.out.println("DECODE START " + buf);
+        for ( ; i < len; i++) {
+            final char c = s.charAt(i);
+            if (c == '%' && i+2 < len) {
+                final int hex1 = Character.digit(s.charAt(++i), 16);
+                final int hex2 = Character.digit(s.charAt(++i), 16);
+                final char charValue = (char) (hex1 * 16 + hex2);
+                
+                //System.out.println("Got char value " + charValue + " from " + c1 + c2);
+                
+                if (hex1 < 1 || hex2 < 0 || charValue < 0x20 || charValue > 0x7E) {
+                    // Pass through untouched if not two good hex characters (and first can't be 0),
+                    // or if result is a control character (anything less than space, or greater than '~')
+                    buf.append('%');
+                    buf.append(s.charAt(i-1));
+                    buf.append(s.charAt(i));
+                } else {
+                    buf.append(charValue);
+                }
+            } else
+                buf.append(c);
+        }
+        if (true) {
+            System.out.println("DECODED      [" + s + "]");
+            System.out.println("             [" + buf + "]");
+        }
+        return buf.toString();
+    }
+
+    
     public static java.util.Iterator EmptyIterator = new java.util.Iterator() {
             public boolean hasNext() { return false; }
             public Object next() { throw new NoSuchElementException(); }
