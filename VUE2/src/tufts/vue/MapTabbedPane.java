@@ -29,6 +29,10 @@ import javax.swing.border.*;
  * keeping tab labels current & custom appearance tweaks.
  */
 
+// todo: need to figure out how to have the active map grab
+// the focus if no other map has focus: switching tabs
+// changes the map you're looking it, and it's set to
+// the active map, but it doesn't get focus unless you click on it!
 public class MapTabbedPane extends JTabbedPane
     implements LWComponent.Listener, FocusListener, MapViewer.Listener
 {
