@@ -119,29 +119,18 @@ public class MapTabbedPane extends JTabbedPane
     private String viewerToTabTitle(MapViewer viewer) {
         String title = mapToTabTitle(viewer.getMap());
 
+        // Present the zoom factor as a percentange
+        
         title += " (";
-        if (viewer.getZoomFactor() < 1) {
-            // Present the zoom factor as a percentange
-            // truncated down to 1 digit
-            int displayZoom = (int) Math.round(viewer.getZoomFactor() * 1000);
-            if ((displayZoom / 10) * 10 == displayZoom)
-                title += (displayZoom / 10);
-            else
-                title += (((float) displayZoom) / 10f);
-            title += "%";
+        double zoomPct = viewer.getZoomFactor() * 100;
+        if (zoomPct < 10) {
+            // if < 10% zoom, show with 1 digit of decimal value if it would be non-zero
+            title += VueUtil.oneDigitDecimal(zoomPct);
         } else {
-            title += (int) Math.round(viewer.getZoomFactor() * 100) + "%";
-            /*
-            title += "x";
-            int displayZoom = (int) Math.round(viewer.getZoomFactor() * 10);
-            if ((displayZoom / 10) * 10 == displayZoom)
-                title += (displayZoom / 10);
-            else
-                title += (((float) displayZoom) / 10f);
-            */
+            //title += (int) Math.round(zoomPct);
+            title += (int) Math.floor(zoomPct + 0.49);
         }
-        title += ")";
-        return title;
+        return title + "%)";
     }
 
     private void updateTitleTextAt(int i) {
