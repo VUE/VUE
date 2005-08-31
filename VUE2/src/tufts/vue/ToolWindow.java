@@ -131,7 +131,7 @@ public class ToolWindow
         public void setSize(int width, int height) { ToolWindow.this.setSize(width, height); }
         public void setSuperSize(int width, int height) { super.setSize(width, height); }
         public void setSuperVisible(boolean show) {
-            if (DEBUG.Enabled) out("setSuperVisible [" + getTitle() + "] (detach immediate)");
+            if (DEBUG.TOOL) out("setSuperVisible [" + getTitle() + "] (detach immediate)");
             if (show == false) {
                 // if going invisible, must be sure to detach from a Cocoa established parent or
                 // parent will going invisible also!
@@ -141,11 +141,11 @@ public class ToolWindow
         }
 
         private void handleShown() {
-            if (DEBUG.Enabled) out("handleShown [" + getTitle() + "] (attach later)");
+            if (DEBUG.TOOL) out("handleShown [" + getTitle() + "] (attach later)");
             attachToMainWindow(getTitle());
         }
         private void handleHidden() {
-            if (DEBUG.Enabled) out("handleHidden [" + getTitle() + "] (noop)");
+            if (DEBUG.TOOL) out("handleHidden [" + getTitle() + "] (noop)");
 
             // As of Mac OS X Tiger (at least 10.4.2), hiding a window
             // (via java setVisible) that has been attached to a
@@ -670,7 +670,7 @@ public class ToolWindow
                 return super.processKeyBinding(ks, e, condition, pressed);
                 
 
-            if (DEBUG.Enabled||DEBUG.FOCUS) System.out.println("TWCP PKB " + ks + " condition="+condition);
+            if (DEBUG.TOOL||DEBUG.FOCUS) System.out.println("TWCP PKB " + ks + " condition="+condition);
             // processKeyBinding never appears to return true, and t his damn key event never
             // gets marked as consumed (I guess we'd have to listen for that in our text fields
             // and consume it), so we're always passing the damn character up the tree...
@@ -679,7 +679,7 @@ public class ToolWindow
             // Condition usually comes in as WHEN_ANCESTOR_OF_FOCUSED_COMPONENT (1), which doesn't do it for us.
             // We need condition (2): WHEN_IN_FOCUSED_WINDOW
             condition = JComponent.WHEN_IN_FOCUSED_WINDOW;
-            if (DEBUG.Enabled||DEBUG.FOCUS) System.out.println("     PKB " + ks + " handing to VueMenuBar w/condition=" + condition);
+            if (DEBUG.TOOL||DEBUG.FOCUS) System.out.println("     PKB " + ks + " handing to VueMenuBar w/condition=" + condition);
             return VUE.getJMenuBar().doProcessKeyBinding(ks, e, condition, pressed);
         }
         

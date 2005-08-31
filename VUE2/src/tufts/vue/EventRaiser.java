@@ -62,6 +62,7 @@ public abstract class EventRaiser
             }
         }
         */
+        //long start = System.currentTimeMillis();
         Frame frames[] = Frame.getFrames();
         for (int fi = 0; fi < frames.length; fi++) {
             Frame frame = frames[fi];
@@ -74,6 +75,8 @@ public abstract class EventRaiser
                 }
             }
         }
+        //long delta = System.currentTimeMillis() - start;
+        //System.out.println("EventRaiser: " + delta + "ms delivery");
     }
 
     abstract void dispatch(Object listener);

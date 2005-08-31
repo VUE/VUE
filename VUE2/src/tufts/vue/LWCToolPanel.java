@@ -99,7 +99,7 @@ public class LWCToolPanel extends JPanel
 
     public LWCToolPanel()
     {
-        if (DEBUG.Enabled) out("Constructing...");
+        if (DEBUG.INIT) out("Constructing...");
         if (DEBUG.INIT&&DEBUG.META) new Throwable(toString()).printStackTrace();
         
          setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
