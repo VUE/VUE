@@ -561,8 +561,10 @@ implements ConceptMap//, Printable
         }
         // consider flushing bounds if layout() called also (any child layout bubbles up to us)
         // todo pref: should be safe to only do this if a size, location or scale, hide or filter event.
-        String what = e.getWhat();
-        if (what == LWKey.Repaint || what == LWKey.Scale) {
+        // TODO: make the key itself know if it's not a modification key!
+        // TODO: the UndoManager already knows if there's been a real change: ask that...
+        String key = e.getWhat();
+        if (key == LWKey.Repaint || key == LWKey.Scale || key == LWKey.RepaintAsync || key == LWKey.RepaintComponent) {
             // nop
             ;
             // repaint is for non-permanent changes.
