@@ -132,6 +132,7 @@ public class MapViewer extends javax.swing.JComponent
     private final VueTool LinkTool = VueToolbarController.getController().getTool("linkTool");
     private final VueTool TextTool = VueToolbarController.getController().getTool("textTool");
     private final VueTool PathwayTool = VueToolbarController.getController().getTool("pathwayTool");
+
     
     //-------------------------------------------------------
     // Scroll-pane support
@@ -142,6 +143,8 @@ public class MapViewer extends javax.swing.JComponent
     private boolean isFirstReshape = true;
     private boolean didReshapeZoomFit = false;
     private static final boolean scrollerCoords = false;// get rid of this
+
+    private final static boolean UseMacFocusBorder = false;
     
     public MapViewer(LWMap map) {
         this(map, "");
@@ -194,10 +197,10 @@ public class MapViewer extends javax.swing.JComponent
         return inScrollPane;
     }
 
-    private JComponent mIndicator = new JPanel();
+    private JComponent mFocusIndicator = new JPanel(); // make sure is never null
     private InputHandler inputHandler = new InputHandler(this);
     private boolean mAddNotifyUnderway = false;
-    
+
     // THIS IS BREAKING US IN JAVA 1.5.0 ON MAC
     public void addNotify()
     {
@@ -235,30 +238,23 @@ public class MapViewer extends javax.swing.JComponent
             // don't know if this every worked: weren't
             // able to even get focus listening to the viewport!
 
-            mIndicator = new JComponent() {
-                    final Color bg = new Color(100,255,111);
-                    final Color line = bg.darker();
-                    public void paintComponent(Graphics g) {
-                        if (VUE.multipleMapsVisible() || DEBUG.Enabled || DEBUG.FOCUS)
-                            paintIcon(g);
-                    }
-                    void paintIcon(Graphics g) {
-                        int w = getWidth();
-                        int h = getHeight();
-                        if (VUE.getActiveViewer() == MapViewer.this) {
-                            g.setColor(bg);
-                            g.fillRect(0,0,w,h);
-                        }
-                        if (MapViewer.this.hasFocus()) {
-                            g.setColor(line);
-                            g.drawLine(w/2, 0, w/2, h);
-                            g.drawLine(0, h/2, w, h/2);
-                            //g.drawLine(1,1, w-2,h-2);
-                            //g.drawLine(1,h-2, w-2,1);
-                        }
-                    }
-                };
-            sp.setCorner(JScrollPane.LOWER_RIGHT_CORNER, mIndicator);
+            mFocusIndicator = new FocusIndicator();
+            sp.setCorner(JScrollPane.LOWER_RIGHT_CORNER, mFocusIndicator);
+            //sp.setViewportBorder(BorderFactory.createLineBorder(Color.red, 1));
+            //sp.setBorder(BorderFactory.createLineBorder(Color.red, 1));
+            
+            if (UseMacFocusBorder) {
+                // Leave default installed special mac focus border.
+                // The Mac Aqua focus border looks fantastic, but we have to
+                // repaint the whole map every time the focus changes to
+                // another map, which is slow.
+            } else if (VueUtil.isMacAquaLookAndFeel()) {
+                if (VueTheme.isMacMetalLAF())
+                     // use same color as mac brushed metal inactive border
+                    sp.setBorder(BorderFactory.createLineBorder(new Color(155,155,155), 1));
+                else
+                    sp.setBorder(null); // no border at all for now for default mac look
+            }
 
         } else {
             //scrollerCoords = false;
@@ -322,16 +318,64 @@ public class MapViewer extends javax.swing.JComponent
         mAddNotifyUnderway = false;
         //VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
     }
+
+
+
+    private static final Color AquaFocusBorderLight = new Color(157, 191, 222);
+    private static final Color AquaFocusBorderDark = new Color(137, 170, 201);
     
-    /*
-    public void requestFocus() {
-        super.requestFocus();
-        if (inScrollPane)
-            mViewport.requestFocus();
-        else
-            super.requestFocus();
+    /** a little box for the lower right of a JScrollPane indicating this viewer's focus state */
+    private class FocusIndicator extends JComponent {
+        final Color fill;
+        final Color line;
+        final static int inset = 4;
+        
+        FocusIndicator() {
+            if (VueUtil.isMacAquaLookAndFeel()) {
+                fill = AquaFocusBorderLight;
+                line = AquaFocusBorderLight.darker();
+                //line = AquaFocusBorderDark;
+            } else {
+                fill = VueTheme.getToolbarColor();
+                line = fill.darker();
+            }
+        }
+        
+        public void paintComponent(Graphics g) {
+            //if (VUE.multipleMapsVisible() || DEBUG.Enabled || DEBUG.FOCUS)
+            paintIcon(g);
+        }
+        
+        void paintIcon(Graphics g) {
+            int w = getWidth();
+            int h = getHeight();
+            
+            // no effect on muddling with mac aqua JScrollPane focus border
+            //((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
+            
+            // fill a block if we own the VUE application focus (Actions apply here)
+            if (VUE.getActiveViewer() == MapViewer.this) {
+                g.setColor(fill);
+                g.fillRect(inset, inset, w-inset*2, h-inset*2);
+            }
+            
+            // Draw a box if we own the KEYBOARD focus, which will
+            // appear as a border to the above block assuming we have
+            // VUE app focus.  Keyboard focus effects special cases
+            // such as holding down the space-bar to trigger the
+            // hand/pan tool, which is not an action, but a key
+            // detected right on the MapViewer.  Also, e.g., the
+            // viewer loses keyboard focus when there is an
+            // activeTextEdit, while keeping VUE app focus.
+            
+            if (MapViewer.this.isFocusOwner()) {
+                g.setColor(line);
+                w--; h--;
+                g.drawRect(inset, inset, w-inset*2, h-inset*2);
+            }
+            //if (DEBUG.FOCUS) out("painted focusIndicator");
+        }
     }
-    */
     
     // todo: temporary till break processTransferable out of MapDropTarget
     // (for paste action)
@@ -840,15 +884,25 @@ public class MapViewer extends javax.swing.JComponent
             fireViewerEvent(MapViewerEvent.PAN);
     }
 
-    void ensureMapVisible()
+    /** at startup make sure the contents of the map are visible in the viewport */
+    private void ensureMapVisible()
     {
         if (getMap().hasChildren()) {
             int count = computeSelection(getVisibleMapBounds(), null).size();
-            if (DEBUG.Enabled) out("count="+count + " in " + getVisibleMapBounds());
+            if (DEBUG.INIT || DEBUG.VIEWER) out("i see " + count + " components in visible map bounds " + getVisibleMapBounds());
             if (count == 0)
                 tufts.vue.ZoomTool.setZoomFit(this);
         }
     }
+    /*
+    private boolean isAnythingCurrentlyVisible()
+    {
+        Rectangle mapRect = mapToScreenRect(getMap().getBounds());
+        Rectangle viewerRect = getBounds(null);
+        return mapRect.intersects(viewerRect);
+    }
+     */
+    
     
     private boolean isDisplayed() {
         if (!isShowing())
@@ -1432,19 +1486,19 @@ public class MapViewer extends javax.swing.JComponent
             //Rectangle viewer = new Rectangle(0,0, getVisibleWidth(), getVisibleHeight()); // FIXME: SCROLLBARS (what's 0,0??)
             Rectangle viewer = getVisibleBounds();
             Box avoid = new Box(viewer.intersection(mapToScreenRect(pAvoidRegion)));
-            Box rollover = new Box(mapToScreenRect(pTipRegion));
+            Box trigger = new Box(mapToScreenRect(pTipRegion));
             
             SwingUtilities.convertPointToScreen(avoid.ul, this);
             SwingUtilities.convertPointToScreen(avoid.lr, this);
-            SwingUtilities.convertPointToScreen(rollover.ul, this);
-            //SwingUtilities.convertPointToScreen(rollover.lr, this); // unused
+            SwingUtilities.convertPointToScreen(trigger.ul, this);
+            //SwingUtilities.convertPointToScreen(trigger.lr, this); // unused
             
             Dimension tip = pJComponent.getPreferredSize();
             
             // Default placement starts from left of component,
             // at same height as the rollover region that triggered us
             // in the component.
-            Point glass = new Point(avoid.ul.x - tip.width,  rollover.ul.y);
+            Point glass = new Point(avoid.ul.x - tip.width,  trigger.ul.y);
             
             if (glass.x < 0) {
                 // if would go off left of screen, try placing above the component
@@ -1456,7 +1510,7 @@ public class MapViewer extends javax.swing.JComponent
                 // if too tall and would then overlap component, move to right of component
                 if (glass.y + tip.height > avoid.ul.y) {
                     glass.x = avoid.lr.x;
-                    glass.y = rollover.ul.y;
+                    glass.y = trigger.ul.y;
                 }
                 // todo: consider moving tall tips from tip to right
                 // of component -- looks ugly having all that on top.
@@ -1806,7 +1860,8 @@ public class MapViewer extends javax.swing.JComponent
                 activeTextEdit = null;
                 try {
                     repaint();
-                    requestFocus();
+                    if (VUE.getActiveViewer() == this)
+                        requestFocus();
                 } finally {
                     VueAction.setAllIgnored(false);
                 }
@@ -3001,18 +3056,25 @@ public class MapViewer extends javax.swing.JComponent
         private Point viewportAtDragStart;
         private boolean mLabelEditWasActiveAtMousePress;
         public void mousePressed(MouseEvent e) {
+            boolean wasFocusOwner = isFocusOwner(); // not doing it
+            
             if (DEBUG.MOUSE) {
                 System.out.println("-----------------------------------------------------------------------------");
-                out("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
+                out("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "] focusOwner=" + wasFocusOwner);
             }
-            
+
             mLabelEditWasActiveAtMousePress = (activeTextEdit != null);
             if (DEBUG.FOCUS) System.out.println("\tmouse-pressed active text edit="+mLabelEditWasActiveAtMousePress);
             // TODO: if we didn' HAVE focus, don't change the selection state --
             // only use the mouse click to gain focus.
             viewer.clearTip();
-            grabVueApplicationFocus("mousePressed");
-            requestFocus();
+            grabVueApplicationFocus("mousePressed", e);//requestFocus();
+
+            if (wasFocusOwner == false) {
+                if (DEBUG.FOCUS) out("ignoring click on viewer focus gain");
+                e.consume();
+                return;
+            }
             
             dragStart.setLocation(e.getX(), e.getY());
             if (DEBUG.MOUSE) System.out.println("dragStart set to " + dragStart);
@@ -3400,15 +3462,16 @@ public class MapViewer extends javax.swing.JComponent
         }
         
         public void mouseEntered(MouseEvent e) {
-            if (DEBUG.ROLLOVER) System.out.println(e);
+            if (DEBUG.MOUSE||DEBUG.ROLLOVER) System.out.println(e);
             if (sMouseOver != null) {
                 sMouseOver.mouseExited(new MapMouseEvent(e));
                 sMouseOver = null;
             }
+            grabVueApplicationFocus("mouseEntered", e);//requestFocus();
         }
         
         public void mouseExited(MouseEvent e) {
-            if (DEBUG.ROLLOVER) System.out.println(e);
+            if (DEBUG.MOUSE||DEBUG.ROLLOVER) System.out.println(e);
             if (sMouseOver != null && sMouseOver == rollover)
                 clearRollover();
             if (false&&sMouseOver != null) {
@@ -4206,74 +4269,40 @@ public class MapViewer extends javax.swing.JComponent
         }
     }
     
-    /*
-    private boolean isAnythingCurrentlyVisible()
-    {
-        Rectangle mapRect = mapToScreenRect(getMap().getBounds());
-        Rectangle viewerRect = getBounds(null);
-        return mapRect.intersects(viewerRect);
+    private Runnable focusIndicatorRepaint = new Runnable() { public void run() { mFocusIndicator.repaint(); }};
+    
+    /** VUE.activeViewerListener interface */
+    public void activeViewerChanged(MapViewer viewer) {
+        
+        // We delay the repaint request for the focus indicator on this event because normally, it
+        // happens while we're grabbing focus, which means it happens twice: once here on active
+        // viewer change, and once later when we get the focusGained event.  Since the focus
+        // indicator looks different in these two cases, it briefly flashes.  Delaying this paint
+        // request ensures no flashing.  We still need to do this repaint on viewer change tho
+        // because sometimes we ONLY see this event: e.g., if there is an active text edit (in
+        // which cases we're the active viewer, but do NOT have keyboard focus), and then you mouse
+        // over to another map, which then grabs the VUE application focus and becomes the active viewer.
+        
+        VUE.invokeAfterAWT(focusIndicatorRepaint);
     }
+    
+    /*
+     * Make this viewer the active viewer (and thus our map the active map.
+     * Does NOT call requestFocus to get the keyboard focus, as we don't
+     * want to bother doing this if this is, say, from a focusEvent.
      */
     
-    public void focusLost(FocusEvent e) {
-        if (DEBUG.FOCUS) out("focusLost (to " + e.getOppositeComponent() +")");
-        
-        mIndicator.repaint();
-        
-        if (VueUtil.isMacPlatform()) {
-            
-            // On Mac, our manual tool-tip popups sometimes (and
-            // sometimes inconsistently) when they are a big heavy
-            // weight popups (e.g, 40 lines of notes) will actually
-            // grab the focus away from the app!  We request to get
-            // the focus back, but it doesn't appear that actually
-            // works.
-            
-            Component opComponent = e.getOppositeComponent();
-            String opName = null;
-            if (opComponent != null)
-                opName = opComponent.getName();
-            // hack: check the name against the special name of Popup$HeavyWeightWindow
-            if (opName != null && opName.equals("###overrideRedirect###")) {
-                if (DEBUG.FOCUS) System.out.println("\tLOST TO POPUP!");
-                //requestFocus();
-                // Actually, requestFocus can ADD to our problems if moving right from one rollover to another...
-                // The bug is this: on Mac, rolling right from a tip that was HeavyWeight to one
-                // that is LightWeight causes the second one (the light-weight) to appear then
-                // immediately dissapear).
-            }
+    private void grabVueApplicationFocus(String from, ComponentEvent event) {
+        if (DEBUG.FOCUS) {
+            out("-------------------------------------------------------");
+            out("GVAF: grabVueApplicationFocus triggered via " + from);
+            if (DEBUG.META && event != null) System.out.println("\t" + event);
         }
-        
-        // need to force revert on temporary tool here in case
-        // they let go of the key while another component has focus
-        // (e.g., a label edit, or another panel) in
-        // which case we won't get the tool revert event.
-        revertTemporaryTool();
-        
-        // todo: if focus is lost but NOT to another map viewer which then
-        // grabs vue app focus, then we repaint here to clear our green
-        // focus border, BUT, we still have application focus..
-        
-        // todo: going to have to have a *vue* application focus event
-        // we can listen to so we simply know when any other viewer
-        // grabs the focus from us.  (The vue application focus is
-        // used to determine what viewer all the toolbar menu actions
-        // should act upon)
-        repaint();
-
-    }
-    
-    public void activeViewerChanged(MapViewer viewer) {
-        mIndicator.repaint();
-    }
-    
-    void grabVueApplicationFocus(String from) {
-        if (DEBUG.FOCUS) out("grabVueApplicationFocus triggered thru " + from);
         //tufts.macosx.Screen.dumpMainMenu();        
         this.VueSelection = VUE.ModelSelection;
         setFocusable(true);
         if (VUE.getActiveViewer() != this) {
-            if (DEBUG.FOCUS) out("grabVueApplicationFocus " + from + " *** GRABBING ***");
+            if (DEBUG.FOCUS) out("GVAF: " + from + " *** GRABBING ***");
             //new Throwable("REAL GRAB").printStackTrace();
             MapViewer activeViewer = VUE.getActiveViewer();
             // why are we checking this again if we just checked it???
@@ -4296,7 +4325,7 @@ public class MapViewer extends javax.swing.JComponent
                 }
                 
                 if (oldActiveMap != this.map) {
-                    if (DEBUG.FOCUS) out("oldActive=" + oldActiveMap + " active=" + this.map + " CLEARING SELECTION");
+                    if (DEBUG.FOCUS) out("GVAF: oldActive=" + oldActiveMap + " active=" + this.map + " CLEARING SELECTION");
                     resizeControl.active = false;
                     // clear and notify since the selected map changed.
                     VUE.ModelSelection.clear();
@@ -4304,17 +4333,75 @@ public class MapViewer extends javax.swing.JComponent
                 }
             }
         } else {
-            if (DEBUG.FOCUS) out("grabVueApplicationFocus: already the active viewer");
+            if (DEBUG.FOCUS) out("GVAF: already the active viewer");
         }
-        mIndicator.repaint();
+        if (DEBUG.FOCUS) {
+            Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+            if (focusOwner != this)
+                out("GVAF: current focus owner: " + focusOwner);
+        }
+        final int id = event == null ? 0 : event.getID();
+        if (id == FocusEvent.FOCUS_GAINED || (id == MouseEvent.MOUSE_ENTERED && activeTextEdit != null)) {
+            // in these cases, do NOT request the keyboard focus: either we just got it, our we
+            // want to let an active on-map text edit keep it.
+        } else {
+            requestFocus();
+        }
     }
     
     public void focusGained(FocusEvent e) {
         if (DEBUG.FOCUS) out("focusGained (from " + e.getOppositeComponent() + ")");
         // do NOT grab focus if we're not actually visible
-        grabVueApplicationFocus("focusGained");
-        repaint();
+        grabVueApplicationFocus("focusGained", e);
+        repaintFocusIndicator();
         fireViewerEvent(MapViewerEvent.FOCUSED);
+    }
+    
+    public void focusLost(FocusEvent e) {
+        if (DEBUG.FOCUS) out("focusLost (to " + e.getOppositeComponent() +")");
+        
+        Component lostTo = e.getOppositeComponent();
+        
+        if (VueUtil.isMacPlatform()) {
+            
+            // On Mac, our manual tool-tip popups sometimes (and sometimes inconsistently) when
+            // they are a big heavy weight popups (e.g, 40 lines of notes) will actually grab the
+            // focus away from the app!  We request to get the focus back, but it doesn't appear
+            // that actually works.
+            
+            String opName = null;
+            if (lostTo != null)
+                opName = lostTo.getName();
+            // hack: check the name against the special name of Popup$HeavyWeightWindow
+            if (opName != null && opName.equals("###overrideRedirect###")) {
+                if (DEBUG.FOCUS) System.out.println("\tLOST TO POPUP!");
+                //requestFocus();
+                // Actually, requestFocus can ADD to our problems if moving right from one rollover to another...
+                // The bug is this: on Mac, rolling right from a tip that was HeavyWeight to one
+                // that is LightWeight causes the second one (the light-weight) to appear then
+                // immediately dissapear).
+            }
+        }
+        
+        // need to force revert on temporary tool here in case
+        // they let go of the key while another component has focus
+        // (e.g., a label edit, or another panel) in
+        // which case we won't get the tool revert event.
+        revertTemporaryTool();
+        
+        //if (activeTextEdit == null) // keep focus border even if our active text edit takes focus
+            repaintFocusIndicator();
+    }
+
+    private void repaintFocusIndicator() {
+
+        if (UseMacFocusBorder && inScrollPane && VueUtil.isMacAquaLookAndFeel()) {
+            Component scrollPane = mViewport.getParent();
+            if (DEBUG.FOCUS) out("repaintFocusIndicator " + scrollPane.getClass().getName());
+            // this is slow because the whole map must also repaint
+            scrollPane.repaint();
+        } else
+            mFocusIndicator.repaint();
     }
     
     public void setVisible(boolean doShow) {
@@ -4330,10 +4417,8 @@ public class MapViewer extends javax.swing.JComponent
             //if (!isAnythingCurrentlyVisible())
             //zoomTool.setZoomFitContent(this);//todo: go thru the action
             setFocusable(true);
-            grabVueApplicationFocus("setVisible");
-            requestFocus();
+            grabVueApplicationFocus("setVisible", null);//requestFocus();
             fireViewerEvent(MapViewerEvent.DISPLAYED);
-            //new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise(); // handled in focusGained
             // only need to do this if this viewer displaying a different MAP
             repaint();
         } else {
@@ -4502,7 +4587,7 @@ public class MapViewer extends javax.swing.JComponent
     }
     private String out(Dimension d) { return d.width + " x " + d.height; }
     
-    private boolean DEBUG_MOUSE_MOTION = VueResources.getBool("mapViewer.debug.mouse_motion");
+    private boolean DEBUG_MOUSE_MOTION = VueResources.getBool("mapViewer.debug.mouse_motion");//todo: make command line -D override these
     
     private boolean DEBUG_SHOW_ORIGIN = false;
     private boolean DEBUG_ANTI_ALIAS = true;
