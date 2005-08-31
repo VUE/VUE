@@ -4351,9 +4351,8 @@ public class MapViewer extends javax.swing.JComponent
     
     public void focusGained(FocusEvent e) {
         if (DEBUG.FOCUS) out("focusGained (from " + e.getOppositeComponent() + ")");
-        // do NOT grab focus if we're not actually visible
-        grabVueApplicationFocus("focusGained", e);
         repaintFocusIndicator();
+        grabVueApplicationFocus("focusGained", e);
         fireViewerEvent(MapViewerEvent.FOCUSED);
     }
     
