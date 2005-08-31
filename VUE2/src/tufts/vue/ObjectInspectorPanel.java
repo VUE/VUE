@@ -379,8 +379,12 @@ implements LWSelection.Listener {
             if(nodeFilterEditor!= null) {
                 nodeFilterEditor.setNodeFilter(pComponent.getNodeFilter());
             }else {
-                nodeFilterEditor = new NodeFilterEditor(pComponent.getNodeFilter(),true);
-                add(nodeFilterEditor,BorderLayout.CENTER);
+                if (VUE.getActiveMap() != null && pComponent.getNodeFilter() != null) {
+                    // NodeFilter bombs entirely if no active map, so don't let
+                    // it mess us up if there isn't one.
+                    nodeFilterEditor = new NodeFilterEditor(pComponent.getNodeFilter(),true);
+                    add(nodeFilterEditor,BorderLayout.CENTER);
+                }
             }
             validate();
         }
@@ -401,6 +405,24 @@ implements LWSelection.Listener {
         } else if(pTabKey == FILTER_TAB) {
             mTabbedPane.setSelectedComponent(mNodeFilterPanel);
         }
+    }
+
+    public static void main(String args[]) {
+        VUE.parseArgs(args);
+        VUE.initUI();
+        ObjectInspectorPanel p = new ObjectInspectorPanel();
+        //LWMap map = new LWMap("TestMap");
+        LWComponent node = new LWNode("Test Node");
+        node.setNotes("I am a note.");
+        node.setResource("/tmp");
+        Resource r = node.getResource();
+        for (int i = 10; i < 31; i++)
+            r.setProperty("field_" + i, "value_" + i);
+        //map.addLWC(node);
+        ToolWindow w = VUE.createToolWindow("Object Inspector", p);
+        w.setVisible(true);
+        p.setLWComponent(node);
+        VUE.getSelection().setTo(node); // setLWComponent does diddly -- need this
     }
 }
 
