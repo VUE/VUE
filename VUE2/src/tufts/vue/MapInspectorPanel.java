@@ -158,7 +158,6 @@ public class MapInspectorPanel extends JPanel
      *
      **/
     public void activeMapChanged(LWMap map) {
-        System.out.println("Acitve Map Changed "+ map);
         setMap(map);
     }
     
