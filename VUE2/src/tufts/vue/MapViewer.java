@@ -4291,6 +4291,15 @@ public class MapViewer extends javax.swing.JComponent
      * Does NOT call requestFocus to get the keyboard focus, as we don't
      * want to bother doing this if this is, say, from a focusEvent.
      */
+
+
+    // TODO BUG: When focus switches to the viewer from a text field
+    // such as notes or label in the object inspector via
+    // mouseEntered, changing the cursor doesn't work (e.g., hold down
+    // space bar: no hand cursor, or select different tool) until you
+    // actually click on the map.  This may be a java bug, as we
+    // succesfully get kbd focus in this case.  As for workarounds:
+    // maybe simulate a mouse click event thru AWT?
     
     private void grabVueApplicationFocus(String from, ComponentEvent event) {
         if (DEBUG.FOCUS) {
