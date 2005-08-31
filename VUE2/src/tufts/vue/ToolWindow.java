@@ -65,6 +65,9 @@ public class ToolWindow
     private final Window mWindow;
     private final Delegate mDelegate;
 
+    private final boolean isMacAqua;
+    private final boolean isMacMetal;
+
     /**
      * Interface for our Window or Frame delegate.
      */
@@ -319,11 +322,12 @@ public class ToolWindow
             mWindow = new WindowDelegate(owner);
         }
         mDelegate = (Delegate) mWindow;
-        
-        managedTitleBar = true;
-        //title = " " + title + " ";
-        this.mTitle = title;
+        mTitle = title;
+        isMacAqua = VueUtil.isMacAquaLookAndFeel();
+        isMacMetal = VueTheme.isMacMetalLAF();
         mWindow.setName(title);
+        
+        managedTitleBar = true; // we're not using OS title-bars at all
         if (managedTitleBar) {
             mWindow.addMouseListener(this);
             mWindow.addMouseMotionListener(this);
@@ -377,7 +381,7 @@ public class ToolWindow
 
         if (CollapsedHeight == 0) {
             CollapsedHeight = TitleHeight;
-            if (!VueUtil.isMacAquaLookAndFeel())
+            if (isMacAqua == false)
                 CollapsedHeight += 4;;
         }
         
@@ -467,42 +471,14 @@ public class ToolWindow
         if (DEBUG.INIT) out("added " + c + " mouseListeners=" + ml.length);
     }
 
-    //JPanel hackpanel = new JPanel();
     private JPanel getContentPanel() {
         return mContentPane.contentPanel;
-        //return hackpanel;
     }
-
-    
 
     public void add(JComponent c) {
         addTool(c);
     }
         
-
-    /*
-    public void X_paint(Graphics g)
-    {
-        // todo: better to actually NOT paint the title
-        // as a jcomponent, in case our content panel
-        // has an exception during rendering, we can
-        // catch it here (around super.paint()) and
-        // then still decorate the window.
-        super.paint(g);
-        int bottom = getHeight() - 1;
-        int right = getWidth() - 1;
-        int x = getWidth() - ResizeCornerSize;
-        int y = getHeight() - ResizeCornerSize;
-        g.setColor(Color.gray);
-        for (int i = 0; i < ResizeCornerSize/2; i++) {
-            g.drawLine(x,bottom, right,y);
-            x += 2;
-            y += 2;
-        }
-        g.setColor(SystemColor.control);
-    }
-    */
-
     public String getTitle() {
         return mTitle;
     }
@@ -664,8 +640,6 @@ public class ToolWindow
         JPanel titlePanel;
         JPanel contentPanel = new JPanel();
         
-        //JButton hideButton = null;
-            
         protected void processEvent(AWTEvent e) {
             System.out.println("CP processEvent " + e);
             super.processEvent(e);
@@ -711,7 +685,8 @@ public class ToolWindow
         
         public ContentPane(String title)
         {
-            super(true);
+            super(true); // requesting double-buffering doesn't seem to do much to help title flashing
+            
             // todo -- need to have at least title click-able
             // without this window grabbing focus so you can
             // at least drag these windows without main
@@ -732,36 +707,14 @@ public class ToolWindow
 
         private void installTitlePanel(String title)
         {
-            /*
-            if (hideButton != null) {
-                hideButton.setFont(new Font("SansSerf", Font.BOLD, 7));
-                hideButton.setMargin(new Insets(0,1,0,1));
-                hideButton.setDefaultCapable(false);
-                titlePanel.add(hideButton);
-            }
-            */
             titlePanel = new JPanel();
             titlePanel.setPreferredSize(new Dimension(0, TitleHeight));
-            if (VueUtil.isMacAquaLookAndFeel()) {
-                // Mac OS X Aqua L&F
-                //titlePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-                /*
-                if (VueTheme.isMacMetalLAF()) {
-                    // this doesn't work unless we're subclassed from a JFrame,
-                    // and in that case we don't need to do it anyway.
-                    // Bottom line: mac brushed metal look only applies to proper Frame's
-                    titlePanel.setBackground(SystemColor.window);
-                }
-                */
+            if (isMacAqua) {
                 add(titlePanel, BorderLayout.NORTH);
                 contentPanel.setBorder(new LineBorder(Color.gray));
             } else {
                 setBorder(new BevelBorder(BevelBorder.RAISED));
 
-                //hideButton.setBackground(SystemColor.activeCaption);
-                //titlePanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-                //System.out.println("ActiveCaption=" + out(SystemColor.activeCaption));
-                
                 if (VueUtil.isMacPlatform())
                     titlePanel.setBackground(SystemColor.control);
                 else
@@ -775,145 +728,70 @@ public class ToolWindow
                 //contentPanel.add(titlePanel, BorderLayout.NORTH);
             }
 
-            /*
-            titlePanel.setLayout(new BorderLayout());
+            
             if (title != null) {
+                titlePanel.setLayout(new BorderLayout());
                 JLabel l = new JLabel(title);
-                l.setFont(new Font("SansSerf", Font.PLAIN, 9));
+                int topPad = isMacAqua ? 2 : 1;
+                l.setBorder(new EmptyBorder(topPad,2,0,0));
+                l.setFont(TitleFont);
                 l.setForeground(SystemColor.activeCaptionText);
                 l.setSize(l.getPreferredSize());
                 titlePanel.add(l, BorderLayout.WEST);
-
-                /*
-                //System.out.println("lh=" + l.getHeight());
-                int y = ((TitleHeight - l.getHeight())+1) / 2;
-                if (VueUtil.isMacPlatform())
-                    y++;
-                l.setLocation(2, y);
-                *
-            }
-
-            JButton b = new JButton(new CloseIcon());
-            b.setPressedIcon(new CloseIcon(Color.gray));
-            b.setRolloverIcon(new CloseIcon(Color.red));
-            titlePanel.add(b, BorderLayout.EAST);
-        */
-            
-                //b.setLocation(getWidth() - b.getWidth(), 0);
-            
-            if (title != null) {
-                //titlePanel.setLayout(new FlowLayout());
-                titlePanel.setLayout(null); // for manual layout
-                JLabel l = new JLabel(title);
-                l.setFont(TitleFont);
-                l.setForeground(SystemColor.activeCaptionText);
-                //l.setForeground(Color.darkGray);
-                l.setSize(l.getPreferredSize());
-                titlePanel.add(l);
-                //System.out.println("lh=" + l.getHeight());
-                int y = ((TitleHeight - l.getHeight())+1) / 2;
-                if (VueUtil.isMacAquaLookAndFeel())
-                    y++;
-                l.setLocation(2, y);
-                //if (hideButton != null)
-                //hideButton.setLocation(50,0);
+                titlePanel.add(new JLabel(new CloseIcon()), BorderLayout.EAST);
             }
         }
-
-        private int iconSize;
-        private int yoff;
-        private int edgeInset;
-        private java.awt.BasicStroke X_STROKE;
-        
-        public void addNotify()
-        {
-            if (iconSize == 0) {
+        private class CloseIcon implements Icon {
+            private final int iconSize;
+            private final int iconWidth;
+            private final int iconHeight;
+            private final java.awt.BasicStroke X_STROKE;
+            
+            public CloseIcon() {
                 X_STROKE = new java.awt.BasicStroke(1.3f);
-                //iconSize = TitleHeight - (VueUtil.isMacAquaLookAndFeel() ? 4 : 5);
                 iconSize = TitleHeight - 5;
-                if (VueUtil.isMacAquaLookAndFeel()) {
-                    yoff = 2;
-                    edgeInset = TitleHeight - 2;
+                if (isMacAqua) {
+                    iconWidth = iconSize + 3;
+                    iconHeight = iconSize + 1;
                 } else {
-                    yoff = 3;
-                    edgeInset = TitleHeight + 1;
+                    iconWidth = iconSize + 2;
+                    if (VueUtil.isMacPlatform())
+                        iconHeight = iconSize + 3;
+                    else
+                        iconHeight = iconSize + 2;
                 }
             }
-            super.addNotify();
-            //System.out.println("hideButton=" + hideButton);
-            //System.out.println("peer="+hideButton.getPeer());
-        }
-
-        public void paint(Graphics g) {
-            //System.out.println("painting " + this);
-            super.paint(g);
-            if (managedTitleBar) {
-                int xoff = getWidth() - edgeInset;
-                if (false && VueUtil.isMacAquaLookAndFeel()) {
-                    //macWindowClose.paintIcon(this, g, xoff, yoff);
-                } else {
-                    
-                    // JAVA MAC BUG: Unbelievably, when using
-                    // activeCaptionText to draw the below, mac java
-                    // offset's the Y value of the fillRect or
-                    // drawRect by +1 or -1, depending on god knows
-                    // what. This on tiger java 1.4.2 or 1.5, aqua
-                    // standard or metal L&F.
-                    
-                    if (!VueTheme.isMacMetalLAF()) {
-                        //g.setColor(SystemColor.activeCaption);
-                        // we fill in case window is so narrow that title text
-                        // would appear under this icon: we don't want to see that.
-                        g.setColor(Color.white);
-                        g.fillRect(xoff, yoff, iconSize,iconSize);
-                    }
-                    g.setColor(Color.darkGray);
-                    //g.setColor(SystemColor.activeCaptionText);
-                    //g.setColor(SystemColor.activeCaption.brighter().brighter());
-                    if (true) {
-                        g.drawRect(xoff, yoff, iconSize,iconSize);
-                        ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,  RenderingHints.VALUE_ANTIALIAS_ON);
-                        ((Graphics2D)g).setStroke(X_STROKE);
-                        //g.setColor(Color.red);
-                        int inset = 2;
-                        int len = iconSize - inset;
-                        // UL to LR
-                        g.drawLine(xoff+inset, yoff+inset, xoff+len, yoff+len);
-                        // LL to UR
-                        g.drawLine(xoff+inset, yoff+len, xoff+len, yoff+inset);
-                    } else {
-                        g.drawRect(xoff, yoff, iconSize,iconSize);
-                        g.drawLine(xoff, yoff, xoff+iconSize,yoff+iconSize);
-                        g.drawLine(xoff, yoff+iconSize, xoff+iconSize,yoff);
-                    }
+            
+            public int getIconWidth() { return iconWidth; }
+            public int getIconHeight() { return iconHeight; }
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                int xoff = x;
+                int yoff = y;
+                if (isMacMetal == false) {
+                    //g.setColor(SystemColor.activeCaption);
+                    // we fill in case window is so narrow that title text
+                    // would appear under this icon: we don't want to see that.
+                    g.setColor(Color.white);
+                    g.fillRect(xoff, yoff, iconSize,iconSize);
                 }
+                g.setColor(Color.darkGray);
+                g.drawRect(xoff, yoff, iconSize,iconSize);
+                ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,  RenderingHints.VALUE_ANTIALIAS_ON);
+                ((Graphics2D)g).setStroke(X_STROKE);
+                //g.setColor(Color.red);
+                int inset = 2;
+                int len = iconSize - inset;
+                // UL to LR
+                g.drawLine(xoff+inset, yoff+inset, xoff+len, yoff+len);
+                // LL to UR
+                g.drawLine(xoff+inset, yoff+len, xoff+len, yoff+inset);
             }
+            
         }
 
         private String out(Color c) {
             return "color[" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + "]";
         }
-
-        /*
-        class CloseIcon implements Icon
-        {
-            private Color color = Color.BLACK;
-            private final int height = 5;
-            private final int width = 5;
-    
-            public CloseIcon() {}
-            public CloseIcon(Color color) { this.color = color; }
-            public int getIconWidth() { return width; }
-            public int getIconHeight() { return height; }
-    
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                //Graphics2D g2d = (Graphics2D) g;
-                g.setColor(color);
-                x=y=0;
-                g.drawRect(x, y, x+width, y+height);
-            }
-        }
-        */
     }
     
 
@@ -924,22 +802,27 @@ public class ToolWindow
      */
     private class GlassPane extends JComponent
     {
-        public void paint(Graphics g) {
+        // todo: because this is a glass pane, it is called every single time
+        // a cursor flashes on any component in the ToolWindow.  Note however
+        // that the paint code won't actually write bits to the screen unless
+        // it's within getClipBounds().
+        public void paintComponent(Graphics g) {
             if (!isRolledUp())
                 paintResizeCorner((Graphics2D)g);
         }
 
         private void paintResizeCorner(Graphics2D g)
         {
-            //int w = getWidth();
-            //int h = getHeight();
+            if (DEBUG.PAINT) System.err.println(mTitle + " GlassPane.paintResizeCorner " + g.getClipBounds());
+            
             int w = ToolWindow.this.getWidth();
             int h = ToolWindow.this.getHeight();
-            int right = w - 1;
-            int bottom = h - 1;
             int x = w - ResizeCornerSize;
             int y = h - ResizeCornerSize;
-            Color c = g.getColor();
+
+            int right = w - 1;
+            int bottom = h - 1;
+            final Color oldColor = g.getColor();
             g.setColor(Color.gray);
             for (int i = 0; i < ResizeCornerSize/2; i++) {
                 g.drawLine(x,bottom, right,y);
@@ -950,7 +833,7 @@ public class ToolWindow
                 g.setColor(Color.green);
                 g.drawRect(w-ResizeCornerSize,h-ResizeCornerSize,w,h);
             }
-            g.setColor(c);
+            g.setColor(oldColor);
             
         }
 
@@ -965,24 +848,13 @@ public class ToolWindow
             //setLayout(new FlowLayout());
             //add(new JLabel("foobie"));
         }
-
-          /*public MyGlassPane(AbstractButton aButton, 
-                           JMenuBar menuBar,
-                           Container contentPane) {
-            CBListener listener = new CBListener(aButton, menuBar,
-                                                 this, contentPane);
-            addMouseListener(listener);
-            addMouseMotionListener(listener);
-        }*/
     }
 
-    private static boolean debug = false;
     public static void main(String args[]) {
-        debug=true;
-        DEBUG.TOOL=true;
+        VUE.parseArgs(args);
+        VUE.initUI(true);
         DEBUG.BOXES=true;
         DEBUG.KEYS=true;
-        DEBUG.MOUSE=true;
         ToolWindow tw = new ToolWindow("Ya Biggie Title", null);
         JPanel p = new JPanel();
         p.setBorder(new TitledBorder("Yippity Vue Tool"));
