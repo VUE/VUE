@@ -68,7 +68,8 @@ class LWCInfoPanel extends javax.swing.JPanel
     private void setUpMetadataPane() {
         metadataPane.setLayout(new BorderLayout());
         metadataPane.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
-        propertiesEditor = new PropertiesEditor(true);
+        // todo: bug in properties editor:  will never display edit elements unless create editable initially
+        propertiesEditor = new PropertiesEditor(false);
         metadataPane.add(propertiesEditor,BorderLayout.CENTER);
         validate();
         
@@ -213,15 +214,16 @@ class LWCInfoPanel extends javax.swing.JPanel
         sizeField.setText(ss);
         
         //loading the metadata if it exists
-        if(c.getResource() != null){
-            if(c.getResource().getProperties() != null){
-                if(c.getResource().getType() == Resource.ASSET_FEDORA)
-                    propertiesEditor.setProperties(c.getResource().getProperties(), false);
+        if (c.getResource() != null) {
+            java.util.Properties properties = c.getResource().getProperties();
+            if (properties != null) {
+                if (c.getResource().getType() == Resource.ASSET_FEDORA)
+                    propertiesEditor.setProperties(properties, false);
                 else
-                    propertiesEditor.setProperties(c.getResource().getProperties(), true);
+                    propertiesEditor.setProperties(properties, true);
             }
             
-        } else{
+        } else {
             propertiesEditor.clear();
         }
         
