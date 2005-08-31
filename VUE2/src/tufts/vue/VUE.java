@@ -43,7 +43,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.306 2005-08-27 21:34:40 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.307 2005-08-31 00:34:19 sfraize Exp $
     
 /**
  * Vue application class.
@@ -119,7 +119,11 @@ public class VUE
             String prop;
             try {
                 prop = System.getProperty(name);
-                if (DEBUG.INIT) out("got property " + name);
+                if (DEBUG.INIT) {
+                    out("got property " + name);
+                    if (name.equals("apple.awt.brushMetalLook"))
+                        new Throwable("apple.awt.brushMetalLook").printStackTrace();
+                }
             } catch (java.security.AccessControlException e) {
                 System.err.println(e);
                 prop = null;
@@ -127,6 +131,12 @@ public class VUE
             return prop;
         }
     }
+
+    public static boolean isSystemPropertyTrue(String name) {
+        String value = getSystemProperty(name);
+        return value != null && value.toLowerCase().equals("true");
+    }
+    
     
     /*
     public static java.net.URL getResource(String name) {
@@ -476,10 +486,14 @@ public class VUE
             else if (args[i].equals("-debug_dr"))       DEBUG.DR = true;
             else if (args[i].equals("-debug_tool"))     DEBUG.TOOL = true;
             else if (args[i].equals("-debug_drop"))     DEBUG.DND = true;
-            else if (args[i].equals("-debug_event"))    DEBUG.EVENTS = true;
             else if (args[i].equals("-debug_undo"))     DEBUG.UNDO = true;
             else if (args[i].equals("-debug_castor"))   DEBUG.CASTOR = true;
             else if (args[i].equals("-debug_xml"))      DEBUG.XML = true;
+            else if (args[i].equals("-debug_paint"))    DEBUG.PAINT = true;
+            else if (args[i].equals("-debug_mouse"))    DEBUG.MOUSE = true;
+            else if (args[i].startsWith("-debug_event"))   DEBUG.EVENTS = true;
+            else if (args[i].startsWith("-debug_thread"))  DEBUG.THREAD = true;
+            else if (args[i].startsWith("-debug_image"))   DEBUG.IMAGE = true;
             else if (args[i].equals("-exit_after_init")) // for startup time trials
                 exitAfterInit = true;
 
@@ -736,7 +750,7 @@ public class VUE
                     if (nodr) {
                         // we're hitting bug in java 1.4.2 on Tiger here (apple.laf.ScreenMenuBar bounds exception)
                         // Mysteriously, it only happens using the debug option -nodr for no DR browser.
-                        out("adding menu bar to " + w);
+                        if (DEBUG.INIT) out("adding menu bar to " + w);
                     }
                     try {
                         ((JFrame)w).setJMenuBar(new VueMenuBar(ToolWindows));
@@ -1061,7 +1075,7 @@ public class VUE
                 if (ActiveViewer != null)
                     oldActiveMap = ActiveViewer.getMap();
                 ActiveViewer = viewer;
-                out("ActiveViewer set to " + viewer);
+                if (DEBUG.FOCUS) out("ActiveViewer set to " + viewer);
                 if (ActiveViewer != null) {
                     java.util.Iterator i = sActiveViewerListeners.iterator();
                     while (i.hasNext())
@@ -1069,7 +1083,7 @@ public class VUE
                     if (oldActiveMap != ActiveViewer.getMap()) {
                         LWMap activeMap = viewer.getMap();
                         i = sActiveMapListeners.iterator();
-                        out("ActiveMap set to " + activeMap);
+                        if (DEBUG.FOCUS) out("ActiveMap set to " + activeMap);
                         while (i.hasNext()) {
                             ActiveMapListener aml = (ActiveMapListener) i.next();
                             if (DEBUG.EVENTS) out("activeMapChanged -> " + aml);
@@ -1527,7 +1541,12 @@ public class VUE
             fileMenu.add(publishAction);
             // GET RECENT FILES FROM PREFS!
             //fileMenu.add(exportMenu);
-            if (isApplet() == false && MRJAdapter.isSwingUsingScreenMenuBar() == false) {
+
+            if (isApplet() || (VUE.isSystemPropertyTrue("apple.laf.useScreenMenuBar") && VueUtil.isMacAquaLookAndFeel())) {
+                // Do NOT add quit to the file menu.
+                // Either we're an applet w/no quit, or it's already in the mac application menu bar.
+                // FYI, MRJAdapter.isSwingUsingScreenMenuBar() is not telling us the truth.
+            } else {
                 fileMenu.addSeparator();
                 fileMenu.add(exitAction);
             }
