@@ -4,7 +4,7 @@
 <?xml version="1.0" encoding="US-ASCII"?>
 <LW-MAP xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="none" ID="0"
-    label="startup_unicode.vue" x="35.0" y="24.0" width="822.5496"
+    label="startup.vue" x="35.0" y="24.0" width="822.5496"
     height="506.40283" strokeWidth="0.0" autoSized="true">
     <notes>This is the VUE start-up map.</notes>
     <fillColor>#ffffff</fillColor>
@@ -326,14 +326,6 @@
         strokeWidth="0.0" autoSized="true" xsi:type="node">
         <textColor>#999999</textColor>
         <font>Arial Unicode MS-bold-12</font>
-        <nodeFilter/>
-        <shape xsi:type="rectangle"/>
-    </child>
-    <child ID="53" label="&#x62a;&#x631;&#x62d;&#x64a;&#x628;"
-        x="741.44965" y="460.40283" width="69.899994" height="70.0"
-        strokeWidth="0.0" autoSized="true" xsi:type="node">
-        <textColor>#999999</textColor>
-        <font>Arial Unicode MS-plain-24</font>
         <nodeFilter/>
         <shape xsi:type="rectangle"/>
     </child>
