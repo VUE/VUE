@@ -150,7 +150,13 @@ public class Repository implements org.osid.repository.Repository {
             fedoraProperties.setProperty("url.fedora.get", url+prefs.get("url.fedora.get", "get/"));
             fedoraProperties.setProperty("url.seastar.fedora.get", "http://seastar.lib.tufts.edu:8080/fedora/get/");
             fedoraProperties.setProperty("fedora.types", prefs.get("fedora.types","TUFTS_STD_IMAGE,XML_TO_HTMLDOC,TUFTS_BINARY_FILE,TUFTS_VUE_CONCEPT_MAP,UVA_EAD_FINDING_AID,UVA_STD_IMAGE,UVA_MRSID_IMAGE,SIMPLE_DOC,MassIngest"));
-        } catch (Exception ex) { System.out.println("Unable to load fedora Properties"+ex);}
+			fedoraProperties.setProperty("VUEInfoStructureId","edu.tufts.vue.recordStructureId");
+			fedoraProperties.setProperty("UVARecordStructureId","edu.uva.image.recordStructureId");
+			fedoraProperties.setProperty("ImageRecordStructureId","edu.mit.image.recordStructureId");
+			fedoraProperties.setProperty("VUEDefaultViewInfoPartId","edu.tufts.defaultView.partStructureId");
+			fedoraProperties.setProperty("ThumbnailPartStructureId","edu.uva.thumbnail.partStructureId");
+			fedoraProperties.setProperty("URLPartStructureId","edu.mit.url.partStructureId");
+		} catch (Exception ex) { System.out.println("Unable to load fedora Properties"+ex);}
         
     }
     

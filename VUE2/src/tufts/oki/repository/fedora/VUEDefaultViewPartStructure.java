@@ -21,7 +21,7 @@ implements org.osid.repository.PartStructure
         this.recordStructure = recordStructure;
         try
         {
-            this.id = new PID(FedoraUtils.getFedoraProperty(repository, "VUEDefaultViewInfoPartId"));
+            this.id = new PID("VUEDefaultViewInfoPartId");
         }
         catch (org.osid.shared.SharedException sex)
         {

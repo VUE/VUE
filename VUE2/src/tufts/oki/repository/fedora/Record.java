@@ -19,7 +19,7 @@ implements org.osid.repository.Record
     public String getDisplayName()
     throws org.osid.repository.RepositoryException
     {
-        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
+        return "VUE Record";
     }
 
     public void updateDisplayName(String displayName)
@@ -53,6 +53,7 @@ implements org.osid.repository.Record
                 if (partStructureId.isEqual(partStructure.getId()))
                 {
                     org.osid.repository.Part part = new Part(partStructureId,recordStructure,partStructure,value);
+					//System.out.println("created part " + partStructureId.getIdString() + recordStructure.getDisplayName() + partStructure.getDisplayName() + value);
                     this.partVector.addElement(part);
                     return part;
                 }

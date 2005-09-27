@@ -1,30 +1,38 @@
 package tufts.oki.repository.fedora;
 
-public class Part
-implements org.osid.repository.Part
+public class ImageRecordStructure
+implements org.osid.repository.RecordStructure
 {
-    private java.util.Vector partVector = new java.util.Vector();
-    private org.osid.repository.RecordStructure recordStructure = null;
+    private java.util.Vector partsVector = new java.util.Vector();
+    private String displayName = "Image Specific Data";
+    private String description = "Provides information about and image (thumbnail and large view URLs)";
     private org.osid.shared.Id id = null;
-    private java.io.Serializable value = null;
-    private org.osid.repository.PartStructure partStructure = null;
+    private String schema = null;
+    private String format = "Plain Text";
+    private org.osid.shared.Type type = new Type("edu.mit","recordStructure","image");
+    private org.osid.repository.PartStructure sThumbnailPartStructure = null;
+    private org.osid.repository.PartStructure sURLPartStructure = null;
 
-    protected Part(org.osid.shared.Id id
-                 , org.osid.repository.RecordStructure recordStructure
-                 , org.osid.repository.PartStructure partStructure
-                 , java.io.Serializable value)
+    protected ImageRecordStructure(Repository repository)
     throws org.osid.repository.RepositoryException
     {
-        this.id = id;
-        this.recordStructure = recordStructure;
-        this.partStructure = partStructure;
-        this.value = value;
+        try
+        {
+            this.id = new PID("ImageRecordStructureId");
+        }
+        catch (org.osid.shared.SharedException sex)
+        {
+        }
+        this.sThumbnailPartStructure = new ThumbnailPartStructure(this, repository);
+        this.sURLPartStructure = new URLPartStructure(this, repository);
+        this.partsVector.add(this.sThumbnailPartStructure);        
+        this.partsVector.add(this.sURLPartStructure);        
     }
 
     public String getDisplayName()
     throws org.osid.repository.RepositoryException
     {
-        return "VUE Part";
+        return this.displayName;
     }
 
     public void updateDisplayName(String displayName)
@@ -33,81 +41,102 @@ implements org.osid.repository.Part
         throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
+    public String getDescription()
+    throws org.osid.repository.RepositoryException
+    {
+        return this.description;
+    }
+
+    public String getFormat()
+    throws org.osid.repository.RepositoryException
+    {
+        return this.format;
+    }
+
     public org.osid.shared.Id getId()
     throws org.osid.repository.RepositoryException
     {
         return this.id;
     }
 
-    public org.osid.repository.Part createPart(org.osid.shared.Id partStructureId
-                                         , java.io.Serializable value)
+    public org.osid.repository.PartStructureIterator getPartStructures()
     throws org.osid.repository.RepositoryException
     {
-        if ( (partStructureId == null) || (value == null) )
-        {
-            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.NULL_ARGUMENT);
-        }
+        return new PartStructureIterator(this.partsVector);
+    }
 
-        org.osid.repository.PartStructureIterator psi = recordStructure.getPartStructures();
-        
-        while (psi.hasNextPartStructure()) 
+    public String getSchema()
+    throws org.osid.repository.RepositoryException
+    {
+        return this.schema;
+    }
+
+    public org.osid.shared.Type getType()
+    throws org.osid.repository.RepositoryException
+    {
+        return this.type;
+    }
+
+    public boolean isRepeatable()
+    throws org.osid.repository.RepositoryException
+    {
+        return false;
+    }
+
+    public boolean validateRecord(org.osid.repository.Record record)
+    throws org.osid.repository.RepositoryException
+    {
+        return true;
+    }
+
+    public org.osid.repository.PartStructure getThumbnailPartStructure()
+    throws org.osid.repository.RepositoryException
+    {
+        if (this.sThumbnailPartStructure == null)
         {
-            org.osid.repository.PartStructure partStructure = psi.nextPartStructure();
-            try 
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.OPERATION_FAILED);
+        }
+        return this.sThumbnailPartStructure;
+    }
+
+    public org.osid.repository.PartStructure getURLPartStructure()
+		throws org.osid.repository.RepositoryException
+    {
+        if (this.sURLPartStructure == null)
+        {
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.OPERATION_FAILED);
+        }
+        return this.sURLPartStructure;
+    }
+	
+    public static Record createImageRecord(String pid
+                                       , ImageRecordStructure recordStructure
+                                       , Repository repository
+                                       , PID objectId
+                                       , FedoraObjectAssetType assetType)
+    throws org.osid.repository.RepositoryException
+    {
+        Record record = null;
+        try
+        {
+            record = new Record(new PID(pid),recordStructure);
+			//System.out.println("creating " + recordStructure.getType().getKeyword() + " " + recordStructure.getDisplayName());
+            if(assetType.getKeyword().equals("TUFTS_STD_IMAGE"))
             {
-                if (partStructureId.isEqual(partStructure.getId())) 
-                {
-                    org.osid.repository.Part part = new Part(partStructureId, recordStructure, partStructure, value);
-                    partVector.addElement(part);
-                    this.partStructure = partStructure;
-                    return part;
-                }
-            } 
-            catch (org.osid.OsidException oex) 
-            {
-                throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.OPERATION_FAILED);
+	                record.createPart(recordStructure.getThumbnailPartStructure().getId(),
+                              repository.getFedoraProperties().getProperty("url.seastar.fedora.get") +objectId.getIdString()+"/fedora-system:3/getItem?itemID=THUMB");
+					record.createPart(recordStructure.getURLPartStructure().getId(),
+								  repository.getFedoraProperties().getProperty("url.fedora.get") + "/"+objectId.getIdString()+"/bdef:11/getDefaultView/");
             }
-        }
-        throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.UNKNOWN_ID);
-    }
-
-    public void deletePart(org.osid.shared.Id partId)
-    throws org.osid.repository.RepositoryException
-    {
-        if (partId == null)
+		}
+        catch (Throwable t)
         {
-            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.NULL_ARGUMENT);
+            t.printStackTrace();
         }
-        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
+        return record;
     }
 
-    public org.osid.repository.PartIterator getParts()
-    throws org.osid.repository.RepositoryException
-    {
-        return new PartIterator(this.partVector);
-    }
-
-    public java.io.Serializable getValue()
-    throws org.osid.repository.RepositoryException
-    {
-        return this.value;
-    }
-
-    public void updateValue(java.io.Serializable value)
-    throws org.osid.repository.RepositoryException
-    {
-        if (value == null)
-        {
-            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.NULL_ARGUMENT);
-        }
-        this.value = value;
-    }
-
-    public org.osid.repository.PartStructure getPartStructure()
-    throws org.osid.repository.RepositoryException
-    {
-        return this.partStructure;
-    }
+	
 /**
 <p>MIT O.K.I&#46; SID Implementation License.
   <p>	<b>Copyright and license statement:</b>

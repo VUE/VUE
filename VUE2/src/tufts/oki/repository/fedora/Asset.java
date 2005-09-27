@@ -94,7 +94,7 @@ public class Asset implements org.osid.repository.Asset{
             recordVector = FedoraSoapFactory.getDisseminationRecords(id,((FedoraObjectAssetType) assetType).getDissemiationRecordStructure(),repository);
         recordVector.add(VUERecordStructure.createVUERecord(id,(VUERecordStructure)((FedoraObjectAssetType) assetType).getVUERecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
         recordVector.add(UVARecordStructure.createUVARecord(id,(UVARecordStructure)((FedoraObjectAssetType) assetType).getUVARecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
-        
+        recordVector.add(ImageRecordStructure.createImageRecord(id,(ImageRecordStructure)((FedoraObjectAssetType) assetType).getImageRecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
     }
     
     //this method is for viewing objects in vue.  will be gone soon.

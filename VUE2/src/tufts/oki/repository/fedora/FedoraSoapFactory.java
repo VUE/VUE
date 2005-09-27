@@ -67,8 +67,6 @@ public class FedoraSoapFactory {
                     record.createPart(((DisseminationRecordStructure)recordStructure).getBDEFPartStructure().getId(),objMethods[i].getBDefPID());
                     String disseminationURL = repository.getFedoraProperties().getProperty("url.fedora.get")+pid+"/"+objMethods[i].getBDefPID()+"/"+objMethods[i].getMethodName();
                     record.createPart(((DisseminationRecordStructure)recordStructure).getDisseminationURLPartStructure().getId(), disseminationURL);
-					String thumbnail = repository.getFedoraProperties().getProperty("url.seastar.fedora.get")+pid+"/"+objMethods[i].getBDefPID()+"/getTHUMB";
-					record.createPart( (new ThumbnailPartStructure((org.osid.repository.RecordStructure)new VUERecordStructure(repository),repository)).getId(),thumbnail);
                     disseminationList.add(record);
                 }
             }
