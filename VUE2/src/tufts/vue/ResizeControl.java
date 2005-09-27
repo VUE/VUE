@@ -30,21 +30,16 @@ import java.awt.geom.Rectangle2D;
  * the default is to reposition all the objects in the group as the
  * the total bounding box of the group is resized, maintaining the relative
  * spatial relationship of all the objects in the bounding box.
- * As the box is dragged, this is partially an ad-hoc algorithm, as
+ * As the box is dragged, it uses an ad-hoc algorithm, as
  * the control point being moved is not guarnteed to stay exactly under
  * the mouse.
  */
 class ResizeControl implements LWSelection.ControlListener, VueConstants
 {
-    // Note: this code is written with handling groups of objects
-    // together, although it works for single objects.  I say this
-    // because it looks awfully complicated if you're trying to
-    // see how it handles just the single object case.
- 
     // todo: consider implementing as or optionally as (perhaps
     // depending on shape) a point-transforming resize that instead
     // of setting the bounding box & letting shape handle it,
-    // transforms all the points in the shape manuall.  Wouldn't
+    // transforms all the points in the shape manualy.  Wouldn't
     // want to do this for, say RoundRect, as would throw off
     // corner arcs I think, but, polygons > sides 4 and, of
     // course, you'll HAVE to have this if you want to support
@@ -68,7 +63,9 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             handles[i] = new LWSelection.ControlPoint(COLOR_SELECTION_HANDLE);
     }
         
-    /** interface ControlListener */
+    /** interface ControlListener -- our control's are numbered starting at 0 in the upper left corner,
+     * and increasing in index value in the clockwise direction.
+     */
     public LWSelection.ControlPoint[] getControlPoints() {
         return handles;
     }
@@ -77,6 +74,8 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     private boolean isLeftCtrl(int i) { return i == 0 || i == 6 || i == 7; }
     private boolean isRightCtrl(int i) { return i == 2 || i == 3 || i == 4; }
     private boolean isBottomCtrl(int i) { return i == 4 || i == 5 || i == 6; }
+    /** this ctrl point can effect only the size, never the location */
+    private boolean isSizeOnlyCtrl(int i) { return i >= 3 && i <= 5; }
         
     /** interface ControlListener handler -- for handling resize on selection */
     public void controlPointPressed(int index, MapMouseEvent e) {
@@ -107,17 +106,18 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
         mapMouseDown = e.getMapPoint();
     }
         
-    void draw(DrawContext dc) { // debug -- will need MapViewer arg to re-enable this (put in DrawContext??)
+    void draw(DrawContext dc) { // this only called if viewer or layout debug is on
         if (mNewDraggedBounds != null) {
-            /*
-              dc.g.setColor(Color.orange);
-              dc.g.setStroke(STROKE_HALF);
-              dc.g.draw(mapToScreenRect(mNewDraggedBounds));
-              dc.g.setColor(Color.green);
-              dc.g.draw(mapToScreenRect(mOriginalGroupULC_bounds));
-              dc.g.setColor(Color.red);
-              dc.g.draw(mapToScreenRect(mOriginalGroupLRC_bounds));
-            */
+            MapViewer viewer = VUE.getActiveViewer();
+            dc.g.setColor(java.awt.Color.red);
+            dc.g.setStroke(STROKE_ONE);
+            dc.g.draw(viewer.mapToScreenRect(mNewDraggedBounds));
+            if (false) {
+                dc.g.setColor(java.awt.Color.green);
+                dc.g.draw(viewer.mapToScreenRect(mOriginalGroupULC_bounds));
+                dc.g.setColor(java.awt.Color.red);
+                dc.g.draw(viewer.mapToScreenRect(mOriginalGroupLRC_bounds));
+            }
         }
     }
         
@@ -127,13 +127,6 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             
         // control points are indexed starting at 0 in the upper left,
         // and increasing clockwise ending at 7 at the middle left point.
-            
-        /*
-          if (isTopCtrl(i))    resize_box.setULY(e.getMapY());
-          else if (isBottomCtrl(i)) resize_box.setLRY(e.getMapY());
-          if (isLeftCtrl(i))   resize_box.setULX(e.getMapX());
-          else if (isRightCtrl(i))  resize_box.setLRX(e.getMapX());
-        */
             
         if (isTopCtrl(i)) {
             resize_box.setULY(e.getMapY());
@@ -150,38 +143,130 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
         mNewDraggedBounds = resize_box.getRect();
         if (DEBUG.LAYOUT) System.out.println(this + " draggedBounds " + mNewDraggedBounds);
             
-        double scaleX;
-        double scaleY;
+
+        if (VUE.getSelection().size() == 1) {
+            // only one item in the selection
+            LWComponent c = VUE.getSelection().first();
+            // todo: put the selection in the ControlListener interface: don't look it up here.
+            if (c.supportsUserResize())
+                dragReshape(i, c, mNewDraggedBounds);
+        } else {
+            final double scaleX = mNewDraggedBounds.width / mOriginalGroup_bounds.width;
+            final double scaleY = mNewDraggedBounds.height / mOriginalGroup_bounds.height;
             
-        /*
-          if (isLeftCtrl(i)) {
-          scaleX = mNewDraggedBounds.width / mOriginalGroup_bounds.width;
-          scaleY = mNewDraggedBounds.height / mOriginalGroup_bounds.height;
-          } else {
-          scaleX = mNewDraggedBounds.width / mOriginalGroup_bounds.width;
-          scaleY = mNewDraggedBounds.height / mOriginalGroup_bounds.height;
-          }
-        */
-            
-        scaleX = mNewDraggedBounds.width / mOriginalGroup_bounds.width;
-        scaleY = mNewDraggedBounds.height / mOriginalGroup_bounds.height;
-        //dragResizeReshapeSelection(i, VUE.getSelection().iterator(), VUE.getSelection().size() > 1 && e.isAltDown());
-            
-        dragResizeReshape(i,
-                          VUE.getSelection().iterator(),
-                          scaleX, scaleY,
-                          VUE.getSelection().size() == 1 || e.isAltDown()); // resize if 1 object selected, or ALT is down, otherwise reposition only
+            dragReshapeGroup(i,
+                             VUE.getSelection().iterator(),
+                             scaleX, scaleY,
+                             e.isAltDown()); // resize if ALT is down, otherwise reposition only
+        }
     }
         
-    // Todo: make static methods that can operate on any
-    // collection of lw components (not just selection) so
-    // could generically use this for LWGroup resize also.
-    // (or, if groups really just put everything in the
-    // selection, it would automatically work).
+        
+    /**
+     * reshape a single component
+     * @param controlPoint - which control handle is being dragged (numbered clockwise from 
+     * @param c - the component to reshape
+     * @param request - the new requested bounds
+     */
+    private void dragReshape(final int controlPoint, final LWComponent c, final Rectangle2D.Float request)
+    {
+        final boolean lockedLocation = c.getParent() instanceof LWNode; // todo: have a locked flag
+
+        final float width = request.width / c.getScale();
+        final float height = request.height / c.getScale();
+
+        if (lockedLocation || isSizeOnlyCtrl(controlPoint)) {
+            
+            c.userSetSize(width, height);
+            
+        } else {
+
+                
+            if (c instanceof LWImage) {
+                // hack for LWImage's which handle this specially
+                c.userSetFrame(request.x, request.y, request.width, request.height);
+                return;
+            }
+
+            // an origin control point is any control point that might
+            // change the location
+
+            final float oldWidth = c.getWidth();
+            final float oldHeight = c.getHeight();
+            final float oldX = c.getX();
+            final float oldY = c.getY();
+
+            // First set size and find out what size was actually
+            // taken before adjusting location.  Would be better
+            // to do this by getting the minimum size first, but
+            // that's not working at the moment for floating text
+            // layout's.
+                    
+            c.userSetSize(width, height);
+
+            final float newWidth = c.getWidth();
+            final float newHeight = c.getHeight();
+            final float newX, newY;
+
+            boolean moved = false;
+            if (newWidth != width) {
+                //System.out.println("width stuck at " + newWidth + " can't go to " + width);
+                if (isLeftCtrl(controlPoint) == false || newWidth == oldWidth) {
+                    // do NOT move the X coord (tho Y coord might be moving)
+                    newX = oldX;
+                } else {
+                    float dx = oldWidth - newWidth;
+                    newX = oldX + dx;
+                    //System.out.println("\tdid manage get from " + oldWidth + " to " + newWidth + " dx=" + dx);
+                    moved = true;
+                }
+            } else {
+                newX = request.x;
+                moved = true;
+            }
+                
+            if (newHeight != height) {
+                //System.out.println("height stuck at " + c.getHeight() + " can't go to " + height);
+                if (isTopCtrl(controlPoint) == false || newHeight == oldHeight) {
+                    // do NOT move the Y coord (tho X coord might be moving)
+                    newY = oldY;
+                } else {
+                    float dy = oldHeight - newHeight;
+                    newY = oldY + dy;
+                    //System.out.println("\tdid manage get from " + oldHeight + " to " + newHeight + " dy=" + dy);
+                    moved = true;
+                }
+            } else {
+                newY = request.y;
+                moved = true;
+            }
+
+            if (moved)
+                c.setLocation(newX, newY);
+                
+            // TODO: get rid of getMinumumSize unless we fix layout floating_text
+            // to really return minimum
+                
+        }
+    }
+
+    
+    // Todo: make static methods that can operate on any collection of
+    // lw components (not just selection) so could generically use
+    // this for LWGroup resize also.  (or, if groups really just put
+    // everything in the selection, it would automatically work).
                     
     /** @param cpi - control point index (which ctrl point is being moved) */
     // todo: consider moving this code to LWGroup so that they can resize
-    private void dragResizeReshape(final int cpi, final Iterator i, final double dScaleX, final double dScaleY, final boolean reshapeObjects) {
+    // Note: this method will still work with just one item in the iterator, but
+    // it doesn't prevent moving the object when it should, which is why we have
+    // dragReshape above.
+    private void dragReshapeGroup(final int cpi,
+                                  final Iterator i,
+                                  final double dScaleX,
+                                  final double dScaleY,
+                                  final boolean reshapeObjects)
+    {
         int idx = 0;
         //System.out.println("scaleX="+scaleX);System.out.println("scaleY="+scaleY);
         while (i.hasNext()) {
@@ -213,7 +298,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             
             //-------------------------------------------------------
             // Don't try to reposition child nodes -- their parents
-            // handle they're layout.
+            // handle their layout (todo: flag for this)
             //-------------------------------------------------------
             if ((c.getParent() instanceof LWNode) == false) {
                 //-------------------------------------------------------
@@ -265,7 +350,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
 
         }
     }
-        
+    
     /** interface ControlListener handler -- for handling resize on selection */
     public void controlPointDropped(int index, MapMouseEvent e) {
         //System.out.println("MapViewer: resize control point " + index + " dropped");
