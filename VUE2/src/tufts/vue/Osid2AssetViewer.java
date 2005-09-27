@@ -429,6 +429,22 @@ public class Osid2AssetViewer extends JPanel implements ActionListener,KeyListen
             org.osid.shared.Properties sharedProperties = new tufts.oki.shared2.SharedProperties();
             String criteria = keywords.getText();
             
+			// special handling for Giunti
+			if ( (searchType.getKeyword().equals("celebrateQuery")) )
+			{
+				criteria = "<filter:filter schemaVersion=\"0.1\" xmlns:filter=\"http://celebrate.eun.org/xml/ns/filter-0_1\">"
+				+ "<filter:comp>" +
+				"<filter:op>in</filter:op>" +
+				"<filter:field>1.2</filter:field>" +
+				"<filter:value>" +
+				criteria +
+				"</filter:value>" +
+				"</filter:comp></filter:filter>";
+				
+				System.out.println("Criteria changed to " + criteria);
+				searchType = new tufts.oki.repository.fedora.Type("giunti.osid","search", "all");
+			}
+
             org.osid.repository.Repository nextRepository = null;
             for (int j=0, size = this.repositoryVector.size(); j < size; j++) {
                 nextRepository = (org.osid.repository.Repository)this.repositoryVector.elementAt(j);

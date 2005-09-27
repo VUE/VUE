@@ -103,6 +103,7 @@ public class Osid2AssetResource extends MapResource
             {
                 try
                 {
+					org.osid.shared.Type partType = new org.osid.types.mit.URLPartStructureType();
                     org.osid.repository.RecordIterator recordIterator = asset.getRecords();
                     while (recordIterator.hasNextRecord())
                     {
@@ -111,12 +112,14 @@ public class Osid2AssetResource extends MapResource
                         {
                             org.osid.repository.Part part = partIterator.nextPart();
                             org.osid.repository.PartStructure partStructure = part.getPartStructure();
-                            String name = partStructure.getDisplayName();
-                            java.io.Serializable ser = part.getValue();
-                            if (ser instanceof String)
-                            {
-                                mProperties.put(name,ser);
-                                if (name.equals("NARRAVISION_MEDIUM_IMAGE_DISPLAY_NAME_PART_STRUCTURE")) setSpec((String)ser);
+							org.osid.shared.Type partStructureType = partStructure.getType();
+							System.out.println("psdn " + partStructure.getDisplayName());
+							System.out.println("pvalue " + part.getValue());
+							mProperties.put(partStructureType.getKeyword(),part.getValue());
+							if (partStructureType.isEqual(partType))
+							{
+								String s = (String)part.getValue();
+                                setSpec(s);
                             }
                         }
                     }
