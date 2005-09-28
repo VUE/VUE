@@ -32,7 +32,8 @@ class LWCInfoPanel extends javax.swing.JPanel
     implements VueConstants,
                LWSelection.Listener,
                LWComponent.Listener,
-               ActionListener
+               ActionListener,
+               FocusListener
 {
     private JTextField labelField = new JTextField(15);
     private VueTextField resourceField = new tufts.vue.gui.VueTextField();
@@ -112,6 +113,7 @@ class LWCInfoPanel extends javax.swing.JPanel
             if (field instanceof JTextField) {
                 //((JTextField)field).setHorizontalAlignment(JTextField.LEFT);
                 ((JTextField)field).addActionListener(this);
+                   ((JTextField)field).addFocusListener(this);
             }
             gridbag.setConstraints(field, c);
             container.add(field);
@@ -236,7 +238,23 @@ class LWCInfoPanel extends javax.swing.JPanel
         String text = e.getActionCommand();
         Object src = e.getSource();
         LWComponent c = this.lwc;
-        try {
+        updateLWComponent(text,src,c);
+    }
+    public void focusGained(FocusEvent e) {
+    }
+    
+    public void focusLost(FocusEvent e) {
+        if (this.lwc == null)
+            return;
+        String text = ((JTextField)e.getSource()).getText();
+        Object src = e.getSource();
+        LWComponent c = this.lwc;
+        updateLWComponent(text,src,c);
+        
+    }
+    
+    public void updateLWComponent(String text,Object src,LWComponent c) {
+         try {
             boolean set = true;
             if (src == labelField)
                 c.setLabel(text);
@@ -253,7 +271,6 @@ class LWCInfoPanel extends javax.swing.JPanel
             System.err.println("LWCInfoPanel: error setting property value ["+text+"] on " + src);
         }
     }
-    
     public String toString() {
         return "LWCInfoPanel@" + Integer.toHexString(hashCode());
     }

@@ -87,7 +87,7 @@ implements LWSelection.Listener {
     public ObjectInspectorPanel() {
         super();
         
-        setMinimumSize( new Dimension( 200,200) );
+        setMinimumSize( new Dimension( 240,200) );
         setLayout( new BorderLayout() );
         setBorder( new EmptyBorder( 5,5,5,5) );
         mTabbedPane = new JTabbedPane();
