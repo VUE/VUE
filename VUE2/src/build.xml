@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.62 $ / $Date: 2005-09-28 17:46:11 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.62 2005-09-28 17:46:11 anoop Exp $ -->
+<!-- $Revision: 1.63 $ / $Date: 2005-09-28 21:14:44 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.63 2005-09-28 21:14:44 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -949,13 +949,23 @@ class Version {
         <zip destfile="${release.home}/VUE.zip">
             <fileset dir="${build.home}" includes="VUE.jar"/>
          </zip>
+         <checksum file="${release.home}/VUE.zip" property="genericMD5"/>
          <zip destfile="${release.home}/VUE.app.zip">
             <fileset dir="${build.home}" includes="VUE.app"/>
          </zip>
+           <checksum file="${release.home}/VUE.app.zip" property="macMD5"/>
          <zip destfile="${release.home}/VUE_src.zip">
             <fileset dir="${lib.home}"/>
             <fileset dir="${src}"/>
          </zip>
+           <checksum file="${release.home}/VUE_src.zip" property="srcMD5"/>
+         <echo file="${release.home}/checksum.txt" >
+VUE.zip - ${genericMD5}
+VUE.app.zip - ${macMD5}
+VUE_src.zip - ${srcMD5}
+            
+        </echo>
+        
     </target>
     
     <!-- ==================== Debugging tasks  ================================ -->
