@@ -132,7 +132,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
             }
         });
         
-        nodeFilterTable.setPreferredScrollableViewportSize(new Dimension(200,100));
+        nodeFilterTable.setPreferredScrollableViewportSize(new Dimension(240,100));
         JScrollPane nodeFilterScrollPane=new JScrollPane(nodeFilterTable);
         nodeFilterScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
         JPanel  nodeFilterPanel=new JPanel();
