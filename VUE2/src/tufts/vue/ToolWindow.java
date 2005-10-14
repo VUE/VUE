@@ -865,7 +865,7 @@ public class ToolWindow
         tf.setEditable(true);//no need
         p.add(tf);
         tw.addTool(p);
-        tw.setSize(200,200);
+        tw.setSize(240,200);
         tw.setVisible(true);
 
         // why can't we get the tex field to respond to mouse??
