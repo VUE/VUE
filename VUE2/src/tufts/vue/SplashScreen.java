@@ -31,6 +31,7 @@ package tufts.vue;
 
 import java.awt.*;
 import javax.swing.*;
+import java.util.*;
 
 public class SplashScreen extends JWindow {
     
@@ -46,7 +47,19 @@ public class SplashScreen extends JWindow {
     
     private void createSplash() {
         Dimension screen =  Toolkit.getDefaultToolkit().getScreenSize();
-        ImageIcon icon = VueResources.getImageIcon("splashScreen");
+        ImageIcon icon = new ImageIcon(VueResources.getURL("splashScreen")){
+          public void paintIcon(Component c, Graphics g, int x, int y) {
+              Calendar calendar = new GregorianCalendar();
+              super.paintIcon(c,g,x,y);
+              g.setColor(Color.WHITE);
+              g.setFont(new Font("Verdana", Font.PLAIN, 11));
+              g.drawString("VISUAL UNDERSTANDING ENVIRONMENT",172,225);
+              g.drawString("Developed by Academic Technology",202,245);
+              g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 273,260);
+              g.drawString("Version "+VueResources.getString("vue.version"),25,275);
+              
+          }  
+        };
         final int width = icon.getIconWidth();
         final int height = icon.getIconHeight();
         int x = (screen.width - width)/2;
