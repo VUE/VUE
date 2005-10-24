@@ -4601,7 +4601,7 @@ public class MapViewer extends javax.swing.JComponent
     private boolean DEBUG_ANTI_ALIAS = true;
     private boolean DEBUG_RENDER_QUALITY = false;
     private boolean DEBUG_FINDPARENT_OFF = false;
-    private boolean DEBUG_TIMER_ROLLOVER = false; // todo: preferences
+    private boolean DEBUG_TIMER_ROLLOVER = true; // todo: preferences
     private boolean DEBUG_FONT_METRICS = false;// fractional metrics looks worse to me --SF
     private boolean OPTIMIZED_REPAINT = false;
     
