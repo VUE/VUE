@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.71 $ / $Date: 2005-10-26 17:24:42 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.71 2005-10-26 17:24:42 anoop Exp $ -->
+<!-- $Revision: 1.72 $ / $Date: 2005-10-26 18:05:57 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.72 2005-10-26 18:05:57 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -949,7 +949,7 @@ class Version {
     </target>
     
     <!-- Tasks to create releases for VUE -->
-    <target name="release" depends="all">
+    <target name="release" depends="clean,mac-dist">
         <delete dir="${release.home}"/>
         <mkdir dir="${release.home}"/>
         <zip destfile="${release.home}/VUE.zip">
