@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.70 $ / $Date: 2005-10-26 16:05:44 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.70 2005-10-26 16:05:44 anoop Exp $ -->
+<!-- $Revision: 1.71 $ / $Date: 2005-10-26 17:24:42 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.71 2005-10-26 17:24:42 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -786,6 +786,7 @@
     <target name="mac-dist-15-raw"> <make-mac-osx-application name="VUE15" plist="Info-Java15.plist"/> </target>
     
     <target name="mac-dist-nv" depends="jar-narravision" description="Creates a Mac OS X distributable Applcation directory for NarraVision.">
+       <sleep seconds="300"/> 
       <make-mac-osx-application name="NarraVision" plist="Info-NarraVision.plist" jar-0="${narravision.jar}"/>
         <!--
       <extra-tasks>
