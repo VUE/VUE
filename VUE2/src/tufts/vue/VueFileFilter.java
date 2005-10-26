@@ -30,6 +30,7 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         html = {".html", ".htm"},
         imap = {".imap"}, 
         vue = {".vue", ".xml"},
+        rdf = {".rdf"},
         zip = {".zip"};
     private String[] extensions;
     private String description;
