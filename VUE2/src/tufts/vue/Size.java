@@ -54,6 +54,10 @@ public class Size {
 	this(r.width, r.height);
     }
 
+    public Dimension dim() {
+        return new Dimension((int)width, (int)height);
+    }
+
     public float getWidth() {
 	return width;
     }
