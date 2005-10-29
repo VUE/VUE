@@ -44,6 +44,8 @@ public class Util
     private static boolean UnixPlatform = false;
     private static float javaVersion = 1.0f;
     
+    private static int MacMRJVersion = -1;
+    
     static {
         String osName = System.getProperty("os.name");
         String javaSpec = System.getProperty("java.specification.version");
@@ -60,7 +62,21 @@ public class Util
         if (osn.startsWith("MAC")) {
             MacPlatform = true;
             System.out.println("Mac JVM: " + osName);
-            System.out.println("Mac mrj.version: " + System.getProperty("mrj.version"));
+            String mrj = System.getProperty("mrj.version");
+            int i = 0;
+            while (i < mrj.length()) {
+                if (!Character.isDigit(mrj.charAt(i)))
+                    break;
+                i++;
+            }
+
+            try {
+                MacMRJVersion = Integer.parseInt(mrj.substring(0, i));
+            } catch (NumberFormatException e) {
+                System.err.println("mrj.version: " + e);
+            }
+            System.out.println("Mac mrj.version: \"" + mrj + "\" = " + MacMRJVersion);
+            
         } else if (osn.indexOf("WINDOWS") >= 0) {
             WindowsPlatform = true;
             System.out.println("Windows JVM: " + osName);
@@ -75,9 +91,13 @@ public class Util
      * actually appear to be less than 1.4, as that can't
      * be exactly represented by a double.
      */
-    public static float getJavaVersion()
-    {
+    public static float getJavaVersion() {
         return javaVersion;
+    }
+       
+    /** return mac runtime for java version.  Will return -1 if we're not running on mac platform. */
+    public static int getMacMRJVersion() {
+        return MacMRJVersion;
     }
        
 
@@ -643,8 +663,8 @@ public class Util
         System.err.println(e + ": tufts.macosx.Screen needs rebuild or VUE-MacOSX.jar library not in classpath");
     }
     private static void eout(NoClassDefFoundError e) {
-        // We'll get this is /System/Library/Java isn't in the classpath
-        System.err.println(e + ": Not Mac OS X Platform or /System/Library/Java not in classpath");
+        // We'll get this if /System/Library/Java isn't in the classpath
+        System.err.println(e + ": Not Mac OS X Platform, or VUE-MacOSX.jar and/or /System/Library/Java not in classpath");
     }
 
     public static void out(Object o) {
@@ -676,6 +696,14 @@ public class Util
             ;
     }
 
+    public static String out(java.awt.Rectangle r) {
+        return ""
+            + r.width + "x" + r.height
+            + " "
+            + r.x + "," + r.y
+            ;
+    }
+    
     public static String out(java.awt.geom.RectangularShape r) {
         String name = r.getClass().getName();
         name = name.substring(name.lastIndexOf('.') + 1);
@@ -695,6 +723,31 @@ public class Util
             ;
     }
     
+    public static String oneDigitDecimal(double x) {
+        int tenX = (int) Math.round(x * 10);
+        if ((tenX / 10) * 10 == tenX)
+            return new Integer(tenX / 10).toString();
+        else
+            return new Float( ((float)tenX) / 10f ).toString();
+    }
+
+    /** @return a friendly looking string to represent the given number of bytes: e.g.: 120k, or 3.8M.
+     * for values less than zero, returns ""
+     */
+    
+    public static String abbrevBytes(long bytes) {
+        if (bytes > 1024*1024)
+            return oneDigitDecimal(bytes/(1024.0*1024)) + "M";
+        else if (bytes > 1024)
+            return bytes/1024 + "k";
+        else if (bytes >= 0)
+            return "" + bytes;
+        else
+            return "";
+    }
+    
+    
+
     public static void main(String args[])
         throws java.io.IOException
     {
