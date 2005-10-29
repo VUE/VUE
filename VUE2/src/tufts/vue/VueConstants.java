@@ -42,6 +42,8 @@ public interface VueConstants
     static Font FONT_SMALL_BOLD = new Font("SansSerif", Font.BOLD, 10);
     static Font FONT_TINY = new Font("SansSerif", Font.PLAIN, 8);
     static Font FONT_ICONIC = new Font("Arial Black", Font.PLAIN, 8);
+    static Font FONT_NARROW = new Font("Arial Narrow", Font.PLAIN, 11);
+
     //static Font FONT_LINKLABEL = new Font("Verdana", Font.PLAIN, 11);
     //static Font FONT_LINKLABEL = new Font("SansSerif", Font.PLAIN, 10);
     
