@@ -133,31 +133,6 @@ public class VueUtil extends tufts.Util
     }
 
 
-    public static String oneDigitDecimal(double x) {
-        int tenX = (int) Math.round(x * 10);
-        if ((tenX / 10) * 10 == tenX)
-            return new Integer(tenX / 10).toString();
-        else
-            return new Float( ((float)tenX) / 10f ).toString();
-    }
-
-    /** @return a friendly looking string to represent the given number of bytes: e.g.: 120k, or 3.8M.
-     * for values less than zero, returns ""
-     */
-    
-    public static String abbrevBytes(long bytes) {
-        if (bytes > 1024*1024)
-            return oneDigitDecimal(bytes/(1024.0*1024)) + "M";
-        else if (bytes > 1024)
-            return bytes/1024 + "k";
-        else if (bytes >= 0)
-            return "" + bytes;
-        else
-            return "";
-    }
-    
-    
-
 
     /**
      * Compute the intersection point of two lines, as defined
@@ -404,19 +379,27 @@ public class VueUtil extends tufts.Util
         return result;
     }
 
-    public static String pad(char c, int wide, String s) {
+    public static String pad(char c, int wide, String s, boolean alignRight) {
         if (s.length() >= wide)
             return s;
         int pad = wide - s.length();
         StringBuffer buf = new StringBuffer(wide);
-        while (pad-- > 0) {
+        if (alignRight == false)
+            buf.append(s);
+        while (pad-- > 0)
             buf.append(c);
-        }
-        buf.append(s);
+        if (alignRight)
+            buf.append(s);
         return buf.toString();
     }
 
-
+    public static String pad(char c, int wide, String s) {
+        return pad(c, wide, s, false);
+    }
+    public static String pad(int wide, String s) {
+        return pad(' ', wide, s, false);
+    }
+    
     public static void dumpBytes(String s) {
         try {
             dumpBytes(s.getBytes("UTF-8"));
