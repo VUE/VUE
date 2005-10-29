@@ -43,24 +43,14 @@ import tufts.vue.filter.*;
  * The Object Inspector Panel!
  *
  * \**/
-public class ObjectInspectorPanel  extends JPanel
-implements LWSelection.Listener {
-    
-    
-    /////////////
-    // Statics
-    //////////////
-    
+public class ObjectInspectorPanel extends JPanel
+    implements LWSelection.Listener
+{
     // these 3 constants want to be elsewhere
     public static final int INFO_TAB = 0;
     public static final int NOTES_TAB = 1;
     public static final int TREE_TAB = 2;
     public static final int FILTER_TAB = 3;
-    
-    
-    /////////////
-    // Fields
-    //////////////
     
     /** The tabbed panel **/
     JTabbedPane mTabbedPane = null;
@@ -80,9 +70,6 @@ implements LWSelection.Listener {
     /** filter panel **/
     
     NodeFilterPanel mNodeFilterPanel = null;
-    ///////////////////
-    // Constructors
-    ////////////////////
     
     public ObjectInspectorPanel() {
         super();
@@ -200,7 +187,9 @@ implements LWSelection.Listener {
         LWComponent mComponent;
         public InfoPanel() {
             setLayout( new BorderLayout() );
-            setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
+            
+            //setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
+            
             objectLabel = new JLabel("Node");
             objectLabel.setFont(VueConstants.FONT_MEDIUM_BOLD);
             objectLabel.setHorizontalTextPosition(JLabel.LEFT);
@@ -212,7 +201,12 @@ implements LWSelection.Listener {
             //previewPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             //previewPanel.setBorder(BorderFactory.createLoweredBevelBorder());
             //labelPanel.add(previewPanel,BorderLayout.EAST);
-            setBorder( BorderFactory.createEmptyBorder(10,10,0,6));
+            
+            //setBorder(BorderFactory.createEmptyBorder(10,10,0,6));
+            setBorder(BorderFactory.createEmptyBorder(3,4,0,4));
+            //setBorder(BorderFactory.createLineBorder(Color.red, 1));
+            //setBorder(null);
+            
             add(labelPanel,BorderLayout.NORTH);
             add(new LWCInfoPanel(),BorderLayout.CENTER);
         }
@@ -414,7 +408,7 @@ implements LWSelection.Listener {
         //LWMap map = new LWMap("TestMap");
         LWComponent node = new LWNode("Test Node");
         node.setNotes("I am a note.");
-        node.setResource("/tmp");
+        node.setResource("file:///System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Home");
         Resource r = node.getResource();
         for (int i = 10; i < 31; i++)
             r.setProperty("field_" + i, "value_" + i);
