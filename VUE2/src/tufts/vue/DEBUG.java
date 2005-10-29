@@ -48,6 +48,7 @@ public class DEBUG
     public static boolean CASTOR = false; // castor persist (save/restore)
     public static boolean XML = false; // castor persist (save/restore)
     public static boolean THREAD = false; // threading
+    public static boolean TEXT = false; // threading
 
     public static boolean DR = false; // digital repository & data sources
     
@@ -57,9 +58,29 @@ public class DEBUG
         CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
             PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
-            CASTOR=XML=THREAD=t;
+            CASTOR=XML=THREAD=TEXT=t;
         if (t == false)
             META = false;
+    }
+
+    public static void parseArg(String a) {
+             if (a.equals("-debug_meta"))       DEBUG.META = true;
+        else if (a.equals("-debug_init"))       DEBUG.INIT = true;
+        else if (a.equals("-debug_focus"))      DEBUG.FOCUS = true;
+        else if (a.equals("-debug_dr"))         DEBUG.DR = true;
+        else if (a.equals("-debug_tool"))       DEBUG.TOOL = true;
+        else if (a.equals("-debug_drop"))       DEBUG.DND = true;
+        else if (a.equals("-debug_undo"))       DEBUG.UNDO = true;
+        else if (a.equals("-debug_castor"))     DEBUG.CASTOR = true;
+        else if (a.equals("-debug_xml"))        DEBUG.XML = true;
+        else if (a.equals("-debug_paint"))      DEBUG.PAINT = true;
+        else if (a.equals("-debug_mouse"))      DEBUG.MOUSE = true;
+        else if (a.equals("-debug_keys"))       DEBUG.KEYS = true;
+        else if (a.equals("-debug_layout"))     DEBUG.LAYOUT = true;
+        else if (a.equals("-debug_text"))       DEBUG.TEXT = true;
+        else if (a.startsWith("-debug_event"))  DEBUG.EVENTS = true;
+        else if (a.startsWith("-debug_thread")) DEBUG.THREAD = true;
+        else if (a.startsWith("-debug_image"))  DEBUG.IMAGE = true;
     }
 
     //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }

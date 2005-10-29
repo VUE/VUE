@@ -43,7 +43,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.308 2005-08-31 15:40:06 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.309 2005-10-29 15:14:15 sfraize Exp $
     
 /**
  * Vue application class.
@@ -367,6 +367,22 @@ public class VUE
         initUI(false);
     }
 
+    /**
+     * We extend apple.laf.AquaLookAndFeel and install it as our own
+     * look and feel on the mac in order to override certian items,
+     * such as the default font sizes.  Note that in order for Aqua
+     * tabbed-pane's to look right, we have to have an "icons"
+     * directory at the same level as this class containing Right.gif,
+     * Left.gif and Both.gif, which are needed for Aqua tabbed-pane's
+     * when there isn't enough room to display all the tabs.
+     */
+      
+    // We can find the class apple.laf.AquaLookAndFeel on Mac OS X systems in:
+    // /System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Classes/laf.jar
+    // We've extracted just the AquaLookAndFeel class and put it in lib/apple-laf.jar
+    // so this will compile on other platforms.  Note that apple-laf.jar may need
+    // to be updated for new releases of the JVM on the Mac.  Currently we're using
+    // the classes from JVM 1.4.2.
     static class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel {
         public String getDescription() { return super.getDescription() + " (VUE Derivative)"; }
         public void initComponentDefaults(UIDefaults table)
@@ -403,6 +419,13 @@ public class VUE
             */
         }
 
+        /*
+        public static Object makeIcon(final Class baseClass, final String gifFile) {
+            System.err.println("VueAquaLookAndFeel.makeIcon " + baseClass + " " + gifFile);
+            return apple.laf.AquaLookAndFeel.makeIcon(baseClass, gifFile);
+        }
+        */
+        
         private static javax.swing.plaf.FontUIResource makeFont(Font font) {
             return new javax.swing.plaf.FontUIResource(font);
         }
@@ -481,23 +504,13 @@ public class VUE
                 nodr = true;
             else if (args[i].equals("-mac") || args[i].equals("-useMacLookAndFeel"))
                 useMacLAF = true;
-            else if (args[i].equals("-debug_init"))     DEBUG.INIT = true;
-            else if (args[i].equals("-debug_focus"))    DEBUG.FOCUS = true;
-            else if (args[i].equals("-debug_dr"))       DEBUG.DR = true;
-            else if (args[i].equals("-debug_tool"))     DEBUG.TOOL = true;
-            else if (args[i].equals("-debug_drop"))     DEBUG.DND = true;
-            else if (args[i].equals("-debug_undo"))     DEBUG.UNDO = true;
-            else if (args[i].equals("-debug_castor"))   DEBUG.CASTOR = true;
-            else if (args[i].equals("-debug_xml"))      DEBUG.XML = true;
-            else if (args[i].equals("-debug_paint"))    DEBUG.PAINT = true;
-            else if (args[i].equals("-debug_mouse"))    DEBUG.MOUSE = true;
-            else if (args[i].startsWith("-debug_event"))   DEBUG.EVENTS = true;
-            else if (args[i].startsWith("-debug_thread"))  DEBUG.THREAD = true;
-            else if (args[i].startsWith("-debug_image"))   DEBUG.IMAGE = true;
             else if (args[i].equals("-exit_after_init")) // for startup time trials
                 exitAfterInit = true;
+            else
+                DEBUG.parseArg(args[i]);
 
             if (args[i].startsWith("-debug")) DEBUG.Enabled = true;
+
         }
         out("parsed args " + allArgs);
     }
@@ -733,7 +746,7 @@ public class VUE
 
         // adding the menus and toolbars
         if (DEBUG.INIT) out("setting JMenuBar...");
-        frame.setJMenuBar(new VueMenuBar(VUE.ToolWindows));
+        frame.setJMenuBar(VueMenuBar.RootMenuBar = new VueMenuBar(VUE.ToolWindows));
         if (DEBUG.INIT) out("VueMenuBar installed.");;
 
         // On Mac, need to set any frame's to have a duplicate
@@ -1319,7 +1332,8 @@ public class VUE
     */
 
     public static VueMenuBar getJMenuBar() {
-        return (VueMenuBar) ((VueFrame)getRootWindow()).getJMenuBar();
+        return VueMenuBar.RootMenuBar;
+        //return (VueMenuBar) ((VueFrame)getRootWindow()).getJMenuBar();
     }
     
 
@@ -1453,6 +1467,8 @@ public class VUE
     static class VueMenuBar extends JMenuBar
         implements FocusListener
     {
+        public static VueMenuBar RootMenuBar;
+        
         // this may be created multiple times as a workaround for the inability
         // to support a single JMenuBar for the whole application on the Mac
         public VueMenuBar()
@@ -1636,6 +1652,8 @@ public class VUE
                 add(windowMenu);
             add(helpMenu);
             
+            if (RootMenuBar == null)
+                RootMenuBar = this;
         }
 
         public boolean doProcessKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
