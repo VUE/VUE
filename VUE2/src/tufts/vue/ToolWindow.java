@@ -678,9 +678,14 @@ public class ToolWindow
                 return true;
             // Condition usually comes in as WHEN_ANCESTOR_OF_FOCUSED_COMPONENT (1), which doesn't do it for us.
             // We need condition (2): WHEN_IN_FOCUSED_WINDOW
-            condition = JComponent.WHEN_IN_FOCUSED_WINDOW;
-            if (DEBUG.TOOL||DEBUG.FOCUS) System.out.println("     PKB " + ks + " handing to VueMenuBar w/condition=" + condition);
-            return VUE.getJMenuBar().doProcessKeyBinding(ks, e, condition, pressed);
+            int newCondition = JComponent.WHEN_IN_FOCUSED_WINDOW;
+            if (DEBUG.TOOL||DEBUG.FOCUS) System.out.println("     PKB " + ks + " handing to VueMenuBar w/condition=" + newCondition);
+            try {
+                return VUE.getJMenuBar().doProcessKeyBinding(ks, e, newCondition, pressed);
+            } catch (NullPointerException ex) {
+                System.err.println("ToolWindow: no menu bar: " + ex);
+                return false;
+            }
         }
         
         public ContentPane(String title)
