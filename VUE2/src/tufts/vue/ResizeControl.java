@@ -172,12 +172,12 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     {
         final boolean lockedLocation = c.getParent() instanceof LWNode; // todo: have a locked flag
 
-        final float width = request.width / c.getScale();
-        final float height = request.height / c.getScale();
+        final float requestWidth = request.width / c.getScale();
+        final float requestHeight = request.height / c.getScale();
 
         if (lockedLocation || isSizeOnlyCtrl(controlPoint)) {
             
-            c.userSetSize(width, height);
+            c.userSetSize(requestWidth, requestHeight);
             
         } else {
 
@@ -202,15 +202,15 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             // that's not working at the moment for floating text
             // layout's.
                     
-            c.userSetSize(width, height);
+            c.userSetSize(requestWidth, requestHeight);
 
             final float newWidth = c.getWidth();
             final float newHeight = c.getHeight();
             final float newX, newY;
 
             boolean moved = false;
-            if (newWidth != width) {
-                //System.out.println("width stuck at " + newWidth + " can't go to " + width);
+            if (newWidth != requestWidth) {
+                //System.out.println("width stuck at " + newWidth + " can't go to " + requestWidth);
                 if (isLeftCtrl(controlPoint) == false || newWidth == oldWidth) {
                     // do NOT move the X coord (tho Y coord might be moving)
                     newX = oldX;
@@ -222,11 +222,12 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                 }
             } else {
                 newX = request.x;
+                // may have moved
                 moved = true;
             }
                 
-            if (newHeight != height) {
-                //System.out.println("height stuck at " + c.getHeight() + " can't go to " + height);
+            if (newHeight != requestHeight) {
+                //System.out.println("height stuck at " + newHeight + " can't go to " + requestHeight);
                 if (isTopCtrl(controlPoint) == false || newHeight == oldHeight) {
                     // do NOT move the Y coord (tho X coord might be moving)
                     newY = oldY;
@@ -238,6 +239,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                 }
             } else {
                 newY = request.y;
+                // may have moved
                 moved = true;
             }
 
