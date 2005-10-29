@@ -62,7 +62,7 @@ public interface LWKey {
     
     public String Repaint = "repaint"; // general: visual change but no permanent data change
     public String RepaintComponent = "repaint.component"; // IMMEDIATELY repaint (don't wait for AWT), but just the component
-    public String RepaintAsync = "repaint.async"; // a repaint from an auxillary thread: everyone needs immediate repaint
+    public String RepaintAsync = "repaint.async"; // a repaint from an auxillary thread: all visual listeners need immediate repaint
 
     /** link arrow state: 0=none, 1=start arrow, 2=end arrow, 3=both arrows */
     public String LinkArrows = "link.arrows";

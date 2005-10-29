@@ -48,6 +48,8 @@ public class DrawContext
     // MapViewer, etc.  And replace zoom with a getZoom
     // that grabs transform scale value.
 
+    // todo: move coord mappers from MapViewer to here?
+
     public DrawContext(Graphics g, double zoom, float offsetX, float offsetY, Rectangle frame, boolean absoluteLinks)
     {
         this.g = (Graphics2D) g;
