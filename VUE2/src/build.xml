@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.72 $ / $Date: 2005-10-26 18:05:57 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.72 2005-10-26 18:05:57 anoop Exp $ -->
+<!-- $Revision: 1.73 $ / $Date: 2005-11-03 23:00:53 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.73 2005-11-03 23:00:53 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -188,7 +188,7 @@
                    jsse.jar
                    jxtaid.jar
                    jxtasecurity.jar
-                   log4j-1.2.8.jar
+                   log4j-1.2.12.jar
                    logging.jar
                    MITAuthenticationTypes.jar
                    MITRepositoryTypes.jar
@@ -306,7 +306,7 @@
     <pathelement path="${lib.home}/commons-discovery.jar"/>
     <pathelement path="${lib.home}/commons-logging.jar"/>
     <pathelement path="${lib.home}/jaxrpc.jar"/>
-    <pathelement path="${lib.home}/log4j-1.2.4.jar"/>
+    <pathelement path="${lib.home}/log4j-1.2.12.jar"/>
     <pathelement path="${lib.home}/saaj.jar"/>
     <pathelement path="${lib.home}/MRJAdapter.jar"/>
     <pathelement path="${lib.home}/apple-laf.jar"/>
@@ -377,7 +377,6 @@
     <pathelement path="${lib.home}/jms.jar" />
     <pathelement path="${lib.home}/jxtaid.jar" />
     <pathelement path="${lib.home}/jxtasecurity.jar" />
-    <pathelement path="${lib.home}/log4j-1.2.4.jar" />
     <pathelement path="${lib.home}/saaj.jar" />
     <pathelement path="${lib.home}/xalan.jar" />
 
