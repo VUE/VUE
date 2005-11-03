@@ -45,6 +45,10 @@ import java.awt.geom.Rectangle2D;
 
 public class TextRow
 {
+    private static final boolean FunkyMacTextBounds = VueUtil.isMacPlatform() && VueUtil.getMacMRJVersion() < 232;
+    /** default FontRenderContext: anti-alias=true and fractional-metrics=false */
+    private static final FontRenderContext DefaultFontContext = new FontRenderContext(null, true, false);
+    
     private TextLayout row;
     private Rectangle2D.Float bounds;
 
@@ -68,20 +72,21 @@ public class TextRow
 
     public TextRow(String text, Font font)
     {
-        // default FRC: anti-alias & fractional metrics
-        this(text, font, new FontRenderContext(null, true, true));
+        this(text, font, DefaultFontContext);
     }
     
         
-    //private static final BasicStroke BorderStroke = new BasicStroke(0.05f);
-    private static final BasicStroke BorderStroke = new BasicStroke(1);
+    private static final BasicStroke BorderStroke = new BasicStroke(0.05f);
+    //private static final BasicStroke BorderStroke = new BasicStroke(1);
 
     public void draw(Graphics2D g2d, float xoff, float yoff)
     {
         // Mac & PC 1.4.1 implementations haved reversed baselines
         // and differ in how descents are factored into bounds offsets
+        // Update: As of Mac java 1.4.2_09-232, it appears to use the
+        // same method as the PC.
 
-        if (VueUtil.isMacPlatform()) {
+        if (FunkyMacTextBounds) {
             //System.out.println("TextRow[" + text + "]@"+tb);
             
             yoff += this.height;
@@ -134,4 +139,6 @@ public class TextRow
     public String toString() {
         return "TextRow[" + text + " " + bounds + "]";
     }
+
+
 }
