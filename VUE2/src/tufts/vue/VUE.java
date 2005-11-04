@@ -50,7 +50,7 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.PatternLayout;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.310 2005-11-04 00:09:20 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.311 2005-11-04 00:36:04 sfraize Exp $
     
 /**
  * Vue application class.
@@ -62,7 +62,7 @@ import org.apache.log4j.PatternLayout;
 public class VUE
     implements VueConstants
 {
-    private static Logger Log = Logger.getLogger("VUE");
+    public static final Logger Log = Logger.getLogger("VUE");
     
     private static AppletContext sAppletContext = null;
     
@@ -500,9 +500,9 @@ public class VUE
             System.err.println(e);
         }
 
-        out("LookAndFeel: " + javax.swing.UIManager.getLookAndFeel().getName());
-        out("             " + javax.swing.UIManager.getLookAndFeel().getDescription());
-        out("             " + javax.swing.UIManager.getLookAndFeel().getClass());
+        Log.debug("LAF  name: " + javax.swing.UIManager.getLookAndFeel().getName());
+        Log.debug("LAF descr: " + javax.swing.UIManager.getLookAndFeel().getDescription());
+        Log.debug("LAF class: " + javax.swing.UIManager.getLookAndFeel().getClass());
     }
 
     public static void parseArgs(String[] args) {
