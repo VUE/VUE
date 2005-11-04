@@ -40,16 +40,18 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
 
     VueTheme(boolean macAquaLAF)
     {
-        System.out.println("VueTheme: constructed.");
+        org.apache.log4j.NDC.push("VueTheme");
+        VUE.Log.debug("constructed.");
         if (DEBUG.INIT) new Throwable("VueTheme created").printStackTrace();
         if (macAquaLAF) {
-            System.out.println("VueTheme: Mac Aqua");
+            VUE.Log.debug("Mac Aqua");
             if (isMacMetalLAF()) {
-                System.out.println("VueTheme: Mac Aqua Brush Metal Look");
+                VUE.Log.debug("Mac Aqua Brush Metal Look");
                 ToolbarColor = SystemColor.window;
             } else
                 ToolbarColor = SystemColor.control;
         }
+        org.apache.log4j.NDC.pop();
     }
 
     public static boolean isMacMetalLAF() {
