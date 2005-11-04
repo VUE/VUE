@@ -42,8 +42,15 @@ import net.roydesign.mac.MRJAdapter;
 import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.NDC;
+import org.apache.log4j.Level;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.PatternLayout;
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.309 2005-10-29 15:14:15 sfraize Exp $
+
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.310 2005-11-04 00:09:20 sfraize Exp $
     
 /**
  * Vue application class.
@@ -55,6 +62,8 @@ import net.roydesign.event.ApplicationEvent;
 public class VUE
     implements VueConstants
 {
+    private static Logger Log = Logger.getLogger("VUE");
+    
     private static AppletContext sAppletContext = null;
     
     /** The currently active viewer (e.g., is visible
@@ -528,17 +537,18 @@ public class VUE
     
     
     public static void main(String[] args) {
-        System.out.println("VUE: main");
-        System.out.println("VUE: build: " + tufts.vue.Version.AllInfo);
-        System.out.println("VUE: name: " + VUE.NAME);
-        //System.out.println("VUE: fully built: " + build.version.AllInfo);
+        System.out.println("VUE: main invoked.");
+        Logger.getRootLogger().removeAllAppenders(); // need to do this or we get everything twice
+        //BasicConfigurator.configure();
+        Log.addAppender(new ConsoleAppender(new PatternLayout("[%t] %-5p %c %x - %m%n")));
+        Log.setLevel(Level.DEBUG);
+        Log.info("build: " + tufts.vue.Version.AllInfo);
 
-        //VUE.TUFTS = 
         if (VUE.TUFTS)
-            System.out.println("VUE: TUFTS features only (no MIT/development)");
+            Log.info("TUFTS features only (no MIT/development)");
         else
-            System.out.println("VUE: MIT/development features enabled");
-        
+            Log.info("MIT/development features enabled");
+
         parseArgs(args);
 
         // initUI installs the VueTheme (unless mac look), which must be done
@@ -768,8 +778,7 @@ public class VUE
                     try {
                         ((JFrame)w).setJMenuBar(new VueMenuBar(ToolWindows));
                     } catch (ArrayIndexOutOfBoundsException e) {
-                        out("OSX TIGER JAVA BUG");
-                        e.printStackTrace();
+                        Log.error("OSX TIGER JAVA BUG", e);
                     }
                     toolWindow.setProcessKeyBindingsToMenuBar(false);
                 }
@@ -785,8 +794,7 @@ public class VUE
         try {
             frame.pack();
         } catch (ArrayIndexOutOfBoundsException e) {
-            out("OSX TIGER JAVA BUG at frame.pack()");
-            e.printStackTrace();
+            Log.error("OSX TIGER JAVA BUG at frame.pack()", e);
         }
         if (nodr) {
             frame.setSize(750,450);
@@ -810,7 +818,7 @@ public class VUE
         
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                System.out.println(e);
+                Log.warn(e);
                 ExitAction.exitVue();
                 //-------------------------------------------------------
                 // if we get here, it means exit was aborted.
@@ -829,12 +837,11 @@ public class VUE
             }
             public void windowClosed(WindowEvent e) {
                 // I've never see us even get this event...
-                System.err.println(e);
-                System.err.println("Too late: window disposed: exiting.");
+                Log.fatal("Too late: window disposed: exiting. " + e);
                 System.exit(-1);
             }
             public void windowStateChanged(WindowEvent e) {
-                System.out.println(e);
+                Log.debug(e);
             }
         });
 
@@ -866,7 +873,7 @@ public class VUE
             //pannerTool.setVisible(true);
         }
 
-        out("showing frame...");
+        Log.debug("showing frame...");
         frame.show();
         if (DEBUG.INIT) out("frame visible");
         
@@ -917,9 +924,9 @@ public class VUE
                 splitPane.resetToPreferredSizes();
         }
 
-        out("loading fonts...");
+        Log.debug("loading fonts...");
         FontEditorPanel.getFontNames();
-        out("caching tool panels...");
+        Log.debug("caching tool panels...");
         NodeTool.getNodeToolPanel();
         LinkTool.getLinkToolPanel();
         if (drBrowser != null && drBrowserTool != null)
@@ -959,7 +966,7 @@ public class VUE
 
         VUE.clearWaitCursor();
         
-        out("main completed.");
+        Log.info("main completed.");
 
         if (exitAfterInit)
             System.exit(0);
@@ -974,12 +981,12 @@ public class VUE
         MRJAdapter.addAboutListener(new AboutAction());
         MRJAdapter.addOpenApplicationListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    System.out.println("VUE: OpenApplication " + e);
+                    Log.info("OpenApplication " + e);
                 }
             });
         MRJAdapter.addOpenDocumentListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    System.out.println("VUE: OpenDocument " + e);
+                    Log.info("OpenDocument " + e);
                     ApplicationEvent ae = (ApplicationEvent) e;
                     VUE.displayMap(ae.getFile());
                 }
@@ -1261,7 +1268,8 @@ public class VUE
      * Create a new viewer and display the given map in it.
      */
     public static MapViewer displayMap(LWMap pMap) {
-        out("displayMap " + pMap);
+        NDC.push("displayMap");
+        out(pMap);
         MapViewer leftViewer = null;
         MapViewer rightViewer = null;
         
@@ -1271,7 +1279,7 @@ public class VUE
                 continue;
             File existingFile = map.getFile();
             if (existingFile != null && existingFile.equals(pMap.getFile())) {
-                System.err.println("** VUE.displayMap found open map with same file! " + map);
+                Log.error("** found open map with same file! " + map);
                 // TODO: pop dialog asking to revert existing if there any changes.
                 //break;
             }
@@ -1282,8 +1290,8 @@ public class VUE
             rightViewer = new MapViewer(pMap, "right");
             rightViewer.setFocusable(false); // so doesn't grab focus till we're ready
 
-            out("displayMap: currently active viewer: " + getActiveViewer());
-            out("displayMap: created new left viewer: " + leftViewer);
+            out("currently active viewer: " + getActiveViewer());
+            out("created new left viewer: " + leftViewer);
 
             mMapTabsLeft.addViewer(leftViewer);
             mMapTabsRight.addViewer(rightViewer);
@@ -1291,6 +1299,7 @@ public class VUE
         
         mMapTabsLeft.setSelectedComponent(leftViewer);
 
+        NDC.pop();
         return leftViewer;
     }
 
@@ -1953,6 +1962,6 @@ public class VUE
     }
 
     static protected void out(Object o) {
-        System.out.println("VUE: " + (o==null?"null":o.toString()));
+        Log.info(o == null ? "null" : o.toString());
     }
 }
