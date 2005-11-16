@@ -1859,10 +1859,14 @@ public class MapViewer extends javax.swing.JComponent
             if (c == activeTextEdit) {
                 activeTextEdit = null;
                 try {
-                    repaint();
+                    // TextBox now handles this, as it may want to reshape itself
+                    // before repainting.
+                    //repaint();
                     if (VUE.getActiveViewer() == this)
                         requestFocus();
                 } finally {
+                    // make absolutely certian no matter what
+                    // that we re-enable actions.
                     VueAction.setAllIgnored(false);
                 }
             }
@@ -1910,7 +1914,7 @@ public class MapViewer extends javax.swing.JComponent
         // focus so it can lose it and turn them back on.
         VueAction.setAllIgnored(true);
         activeTextEdit = lwc.getLabelBox();
-        activeTextEdit.saveCurrentText();
+        activeTextEdit.saveCurrentState();
         if (activeTextEdit.getText().length() < 1)
             activeTextEdit.setText("label");
         
@@ -1921,11 +1925,16 @@ public class MapViewer extends javax.swing.JComponent
         //cy--; // to compensate for line border inset?
         // todo: if is child (scaled) node, this location
         // is wrong -- it's shifted down/right
-        activeTextEdit.setLocation(mapToScreenX(cx), mapToScreenY(cy)-1);
+        // If a border is added to the TextBox (a JComponent), the text moves down
+        // and thus we need to move it back up by a pixel.
+        //activeTextEdit.setLocation(mapToScreenX(cx), mapToScreenY(cy)-1);
+        activeTextEdit.setLocation(mapToScreenX(cx), mapToScreenY(cy));
         
         activeTextEdit.selectAll();
         add(activeTextEdit);
+        if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from addNotify");
         activeTextEdit.requestFocus();
+        if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from requestFocus");
     }
     
     private void drawSelectorBox(Graphics2D g2, Rectangle r) {
@@ -2184,7 +2193,7 @@ public class MapViewer extends javax.swing.JComponent
         }
         //}
         
-        if (DEBUG.VIEWER) resizeControl.draw(dc); // debug
+        if (DEBUG.VIEWER||DEBUG.LAYOUT) resizeControl.draw(dc); // debug
         
         /*
         it = VueSelection.iterator();
@@ -2915,9 +2924,10 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'U') { DEBUG.UNDO = !DEBUG.UNDO; }
                 else if (c == 'V') { DEBUG.VIEWER = !DEBUG.VIEWER; }
                 else if (c == 'W') { DEBUG.ROLLOVER = !DEBUG.ROLLOVER; }
+                else if (c == 'X') { DEBUG.TEXT = !DEBUG.TEXT; }
                 else if (c == 'Z') { resetScrollRegion(); }
                 
-                //else if (c == '|') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
+                else if (c == '&') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
                 else if (c == '^') { DEBUG.DR = !DEBUG.DR; }
                 else if (c == '+') { DEBUG.META = !DEBUG.META; }
                 else if (c == '?') { DEBUG.SCROLL = !DEBUG.SCROLL; }
@@ -4354,7 +4364,20 @@ public class MapViewer extends javax.swing.JComponent
             // in these cases, do NOT request the keyboard focus: either we just got it, our we
             // want to let an active on-map text edit keep it.
         } else {
+
             requestFocus();
+            
+            // When kbd focus switches to the viewer via mouseEntered from a text field such as
+            // notes or label in the object inspector, changing the cursor doesn't work (e.g., hold
+            // down space bar: no hand cursor). Calling requstFocus works to deliver kdb events to
+            // the viewer (we get focusGained), but until you actually click on the map, the
+            // containg VueFrame does not get another kind of OS focus: the frame title stays
+            // grayed out, and you can't change the mouse cursor.  Calling toFront() on the frame
+            // un-grays the frame title, and allows us to change the cursor
+            
+            try {
+                VUE.getMainWindow().toFront();
+            } catch (NullPointerException e) {}
         }
     }
     
@@ -4622,16 +4645,14 @@ public class MapViewer extends javax.swing.JComponent
         boolean test_node = false;
         boolean show_panner = false;
         boolean use_scroller = false;
+        boolean use_menu = false;
 
         for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-zoom"))
-                test_zoom = true;
-            else if (args[i].equals("-node"))
-                test_node = true;
-            else if (args[i].equals("-panner"))
-                show_panner = true;
-            else if (args[i].equals("-scroll"))
-                use_scroller = true;
+                 if (args[i].equals("-zoom"))   test_zoom = true;
+            else if (args[i].equals("-node"))   test_node = true;
+            else if (args[i].equals("-panner")) show_panner = true;
+            else if (args[i].equals("-scroll")) use_scroller = true;
+            else if (args[i].equals("-menu"))   use_menu = true;
         }
         
         
@@ -4641,7 +4662,16 @@ public class MapViewer extends javax.swing.JComponent
                 public javax.swing.plaf.FontUIResource getSmallFont() { return fontTiny; }
             });
             
-        LWMap map = new LWMap("test");
+        LWMap map = new LWMap("test map");
+        map.addLWC(new LWNode("New Node", new Rectangle2D.Float()));
+        
+        /*
+        LWNode tn = new LWNode("one two three", new Rectangle2D.Float());
+        tn.setLocation(100,100);
+        tn.setFillColor(null);
+        tn.setStrokeColor(Color.black);
+        map.addLWC(tn);
+        */
         
         if (test_zoom) {
             DEBUG.EVENTS = DEBUG.SCROLL = DEBUG.VIEWER = DEBUG.MARGINS = true; // zoom test
@@ -4654,7 +4684,7 @@ public class MapViewer extends javax.swing.JComponent
         
         JFrame frame = null;
         
-        if (test_zoom == false) {
+        if (test_zoom == false && use_menu == false) {
             // raw, simple, non-scrolled mapviewer (WITHOUT actions attached!)
             DEBUG.FOCUS = true;
             VueUtil.displayComponent(new MapViewer(map), 400,300);
@@ -4662,7 +4692,7 @@ public class MapViewer extends javax.swing.JComponent
         } else {
 
             MapViewer viewer = new MapViewer(map);
-            viewer.DEBUG_SHOW_ORIGIN = true;
+            //viewer.DEBUG_SHOW_ORIGIN = true;
             viewer.DEBUG_TIMER_ROLLOVER = false;
             viewer.setPreferredSize(new Dimension(500,300));
             if (use_scroller) {
@@ -4674,13 +4704,16 @@ public class MapViewer extends javax.swing.JComponent
             } else {
                 frame = VueUtil.displayComponent(viewer);
             }
-            JMenuBar menu = new VUE.VueMenuBar(null);
-            menu.setFont(FONT_TINY);
-            // set the menu bar just so we can get all the actions connected to MapViewer
-            frame.setJMenuBar(menu);
+            if (use_menu) {
+                JMenuBar menu = new VUE.VueMenuBar(null);
+                menu.setFont(FONT_TINY);
+                // set the menu bar just so we can get all the actions connected to MapViewer
+                frame.setJMenuBar(menu);
+            }
             frame.pack();
             debugFrame = frame;
         }
+
             
         if (test_zoom || show_panner) {
             ToolWindow pannerTool = new ToolWindow("Panner", frame);
