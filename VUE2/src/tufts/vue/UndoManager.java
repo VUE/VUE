@@ -94,6 +94,7 @@ public class UndoManager
         /** The total number of recorded or compressed changes that happened on our watch (will be >= undoSequence.size()) */
         private int eventCount = 0;
         private boolean sorted = false;
+        private List attachedThreads;
 
         UndoAction() {
             undoSequence = new ArrayList();
@@ -104,6 +105,12 @@ public class UndoManager
             this.undoSequence = undoSequence;
         }
         */
+
+        synchronized void addAttachedThread(Thread t) {
+            if (attachedThreads == null)
+                attachedThreads = new ArrayList();
+            attachedThreads.add(t);
+        }
 
         int changeCount() {
             return undoSequence.size();
@@ -123,7 +130,7 @@ public class UndoManager
             return name != null;
         }
         
-        void undo() {
+        synchronized void undo() {
             try {
                 sUndoUnderway = true;
                 run_undo();
@@ -134,8 +141,22 @@ public class UndoManager
 
         // todo: if there are any UndoableThread's attached to us, they should
         // ideally be interrupted.
-        private void run_undo() {
+        private synchronized void run_undo() {
             if (DEBUG.UNDO) System.out.println(this + " undoing sequence of size " + changeCount());
+
+            if (attachedThreads != null) {
+                // First: interrupt any running threads that may yet deliver events
+                // to this UndoAction. 
+                Iterator i = attachedThreads.iterator();
+                while (i.hasNext()) {
+                    Thread t = (Thread) i.next();
+                    if (DEBUG.UNDO) System.out.println(this + " interrupting " + t);
+                    if (t.isAlive())
+                        t.interrupt();
+                    // only interrupt the first time
+                    i.remove();
+                }
+            }
 
             if (!sorted) {
                 Collections.sort(undoSequence);
@@ -583,7 +604,7 @@ public class UndoManager
         checkAndHandleUnmarkedChanges();
         
         UndoAction undoAction = UndoList.pop();
-        if (DEBUG.UNDO) System.out.println(this + " undoing " + undoAction);
+        if (DEBUG.UNDO) System.out.println("\n" + this + " undoing " + undoAction);
         if (undoAction != null) {
             mRedoCaptured = false;
             undoAction.undo();
@@ -711,7 +732,7 @@ public class UndoManager
 
     public Object getKeyForUpcomingMark() {
         UndoMark mark = new UndoMark(this);
-        System.out.println("GENERATED MARK " + mark);
+        if (DEBUG.UNDO || DEBUG.THREAD) System.out.println("GENERATED MARK " + mark);
         return mark;
     }
 
@@ -733,10 +754,12 @@ public class UndoManager
             UndoMark mark = (UndoMark) undoActionKey;
             // store the mark in the appropriate UndoManager, and notify of error if thread was already marked
             UndoMark existingMark = (UndoMark) mark.manager.mThreadsWithMark.put(thread, mark);
+
+            mark.action.addAttachedThread(thread);
             
             if (existingMark != null)
                 new Throwable("Error: " + thread + " was tied to mark " + existingMark + ", superceeded by " + mark).printStackTrace();
-            System.out.println("ATTACHED " + mark + " to " + thread);
+            if (DEBUG.UNDO || DEBUG.THREAD) System.out.println("ATTACHED " + mark + " to " + thread);
         }
     }
     
@@ -766,6 +789,7 @@ public class UndoManager
         */
     }
 
+    /*
     private Map taggedUndoActions = new HashMap();
     private static final String UNDO_ACTION_TAG = "+VUA@(";
     static void attachCurrentThreadToStringMark(String undoActionKey) {
@@ -777,7 +801,7 @@ public class UndoManager
             // todo: cleaner if we kept a map of Thread:UndoAction's, but a tad slower
             String newName = undoActionKey + " " + t.getName();
             t.setName(newName);
-            System.out.println("Applied key " + undoActionKey + " to " + t);
+            if (DEBUG.UNDO || DEBUG.THREAD) System.out.println("Applied key " + undoActionKey + " to " + t);
         }
     }
     private String _getStringKeyForUpcomingMark() {
@@ -787,6 +811,7 @@ public class UndoManager
         }
         return UNDO_ACTION_TAG + currentUndoKey + ")";
     }
+    */
 
     /**
      * Every event anywhere in the map we're listening to will
@@ -844,13 +869,14 @@ public class UndoManager
                 return;
             }
             perComponentChanges = null; // we can live w/out "compression" for changes on UndoableThread's
-            if (DEBUG.UNDO) System.out.println("\n" + thread + " initiating change in " + relevantUndoAction);
+            if (DEBUG.UNDO || DEBUG.THREAD) System.out.println("\n" + thread + " initiating change in " + relevantUndoAction);
 
         } else if (mThreadsWithMark.size() > 0 && mThreadsWithMark.containsKey(thread)) {
             final UndoMark mark = (UndoMark) mThreadsWithMark.get(thread);
-            System.out.println("\nFOUND MARK FOR CURRENT THREAD " + thread
-                               + "\n\t mark: " + mark
-                               + "\n\tevent: " + e);
+            if (DEBUG.UNDO || DEBUG.THREAD)
+                System.out.println("\nFOUND MARK FOR CURRENT THREAD " + thread
+                                   + "\n\t mark: " + mark
+                                   + "\n\tevent: " + e);
             relevantUndoAction = mark.action;
             perComponentChanges = null;
 
