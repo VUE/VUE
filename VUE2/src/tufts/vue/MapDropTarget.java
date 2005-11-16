@@ -31,6 +31,8 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.regex.*;
 
 import java.io.File;
@@ -55,11 +57,11 @@ class MapDropTarget
     static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
 
     private static final int ACCEPTABLE_DROP_TYPES =
-        DnDConstants.ACTION_COPY | // 1
-        DnDConstants.ACTION_LINK | // 0x40000000
-        0xFFFFFF;
-        //DnDConstants.ACTION_MOVE; // 2
-        // Do NOT include MOVE, or dragging a URL from the IE address bar becomes
+        DnDConstants.ACTION_COPY | // 0x1
+        DnDConstants.ACTION_MOVE | // 0x2
+        DnDConstants.ACTION_LINK;  // 0x40000000
+        //0xFFFFFF;
+        // [ OLD COMMENT ] Do NOT include MOVE, or dragging a URL from the IE address bar becomes
         // a denied drag option!  Even dragged text from IE becomes disabled.
         // FYI, also, "move" doesn't appear to actually ever mean delete original source.
         // Putting this in makes certial special windows files "available"
@@ -67,7 +69,7 @@ class MapDropTarget
         // any data-flavors available to process it, so we might as well indicate
         // that we can't accept it.
 
-    private final static boolean debug = true;
+    private final static boolean debug = false;
     private final static boolean CenterNodesOnDrop = true;
     
     private MapViewer viewer;
@@ -87,15 +89,19 @@ class MapDropTarget
     public void dragOver(DropTargetDragEvent e)
     {
         LWComponent over = viewer.getMap().findChildAt(dropToMapLocation(e.getLocation()));
-        if (over instanceof LWNode || over instanceof LWLink)
+        if (over instanceof LWNode || over instanceof LWLink) {
             // todo: if over resource icon and we can set THAT indicated, do
             // so and also use that to indicate we'd like to set the resource
             // instead of adding a new child
             viewer.setIndicated(over);
-        else
+            //e.acceptDrag(DnDConstants.ACTION_COPY);
+        } else
             viewer.clearIndicated();
 
-        // doing this will turn on green "+" icon as the default, which is appropriate,
+        // as of at least OS X 10.4.2 JVM 1.4.2, accepting drag here
+        // appears totally optional, and has no effect on cursor
+
+        // [OLD] doing this will turn on green "+" icon as the default, which is appropriate,
         // yet doesn't allow for changing the indicator to the shortcut icon if CTRL
         // is pressed, and the drop code for that is the huge bogus # on the mac,
         // so we're skipping this for now.
@@ -107,12 +113,9 @@ class MapDropTarget
 
     public static String dropName(int dropAction) {
         String name = "";
-        if ((dropAction & DnDConstants.ACTION_COPY) != 0)
-            name += "COPY";
-        if ((dropAction & DnDConstants.ACTION_MOVE) != 0)
-            name += "MOVE";
-        if ((dropAction & DnDConstants.ACTION_LINK) != 0)
-            name += "LINK";
+        if ((dropAction & DnDConstants.ACTION_COPY) != 0) name += "COPY";
+        if ((dropAction & DnDConstants.ACTION_MOVE) != 0) name += "MOVE";
+        if ((dropAction & DnDConstants.ACTION_LINK) != 0) name += "LINK";
         if (name.length() < 1)
             name = "NONE";
         name += " (0x" + Integer.toHexString(dropAction) + ")";
@@ -211,6 +214,7 @@ class MapDropTarget
      * Process any transferrable: @param e can be null if don't have a drop event
      * (e.g., could use to process clipboard contents as well as drop events)
      */
+    // todo: break this method and all supporting code out into it's own class file
     public boolean processTransferable(Transferable transfer, DropTargetDropEvent e)
     {
         // Make us the active viewer.  Otherwise we'll need special code for
@@ -305,6 +309,7 @@ class MapDropTarget
         boolean overwriteResource = modifierKeyWasDown;
         */
             
+        boolean isLinkAction = (dropAction == DnDConstants.ACTION_LINK);
         boolean overwriteResource = (dropAction == DnDConstants.ACTION_LINK);
         boolean createAsChildren = !overwriteResource && hitComponent instanceof LWNode;
 
@@ -498,38 +503,26 @@ class MapDropTarget
                 }
             }
 
-            if (url != null && url.getQuery() != null) {
-                final String query = url.getQuery();
-                // special case for google image search:
-                System.out.println("host " + url.getHost() + " query " + url.getQuery());
+            int width = -1;
+            int height = -1;
 
-                if (DEBUG.DND) {
-                    String[] pairs = query.split("&");
-                    for (int i = 0; i < pairs.length; i++) {
-                        System.out.println("query pair " + pairs[i]);
-                    }
-                }
-                
-                if ("images.google.com".equals(url.getHost()) && query.startsWith("imgurl=")) {
-                    int endURLindex = query.indexOf('&');
-                    String imageURL = query.substring(7, endURLindex);
+            Map properties = new HashMap();
 
-                    //-------------------------------------------------------
-                    // WIERD -- what is google doing here? or is %2520 some obscure
-                    // whitespace code not understood on mac?
-                    imageURL = imageURL.replaceAll("%2520", "%20");
-                    //-------------------------------------------------------
-                    
-                    System.out.println("redirect to google image search url " + imageURL);
-                    url = makeURL(imageURL);
-                }
+            if (resourceTitle != null)
+                properties.put("title", resourceTitle);
+            
+            if (url != null && url.getQuery() != null && isLinkAction == false) {
+                // if this URL is from a common search engine, we can find
+                // the original source for the image instead of the search
+                // engine's context page for the image.
+                url = decodeSearchEngineLightBoxURL(url, properties);
             }
-
                 
             if (url != null) {
                 if (hitComponent != null) {
                     if (createAsChildren) {
-                        ((LWNode)hitComponent).addChild(createNewNode(url.toString(), resourceTitle, dropLocation));
+                        //((LWNode)hitComponent).addChild(createNewNode(url.toString(), resourceTitle, dropLocation));
+                        ((LWNode)hitComponent).addChild(createNewNode(url.toString(), properties, dropLocation));
                     } else {
                         hitComponent.setResource(url.toString());
                         // HACK: clean this up:  resource should load meta-data on CREATION.
@@ -538,9 +531,11 @@ class MapDropTarget
                 } else {
                     // if action is LINK and this is an image, create a node, not the image,
                     // otherwise LINK when not over a node does nothing special.
-                    createNewNode(url.toString(), resourceTitle, dropLocation);
+                    createNewNode(url.toString(), properties, dropLocation);
+                    //createNewNode(url.toString(), resourceTitle, dropLocation);
                 }
             } else {
+                // create a text node
                 createNewTextNode(droppedText, dropLocation);
             }
             success = true;
@@ -551,6 +546,110 @@ class MapDropTarget
 
         return success;
     }
+
+
+    /**
+     * URL's dragged from the image search page of most search engines include query
+     * fields that allow us to locate the original source of the image, as well as
+     * width and height
+     *
+     * @param url a URL that at least know has a query
+     * @param properties a map to put found properties into (e.g., width, height)
+     */
+    private static URL decodeSearchEngineLightBoxURL(final URL url, Map properties)
+    {
+        final String query = url.getQuery();
+        // special case for google image search:
+        System.out.println("host " + url.getHost() + " query " + url.getQuery());
+
+        Map data = VueUtil.getQueryData(query);
+        if (false && DEBUG.DND) {
+            String[] pairs = query.split("&");
+            for (int i = 0; i < pairs.length; i++) {
+                System.out.println("query pair " + pairs[i]);
+            }
+            //System.out.println("data " + data);
+        }
+
+        final String host = url.getHost();
+                
+        String imageURL = (String) data.get("imgurl"); // google & yahoo
+        if (imageURL == null)
+            imageURL = (String) data.get("image_url"); // Lycos & Mamma(who are they?)
+        // note: as of Aug 2005, excite gives us no option
+        if (imageURL == null && host.endsWith(".msn.com"))
+            imageURL = (String) data.get("iu"); // MSN search
+        if (imageURL == null && host.endsWith(".netscape.com"))
+            imageURL = (String) data.get("img"); // Netscape search
+        if (imageURL == null && host.endsWith(".ask.com"))
+            imageURL = (String) data.get("u"); // ask jeeves, but only from their context page
+                
+                
+        URL redirectURL = null;
+
+        if (imageURL != null &&
+            ("images.google.com".equals(host)
+             || "rds.yahoo.com".equals(host)
+             || "search.lycos.com".equals(host)
+             || "tm.ask.com".equals(host)
+             || "search.msn.com".equals(host)
+             || "search.netscape.com".equals(host)
+             || host.endsWith("mamma.com")
+             )
+            ) {
+
+
+            imageURL = VueUtil.decodeURL(imageURL);
+
+            //if (imageURL.indexOf('%') >= 0)
+            //VueUtil.decodeURL(imageURL); // double-encoded (Ask Jeeves) -- need get query data AGAIN and get "imgsrc"
+            //-------------------------------------------------------
+            // %25 is % (percent), %2520 is an apparently often over-encoded
+            // %20, that we can (and need) to bring back down to %20
+            //imageURL = imageURL.replaceAll("%2520", "%20");
+            //-------------------------------------------------------
+            //imageURL = imageURL.replaceFirst("%3A", ":");
+            //imageURL = imageURL.replaceAll("%2F", "/");
+            //-------------------------------------------------------
+                    
+            System.out.println("redirect to image search url " + imageURL);
+            if (imageURL.indexOf(':') < 0)
+                imageURL = "http://" + imageURL;
+            redirectURL = makeURL(imageURL);
+            if (redirectURL == null && !imageURL.startsWith("http://"))
+                redirectURL = makeURL("http://" + imageURL);
+            System.out.println("redirect got URL " + redirectURL);
+                    
+            if (url != null) {
+                String w = (String) data.get("w");              // Google & Yahoo
+                String h = (String) data.get("h");
+                if (w == null || h == null) {
+                    w = (String) data.get("wd");                // MSN search
+                    h = (String) data.get("ht");
+                    if (w == null || h == null) {
+                        w = (String) data.get("image_width");   // Lycos
+                        h = (String) data.get("image_height");
+                        if (w == null || h == null) {
+                            w = (String) data.get("width");     // Mamma
+                            h = (String) data.get("height");
+                        }
+                    }
+                }
+                if (w != null && h != null && properties != null) {
+                    properties.put("width", w);
+                    properties.put("height", h);
+                }
+            }
+        }
+
+        if (redirectURL == null)
+            return url;
+        else
+            return redirectURL;
+        
+    }
+
+    
 
     private static final Pattern URL_Line = Pattern.compile(".*^URL=([^\r\n]+).*", Pattern.MULTILINE|Pattern.DOTALL);
     private static String convertWindowsURLShortCutToURL(File file)
@@ -640,28 +739,51 @@ class MapDropTarget
 
     // HANDLES DROP OF A URL
     
-    private LWComponent createNewNode(String resourceSpec, String resourceName, java.awt.Point p)
+    private LWComponent createNewNode(String resourceSpec, String resourceName, java.awt.Point p) {
+        Map map = new HashMap();
+        map.put("title", resourceName);
+        return createNewNode(resourceSpec, map, p);
+    }
+        
+    private LWComponent createNewNode(String resourceSpec, Map properties, java.awt.Point p)
     {
+        String resourceTitle = (String) properties.get("title");
         MapResource resource = new MapResource(resourceSpec);
 
-        if (resourceName == null) {
+        if (resourceTitle == null) {
             resource.setTitleFromContent();
             if (resource.getTitle() != null)
-                resourceName = resource.getTitle();
+                resourceTitle = resource.getTitle();
             else
-                resourceName = createResourceTitle(resourceSpec);
-        } else if (resourceSpec.endsWith(".html") || resourceSpec.endsWith(".htm")) {
-            // attempt to scan a local file
-            resource.setTitleFromContent();
+                resourceTitle = createResourceTitle(resourceSpec);
+        } else {
+            String spec = resourceSpec.toLowerCase();
+            if (spec.endsWith(".html") || spec.endsWith(".htm")) {
+                // attempt to scan a local file
+                resource.setTitleFromContent();
+            }
         }
 
+        if (DEBUG.DND) System.out.println("createNewNode " + resourceSpec + " " + properties + " " + p + " " + resourceTitle);
+        
         final LWComponent node;
+        LWImage lwImage = null;
 
         if (resource.isImage()) {
-            System.out.println("IMAGE DROP ON " + viewer);
-            node = new LWImage(resource, viewer.getMap().getUndoManager());
+            if (DEBUG.DND || DEBUG.IMAGE) System.out.println(resource + " IMAGE DROP ON " + viewer + " " + properties);
+            //node = new LWImage(resource, viewer.getMap().getUndoManager());
+            lwImage = new LWImage();
+            String ws = (String) properties.get("width");
+            String hs = (String) properties.get("height");
+            if (ws != null && hs != null) {
+                int w = Integer.parseInt(ws);
+                int h = Integer.parseInt(hs);
+                lwImage.setSize(w, h);
+            }
+            lwImage.setLabel(resourceTitle);
+            node = lwImage;
         } else {
-            node = NodeTool.createNode(resourceName);
+            node = NodeTool.createNode(resourceTitle);
             node.setResource(resource);
         }
 
@@ -676,8 +798,13 @@ class MapDropTarget
 
         // maybe just set us to be the active map?
         // In any case, do NOT set the selection to anything that is NOT from the active map.
+        // We don't currently detect this this illegal state, so you'll see a ghost selection
+        // on the active map of a component not in that map.
         if (VUE.getActiveViewer() == this.viewer)
             VUE.getSelection().setTo(node);
+
+        if (lwImage != null)
+            lwImage.setResource(resource, viewer.getMap().getUndoManager());
 
         return node;
     }
@@ -794,6 +921,7 @@ if (MapResource.isImage(resource))
 
     private String createResourceTitle(String resourceName)
     {
+        resourceName = VueUtil.decodeURL(resourceName); // in case any %xx notations
         int i = resourceName.lastIndexOf('/');//TODO: fileSeparator? test on PC
         if (i == resourceName.length() - 1)
             return resourceName;
