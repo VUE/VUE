@@ -1914,7 +1914,7 @@ public class MapViewer extends javax.swing.JComponent
         // focus so it can lose it and turn them back on.
         VueAction.setAllIgnored(true);
         activeTextEdit = lwc.getLabelBox();
-        activeTextEdit.saveCurrentState();
+        activeTextEdit.saveCurrentText();
         if (activeTextEdit.getText().length() < 1)
             activeTextEdit.setText("label");
         
