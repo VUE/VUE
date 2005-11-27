@@ -10,6 +10,11 @@ import javax.swing.*;
 
 // Of course, now need all the damn support libraries...
 
+/**
+ * Experimental VUE applet.
+ *
+ * @version $Revision: 1.2 $ / $Date: 2005-11-27 16:56:21 $ / $Author: sfraize $ 
+ */
 public class VueApplet extends JApplet implements Runnable {
 
     private JLabel loadLabel;
@@ -91,7 +96,7 @@ public class VueApplet extends JApplet implements Runnable {
         
         msg("contentPane set");
         msg("setting menu bar...");
-        setJMenuBar(new VUE.VueMenuBar());
+        setJMenuBar(new tufts.vue.gui.VueMenuBar());
         msg("validating...");
         validate();
         msg("loading complete");
@@ -109,9 +114,9 @@ public class VueApplet extends JApplet implements Runnable {
 
         VUE.installExampleMap(map);
 
-        MapViewer viewer = new MapViewer(map);
+        MapViewer v = new MapViewer(map);
 
-        setContentPane(viewer);
+        setContentPane(v);
         //getContentPane().add(viewer, BorderLayout.CENTER);
     }
 
