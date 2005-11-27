@@ -55,7 +55,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.312 $ / $Date: 2005-11-27 16:17:17 $ / $Author: sfraize $ 
+ * @version $Revision: 1.313 $ / $Date: 2005-11-27 17:02:58 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -431,8 +431,7 @@ public class VUE
         splitPane.setContinuousLayout(false);
         splitPane.setOneTouchExpandable(true);
         splitPane.setLeftComponent(toolPanel);
-        if (VUE.NARRAVISION)
-            splitPane.setDividerLocation(0);
+        //if (VUE.NARRAVISION) splitPane.setDividerLocation(0);
         //splitPane.setLeftComponent(leftScroller);
         
         viewerSplit = new JSplitPane();
@@ -654,7 +653,7 @@ public class VUE
             frame.setSize(750,450);
         } else {
             frame.setSize(800,600);// todo: make % of screen, make sure tool windows below don't go off screen!
-            if (VUE.NARRAVISION)
+            //if (VUE.NARRAVISION)
                 frame.setExtendedState(Frame.MAXIMIZED_BOTH);
         }
         if (DEBUG.INIT) out("validating frame...");
