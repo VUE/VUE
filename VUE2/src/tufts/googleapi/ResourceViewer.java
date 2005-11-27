@@ -80,7 +80,7 @@ public class ResourceViewer extends JPanel implements ActionListener,KeyListener
         tabbedPane.setSelectedComponent(searchPane);
         setLayout(new BorderLayout());
         add(tabbedPane,BorderLayout.CENTER);
-        show();
+        setVisible(true);
     }
     
     

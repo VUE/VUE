@@ -59,7 +59,7 @@ public class ResourceViewer extends JPanel implements ActionListener,KeyListener
         tabbedPane.setSelectedComponent(titleSearchPane);
         setLayout(new BorderLayout());
         add(tabbedPane,BorderLayout.CENTER);
-        show();
+        setVisible(true);
     }
     
     public  ArtifactResult loadArtifactResult(String query) throws Exception{
