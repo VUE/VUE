@@ -53,6 +53,7 @@ import osid.dr.*;
  * running in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
+ * @version $Revision: 1.275 $ / $Date: 2005-11-27 16:53:51 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which was never 100% completed,
@@ -1442,9 +1443,31 @@ public class MapViewer extends javax.swing.JComponent
         }
     }
     
+    /** The currently display JComponent in a tool-tip window.  Null if none is showing. */
     private static JComponent sTipComponent;
+
+    /**
+     * Every time we attempt to display a tool-tip, or even clear, a tool tip, we increment this
+     * counter.  That way the ClearTipTimer can know exactly the display instance it should clear,
+     * and ONLY clear it if this counter hasn't changed.  This way we know that even if the same
+     * tip is displaying when the timer was started, if the display instance has changed, we
+     * do NOT clear it, beacuse somebody else has requested it's display since then.
+     */
+    private static long sTipDisplayInstance = 0;
+
+    /** The currently displayed tool-tip window.  Note that as Popup's use a window cache,
+     * the window object may be the same even for different tool tips.  We set this to null
+     * if there isn't one visible. */
     private static Popup sTipWindow;
-    private static LWComponent sMouseOver;
+
+    /** The last LWComponent to have the mouse over it */
+    private static LWComponent sLastMouseOver;
+    
+    /** Synchronization lock for sTipComponent and sTipDisplayInstance.  Note that all
+     * these are static across al* maps, as the mouse may roll from one map to another,
+     * and this makes it easy to reliably clear the tip on the old map when rolling to the new map.
+     */
+    private static Object sTipLock = new Object();
     
     /**
      * Pop a tool-tip near the given LWComponent.
@@ -1453,89 +1476,97 @@ public class MapViewer extends javax.swing.JComponent
      * @param pAvoidRegion - the region to avoid (usually LWComponent bounds)
      * @param pTipRegion - the region, in map coords, that triggered this tool-tip
      */
-    //    void setTip(LWComponent pLWC, JComponent pJComponent, Rectangle2D pTipRegion)
     void setTip(JComponent pJComponent, Rectangle2D pAvoidRegion, Rectangle2D pTipRegion) {
-        if (pJComponent != sTipComponent && pJComponent != null) {
-            
-            if (sTipWindow != null)
-                sTipWindow.hide();
-            
-            // since we're not using the regular tool-tip code, just the swing pop-up
-            // factory, we have to set these properties ourselves:
-            pJComponent.setOpaque(true);
-            pJComponent.setBackground(COLOR_TOOLTIP);
-            pJComponent.setBorder(javax.swing.border.LineBorder.createBlackLineBorder());
-            
-            //c.setIcon(new LineIcon(10,10, Color.red, null));//test -- icons w/tex work
-            //System.out.println("    size="+c.getSize());
-            //System.out.println("prefsize="+c.getPreferredSize());
-            //System.out.println(" minsize="+c.getMinimumSize());
-            
-            //------------------------------------------------------------------
-            // PLACE THE TOOL-TIP POP-UP WINDOW
-            //
-            // Try left of component first, then top, then right
-            //------------------------------------------------------------------
-            
-            // always add the tip region to the avoid region
-            // (need for links, and for nodes in case icon somehow outside bounds)
-            Rectangle2D.union(pTipRegion, pAvoidRegion, pAvoidRegion);
-            // For the total avoid region, limit to what's visible in the window,
-            // as we never to "avoid" anything that's off-screen (not visible in the viewer).
-            
-            //Rectangle viewer = new Rectangle(0,0, getVisibleWidth(), getVisibleHeight()); // FIXME: SCROLLBARS (what's 0,0??)
-            Rectangle viewer = getVisibleBounds();
-            Box avoid = new Box(viewer.intersection(mapToScreenRect(pAvoidRegion)));
-            Box trigger = new Box(mapToScreenRect(pTipRegion));
-            
-            SwingUtilities.convertPointToScreen(avoid.ul, this);
-            SwingUtilities.convertPointToScreen(avoid.lr, this);
-            SwingUtilities.convertPointToScreen(trigger.ul, this);
-            //SwingUtilities.convertPointToScreen(trigger.lr, this); // unused
-            
-            Dimension tip = pJComponent.getPreferredSize();
-            
-            // Default placement starts from left of component,
-            // at same height as the rollover region that triggered us
-            // in the component.
-            Point glass = new Point(avoid.ul.x - tip.width,  trigger.ul.y);
-            
-            if (glass.x < 0) {
-                // if would go off left of screen, try placing above the component
-                glass.x = avoid.ul.x;
-                glass.y = avoid.ul.y - tip.height;
-                keepTipOnScreen(glass, tip);
-                // if too tall and would then overlap rollover region, move to right of component
-                //if (glass.y + tip.height >= placementLeft.y) {
-                // if too tall and would then overlap component, move to right of component
-                if (glass.y + tip.height > avoid.ul.y) {
-                    glass.x = avoid.lr.x;
-                    glass.y = trigger.ul.y;
-                }
-                // todo: consider moving tall tips from tip to right
-                // of component -- looks ugly having all that on top.
-                
-                // todo: consider a 2nd pass to ensure not overlapping
-                // the rollover region, to prevent window-exit/enter loop.
-                // (flashes the rollover till mouse moved away)
+        if (pJComponent == null)
+            throw new IllegalArgumentException("JComponent is null");
+
+        synchronized (sTipLock) {
+            if (pJComponent == sTipComponent) {
+                sTipDisplayInstance++;
+                return;
             }
+        }
+            
+        if (sTipWindow != null)
+            sTipWindow.hide();
+            
+        // since we're not using the regular tool-tip code, just the swing pop-up
+        // factory, we have to set these properties ourselves:
+        pJComponent.setOpaque(true);
+        pJComponent.setBackground(COLOR_TOOLTIP);
+        pJComponent.setBorder(javax.swing.border.LineBorder.createBlackLineBorder());
+            
+        //c.setIcon(new LineIcon(10,10, Color.red, null));//test -- icons w/tex work
+        //System.out.println("    size="+c.getSize());
+        //System.out.println("prefsize="+c.getPreferredSize());
+        //System.out.println(" minsize="+c.getMinimumSize());
+            
+        //------------------------------------------------------------------
+        // PLACE THE TOOL-TIP POP-UP WINDOW
+        //
+        // Try left of component first, then top, then right
+        //------------------------------------------------------------------
+            
+        // always add the tip region to the avoid region
+        // (need for links, and for nodes in case icon somehow outside bounds)
+        Rectangle2D.union(pTipRegion, pAvoidRegion, pAvoidRegion);
+        // For the total avoid region, limit to what's visible in the window,
+        // as we never to "avoid" anything that's off-screen (not visible in the viewer).
+            
+        //Rectangle viewer = new Rectangle(0,0, getVisibleWidth(), getVisibleHeight()); // FIXME: SCROLLBARS (what's 0,0??)
+        Rectangle viewer = getVisibleBounds();
+        Box avoid = new Box(viewer.intersection(mapToScreenRect(pAvoidRegion)));
+        Box trigger = new Box(mapToScreenRect(pTipRegion));
+            
+        SwingUtilities.convertPointToScreen(avoid.ul, this);
+        SwingUtilities.convertPointToScreen(avoid.lr, this);
+        SwingUtilities.convertPointToScreen(trigger.ul, this);
+        //SwingUtilities.convertPointToScreen(trigger.lr, this); // unused
+            
+        Dimension tip = pJComponent.getPreferredSize();
+            
+        // Default placement starts from left of component,
+        // at same height as the rollover region that triggered us
+        // in the component.
+        Point glass = new Point(avoid.ul.x - tip.width,  trigger.ul.y);
+            
+        if (glass.x < 0) {
+            // if would go off left of screen, try placing above the component
+            glass.x = avoid.ul.x;
+            glass.y = avoid.ul.y - tip.height;
             keepTipOnScreen(glass, tip);
+            // if too tall and would then overlap rollover region, move to right of component
+            //if (glass.y + tip.height >= placementLeft.y) {
+            // if too tall and would then overlap component, move to right of component
+            if (glass.y + tip.height > avoid.ul.y) {
+                glass.x = avoid.lr.x;
+                glass.y = trigger.ul.y;
+            }
+            // todo: consider moving tall tips from tip to right
+            // of component -- looks ugly having all that on top.
+                
+            // todo: consider a 2nd pass to ensure not overlapping
+            // the rollover region, to prevent window-exit/enter loop.
+            // (flashes the rollover till mouse moved away)
+        }
+        keepTipOnScreen(glass, tip);
             
-            // todo java bug: there are some java bugs, perhaps in the
-            // Popup caching code (happens on PC & Mac both), where
-            // the first time a pop-up appears (actually only seeing
-            // with tall JTextArea's), it's height is truncated.
-            // Sometimes even first 1 or 2 times it appears!  If
-            // intolerable, just implement our own windows and keep
-            // them around as a caching scheme -- will use alot more
-            // memory but should work (use WeakReferences to help)
+        // todo java bug: there are some java bugs, perhaps in the
+        // Popup caching code (happens on PC & Mac both), where
+        // the first time a pop-up appears (actually only seeing
+        // with tall JTextArea's), it's height is truncated.
+        // Sometimes even first 1 or 2 times it appears!  If
+        // intolerable, just implement our own windows and keep
+        // them around as a caching scheme -- will use alot more
+        // memory but should work (use WeakReferences to help)
             
+        synchronized (sTipLock) {
             PopupFactory popupFactory = PopupFactory.getSharedInstance();
             sTipWindow = popupFactory.getPopup(this, pJComponent, glass.x, glass.y);
             sTipWindow.show();
             sTipComponent = pJComponent;
+            sTipDisplayInstance++;
         }
-        
     }
     
     private void keepTipOnScreen(Point glass, Dimension tip) {
@@ -1555,13 +1586,16 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     void clearTip() {
-        sTipComponent = null;
-        if (sTipWindow != null) {
-            sTipWindow.hide();
-            sTipWindow = null;
+        synchronized (sTipLock) {
+            sTipComponent = null;
+            if (sTipWindow != null) {
+                if (DEBUG.ROLLOVER && DEBUG.META) new Throwable("CLEARTIP").printStackTrace();
+                sTipWindow.hide();
+                sTipWindow = null;
+            }
+            sTipDisplayInstance++;
         }
     }
-    
     
     /**
      * Render all the LWComponents on the panel
@@ -2721,6 +2755,7 @@ public class MapViewer extends javax.swing.JComponent
     
     // todo: if java ever supports moving an inner class to another file,
     // move the InputHandler out: this file has gotten too big.
+    // or: just get rid of this and make it all MapViewer methods.
     private class InputHandler extends tufts.vue.MouseAdapter
         implements java.awt.event.KeyListener, java.awt.event.MouseWheelListener
     {
@@ -3402,7 +3437,56 @@ public class MapViewer extends javax.swing.JComponent
                 tufts.vue.ZoomTool.setZoomBigger(null);
             //lastRotationTime = System.currentTimeMillis();
         }
+
+        private Timer mTipTimer = new Timer();
+        private boolean mMouseHasEnteredToolTip = false;
         
+        private class ClearTipTask extends TimerTask {
+            final Object tipWhenTimerStarted;
+            final long tipDisplayInstance;
+            ClearTipTask() {
+                // note: we should be synchronized on sTipLock when this is constructed
+                tipWhenTimerStarted = sTipComponent;
+                tipDisplayInstance = sTipDisplayInstance;
+                if (DEBUG.ROLLOVER) out("ClearTipTask: scheduled for " + VueUtil.objectTag(tipWhenTimerStarted) + " #" + tipDisplayInstance);
+            }
+            public void run() {
+
+                synchronized (sTipLock) {
+                
+                // the the given tip component
+                // if mouse has exited the viewer, we currently assume
+                // it's eneter a tip window (tho it may also have have left
+                // for elsewhere).
+                //out("over nothing timeout " + VueUtil.objectTag(tipWhenTimerStarted) + " #" + tipDisplayInstance);
+                    if (DEBUG.ROLLOVER) out("ClearTipTask: over nothing timeout for "
+                                            + "#" + tipDisplayInstance
+                                            + " during instance #" + sTipDisplayInstance);
+                    if (mMouseHasEnteredToolTip == false) {
+                        //if (sTipComponent == tipWhenTimerStarted && sTipDisplayInstance == tipDisplayInstance) {
+                        if (sTipDisplayInstance == tipDisplayInstance) {
+                            if (DEBUG.ROLLOVER) out("ClearTipTask: clearing tip " + sTipDisplayInstance);
+                            viewer.clearTip();
+                        }
+                    } else
+                        if (DEBUG.ROLLOVER) out("ClearTipTask: mouse entered tooltip (it exited map)");
+
+                    
+                }
+                
+            }
+        }
+
+        /** clear the current tip in a short while (e.g., 500ms) if we don't
+            move into the tip itself, or, say, briefly move away and back
+            to a tip region that activates the tip again */
+        private void clearTipSoon() {
+            synchronized (sTipLock) {
+                if (sTipComponent != null)
+                    mTipTimer.schedule(new ClearTipTask(), 500);
+            }
+        }
+
         public void mouseMoved(MouseEvent e) {
             if (DEBUG_MOUSE_MOTION) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
             lastMouseX = e.getX();
@@ -3416,25 +3500,49 @@ public class MapViewer extends javax.swing.JComponent
             //LWComponent hit = getMap().findChildAt(mapX, mapY);
             if (DEBUG.ROLLOVER) System.out.println("  mouseMoved: hit="+hit);
             
-            if (hit != sMouseOver) {
-                if (sMouseOver != null) {
-                    viewer.clearTip(); // in case it had a tip displayed
-                    if (sMouseOver == rollover)
+            if (hit != sLastMouseOver) {
+                // we're over something different than we were
+                if (DEBUG.ROLLOVER) System.out.println("  mouseMoved: transition from " + sLastMouseOver);
+
+                if (sLastMouseOver != null) {
+                    // we were over a node (not just empty map space)
+                    //viewer.clearTip(); // in case it had a tip displayed
+                    if (sLastMouseOver == rollover)
                         clearRollover();
                     MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
-                    sMouseOver.mouseExited(mme);
+                    sLastMouseOver.mouseExited(mme);
                 }
+
+
+                if (hit == null) {
+                    // we were over something, now we're over nothing
+                    mMouseHasEnteredToolTip = false;
+                    clearTipSoon();
+                }
+                
+                
             }
             if (hit != null) {
                 MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
-                if (hit == sMouseOver)
+                if (hit == sLastMouseOver)
                     hit.mouseMoved(mme);
                 else
                     hit.mouseEntered(mme);
-            } else
-                viewer.clearTip(); // if over nothing, always make sure no tip displayed
+            } else {
+                // We're currently over nothing (just empty map space).
+                
+                // TODO: for interactive tip regions, we want to allow
+                // 500ms or so of time over nothing to move into the
+                // tip region, in which case we should not clear the
+                // tip.  Also need to handle this for the case where
+                // this is a child node, and we briefly mouse over the
+                // parent to get to the tip region.
+
+
+                //viewer.clearTip(); // if over nothing, always make sure no tip displayed
+            }
             
-            sMouseOver = hit;
+            sLastMouseOver = hit;
             
             if (DEBUG.VIEWER) {
                 _mouse.x = lastMouseX;
@@ -3472,21 +3580,25 @@ public class MapViewer extends javax.swing.JComponent
         }
         
         public void mouseEntered(MouseEvent e) {
-            if (DEBUG.MOUSE||DEBUG.ROLLOVER) System.out.println(e);
-            if (sMouseOver != null) {
-                sMouseOver.mouseExited(new MapMouseEvent(e));
-                sMouseOver = null;
+            if (DEBUG.MOUSE||DEBUG.ROLLOVER) out(e.paramString());
+            if (sLastMouseOver != null) {
+                sLastMouseOver.mouseExited(new MapMouseEvent(e));
+                sLastMouseOver = null;
             }
+
+            mMouseHasEnteredToolTip = false;
+            clearTipSoon();
             grabVueApplicationFocus("mouseEntered", e);//requestFocus();
+
         }
         
         public void mouseExited(MouseEvent e) {
-            if (DEBUG.MOUSE||DEBUG.ROLLOVER) System.out.println(e);
-            if (sMouseOver != null && sMouseOver == rollover)
+            if (DEBUG.MOUSE||DEBUG.ROLLOVER) out(e.paramString());
+            if (sLastMouseOver != null && sLastMouseOver == rollover)
                 clearRollover();
-            if (false&&sMouseOver != null) {
-                sMouseOver.mouseExited(new MapMouseEvent(e));
-                sMouseOver = null;
+            if (false&&sLastMouseOver != null) {
+                sLastMouseOver.mouseExited(new MapMouseEvent(e));
+                sLastMouseOver = null;
             }
             
             // If you roll the mouse into a tip window, the MapViewer
@@ -3508,8 +3620,11 @@ public class MapViewer extends javax.swing.JComponent
             // pains in placing the tip window to never overlap the
             // trigger region. (see setTip)
             
-            viewer.clearTip();
-            
+            // -- turned off for now to allow us to mouse into the tip region
+            //            viewer.clearTip();
+
+            mMouseHasEnteredToolTip = true;
+
             // Is still nice to do this tho because we get a mouse
             // exited when you rollover the tip-window itself, and if
             // it's right at the edge of the node and you're going for
@@ -4705,7 +4820,7 @@ public class MapViewer extends javax.swing.JComponent
                 frame = VueUtil.displayComponent(viewer);
             }
             if (use_menu) {
-                JMenuBar menu = new VUE.VueMenuBar(null);
+                JMenuBar menu = new tufts.vue.gui.VueMenuBar(null);
                 menu.setFont(FONT_TINY);
                 // set the menu bar just so we can get all the actions connected to MapViewer
                 frame.setJMenuBar(menu);
