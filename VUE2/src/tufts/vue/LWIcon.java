@@ -29,17 +29,21 @@ import javax.swing.*;
 import java.util.Iterator;
 
 /**
- * LWIcon.java
+ * Class LWIcon
  *
- * Icon's for displaying on LWComponents
+ * Icon's for displaying on LWComponents.
+ *
+ * Various icons can be displayed and stacked vertically or horizontally.
+ * The icon region displays a tool-tip on rollover and may handle double-click.
+ *
  */
 
 public abstract class LWIcon extends Rectangle2D.Float
     implements VueConstants
 {
-    private static final float DefaultScale = 0.045f;
-    static final Font FONT_ICON = VueResources.getFont("node.icon.font");
-    static final Color DefaultColor = new Color(61, 0, 88);
+    private static final float DefaultScale = 0.045f; // scale to apply to the absolute size of our vector based icons
+    private static final Color DefaultColor = VueResources.getColor("node.icon.color.foreground");
+    private static final Font FONT_ICON = VueResources.getFont("node.icon.font");
     
     protected LWComponent mLWC;
     protected Color mColor;
@@ -104,15 +108,17 @@ public abstract class LWIcon extends Rectangle2D.Float
     {
         public static final boolean VERTICAL = true;
         public static final boolean HORIZONTAL = false;
-        public static final boolean COORDINATES_MAP = false;
-        public static final boolean COORDINATES_COMPONENT  = true;
+        public static final int COORDINATES_MAP = 0;
+        public static final int COORDINATES_COMPONENT  = 1;
+        public static final int COORDINATES_COMPONENT_NO_SHRINK = 2; // only currently works for blocks laid out at 0,0 of node
         
         private LWComponent mLWC;
         
         private LWIcon[] mIcons = new LWIcon[6];
 
-        private boolean mVertical = true;
-        private boolean mCoordsLocal;
+        final private boolean mCoordsNodeLocal;
+        final private boolean mCoordsNoShrink; // don't let icon's get less than 100% zoom
+        private boolean mVertical;
         private float mIconWidth;
         private float mIconHeight;
         
@@ -121,16 +127,18 @@ public abstract class LWIcon extends Rectangle2D.Float
                      int iconHeight,
                      Color c,
                      boolean vertical,
-                     boolean coord_local)
+                     int coordStyle)
         {
             if (c == null)
                 c = DefaultColor;
 
-            mCoordsLocal = coord_local;
+            mCoordsNodeLocal = (coordStyle >= COORDINATES_COMPONENT);
+            mCoordsNoShrink = (coordStyle == COORDINATES_COMPONENT_NO_SHRINK);
             mIconWidth = iconWidth;
             mIconHeight = iconHeight;
             setOrientation(vertical);
 
+            // todo: create these lazily
             mIcons[0] = new LWIcon.Resource(lwc, c);
             mIcons[1] = new LWIcon.Behavior(lwc, c);
             mIcons[2] = new LWIcon.Notes(lwc, c);
@@ -195,7 +203,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         }
         
         /** Layout whatever is currently relevant to show, computing
-         * width & height -- does NOT change location
+         * width & height -- does NOT change location of the block itself
          */
         void layout()
         {
@@ -228,10 +236,33 @@ public abstract class LWIcon extends Rectangle2D.Float
 
         void draw(DrawContext dc)
         {
+
+            // If mCoordsNoShrink is true, never let icon size get
+            // less than 100% for images (tho also it shouldn't be
+            // allowed BIGGER than the object...)  This is
+            // experimental in that it only currently works if the
+            // block is laid out at 0,0, because we scale the
+            // DrawContext once at the top here, which will offset any
+            // non-zero locations (and we don't want the location
+            // changed, only the size).  You you place the block
+            // at > 0,0, the icons will be moved outside the node
+            // when the scale gets small enough.
+
+            // Also, if the scale becomes VERY small, the icon
+            // block will be drawn bigger than the image
+            // itself.  TODO: fix all the above or handle
+            // this some other way.
+            
+            if (mCoordsNoShrink && dc.zoom < 1)
+                dc.setAbsoluteDrawing(true);
+            
             for (int i = 0; i < mIcons.length; i++) {
                 if (mIcons[i].isShowing())
                     mIcons[i].draw(dc);
             }
+
+            if (mCoordsNoShrink && dc.zoom < 1)
+                dc.setAbsoluteDrawing(false);
         }
 
 
@@ -239,21 +270,33 @@ public abstract class LWIcon extends Rectangle2D.Float
         {
             float cx = 0, cy = 0;
 
-            if (mCoordsLocal) {
+            if (mCoordsNodeLocal) {
+                // COORDINATES_COMPONENT
                 cx = e.getComponentX();
                 cy = e.getComponentY();
             } else {
+                // COORDINATES_MAP
                 cx = e.getMapX();
                 cy = e.getMapY();
             }
             JComponent tipComponent = null;
             LWIcon tipIcon = null;
 
+
             for (int i = 0; i < mIcons.length; i++) {
                 LWIcon icon = mIcons[i];
-                if (icon.isShowing() && icon.contains(cx, cy)) {
-                    tipIcon = icon;
-                    break;
+                if (icon.isShowing()) {
+                    if (mCoordsNoShrink) {
+                        double zoom = e.getViewer().getZoomFactor();
+                        if (zoom < 1) {
+                            cx *= zoom;
+                            cy *= zoom;
+                        }
+                    }
+                    if (icon.contains(cx, cy)) {
+                        tipIcon = icon;
+                        break;
+                    }
                 }
             }
             
@@ -261,7 +304,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             if (tipIcon != null) {
                 tipComponent = tipIcon.getToolTipComponent();
                 Rectangle2D.Float tipRegion = (Rectangle2D.Float) tipIcon.getBounds2D();
-                if (mCoordsLocal) {
+                if (mCoordsNodeLocal) {
                     // translate tipRegion from component to map coords
                     float s = mLWC.getScale();
                     if (s != 1) {
@@ -303,7 +346,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             float cx = 0, cy = 0;
             boolean handled = false;
 
-            if (mCoordsLocal) {
+            if (mCoordsNodeLocal) {
                 cx = e.getComponentX();
                 cy = e.getComponentY();
             } else {
@@ -370,6 +413,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             long access = 0;
             if (r instanceof MapResource)
                 access = ((MapResource)r).getAccessSuccessful();
+
             if (ttResource == null
                 || access > lastAccess // title may have been updated
                 || !ttLastString.equals(mLWC.getResource().getSpec())
@@ -378,23 +422,50 @@ public abstract class LWIcon extends Rectangle2D.Float
                 hadTitle = hasTitle;
                 ttLastString = mLWC.getResource().getSpec();
                 // todo perf: use StringBuffer
-                String prettyURL = VueUtil.decodeURL(ttLastString);
-                ttResource = new AALabel("<html>&nbsp;<b>"
-                                         + prettyURL + "</b>"
-                                         + (hasTitle?("<font size=-2><br>&nbsp;"+mLWC.getResource().getTitle()+"</font>"):"")
-                                         + "<font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;");
-
-                //ttResource.setFont(FONT_MEDIUM);
+                final String prettyURL = VueUtil.decodeURL(ttLastString);
+                final String html =
+                    "<html>&nbsp;<b>"
+                    + prettyURL + "</b>"
+                    + (hasTitle?("<font size=-2><br>&nbsp;"+mLWC.getResource().getTitle()+"</font>"):"")
+                    + "<font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;"
+                    ;
                 
+                JLabel label = new AALabel(html);
+                //label.setFont(FONT_MEDIUM);
                 // todo: "Arial Unicode MS" looks great on mac (which it maps to Hevetica, which on
                 // mac supports unicode, and appears identical to Arial), but is only thing that
                 // works for unicode on the PC, yet looks relaively crappy for regular text.  Check
                 // into fonts avail on Win XP (this was Win2k) todo: try embedding the font name in
                 // the HTML above for just the title, and not the URL & click message.
-                
-                ttResource.setFont(FONT_MEDIUM_UNICODE);
+                label.setFont(FONT_MEDIUM_UNICODE);
+
+                if (false) {
+                    // example of button a gui component in a rollover
+                    JPanel panel = new JPanel();
+                    panel.add(label);
+                    //JButton btn = new JButton(new VueAction(prettyURL) { // looks okay but funny & leaves out title...
+                    //JButton btn = new JButton(new VueAction(html) { // looks terrible
+                    JButton btn = new JButton(new VueAction("Open") {
+                            // TODO: need a superclass of VueAction that doesn't add it to a global list,
+                            // as this action is very transient, and we'll want it GC'able.  And actually,
+                            // in this case, the resource object itself ought to have an action built in
+                            // that can be re-used by everyone interested in doing this.
+                            public void act() { doDoubleClickAction(); }
+                        });
+                    
+                    btn.setOpaque(false);
+                    btn.setToolTipText(null);
+                    btn.setFont(FONT_SMALL_BOLD);
+                    panel.add(btn);
+                    //panel.setBackground(Color.white); // no effect
+                    ttResource = panel;
+                } else {
+                    ttResource = label;
+                }
             }
-                lastAccess = access;
+            
+            lastAccess = access;
+                
             return ttResource;
         }
 
@@ -426,7 +497,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             mTextRow.draw(dc.g, xoff, yoff);
 
             // an experiment in semantic zoom
-            // SansSerif point size 1 MinisculeFont get's garbled on mac
+            // (SansSerif point size 1 MinisculeFont get's garbled on mac, so we don't do it there)
             if (!VueUtil.isMacPlatform() && mLWC.hasResource() && dc.g.getTransform().getScaleX() >= 8.0) {
                 dc.g.setFont(MinisculeFont);
                 dc.g.setColor(Color.gray);
