@@ -26,8 +26,6 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 /**
- * ToolWindow
- *
  * Our own floating window class so we can do things like control
  * decorations, add features like double-click to roll-up, make
  * sticky to other windows when dragged, etc.
@@ -39,6 +37,8 @@ import javax.swing.border.*;
  *
  * Focus handling for these is quite imperfect right now,
  * so Command/Ctrl-W to close a ToolWindow only sometimes works.
+ *
+ * @version $Revision: 1.52 $ / $Date: 2005-11-27 16:46:44 $ / $Author: sfraize $ 
  */
 
 public class ToolWindow 
@@ -58,7 +58,7 @@ public class ToolWindow
     private boolean isRolledUp = false;
     private Dimension savedSize;
 
-    private final boolean managedTitleBar;
+    private final boolean mCreateTitleBar;
 
     private static int CollapsedHeight = 0;
 
@@ -70,8 +70,9 @@ public class ToolWindow
 
     /**
      * Interface for our Window or Frame delegate.
+     * Implementors must also be RootPaineContainer's (e.g., JWindow, JFrame)
      */
-    private static interface Delegate {
+    private static interface Delegate extends RootPaneContainer {
         public void setSuperSize(int w, int h);
         public void setSuperVisible(boolean t);
     }
@@ -89,6 +90,7 @@ public class ToolWindow
      *    even if NO menu bar has been defined), it looks like nothing happened.
      *
      * 2: If using the brushed metal look, Frame's pick it up, but Window's don't.
+     *    [Not fully true or no longer true: JIDE floating toolbars, which are windows, pick it up]
      *
      * There are drawbacks, however:
      *
@@ -98,7 +100,7 @@ public class ToolWindow
      *
      * -2: The Frame's "roll-up" size isn't a small as we'd like: they're
      *     forced by the Mac OS X to have a minimum size that's bigger
-    *     than we need.
+     *     than we need. (and in the metal look under most recent JVM's, even bigger -- SMF 2005-11-09)
      *
      * -3: We can't override setLocation on a Frame, to make the window's
      * "sticky" to the edge's of the main window.
@@ -164,6 +166,11 @@ public class ToolWindow
             if (DEBUG.TOOL && (e instanceof MouseEvent == false || DEBUG.META))
                 out("processEvent " + e);
             super.processEvent(e);
+        }
+
+        public void setContentPane(Container contentPane) {
+            if (DEBUG.TOOL) out("setContentPane " + contentPane);
+            super.setContentPane(contentPane);
         }
     
     }
@@ -270,6 +277,12 @@ public class ToolWindow
             //out("setLocation1 " + x + "," + y);
             super.setLocation(x, y);
         }
+
+        public void setContentPane(Container contentPane) {
+            if (DEBUG.TOOL) out("setContentPane " + contentPane);
+            super.setContentPane(contentPane);
+        }
+        
     }
 
     
@@ -314,7 +327,11 @@ public class ToolWindow
         mDelegate.setSuperVisible(show);
     }
 
-    public ToolWindow(String title, Window owner)
+    public ToolWindow(String title, Window owner) {
+        this(title, owner, true);
+    }
+        
+    public ToolWindow(String title, Window owner, boolean installTitleBar)
     {
         if (VueUtil.isMacPlatform()) {
             mWindow = new FrameDelegate(title);
@@ -327,8 +344,10 @@ public class ToolWindow
         isMacMetal = VueTheme.isMacMetalLAF();
         mWindow.setName(title);
         
-        managedTitleBar = true; // we're not using OS title-bars at all
-        if (managedTitleBar) {
+        mCreateTitleBar = installTitleBar;
+        //mCreateTitleBar = true;
+        if (true /*mCreateTitleBar*/) {
+            // we're not using OS title-bars at all
             mWindow.addMouseListener(this);
             mWindow.addMouseMotionListener(this);
             mWindow.addKeyListener(this);
@@ -343,14 +362,16 @@ public class ToolWindow
         Component glassPane = new GlassPane();
 
         if (mWindow instanceof JFrame) {
-            ((JFrame)mWindow).setContentPane(mContentPane);
+            if (mCreateTitleBar)
+                ((JFrame)mWindow).setContentPane(mContentPane);
             ((JFrame)mWindow).setGlassPane(glassPane);
         } else {
-            ((JWindow)mWindow).setContentPane(mContentPane);
+            if (mCreateTitleBar)
+                ((JWindow)mWindow).setContentPane(mContentPane);
             ((JWindow)mWindow).setGlassPane(glassPane);
         }
         glassPane.setVisible(true);
-        
+
         // todo checkout: setting content-pane v.s. adding to it may affect glass pane?
         // seems to be working fine now...
 
@@ -389,6 +410,10 @@ public class ToolWindow
 
     public Window getWindow() {
         return mWindow;
+    }
+
+    public RootPaneContainer getRootPaneContainer() {
+        return mDelegate;
     }
 
     public JComponent getContentPane() {
@@ -704,10 +729,15 @@ public class ToolWindow
             contentPanel.setLayout(new BorderLayout());
             addKeyListener(ToolWindow.this);
 
-            if (managedTitleBar)
+            if (mCreateTitleBar) {
                 installTitlePanel(title);
-
-            add(contentPanel, BorderLayout.CENTER);
+                add(contentPanel, BorderLayout.CENTER);
+            } else {
+                setBorder(new LineBorder(Color.red)); // not seeing in ToolPalette
+                // is it JToolBar SETTING the content pane or adding
+                // to it?  I think the latter, and if so should be able to add border
+                // to content pane easily enough, right?
+            }
         }
 
         private void installTitlePanel(String title)
