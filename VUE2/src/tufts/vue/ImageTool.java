@@ -33,7 +33,6 @@ public class ImageTool extends VueTool
     public boolean hasDecorations() { return true; }
     public Class getSelectionType() { return LWImage.class; }
 
-
     public JPanel createToolPanel() {
         return
             new LWCToolPanel() {
@@ -54,7 +53,7 @@ public class ImageTool extends VueTool
         implements /*LWPropertyProducer,*/ ChangeListener
 
     {
-        private final int SnapIncrement = 5;
+        private final static int SnapIncrement = 5;
         
         public RotationSlider() {
             super(0,360,0);

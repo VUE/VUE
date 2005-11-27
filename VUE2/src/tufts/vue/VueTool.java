@@ -186,6 +186,11 @@ public abstract class VueTool extends AbstractAction
             */
         }
     }
+
+    /** @return true if the tool requests a button the toolbar */
+    public boolean hasToolbarButton() {
+        return mUpIcon != null;
+    }
     
     
     /**
@@ -228,7 +233,12 @@ public abstract class VueTool extends AbstractAction
      * @return String the tool tip text
      **/
     public String getToolTipText() {
-        return mToolTipText;
+        if (mToolTipText == null)
+            return null;
+        else if (getShortcutKey() == 0)
+            return mToolTipText;
+        else 
+            return mToolTipText + " (" + getShortcutKey() + ")";
     }
 
     /**

@@ -155,15 +155,16 @@ public class VueToolPanel extends JPanel
             mTools = new Vector();
         }
         mTools.add(pTool);
-        PaletteButton button = createPaletteButton(pTool);
-        // save teh component in the button map
-        mToolButtons.put( pTool.getID(), button);
+        if (pTool.hasToolbarButton()) {
+            PaletteButton button = createPaletteButton(pTool);
+            // save teh component in the button map
+            mToolButtons.put( pTool.getID(), button);
                 
-        // todo: setting this mnemonic doesn't appear to work
-        //if (pTool.getShortcutKey() != 0)
-        //button.setMnemonic(pTool.getShortcutKey());
-        addToolButton( button);
-		
+            // todo: setting this mnemonic doesn't appear to work
+            //if (pTool.getShortcutKey() != 0)
+            //button.setMnemonic(pTool.getShortcutKey());
+            addToolButton( button);
+        }
     }
 	
     /**
