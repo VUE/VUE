@@ -34,6 +34,9 @@ import javax.swing.ImageIcon;
 public class LWImage extends LWComponent
     implements LWSelection.ControlListener, ImageObserver
 {
+    /** scale of images when a child of other nodes */
+    private static final float ChildImageScale = 0.2f;
+    
     private final static int MinWidth = 10;
     private final static int MinHeight = 10;
     
@@ -45,13 +48,12 @@ public class LWImage extends LWComponent
     private Object mThreadedUndoKey;
     private boolean mImageError = false;
     
-    //private LWIcon.Resource resourceIcon = new LWIcon.Resource(this);
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
                          20, 12,
                          null,
                          LWIcon.Block.VERTICAL,
-                         LWIcon.Block.COORDINATES_COMPONENT);
+                         LWIcon.Block.COORDINATES_COMPONENT_NO_SHRINK);
 
     public LWImage(Resource r, UndoManager undoManager) {
         setResource(r, undoManager);
@@ -67,7 +69,7 @@ public class LWImage extends LWComponent
     
     public LWComponent duplicate()
     {
-        // todo: if had list of property keys in object, LWComponent
+        // TODO: if had list of property keys in object, LWComponent
         // could handle all the duplicate code.
         LWImage i = (LWImage) super.duplicate();
         i.mImage = mImage;
@@ -81,12 +83,11 @@ public class LWImage extends LWComponent
     
     public boolean isAutoSized() { return false; }
 
-    /** does this support user resizing? */
+    /** @return true -- image's support resize (which is currently just a crop) */
     public boolean supportsUserResize() {
         return true;
     }
 
-    private static final float ChildImageScale = 0.2f;
     public void setScale(float scale) {
         if (scale == 1f)
             super.setScale(1f);
@@ -412,7 +413,6 @@ public class LWImage extends LWComponent
             dc.g.draw(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
         }
         
-        //resourceIcon.draw(dc);
         if (isSelected() && !dc.isPrinting()) {
             dc.g.setComposite(HudTransparency);
             dc.g.setColor(Color.WHITE);
@@ -423,6 +423,7 @@ public class LWImage extends LWComponent
 
         if (_scale != 1f) dc.g.scale(1/_scale, 1/_scale);
         dc.g.translate(-getX(), -getY());
+
     }
 
     private static final AlphaComposite MatteTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
@@ -461,9 +462,6 @@ public class LWImage extends LWComponent
 
     public void mouseOver(MapMouseEvent e)
     {
-        Rectangle2D tipRegion = getBounds();
-        //e.getViewer().setTip(resourceIcon.getToolTipComponent(), tipRegion, tipRegion);
-        //e.getViewer().setTip(tipComponent, avoidRegion, tipRegion);
         mIconBlock.checkAndHandleMouseOver(e);
     }
 
