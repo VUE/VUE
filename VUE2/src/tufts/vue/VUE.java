@@ -55,7 +55,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.313 $ / $Date: 2005-11-27 17:02:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.314 $ / $Date: 2005-11-27 17:13:11 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -269,10 +269,13 @@ public class VUE
     private static boolean useMacLAF = false;
     public static void initUI(boolean debug)
     {
-        //com.jidesoft.utils.Lm.verifyLicense("Scott Fraize", "VUE", "p0HJOS:Y049mQb8BLRr9ntdkv9P6ihW");
-
-        tufts.Util.executeIfFound("com.jidesoft.utils.Lm", "verifyLicense",
-                           new Object[] { "Scott Fraize", "VUE", "p0HJOS:Y049mQb8BLRr9ntdkv9P6ihW" });
+        if (JIDE_TEST) {
+            tufts.Util.executeIfFound("com.jidesoft.utils.Lm", "verifyLicense",
+                                      new Object[] { "Scott Fraize",
+                                                     "VUE",
+                                                     "p0HJOS:Y049mQb8BLRr9ntdkv9P6ihW" });
+            //com.jidesoft.utils.Lm.verifyLicense("Scott Fraize", "VUE", "p0HJOS:Y049mQb8BLRr9ntdkv9P6ihW");
+        }
         
         String lafn = null;
         //lafn = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
@@ -653,14 +656,13 @@ public class VUE
             frame.setSize(750,450);
         } else {
             frame.setSize(800,600);// todo: make % of screen, make sure tool windows below don't go off screen!
-            //if (VUE.NARRAVISION)
-                frame.setExtendedState(Frame.MAXIMIZED_BOTH);
         }
         if (DEBUG.INIT) out("validating frame...");
         frame.validate();
         if (DEBUG.INIT) out("frame validated");
 
         VueUtil.centerOnScreen(frame);
+        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
         
         // position inspectors pased on frame location
         //int inspectorx = frame.getX() + frame.getWidth() - sMapInspector.getWidth();
