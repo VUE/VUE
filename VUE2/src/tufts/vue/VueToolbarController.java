@@ -34,21 +34,17 @@ import java.util.*;
  * 
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
+ *
+ * @version $Revision: 1.46 $ / $Date: 2005-11-27 14:55:55 $ / $Author: sfraize $
+ *
  **/
 public class VueToolbarController  
     implements LWSelection.Listener, LWComponent.Listener
 {
-    //////////
-    // Statics
-    //////////
-	
     /** the list of tool names is under this key in the resources **/
     public static final String DefaultToolsKey = "defaultToolNames";
     private static VueToolbarController sController;
 	
-    //////////
-    // Fields
-    //////////
 	
     private VueToolPanel mToolPanel = null;
 	
@@ -351,6 +347,7 @@ public class VueToolbarController
      * @return the suggest tool panel to use based on the current state
      * of the controller (selected tool) and the map selection.
      **/
+    // todo: the tool itself should be able to specify this -- at least for single selection
     public JPanel getSuggestedContextualPanel() {
         JPanel panel = null;
         VueToolbarController controller = VueToolbarController.getController();
