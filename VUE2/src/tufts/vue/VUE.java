@@ -50,19 +50,20 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.PatternLayout;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.311 2005-11-04 00:36:04 sfraize Exp $
-    
 /**
  * Vue application class.
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
+ * @version $Revision: 1.312 $ / $Date: 2005-11-27 16:17:17 $ / $Author: sfraize $ 
  */
 
 public class VUE
     implements VueConstants
 {
-    public static final Logger Log = Logger.getLogger("VUE");
+    final public static boolean JIDE_TEST = false;
+    
+    public static final Logger Log = Logger.getLogger(VUE.class);
     
     private static AppletContext sAppletContext = null;
     
@@ -75,12 +76,14 @@ public class VUE
     static final LWSelection ModelSelection = new LWSelection();
     
     /** array of tool windows, used for repeatedly creating JMenuBar's for on all Mac JFrame's */
-    private static ToolWindow[] ToolWindows;
+    // todo: wanted package private: should be totally private
+    public static ToolWindow[] ToolWindows; // VueMenuBar currently needs this
 
             /** teh global resource selection static model **/
     public final static ResourceSelection sResourceSelection = new ResourceSelection();
     
-    private static VueFrame frame;   // make this private!
+    //private static com.jidesoft.docking.DefaultDockableHolder frame;
+    private static VueFrame frame;
     
     private static MapTabbedPane mMapTabsLeft;
     private static MapTabbedPane mMapTabsRight;
@@ -172,127 +175,6 @@ public class VUE
     }
     */
     
-    static class VueFrame extends JFrame
-        implements MapViewer.Listener, MouseWheelListener
-    {
-        final static int TitleChangeMask =
-            MapViewerEvent.DISPLAYED |
-            MapViewerEvent.FOCUSED;
-            //MapViewerEvent.ZOOM;        // title includes zoom
-        
-        VueFrame() {
-            super(VueResources.getString("application.title"));
-            setIconImage(VueResources.getImageIcon("vueIcon32x32").getImage());
-            //addMouseWheelListener(this); this causing stack overflows in JVM 1.4 & 1.5, and only works for unclaimed areas
-            // (e.g., not mapviewer, even if it hasn't registered a wheel listener)
-        }
-
-        public void mouseWheelMoved(MouseWheelEvent e) {
-            System.err.println("VUE MSW");
-        }
-        
-        protected void processEvent(AWTEvent e) {
-            // if (e instanceof MouseWheelEvent) System.err.println("VUE MSM PE"); only works w/listener, which has problem as above
-            // try a generic AWT event queue listener?
-            
-            if (e instanceof MouseEvent) {
-                super.processEvent(e);
-                return;
-            }
-        
-            if (DEBUG.FOCUS) out("VueFrame: processEvent " + e);
-            // todo: if frame is getting key events, handle them
-            // and/or pass off to MapViewer (e.g., tool switch events!)
-            // or: put tool's w/action events in vue menu
-            if (e instanceof WindowEvent) {
-                switch (e.getID()) {
-                case WindowEvent.WINDOW_CLOSING:
-                case WindowEvent.WINDOW_CLOSED:
-                case WindowEvent.WINDOW_ICONIFIED:
-                    //case WindowEvent.WINDOW_DEACTIVATED:
-                    super.processEvent(e);
-                    return;
-                    /*
-                case WindowEvent.WINDOW_ACTIVATED:
-                    tufts.macosx.Screen.dumpWindows();
-                case WindowEvent.WINDOW_OPENED:
-                case WindowEvent.WINDOW_DEICONIFIED:
-                case WindowEvent.WINDOW_GAINED_FOCUS:
-                    if (VUE.getRootWindow() != VUE.getMainWindow())
-                        VUE.getRootWindow().toFront();
-                    */
-                }
-            }
-
-            // why do we do this?  Must have to do with full-screen or something...
-            if (VUE.getRootWindow() != VUE.getMainWindow()) {
-                if (DEBUG.Enabled) out("VueFrame: processEvent: root != main: forcing root visible & front");
-                VUE.getRootWindow().setVisible(true);
-                VUE.getRootWindow().toFront();
-            }
-            super.processEvent(e);
-        }
-
-        public void addComp(Component c, String constraints) {
-            getContentPane().add(c, constraints);
-        }
-
-        /*
-        public void show() {
-            out("VueFrame: show");
-            super.show();
-            pannerTool.toFront();
-        }
-        public void toFront()
-        {
-            //if (DEBUG.FOCUS)
-                out("VueFrame: toFront");
-            super.toFront();
-        }
-        */
-
-        /** never let the frame be hidden -- always ignored */
-        public void setVisible(boolean tv) {
-            //System.out.println("VueFrame setVisible " + tv + " OVERRIDE");
-            
-            // The frame should never be "hidden" -- iconification
-            // doesn't trigger that (nor Mac os "hide") -- so if we're
-            // here the OS window manager is attempting to hide us
-            // (the 'x' button on the window frame).
-            
-            //super.setVisible(true);
-            super.setVisible(tv);
-        }
-        public void mapViewerEventRaised(MapViewerEvent e) {
-            if ((e.getID() & TitleChangeMask) != 0)
-                setTitleFromViewer(e.getMapViewer());
-        }
-        
-        private void setTitleFromViewer(MapViewer viewer) {
-            String title = VUE.NAME + ": " + viewer.getMap().getLabel();
-            //if (viewer.getMap().isCurrentlyFiltered())
-            // will need to listen to map for filter change state or this gets out of date
-            //    title += " (Filtered)";
-            setTitle(title);
-            //setTitle("VUE: " + getViewerTitle(viewer));
-        }
-        
-        private String getViewerTitle(MapViewer viewer) {
-            String title = viewer.getMap().getLabel();
-            
-            int displayZoom = (int) (viewer.getZoomFactor() * 10000.0);
-            // Present the zoom factor as a percentange
-            // truncated down to 2 digits
-            title += " (";
-            if ((displayZoom / 100) * 100 == displayZoom)
-                title += (displayZoom / 100) + "%";
-            else
-                title += (((float) displayZoom) / 100f) + "%";
-            title += ")";
-            return title;
-        }
-    }
-    
     public static LWSelection getSelection() {
         return ModelSelection;
     }
@@ -376,84 +258,22 @@ public class VUE
         initUI(false);
     }
 
-    /**
-     * We extend apple.laf.AquaLookAndFeel and install it as our own
-     * look and feel on the mac in order to override certian items,
-     * such as the default font sizes.  Note that in order for Aqua
-     * tabbed-pane's to look right, we have to have an "icons"
-     * directory at the same level as this class containing Right.gif,
-     * Left.gif and Both.gif, which are needed for Aqua tabbed-pane's
-     * when there isn't enough room to display all the tabs.
-     */
-      
-    // We can find the class apple.laf.AquaLookAndFeel on Mac OS X systems in:
-    // /System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Classes/laf.jar
-    // We've extracted just the AquaLookAndFeel class and put it in lib/apple-laf.jar
-    // so this will compile on other platforms.  Note that apple-laf.jar may need
-    // to be updated for new releases of the JVM on the Mac.  Currently we're using
-    // the classes from JVM 1.4.2.
-    static class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel {
-        public String getDescription() { return super.getDescription() + " (VUE Derivative)"; }
-        public void initComponentDefaults(UIDefaults table)
-        {
-            super.initComponentDefaults(table);
-            //table.put("TitledBorder.font", fontMedium.deriveFont(Font.BOLD));
-            //table.put("Button.font", getFont());
-
-            Font font = table.getFont("Label.font");
-            //System.out.println(font);
-            font = makeFont(font.deriveFont(10f));
-            //System.out.println(font);
-            
-            table.put("Label.font", font);
-            table.put("Tree.font", font);
-            table.put("TextField.font", font);
-            table.put("TextArea.font", font);
-            table.put("TextPane.font", font);
-            table.put("Table.font", font);
-            table.put("TableHeader.font", font);
-            //table.put("ComboBox.font", font);
-
-            /*
-            Object newFolderIcon = LookAndFeel.makeIcon(getClass(), "icons/NewFolder.gif");
-            Object upFolderIcon = LookAndFeel.makeIcon(getClass(), "icons/UpFolder.gif");
-            Object homeFolderIcon = LookAndFeel.makeIcon(getClass(), "icons/HomeFolder.gif");
-            Object detailsViewIcon = LookAndFeel.makeIcon(getClass(), "icons/DetailsView.gif");
-            Object listViewIcon = LookAndFeel.makeIcon(getClass(), "icons/ListView.gif");
-            Object directoryIcon = LookAndFeel.makeIcon(getClass(), "icons/Directory.gif");
-            Object fileIcon = LookAndFeel.makeIcon(getClass(), "icons/File.gif");
-            Object computerIcon = LookAndFeel.makeIcon(getClass(), "icons/Computer.gif");
-            Object hardDriveIcon = LookAndFeel.makeIcon(getClass(), "icons/HardDrive.gif");
-            Object floppyDriveIcon = LookAndFeel.makeIcon(getClass(), "icons/FloppyDrive.gif");
-            */
-        }
-
-        /*
-        public static Object makeIcon(final Class baseClass, final String gifFile) {
-            System.err.println("VueAquaLookAndFeel.makeIcon " + baseClass + " " + gifFile);
-            return apple.laf.AquaLookAndFeel.makeIcon(baseClass, gifFile);
-        }
-        */
-        
-        private static javax.swing.plaf.FontUIResource makeFont(Font font) {
-            return new javax.swing.plaf.FontUIResource(font);
-        }
-        private javax.swing.plaf.FontUIResource getFont() {
-            return new javax.swing.plaf.FontUIResource(VueConstants.MediumFont);
-        }
-    }
-
-    private static void installVueAquaLAF() {
+    public static void installVueAquaLAF() {
         try {
-            javax.swing.UIManager.setLookAndFeel(new VueAquaLookAndFeel());
+            javax.swing.UIManager.setLookAndFeel(new tufts.vue.gui.VueAquaLookAndFeel());
         } catch (javax.swing.UnsupportedLookAndFeelException e) {
             e.printStackTrace();
         }
     }
     
     private static boolean useMacLAF = false;
-    static void initUI(boolean debug)
+    public static void initUI(boolean debug)
     {
+        //com.jidesoft.utils.Lm.verifyLicense("Scott Fraize", "VUE", "p0HJOS:Y049mQb8BLRr9ntdkv9P6ihW");
+
+        tufts.Util.executeIfFound("com.jidesoft.utils.Lm", "verifyLicense",
+                           new Object[] { "Scott Fraize", "VUE", "p0HJOS:Y049mQb8BLRr9ntdkv9P6ihW" });
+        
         String lafn = null;
         //lafn = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
         //lafn = "javax.swing.plaf.basic.BasicLookAndFeel"; // not a separate L&F -- baseclass
@@ -531,8 +351,10 @@ public class VUE
     private static boolean exitAfterInit = false;
 
 
-    public static final boolean TUFTS = VueResources.getBool("application.features.tufts");
-    public static final boolean NARRAVISION = !TUFTS;
+    //public static final boolean TUFTS = VueResources.getBool("application.features.tufts");
+    //public static final boolean NARRAVISION = !TUFTS;
+    public static final boolean TUFTS = false;
+    public static final boolean NARRAVISION = true;
     public static final String NAME = VueResources.getString("application.name");
     
     
@@ -540,7 +362,8 @@ public class VUE
         System.out.println("VUE: main invoked.");
         Logger.getRootLogger().removeAllAppenders(); // need to do this or we get everything twice
         //BasicConfigurator.configure();
-        Log.addAppender(new ConsoleAppender(new PatternLayout("[%t] %-5p %c %x - %m%n")));
+        Logger.getRootLogger().addAppender(new ConsoleAppender(new PatternLayout("VUE [%t] %-5p %c:%x %m%n")));
+        //Log.addAppender(new ConsoleAppender(new PatternLayout("[%t] %-5p %c %x - %m%n")));
         Log.setLevel(Level.DEBUG);
         Log.info("build: " + tufts.vue.Version.AllInfo);
 
@@ -704,15 +527,46 @@ public class VUE
         //frame.getContentPane().add(tbc.getToolbar(), BorderLayout.NORTH);
                 
         JPanel toolBarPanel = null;
-        if (VUE.TUFTS) {
+
+        if (JIDE_TEST) {
+            /* JIDE ENABLE
+            frame.getDockableBarManager().addDockableBar(new VueToolBar());
+            frame.getDockableBarManager().setShowInitial(false);            
+            frame.getDockableBarManager().resetToDefault();
+            */
+        } else if (true||VUE.TUFTS) {
             //toolBarPanel = new JPanel();
             //toolBarPanel.add(tbc.getToolbar());
             frame.addComp(tbc.getToolbar(), BorderLayout.NORTH);
         } else {
+
+            //JDialog.setDefaultLookAndFeelDecorated(false);
+            
             toolBarPanel = new JPanel(new BorderLayout());
-            toolBarPanel.add(tbc.getToolbar(), BorderLayout.NORTH);
-            toolBarPanel.add(new VueToolBar(), BorderLayout.SOUTH);
+            //toolBarPanel.add(tbc.getToolbar(), BorderLayout.NORTH);
+            JPanel floatingToolbarContainer = new JPanel(new BorderLayout());
+            //JPanel floatingToolbarContainer = new com.jidesoft.action.DockableBarDockableHolderPanel(frame);
+            
+            //floatingToolbarContainer.setPreferredSize(new Dimension(500,50));
+            //floatingToolbarContainer.setMinimumSize(new Dimension(500,5));
+            floatingToolbarContainer.setBackground(Color.orange);
+            VueToolBar vueToolBar = new VueToolBar();
+            floatingToolbarContainer.add(vueToolBar, BorderLayout.PAGE_START);
+            //toolBarPanel.add(new VueToolBar(), BorderLayout.SOUTH);
+            if (false) {
+                // Yes: drop-downs work in a JToolBar (note that our MenuButtons
+                // that are rounded become square tho)
+                JToolBar tb = new JToolBar();
+                tb.add(tbc.getToolbar());
+                toolBarPanel.add(tb);
+            } else {
+                toolBarPanel.add(tbc.getToolbar(), BorderLayout.NORTH);
+            }
+            toolBarPanel.add(floatingToolbarContainer, BorderLayout.SOUTH);
             frame.addComp(toolBarPanel, BorderLayout.NORTH);
+
+            ////frame.getDockableBarManager().addDockableBar(vueToolBar);
+            
         }
 
         if (DEBUG.INIT) out("created VueToolBar");
@@ -1010,53 +864,8 @@ public class VUE
                 }
             });
         */
-
-        
-        // An attempt to get the mac metal look picked up by something other than a frame
-        // & other window experiments.
-        /*
-        
-        Frame emptyFrame = new Frame();
-        Window emptyWindow = new Window(VUE.frame);
-        
-        //Window w = new java.awt.VFrame(frame);
-        //Window w = new Frame(); // only full-bread Frame's/JFrame's are picking up mac brushed metal look...
-        //Window w = new JWindow(VUE.frame);
-        //Window w = new Dialog(VUE.frame);
-        //Window w = new JDialog(VUE.frame);
-        Window w = new TestWindow(VUE.frame);
-        w.setLayout(new FlowLayout());
-        w.add(new JLabel("Hello."));
-        JComponent tf = new JTextField("text", 10);
-        w.add(tf);
-        tf.addFocusListener(new FocusAdapter() {
-                public void focusGained(FocusEvent e) {
-                    new Throwable("tf got focus " + e).printStackTrace();
-                }
-            });
-        // tf.setFocusable(false); // disable's field
-        //w.setFocusable(false);
-        //w.setFocusableWindowState(false);
-        w.setSize(200,100);
-        tufts.Util.centerOnScreen(w);
-        tf.enableInputMethods(true);
-        tf.requestFocus();
-        //w.setBackground(UIManager.getColor("info")); // tried window,control,desktop,windowBorder,menu,activeCaption,info
-        //w.setBackground(SystemColor.control);
-        //w.setBackground(frame.getBackground());
-        w.show();
-
-        */
-        
-    
     }
             
-    static class TestWindow extends Window {
-        TestWindow(Window parent) {
-            super(parent);
-        }
-    }
-    
     public static int openMapCount() {
         return mMapTabsLeft == null ? 0 : mMapTabsLeft.getTabCount();
     }
@@ -1349,7 +1158,8 @@ public class VUE
     /** Return the main VUE window.  Usually == getRoowWindow, unless we're
      * using a special root window for parenting the tool windows.
      */
-    static Window getMainWindow() {
+    // todo: wanted package private
+    public static Window getMainWindow() {
         return VUE.frame;
     }
 
@@ -1365,7 +1175,7 @@ public class VUE
             if (DEBUG.INIT) out("creating the ROOT WINDOW");
             f = new JFrame("Vue Root");
             if (VueUtil.isMacPlatform() && useMacLAF) {
-                JMenuBar menu = new VUE.VueMenuBar();
+                JMenuBar menu = new VueMenuBar();
                 f.setJMenuBar(menu);
             }
             f.show();
@@ -1398,7 +1208,7 @@ public class VUE
     {
         JFrame newFrame = new JFrame(title);
         if (VueUtil.isMacPlatform() && useMacLAF) {
-            JMenuBar menu = new VUE.VueMenuBar();
+            JMenuBar menu = new VueMenuBar();
             newFrame.setJMenuBar(menu);
         }
         return newFrame;
@@ -1416,12 +1226,23 @@ public class VUE
     }
     /** @return a new ToolWindow, containing the given component, parented to getRootWindow() */
     public static ToolWindow createToolWindow(String title, JComponent component) {
+        return createToolWindow(title, component, false);
+    }
+    
+    /** @return a new ToolWindow, containing the given component, parented to getRootWindow() */
+    private static ToolWindow createToolWindow(String title, JComponent component, boolean palette) {
         //Window parent = getRootFrame();
         Window parent = getRootWindow();
         if (DEBUG.INIT) out("creating ToolWindow " + title + " with parent " + parent);
-        ToolWindow w = new ToolWindow(title, parent);
-        if (component != null)
-            w.addTool(component);
+
+        final ToolWindow w;
+        if (palette) {
+            w = new ToolWindow(title, parent, false);
+        } else {
+            w = new ToolWindow(title, parent, true);
+            if (component != null)
+                w.addTool(component);
+        }
         /*
           // ToolWindows not set yet...
         if (VueUtil.isMacPlatform() && useMacLAF && w instanceof JFrame)
@@ -1430,417 +1251,15 @@ public class VUE
         return w;
     }
 
+    /** @return a new ToolWindow styled as a ToolPalette */
+    public static ToolWindow createToolPalette(String title) {
+        return createToolWindow(title, null, true);
+    }
+    
+
     /** call the given runnable after all pending AWT events are completed */
     static void invokeAfterAWT(Runnable runnable) {
         java.awt.EventQueue.invokeLater(runnable);
-    }
-
-    static class VueToolBar extends JToolBar
-    {
-        public VueToolBar()
-        {
-            super("Toolbar");
-            add(Actions.NewMap);
-            add(new OpenAction());
-            add(new SaveAction());
-            add(new PrintAction()); // deal with print singleton issue / getactioncommand is null here
-            //addSeparator(); // not doing much
-            add(Actions.Undo);
-            add(Actions.Redo);
-            add(Actions.Group);
-            add(Actions.Ungroup);
-            add(Actions.ZoomIn);
-            add(Actions.ZoomOut);
-            add(Actions.ZoomFit);
-            add(Actions.Delete);
-
-            setRollover(true);
-            setMargin(new Insets(0,0,0,0));
-        }
-
-        public JButton add(Action a) {
-            //return super.add(a);
-            JButton b = makeButton(a);
-            super.add(b);
-            return b;
-        }
-
-        private static JButton makeButton(Action a) {
-            VueButton b = new VueButton(a);
-            b.setAsToolbarButton(true);
-            return b;
-        }
-    }
-
-    
-    static class VueMenuBar extends JMenuBar
-        implements FocusListener
-    {
-        public static VueMenuBar RootMenuBar;
-        
-        // this may be created multiple times as a workaround for the inability
-        // to support a single JMenuBar for the whole application on the Mac
-        public VueMenuBar()
-        {
-            this(VUE.ToolWindows);
-        }
-
-        /*
-        public void paint(Graphics g) {
-            System.err.println("\nVueMenuBar: paint");
-
-        }
-        */
-        
-        public VueMenuBar(ToolWindow[] toolWindows)
-        {
-            addFocusListener(this);
-            final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
-        
-            JMenu fileMenu = new JMenu("File");
-            JMenu editMenu = new JMenu("Edit");
-            JMenu viewMenu = new JMenu("View");
-            JMenu formatMenu = new JMenu("Format");
-            JMenu arrangeMenu = new JMenu("Arrange");
-            JMenu windowMenu = null;
-            JMenu alignMenu = new JMenu("Arrange/Align");
-            //JMenu optionsMenu = menuBar.add(new JMenu("Options"))l
-            JMenu helpMenu = add(new JMenu("Help"));
-
-            //adding actions
-            SaveAction saveAction = new SaveAction("Save", false);
-            SaveAction saveAsAction = new SaveAction("Save As...");
-            OpenAction openAction = new OpenAction("Open Map...");
-            ExitAction exitAction = new ExitAction("Quit");
-            Publish publishAction = new Publish("Export");
-        
-            // Actions added by the power team
-            PrintAction printAction = PrintAction.getPrintAction();
-            PDFTransform pdfAction = new PDFTransform("PDF");
-            HTMLConversion htmlAction = new HTMLConversion("HTML");
-            ImageConversion imageAction = new ImageConversion("JPEG");
-            ImageMap imageMap = new ImageMap("IMAP");
-            SVGConversion svgAction = new SVGConversion("SVG");
-            XMLView xmlAction = new XMLView("XML View");
-        
-            if (false && DEBUG.Enabled) {
-                // THIS CODE IS TRIGGERING THE TIGER ARRAY BOUNDS BUG:
-                // we're hitting bug in java (1.4.2, 1.5) on Tiger (OSX 10.4.2) here
-                // (apple.laf.ScreenMenuBar array index out of bounds exception)
-                JButton u = new JButton(Actions.Undo);
-                JButton r = new JButton(Actions.Redo);
-                JButton p = new JButton(printAction);
-                JButton v = new JButton(printAction);
-                v.setText("Print Visible");
-            
-                u.setBackground(Color.white);
-                r.setBackground(Color.white);
-                add(u).setFocusable(false);
-                add(r).setFocusable(false);
-                add(p).setFocusable(false);
-                add(v).setFocusable(false);
-
-                //menuBar.add(new tufts.vue.gui.VueButton(Actions.Undo)).setFocusable(false);
-                // not picking up icon yet...
-            }
-
-            if (false && DEBUG.Enabled) {
-                // THIS CODE IS TRIGGERING THE TIGER ARRAY BOUNDS BUG (see above)
-                JMenu exportMenu = add(new JMenu("Export"));
-                exportMenu.add(htmlAction);
-                exportMenu.add(pdfAction);
-                exportMenu.add(imageAction);
-                exportMenu.add(svgAction);
-                exportMenu.add(xmlAction);
-                exportMenu.add(imageMap);
-            }
-        
-            fileMenu.add(Actions.NewMap);
-            fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));
-            fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
-            fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));
-            fileMenu.add(Actions.CloseMap);
-            fileMenu.add(printAction);
-            fileMenu.add(printAction).setText("Print Visible...");
-            fileMenu.add(publishAction);
-            // GET RECENT FILES FROM PREFS!
-            //fileMenu.add(exportMenu);
-
-            if (isApplet() || (VUE.isSystemPropertyTrue("apple.laf.useScreenMenuBar") && VueUtil.isMacAquaLookAndFeel())) {
-                // Do NOT add quit to the file menu.
-                // Either we're an applet w/no quit, or it's already in the mac application menu bar.
-                // FYI, MRJAdapter.isSwingUsingScreenMenuBar() is not telling us the truth.
-            } else {
-                fileMenu.addSeparator();
-                fileMenu.add(exitAction);
-            }
-        
-            editMenu.add(Actions.Undo);
-            editMenu.add(Actions.Redo);
-            editMenu.addSeparator();
-            editMenu.add(Actions.NewNode);
-            editMenu.add(Actions.NewText);
-            editMenu.add(Actions.Rename);
-            editMenu.add(Actions.Duplicate);
-            editMenu.add(Actions.Delete);
-            editMenu.addSeparator();
-            editMenu.add(Actions.Cut);
-            editMenu.add(Actions.Copy);
-            editMenu.add(Actions.Paste);
-            editMenu.addSeparator();
-            editMenu.add(Actions.SelectAll);
-            editMenu.add(Actions.DeselectAll);
-            editMenu.addSeparator();
-            editMenu.add(Actions.editDataSource);
-            editMenu.addSeparator();
-            editMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
-        
-            viewMenu.add(Actions.ZoomIn);
-            viewMenu.add(Actions.ZoomOut);
-            viewMenu.add(Actions.ZoomFit);
-            viewMenu.add(Actions.ZoomActual);
-            viewMenu.add(Actions.ToggleFullScreen);
-
-            formatMenu.add(Actions.FontSmaller);
-            formatMenu.add(Actions.FontBigger);
-            formatMenu.add(Actions.FontBold);
-            formatMenu.add(Actions.FontItalic);
-            //formatMenu.add(new JMenuItem("Size"));
-            //formatMenu.add(new JMenuItem("Style"));
-            //formatMenu.add("Text Justify").setEnabled(false);
-            // TODO: ultimately better to break these out in to Node & Link submenus
-            formatMenu.addSeparator();
-            buildMenu(formatMenu, Actions.NODE_MENU_ACTIONS);
-            formatMenu.addSeparator();
-            buildMenu(formatMenu, Actions.LINK_MENU_ACTIONS);
-        
-            buildMenu(alignMenu, Actions.ARRANGE_MENU_ACTIONS);
-
-            arrangeMenu.add(Actions.BringToFront);
-            arrangeMenu.add(Actions.BringForward);
-            arrangeMenu.add(Actions.SendToBack);
-            arrangeMenu.add(Actions.SendBackward);
-            arrangeMenu.addSeparator();
-            arrangeMenu.add(Actions.Group);
-            arrangeMenu.add(Actions.Ungroup);
-            arrangeMenu.addSeparator();
-            arrangeMenu.add(alignMenu);
-        
-            int index = 0;
-            if (toolWindows != null) {
-
-                windowMenu = add(new JMenu("Window"));
-                
-                for (int i = 0; i < toolWindows.length; i++) {
-                    //System.out.println("adding " + toolWindows[i]);
-                    ToolWindow toolWindow = toolWindows[i];
-                    if (toolWindow == null)
-                        continue;
-                    final WindowDisplayAction windowAction = new WindowDisplayAction(toolWindow);
-                    final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_1 + index++, Actions.COMMAND);
-                    windowAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);
-                    JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);
-                    windowAction.setLinkedButton(checkBox);
-                    windowMenu.add(checkBox);
-                }
-            }
-        
-            //optionsMenu.add(new UserDataAction());
-        
-            helpMenu.add(new ShowURLAction("VUE Online", "http://vue.tccs.tufts.edu/"));
-            helpMenu.add(new ShowURLAction("User Guide", "http://vue.tccs.tufts.edu/userdoc/"));
-            helpMenu.add(new AboutAction());
-            helpMenu.add(new ShortcutsAction());
-
-            add(fileMenu);
-            add(editMenu);
-            add(viewMenu);
-            add(formatMenu);
-            add(arrangeMenu);
-            if (windowMenu != null)
-                add(windowMenu);
-            add(helpMenu);
-            
-            if (RootMenuBar == null)
-                RootMenuBar = this;
-        }
-
-        public boolean doProcessKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
-            return super.processKeyBinding(ks, e, condition, pressed);
-        }
-
-        public void setVisible(boolean b) {
-            out("VMB: setVisible: " + b);
-            super.setVisible(b);
-        }
-        public void focusGained(FocusEvent e) {
-            out("VMB: focusGained from " + e.getOppositeComponent());
-        }
-        public void focusLost(FocusEvent e) {
-            out("VMB: focusLost to " + e.getOppositeComponent());
-        }
-    }
-
-    private static class ShortcutsAction extends VueAction {
-        private static ToolWindow window;
-        ShortcutsAction() {
-            super("Short Cuts");
-        }
-
-        void act() {
-            if (window == null)
-                window = createWindow();
-            window.setVisible(true);
-        }
-        private ToolWindow createWindow() {
-            return createToolWindow(VUE.NAME + " Short-Cut Keys", createShortcutsList());
-        }
-
-        private JComponent createShortcutsList() {
-            String text = new String();
-            
-            // get tool short-cuts
-            VueTool[] tools =  VueToolbarController.getController().getTools();
-            for (int i = 0; i < tools.length; i++) {
-                VueTool tool = tools[i];
-                if (tool.getShortcutKey() != 0)
-                    text += " " + tool.getShortcutKey() + " - " + tool.getToolName() + "\n";
-            }
-            text += "\n";
-            // get action short-cuts
-            Iterator i = getAllActions().iterator();
-            while (i.hasNext()) {
-                VueAction a = (VueAction) i.next();
-                KeyStroke k = (KeyStroke) a.getValue(Action.ACCELERATOR_KEY);
-                if (k != null) {
-                    String keyName = " "
-                        + KeyEvent.getKeyModifiersText(k.getModifiers())
-                        + " "
-                        + KeyEvent.getKeyText(k.getKeyCode());
-                    if (keyName.length() < 10)
-                        keyName += ": \t\t";
-                    else
-                        keyName += ": \t";
-                    text += keyName + a.getPermanentActionName();
-                    text += "\n";
-                }
-            }
-            JTextArea t = new JTextArea();
-            t.setFont(FONT_SMALL);
-            t.setEditable(false);
-            t.setFocusable(false);
-            t.setText(text);
-            t.setOpaque(false);
-            return t;
-        }
-        
-    }
-    
-
-    public static JMenu buildMenu(String name, Action[] actions) {
-        return buildMenu(new JMenu(name), actions);
-    }
-    public static JMenu buildMenu(JMenu menu, Action[] actions) {
-        for (int i = 0; i < actions.length; i++) {
-            Action a = actions[i];
-            if (a == null)
-                menu.addSeparator();
-            else
-                menu.add(a);
-        }
-        return menu;
-    }
-    
-    static class WindowDisplayAction extends AbstractAction {
-        private AbstractButton mLinkedButton;
-        private Window mWindow;
-        private String mTitle;
-        private boolean firstDisplay = true;
-        private static final boolean showActionLabel = false;
-        
-        public WindowDisplayAction(Window w) {
-            super("window: " + w.getName());
-            init(extractTitle(w), w);
-        }
-        
-        public WindowDisplayAction(ToolWindow tw) {
-            super("window: " + tw.getWindow().getName());
-            init(tw.getTitle(), tw.getWindow());
-        }
-
-        private void init(String title, Window w) {
-            mTitle = title;
-            updateActionTitle(true);
-            mWindow = w;
-            mWindow.addComponentListener(new ComponentAdapter() {
-                    public void componentShown(ComponentEvent e) { handleShown(); }
-                    public void componentHidden(ComponentEvent e) { handleHidden(); }
-            });
-        }
-
-        /*
-        private String getTitle() {
-            return mTitle;
-            //return extractTitle(mWindow);
-        }
-        */
-
-        private static String extractTitle(Window w) {
-            if (w instanceof Frame)
-                return ((Frame)w).getTitle();
-            else if (w instanceof Dialog)
-                return ((Dialog)w).getTitle();
-            else
-                return ((Window)w).getName();
-        }
-
-        private void handleShown() {
-            //out("handleShown [" + getTitle() + "]");
-            setButtonState(true);
-            updateActionTitle(false);
-        }
-        private void handleHidden() {
-            //out("handleHidden [" + getTitle() + "]");
-            setButtonState(false);
-            updateActionTitle(false);
-        }
-        
-        private void updateActionTitle(boolean firstTime) {
-            if (!firstTime && !showActionLabel)
-                return;
-            if (showActionLabel) {
-                String action = "Show ";
-                if (mLinkedButton != null && mLinkedButton.isSelected())
-                    action = "Hide ";
-                putValue(Action.NAME, action + mTitle);
-            } else {
-                putValue(Action.NAME, mTitle);
-            }
-        }
-        void setLinkedButton(AbstractButton b) {
-            mLinkedButton = b;
-        }
-        private void setButtonState(boolean tv) {
-            if (mLinkedButton != null)
-                mLinkedButton.setSelected(tv);
-        }
-        public void actionPerformed(ActionEvent e) {
-            if (mLinkedButton == null)
-                mLinkedButton = (AbstractButton) e.getSource();
-            if (firstDisplay && mWindow.getX() == 0 && mWindow.getY() == 0) {
-                mWindow.setLocation(20,22);
-            }
-            firstDisplay = false;
-            if (mLinkedButton.isSelected()) {
-                mWindow.setVisible(true);
-                mWindow.toFront();
-                //VUE.ensureToolWindowVisibility(mTitle);
-            } else {
-                mWindow.setVisible(false);
-                //VUE.ensureToolWindowVisibility(null);
-            }
-            
-        }
     }
 
     static boolean inFullScreen() {
