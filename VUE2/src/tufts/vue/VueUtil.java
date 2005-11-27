@@ -463,7 +463,11 @@ public class VueUtil extends tufts.Util
         }
         return map;
     }
-    
+
+
+    public static String objectTag(Object o) {
+        return o.getClass().getName() + "@" + Integer.toHexString(o.hashCode());
+    }
 
     
     public static void alert(javax.swing.JComponent component,String message,String title) {
