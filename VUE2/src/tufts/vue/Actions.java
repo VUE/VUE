@@ -47,13 +47,13 @@ import javax.swing.Icon;
  * @author Scott Fraize
  * @version March 2004
  */
-class Actions
-implements VueConstants {
-    static final int COMMAND = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
-    static final int CTRL = Event.CTRL_MASK;
-    static final int SHIFT = Event.SHIFT_MASK;
-    static final int ALT = Event.ALT_MASK;
-    static final int CTRL_ALT = VueUtil.isMacPlatform() ? CTRL+COMMAND : CTRL+ALT;
+public class Actions implements VueConstants
+{
+    public static final int COMMAND = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
+    public static final int CTRL = Event.CTRL_MASK;
+    public static final int SHIFT = Event.SHIFT_MASK;
+    public static final int ALT = Event.ALT_MASK;
+    public static final int CTRL_ALT = VueUtil.isMacPlatform() ? CTRL+COMMAND : CTRL+ALT;
     
     static final private KeyStroke keyStroke(int vk, int mod) {
         return KeyStroke.getKeyStroke(vk, mod);
@@ -67,13 +67,13 @@ implements VueConstants {
     // Selection actions
     //-------------------------------------------------------
     
-    static final Action SelectAll =
+    public static final Action SelectAll =
     new VueAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
         void act() {
             VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque().iterator());
         }
     };
-    static final Action DeselectAll =
+    public static final Action DeselectAll =
     new LWCAction("Deselect", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
         boolean enabledFor(LWSelection s) { return s.size() > 0; }
         void act() {
@@ -81,7 +81,7 @@ implements VueConstants {
         }
     };
     
-    static final Action AddPathwayItem =
+    public static final Action AddPathwayItem =
     new LWCAction("Add to Pathway") {
         public void act(Iterator i) {
             VUE.getActivePathway().add(i);
@@ -92,7 +92,7 @@ implements VueConstants {
         }
     };
     
-    static final Action RemovePathwayItem =
+    public static final Action RemovePathwayItem =
     new LWCAction("Remove from Pathway") {
         public void act(Iterator i) {
             VUE.getActivePathway().remove(i);
@@ -103,7 +103,7 @@ implements VueConstants {
         }
     };
     
-    static final Action UpdateResource =
+    public static final Action UpdateResource =
     new LWCAction("Update Resource") {
         public void act(LWComponent c) {
             if (c.getResource() instanceof MapResource) {
@@ -123,7 +123,7 @@ implements VueConstants {
     
     /**Addition by Daisuke Fujiwara*/
     
-    static final Action HierarchyView =
+    public static final Action HierarchyView =
     new LWCAction("Hierarchy View") {
         public void act(LWNode n) {
             LWNode rootNode = n;
@@ -148,7 +148,7 @@ implements VueConstants {
     /**End of Addition by Daisuke Fujiwara*/
     
     /** Action to Edit Datasource **/
-    static final Action editDataSource = new AbstractAction("Edit DataSource") {
+    public static final Action editDataSource = new AbstractAction("Edit DataSource") {
         public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
             AddEditDataSourceDialog dialog = new AddEditDataSourceDialog();
             dialog.show(AddEditDataSourceDialog.EDIT_MODE);
@@ -160,7 +160,7 @@ implements VueConstants {
     // Link actions
     //-----------------------------------------------------------------------------
     
-    static final LWCAction LinkMakeStraight =
+    public static final LWCAction LinkMakeStraight =
         //new LWCAction("Straight", VueResources.getIcon("linkTool.line.raw")) {
         new LWCAction("Straight", VueResources.getIcon("link.style.straight")) {
             void init() { putValue("property.value", new Integer(0)); } // for use in a MenuButton
@@ -171,7 +171,7 @@ implements VueConstants {
             }
             public void act(LWLink c) { c.setControlCount(0); }
         };
-    static final LWCAction LinkMakeQuadCurved =
+    public static final LWCAction LinkMakeQuadCurved =
         //new LWCAction("Curved", VueResources.getIcon("linkTool.curve1.raw")) {
         new LWCAction("Curved", VueResources.getIcon("link.style.curved")) {
             void init() { putValue("property.value", new Integer(1)); }
@@ -182,7 +182,7 @@ implements VueConstants {
             }
             public void act(LWLink c) { c.setControlCount(1); }
         };
-    static final LWCAction LinkMakeCubicCurved =
+    public static final LWCAction LinkMakeCubicCurved =
         //new LWCAction("S-Curved", VueResources.getIcon("linkTool.curve2.raw")) {
         new LWCAction("S-Curved", VueResources.getIcon("link.style.s-curved")) {
             void init() { putValue("property.value", new Integer(2)); }
@@ -193,7 +193,7 @@ implements VueConstants {
             }
             public void act(LWLink c) { c.setControlCount(2); }
         };
-    static final Action LinkArrows =
+    public static final Action LinkArrows =
         new LWCAction("Arrows", keyStroke(KeyEvent.VK_L, COMMAND)/*, VueResources.getIcon("outlineIcon.link")*/) {
             boolean enabledFor(LWSelection s) { return s.containsType(LWLink.class); }
             public void act(LWLink c) { c.rotateArrowState(); }
@@ -214,7 +214,7 @@ implements VueConstants {
     // Node actions
     //-----------------------------------------------------------------------------
     
-    static final LWCAction NodeMakeAutoSized =
+    public static final LWCAction NodeMakeAutoSized =
     new LWCAction("Set Auto-Sized") {
         boolean enabledFor(LWSelection s) {
             if (!s.containsType(LWNode.class))
@@ -284,7 +284,7 @@ implements VueConstants {
     }
     
     
-    static final LWCAction Duplicate =
+    public static final LWCAction Duplicate =
     new LWCAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) { return s.size() > 0; }
@@ -314,7 +314,7 @@ implements VueConstants {
         
     };
     
-    static final Action Cut =
+    public static final Action Cut =
     new LWCAction("Cut", keyStroke(KeyEvent.VK_X, COMMAND)) {
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) { return s.size() > 0; }
@@ -325,7 +325,7 @@ implements VueConstants {
         }
     };
     
-    static final LWCAction Copy =
+    public static final LWCAction Copy =
     new LWCAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
         boolean enabledFor(LWSelection s) { return s.size() > 0; }
         void act(Iterator iSelection) {
@@ -344,7 +344,7 @@ implements VueConstants {
             }
         }
     };
-    static final Action Paste =
+    public static final Action Paste =
     new VueAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
         //public boolean isEnabled() //would need to listen for scratch buffer fills
         
@@ -377,7 +377,7 @@ implements VueConstants {
         
     };
     
-    static final LWCAction Delete =
+    public static final LWCAction Delete =
         new LWCAction("Delete", keyStroke(KeyEvent.VK_DELETE), ":general/Delete") {
             // We could use BACK_SPACE instead of DELETE because that key is bigger, and
             // on the mac it's actually LABELED "delete", even tho it sends BACK_SPACE.
@@ -426,7 +426,7 @@ implements VueConstants {
     // Group/Ungroup
     //-------------------------------------------------------
     
-    static final Action Group =
+    public static final Action Group =
         new LWCAction("Group", keyStroke(KeyEvent.VK_G, COMMAND), "/tufts/vue/images/Group.gif") {
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) {
@@ -461,7 +461,7 @@ implements VueConstants {
         }
     };
     /** handle dispersing groups, or removing selected elements from groups */
-    static final Action Ungroup =
+    public static final Action Ungroup =
         //new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/GroupGC.png") {
         //new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/GroupUnGC.png") {
         new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/Ungroup.png") {
@@ -509,7 +509,7 @@ implements VueConstants {
             }
         }
     };
-    static final Action Rename =
+    public static final Action Rename =
     new LWCAction("Rename", keyStroke(KeyEvent.VK_F2)) {
         boolean undoable() { return false; } // label editor handles the undo
         boolean enabledFor(LWSelection s) {
@@ -525,7 +525,7 @@ implements VueConstants {
     // Arrange actions
     //-------------------------------------------------------
     
-    static final LWCAction BringToFront =
+    public static final LWCAction BringToFront =
     new LWCAction("Bring to Front",
     "Raise object to the top, completely unobscured",
     keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND+SHIFT)) {
@@ -539,7 +539,7 @@ implements VueConstants {
             LWContainer.bringToFront(selection);
         }
     };
-    static final LWCAction SendToBack =
+    public static final LWCAction SendToBack =
     new LWCAction("Send to Back",
     "Make sure this object doesn't obscure any other object",
     keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND+SHIFT)) {
@@ -553,14 +553,14 @@ implements VueConstants {
             LWContainer.sendToBack(selection);
         }
     };
-    static final LWCAction BringForward =
+    public static final LWCAction BringForward =
     new LWCAction("Bring Forward", keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND)) {
         boolean enabledFor(LWSelection s) { return BringToFront.enabledFor(s); }
         void act(LWSelection selection) {
             LWContainer.bringForward(selection);
         }
     };
-    static final LWCAction SendBackward =
+    public static final LWCAction SendBackward =
     new LWCAction("Send Backward", keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND)) {
         boolean enabledFor(LWSelection s) { return SendToBack.enabledFor(s); }
         void act(LWSelection selection) {
@@ -572,7 +572,7 @@ implements VueConstants {
     // Font/Text Actions
     //-------------------------------------------------------
     
-    static final LWCAction FontSmaller =
+    public static final LWCAction FontSmaller =
     new LWCAction("Font Smaller", keyStroke(KeyEvent.VK_MINUS, COMMAND)) {
         void act(LWComponent c) {
             Font f = c.getFont();
@@ -586,7 +586,7 @@ implements VueConstants {
             }
         }
     };
-    static final LWCAction FontBigger =
+    public static final LWCAction FontBigger =
     new LWCAction("Font Bigger", keyStroke(KeyEvent.VK_EQUALS, COMMAND)) {
         void act(LWComponent c) {
             Font f = c.getFont();
@@ -598,7 +598,7 @@ implements VueConstants {
             c.setFont(new Font(f.getName(), f.getStyle(), size));
         }
     };
-    static final LWCAction FontBold =
+    public static final LWCAction FontBold =
     new LWCAction("Font Bold", keyStroke(KeyEvent.VK_B, COMMAND)) {
         void act(LWComponent c) {
             //System.out.println("BOLDING " + c);
@@ -607,7 +607,7 @@ implements VueConstants {
             c.setFont(new Font(f.getName(), newStyle, f.getSize()));
         }
     };
-    static final LWCAction FontItalic =
+    public static final LWCAction FontItalic =
     new LWCAction("Font Italic", keyStroke(KeyEvent.VK_I, COMMAND)) {
         void act(LWComponent c) {
             Font f = c.getFont();
@@ -700,12 +700,12 @@ implements VueConstants {
         }
     };
     
-    static final Action FillWidth = new ArrangeAction("Fill Width") {
+    public static final Action FillWidth = new ArrangeAction("Fill Width") {
         void arrange(LWComponent c) {
             c.setFrame(minX, c.getY(), maxX - minX, c.getHeight());
         }
     };
-    static final Action FillHeight = new ArrangeAction("Fill Height") {
+    public static final Action FillHeight = new ArrangeAction("Fill Height") {
         void arrange(LWComponent c) {
             c.setFrame(c.getX(), minY, c.getWidth(), maxY - minY);
         }
@@ -713,50 +713,50 @@ implements VueConstants {
     
     // todo: java isn't allowing unmodifed arrow keys as actions! (they get ignored -- figure
     // out how to turn off whoever's grabbing them)
-    static final Action NudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, SHIFT)) {
+    public static final Action NudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, SHIFT)) {
         void act(LWComponent c) {
             float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
             c.translate(0, -unit);
         }
     };
-    static final Action NudgeDown = new LWCAction("Nudge Down", keyStroke(KeyEvent.VK_DOWN, SHIFT)) {
+    public static final Action NudgeDown = new LWCAction("Nudge Down", keyStroke(KeyEvent.VK_DOWN, SHIFT)) {
         void act(LWComponent c) {
             float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
             c.translate(0, unit);
         }
     };
-    static final Action NudgeLeft = new LWCAction("Nudge Left", keyStroke(KeyEvent.VK_LEFT, SHIFT)) {
+    public static final Action NudgeLeft = new LWCAction("Nudge Left", keyStroke(KeyEvent.VK_LEFT, SHIFT)) {
         void act(LWComponent c) {
             float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
             c.translate(-unit, 0);
         }
     };
-    static final Action NudgeRight = new LWCAction("Nudge Right", keyStroke(KeyEvent.VK_RIGHT, SHIFT)) {
+    public static final Action NudgeRight = new LWCAction("Nudge Right", keyStroke(KeyEvent.VK_RIGHT, SHIFT)) {
         void act(LWComponent c) {
             float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
             c.translate(unit, 0);
         }
     };
     
-    static final Action AlignLeftEdges = new ArrangeAction("Align Left Edges", KeyEvent.VK_LEFT) {
+    public static final Action AlignLeftEdges = new ArrangeAction("Align Left Edges", KeyEvent.VK_LEFT) {
         void arrange(LWComponent c) { c.setLocation(minX, c.getY()); }
     };
-    static final Action AlignRightEdges = new ArrangeAction("Align Right Edges", KeyEvent.VK_RIGHT) {
+    public static final Action AlignRightEdges = new ArrangeAction("Align Right Edges", KeyEvent.VK_RIGHT) {
         void arrange(LWComponent c) { c.setLocation(maxX - c.getWidth(), c.getY()); }
     };
-    static final Action AlignTopEdges = new ArrangeAction("Align Top Edges", KeyEvent.VK_UP) {
+    public static final Action AlignTopEdges = new ArrangeAction("Align Top Edges", KeyEvent.VK_UP) {
         void arrange(LWComponent c) { c.setLocation(c.getX(), minY); }
     };
-    static final Action AlignBottomEdges = new ArrangeAction("Align Bottom Edges", KeyEvent.VK_DOWN) {
+    public static final Action AlignBottomEdges = new ArrangeAction("Align Bottom Edges", KeyEvent.VK_DOWN) {
         void arrange(LWComponent c) { c.setLocation(c.getX(), maxY - c.getHeight()); }
     };
-    static final ArrangeAction AlignCentersRow = new ArrangeAction("Align Centers in Row", KeyEvent.VK_R) {
+    public static final ArrangeAction AlignCentersRow = new ArrangeAction("Align Centers in Row", KeyEvent.VK_R) {
         void arrange(LWComponent c) { c.setLocation(c.getX(), centerY - c.getHeight()/2); }
     };
-    static final ArrangeAction AlignCentersColumn = new ArrangeAction("Align Centers in Column", KeyEvent.VK_C) {
+    public static final ArrangeAction AlignCentersColumn = new ArrangeAction("Align Centers in Column", KeyEvent.VK_C) {
         void arrange(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
     };
-    static final ArrangeAction MakeRow = new ArrangeAction("Make Row", keyStroke(KeyEvent.VK_R, ALT)) {
+    public static final ArrangeAction MakeRow = new ArrangeAction("Make Row", keyStroke(KeyEvent.VK_R, ALT)) {
         // todo bug: an already made row is shifting everything to the left
         // (probably always, actually)
         void arrange(LWSelection selection) {
@@ -765,14 +765,14 @@ implements VueConstants {
             DistributeHorizontally.arrange(selection);
         }
     };
-    static final ArrangeAction MakeColumn = new ArrangeAction("Make Column", keyStroke(KeyEvent.VK_C, ALT)) {
+    public static final ArrangeAction MakeColumn = new ArrangeAction("Make Column", keyStroke(KeyEvent.VK_C, ALT)) {
         void arrange(LWSelection selection) {
             AlignCentersColumn.arrange(selection);
             maxY = minY + totalHeight;
             DistributeVertically.arrange(selection);
         }
     };
-    static final ArrangeAction DistributeVertically = new ArrangeAction("Distribute Vertically", KeyEvent.VK_V) {
+    public static final ArrangeAction DistributeVertically = new ArrangeAction("Distribute Vertically", KeyEvent.VK_V) {
         boolean enabledFor(LWSelection s) { return s.size() >= 3; }
         // use only *2* in selection if use our minimum layout region setting
         void arrange(LWSelection selection) {
@@ -790,7 +790,7 @@ implements VueConstants {
         }
     };
     
-    static final ArrangeAction DistributeHorizontally = new ArrangeAction("Distribute Horizontally", KeyEvent.VK_H) {
+    public static final ArrangeAction DistributeHorizontally = new ArrangeAction("Distribute Horizontally", KeyEvent.VK_H) {
         boolean enabledFor(LWSelection s) { return s.size() >= 3; }
         void arrange(LWSelection selection) {
             LWComponent[] comps = sortByX(sortByY(selection.getArray()));
@@ -843,7 +843,7 @@ implements VueConstants {
     //-----------------------------------------------------------------------------
     // VueActions
     //-----------------------------------------------------------------------------
-    static final Action NewMap =
+    public static final Action NewMap =
     new VueAction("New", keyStroke(KeyEvent.VK_N, COMMAND+SHIFT), ":general/New") {
         private int count = 1;
         boolean undoable() { return false; }
@@ -852,7 +852,7 @@ implements VueConstants {
             VUE.displayMap(new LWMap("New Map " + count++));
         }
     };
-    static final Action CloseMap =
+    public static final Action CloseMap =
     new VueAction("Close", keyStroke(KeyEvent.VK_W, COMMAND)) {
         // todo: listen to map viewer display event to tag
         // with currently displayed map name
@@ -861,19 +861,19 @@ implements VueConstants {
             VUE.closeMap(VUE.getActiveMap());
         }
     };
-    static final Action Undo =
+    public static final Action Undo =
     new VueAction("Undo", keyStroke(KeyEvent.VK_Z, COMMAND), ":general/Undo") {
         boolean undoable() { return false; }
         void act() { VUE.getUndoManager().undo(); }
         
     };
-    static final Action Redo =
+    public static final Action Redo =
     new VueAction("Redo", keyStroke(KeyEvent.VK_Z, COMMAND+SHIFT), ":general/Redo") {
         boolean undoable() { return false; }
         void act() { VUE.getUndoManager().redo(); }
     };
     
-    static final VueAction NewNode =
+    public static final VueAction NewNode =
     new NewItemAction("New Node", keyStroke(KeyEvent.VK_N, COMMAND)) {
         LWComponent createNewItem(Point2D newLocation) {
             LWNode node = NodeTool.createNewNode();
@@ -889,7 +889,7 @@ implements VueConstants {
         }
     };
     
-    static final VueAction NewText =
+    public static final VueAction NewText =
     new NewItemAction("New Text", keyStroke(KeyEvent.VK_T, COMMAND)) {
         LWComponent createNewItem(Point2D newLocation) {
             LWNode node = NodeTool.createTextNode("new text");
@@ -915,26 +915,26 @@ implements VueConstants {
     // Something about this feels kludgy.
     //-------------------------------------------------------
     
-    static final Action ZoomIn =
+    public static final Action ZoomIn =
     //new VueAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, COMMAND)) {
     new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, COMMAND+SHIFT), ":general/ZoomIn") {
         void act() {
             ZoomTool.setZoomBigger(null);
         }
     };
-    static final Action ZoomOut =
+    public static final Action ZoomOut =
     new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, COMMAND+SHIFT), ":general/ZoomOut") {
         void act() {
             ZoomTool.setZoomSmaller(null);
         }
     };
-    static final VueAction ZoomFit =
+    public static final VueAction ZoomFit =
         new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT), ":general/Zoom") {
         void act() {
             ZoomTool.setZoomFit();
         }
     };
-    static final Action ZoomActual =
+    public static final Action ZoomActual =
     new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
         // no way to listen for zoom change events to keep this current
         //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
@@ -942,7 +942,7 @@ implements VueConstants {
             ZoomTool.setZoom(1.0);
         }
     };
-    static final Action ToggleFullScreen =
+    public static final Action ToggleFullScreen =
         new VueAction("Full Screen", VueUtil.isMacPlatform() ?
                       keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND) :
                       keyStroke(KeyEvent.VK_F11)) {
