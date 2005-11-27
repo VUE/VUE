@@ -23,6 +23,14 @@ import java.awt.Cursor;
 import java.awt.Color;
 import java.awt.Font;
 
+/**
+ * Various constants for GUI variables.
+ *
+ * Is an interface so can be "implemented" as virtual java 1.5 static import.
+ *
+ * @version $Revision: 1.43 $ / $Date: 2005-11-27 17:15:40 $ / $Author: sfraize $ 
+ */
+// todo: rename GUI constants & move to GUI
 public interface VueConstants
 {
     // todo: move most of this stuff to prefs
