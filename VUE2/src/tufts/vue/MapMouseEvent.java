@@ -154,10 +154,11 @@ public class MapMouseEvent extends MouseEvent
         this.hitComponent = c;
     }
 
-
-    public String toString()
-    {
-        return super.toString() + " hit=" + hitComponent;
+    public String paramString() {
+        return super.paramString()
+            + ",cx=" + getComponentX()
+            + ",cy=" + getComponentY()
+            + ",hit=" + hitComponent;
     }
-    
+
 }
