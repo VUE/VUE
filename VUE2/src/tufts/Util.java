@@ -33,6 +33,8 @@ import javax.swing.border.*;
  * Utility class.  Provides code for determining what platform we're on,
  * platform-specific code for opening URL's, as well as various convenience
  * functions.
+ *
+ * @version $Revision: 1.312 $ / $Date: 2005/11/27 16:17:17 $ / $Author: sfraize $ 
  */
 
 public class Util
@@ -189,6 +191,45 @@ public class Util
                 System.err.println(ex);
             }
             System.err.println("exit value=" + p.exitValue());
+        }
+    }
+
+    /** call a named static method with the given args */
+    public static Object execute(String className, String methodName, Object[] args)
+        throws ClassNotFoundException,
+               NoSuchMethodException,
+               IllegalArgumentException,
+               IllegalAccessException,
+               java.lang.reflect.InvocationTargetException
+    {
+        Class clazz = Class.forName(className);
+        Class[] argTypes = new Class[args.length];
+        for (int i = 0; i < args.length; i++) {
+            argTypes[i] = args[i].getClass();
+        }
+                
+        java.lang.reflect.Method method = clazz.getMethod(methodName, argTypes);
+
+        Object result = method.invoke(null, args);
+
+        //System.out.println("Sucessfully invoked " + className + "." + methodName + ", result=" + result);
+        
+        return result;
+    }
+
+
+    /**
+     * Attempt to invoke the given method with the given args.  If 
+     * any exception occurs, (e.g., ClassNotFoundException because a
+     * particular library isn't present) we quietly catch it and
+     * pass it back as the return value;
+     */
+    
+    public static Object executeIfFound(String className, String methodName, Object[] args) {
+        try {
+            return execute(className, methodName, args);
+        } catch (Exception e) {
+            return e;
         }
     }
 
