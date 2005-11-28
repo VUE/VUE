@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.73 $ / $Date: 2005-11-03 23:00:53 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.73 2005-11-03 23:00:53 sfraize Exp $ -->
+<!-- $Revision: 1.74 $ / $Date: 2005-11-28 07:14:13 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.74 2005-11-28 07:14:13 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -288,6 +288,15 @@
                                                                                                           
   <path id="compile.classpath.common">
 
+    <!-- Consider sorting these by SIZE as a way to ensure the most
+         atomic/newest version of something is included.  This
+         assuming we have current versions of everything.  E.g., if
+         some big jar includes log4j as an aside, it will have to be
+         bigger than the log4j jar, yet it may not contain the most
+         recent version.  If we have the most recent version included
+         before that, we'll be sure to have all the most current
+         libraries at runtime.  -->
+    
     <pathelement path="."/>                
     <pathelement path="${lib.home}/VisualizingCultures.jar" />	
     <pathelement path="${lib.home}/VUE-MacOSX.jar"/>
