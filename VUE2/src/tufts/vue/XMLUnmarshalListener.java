@@ -1,8 +1,8 @@
 package tufts.vue;
 
 /**
- * Any object that implements this interface and is restored
- * by Castor will get called as the below events happen.
+ * Any object that implements this interface and VUE restores
+ * via Castor will get called as the below events happen.
  */
 public interface XMLUnmarshalListener {
 
