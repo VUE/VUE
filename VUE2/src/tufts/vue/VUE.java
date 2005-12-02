@@ -55,7 +55,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.314 $ / $Date: 2005-11-27 17:13:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.315 $ / $Date: 2005-12-02 15:50:23 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -781,9 +781,13 @@ public class VUE
 
         Log.debug("loading fonts...");
         FontEditorPanel.getFontNames();
-        Log.debug("caching tool panels...");
-        NodeTool.getNodeToolPanel();
-        LinkTool.getLinkToolPanel();
+        
+        if (nodr == false) {
+            Log.debug("caching tool panels...");
+            NodeTool.getNodeToolPanel();
+            LinkTool.getLinkToolPanel();
+        }
+        
         if (drBrowser != null && drBrowserTool != null)
             drBrowserTool.addTool(new DRBrowser());
 
