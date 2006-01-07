@@ -12,265 +12,51 @@ import java.awt.*;
 // any platform.
 // Scott Fraize 2005-03-27
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/maclib/Screen.java,v 1.5 2005-08-11 03:58:35 sfraize Exp $
-
 /**
- * This class provides access to native Mac OS X functionality
- * for things such as fading the screen to black and forcing
- * child windows to stay attached to their parent.
- *
- * @author Scott Fraize
+ * Mac OSX Test Code
  */
-public class Screen
+public class MacTest extends MacOSX
 {
-    private static NSWindow sFullScreen;
-    private static boolean DEBUG = false;
-
-    static {
-        if (System.getProperty("tufts.macosx.Screen.debug") != null)
-            DEBUG = true;
-    }
-
-    public static void goBlack() {
-        goBlack(getFullScreenWindow());
-    }
-    
-    public static void goBlack(NSWindow w) {
-        w.setAlphaValue(1);
-        w.orderFrontRegardless();
-        //w.orderFront(w);
-    }
-    
-    public static void goClear() {
-        getFullScreenWindow().setAlphaValue(0);
-    }
-
-    public static void fadeToBlack() {
-        NSWindow w = getFullScreenWindow();
-        w.setAlphaValue(0);
-        w.orderFront(w);
-        cycleAlpha(0, 1);
-    }
-
-    public static void fadeFromBlack() {
-        fadeFromBlack(getFullScreenWindow());
-    }
-    
-    public static void fadeFromBlack(NSWindow w) {
-        goBlack(w);
-        cycleAlpha(w, 1, 0);
-        w.close();  // bus-error of we haven't called setReleasedWhenClosed(false)
-    }
-
-    private static void cycleAlpha(float start, float end) {
-        cycleAlpha(getFullScreenWindow(), start, end, 32);
-    }
-    
-    private static void cycleAlpha(NSWindow w, float start, float end) {
-        cycleAlpha(w, start, end, 32);
-    }
-    
-    private static void cycleAlpha(NSWindow w, float start, float end, final int steps) {
-        if (DEBUG) System.out.println("cycleAlpha " + start + " -> " + end + " in " + steps + " steps");
-        float alpha;
-        float delta = end - start;
-        float inc = delta / steps;
-        for (int i = 0; i < steps; i++) {
-            alpha = start + inc * i;
-            w.setAlphaValue(alpha);
-            //System.out.println("alpha=" + alpha);
-            //try { Thread.sleep(10); } catch (Exception e) {} // give CPU a break
         }
-        // if end value isn't 0, and you don't manuall close the window,
-        // it will grab all mouse events, locking out everything below it!
-        //if (DEBUG) { if (end == 0) end=.1f; }
-        w.setAlphaValue(end);
-        if (DEBUG) System.out.println("cycleAlpha complete");
+        if (DEBUG) out("failed to find NSWindow titled \"" + title + '"');
+        return null;
     }
 
-    private static NSWindow getFullScreenWindow() {
-        if (sFullScreen == null) {
-            Dimension screen = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-            sFullScreen = new NSWindow(new NSRect(0,0,screen.width,screen.height),
-                                       0,
-                                       NSWindow.NonRetained,
-                                       //NSWindow.Buffered,
-                                       true);
-            if (false&&DEBUG)
-                sFullScreen.setBackgroundColor(NSColor.redColor());
-            else
-                sFullScreen.setBackgroundColor(NSColor.blackColor());
-            sFullScreen.setLevel(NSWindow.ScreenSaverWindowLevel); // this allows it over the  mac menu bar
-            sFullScreen.setHasShadow(false);
-            sFullScreen.setIgnoresMouseEvents(true);
-            sFullScreen.setReleasedWhenClosed(false);
-            sFullScreen.setTitle("_mac_full_screen_fader"); // make sure starts with "_" (see keepWindowsOnTop)
-        }
-        return sFullScreen;
-    }
-
-    private static void showColorPicker() {
-        //NSColorPanel cp = new NSColorPanel();
-        NSColorPanel cp = NSColorPanel.sharedColorPanel();
-        cp.setShowsAlpha(true);
-        cp.orderFront(cp);
-    }
-
-    public static NSWindow getMainWindow() {
-        return NSApplication.sharedApplication().mainWindow();
-    }
-    
-    public static NSMenu getMainMenu() {
-        return NSApplication.sharedApplication().mainMenu();
-    }
-
-    private static NSMenu firstMenu = null;
-    private static NSMenu cloneMenu = null;
-    public static void dumpMainMenu() {
-        NSMenu m = getMainMenu();
-        dumpMenu(m);
-        /*
-        if (firstMenu == null) {
-            firstMenu = m;
-            try {
-                cloneMenu = (NSMenu) m.clone();
-                dumpMenu(cloneMenu);
-            } catch (Exception ex) {
-                System.err.println(ex);
-            }
-            NSApplication.sharedApplication().setMainMenu(cloneMenu);
-        }
-        */
-        //if (m != firstMenu)
-            //NSApplication.sharedApplication().setMainMenu(cloneMenu);
-    }
-    
-    public static void dumpMenu(NSMenu m) {
-        System.out.println("Mac Main Menu: " + m + " visible="+NSMenu.menuBarVisible() + " hash=" + m.hashCode());
-    }
-
-    private static NSWindow MainWindow = null;
-    private static NSWindow FullWindow = null;
-    /*
-    public static void keepWindowsOnTop() {
-        keepWindowsOnTop(null, false);
-    }
-    */
-    
-    /** This method make's sure any visible windows are made as
-     * children of the application main window, which keeps them
-     * on top of it.  As a side effect, this functionality on the
-     * mac also moves the windows along with the main window
-     * @param ensureWindow is for a window that may be in the
-     * process of showing, and thus claims not to be visible
-     * yet, even tho it is.  We make sure to process any window
-     * with this title even it claims not to be visible.
-     *
-     * Note that making an NSWindow a child also brings it to the
-     * front, and if it's NOT already at the front via Java AWT, java will have
-     * no idea the window is visible, and it won't be pretty.
-     *
-     * This code is very specific to the frame titles used in VUE.
-     */
-    public static void adjustMacWindows(final String mainWindowTitleStart,
-                                        final String ensureShown,
-                                        final String ensureHidden,
-                                        final boolean fullScreen)
-    {
-        if (DEBUG) dumpWindows();
-        
-        NSApplication a = NSApplication.sharedApplication();
-        NSArray windows = a.windows();
-        NSWindow w;
-        
-        // note that the only way at moment we can recognize the
-        // main vue frame & full screen window is by title,
-        // so be sure not to create any titles that start with
-        // the below checked strings.  (getMainWindow() is
-        // returning a different object that the main vue frame)
-        if (true ||MainWindow == null || FullWindow == null) {
-            for (int i = 0; i < windows.count(); i++) {
-                w = (NSWindow) windows.objectAtIndex(i);
-                if (w.title().startsWith("VUE-FULL-WORKING"))
-                    FullWindow = w;
-                else if (w.title().startsWith(mainWindowTitleStart))
-                    MainWindow = w;
-            }
-        }
-        if (DEBUG) System.out.println("tufts.macosx.Screen.adjustMacWindows:"
-                                      + "\n\tmainTitleStart is \"" + mainWindowTitleStart + '"'
-                                      + "\n\tMainWindow=" + MainWindow
-                                      + "\n\tFullWindow=" + FullWindow
-                                      );
-        for (int i = 0; i < windows.count(); i++) {
-            w = (NSWindow) windows.objectAtIndex(i);
-            if (w == MainWindow || w == FullWindow || w.title().startsWith("_"))
-                continue;
-            // Ordering also forces the window visible! (and doesn't tell java, of course)
-            // Even when checking if visible mac java impl is putting other frames them right back
-            // behind as soon as the main frame gets activated...
-            //if (w != MainWindow && MainWindow != null && w.isVisible()) {
-
-            // todo: would be nice to bring forward the "Toolbar" from a dragged JToolBar,
-            // but when we go full screen, it appears invisible (prob because it's a dialog
-            // child of the vue frame, and it went invisible with it...)  We can do this,
-            // but VUE will have to help us specifically.
-            
-            if (ensureHidden != null && w.title().equals(ensureHidden)) {
-                if (DEBUG) System.out.println("--- REMOVE AS CHILD OF MAIN-WINDOW: #" + i + " [" + w.title() + "]");
-                MainWindow.removeChildWindow(w);
-                continue;
-            }
-
-            if ((ensureShown != null && ensureShown.equals(w.title())) ||
-                (w.isVisible() && w.title().length() > 0))
-            {
-                if (fullScreen && FullWindow != null) {
-                    if (DEBUG) System.out.println("+++ ADDING AS CHILD OF FULL-SCREEN: #" + i + " [" + w.title() + "]");
-                    FullWindow.addChildWindow(w, NSWindow.Above);
-                } else {
-                    if (DEBUG) System.out.println("+++ ADDING AS CHILD OF MAIN-WINDOW: #" + i + " [" + w.title() + "]");
-                    MainWindow.addChildWindow(w, NSWindow.Above);
-                }
-                //w.orderFront(w); // causes some flashing
-            }
-                
-            //if (w != MainWindow && MainWindow != null && w.isVisible())
-            //    w.orderWindow(NSWindow.Above, MainWindow.windowNumber());
-            // Anothing above default level puts window over other apps
-            //if (!w.title().startsWith("VUE"))
-            //w.setLevel(NSWindow.FloatingWindowLevel);
-                //w.setLevel(NSWindow.StatusWindowLevel);
-            //w.setAlphaValue(0.75f);
-            //w.orderFront(w);
-        }
-        // Having seen the below once, we're nulling just in case.
-        // ObjCJava FATAL:
-        // jobjc_lookupObjCObject(): returning garbage collected java ref for objc object of class NSWindow
-        // ObjCJava Exit
-
-        w = null;
-        a = null;
-        windows = null;
-    }
     
     public static void dumpWindows() {
         NSApplication a = NSApplication.sharedApplication();
         NSArray windows = a.windows();
         for (int i = 0; i < windows.count(); i++) {
             NSWindow w = (NSWindow) windows.objectAtIndex(i);
-            System.out.println("Window #" + (i>9?"":" ") + i + ": "
-                               + " visible=" + (w.isVisible()?"true":"    ")
-                               + " [" + w.title() + "]\t"
-                               + w
-                               //+ " level=[" + w.level() + "] "
-                               //+ " " + w.getClass() // always NSWindow
-                               + " frame=" + w.frame()
-                               + " NSView=" + w.contentView()
-                               //+ " " w.contentView().getClass() // is always NSView
-                               );
-        }
 
+            dumpWindow(w, i);
+            
+            if (false && w.minSize().height() == 37) {
+                NSSize minSize = new NSSize(w.minSize().width(), 5);
+                out("\tadjusting min size to " + minSize);
+                w.setMinSize(minSize);
+            }
+            
+        }
+    }
+
+    private static void dumpWindow(NSWindow w, int idx) {
+        NSView view = w.contentView();
+        System.out.println("Window #" + (idx>9?"":" ") + idx + ": "
+                           + " visible=" + (w.isVisible()?"true":"    ")
+                           + " [" + w.title() + "]\t"
+                           + w
+                           //+ " level=[" + w.level() + "] "
+                           //+ " " + w.getClass() // always NSWindow
+                           + " " + w.frame()
+                           + " min=" + w.minSize()
+                           //+ " contentMin=" + w.contentMinSize()
+                           + " " + tufts.Util.objectTag(view) + view //+ " super=" + view.superview()
+                           // + " " + w.contentView().frame() // view frame 0 based
+                           + " parent=" + w.parentWindow()
+                           //+ " " + w.contentView().getClass() + w.contentView()
+                           // class is always com.apple.cocoa.application.NSView
+                           );
     }
     
     public static void makeMainInvisible() {
@@ -289,8 +75,12 @@ public class Screen
         getMainWindow().setAlphaValue(alpha);
     }
 
+    private static void out(String s) {
+        System.out.println("OSXScreenLib: " + s);
+    }
 
-    public static void main(String args[])
+
+    public static void x_main(String args[])
     {
         DEBUG=true;
         Frame w = new Frame("invisible");
@@ -313,7 +103,8 @@ public class Screen
         //try { Thread.sleep(5000); } catch (Exception e) {}
     }
 
-    public static void x_main(String args[])
+        
+    public static void x_fadescreen_main(String args[])
     {
         System.out.println("MacTest - Cocoa application & foundation classes");
 
@@ -391,6 +182,280 @@ public class Screen
             }
         }.start();
     }
+
+
+
+
+    //private static NSPanel NSPanelDontGarbageCollectMe;
+    private static java.util.Collection KEEP = new java.util.ArrayList(); // array of object to not GC
+
+    public static class NoticeListener {
+        //private static NSSelector selector = new NSSelector("notice", new Class[] { new String().getClass() });
+        private static NSSelector selector = new NSSelector("notice", new Class[] { NSNotification.class });
+        public static NSSelector getSelector() {
+            return selector;
+            //return new NSSelector("notice", new Class[] { new String().getClass() });
+        }
+        public static void addObserver(Object toWatch) {
+            addObserver(toWatch, null);
+        }
+        public static void addObserver(Object toWatch, String message) {
+            System.err.println("Adding observer of " + toWatch + " for messages: " + message);
+            Object listener = new NoticeListener();
+            KEEP.add(listener);
+            NSNotificationCenter.defaultCenter().addObserver(listener, getSelector(), message, toWatch);
+            //NSNotificationCenter.defaultCenter().addObserver(null, getSelector(), null, toWatch);
+            //System.err.println("Added observer of " + toWatch);
+        }
+        public void notice(NSNotification n) {
+            if (!n.name().equals(NSWindow.WindowDidUpdateNotification))
+                System.out.println(n);
+        }
+
+        public static void test() {
+            try {
+                System.out.println("NSSelector: " + selector);
+                //selector.invoke(new NoticeListener(), new Object[] { "test message" });
+                selector.invoke(new NoticeListener(), new Object[] { new NSNotification("TestNotice", "AnObject") });
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(0);
+            }
+        }
+    }
+
+    public static class MacPanel extends NSPanel {
+
+        public Panel awtPanel;
+        private Window awtWindow;
+        
+        MacPanel(boolean textured) {
+            super(new NSRect(100,100, 200,100),
+                  NSWindow.TitledWindowMask +
+                  NSWindow.ClosableWindowMask +
+                  //NSWindow.MiniaturizableWindowMask + // apparently not allowed w/UtilityWindows
+                  NSWindow.ResizableWindowMask +
+                  (textured ? NSWindow.TexturedBackgroundWindowMask : 0) +
+                  //NSWindow.UnifiedTitleAndToolbarWindowMask  + // kills all deco on utility
+                  NSPanel.UtilityWindowMask +
+                  0,
+                  NSWindow.Buffered,
+                  true);
+            
+            NSButton close = standardWindowButton(NSWindow.CloseButton);
+            NSButton iconify = standardWindowButton(NSWindow.MiniaturizeButton);
+            NSButton zoom = standardWindowButton(NSWindow.ZoomButton);
+
+            
+            if (textured) {
+            
+                if (false) {
+                    // tends to lead to Bus Error / Seg Fault
+                    // maybe if we tried after construction?
+                    // Anyway to get the view to repack so
+                    // doesn't have empty space left over?
+                    iconify.removeFromSuperview();
+                    zoom.removeFromSuperview();
+                } else {
+                    iconify.setHidden(true);
+                    zoom.setHidden(true);
+                }
+                return;
+            }
+            
+            //System.out.println("got button " + b + " w/image " + b.image());
+            setIgnoresMouseEvents(false);
+            setAcceptsMouseMovedEvents(true);
+            awtWindow = tufts.vue.gui.DockWindow.getTestWindow();
+            NSWindow awtNS = getWindow(awtWindow);
+            awtNS.setHasShadow(false);
+            //awtNS.setPreservesContentDuringLiveResize(true); // does nothing for AWT
+            //awtNS.setAlphaValue(0.5f);
+            //awtNS.setBackgroundColor(NSColor.brownColor().colorWithAlphaComponent(0.5f));
+            addChildWindow(awtNS, NSWindow.Above);
+
+
+        }
+
+        public void test(int msg) { System.out.println("test " + msg); }
+        public void test(String msg) { System.out.println("test " + msg); }
+
+        public void testInvoke() {
+            NSSelector method1 = new NSSelector("test", new Class[] {int.class});
+            NSSelector method2 = new NSSelector("test", new Class[] {new String().getClass()});
+            NSSelector method3 = new NSSelector("windowNotice", new Class[] { new String().getClass() });
+            // using "String.class" to define arg list gets us a wierd mac exception
+            try {
+                method1.invoke(this, new Object[] { new Integer(3) });
+                method2.invoke(this, new Object[] { "foo" });
+                method3.invoke(this, new Object[] { "hello notification" });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            System.exit(0);
+        }
+
+
+        public void sendEvent(com.apple.cocoa.application.NSEvent e) {
+            System.out.println(e);
+            super.sendEvent(e);
+        }
+
+        public void postEvent(com.apple.cocoa.application.NSEvent e, boolean tv) {
+            System.out.println("post " + e + " " + tv);
+            super.postEvent(e, tv);
+        }
+
+        public void setFrame(com.apple.cocoa.foundation.NSRect rect, boolean display, boolean animate) {
+            System.out.println(rect);
+            super.setFrame(rect, display, animate);
+            // not seeing
+        }
+
+        public void setFrame(final com.apple.cocoa.foundation.NSRect r, boolean display) {
+            System.out.println("setFrame " + r + " display=" + display);
+            super.setFrame(r, display);
+            if (awtPanel != null) {
+                awtPanel.setLocation(0,0);
+                awtPanel.setSize((int)r.width()-10, (int)r.height()-20);
+            } else if (awtWindow != null) {
+                // Must sync with AWT or java crashes in no time
+                tufts.vue.VUE.invokeAfterAWT(new Runnable() {
+                        public void run() {
+                            awtWindow.setLocation((int)r.x(), (int)r.y());
+                            awtWindow.setSize((int)r.width()-10, (int)r.height()-20);
+                        }
+                    });
+            }
+        }
+
+        public void setContentSize(com.apple.cocoa.foundation.NSSize size) {
+            System.out.println(size);
+            super.setContentSize(size);
+        }
+    }
+
+    public static void main(String args[])
+    {
+        NoticeListener.test();
+        System.out.println("MacTest - Cocoa application & foundation classes");
+
+        /*
+        javax.swing.JFrame frame = new javax.swing.JFrame("Swing Frame");
+        javax.swing.JPanel panel = new javax.swing.JPanel();
+        panel.add(new javax.swing.JLabel("Label"));
+        panel.add(new javax.swing.JButton(new tufts.vue.VueAction("Action")));
+        frame.getContentPane().add(panel);
+        frame.setSize(200,100);
+        frame.show();
+        */
+
+        // Well, we can get AWT panels & components actually responding,
+        // laying out, clicking, etc, inside an NSWindow, but not Swing components.
+        // Actually, we can get a JButton to be placed & repsond to clicks, but it won't paint...
+
+
+        Frame frame = new Frame("AWT Frame");
+        final Panel panel = new Panel();
+        //final javax.swing.JPanel panel = new javax.swing.JPanel();
+        panel.add(new Label("Label"));
+        panel.setBackground(java.awt.Color.red);
+        Button button = new Button("Button");
+        button.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    System.out.println("actionPerformed: " + e);
+                    panel.setLocation(panel.getX() + 1, panel.getY() + 1);
+                    panel.setSize(panel.getWidth() + 1, panel.getHeight() + 1);
+                    panel.layout();
+                }
+            });
+
+        panel.add(button);
+        panel.add(new javax.swing.JButton(new tufts.vue.VueAction("Action")));
+        frame.add(panel);
+        frame.setSize(200,100);
+        frame.show();
+
+        
+        // if we don't create a Java frame or window of some kind first, we get the following
+        // error (note that we don't even have to show the frame):
+        /*
+        Exception in thread "main" NSInternalInconsistencyException: Error (1002) creating CGSWindow
+        at com.apple.cocoa.application.NSWindow.orderFrontRegardless(Native Method)
+        at MacTest.main(MacTest.java:22)
+        */
+
+        final NSWindow nsw =
+            new NSWindow(new NSRect(100,100,200,100),
+                         NSWindow.TitledWindowMask +
+                         NSWindow.ClosableWindowMask +
+                         NSWindow.ResizableWindowMask +
+                         NSWindow.UnifiedTitleAndToolbarWindowMask +
+                         //NSWindow.MiniaturizableWindowMask +
+                         //NSWindow.TexturedBackgroundWindowMask +
+                         0,
+                         NSWindow.Buffered,
+                         true);
+        nsw.center();
+        nsw.setTitle("An NSWindow");
+        //nsw.setBackgroundColor(NSColor.brownColor());
+        //nsw.setBackgroundColor(NSColor.blackColor());
+        //nsw.setShowsResizeIndicator(true);
+        //nsw.orderFront(nsw);
+        nsw.display();
+        nsw.orderFrontRegardless();
+
+        MacPanel p = new MacPanel(false);
+        NoticeListener.addObserver(p, null);
+
+        //p.testInvoke();
+        
+        //p.setBackgroundColor(NSColor.brownColor());
+        p.setTitle("An NSPanel");
+        p.setShowsResizeIndicator(true);
+        p.display();
+        p.orderFrontRegardless();
+        
+        MacPanel textured = new MacPanel(true);
+        textured.setTitle("NSPanel Textured");
+        textured.orderFrontRegardless();
+        
+        //NSButton b = textured.standardWindowButton(NSWindow.CloseButton);
+        //System.out.println("got button " + b + " w/image " + b.image());
+
+        System.out.println("\n");
+            
+        dumpWindows();
+
+        NSWindow frameWin = getWindow(frame);
+        NSView frameView = frameWin.contentView();
+
+        System.out.println("got NSView " + frameView);
+
+        if (false) {
+            frameWin.setContentView(null);
+            p.setContentView(frameView);
+            frame.hide();
+        }
+
+        p.makeKeyWindow();
+
+        dumpWindows();
+
+
+
+        KEEP.add(p);
+        KEEP.add(textured);
+        
+        //NSPanelDontGarbageCollectMe = p;
+        // This prevent's GC.  I think since main is exiting, these ref's are being GC'd, which
+        // eventually closes out any NSWindows w/out a non-stack pointer (e.g., there's no
+        // AWT like system that keeps references to everything).
+
+        
+    }
+
+    
 
     
 }

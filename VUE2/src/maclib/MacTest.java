@@ -14,11 +14,19 @@ import java.awt.*;
 
 /**
  * Mac OSX Test Code
- * @version $Revision: 1.1 $ / $Date: 2006-01-04 00:28:02 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-01-07 15:42:02 $ / $Author: sfraize $
  */
 public class MacTest extends MacOSX
 {
-    public static void x_main(String args[])
+    public static void main(String args[]) {
+
+        MacOSX.DEBUG = true;
+
+        test_fadeScreen();
+        //test_colorPicker(args);
+    }
+    
+    static void test_colorPicker(String args[])
     {
         DEBUG=true;
         Frame w = new Frame("invisible");
@@ -42,7 +50,7 @@ public class MacTest extends MacOSX
     }
 
         
-    public static void x_fadescreen_main(String args[])
+    static void test_fadeScreen()
     {
         System.out.println("MacTest - Cocoa application & foundation classes");
 
@@ -103,17 +111,18 @@ public class MacTest extends MacOSX
                     // fade to white ramps too fast in the beginning.
                     double alpha;
                     for (alpha = 0.1; alpha <= 1; alpha += 0.02) {
+                        out("alpha="+(float)alpha);
                         nsw.setAlphaValue((float)alpha);
-                        //try { sleep(10); } catch (Exception e) {} // give CPU a break
+                        try { sleep(10); } catch (Exception e) {} // give CPU a break
                     }
-                    System.out.println("alpha="+(float)alpha);
+                    out("alpha="+(float)alpha);
                     for (alpha = 1; alpha >= 0; alpha -= 0.02) {
                         if (alpha < 0.01)
                             alpha = 0;
+                        out("alpha="+(float)alpha);
                         nsw.setAlphaValue((float)alpha);
-                        //try { sleep(10); } catch (Exception e) {}
+                        try { sleep(10); } catch (Exception e) {}
                     }
-                    System.out.println("alpha="+(float)alpha);
                     if (!cycle)
                         return;
                 }
@@ -273,7 +282,7 @@ public class MacTest extends MacOSX
         }
     }
 
-    public static void main(String args[])
+    public static void X_main(String args[])
     {
         NoticeListener.test();
         System.out.println("MacTest - Cocoa application & foundation classes");

@@ -1,8 +1,11 @@
 package tufts.macosx;
 
+import tufts.Util;
+
+import apple.awt.CWindow;
+    
 import com.apple.cocoa.foundation.*;
 import com.apple.cocoa.application.*;
-
 
 import java.awt.*;
 
@@ -17,7 +20,7 @@ import java.awt.*;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.1 $ / $Date: 2006-01-04 00:28:02 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-01-07 15:42:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX
@@ -70,21 +73,21 @@ public class MacOSX
     }
     
     private static void cycleAlpha(NSWindow w, float start, float end, final int steps) {
-        if (DEBUG) System.out.println("cycleAlpha " + start + " -> " + end + " in " + steps + " steps");
+        if (DEBUG) out("cycleAlpha " + start + " -> " + end + " in " + steps + " steps");
         float alpha;
         float delta = end - start;
         float inc = delta / steps;
         for (int i = 0; i < steps; i++) {
             alpha = start + inc * i;
             w.setAlphaValue(alpha);
-            //System.out.println("alpha=" + alpha);
+            //if (DEBUG) out("alpha=" + alpha);
             //try { Thread.sleep(10); } catch (Exception e) {} // give CPU a break
         }
         // if end value isn't 0, and you don't manuall close the window,
         // it will grab all mouse events, locking out everything below it!
         //if (DEBUG) { if (end == 0) end=.1f; }
         w.setAlphaValue(end);
-        if (DEBUG) System.out.println("cycleAlpha complete");
+        if (DEBUG) out("cycleAlpha complete");
     }
 
     private static NSWindow getFullScreenWindow() {
@@ -314,8 +317,24 @@ public class MacOSX
     }
     */
 
+    private static String name(Object o) {
+        return Util.objectTag(o);
+    }
+
     public static void setShadow(Window w, boolean hasShadow) {
-        getWindow(w).setHasShadow(hasShadow);
+        NSWindow nsw = getWindow(w);
+        if (nsw != null)
+            nsw.setHasShadow(hasShadow);
+    }
+
+    public static void raiseToMenuLevel(Window w) {
+        NSWindow nsw = getWindow(w);
+
+        if (DEBUG) out("raiseToMenuLevel: " + name(w));
+        
+        if (nsw != null)
+            nsw.setLevel(NSWindow.MainMenuWindowLevel);
+        
     }
     
     public static boolean addChildWindow(Window parent, Window child) {
@@ -371,39 +390,36 @@ public class MacOSX
         out("-----------");
         */
 
-        String title = null;
-        if (javaWin instanceof Frame)
-            title = ((Frame)javaWin).getTitle();
-        if (title == null)
-            title = javaWin.getName();
-        if (title == null)
-            title = "";
+        String javaName = javaWin.getName();
+
+        if (javaName == null && javaWin instanceof Frame)
+            javaName = ((Frame)javaWin).getTitle();
+        else if (javaName == null && javaWin instanceof Dialog)
+            javaName = ((Dialog)javaWin).getTitle();
         
-        return title.equals(macWin.title());
+        if (javaName == null)
+            javaName = "";
+        
+        return javaName.equals(macWin.title());
         
     }
+
+    private static java.util.Map WindowMap = new java.util.HashMap();
     
     // This should be private as we don't want to export NSWindow dependencies,
     // but is public for testing right now.
     public static NSWindow getWindow(Window javaWindow)
     {
-        NSApplication a = NSApplication.sharedApplication();
-        NSArray windows = a.windows();
-        NSWindow macWindow;
+        NSWindow macWindow = (NSWindow) WindowMap.get(javaWindow);
 
-        if (false && DEBUG) {
-            // we could "more reliablaly" find the window by finding the the NSWindow
-            // who's view == the viewPtr from the apple peer code: it's a bit messy
-            // tho because I can find no way to get this ptr value out of the NSView
-            // itself other from the value it returns from toString().  It would
-            // be nice to to have to rely on finding the title tho.
-            Object peer = javaWindow.getPeer();
-            if (peer != null) {
-                Long ptr = (Long) tufts.Util.invoke(peer, "getViewPtr");
-                System.out.println("\t" + javaWindow + " peer.getViewPtr=" + Long.toHexString(ptr.longValue()));
-            }
+        if (macWindow != null) {
+            //if (DEBUG) out("found cached " + Util.objectTag(macWindow) + " for " + Util.objectTag(javaWindow));
+            return macWindow;
         }
         
+        NSApplication a = NSApplication.sharedApplication();
+        NSArray windows = a.windows();
+
         for (int i = 0; i < windows.count(); i++) {
             macWindow = (NSWindow) windows.objectAtIndex(i);
 
@@ -417,13 +433,65 @@ public class MacOSX
                         System.out.println("\tsubview: " + v);
                     }
                 }
-                
+                break;
+            }
+        }
+
+        if (macWindow == null)
+            macWindow = findWindowUsingPeer(javaWindow);
+        
+        if (DEBUG && macWindow == null) {
+            out("failed to find NSWindow match for \"" + javaWindow + '"');
+            dumpWindows();
+        }
+
+        WindowMap.put(javaWindow, macWindow);
+        
+        return macWindow;
+
+    }
+
+    // We can "more reliablaly" find the window by finding the the
+    // NSWindow who's view == the viewPtr from the apple peer code:
+    // it's a bit messy tho because the only way to get this ptr value
+    // out of the NSView itself is from the value it returns from
+    // toString().
+    
+    private static NSWindow findWindowUsingPeer(Window javaWindow)
+    {
+        NSApplication a = NSApplication.sharedApplication();
+        NSArray windows = a.windows();
+        NSWindow macWindow;
+
+        CWindow peer = (CWindow) javaWindow.getPeer();
+        String javaViewPtr;
+        if (peer != null) {
+            long viewPtr = peer.getViewPtr();
+            javaViewPtr = Long.toHexString(viewPtr);
+            //if (DEBUG) out(javaWindow + " peer.getViewPtr=" + javaViewPtr);
+        } else
+            return null;
+
+
+        for (int i = 0; i < windows.count(); i++) {
+            macWindow = (NSWindow) windows.objectAtIndex(i);
+
+            NSView view = macWindow.contentView();
+            String viewPtr = view.toString();
+
+            //out("matching " + javaViewPtr + " against " + viewPtr);
+
+            if (viewPtr != null && viewPtr.indexOf(javaViewPtr) >= 0) {
+                if (DEBUG)
+                    out("matched java peer pointer against NSView pointer: "
+                        + javaViewPtr + " == " + viewPtr + " for " + Util.objectTag(javaWindow));
                 return macWindow;
             }
         }
-        if (DEBUG) out("failed to find NSWindow match for \"" + javaWindow + '"');
+        
         return null;
     }
+    
 
     // getting by name only works for frames -- Window's don't set a title
     private static NSWindow getFrame(String title)
@@ -472,7 +540,7 @@ public class MacOSX
                            + " " + w.frame()
                            + " min=" + w.minSize()
                            //+ " contentMin=" + w.contentMinSize()
-                           + " " + tufts.Util.objectTag(view) + view //+ " super=" + view.superview()
+                           + " " + Util.objectTag(view) + view //+ " super=" + view.superview()
                            // + " " + w.contentView().frame() // view frame 0 based
                            + " parent=" + w.parentWindow()
                            //+ " " + w.contentView().getClass() + w.contentView()
@@ -497,7 +565,7 @@ public class MacOSX
     }
 
     protected static void out(String s) {
-        System.out.println("OSXScreenLib: " + s);
+        System.out.println("MacOSX lib: " + s);
     }
 
 
