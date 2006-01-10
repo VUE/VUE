@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.74 $ / $Date: 2005-11-28 07:14:13 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.74 2005-11-28 07:14:13 sfraize Exp $ -->
+<!-- $Revision: 1.75 $ / $Date: 2006-01-10 17:07:15 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.75 2006-01-10 17:07:15 jeff Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -51,6 +51,10 @@
   <property name="lib.home"    value="../lib"/>
   <property name="vue-core.jar" value="${basedir}/VUE-core.jar"/>
   <property name="vue-lib.jar"  value="${basedir}/VUE-lib.jar"/>
+
+  <property name="test.home"   value="${top.dir}/test" />
+  <property name="test.lib"   value="${test.home}/lib" />
+  <property name="junit.jar"   value="${test.lib}/junit.jar" />
 
   <!-- NarraVision.jar is just a copy of VUE.jar.  On the PC, It detects via
        the classpath if it's called anything with "NarraVision" in the
@@ -89,6 +93,7 @@
     <pathelement path="${build.class}"/>
     <!-- pathelement location="${junit.jar}"/ -->
     <pathelement path="."/>
+    <pathelement path="${junit.jar}" />
     <path refid="thirdparty.jarfiles.classpath"/>
   </path>
 
@@ -118,15 +123,8 @@
                    xercesImpl-2.7.1.jar
                    xerces-2.7.1-xml-apis.jar
                    castor-0.9.7-xml.jar
-                   
-                   connectionTamino.jar
                    jaxb-api-unsigned.jar
                    jaxb-impl-unsigned.jar
-
-                   SessionManager.jar
-                   imq.jar
-                   jms.jar
-                   celebrate_xml.jar
                    jax-qname-unsigned.jar
                    relaxngDatatype.jar
                    namespace-unsigned.jar
@@ -139,9 +137,6 @@
                    mail.jar
                    saaj-api-unsigned.jar
                    saaj-impl-unsigned.jar
-                   an_az.jar
-                   VisualizingCultures.jar
-                   NarraVision.jar
                    apache-commons.jar
                    apple-laf.jar
                    avalon-framework-cvs-20020806.jar
@@ -157,31 +152,22 @@
                    commons-httpclient.jar
                    commons-httpclient-2.0.jar
                    commons-logging.jar
-                   CometOsidImpl.jar
-                   CometOsid2Impl.jar
                    cryptix-asn1.jar
                    cryptix32.jar
                    dom2.jar
-                   drSql.jar
-                   ecldr.jar
                    fedora-client.jar
                    fedora-server.jar
                    fedoragentypes.jar
                    fedorautilities.jar
                    fop.jar
-                   giuntiOSID.jar
                    gnu-getopt-1.0.9.jar
                    googleapi.jar
-                   HiveRepositoryOSID.jar
                    icu4j.jar
                    id.jar
-                   iPhotosDR.jar
-                   iTunesDR.jar
                    jakarta-regexp-1.2.jar
                    jdom.jar
                    jena.jar
                    jakarta-oro-2.0.8.jar
-                   jhapi.jar
                    jhbasic_unsigned.jar
                    jlfgr-1_0.jar
                    jnet.jar
@@ -190,31 +176,17 @@
                    jxtasecurity.jar
                    log4j-1.2.12.jar
                    logging.jar
-                   MITAuthenticationTypes.jar
                    MITRepositoryTypes.jar
                    MITSearchTypes.jar
                    MRJAdapter.jar
-                   mysql.jar
-                   mysql-connector-java-3.0.15-ga-bin.jar
-                   ocw2.jar
-                   okiReversi.jar
                    okiSID_rc6_1.jar
                    okiSIDimpl.jar
                    okiOSID-2.0.jar
-                   postgresql.jar
-                   repositoryImage.jar
-                   repositorySQL.jar
-                   rliOxfordDR.jar
                    saxon6.5.jar
-                   scorm.jar
                    servlet.jar
                    smete.jar
                    smeteclient.jar
                    splash.jar
-                   srw.jar
-                   TaminoAPI4J.jar
-                   TaminoJCA.jar
-                   UvaOSIDTypes.jar
                    wsdl4j.jar
                    xalan.jar
                    xalan-2.4.1.jar
@@ -298,7 +270,7 @@
          libraries at runtime.  -->
     
     <pathelement path="."/>                
-    <pathelement path="${lib.home}/VisualizingCultures.jar" />	
+    <pathelement path="${junit.jar}" />
     <pathelement path="${lib.home}/VUE-MacOSX.jar"/>
     <pathelement path="${lib.home}/castor-0.9.7-xml.jar"/>
     <pathelement path="${lib.home}/batik-svggen.jar"/>
@@ -323,16 +295,13 @@
     <pathelement path="${lib.home}/okiOSID-2.0.jar" />	
     <pathelement path="${lib.home}/okiSID.jar" />	
     <pathelement path="${lib.home}/okiSIDImpl.jar" />	
-    <pathelement path="${lib.home}/okiReversi.jar" />	
     <pathelement path="${lib.home}/MITSearchTypes.jar" />
     <pathelement path="${lib.home}/MITRepositoryTypes.jar" />
-    <pathelement path="${lib.home}/MITAuthenticationTypes.jar" />
 
     <pathelement path="${lib.home}/jaxb-api.jar" />
     <pathelement path="${lib.home}/jaxb-xjc.jar" />
     <pathelement path="${lib.home}/jaxb-libs.jar" />
     <pathelement path="${lib.home}/jaxp-impl.jar" />
-    <pathelement path="${lib.home}/celebrate_xml.jar" />
     <pathelement path="${lib.home}/jax-qname.jar" />
     <pathelement path="${lib.home}/relaxngDatatype.jar" />
     <pathelement path="${lib.home}/SessionManager.jar" />
@@ -351,26 +320,13 @@
     <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
     <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
     <pathelement path="${lib.home}/dom.jar" />
-<!--
-    <pathelement path="${lib.home}/ELNClient.jar" />
-    <pathelement path="${lib.home}/CelebrateOSID.jar" />
-    <pathelement path="${lib.home}" />
--->
-    <pathelement path="${lib.home}/tufts/TuftsDigitalLibraryOSID.jar"/>
     <pathelement path="${lib.home}/tufts/fedora-server.jar"/>
-    <pathelement path="${lib.home}/tufts/TuftsOSIDTypes.jar"/>
 
     <!-- I'm not sure it's safe to include a prior build's class files in the current build's
          classpath - can we remove this? SMF 8/5/05.
       If we were to require this, the build would never work from scratch! -->
     <!-- pathelement path="${lib.home}/tufts/VUE-core.jar" / -->
     
-    <pathelement path="${lib.home}/srw/srw.jar"/>
-    <pathelement path="${lib.home}/uva/UvaOSIDTypes.jar"/>
-    <pathelement path="${lib.home}/uva/repositoryImage.jar"/>    
-    <pathelement path="${lib.home}/rliOxford/ocus/osid/repository/rliOxford"/>    
-    <pathelement path="${lib.home}/rliOxford/ocus/osid/repository/rliOxford/rliOxfordDR.jar"/>    
-
     <pathelement path="${lib.home}/activation.jar" />
     <pathelement path="${lib.home}/axis-ant.jar" />
     <pathelement path="${lib.home}/axis.jar" />
@@ -380,7 +336,6 @@
     <pathelement path="${lib.home}/cryptix-asn1.jar" />
     <pathelement path="${lib.home}/cryptix32.jar" />
     <pathelement path="${lib.home}/dom2.jar"/>
-    <pathelement path="${lib.home}/ecldr.jar"/>
     <pathelement path="${lib.home}/jaxrpc.jar" />
     <pathelement path="${lib.home}/jdom.jar" />
     <pathelement path="${lib.home}/jms.jar" />
@@ -389,33 +344,9 @@
     <pathelement path="${lib.home}/saaj.jar" />
     <pathelement path="${lib.home}/xalan.jar" />
 
-    <pathelement path="${lib.home}" />
-    <pathelement path="${lib.home}/iPhotos" />
-    <pathelement path="${lib.home}/iTunes" />
-    <pathelement path="${lib.home}/ocw" />
-    <pathelement path="${lib.home}/scorm" />
-                
-    <pathelement path="${lib.home}/iPhotos/iPhotosDR.jar" />
-    <pathelement path="${lib.home}/iTunes/iTunesDR.jar" />
-    <pathelement path="${lib.home}/ocw/ocw2.jar" />
-    <pathelement path="${lib.home}/scorm/scorm.jar" />
-
-    <pathelement path="${lib.home}/CometOsidImpl.jar" />
-    <pathelement path="${lib.home}/CometOsid2Impl.jar" />
-    <pathelement path="${lib.home}/postgresql.jar" />
-    <pathelement path="${lib.home}/mysql-connector-java-3.0.15-ga-bin.jar"/>  	
-
-    <pathelement path="${lib.home}/giunti" />
-    <pathelement path="${lib.home}/giunti/giuntiOSID.jar" />
-    <pathelement path="${lib.home}/giunti/connectionTamino.jar" />
-    <pathelement path="${lib.home}/giunti/TaminoAPI4j.jar" />
-    <pathelement path="${lib.home}/giunti/TaminoJCA.jar" />
-
-    <pathelement path="${lib.home}/HiveRepositoryOsid.jar" />
     <pathelement path="${lib.home}/commons-httpclient-2.0.jar" />
     <pathelement path="${lib.home}/commons-logging.jar" />
     <pathelement path="${lib.home}/jdom.jar" />
-    <pathelement path="${lib.home}/jhapi.jar" />
     <pathelement path="${lib.home}/jnet.jar" />
     <pathelement path="${lib.home}/jsse.jar" />
   </path>
@@ -581,6 +512,22 @@
       <include name="tufts/googleapi/*.java"/>
       <include name="tufts/vue/**/*.java"/>
       <exclude name="tufts/vue/OsidAsset*.java"/>
+      <exclude name="**/macosx/**"/>
+      <exclude name="**/tmp/**"/>
+      <exclude name="**/bak/**"/>
+      <exclude name="**/old/**"/>
+    </javac>
+
+    <javac srcdir="${basedir}" 
+           destdir="${build.class}"
+             debug="${compile.debug}"
+        deprecation="${compile.deprecation}"
+           optimize="${compile.optimize}"
+           listfiles="yes"
+           >
+      <classpath refid="compile.classpath.vue"/>
+      <include name="edu/**/*.java"/>
+      <include name="org/**/*.java"/>
       <exclude name="**/macosx/**"/>
       <exclude name="**/tmp/**"/>
       <exclude name="**/bak/**"/>
@@ -1023,6 +970,44 @@ VUE_Installer.zip - ${installerMD5}
       </jarlib-display>
     </target>
 
+<!-- ==================== Javadoc Target ================================== -->
+
+<!--
+
+  The "javadoc" target creates Javadoc API documentation for the Java
+  classes included in your application.  Normally, this is only required
+  when preparing a distribution release, but is available as a separate
+  target in case the developer wants to create Javadocs independently.
+
+-->
+
+  <target name="javadoc" depends="compile"
+   description="Create Javadoc API documentation">
+
+    <mkdir          dir="${dist.home}/docs/api"/>
+    <javadoc sourcepath="${basedir}"
+                destdir="${dist.home}/docs/api"
+           packagenames="edu.*,org.*">
+      <classpath refid="compile.classpath.common"/>
+    </javadoc>
+
+  </target>
+
+<!-- ==================== junit Target ================================== -->
+
+  <target name="junit" depends="compile" description="Run JUnit tests">
+    <available property="junit.present" classname="junit.framework.TestCase" >
+      <classpath>
+        <pathelement location="${junit.jar}" />
+        <pathelement path="${java.class.path}" />
+      </classpath>
+    </available>    
+
+	<java classname="edu.tufts.vue.dsm.impl.edsmTest" failonerror="true" fork="true">
+        <classpath refid="runtime.classpath"/>
+	</java>
+
+  </target>
     
 </project>
 
