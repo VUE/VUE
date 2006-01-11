@@ -16,4 +16,3 @@ set CP=%VUE_HOME%;%VUE_LIB%castor-0.9.4.3.jar;%VUE_LIB%castor-0.9.4.3-xml.jar;%V
 REM set CP=%VUE_HOME%;"VUE_LIB%vue-lib.zip;
 @echo running VUE
 %JAVA%  -cp  %CP% tufts.vue.VUE
-
