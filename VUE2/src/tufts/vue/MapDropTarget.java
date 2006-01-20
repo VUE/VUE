@@ -18,21 +18,22 @@
 
 package tufts.vue;
 
-import java.awt.dnd.DropTargetEvent;
-import java.awt.dnd.DropTargetDragEvent;
-import java.awt.dnd.DropTargetDropEvent;
-import java.awt.dnd.DnDConstants;
+import tufts.Util;
+import tufts.vue.gui.GUI;
 
+import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 
 import java.awt.geom.Point2D;
 import java.awt.Point;
 import java.awt.Image;
-import java.awt.image.BufferedImage;
 
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.regex.*;
 
 import java.io.File;
@@ -40,142 +41,728 @@ import java.io.FileInputStream;
 
 import java.net.*;
 
-import osid.dr.*;
-
-
 /**
  * Handle the dropping of drags mediated by host operating system onto the map.
- * Right now all we handle are the dropping of File's & URL's.
+ *
+ * We currently handling the dropping of File lists, LWComponent lists,
+ * Resource lists, and text (a String).
+ *
+ * @version $Revision: 1.47 $ / $Date: 2006-01-20 19:30:30 $ / $Author: sfraize $  
  */
-
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
 {
-    static final String MIME_TYPE_MAC_URLN = "application/x-mac-ostype-75726c6e";
-    // 75726c6e="URLN" -- mac uses this type for a flavor containing the title of a web document
-    // this existed in 1.3, but apparently went away in 1.4.
-    static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
+    private static final boolean DropImagesAsNodes = true;
 
-    private static final int ACCEPTABLE_DROP_TYPES =
-        DnDConstants.ACTION_COPY | // 0x1
-        DnDConstants.ACTION_MOVE | // 0x2
-        DnDConstants.ACTION_LINK;  // 0x40000000
-        //0xFFFFFF;
-        // [ OLD COMMENT ] Do NOT include MOVE, or dragging a URL from the IE address bar becomes
-        // a denied drag option!  Even dragged text from IE becomes disabled.
-        // FYI, also, "move" doesn't appear to actually ever mean delete original source.
-        // Putting this in makes certial special windows files "available"
-        // for drag (e.g., a desktop "hard" reference link), yet there are never
-        // any data-flavors available to process it, so we might as well indicate
-        // that we can't accept it.
+    private static final int DROP_FILE_LIST = 1;
+    private static final int DROP_NODE_LIST = 2;
+    private static final int DROP_RESOURCE_LIST = 3;
+    private static final int DROP_TEXT = 4;
 
-    private final static boolean debug = false;
-    private final static boolean CenterNodesOnDrop = true;
     
-    private MapViewer viewer;
+    private static final int ACCEPTABLE_DROP_TYPES =
+        DnDConstants.ACTION_COPY        // 0x1
+        //| DnDConstants.ACTION_MOVE      // 0x2
+        | DnDConstants.ACTION_LINK      // 0x40000000
+        ;
+    
+    // Calls to acceptDrag / rejectDrag do absolutely nothing as far as I can tell
+    // (at last on MacOSX).  The cursor certianly doesn't change, which is what we
+    // want (to make the "copy" cursor show).  Apparently the drag & drop code gets
+    // a major overhaul in Java 1.6 (Mustang), and I can see why.
+        
+    // [ OLD COMMENT ] Do NOT include MOVE, or dragging a URL from the IE address bar
+    // becomes a denied drag option!  Even dragged text from IE becomes disabled.  FYI,
+    // also, "move" doesn't appear to actually ever mean delete original source.
+    // Putting this in makes certial special windows files "available" for drag (e.g., a
+    // desktop "hard" reference link), yet there are never any data-flavors available to
+    // process it, so we might as well indicate that we can't accept it.
 
-    public MapDropTarget(MapViewer viewer)
-    {
-       this.viewer = viewer;
+    private boolean CenterNodesOnDrop = true;
+    
+    private final MapViewer mViewer;
+
+    public MapDropTarget(MapViewer viewer) {
+       mViewer = viewer;
     }
 
+    private void trackDrag(DropTargetDragEvent e) {
+        e.acceptDrag(ACCEPTABLE_DROP_TYPES);
+        // This may be helping, er, sometimes...
+        //mViewer.setCursor(DragSource.DefaultCopyDrop);
+    }
+
+    /** DropTargetListener */
     public void dragEnter(DropTargetDragEvent e)
     {
-        //e.acceptDrag(ACCEPTABLE_DROP_TYPES);
-        //if (VueUtil.isMacPlatform()) e.acceptDrag(DnDConstants.ACTION_COPY);
-        if (debug) System.out.println("MapDropTarget: dragEnter " + e);
+        if (DEBUG.DND) out("dragEnter " + GUI.dragName(e));
+        trackDrag(e);
     }
-
+    /** DropTargetListener */
+    public void dragExit(DropTargetEvent e) {
+        if (DEBUG.DND) out("dragExit " + e);
+    }
+    /** DropTargetListener */
+    public void dropActionChanged(DropTargetDragEvent e) {
+        if (DEBUG.DND) out("dropActionChanged: " + GUI.dragName(e));
+        trackDrag(e);
+    }
+    /** DropTargetListener */
     public void dragOver(DropTargetDragEvent e)
     {
-        LWComponent over = viewer.getMap().findChildAt(dropToMapLocation(e.getLocation()));
+        if (DEBUG.DND && DEBUG.META) out("dragOver " + GUI.dragName(e));
+
+        LWComponent over = mViewer.getMap().findChildAt(dropToMapLocation(e.getLocation()));
         if (over instanceof LWNode || over instanceof LWLink) {
             // todo: if over resource icon and we can set THAT indicated, do
             // so and also use that to indicate we'd like to set the resource
             // instead of adding a new child
-            viewer.setIndicated(over);
-            //e.acceptDrag(DnDConstants.ACTION_COPY);
+            mViewer.setIndicated(over);
         } else
-            viewer.clearIndicated();
+            mViewer.clearIndicated();
 
-        // as of at least OS X 10.4.2 JVM 1.4.2, accepting drag here
-        // appears totally optional, and has no effect on cursor
-
-        // [OLD] doing this will turn on green "+" icon as the default, which is appropriate,
-        // yet doesn't allow for changing the indicator to the shortcut icon if CTRL
-        // is pressed, and the drop code for that is the huge bogus # on the mac,
-        // so we're skipping this for now.
-        //if (VueUtil.isMacPlatform())
-        //  e.acceptDrag(DnDConstants.ACTION_COPY);
-
-        //e.acceptDrag(ACCEPTABLE_DROP_TYPES);
-    }
-
-    public static String dropName(int dropAction) {
-        String name = "";
-        if ((dropAction & DnDConstants.ACTION_COPY) != 0) name += "COPY";
-        if ((dropAction & DnDConstants.ACTION_MOVE) != 0) name += "MOVE";
-        if ((dropAction & DnDConstants.ACTION_LINK) != 0) name += "LINK";
-        if (name.length() < 1)
-            name = "NONE";
-        name += " (0x" + Integer.toHexString(dropAction) + ")";
-        return name;
+        trackDrag(e);
     }
     
-    public void dragExit(DropTargetEvent e)
-    {
-        if (debug) System.out.println("MapDropTarget: dragExit " + e);
-    }
-
-    public void dropActionChanged(DropTargetDragEvent e)
-    {
-        if (debug) System.out.println("MapDropTarget: dropActionChanged to " + dropName(e.getDropAction()));
-
-    }
-    
+    /** DropTargetListener */
     public void drop(DropTargetDropEvent e)
     {
-        if (DEBUG.Enabled) {
-            try {
-                System.out.println("caps state="+VUE.getActiveViewer().getToolkit().getLockingKeyState(java.awt.event.KeyEvent.VK_CAPS_LOCK));
-            } catch (Exception ex) {
-                System.err.println(ex);
-            }
-        }
-        if (debug) System.out.println("MapDropTarget: DROP " + e
-                                      + "\n\tdropAction is " + dropName(e.getDropAction())
-                                      + "\n\tsourceActions are " + dropName(e.getSourceActions())
-                                      + "\n\tlocation=" + e.getLocation()
-                                      );
+        if (DEBUG.DND) out("DROP " + e
+                           + "\n\t   dropAction: " + dropName(e.getDropAction())
+                           + "\n\tsourceActions: " + dropName(e.getSourceActions())
+                           + "\n\t     location: " + e.getLocation()
+                           );
 
-        //if ((e.getSourceActions() & DnDConstants.ACTION_COPY) != 0) {
-        if (false&&(e.getSourceActions() & DnDConstants.ACTION_LINK) != 0) {
-            e.acceptDrop(DnDConstants.ACTION_LINK);
-        } else if (false&&(e.getSourceActions() & DnDConstants.ACTION_COPY) != 0) {
-            e.acceptDrop(DnDConstants.ACTION_COPY);
-            //} else if ((e.getSourceActions() & ACCEPTABLE_DROP_TYPES) != 0) {
-        } else {
-            e.acceptDrop(e.getDropAction());
-            //e.acceptDrop(DnDConstants.ACTION_COPY);
-            //e.acceptDrop(DnDConstants.ACTION_LINK);
-        }
-        /*
-        else {
-            if (debug) System.out.println("MapDropTarget: rejecting drop");
-            e.rejectDrop();
-            return;
-        }
-        */
+        /* UnsupportedOperation (tring to discover key's being held down ourselves) try {
+            System.out.println("caps state="+mViewer.getToolkit()
+                               .getLockingKeyState(java.awt.event.KeyEvent.VK_CAPS_LOCK));
+                               } catch (Exception ex) { System.err.println(ex); }*/
 
+        
+        e.acceptDrop(e.getDropAction());
+        
         // Scan thru the data-flavors, looking for a useful mime-type
-
-        //boolean success = processTransferable(e.getTransferable(), e.getLocation());
-        boolean success = processTransferable(e.getTransferable(), e);
+        boolean success =
+            processTransferable(e.getTransferable(), e);
 
         e.dropComplete(success);
-        viewer.clearIndicated();        
+        
+        mViewer.clearIndicated();        
     }
 
+    private static class DropContext {
+        final Transferable transfer;
+        final Point2D.Float location;   // map location of the drop
+        final Collection items;         // bag of Objects in the drop
+        final List list;                // convience reference to items if it is a List
+        final String text;              // only one of items+list or text
+        final LWComponent hit;          // we dropped into this component
+        final LWNode hitNode;           // we dropped into this component, and it was a node
+        final boolean isLinkAction;     // user kbd modifiers down produced LINK drop action
+
+        private float nextX;
+        private float nextY;
+
+        List added = new java.util.ArrayList(); // to track LWComponents added as a result of the drop
+        
+        DropContext(Transferable t,
+                    Point2D.Float mapLocation,
+                    Collection items,
+                    String text,
+                    LWComponent hit,
+                    boolean isLinkAction)
+        {
+            this.transfer = t;
+            this.location = mapLocation;
+            this.items = items;
+            this.text = text;
+            this.hit = hit;
+
+            if (items instanceof java.util.List)
+                list = (List) items;
+            else
+                list = null;
+            
+            if (hit instanceof LWNode)
+                hitNode = (LWNode) hit;
+            else
+                hitNode = null;
+
+            this.isLinkAction = isLinkAction;
+
+            nextX = mapLocation.x;
+            nextY = mapLocation.y;
+        }
+
+        Point2D nextDropLocation() {
+            Point2D p = new Point.Float(nextX, nextY);
+            nextX += 15;
+            nextY += 15;
+            return p;
+        }
+
+        /**
+         * Track top-level nodes created and added to map as we processed the drop.
+         * Note that nodes are created and added to the map as the drop is processed in
+         * case we fail we can get some partial results.  This lets us set the selection
+         * to everything that was dropped at the end.
+         */
+        void add(LWComponent c) {
+            added.add(c);
+        }
+    }
+
+    private static final Object DATA_FAILURE = new Object();
+
+    private static Object extractData(Transferable transfer, DataFlavor flavor)
+    {
+        Object data = DATA_FAILURE;
+        try {
+
+            data = transfer.getTransferData(flavor);
+
+        } catch (UnsupportedFlavorException ex) {
+            
+            Util.printStackTrace(ex, "TRANSFER: Transfer lied about supporting flavor "
+                                 + "\"" + flavor.getHumanPresentableName() + "\" "
+                                 + flavor
+                                 );
+            
+        } catch (java.io.IOException ex) {
+            
+            Util.printStackTrace(ex, "TRANSFER: data no longer available");
+            
+        }
+        
+        return data;
+    }
+
+    /**
+     * Process any transferrable: @param e can be null if don't have a drop event
+     * (e.g., could use to process clipboard contents as well as drop events)
+     * A sucessful result will be newly created items on the map.
+     * @return true if succeeded
+     */
+    public boolean processTransferable(Transferable transfer, DropTargetDropEvent e)
+    {
+        Point dropLocation = null;
+        Point2D.Float mapLocation = null;
+        int dropAction = DnDConstants.ACTION_COPY; // default action, in case no DropTargetDropEvent
+
+        // On current JVM's on Mac and PC, default action for dragging a desktop item is
+        // MOVE, and holding CTRL down (both platforms) changes action to COPY.
+        // However, when dragging a link from Internet Explorer on Win2k, or Safari on
+        // OS X 10.4.2, CTRL doesn't change drop action at all, SHIFT changes drop
+        // action to NONE, and only CTRL-SHIFT changes action to LINK, which fortunately
+        // is at least the same on the mac: CTRL-SHIFT gets you LINK.
+        //
+        // Note: In both Safari & IE6/W2K, dragging an image from within a web page will
+        // NOT allow ACTION_LINK, so we can't change a resource that way on the mac.
+        // Also note that Safari will give you the real URL of the image, where as at
+        // least as of IE 6 on Win2k, it will only give you the image file from your
+        // cache.  (IE does also give you HTML snippets as data transfer options, with
+        // the IMG tag, but it gives you no base URL to add to the relative locations
+        // usually named in IMG tags!)
+
+        // Also: Dragging a URL from Safari address bar CLAIMS to support COPY & LINK
+        // source actions, but drop action is fixed at COPY can never ba changed to LINK
+        // no matter what modifier keys you hold down (MacOSX 10.4, JVM 1.5.0_06-93)
+        
+        if (e != null) {
+            dropLocation = e.getLocation();
+            dropAction = e.getDropAction();
+            mapLocation = dropToMapLocation(dropLocation);
+            if (DEBUG.DND) out("processTransferable: " + GUI.dropName(e));
+        }
+
+        LWComponent hitComponent = null;
+
+        if (dropLocation != null) {
+            hitComponent = mViewer.getMap().findChildAt(mapLocation);
+            if (hitComponent instanceof LWImage) { // todo: does LWComponent accept drop events...
+                if (DEBUG.DND) out("hitComponent=" + hitComponent + " (ignored)");
+                hitComponent = null;
+            } else 
+                if (DEBUG.DND) out("hitComponent=" + hitComponent);
+        } else {
+            // if no drop location (e.g., we did a "Paste") then assume where
+            // they last clicked.
+            dropLocation = mViewer.getLastMousePressPoint();
+            mapLocation = dropToMapLocation(dropLocation);
+        }
+            
+            
+        DataFlavor foundFlavor = null;
+        Object foundData = null;
+        String dropText = null;
+        Collection dropItems = null;
+        
+        int dropType = 0;
+
+        if (DEBUG.DND) dumpFlavors(transfer);
+
+        try {
+
+            // We want to repeatedly do the casts below for each case
+            // to make sure the data type we got is what we expected.
+            // (Can be a problem if somebody creates a bad Transferable)
+            
+            if (transfer.isDataFlavorSupported(LWComponent.DataFlavor)) {
+                
+                foundFlavor = LWComponent.DataFlavor;
+                foundData = extractData(transfer, foundFlavor);
+                dropType = DROP_NODE_LIST;
+                dropItems = (List) foundData;
+                
+            } else if (transfer.isDataFlavorSupported(Resource.DataFlavor)) {
+                
+                foundFlavor = Resource.DataFlavor;
+                foundData = extractData(transfer, foundFlavor);
+                dropType = DROP_RESOURCE_LIST;
+                dropItems = (List) foundData;
+            
+            } else if (transfer.isDataFlavorSupported(MapResource.DataFlavor)) {
+                
+                foundFlavor = MapResource.DataFlavor;
+                foundData = extractData(transfer, foundFlavor);
+                dropType = DROP_RESOURCE_LIST;
+                dropItems = (List) foundData;
+            
+            } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+
+                foundFlavor = DataFlavor.javaFileListFlavor;
+                foundData = extractData(transfer, foundFlavor);
+                dropType = DROP_FILE_LIST;
+                dropItems = (Collection) foundData;
+
+            } else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                
+                foundFlavor = DataFlavor.stringFlavor;
+                foundData = extractData(transfer, foundFlavor);
+                dropType = DROP_TEXT;
+                dropText = (String) foundData;
+            
+            } else {
+                if (DEBUG.Enabled) {
+                    System.out.println("TRANSFER: found no supported dataFlavors");
+                    dumpFlavors(transfer);
+                }
+                return false;
+            }
+        } catch (ClassCastException ex) {
+            Util.printStackTrace(ex, "TRANSFER: Transfer data did not match expected type:"
+                                 + "\n\tflavor=" + foundFlavor
+                                 + "\n\t  type=" + foundData.getClass());
+            return false;
+
+        } catch (Throwable t) {
+            Util.printStackTrace(t, "TRANSFER: data extraction failure");
+            return false;
+        }
+
+        if (foundData == DATA_FAILURE)
+            return false;
+
+        if (DEBUG.Enabled) {
+            String size = "";
+            String bagType0 = "";
+            if (foundData instanceof Collection) {
+                Collection bag = (Collection) foundData;
+                size = " (Collection size " + bag.size() + ")";
+                if (bag.size() > 0)
+                    bagType0 =   "\n\ttype[0]: " + bag.iterator().next().getClass();
+                
+            }
+            System.out.println("TRANSFER: Found supported flavor \"" + foundFlavor.getHumanPresentableName() + "\""
+                               + "\n\t   type: " + Util.tag(foundData) + size
+                               + bagType0
+                               + "\n\t   data: [" + foundData + "]"
+                               + "\n\t flavor: " + foundFlavor
+                               //+ "\n\tdropptedText=[" + droppedText + "]"
+                               );
+        }
+
+        final boolean isLinkAction = (dropAction == DnDConstants.ACTION_LINK);
+
+        DropContext drop =
+            new DropContext(transfer,
+                            //dropLocation,
+                            mapLocation,
+                            dropItems,
+                            dropText,
+                            hitComponent,
+                            isLinkAction);
+
+        boolean success = false;
+
+        if (dropItems != null && dropItems.size() > 1)
+            CenterNodesOnDrop = false;
+        else
+            CenterNodesOnDrop = true;
+
+        try {
+            switch (dropType) {
+
+            case DROP_FILE_LIST:
+                success = processDroppedFileList(drop);
+                break;
+            case DROP_NODE_LIST:
+                success = processDroppedNodes(drop);
+                break;
+            case DROP_RESOURCE_LIST:
+                success = processDroppedResourceList(drop);
+                break;
+            case DROP_TEXT:
+                success = processDroppedText(drop);
+                break;
+
+            default:
+                // should never happen
+                throw new Error("unknown drop type " + dropType);
+            }
+
+            if (drop.added.size() > 0) {
+                mViewer.requestFocus();
+                VUE.getSelection().setTo(drop.added.iterator());
+            }
+            
+        } catch (Throwable t) {
+            Util.printStackTrace(t, "drop processing failed");
+        }
+
+        // Even if we had an exception during processing,
+        // mark the drop in case there were partial results for Undo.
+        
+        mViewer.getMap().getUndoManager().mark("Drop");
+
+        return success;
+    }
+
+
+    private boolean processDroppedText(DropContext drop)
+    {
+        if (DEBUG.DND) out("processDroppedText");
+        
+        // Attempt to make a URL of any string dropped -- if fails, just treat as
+        // regular pasted text.  todo: if newlines in middle of string, don't do this,
+        // or possibly attempt to split into list of multiple URL's (tho only if *every*
+        // line succeeds as a URL -- prob too hairy to bother)
+
+        String[] rows = drop.text.split("\n");
+        URL foundURL = null;
+        Map properties = new HashMap();
+        
+        if (rows.length < 3) {
+            foundURL = makeURL(rows[0]);
+            if (rows.length > 1) {
+                // Current version of Mozilla (at least on Windows XP, as of 2004-02-22)
+                // includes the HTML <title> as second row of text.
+                properties.put("title", rows[1]);
+            }
+        }
+
+        if (foundURL != null && foundURL.getQuery() != null && !drop.isLinkAction) {
+            // if this URL is from a common search engine, we can find
+            // the original source for the image instead of the search
+            // engine's context page for the image.
+            foundURL = decodeSearchEngineLightBoxURL(foundURL, properties);
+        }
+                
+        if (foundURL != null) {
+
+            boolean processed = true;
+            boolean overwriteResource = drop.isLinkAction;
+            
+            if (drop.hit != null) {
+                if (overwriteResource) {
+                    drop.hit.setResource(foundURL.toString());
+                    // hack: clean this up:  resource should load meta-data on CREATION.
+                    ((MapResource)drop.hit.getResource()).scanForMetaDataAsync(drop.hit);
+                } else if (drop.hitNode != null) {
+                    drop.hitNode.addChild(createNodeAndResource(drop, foundURL.toString(), properties, drop.location));
+                } else {
+                    processed = false;
+                }
+            }
+            
+            if (drop.hit == null || !processed)
+                drop.add(createNodeAndResource(drop, foundURL.toString(), properties, drop.location));
+
+        } else {
+            // create a text node
+            drop.add(createTextNode(drop.text, drop.location));
+        }
+        
+        return true;
+    }
+
+    
+    private boolean processDroppedNodes(DropContext drop)
+    {
+        if (DEBUG.DND) out("processDroppedNodes");
+        
+        // now add them to the map
+
+        if (drop.hitNode != null) {
+            drop.hitNode.addChildren(drop.list);
+        } else {
+            setCenterAt(drop.list, drop.location);
+            mViewer.getMap().addChildren(drop.list);
+            drop.added.addAll(drop.list);
+        }
+            
+        return true;
+    }
+
+    private boolean processDroppedResourceList(DropContext drop)
+    {
+        if (DEBUG.DND) out("processDroppedResourceList");
+        
+        if (drop.list.size() == 1 && drop.hit != null && drop.isLinkAction) {
+            
+            // Only one item is in the list, and we've hit a component, and
+            // it's a link-action drop: replace the hit component resource
+            drop.hit.setResource((Resource)drop.list.get(0));
+            
+        } else {
+            
+            Iterator i = drop.list.iterator();
+            while (i.hasNext()) {
+                Resource resource = (Resource) i.next();
+
+                if (drop.hitNode != null && !drop.isLinkAction) {
+
+                    // create new node children of the hit node
+                    drop.hitNode.addChild(createNode(drop, resource, Collections.EMPTY_MAP, null));
+                
+                } else {
+                    
+                    drop.add(createNode(drop, resource, Collections.EMPTY_MAP, drop.nextDropLocation()));
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean processDroppedFileList(DropContext drop)
+    {
+        if (DEBUG.DND) out("processDroppedFileList");
+        
+        Iterator i = drop.items.iterator();
+        while (i.hasNext()) {
+            
+            processDroppedFile((File) i.next(), drop);
+            
+        }
+        
+        return true;
+    }
+
+    private void processDroppedFile(File file, DropContext drop)
+    {
+        String resourceSpec = file.getPath();
+        String path = file.getPath();
+
+        Map props = new HashMap();
+
+        if (path.toLowerCase().endsWith(".url")) {
+            // Search a windows .url file (an internet shortcut)
+            // for the actual web reference.
+            String url = convertWindowsURLShortCutToURL(file);
+            if (url != null) {
+                resourceSpec = url;
+
+                // We compute the resource name here as it's coming from a short-cut
+                // that we extract a URL from, in which case we want to use the name of
+                // the original shortcut, and not compute the resource title from it's
+                // source URL.
+        
+                String resourceName;
+
+                if (file.getName().length() > 4)
+                    resourceName = file.getName().substring(0, file.getName().length() - 4);
+                else
+                    resourceName = file.getName();
+
+                props.put("title", resourceName);
+                
+            }
+        } else if (path.endsWith(".textClipping")  || path.endsWith(".webloc") || path.endsWith(".fileloc")) {
+
+            // TODO: we can handle Mac .fileloc's if we check multiple data-flavors: the initial LIST
+            // flavor gives us the .fileloc, which we could even pull a name from if we want, and in
+            // any case, a later STRING data-flavor actually gives us the source of the link!
+            // SAME APPLIES TO .webloc files... AND .textClipping files
+            // Of course, if they drop multple ones of these, we're screwed, as only the last
+            // one gets translated for us in the later string data-flavor.  Oh well -- at least
+            // we can handle the single case if we want.
+
+            if (drop.transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+
+                // Unforunately, this only works if there's ONE ITEM IN THE LIST,
+                // or more accurately, the last item in the list, or perhaps even
+                // more accurately, the item that also shows up as the application/x-java-url.
+                // Which is why ultimately we'll want to put all this type of processing
+                // in a full-and-fancy filing OSID to end all filing OSID's, that'll
+                // handle windows .url shortcuts, the above mac cases plus mac aliases, etc, etc.
+
+                String unicodeString;
+                try {
+                    unicodeString = (String) drop.transfer.getTransferData(DataFlavor.stringFlavor);
+                    if (DEBUG.Enabled) out("*** GOT MAC REDIRECT DATA [" + unicodeString + "]");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                // for textClipping, the string data is raw dropped text, for webloc,
+                // it's URL be we already have text->URL in dropped text code below,
+                // and same for .fileloc...  REFACTOR THIS MESS.
+
+                //resourceSpec = unicodeString; 
+                //resourceName = 
+                // NOW WE NEED TO JUMP DOWN TO HANDLING DROPPED TEXT...
+            }
+        }
+                
+        //if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
+        //if (hitComponent != null && fileList.size() == 1) {
+                
+        if (drop.hit != null) {
+            if (drop.isLinkAction) {
+                drop.hit.setResource(resourceSpec);
+            } else if (drop.hitNode != null) {
+                drop.hitNode.addChild(createNodeAndResource(drop, resourceSpec, props, null));
+            }
+        } else {
+            drop.add(createNodeAndResource(drop, resourceSpec, props, drop.nextDropLocation()));
+        }
+    }
+
+
+    private LWComponent createNodeAndResource(DropContext drop, String resourceSpec, Map properties, Point2D where)
+    {
+        MapResource resource = new MapResource(resourceSpec);
+
+        //resource.scanForMetaData();
+
+        if (DEBUG.DND) out("createNodeAndResource " + resourceSpec + " " + properties + " " + where);
+
+        LWComponent c = createNode(drop, resource, properties, where);
+
+        // TODO: get this so that one call is triggering the async stuff for both
+        // meta-data and image loading.  Maybe the resource can will load the image...,
+        // yeah, probably.  Tho we also need activate separate animation threads that
+        // are going to wait on the data loading threads...
+
+        // Establish an undo for the node creation, and then one for the title update,
+        // so you can just undo to get the http title back if you want.  Will need to
+        // make undo for at least this case or maybe all cases to treat the stopping of
+        // thread as an undo action itself also so you can stop it in the middle?
+
+        // How to handle group drops tho?  There will be a ton of threads.
+        // I guess it would have to be all or nothing, and somehow group
+        // ALL the loading threads under a single undo thread mark?
+        
+        resource.scanForMetaDataAsync(c, true);
+
+        return c;
+    }
+
+    private LWComponent createNode(DropContext drop, Resource resource, Map properties, Point2D where)
+    {
+        if (DEBUG.DND) out("createNode " + resource + " " + properties + " " + where);
+
+        if (properties == null)
+            properties = Collections.EMPTY_MAP;
+
+        boolean dropImagesAsNodes = DropImagesAsNodes && !drop.isLinkAction;
+
+        LWComponent node;
+        LWImage lwImage = null;
+        String displayName = (String) properties.get("title");
+
+        if (displayName == null)
+            displayName = getResourceTitle(resource);
+
+        MapResource mapResource = null;
+        if (resource instanceof MapResource) { // todo: fix Resource so no more of this kind of hacking
+            mapResource = (MapResource) resource;
+        }
+        
+        if (MapResource.isImage(resource)) {
+            if (DEBUG.DND || DEBUG.IMAGE) out("IMAGE DROP " + resource + " " + properties);
+            //node = new LWImage(resource, viewer.getMap().getUndoManager());
+            lwImage = new LWImage();
+            String ws = (String) properties.get("width");
+            String hs = (String) properties.get("height");
+            if (ws != null && hs != null) {
+                int w = Integer.parseInt(ws);
+                int h = Integer.parseInt(hs);
+                lwImage.setSize(w, h);
+                if (mapResource != null) {
+                    mapResource.setProperty("width", ws);
+                    mapResource.setProperty("height", hs);
+                }
+            }
+            lwImage.setLabel(displayName);
+        }
+        
+        if (lwImage == null || dropImagesAsNodes) {
+            if (false && where == null && lwImage != null) {
+                // don't wrap image if we're about to drop it into something else
+                node = lwImage;
+            } else {
+                node = NodeTool.createNode(displayName);
+                node.setResource(resource);
+                if (lwImage != null)
+                    ((LWNode)node).addChild(lwImage);
+            }
+        } else {
+            // we're dropping the image raw (either on map or into something else)
+            node = lwImage;
+        }
+
+        // if "where" is null, the caller is adding this to another
+        // existing node, so we don't add it to the map here
+
+        if (where != null)
+            addNodeToMap(node, where);
+
+        if (lwImage != null) {
+            // this will cause the LWImage to start loading the image
+            lwImage.setResourceAndLoad(resource, mViewer.getMap().getUndoManager());
+        }
+
+        return node;
+    }
+
+    private LWComponent createTextNode(String text, Point2D where)
+    {
+        return addNodeToMap(NodeTool.createTextNode(text), where);
+    }
+
+    private LWComponent addNodeToMap(LWComponent node, Point2D where)
+    {
+        if (CenterNodesOnDrop)
+            node.setCenterAt(where);
+        else
+            node.setLocation(where);
+        mViewer.getMap().addLWC(node);
+        return node;
+    }
+
+
+
+    //-----------------------------------------------------------------------------
+    // support & debug code below
+    //-----------------------------------------------------------------------------
+    
+    
+
+    private static String dropName(int dropAction) {
+        return GUI.dropName(dropAction);
+    }
+    
     // debug
     private void dumpFlavors(Transferable transfer)
     {
@@ -184,8 +771,13 @@ class MapDropTarget
         System.out.println("TRANSFERABLE: " + transfer + " has " + dataFlavors.length + " dataFlavors:");
         for (int i = 0; i < dataFlavors.length; i++) {
             DataFlavor flavor = dataFlavors[i];
+            String name = flavor.getHumanPresentableName();
+            if (flavor.getMimeType().toString().startsWith(name + ";"))
+                name = "";
+            else
+                name = " \"" + name + "\"";
             System.out.print("flavor " + (i<10?" ":"") + i
-                             + " \"" + flavor.getHumanPresentableName() + "\""
+                             + VueUtil.pad(17, name)
                              + " " + flavor.getMimeType()
                              );
             try {
@@ -205,346 +797,6 @@ class MapDropTarget
         } catch (MalformedURLException ex) {
             return null;
         }
-    }
-
-    
-
-    //    public boolean processTransferable(Transferable transfer, java.awt.Point dropLocation)
-    /**
-     * Process any transferrable: @param e can be null if don't have a drop event
-     * (e.g., could use to process clipboard contents as well as drop events)
-     */
-    // todo: break this method and all supporting code out into it's own class file
-    public boolean processTransferable(Transferable transfer, DropTargetDropEvent e)
-    {
-        // Make us the active viewer.  Otherwise we'll need special code for
-        // repaint updates and setting the selection.
-        // Okay, that's no good: they can still switch to another viewer after the drop begins.
-        //VUE.setActiveViewer(viewer);
-        
-        Point dropLocation = null;
-        int dropAction = DnDConstants.ACTION_COPY; // default action, in case no DropTargetDropEvent
-        //boolean modifierKeyWasDown = false;
-
-        // On current JVM's on Mac and PC, default action for dragging
-        // a desktop item is MOVE, and holding CTRL down (both
-        // platforms) changes action to COPY.  However, when dragging
-        // a link from Internet Explorer on Win2k, or Safari on OS X
-        // 10.4.2, CTRL doesn't change drop action at all, SHIFT
-        // changes drop action to NONE, and only CTRL-SHIFT changes
-        // action to LINK, which fortunately is at least the same on
-        // the mac: CTRL-SHIFT gets you LINK.
-        //
-        // Note: In both Safari & IE6/W2K, dragging an image from
-        // within a web page will NOT allow ACTION_LINK, so we can't
-        // change a resource that way on the mac.  Also note that
-        // Safari will give you the real URL of the image, where as at
-        // least as of IE 6 on Win2k, it will only give you the image
-        // file from your cache.  (IE does also give you HTML snippets
-        // as data transfer options, with the IMG tag, but it gives
-        // you no base URL to add to the relative locations usually
-        // named in IMG tags!)
-        
-        if (e != null) {
-            dropLocation = e.getLocation();
-            dropAction = e.getDropAction();
-
-            if (DEBUG.DND) System.out.println("MapDropTarget: processTransferable: dropAction is " + dropName(e.getDropAction()));
-
-            // BELOW HAS CHANGED AS OF AT LEAST OS X 10.4.2 / JVM 1.4.2:
-            // Mac now ACTION_MOVE as the default action, just like the PC
-            // 
-            // [OLD] ACTION_MOVE action is default action on PC, COPY on the
-            // Mac, so if not that, assume a modifier key was being
-            // held down to change the from the default OS drag
-            // action.  We have no way of knowing anything about
-            // actual keyboard state that initiated the drag.
-
-            //if (VueUtil.isMacPlatform())
-            //    modifierKeyWasDown = (dropAction != DnDConstants.ACTION_COPY);
-            //else
-            //    modifierKeyWasDown = (dropAction != DnDConstants.ACTION_MOVE);
-
-            // Okay, can't reliably determine if modifier key was down
-            // on all platforms and drag operations: e.g.: on Windows XP,
-            // default action is different in drag from windows file explorer
-            // than on drag from Mozilla (or maybe web browsers in general)
-
-            // [ The below has been fixed as of at least OS X 10.4.2 JVM 1.4.2 ]
-            // 
-            // [OLD] FYI, Mac OS X 10.2.8/JVM 1.4.1_01 is not telling us about
-            // changes to dropAction that happen when the drag was
-            // initiated (e.g., ctrl was down) -- this is a BUG, however,
-            // if you press ctrl down AFTER the drop starts, sourceAction
-            // & dropAction will be set to some rediculous number -- so at
-            // least we can detect that by making modifer down the default
-            // if drop action anything other than the default.  ALSO:
-            // somtimes we get ACTION_NONE, which is 0, which will always
-            // fail our acceptable drop types test.
-        }
-
-        LWComponent hitComponent = null;
-
-        if (dropLocation != null) {
-            hitComponent = viewer.getMap().findChildAt(dropToMapLocation(dropLocation));
-            if (hitComponent instanceof LWImage) { // todo: does LWComponent accept drop events...
-                System.out.println("\thitComponent=" + hitComponent + " (ignored)");
-                hitComponent = null;
-            } else 
-                System.out.println("\thitComponent=" + hitComponent);
-        }
-        
-        /*
-        // Now: when either CTRl or ALT is down on the mac, drop action changes from
-        // default of 2 (MOVE) to 1 (COPY)
-        if (VueUtil.isMacPlatform()) {
-            if (dropAction > 2) // hack: drop action == 1073741842 with Ctrl down on mac [OLD OS X / JVM].
-                modifierKeyWasDown = true;
-        } else {
-            // not safe: see above re: unpredictable due to drags from browsers and/or WinXP
-            //if (dropAction == 1)
-            //modifierKeyWasDown = true;
-        }
-        boolean createAsChildren = !modifierKeyWasDown && hitComponent instanceof LWNode;
-        boolean overwriteResource = modifierKeyWasDown;
-        */
-            
-        boolean isLinkAction = (dropAction == DnDConstants.ACTION_LINK);
-        boolean overwriteResource = (dropAction == DnDConstants.ACTION_LINK);
-        boolean createAsChildren = !overwriteResource && hitComponent instanceof LWNode;
-
-        // if no drop location (e.g., we did a "Paste") then assume where
-        // they last clicked.
-        if (dropLocation == null)
-            dropLocation = viewer.getLastMousePressPoint();
-        //dropLocation = new java.awt.Point(viewer.getWidth()/2, viewer.getHeight()/2);
-        
-        List resourceList = null;
-        List fileList = null;        
-        String droppedText = null;
-        DataFlavor foundFlavor = null;
-        Object foundData = null;
-
-        DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
-        if (debug) System.out.println("TRANSFER: found " + dataFlavors.length + " dataFlavors");
-        if (DEBUG.DND) dumpFlavors(transfer);
-
-        try {
-            if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
-                
-                foundFlavor = VueDragTreeNodeSelection.resourceFlavor;
-                foundData = transfer.getTransferData(foundFlavor);
-                resourceList = (java.util.List) foundData;
-            
-            } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-
-                foundFlavor = DataFlavor.javaFileListFlavor;
-                foundData = transfer.getTransferData(foundFlavor);
-                fileList = (java.util.List) foundData;
-
-            } else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                
-                foundFlavor = DataFlavor.stringFlavor;
-                foundData = transfer.getTransferData(DataFlavor.stringFlavor);
-                droppedText = (String) foundData;
-            
-            } else {
-                System.out.println("TRANSFER: found no supported dataFlavors");
-                dumpFlavors(transfer);
-                return false;
-            }
-        } catch (UnsupportedFlavorException ex) {
-            ex.printStackTrace();
-            System.err.println("TRANSFER: Transfer lied about supporting " + foundFlavor);
-            return false;
-        } catch (ClassCastException ex) {
-            ex.printStackTrace();
-            System.err.println("TRANSFER: Transfer data did not match declared type! flavor="
-                               + foundFlavor + " data=" + foundData.getClass());
-            return false;
-        } catch (java.io.IOException ex) {
-            ex.printStackTrace();
-            System.err.println("TRANSFER: data no longer available");
-            return false;
-        }
-
-        System.out.println("TRANSFER: Found supported flavor \"" + foundFlavor.getHumanPresentableName() + "\""
-                           + "\n\tflavor=" + foundFlavor
-                           + "\n\t  data=[" + foundData + "]"
-                           //+ "\n\tdropptedText=[" + droppedText + "]"
-                           );
-
-        boolean success = false;
-
-        // TODO: we can handle Mac .fileloc's if we check multiple data-flavors: the initial LIST
-        // flavor gives us the .fileloc, which we could even pull a name from if we want, and in
-        // any case, a later STRING data-flavor actually gives us the source of the link!
-        // SAME APPLIES TO .webloc files... AND .textClipping files
-        // Of course, if they drop multple ones of these, we're screwed, as only the last
-        // one gets translated for us in the later string data-flavor.  Oh well -- at least
-        // we can handle the single case if we want.
-
-        if (fileList != null) {
-            if (DEBUG.DND) System.out.println("\tHANDLING LIST, size= " + fileList.size());
-            java.util.Iterator iter = fileList.iterator();
-            int x = dropLocation.x;
-            int y = dropLocation.y;
-
-            List addedNodes = new java.util.ArrayList();
-            while (iter.hasNext()) {
-                File file = (File) iter.next();
-
-                //String resourceSpec = "file://" + file.getPath(); // why was this done? it breaks URL shortcuts
-                String resourceSpec = file.getPath();
-                String resourceName = file.getName();
-                String path = file.getPath();
-                
-                if (path.toLowerCase().endsWith(".url")) {
-                    // Search a windows .url file (an internet shortcut)
-                    // for the actual web reference.
-                    String url = convertWindowsURLShortCutToURL(file);
-                    if (url != null) {
-                       resourceSpec = url;
-                       // why was this done?  It breaks URL shortcuts...
-                       //   resourceSpec = "file://" + url;
-                        if (file.getName().length() > 4)
-                            resourceName = file.getName().substring(0, file.getName().length() - 4);
-                        else
-                            resourceName = file.getName();
-                    }
-                } else if (path.endsWith(".textClipping")  || path.endsWith(".webloc") || path.endsWith(".fileloc")) {
-
-                    if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-
-                        // Unforunately, this only works if there's ONE ITEM IN THE LIST,
-                        // or more accurately, the last item in the list, or perhaps even
-                        // more accurately, the item that also shows up as the application/x-java-url.
-                        // Which is why ultimately we'll want to put all this type of processing
-                        // in a full-and-fancy filing OSID to end all filing OSID's, that'll
-                        // handle windows .url shortcuts, the above mac cases plus mac aliases, etc, etc.
-
-                        String unicodeString;
-                        try {
-                            unicodeString = (String) transfer.getTransferData(DataFlavor.stringFlavor);
-                            System.out.println("*** GOT MAC REDIRECT DATA [" + unicodeString + "]");
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-
-                        // for textClipping, the string data is raw dropped text, for webloc,
-                        // it's URL be we already have text->URL in dropped text code below,
-                        // and same for .fileloc...  REFACTOR THIS MESS.
-
-                        //resourceSpec = unicodeString; 
-                        //resourceName = 
-                        // NOW WE NEED TO JUMP DOWN TO HANDLING DROPPED TEXT...
-                    }
-                }
-                
-                //if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
-                //if (hitComponent != null && fileList.size() == 1) {
-                
-                if (hitComponent != null) {
-                    if (createAsChildren) {
-                        ((LWNode)hitComponent).addChild(createNewNode(resourceSpec, resourceName, null));
-                    } else {
-                        hitComponent.setResource(resourceSpec);
-                    }
-                } else {
-                    addedNodes.add(createNewNode(resourceSpec, resourceName, new java.awt.Point(x, y)));
-                    x += 15;
-                    y += 15;
-                }
-                success = true;
-            }
-            if (addedNodes.size() > 0)
-                VUE.getSelection().setTo(addedNodes.iterator());
-         
-        } else if (resourceList != null) {
-            if (DEBUG.DND) System.out.println("\tHANDLING RESOURCE LIST, size= " + resourceList.size());
-            //if (resourceList.size() == 1 && hitComponent != null && overwriteResource) {
-            if (resourceList.size() == 1 && hitComponent != null && !createAsChildren) {
-                // modifier key was down: force resetting of the resource
-                hitComponent.setResource((Resource)resourceList.get(0));
-            } else {
-                java.util.Iterator iter = resourceList.iterator();
-                int x = dropLocation.x;
-                int y = dropLocation.y;
-                while (iter.hasNext()) {
-                    Resource resource = (Resource) iter.next();
-                    if (createAsChildren) {
-                        ((LWNode)hitComponent).addChild(createNewNode(resource, null));
-                    } else {
-                        createNewNode(resource, new java.awt.Point(x,y));
-                        x += 15;
-                        y += 15;
-                    }
-                    success = true;
-                }
-            }
-        } else if (droppedText != null) {
-            if (DEBUG.DND) System.out.println("\tHANDLING DROPPED TEXT");
-            // Attempt to make a URL of any string dropped -- if fails,
-            // just treat as regular pasted text.  todo: if newlines
-            // in middle of string, don't do this, or possibly attempt
-            // to split into list of multiple URL's (tho only if *every*
-            // line succeeds as a URL -- prob too hairy to bother)
-
-            String[] rows = droppedText.split("\n");
-            URL url = null;
-            String resourceTitle = null;
-
-            if (rows.length < 3) {
-                url = makeURL(rows[0]);
-                if (rows.length > 1) {
-                    // Current version of Mozilla (at least on Windows XP, as of 2004-02-22)
-                    // includes the HTML <title> as second row of text.
-                    resourceTitle = rows[1];
-                }
-            }
-
-            int width = -1;
-            int height = -1;
-
-            Map properties = new HashMap();
-
-            if (resourceTitle != null)
-                properties.put("title", resourceTitle);
-            
-            if (url != null && url.getQuery() != null && isLinkAction == false) {
-                // if this URL is from a common search engine, we can find
-                // the original source for the image instead of the search
-                // engine's context page for the image.
-                url = decodeSearchEngineLightBoxURL(url, properties);
-            }
-                
-            if (url != null) {
-                if (hitComponent != null) {
-                    if (createAsChildren) {
-                        //((LWNode)hitComponent).addChild(createNewNode(url.toString(), resourceTitle, dropLocation));
-                        ((LWNode)hitComponent).addChild(createNewNode(url.toString(), properties, dropLocation));
-                    } else {
-                        hitComponent.setResource(url.toString());
-                        // HACK: clean this up:  resource should load meta-data on CREATION.
-                        ((MapResource)hitComponent.getResource()).setTitleFromContentAsync(hitComponent);
-                    }
-                } else {
-                    // if action is LINK and this is an image, create a node, not the image,
-                    // otherwise LINK when not over a node does nothing special.
-                    createNewNode(url.toString(), properties, dropLocation);
-                    //createNewNode(url.toString(), resourceTitle, dropLocation);
-                }
-            } else {
-                // create a text node
-                createNewTextNode(droppedText, dropLocation);
-            }
-            success = true;
-        }
-
-        if (success)
-            viewer.getMap().getUndoManager().mark("Drop");
-
-        return success;
     }
 
 
@@ -656,19 +908,19 @@ class MapDropTarget
     {
         String url = null;
         try {
-            if (debug) System.out.println("*** Searching for URL in: " + file);
+            if (DEBUG.DND) System.out.println("*** Searching for URL in: " + file);
             FileInputStream is = new FileInputStream(file);
             byte[] buf = new byte[2048]; // if not in first 2048, don't bother
             int len = is.read(buf);
             is.close();
             String str = new String(buf, 0, len);
-            if (debug) System.out.println("*** size="+str.length() +"["+str+"]");
+            if (DEBUG.DND) System.out.println("*** size="+str.length() +"["+str+"]");
             Matcher m = URL_Line.matcher(str);
             if (m.lookingAt()) {
                 url = m.group(1);
                 if (url != null)
                     url = url.trim();
-                if (debug) System.out.println("*** FOUND URL ["+url+"]");
+                if (DEBUG.DND) System.out.println("*** FOUND URL ["+url+"]");
                 int i = url.indexOf("|/");
                 if (i > -1) {
                     // odd: have found "file:///D|/dir/file.html" example
@@ -703,20 +955,117 @@ class MapDropTarget
         return url;
     }
 
+    private Point2D.Float dropToMapLocation(Point p)
+    {
+        return dropToMapLocation(p.x, p.y);
+    }
+
+    private Point2D.Float dropToMapLocation(int x, int y)
+    {
+        return  mViewer.screenToMapPoint(x, y);
+    }
+
+
+    private String getResourceTitle(Resource resource)
+    {
+        //if (resource.getTitle() != null)
+        //return resource.getTitle();
+
+        if (resource instanceof MapResource) {
+            String title = ((MapResource)resource).getProperty("title");
+            if (title != null)
+                return title;
+        }
         
+        String spec = resource.getSpec();
+        String name = VueUtil.decodeURL(spec); // in case any %xx notations
+
+        int slashIdx = name.lastIndexOf('/');  //TODO: fileSeparator? test on PC
+
+        if (slashIdx == name.length() - 1) {
+            // last char is '/'
+            return name;
+        } else {
+            if (slashIdx > 0) {
+                name = name.substring(slashIdx+1);
+
+                // trim off extension if there is one
+                int dotIdx = name.lastIndexOf('.');
+                if (dotIdx > 0)
+                    name = name.substring(0, dotIdx);
+            }
+        }
+
+        if (DEBUG.DND) out("MADE TITLE[" + name + "]");
+
+        return name;
+    }
+
+
+    /**
+     * Given a collection of LWComponent's, center them as a groupp at the given map location.
+     */
+    public static void setCenterAt(Collection nodes, Point2D.Float mapLocation)
+    {
+        java.awt.geom.Rectangle2D.Float bounds = LWMap.getBounds(nodes.iterator());
+
+        float dx = mapLocation.x - (bounds.x + bounds.width/2);
+        float dy = mapLocation.y - (bounds.y + bounds.height/2);
+
+        translate(nodes, dx, dy);
+    }
+
+    /**
+     * Given a collection of LWComponent's, place the upper left hand corner of the group at the given location.
+     */
+    public static void setLocation(Collection nodes, Point2D.Float mapLocation)
+    {
+        java.awt.geom.Rectangle2D.Float bounds = LWMap.getBounds(nodes.iterator());
+
+        float dx = mapLocation.x - bounds.x;
+        float dy = mapLocation.y - bounds.y;
+
+        translate(nodes, dx, dy);
+    }
+
+    private static void translate(Collection nodes, float dx, float dy)
+    {
+        java.util.Iterator i = nodes.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            // If parent and some child both in selection and you drag (normally
+            // only the parent get's selected), the child will have it's
+            // location updated by the parent, so only set the location
+            // on the orphans.
+            if (c.getParent() == null)
+                c.translate(dx, dy);
+        }
+
+    }
+
+    private void out(String s) {
+        final String name;
+        if (mViewer.getMap() != null)
+            name = mViewer.getMap().getLabel();
+        else
+            name = mViewer.toString();
+        System.out.println("MapDropTarget(" + name + ") " + s);
+    }
+    
     
 
+    /*
     private String readTextFlavor(DataFlavor flavor, Transferable transfer)
     {
         java.io.Reader reader = null;
         String value = null;
         try {
             reader = flavor.getReaderForText(transfer);
-            if (debug) System.out.println("\treader=" + reader);
+            if (DEBUG.DND && DEBUG.META) System.out.println("\treader=" + reader);
             char buf[] = new char[512];
             int got = reader.read(buf);
             value = new String(buf, 0, got);
-            if (debug) System.out.println("\t[" + value + "]");
+            if (DEBUG.DND && DEBUG.META) System.out.println("\t[" + value + "]");
             if (reader.read() != -1)
                 System.out.println("there was more data in the reader");
         } catch (Exception e) {
@@ -724,148 +1073,15 @@ class MapDropTarget
         }
         return value;
     }
-
-    // todo?: change this to a resource-dropped event (w/location)
-    // then we don't even have to know about the map, or the MapViewer
-    // which for instance can do the zoom conversion of the drop location
-    // for us.
-    /**
-     * @param resourceSpec The simplest, raw string reference handed to us from the operating system as a name for the object
-     * @param resourceName A name for the new node that will contain the resource
-     */
-    // TODO: handle case of a dropped reference to a local HTML file, where we want to use
-    // the file name as the generated node name, and yet ALSO want to set the resourceTitle
-    // via an HTML scan of the file (if one can be found).
-
-    // HANDLES DROP OF A URL
-    
-    private LWComponent createNewNode(String resourceSpec, String resourceName, java.awt.Point p) {
-        Map map = new HashMap();
-        map.put("title", resourceName);
-        return createNewNode(resourceSpec, map, p);
-    }
         
-    private LWComponent createNewNode(String resourceSpec, Map properties, java.awt.Point p)
-    {
-        String resourceTitle = (String) properties.get("title");
-        MapResource resource = new MapResource(resourceSpec);
-
-        if (resourceTitle == null) {
-            resource.setTitleFromContent();
-            if (resource.getTitle() != null)
-                resourceTitle = resource.getTitle();
-            else
-                resourceTitle = createResourceTitle(resourceSpec);
-        } else {
-            String spec = resourceSpec.toLowerCase();
-            if (spec.endsWith(".html") || spec.endsWith(".htm")) {
-                // attempt to scan a local file
-                resource.setTitleFromContent();
-            }
-        }
-
-        if (DEBUG.DND) System.out.println("createNewNode " + resourceSpec + " " + properties + " " + p + " " + resourceTitle);
-        
-        final LWComponent node;
-        LWImage lwImage = null;
-
-        if (resource.isImage()) {
-            if (DEBUG.DND || DEBUG.IMAGE) System.out.println(resource + " IMAGE DROP ON " + viewer + " " + properties);
-            //node = new LWImage(resource, viewer.getMap().getUndoManager());
-            lwImage = new LWImage();
-            String ws = (String) properties.get("width");
-            String hs = (String) properties.get("height");
-            if (ws != null && hs != null) {
-                int w = Integer.parseInt(ws);
-                int h = Integer.parseInt(hs);
-                lwImage.setSize(w, h);
-            }
-            lwImage.setLabel(resourceTitle);
-            node = lwImage;
-        } else {
-            node = NodeTool.createNode(resourceTitle);
-            node.setResource(resource);
-        }
-
-        if (p != null) {
-            if (CenterNodesOnDrop)
-                node.setCenterAt(dropToMapLocation(p));
-            else
-                node.setLocation(dropToMapLocation(p));
-        }
-        
-        viewer.getMap().addLWC(node);
-
-        // maybe just set us to be the active map?
-        // In any case, do NOT set the selection to anything that is NOT from the active map.
-        // We don't currently detect this this illegal state, so you'll see a ghost selection
-        // on the active map of a component not in that map.
-        if (VUE.getActiveViewer() == this.viewer)
-            VUE.getSelection().setTo(node);
-
-        if (lwImage != null)
-            lwImage.setResource(resource, viewer.getMap().getUndoManager());
-
-        return node;
-    }
-
-    // HANDLES DROP OF EXISTING RESOURCE (from our own DR browser)
-    private LWNode createNewNode(Resource resource, java.awt.Point p)
-    {
-        String title;
-        if (resource.getTitle() != null)
-            title = resource.getTitle();
-        else
-            title = resource.getSpec();
-        LWNode node = NodeTool.createNode(title);
-        node.setResource(resource);
-        if (p != null) {
-            if (CenterNodesOnDrop)
-                node.setCenterAt(dropToMapLocation(p));
-            else
-                node.setLocation(dropToMapLocation(p));
-            viewer.getMap().addNode(node);            //set selection to node?
-        } // else: special case: no node location, so we're creating a child node -- don't add to map
-
-// test code
-if (MapResource.isImage(resource))
-    node.addChild(new LWImage(resource));
-        
-        return node;
-        
-    }
-    /*
-    private LWNode createNewNode(File file, Point p)
-    {
-        // TODO BUG: adding the file:/// here produces inconsistent results --
-        // that needs to be done in the Resource object!
-        return createNewNode("file://"+file.toString(), file.getName(), p);
-    }
-    */
-        
-
-    private void createNewTextNode(String text, java.awt.Point p)
-    {
-        LWNode node = NodeTool.createTextNode(text);
-        if (CenterNodesOnDrop)
-            node.setCenterAt(dropToMapLocation(p));
-        else
-            node.setLocation(dropToMapLocation(p));
-        viewer.getMap().addNode(node);
-    }
-
-    private void createNewNode(java.awt.Image image, java.awt.Point p)
+    private void XcreateNewNode(java.awt.Image image, Point2D where)
     {
         // todo: query the NodeTool for current node shape, etc.
         LWNode node = NodeTool.createNode();
-        if (CenterNodesOnDrop)
-            node.setCenterAt(dropToMapLocation(p));
-        else
-            node.setLocation(dropToMapLocation(p));
         node.setImage(image);
         node.setNotes(image.toString());
-        viewer.getMap().addNode(node);
-        //set selection to node?
+
+        addNodeToMap(node, where);
         
         /*
         String label = "[image]";
@@ -878,9 +1094,9 @@ if (MapResource.isImage(resource))
                 + "]";
             //System.out.println("BufferedImage: " + bi.getColorModel());
             // is null System.out.println("BufferedImage props: " + java.util.Arrays.asList(bi.getPropertyNames()));
-            }*/
+            }*
     }
-  /**  
+
     private void createNewNode(Asset asset, java.awt.Point p) {
         String resourceTitle = "Fedora Node";
         Resource resource =new Resource(resourceTitle);
@@ -895,39 +1111,16 @@ if (MapResource.isImage(resource))
         node.setResource(resource);
         viewer.getMap().addNode(node);
     }
-   */
-    private Point2D dropToMapLocation(java.awt.Point p)
-    {
-        return dropToMapLocation(p.x, p.y);
-    }
 
-    private Point2D dropToMapLocation(int x, int y)
-    {
-        Point2D p = viewer.screenToMapPoint(x, y);
-        //if (DEBUG.DND) System.out.println("drop location " + x + "," + y + " mapLoc=" + p);
-        return p;
-        /*
-        java.awt.Insets mapInsets = viewer.getInsets();
-        java.awt.Point mapLocation = viewer.getLocation();
-        System.out.println("viewer insets=" + mapInsets);
-        System.out.println("viewer location=" + mapLocation);
-        x -= mapLocation.x;
-        y -= mapLocation.y;
-        x -= mapInsets.left;
-        y -= mapInsets.top;
-        */
-    }
+    */
+
+    
 
 
-    private String createResourceTitle(String resourceName)
-    {
-        resourceName = VueUtil.decodeURL(resourceName); // in case any %xx notations
-        int i = resourceName.lastIndexOf('/');//TODO: fileSeparator? test on PC
-        if (i == resourceName.length() - 1)
-            return resourceName;
-        else
-            return i > 0 ? resourceName.substring(i+1) : resourceName;
-        // todo: go search the HTML for <title>
-    }
+    private static final String MIME_TYPE_MAC_URLN = "application/x-mac-ostype-75726c6e";
+    // 75726c6e="URLN" -- mac uses this type for a flavor containing the title of a web document
+    // this existed in 1.3, but apparently went away in 1.4.
+
+    
     
 }
