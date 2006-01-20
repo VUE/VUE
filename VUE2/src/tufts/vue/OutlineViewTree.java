@@ -16,13 +16,6 @@
  * -----------------------------------------------------------------------------
  */
 
-
-/*
- * OutlineViewTree.java
- *
- * Created on December 1, 2003, 1:07 AM
- */
-
 package tufts.vue;
 
 import java.awt.*;
@@ -45,14 +38,18 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 /**
- * @author  Daisuke Fujiwara
- * Todo: re-write this class with active map listener, and render right
- * from the node labels so all we have to do is repaint to refresh.
+ *
+ * A class that represents a tree structure which holds the outline view model
+ *   
+ * Todo: render right from the node labels so all we have to do is repaint to refresh.
  * (still need to modify tree for hierarchy changes tho).
+ *
+ * @version $Revision: 1.42 $ / $Date: 2006-01-20 19:59:46 $ / $Author: sfraize $
+ * @author  Daisuke Fujiwara
  */
 
-/**A class that represents a tree structure which holds the outline view model*/
-public class OutlineViewTree extends JTree implements LWComponent.Listener, LWSelection.Listener
+public class OutlineViewTree extends JTree
+    implements LWComponent.Listener, LWSelection.Listener, VUE.ActiveMapListener
 {
     private boolean selectionFromVUE = false;
     private boolean valueChangedState = false;
@@ -136,6 +133,11 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, LWSe
     {
         this(); 
         switchContainer(container);
+    }
+    
+    /** interface VUE.ActiveMapListener */
+    public void activeMapChanged(LWMap map) {
+        switchContainer(map);
     }
     
     /**A method which switches the displayed container*/
