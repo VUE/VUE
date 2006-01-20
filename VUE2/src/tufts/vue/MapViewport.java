@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.GUI;
+
 import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.JViewport;
@@ -28,23 +30,23 @@ import javax.swing.JViewport;
  * This would be better as a static inner class in MapViewer.java, but
  * it's here just to keep the code better organized.
  *
- * The viewport code is complicated to deal with the fact that
- * we operate on an infinite canvas and need to guess
- * at something reasonable to do in a bunch of different cases,
- * and because JScrollPane's/JViewport weren't designed
- * to handle components that may grow up/left as opposed
- * to just down/right.
+ * The viewport code is complicated to deal with the fact that we
+ * operate on an infinite canvas and need to guess at something
+ * reasonable to do in a bunch of different cases, and because
+ * JScrollPane's/JViewport weren't designed to handle components that
+ * may grow up/left as opposed to just down/right.
  *
  * In JViewport, The EXTENT is the physical, visible JPanel, through which
  * the contents of the VIEW (the MapViewer) are scrolled.  Here, we
  * call the view the CANVAS.
  *
+ * @version $Revision: 1.18 $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $
  */
 
-class MapViewport extends JViewport
+public class MapViewport extends JViewport
     implements VueConstants
 {
-    private final MapViewer viewer;
+    private MapViewer viewer;
 
     private Rectangle2D lastMapBounds = new Rectangle2D.Float();
     private Dimension lastCanvas = new Dimension();
@@ -52,7 +54,14 @@ class MapViewport extends JViewport
     
 
     public MapViewport(MapViewer viewer) {
-        setView(this.viewer = viewer);
+        setView(viewer);
+    }
+
+    public MapViewport() {}
+
+    public void setView(Component c) {
+        viewer = (MapViewer) c;
+        super.setView(c);
     }
 
     private LWMap getMap() {
