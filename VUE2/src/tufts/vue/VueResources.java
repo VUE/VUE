@@ -28,13 +28,13 @@ import java.net.URL;
 import java.io.File;
 
 /**
- * VueResources Class
- *
  * This class provides a central access method to get a variety of
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- **/
+ * @version $Revision: 1.36 $ / $Date: 2006-01-20 20:27:11 $ / $Author: sfraize $
+ *
+ */
 public class VueResources
 {
     /** Resource Bundle **/
@@ -45,6 +45,8 @@ public class VueResources
     protected static Map Cache = new HashMap();
 
     static {
+
+        if (DEBUG.INIT) tufts.Util.printStackTrace("VueResources; FYI: static init block");
 
         String featureSet = null;
         String classPath = null;
@@ -88,8 +90,9 @@ public class VueResources
         //System.out.println("DEFAULT LOCALE: " + Locale.getDefault());
         //System.out.println("RESOURCE BUNDLE: " + sResourceBundle + " locale: " + sResourceBundle.getLocale());
 
-        dumpResource("resources.vue");
-        dumpResource("resources.narravision");
+        // note: as we're in a static block, will only see this if DEBUG.INIT set to true in DEBUG.java
+        if (DEBUG.INIT) dumpResource("resources.vue");
+        if (DEBUG.INIT) dumpResource("resources.narravision");
         //dumpResource("application.name");
         //dumpResource("application.title");
 
@@ -121,6 +124,7 @@ public class VueResources
      *  @returns ImageIcon referenced by the resource bundle's lookupkey balue
      **/
     public static ImageIcon getImageIcon(String key)  {
+        if (DEBUG.INIT && DEBUG.META) tufts.Util.printStackTrace("getImageIcon " + key); 
         if (Cache.containsKey(key))
             return (ImageIcon) Cache.get(key);
 
@@ -130,6 +134,16 @@ public class VueResources
             icon = loadImageIcon(str);
         Cache.put(key, icon);
         return icon;
+    }
+    
+    public static Image getImage(String key)  {
+        ImageIcon icon = getImageIcon(key);
+        if (icon != null)
+            return icon.getImage();
+        else {
+            alert("warning: didn't find Image resource with key [" + key + "]");
+            return null;
+        }
     }
     
     /** @return an image icon loaded from the given resource path */
@@ -156,15 +170,17 @@ public class VueResources
             URL resource = sResourceBundle.getClass().getResource(file); //  new URL(  urlStr );
             //if (DEBUG.INIT) System.out.println("\tURL[" + resource + "]");
             if (resource != null) {
-                icon = new ImageIcon( resource);
+                icon = new ImageIcon(resource);
                 if (icon.getImageLoadStatus() != MediaTracker.COMPLETE)
                     alert("Unable to load image resource " + file +"; URL = '" + resource + "'");
+            } else {
+                alert("loadImageIcon; failed to find any resource at: " + file);
             }
         } catch (Exception e) {
             System.err.println(e);
-            alert("  !!! failed to load image icon: " + e);
+            alert("failed to load image icon: " + e);
         }
-        if (DEBUG.INIT) System.out.println("\tloadImageIcon[" + file + "] = " + icon);
+        if (DEBUG.INIT && DEBUG.META) System.out.println("\tloadImageIcon[" + file + "] = " + icon);
         return icon;
     }
 
@@ -237,7 +253,7 @@ public class VueResources
         try {
             //url =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")).toURL();
             url = sResourceBundle.getClass().getResource(getString(pLookupKey));
-            if (DEBUG.INIT) System.out.println("URL found for lookup key <" + pLookupKey + "> : " + url);
+            if (DEBUG.INIT) alert("URL for key <" + pLookupKey + "> is [" + url + "]");
         } catch (Exception e) {
             alert("  !!! failed to lead due to "+ e.toString() );    
         }    
@@ -298,9 +314,13 @@ public class VueResources
         try {
             result = sResourceBundle.getString(pLookupKey);
         } catch (MissingResourceException mre) {
-            alert("!!! Warning: Missing string resource "+pLookupKey );
+            // FYI: we get tons of failures that are perfectly okay.
+            //if (DEBUG.INIT) alert("warning: didn't find String resource with key [" + pLookupKey + "]");
         }
-        if (DEBUG.INIT) System.out.println("VueResources[" + pLookupKey + "] = " + (result==null?"null":"\"" + result + "\""));
+        if (DEBUG.INIT) {
+            if (DEBUG.META || result != null)
+                System.out.println("VueResources[" + pLookupKey + "] = " + (result==null?"null":"\"" + result + "\""));
+        }
         return result;
     }
 	
@@ -595,8 +615,8 @@ public class VueResources
 
 
     static protected void alert( String pMsg) {
-        if( (sDebug)  || ( get("alerts") != null) )
-            System.out.println(pMsg);
+        if( DEBUG.Enabled || sDebug || ( get("alerts") != null) )
+            System.out.println("VueResources: " + pMsg);
     }
 	
 
@@ -616,7 +636,7 @@ public class VueResources
 		
         if( font != null)
             pObj.setFont(font);
-        if (background != null && !VueUtil.isMacAquaLookAndFeel())
+        if (background != null && !tufts.vue.gui.GUI.isMacAqua())
             pObj.setBackground(background);
 
         if (pObj instanceof JTabbedPane)
