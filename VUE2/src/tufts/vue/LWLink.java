@@ -33,8 +33,6 @@ import java.awt.geom.PathIterator;
 import javax.swing.JTextArea;
 
 /**
- * LWLink.java
- *
  * Draws a view of a Link on a java.awt.Graphics2D context,
  * and offers code for user interaction.
  *
@@ -44,11 +42,10 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version 6/1/03
+ * @version $Revision: 1.104 $ / $Date: 2006-01-20 19:17:02 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
-    implements Link,
-               LWSelection.ControlListener
+    implements LWSelection.ControlListener
 {
     public final static Font DEFAULT_FONT = VueResources.getFont("link.font");
     public final static Color DEFAULT_LABEL_COLOR = java.awt.Color.darkGray;
@@ -123,6 +120,7 @@ public class LWLink extends LWComponent
         computeLinkEndpoints();
     }
 
+    // actually will probably NOT want to subclass Key this way: needless layers
     static abstract class LinkKey extends Key {
         public LinkKey(String name) {
             super(name);
@@ -153,30 +151,22 @@ public class LWLink extends LWComponent
      */
     public Object getPropertyValue(Object key)
     {
-        // if we create key objects, get/set property value methods
-        // could all be reduced to a single one in LWComponent,
-        // that calls Key.getValue(component) -- well, almost
-        // would still need to cast down, so every new class
-        // would still have get/set prop value, but it just
-        // does a cast.  The key classes would share a superclass,
-        // but be declared locally, and made public if desired,
-        // and then when referenced globally, would appear as:
-        // LWLink.Key_Arrows.  Or, if maintated as a group,
-        // LWLink.Keys.Arrows.
-        // May still want some global keys: hierachy changing?
-        // Well, I suppose thouse could be LWContainer events...
+        // if we create key objects, get/set property value methods could all be reduced
+        // to a single one in LWComponent, that calls Key.getValue(component) -- well,
+        // almost would still need to cast down, so every new class would still have
+        // get/set prop value, but it just does a cast.  The key classes would share a
+        // superclass, but be declared locally, and made public if desired, and then
+        // when referenced globally, would appear as: LWLink.Key_Arrows.  Or, if
+        // maintated as a group, LWLink.Keys.Arrows.  May still want some global keys:
+        // hierachy changing?  Well, I suppose thouse could be LWContainer events...
 
-        // so a key is a way of linking a setter/getter to
-        // a name, with the new option of adding properties
-        // on the key.  Also, it can include value interpolators
-        // for animations.  We'll really need to have the prop
-        // key handling the interpolators because if we just
-        // do it by type, we'll try and interpolate, sa
-        // the Integer value for arrow state, which is
-        // really a discrete 3 state value.  Altho, 
-        // it would be handly for the Key superclass to
-        // have a bunch of built-in type interpolaters that
-        // anyone could use.
+        // so a key is a way of linking a setter/getter to a name, with the new option
+        // of adding properties on the key.  Also, it can include value interpolators
+        // for animations.  We'll really need to have the prop key handling the
+        // interpolators because if we just do it by type, we'll try and interpolate, sa
+        // the Integer value for arrow state, which is really a discrete 3 state value.
+        // Altho, it would be handly for the Key superclass to have a bunch of built-in
+        // type interpolaters that anyone could use.
         
              if (key == LWKey.LinkArrows)       return new Integer(getArrowState());
         else if (key == LWKey.LinkCurves)       return new Integer(getControlCount());
@@ -666,8 +656,6 @@ public class LWLink extends LWComponent
     /* TODO FIX: not everybody is going to be okay with these returning null... */
     public LWComponent getComponent1() { return ep1; }
     public LWComponent getComponent2() { return ep2; }
-    public MapItem getItem1() { return ep1; }
-    public MapItem getItem2() { return ep2; }
 
     void disconnectFrom(LWComponent c)
     {
@@ -1223,7 +1211,7 @@ public class LWLink extends LWComponent
         */
         final Graphics2D g = dc.g;
         
-        if (isSelected() && !dc.isPrinting()) {
+        if (isSelected() && dc.isInteractive()) {
             g.setColor(COLOR_HIGHLIGHT);
             g.setStroke(new BasicStroke(stroke.getLineWidth() + 5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));//todo:config
             g.draw(getShape());
@@ -1261,7 +1249,7 @@ public class LWLink extends LWComponent
         //-------------------------------------------------------
 
         /*
-        if (isIndicated() && !dc.isPrinting())
+        if (isIndicated() && dc.isInteractive())
             g.setColor(COLOR_INDICATION);
         //else if (isSelected())
         //  g.setColor(COLOR_SELECTION);
@@ -1281,7 +1269,7 @@ public class LWLink extends LWComponent
 
             g.draw(this.curve);
 
-            if (!dc.isPrinting() && (isSelected() || DEBUG.BOXES)) {
+            if (dc.isInteractive() && (isSelected() || DEBUG.BOXES)) {
                 //-------------------------------------------------------
                 // draw faint lines to control points if selected
                 // TODO: need to do this at time we paint the selection,
@@ -1325,7 +1313,7 @@ public class LWLink extends LWComponent
         
         boolean ep1group = getComponent1() instanceof LWGroup;
         boolean ep2group = getComponent2() instanceof LWGroup;
-        if ((ep1group || ep2group) && !dc.isPrinting() || DEBUG.BOXES) {
+        if ((ep1group || ep2group) && dc.isInteractive() || DEBUG.BOXES) {
             float size = 8;
             if (dc.zoom < 1)
                 size /= dc.zoom;
@@ -1366,7 +1354,20 @@ public class LWLink extends LWComponent
         if (dc.isDraftQuality() || DEBUG.BOXES) {
             fillColor = null;
         } else {
-            if (dc.isPrinting() || !isSelected())
+            if (dc.isInteractive()) {
+                // set a background fill paint
+                if (isSelected())
+                    fillColor = COLOR_HIGHLIGHT;
+                else if (getParent() != null)
+                    fillColor = getParent().getFillColor();
+                else
+                    fillColor = null;
+            } else {
+                fillColor = null;
+            }
+            
+            /*
+            if (!dc.isInteractive() || !isSelected())
                 fillColor = null;
               //fillColor = getFillColor();
             else
@@ -1374,6 +1375,7 @@ public class LWLink extends LWComponent
             if (fillColor == null && getParent() != null)
                 fillColor = getParent().getFillColor();
             //fillColor = ContrastFillColor;
+            */
         }
         
         if (hasLabel()) {
@@ -1398,7 +1400,7 @@ public class LWLink extends LWComponent
                 // todo perf: only set opaque-bit/background once/when it changes.
                 // (probably put a textbox factory on LWComponent and override in LWLink)
 
-                if (fillColor == null) {
+                if (fillColor == null || !dc.isInteractive()) {
                     textBox.setOpaque(false);
                 } else {
                     textBox.setBackground(fillColor);
@@ -1522,7 +1524,7 @@ public class LWLink extends LWComponent
         }
         */            
 
-        
+
         float totalHeight = 0;
         float totalWidth = 0;
 
@@ -1530,13 +1532,15 @@ public class LWLink extends LWComponent
         
         // Always call LWIcon.Block.layout first to have it compute size/determine if showing
         // before asking it if isShowing()
+
+        TextBox textBox;
         
         boolean vertical = false;
         if (hasLabel() && !putBelow) {
             // Check to see if we want to make it vertical
             mIconBlock.setOrientation(LWIcon.Block.VERTICAL);
             mIconBlock.layout();
-            vertical = (labelBox.getMapHeight() >= mIconBlock.getHeight());
+            vertical = (getLabelBox().getMapHeight() >= mIconBlock.getHeight());
             if (!vertical) {
                 mIconBlock.setOrientation(LWIcon.Block.HORIZONTAL);
                 mIconBlock.layout();
@@ -1557,9 +1561,10 @@ public class LWLink extends LWComponent
         float lx = 0;
         float ly = 0;
         if (hasLabel()) {
+            getLabelBox(); // make sure labelBox is set
             // since links don't have a sensible "location" in terms of an
             // upper left hand corner, the textbox needs to have an absolute
-            // map location we can check later for hits 
+            // map location we can check later for hits
             totalWidth += labelBox.getMapWidth();
             totalHeight += labelBox.getMapHeight();
             if (putBelow) {
@@ -1639,10 +1644,10 @@ public class LWLink extends LWComponent
 
     /** Create a duplicate LWLink.  The new link will
      * not be connected to any endpoints */
-    public LWComponent duplicate()
+    public LWComponent duplicate(LinkPatcher linkPatcher)
     {
         //todo: make sure we've got everything (styles, etc)
-        LWLink link = (LWLink) super.duplicate();
+        LWLink link = (LWLink) super.duplicate(linkPatcher);
         link.startX = startX;
         link.startY = startY;
         link.endX = endX;
@@ -1668,6 +1673,9 @@ public class LWLink extends LWComponent
             s += " cc1"; // quadratic
         else if (getControlCount() == 2)
             s += " cc2"; // cubic
+
+        //s += "\n\t" + ep1 + "\n\t" + ep2;
+        
         return s;
     }
 
