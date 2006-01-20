@@ -14,7 +14,7 @@ import java.awt.*;
 
 /**
  * Mac OSX Test Code
- * @version $Revision: 1.2 $ / $Date: 2006-01-07 15:42:02 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-01-20 20:45:47 $ / $Author: sfraize $
  */
 public class MacTest extends MacOSX
 {
@@ -22,8 +22,11 @@ public class MacTest extends MacOSX
 
         MacOSX.DEBUG = true;
 
-        test_fadeScreen();
+        tufts.vue.gui.GUI.init();
+
+        //test_fadeScreen();
         //test_colorPicker(args);
+        test_macPanel(args);
     }
     
     static void test_colorPicker(String args[])
@@ -175,9 +178,11 @@ public class MacTest extends MacOSX
 
         public Panel awtPanel;
         private Window awtWindow;
+
+        private static int cnt = 0;
         
         MacPanel(boolean textured) {
-            super(new NSRect(100,100, 200,100),
+            super(new NSRect(100*cnt,100*cnt, 200,100),
                   NSWindow.TitledWindowMask +
                   NSWindow.ClosableWindowMask +
                   //NSWindow.MiniaturizableWindowMask + // apparently not allowed w/UtilityWindows
@@ -188,6 +193,8 @@ public class MacTest extends MacOSX
                   0,
                   NSWindow.Buffered,
                   true);
+
+            cnt++;
             
             NSButton close = standardWindowButton(NSWindow.CloseButton);
             NSButton iconify = standardWindowButton(NSWindow.MiniaturizeButton);
@@ -209,17 +216,32 @@ public class MacTest extends MacOSX
                 }
                 return;
             }
+
+            setBackgroundColor(NSColor.brownColor().colorWithAlphaComponent(0.5f));
+            //setAlphaValue(0.5f);
+            setOpaque(false);
             
             //System.out.println("got button " + b + " w/image " + b.image());
             setIgnoresMouseEvents(false);
             setAcceptsMouseMovedEvents(true);
             awtWindow = tufts.vue.gui.DockWindow.getTestWindow();
             NSWindow awtNS = getWindow(awtWindow);
-            awtNS.setHasShadow(false);
-            //awtNS.setPreservesContentDuringLiveResize(true); // does nothing for AWT
-            //awtNS.setAlphaValue(0.5f);
-            //awtNS.setBackgroundColor(NSColor.brownColor().colorWithAlphaComponent(0.5f));
-            addChildWindow(awtNS, NSWindow.Above);
+
+            awtNS.setOpaque(false);
+            awtNS.setBackgroundColor(NSColor.whiteColor().colorWithAlphaComponent(0.02f));
+            //awtNS.setBackgroundColor(NSColor.brownColor().colorWithAlphaComponent(0.0f));
+
+
+            if (true) {
+                awtWindow = null; // detach from the movement stuff
+                awtNS.setHasShadow(true);
+                awtNS.setLevel(NSWindow.ScreenSaverWindowLevel);
+            } else {
+                //awtNS.setPreservesContentDuringLiveResize(true); // does nothing for AWT
+                //awtNS.setAlphaValue(0.5f);
+                awtNS.setHasShadow(false);
+                addChildWindow(awtNS, NSWindow.Above);
+            }
 
 
         }
@@ -282,10 +304,13 @@ public class MacTest extends MacOSX
         }
     }
 
-    public static void X_main(String args[])
+    public static void test_macPanel(String args[])
     {
         NoticeListener.test();
         System.out.println("MacTest - Cocoa application & foundation classes");
+
+        tufts.vue.DEBUG.DOCK = true;
+        tufts.vue.DEBUG.BOXES = true;
 
         /*
         javax.swing.JFrame frame = new javax.swing.JFrame("Swing Frame");
