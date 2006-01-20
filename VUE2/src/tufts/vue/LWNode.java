@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import tufts.Util;
 import tufts.vue.shape.RectangularPoly2D;
                        
 import java.util.Iterator;
@@ -27,8 +28,12 @@ import javax.swing.ImageIcon;
 
 /**
  *
- * This is the core graphical object in VUE.
+ * This is the core graphical object in VUE.  It maintains a {@link java.awt.geom.RectangularShape}
+ * to be painted, and {@link LWIcon.Block} for rollovers.
  *
+ * The layout mechanism is frighteningly convoluted.
+ *
+ * @version $Revision: 1.120 $ / $Date: 2006-01-20 19:20:09 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -36,8 +41,42 @@ import javax.swing.ImageIcon;
 // features (multiple columns).
 // todo: "text" nodes are currently a total hack
 
+/*
+
+Okay, this issue with getting rid of auto-sized is this:
+1 - it simplifies alot and gets rid of a bunch of annoying code
+2 - we have to give up the feature of always shrinking if was already at min size,
+    tho really, we could still do this if it's just one line and already at the min
+    size, so this actually isn't an issue.
+3 - the BIGGEST issue is that if you switch platforms and the font isn't exactly
+    right, the node size won't be right anymore, so we can expand it to bigger
+    if it's bigger, and if it's smaller, we'll just have to be out of luck and
+    it won't fit anymore.  ALTHOUGH, we COULD save the TEXT size, and if it's
+    DIFFERENT on restore, tweak the node by exactly that much, and we should then
+    still be perfect, eh?
+
+4 - and the big benefit in all this is we get multi-line text.  The width
+    dimension rules: height is always adjusted, if say, the font gets
+    bigger (and do we adjust smaller if it gets smaller?)
+
+
+    Okay, maybe we KEEP auto-sized: lots of stuff can change the
+    size of a node (adding/removing children, icons appear/dissapear),
+    unlike OmniGraffle.   Maybe we even have an autoHeight & autoWidth.
+
+    So now we just need to detect older nodes that won't have a text size
+    encoded.  So if there's no text size encoded, I guess it's an older
+    node :)  In that case, we size the text-box to it's preferred
+    width, as opposed to it's minimum width, and fit the node to that
+    (if it's autosized).  If it's not auto-sized ... (what?)
+
+
+*/
+
 public class LWNode extends LWContainer
 {
+    final static boolean WrapText = false; // under development
+    
     public static final Font  DEFAULT_NODE_FONT = VueResources.getFont("node.font");
     public static final Color DEFAULT_NODE_FILL = VueResources.getColor("node.fillColor");
     public static final int   DEFAULT_NODE_STROKE_WIDTH = VueResources.getInt("node.strokeWidth");
@@ -59,8 +98,9 @@ public class LWNode extends LWContainer
     //-----------------------------------------------------------------------------
     // consider moving all the below stuff into a layout object
 
-    private transient Line2D dividerUnderline = new Line2D.Float();
-    private transient Line2D dividerStub = new Line2D.Float();
+    //private transient Line2D dividerUnderline = new Line2D.Float();
+    //private transient Line2D dividerStub = new Line2D.Float();
+    private transient float mBoxedLayoutChildY;
 
     private transient boolean mIsRectShape = true;
     //private transient boolean mIsTextNode = false; // todo: are we saving this in XML???
@@ -69,6 +109,7 @@ public class LWNode extends LWContainer
     private transient Point2D.Float mLabelPos = new Point2D.Float(); // for use with irregular node shapes
     private transient Point2D.Float mChildPos = new Point2D.Float(); // for use with irregular node shapes
 
+    private transient Size mMinSize;
 
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -77,8 +118,8 @@ public class LWNode extends LWContainer
                          LWIcon.Block.VERTICAL,
                          LWIcon.Block.COORDINATES_COMPONENT);
 
-    private transient Point2D.Float mLabel = new Point2D.Float();
     
+
     public LWNode(String label)
     {
         this(label, 0, 0);
@@ -103,9 +144,13 @@ public class LWNode extends LWContainer
         setStrokeColor(DEFAULT_NODE_STROKE_COLOR);
         setLocation(x, y);
         //if (getAbsoluteWidth() < 10 || getAbsoluteHeight() < 10)
-        setSize(10,10);
+        //setSize(MIN_SIZE,MIN_SIZE);
+        this.width = NEEDS_DEFAULT;
+        this.height = NEEDS_DEFAULT;
+        //this.font = DEFAULT_NODE_FONT;
+        setFont(DEFAULT_NODE_FONT); // shouldn't need to do this, but label not getting created in setLabel?
+        //getLabelBox(); // shoudn't need to do this either: first attempt at labelbox should get it! (not working either!)
         setLabel(label);
-        setFont(DEFAULT_NODE_FONT);
     }
     
     /** internal convenience */
@@ -143,9 +188,9 @@ public class LWNode extends LWContainer
 
     /** Duplicate this node.
      * @return the new node -- will be an exact copy, except for any pathway state from the source node */
-    public LWComponent duplicate()
+    public LWComponent duplicate(LinkPatcher linkPatcher)
     {
-        LWNode newNode = (LWNode) super.duplicate();
+        LWNode newNode = (LWNode) super.duplicate(linkPatcher);
         // TODO: do this as a class and we don't have to keep handling the newInstance everywhere we setNodeShape
         if (getShape() != null)
             newNode._applyShape(getShape());
@@ -268,7 +313,10 @@ public class LWNode extends LWContainer
     
     /** If true, compute node size from label & children */
     public boolean isAutoSized() {
-        return this.autoSized;
+        if (WrapText)
+            return false; // LAYOUT-NEW
+        else
+            return this.autoSized;
     }
 
     /**
@@ -286,9 +334,11 @@ public class LWNode extends LWContainer
     
     public void setAutoSized(boolean makeAutoSized)
     {
+        if (WrapText) return; // LAYOUT-NEW
+        
         if (autoSized == makeAutoSized)
             return;
-        if (DEBUG.LAYOUT) out("*** " + this + " setAutoSized " + makeAutoSized);
+        if (DEBUG.LAYOUT) out("*** setAutoSized " + makeAutoSized);
 
         // We only need an undo event if going from not-autosized to
         // autosized: i.e.: it wasn't an automatic shift triggered via
@@ -321,7 +371,7 @@ public class LWNode extends LWContainer
             return;
         if (autoSized == tv)
             return;
-        if (DEBUG.LAYOUT) out("*** " + this + " setAutomaticAutoSized " + tv);
+        if (DEBUG.LAYOUT) out("*** setAutomaticAutoSized " + tv);
         this.autoSized = tv;
     }
     
@@ -345,7 +395,10 @@ public class LWNode extends LWContainer
     /** Clone the given shape and call setShape.
      * @param shape - an instance of RectangularShape */
     private void _applyShape(Object shape) {
-        setShape((RectangularShape)((RectangularShape)shape).clone());
+        setShape(cloneShape(shape));
+    }
+    private static RectangularShape cloneShape(Object shape) {
+        return (RectangularShape) ((RectangularShape)shape).clone();
     }
 
     /**
@@ -368,7 +421,7 @@ public class LWNode extends LWContainer
         Object old = this.boundsShape;
         this.mIsRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
         this.boundsShape = shape;
-        this.drawnShape = (RectangularShape) shape.clone();
+        this.drawnShape = cloneShape(shape);
         adjustDrawnShape();
         layout();
         notify(LWKey.Shape, new Undoable(old) { void undo() { setShape((RectangularShape)old); }} );
@@ -458,6 +511,8 @@ public class LWNode extends LWContainer
 
     public void addChildren(Iterator i)
     {
+        // todo: should be able to do this generically
+        // in LWContainer and not have to override this here.
         super.addChildren(i);
         setScale(getScale()); // make sure children get shrunk
         layout();
@@ -465,17 +520,17 @@ public class LWNode extends LWContainer
 
     public void setSize(float w, float h)
     {
-        if (DEBUG.LAYOUT) out("*** " + this + " setSize         " + w + "x" + h);
-        if (isAutoSized() && (w > this.width || h > this.height))
+        if (DEBUG.LAYOUT) out("*** setSize         " + w + "x" + h);
+        if (isAutoSized() && (w > this.width || h > this.height)) // does this handle scaling?
             setAutomaticAutoSized(false);
-        // todo: FIRST, get size from layout, then if it changes, actually set the size!
-        setSizeNoLayout(w, h);
-        layout();
+        layout(LWKey.Size,
+               new Size(getWidth(), getHeight()),
+               new Size(w, h));
     }
 
     private void setSizeNoLayout(float w, float h)
     {
-        if (DEBUG.LAYOUT) out("*** " + this + " setSizeNoLayout " + w + "x" + h);
+        if (DEBUG.LAYOUT) out("*** setSizeNoLayout " + w + "x" + h);
         super.setSize(w, h);
         this.boundsShape.setFrame(getX(), getY(), getWidth(), getHeight());
         adjustDrawnShape();
@@ -488,7 +543,13 @@ public class LWNode extends LWContainer
     }
     
     void setScaleOnChild(float scale, LWComponent c) {
+        if (DEBUG.LAYOUT) out("setScaleOnChild " + scale + "*" + ChildScale + " " + c);
         c.setScale(scale * ChildScale);
+        //c.setScale(scale * mChildScale);
+    }
+
+    public Size getMinimumSize() {
+        return mMinSize;
     }
     
     private void adjustDrawnShape()
@@ -496,7 +557,7 @@ public class LWNode extends LWContainer
         // This was to shrink the drawn shape size by border width
         // so it fits entirely inside the bounds shape, tho
         // we're not making use of that right now.
-        if (DEBUG.LAYOUT) out("*** " + this + " adjstDrawnShape " + getAbsoluteWidth() + "x" + getAbsoluteHeight());
+        if (DEBUG.LAYOUT) out("*** adjstDrawnShape " + getAbsoluteWidth() + "x" + getAbsoluteHeight());
         //System.out.println("boundsShape.bounds: " + boundsShape.getBounds());
         //System.out.println("drawnShape.setFrame " + x + "," + y + " " + w + "x" + h);
         this.drawnShape.setFrame(0, 0, getAbsoluteWidth(), getAbsoluteHeight());
@@ -507,7 +568,7 @@ public class LWNode extends LWContainer
         //System.out.println("setLocation " + this);
         super.setLocation(x, y);
         this.boundsShape.setFrame(x, y, getWidth(), getHeight());
-        adjustDrawnShape();
+        //adjustDrawnShape(); // if width or height isn't changing, shouldn't need this...
 
         // Must lay-out children seperately from layout() -- if we
         // just call layout here we'll recurse when setting the
@@ -519,14 +580,35 @@ public class LWNode extends LWContainer
     
     private boolean inLayout = false;
     private boolean isCenterLayout = false;// todo: get rid of this and use mChildPos, etc for boxed layout also
-    protected void layout()
+
+    protected void layout(Object triggerKey) {
+        //layout(triggerKey, null, new Size(getWidth(), getHeight()));
+        if (mXMLRestoreUnderway == false)
+            layout(triggerKey, new Size(getWidth(), getHeight()), null);
+    }
+
+    /**
+     * @param triggerKey - the property change that triggered this layout
+     * @param curSize - the current size of the node
+     * @param request - the requested new size of the node
+     */
+    protected void layout(Object triggerKey, Size curSize, Size request)
     {
         if (inLayout) {
             new Throwable("ALREADY IN LAYOUT " + this).printStackTrace();
             return;
         }
         inLayout = true;
-        if (DEBUG.LAYOUT) out("*** " + this + " LAYOUT");
+        if (DEBUG.LAYOUT) {
+            String msg = "*** LAYOUT, src="+triggerKey
+                + " cur=" + curSize
+                + " request=" + request
+                + " isAutoSized=" + isAutoSized();
+            if (true)
+                Util.printClassTrace("tufts.vue.LW", msg + " " + this);
+            else
+                out(msg);
+        }
 
         mIconBlock.layout(); // in order to compute the size & determine if anything showing
 
@@ -545,51 +627,71 @@ public class LWNode extends LWContainer
         // out here, during which we will revert the node size to the
         // it's minimum size if bigger than the requested size.
         
-        Size request = new Size(getWidth(), getHeight());
-        Size min;
-        
+        //-------------------------------------------------------
+        // If we're a rectangle (rect or round rect) we use
+        // layoutBoxed, if anything else, we use layoutCeneter
+        //-------------------------------------------------------
+
+        final Size min;
+
         if (mIsRectShape) {
             isCenterLayout = false;
-            min = layout_boxed();
+            min = layoutBoxed(request, curSize, triggerKey);
+            if (request == null)
+                request = curSize;
         } else {
             isCenterLayout = true;
-            min = layout_centered();
+            if (request == null)
+                request = curSize;
+            min = layoutCentered(request);
         }
 
-        if (DEBUG.LAYOUT) out("*** " + this + " computed=" + min);
+        mMinSize = new Size(min);
+
+        if (DEBUG.LAYOUT) out("*** layout computed minimum=" + min);
 
         // If the size gets set to less than or equal to
         // minimize size, lock back into auto-sizing.
         if (request.height <= min.height && request.width <= min.width)
             setAutomaticAutoSized(true);
         
-        if (!isAutoSized()) {
+        final float newWidth;
+        final float newHeight;
+
+        if (isAutoSized()) {
+            newWidth = min.width;
+            newHeight = min.height;
+        } else {
             // we always compute the minimum size, and
             // never let us get smaller than that -- so
             // only use given size if bigger than min size.
-            if (min.height < request.height)
-                min.height = request.height;
-            if (min.width < request.width)
-                min.width = request.width;
+            if (request.width > min.width)
+                newWidth = request.width;
+            else
+                newWidth = min.width;
+            if (request.height > min.height)
+                newHeight = request.height;
+            else
+                newHeight = min.height;
         }
 
-        setSizeNoLayout(min.width, min.height);
+        setSizeNoLayout(newWidth, newHeight);
 
-        if (mIsRectShape) {
-            // todo: cleaner move this to layout_boxed, and have layout methods handle
+        if (isCenterLayout == false) {
+            // layout label last in case size is bigger than min and label is centered
+            layoutBoxed_label();
+
+            // ??? todo: cleaner move this to layoutBoxed, and have layout methods handle
             // the auto-size check (min gets set to request if request is bigger), as
             // layout_centered has to compute that now anyway.
-            mIconDivider.setLine(IconMargin, MarginLinePadY, IconMargin, min.height-MarginLinePadY);
-        } else {
-            // No longer need to clip: can just use content height!
-            //if (iconShowing())
-            //    VueUtil.clipToYCrossings(mIconDivider, drawnShape, MarginLinePadY);
+            mIconDivider.setLine(IconMargin, MarginLinePadY, IconMargin, newHeight-MarginLinePadY);
+            // mIconDivider set by layoutCentered in the other case
         }
 
     
-        if (getParent() != null && !(getParent() instanceof LWMap)) {
-            //if (getParent() != null && (givenWidth != getWidth() || givenHeight != getHeight())) {
-            getParent().layout();
+        if (this.parent != null && this.parent instanceof LWMap == false) {
+            // todo: should only need to do if size changed
+            this.parent.layout();
         }
         
         inLayout = false;
@@ -599,18 +701,36 @@ public class LWNode extends LWContainer
      * on the width given sometime java bugs in computing the accurate length of a
      * a string in a variable width font. */
     private Size getTextSize() {
-        // getSize somtimes a bit bigger thatn preferred size & more accurate
-        // This is gross, but gives us best case data: we want the largest in width,
-        // and smallest in height, as reported by BOTH getSize and getPreferredSize.
-        Size s = new Size(getLabelBox().getPreferredSize());
-        Size ps = new Size(getLabelBox().getSize());
-        if (ps.width > s.width)
-            s.width = s.width;
-        if (ps.height < s.height)
-            s.height = ps.height;
-        s.width *= TextWidthFudgeFactor;
-        s.width += 3;
-        return s;
+
+        if (WrapText) {
+            Size s = new Size(getLabelBox().getSize());
+            //s.width += 3;
+            return s;
+        } else {
+
+            // TODO: Check if this hack still needed in current JVM's
+        
+            // getSize somtimes a bit bigger thatn preferred size & more accurate
+            // This is gross, but gives us best case data: we want the largest in width,
+            // and smallest in height, as reported by BOTH getSize and getPreferredSize.
+
+            Size s = new Size(getLabelBox().getPreferredSize());
+            Size ps = new Size(getLabelBox().getSize());
+            //if (ps.width > s.width) 
+            //    s.width = s.width; // what the hell
+            if (ps.height < s.height)
+                s.height = ps.height;
+            s.width *= TextWidthFudgeFactor;
+            s.width += 3;
+            return s;
+        }
+    }
+
+    private int getTextWidth() {
+        if (WrapText)
+            return labelBox.getWidth();
+        else
+            return Math.round(getTextSize().width);
     }
 
     
@@ -619,7 +739,7 @@ public class LWNode extends LWContainer
      * @return the minimum rectangular size of node shape required to to contain all
      * the visual node contents
      */
-    private Size layout_centered()
+    private Size layoutCentered(Size request)
     {
         NodeContent content = getLaidOutNodeContent();
         Size minSize = new Size(content);
@@ -628,8 +748,9 @@ public class LWNode extends LWContainer
         // Current node size is largest of current size, or
         // minimum content size.
         if (!isAutoSized()) {
-            node.fitWidth(getWidth());
-            node.fitHeight(getHeight());
+            node.fit(request);
+            //node.fitWidth(getWidth());
+            //node.fitHeight(getHeight());
         }
 
         //Rectangle2D.Float content = new Rectangle2D.Float();
@@ -657,7 +778,7 @@ public class LWNode extends LWContainer
 
         nodeShape.setFrame(0,0, node.width, node.height);
         layoutContentInShape(nodeShape, content);
-        if (DEBUG.LAYOUT) System.out.println("*** " + this + " content placed at " + content + " in " + nodeShape);
+        if (DEBUG.LAYOUT) out("*** content placed at " + content + " in " + nodeShape);
 
         content.layoutTargets();
         
@@ -735,7 +856,7 @@ public class LWNode extends LWContainer
             if (DEBUG.LAYOUT) System.out.println("Contents of " + shape + " grown to contain " + content + " in " + tries + " tries");
         } else
             if (DEBUG.LAYOUT) System.out.println("Contents of " + shape + " already contains " + content);
-        if (DEBUG.LAYOUT) System.out.println("*** " + this + " content minput at " + content + " in " + shape);
+        if (DEBUG.LAYOUT) out("*** content minput at " + content + " in " + shape);
         return tries > 0;
     }
     
@@ -858,7 +979,7 @@ public class LWNode extends LWContainer
 
         /** do the center-layout for the actual targets (LWNode state) of our regions */
         void layoutTargets() {
-            if (DEBUG.LAYOUT) System.out.println("*** " + this + " laying out targets");
+            if (DEBUG.LAYOUT) out("*** laying out targets");
             mLabelPos.setLocation(x + rLabel.x, y + rLabel.y);
             if (rIcons != null) {
                 mIconBlock.setLocation(x + rIcons.x, y + rIcons.y);
@@ -931,21 +1052,28 @@ public class LWNode extends LWContainer
         return _lastNodeContent = new NodeContent();
     }
 
-    private Size layout_boxed()
+    private Size layoutBoxed(Size request, Size oldSize, Object triggerKey) {
+        final Size min;
+        
+        if (WrapText)
+            min = layoutBoxed_floating_text(request, oldSize, triggerKey);
+        else
+            min = layoutBoxed_vanilla(request);
+
+        return min;
+
+    }
+
+    
+    /** @return new minimum size of node */
+    private Size layoutBoxed_vanilla(final Size request)
     {
-        final float givenWidth = getWidth();
-        final float givenHeight = getHeight();
+        final Size min = new Size();
+        final Size text = getTextSize();
 
-        Size min = new Size();
-        Size text = getTextSize();
-
-        //min.width = text.width * TextWidthFudgeFactor; // adjust for scaled fonts understating their width
         min.width = text.width;
         min.height = EdgePadY + text.height + EdgePadY;
 
-        //float height = getLabelBox().getHeight() + IconHeight/3f;
-        //float height = getLabelBox().getHeight() + IconDescent;
-        
         // *** set icon Y position in all cases to a centered vertical
         // position, but never such that baseline is below bottom of
         // first icon -- this is tricky tho, as first icon can move
@@ -959,21 +1087,30 @@ public class LWNode extends LWContainer
             double stubX = LabelPositionXWhenIconShowing + text.width;
             double stubHeight = DividerStubAscent;
             
-            //dividerUnderline.setLine(0, dividerY, stubX, dividerY);
-            dividerUnderline.setLine(IconMargin, dividerY, stubX, dividerY);
-            dividerStub.setLine(stubX, dividerY, stubX, dividerY - stubHeight);
+            ////dividerUnderline.setLine(0, dividerY, stubX, dividerY);
+            //dividerUnderline.setLine(IconMargin, dividerY, stubX, dividerY);
+            //dividerStub.setLine(stubX, dividerY, stubX, dividerY - stubHeight);
 
             ////height = PadTop + (float)dividerY + IconDescent; // for aligning 1st icon with label bottom
             min.width = (float)stubX + IconPadLeft; // be symmetrical with left padding
             //width += IconPadLeft;
         }
+
+        if (hasChildren())
+            layoutBoxed_children(min, text);
+        
+        if (iconShowing())
+            layoutBoxed_icon(request, min, text);
+        
+        return min;
+    }
+
+    /** set mLabelPos */
+    private void layoutBoxed_label()
+    {
+        Size text = getTextSize();
         
         if (hasChildren()) {
-            Size children = layoutChildren(new Size(), false);
-            if (min.width < childOffsetX() + children.width + ChildPadX)
-                min.width = childOffsetX() + children.width + ChildPadX;
-            min.height += children.height;
-            min.height += ChildOffsetY + ChildrenPadBottom; // additional space below last child before bottom of node
             mLabelPos.y = EdgePadY;
         } else {
             // only need this in case of small font sizes and an icon
@@ -985,71 +1122,312 @@ public class LWNode extends LWContainer
             mLabelPos.y = (this.height - text.height) / 2;
         }
 
-        //-------------------------------------------------------
-        // display any icons
-        //-------------------------------------------------------
-        
         if (iconShowing()) {
-            float iconWidth = IconWidth;
-            float iconHeight = IconHeight;
-            float iconX = IconPadLeft;
-            //float iconY = dividerY - IconAscent;
-            //float iconY = dividerY - iconHeight; // align bottom of 1st icon with bottom of label
-            //float iconY = PadTop;
-
-            /*
-            if (iconY < IconMinY) {
-                // this can happen if font size is very small when
-                // alignining the first icon with the bottom of the text label
-                iconY = IconMinY;
-                dividerY = iconY + IconAscent;
-            }
-            */
-
-            float iconPillarX = iconX;
-            float iconPillarY = IconPillarPadY;
-            //iconPillarY = EdgePadY;
-
-            //float totalIconHeight = icons * IconHeight;
-            float totalIconHeight = (float) mIconBlock.getHeight();
-            float iconPillarHeight = totalIconHeight + IconPillarPadY * 2;
-
-
-            if (min.height < iconPillarHeight) {
-                min.height += iconPillarHeight - min.height;
-            } else if (mIsRectShape) {
-                // special case prettification -- if vertically centering
-                // the icon stack would only drop it down by up to a few
-                // pixels, go ahead and do so because it's so much nicer
-                // to look at.
-                float centerY = (min.height - totalIconHeight) / 2;
-                if (centerY > IconPillarPadY+IconPillarFudgeY)
-                    centerY = IconPillarPadY+IconPillarFudgeY;
-                iconPillarY = centerY;
-            }
-            
-            if (!mIsRectShape) {
-                float height;
-                if (isAutoSized())
-                    height = min.height;
-                else
-                    height = Math.max(min.height, givenHeight);
-                iconPillarY = height / 2 - totalIconHeight / 2;
-            }
-            
-            mIconBlock.setLocation(iconPillarX, iconPillarY);
-            mLabelPos.x = LabelPositionXWhenIconShowing;
+            //layoutBoxed_icon(request, min, newTextSize);
+            // TODO:
+            // need to center label between the icon block and the RHS
+            // we currently need more space at the RHS.
+            // does relativeLabelX even use this in this case?
+            // really: do something that isn't a total freakin hack like all our current layout code.
+            //mLabelPos.x = LabelPositionXWhenIconShowing;
+            mLabelPos.x = -100;  // marked bad because should never see this this: is IGNORED if icon is showing
         } else {
+            //-------------------------------------------------------
             // horizontally center if no icons
-            //int w = getLabelBox().getPreferredSize().width;
-            mLabelPos.x = (min.width - text.width) / 2 + 1;
-            //mLabelPos.x = (this.width - text.width) / 2 + 1;
+            //-------------------------------------------------------
+            if (WrapText)
+                mLabelPos.x = (this.width - text.width) / 2 + 1;
+            else
+                mLabelPos.x = 200; // marked bad because unused in this case
+        }
+        
+    }
+
+    //----------------------------------------------------------------------------------------
+    // Crap.  We need the max child width first to know the min width for wrapped text,
+    // but then need the text height to compute the child X location.
+    //----------------------------------------------------------------------------------------
+
+    /** will CHANGE min.width and min.height */ 
+    private void layoutBoxed_children(Size min, Size text) {
+        if (DEBUG.LAYOUT) out("*** layoutBoxed_children; min=" + min + " text=" + text);
+        Size children = layoutChildren(new Size(), false);
+        final float childSpan = childOffsetX() + children.width + ChildPadX;
+        if (min.width < childSpan)
+            min.width = childSpan;
+        min.height += children.height;
+        min.height += ChildOffsetY + ChildrenPadBottom; // additional space below last child before bottom of node
+
+        mBoxedLayoutChildY = EdgePadY + text.height;
+        
+    }
+
+    // good for single column layout only.  layout code is in BAD NEED of complete re-architecting.
+    protected float getMaxChildSpan()
+    {
+        java.util.Iterator i = getChildIterator();
+        float maxWidth = 0;
+        
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            float w = c.getBoundsWidth();
+            if (w > maxWidth)
+                maxWidth = w;
+        }
+        return childOffsetX() + maxWidth + ChildPadX;
+    }
+    
+
+    /** will CHANGE min */
+    private void layoutBoxed_icon(Size request, Size min, Size text) {
+
+        if (DEBUG.LAYOUT) out("*** layoutBoxed_icon");
+        
+        float iconWidth = IconWidth;
+        float iconHeight = IconHeight;
+        float iconX = IconPadLeft;
+        //float iconY = dividerY - IconAscent;
+        //float iconY = dividerY - iconHeight; // align bottom of 1st icon with bottom of label
+        //float iconY = PadTop;
+
+        /*
+          if (iconY < IconMinY) {
+          // this can happen if font size is very small when
+          // alignining the first icon with the bottom of the text label
+          iconY = IconMinY;
+          dividerY = iconY + IconAscent;
+          }
+        */
+
+        float iconPillarX = iconX;
+        float iconPillarY = IconPillarPadY;
+        //iconPillarY = EdgePadY;
+
+        //float totalIconHeight = icons * IconHeight;
+        float totalIconHeight = (float) mIconBlock.getHeight();
+        float iconPillarHeight = totalIconHeight + IconPillarPadY * 2;
+
+
+        if (min.height < iconPillarHeight) {
+            min.height += iconPillarHeight - min.height;
+        } else if (mIsRectShape) {
+            // special case prettification -- if vertically centering
+            // the icon stack would only drop it down by up to a few
+            // pixels, go ahead and do so because it's so much nicer
+            // to look at.
+            float centerY = (min.height - totalIconHeight) / 2;
+            if (centerY > IconPillarPadY+IconPillarFudgeY)
+                centerY = IconPillarPadY+IconPillarFudgeY;
+            iconPillarY = centerY;
+        }
+            
+        if (!mIsRectShape) {
+            float height;
+            if (isAutoSized())
+                height = min.height;
+            else
+                height = Math.max(min.height, request.height);
+            iconPillarY = height / 2 - totalIconHeight / 2;
+        }
+            
+        mIconBlock.setLocation(iconPillarX, iconPillarY);
+
+    }
+
+    /**
+     * @param curSize - if non-null, re-layout giving priority to currently requested size (getWidth/getHeight)
+     * if null, give priority to keeping the existing TexBox as unchanged as possible.
+     *
+     * @param request - requested size -- can be null, which means adjust size because something changed
+     * @param curSize - the current/old size of the node, in case it's already been resized
+     *
+     *
+     * @return new size of node, resizing the text box as needed -- because we're laying out
+     * text, this is NOT the minimum size of the node: it includes request size
+     */
+
+    // TODO: need to have a special curSize that is the uninitialized size,
+    // either that or a requestSize that is a special "natural" size, and in
+    // this special case, put all on one line if width isn't "too big", (e.g.,
+    // at least "Node Node" for sure), or if is really big (e.g., drop of a big
+    // text clipping) set to some default preferred aspect, such as 3/4, or perhaps
+    // the current screen aspect).
+
+    // TODO: PROBLEM: if children wider than label, label is NOT STABLE!  TextBox can be dragged
+    // full width of node, but then snaps back to min-size on re-layout!
+
+    // todo: may not need all three args
+    private Size layoutBoxed_floating_text(Size request, Size curSize, Object triggerKey)
+    {
+        if (DEBUG.LAYOUT) out("*** layoutBoxed_floating_text, req="+request + " cur=" + curSize + " src=" + triggerKey);
+
+        final Size min = new Size(); // the minimum size of the Node
+
+        getLabelBox(); // make sure labelBox is set
+
+        //------------------------------------------------------------------
+        // start building up minimum width & height
+        //------------------------------------------------------------------
+        
+        if (iconShowing())
+            min.width = LabelPositionXWhenIconShowing;
+        else
+            min.width = LabelPadLeft;
+        min.width += LabelPadRight;
+        min.height = EdgePadY + EdgePadY;
+
+        final float textPadWidth = min.width;
+        final float textPadHeight = min.height;
+
+        //------------------------------------------------------------------
+        // adjust minimum width & height for text size and requested size
+        //------------------------------------------------------------------
+        
+        final Size newTextSize;
+        final boolean resizeRequest;
+
+        // resizeRequest is true if we're requesting a new size for
+        // this node, otherwise, resizeRequest is false and some
+        // property is changing that may effect the size of the node
+
+        if (request == null) {
+            resizeRequest = false;
+            request = curSize;
+        } else
+            resizeRequest = true;
+
+        if (hasChildren())
+            request.fitWidth(getMaxChildSpan());
+
+        //if (request.width <= MIN_SIZE && request.height <= MIN_SIZE) {
+        if (curSize.width == NEEDS_DEFAULT) { // NEEDS_DEFAULT meaningless now: will never be true (oh, only on restore?)
+            if (DEBUG.WORK) out("SETTING DEFAULT - UNITIALIZED WIDTH");
+            // usually this happens with a new node
+            newTextSize = new Size(labelBox.getPreferredSize());
+        } else if (textSize == null) {
+            if (DEBUG.WORK) out("SETTING DEFAULT - NO TEXT SIZE");
+            newTextSize = new Size(labelBox.getPreferredSize());
+        } else {
+            //newTextSize = new Size();
+            newTextSize = new Size(textSize);
+
+            //if (triggerKey == LWKey.Size) {
+            if (resizeRequest) {
+                // ADJUST TEXT TO FIT NODE
+
+                // fit the text to the new size as best we can.
+                // (we're most likely drag-resizing the node)
+                
+                newTextSize.width = request.width - textPadWidth;
+                newTextSize.height = request.height - textPadHeight;
+                newTextSize.fitWidth(labelBox.getMaxWordWidth());
+
+
+            } else {
+                // ADJUST NODE TO FIT TEXT
+
+                // adjust node size around text size
+                // e.g., we changed font: trust that the labelBox is already sized as it needs to
+                // be and size the node around it.
+                
+                //if (triggerKey == LWKey.Font && isAutoSized()) {
+                //if (false && triggerKey == LWKey.Font) {
+                if (true) {
+                    // this should work even if our current width is > maxWordWidth
+                    // and not matter if we're auto-sized or not: we just want
+                    // to force an increase in the width only
+                    
+                    // So what's the new width?
+
+                    // When NEWLINES are in text, preferred width is width of longest LINE.
+                    // So actually, preferred with is always width of longest line.
+
+                    // So how to handle the one-line that's been wrapped case?
+                    // (a single UNWRAPPED line would in fact just use preferred size for new width in, eg., a bold font)
+
+                    // Okay, either we're going to have to eat that case,
+                    // (or delve into TextUI, etc: forget that!), or we
+                    // could seek out the right width by slowly increasing it
+                    // until preferred height comes to match the old preferred height...
+
+                    // Or maybe, in fact, we don't want to do anything?  Could go either
+                    // way: which is more important: the current size of the node
+                    // or the current breaks in the text?  Can we do this only
+                    // if autoSized?  Is autoSized even possible when text is wrapped?
+                    // (and if not, we're not handling that right).  AND, autoSized
+                    // may effect the hard-line-breaks case we think we have handled above...
+
+                    // note that restoring wrapped text isn't working right now either...
+
+                    // basically, we're trying to have a new kind of autoSized, which remembers
+                    // the current user size, but on ADJUSTMENT does different things.
+
+                    // AT LEAST: if our old txt width is equal to old max word width,
+                    // then keep that same relationship here.
+
+                    boolean keepPreferredWidth = false;
+                    boolean keepMaxWordWidth = false;
+                    final int curWidth = labelBox.getWidth();
+
+                    // damn! if font set, labelBox preferred and max word width is already adjusted!
+                    
+                    if (curWidth == labelBox.getPreferredSize().width)
+                        keepPreferredWidth = true;
+                    else if (curWidth == labelBox.getMaxWordWidth())
+                        keepMaxWordWidth = true;
+                    
+                    newTextSize.width = labelBox.getMaxWordWidth();
+                } else {
+                    newTextSize.width = labelBox.getWidth();
+                    newTextSize.fitWidth(labelBox.getMaxWordWidth());
+                }
+                newTextSize.height = labelBox.getHeight();
+
+            }
         }
 
         
+        labelBox.setSizeFlexHeight(newTextSize);
+        newTextSize.height = labelBox.getHeight();
+        this.textSize = newTextSize.dim();
+        
+        min.height += newTextSize.height;
+        min.width += newTextSize.width;
 
+        //-------------------------------------------------------
+        // Now that we have our minimum width and height, layout
+        // the label and any icons.
+        //-------------------------------------------------------
+
+        if (hasChildren()) {
+            layoutBoxed_children(min, newTextSize);
+            /*
+            if (mChildScale != ChildScale || request.height > min.height) {
+                // if there's extra space, zoom all children to occupy it
+                mChildScale = request.height / min.height;
+                if (DEBUG.LAYOUT) out("*** expanded childScale to " + mChildScale);
+            } else {
+                mChildScale = ChildScale;
+            }
+            */
+        }
+
+        if (iconShowing())
+            layoutBoxed_icon(request, min, newTextSize);
+            
         return min;
     }
+
+    /** override's superclass impl of {@link XMLUnmarshalListener} -- fix's up text size */
+    /*
+    public void XML_completed() {
+        if (textSize != null)
+            getLabelBox().setSize(textSize);
+        super.XML_completed();
+    }
+    */
+    
+    //private float mChildScale = ChildScale;
 
     /**
      * Need to be able to do this seperately from layout -- this
@@ -1074,6 +1452,8 @@ public class LWNode extends LWContainer
     //private Rectangle2D child_box = new Rectangle2D.Float(); // for debug
     private Size layoutChildren(Size result, boolean sizeOnly)
     {
+        if (DEBUG.LAYOUT) out("*** layoutChildren; sizeOnly=" + sizeOnly);
+        
         if (!hasChildren())
             return Size.None;
 
@@ -1099,7 +1479,7 @@ public class LWNode extends LWContainer
     
     private Size layoutChildren(float baseX, float baseY, Size result)
     {
-        if (DEBUG.LAYOUT) System.out.println("*** " + this + " layoutChildren at " + baseX + "," + baseY);
+        if (DEBUG.LAYOUT) out("*** layoutChildren at " + baseX + "," + baseY);
         //if (baseX > 0) new Throwable("LAYOUT-CHILDREN").printStackTrace();
         if (true)
             layoutChildrenSingleColumn(baseX, baseY, result);
@@ -1125,6 +1505,8 @@ public class LWNode extends LWContainer
         
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
+            if (c instanceof LWLink)
+                continue;
             if (first)
                 first = false;
             else
@@ -1238,8 +1620,8 @@ public class LWNode extends LWContainer
 
     public Color getRenderFillColor()
     {
-        if (DEBUG.LAYOUT) if (!isAutoSized()) return Color.green;
-            
+        if (DEBUG.LAYOUT) if (!isAutoSized()) return Color.green; // LAYOUT-NEW
+
         Color c = getFillColor();
         if (getParent() instanceof LWNode) {
             if (c != null && c.equals(getParent().getRenderFillColor()))
@@ -1247,6 +1629,25 @@ public class LWNode extends LWContainer
         }
         return c;
     }
+    
+    /*
+    public Color getRenderFillColor() {
+        return getRenderFillColor(null);
+    }
+    private Color getRenderFillColor(DrawContext dc)
+    {
+        // if (DEBUG.LAYOUT) if (!isAutoSized()) return Color.green; // LAYOUT-NEW
+
+        Color c = getFillColor();
+        if (getParent() instanceof LWNode) {
+            if (dc != null && dc.getAlpha() != 1.0)
+                c = null;
+            else if (c != null && c.equals(getParent().getRenderFillColor()))
+                c = VueUtil.darkerColor(c);
+        }
+        return c;
+    }
+    */
     
     public void draw(DrawContext dc)
     {
@@ -1306,7 +1707,7 @@ public class LWNode extends LWContainer
         // Fill the shape (if it's not transparent)
         //-------------------------------------------------------
         
-        if (isSelected() && !dc.isPrinting()) {
+        if (isSelected() && dc.isInteractive()) {
             LWPathway p = VUE.getActivePathway();
             if (p != null && p.isVisible() && p.getCurrent() == this) {
                 // SPECIAL CASE:
@@ -1460,6 +1861,7 @@ public class LWNode extends LWContainer
     {
         Graphics2D g = dc.g;
 
+        /*
         if (DEBUG.BOXES && mIsRectShape) {
             //-------------------------------------------------------
             // paint a divider line
@@ -1469,6 +1871,7 @@ public class LWNode extends LWContainer
             g.draw(dividerUnderline);
             g.draw(dividerStub);
         }
+        */
             
         //-------------------------------------------------------
         // paint the node icons
@@ -1496,10 +1899,18 @@ public class LWNode extends LWContainer
         }
     }
 
+    //-----------------------------------------------------------------------------
+    // I think these are done dynamically instead of always using
+    // mLabelPos.x and mLabelPos.y because we haven't always done a
+    // layout when we need this?  Is that true?  Does this have
+    // anything to do with activating an edit box on a newly created
+    // node?
+    //-----------------------------------------------------------------------------
+    
     private float relativeLabelX()
     {
         //return mLabelPos.x;
-        if (isCenterLayout) {
+        if (isCenterLayout) { // non-rectangular shapes
             return mLabelPos.x;
         } else if (isTextNode() && strokeWidth == 0) {
             return 1;
@@ -1511,8 +1922,14 @@ public class LWNode extends LWContainer
             return LabelPositionXWhenIconShowing;
         } else {
             // horizontally center if no icons
-            float offset = (this.width - getTextSize().width) / 2;
-            return offset + 1;
+
+            if (WrapText)
+                return mLabelPos.x;
+            else {
+                // Doing this risks slighly moving the damn TextBox just as you edit it.
+                final float offset = (this.width - getTextSize().width) / 2;
+                return offset + 1;
+            }
         }
     }
     
@@ -1529,7 +1946,16 @@ public class LWNode extends LWContainer
             // Actually, no: center in whole node -- gak, we really want both,
             // but only to a certian threshold -- what a hack!
             //float textHeight = getLabelBox().getPreferredSize().height;
-            return (this.height - getTextSize().height) / 2;
+            
+            if (false && WrapText)
+                return mLabelPos.y;
+            else {
+                // Doing this risks slighly moving the damn TextBox just as you edit it.
+                // Tho querying the underlying TextBox for it's size every time
+                // we repaint this object is pretty gross also (e.g., every drag)
+                return (this.height - getTextSize().height) / 2;
+            }
+            
         }
         
         /*
@@ -1560,7 +1986,8 @@ public class LWNode extends LWContainer
         float baseY;
         if (iconShowing()) {
             //baseY = (float) (mIconResource.getY() + IconHeight + ChildOffsetY);
-            baseY = (float) dividerUnderline.getY1();
+            //baseY = (float) dividerUnderline.getY1();
+            baseY = mBoxedLayoutChildY;
         } else {
             baseY = relativeLabelY() + getLabelBox().getHeight();
         }
@@ -1581,7 +2008,8 @@ public class LWNode extends LWContainer
     }
 
     //------------------------------------------------------------------
-    // Constants for layout of the visible objects in a node
+    // Constants for layout of the visible objects in a node.
+    // This is some scary stuff.
     // (label, icons & children, etc)
     //------------------------------------------------------------------
 
@@ -1606,7 +2034,8 @@ public class LWNode extends LWContainer
     private static final int IconPadBottom = (int) IconAscent;
     private static final int IconMinY = IconPadLeft;
 
-    private static final int LabelPadLeft = 6; // distance to right of iconMargin dividerLine
+    private static final int LabelPadLeft = 6; // fixed distance to right of iconMargin dividerLine
+    private static final int LabelPadRight = 6; // minimum gap to right of text before right edge of node
     private static final int LabelPadX = LabelPadLeft;
     private static final int LabelPadY = EdgePadY;
     private static final int LabelPositionXWhenIconShowing = IconMargin + LabelPadLeft;
@@ -1641,13 +2070,22 @@ public class LWNode extends LWContainer
     private static final int IconPillarPadY = MarginLinePadY;
     private static final int IconPillarFudgeY = 4; // attempt to get top icon to align with top of 1st caps char in label text box
 
-
-
-    /** for castor restore & internal default's use only */
+    /** for castor restore, internal default's and duplicate use only */
     public LWNode()
     {
-        setShape(new java.awt.geom.Rectangle2D.Float());
-        setAutoSized(false);
+        this.mIsRectShape = true;
+        // I think we may only need this default shape setting for backward compat with old save files.
+        this.boundsShape = new java.awt.geom.Rectangle2D.Float();
+        this.drawnShape = cloneShape(boundsShape);
+        this.autoSized = false;
+        adjustDrawnShape();
+
+
+        // Force the creation of the TextBox (this.labelBox).
+        // We need this for now to make sure wrapped text nodes don't unwrap
+        // to one line on restore. I think the TextBox needs to pick up our size
+        // before setLabel for it to work.
+        //getLabelBox(); LAYOUT-NEW
     }
     
     
