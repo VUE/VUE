@@ -31,7 +31,12 @@ import javax.swing.*;
 
 /**
  * A property editor panel for LWLink's.
+ *
+ * @version $Revision: 1.32 $ / $Date: 2006-01-20 19:26:27 $ / $Author: sfraize $
+ * 
+ * deprecated - on the way out
  */
+
 public class LinkToolPanel extends LWCToolPanel
 {
     public boolean isPreferredType(Object o) {
@@ -79,7 +84,10 @@ public class LinkToolPanel extends LWCToolPanel
                 }
             };
 
+        //addPropertyProducer(linkTypeMenu);
         addPropertyProducer(arrowPropertyHandler);
+
+        
         mArrowStartButton.addActionListener(arrowPropertyHandler);
         mArrowEndButton.addActionListener(arrowPropertyHandler);
     }
@@ -90,7 +98,7 @@ public class LinkToolPanel extends LWCToolPanel
             
     public static void main(String[] args) {
         System.out.println("LinkToolPanel:main");
-        VUE.initUI(true);
+        VUE.init(args);
         VueUtil.displayComponent(new LinkToolPanel());
     }
 }
