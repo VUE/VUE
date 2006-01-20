@@ -19,12 +19,19 @@
 package tufts.vue;
 
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.HashMap;
+import java.util.Collection;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 
+/**
+ *
+ * Maintains the VUE global list of selected LWComponent's.
+ *
+ * @version $Revision: 1.38 $ / $Date: 2006-01-20 19:24:49 $ / $Author: sfraize $
+ * @author Scott Fraize
+ *
+ */
 public class LWSelection extends java.util.ArrayList
 {
     private List listeners = new java.util.ArrayList();
@@ -32,6 +39,13 @@ public class LWSelection extends java.util.ArrayList
     private Rectangle2D bounds = null;
 
     private boolean isClone = false;
+
+    public LWSelection() {}
+
+    /** create a temporary selection that contains just the given component */
+    public LWSelection(LWComponent c) {
+        super.add(c);
+    }
     
     public interface Listener extends java.util.EventListener {
         void selectionChanged(LWSelection selection);
@@ -180,6 +194,11 @@ public class LWSelection extends java.util.ArrayList
         add(c);
     }
     
+    void setTo(Collection bag)
+    {
+        setTo(bag.iterator());
+    }
+    
     synchronized void setTo(Iterator i)
     {
         if (notifyUnderway())
@@ -204,6 +223,11 @@ public class LWSelection extends java.util.ArrayList
         throw new RuntimeException(this + " can't add " + o.getClass() + ": " + o);
     }
     
+    /** Make sure all in Collection are in selection & do a single change notify at the end */
+    public void add(Collection c) {
+        add(c.iterator());
+    }
+        
     /** Make sure all in iterator are in selection & do a single change notify at the end */
     synchronized void add(Iterator i)
     {
@@ -439,7 +463,7 @@ public class LWSelection extends java.util.ArrayList
         return allHaveSameParent() && clazz.isInstance(first().getParent());
     }
 
-    public LWComponent[] getArray()
+    public LWComponent[] asArray()
     {
         LWComponent[] array = new LWComponent[size()];
         super.toArray(array);
@@ -458,7 +482,8 @@ public class LWSelection extends java.util.ArrayList
 
     public String toString()
     {
-        return "LWSelection[" + size() + (isClone?" CLONE]":"]");
+        String content = (size() != 1 ? "" : " (" + first().toString() + ")");
+        return "LWSelection[" + size() + (isClone?" CLONE]":"]" + content);
     }
     
 }
