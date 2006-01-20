@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.76 $ / $Date: 2006-01-20 16:41:27 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.76 2006-01-20 16:41:27 sfraize Exp $ -->
+<!-- $Revision: 1.77 $ / $Date: 2006-01-20 22:21:29 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.77 2006-01-20 22:21:29 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -705,7 +705,7 @@
     </jar>
   </target>
      
-  <target name="all" depends="clean,mac-dist,mac-dist-nv" description="Rebuild everything from scratch."/>
+  <target name="all" depends="clean,mac-dist" description="Rebuild everything from scratch."/>
   
   <target name="mac" depends="clean,mac-dist"/>
 
