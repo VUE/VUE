@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.184 $ / $Date: 2006-01-20 18:54:28 $ / $Author: sfraize $
+ * @version $Revision: 1.185 $ / $Date: 2006-01-20 21:41:04 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -241,7 +241,7 @@ public class LWComponent
 
         public void track(LWComponent original, LWComponent copy)
         {
-            if (DEBUG.DND) System.out.println("LinkPatcher: tracking " + copy);
+            if (DEBUG.DND && DEBUG.META) System.out.println("LinkPatcher: tracking " + copy);
             mCopies.put(original, copy);
             mOriginals.put(copy, original);
         }
