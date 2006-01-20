@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.GUI;
+
 import java.io.*;
 import java.util.*;
 import java.awt.*;
@@ -27,10 +29,11 @@ import javax.swing.border.*;
 
 
 /**
- * VueToolPanel
  *
  * The VueToolPanel is the component that holds the main VUE toolbar
- * and the contextual properties tools.  
+ * and the contextual properties tools.
+ *
+ * @version $Revision: 1.24 $ / $Date: 2006-01-20 20:35:48 $ / $Author: sfraize $ 
  *
  **/
 public class VueToolPanel extends JPanel
@@ -55,9 +58,6 @@ public class VueToolPanel extends JPanel
     /** a map of PaletteButtons keyed off of the tool ID **/
     private Map mToolButtons = new HashMap();
 	
-    /** background color **/
-    static private Color mBakColor;
-	
 	
     /***
      * VueToolPanel()
@@ -66,15 +66,14 @@ public class VueToolPanel extends JPanel
     private static final boolean debug = false;
     public VueToolPanel() {
         super();
-        mBakColor = VueTheme.getToolbarColor();
         mButtonGroup = new ButtonGroup();
         if (debug)
             setBackground(Color.blue);
         else
-            VueTheme.applyToolbarColor(this);
+            GUI.applyToolbarColor(this);
 		
         setLayout( new BorderLayout() );
-        if (VueTheme.isMacMetalLAF())
+        if (GUI.isMacBrushedMetal())
             setBorder(new EmptyBorder(0,3,2,10));//tlbr
         else
             setBorder(new EmptyBorder(1,3,2,10));//tlbr
@@ -87,8 +86,6 @@ public class VueToolPanel extends JPanel
 		
         if (debug)
             mMainToolPanel.setBackground(Color.green);
-        //else
-        //    mMainToolPanel.setBackground( mBakColor);
 
         mContextualToolPanel = new JPanel();
         mContextualToolPanel.setAlignmentX(LEFT_ALIGNMENT);
@@ -96,8 +93,6 @@ public class VueToolPanel extends JPanel
 
         if (debug)
             mContextualToolPanel.setBackground(Color.orange);
-        //else
-        //  mContextualToolPanel.setBackground(mBakColor);
 		
         setAlignmentX( LEFT_ALIGNMENT);
         add(BorderLayout.WEST, mMainToolPanel);
@@ -119,7 +114,7 @@ public class VueToolPanel extends JPanel
         if (debug)
             pButton.setBackground(Color.magenta);
         else
-            pButton.setBackground( mBakColor);
+            GUI.applyToolbarColor(pButton);
         mMainToolPanel.add( pButton);
         mButtonGroup.add( pButton);
         if( mButtonGroup.getButtonCount() == 1) {
@@ -225,7 +220,7 @@ public class VueToolPanel extends JPanel
             if (debug)
                 pPanel.setBackground(Color.cyan);
             else
-                pPanel.setBackground(mBakColor);
+                GUI.applyToolbarColor(pPanel);
             mContextualToolPanel.add(pPanel);
             mPanelContent = pPanel;
         }
@@ -303,6 +298,7 @@ public class VueToolPanel extends JPanel
         // set the user context to the VueTOol
         button.setContext( pTool);
         button.addActionListener( pTool);
+        button.setName(pTool.getID());
 
         // store the button in the tool
         pTool.setLinkedButton(button);
