@@ -29,12 +29,12 @@ import javax.swing.*;
 import java.util.Iterator;
 
 /**
- * Class LWIcon
- *
  * Icon's for displaying on LWComponents.
  *
  * Various icons can be displayed and stacked vertically or horizontally.
  * The icon region displays a tool-tip on rollover and may handle double-click.
+ *
+ * @version $Revision: 1. $ / $Date: 2006/01/20 18:57:33 $ / $Author: sfraize $ 
  *
  */
 
@@ -439,13 +439,14 @@ public abstract class LWIcon extends Rectangle2D.Float
                 // the HTML above for just the title, and not the URL & click message.
                 label.setFont(FONT_MEDIUM_UNICODE);
 
-                if (false) {
+                if (true) {
                     // example of button a gui component in a rollover
                     JPanel panel = new JPanel();
+                    panel.setName("LWIcon$Resource-Action");
                     panel.add(label);
                     //JButton btn = new JButton(new VueAction(prettyURL) { // looks okay but funny & leaves out title...
                     //JButton btn = new JButton(new VueAction(html) { // looks terrible
-                    JButton btn = new JButton(new VueAction("Open") {
+                    AbstractButton btn = new JButton(new VueAction("Open") {
                             // TODO: need a superclass of VueAction that doesn't add it to a global list,
                             // as this action is very transient, and we'll want it GC'able.  And actually,
                             // in this case, the resource object itself ought to have an action built in
@@ -485,10 +486,10 @@ public abstract class LWIcon extends Rectangle2D.Float
         {
             super.draw(dc);
 
-            double x = getX();
-            double y = getY();
+            double _x = getX();
+            double _y = getY();
 
-            dc.g.translate(x, y);
+            dc.g.translate(_x, _y);
             dc.g.setColor(mColor);
             dc.g.setFont(FONT_ICON);
 
@@ -601,9 +602,31 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.hasNotes(); }
         
         void doDoubleClickAction() {
-            //VUE.objectInspectorPanel.activateNotesTab();
-            VUE.objectInspectorPanel.setTab(ObjectInspectorPanel.NOTES_TAB);
-            VUE.objectInspector.setVisible(true);
+
+            // is it faster to use Method.invoke, or to
+            // cons up a new object?  Probably a new object.
+            
+            // When it's know that theres just one target, this could cache the result of the
+            // traversal.  Tho better to never assume that: could still cache all results...  tho
+            // to be *fully* dynamic, would have to update cache every time AWT hierarchy changes,
+            // tho that's pretty much all the time with menu's and rollovers...
+            
+            //AWTEventDispatch(this, ObjectInspectorPanel.class, "setTab", ObjectInspectorPanel.NOTES_TAB);
+            //new EventDispatch(this, ObjectInspectorPanel.class) {}
+
+            /*
+            new EventRaiser(this, ObjectInspectorPanel.class) {
+                public void dispatch(Object target) {
+                    ObjectInspectorPanel oip = (ObjectInspectorPanel) target;
+                    oip.setTab(ObjectInspectorPanel.NOTES_TAB);
+                    //oip.setVisible(true); need to get parent window
+                    // EventRaiser could cache last Window seen...
+                    EventRaiser.stop();
+                }
+            }.raise();
+            */
+
+            VUE.ObjectInspectorPanel.setTab(ObjectInspectorPanel.NOTES_TAB);
         }
     
         private JComponent ttNotes;
@@ -703,7 +726,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.inPathway(); }
 
         void doDoubleClickAction() {
-            VUE.sMapInspector.showTab("Pathway");
+            VUE.MapInspector.showTab("Pathway");
         }
         
         private JComponent ttPathway;
@@ -885,9 +908,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.hasResource() && mLWC.getResource() instanceof AssetResource;  }
 
         void doDoubleClickAction() {
-            //VUE.objectInspectorPanel.activateNotesTab();
-            VUE.objectInspectorPanel.setTab(ObjectInspectorPanel.INFO_TAB);
-            VUE.objectInspector.setVisible(true);
+            VUE.ObjectInspectorPanel.setTab(ObjectInspectorPanel.INFO_TAB);
         }
         
         private JComponent ttBehavior;
@@ -959,9 +980,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.hasChildren(); }
 
         void doDoubleClickAction() {
-            //VUE.objectInspectorPanel.activateTreeTab();
-            VUE.objectInspectorPanel.setTab(ObjectInspectorPanel.TREE_TAB);
-            VUE.objectInspector.setVisible(true);
+            VUE.ObjectInspectorPanel.setTab(ObjectInspectorPanel.TREE_TAB);
         }
         
         private JLabel ttTree;
