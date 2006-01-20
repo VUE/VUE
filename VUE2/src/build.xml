@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.75 $ / $Date: 2006-01-10 17:07:15 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.75 2006-01-10 17:07:15 jeff Exp $ -->
+<!-- $Revision: 1.76 $ / $Date: 2006-01-20 16:41:27 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.76 2006-01-20 16:41:27 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -133,6 +133,7 @@
                    jaxrpc-impl-unsigned.jar
                    jaxrpc-spi-unsigned.jar
                    VUE-MacOSX.jar
+                   VUE-Java15.jar
                    activation_unsigned.jar
                    mail.jar
                    saaj-api-unsigned.jar
@@ -594,7 +595,7 @@
         <include name="**/*.properties"/>
         <include name="tufts/vue/resources/**"/>
         <include name="tufts/vue/images/**"/>
-        <include name="tufts/vue/icons/**"/>
+        <include name="tufts/vue/gui/icons/**"/>
       </fileset>
       <fileset dir="${build.class}"/>
     </jar>
