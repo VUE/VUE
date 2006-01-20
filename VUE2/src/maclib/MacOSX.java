@@ -20,7 +20,7 @@ import java.awt.*;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.2 $ / $Date: 2006-01-07 15:42:02 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-01-20 16:53:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX
@@ -321,19 +321,45 @@ public class MacOSX
         return Util.objectTag(o);
     }
 
+    private static String name(Window w) {
+        return Util.objectTag(w) + "(" + w.getName() + ")";
+    }
+    
+    /**
+     * Make the given window transparent.  Unlike setAlpha, This makes the window
+     * container entirely transparent, and dos not affect window contents, which
+     * are displayed normally.  This is achived by setting the NSWindow to
+     * non-opaque, and setting it's background color to a color with a 100% alpha
+     * value.  Note that if the java content of the window paints a background,
+     * this will have no effect.  Note also that 100% transparent mac NSWindow's
+     * ignore mouse clicks where they are transparent.  Also, they will generate
+     * no shadow.
+     */
+    public static void setTransparent(Window w) {
+        NSWindow nsw = getWindow(w);
+        if (nsw != null) {
+            nsw.setBackgroundColor(NSColor.blackColor().colorWithAlphaComponent(0.0f));
+            //nsw.setBackgroundColor(NSColor.blackColor().colorWithAlphaComponent(0.1f));
+            //nsw.setBackgroundColor(NSColor.whiteColor().colorWithAlphaComponent(0.5f));
+            nsw.setOpaque(false);
+        }
+    }
+    
     public static void setShadow(Window w, boolean hasShadow) {
         NSWindow nsw = getWindow(w);
-        if (nsw != null)
+        if (nsw != null) {
+            //if (DEBUG) out("setShadow: " + name(w) + " " + hasShadow);
             nsw.setHasShadow(hasShadow);
+        }
     }
 
     public static void raiseToMenuLevel(Window w) {
         NSWindow nsw = getWindow(w);
 
-        if (DEBUG) out("raiseToMenuLevel: " + name(w));
-        
-        if (nsw != null)
+        if (nsw != null) {
+            if (DEBUG) out("raiseToMenuLevel: " + name(w));
             nsw.setLevel(NSWindow.MainMenuWindowLevel);
+        }
         
     }
     
@@ -343,8 +369,12 @@ public class MacOSX
         final boolean success;
 
         if (NSparent != null && NSchild != null) {
+            if (DEBUG) out("Attaching " + child + " to parent " + parent);
+            if (NSparent == NSchild) {
+                out("attempting to attach to self: " + NSparent);
+                return false;
+            }
             NSparent.addChildWindow(NSchild, NSWindow.Above);
-            if (DEBUG) out("Attached " + child + " to parent " + parent);
             //tufts.Util.printStackTrace("addChildWindow");
             success = true;
         } else {
@@ -368,7 +398,7 @@ public class MacOSX
             //tufts.Util.printStackTrace("removeChildWindow");
             success = true;
         } else {
-            if (DEBUG) out("Failed to attach " + child + " to parent " + parent);
+            if (DEBUG) out("Failed to remove " + child + " from " + parent);
             success = false;
         }
         
@@ -397,11 +427,11 @@ public class MacOSX
         else if (javaName == null && javaWin instanceof Dialog)
             javaName = ((Dialog)javaWin).getTitle();
         
-        if (javaName == null)
-            javaName = "";
-        
-        return javaName.equals(macWin.title());
-        
+        if (javaName == null || javaName.length() == 0)
+            return false;
+        else
+            return javaName.equals(macWin.title());
+
     }
 
     private static java.util.Map WindowMap = new java.util.HashMap();
@@ -411,6 +441,8 @@ public class MacOSX
     public static NSWindow getWindow(Window javaWindow)
     {
         NSWindow macWindow = (NSWindow) WindowMap.get(javaWindow);
+        //NSWindow macWindowCached = (NSWindow) WindowMap.get(javaWindow);
+        //NSWindow macWindow = null;
 
         if (macWindow != null) {
             //if (DEBUG) out("found cached " + Util.objectTag(macWindow) + " for " + Util.objectTag(javaWindow));
@@ -434,19 +466,31 @@ public class MacOSX
                     }
                 }
                 break;
-            }
+            } else
+                macWindow = null;
         }
 
         if (macWindow == null)
             macWindow = findWindowUsingPeer(javaWindow);
         
-        if (DEBUG && macWindow == null) {
-            out("failed to find NSWindow match for \"" + javaWindow + '"');
+        /*
+        if (macWindowCached != null && macWindow != macWindowCached) {
+            out("CACHE WAS WRONG:"
+                + "\n\t    had: " + macWindowCached
+                + "\n\tcurrent: " + macWindow);
             dumpWindows();
         }
+        */
 
-        WindowMap.put(javaWindow, macWindow);
-        
+        if (macWindow != null) {
+            //if (macWindowCached == null) out("loading cache for " + javaWindow + " with: " + macWindow);
+            //out("loading cache for " + javaWindow + " with: " + macWindow);            
+            WindowMap.put(javaWindow, macWindow);
+        } else {
+            out("failed to find NSWindow for: " + name(javaWindow));
+            dumpWindows();
+        }
+            
         return macWindow;
 
     }
@@ -464,28 +508,38 @@ public class MacOSX
         NSWindow macWindow;
 
         CWindow peer = (CWindow) javaWindow.getPeer();
-        String javaViewPtr;
+        String javaViewPtr = null;
+        
         if (peer != null) {
-            long viewPtr = peer.getViewPtr();
-            javaViewPtr = Long.toHexString(viewPtr);
+            long peerViewPtr = peer.getViewPtr();
+            javaViewPtr = Long.toHexString(peerViewPtr);
             //if (DEBUG) out(javaWindow + " peer.getViewPtr=" + javaViewPtr);
-        } else
-            return null;
 
+            for (int i = 0; i < windows.count(); i++) {
+                macWindow = (NSWindow) windows.objectAtIndex(i);
+                
+                NSView view = macWindow.contentView();
+                String viewPtr = view.toString();
+                
+                //out("matching " + javaViewPtr + " against " + viewPtr);
+                
+                if (viewPtr != null && viewPtr.indexOf(javaViewPtr) >= 0) {
+                    if (DEBUG)
+                        out("matched java peer pointer against NSView pointer: "
+                            + javaViewPtr + " == " + viewPtr + " for " + Util.objectTag(javaWindow));
+                    return macWindow;
+                }
+            }
+        }
+        
+        if (DEBUG) {
 
-        for (int i = 0; i < windows.count(); i++) {
-            macWindow = (NSWindow) windows.objectAtIndex(i);
-
-            NSView view = macWindow.contentView();
-            String viewPtr = view.toString();
-
-            //out("matching " + javaViewPtr + " against " + viewPtr);
-
-            if (viewPtr != null && viewPtr.indexOf(javaViewPtr) >= 0) {
-                if (DEBUG)
-                    out("matched java peer pointer against NSView pointer: "
-                        + javaViewPtr + " == " + viewPtr + " for " + Util.objectTag(javaWindow));
-                return macWindow;
+            if (javaViewPtr == null) {
+                out("can't lookup NSWindow: java window doesn't have a peer yet: " + name(javaWindow));
+            } else {
+                out("failed to find NSWindow with matching view pointer for:"
+                    + "\n\t               javaWindow: " + name(javaWindow)
+                    + "\n\tapple.awt.CWindow viewPtr: " + javaViewPtr);
             }
         }
         
@@ -529,18 +583,24 @@ public class MacOSX
         }
     }
 
+    private static void dumpWindow(NSWindow w) {
+        dumpWindow(w, -1);
+    }
+    
     private static void dumpWindow(NSWindow w, int idx) {
         NSView view = w.contentView();
-        System.out.println("Window #" + (idx>9?"":" ") + idx + ": "
-                           + " visible=" + (w.isVisible()?"true":"    ")
-                           + " [" + w.title() + "]\t"
-                           + w
+        System.out.println("#" + (idx>9?"":" ") + idx + ": "
+                           //+ " visible=" + (w.isVisible()?"true":"    ")
+                           + (w.isVisible()? "visible":"       ")
+                           + tufts.Util.pad(20, " [" + w.title() + "]")
+                           + tufts.Util.pad(27, w.toString())
                            //+ " level=[" + w.level() + "] "
                            //+ " " + w.getClass() // always NSWindow
-                           + " " + w.frame()
-                           + " min=" + w.minSize()
+                           + tufts.Util.pad(32, w.frame().toString())
+                           //+ " " + w.frame()
+                           //+ " min=" + w.minSize()
                            //+ " contentMin=" + w.contentMinSize()
-                           + " " + Util.objectTag(view) + view //+ " super=" + view.superview()
+                           + Util.objectTag(view) + view //+ " super=" + view.superview()
                            // + " " + w.contentView().frame() // view frame 0 based
                            + " parent=" + w.parentWindow()
                            //+ " " + w.contentView().getClass() + w.contentView()
