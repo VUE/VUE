@@ -34,7 +34,7 @@ import javax.swing.ImageIcon;
 /**
  * Handle the presentation of an image resource, allowing cropping.
  *
- * @version $Revision: 1.1 $ / $Date: 2006/01/20 18:57:33 $ / $Author: sfraize $
+ * @version $Revision: 1.1 $ / $Date: 2006/01/20 18:57:33 $ / $Author: sfraize $ 
  */
 public class LWImage extends LWComponent
     implements LWSelection.ControlListener, ImageObserver
@@ -171,7 +171,7 @@ public class LWImage extends LWComponent
                 // an extra slash in it!  Report this as a java bug!
                 
                 s = s.substring(7);
-                out("fetching " + s);
+                if (DEBUG.Enabled) out("fetching " + s);
                 image = java.awt.Toolkit.getDefaultToolkit().getImage(s);
             } else
                 image = java.awt.Toolkit.getDefaultToolkit().getImage(url);
