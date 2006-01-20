@@ -3,25 +3,26 @@ package tufts.vue.gui;
 import tufts.vue.*;
 import tufts.vue.action.*;
 
+import java.awt.Component;
 import java.awt.Event;
 import java.awt.Color;
 import java.awt.Window;
 import java.awt.event.KeyEvent;
-import java.awt.event.ActionEvent;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentAdapter;
 
 import javax.swing.Action;
 import javax.swing.AbstractButton;
 import javax.swing.KeyStroke;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 
 /**
  * The main VUE application menu bar.
- * @version $Revision: 1.1 $ / $Date: 2005-11-27 16:15:39 $ / $Author: sfraize $ 
+ *
+ * @version $Revision: 1.2 $ / $Date: 2006-01-20 17:25:28 $ / $Author: sfraize $
+ * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
     implements java.awt.event.FocusListener
@@ -41,21 +42,38 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
       }
     */
+
+    private static class VueMenu extends JMenu {
+        private boolean unadjusted = true;
         
-    public VueMenuBar(ToolWindow[] toolWindows)
+        VueMenu(String name) {
+            super(name);
+        }
+
+        public void addNotify() {
+            if (unadjusted) {
+                GUI.adjustMenuIcons(this);
+                unadjusted = false;
+            }
+            super.addNotify();
+        }
+    }
+
+
+    public VueMenuBar(Object[] toolWindows)
     {
         addFocusListener(this);
         final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
         
-        JMenu fileMenu = new JMenu("File");
-        JMenu editMenu = new JMenu("Edit");
-        JMenu viewMenu = new JMenu("View");
-        JMenu formatMenu = new JMenu("Format");
-        JMenu arrangeMenu = new JMenu("Arrange");
+        JMenu fileMenu = new VueMenu("File");
+        JMenu editMenu = new VueMenu("Edit");
+        JMenu viewMenu = new VueMenu("View");
+        JMenu formatMenu = new VueMenu("Format");
+        JMenu arrangeMenu = new VueMenu("Arrange");
         JMenu windowMenu = null;
-        JMenu alignMenu = new JMenu("Arrange/Align");
-        //JMenu optionsMenu = menuBar.add(new JMenu("Options"))l
-        JMenu helpMenu = add(new JMenu("Help"));
+        JMenu alignMenu = new VueMenu("Arrange/Align");
+        //JMenu optionsMenu = menuBar.add(new VueMenu("Options"))l
+        JMenu helpMenu = add(new VueMenu("Help"));
 
         //adding actions
         SaveAction saveAction = new SaveAction("Save", false);
@@ -96,7 +114,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
         if (false && DEBUG.Enabled) {
             // THIS CODE IS TRIGGERING THE TIGER ARRAY BOUNDS BUG (see above)
-            JMenu exportMenu = add(new JMenu("Export"));
+            JMenu exportMenu = add(new VueMenu("Export"));
             exportMenu.add(htmlAction);
             exportMenu.add(pdfAction);
             exportMenu.add(imageAction);
@@ -116,7 +134,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // GET RECENT FILES FROM PREFS!
         //fileMenu.add(exportMenu);
 
-        if (VUE.isApplet() || (VUE.isSystemPropertyTrue("apple.laf.useScreenMenuBar") && VueUtil.isMacAquaLookAndFeel())) {
+        if (VUE.isApplet() || (VUE.isSystemPropertyTrue("apple.laf.useScreenMenuBar") && GUI.isMacAqua())) {
             // Do NOT add quit to the file menu.
             // Either we're an applet w/no quit, or it's already in the mac application menu bar.
             // FYI, MRJAdapter.isSwingUsingScreenMenuBar() is not telling us the truth.
@@ -149,7 +167,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         viewMenu.add(Actions.ZoomOut);
         viewMenu.add(Actions.ZoomFit);
         viewMenu.add(Actions.ZoomActual);
-        viewMenu.add(Actions.ToggleFullScreen);
+
+        //if (tufts.Util.getJavaVersion() >= 1.5f)
+            viewMenu.add(Actions.ToggleFullScreen);
 
         formatMenu.add(Actions.FontSmaller);
         formatMenu.add(Actions.FontBigger);
@@ -179,11 +199,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
         int index = 0;
         if (toolWindows != null) {
 
-            windowMenu = add(new JMenu("Window"));
+            windowMenu = add(new VueMenu("Window"));
                 
             for (int i = 0; i < toolWindows.length; i++) {
                 //System.out.println("adding " + toolWindows[i]);
-                ToolWindow toolWindow = toolWindows[i];
+                Object toolWindow = toolWindows[i];
                 if (toolWindow == null)
                     continue;
                 final WindowDisplayAction windowAction = new WindowDisplayAction(toolWindow);
@@ -199,7 +219,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         helpMenu.add(new ShowURLAction("VUE Online", "http://vue.tccs.tufts.edu/"));
         helpMenu.add(new ShowURLAction("User Guide", "http://vue.tccs.tufts.edu/userdoc/"));
-        helpMenu.add(new AboutAction());
+
+        if (tufts.Util.isMacPlatform() == false) {
+            // already in standard MacOSX place
+            helpMenu.add(new AboutAction());
+        }
+
         helpMenu.add(new ShortcutsAction());
 
         add(fileMenu);
@@ -215,9 +240,66 @@ public class VueMenuBar extends javax.swing.JMenuBar
             RootMenuBar = this;
     }
 
+    private KeyEvent alreadyProcessed;
+
+    /*
     public boolean doProcessKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
-        return super.processKeyBinding(ks, e, condition, pressed);
+        //return super.processKeyBinding(ks, e, condition, pressed);
+        //if (e != alreadyProcessed) {
+            System.out.println("VueMenuBar: handling relayed " + ks);
+            return processKeyBinding(ks, e, condition, pressed);
+            //}
+            //return true;
     }
+    */
+
+    public void processKeyEvent(KeyEvent e) {
+        if (!e.isConsumed())
+            super.processKeyEvent(e);
+        else
+            System.out.println("VueMenuBar: processKeyEvent: already consumed " + e);
+    }
+    
+    void doProcessKeyEvent(KeyEvent e) {
+        if (e != alreadyProcessed) {
+            if (DEBUG.KEYS) System.out.println("VueMenuBar: doProcessKeyEvent " + e);
+            processKeyEvent(e);
+        }
+        else if (DEBUG.KEYS) System.out.println("VueMenuBar: already processed " + e);
+    }
+    
+    // todo: this doesn't work: safer if can get working instead of above
+    void doProcessKeyPressEventToBinding(KeyEvent e) {
+
+        if (e != alreadyProcessed) {
+            //System.out.println("VueMenuBar: doProcessKeyPressEventToBinding " + e);
+            System.out.println("VueMenuBar: KEY->BIND " + e);
+            KeyStroke ks = KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers(), false);
+            super.processKeyBinding(ks, e, WHEN_FOCUSED, true);
+        }
+        else System.out.println("VueMenuBar: already processed " + e);
+    }
+    
+    protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
+        if (e.isConsumed())
+            System.out.println("VueMenuBar: GOT CONSUMED " + ks);
+
+        if (!pressed) // we only ever handle on key-press
+            return false;
+            
+        boolean didAction = super.processKeyBinding(ks, e, condition, pressed);
+        if (DEBUG.KEYS) {
+            String used = didAction ?
+                "CONSUMED " :
+                "NOACTION ";
+            System.out.println("VueMenuBar: processKeyBinding " + used + ks + " " + e.paramString());
+        }
+        if (didAction)
+            e.consume();
+        alreadyProcessed = e;
+        return didAction;
+    }
+    
 
     public void setVisible(boolean b) {
         VUE.Log.debug("VMB: setVisible: " + b);
@@ -232,7 +314,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
 
     public static JMenu buildMenu(String name, Action[] actions) {
-        return buildMenu(new JMenu(name), actions);
+        return buildMenu(new VueMenu(name), actions);
     }
     public static JMenu buildMenu(JMenu menu, Action[] actions) {
         for (int i = 0; i < actions.length; i++) {
@@ -247,114 +329,21 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
 
 
-    private static class WindowDisplayAction extends javax.swing.AbstractAction {
-        private AbstractButton mLinkedButton;
-        private Window mWindow;
-        private String mTitle;
-        private boolean firstDisplay = true;
-        private static final boolean showActionLabel = false;
-        
-        public WindowDisplayAction(Window w) {
-            super("window: " + w.getName());
-            init(extractTitle(w), w);
-        }
-        
-        public WindowDisplayAction(ToolWindow tw) {
-            super("window: " + tw.getWindow().getName());
-            init(tw.getTitle(), tw.getWindow());
-        }
-
-        private void init(String title, Window w) {
-            mTitle = title;
-            updateActionTitle(true);
-            mWindow = w;
-            mWindow.addComponentListener(new ComponentAdapter() {
-                    public void componentShown(ComponentEvent e) { handleShown(); }
-                    public void componentHidden(ComponentEvent e) { handleHidden(); }
-            });
-        }
-
-        /*
-        private String getTitle() {
-            return mTitle;
-            //return extractTitle(mWindow);
-        }
-        */
-
-        private static String extractTitle(Window w) {
-            if (w instanceof java.awt.Frame)
-                return ((java.awt.Frame)w).getTitle();
-            else if (w instanceof java.awt.Dialog)
-                return ((java.awt.Dialog)w).getTitle();
-            else
-                return ((java.awt.Window)w).getName();
-        }
-
-        private void handleShown() {
-            //out("handleShown [" + getTitle() + "]");
-            setButtonState(true);
-            updateActionTitle(false);
-        }
-        private void handleHidden() {
-            //out("handleHidden [" + getTitle() + "]");
-            setButtonState(false);
-            updateActionTitle(false);
-        }
-        
-        private void updateActionTitle(boolean firstTime) {
-            if (!firstTime && !showActionLabel)
-                return;
-            if (showActionLabel) {
-                String action = "Show ";
-                if (mLinkedButton != null && mLinkedButton.isSelected())
-                    action = "Hide ";
-                putValue(Action.NAME, action + mTitle);
-            } else {
-                putValue(Action.NAME, mTitle);
-            }
-        }
-        void setLinkedButton(AbstractButton b) {
-            mLinkedButton = b;
-        }
-        private void setButtonState(boolean tv) {
-            if (mLinkedButton != null)
-                mLinkedButton.setSelected(tv);
-        }
-        public void actionPerformed(ActionEvent e) {
-            if (mLinkedButton == null)
-                mLinkedButton = (AbstractButton) e.getSource();
-            if (firstDisplay && mWindow.getX() == 0 && mWindow.getY() == 0) {
-                mWindow.setLocation(20,22);
-            }
-            firstDisplay = false;
-            if (mLinkedButton.isSelected()) {
-                mWindow.setVisible(true);
-                mWindow.toFront();
-                //VUE.ensureToolWindowVisibility(mTitle);
-            } else {
-                mWindow.setVisible(false);
-                //VUE.ensureToolWindowVisibility(null);
-            }
-            
-        }
-    }
-
-
 
 
     private static class ShortcutsAction extends VueAction {
-        private static ToolWindow window;
+        private static DockWindow window;
         ShortcutsAction() {
             super("Short Cuts");
         }
 
-        void act() {
+        public void act() {
             if (window == null)
                 window = createWindow();
             window.setVisible(true);
         }
-        private ToolWindow createWindow() {
-            return VUE.createToolWindow(VUE.NAME + " Short-Cut Keys", createShortcutsList());
+        private DockWindow createWindow() {
+            return GUI.createDockWindow(VUE.getName() + " Short-Cut Keys", createShortcutsList());
         }
 
         private JComponent createShortcutsList() {
