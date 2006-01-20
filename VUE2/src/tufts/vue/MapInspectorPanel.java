@@ -33,6 +33,8 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
+ * @version $Revision: 1.45 $ / $Date: 2006-01-20 19:32:08 $ / $Author: sfraize $ 
+ *
  */
 public class MapInspectorPanel extends JPanel
     implements  VUE.ActiveMapListener
@@ -67,7 +69,7 @@ public class MapInspectorPanel extends JPanel
         VUE.addActiveMapListener(this);
         setMinimumSize( new Dimension( 180,200) );
         setLayout( new BorderLayout() );
-        setBorder( new EmptyBorder( 5,5,5,5) );
+        //setBorder( new EmptyBorder( 5,5,5,5) );
         mTabbedPane = new JTabbedPane();
         VueResources.initComponent( mTabbedPane, "tabPane");
         
@@ -128,7 +130,7 @@ public class MapInspectorPanel extends JPanel
     }
     
     // override
-    public Dimension getPreferredSize()  {
+    public Dimension XgetPreferredSize()  {
         Dimension size =  super.getPreferredSize();
         if( size.getWidth() < 200 ) {
             size.setSize( 200, size.getHeight() );
@@ -158,7 +160,9 @@ public class MapInspectorPanel extends JPanel
      *
      **/
     public void activeMapChanged(LWMap map) {
+        //tufts.Util.printStackTrace("AMC START");
         setMap(map);
+        //tufts.Util.printStackTrace("AMC END");
     }
     
     
@@ -202,7 +206,9 @@ public class MapInspectorPanel extends JPanel
             descriptionScroller.setMinimumSize(new Dimension(180, 60));
             descriptionScroller.setPreferredSize(new Dimension(180,100));
             descriptionScroller.setOpaque(false);
+            
             descriptionScroller.setBorder(new CompoundBorder(new EmptyBorder(3,0,0,0), descriptionScroller.getBorder()));
+            
             //descriptionScroller.setBorder(new CompoundBorder(new EmptyBorder(9,0,0,0), BorderFactory.createLineBorder(Color.DARK_GRAY)));
             //descriptionScroller.setBorder(new EmptyBorder(9,0,0,0));
             //mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
@@ -354,7 +360,7 @@ public class MapInspectorPanel extends JPanel
             //mPathDisplay = new JPanel();
             //mPathDisplay.add( new JLabel("Pathway offline") );
             
-            mPathDisplay = new PathwayPanel(VUE.getRootFrame());
+            mPathDisplay = new PathwayPanel(VUE.getDialogParentAsFrame());
             
             mPathScrollPane = new JScrollPane();
             mPathScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -738,7 +744,8 @@ public class MapInspectorPanel extends JPanel
         public void propertyChange(PropertyChangeEvent evt) {
         }
         public String getName() {
-            return "Custom Metadata"; // this should come from VueResources
+            //return "Custom Metadata"; // this should come from VueResources
+            return "Metadata"; // this should come from VueResources
         }
         public void updatePanel( LWMap pMap) {
             // update the display
@@ -753,16 +760,14 @@ public class MapInspectorPanel extends JPanel
     }
 
     public static void main(String args[]) {
-        VUE.parseArgs(args);
-        VUE.initUI(true);
+        VUE.init(args);
         DEBUG.Enabled = DEBUG.EVENTS = true;
         LWMap map = new LWMap("test_map");
         map.setFile(new java.io.File("/tmp/test.vue"));
         MapInspectorPanel inspector = new MapInspectorPanel();
         //VUE.setActiveMap(map);
         inspector.setMap(map);
-        ToolWindow w = VUE.createToolWindow("Test Map Inspector");
-        w.addTool(inspector);
+        DockWindow w = GUI.createDockWindow("Map Inspector", inspector);
         w.setVisible(true);
         if (args.length > 1)
             VueUtil.displayComponent(new VueTextPane(map, LWKey.Notes, null));
