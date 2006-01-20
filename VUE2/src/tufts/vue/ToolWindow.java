@@ -19,6 +19,8 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.GUI;
+
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -38,7 +40,8 @@ import javax.swing.border.*;
  * Focus handling for these is quite imperfect right now,
  * so Command/Ctrl-W to close a ToolWindow only sometimes works.
  *
- * @version $Revision: 1.52 $ / $Date: 2005-11-27 16:46:44 $ / $Author: sfraize $ 
+ * @deprecated -- use tufts.vue.gui.DockWindow -- remove this file
+ * @version $Revision: 1.53 $ / $Date: 2006-01-20 20:11:52 $ / $Author: sfraize $ 
  */
 
 public class ToolWindow 
@@ -88,9 +91,11 @@ public class ToolWindow
      *    created Frame, so when Mac OS X forcably switches to the
      *    JMenuBar attached to a Frame when it get's focus (which it does
      *    even if NO menu bar has been defined), it looks like nothing happened.
+     *    [NO LONGER TRUE IN MOST RECENT 1.4.2 and 1.5 JVM's 2005-12-02]
      *
      * 2: If using the brushed metal look, Frame's pick it up, but Window's don't.
      *    [Not fully true or no longer true: JIDE floating toolbars, which are windows, pick it up]
+     *    [NO LONGER TRUE IN MOST RECENT 1.4.2 and 1.5 JVM's 2005-12-02]
      *
      * There are drawbacks, however:
      *
@@ -101,6 +106,7 @@ public class ToolWindow
      * -2: The Frame's "roll-up" size isn't a small as we'd like: they're
      *     forced by the Mac OS X to have a minimum size that's bigger
      *     than we need. (and in the metal look under most recent JVM's, even bigger -- SMF 2005-11-09)
+     *     [THIS IS A RESULT OF MAC BRUSHED METAL LOOK, NOT FRAME, AND HAPPENS ON WINDOWS TOO IN THAT CASE]
      *
      * -3: We can't override setLocation on a Frame, to make the window's
      * "sticky" to the edge's of the main window.
@@ -111,24 +117,48 @@ public class ToolWindow
      * Note: as of java 1.5, there is a way to force a window to be on top,
      * which would allow us to use windows on the mac if we can solve the
      * menu bar problem (tho we may still have the missing brushed-metal
-     * look problem).
+     * look problem).   [No longer applies: windows can be used, and stay on top of parent]
+     *
+     *
+     * 2005-12-06 UPDATE: Using a Dialog is nice in that it can be parented
+     * to another frame, which, for instance, has the root menu installed.
+     * But Dialog's, at least on mac, won't display an iconification button...
+     *
      */
+
     private class FrameDelegate extends JFrame implements Delegate {
+    //private class FrameDelegate extends JDialog implements Delegate {
+    //private class FrameDelegate extends JWindow implements Delegate {
         FrameDelegate(String title) {
-            // important to set the title even if Undecorated for
+            this(title, null);
+        }
+        
+        FrameDelegate(String title, Frame owner) {
+            super(title);               // Frame
+            //super(owner, title);        // Dialog
+            //super(owner);               // Window
+
+            //-------------------------------------------------------
+            // It is important to call setTitle even if we're undecorated for
             // our tufts.macosx.Screen hacks to work.
-            setTitle(title); 
-            setUndecorated(true);
+            //-------------------------------------------------------
+            setTitle(title);
+            
+            //setUndecorated(true);
             setResizable(true);
 
-            if (VueUtil.isMacPlatform()) {
+            setJMenuBar(new tufts.vue.gui.VueMenuBar());
+
+
+            if (false && VueUtil.isMacPlatform()) {
                 addComponentListener(new ComponentAdapter() {
                         public void componentShown(ComponentEvent e) { handleShown(); }
                         public void componentHidden(ComponentEvent e) { handleHidden(); }
                     });
             }
-            
+
         }
+
         public void setVisible(boolean show) { ToolWindow.this.setVisible(show); }
         public void setSize(int width, int height) { ToolWindow.this.setSize(width, height); }
         public void setSuperSize(int width, int height) { super.setSize(width, height); }
@@ -137,14 +167,14 @@ public class ToolWindow
             if (show == false) {
                 // if going invisible, must be sure to detach from a Cocoa established parent or
                 // parent will going invisible also!
-                detachFromMainWindow(getTitle());
+                // detachFromMainWindow(getTitle()); TOOLWINDOW-NEW
             }
             super.setVisible(show);
         }
 
         private void handleShown() {
             if (DEBUG.TOOL) out("handleShown [" + getTitle() + "] (attach later)");
-            attachToMainWindow(getTitle());
+            //attachToMainWindow(getTitle()); // TOOLWINDOW-NEW
         }
         private void handleHidden() {
             if (DEBUG.TOOL) out("handleHidden [" + getTitle() + "] (noop)");
@@ -172,6 +202,10 @@ public class ToolWindow
             if (DEBUG.TOOL) out("setContentPane " + contentPane);
             super.setContentPane(contentPane);
         }
+
+        public String toString() {
+            return getClass().getName() + "[" + getName() + "]";
+        }
     
     }
 
@@ -186,11 +220,11 @@ public class ToolWindow
     private static void adjustMacWindows(final String ensureShown, final String ensureHidden, final boolean immediate) {
         if (VueUtil.isMacPlatform() && !VUE.inNativeFullScreen()) {
             if (immediate) {
-                tufts.Util.adjustMacWindows(VUE.NAME + ":", ensureShown, ensureHidden, VUE.inFullScreen());
+                tufts.Util.adjustMacWindows(VUE.getName() + ":", ensureShown, ensureHidden, VUE.inFullScreen());
             } else {
                 VUE.invokeAfterAWT(new Runnable() {
                         public void run() {
-                            tufts.Util.adjustMacWindows(VUE.NAME + ":", ensureShown, ensureHidden, VUE.inFullScreen());
+                            tufts.Util.adjustMacWindows(VUE.getName() + ":", ensureShown, ensureHidden, VUE.inFullScreen());
                         }
                     });
             }
@@ -224,8 +258,31 @@ public class ToolWindow
      * and have everything just be windows.
      */
     private class WindowDelegate extends JWindow implements Delegate {
-        WindowDelegate(Window owner) {
+        WindowDelegate(String title, Window owner) {
             super(owner);
+
+            // This identifies it as a palette style window, leaving focus
+            // with application Frame's as we'd like.  Unfortunately,
+            // this also means that any text widgets that need focus
+            // in order to take key input won't, by default, get it anymore.
+            // Installing our own KeyboardFocusManager could work around this.
+            
+            setFocusableWindowState(false);
+
+            // Popup's use this special name, I think to avoid taking focus?
+            // It also has a side effect on Mac such that even if brushed metal
+            // look is installed, the window won't pick it up (which of course
+            // you wouldn't want on a tool-tip pop-up window, or a menu for that
+            // matter)
+            //setName("###overrideRedirect###");
+
+            setName(title);
+            //setName(title + "^(" + tufts.vue.gui.FocusManager.name(owner) + ")");
+
+            // Just to confirm: even in 1.5, Window's that are children of
+            // a Frame still make that Frame go inactive if they get focus.
+            
+            if (DEBUG.TOOL) out("constructed WindowDelegate, child of " + owner);
         }
         public void setVisible(boolean show) { ToolWindow.this.setVisible(show); }
         public void setSize(int width, int height) { ToolWindow.this.setSize(width, height); }
@@ -282,6 +339,11 @@ public class ToolWindow
             if (DEBUG.TOOL) out("setContentPane " + contentPane);
             super.setContentPane(contentPane);
         }
+
+        public String toString() {
+            return getClass().getName() + "[" + getName() + "]";
+        }
+        
         
     }
 
@@ -330,19 +392,74 @@ public class ToolWindow
     public ToolWindow(String title, Window owner) {
         this(title, owner, true);
     }
+    /*
+    private ToolWindow(String title, ToolWindow owner) {
+        this(title, owner.mWindow, true);
+    }
+    */
         
-    public ToolWindow(String title, Window owner, boolean installTitleBar)
-    {
-        if (VueUtil.isMacPlatform()) {
-            mWindow = new FrameDelegate(title);
-        } else {
-            mWindow = new WindowDelegate(owner);
+    public ToolWindow(String title, Window owner, boolean installTitleBar) {
+        this(title, owner, installTitleBar, false);
+    }
+
+    private static JFrame HiddenParentFrame;
+    public static Frame getHiddenFrame() {
+        if (HiddenParentFrame == null) {
+            HiddenParentFrame = new JFrame() {
+                    public void show() {}
+
+                    // so isFocusableWindow in children can return true even tho we're invisible
+                    public boolean isShowing() { return true; }
+
+                    // make sure is never preferred window group for handing focus to
+                    // CANNOT do this or an installed menu-bar won't work
+                    //public boolean getFocusableWindowState() { return false; } // doesn't help
+                    
+                    public String toString() { return getName(); }
+                };
+            HiddenParentFrame.setName("(VUE Hidden)");
+
+            // If we have a menu-bar attached, it must be focusable for the menu bar to work.
+            //HiddenParentFrame.setFocusableWindowState(false);
+            
+            // Don't need to attach MenuBar now that ToolWindow's do NOT "officially" take the focus at all --
+            // the active frame with it's attached menu bar stays active.
+            //HiddenParentFrame.setJMenuBar(new tufts.vue.gui.VueMenuBar());
+            
+            // fortunately, does NOT need to be visible for menu bar to work
+            HiddenParentFrame.setVisible(false);
         }
-        mDelegate = (Delegate) mWindow;
+
+        return HiddenParentFrame;
+    }
+    
+
+    public ToolWindow(String title, Window owner, boolean installTitleBar, boolean frameDelegate)
+    {
         mTitle = title;
-        isMacAqua = VueUtil.isMacAquaLookAndFeel();
-        isMacMetal = VueTheme.isMacMetalLAF();
-        mWindow.setName(title);
+
+        if (owner == null) {
+            owner = getHiddenFrame();
+            //out("using HiddenParentFrame");
+        }
+        
+        //if (false && VueUtil.isMacPlatform()) { // we no longer need FrameDelegate -- mac fixed the bugs
+        if (frameDelegate) {
+            mWindow = new FrameDelegate(title, (Frame)owner);
+        } else {
+            // TODO: if owner is null, use our own offscreen owner so can take
+            // focus, or hack up our own KeyboardFocusManager?
+            // Could have a Frame who's show is overriden to do nothing
+            // (like SwingUtility shared parent), yet we could also
+            // have isShowing return true, so that isFocusableWindow
+            // in a child will think it's parent is visible on-screen.
+            mWindow = new WindowDelegate(title, owner);
+        }
+        //sWindowTracker.add(mWindow);
+        
+        mDelegate = (Delegate) mWindow;
+        isMacAqua = GUI.isMacAqua();
+        isMacMetal = GUI.isMacBrushedMetal();
         
         mCreateTitleBar = installTitleBar;
         //mCreateTitleBar = true;
@@ -365,7 +482,11 @@ public class ToolWindow
             if (mCreateTitleBar)
                 ((JFrame)mWindow).setContentPane(mContentPane);
             ((JFrame)mWindow).setGlassPane(glassPane);
-        } else {
+        } else if (mWindow instanceof JDialog) {
+            if (mCreateTitleBar)
+                ((JDialog)mWindow).setContentPane(mContentPane);
+            ((JDialog)mWindow).setGlassPane(glassPane);
+        } else { // is JWindow
             if (mCreateTitleBar)
                 ((JWindow)mWindow).setContentPane(mContentPane);
             ((JWindow)mWindow).setGlassPane(glassPane);
@@ -405,6 +526,9 @@ public class ToolWindow
             if (isMacAqua == false)
                 CollapsedHeight += 4;;
         }
+
+        // set a default size
+        setSize(180,100);
         
     }
 
@@ -460,22 +584,27 @@ public class ToolWindow
         // event raiser wasn't designed for this, but turns out
         // to be very convienent for it.
         EventRaiser e = new EventRaiser(mWindow) {
-                public Class getListenerClass() { return JTabbedPane.class; }
-                void dispatch(Object pTabbedPane) {
+                public Class getTargetClass() { return JTabbedPane.class; }
+                public void dispatch(Object pTabbedPane) {
                     JTabbedPane tabbedPane = (JTabbedPane) pTabbedPane;
                     int i = tabbedPane.indexOfTab(name);
                     if (i >= 0)
                         tabbedPane.setSelectedIndex(i);
                 }
             };
-        e.deliverToChildren(mWindow);
+        e.raiseStartingAt(mWindow);
         setVisible(true);
     }
 
     public void addTool(JComponent c) {
         addTool(c, false);
     }
-    
+
+    public void addComponent(JComponent c) {
+        getContentPanel().setLayout(new FlowLayout());
+        getContentPanel().add(c);
+    }
+
     public void addTool(JComponent c, boolean addBorder)
     {
         if (DEBUG.INIT) out("adding " + c.getClass());
@@ -666,15 +795,17 @@ public class ToolWindow
         JPanel contentPanel = new JPanel();
         
         protected void processEvent(AWTEvent e) {
-            System.out.println("CP processEvent " + e);
+            if (DEBUG.TOOL) System.out.println(this + " processEvent " + e);
             super.processEvent(e);
         }
 
         protected void processKeyEvent(KeyEvent e) {
-            System.out.println("CP processKeyEvent " + e);
+            if (DEBUG.TOOL) System.out.println(this + " processKeyEvent " + e);
             super.processKeyEvent(e);
         }
 
+        /** we need this to hand off command keystrokes to the VUE menu bar */
+        /*
         protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed)
         {
             // We want to ignore vanilla typed text as a quick-reject culling mechanism.
@@ -712,6 +843,7 @@ public class ToolWindow
                 return false;
             }
         }
+        */
         
         public ContentPane(String title)
         {
@@ -886,11 +1018,14 @@ public class ToolWindow
     }
 
     public static void main(String args[]) {
-        VUE.parseArgs(args);
-        VUE.initUI(true);
+        VUE.init(args);
         DEBUG.BOXES=true;
         DEBUG.KEYS=true;
+        
+        ToolWindow twDoc0 = new ToolWindow("Document Zero", null, true, true);
+        
         ToolWindow tw = new ToolWindow("Ya Biggie Title", null);
+        //ToolWindow tw = new ToolWindow("Ya Biggie Title", twDoc0.mWindow);
         JPanel p = new JPanel();
         p.setBorder(new TitledBorder("Yippity Vue Tool"));
         JLabel l = new JLabel("I am a label");
@@ -898,11 +1033,73 @@ public class ToolWindow
         JTextField tf = new JTextField(5);
         tf.setText("text");
         tf.setEditable(true);//no need
+        tf.setFocusable(true);//no need
         p.add(tf);
+        p.add(new JButton("foo"));
         tw.addTool(p);
-        tw.setSize(240,200);
-        tw.setVisible(true);
+        //tw.setSize(240,200);
+        
+        //tw.setVisible(true);
 
+        // Okay, the only way to ensure something stays on top is
+        // to have the children be WINDOWS (not frames), and all
+        // parent to the SAME root parent.  Hierarchical
+        // keep-on-top doesn't seem to work, and children
+        // who are frames will not stay on top.
+
+        if (true) {
+            //-------------------------------------------------------
+            // java 1.5 test of setAlwaysOnTop
+            //-------------------------------------------------------
+            // This works perfectly.  Damn, we really need to switch to java 1.5.
+            // And we wouldn't need to deal with root windows.
+            // Okay, not PERFECTLY: alwaysOnTop on mac sets it to even be
+            // on top of all other APPLICATIONS!
+
+
+            //ToolWindow twDoc0 = new ToolWindow("Document Zero", null, true, true);
+            ToolWindow twDoc1 = new ToolWindow("Document One", null, true, true);
+            //ToolWindow tw0 = new ToolWindow("ToolWindow 0", null);
+            ToolWindow tw0 = tw;
+            // ToolWindow contents won't take focus if they have no parent?
+            //ToolWindow tw0 = new ToolWindow("Inspector", twDoc0.mWindow);
+            //tw0.addTool(new LWCInspector());
+            ToolWindow tw1 = new ToolWindow("ToolWindow 1", null);
+
+            twDoc0.setVisible(true);
+            twDoc1.setVisible(true);
+
+            tw0.setVisible(true);
+            tw1.setVisible(true);
+            
+            //tw0.mWindow.setAlwaysOnTop(true);
+            //tw1.mWindow.setAlwaysOnTop(true);
+
+            // called indirectly so this compiles in java 1.4
+            //tufts.Util.invoke(tw0.mWindow, "setAlwaysOnTop", Boolean.TRUE);
+            //tufts.Util.invoke(tw1.mWindow, "setAlwaysOnTop", Boolean.TRUE);
+            
+        } else {
+
+            ToolWindow root = new ToolWindow("ROOT-0", null, true, true);
+            //ToolWindow root1 = new ToolWindow("ROOT-1", null, true, false);
+            ToolWindow docRoot = new ToolWindow("DOCUMENT ROOT", root.mWindow, true, false);
+                       twDoc0 = new ToolWindow("Document Zero", docRoot.mWindow, true, true);
+            ToolWindow twDoc1 = new ToolWindow("Document One", docRoot.mWindow, true, true);
+            ToolWindow tw0 = new ToolWindow("ToolWindow 0", root.mWindow);
+            ToolWindow tw1 = new ToolWindow("ToolWindow 1", root.mWindow);
+            //ToolWindow tw2 = new ToolWindow("ToolWindow 2", root);
+            
+            root.setVisible(true);
+            //root1.setVisible(true);
+            docRoot.setVisible(true);
+            twDoc0.setVisible(true);
+            twDoc1.setVisible(true);
+            tw0.setVisible(true);
+            tw1.setVisible(true);
+        }
+
+        
         // why can't we get the tex field to respond to mouse??
         // must it have an action listener?
         /*
