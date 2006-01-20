@@ -60,7 +60,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.276 $ / $Date: 2006-01-20 19:52:24 $ / $Author: sfraize $ 
+ * @version $Revision: 1.277 $ / $Date: 2006-01-20 21:40:10 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3781,7 +3781,10 @@ public class MapViewer extends javax.swing.JComponent
             
             LWComponent toDrag;
 
-            if (VueSelection.isEmpty()) {
+            if (VueSelection == null || VueSelection.isEmpty()) {
+                // VueSelection could be null if the user
+                // moves fast and starts a drag before the
+                // viewer has had a chance to become the active one.
                 toDrag = getMap();
             } else if (VueSelection.size() == 1) {
                 toDrag = VueSelection.first();
@@ -3982,8 +3985,11 @@ public class MapViewer extends javax.swing.JComponent
                      //todo: dragComponent for moment is only ever the LWGroup or a LWLink
                      && dragComponent != null
                      //&& !(dragComponent instanceof LWLink) // todo: not possible -- dragComponent never a single LWC anymore
-                     && !(VueSelection.allOfType(LWLink.class)) //todo opt: cache type
+                     && !(VueSelection != null && VueSelection.allOfType(LWLink.class)) //todo opt: cache type
                      ) {
+
+
+                // TODO: above VueSelection should never be null.
                 
                 //-------------------------------------------------------
                 // vanilla drag -- check for node drop onto another node
@@ -4628,7 +4634,7 @@ public class MapViewer extends javax.swing.JComponent
         }
     }
     
-    private void grabVueApplicationFocus(String from, ComponentEvent event) {
+    void grabVueApplicationFocus(String from, ComponentEvent event) {
         if (DEBUG.FOCUS) {
             // Util.printStackTrace();
             out("-------------------------------------------------------");
@@ -4641,8 +4647,6 @@ public class MapViewer extends javax.swing.JComponent
         if (VUE.getActiveViewer() != this) {
             
             if (DEBUG.FOCUS) out("GVAF: " + from + " *** GRABBING ***");
-            //new Throwable("REAL GRAB").printStackTrace();
-            // ??? why are we checking this again if we just checked it ???
             becomeActiveViewer();
             
         } else {
