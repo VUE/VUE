@@ -30,6 +30,7 @@ package tufts.vue;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
+ * @version $Revision: 1.36 $ / $Date: 2006-01-20 20:06:48 $ / $Author: sfraize $
  * @author  akumar03
  */
 import java.util.Properties;
@@ -39,7 +40,10 @@ import javax.swing.JComponent;
 // todo fix: type isn't always being set in VUE code (e.g., VueDragTree),
 //      and type may not really belong here (e.g., ASSET & FAVORITE types too specific)
 
-public interface Resource {
+public interface Resource 
+{
+    public static final java.awt.datatransfer.DataFlavor DataFlavor =
+        tufts.vue.gui.GUI.makeDataFlavor(Resource.class);
         
     /*  The follow type codes are defined for resources.
      */
