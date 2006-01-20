@@ -25,10 +25,9 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 /**
- * Tool for working with LWImage.
+ * Tool for working with LWImage's
  *
  * @version $Revision: 1. $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $
- * @author Scott Fraize
  *
  */
 public class ImageTool extends VueTool
