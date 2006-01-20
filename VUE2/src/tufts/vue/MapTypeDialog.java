@@ -29,6 +29,9 @@ import java.awt.*;
 import java.awt.event.*;
 import tufts.vue.beans.*;
 
+/**
+ * @version $Revision: 1.6 $ / $Date: 2006-01-20 19:42:11 $ / $Author: sfraize $
+ */
 public class MapTypeDialog extends JPanel  implements ActionListener, ListSelectionListener {
 
 	///////////////
@@ -372,10 +375,10 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 	}
 	
 	public boolean displayDialog() {
-            mDialog  = new JDialog(VUE.getRootFrame(), true);
+            mDialog  = new JDialog(VUE.getDialogParentAsFrame(), true);
             mDialog.getContentPane().add( this);
             mDialog.pack();
-            mDialog.show();
+            mDialog.setVisible(true);
             
             return mIsOkay;
 	}	
