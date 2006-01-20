@@ -18,10 +18,21 @@
 
 package tufts.vue;
 
-/** Some pre-defined property types.  Any string may be used as an
+
+// todo: a Key class, and some are marked as model-changing (default),
+// and some not (e.g., repaints, user-action-completed)
+// final flags: isChange & isSignal (one or other), isBoundsChange
+// by default always safe with isChange=true, isSignal=false, isBoundsChange=true
+// can provide isSignal=true & isBoundsChange=false for optimization.
+
+/**
+ * Some pre-defined property types.  Any string may be used as an
  * property or event identifier, but you must be sure to use the constant
  * object here for any of these events or they may not be
- * recognized */
+ * recognized .
+ *
+ * @version $Revision:  $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $
+ */
 public interface LWKey {
 
     public String UserActionCompleted = "user.action.completed";
