@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.46 $ / $Date: 2005-11-27 14:55:55 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2006-01-20 20:36:06 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -501,12 +501,13 @@ public class VueToolbarController
 	
     public static void main(String[] args) {
         System.out.println("VueToolbarController:main");
+
         DEBUG.Enabled = true;
         //DEBUG.INIT = true;
         DEBUG.TOOL = true;
-        VUE.parseArgs(args);
-        VUE.initUI(true);
 
+        VUE.init(args);
+        
         FontEditorPanel.sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts
         VueToolbarController controller = getController();
 
