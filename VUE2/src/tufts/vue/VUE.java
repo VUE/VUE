@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.Util;
+
 import tufts.vue.action.*;
 import tufts.vue.gui.*;
 
@@ -55,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.315 $ / $Date: 2005-12-02 15:50:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.316 $ / $Date: 2006-01-20 20:16:27 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -77,32 +79,28 @@ public class VUE
     
     /** array of tool windows, used for repeatedly creating JMenuBar's for on all Mac JFrame's */
     // todo: wanted package private: should be totally private
-    public static ToolWindow[] ToolWindows; // VueMenuBar currently needs this
+    public static Object[] ToolWindows; // VueMenuBar currently needs this
 
-            /** teh global resource selection static model **/
-    public final static ResourceSelection sResourceSelection = new ResourceSelection();
+    /** teh global resource selection static model **/
+    private static ResourceSelection sResourceSelection;
     
     //private static com.jidesoft.docking.DefaultDockableHolder frame;
-    private static VueFrame frame;
+    //private static VueFrame ApplicationFrame;
+    public static VueFrame ApplicationFrame;
     
     private static MapTabbedPane mMapTabsLeft;
     private static MapTabbedPane mMapTabsRight;
-    private static JSplitPane viewerSplit;
+    //private static JSplitPane mViewerSplit;
+    public static JSplitPane mViewerSplit;
     
-    static ToolWindow sMapInspector;
-    static ToolWindow objectInspector;
-    static ObjectInspectorPanel objectInspectorPanel;
+    static DockWindow MapInspector;
+    static DockWindow ObjectInspector;
+    static ObjectInspectorPanel ObjectInspectorPanel;
     
-    //hierarchy view tree window component
-    private static LWHierarchyTree hierarchyTree;
-    
-    //overview tree window component
-    public static LWOutlineView outlineView;
-    
-    //public static DataSourceViewer dataSourceViewer;
-    public static FavoritesWindow favoritesWindow;
+    /** see VueDandDTree.java */ // todo: cleanup
     public static boolean  dropIsLocal = false;
-    private static boolean isStartupUnderway = true;
+    
+    private static boolean isStartupUnderway = false;
 
     private static java.util.List sActiveMapListeners = new java.util.ArrayList();
     private static java.util.List sActiveViewerListeners = new java.util.ArrayList();
@@ -131,11 +129,7 @@ public class VUE
             String prop;
             try {
                 prop = System.getProperty(name);
-                if (DEBUG.INIT) {
-                    out("got property " + name);
-                    if (name.equals("apple.awt.brushMetalLook"))
-                        new Throwable("apple.awt.brushMetalLook").printStackTrace();
-                }
+                if (DEBUG.INIT) out("got property " + name);
             } catch (java.security.AccessControlException e) {
                 System.err.println(e);
                 prop = null;
@@ -144,6 +138,20 @@ public class VUE
         }
     }
 
+    public static final String NullSystemProperty = "";
+    
+    /**
+     * Getl's a system property, guaranteeing a non-null return value.
+     * @return value or given system property, or an empty String
+     */
+    public static String getSystemPropertyValue(String name) {
+        String value = getSystemProperty(name);
+        if (value == null)
+            return NullSystemProperty;
+        else
+            return value;
+    }
+    
     public static boolean isSystemPropertyTrue(String name) {
         String value = getSystemProperty(name);
         return value != null && value.toLowerCase().equals("true");
@@ -189,7 +197,7 @@ public class VUE
     // todo: as a stack
     public static synchronized void activateWaitCursor() {
         if (oldRootCursor != null) {
-            out("multiple wait-cursors: already have " + oldRootCursor + "\n");
+            if (DEBUG.FOCUS) out("multiple wait-cursors: already have " + oldRootCursor + "\n");
             return;
         }
         if (getActiveViewer() != null) {
@@ -197,7 +205,7 @@ public class VUE
             oldViewerCursor = waitedViewer.getCursor();
             waitedViewer.setCursor(CURSOR_WAIT);
         }
-        JRootPane root = SwingUtilities.getRootPane(VUE.frame);
+        JRootPane root = SwingUtilities.getRootPane(VUE.ApplicationFrame);
         if (root != null) {
             //out("ACTIVATING WAIT CURSOR: current =  " + oldRootCursor + "\n");
             oldRootCursor = root.getCursor();
@@ -218,13 +226,10 @@ public class VUE
             waitedViewer.setCursor(oldViewerCursor);
             waitedViewer = null;
         }
-        SwingUtilities.getRootPane(VUE.frame).setCursor(oldRootCursor);
+        SwingUtilities.getRootPane(VUE.ApplicationFrame).setCursor(oldRootCursor);
         oldRootCursor = null;
     }
     
-    /*public static LWPathwayInspector getPathwayInspector(){
-        return pathwayInspector;
-        }*/
     public static LWPathway getActivePathway() {
         LWPathway p = null;
         if (getActiveMap() != null && getActiveMap().getPathwayList() != null)
@@ -233,110 +238,33 @@ public class VUE
         return p;
     }
     
-    /*public static PathwayControl getPathwayControl()
-    {
-        return control;
-    }*/
-    
-    /**End of pathway related methods*/
-    
-    /**Hierarchy View related method*/
-    public static LWHierarchyTree getHierarchyTree() {
-        return hierarchyTree;
-    }
-    
-    /**End of hierarchy view related method*/
-    
-    /**Overview related method*/
-    public static LWOutlineView getOutlineViewTree() {
-        return outlineView;
-    }
-    
-    /**End of overview related method*/
-    
     static void initUI() {
-        initUI(false);
+        GUI.init(forceWindowsLookAndFeel);
     }
 
-    public static void installVueAquaLAF() {
-        try {
-            javax.swing.UIManager.setLookAndFeel(new tufts.vue.gui.VueAquaLookAndFeel());
-        } catch (javax.swing.UnsupportedLookAndFeelException e) {
-            e.printStackTrace();
-        }
+    /** initialize based on command line args, and the initlaize the GUI */
+    public static void init(String[] args) {
+        if (args != null)
+            parseArgs(args);
+        initUI();
+    }
+
+    public static void init() {
+        init(null);
     }
     
-    private static boolean useMacLAF = false;
-    public static void initUI(boolean debug)
-    {
-        if (JIDE_TEST) {
-            tufts.Util.executeIfFound("com.jidesoft.utils.Lm", "verifyLicense",
-                                      new Object[] { "Scott Fraize",
-                                                     "VUE",
-                                                     "p0HJOS:Y049mQb8BLRr9ntdkv9P6ihW" });
-            //com.jidesoft.utils.Lm.verifyLicense("Scott Fraize", "VUE", "p0HJOS:Y049mQb8BLRr9ntdkv9P6ihW");
-        }
-        
-        String lafn = null;
-        //lafn = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
-        //lafn = "javax.swing.plaf.basic.BasicLookAndFeel"; // not a separate L&F -- baseclass
-        
-        if (useMacLAF) {
-            // not using metal, so theme will have no effect -- need a LAF to change things.
-            // if on mac, java look & feel will have been defaulted to mac look
-            // if on PC and you specify mac theme, our Metal theme won't be installed
-            installVueAquaLAF();
-            themeSet = true;
-        } else {
-            // by default, force windows L&F on the mac.
-            if (VueUtil.isMacPlatform()) {
-                lafn = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
-            }
-        }
-
-        // Note that it is essential that the theme be set before a single
-        // GUI object of any kind is created.  If, for instance, a static
-        // member in any class initializes a swing gui object, this will end
-        // up having no effect here, and the entire theme will be silently
-        // ignored.  This includes the call below to UIManager.setLookAndFeel,
-        // which is why we need to tell the VueTheme about the laf instead
-        // of having it ask for the LAF itself, as it may not have been set
-        // yet.  Note that when using the Mac Aqua L&F, we don't need
-        // to set the theme for Metal (as it's not being used and would
-        // have no effect), but we still need to initialize the theme,
-        // as it's still queried througout the code.
-
-        boolean macAquaLAF = VueUtil.isMacPlatform() && useMacLAF;
-        VueTheme vueTheme = VueTheme.getTheme(macAquaLAF);
-        
-        if (!themeSet) {
-            out("Installing VUE MetalLookAndFeel theme.");
-            MetalLookAndFeel.setCurrentTheme(vueTheme);
-            //MetalLookAndFeel.setCurrentTheme(new javax.swing.plaf.metal.OceanTheme());
-        }
-        
-        try {
-            if (lafn != null)
-                javax.swing.UIManager.setLookAndFeel(lafn);
-            //javax.swing.UIManager.setLookAndFeel(new VueLookAndFeel());
-        } catch (Exception e) {
-            System.err.println(e);
-        }
-
-        Log.debug("LAF  name: " + javax.swing.UIManager.getLookAndFeel().getName());
-        Log.debug("LAF descr: " + javax.swing.UIManager.getLookAndFeel().getDescription());
-        Log.debug("LAF class: " + javax.swing.UIManager.getLookAndFeel().getClass());
-    }
-
     public static void parseArgs(String[] args) {
         String allArgs = "";
         for (int i = 0; i < args.length; i++) {
             allArgs += "[" + args[i] + "]";
-            if (args[i].equals("-nodr"))
-                nodr = true;
-            else if (args[i].equals("-mac") || args[i].equals("-useMacLookAndFeel"))
-                useMacLAF = true;
-            else if (args[i].equals("-exit_after_init")) // for startup time trials
+            if (args[i].equals("-nosplash")) {
+                SKIP_SPLASH = true;
+            } else if (args[i].equals("-nodr")) {
+                DEBUG.Enabled = true;
+                SKIP_DR = true;
+            } else if (args[i].equals("-win") || args[i].equals("-useWindowsLookAndFeel")) {
+                forceWindowsLookAndFeel = true;
+            } else if (args[i].equals("-exit_after_init")) // for startup time trials
                 exitAfterInit = true;
             else
                 DEBUG.parseArg(args[i]);
@@ -344,394 +272,84 @@ public class VUE
             if (args[i].startsWith("-debug")) DEBUG.Enabled = true;
 
         }
-        out("parsed args " + allArgs);
+        if (DEBUG.INIT) System.out.println("VUE: parsed args " + allArgs);
     }
 
     
-    private static JPanel toolPanel;
-    private static boolean themeSet = false;
-    private static boolean nodr = false;
+    //-----------------------------------------------------------------------------
+    // Variables used during VUE startup
+    //-----------------------------------------------------------------------------
+    
+    private static boolean forceWindowsLookAndFeel = false;
     private static boolean exitAfterInit = false;
+    private static boolean SKIP_DR = false; // don't load DRBrowser, no splash & no startup map
+    private static boolean SKIP_SPLASH = false;
+    private static DRBrowser DR_BROWSER;
+    private static String NAME;
 
-
+    //-----------------------------------------------------------------------------
     //public static final boolean TUFTS = VueResources.getBool("application.features.tufts");
-    //public static final boolean NARRAVISION = !TUFTS;
-    public static final boolean TUFTS = false;
-    public static final boolean NARRAVISION = true;
-    public static final String NAME = VueResources.getString("application.name");
-    
-    
-    public static void main(String[] args) {
-        System.out.println("VUE: main invoked.");
+    //public static final boolean TUFTS = false;
+
+    static {
         Logger.getRootLogger().removeAllAppenders(); // need to do this or we get everything twice
         //BasicConfigurator.configure();
         Logger.getRootLogger().addAppender(new ConsoleAppender(new PatternLayout("VUE [%t] %-5p %c:%x %m%n")));
         //Log.addAppender(new ConsoleAppender(new PatternLayout("[%t] %-5p %c %x - %m%n")));
-        Log.setLevel(Level.DEBUG);
-        Log.info("build: " + tufts.vue.Version.AllInfo);
+        Log.setLevel(Level.INFO);
+    }
+    
+    public static void main(String[] args) {
 
-        if (VUE.TUFTS)
-            Log.info("TUFTS features only (no MIT/development)");
-        else
-            Log.info("MIT/development features enabled");
+        Log.debug("VUE: main entered");
+        
+        VUE.isStartupUnderway = true;
 
         parseArgs(args);
-
-        // initUI installs the VueTheme (unless mac look), which must be done
-        // before any other GUI code (including the SlpashScreen)
-        // or our VueTheme gets ignored by swing.
-        initUI();
-
-        Window splashScreen = null;
-        if (nodr)
-            DEBUG.Enabled = true;
-        else
-            splashScreen = new SplashScreen();
-
-        //Preferences p = Preferences.userNodeForPackage(VUE.class);
-        //p.put("DRBROWSER.RUN", "yes, it has");
         
-
-        //-------------------------------------------------------
-        // Create the tabbed pane for the viewers
-        //-------------------------------------------------------
+        Log.info("startup; build: " + tufts.vue.Version.AllInfo);
         
-        mMapTabsLeft = new MapTabbedPane("*left");
-        mMapTabsLeft.setTabPlacement(SwingConstants.BOTTOM);
-        mMapTabsLeft.setPreferredSize(new Dimension(300,400));
-        
-        mMapTabsRight = new MapTabbedPane("right");
-        mMapTabsRight.setTabPlacement(SwingConstants.BOTTOM);
-        mMapTabsRight.setPreferredSize(new Dimension(300,400));
-        
-        //-------------------------------------------------------
-        // create a an application frame and layout components
-        //-------------------------------------------------------
-        
-        toolPanel = new JPanel();
-        //toolPanel.setMinimumSize(new Dimension(329,1)); // until DRBrowser loaded
-        toolPanel.setLayout(new BorderLayout());
-        DRBrowser drBrowser = null;
-        if (nodr == false)  {
-            drBrowser = new DRBrowser(true);
-            //if (VueUtil.isMacAquaLookAndFeel()) drBrowser.setBackground(SystemColor.control);
-            toolPanel.add(drBrowser, BorderLayout.CENTER);
-            
-            /*
-            try {
-                drBrowser = new DRBrowser();
-                toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
-            } catch (Throwable e) {
-                e.printStackTrace();
-                System.err.println("DR browser blowing up -- try another day.");
-            }
-            */
-        }
-
-        
-        JSplitPane splitPane = new JSplitPane();
-        //splitPane.setResizeWeight(0.40); // 25% space to the left component
-        splitPane.setContinuousLayout(false);
-        splitPane.setOneTouchExpandable(true);
-        splitPane.setLeftComponent(toolPanel);
-        //if (VUE.NARRAVISION) splitPane.setDividerLocation(0);
-        //splitPane.setLeftComponent(leftScroller);
-        
-        viewerSplit = new JSplitPane();
-        viewerSplit.setOneTouchExpandable(true);
-        viewerSplit.setRightComponent(mMapTabsRight);
-        // NOTE: set left component AFTER set right component -- the
-        // LAST set left/right call determines the default focus component!
-        // It needs to be the LEFT component as the right one isn't
-        // even visible at startup!
-        viewerSplit.setLeftComponent(mMapTabsLeft);
-        viewerSplit.setResizeWeight(0.5);
-        viewerSplit.setDividerLocation(9999);
-
-        viewerSplit.addPropertyChangeListener(new PropertyChangeListener() {
-                public void propertyChange(PropertyChangeEvent e) {
-                    //System.out.println("VS " + e);
-                    if (!e.getPropertyName().equals("dividerLocation"))
-                        return;
-                    if (DEBUG.FOCUS) out("viewerSplit: " + e.getPropertyName()
-                                       + "=" + e.getNewValue().getClass().getName()
-                                       + " " + e.getNewValue());
-                    MapViewer leftViewer = null;
-                    MapViewer rightViewer = null;
-                    if (mMapTabsLeft != null)
-                        leftViewer = mMapTabsLeft.getSelectedViewer();
-                    if (mMapTabsRight != null)
-                        rightViewer = mMapTabsRight.getSelectedViewer();
-
-                    if (multipleMapsVisible()) {
-                        /*
-                          // should be handled by MapVewer.reshape
-                        if (leftViewer != null)
-                            leftViewer.fireViewerEvent(MapViewerEvent.PAN);
-                        if (rightViewer != null)
-                            rightViewer.fireViewerEvent(MapViewerEvent.PAN);
-                        */
-                    } else {
-                        if (leftViewer != null && leftViewer != getActiveViewer()) {
-                            if (DEBUG.FOCUS) out("viewerSplit: default focus to " + leftViewer);
-                            leftViewer.requestFocus();
-                            if (rightViewer != null)
-                                rightViewer.fireViewerEvent(MapViewerEvent.HIDDEN);
-                        }
-                    }
-                }});
-        
-        
-        //splitPane.setRightComponent(mMapTabsLeft);
-        splitPane.setRightComponent(viewerSplit);
-        //JPanel vuePanel = new AAPanel();
-        JPanel vuePanel = new JPanel();
-        vuePanel.setLayout(new BorderLayout());
-        vuePanel.add(splitPane, BorderLayout.CENTER);
-
-        if (DEBUG.INIT) out("creating VueFrame...");
-
-        VUE.frame = new VueFrame();
-
-        if (DEBUG.INIT) out("created VueFrame");
-        
-        // Create the tool windows
-        ToolWindow pannerTool = createToolWindow("Panner");
-        pannerTool.setSize(120,120);
-        pannerTool.addTool(new MapPanner());
-
-        if (DEBUG.INIT) out("created PannerTool");
-        
-        ToolWindow inspectorTool = null;
-        /*
-        if (nodr) {
-            inspectorTool = createToolWindow("Inspector");
-            inspectorTool.addTool(new LWCInspector());
-        }
-        */
-        
-        ToolWindow drBrowserTool = null;
-        //DataSourceViewer currently breaks if more than one DRBrowser
-        //ToolWindow drBrowserTool = createToolWindow("Data Sources", frame);
-        //if (drBrowser != null) drBrowserTool.addTool(drBrowser);
-        
-        // The real tool palette window withtools and contextual tools
-        ToolWindow toolbarWindow = null;
-        VueToolbarController tbc = VueToolbarController.getController();
-        ModelSelection.addListener(tbc);
-        /*
-        ToolWindow toolbarWindow = createToolWindow( VueResources.getString("tbWindowName"));
-        tbc.setToolWindow( toolbarWindow);
-        toolbarWindow.getContentPane().add( tbc.getToolbar() );
-        toolbarWindow.pack();
-         */
-
-        //frame.getContentPane().add(tbc.getToolbar(), BorderLayout.NORTH);
-                
-        JPanel toolBarPanel = null;
-
-        if (JIDE_TEST) {
-            /* JIDE ENABLE
-            frame.getDockableBarManager().addDockableBar(new VueToolBar());
-            frame.getDockableBarManager().setShowInitial(false);            
-            frame.getDockableBarManager().resetToDefault();
-            */
-        } else if (true||VUE.TUFTS) {
-            //toolBarPanel = new JPanel();
-            //toolBarPanel.add(tbc.getToolbar());
-            frame.addComp(tbc.getToolbar(), BorderLayout.NORTH);
-        } else {
-
-            //JDialog.setDefaultLookAndFeelDecorated(false);
-            
-            toolBarPanel = new JPanel(new BorderLayout());
-            //toolBarPanel.add(tbc.getToolbar(), BorderLayout.NORTH);
-            JPanel floatingToolbarContainer = new JPanel(new BorderLayout());
-            //JPanel floatingToolbarContainer = new com.jidesoft.action.DockableBarDockableHolderPanel(frame);
-            
-            //floatingToolbarContainer.setPreferredSize(new Dimension(500,50));
-            //floatingToolbarContainer.setMinimumSize(new Dimension(500,5));
-            floatingToolbarContainer.setBackground(Color.orange);
-            VueToolBar vueToolBar = new VueToolBar();
-            floatingToolbarContainer.add(vueToolBar, BorderLayout.PAGE_START);
-            //toolBarPanel.add(new VueToolBar(), BorderLayout.SOUTH);
-            if (false) {
-                // Yes: drop-downs work in a JToolBar (note that our MenuButtons
-                // that are rounded become square tho)
-                JToolBar tb = new JToolBar();
-                tb.add(tbc.getToolbar());
-                toolBarPanel.add(tb);
-            } else {
-                toolBarPanel.add(tbc.getToolbar(), BorderLayout.NORTH);
-            }
-            toolBarPanel.add(floatingToolbarContainer, BorderLayout.SOUTH);
-            frame.addComp(toolBarPanel, BorderLayout.NORTH);
-
-            ////frame.getDockableBarManager().addDockableBar(vueToolBar);
-            
-        }
-
-        if (DEBUG.INIT) out("created VueToolBar");
-        // Map Inspector
-        
-        // get the proper scree/main frame size
-        sMapInspector = createToolWindow(VueResources.getString("mapInspectorTitle"));
-        MapInspectorPanel mi = new MapInspectorPanel();
-        sMapInspector.addTool(mi);
-        
-        //ToolWindow objectInspector = createToolWindow( VueResources.getString("objectInspectorTitle"), frame);
-        objectInspector = createToolWindow(VueResources.getString("objectInspectorTitle"));
-        objectInspectorPanel = new ObjectInspectorPanel();
-        ModelSelection.addListener(objectInspectorPanel);
-        //sResourceSelection.addListener( objectInspectorPanel);
-        objectInspector.addTool(objectInspectorPanel);
-        
-        
-        if (false) {
-            JFrame testFrame = new JFrame("Debug");
-            testFrame.setSize(300,300);
-            //testFrame.getContentPane().add( new NodeInspectorPanel() );
-            testFrame.getContentPane().add(objectInspectorPanel);
-            testFrame.show();
-        }
-        
-        if (DEBUG.INIT) out("creating LWOutlineView...");
-        outlineView = new LWOutlineView(getRootFrame());
-        //outlineView = new LWOutlineView(VUE.frame);
-        
-        VUE.ToolWindows = new ToolWindow[] {
-            objectInspector,
-            sMapInspector,
-            drBrowserTool,
-            toolbarWindow,
-            pannerTool,
-            //htWindow,
-            outlineView,
-            inspectorTool,
-        };
-
-        // adding the menus and toolbars
-        if (DEBUG.INIT) out("setting JMenuBar...");
-        frame.setJMenuBar(VueMenuBar.RootMenuBar = new VueMenuBar(VUE.ToolWindows));
-        if (DEBUG.INIT) out("VueMenuBar installed.");;
-
-        // On Mac, need to set any frame's to have a duplicate
-        // of the main menu bar, so it stay's active at top
-        // when they have focus.
-        if (useMacLAF && VueUtil.isMacPlatform()) {
-            for (int i = 0; i < ToolWindows.length; i++) {
-                ToolWindow toolWindow = VUE.ToolWindows[i];
-                if (toolWindow == null)
-                    continue;
-                Window w = toolWindow.getWindow();
-
-                if (w instanceof JFrame) {
-                    if (nodr) {
-                        // we're hitting bug in java 1.4.2 on Tiger here (apple.laf.ScreenMenuBar bounds exception)
-                        // Mysteriously, it only happens using the debug option -nodr for no DR browser.
-                        if (DEBUG.INIT) out("adding menu bar to " + w);
-                    }
-                    try {
-                        ((JFrame)w).setJMenuBar(new VueMenuBar(ToolWindows));
-                    } catch (ArrayIndexOutOfBoundsException e) {
-                        Log.error("OSX TIGER JAVA BUG", e);
-                    }
-                    toolWindow.setProcessKeyBindingsToMenuBar(false);
-                }
-            }
-            if (DEBUG.INIT) out("Mac ToolWindow VueMenuBar's installed.");
-        }
-        
-        frame.addComp(vuePanel,BorderLayout.CENTER);
-        //frame.getContentPane().setBackground(Color.red);
-        //frame.setContentPane(vuePanel);
-        //frame.setContentPane(splitPane);
-        //frame.setBackground(Color.white);
         try {
-            frame.pack();
-        } catch (ArrayIndexOutOfBoundsException e) {
-            Log.error("OSX TIGER JAVA BUG at frame.pack()", e);
+            initApplication(args);
+        } catch (Throwable t) {
+            Util.printStackTrace(t, "VUE initApplication failed");
         }
-        if (nodr) {
-            frame.setSize(750,450);
-        } else {
-            frame.setSize(800,600);// todo: make % of screen, make sure tool windows below don't go off screen!
-        }
-        if (DEBUG.INIT) out("validating frame...");
-        frame.validate();
-        if (DEBUG.INIT) out("frame validated");
-
-        VueUtil.centerOnScreen(frame);
-        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
-        
-        // position inspectors pased on frame location
-        //int inspectorx = frame.getX() + frame.getWidth() - sMapInspector.getWidth();
-        int inspectorx = frame.getX() + frame.getWidth();
-        sMapInspector.suggestLocation(inspectorx, frame.getY());
-        objectInspector.suggestLocation(inspectorx, frame.getY() + sMapInspector.getHeight() );
-        pannerTool.suggestLocation(frame.getX() - pannerTool.getWidth(), frame.getY());
-        
-        frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                Log.warn(e);
-                ExitAction.exitVue();
-                //-------------------------------------------------------
-                // if we get here, it means exit was aborted.
-                // (something wasn't saved & they decided to cancel or
-                // there was an error during the save)
-                //-------------------------------------------------------
-                //frame.show(); not working!  How to cancel this
-                // windowClose?  According to WindowEvent.java &
-                // WindowAdapter.java, canceling this windowClosing is
-                // supposed to be possible, but they don't mention
-                // how. Anyway, we've overriden setVisible on VueFrame
-                // to make it impossible to hide it, and that works,
-                // so this event just becomes the they've pressed on
-                // the close button event.
-                return;
-            }
-            public void windowClosed(WindowEvent e) {
-                // I've never see us even get this event...
-                Log.fatal("Too late: window disposed: exiting. " + e);
-                System.exit(-1);
-            }
-            public void windowStateChanged(WindowEvent e) {
-                Log.debug(e);
-            }
-        });
 
         VUE.isStartupUnderway = false;
         
-        if (!nodr) {
-            LWMap startupMap = null;
-            try {
-                final java.net.URL startupURL;
-                startupURL = VueResources.getURL("resource.startmap");
-                startupMap = OpenAction.loadMap(startupURL);
-                startupMap.setFile(null); // dissassociate startup map from it's file so we don't write over it
-                startupMap.setLabel("Welcome");
-                startupMap.markAsSaved();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                VueUtil.alert(null, "Cannot load the Start-up map", "Start Up Map Error");
-            }
-
-            try {
-                if (startupMap != null)
-                    displayMap(startupMap);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                VueUtil.alert(null, "Failed to display Start-up Map", "Internal Error");
-            }
-            
-        } else {
-            //pannerTool.setVisible(true);
-        }
-
-        Log.debug("showing frame...");
-        frame.show();
-        if (DEBUG.INIT) out("frame visible");
+        Log.info("startup completed.");
         
+        if (exitAfterInit) {
+            out("init completed: exiting");
+            System.exit(0);
+        }
+    }
+
+    private static void initApplication(String[] args)
+    {
+
+        /*
+        if (VUE.TUFTS)
+            Log.debug("TUFTS features only (no MIT/development)");
+        else
+            Log.debug("MIT/development features enabled");
+        */
+
+        if (DEBUG.Enabled)
+            Log.setLevel(Level.DEBUG);
+
+        initUI();
+
+        final Window splashScreen;
+
+        if (SKIP_DR || SKIP_SPLASH) {
+            splashScreen = null;
+            DEBUG.Enabled = true;
+        } else
+            splashScreen = new SplashScreen();
+        
+        buildApplicationInterface();
+
         if (splashScreen != null)
             splashScreen.setVisible(false);
 
@@ -755,7 +373,7 @@ public class VUE
             }
         }
         
-        if (nodr && gotMapFromCommandLine == false) {
+        if (SKIP_DR && gotMapFromCommandLine == false) {
             //-------------------------------------------------------
             // create example map(s)
             //-------------------------------------------------------
@@ -773,48 +391,55 @@ public class VUE
         }
 
         if (DEBUG.INIT) out("map loaded");
+        /*
         if (drBrowser != null) {
             drBrowser.loadDataSourceViewer();
-            if (VUE.TUFTS) // leave collapsed if NarraVision
-                splitPane.resetToPreferredSizes();
+            //if (VUE.TUFTS) // leave collapsed if NarraVision
+            //splitPane.resetToPreferredSizes();
         }
+        */
 
         Log.debug("loading fonts...");
         FontEditorPanel.getFontNames();
         
-        if (nodr == false) {
+        if (SKIP_DR == false) {
             Log.debug("caching tool panels...");
             NodeTool.getNodeToolPanel();
             LinkTool.getLinkToolPanel();
-        }
+       }
         
-        if (drBrowser != null && drBrowserTool != null)
-            drBrowserTool.addTool(new DRBrowser());
+        // Start the loading of the data source viewer
+        if (SKIP_DR == false && DR_BROWSER != null)
+            DR_BROWSER.loadDataSourceViewer();
+        
+        //Preferences p = Preferences.userNodeForPackage(VUE.class);
+        //p.put("DRBROWSER.RUN", "yes, it has");
 
         if (VueUtil.isMacPlatform())
             installMacOSXApplicationEventHandlers();
 
         // MAC v.s. PC WINDOW PARENTAGE & FOCUS BEHAVIOUR:
         //
-        // Window's that are shown before their parent's are shown do
-        // NOT adopt a stay-on-top-of-parent behaviour! (at least on
-        // mac).  FURTHERMORE: if you iconfiy the parent and
-        // de-iconify it, the keep-on-top is also lost permanently!
-        // (Even if you hide/show the child window after that) None of
-        // this happens on the PC, only Mac OS X.  Iconifying also
-        // hides the child windows on the PC, but not on Mac.  On the
-        // PC, there's also no automatic way to install the action
-        // behaviours to take effect (the ones in the menu bar) when a
-        // tool window has focus.  Actually, mac appears to do
-        // something smart also: if parent get's MAXIMIZED, it
-        // will return to the keep on top behaviour, but you
-        // have to manually hide/show it to get it back on top.
+        // Window's that are shown before their parent's are shown do NOT adopt a
+        // stay-on-top-of-parent behaviour! (at least on mac).  FURTHERMORE: if you
+        // iconfiy the parent and de-iconify it, the keep-on-top is also lost
+        // permanently!  (Even if you hide/show the child window after that) None of
+        // this happens on the PC, only Mac OS X.  Iconifying also hides the child
+        // windows on the PC, but not on Mac.  On the PC, there's also no automatic way
+        // to install the action behaviours to take effect (the ones in the menu bar)
+        // when a tool window has focus.  Actually, mac appears to do something smart
+        // also: if parent get's MAXIMIZED, it will return to the keep on top behaviour,
+        // but you have to manually hide/show it to get it back on top.
         //
-        // Also: for some odd reason, if we use an intermediate
-        // root window as the master parent, the MapPanner display
-        // doesn't repaint itself when dragging it or it's map!
+        // Also: for some odd reason, if we use an intermediate root window as the
+        // master parent, the MapPanner display doesn't repaint itself when dragging it
+        // or it's map!
+        //
+        // Addendum: keep-on-top now appears to survive iconification on mac.
+        //
+        // [ Assuming this is java 1.4 -- 1.5? ]
         
-        getRootWindow().show();
+        getRootWindow().setVisible(true);
 
         //out("ACTIONTMAP " + java.util.Arrays.asList(frame.getRootPane().getActionMap().allKeys()));
         //out("INPUTMAP " + java.util.Arrays.asList(frame.getRootPane().getInputMap().allKeys()));
@@ -825,10 +450,7 @@ public class VUE
 
         VUE.clearWaitCursor();
         
-        Log.info("main completed.");
-
-        if (exitAfterInit)
-            System.exit(0);
+        Log.debug("initApplication completed.");
     }
 
     private static void installMacOSXApplicationEventHandlers()
@@ -870,7 +492,534 @@ public class VUE
             });
         */
     }
+
+
+    private static void buildApplicationInterface() {
+
+        //-------------------------------------------------------
+        // Create the tabbed panes for the viewers
+        //-------------------------------------------------------
+        
+        mMapTabsLeft = new MapTabbedPane("*left");
+        mMapTabsRight = new MapTabbedPane("right");
+        
+        //-------------------------------------------------------
+        // Create the split pane
+        //-------------------------------------------------------
+
+        mViewerSplit = buildSplitPane(mMapTabsLeft, mMapTabsRight);
+        
+        //-------------------------------------------------------
+        // create a an application frame and layout components
+        //-------------------------------------------------------
+        
+        if (DEBUG.INIT) out("creating VueFrame...");
+
+        VUE.ApplicationFrame = new VueFrame();
+
+        if (DEBUG.INIT) out("created VueFrame");
+        
+        //-----------------------------------------------------------------------------
+        // Man VUE Toolbar (map editing tool)
+        //-----------------------------------------------------------------------------
+        
+        // The real tool palette window withtools and contextual tools
+        VueToolbarController tbc = VueToolbarController.getController();
+        ModelSelection.addListener(tbc);
+
+        DockWindow toolbarDock = null;
+        
+        if (false) {
+            toolbarDock = GUI.createDockWindow(VueResources.getString("tbWindowName"));
+            //toolbarDock.setResizeEnabled(false);
+            toolbarDock.add(tbc.getToolbar());
+        } else {
+            ApplicationFrame.addComp(tbc.getToolbar(), BorderLayout.NORTH);
+            // buildToolbar()
+        }
+        
+        if (DEBUG.INIT) out("created ToolBar");
+
+        
+        //=============================================================================
+        //
+        // Create all the DockWindow's
+        //
+        //=============================================================================
+
+        
+        //-----------------------------------------------------------------------------
+        // Panner
+        //-----------------------------------------------------------------------------
+
+        final DockWindow pannerDock = GUI.createDockWindow("Panner", new MapPanner());
+        //pannerDock.getWidgetPanel().setBorder(new javax.swing.border.MatteBorder(5,5,5,5, Color.green));
+        pannerDock.getWidgetPanel().setBorder(new EmptyBorder(1,2,2,2));
+        //pannerDock.setSize(120,120);
+        pannerDock.setSize(112,120);
+        pannerDock.setUpperRightCorner(GUI.GScreenWidth, 150);
+
+        //-----------------------------------------------------------------------------
+        // Data Source Viewer
+        //-----------------------------------------------------------------------------
+
+        // FYI, DataSourceViewer currently breaks if more than one DRBrowser
+        DR_BROWSER = new DRBrowser(true);
+        DockWindow drBrowserDock = GUI.createDockWindow("Data Sources", DR_BROWSER);
+
+        //-----------------------------------------------------------------------------
+        // Map Inspector
+        //-----------------------------------------------------------------------------
+
+        MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"));
+        MapInspector.add(new MapInspectorPanel());
+        
+        //-----------------------------------------------------------------------------
+        // Object Inspector
+        //-----------------------------------------------------------------------------
+
+        ObjectInspector = GUI.createDockWindow(VueResources.getString("objectInspectorTitle"));
+        ObjectInspectorPanel = new ObjectInspectorPanel();
+        ModelSelection.addListener(ObjectInspectorPanel);
+        //sResourceSelection.addListener( objectInspectorPanel);
+        ObjectInspector.add(ObjectInspectorPanel);
+        
+
+        //-----------------------------------------------------------------------------
+        // Outline View
+        //-----------------------------------------------------------------------------
+
+        OutlineViewTree outlineTree = new OutlineViewTree();
+        JScrollPane outlineScroller = new JScrollPane(outlineTree);
+        VUE.getSelection().addListener(outlineTree);
+        VUE.addActiveMapListener(outlineTree);
+        outlineScroller.setPreferredSize(new Dimension(500, 300));
+        //outlineScroller.setBorder(null); // so DockWindow will add 1 pixel to bottom
+        DockWindow outlineDock =  GUI.createDockWindow("Outline", outlineScroller);
+        
+        //-----------------------------------------------------------------------------
+
+
+        // GUI.createDockWindow("Font").add(new FontEditorPanel()); // just add automatically?
+
+        final DockWindow fontDock = GUI.createDockWindow("Font", new FontPropertyPanel());
+        final DockWindow linkDock = GUI.createDockWindow("Link", new LinkPropertyPanel());
+
+        fontDock.setResizeEnabled(false);
+        //linkDock.setResizeEnabled(false);
+        
+        pannerDock.setChild(linkDock);
+        
+        //fontDock.setChild(linkDock);
+
+        fontDock.setLowerRightCorner(GUI.GScreenWidth, GUI.GScreenHeight);
+        
+        //=============================================================================
+        //
+        // Now that we have all the DockWindow's created the VueMenuBar, which needs the
+        // list of Windows for the Window's menu.  The order they appear in this list is
+        // the order they appear in the Window's menu.
+        //
+        //=============================================================================
+        
+        VUE.ToolWindows = new Object[] {
+            drBrowserDock,
+            MapInspector,
+            ObjectInspector,
+            toolbarDock,
+            pannerDock,
+            //htWindow,
+            outlineDock,
+            fontDock,
+            linkDock,
+        };
+
+        // adding the menus and toolbars
+        if (DEBUG.INIT) out("setting JMenuBar...");
+        ApplicationFrame.setJMenuBar(VueMenuBar.RootMenuBar = new VueMenuBar(VUE.ToolWindows));
+        if (DEBUG.INIT) out("VueMenuBar installed.");;
+
+        if (true)
+            ApplicationFrame.addComp(mViewerSplit, BorderLayout.CENTER);
+        else
+            ApplicationFrame.addComp(mMapTabsLeft, BorderLayout.CENTER);
+        
+        try {
+            ApplicationFrame.pack();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            Log.error("OSX TIGER JAVA BUG at frame.pack()", e);
+        }
+        
+        /*
+        if (SKIP_DR) {
+            ApplicationFrame.setSize(750,450);
+        } else {
+            ApplicationFrame.setSize(800,600);
+            // todo: make % of screen, make sure tool windows below don't go off screen!
+        }
+        */
+        
+        //if (DEBUG.INIT) out("validating frame...");
+        ApplicationFrame.validate();
+        //if (DEBUG.INIT) out("frame validated");
+
+        // MAC NOTE WITH MAXIMIZING: if Frame's current location y value
+        // is less than whatever's it's maximized value is set to, maximizing
+        // it will use the y value, not the max value.  True even if set
+        // y value after setting to maximized but before it's put on screen.
+        
+        GUI.centerOnScreen(ApplicationFrame);
+
+        final boolean loadTopDock = true;
+
+        if (loadTopDock && DockWindow.getMainDock() != null) {
+            // leave room for dock at top
+            Rectangle maxBounds = GUI.getMaximumWindowBounds();
+            int adj = DockWindow.getCollapsedHeight();
+            maxBounds.y += adj;
+            maxBounds.height -= adj;
+            ApplicationFrame.setMaximizedBounds(maxBounds);
+        }
             
+        ApplicationFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
+
+        if (!SKIP_DR) {
+            LWMap startupMap = null;
+            try {
+                final java.net.URL startupURL;
+                startupURL = VueResources.getURL("resource.startmap");
+                startupMap = OpenAction.loadMap(startupURL);
+                startupMap.setFile(null); // dissassociate startup map from it's file so we don't write over it
+                startupMap.setLabel("Welcome");
+                startupMap.markAsSaved();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                VueUtil.alert(null, "Cannot load the Start-up map", "Start Up Map Error");
+            }
+
+            try {
+                if (startupMap != null)
+                    displayMap(startupMap);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                VueUtil.alert(null, "Failed to display Start-up Map", "Internal Error");
+            }
+            
+        } else {
+            //pannerTool.setVisible(true);
+        }
+
+
+        // Generally, we need to wait until java 1.5 JSplitPane's have been validated to
+        // use the % set divider location.  Unfortunately there's a bug in at MacOS java
+        // 1.5 BasicSplitPaneUI (it's not in the 1.4 version), where setKeepHidden isn't
+        // be called when the divider goes to the wall via setDividerLocation, only when
+        // the one-touch buttons are manually clicked.  So, for example, if the user
+        // de-maximizes the frame, suddenly a hidden split-pane will pop out!  So, we've
+        // hacked into the UI code, grabbed the damn right-one-touch button, grabbed
+        // it's action listener, and here just call it directly...
+        // 
+        // See javax.swing.plaf.basic.BasicSplitPaneDivider.OneTouchActionHandler.
+        //
+        // It appears on Windows we need to actually wait till the frame is shown also...
+
+        // show before split adjust on pc
+        if (!Util.isMacPlatform())
+            ApplicationFrame.setVisible(true);
+        
+        if (SplitPaneRightButtonOneTouchActionHandler != null) {
+            if (DEBUG.INIT) Util.printStackTrace("\"pressing\": " + SplitPaneRightButtonOneTouchActionHandler);
+
+            // Not reliable on PC unless we invokeLater
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                SplitPaneRightButtonOneTouchActionHandler.actionPerformed(null);                  
+            }});
+        
+            // this is also eventually getting eaten in java 1.5: no matter where
+            // we put this call during init: will have to patch w/more hacking
+            // or live with it.  Actually, it get's eaten eventually in java 1.4.2
+            // also.
+
+            // Maybe because we maximized the frame before it was shown?
+            // [ not making a difference]
+
+            // Well. this is working at least the first time now by
+            // doing it BEFORE the peers are created.
+            //mViewerSplit.setResizeWeight(0.5d);
+            
+        } else {
+            // for java 1.4.2
+            mViewerSplit.setDividerLocation(1.0);
+        }
+
+        // can show after split adjust on mac
+        if (Util.isMacPlatform())
+            ApplicationFrame.setVisible(true);
+
+        //-----------------------------------------------------------------------------
+        //
+        // Set locations for the inspector windows and make some of them visible
+        //
+        //-----------------------------------------------------------------------------
+
+        if (loadTopDock) {
+
+            // order the windows left to right for the top dock
+            final DockWindow[] preShown = new DockWindow[] {
+                drBrowserDock,
+                GUI.isSmallScreen() ? null : fontDock,
+                MapInspector,
+                ObjectInspector,
+            };
+            
+            outlineDock.setLowerLeftCorner(0, GUI.GScreenHeight - GUI.GInsets.bottom);
+            if (DockWindow.getTopDock() != null)
+                prepareForTopDockDisplay(preShown);
+
+            // Run after AWT to ensure all peers to have been created & shown
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                positionForDocking(preShown);
+            }});
+            
+        } else {
+
+            // position inspectors based on frame location
+            int inspectorx = ApplicationFrame.getX() + ApplicationFrame.getWidth();
+            MapInspector.suggestLocation(inspectorx, ApplicationFrame.getY());
+            ObjectInspector.suggestLocation(inspectorx, ApplicationFrame.getY() + MapInspector.getHeight() );
+            pannerDock.suggestLocation(ApplicationFrame.getX() - pannerDock.getWidth(), ApplicationFrame.getY());
+        }
+
+
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            //pannerDock.setVisible(true);
+            if (DEBUG.Enabled) linkDock.setVisible(true);
+            if (DEBUG.Enabled) fontDock.setVisible(true);
+        }});
+
+
+    }
+
+
+    /**
+     * Get the given windows displayed, but off screen, ready to be moved
+     * into position.
+     */
+    private static void prepareForTopDockDisplay(final DockWindow[] preShown)
+    {
+        if (DEBUG.INIT || DEBUG.DOCK) Util.printStackTrace("\n\n***ROLLING UP OFFSCREEN");
+
+        // get the peer's created so we can turn off their shadow if need be
+        
+        for (int i = 0; i < preShown.length; i++) {
+            DockWindow dw = preShown[i];
+            if (dw == null)
+                continue;
+            GUI.setOffScreen(dw);
+
+            dw.setDockTemporary(DockWindow.getTopDock());
+            
+            dw.showRolledUp();
+        }
+
+    }
+
+    /**
+     * Get the given windows displayed, but off screen, ready to be moved
+     * into position.
+     */
+    private static void positionForDocking(DockWindow[] preShown) {
+        // Set last in preSown at the right, moving back up list
+        // setting them to the left of that, and then set first in
+        // preShown at left edge of screen
+
+        if (DEBUG.INIT || DEBUG.DOCK) Util.printStackTrace("\n\nSTARTING PLACEMENT");
+        
+        int top = GUI.GInsets.top;
+
+        DockWindow toRightDW = preShown[preShown.length - 1];
+        toRightDW.setUpperRightCorner(GUI.GScreenWidth, top);
+        DockWindow curDW = null;
+        for (int i = preShown.length - 2; i > 0; i--) {
+            curDW = preShown[i];
+            if (curDW == null)
+                continue;
+            curDW.setUpperRightCorner(toRightDW.getX(), top);
+            toRightDW = curDW;
+        }
+        if (preShown.length > 1)
+            preShown[0].setLocation(0, top);
+            
+        DockWindow.assignAllDockRegions();
+    }
+    
+
+    
+    private static ActionListener SplitPaneRightButtonOneTouchActionHandler = null;
+
+    private static JSplitPane buildSplitPane(Component leftComponent, Component rightComponent)
+    {
+        JSplitPane split;
+        if (Util.getJavaVersion() < 1.5f) {
+            split = new JSplitPane();
+        } else {
+
+            // Only appears to happen on the Mac?  But even if we're
+            // running with Metal Look and Feel??
+            
+            split = new JSplitPane() {
+                
+                // This JSplitPane hack is dependent on the UI implementation, but it only
+                // uses the cross platform parts: see bottom of this method for more info.
+                
+                Container divider;
+                public void XsetUI(javax.swing.plaf.SplitPaneUI newUI) {
+                    Util.printStackTrace("setUI: " + newUI);
+                    super.setUI(newUI);
+                }
+                protected void addImpl(Component c, Object constraints, int index) {
+                    //out("splitPane.addImpl: index=" + index + " constraints=" + constraints + " " + GUI.name(c));
+                    if (c instanceof javax.swing.plaf.basic.BasicSplitPaneDivider) {
+                        //Util.printStackTrace("addImpl: divider is " + c);
+                        divider = (Container) c;
+                    }
+                    super.addImpl(c, constraints, index);
+                }
+                public void addNotify() {
+                    //Util.printStackTrace("splitPane.addNotify");
+                    super.addNotify();
+                    try {
+                    
+                        // Util.printStackTrace("addNotify");
+                        //AbstractButton jumpLeft = (AbstractButton) divider.getComponent(0);
+                        AbstractButton jumpRight = (AbstractButton) divider.getComponent(1);
+                        //System.err.println("child0 " + jumpLeft);
+                        //System.err.println("child1 " + jumpRight);
+                        
+                        //System.err.println(Arrays.asList(jumpLeft.getActionListeners()));
+                        //System.err.println(Arrays.asList(jumpRight.getActionListeners()));
+                        
+                        // todo: as long as we're grabbing this out, add a short-cut key
+                        // to activate it: the arrow buttons are so damn tiny!
+
+                        SplitPaneRightButtonOneTouchActionHandler
+                            = jumpRight.getActionListeners()[0];
+                        
+                        // BTW: can't call action listener now: must wait till after validation
+                        
+                    } catch (Throwable t) {
+                        Util.printStackTrace(t);
+                    }
+                }
+            };
+        }
+
+        split.setName("splitPane");
+        split.setResizeWeight(0.5d);
+        split.setOneTouchExpandable(true);
+        split.setRightComponent(rightComponent);
+        
+        // NOTE: set left component AFTER set right component -- the LAST set left/right
+        // call determines the default focus component  It needs to be the LEFT
+        // component as the right one isn't even visible at startup.
+        
+        split.setLeftComponent(leftComponent);
+        
+
+        split.addPropertyChangeListener(new PropertyChangeListener() {
+                public void propertyChange(PropertyChangeEvent e) {
+                    //System.out.println("VS " + e);
+                    if (!e.getPropertyName().equals("dividerLocation"))
+                        return;
+                    if (DEBUG.TOOL || DEBUG.INIT || DEBUG.FOCUS)
+                        out("split.propertyChange[" + e.getPropertyName() + "] "
+                                        + "\n\tnew=" + e.getNewValue().getClass().getName()
+                                        + " " + e.getNewValue()
+                                        + "\n\told=" + e.getOldValue()
+                                        + "\n\tsrc=" + GUI.name(e.getSource())
+                                        );
+
+                        //Util.printStackTrace();
+                    
+                    MapViewer leftViewer = null;
+                    MapViewer rightViewer = null;
+                    if (mMapTabsLeft != null)
+                        leftViewer = mMapTabsLeft.getSelectedViewer();
+                    if (mMapTabsRight != null)
+                        rightViewer = mMapTabsRight.getSelectedViewer();
+
+                    if (multipleMapsVisible()) {
+                        /*
+                          // should be handled by MapVewer.reshape
+                        if (leftViewer != null)
+                            leftViewer.fireViewerEvent(MapViewerEvent.PAN);
+                        if (rightViewer != null)
+                            rightViewer.fireViewerEvent(MapViewerEvent.PAN);
+                        */
+                    } else {
+                        if (leftViewer != null && leftViewer != getActiveViewer()) {
+                            if (DEBUG.TOOL || DEBUG.FOCUS)
+                                out("split: active viewer: " + getActiveViewer()
+                                    + " focus going to " + leftViewer);
+                            leftViewer.requestFocus();
+                            if (rightViewer != null)
+                                rightViewer.fireViewerEvent(MapViewerEvent.HIDDEN);
+                        }
+                    }
+                }});
+
+        return split;
+    }
+
+    /*
+    private static void XbuildToolbar(DockWindow toolbarDock, JPanel toolPanel) {
+        
+        if (JIDE_TEST) {
+            /* JIDE ENABLE
+            frame.getDockableBarManager().addDockableBar(new VueToolBar());
+            frame.getDockableBarManager().setShowInitial(false);            
+            frame.getDockableBarManager().resetToDefault();
+            *
+        } else if (true||VUE.TUFTS) {
+            //toolBarPanel = new JPanel();
+            //toolBarPanel.add(tbc.getToolbar());
+            if (toolbarDock == null)
+                //ApplicationFrame.addComp(tbc.getToolbar(), BorderLayout.NORTH);
+                ApplicationFrame.addComp(toolPanel, BorderLayout.NORTH);
+        } else {
+
+            //JDialog.setDefaultLookAndFeelDecorated(false);
+            
+            JPanel toolBarPanel = null;
+            toolBarPanel = new JPanel(new BorderLayout());
+            //toolBarPanel.add(tbc.getToolbar(), BorderLayout.NORTH);
+            JPanel floatingToolbarContainer = new JPanel(new BorderLayout());
+            //JPanel floatingToolbarContainer = new com.jidesoft.action.DockableBarDockableHolderPanel(frame);
+            
+            //floatingToolbarContainer.setPreferredSize(new Dimension(500,50));
+            //floatingToolbarContainer.setMinimumSize(new Dimension(500,5));
+            floatingToolbarContainer.setBackground(Color.orange);
+            VueToolBar vueToolBar = new VueToolBar();
+            floatingToolbarContainer.add(vueToolBar, BorderLayout.PAGE_START);
+            //toolBarPanel.add(new VueToolBar(), BorderLayout.SOUTH);
+            if (false) {
+                // Yes: drop-downs work in a JToolBar (note that our MenuButtons
+                // that are rounded become square tho)
+                JToolBar tb = new JToolBar();
+                tb.add(tbc.getToolbar());
+                toolBarPanel.add(tb);
+            } else {
+                toolBarPanel.add(tbc.getToolbar(), BorderLayout.NORTH);
+            }
+            toolBarPanel.add(floatingToolbarContainer, BorderLayout.SOUTH);
+            ApplicationFrame.addComp(toolBarPanel, BorderLayout.NORTH);
+
+            ////frame.getDockableBarManager().addDockableBar(vueToolBar);
+            
+        }
+    }
+
+*/            
     public static int openMapCount() {
         return mMapTabsLeft == null ? 0 : mMapTabsLeft.getTabCount();
     }
@@ -937,11 +1086,12 @@ public class VUE
     }
     
     public static boolean multipleMapsVisible() {
-        if (viewerSplit == null)
+        // TODO: don't think this works in java 1.5
+        if (mViewerSplit == null)
             return false;
-        int dl = viewerSplit.getDividerLocation();
-        return dl >= viewerSplit.getMinimumDividerLocation()
-            && dl <= viewerSplit.getMaximumDividerLocation();
+        int dl = mViewerSplit.getDividerLocation();
+        return dl >= mViewerSplit.getMinimumDividerLocation()
+            && dl <= mViewerSplit.getMaximumDividerLocation();
         
     }
     
@@ -963,7 +1113,15 @@ public class VUE
         else
             return null;
     }
+    
+    public static boolean isActiveViewerOnLeft() {
+        return ActiveViewer != null && ActiveViewer.getName().startsWith("*");
+    }
 
+    public static boolean isActiveViewerOnRight() {
+        return ActiveViewer != null && ActiveViewer.getName().equals("right");
+    }
+    
     
     public static UndoManager getUndoManager() {
         LWMap map = getActiveMap();
@@ -998,10 +1156,18 @@ public class VUE
      */
     public static boolean isOkayToExit() {
         int tabs = mMapTabsLeft.getTabCount();
-        for (int i = 0; i < tabs; i++)
+        LWMap ensureChecked = getActiveMap(); // in case of full-screen
+        for (int i = 0; i < tabs; i++) {
+            LWMap map = mMapTabsLeft.getMapAt(i);
+            if (map == ensureChecked)
+                ensureChecked = null;
             if (!askSaveIfModified(mMapTabsLeft.getMapAt(i)))
                 return false;
-        return true;
+        }
+        if (ensureChecked != null && !askSaveIfModified(ensureChecked))
+            return false;
+        else
+            return true;
     }
     
     /*
@@ -1015,27 +1181,32 @@ public class VUE
         if (!map.isModified())
             return true;
 
+        // todo: won't need this if full screen is child of root frame
         if (inNativeFullScreen())
             toggleFullScreen();
         
         int response = JOptionPane.showOptionDialog
-        (VUE.getRootParent(),
+            (VUE.getDialogParent(),
         
-        "Do you want to save the changes you made to \n"
-        + "'" + map.getLabel() + "'?"
-        + (DEBUG.EVENTS?("\n[modifications="+map.getModCount()+"]"):""),
+             "Do you want to save the changes you made to \n"
+             + "'" + map.getLabel() + "'?"
+             + (DEBUG.EVENTS?("\n[modifications="+map.getModCount()+"]"):""),
         
-        " Save changes?",
-        JOptionPane.YES_NO_CANCEL_OPTION,
-        JOptionPane.PLAIN_MESSAGE,
-        null,
-        VueUtil.isMacAquaLookAndFeel() ? macAquaOrderButtons : defaultOrderButtons,
-        "Save"
-        );
+             " Save changes?",
+             JOptionPane.YES_NO_CANCEL_OPTION,
+             JOptionPane.PLAIN_MESSAGE,
+             null,
+             GUI.isMacAqua() ? macAquaOrderButtons : defaultOrderButtons,
+             "Save"
+             );
         
-        if (VueUtil.isMacAquaLookAndFeel())
+        if (GUI.isMacAqua())
             response = (macAquaOrderButtons.length-1) - response;
         
+        // If they change focus to another button, then hit "return"
+        // (v.s. "space" for kbd button press), do action of button
+        // that had focus instead of always save?
+
         if (response == JOptionPane.YES_OPTION) { // Save
             return SaveAction.saveMap(map);
         } else if (response == JOptionPane.NO_OPTION) { // Don't Save
@@ -1063,7 +1234,7 @@ public class VUE
      * Otherwise, open it anew and display it.
      */
     public static void displayMap(File mapFile) {
-        out("displayMap " + mapFile);
+        if (DEBUG.INIT || DEBUG.IO) out("displayMap " + mapFile);
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
             if (map == null)
@@ -1083,7 +1254,7 @@ public class VUE
      */
     public static MapViewer displayMap(LWMap pMap) {
         NDC.push("displayMap");
-        out(pMap);
+        if (DEBUG.INIT) out(pMap.toString());
         MapViewer leftViewer = null;
         MapViewer rightViewer = null;
         
@@ -1098,41 +1269,125 @@ public class VUE
                 //break;
             }
         }
+
         
         if (leftViewer == null) {
             leftViewer = new MapViewer(pMap, "*LEFT");
             rightViewer = new MapViewer(pMap, "right");
-            rightViewer.setFocusable(false); // so doesn't grab focus till we're ready
 
-            out("currently active viewer: " + getActiveViewer());
-            out("created new left viewer: " + leftViewer);
+            if (isActiveViewerOnLeft())
+                rightViewer.setFocusable(false); // so doesn't grab focus till we're ready
+
+            if (DEBUG.FOCUS) {
+                out("currently active viewer: " + getActiveViewer());
+                out("created new left viewer: " + leftViewer);
+            }
 
             mMapTabsLeft.addViewer(leftViewer);
             mMapTabsRight.addViewer(rightViewer);
         }
         
-        mMapTabsLeft.setSelectedComponent(leftViewer);
+        if (isActiveViewerOnLeft())
+            mMapTabsLeft.setSelectedComponent(leftViewer);
+        else
+            mMapTabsRight.setSelectedComponent(rightViewer);
 
         NDC.pop();
         return leftViewer;
     }
 
+    
     /**
-     * deprecated - use getRootParent, getRootWindow or getRootFrame
+     * @return the root VUE Frame used for parenting dialogs -- currently always NULL do to java
+     * bugs w/dialogs
      */
-    public static Frame getInstance() {
-        return getRootFrame();
+    
+    // WARNING: opening a dialog appears to cause our full-screen
+    // window as root parent of everything hack to fail and
+    // permit DockWindow's to start going over it -- thus we must
+    // use "null" as a parent.  TODO: we'll prob need to do this
+    // for all dialogs...  We can still manually center the
+    // window if we like...
+    // CORRECTION: popping this at ALL seems to do it
+    
+    public static Component getDialogParent() {
+         	
+        final Component dialogParent;
+
+        // any dialog parent at all in 1.4.2 causes the full-screen
+        // window to go behind the DockWindow's
+        
+        if (Util.getJavaVersion() >= 1.5f)
+            dialogParent = getActiveViewer();
+        else
+            dialogParent = null;
+
+        if (DEBUG.FOCUS) out("getDialogParent: " + dialogParent);
+        
+        return dialogParent;
+
+        /*
+        // this is not helping for preving dialogs from screwing us up and
+        // sending them behind the full-screen window as soon as the dialog pops
+        if (true)
+            // this will put dialogs at screen bottom when it's off-screen
+            return GUI.getFullScreenWindow();
+        else
+            return null;
+        */
+    }
+    
+    public static Frame getDialogParentAsFrame() {
+        Frame frame;
+        if (getDialogParent() instanceof Frame) {
+            frame = (Frame) getDialogParent();
+        } else {
+            
+            // JOptionPane's will take any Component as a parent, but they just do a
+            // search up for the root frame as the parent of the JDialog.  But if we
+            // return our real root frame here, to be used with a raw JDialog, things
+            // behave differently: it allows the dialog to go behind.  Don't know what
+            // JOptionPane is causing to happen differently.  E.g., the "are you sure"
+            // before quit dialog works fine and doesn't go behind it's parent, but raw
+            // JDialogs constructed with an invisible parent CAN go behind... Oh, wait a
+            // sec.. what if we use our DockWindow parent...
+
+            // We're in the java 1.5 case here: if it's parented to the application
+            // frame, it lets DockWindow's go behind full-screen (yet JOptionPane
+            // created dialogs don't).  If it's parented to a hidden frame, the dialog
+            // itself can go behind either full-screen or ApplicationFrame.
+
+            // So for now, in 1.5, Dialog's wanting a frame get this special hidden
+            // frame, and the FocusManager forces them alwaysOnTop when they're shown.
+
+            frame = GUI.getHiddenDialogParentFrame();
+            
+            //frame = DockWindow.getHiddenFrame();
+            
+        }
+
+        if (DEBUG.FOCUS) out("getDialogParentAsFrame: " + frame);
+        return frame;
     }
 
-    /** return the root VUE component used for parenting */
-    public static Component getRootParent() {
-        return getRootWindow();
+    
+    public static VueMenuBar getJMenuBar() {
+        return VueMenuBar.RootMenuBar;
+        //return (VueMenuBar) ((VueFrame)getRootWindow()).getJMenuBar();
     }
+    
 
-    private static Window rootWindow;
+    /** Return the main VUE window.  Usually == getRoowWindow, unless we're
+     * using a special root window for parenting the tool windows.
+     */
+    // todo: wanted package private
+    public static Window getMainWindow() {
+        return VUE.ApplicationFrame;
+    }
+    
     /** return the root VUE window, mainly for those who'd like it to be their parent */
     public static Window getRootWindow() {
-        return VUE.frame;
+        return VUE.ApplicationFrame;
         /*
         if (true) {
             return VUE.frame;
@@ -1154,20 +1409,8 @@ public class VUE
     }
     */
 
-    public static VueMenuBar getJMenuBar() {
-        return VueMenuBar.RootMenuBar;
-        //return (VueMenuBar) ((VueFrame)getRootWindow()).getJMenuBar();
-    }
-    
 
-    /** Return the main VUE window.  Usually == getRoowWindow, unless we're
-     * using a special root window for parenting the tool windows.
-     */
-    // todo: wanted package private
-    public static Window getMainWindow() {
-        return VUE.frame;
-    }
-
+    /*
     private static boolean makingRootFrame = false;
     private static Frame makeRootFrame() {
         if (makingRootFrame) {
@@ -1190,34 +1433,31 @@ public class VUE
         }
         return f;
     }
-    /** return the root VUE frame, mainly for those who'd like it to be their parent */
-    public static Frame getRootFrame() {
-        if (getRootWindow() instanceof Frame)
-            return (Frame) getRootWindow();
-        else
-            return VUE.frame;
+    */
+
+
+
+    public static String getName() {
+        if (NAME == null)
+            NAME = VueResources.getString("application.name");
+        return NAME;
     }
     
-    /**
-     * Factory method for creating frames in VUE.  On PC, this
-     * is same as new new JFrame().  In Mac Look & Feel it adds a duplicate
-     * menu-bar to the frame as every frame needs one
-     * or we lose the mebu-bar.
-     */
-    public static JFrame createFrame()
-    {
-        return createFrame(null);
+    public static ResourceSelection getResourceSelection() {
+        if (sResourceSelection == null)
+            sResourceSelection = new ResourceSelection();
+        return sResourceSelection;
+    }
+
+    
+    /** return the root VUE application frame (where the documents are) */
+    public static Frame getApplicationFrame() {
+        //if (getRootWindow() instanceof Frame)
+        //    return (Frame) getRootWindow();
+        //else
+        return VUE.ApplicationFrame;
     }
     
-    public static JFrame createFrame(String title)
-    {
-        JFrame newFrame = new JFrame(title);
-        if (VueUtil.isMacPlatform() && useMacLAF) {
-            JMenuBar menu = new VueMenuBar();
-            newFrame.setJMenuBar(menu);
-        }
-        return newFrame;
-    }
 
     /** @return a new JWindow, parented to the root VUE window */
     public static JWindow createWindow()
@@ -1225,16 +1465,16 @@ public class VUE
         return new JWindow(getRootWindow());
     }
 
-    /** @return a new ToolWindow, parented to getRootWindow() */
+    /* @return a new ToolWindow, parented to getRootWindow() 
     public static ToolWindow createToolWindow(String title) {
         return createToolWindow(title, null);
     }
-    /** @return a new ToolWindow, containing the given component, parented to getRootWindow() */
+    /** @return a new ToolWindow, containing the given component, parented to getRootWindow() 
     public static ToolWindow createToolWindow(String title, JComponent component) {
         return createToolWindow(title, component, false);
     }
     
-    /** @return a new ToolWindow, containing the given component, parented to getRootWindow() */
+    /* @return a new ToolWindow, containing the given component, parented to getRootWindow() 
     private static ToolWindow createToolWindow(String title, JComponent component, boolean palette) {
         //Window parent = getRootFrame();
         Window parent = getRootWindow();
@@ -1252,25 +1492,25 @@ public class VUE
           // ToolWindows not set yet...
         if (VueUtil.isMacPlatform() && useMacLAF && w instanceof JFrame)
             ((JFrame)w).setJMenuBar(new VUE.VueMenuBar());
-        */
+        *
         return w;
     }
 
-    /** @return a new ToolWindow styled as a ToolPalette */
+    /** @return a new ToolWindow styled as a ToolPalette 
     public static ToolWindow createToolPalette(String title) {
         return createToolWindow(title, null, true);
     }
-    
+    */
 
     /** call the given runnable after all pending AWT events are completed */
-    static void invokeAfterAWT(Runnable runnable) {
+    public static void invokeAfterAWT(Runnable runnable) {
         java.awt.EventQueue.invokeLater(runnable);
     }
 
-    static boolean inFullScreen() {
+    public static boolean inFullScreen() {
         return FullScreen.inFullScreen();
     }
-    static boolean inNativeFullScreen() {
+    public static boolean inNativeFullScreen() {
         return FullScreen.inNativeFullScreen();
     }
 
@@ -1386,6 +1626,6 @@ public class VUE
     }
 
     static protected void out(Object o) {
-        Log.info(o == null ? "null" : o.toString());
+        System.out.println(o == null ? "null" : o.toString());
     }
 }
