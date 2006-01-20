@@ -111,16 +111,14 @@ public class LWCToolPanel extends JPanel
          else
              setBorder(new EmptyBorder(2,1,2,1));//t,l,b,r
 
-         Color bakColor = VueTheme.getToolbarColor();
-         if (debug) bakColor = Color.red;
          if (debug)
              setBackground(Color.blue);
          else
-             setBackground( bakColor);
-         this.mBox = Box.createHorizontalBox();
-         //if (false) box.setBackground(Color.green);
-         //else box.setBackground(bakColor);
-         mBox.setBackground(bakColor);
+             GUI.applyToolbarColor(this);
+         
+         mBox = Box.createHorizontalBox();
+         GUI.applyToolbarColor(mBox);
+         
          //this.setAlignmentX( LEFT_ALIGNMENT);
 
          // Note: oddly, in Mac Aqua L&F, if we set the button icon
@@ -179,14 +177,17 @@ public class LWCToolPanel extends JPanel
          //-------------------------------------------------------
          // Font face & size editor
          //-------------------------------------------------------
-         
+
+         /*
          mFontPanel = new FontEditorPanel();
          if (debug)
              mFontPanel.setBackground(Color.green);
          else
-             mFontPanel.setBackground(bakColor);
+             GUI.applyToolbarColor(mFontPanel);
+
          mFontPanel.setPropertyKey(LWKey.Font);
          mFontPanel.addPropertyChangeListener(this);
+         */
  		
          //-------------------------------------------------------
          if (debug) {
@@ -254,6 +255,8 @@ public class LWCToolPanel extends JPanel
     /** @param c component to add to the box-row.  If an instance of LWPropertyProducer,
      * also add to our tracking list of these for property updates */
     public void addComponent(Component c) {
+        if (c == null)
+            return;
         mBox.add(c);
         if (c instanceof LWPropertyProducer)
             addPropertyProducer((LWPropertyProducer) c);
@@ -493,12 +496,11 @@ public class LWCToolPanel extends JPanel
  	
     public static void main(String[] args) {
         System.out.println("LWCToolPanel:main");
-        VUE.parseArgs(args);
+        VUE.init(args);
         DEBUG.Enabled = true;
         //DEBUG.INIT = true;
         DEBUG.TOOL = DEBUG.EVENTS = true;
         //DEBUG.BOXES = true;
-        VUE.initUI(true);
         FontEditorPanel.sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts
         VueUtil.displayComponent(new LWCToolPanel());
         /*
