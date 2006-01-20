@@ -16,18 +16,8 @@
  * -----------------------------------------------------------------------------
  */
 
-/*
- * ImageMap.java
- *
- * Created on June 6, 2003, 5:01 PM
- */
-
 package tufts.vue.action;
 
-/**
- *
- * @author  Jay Briedis
- */
 import javax.imageio.*;
 import java.awt.image.*;
 import java.io.*;
@@ -36,68 +26,27 @@ import javax.swing.*;
 import java.awt.geom.Rectangle2D;
 import tufts.vue.*;
 
-public class ImageMap extends AbstractAction {
+/**
+ * @version $Revision: 1.9 $ / $Date: 2006-01-20 17:46:54 $ / $Author: sfraize $ *
+ * @author  Jay Briedis
+ */
+public class ImageMap extends VueAction {
     
     private int xOffset, yOffset;
    
     /** Creates a new instance of ImageConversion */
-    public ImageMap() {
-    }
+    public ImageMap() {}
     
-    public ImageMap(String label)
-    {
+    public ImageMap(String label) {
         super(label);
-        putValue(Action.SHORT_DESCRIPTION,label);        
     }
     
-    /* this method is not used anymore
-    private void createJpeg(String location, String format, LWMap currentMap, Dimension size)
-    {     
-        BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
-        this.map = currentMap;
-        Graphics2D g = (Graphics2D) mapImage.getGraphics();
+    public void act()
+    {
+        File selectedFile = ActionUtil.selectFile("Saving Imap", "imap");
         
-        g.setColor(Color.WHITE);
-        g.fillRect(0, 0, size.width, size.height);
-        g.setColor(Color.BLACK);
-        g.drawRect(0, 0, size.width-1, size.height-1);
-             
-        g.translate(-xOffset, -yOffset);
-        g.setClip(0, 0, size.width, size.height);
-            
-        DrawContext dc = new DrawContext(g, scale);
-        dc.setPrinting(true);
-        // render the map
-        map.draw(dc);
-           
-        
-        try
-        {
-            System.out.println(location);
-            ImageIO.write(mapImage, format, new File(location));
-        }
-        catch (Exception e)
-        {
-            System.out.println("Couldn't write to the file:" + e);
-        }
-    }
-    */
-    
-    public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
-       System.out.println("Performing Conversion for ImageMap:" + actionEvent.getActionCommand());
-        
-       try 
-       {
-           File selectedFile = ActionUtil.selectFile("Saving Imap", "imap");
-           
-           if (selectedFile != null)
-             createImageMap(selectedFile);
-       }
-        
-       catch(Exception ex) 
-       {
-            System.out.println("Couldn't convert to IMAP:" + ex);
-       }   
+        if (selectedFile != null)
+            createImageMap(selectedFile);
     }
 
     public void createImageMap(File file)
@@ -107,7 +56,7 @@ public class ImageMap extends AbstractAction {
        String fileName = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+".html";
        
        //createJpeg(imageLocation, "jpeg", currentMap, size);
-       new ImageConversion().createJpeg(new File(imageLocation));
+       ImageConversion.createActiveMapJpeg(new File(imageLocation));
        createHtml(imageName, fileName);
     }
     
