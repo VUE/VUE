@@ -27,7 +27,7 @@ import javax.swing.*;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.17 $ / $Date: 2006-01-20 17:37:50 $ / $Author: sfraize $ *
+ * @version $Revision: 1.18 $ / $Date: 2006-01-20 17:48:20 $ / $Author: sfraize $ *
  * @author  Daisuke Fujiwara
  */
 
@@ -42,16 +42,16 @@ public class ImageConversion extends VueAction {
     public ImageConversion(String label)
     {
         super(label);
-        putValue(Action.SHORT_DESCRIPTION,label);        
     }
     
     /**A method which takes in the image object and the location of the file along with the file format
      and saves the current map to the given file*/
     public static void convert(BufferedImage image, File location, String format)
     {   
-        //the conversion is done using the ImageIO class's static method
         try
         {
+            if (DEBUG.IO || DEBUG.IMAGE)
+                System.out.println("Writing " + image + " fmt=" + format + " to " + location);
             ImageIO.write(image, format, location);
         }
         catch (Exception e)
