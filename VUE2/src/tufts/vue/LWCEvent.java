@@ -58,6 +58,8 @@ import java.util.ArrayList;
  * <p>It is also used in special cases to essentially issue a "repaint"
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
+
+ * @version $Revision: 1.22 $ / $Date: 2006-01-20 18:49:16 $ / $Author: sfraize $  
  
  */
 
@@ -71,7 +73,7 @@ public class LWCEvent
     /** for null masking */
     public static final String NO_OLD_VALUE = "no_old_value";
     
-    private Object source;
+    public final Object source;
     
     //a LWCevent can either hold a single component or an array of components
     //one of them is always null
@@ -79,7 +81,7 @@ public class LWCEvent
     private ArrayList components = null;
     private Object oldValue = null;
     
-    private Object key;
+    public final Object key;
     
     // todo: we still using both src & component?
     public LWCEvent(Object source, LWComponent c, Object key, Object oldValue)
@@ -110,9 +112,9 @@ public class LWCEvent
     public LWComponent getComponent()
     {
         if (component == null && components != null && components.size() > 0) {
-            if (/*DEBUG.EVENTS &&*/ components.size() > 1) {
-                System.out.println(this + " *** RETURNING FIRST IN LIST IN LIU OF LIST OF LENGTH " + components.size());
-                new Throwable().printStackTrace();
+            if (DEBUG.Enabled && components.size() > 1) {
+                tufts.Util.printStackTrace(this + "RETURNING FIRST ONLY WHEN IT CONTAINS "
+                                           + components.size() + "\n" + components + "\n");
             }
             return (LWComponent) components.get(0);
         } else
