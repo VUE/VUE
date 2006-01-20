@@ -18,6 +18,8 @@
 
 package tufts;
 
+import tufts.macosx.MacOSX;
+
 import java.util.*;
 import java.util.jar.*;
 import java.util.prefs.*;
@@ -47,23 +49,28 @@ public class Util
     private static float javaVersion = 1.0f;
     
     private static int MacMRJVersion = -1;
+
+    private static boolean DEBUG = false;
     
     static {
+
+        DEBUG = System.getProperty("tufts.Util.debug") != null;
+            
         String osName = System.getProperty("os.name");
         String javaSpec = System.getProperty("java.specification.version");
 
         try {
             javaVersion = Float.parseFloat(javaSpec);
-            System.out.println("Java Version: " + javaVersion);
+            if (DEBUG) out("Java Version: " + javaVersion);
         } catch (Exception e) {
-            System.err.println("Couldn't parse java.specifcaion.version: [" + javaSpec + "]");
-            System.err.println(e);
+            errorOut("couldn't parse java.specifcaion.version: [" + javaSpec + "]");
+            errorOut(e.toString());
         }
 
         String osn = osName.toUpperCase();
         if (osn.startsWith("MAC")) {
             MacPlatform = true;
-            System.out.println("Mac JVM: " + osName);
+            if (DEBUG) out("Mac JVM: " + osName);
             String mrj = System.getProperty("mrj.version");
             int i = 0;
             while (i < mrj.length()) {
@@ -75,16 +82,25 @@ public class Util
             try {
                 MacMRJVersion = Integer.parseInt(mrj.substring(0, i));
             } catch (NumberFormatException e) {
-                System.err.println("mrj.version: " + e);
+                errorOut("couldn't parse mrj.version: " + e);
+                errorOut(e.toString());
             }
-            System.out.println("Mac mrj.version: \"" + mrj + "\" = " + MacMRJVersion);
+            if (DEBUG) out("Mac mrj.version: \"" + mrj + "\" = " + MacMRJVersion);
             
         } else if (osn.indexOf("WINDOWS") >= 0) {
             WindowsPlatform = true;
-            System.out.println("Windows JVM: " + osName);
+            if (DEBUG) out("Windows JVM: " + osName);
         } else {
             UnixPlatform = true;
         }
+    }
+
+    private static void out(String s) {
+        System.out.println("tufts.Util: " + s);
+    }
+
+    private static void errorOut(String s) {
+        System.err.println("tufts.Util: " + s);
     }
 
     /*
@@ -194,7 +210,81 @@ public class Util
         }
     }
 
-    /** call a named static method with the given args */
+    /**
+     * Call a named static method with the given args.
+     * The method signature is inferred from the argument types.  We map the primitive
+     * type wrapper class to their primitive types (an auto un-boxing), so this
+     * won't work for method calls that take args of Boolean, Integer, etc,
+     * only boolean, int, etc.
+     */
+    public static Object execute(Object object, String className, String methodName, Object[] args)
+        throws ClassNotFoundException,
+               NoSuchMethodException,
+               IllegalArgumentException,
+               IllegalAccessException,
+               java.lang.reflect.InvocationTargetException
+    {
+        if (DEBUG) {
+            // use multiple prints in remote case of a class-load or some such error along the way
+            System.err.println("Util.execute:");
+            System.err.println("\t className: [" + className + "]");
+            System.err.println("\tmethodName: [" + methodName + "]");
+
+            String desc;
+            if (args == null)
+                desc = "null";
+            else if (args.length == 0)
+                desc = "(none)";
+            else if (args.length == 1)
+                desc = objectTag(args[0]) + " [" + args[0] + "]";
+            else
+                desc = Arrays.asList(args).toString();
+                
+            System.err.println("\t      args: " + desc);
+            System.err.println("\t    object: " + objectTag(object) + " [" + object + "]");
+                               
+        }
+        
+        final Class clazz = Class.forName(className);
+        final Class[] argTypes;
+        
+        if (args == null) {
+            argTypes = null;
+        } else {
+            argTypes = new Class[args.length];
+            for (int i = 0; i < args.length; i++) {
+                final Class argClass = args[i].getClass();
+                if (argClass == Boolean.class) argTypes[i] = Boolean.TYPE;
+                else if (argClass == Integer.class) argTypes[i] = Integer.TYPE;
+                else if (argClass == Long.class)    argTypes[i] = Long.TYPE;
+                else if (argClass == Short.class)   argTypes[i] = Short.TYPE;
+                else if (argClass == Float.class)   argTypes[i] = Float.TYPE;
+                else if (argClass == Double.class)  argTypes[i] = Double.TYPE;
+                else if (argClass == Byte.class)    argTypes[i] = Byte.TYPE;
+                else if (argClass == Character.class) argTypes[i] = Character.TYPE;
+                else
+                    argTypes[i] = args[i].getClass();
+            }
+        }
+                
+        java.lang.reflect.Method method = clazz.getMethod(methodName, argTypes);
+
+        if (DEBUG) System.err.print("\t  invoking: " + method + " ... ");
+        
+        Object result = method.invoke(object, args);
+
+        if (DEBUG) System.err.println("returned.");
+        
+        if (DEBUG && method.getReturnType() != void.class) {
+            // use multiple prints in remote case of a class-load or some such error along the way
+            //System.err.println("Util.execute:");
+           System.err.println("\t    return: " + objectTag(result) + " [" + result + "]");
+        }
+        //System.out.println("Sucessfully invoked " + className + "." + methodName + ", result=" + result);
+        
+        return result;
+    }
+
     public static Object execute(String className, String methodName, Object[] args)
         throws ClassNotFoundException,
                NoSuchMethodException,
@@ -202,22 +292,41 @@ public class Util
                IllegalAccessException,
                java.lang.reflect.InvocationTargetException
     {
-        Class clazz = Class.forName(className);
-        Class[] argTypes = new Class[args.length];
-        for (int i = 0; i < args.length; i++) {
-            argTypes[i] = args[i].getClass();
-        }
-                
-        java.lang.reflect.Method method = clazz.getMethod(methodName, argTypes);
-
-        Object result = method.invoke(null, args);
-
-        //System.out.println("Sucessfully invoked " + className + "." + methodName + ", result=" + result);
+        return execute(null, className, methodName, args);
+    }
+    
+    /** Attempt a method call.  If it fails, quietly fail, printing a stack trace and returning null.
+     * @param object - cannot be null (implying a static method), as is also used to get the class name
+     * If object is a Class object, make this a static invocation in that class.
+     */
+    public static Object invoke(Object object, String methodName, Object[] args) 
+    {
+        String className;
+        if (object instanceof Class) {
+            className = ((Class)object).getName();
+            object = null;
+        } else
+            className = object.getClass().getName();
         
-        return result;
+        try {
+            return execute(object, className, methodName, args);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e;
+        }
     }
 
-
+    /**
+     * Attempt a method call.  If it fails, quietly fail, printing a stack trace and returning null.
+     * This is a convenience version that allows the passing in of a single argument directly.
+     **/
+    public static Object invoke(Object object, String methodName, Object arg0) {
+        return invoke(object, methodName, new Object[] { arg0 });
+    }
+    public static Object invoke(Object object, String methodName) {
+        return invoke(object, methodName, null);
+    }
+    
     /**
      * Attempt to invoke the given method with the given args.  If 
      * any exception occurs, (e.g., ClassNotFoundException because a
@@ -367,9 +476,9 @@ public class Util
             public void remove() { throw new UnsupportedOperationException(); }
         };
 
-    /** Convenience class: proivdes a single element iterator */
+    /** Convenience class: provides a single element iterator */
     public static class SingleIterator implements java.util.Iterator {
-        Object object;
+        private Object object;
         public SingleIterator(Object o) {
             object = o;
         }
@@ -378,6 +487,19 @@ public class Util
         public void remove() { throw new UnsupportedOperationException(); }
     };
     
+    /** Convenience class: provides an array iterator */
+    public static class ArrayIterator implements java.util.Iterator {
+        private Object[] array;
+        private int index;
+        public ArrayIterator(Object[] a) {
+            array = a;
+            index = 0;
+        }
+        public boolean hasNext() { return index < array.length; }
+        public Object next() { return array[index++]; }
+        public void remove() { throw new UnsupportedOperationException(); }
+    };
+
     /** GroupIterator allows you to construct a new iterator that
      * will aggregate an underlying set of Iterators and/or Collections */
     public static class GroupIterator extends java.util.ArrayList
@@ -487,60 +609,21 @@ public class Util
         }
     }
 
-    /**
-     * Size a normal Window to the maximum size usable in the current
-     * platform & desktop configuration, <i>without</i> using the java
-     * special full-screen mode, which can't have any other windows
-     * on top of it, and changes the way user input events are handled.
-     * On the PC, this will just be the whole screen (bug: probably
-     * not good enough if they have non-hiding menu bar set to always-
-     * on-top). On the Mac, it will be adjusted for the top menu
-     * bar and the dock if it's visible.
-     */
-    // todo: test in multi-screen environment
-    public static void setFullScreen(java.awt.Window window)
+
+    static final double sFactor = 0.9;
+    public static Color darkerColor(Color c) {
+        return factorColor(c, sFactor);
+    }
+    public static Color brighterColor(Color c) {
+        return factorColor(c, 1/sFactor);
+    }
+    public static Color factorColor(Color c, double factor)
     {
-        java.awt.Dimension screen = window.getToolkit().getScreenSize();
-        if (isMacPlatform()) {
-            // mac won't layer a regular window over the menu bar, so
-            // we need to limit the size
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            Rectangle desktop = ge.getMaximumWindowBounds();
-            out("setFullScreen: mac maximum bounds  " + out(desktop));
-            if (desktop.x > 0 && desktop.x <= 4) {
-                // hack for smidge of space it attempts to leave if the dock is
-                // at left and auto-hiding
-                desktop.width += desktop.x;
-                desktop.x = 0;
-            } else {
-                // dock at bottom & auto-hiding
-                int botgap = screen.height - (desktop.y + desktop.height);
-                if (botgap > 0 && botgap <= 4) {
-                    desktop.height += botgap;
-                } else {
-                    // dock at right & auto-hiding
-                    int rtgap = screen.width - desktop.width;
-                    if (rtgap > 0 && rtgap <= 4)
-                        desktop.width += rtgap;
-                }
-            }
-            out("setFullScreen: mac adjusted bounds " + out(desktop));
-            window.setLocation(desktop.x, desktop.y);
-            window.setSize(desktop.width, desktop.height);
-        } else {
-            window.setLocation(0, 0);
-            window.setSize(screen.width, screen.height);
-        }
-        out("setFullScreen: set to " + window);
+	return new Color((int)(c.getRed()  *factor),
+			 (int)(c.getGreen()*factor),
+			 (int)(c.getBlue() *factor));
     }
 
-    /** set window to be as off screen as possible */
-    public static void setOffScreen(java.awt.Window window)
-    {
-        java.awt.Dimension screen = window.getToolkit().getScreenSize();
-        window.setLocation(screen.width - 1, screen.height - 1);
-    }
-    
 
     /** a JPanel that anti-aliases text */
     public static class JPanel_aa extends javax.swing.JPanel {
@@ -564,11 +647,14 @@ public class Util
     
     /** This is for testing individual components. It will display the given component in frame
      * of the given size. */
-    public static JFrame displayComponent(javax.swing.JComponent comp, int width, int height)
+    public static JFrame displayComponent(java.awt.Component comp, int width, int height)
     {
-        javax.swing.JFrame frame = new javax.swing.JFrame(comp.getClass().getName());
+        javax.swing.JFrame frame = new javax.swing.JFrame(objectTag(comp));
         comp.setSize(comp.getPreferredSize());
-        frame.setContentPane(comp);
+        if (comp instanceof JComponent)
+            frame.setContentPane((JComponent)comp);
+        else
+            frame.getContentPane().add(comp);
         if (width != 0 && height != 0)
             frame.setSize(width, height);
         else
@@ -580,7 +666,7 @@ public class Util
     }
     
     /** This is for testing individual components. It will display the given component in frame. */
-    public static JFrame displayComponent(javax.swing.JComponent comp) {
+    public static JFrame displayComponent(java.awt.Component comp) {
         return displayComponent(comp, 0, 0);
     }
 
@@ -648,7 +734,7 @@ public class Util
         if (!isMacPlatform())
             return;
         try {
-            tufts.macosx.Screen.goBlack();    
+            MacOSX.goBlack();    
         } catch (LinkageError e) {
             eout(e);
         }
@@ -657,7 +743,7 @@ public class Util
     public static void screenFadeFromBlack() {
         if (isMacPlatform()) {
             try {
-                tufts.macosx.Screen.fadeFromBlack();
+                MacOSX.fadeFromBlack();
             } catch (LinkageError e) {
                 eout(e);
             }
@@ -677,7 +763,7 @@ public class Util
     {
         if (isMacPlatform()) {
             try {
-                tufts.macosx.Screen.adjustMacWindows(mainWindowTitleStart, ensureShown, ensureHidden, inFullScreenMode);
+                MacOSX.adjustMacWindows(mainWindowTitleStart, ensureShown, ensureHidden, inFullScreenMode);
             } catch (LinkageError e) {
                 eout(e);
             } catch (Exception e) {
@@ -722,9 +808,10 @@ public class Util
     }
     
     public static String out(java.awt.geom.Point2D p) {
-        return (float)p.getX() + "," + (float)p.getY();
+        //return (float)p.getX() + "," + (float)p.getY();
+        return oneDigitDecimal(p.getX()) + "," + oneDigitDecimal(p.getY());
     }
-
+    
     public static String out(java.awt.Dimension d) {
         return d.width + "x" + d.height;
     }
@@ -916,6 +1003,137 @@ public class Util
             return s;
         }
     }
+
+    private final static String NO_CLASS_FILTER = "";
+    private final static String TERM_RED = "\033[1;31m";        // common terminal code for the color red
+    private final static String TERM_CLEAR = "\033[m";
+
+    /** print stack trace items only from fully qualified class names that match the given prefix */
+    public static void printClassTrace(Throwable t, String prefix, String message, java.io.PrintStream s) {
+
+        java.awt.Toolkit.getDefaultToolkit().beep();
+        
+        synchronized (s) {
+
+            s.print(TERM_RED);
+
+            if (message != null)
+                s.println(message);
+            
+            final String head;
+            if (t.getClass().getName().equals("java.lang.Throwable"))
+                head = t.getMessage();
+            else
+                head = t.toString();
+            if (prefix == null || prefix == NO_CLASS_FILTER)
+                s.print(head + ";");
+            else
+                s.print(head + " (stack element prefix \"" + prefix + "\") ");
+
+            long now = System.currentTimeMillis();
+
+            s.print(" in " + Thread.currentThread() + " at " + now + " " + new java.util.Date(now));
+
+            s.print(TERM_CLEAR);
+            
+            if (prefix == null || prefix == NO_CLASS_FILTER)
+                prefix = "!tufts.Util";
+
+            StackTraceElement[] trace = t.getStackTrace();
+            int skipped = 0;
+            for (int i = 0; i < trace.length; i++) {
+                if (includeInTrace(trace[i], prefix)) {
+                    s.print("\n\tat " + trace[i] + " ");
+                } else {
+                    s.print(".");
+                }
+            }
+            s.println("");
+
+            Throwable cause = t.getCause();
+            if (cause != null)
+                //ourCause.printStackTraceAsCause(s, trace);
+                s.println("CAUSE: " + cause);
+
+        }
+    }
+
+    private static boolean includeInTrace(StackTraceElement trace, String prefix) {
+        
+        boolean matchIsIncluded = true;
+        if (prefix.charAt(0) == '!') {
+            prefix = prefix.substring(1);
+            matchIsIncluded = false;
+        }
+
+        if (trace.getClassName().startsWith(prefix))
+            return matchIsIncluded;
+        else
+            return !matchIsIncluded;
+    }
+
+    public static void printClassTrace(Throwable t, String prefix) {
+        printClassTrace(t, prefix, null, System.err);
+    }
+    
+    public static void printClassTrace(String prefix, String message) {
+        printClassTrace(new Throwable(message), prefix, null, System.err);
+    }
+    
+    public static void printClassTrace(String prefix) {
+        printClassTrace(prefix, "*** STACK TRACE ***");
+    }
+    
+
+    public static void printStackTrace() {
+        printClassTrace(NO_CLASS_FILTER);
+    }
+    
+    public static void printStackTrace(Throwable t) {
+        printClassTrace(t, NO_CLASS_FILTER, null, System.err);
+    }
+    
+    public static void printStackTrace(Throwable t, String message) {
+        printClassTrace(t, NO_CLASS_FILTER, message, System.err);
+    }
+        
+    public static void printStackTrace(String message) {
+        printClassTrace(new Throwable(message), NO_CLASS_FILTER);
+    }
+
+    public static String tag(Object o) {
+        if (o == null)
+            return "null";
+        else
+            return o.getClass().getName() + "@" + Integer.toHexString(o.hashCode());
+    }
+    
+    public static String objectTag(Object o) {
+        return tag(o);
+    }
+
+    
+    public static String pad(char c, int wide, String s, boolean alignRight) {
+        if (s.length() >= wide)
+            return s;
+        int pad = wide - s.length();
+        StringBuffer buf = new StringBuffer(wide);
+        if (alignRight == false)
+            buf.append(s);
+        while (pad-- > 0)
+            buf.append(c);
+        if (alignRight)
+            buf.append(s);
+        return buf.toString();
+    }
+
+    public static String pad(char c, int wide, String s) {
+        return pad(c, wide, s, false);
+    }
+    public static String pad(int wide, String s) {
+        return pad(' ', wide, s, false);
+    }
+    
         
     
 }
