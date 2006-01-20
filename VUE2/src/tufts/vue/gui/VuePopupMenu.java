@@ -30,6 +30,7 @@ import javax.swing.JMenuItem;
  * An exension of MenuButton that specifically handles pop-up menu
  * for a specific VUE LWComponent property (LWKey property)
  *
+ * @version $Revision: 1.18 $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -42,6 +43,7 @@ public class VuePopupMenu extends MenuButton
         setPropertyKey(propertyKey);
         buildMenu(valuesOrActions);
         setPropertyValue(getMenuValueAt(0));
+        setName(propertyKey.toString());
     }
 
     public Object getMenuValueAt(int index) {
