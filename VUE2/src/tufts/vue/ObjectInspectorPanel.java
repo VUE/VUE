@@ -16,14 +16,6 @@
   * -----------------------------------------------------------------------------
   */
 
-
-/*******
- **  ObjectInspectorPanel
- **
- **
- *********/
-
-
 package tufts.vue;
 
 
@@ -38,11 +30,11 @@ import tufts.vue.filter.*;
 
 
 /**
- * ObjectInspectorPanel
- *
  * The Object Inspector Panel!
  *
- * \**/
+ * @version $Revision: 1.27 $ / $Date: 2006-01-20 19:57:56 $ / $Author: sfraize $ 
+ *
+ */
 public class ObjectInspectorPanel extends JPanel
     implements LWSelection.Listener
 {
@@ -187,6 +179,7 @@ public class ObjectInspectorPanel extends JPanel
         LWComponent mComponent;
         public InfoPanel() {
             setLayout( new BorderLayout() );
+            setName("infoPanel");
             
             //setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
             
@@ -286,6 +279,7 @@ public class ObjectInspectorPanel extends JPanel
          **/
         public TreePanel() {
             
+            setName("treePanel");
             //fix the layout?
             setLayout( new BorderLayout() );
             setBorder( new EmptyBorder(4,4,4,4) );
@@ -352,6 +346,7 @@ public class ObjectInspectorPanel extends JPanel
         
         public NodeFilterPanel() {
             
+            setName("nodeFilterPanel");
             setLayout(new BorderLayout());
             setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
             
@@ -399,11 +394,15 @@ public class ObjectInspectorPanel extends JPanel
         } else if(pTabKey == FILTER_TAB) {
             mTabbedPane.setSelectedComponent(mNodeFilterPanel);
         }
+        Window w = javax.swing.SwingUtilities.getWindowAncestor(this);
+        if (w != null)
+            w.setVisible(true);
     }
 
     public static void main(String args[]) {
         VUE.parseArgs(args);
         VUE.initUI();
+        new Frame("A Frame").show();
         ObjectInspectorPanel p = new ObjectInspectorPanel();
         //LWMap map = new LWMap("TestMap");
         LWComponent node = new LWNode("Test Node");
@@ -413,7 +412,8 @@ public class ObjectInspectorPanel extends JPanel
         for (int i = 10; i < 31; i++)
             r.setProperty("field_" + i, "value_" + i);
         //map.addLWC(node);
-        ToolWindow w = VUE.createToolWindow("Object Inspector", p);
+        tufts.vue.gui.DockWindow w = tufts.vue.gui.GUI.createDockWindow("Object Inspector");
+        w.add(p);
         w.setVisible(true);
         p.setLWComponent(node);
         VUE.getSelection().setTo(node); // setLWComponent does diddly -- need this
