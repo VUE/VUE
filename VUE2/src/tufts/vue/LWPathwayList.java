@@ -21,16 +21,14 @@ package tufts.vue;
 import java.util.*;
 
 /**
- * LWPathwayList.java
- *
  * Keeps a list of all pathways for a given LWMap.  Also tracks the
  * current pathway selected for the given map.  Provides for
  * aggregating all the events that happen within the pathways and
  * their contents, and rebroadcasting them to interested parties, such
  * as the PathwayTableModel.
  *
+ * @version $Revision: 1.21 $ / $Date: 2006-01-20 19:23:20 $ / $Author: sfraize $
  * @author Scott Fraize
- * @version 11/16/04
  *
  */
 
@@ -90,7 +88,7 @@ public class LWPathwayList implements LWComponent.Listener
 
     void completeXMLRestore(LWMap map)
     {
-        System.out.println(this + " completeXMLRestore");
+        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) System.out.println(this + " completeXMLRestore");
         setMap(map);
         Iterator i = iterator();
         while (i.hasNext()) {
