@@ -25,7 +25,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 /**
- * Tool for working with LWImage's
+ * Tool for working with LWImage
  *
  * @version $Revision: 1. $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $
  * @author Scott Fraize
