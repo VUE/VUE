@@ -18,14 +18,6 @@
 
 package tufts.vue;
 
-/*
- *
- *A List that is droppable for the datasources. Only My favorites will
- *take a drop.
- *
- *Author Ranjani Saigal
- */
-
 import java.awt.*;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
@@ -53,6 +45,13 @@ import tufts.oki.localFiling.*;
 
 
 
+/**
+ * A List that is droppable for the datasources. Only My favorites will
+ * take a drop.
+ *
+ * @version $Revision: 1.23 $ / $Date: 2006-01-20 18:24:49 $ / $Author: sfraize $ 
+ * @author Ranjani Saigal
+ */
 
 public class DataSourceList extends JList implements DropTargetListener{
     
@@ -211,9 +210,9 @@ public class DataSourceList extends JList implements DropTargetListener{
             java.util.List fileList = null;
             java.util.List resourceList = null;
             try {
-                if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
+                if (transfer.isDataFlavorSupported(Resource.DataFlavor)) {
                     if (debug) System.out.println("RESOURCE FOUND");
-                    resourceList = (java.util.List) transfer.getTransferData(VueDragTreeNodeSelection.resourceFlavor);
+                    resourceList = (java.util.List) transfer.getTransferData(Resource.DataFlavor);
                     java.util.Iterator iter = resourceList.iterator();
                     while(iter.hasNext()) {
                         Resource resource = (Resource) iter.next();
