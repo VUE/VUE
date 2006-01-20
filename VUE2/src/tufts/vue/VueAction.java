@@ -32,7 +32,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.18 $ / $Date: 2006-01-20 17:33:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.19 $ / $Date: 2006-01-20 20:21:44 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -169,6 +169,7 @@ public class VueAction extends javax.swing.AbstractAction
         } catch (Throwable t) {
             synchronized (System.err) {
                 System.err.println("*** VueAction: exception during action [" + getActionName() + "]");
+                System.err.println("*** VueAction: " + getClass());
                 System.err.println("*** VueAction: selection is " + VUE.getSelection());
                 System.err.println("*** VueAction: event was " + ae);
                 tufts.Util.printStackTrace(t);
