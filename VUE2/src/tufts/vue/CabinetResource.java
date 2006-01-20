@@ -38,6 +38,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
+ * @version $Revision: 1.13 $ / $Date: 2006-01-20 19:43:25 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends MapResource{
@@ -135,7 +136,7 @@ public class CabinetResource extends MapResource{
             else {
                 String name = file.getName();       //  Get the filename with out path.
                 if(name.lastIndexOf('.')> -1) 
-                    this.extension = name.substring (name.lastIndexOf ('.'));  //  Extract extention.
+                    this.extension = name.substring (name.lastIndexOf ('.')+1);  //  Extract extention.
                 else if(name.length() > 0)
                     this.extension = "none";
                 else 
@@ -243,6 +244,8 @@ public class CabinetResource extends MapResource{
             return super.getSpec();
         else {
             //  Check for each of the four possible cases.
+            // TODO: spec should be atomic -- do not go setting
+            // the spec dynamically!
             if (this.entry instanceof tufts.oki.remoteFiling.RemoteByteStore)
                 setSpec(((RemoteByteStore)this.entry).getUrl());
             if (this.entry instanceof tufts.oki.remoteFiling.RemoteCabinet)
