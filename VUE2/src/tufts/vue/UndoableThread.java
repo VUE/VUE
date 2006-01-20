@@ -1,5 +1,13 @@
 package tufts.vue;
 
+/**
+ *
+ * A thread from which the  UndoManager can track asynchronous model updates.
+ *
+ * @version $Revision: 1.2 $ / $Date: 2006-01-20 20:15:39 $ / $Author: sfraize $
+ * @author Scott Fraize
+ *
+ */
 public class UndoableThread extends Thread
 {
     private Object undoActionMarker;
@@ -24,7 +32,7 @@ public class UndoableThread extends Thread
     }
 
     public void start() {
-        if (DEBUG.CASTOR)
+        if (false && DEBUG.CASTOR)
             run(); // run synchronously
         else
             super.start();
