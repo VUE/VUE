@@ -33,6 +33,8 @@ import java.awt.event.*;
  * Sub-classes AbstractAction for addActionListener, although
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
+ *
+ * @version $Revision: 1.39 $ / $Date: 2006-01-20 20:30:37 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -371,14 +373,19 @@ public abstract class VueTool extends AbstractAction
     //public void handleSelectionChange(LWSelection s) {}
     // temporary: give this to everyone
     public void handleSelectionChange(LWSelection s) {
-        if (!VUE.TUFTS &&
+
+        //-----------------------------------------------------------------------------
+        // The right viewer tracks & zooms to whatever is selected
+        // in the left viewer if it's showing the same map as the left viewer.
+        //-----------------------------------------------------------------------------
+        
+        if (DEBUG.Enabled &&
+            !s.isEmpty() &&
             VUE.multipleMapsVisible() &&
-            VUE.getLeftTabbedPane().getSelectedViewer() == VUE.getActiveViewer() &&
+            VUE.isActiveViewerOnLeft() &&
             VUE.getRightTabbedPane().getSelectedViewer().getMap() == VUE.getActiveMap()
             )
         {
-            // the right viewer tracks & zooms to whatever is selected
-            // in the left viewer.
             MapViewer viewer = VUE.getRightTabbedPane().getSelectedViewer();
             ZoomTool.setZoomFitRegion(viewer, s.getBounds(), 16);
         }
