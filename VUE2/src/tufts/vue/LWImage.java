@@ -34,7 +34,7 @@ import javax.swing.ImageIcon;
 /**
  * Handle the presentation of an image resource, allowing cropping.
  *
- * @version $Revision: 1.1 $ / $Date: 2006/01/20 18:57:33 $ / $Author: sfraize $ 
+ * @version $Revision: $ / $Date: 2006/01/20 18:57:33 $ / $Author: sfraize $
  */
 public class LWImage extends LWComponent
     implements LWSelection.ControlListener, ImageObserver

@@ -34,7 +34,7 @@ import java.util.Iterator;
  * Various icons can be displayed and stacked vertically or horizontally.
  * The icon region displays a tool-tip on rollover and may handle double-click.
  *
- * @version $Revision: 1.1 $ / $Date: 2006/01/20 18:57:33 $ / $Author: sfraize $ 
+ * @version $Revision: 1.1 $ / $Date: 2006/01/20 18:57:33 $ / $Author: sfraize $
  *
  */
 
