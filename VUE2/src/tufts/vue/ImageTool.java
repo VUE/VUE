@@ -50,7 +50,7 @@ public class ImageTool extends VueTool
                     JSlider slider = new RotationSlider();
                     addComponent(slider);
                     slider.addPropertyChangeListener(this);
-                    //slider.getModel().addPropertyChangeListener(this);
+                    //slider.getModel().addPropertyChangeListener(this); 
                     //addComponent(new RotationSlider());
                     //addComponent(ImageTool.mSlider);
                 }

@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.316 $ / $Date: 2006-01-20 20:16:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.317 $ / $Date: 2006-01-20 20:20:03 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -78,7 +78,7 @@ public class VUE
     static final LWSelection ModelSelection = new LWSelection();
     
     /** array of tool windows, used for repeatedly creating JMenuBar's for on all Mac JFrame's */
-    // todo: wanted package private: should be totally private
+    // todo: wanted package private: should be totally private.
     public static Object[] ToolWindows; // VueMenuBar currently needs this
 
     /** teh global resource selection static model **/
