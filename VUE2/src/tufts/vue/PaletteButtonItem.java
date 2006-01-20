@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.GUI;
 
 import java.io.*;
 import java.awt.*;
@@ -37,7 +38,7 @@ import javax.swing.border.*;
  * PaletteButtonAItems are intended to be added to PaletteButtons with the addPaletteItem
  * method. 
  *
- *
+ * @version $Revision: 1.9 $ / $Date: 2006-01-20 20:00:58 $ / $Author: sfraize $
  **/
 public class PaletteButtonItem extends JMenuItem
 {
@@ -64,7 +65,7 @@ public class PaletteButtonItem extends JMenuItem
         setRolloverEnabled( true);
         this.addMouseListener( new PaletteButtonItem.PBMouseListener() );
         this.addActionListener( new PaletteButtonItem.PaletteItemActionListener() );
-        VueTheme.applyToolbarColor(this);
+        GUI.applyToolbarColor(this);
     }
 	
 	
