@@ -69,7 +69,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         if (map != null) 
             map.getMapFilterModel().addListener(this);
         tufts.vue.VUE.addActiveMapListener(this);
-        questionLabel.setToolTipText(this.NODE_FILTER_INFO);
+        questionLabel.setToolTipText(NodeFilterEditor.NODE_FILTER_INFO);
         setNodeFilterPanel();
         
     }
@@ -293,7 +293,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         Vector allTypes;
         
         public AddDialog(NodeFilter model) {
-            super(tufts.vue.VUE.getInstance(),"Add Key",true);
+            super(tufts.vue.VUE.getDialogParentAsFrame(),"Add Key",true);
             this.model = model;
             allTypes = (Vector)TypeFactory.getAllTypes();
             keyLabel = new JLabel("Key");
@@ -470,7 +470,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         Vector allTypes;
         
         public AddElementDialog(MapFilterModel model) {
-            super(tufts.vue.VUE.getInstance(),"Add Key",true);
+            super(tufts.vue.VUE.getDialogParentAsFrame(),"Add Key",true);
             this.model = model;
             allTypes = (Vector)TypeFactory.getAllTypes();
             keyLabel = new JLabel("Field");

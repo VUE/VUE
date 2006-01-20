@@ -56,7 +56,7 @@ public class MapFilterModelEditor extends JPanel {
     /** Creates a new instance of MapFilterModelEditor */
     public MapFilterModelEditor(MapFilterModel mapFilterModel) {
         this.mapFilterModel = mapFilterModel;
-        questionLabel.setToolTipText(this.MAP_FILTER_INFO);
+        questionLabel.setToolTipText(MAP_FILTER_INFO);
         setMapFilterModelPanel();
         
     }
@@ -141,7 +141,7 @@ public class MapFilterModelEditor extends JPanel {
         Vector allTypes;
         
         public AddDialog(MapFilterModel model) {
-            super(tufts.vue.VUE.getInstance(),"Add Key",true);
+            super(tufts.vue.VUE.getDialogParentAsFrame(),"Add Key",true);
             this.model = model;
             allTypes = (Vector)TypeFactory.getAllTypes();
             keyLabel = new JLabel("Field");
@@ -254,7 +254,13 @@ public class MapFilterModelEditor extends JPanel {
         
         public void actionPerformed(ActionEvent e) {
             // will only be invoked if an existing row is selected
-            if(JOptionPane.showConfirmDialog(tufts.vue.VUE.getInstance(),"Would you like to remove all instance of selected metadata element throughtout the map?","Delete Custom Metdata",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,tufts.vue.VueResources.getImageIcon("vueIcon32x32")) == JOptionPane.YES_OPTION){
+            if (JOptionPane
+                .showConfirmDialog(tufts.vue.VUE.getDialogParentAsFrame(),
+                                   "Would you like to remove all instance of selected metadata element throughtout the map?",
+                                   "Delete Custom Metdata",
+                                   JOptionPane.YES_NO_OPTION,
+                                   JOptionPane.QUESTION_MESSAGE,
+                                   tufts.vue.VueResources.getImageIcon("vueIcon32x32")) == JOptionPane.YES_OPTION) {
                 int r=m_sListener.getSelectedRow();
                 ((MapFilterModel) table.getModel()).remove(r);
                 ((MapFilterModel) table.getModel()).fireTableRowsDeleted(r,r);
