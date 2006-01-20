@@ -19,46 +19,70 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.GUI;
+
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.metal.*;
 
-class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
+/**
+ * @deprecated - this class has been replaced by GUI.DefaultMetalTheme & GUI.OceanMetalTheme
+ * move this class to a backup location: it a bunch of useful example swing theme code
+ */
+public class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
 {
-    private static VueTheme singleton;
-    public static VueTheme getTheme(boolean macAquaLAF) {
-        if (singleton == null)
-            singleton = new VueTheme(macAquaLAF);
-        return singleton;
+    private final Color VueColor;
+    private final Color ToolbarColor;
+
+    // these are gray in Metal Default Theme
+    private final ColorUIResource VueSecondary1;
+    private final ColorUIResource VueSecondary2;
+    private final ColorUIResource VueSecondary3;
+
+    
+    private static VueTheme Singleton;
+    public static VueTheme getTheme(Color toolbarColor) {
+        if (Singleton == null)
+            Singleton = new VueTheme(toolbarColor);
+        return Singleton;
     }
     public static VueTheme getTheme() {
-        if (singleton == null)
+        if (Singleton == null)
             throw new IllegalStateException("getTheme(macAquaLAF) must be called first time");
-        return singleton;
+        return Singleton;
     }
 
-    VueTheme(boolean macAquaLAF)
+    protected VueTheme() {
+        this(Color.red);
+    }
+    
+    VueTheme(Color toolbarColor)
     {
-        org.apache.log4j.NDC.push("VueTheme");
-        VUE.Log.debug("constructed.");
+        //org.apache.log4j.NDC.push("VueTheme");
+        //VUE.Log.debug("constructed.");
         if (DEBUG.INIT) new Throwable("VueTheme created").printStackTrace();
-        if (macAquaLAF) {
-            VUE.Log.debug("Mac Aqua");
-            if (isMacMetalLAF()) {
-                VUE.Log.debug("Mac Aqua Brush Metal Look");
+
+        ToolbarColor = toolbarColor;
+        VueColor = new ColorUIResource(VueResources.getColor("menubarColor"));
+        
+        VueSecondary1 = new ColorUIResource(VueColor.darker().darker());
+        VueSecondary2 = new ColorUIResource(VueColor.darker());
+        VueSecondary3 = new ColorUIResource(VueColor);
+
+        /*
+        if (GUI.isMacAqua()) {
+            //VUE.Log.debug("Mac Aqua");
+            if (GUI.isMacBrushedMetal()) {
+                //VUE.Log.debug("Mac Aqua Brush Metal Look");
                 ToolbarColor = SystemColor.window;
             } else
                 ToolbarColor = SystemColor.control;
         }
-        org.apache.log4j.NDC.pop();
+        */
+        //org.apache.log4j.NDC.pop();
     }
 
-    public static boolean isMacMetalLAF() {
-        String p = VUE.getSystemProperty("apple.awt.brushMetalLook");
-        return p != null && p.equals("true");
-    }
-    
     protected FontUIResource fontMedium = new FontUIResource("SansSerif", Font.PLAIN, 12);
     protected FontUIResource fontSmall  = new FontUIResource("SansSerif", Font.PLAIN, 11);
     protected FontUIResource fontTiny  = new FontUIResource("SansSerif", Font.PLAIN, 8);
@@ -66,16 +90,14 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     //private FontUIResource fontWindowTitle  = new FontUIResource(FixedFont);
     //private FontUIResource fontSubText  = new FontUIResource(FONT_TINY);
     
-    private static Color VueColor = new ColorUIResource(VueResources.getColor("menubarColor"));    
-    private static Color ToolbarColor = new ColorUIResource(VueResources.getColor("toolbar.background"));
     private Color FocusColor = new ColorUIResource(Color.red);
     
     // these are gray in Metal Default Theme
-    private static ColorUIResource VueSecondary1 = new ColorUIResource(VueColor.darker().darker());
-    private static ColorUIResource VueSecondary2 = new ColorUIResource(VueColor.darker());
-    private static ColorUIResource VueSecondary3 = new ColorUIResource(VueColor);
+    //private static ColorUIResource VueSecondary1 = new ColorUIResource(VueColor.darker().darker());
+    //private static ColorUIResource VueSecondary2 = new ColorUIResource(VueColor.darker());
+    //private static ColorUIResource VueSecondary3 = new ColorUIResource(VueColor);
 
-    private Color VueLowContrast = new ColorUIResource(VueUtil.factorColor(VueColor, 0.95));
+    //private Color VueLowContrast = new ColorUIResource(VueUtil.factorColor(VueColor, 0.95));
 
     private Color TestColor1 = new ColorUIResource(Color.red);
     private Color TestColor2 = new ColorUIResource(Color.green);
@@ -88,7 +110,11 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     protected FontUIResource getSmallFont() { return fontSmall; }
     
     //public static Color getVueColor() { return VueUtil.isMacAquaLookAndFeel() ? SystemColor.control : VueColor;  }
+    /** @deprecated */
     public static Color getToolbarColor() {
+        return GUI.getToolbarColor();
+
+        /*
         if (VueUtil.isMacAquaLookAndFeel()) {
             if (isMacMetalLAF())
                 // FYI/BUG: Mac OS X 10.4+ Java 1.5: applying SystemColor.window is no longer 
@@ -98,9 +124,11 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
                 return SystemColor.control;
         } else
             return ToolbarColor;
+        */
     }
 
     /** Sets the background to getToolBarColor() */
+    /** @deprecated */
     public static void applyToolbarColor(Component c) {
         //c.setBackground(Color.gray);
         c.setBackground(getToolbarColor());
@@ -117,19 +145,23 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
         */
     }
     
-    public static Color getVueColor() { return VueColor;  }
+    /** @deprecated */
+    public static Color getVueColor() { return Singleton.VueColor;  }
     //public static Color getVueColor() { return Color.red;  }
     
+    /** @deprecated */
     public FontUIResource getMenuTextFont() { return fontMedium;  }
+    /** @deprecated */
     public FontUIResource getUserTextFont() { return fontSmall; }
     // controls: labels, buttons, tabs, tables, etc.
+    /** @deprecated */
     public FontUIResource getControlTextFont() { return fontControl; }
     //public FontUIResource getWindowTitleFont() { return fontWindowTitle; } // internal frames?
     //public FontUIResource getSubTextFont() { return fontSubText; } // accelerator names
     
-    protected ColorUIResource getSecondary1() { return VueSecondary1; }
-    protected ColorUIResource getSecondary2() { return VueSecondary2; }
-    protected ColorUIResource getSecondary3() { return VueSecondary3; }
+    protected ColorUIResource getSecondary1() { return Singleton.VueSecondary1; }
+    protected ColorUIResource getSecondary2() { return Singleton.VueSecondary2; }
+    protected ColorUIResource getSecondary3() { return Singleton.VueSecondary3; }
     
     //protected ColorUIResource getPrimary1() { return TestColor1; }
     //protected ColorUIResource getPrimary2() { return TestColor2; }
@@ -163,10 +195,10 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
                 //g.setColor( tabPane.getBackgroundAt( tabIndex ) );
                 Color c = tabPane.getBackgroundAt( tabIndex );
                 // for now, allow toolbar color as optional tabbed bg, but all others override
-                if (ToolbarColor.equals(c))
+                if (Singleton.ToolbarColor.equals(c))
                     g.setColor(c);
                 else
-                    g.setColor(VueSecondary2);
+                    g.setColor(Singleton.VueSecondary2);
             }
             switch ( tabPlacement ) {
             case LEFT:
