@@ -29,10 +29,9 @@ import javax.swing.Icon;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
+ * @version $Revision: 1.6 $ / $Date: 2006-01-20 17:18:52 $ / $Author: sfraize $
  * @author csb
  * @author Scott Fraize
- * @version March 2004
- *
  */
 
 public class ColorMenuButton extends MenuButton
@@ -98,7 +97,7 @@ public class ColorMenuButton extends MenuButton
     }
 
     protected Object runCustomChooser() {
-        return tufts.vue.VueUtil.runColorChooser("Select Custom Color", getColor(), tufts.vue.VUE.getRootParent());
+        return tufts.vue.VueUtil.runColorChooser("Select Custom Color", getColor(), tufts.vue.VUE.getDialogParent());
         // todo: set up own listeners for color change in chooser
         // --that way way can actually tweak color on map as they play
         // with it in the chooser
