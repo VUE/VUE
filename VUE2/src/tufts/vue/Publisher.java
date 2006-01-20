@@ -43,9 +43,11 @@ import fedora.server.utilities.StreamUtility;
 import fedora.client.ingest.AutoIngestor;
 
 import tufts.vue.action.*;
+
 /**
  *
  * @author  akumar03
+ * @version $Revision: 1.35 $ / $Date: 2006-01-20 20:05:17 $ / $Author: sfraize $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
     
@@ -64,8 +66,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final int STATUS_COL = 3;// the column that displays the status of objects that will be ingested.
     public static final int X_LOCATION = 300; // x co-ordinate of location where the publisher appears
     public static final int Y_LOCATION = 300; // y co-ordinate of location where the publisher appears
-    public static final int WIDTH = 500;
-    public static final int HEIGHT = 250;
+    public static final int PUB_WIDTH = 500;
+    public static final int PUB_HEIGHT = 250;
     public static final String[] PUBLISH_INFORMATION = {" The “Export” function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
     " “Export Map” saves only the map. Digital resources are not attached, but the resources’ paths are maintained. “Export Map” is the equivalent of the “Save” function for a registered digital repository.",
     "“Export IMSCP Map” embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a “zip” file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
@@ -119,7 +121,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         stage = 1;
         setLocation(X_LOCATION,Y_LOCATION);
         setModal(true);
-        setSize(WIDTH,HEIGHT);
+        setSize(PUB_WIDTH, PUB_HEIGHT);
         setResizable(false);
         show();
     }
@@ -137,7 +139,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         JLabel modeLabel = new JLabel("Mode");
         
          PolygonIcon lineIcon = new PolygonIcon(Color.DARK_GRAY);
-         lineIcon.setIconWidth(WIDTH-40);
+         lineIcon.setIconWidth(PUB_WIDTH-40);
          lineIcon.setIconHeight(1);
          JLabel lineLabel = new JLabel(lineIcon);
         //area for displaying information about publishing mode
@@ -148,7 +150,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         informationArea.setRows(4);
         informationArea.setBorder(new LineBorder(Color.BLACK));
         //informationArea.setBackground(Color.WHITE);
-        informationArea.setSize(WIDTH-50, HEIGHT/3);
+        informationArea.setSize(PUB_WIDTH-50, PUB_HEIGHT/3);
         JLabel dsLabel = new JLabel("Where would you like to save the map:");
         dataSourceComboBox = new JComboBox(DataSourceViewer.getPublishableDataSources(Publisher.PUBLISH_ALL_MODES));
         dataSourceComboBox.setToolTipText("Select export location.");
@@ -178,7 +180,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         bottomPanel.add(nextButton);
         bottomPanel.add(finishButton);
         bottomPanel.add(cancelButton);
-        //bottomPanel.setSize(WIDTH/3, HEIGHT/10);
+        //bottomPanel.setSize(PUB_WIDTH/3, PUB_HEIGHT/10);
         
         
         nextButton.setEnabled(false);
@@ -334,7 +336,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             ((Publishable)dataSourceComboBox.getSelectedItem()).publish(Publishable.PUBLISH_MAP,tufts.vue.VUE.getActiveMap());
             this.dispose();
         } catch (Exception ex) {
-            alert(VUE.getRootParent(), "Export Not Supported:"+ex.getMessage(), "Export Error");
+            alert(VUE.getDialogParent(), "Export Not Supported:"+ex.getMessage(), "Export Error");
             ex.printStackTrace();
         }
     }
@@ -343,7 +345,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         try {
             publishMap((LWMap)VUE.getActiveMap().clone());
         } catch (Exception ex) {
-            alert(VUE.getRootParent(), "Export Not Supported:"+ex.getMessage(), "Export Error");
+            alert(VUE.getDialogParent(), "Export Not Supported:"+ex.getMessage(), "Export Error");
             ex.printStackTrace();
         }
         
