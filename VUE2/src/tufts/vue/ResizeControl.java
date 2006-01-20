@@ -33,6 +33,8 @@ import java.awt.geom.Rectangle2D;
  * As the box is dragged, it uses an ad-hoc algorithm, as
  * the control point being moved is not guarnteed to stay exactly under
  * the mouse.
+ *
+ * @version $Revision: 1. $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $ 
  */
 class ResizeControl implements LWSelection.ControlListener, VueConstants
 {
@@ -81,6 +83,14 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     public void controlPointPressed(int index, MapMouseEvent e) {
         if (DEBUG.LAYOUT||DEBUG.MOUSE) System.out.println(this + " resize control point " + index + " pressed");
         mOriginalGroup_bounds = (Rectangle2D.Float) VUE.getSelection().getShapeBounds();
+        
+        if (mOriginalGroup_bounds == null) {
+            // if some code is written that clears the selection at the wrong time, this might happen.
+            System.err.println(this + " control point pressed with empty selection " + VUE.getSelection());
+            if (DEBUG.Enabled) tufts.Util.printStackTrace();
+            return;
+        }
+        
         if (DEBUG.LAYOUT) System.out.println(this + " originalGroup_bounds " + mOriginalGroup_bounds);
         mOriginalGroupULC_bounds = LWMap.getULCBounds(VUE.getSelection().iterator());
         mOriginalGroupLRC_bounds = LWMap.getLRCBounds(VUE.getSelection().iterator());
