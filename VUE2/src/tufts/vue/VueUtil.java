@@ -26,6 +26,14 @@ import java.awt.geom.PathIterator;
 import javax.swing.*;
 import javax.swing.border.*;
 
+/**
+ *
+ * Various static utility methods for VUE.
+ *
+ * @version $Revision: 1.66 $ / $Date: 2006-01-20 20:37:19 $ / $Author: sfraize $
+ * @author Scott Fraize
+ *
+ */
 public class VueUtil extends tufts.Util
 {
     private static String currentDirectoryPath = "";
@@ -118,19 +126,6 @@ public class VueUtil extends tufts.Util
              throw new RuntimeException(userFolder.getAbsolutePath()+":cannot be deleted");
     }
 
-    static final double sFactor = 0.9;
-    public static Color darkerColor(Color c) {
-        return factorColor(c, sFactor);
-    }
-    public static Color brighterColor(Color c) {
-        return factorColor(c, 1/sFactor);
-    }
-    public static Color factorColor(Color c, double factor)
-    {
-	return new Color((int)(c.getRed()  *factor),
-			 (int)(c.getGreen()*factor),
-			 (int)(c.getBlue() *factor));
-    }
 
 
 
@@ -379,26 +374,6 @@ public class VueUtil extends tufts.Util
         return result;
     }
 
-    public static String pad(char c, int wide, String s, boolean alignRight) {
-        if (s.length() >= wide)
-            return s;
-        int pad = wide - s.length();
-        StringBuffer buf = new StringBuffer(wide);
-        if (alignRight == false)
-            buf.append(s);
-        while (pad-- > 0)
-            buf.append(c);
-        if (alignRight)
-            buf.append(s);
-        return buf.toString();
-    }
-
-    public static String pad(char c, int wide, String s) {
-        return pad(c, wide, s, false);
-    }
-    public static String pad(int wide, String s) {
-        return pad(' ', wide, s, false);
-    }
     
     public static void dumpBytes(String s) {
         try {
@@ -465,21 +440,16 @@ public class VueUtil extends tufts.Util
     }
 
 
-    public static String objectTag(Object o) {
-        return o.getClass().getName() + "@" + Integer.toHexString(o.hashCode());
-    }
-
-    
     public static void alert(javax.swing.JComponent component,String message,String title) {
         javax.swing.JOptionPane.showMessageDialog(component,message,title,javax.swing.JOptionPane.ERROR_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));                                      
     }
    
     public static void alert(String message,String title) {
-        javax.swing.JOptionPane.showMessageDialog(VUE.getRootParent(),message,title,javax.swing.JOptionPane.ERROR_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));                                      
+        javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),message,title,javax.swing.JOptionPane.ERROR_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));                                      
     }
    
     public static int confirm(String message,String title) {
-       return JOptionPane.showConfirmDialog(VUE.getRootParent(),message,title,JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));
+       return JOptionPane.showConfirmDialog(VUE.getDialogParent(),message,title,JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));
     }
     
     public static int confirm(javax.swing.JComponent component, String message, String title) {
