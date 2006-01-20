@@ -34,8 +34,6 @@ import tufts.vue.beans.*;
 import tufts.vue.filter.*;
 
 /**
- * LWMap
- *
  * This is the top-level VUE model class.
  *
  * LWMap is a specialized LWContainer that acts as the top-level node
@@ -60,11 +58,10 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version March 2004
+ * @version $Revision: 1.99 $ / $Date: 2006-01-20 19:18:40 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
-implements ConceptMap//, Printable
 {
     /** file we were opened from of saved to, if any */
     private File file;
@@ -161,13 +158,13 @@ implements ConceptMap//, Printable
     }
     
     public void markAsModified() {
-        System.out.println(this + " explicitly marking as modified");
+        if (DEBUG.INIT) System.out.println(this + " explicitly marking as modified");
         if (mChanges == 0)
             mChanges = 1;
         // notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
     public void markAsSaved() {
-        System.out.println(this + " marking " + mChanges + " modifications as current");
+        if (DEBUG.INIT) System.out.println(this + " marking " + mChanges + " modifications as current");
         mChanges = 0;
         // todo: notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
@@ -365,7 +362,7 @@ implements ConceptMap//, Printable
     }
     
     public void setMapFilterModel(MapFilterModel mapFilterModel) {
-        out("setMapFilterModel " + mapFilterModel);
+        //out("setMapFilterModel " + mapFilterModel);
         this.mapFilterModel = mapFilterModel;
     }
     
@@ -375,7 +372,7 @@ implements ConceptMap//, Printable
     
     /** for persistance restore only */
     public void setPathwayList(LWPathwayList l){
-        System.out.println(this + " pathways set to " + l);
+        //System.out.println(this + " pathways set to " + l);
         mPathways = l;
         mPathways.setMap(this);
     }
@@ -386,7 +383,10 @@ implements ConceptMap//, Printable
     }
     
     public void completeXMLRestore() {
-        System.out.println(getLabel() + ": completing restore...");
+
+        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
+            System.out.println(getLabel() + ": completing restore...");
+
         resolvePersistedLinks(this);
         setChildScaleValues();
         //setScale(getScale());
@@ -395,14 +395,17 @@ implements ConceptMap//, Printable
             mPathways = new LWPathwayList(this);
         mPathways.completeXMLRestore(this);
         this.nextID = findGreatestChildID() + 1;
-        System.out.println(getLabel() + ": nextID=" + nextID);
-        System.out.println(getLabel() + ": restore completed.");
+
+        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
+            System.out.println(getLabel() + ": restore completed (nextID=" + nextID + ")");
         
+        /* now handled in LWComponent
         Iterator i = getAllDescendentsIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.layout();
         }
+        */
         //setEventsResumed();
         markAsSaved();
     }
@@ -416,17 +419,35 @@ implements ConceptMap//, Printable
             dc.setAbsoluteStroke(1);
             dc.g.draw(getBounds());
         }
+        
+        /*
+        if (!dc.isInteractive()) {
+            out("FILLING with " + getFillColor() + " " + dc.g.getClipBounds());
+            //tufts.Util.printStackTrace();
+            dc.g.setColor(getFillColor());
+            dc.g.fill(dc.g.getClipBounds());
+        }
+        */
+        
         super.draw(dc);
-        Iterator i = getPathwayList().iterator();
-        int pathIndex = 0;
-        while (i.hasNext()) {
-            LWPathway path = (LWPathway) i.next();
-            if (path.isDrawn() && path.hasChildren()) {
-                dc.setIndex(pathIndex++);
-                path.drawPathway(dc.create());
+        
+        if (mPathways != null) {
+            Iterator i = mPathways.iterator();
+            int pathIndex = 0;
+            while (i.hasNext()) {
+                LWPathway path = (LWPathway) i.next();
+                if (path.isDrawn() && path.hasChildren()) {
+                    dc.setIndex(pathIndex++);
+                    path.drawPathway(dc.create());
+                }
             }
         }
     }
+
+    public java.awt.image.BufferedImage createImage(double alpha, java.awt.Dimension maxSize) {
+        return createImage(alpha, maxSize, getFillColor());
+    }
+    
     
     protected LWComponent findChildByID(String ID) {
         LWComponent c = super.findChildByID(ID);
