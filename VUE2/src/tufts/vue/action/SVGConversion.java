@@ -87,7 +87,7 @@ public class SVGConversion extends AbstractAction {
         //map.paintComponent(svgGenerator);
           
         DrawContext dc = new DrawContext(svgGenerator);
-        dc.setPrinting(true);
+        dc.setAntiAlias(true);
         // render the map
         currentMap.draw(dc);
         

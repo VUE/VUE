@@ -41,7 +41,7 @@ import fedora.client.ingest.AutoIngestor;
  *
  * @author  akumar03
  */
-public class Publish   extends AbstractAction  {
+public class Publish extends VueAction  {
     
     /** Creates a new instance of Publish */
  
@@ -64,13 +64,13 @@ public class Publish   extends AbstractAction  {
         this.label  = label;
     }
     */
-    public void actionPerformed(java.awt.event.ActionEvent e) {
+    public void act() {
         try {
-            Publisher publisher = new Publisher(VUE.getRootFrame(), label);
+            Publisher publisher = new Publisher(VUE.getDialogParentAsFrame(), label);
             //Publisher publisher = new Publisher(owner,label);
         } catch (Exception ex) {
-            ex.printStackTrace();
             VueUtil.alert(null, ex.getMessage(), "Publish Error");
+            throw new RuntimeException(ex);
         }
     }
         

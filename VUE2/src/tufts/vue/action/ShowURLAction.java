@@ -3,7 +3,7 @@ package tufts.vue.action;
 /**
  * Display a given URL in an external browser.
  */
-public class ShowURLAction extends javax.swing.AbstractAction
+public class ShowURLAction extends tufts.vue.VueAction
 {
     private String url;
     
@@ -15,12 +15,14 @@ public class ShowURLAction extends javax.swing.AbstractAction
         this.url = url;
     }
     
-    public void actionPerformed(java.awt.event.ActionEvent ae)
+    public void act()
     {
         try {
             tufts.vue.VueUtil.openURL(url);
         } catch (Exception ex) {
-            System.out.println("ShowURLAction " + this + " failed to display [" + url + "] on " + ae);
+            //System.out.println("ShowURLAction " + this + " failed to display [" + url + "] on " + ae);
+            throw new RuntimeException("ShowURLAction " + this + " failed to display [" + url + "]", ex);
+            
         }
     }
 }

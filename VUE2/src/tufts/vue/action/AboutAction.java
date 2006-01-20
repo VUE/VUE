@@ -22,15 +22,15 @@ import javax.swing.border.*;
 /**
  * Display an About Box for VUE.
  */
-public class AboutAction extends AbstractAction
+public class AboutAction extends tufts.vue.VueAction
 {
     private static Window AboutWindow;
     
     public AboutAction() {
-        super("About " + VUE.NAME);
+        super("About " + VUE.getName());
     }
     
-    public void actionPerformed(ActionEvent actionEvent)
+    public void act()
     {
         if (AboutWindow == null)
             AboutWindow = createAboutWindow();
@@ -40,8 +40,7 @@ public class AboutAction extends AbstractAction
 
     private static Window createAboutWindow()
     {
-        JDialog window = new JDialog(VUE.getRootFrame(), "About " + VUE.NAME, true);
-        //JFrame window = new JFrame("VUE: About");
+        JDialog window = new JDialog(VUE.getDialogParentAsFrame(), "About " + VUE.getName(), true);
         
         JPanel backPanel = new JPanel();
         //backPanel.setBorder(new LineBorder(Color.WHITE,20));

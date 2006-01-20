@@ -47,20 +47,19 @@ import tufts.vue.*;
 import java.util.Vector;
 
 
-public class ExitAction extends AbstractAction {
+public class ExitAction extends VueAction {
     
     private static String  FAVORITES_MAPPING;
     private static String  DATASOURCES_MAPPING;
     
     /** Creates a new instance of exitAction */
-    public ExitAction() {
-    }
+    public ExitAction() {}
     
     public ExitAction(String label) {
         super(label);
     }
     
-    public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
+    public void act() {
         exitVue();
     }
     
@@ -69,7 +68,7 @@ public class ExitAction extends AbstractAction {
             return;
         
         try {
-            VUE.getInstance().hide();
+            VUE.getRootWindow().hide();
             System.out.println("Saving user preferences...");
             saveDataSourceInfo();
             System.out.println("Saved user preferences.");

@@ -107,7 +107,7 @@ public class ActionUtil {
         if(VueUtil.isCurrentDirectoryPathSet()) 
           chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
         
-        int option = chooser.showDialog(tufts.vue.VUE.getRootParent(), "Save");
+        int option = chooser.showDialog(VUE.getDialogParent(), "Save");
         
         if (option == JFileChooser.APPROVE_OPTION) 
         {
@@ -153,7 +153,7 @@ public class ActionUtil {
         if (VueUtil.isCurrentDirectoryPathSet()) 
             chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
         
-        int option = chooser.showDialog(tufts.vue.VUE.getRootParent(), "Open");
+        int option = chooser.showDialog(VUE.getDialogParent(), "Open");
         
         if (option == JFileChooser.APPROVE_OPTION) {
             final File chooserFile = chooser.getSelectedFile();
@@ -178,7 +178,7 @@ public class ActionUtil {
                     //System.out.println("chdir " + chosenPath);
                     VueUtil.setCurrentDirectoryPath(chosenPath);
                 } else {
-                    System.out.println("File '" + chosenPath + "' " + file + " can't  be found.");
+                    VUE.Log.debug("File '" + chosenPath + "' " + file + " can't  be found.");
                     tufts.vue.VueUtil.alert(chooser, "Could not find " + file, "File Not Found");
                 }
                 file = null;
@@ -220,7 +220,7 @@ public class ActionUtil {
         if (LoadedMappings.containsKey(mappingSource))
             return (Mapping) LoadedMappings.get(mappingSource);
         Mapping mapping = new Mapping();
-        System.out.println("Loading mapping " + mappingSource + "...");
+        if (DEBUG.IO || DEBUG.INIT) System.out.println("Loading mapping " + mappingSource + "...");
         try {
             mapping.loadMapping(mappingSource);
         } catch (Exception e) { // MappingException or IOException
@@ -228,7 +228,7 @@ public class ActionUtil {
             System.err.println("Failed to load mapping " + mappingSource);
             return e;
         }
-        System.out.println("*Loaded mapping " + mappingSource);
+        if (DEBUG.IO || DEBUG.INIT) System.out.println("*Loaded mapping " + mappingSource);
         LoadedMappings.put(mappingSource, mapping);
         return mapping;
     }
@@ -272,7 +272,7 @@ public class ActionUtil {
             writer.write("<!-- Do Not Remove:"
                          + " Saved by " + tufts.vue.Version.WhatString
                          + " -->\n");
-            if (DEBUG.CASTOR) System.out.println("Wrote VUE header to " + writer);
+            if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote VUE header to " + writer);
             marshaller = new Marshaller(writer);
             //marshaller.setDebug(DEBUG.CASTOR);
             marshaller.setDebug(true); // doesn't appear to do anything yet...
@@ -304,9 +304,9 @@ public class ActionUtil {
             logger.setPrefix("Castor ");
             marshaller.setLogWriter(logger);
             
-            System.out.println("Marshalling " + map + " ...");
+            if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Marshalling " + map + " ...");
             marshaller.marshal(map);
-            System.out.println("Completed marshalling " + map);
+            if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Completed marshalling " + map);
             
             writer.flush();
             writer.close();
@@ -314,7 +314,7 @@ public class ActionUtil {
             map.setFile(file);
             map.markAsSaved();
 
-            System.out.println("Wrote " + file);
+            if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote " + file);
 
         } catch (Exception e) {
             System.err.println("ActionUtil.marshallMap: " + e);
@@ -336,7 +336,7 @@ public class ActionUtil {
             if (DEBUG.XML) System.out.println("      got attributes " + o.getClass().getName() + " " + o);
         }
         public void unmarshalled(Object o) {
-            if (DEBUG.XML) System.out.println("VUL unmarshalled " + o.getClass().getName() + " " + o);
+            if (DEBUG.XML||DEBUG.CASTOR) System.out.println("VUL unmarshalled " + o.getClass().getName() + " " + o);
             if (o instanceof XMLUnmarshalListener)
                 ((XMLUnmarshalListener)o).XML_completed();
         }
@@ -402,7 +402,7 @@ public class ActionUtil {
                 System.err.println("Unexpected end-of-stream in [" + url + "]");
                 throw new java.io.IOException("end of stream in " + url);
             }
-            if (DEBUG.CASTOR||true) System.out.println("Top of file[" + line + "]");
+            if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Top of file[" + line + "]");
             if (!line.startsWith("<!--"))
                 break;
             commentCount++;
@@ -418,13 +418,13 @@ public class ActionUtil {
                 int x = s.indexOf(')');
                 if (x > 0) {
                     versionID = s.substring(9,x);
-                    if (DEBUG.CASTOR||true) System.out.println("Found version ID[" + versionID + "]");
+                    if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Found version ID[" + versionID + "]");
                     if (versionID.equals(XML_MAPPING_CURRENT_VERSION_ID)) {
                         mapping = getDefaultMapping();
                     } else {
                         URL mappingURL = VueResources.getURL("mapping.lw.version_" + versionID);
                         if (mappingURL == null) {
-                            System.err.println("Failed to find mapping for version tag [" + versionID + "], attempting default.");
+                            VUE.Log.error("Failed to find mapping for version tag [" + versionID + "], attempting default.");
                             mapping = getDefaultMapping();
                         } else {
                             mapping = getMapping(mappingURL);
@@ -436,7 +436,7 @@ public class ActionUtil {
         reader.reset();
         if (versionID == null) {
             oldFormat = true;
-            if (DEBUG.CASTOR||true) System.out.println("Save file is of old pre-versioned type.");
+            if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Save file is of old pre-versioned type.");
             if (mapping == null)
                 mapping = getMapping(XML_MAPPING_UNVERSIONED);
         }
