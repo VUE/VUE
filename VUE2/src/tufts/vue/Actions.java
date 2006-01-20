@@ -69,14 +69,14 @@ public class Actions implements VueConstants
     
     public static final Action SelectAll =
     new VueAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
-        void act() {
+        public void act() {
             VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque().iterator());
         }
     };
     public static final Action DeselectAll =
     new LWCAction("Deselect", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
         boolean enabledFor(LWSelection s) { return s.size() > 0; }
-        void act() {
+        public void act() {
             VUE.getSelection().clear();
         }
     };
@@ -108,7 +108,7 @@ public class Actions implements VueConstants
         public void act(LWComponent c) {
             if (c.getResource() instanceof MapResource) {
                 MapResource r = (MapResource) c.getResource();
-                r.setTitleFromContentAsync(c);
+                r.scanForMetaDataAsync(c);
             }
         }
         boolean enabledFor(LWSelection s) {
@@ -148,12 +148,12 @@ public class Actions implements VueConstants
     /**End of Addition by Daisuke Fujiwara*/
     
     /** Action to Edit Datasource **/
-    public static final Action editDataSource = new AbstractAction("Edit DataSource") {
-        public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
-            AddEditDataSourceDialog dialog = new AddEditDataSourceDialog();
-            dialog.show(AddEditDataSourceDialog.EDIT_MODE);
-        }
-    };
+    public static final Action editDataSource = new VueAction("Edit DataSource") {
+            public void act() {
+                AddEditDataSourceDialog dialog = new AddEditDataSourceDialog();
+                dialog.show(AddEditDataSourceDialog.EDIT_MODE);
+            }
+        };
         
     
     //-----------------------------------------------------------------------------
@@ -237,18 +237,19 @@ public class Actions implements VueConstants
     // These actions all make use of the statics
     // below.
     //-------------------------------------------------------
+
     
-    private static ArrayList ScratchBuffer = new ArrayList();
+    private static List ScratchBuffer = new ArrayList();
     private static LWContainer ScratchMap;
     
-    private static HashMap sCopies = new HashMap();
-    private static HashMap sOriginals = new HashMap();
+    private static LWComponent.LinkPatcher sLinkPatcher = new LWComponent.LinkPatcher();
+    private static List DupeList = new ArrayList(); // cache for dupe'd items
     
     private static final int sCopyOffset = 10;
     
-    private static Collection duplicatePreservingLinks(Iterator i) {
-        sCopies.clear();
-        sOriginals.clear();
+    public static Collection duplicatePreservingLinks(Iterator i) {
+        sLinkPatcher.reset();
+        DupeList.clear();
         
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
@@ -261,29 +262,15 @@ public class Actions implements VueConstants
                 // set.
                 continue;
             }
-            LWComponent copy = c.duplicate();
-            sCopies.put(c, copy);
-            sOriginals.put(copy, c);
+            LWComponent copy = c.duplicate(sLinkPatcher);
+            DupeList.add(copy);
+            //System.out.println("duplicated " + copy);
         }
-        reconnectLinks();
-        return sCopies.values();
+        sLinkPatcher.reconnectLinks();
+        sLinkPatcher.reset();
+        return DupeList;
     }
-    
-    private static void reconnectLinks() {
-        Iterator ic = sCopies.values().iterator();
-        while (ic.hasNext()) {
-            LWComponent c = (LWComponent) ic.next();
-            if (!(c instanceof LWLink))
-                continue;
-            LWLink copied_link = (LWLink) c;
-            LWLink original_link = (LWLink) sOriginals.get(copied_link);
-            
-            copied_link.setComponent1((LWComponent)sCopies.get(original_link.getComponent1()));
-            copied_link.setComponent2((LWComponent)sCopies.get(original_link.getComponent2()));
-        }
-    }
-    
-    
+
     public static final LWCAction Duplicate =
     new LWCAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
         boolean mayModifySelection() { return true; }
@@ -295,21 +282,20 @@ public class Actions implements VueConstants
         // TODO: preserve layering order of components -- don't
         // just leave in the arbitrary selection order!
         void act(Iterator i) {
-            sCopies.clear();
-            sOriginals.clear();
+            DupeList.clear();
+            sLinkPatcher.reset();
             super.act(i);
-            reconnectLinks();
-            VUE.getSelection().setTo(sCopies.values().iterator());
+            sLinkPatcher.reconnectLinks();
+            VUE.getSelection().setTo(DupeList.iterator());
+            DupeList.clear();
         }
         
         void act(LWComponent c) {
-            LWComponent copy = c.duplicate();
+            LWComponent copy = c.duplicate(sLinkPatcher);
+            DupeList.add(copy);
             copy.setLocation(c.getX()+sCopyOffset,
             c.getY()+sCopyOffset);
             c.getParent().addChild(copy);
-            //System.out.println("duplicated:\n\t" + c + "\n\t" + copy);
-            sCopies.put(c, copy);
-            sOriginals.put(copy, c);
         }
         
     };
@@ -342,21 +328,28 @@ public class Actions implements VueConstants
                 if (c.getScale() != 1f)
                     c.setScale(1f);
             }
+
+            // Enable if want to use system clipboard.  FYI: the clip board manager
+            // will immediately grab all the data available from the transferrable
+            // to cache in the system.
+            //Clipboard clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard();
+            //clipboard.setContents(VUE.getActiveViewer().getTransferableSelection(), null);
+            
         }
     };
     public static final Action Paste =
     new VueAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
         //public boolean isEnabled() //would need to listen for scratch buffer fills
         
-        void act() {
+        public void act() {
             LWContainer parent = VUE.getActiveMap();
             if (parent == ScratchMap) {
-                // unless this was from a cut or it came from a
-                // different map, or we already pasted this,
-                // offset the location.  This is conveniently
-                // cumulative since we're translating the actual
-                // components in the cut buffer, which are then
-                // duplicated each time we paste.
+
+                // unless this was from a cut or it came from a different map, or we
+                // already pasted this, offset the location.  This is conveniently
+                // cumulative since we're translating the actual components in the cut
+                // buffer, which are then duplicated each time we paste.
+
                 Iterator i = ScratchBuffer.iterator();
                 while (i.hasNext()) {
                     LWComponent c = (LWComponent) i.next();
@@ -366,10 +359,13 @@ public class Actions implements VueConstants
                 ScratchMap = parent; // pastes again to this map will be offset
             
             Collection pasted = duplicatePreservingLinks(ScratchBuffer.iterator());
+            Point2D.Float pasteLocation = VUE.getActiveViewer().getLastMousePressMapPoint();
+            MapDropTarget.setCenterAt(pasted, pasteLocation);
             parent.addChildren(pasted.iterator());
             VUE.getSelection().setTo(pasted.iterator());
         }
         
+        // stub code for if we want to start using the system clipboard for cut/paste
         void act_system() {
             Clipboard clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard();
             VUE.getActiveViewer().getMapDropTarget().processTransferable(clipboard.getContents(this), null);
@@ -395,13 +391,11 @@ public class Actions implements VueConstants
         void act(Iterator i) {
             super.act(i);
             
-            // LWSelection does NOT listen for events among what's
-            // selected (an optimization & we don't want the
-            // selection updating iself and issuing selection
-            // change events AS a delete takes place for each
-            // component as it's deleted) -- it only needs to know
-            // about deletions, so they're handled special case.
-            // Here, all we need to do is clear the selection as
+            // LWSelection does NOT listen for events among what's selected (an
+            // optimization & we don't want the selection updating iself and issuing
+            // selection change events AS a delete takes place for each component as
+            // it's deleted) -- it only needs to know about deletions, so they're
+            // handled special case.  Here, all we need to do is clear the selection as
             // we know everything in it has just been deleted.
             
             VUE.getSelection().clear();
@@ -427,7 +421,7 @@ public class Actions implements VueConstants
     //-------------------------------------------------------
     
     public static final Action Group =
-        new LWCAction("Group", keyStroke(KeyEvent.VK_G, COMMAND), "/tufts/vue/images/Group.gif") {
+        new LWCAction("Group", keyStroke(KeyEvent.VK_G, COMMAND), "/tufts/vue/images/xGroup.gif") {
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) {
             // enable only when two or more objects in selection,
@@ -454,9 +448,6 @@ public class Actions implements VueConstants
                 LWGroup group = LWGroup.create(s);
                 parent.addChild(group);
                 VUE.getSelection().setTo(group);
-                // setting selection here is slightly sketchy in that it's
-                // really a UI policy that belongs to the viewer
-                // todo: could handle in viewer via "created" LWCEvent
             }
         }
     };
@@ -464,7 +455,7 @@ public class Actions implements VueConstants
     public static final Action Ungroup =
         //new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/GroupGC.png") {
         //new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/GroupUnGC.png") {
-        new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/Ungroup.png") {
+        new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/xUngroup.png") {
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) {
             return s.countTypes(LWGroup.class) > 0 || s.allHaveSameParentOfType(LWGroup.class);
@@ -684,21 +675,18 @@ public class Actions implements VueConstants
         }
         void arrange(LWComponent c) { throw new RuntimeException("unimplemented arrange action"); }
         
-        LWComponent[] sortByX(LWComponent[] array) {
-            java.util.Arrays.sort(array, new java.util.Comparator() {
-                public int compare(Object o1, Object o2) {
-                    return (int) (((LWComponent)o1).getX() - ((LWComponent)o2).getX());
-                }});
-                return array;
-        }
-        LWComponent[] sortByY(LWComponent[] array) {
-            java.util.Arrays.sort(array, new java.util.Comparator() {
-                public int compare(Object o1, Object o2) {
-                    return (int) (((LWComponent)o1).getY() - ((LWComponent)o2).getY());
-                }});
-                return array;
-        }
     };
+
+    public static LWComponent[] sortByX(LWComponent[] array) {
+        java.util.Arrays.sort(array, LWComponent.XSorter);
+        return array;
+    }
+    
+    public static LWComponent[] sortByY(LWComponent[] array) {
+        java.util.Arrays.sort(array, LWComponent.YSorter);
+        return array;
+        }
+    
     
     public static final Action FillWidth = new ArrangeAction("Fill Width") {
         void arrange(LWComponent c) {
@@ -776,7 +764,7 @@ public class Actions implements VueConstants
         boolean enabledFor(LWSelection s) { return s.size() >= 3; }
         // use only *2* in selection if use our minimum layout region setting
         void arrange(LWSelection selection) {
-            LWComponent[] comps = sortByY(sortByX(selection.getArray()));
+            LWComponent[] comps = sortByY(sortByX(selection.asArray()));
             float layoutRegion = maxY - minY;
             //if (layoutRegion < totalHeight)
             //  layoutRegion = totalHeight;
@@ -793,7 +781,7 @@ public class Actions implements VueConstants
     public static final ArrangeAction DistributeHorizontally = new ArrangeAction("Distribute Horizontally", KeyEvent.VK_H) {
         boolean enabledFor(LWSelection s) { return s.size() >= 3; }
         void arrange(LWSelection selection) {
-            LWComponent[] comps = sortByX(sortByY(selection.getArray()));
+            LWComponent[] comps = sortByX(sortByY(selection.asArray()));
             float layoutRegion = maxX - minX;
             //if (layoutRegion < totalWidth)
             //  layoutRegion = totalWidth;
@@ -848,7 +836,7 @@ public class Actions implements VueConstants
         private int count = 1;
         boolean undoable() { return false; }
         boolean enabled() { return true; }
-        void act() {
+        public void act() {
             VUE.displayMap(new LWMap("New Map " + count++));
         }
     };
@@ -857,20 +845,20 @@ public class Actions implements VueConstants
         // todo: listen to map viewer display event to tag
         // with currently displayed map name
         boolean undoable() { return false; }
-        void act() {
+        public void act() {
             VUE.closeMap(VUE.getActiveMap());
         }
     };
     public static final Action Undo =
     new VueAction("Undo", keyStroke(KeyEvent.VK_Z, COMMAND), ":general/Undo") {
         boolean undoable() { return false; }
-        void act() { VUE.getUndoManager().undo(); }
+        public void act() { VUE.getUndoManager().undo(); }
         
     };
     public static final Action Redo =
     new VueAction("Redo", keyStroke(KeyEvent.VK_Z, COMMAND+SHIFT), ":general/Redo") {
         boolean undoable() { return false; }
-        void act() { VUE.getUndoManager().redo(); }
+        public void act() { VUE.getUndoManager().redo(); }
     };
     
     public static final VueAction NewNode =
@@ -918,19 +906,19 @@ public class Actions implements VueConstants
     public static final Action ZoomIn =
     //new VueAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, COMMAND)) {
     new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, COMMAND+SHIFT), ":general/ZoomIn") {
-        void act() {
+        public void act() {
             ZoomTool.setZoomBigger(null);
         }
     };
     public static final Action ZoomOut =
     new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, COMMAND+SHIFT), ":general/ZoomOut") {
-        void act() {
+        public void act() {
             ZoomTool.setZoomSmaller(null);
         }
     };
     public static final VueAction ZoomFit =
         new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT), ":general/Zoom") {
-        void act() {
+        public void act() {
             ZoomTool.setZoomFit();
         }
     };
@@ -938,7 +926,7 @@ public class Actions implements VueConstants
     new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
         // no way to listen for zoom change events to keep this current
         //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
-        void act() {
+        public void act() {
             ZoomTool.setZoom(1.0);
         }
     };
@@ -946,7 +934,7 @@ public class Actions implements VueConstants
         new VueAction("Full Screen", VueUtil.isMacPlatform() ?
                       keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND) :
                       keyStroke(KeyEvent.VK_F11)) {
-        void act() {
+        public void act() {
             VUE.toggleFullScreen();
         }
     };
@@ -961,7 +949,7 @@ public class Actions implements VueConstants
             super(name, null, keyStroke, null);
         }
         
-        void act() {
+        public void act() {
             MapViewer viewer = VUE.getActiveViewer();
             Point mousePress = viewer.getLastMousePoint();
             Point2D newLocation = viewer.screenToMapPoint(mousePress);
@@ -1012,7 +1000,7 @@ public class Actions implements VueConstants
             VUE.getSelection().addListener(this);
             init();
         }
-        void act() {
+        public void act() {
             LWSelection selection = VUE.getSelection();
             //System.out.println("LWCAction: " + getActionName() + " n=" + selection.size());
             if (enabledFor(selection)) {
@@ -1100,8 +1088,11 @@ public class Actions implements VueConstants
         void act(Iterator i) {
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
-                if (hierarchicalAction() && c.getParent().isSelected())
+                if (hierarchicalAction() && (c.getParent() == null || c.getParent().isSelected())) {
+                    // If has no parent, must already have been acted on to get that way.
+                    // If parent is selected, action will happen via it's parent.
                     continue;
+                }
                 act(c);
                 // it's possible c was deleted by above action,
                 // so make sure we don't proceed if that's the case.
