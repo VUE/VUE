@@ -24,30 +24,38 @@ import javax.swing.border.*;
 
 /**
  * Digital Repository Browser
+ *
+ * @version $Revision: 1.33 $ / $Date: 2006-01-20 18:22:23 $ / $Author: sfraize $ 
  */
-class DRBrowser extends JPanel {
+public class DRBrowser extends JPanel {
     public static DataSourceViewer dsViewer = null;
 
     private static final int DRBrowserWidth = 319;
 
     private JLabel loadingLabel;
    
-    public DRBrowser()
+    public DRBrowser(boolean delayedLoading)
     {
+        //Dimension startSize = new Dimension(400,558);
+        // todo: move this size setting to VUE app init
+        Dimension startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
+                                            tufts.vue.gui.DockWindow.getMaxContentHeight());
+        
         setLayout(new BorderLayout());
-        loadDataSourceViewer();
-    }
-    public DRBrowser(boolean delayed)
-    {
-        setLayout(new BorderLayout());
-        if (delayed) {
-            setMinimumSize(new Dimension(DRBrowserWidth,100));
+        setPreferredSize(startSize);
+        
+        if (delayedLoading) {
+            //setMinimumSize(new Dimension(DRBrowserWidth,100));
             loadingLabel = new JLabel("Loading data sources...");
             loadingLabel.setBorder(new EmptyBorder(22,22,22,22));
             add(loadingLabel, BorderLayout.NORTH);
         } else {
             loadDataSourceViewer();
         }
+    }
+    
+    public DRBrowser() {
+        this(false);
     }
     
     public void loadDataSourceViewer()
