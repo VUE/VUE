@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.GUI;
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.JTabbedPane;
@@ -27,6 +29,8 @@ import javax.swing.border.*;
 /**
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
+ *
+ * @version $Revision: 1.25 $ / $Date: 2006-01-20 19:41:15 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -41,7 +45,10 @@ public class MapTabbedPane extends JTabbedPane
     
     MapTabbedPane(String name) {
         this.name = name;
-        BgColor = VueTheme.getToolbarColor();
+        setName("mapTabs-" + name);
+        BgColor = GUI.getToolbarColor();
+        setTabPlacement(javax.swing.SwingConstants.BOTTOM);
+        setPreferredSize(new Dimension(300,400));
     }
         
     private int mWasSelected = -1;
@@ -55,7 +62,7 @@ public class MapTabbedPane extends JTabbedPane
             // ignores it.
             System.err.println(this + " JTabbedPane.fireStateChanged: " + e);
         }
-        if (!VueUtil.isMacAquaLookAndFeel()) { // don't mess w/aqua
+        if (!GUI.isMacAqua()) { // don't mess w/aqua
             int selected = getModel().getSelectedIndex();
             if (mWasSelected >= 0) {
                 setForegroundAt(mWasSelected, Color.darkGray);
@@ -182,16 +189,8 @@ public class MapTabbedPane extends JTabbedPane
     }
         
     public void addViewer(MapViewer viewer) {
-        Component c = viewer;
-        //if (true || !this.name.startsWith("*")) {
-        if (tufts.Util.getJavaVersion() < 1.5f) { // our special viewport code hits a bug in 1.5
-            JScrollPane scrollPane = new JScrollPane(viewer);
-            //scrollPane.setViewportBorder(new LineBorder(Color.green, 50));
-            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-            scrollPane.setWheelScrollingEnabled(false);
-            c = scrollPane;
-        }
+        
+        Component c = new tufts.vue.gui.MapScrollPane(viewer);
         
         if (false) {
             String tabTitle = viewerToTabTitle(viewer);
