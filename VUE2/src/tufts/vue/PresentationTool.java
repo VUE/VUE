@@ -37,7 +37,7 @@ import javax.swing.*;
 /**
  * Tool for presentation mode.
  *
- * @version $Revision: 1.18 $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $
+ * @version $Revision: 1. $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
