@@ -24,11 +24,17 @@ import javax.swing.*;
  * Left.gif and Both.gif, which are needed for Aqua tabbed-pane's
  * when there isn't enough room to display all the tabs.
  *
- * @version $Revision: 1.1 $ / $Date: 2005-11-27 16:15:37 $ / $Author: sfraize $ 
+ * @version $Revision: 1.2 $ / $Date: 2006-01-20 17:20:19 $ / $Author: sfraize $ 
  */
 // superclass of AquaJideLookAndFeel is apple.laf.AquaLookAndFeel
 //public class VueAquaLookAndFeel extends com.jidesoft.plaf.aqua.AquaJideLookAndFeel { // JIDE
-public class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel {
+public class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel
+{
+    public final static Font SystemFont = new Font("Lucida Grande", Font.PLAIN, 13);
+    public final static Font SmallSystemFont = new Font("Lucida Grande", Font.PLAIN, 11);
+    public final static Font MiniSystemFont = new Font("Lucida Grande", Font.PLAIN, 9);
+    public final static Font EmphasizedMiniSystemFont = new Font("Lucida Grande", Font.BOLD, 9);
+    
 
     public String getDescription() { return super.getDescription() + " (VUE Derivative)"; }
     public void initComponentDefaults(UIDefaults table)
@@ -55,6 +61,13 @@ public class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel {
         table.put("CommandBarUI", "tufts.vue.VueAquaLookAndFeel$CommandBarUI");
         table.put("CommandBarTitleBarUI", "tufts.vue.VueAquaLookAndFeel$FloatingToolbarTitleUI");
 
+        // the background colors seem to be having no effect -- only foreground:
+        // background -- appears to work only when manually calling
+        // getCaret().setSelectionVisible as we do in our hacked KeyboardFocusManager.
+        table.put("textHighlight", new javax.swing.plaf.ColorUIResource(255, 255, 0));
+        //table.put("TextField.selectionBackground", new javax.swing.plaf.ColorUIResource(0, 0, 255));
+        //table.put("TextField.selectionForeground", new javax.swing.plaf.ColorUIResource(0, 255, 0));
+
         /*
         // from JIDE  com.jidesoft.plaf.basic.BasicCommandBarTitleBarUI:
         UIManager.getInt("CommandBar.titleBarSize");
@@ -64,6 +77,7 @@ public class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel {
         UIManager.getFont("CommandBar.titleBarFont");
         */
 
+        // Settings for JIDE components:
         table.put("CommandBar.titleBarSize", new Integer(8));
         table.put("CommandBar.titleBarBackground", SystemColor.control);
         //table.put("CommandBar.titleBarBackground", new javax.swing.plaf.ColorUIResource(SystemColor.window));
@@ -104,6 +118,20 @@ public class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel {
     private javax.swing.plaf.FontUIResource getFont() {
         return new javax.swing.plaf.FontUIResource(VueConstants.MediumFont);
     }
+
+    /** this only matters for java 1.5 */
+    public static void installProperty(JComponent c, String propertyName, Object propertyValue) {
+        // will need to reflect for 1.4 compilation to work
+        //super.installProperty(c, propertyName, propertyValue);
+    }
+    
+    /*
+      apparently unused in apple.laf.AquaLookAndFeel
+    public static void installBorder(JComponent c, String borderName) {
+        if (DEBUG.INIT) System.out.println("VueAquaLookAndFeel: installBorder " + borderName + " on " + c);
+        apple.laf.AquaLookAndFeel.installBorder(c, borderName);
+    }
+    */
 
     /*
     public static class CommandBarUI extends com.jidesoft.plaf.basic.BasicCommandBarUI {
@@ -163,7 +191,8 @@ public class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel {
         protected RootPaneContainer createFloatingWindow(JToolBar toolbar) {
             System.err.print("\nCREATE FLOATING WINDOW = ");
             //RootPaneContainer rpc = super.createFloatingWindow(toolbar);
-            RootPaneContainer rpc = VUE.createToolPalette("Test ToolBar").getRootPaneContainer();
+            RootPaneContainer rpc = GUI.createDockWindow("Test ToolBar");
+            //RootPaneContainer rpc = VUE.createToolPalette("Test ToolBar").getRootPaneContainer();
             System.err.println(rpc);
             return rpc;
         }
