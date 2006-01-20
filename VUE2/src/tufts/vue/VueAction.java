@@ -31,6 +31,8 @@ import javax.swing.Icon;
 /**
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
+ *
+ * @version $Revision: 1.18 $ / $Date: 2006-01-20 17:33:26 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -51,10 +53,10 @@ public class VueAction extends javax.swing.AbstractAction
     {
         allIgnored = tv;
     }
-        
+
     public VueAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon)
     {
-        super(name, icon);
+        super(name);
         this.permanentName = name;
         if (shortDescription != null)
             putValue(SHORT_DESCRIPTION, shortDescription);
@@ -62,9 +64,9 @@ public class VueAction extends javax.swing.AbstractAction
             putValue(SHORT_DESCRIPTION, name);
         if (keyStroke != null)
             putValue(ACCELERATOR_KEY, keyStroke);
-        if (icon != null)
-            putValue(SMALL_ICON, icon);
-        //if (DEBUG.Enabled) System.out.println("Constructed: " + this);
+
+        setSmallIcon(icon);
+        //if (DEBUG.Enabled) System.out.println("Constructed: " + this + " icon=" + getValue(SMALL_ICON));
         AllActionList.add(this);
     }
     public VueAction(String name, KeyStroke keyStroke, String iconSpec) {
@@ -77,6 +79,15 @@ public class VueAction extends javax.swing.AbstractAction
     public VueAction(String name) {
         this(name, null, null, null);
     }
+    public VueAction(String name, Icon icon) {
+        this(name, null, null, icon);
+    }
+
+    private static int anonIndex = 0;
+    public VueAction() {
+        this(null, null, null, null);
+	putValue(Action.NAME, getClass().getName() + anonIndex++);
+    }    
 
     public List getAllActions() {
         return Collections.unmodifiableList(AllActionList);
@@ -84,16 +95,23 @@ public class VueAction extends javax.swing.AbstractAction
 
     private void setIcon(String iconSpec) {
         Icon icon = null;
-        if (VUE.TUFTS) return;
         if (iconSpec.startsWith(":")) {
             icon = VueResources.getImageIconResource("/toolbarButtonGraphics/" + iconSpec.substring(1) + "16.gif");
-            putValue(SMALL_ICON, icon);
+            setSmallIcon(icon);
             icon = VueResources.getImageIconResource("/toolbarButtonGraphics/" + iconSpec.substring(1) + "24.gif");
             putValue(LARGE_ICON, icon);
         } else {
             icon = VueResources.getImageIconResource(iconSpec);
-            putValue(SMALL_ICON, icon);
+            setSmallIcon(icon);
         }
+    }
+
+    private void setSmallIcon(Icon icon) {
+        if (icon != null) {
+            if (icon != tufts.vue.gui.GUI.NO_ICON)
+                putValue(SMALL_ICON, icon);
+        }// else
+        //putValue(SMALL_ICON, EmptyIcon16);
     }
 
 
@@ -123,11 +141,12 @@ public class VueAction extends javax.swing.AbstractAction
     }
     public void actionPerformed(ActionEvent ae)
     {
-        if (DEBUG.EVENTS) System.out.println("\n-----------------------------------------------------------------------------\n"
-                                             + this
-                                             + " START OF actionPerformed: ActionEvent="
-                                             + ae.paramString()
-                                             + " src=" + ae.getSource());
+        if (DEBUG.EVENTS)
+            System.out.println("\n-----------------------------------------------------------------------------\n"
+                               + this
+                               + " START OF actionPerformed: ActionEvent="
+                               + ae.paramString()
+                               + " src=" + ae.getSource());
         if (allIgnored) {
             if (DEBUG.EVENTS) System.out.println("ACTIONS DISABLED.");
             return;
@@ -147,12 +166,13 @@ public class VueAction extends javax.swing.AbstractAction
                 java.awt.Toolkit.getDefaultToolkit().beep();
                 System.err.println(getActionName() + ": Not currently enabled");
             }
-        } catch (Exception e) {
-            java.awt.Toolkit.getDefaultToolkit().beep();
-            e.printStackTrace();
-            System.err.println("*** VueAction: exception during action [" + getActionName() + "]");
-            System.err.println("*** VueAction: selection is " + VUE.getSelection());
-            System.err.println("*** VueAction: event was " + ae);
+        } catch (Throwable t) {
+            synchronized (System.err) {
+                System.err.println("*** VueAction: exception during action [" + getActionName() + "]");
+                System.err.println("*** VueAction: selection is " + VUE.getSelection());
+                System.err.println("*** VueAction: event was " + ae);
+                tufts.Util.printStackTrace(t);
+            }
             hadException = true;
         }
         //if (DEBUG.EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
@@ -218,7 +238,7 @@ public class VueAction extends javax.swing.AbstractAction
      */
     boolean enabled() { return VUE.getActiveViewer() != null; }
 
-    void act() {
+    public void act() {
         System.err.println("Unhandled VueAction: " + getActionName());
     }
 
