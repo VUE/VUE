@@ -21,7 +21,7 @@ package tufts.vue;
 /**
  * Global VUE application debug flags.
  * 
- * @version $Revision: 1.315 $ / $Date: 2005/12/02 15:50:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.1 $ / $Date: 2005/12/02 15:50:23 $ / $Author: sfraize $ 
  */
 public class DEBUG
 {
