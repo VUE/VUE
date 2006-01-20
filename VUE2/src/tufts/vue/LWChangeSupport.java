@@ -23,16 +23,13 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 /**
- * LWChangeSupport
- *
  * Handle dispatching of LWCEvents, mainly for LWComponents, but any client
  * class can use this for event dispatch, selective listening, and the heavy-duty
  * diagnostic support.
  * 
+ * @version $Revision: 1. $ / $Date: 2006/01/20 18:49:16 $ / $Author: sfraize $
  * @author Scott Fraize
- * @version May 2004
  */
-
 public class LWChangeSupport
 {
     private static int sEventDepth = 0;
@@ -362,13 +359,13 @@ public class LWChangeSupport
 
                 l.LWCChanged(e);
 
-            } catch (Exception ex) {
-                System.err.println("LWComponent.dispatchLWCEvent: exception during LWCEvent notification:"
-                                   + "\n\tnotifying component: " + source
-                                   + "\n\tevent was: " + e
-                                   + "\n\tfailing listener: " + l);
-                ex.printStackTrace();
-                java.awt.Toolkit.getDefaultToolkit().beep();
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace
+                    (t,
+                     "LWComponent.dispatchLWCEvent: exception during LWCEvent notification:"
+                     + "\n\tnotifying component: " + source
+                     + "\n\tevent was: " + e
+                     + "\n\tfailing listener: " + l);
             } finally {
                 sEventDepth--;
             }
