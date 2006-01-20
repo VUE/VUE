@@ -35,19 +35,24 @@ import com.sun.image.codec.jpeg.*;
 
 
 /**
- * The MapResource class is handles a reference
- * to either a local file or a URL.
+ * The MapResource class is handles a reference to either a local file or a URL.
+ *
+ * TODO: this to be refactored as AbstractResource / URLResource, and/or maybe LWResource.
+ *
+ * @version $Revision: 1.34 $ / $Date: 2006-01-20 19:37:36 $ / $Author: sfraize $
  */
 
-public class MapResource implements Resource, XMLUnmarshalListener  {
+// TODO: this needs major cleanup.  Create an AbstractResource class
+// to handle the common stuff.  And it doesn't really make sense to have a "MapResource".
+
+public class MapResource implements Resource, XMLUnmarshalListener
+{
     static final long SIZE_UNKNOWN = -1;
-    public static java.awt.datatransfer.DataFlavor resourceFlavor;
-    // constats that define the type of resource
-    static {
-        try{
-            resourceFlavor = new java.awt.datatransfer.DataFlavor(Class.forName("tufts.vue.Resource"),"Resource");
-        } catch(Exception ex) {ex.printStackTrace();}
-    }
+    
+    // todo: if have AbstractResource, can put the DataFlavor there and support serialization tag generically
+    // (can't put on an interface)
+    //public static final java.awt.datatransfer.DataFlavor DataFlavor = tufts.vue.gui.GUI.makeDataFlavor(MapResource.class);
+    
     private long referenceCreated; // this currently meaningless -- gets set every time -- is there anything meaningful here?
     private long accessAttempted;
     private long accessSuccessful;
@@ -85,7 +90,7 @@ public class MapResource implements Resource, XMLUnmarshalListener  {
     public MapResource(String spec) {
         mXMLrestoreUnderway = false;
         setSpec(spec);
-        this.mTitle = spec; // why are we doing this??  title is an OPTIONAL field...
+        //this.mTitle = spec; // why are we doing this??  title is an OPTIONAL field...
     }
     
     
@@ -126,6 +131,18 @@ public class MapResource implements Resource, XMLUnmarshalListener  {
             return new java.net.URL(toURLString());
         else
             return this.url;
+    }
+    
+    public java.net.URL getURL()
+    {
+        URL url = null;
+        try {
+            url = toURL();
+        } catch (java.net.MalformedURLException e) {
+            //if (DEBUG.Enabled)
+            tufts.Util.printStackTrace(e, "MapResource.getURL " + this);
+        }
+        return url;
     }
     
     public void displayContent() {
@@ -189,7 +206,12 @@ public class MapResource implements Resource, XMLUnmarshalListener  {
     
     // todo: resource's should be atomic: don't allow post construction setSpec
     public void setSpec(final String spec) {
-        //System.out.println(this + " setSpec " + spec);
+        if (DEBUG.Enabled) {
+            System.out.println(getClass().getName() + " setSpec " + spec);
+            //tufts.Util.printStackTrace();
+            // TODO: CabinetResource is CALLING setSpec every time getSpec is called!
+            // get rid of setSpec on MapResource
+        }
         this.spec = spec;
         this.referenceCreated = System.currentTimeMillis();
         try {
@@ -225,50 +247,79 @@ public class MapResource implements Resource, XMLUnmarshalListener  {
     }
     
     /**
-     * Scan an initial chunk of our content for an HTML title tag, and if one is found, set our title
-     * field to what we find there.  RUNS IN IT'S OWN THREAD.  If the give LWC's label is the same
-     * as the title at the start, that is updated also.
+     * Search for meta-data: e.g.,
+     *
+     *  HTTP meta-data (contentType, size)
+     *  HTML meta-data (title)
+     *  FileSystem meta-data (e.g., Spotlight)
+     *
+     * Will set properties in the resource based on what's found,
+     * and may update the title.
+     *
      */
-    public void setTitleFromContentAsync(final LWComponent c) {
+    /*
+     * E.g. scan an initial chunk of our content for an HTML title
+     * tag, and if one is found, set our title field to what we find
+     * there.  RUNS IN IT'S OWN THREAD.  If the give LWC's label is
+     * the same as the title at the start, that is updated also.
+     *
+     * TODO: resources need listeners so they can issue model
+     * changes/signals, and we need to run this in an undoable thread.
+     *
+     * TODO: this may set the component label!  Either do that
+     * in the caller instead of here, or rename this.  Altho,
+     * one of the reasons it does that is that as this happens
+     * async, it has to do that, as we can't return a value running async...
+     */
+    public void scanForMetaDataAsync(final LWComponent c) {
+        scanForMetaDataAsync(c, false);
+    }
+    
+    public void scanForMetaDataAsync(final LWComponent c, boolean setLabelFromTitle) {
         final URL _url;
         try {
             _url = toURL();
         } catch (Exception e) {
             return;
         }
-        final boolean labelIsTitle = c.getLabel() == null || c.getLabel().equals(mTitle);
+        
+        final boolean forceTitleToLabel = (setLabelFromTitle || c.getLabel() == null || c.getLabel().equals(mTitle));
 
         new Thread("URL meta-data search of " + _url) {
             public void run() {
-                _setTitleFromContent(_url);
-                if (DEBUG.DND || labelIsTitle)
+                _scanForMetaData(_url);
+                if (forceTitleToLabel && getTitle() != null)
                     c.setLabel(getTitle());
             }
         }.start();
     }
     
-    public void setTitleFromContent() {
-        if (isImage())
-            return;
+    public void scanForMetaData() {
         URL _url = null;
         try {
             _url = toURL();
         } catch (Exception e) {}
         if (_url != null)
-            _setTitleFromContent(_url);
+            _scanForMetaData(_url);
     }
     
-    private void _setTitleFromContent(URL _url) {
-        System.out.println(this + " prop vector " + mXMLpropertyList);
+    private void _scanForMetaData(URL _url) {
+        if (DEBUG.Enabled) System.out.println(this + " _scanForMetaData: xml props " + mXMLpropertyList);
+
+        // TODO: split into scrapeHTTPMetaData for content type & size,
+        // and scrapeHTML meta-data for title.  Tho really, we need
+        // at this point to start having a whole pluggable set of content
+        // meta-data scrapers.
+
         try {
-            System.out.println("*** Opening connection to " + _url);
+            if (DEBUG.Enabled) System.out.println("*** Opening connection to " + _url);
             markAccessAttempt();
 
             Properties metaData = scrapeHTMLmetaData(_url.openConnection(), 2048);
-            System.out.println("*** Got meta-data " + metaData);
+            if (DEBUG.Enabled) System.out.println("*** Got meta-data " + metaData);
             markAccessSuccess();
             String title = metaData.getProperty("title");
-            if (title != null) {
+            if (title != null && title.length() > 0) {
                 setProperty("title", title);
                 title = title.replace('\n', ' ').trim();
                 setTitle(title);
@@ -333,9 +384,11 @@ public class MapResource implements Resource, XMLUnmarshalListener  {
         setProperty("contentEncoding", contentEncoding);
         if (contentLength >= 0)
             setProperty("contentLength", contentLength);
-        
-        if (contentType.toLowerCase().startsWith("text/html") == false) {
-            System.err.println("*** contentType [" + contentType + "] not HTML; terminating meta-data scan");
+
+
+        //if (contentType.toLowerCase().startsWith("text/html") == false) {
+        if (!isHTML()) { // we only currently handle HTML
+            if (DEBUG.Enabled) System.err.println("*** contentType [" + contentType + "] not HTML; skipping title extraction");
             return metaData;
         }
         
@@ -408,7 +461,7 @@ public class MapResource implements Resource, XMLUnmarshalListener  {
             if (m.lookingAt()) {
                 String title = m.group(1);
                 if (true||DEBUG.DND) System.err.println("*** found title ["+title+"]");
-                metaData.put("title", title);
+                metaData.put("title", title.trim());
             }
 
         } catch (Throwable e) {
@@ -601,8 +654,12 @@ public class MapResource implements Resource, XMLUnmarshalListener  {
     public void setSelected(boolean selected) {
         this.selected = selected;
     }
+
     public String toString() {
-        return getSpec();
+        if (mProperties == null)
+            return getSpec();
+        else
+            return getSpec() + " " + mProperties;
     }
     
     public int getType() {
@@ -730,8 +787,26 @@ public class MapResource implements Resource, XMLUnmarshalListener  {
             );
     }
 
+    private static boolean isHtmlMimeType(final String s) {
+        return s != null && s.toLowerCase().startsWith("text/html");
+    }
+
     public boolean isImage() {
         return isImage(this);
+    }
+
+    public static boolean isHTML(final Resource r) {
+        String s = r.getSpec().toLowerCase();
+
+        if (s.endsWith(".html") || s.endsWith(".htm"))
+            return true;
+
+        // todo: why .vue files reporting as text/html on MacOSX to content scraper?
+        return !s.endsWith(".vue") && isHtmlMimeType(r.getProperty("contentType"));
+    }
+        
+    public boolean isHTML() {
+        return isHTML(this);
     }
 
     public Object getContent()
