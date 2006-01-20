@@ -1,3 +1,4 @@
+// 	$Id$	
 /*
  * -----------------------------------------------------------------------------
  *
@@ -30,8 +31,6 @@ package tufts.vue;
  * property or event identifier, but you must be sure to use the constant
  * object here for any of these events or they may not be
  * recognized .
- *
- * $Id$	
  *
  * @version $Revision:  $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $
  */
