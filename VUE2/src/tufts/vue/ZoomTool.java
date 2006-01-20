@@ -29,6 +29,16 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import javax.swing.*;
 
+/**
+ *
+ * Zoom tool handler for MapViewer, and static code for computing
+ * zoom needed to display an arbitraty map region into an arbitrary
+ * pixel region.
+ *
+ * @version $Revision: 1.40 $ / $Date: 2006-01-20 20:38:41 $ / $Author: sfraize $
+ * @author Scott Fraize
+ *
+ */
 public class ZoomTool extends VueTool
     implements VueConstants
 {
@@ -284,18 +294,17 @@ public class ZoomTool extends VueTool
         return computeZoomFit(viewport, borderGap, bounds, offset, true);
     }
     
-    /*
-     * Compute two items: the zoom factor that will fit
-     * everything within the given bounds into the given
-     * viewport, and put into @param offset the offset
-     * to place the viewport at. Used to figure out how
-     * to fit everything within a map on the screen and
+    /**
+     * Compute two items: the zoom factor that will fit everything
+     * within the given map bounds into the given viewport, and put
+     * into @param offset the offset to place the viewport at. Used to
+     * figure out how to fit everything within a map on the screen and
      * where to pan to so you can see it all.
      */
     public static double computeZoomFit(java.awt.Dimension viewport,
                                         int borderGap,
                                         java.awt.geom.Rectangle2D bounds,
-                                        java.awt.geom.Point2D offset,
+                                        java.awt.geom.Point2D outgoingOffset,
                                         boolean centerSmallerDimensionInViewport)
     {
         int viewWidth = viewport.width - borderGap * 2;
@@ -325,7 +334,7 @@ public class ZoomTool extends VueTool
                 offsetX -= (viewWidth - bounds.getWidth()*newZoom) / 2;
         }
             
-        offset.setLocation(offsetX, offsetY);
+        outgoingOffset.setLocation(offsetX, offsetY);
         return newZoom;
     }
     
