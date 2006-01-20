@@ -39,8 +39,8 @@ import java.awt.event.ActionEvent;
  * means that VUE can't repaint itself while the print dialogs are
  * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
+ * @version $Revision: 1.32 $ / $Date: 2006-01-20 17:49:02 $ / $Author: sfraize $
  * @author Scott Fraize
- * @version March 2004
  */
 
 public class PrintAction extends tufts.vue.VueAction
@@ -269,7 +269,6 @@ public class PrintAction extends tufts.vue.VueAction
             
             // set up the DrawContext
             DrawContext dc = new DrawContext(g, scale);
-            dc.setPrinting(true);
             dc.setAntiAlias(true);
             // render the map
             map.draw(dc);
