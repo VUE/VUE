@@ -36,6 +36,7 @@ import java.util.ArrayList;
  * A field:value editor currently specialized for resource properties displayed on
  * the object inspector info tab.
  *
+ * @version $Revision: 1.24 $ / $Date: 2006-01-20 20:04:27 $ / $Author: sfraize $ 
  * @author  akumar03
  */
 
@@ -131,6 +132,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             topPanel.add(deletePropertyButton);
             topPanel.add(questionLabel);
             JComboBox comboBox = new JComboBox(DC_FIELDS);
+            //comboBox.setLightWeightPopupEnabled(true);
             propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
             
         } else {
