@@ -49,7 +49,7 @@ public class ImageTool extends VueTool
                     addComponent(mStrokeButton);
                     JSlider slider = new RotationSlider();
                     addComponent(slider);
-                    slider.addPropertyChangeListener(this);
+                    slider.addPropertyChangeListener(this) ;
                     //slider.getModel().addPropertyChangeListener(this); 
                     //addComponent(new RotationSlider());
                     //addComponent(ImageTool.mSlider);
