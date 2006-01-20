@@ -18,10 +18,17 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.GUI;
+
 import java.awt.Dimension;
 import javax.swing.*;
 import javax.swing.event.*;
 
+/**
+ * Tool for working with LWImage's
+ *
+ * @version $Revision: 1.18 $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $
+ */
 public class ImageTool extends VueTool
 {
     public ImageTool() {
@@ -64,7 +71,7 @@ public class ImageTool extends VueTool
             //setPaintLabels(true);
             //setPaintTicks(true);
             setSnapToTicks(true);
-            setBackground(VueTheme.getToolbarColor());
+            setBackground(GUI.getToolbarColor());
             // listen to the model or we only *sometimes* get
             // multiple final values while snap is being
             // sorted out
