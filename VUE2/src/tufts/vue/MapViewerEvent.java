@@ -18,9 +18,13 @@
 
 package tufts.vue;
 
-public class MapViewerEvent
-    extends EventRaiser
-    implements VueConstants
+/**
+ * Broadcast events for the active map viewer.
+ *
+ * @version $Revision: 1.15 $ / $Date: 2006-01-20 19:54:08 $ / $Author: sfraize $ 
+ */
+
+public class MapViewerEvent extends EventRaiser
 {
     public static final int DISPLAYED = 1;
     public static final int HIDDEN = 2;
@@ -28,51 +32,28 @@ public class MapViewerEvent
     public static final int ZOOM = 8;
     public static final int FOCUSED = 16;
     
-    private int id;
+    public final int id;
     
     public MapViewerEvent(MapViewer mapViewer, int id)
     {
-        super(mapViewer);
+        super(mapViewer, MapViewer.Listener.class);
         this.id = id;
     }
 
-    public int getID()
-    {
+    public int getID() {
         return id;
     }
-
-    public Class getListenerClass()
-    {
-        return MapViewer.Listener.class;
-    }
     
-    public MapViewer getMapViewer()
-    {
+    public MapViewer getMapViewer() {
         return (MapViewer) getSource();
     }
 
-    public boolean isActivationEvent()
-    {
+    public boolean isActivationEvent() {
         return (id & (DISPLAYED|FOCUSED)) != 0;
     }
 
-
-    public void raise() {
-        if (DEBUG.EVENTS)  {
-            System.out.println(this + " RAISING");
-            //if (DEBUG.META) new Throwable("MapViewerEvent.RAISE").printStackTrace();
-        }
-        super.raise();
-    }
-    
     public void dispatch(Object listener)
     {
-        if (DEBUG.EVENTS && DEBUG.META)  {
-            System.out.println(this
-                               + " dispatching to "
-                               + listener.getClass().getName()
-                               + "@" +  Integer.toHexString(listener.hashCode()));
-        }
         ((MapViewer.Listener)listener).mapViewerEventRaised(this);
     }
 
