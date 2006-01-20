@@ -24,15 +24,15 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 /**
- * MapPanner.java
- *
  * Implements a panel for displaying a map overview, including
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
+ * @version $Revision: 1.48 $ / $Date: 2006-01-20 19:34:53 $ / $Author: sfraize $
  * @author Scott Fraize
- * @version 12/11/04
+ *
  */
+// TODO: fix our aspect to that of canvas (if that's what we tracking, the whole map otherwise);
 public class MapPanner extends javax.swing.JPanel
     implements VueConstants,
                MapViewer.Listener,
@@ -244,7 +244,10 @@ public class MapPanner extends javax.swing.JPanel
     {
 
         if (viewer.getVisibleWidth() < 1 || viewer.getVisibleHeight() < 1) {
-            System.out.println("paintViewerIntoRectangle: nothing to paint");
+            if (DEBUG.Enabled)
+                System.out.println("MapPanner: paintViewerIntoRectangle: nothing to paint; visible size="
+                                   + viewer.getVisibleSize()
+                                   + " in " + viewer);
             return;
         }
 
@@ -291,7 +294,6 @@ public class MapPanner extends javax.swing.JPanel
         dc.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, viewer.AA_ON);//pickup MapViewer AA state for debug
         dc.setPrioritizeSpeed(true);
         dc.setFractionalFontMetrics(false);
-        dc.setPrinting(true); // what we want on panner draw same as printing -- really a "non-interactive" flag
         dc.setDraftQuality(true); // okay to skimp in rendering of panner image -- it's usually so tiny
         dc.setMapDrawing();
 
@@ -305,7 +307,7 @@ public class MapPanner extends javax.swing.JPanel
         
         // need to offset fill, so can't just use existing canvasRect
         final Rectangle2D canvas = viewer.screenToMapRect(new Rectangle(1,1, viewer.getWidth(), viewer.getHeight()));
-        //dc.g.setColor(viewer.getBackground());
+
         dc.g.setColor(map.getFillColor());
         // round size of canvas down...
         dc.g.fill(canvas);
