@@ -33,8 +33,9 @@ import javax.swing.BorderFactory;
 import javax.swing.border.*;
 
 /**
- * NodeToolPanel
  * This creates an editor panel for LWNode's
+ *
+ * @version $Revision: 1.33 $ / $Date: 2006-01-20 19:56:53 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends LWCToolPanel
@@ -104,7 +105,7 @@ public class NodeToolPanel extends LWCToolPanel
     
     public static void main(String[] args) {
         System.out.println("NodeToolPanel:main");
-        VUE.initUI(true);
+        VUE.init(args);
         LWCToolPanel.debug = true;
         VueUtil.displayComponent(new NodeToolPanel());
     }
