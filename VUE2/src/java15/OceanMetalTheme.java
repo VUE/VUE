@@ -16,7 +16,7 @@ import javax.swing.plaf.FontUIResource;
 /**
  * Extension of the Java 1.5 Ocean Theme for VUE.
  *
- * @version $Revision: 1.1 $ / $Date: 2006-01-07 15:43:03 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-01-20 16:48:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
   
@@ -47,6 +47,22 @@ public class OceanMetalTheme extends javax.swing.plaf.metal.OceanTheme
         // these are the lighter blue #c8ddf2 in Ocean
         table.put("TabbedPane.contentAreaColor", GUI.VueColor);
         table.put("TabbedPane.selected", GUI.VueColor);
+
+        java.awt.Color toolbar = new java.awt.Color(175,182,198);
+
+        //table.put("Menu.opaque", Boolean.TRUE);
+        //table.put("MenuBar.gradient", null);
+        table.put("MenuBar.gradient",
+                  java.util.Arrays.asList(new Object[] {
+                    new Float(1f),
+                    new Float(0f),
+                    //getWhite(),
+                    tufts.Util.factorColor(GUI.VueColor, 1.1),
+                    toolbar,
+                    new ColorUIResource(toolbar) })
+                  );
+        
+        table.put("MenuBar.borderColor", new ColorUIResource(toolbar));
     }
         
     public String getName() { return super.getName() + " (VUE)"; }
