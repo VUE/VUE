@@ -40,7 +40,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.1 $ / $Date: 2006-01-20 17:00:57 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-01-20 21:40:42 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1239,7 +1239,7 @@ public class GUI
         private boolean mIgnoreActionEvents = false;
 
         public void propertyChange(java.beans.PropertyChangeEvent e) {
-            out("propertyChange: " + e);
+            if (DEBUG.Enabled) out("propertyChange: " + e);
         }
 
         public void actionPerformed(java.awt.event.ActionEvent e) {
