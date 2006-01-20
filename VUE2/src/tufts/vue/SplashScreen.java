@@ -16,38 +16,49 @@
  * -----------------------------------------------------------------------------
  */
 
-/*
- * SpashScreen.java
- *
- * Created on February 28, 2004, 6:28 PM
- */
-
 package tufts.vue;
 
+import tufts.vue.gui.GUI;
+import tufts.macosx.MacOSX;
+
+import java.awt.*;
+import java.util.*;
+import javax.swing.*;
+
 /**
+ * Display the VUE splash screen.  Show the VUE splash graphic with current version
+ * text drawn on top of it,
  *
+ * @version $Revision: 1.9 $ / $Date: 2006-01-20 20:08:17 $ / $Author: sfraize $ 
  * @author  akumar03
  */
 
-import java.awt.*;
-import javax.swing.*;
-import java.util.*;
-
-public class SplashScreen extends JWindow {
-    
-    /** Creates a new instance of SpashScreen */
-    //public final int width = 424;
-    //public final int height = 291;
-    public final long sleepTime = 5000;
+public class SplashScreen extends Frame
+{
     public SplashScreen() {
-        super();
+        setName(tufts.vue.gui.GUI.OVERRIDE_REDIRECT); // ignore textured background if we can
+        setUndecorated(true);
+        setFocusableWindowState(false);
         createSplash();
-        getContentPane().setBackground(Color.BLACK);
+
+        if (GUI.isMacAqua()) {
+            pack(); // ensure peer created for MacOSX
+            MacOSX.setTransparent(SplashScreen.this);
+        } else {
+            // This will give it a transparent "look"
+            // if no other window's are open on the
+            // users desktop.
+            setBackground(SystemColor.desktop);
+        }
+        
+        setVisible(true);
+
+        if (DEBUG.INIT) System.out.println("SplashScreen: visible");
     }
     
     private void createSplash() {
         Dimension screen =  Toolkit.getDefaultToolkit().getScreenSize();
-        ImageIcon icon = new ImageIcon(VueResources.getURL("splashScreen")){
+        ImageIcon icon = new ImageIcon(VueResources.getURL("splashScreen")) {
           public void paintIcon(Component c, Graphics g, int x, int y) {
               Calendar calendar = new GregorianCalendar();
               super.paintIcon(c,g,x,y);
@@ -66,14 +77,15 @@ public class SplashScreen extends JWindow {
         int y = (screen.height - height)/2;
         this.setBounds(x, y, width, height);
         JLabel logoLabel = new JLabel(icon);
-        getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(logoLabel,BorderLayout.CENTER);
-        this.setVisible(true);
-        System.out.println("SplashScreen: visible");
-        try {
-          //  Thread.sleep(sleepTime);
-        } catch(Exception ex) {}
-        //this.setVisible(false);
+
+        logoLabel.setOpaque(false);
+
+        add(logoLabel);
+    }
+
+    public static void main(String args[]) {
+        VUE.init(args);
+        new SplashScreen();
     }
     
 }
