@@ -28,35 +28,30 @@ import java.util.Comparator;
 import java.awt.geom.Rectangle2D;
 
 /**
- * LWGroup.java
  *
- * Manage a group of LWComponents -- does not have a fixed
- * shape or paint any backround or border -- simply used
- * for moving, resizing & layering a collection of objects
+ * Manage a group of LWComponents -- does not have a fixed shape or paint any backround
+ * or border -- simply used for moving, resizing & layering a collection of objects
  * together.
  *
- * Consider re-architecting group usage to act purely as a selection
- * convenience -- so they'd actually be transparent to most everything
- * (e.g., nothing in the GUI would have to know how to handle a
- * "group") -- it would just always be a group of components that were
- * selected together (and maybe the selection draws a little
- * differently).  To really do this would mean a group is no longer
- * even a container... thus no impact on layering or anything, which
- * would dramatically simplify all sorts of special case crap.
- * However, if it's no longer a container, you couldn't drop them
- * into nodes as children.  Actually, a hybrid is possible --
- * yes, lets try that.
+ * Consider re-architecting group usage to act purely as a selection convenience -- so
+ * they'd actually be transparent to most everything (e.g., nothing in the GUI would
+ * have to know how to handle a "group") -- it would just always be a group of
+ * components that were selected together (and maybe the selection draws a little
+ * differently).  To really do this would mean a group is no longer even a
+ * container... thus no impact on layering or anything, which would dramatically
+ * simplify all sorts of special case crap.  However, if it's no longer a container, you
+ * couldn't drop them into nodes as children.  Actually, a hybrid is possible -- yes,
+ * lets try that.
  *
  * @author Scott Fraize
- * @version 6/1/03
+ * @version $Revision: 1.37 $ / $Date: 2006-01-20 18:59:09 $ / $Author: sfraize $
  */
 public final class LWGroup extends LWContainer
 {
     public LWGroup() {}
 
     public boolean supportsUserResize() {
-        if (VUE.TUFTS) return false;
-        return true;
+        return false; // not till PRESENTATION FEATURES
     }
     
     /**
@@ -138,11 +133,13 @@ public final class LWGroup extends LWContainer
         return group;
     }
     
-    /**
+    /*
      * "Borrow" the children in the list for the sole
      * purpose of computing total bounds and moving
      * them around en-mass -- used for dragging a selection.
      * Does NOT reparent the components in any way.
+     * TODO: get rid of this and just have useSelection,
+     * or move this code to LWSelection itself.
      */
     static LWGroup createTemporary(java.util.ArrayList selection)
     {
@@ -382,7 +379,8 @@ public final class LWGroup extends LWContainer
             bounds = new Rectangle2D.Float();
             bounds.setRect(((LWComponent)i.next()).getBounds());
         } else {
-            System.out.println(this + " getBounds: EMPTY!");
+            // this happens normally on group dispersal
+            //System.out.println(this + " getBounds: EMPTY!");
             return EmptyBounds;
         }
 
