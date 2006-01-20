@@ -26,6 +26,14 @@ import java.awt.Rectangle;
 import java.awt.AlphaComposite;
 import java.awt.geom.AffineTransform;
 
+/**
+ * Includes a Graphics2D context and adds VUE specific flags and helpers
+ * for rendering a tree of LWComponents.
+ *
+ * @version $Revision: 1.18 $ / $Date: 2006-01-20 18:26:55 $ / $Author: sfraize $
+ * @author Scott Fraize
+ *
+ */
 public class DrawContext
 {
     public final Graphics2D g;
@@ -37,10 +45,11 @@ public class DrawContext
     
     private int index;
     private boolean disableAntiAlias = false;
-    private boolean isPrinting = false;
+    private boolean isInteractive = false;
     private boolean isDraftQuality = false;
     private boolean isBlackWhiteReversed = false;
     private Rectangle frame;
+    //private float mAlpha = 1f;
 
     private VueTool activeTool;
 
@@ -86,24 +95,24 @@ public class DrawContext
     }
 
     public void setAlpha(double alpha) {
+        //mAlpha = (float) alpha;
         if (alpha == 1)
             g.setComposite(AlphaComposite.Src);
         else
-            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float)alpha));
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) alpha));
     }
 
+    //public float getAlpha() { return mAlpha; }
+    
     /**
-     * Mark us rendering for printing.  Note that
-     * rendering any transparency whatsoever during
-     * a print render appears to cause at least the
-     * print preview to fail on Mac OSX (the Preview app)
+     * Mark us as rendering for interactive usage: e.g., selection will be drawn.
      */
-    public void setPrinting(boolean t) {
-        isPrinting = t;
+    public void setInteractive(boolean t) {
+        isInteractive = t;
     }
 
-    public boolean isPrinting() {
-        return isPrinting;
+    public boolean isInteractive() {
+        return isInteractive;
     }
 
     public boolean isBlackWhiteReversed() {
@@ -134,6 +143,7 @@ public class DrawContext
         g.setColor(c);
     }*/
         
+    /** Turn on or off text & shape anti-aliasing */
     public void setAntiAlias(boolean on)
     {
         if (disableAntiAlias)
@@ -233,13 +243,14 @@ public class DrawContext
         this.offsetY = dc.offsetY;
         this.disableAntiAlias = dc.disableAntiAlias;
         this.index = dc.index;
-        this.isPrinting = dc.isPrinting;
+        this.isInteractive = dc.isInteractive;
         this.isDraftQuality = dc.isDraftQuality;
         this.isBlackWhiteReversed = dc.isBlackWhiteReversed;
         this.activeTool = dc.activeTool;
         this.inMapDraw = dc.inMapDraw;
         this.frame = dc.frame;
         this.drawAbsoluteLinks = dc.drawAbsoluteLinks;
+        //this.mAlpha = dc.mAlpha;
     }
 
 
