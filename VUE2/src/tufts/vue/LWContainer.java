@@ -30,12 +30,12 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 /**
- * LWContainer.java
+ * Manage a group of children within a parent.
  *
- * Manage a group of children within a parent that maintains it's size.
+ * Handle rendering, hit-detection, duplication, adding/removing children.
  *
+ * @version $Revision: 1.87 $ / $Date: 2006-01-20 18:57:33 $ / $Author: sfraize $
  * @author Scott Fraize
- * @version 6/1/03
  */
 public abstract class LWContainer extends LWComponent
 {
@@ -149,12 +149,14 @@ public abstract class LWContainer extends LWComponent
     /*
      * Child handling code
      */
-    public boolean hasChildren()
-    {
+    public boolean hasChildren() {
         return children != null && children.size() > 0;
     }
+    public int numChildren() {
+        return children == null ? 0 : children.size();
+    }
     public boolean isEmpty() {
-        return !hasChildren();
+        return children == null || children.size() < 1;
     }
     public List getChildList()
     {
@@ -255,8 +257,13 @@ public abstract class LWContainer extends LWComponent
      */
     private void ensureID(LWComponent c)
     {
-        if (c.getID() == null)
-            c.setID(getNextUniqueID());
+        if (c.getID() == null) {
+            String id = getNextUniqueID();
+            // no ID may be available if we're an orphan: it will be
+            // patched up when we eventually get added to to a map
+            if (id != null)
+                c.setID(id);
+        }
 
         if (c instanceof LWContainer) {
             Iterator i = ((LWContainer)c).getChildIterator();
@@ -287,7 +294,7 @@ public abstract class LWContainer extends LWComponent
                 reparenting.add(c);
         }
         removeChildren(reparenting.iterator());
-        newParent.addChildren(reparenting.iterator());
+        newParent.addChildren(reparenting);
     }
 
     final void addChild(LWComponent c) {
@@ -297,6 +304,52 @@ public abstract class LWContainer extends LWComponent
         removeChildren(new VueUtil.SingleIterator(c));
     }
 
+    /**
+     * This will add the given list of children to the LWContainer, and
+     * will sort the add list by Y value first in case this container has
+     * a controlled layout that is vertical.
+     */
+
+    public void addChildren(List addList)
+    {
+        LWComponent[] toAdd = (LWComponent[]) addList.toArray(new LWComponent[addList.size()]);
+        if (this instanceof LWGroup) {
+            if (toAdd[0].getParent() == null) {
+                // if first item in list has no parent, we assume none do (they're
+                // system drag or paste orphans), and we can't sort them based
+                // on layer, so we leave them alone for now until all nodes have a z-order
+                // value.
+            } else {
+                java.util.Arrays.sort(toAdd, LayerSorter);
+            }
+        } else {
+            java.util.Arrays.sort(toAdd, LWComponent.YSorter);
+        }
+        addChildren(new tufts.Util.ArrayIterator(toAdd));
+    }
+    
+    /** If all the children do not have the same parent, the sort order won't be 100% correct. */
+    private static final java.util.Comparator LayerSorter = new java.util.Comparator() {
+            public int compare(Object o1, Object o2) {
+                LWComponent c1 = (LWComponent) o1;
+                LWComponent c2 = (LWComponent) o2;
+                LWContainer parent1 = c1.getParent();
+                LWContainer parent2 = c2.getParent();
+
+                // We can't get z-order on a node if it's an orphan (no
+                // parent), which is what any paste's or system drags
+                // will get us.  So we'll need to keep a sync'd a z-order
+                // value in LWComponent to support this in all cases.
+
+                if (parent1 == parent2)
+                    return parent1.children.indexOf(c1) - parent2.children.indexOf(c2);
+                else
+                    return 0;
+                // it's possible to figure out which parent is deepest,
+                // but we'll save that for later.
+            }
+        };
+    
     public void addChildren(Iterator i)
     {
         notify(LWKey.HierarchyChanging);
@@ -315,9 +368,13 @@ public abstract class LWContainer extends LWComponent
         
         if (addedChildren.size() > 0) {
             notify(LWKey.ChildrenAdded, addedChildren);
+            // todo: should be able to do this generically here
+            // instead of having to override addChildren in LWNode
+            //setScale(getScale()); // make sure children get shrunk
             layout();
         }
     }
+    
     
     /**
      * Remove any children in this iterator from this container.
@@ -405,19 +462,16 @@ public abstract class LWContainer extends LWComponent
      */
     public void deleteChildPermanently(LWComponent c)
     {
-        if (true||DEBUG.PARENTING) System.out.println("["+getLabel() + "] DELETING PERMANENTLY " + c);
+        if (DEBUG.UNDO || DEBUG.PARENTING) System.out.println("["+getLabel() + "] DELETING PERMANENTLY " + c);
 
-        // We did the "deleting" notification first, so anybody
-        // listening can still see the node in it's full current state
-        // before anything changes.  But children now keep their
-        // parent reference until their removed from the model, so the
-        // only thing different when removeFromModel issues it's
-        // LWKey.Deleting event is the parent won't list it as a
-        // child, but since it still has the parent ref, event
-        // up-notification will still work, which is good enough.
-        // (It's probably not safe to deliver more than one
-        // LWKey.Deleting event -- if need to put it back here, have
-        // to be able to tell removeFromModel optionally not to issue
+        // We did the "deleting" notification first, so anybody listening can still see
+        // the node in it's full current state before anything changes.  But children
+        // now keep their parent reference until their removed from the model, so the
+        // only thing different when removeFromModel issues it's LWKey.Deleting event is
+        // the parent won't list it as a child, but since it still has the parent ref,
+        // event up-notification will still work, which is good enough.  (It's probably
+        // not safe to deliver more than one LWKey.Deleting event -- if need to put it
+        // back here, have to be able to tell removeFromModel optionally not to issue
         // the event).
 
         //c.notify(LWKey.Deleting);
@@ -1082,7 +1136,8 @@ public abstract class LWContainer extends LWComponent
             // edges that are being missed.
             // TODO: so this is growing every time we descend into
             // a container?  We only want to do this at the LWMap level...
-            clipBounds.grow(1,1);
+            if (clipBounds != null)
+                clipBounds.grow(1,1);
             
             /*if (false) {
                 System.out.println("DRAWING " + this);
@@ -1112,7 +1167,10 @@ public abstract class LWContainer extends LWComponent
                 
                 // if filtered, don't draw, unless has children, in which case
                 // we need to draw just in case any of the children are NOT filtered.
-                if (c.isVisible() && (!c.isFiltered() || c.hasChildren()) && c.intersects(clipBounds)) {
+                if (c.isVisible()
+                    && (!c.isFiltered() || c.hasChildren())
+                    && (clipBounds == null || c.intersects(clipBounds)))
+                {
                     _drawChild(dc, c);
                     if (DEBUG.PAINT) {
                              if (c instanceof LWLink) links++;
@@ -1150,14 +1208,18 @@ public abstract class LWContainer extends LWComponent
             if (c.doesRelativeDrawing())
                 dc.g.translate(c.getX(), c.getY());
             drawChild(c, dc);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("*** Exception drawing: " + c);
-            System.err.println("***         In parent: " + this);
-            System.err.println("***    Graphics-start: " + _dc.g);
-            System.err.println("***      Graphics-end: " + dc.g);
-            System.err.println("***   Transform-start: " + _dc.g.getTransform());
-            System.err.println("***     Transform-end: " + dc.g.getTransform());
+        } catch (Throwable t) {
+            synchronized (System.err) {
+                tufts.Util.printStackTrace(t);
+                System.err.println("*** Exception drawing: " + c);
+                System.err.println("***         In parent: " + this);
+                System.err.println("***    Graphics-start: " + _dc.g);
+                System.err.println("***      Graphics-end: " + dc.g);
+                System.err.println("***   Transform-start: " + _dc.g.getTransform());
+                System.err.println("***     Transform-end: " + dc.g.getTransform());
+                System.err.println("***              clip: " + dc.g.getClip());
+                System.err.println("***        clipBounds: " + dc.g.getClipBounds());
+            }
         } finally {
             dc.g.dispose();
         }
@@ -1170,17 +1232,40 @@ public abstract class LWContainer extends LWComponent
         child.draw(dc);
     }
 
-    public LWComponent duplicate()
+    /**
+     * Be sure to duplicate all children and set parent/child references,
+     * and if we weren't given a LinkPatcher, to patch up any links
+     * among our children.
+     */
+    public LWComponent duplicate(LinkPatcher linkPatcher)
     {
-        LWContainer containerCopy = (LWContainer) super.duplicate();
+        boolean isPatcherOwner = false;
+        
+        if (linkPatcher == null && hasChildren()) {
+
+            // Normally VUE Actions (e.g. Duplicate, Copy, Paste)
+            // provide a patcher for duplicating a selection of
+            // objects, but anyone else may not have provided one.
+            // This will take care of arbitrary single instances of
+            // duplication, including duplicating an entire Map.
+            
+            linkPatcher = new LinkPatcher();
+            isPatcherOwner = true;
+        }
+        
+        LWContainer containerCopy = (LWContainer) super.duplicate(linkPatcher);
         
         Iterator i = getChildIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            LWComponent childCopy = c.duplicate();
+            LWComponent childCopy = c.duplicate(linkPatcher);
             containerCopy.children.add(childCopy);
             childCopy.setParent(containerCopy);
         }
+
+        if (isPatcherOwner)
+            linkPatcher.reconnectLinks();
+            
         return containerCopy;
     }
     
