@@ -6,14 +6,20 @@ import tufts.vue.MapViewerEvent;
 import tufts.vue.VueResources;
 import tufts.vue.DEBUG;
 
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.WindowEvent;
+import java.awt.event.ComponentEvent;
+
+import javax.swing.SwingUtilities;
+
 
 /**
  * The top-level VUE application Frame.
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.1 $ / $Date: 2005-11-27 16:15:38 $ / $Author: sfraize $ 
+ * @version $Revision: 1.2 $ / $Date: 2006-01-20 17:24:08 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
 //public class VueFrame extends com.jidesoft.docking.DefaultDockableHolder
@@ -24,18 +30,88 @@ public class VueFrame extends javax.swing.JFrame
         MapViewerEvent.DISPLAYED |
         MapViewerEvent.FOCUSED;
     //MapViewerEvent.ZOOM;        // title includes zoom
+
+    private static int sNameIndex = 0;
         
     public VueFrame() {
-        super(VueResources.getString("application.title"));
-        setIconImage(VueResources.getImageIcon("vueIcon32x32").getImage());
+        this(VueResources.getString("application.title"));
+    }
+    
+    public VueFrame(String title) {
+        super(title);
+        setName("VueFrame" + sNameIndex++);
+        GUI.setRootPaneNames(this, getName());
+        if (GUI.isMacAqua())
+            setIconImage(VueResources.getImage("vueIcon128"));
+        else
+            setIconImage(VueResources.getImage("vueIcon32"));
+        setMaximizedBounds(GUI.getMaximumWindowBounds());
+
+        // we need this to make sure kdb input
+        //setJMenuBar(new VueMenuBar());        
+        
         // JIDE ENABLE getDockableBarManager().getMainContainer().setLayout(new BorderLayout());            
         //addMouseWheelListener(this); this causing stack overflows in JVM 1.4 & 1.5, and only works for unclaimed areas
         // (e.g., not mapviewer, even if it hasn't registered a wheel listener)
+
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+                public void componentMoved(ComponentEvent e) {
+                    //out("MOVED " + e);
+                    GUI.refreshGraphicsInfo();
+                }
+            });
+        
+
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                VUE.Log.warn(e);
+                tufts.vue.action.ExitAction.exitVue();
+
+                // If we get here, it means the exit was aborted by the user (something
+                // wasn't saved & they decided to cancel or there was an error during
+                // the save)
+
+                //frame.show(); (doesn't work)  How to cancel this windowClose?  According
+                // to WindowEvent.java & WindowAdapter.java, canceling this
+                // windowClosing is supposed to be possible, but they don't mention
+                // how. Anyway, we've overriden setVisible on VueFrame to make it
+                // impossible to hide it, and that works, so this event just becomes the
+                // they've pressed on the close button event.
+            }
+                
+            public void windowClosed(WindowEvent e) {
+                // I've never see us even get this event...
+                VUE.Log.fatal("Too late: window disposed: exiting. " + e);
+                System.exit(-1);
+            }
+            public void windowStateChanged(WindowEvent e) {
+                out(e.toString());
+                VUE.Log.debug(e);
+            }
+        });
+        
     }
 
+    public void setMaximizedBounds(Rectangle r) {
+        if (DEBUG.INIT) out("SETMAX " + r);
+        super.setMaximizedBounds(r);
+    }
+    public void setVisible(boolean visible) {
+        if (DEBUG.INIT) out("SET-VISIBLE " + visible);
+        super.setVisible(visible);
+    }
+    public void XsetExtendedState(int state) {
+        out("SET-STATE: " + state + (state == MAXIMIZED_BOTH ? " MAX" : " other"));
+        super.setExtendedState(state);
+    }
+    public void XsetLocation(int x, int y) {
+        out("setLocation: " + x + "," + y);
+        super.setLocation(x, y);
+    }
+    
     //public void mouseWheelMoved(MouseWheelEvent e) { System.err.println("VUE MSW"); }
         
-    protected void processEvent(java.awt.AWTEvent e) {
+    protected void X_processEvent(java.awt.AWTEvent e) {
         // if (e instanceof MouseWheelEvent) System.err.println("VUE MSM PE"); only works w/listener, which has problem as above
         // try a generic AWT event queue listener?
             
@@ -97,7 +173,7 @@ public class VueFrame extends javax.swing.JFrame
     */
 
     /** never let the frame be hidden -- always ignored */
-    public void setVisible(boolean tv) {
+    public void X_setVisible(boolean tv) {
         //System.out.println("VueFrame setVisible " + tv + " OVERRIDE");
             
         // The frame should never be "hidden" -- iconification
@@ -114,7 +190,7 @@ public class VueFrame extends javax.swing.JFrame
     }
         
     private void setTitleFromViewer(MapViewer viewer) {
-        String title = VUE.NAME + ": " + viewer.getMap().getLabel();
+        String title = VUE.getName() + ": " + viewer.getMap().getLabel();
         //if (viewer.getMap().isCurrentlyFiltered())
         // will need to listen to map for filter change state or this gets out of date
         //    title += " (Filtered)";
@@ -135,6 +211,14 @@ public class VueFrame extends javax.swing.JFrame
             title += (((float) displayZoom) / 100f) + "%";
         title += ")";
         return title;
+    }
+
+    private void out(String s) {
+        System.out.println("VueFrame: " + s);
+    }
+
+    public String toString() {
+        return "VueFrame[" + getTitle() + "]";
     }
 }
     
