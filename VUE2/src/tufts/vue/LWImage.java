@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.Util;
+
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Color;
@@ -26,10 +28,13 @@ import java.awt.BasicStroke;
 import java.awt.geom.*;
 import java.awt.AlphaComposite;
 import java.awt.image.ImageObserver;
+import java.net.URL;
 import javax.swing.ImageIcon;
 
 /**
  * Handle the presentation of an image resource, allowing cropping.
+ *
+ * @version $Revision: 1.1 $ / $Date: 2006/01/20 18:57:33 $ / $Author: sfraize $
  */
 public class LWImage extends LWComponent
     implements LWSelection.ControlListener, ImageObserver
@@ -55,23 +60,13 @@ public class LWImage extends LWComponent
                          LWIcon.Block.VERTICAL,
                          LWIcon.Block.COORDINATES_COMPONENT_NO_SHRINK);
 
-    public LWImage(Resource r, UndoManager undoManager) {
-        setResource(r, undoManager);
-    }
-
-    /**
-     * @deprecated because images can load asynchronously, we need an undo manager.
-    * Using this constructor may cause irregularities in the undo queue if more than one map is loaded.
-    **/
-    public LWImage(Resource r) {
-        this(r, null);
-    }
+    public LWImage() {}
     
-    public LWComponent duplicate()
+    public LWComponent duplicate(LinkPatcher linkPatcher)
     {
         // TODO: if had list of property keys in object, LWComponent
         // could handle all the duplicate code.
-        LWImage i = (LWImage) super.duplicate();
+        LWImage i = (LWImage) super.duplicate(linkPatcher);
         i.mImage = mImage;
         i.mImageWidth = mImageWidth;
         i.mImageHeight = mImageHeight;
@@ -102,45 +97,93 @@ public class LWImage extends LWComponent
     }
     
     public void setResource(Resource r) {
-        setResource(r, null);
+        setResourceAndLoad(r, null);
     }
     
     // todo: find a better way to do this than passing in an undo manager, which is dead ugly
-    public void setResource(Resource r, UndoManager undoManager) {
+    public void setResourceAndLoad(Resource r, UndoManager undoManager) {
         super.setResource(r);
-        if (r instanceof MapResource)
+        if (r instanceof MapResource) {
+            // TODO: need to do this in a thread, as not enough to wait for prepareImage
             loadImage((MapResource)r, undoManager);
+        }
     }
+
+    /*
+    private void loadImageAsync(MapResource r) {
+        Object content = new Object();
+        try {
+            content = r.getContent();
+            imageIcon = (ImageIcon) content;
+        } catch (ClassCastException cce) {
+            cce.printStackTrace();
+            System.err.println("getContent didn't return ImageIcon: got "
+                               + content.getClass().getName() + " from " + r.getClass() + " " + r);
+            imageIcon = null;
+            //if (DEBUG.CASTOR) System.exit(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("error getting " + r);
+        }
+        // don't set size if this is during a restore [why not?], which is the only
+        // time width & height should be allowed less than 10
+        // [ What?? ] -- todo: this doesn't work if we're here because the resource was changed...
+        //if (this.width < 10 && this.height < 10)
+        if (imageIcon != null) {
+            int w = imageIcon.getIconWidth();
+            int h = imageIcon.getIconHeight();
+            if (w > 0 && h > 0)
+                setSize(w, h);
+        }
+        layout();
+        notify(LWKey.RepaintComponent);
+    }
+    */
 
     private void loadImage(MapResource mr, UndoManager undoManager)
     {
-        // todo: have the LWMap make a call at the end of a
-        // restore to all LWComponents telling them to start
-        // loading any media they need.  Pass in a media tracker
-        // that the LWMap and/or MapViewer can use to track/report
-        // the status of loading, and know when it's 100%
-        // complete.
 
-        if (DEBUG.IMAGE) out("getImage");
+        // TODO: have the LWMap make a call at the end of a restore to
+        // all LWComponents telling them to start loading any media
+        // they need.  Pass in a media tracker that the LWMap and/or
+        // MapViewer can use to track/report the status of loading,
+        // and know when it's 100% complete.
+
+        if (DEBUG.IMAGE) out("getImage " + mr.getURL());
                 
         Image image = null;
         try {
+            URL url = mr.toURL();
+            if (url == null)
+                return;
+
             // will need to put this in a thread: if the host isn't responding,
             // we hang here for a while.  It will apparently ALWAYS eventually
             // get an Image object, but then we just get an eventually callback to
             // imageUpdate with an error code.
-            image = java.awt.Toolkit.getDefaultToolkit().getImage(mr.toURL());
-        } catch (java.net.MalformedURLException e) {
-            out("BAD MapResource URL " + mr);
-            e.printStackTrace();
+
+            String s = mr.getSpec();
+            
+            if (s.startsWith("file://")) {
+
+                // TODO: SEE Util.java: WINDOWS URL'S DON'T WORK IF START WITH FILE:// (two slashes), MUST HAVE THREE!
+                // move this code to MapResource; find out if can even force a URL to have
+                // an extra slash in it!  Report this as a java bug!
+                
+                s = s.substring(7);
+                out("fetching " + s);
+                image = java.awt.Toolkit.getDefaultToolkit().getImage(s);
+            } else
+                image = java.awt.Toolkit.getDefaultToolkit().getImage(url);
+            
+        } catch (Throwable t) {
+            Util.printStackTrace(t);
             return;
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
         // don't bother to set mImage here: JVM's no longer do drawing of available bits
 
-        if (DEBUG.IMAGE) out("prepareImage");
+        if (DEBUG.IMAGE) out("prepareImage on " + image);
                 
         if (java.awt.Toolkit.getDefaultToolkit().prepareImage(image, -1, -1, this)) {
             if (DEBUG.IMAGE || DEBUG.THREAD) out("ALREADY LOADED");
@@ -183,12 +226,20 @@ public class LWImage extends LWComponent
     private char mDebugChar;
     public boolean imageUpdate(Image img, int flags, int x, int y, int width, int height)
     {
+        if (DEBUG.IMAGE && (DEBUG.META || (flags & ImageObserver.SOMEBITS) == 0))
+            out("imageUpdate " + img + " flags=" + flags + " " + width + "x" + height);
+        
         if ((flags & ImageObserver.ERROR) != 0) {
             if (DEBUG.IMAGE) out("ERROR");
             mImageError = true;
             // set image dimensions so if we resize w/out image it works
             mImageWidth = (int) getAbsoluteWidth();
             mImageHeight = (int) getAbsoluteHeight();
+            if (mImageWidth < 1) {
+                mImageWidth = 100;
+                mImageHeight = 100;
+                setSize(100,100);
+            }
             return false;
         }
             
@@ -247,37 +298,6 @@ public class LWImage extends LWComponent
             return true;
     }
     
-    /*
-    private void loadImageAsync(MapResource r) {
-        Object content = new Object();
-        try {
-            content = r.getContent();
-            imageIcon = (ImageIcon) content;
-        } catch (ClassCastException cce) {
-            cce.printStackTrace();
-            System.err.println("getContent didn't return ImageIcon: got "
-                               + content.getClass().getName() + " from " + r.getClass() + " " + r);
-            imageIcon = null;
-            //if (DEBUG.CASTOR) System.exit(0);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("error getting " + r);
-        }
-        // don't set size if this is during a restore [why not?], which is the only
-        // time width & height should be allowed less than 10
-        // [ What?? ] -- todo: this doesn't work if we're here because the resource was changed...
-        //if (this.width < 10 && this.height < 10)
-        if (imageIcon != null) {
-            int w = imageIcon.getIconWidth();
-            int h = imageIcon.getIconHeight();
-            if (w > 0 && h > 0)
-                setSize(w, h);
-        }
-        layout();
-        notify(LWKey.RepaintComponent);
-    }
-    */
-
     /**
      * Don't let us get bigger than the size of our image, or
      * smaller than MinWidth/MinHeight.
@@ -413,11 +433,13 @@ public class LWImage extends LWComponent
             dc.g.draw(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
         }
         
-        if (isSelected() && !dc.isPrinting()) {
+        if (isSelected() && dc.isInteractive()) {
             dc.g.setComposite(HudTransparency);
             dc.g.setColor(Color.WHITE);
             dc.g.fill(mIconBlock);
             dc.g.setComposite(AlphaComposite.Src);
+            // TODO: set a clip so won't draw outside
+            // image bounds if is very small
             mIconBlock.draw(dc);
         }
 
@@ -427,13 +449,14 @@ public class LWImage extends LWComponent
     }
 
     private static final AlphaComposite MatteTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
-    private static final Color ErrorColor = new Color(255,128,128, 64);
+    //private static final Color ErrorColor = new Color(255,128,128, 64);
+    private static final Color ErrorColor = Color.red;
 
     protected void drawImage(DrawContext dc)
     {
         if (mImage == null) {
-            float w = getWidth();
-            float h = getHeight();
+            float w = getAbsoluteWidth();
+            float h = getAbsoluteHeight();
             if (mImageError)
                 dc.g.setColor(ErrorColor);
             else
@@ -448,7 +471,7 @@ public class LWImage extends LWComponent
         if (rotation != 0 && rotation != 360)
             transform.rotate(rotation, getImageWidth() / 2, getImageHeight() / 2);
         
-        if (isSelected() && !dc.isPrinting() && dc.getActiveTool() instanceof ImageTool) {
+        if (isSelected() && dc.isInteractive() && dc.getActiveTool() instanceof ImageTool) {
             dc.g.setComposite(MatteTransparency);
             dc.g.drawImage(mImage, transform, null);
             dc.g.setComposite(AlphaComposite.Src);
@@ -586,6 +609,4 @@ public class LWImage extends LWComponent
     }
 
 
-    /** @deprecated - for castor restore only */
-    public LWImage() {}
 }
