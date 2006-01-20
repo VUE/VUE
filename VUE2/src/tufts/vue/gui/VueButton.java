@@ -35,13 +35,23 @@ import javax.swing.border.*;
  * VueResources in format buttonName.Up, buttonName.down,
  * buttonName.disabled, or .raw for generated buttons.
  *
+ * @version $Revision: 1.6 $ / $Date: 2006-01-20 17:22:15 $ / $Author: sfraize $
  * @author  akumar03
  * @author  Scott Fraize
- * @version March 2004
  */
 
 public class VueButton extends JButton
+//public class VueButton extends com.jidesoft.swing.JideButton
+//implements com.jidesoft.swing.Alignable // JIDE
 {
+    public void setOrientation(int o) {
+        System.out.println(this + " so " + o);
+    }
+    public int getOrientation() {return 0;}
+    public boolean supportHorizontalOrientation() { return true; }
+    public boolean supportVerticalOrientation() { return true; }
+
+    
     protected String key;
     private boolean isToolbarButton;
 
@@ -57,6 +67,8 @@ public class VueButton extends JButton
     }
 
     public VueButton(Action a) {
+        //setButtonStyle(HYPERLINK_STYLE); // JIDE
+        
         setAction(a);
         Icon largeIcon = (Icon) a.getValue(tufts.vue.VueAction.LARGE_ICON);
         if (largeIcon != null)
@@ -137,10 +149,18 @@ public class VueButton extends JButton
             installResourceConfiguration(b, key);
         }
 
-        if (true) {
+        b.setFocusable(false);
+        b.setName(key);
+        
+        if (false && GUI.isOceanTheme()) {
+            //b.setRolloverEnabled(true);
+            // todo: need some kind of border, but then will need
+            // to change rollover icon (or maybe change border
+            // on rollover instead of changing icon)
+            b.setBorder(new LineBorder(Color.blue));
+        } else {
             b.setBorder(null);
             b.setBorderPainted(false);
-            b.setFocusable(false);
             b.setOpaque(false);
         }
 
@@ -184,9 +204,12 @@ public class VueButton extends JButton
 
     public String toString() {
         String label;
-        if (key == null)
-            label = "action=" + getText();
-        else
+        if (key == null) {
+            if (getAction() == null)
+                label = "txt=" + getText();
+            else
+                label = getAction().toString();
+        } else
             label = key;
         return "VueButton[" + label + "]";
     }
