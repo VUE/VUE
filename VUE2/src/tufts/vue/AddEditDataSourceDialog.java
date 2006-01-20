@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- *
+ * @version $Revision: 1.5 $ / $Date: 2006-01-20 18:20:32 $ / $Author: sfraize $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -41,7 +41,7 @@ public class AddEditDataSourceDialog extends JDialog {
     
     /** Creates a new instance of AddEditDataSourceDialog */
     public AddEditDataSourceDialog() {
-        super(tufts.vue.VUE.getInstance(),"Add/Edit Data Source",true);
+        super(VUE.getDialogParentAsFrame(),"Add/Edit Data Source",true);
         if (DEBUG.DR) System.out.println(this + " new JTabbedPane");
         tabbedPane = new JTabbedPane();
         if (DEBUG.DR) System.out.println(this + " setPreferredSize");
