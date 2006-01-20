@@ -31,10 +31,11 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 
 
 /**
- * FontEditorPanel
  * This creates a font editor panel for editing fonts in the UI
  *
- **/
+ * @version $Revision: 1.36 $ / $Date: 2006-01-20 18:36:58 $ / $Author: sfraize $
+ *
+ */
 public class FontEditorPanel extends Box
     implements ActionListener, LWPropertyProducer, VueConstants
 {
@@ -63,7 +64,9 @@ public class FontEditorPanel extends Box
     {
 	super(BoxLayout.X_AXIS);
 
-        setFocusable(false);
+        setPropertyKey(LWKey.Font);
+
+        //setFocusable(false);
         
         //Box box = Box.createHorizontalBox();
         // we set this border only to create a gap around these components
@@ -88,7 +91,7 @@ public class FontEditorPanel extends Box
             comboSize.height -= 2; // if too small (eg, -3), will trigger major swing layout bug
             mFontCombo.setMaximumSize(comboSize);
         }
-        if (VueUtil.isMacAquaLookAndFeel())
+        if (GUI.isMacAqua())
             mFontCombo.setBorder(new EmptyBorder(1,0,0,0));
         
         //mFontCombo.setBorder(new javax.swing.border.LineBorder(Color.green, 2));
@@ -104,13 +107,15 @@ public class FontEditorPanel extends Box
         mSizeField = new JComboBox(sFontSizes);
         mSizeField.setEditable(true);
         
-        if (VueUtil.isMacAquaLookAndFeel()) {
+        /*
+        if (GUI.isMacAqua()) {
             mFontCombo.setBackground(VueTheme.getToolbarColor());
             mSizeField.setBackground(VueTheme.getToolbarColor());
         } else {
             mFontCombo.setBackground(VueTheme.getVueColor());
             mSizeField.setBackground(VueTheme.getVueColor());
         }
+        */
         
         //mSizeField.setPrototypeDisplayValue("100"); // no help in making it smaller
         //System.out.println("EDITOR " + mSizeField.getEditor());
@@ -119,13 +124,16 @@ public class FontEditorPanel extends Box
         if (mSizeField.getEditor().getEditorComponent() instanceof JTextField) {
             JTextField sizeEditor = (JTextField) mSizeField.getEditor().getEditorComponent();
             sizeEditor.setColumns(2); // not exactly character columns
-            if (!VueUtil.isMacAquaLookAndFeel()) {
+
+            /*
+            if (!GUI.isMacAqua()) {
                 try {
                     sizeEditor.setBackground(VueTheme.getTheme().getMenuBackground());
                 } catch (Exception e) {
                     System.err.println("FontEditorPanel: " + e);
                 }
             }
+            */
             //sizeEditor.setPreferredSize(new Dimension(20,10)); // does squat
             
             // the default size for a combo-box editor field is 9 chars
@@ -182,7 +190,7 @@ public class FontEditorPanel extends Box
  	
         setFontValue(FONT_DEFAULT);
 
-        initColors(VueTheme.getToolbarColor());
+        //initColors(VueTheme.getToolbarColor());
     }
     
     private void initColors( Color pColor) {
@@ -192,7 +200,7 @@ public class FontEditorPanel extends Box
 
     public void addNotify()
     {
-        if (VueUtil.isMacAquaLookAndFeel()) {
+        if (GUI.isMacAqua()) {
             // font size edit box asymmetrically tall if left to default
             Dimension d = mSizeField.getPreferredSize();
             d.height += 1;
@@ -361,9 +369,9 @@ public class FontEditorPanel extends Box
     public static void main(String[] args) {
         System.out.println("FontEditorPanel:main");
         DEBUG.Enabled = DEBUG.INIT = true;
-        VUE.initUI(true);
+        VUE.init(args);
         
-        sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts
+        //sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts
 
         VueUtil.displayComponent(new FontEditorPanel());
     }
