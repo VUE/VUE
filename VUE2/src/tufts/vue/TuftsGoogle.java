@@ -45,8 +45,8 @@ import java.io.OutputStreamWriter;
 import org.xml.sax.InputSource;
 
 /**
- *
  * @author  RSaigal
+ * @version $Revision: 1.19 $ / $Date: 2006-01-20 20:14:10 $ / $Author: sfraize $ 
  */
 public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
     JTabbedPane googlePane;
@@ -76,7 +76,8 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
     public TuftsGoogle(String displayName, String inputURL) {
         setLayout(new BorderLayout());
         searchURL = inputURL;
-        System.out.println("search url" + inputURL);
+        if (DEBUG.INIT || DEBUG.IO)
+            System.out.println("TuftsGoogle: \"" + displayName + "\" url [" + inputURL + "]");
         maxReturns = new JComboBox(maxReturnItems);
         maxReturns.setEditable(true);
         googlePane = new JTabbedPane();
