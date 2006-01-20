@@ -31,8 +31,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Ellipse2D;
 
 /**
- * LWPathway.java
- *
  * Provides for the managing of a list of LWComponents as elements in a "path" through
  * the map as well as ability to render that path on the map.  Includes a current
  * "index", which isn't just the current component, because components can appear
@@ -44,9 +42,8 @@ import java.awt.geom.Ellipse2D;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version  March 2004
+ * @version $Revision: 1.116 $ / $Date: 2006-01-20 19:22:30 $ / $Author: sfraize $
  */
-
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
 {
@@ -58,7 +55,6 @@ public class LWPathway extends LWContainer
     private ArrayList elementPropertyList = new ArrayList();
 
     private transient boolean open = true;
-    private transient boolean mXMLRestoreUnderway = false;
 
     private static Color[] ColorTable = {
         new Color(153, 51, 51),
@@ -621,7 +617,7 @@ public class LWPathway extends LWContainer
     
     void completeXMLRestore(LWMap map)
     {
-        System.out.println(this + " completeXMLRestore, map=" + map);
+        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) System.out.println(this + " completeXMLRestore, map=" + map);
         setParent(map);
         for (Iterator i = this.idList.iterator(); i.hasNext();) {
             String id = (String) i.next();
@@ -847,7 +843,7 @@ public class LWPathway extends LWContainer
     
     /** @deprecated - default constructor used for marshalling ONLY */
     public LWPathway() {
-        mXMLRestoreUnderway = true;
+        //mXMLRestoreUnderway = true; // now handled my LWComponent
     }
 
 
