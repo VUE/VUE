@@ -32,6 +32,8 @@ import javax.swing.border.*;
 
 /**
  * @author  Daisuke Fujiwara
+ *
+ * @deprecated - remove this class
  */
 public class LWOutlineView extends ToolWindow implements VUE.ActiveMapListener
 {
