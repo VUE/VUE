@@ -33,16 +33,14 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 /**
- * MenuButton
- *
  * A button that supports a drop-down menu and changes state based on the
  * currently selected drop-down menu item.  
  * The menu can be initialized from either an array of property values, or actions.
  * Property change events or action events (depending on the initialization type)
  * are fired when the menu selection changes.
  *
+ * @version $Revision: 1.18 $ / $Date: 2006-01-20 17:17:29 $ / $Author: sfraize $
  * @author Scott Fraize
- * @version June 2004
  *
  */
 
@@ -83,7 +81,7 @@ public abstract class MenuButton extends JButton
             //setBorder(new EmptyBorder(2,2,2,2));
         }
 
-        if (tufts.vue.VueUtil.isMacAquaLookAndFeel()) {
+        if (GUI.isMacAqua()) {
             // anything big makes them rounded & fit into their space.
             // We could make them square making them smaller, but will
             // need to force the toolbar row to small height, or compute
@@ -215,7 +213,7 @@ public abstract class MenuButton extends JButton
         */
         //if (DEBUG.BOXES||DEBUG.TOOL) System.out.println(this + " _setIcon " + i);
         Dimension d = getButtonSize();
-        if (true || !tufts.vue.VueUtil.isMacAquaLookAndFeel()) {
+        if (true || !GUI.isMacAqua()) {
             VueButtonIcon.installGenerated(this, new MenuProxyIcon(i), d);
             //System.out.println(this + " *** installed generated, setPreferredSize " + d);
         }
