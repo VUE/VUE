@@ -44,31 +44,25 @@ import tufts.oki.localFiling.*;
 import java.awt.geom.Point2D;
 
 import java.util.Iterator;
+
 /**
  *
+ * @version $Revision: 1.20 $ / $Date: 2006-01-20 20:24:18 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
-    static final String MIME_TYPE_MAC_URLN = "application/x-mac-ostype-75726c6e";
-    // 75726c6e="URLN" -- mac uses this type for a flavor containing the title of a web document
-    // this existed in 1.3, but apparently went away in 1.4.
-    static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
-    //todo make only a favoritesnode  droppable//
     
     private static Icon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
     private static        Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
     private static        Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
             
-    
-    
     private final int ACCEPTABLE_DROP_TYPES =
+        DnDConstants.ACTION_COPY |
+        DnDConstants.ACTION_LINK |
+        DnDConstants.ACTION_MOVE;
     
-    
-    DnDConstants.ACTION_COPY |
-    DnDConstants.ACTION_LINK |
-    DnDConstants.ACTION_MOVE;
     private final boolean debug = true;
-   private final int FAVORITES = 1;
+    private final int FAVORITES = 1;
     private final boolean sametree = true;
     private final int newfavoritesnode = 0;
     
@@ -122,12 +116,11 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         
         
         try {
-            if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
+            if (transfer.isDataFlavorSupported(Resource.DataFlavor)) {
                 
-                foundFlavor = VueDragTreeNodeSelection.resourceFlavor;
+                foundFlavor = Resource.DataFlavor;
                 foundData = transfer.getTransferData(foundFlavor);
                 resourceList = (java.util.List)foundData;
-               
                 
             } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
                 
