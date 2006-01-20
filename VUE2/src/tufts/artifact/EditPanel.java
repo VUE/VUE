@@ -52,7 +52,7 @@ public class EditPanel extends JPanel {
                     try {
                         EditPanel.this.dataSource.setDisplayName(dsNameField.getText());
                     } catch(Exception ex) {
-                        JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "Artifact Edit Alert", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(tufts.vue.VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "Artifact Edit Alert", JOptionPane.ERROR_MESSAGE);
                     } finally {
                         EditPanel.this.dialog.hide();
                         EditPanel.this.dialog.dispose();

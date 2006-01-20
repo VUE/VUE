@@ -58,7 +58,7 @@ public class EditPanel extends JPanel {
                         EditPanel.this.dataSource.setDisplayName(dsNameField.getText());
                         EditPanel.this.dataSource.setKey(keyField.getText());
                     } catch(Exception ex) {
-                        JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "Google Edit Alert", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(tufts.vue.VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "Google Edit Alert", JOptionPane.ERROR_MESSAGE);
                     } finally {
                         EditPanel.this.dialog.hide();
                         EditPanel.this.dialog.dispose();

@@ -56,7 +56,7 @@ public class AddPanel extends JPanel {
                         tufts.vue.DataSource ds = new tufts.googleapi.DataSource(dsNameField.getText(),keyField.getText());
                         DataSourceViewer.addDataSource(ds);
                     } catch(Exception ex) {
-                        JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "Artifact", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(tufts.vue.VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "Artifact", JOptionPane.ERROR_MESSAGE);
                         ex.printStackTrace();
                     } finally {
                         AddPanel.this.dialog.hide();
