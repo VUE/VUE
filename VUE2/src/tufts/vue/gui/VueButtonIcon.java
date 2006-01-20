@@ -42,8 +42,8 @@ import javax.swing.border.*;
  * transparency, etc, based on button state.  Can also handle a null raw icon for just drawing borders.
  * Can install, via installGenerated, a set of icons into any AbstractButton using our default VUE GUI scheme.
  *
+ * @version $Revision: 1.8 $ / $Date: 2006-01-20 17:23:00 $ / $Author: sfraize $
  * @author Scott Fraize
- * @version May 2004
  */
 
 public class VueButtonIcon implements Icon
@@ -60,9 +60,11 @@ public class VueButtonIcon implements Icon
         if (DEBUG.INIT||DEBUG.TOOL) System.out.println(b + " generating button states from " + raw);
         if (s == null)
             s = new Dimension(0,0);
-        if (tufts.vue.VueUtil.isMacAquaLookAndFeel() && b instanceof MenuButton) {
+
+        if (GUI.isMacAqua() && b instanceof MenuButton) {
             b.setIcon(raw);
         } else {
+
             b.setIcon(new VueButtonIcon(raw, UP, s));
             b.setPressedIcon(new VueButtonIcon(raw, PRESSED, s));
             b.setSelectedIcon(new VueButtonIcon(raw, SELECTED, s));
