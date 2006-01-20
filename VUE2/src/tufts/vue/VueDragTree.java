@@ -45,9 +45,15 @@ import java.util.Iterator;
 
 /**
  *
+ * @version $Revision: 1.45 $ / $Date: 2006-01-20 20:26:19 $ / $Author: sfraize $
  * @author  rsaigal
  */
-public class VueDragTree extends JTree implements DragGestureListener,DragSourceListener,TreeSelectionListener,ActionListener {
+public class VueDragTree extends JTree
+    implements DragGestureListener,
+               DragSourceListener,
+               TreeSelectionListener,
+               ActionListener
+{
     
     public static ResourceNode oldnode;
     private ResourceSelection resourceSelection = null;
@@ -65,7 +71,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
         createPopupMenu();
         
        this. getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        resourceSelection = VUE.sResourceSelection;
+       resourceSelection = VUE.getResourceSelection();
         addTreeSelectionListener(this);
     }
     
@@ -76,7 +82,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
         createPopupMenu();
         
         implementDrag(this);
-        resourceSelection = VUE.sResourceSelection;
+        resourceSelection = VUE.getResourceSelection();
         addTreeSelectionListener(this);
     }
     
@@ -218,7 +224,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     public void dragExit(DragSourceEvent e) {}
     public void dragOver(DragSourceDragEvent e) {}
     public void dropActionChanged(DragSourceDragEvent e) {
-        System.out.println("VueDragTree: dropActionChanged  to  " + MapDropTarget.dropName(e.getDropAction()));
+        System.out.println("VueDragTree: dropActionChanged  to  " + tufts.vue.gui.GUI.dropName(e.getDropAction()));
     }
     
     
@@ -635,59 +641,76 @@ class FavoritesNode extends ResourceNode {
 }
 
 
-class VueDragTreeNodeSelection extends Vector implements Transferable{
+class VueDragTreeNodeSelection extends Vector implements Transferable {
+    /*
     final static int FILE = 0;
     final static int STRING = 1;
     final static int PLAIN = 2;
     final static int RESOURCE = 0;
-    public static DataFlavor resourceFlavor = MapResource.resourceFlavor;
-    public static DataFlavor favoritesFlavor;
-    String displayName = "";
-   
+    */
+    //static DataFlavor favoritesFlavor;
+
     /**
      * try {
      * assetFlavor = new DataFlavor(Class.forName("osid.dr.Asset"),"asset");
      * } catch (Exception e) { System.out.println("FedoraSelection "+e);}
      **/
     
+    /*
     private DataFlavor flavors[] = {
         DataFlavor.plainTextFlavor,
         DataFlavor.stringFlavor,
-        DataFlavor.plainTextFlavor,
-        //DataFlavor.javaFileListFlavor // not supported!
+        //DataFlavor.plainTextFlavor,
+        //DataFlavor.javaFileListFlavor
     };
+    */
+
+    private String displayName = "";
+   
+    private java.util.List flavors = new java.util.ArrayList(4);
     
     public VueDragTreeNodeSelection(Object resource) {
         addElement(resource);
-        if (resource instanceof Resource){
-            if (resourceFlavor != null) {
-                flavors[RESOURCE] = resourceFlavor;
-                try {
-                    displayName = ((Resource)elementAt(0)).getTitle();
-                    
-                } catch (Exception e) { System.out.println("FedoraSelection "+e);}
-            }
-        } else if(resource instanceof File){
-            flavors[FILE] = DataFlavor.javaFileListFlavor;
+
+        flavors.add(DataFlavor.plainTextFlavor);
+        flavors.add(DataFlavor.stringFlavor);
+
+        if (resource instanceof MapResource) {
+            
+            flavors.add(Resource.DataFlavor);
+            try {
+                displayName = ((Resource)elementAt(0)).getTitle();
+            } catch (Exception e) { System.out.println("FedoraSelection "+e);}
+
+        } else if (resource instanceof File) {
+
+            flavors.add(DataFlavor.javaFileListFlavor);
             displayName = ((File)elementAt(0)).getName();
-        } else
+
+        } else {
+            
             displayName = elementAt(0).toString();
+            
+        }
     }
     
     /* Returns the array of flavors in which it can provide the data. */
     public synchronized java.awt.datatransfer.DataFlavor[] getTransferDataFlavors() {
-        return flavors;
+        return (DataFlavor[]) flavors.toArray(new DataFlavor[flavors.size()]);
     }
+    
     /* Returns whether the requested flavor is supported by this object. */
     public boolean isDataFlavorSupported(DataFlavor flavor) {
         if (flavor == null)
             return false;
-        boolean b  = false;
-        b |= flavor.equals(flavors[RESOURCE]);
-        b |= flavor.equals(flavors[STRING]);
-        b |= flavor.equals(flavors[FILE]);
-        return (b);
+
+        for (int i = 0; i < flavors.size(); i++)
+            if (flavor.equals(flavors.get(i)))
+                return true;
+        
+        return false;
     }
+    
     /**
      * If the data was requested in the "java.lang.String" flavor,
      * return the String representing the selection.
@@ -695,28 +718,36 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
     public synchronized Object getTransferData(DataFlavor flavor)
         throws UnsupportedFlavorException, IOException
     {
-        if (DEBUG.DND) System.out.println("VueDragTreeNodeSelection: getTransferData, flavor=" + flavor);
+        if (DEBUG.DND && DEBUG.META) System.out.println("VueDragTreeNodeSelection: getTransferData, flavor=" + flavor);
         
         Object result = null;
         
-        if (flavor.equals(flavors[STRING])) {
-            //throw new UnsupportedFlavorException(flavors[STRING]);
+        if (DataFlavor.stringFlavor.equals(flavor)) {
+            
             // Always support something for the string flavor, or
             // we get an exception thrown (even tho I think that
             // may be against the published API).
             result = get(0).toString();
-        } else if (flavor.equals(flavors[PLAIN])) {
-           // System.out.println("I am plain"+this.elementAt(0));
+            
+        } else if (DataFlavor.plainTextFlavor.equals(flavor)) {
+
+            // System.out.println("I am plain"+this.elementAt(0));
             result = new StringReader(displayName);
-        } else if (flavor.equals(flavors[RESOURCE])) {
+
+        } else if (Resource.DataFlavor.equals(flavor)) {
+            
             result = this;
-        } else if (flavor.equals(flavors[FILE])){
+            
+        } else if (DataFlavor.javaFileListFlavor.equals(flavor)) {
+            
             result = this;
+
         } else {
+        
             throw new UnsupportedFlavorException(flavor);
         }
         
-        if (DEBUG.DND) System.out.println("\treturning " + result.getClass() + "[" + result + "]");
+        if (DEBUG.DND && DEBUG.META) System.out.println("\treturning " + result.getClass() + "[" + result + "]");
 
         return result;
     }
