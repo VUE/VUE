@@ -18,6 +18,11 @@
 
 package tufts.vue;
 
+/**
+ * Global VUE application debug flags.
+ * 
+ * @version $Revision: 1.315 $ / $Date: 2005/12/02 15:50:23 $ / $Author: sfraize $ 
+ */
 public class DEBUG
 {
     public static boolean Enabled = false; // can user turn debug switches on
@@ -44,11 +49,16 @@ public class DEBUG
     public static boolean DYNAMIC_UPDATE = false; // components process all LWCEvent's immediately
     public static boolean KEYS = false; // keyboard input
     public static boolean TOOL = false; // toolbars & tool events
+    public static boolean EDGE = false; // window edges & sticking
     public static boolean IMAGE = false; // images
     public static boolean CASTOR = false; // castor persist (save/restore)
     public static boolean XML = false; // castor persist (save/restore)
     public static boolean THREAD = false; // threading
     public static boolean TEXT = false; // threading
+    public static boolean IO = false; // file and network i/o
+    public static boolean DOCK = false; // DockWindow's
+    
+    public static boolean WORK = false; // work-in-progress
 
     public static boolean DR = false; // digital repository & data sources
     
@@ -58,13 +68,16 @@ public class DEBUG
         CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
             PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
-            CASTOR=XML=THREAD=TEXT=t;
+            CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=t;
+
+        // only turn META & WORK off, not on
         if (t == false)
-            META = false;
+            META = WORK = false;
     }
 
     public static void parseArg(String a) {
              if (a.equals("-debug_meta"))       DEBUG.META = true;
+        else if (a.equals("-debug_work"))       DEBUG.WORK = true;
         else if (a.equals("-debug_init"))       DEBUG.INIT = true;
         else if (a.equals("-debug_focus"))      DEBUG.FOCUS = true;
         else if (a.equals("-debug_dr"))         DEBUG.DR = true;
@@ -78,9 +91,13 @@ public class DEBUG
         else if (a.equals("-debug_keys"))       DEBUG.KEYS = true;
         else if (a.equals("-debug_layout"))     DEBUG.LAYOUT = true;
         else if (a.equals("-debug_text"))       DEBUG.TEXT = true;
+        else if (a.equals("-debug_io"))         DEBUG.IO = true;
+        else if (a.startsWith("-debug_edge"))   DEBUG.EDGE = true;
         else if (a.startsWith("-debug_event"))  DEBUG.EVENTS = true;
         else if (a.startsWith("-debug_thread")) DEBUG.THREAD = true;
         else if (a.startsWith("-debug_image"))  DEBUG.IMAGE = true;
+        else if (a.startsWith("-debug_box"))    DEBUG.BOXES = true;
+        else if (a.startsWith("-debug_dock"))   DEBUG.DOCK = true;
     }
 
     //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }
