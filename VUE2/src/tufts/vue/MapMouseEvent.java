@@ -26,13 +26,11 @@ import javax.swing.JViewport;
 import javax.swing.JScrollPane;
 
 /**
- * MapMouseEvent.java
+ * Extension of MouseEvent for events that happen on an instance of LWMap
+ * in a MapViewer.
  *
- * Extension of MouseEvent for events that happen
- * on an instance of LWMap.
- *
+ * @version $Revision: 1.9 $ / $Date: 2006-01-20 19:33:56 $ / $Author: sfraize $
  * @author Scott Fraize
- * @version 11/5/03
  */
 
 /*
@@ -138,10 +136,10 @@ public class MapMouseEvent extends MouseEvent
     }
 
     public float getComponentX() {
-        return (mapX - hitComponent.getX()) / hitComponent.getScale();
+        return hitComponent == null ? Float.NaN : (mapX - hitComponent.getX()) / hitComponent.getScale();
     }
     public float getComponentY() {
-        return (mapY - hitComponent.getY()) / hitComponent.getScale();
+        return hitComponent == null ? Float.NaN : (mapY - hitComponent.getY()) / hitComponent.getScale();
     }
     public Point2D.Float getComponentPoint() {
         return new Point2D.Float(getComponentX(), getComponentY());
