@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.47 $ / $Date: 2006-01-20 19:30:30 $ / $Author: sfraize $  
+ * @version $Revision: 1.48 $ / $Date: 2006-01-20 21:39:23 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -376,8 +376,8 @@ class MapDropTarget
             System.out.println("TRANSFER: Found supported flavor \"" + foundFlavor.getHumanPresentableName() + "\""
                                + "\n\t   type: " + Util.tag(foundData) + size
                                + bagType0
-                               + "\n\t   data: [" + foundData + "]"
                                + "\n\t flavor: " + foundFlavor
+                               + "\n\t   data: [" + foundData + "]"
                                //+ "\n\tdropptedText=[" + droppedText + "]"
                                );
         }
@@ -422,8 +422,15 @@ class MapDropTarget
             }
 
             if (drop.added.size() > 0) {
-                mViewer.requestFocus();
-                VUE.getSelection().setTo(drop.added.iterator());
+
+                // Must make sure the selection is owned
+                // by this map before we try and change it.
+                mViewer.grabVueApplicationFocus("drop", null);
+                
+                // todo: would be cleaner to have viewer.getSelection(),
+                // that could grab the vue app focus?
+                VUE.getSelection().setTo(drop.added);
+
             }
             
         } catch (Throwable t) {
@@ -486,7 +493,7 @@ class MapDropTarget
             }
             
             if (drop.hit == null || !processed)
-                drop.add(createNodeAndResource(drop, foundURL.toString(), properties, drop.location));
+                createNodeAndResource(drop, foundURL.toString(), properties, drop.location);
 
         } else {
             // create a text node
@@ -508,8 +515,8 @@ class MapDropTarget
         } else {
             setCenterAt(drop.list, drop.location);
             mViewer.getMap().addChildren(drop.list);
-            drop.added.addAll(drop.list);
         }
+        drop.added.addAll(drop.list);
             
         return true;
     }
@@ -537,7 +544,7 @@ class MapDropTarget
                 
                 } else {
                     
-                    drop.add(createNode(drop, resource, Collections.EMPTY_MAP, drop.nextDropLocation()));
+                    createNode(drop, resource, Collections.EMPTY_MAP, drop.nextDropLocation());
                 }
             }
         }
@@ -634,7 +641,7 @@ class MapDropTarget
                 drop.hitNode.addChild(createNodeAndResource(drop, resourceSpec, props, null));
             }
         } else {
-            drop.add(createNodeAndResource(drop, resourceSpec, props, drop.nextDropLocation()));
+            createNodeAndResource(drop, resourceSpec, props, drop.nextDropLocation());
         }
     }
 
@@ -732,6 +739,8 @@ class MapDropTarget
             // this will cause the LWImage to start loading the image
             lwImage.setResourceAndLoad(resource, mViewer.getMap().getUndoManager());
         }
+
+        drop.add(node);
 
         return node;
     }
