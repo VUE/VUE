@@ -23,30 +23,44 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Stroke;
 import java.awt.BasicStroke;
+import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Iterator;
+import java.util.Collection;
 import java.util.ArrayList;
 
 import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
 
 /**
- * LWComponent.java
- * 
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
+ * @version $Revision: 1.184 $ / $Date: 2006-01-20 18:54:28 $ / $Author: sfraize $
  * @author Scott Fraize
- * @version 3/10/03
+ * @license Mozilla
  */
 
+// todo: on init, we need to force the constraint of size being set before
+// label (applies to XML restore & duplicate) to support backward compat before
+// line-wrapped text.  Otherwise, in LWNode's, setting label before size set will cause
+// the size to be set.
+
 public class LWComponent
-    implements MapItem
-               ,VueConstants
+    implements VueConstants, XMLUnmarshalListener
 {
+    public static final java.awt.datatransfer.DataFlavor DataFlavor =
+        tufts.vue.gui.GUI.makeDataFlavor(LWComponent.class);
+    
+    public static final int MIN_SIZE = 10;
+    public static final Size MinSize = new Size(MIN_SIZE, MIN_SIZE);
+    public static final float NEEDS_DEFAULT = Float.MIN_VALUE;
+    
     public interface Listener extends java.util.EventListener {
         public void LWCChanged(LWCEvent e);
     }
@@ -66,8 +80,9 @@ public class LWComponent
     private boolean mIsFiltered = false;
     private NodeFilter nodeFilter = null;
     
-    protected float width = 9;
-    protected float height = 9;
+    protected float width = NEEDS_DEFAULT;
+    protected float height = NEEDS_DEFAULT;
+    protected java.awt.Dimension textSize = null;
 
     protected Color fillColor = null;           //style
     protected Color textColor = COLOR_TEXT;     //style
@@ -99,13 +114,28 @@ public class LWComponent
 
     //protected transient java.util.List listeners;
     protected transient LWChangeSupport mChangeSupport = new LWChangeSupport(this);
+    protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore?
+    protected transient BufferedImage mCachedImage;
+    protected transient double mCachedImageAlpha;
+    protected transient Dimension mCachedImageMaxSize;
+
+    public static final java.util.Comparator XSorter = new java.util.Comparator() {        
+            public int compare(Object o1, Object o2) {
+                return (int) (128f * (((LWComponent)o1).x - ((LWComponent)o2).x));
+            }
+        };
+    public static final java.util.Comparator YSorter = new java.util.Comparator() {        
+            public int compare(Object o1, Object o2) {
+                return (int) (128f * (((LWComponent)o1).y - ((LWComponent)o2).y));
+            }
+        };
 
     /** for save/restore only & internal use only */
     public LWComponent()
     {
         if (DEBUG.PARENTING)
             System.out.println("LWComponent construct of " + getClass().getName() + Integer.toHexString(hashCode()));
-        // tdoo: shouldn't have to create a node filter for every one of these constructed...
+        // TODO: shouldn't have to create a node filter for every one of these constructed...
         nodeFilter = new NodeFilter();
     }
 
@@ -114,14 +144,18 @@ public class LWComponent
         public Key(String name) {
             this.name = name;
         }
+        // could provide group of setters for all the basic types (int, float, String, Font, etc)
+        // to skip casts
+        //public void setValue(LWComponent c, Color color) {}
         public abstract void setValue(LWComponent c, Object v);
         public abstract Object getValue(LWComponent c);
         public String toString() { return name; } // must == name for now until tool panels handle new key objects
         //public String toString() { return ">" + name; }
     }
     public static final Key KEY_FillColor = new Key("fill.color") {
-            public void setValue(LWComponent c, Object val) { c.setFillColor((Color)val); }
-            public Object getValue(LWComponent c) { return c.getFillColor(); }
+            public final void setValue(LWComponent c, Color color) { c.setFillColor(color); }
+            public final void setValue(LWComponent c, Object val) { c.setFillColor((Color)val); }
+            public final Object getValue(LWComponent c) { return c.getFillColor(); }
         };
     
 
@@ -187,11 +221,74 @@ public class LWComponent
     }
 
 
-    /** Create a component with duplicate content & style.
-     * Does not duplicate any links to this component,
-     * and leaves it an unparented orphan.
+    /**
+     * This is used during duplication of group's of LWComponent's
+     * (e.g., a random selection, or a set of children, or an entire map),
+     * to reconnect links within the group after duplication.
      */
-    public LWComponent duplicate()
+    public static class LinkPatcher {
+        private Map mCopies = new java.util.HashMap();
+        private Map mOriginals = new java.util.HashMap();
+
+        public LinkPatcher() {
+            if (DEBUG.DND) System.out.println("LinkPatcher: created");
+        }
+
+        public void reset() {
+            mCopies.clear();
+            mOriginals.clear();
+        }
+
+        public void track(LWComponent original, LWComponent copy)
+        {
+            if (DEBUG.DND) System.out.println("LinkPatcher: tracking " + copy);
+            mCopies.put(original, copy);
+            mOriginals.put(copy, original);
+        }
+
+        //public Collection getCopies() { return mCopies.values(); }
+        
+        public void reconnectLinks() {
+            Iterator ic = mCopies.values().iterator();
+            
+            // Find all LWLink instances in the set of copied
+            // objects, and fix their endpoint pointers to
+            // point to the right object within the copied set.
+            
+            while (ic.hasNext()) {
+                LWComponent c = (LWComponent) ic.next();
+                if (!(c instanceof LWLink))
+                    continue;
+
+                LWLink copied_link = (LWLink) c;
+                LWLink original_link = (LWLink) mOriginals.get(copied_link);
+                
+                LWComponent endPoint1 = (LWComponent) mCopies.get(original_link.getComponent1());
+                LWComponent endPoint2 = (LWComponent) mCopies.get(original_link.getComponent2());
+                
+                if (DEBUG.DND)
+                    System.out.println("LinkPatcher: reconnecting " + copied_link + " endpoints:"
+                                       + "\n\t" + endPoint1
+                                       + "\n\t" + endPoint2
+                                       );
+                
+                copied_link.setComponent1(endPoint1);
+                copied_link.setComponent2(endPoint2);
+            }
+        }
+    }
+    
+    /**
+     * Create a component with duplicate content & style.  Does not
+     * duplicate any links to this component, and leaves it an
+     * unparented orphan.
+     *
+     * @param linkPatcher may be null.  If not, it's used when
+     * duplicating group's of objects containing links that need to be
+     * reconnected at the end of the duplicate.
+     */
+
+    public LWComponent duplicate(LinkPatcher patcher)
     {
         LWComponent c = null;
 
@@ -214,21 +311,32 @@ public class LWComponent
         c.setFillColor(getFillColor());
         c.setTextColor(getTextColor());
         c.setStrokeColor(getStrokeColor());
-        c.setLabel(this.label); // use setLabel so new TextBox will be created
+        c.setLabel(this.label); // use setLabel so new TextBox will be created [!no longer an effect]
+        c.getLabelBox().setSize(getLabelBox().getSize());
         
         if (hasResource())
             c.setResource(getResource());
         if (hasNotes())
             c.setNotes(getNotes());
-        
+
+        if (patcher != null)
+            patcher.track(this, c);
+
         return c;
     }
 
+    public LWComponent duplicate() {
+        return duplicate(null);
+    }
+
+
     protected String getNextUniqueID()
     {
-        if (getParent() == null)
-            throw new IllegalStateException("LWComponent has null parent; needs a parent instance subclassed from LWContainer that implements getNextUniqueID: " + this);
-        else
+        if (getParent() == null) {
+            //throw new IllegalStateException("LWComponent has null parent; needs a parent instance subclassed from LWContainer that implements getNextUniqueID: " + this);
+            if (DEBUG.Enabled) out("getNextUniqueID: returning null for presumed orphan");
+            return null;
+        } else
             return getParent().getNextUniqueID();
     }
 
@@ -339,25 +447,34 @@ public class LWComponent
     {
         setLabel0(label, true);
     }
-    /** called directly by TextBox after document edit with setDocument=false */
-    void setLabel0(String label, boolean setDocument)
+
+    /**
+     * Called directly by TextBox after document edit with setDocument=false,
+     * so we don't attempt to re-update the TextBox, which has just been
+     * updated.
+     */
+    void setLabel0(String newLabel, boolean setDocument)
     {
         Object old = this.label;
-        if (this.label == label)
+        if (this.label == newLabel)
             return;
-        if (this.label != null && this.label.equals(label))
+        if (this.label != null && this.label.equals(newLabel))
             return;
-        if (label == null || label.length() == 0) {
+        if (newLabel == null || newLabel.length() == 0) {
             this.label = null;
             if (labelBox != null)
                 labelBox.setText("");
         } else {
-            this.label = label;
-            // todo opt: only do this if node or link
-            if (labelBox == null)
-                getLabelBox();
-            else if (setDocument)
-                getLabelBox().setText(label);
+            this.label = newLabel;
+            // todo opt: only need to do this if node or link (LWImage?)
+            // Handle this more completely -- shouldn't need to create
+            // label box at all -- why can't do entirely lazily?
+            if (this.labelBox == null) {
+                // figure out how to skip this:
+                //getLabelBox();
+            } else if (setDocument) {
+                getLabelBox().setText(newLabel);
+            }
         }
         layout();
         notify(LWKey.Label, old);
@@ -504,6 +621,8 @@ public class LWComponent
         return false;
     }
     /** does this support user resizing? */
+    // TODO: change these "supports" calls to an arbitrary property list
+    // that could have arbitrary properties added to it by plugged-in non-standard tools
     public boolean supportsUserResize() {
         return false;
     }
@@ -593,6 +712,19 @@ public class LWComponent
 
     
 
+    /** @deprecated - not really deprecated, but intended for persistance only */
+    public java.awt.Dimension getXMLtextBox() {
+        if (this.labelBox == null)
+            return null;
+        else
+            return this.labelBox.getSize();
+    }
+    
+    /** @deprecated - not really deprecated, intended for persistance only */
+    public void setXMLtextBox(java.awt.Dimension d) {
+        this.textSize = d;
+    }
+
     /** for persistance */
     // todo: move all this XML handling stuff to a special castor property mapper,
     // presumably in conjunction with re-architecting the whole mapping style &
@@ -607,7 +739,10 @@ public class LWComponent
     public void setXMLlabel(String text)
     {
         setLabel(unEscapeNewlines(text));
-        //setLabel(unEscapeNewlines(tufts.Util.decodeUTF(text)));
+        //this.label = unEscapeNewlines(text);
+        //getLabelBox().setText(this.label);
+        // we want to make sure layout() is not called, 
+        // and currently there's no need to do notify's during init.
     }
 
     /** for persistance */
@@ -700,7 +835,11 @@ public class LWComponent
      * If this component supports special layout for it's children,
      * or resizes based on font, label, etc, do it here.
      */
-    protected void layout() {}
+    protected void layout() {
+        if (mXMLRestoreUnderway == false)
+            layout(null);
+    }
+    protected void layout(Object triggerKey) {}
     
     public String OLD_toString()
     {
@@ -713,7 +852,8 @@ public class LWComponent
 
     
     /** @return true: default is always autoSized */
-    public boolean isAutoSized() { return true; }
+    //public boolean isAutoSized() { return true; }
+    public boolean isAutoSized() { return false; } // LAYOUT-NEW
     /** do nothing: default is always autoSized */
     public void setAutoSized(boolean t) {}
     
@@ -894,7 +1034,7 @@ public class LWComponent
         this.font = font;
         if (labelBox != null)
             labelBox.copyStyle(this);
-        layout();
+        layout(LWKey.Font);
         notify(LWKey.Font, old);
     }
     
@@ -1142,6 +1282,8 @@ public class LWComponent
     {
         if (this.scale == scale)
             return;
+        if (DEBUG.LAYOUT) out("setScale " + scale);
+        if (DEBUG.LAYOUT) tufts.Util.printClassTrace("tufts.vue", "setScale " + scale);
         this.scale = scale;
         //notify(LWKey.Scale); // todo: why do we need to notify if scale is changed? try removing this
         //System.out.println("Scale set to " + scale + " in " + this);
@@ -1155,6 +1297,10 @@ public class LWComponent
         //return 1f;
     }
 
+    public Size getMinimumSize() {
+        return MinSize;
+    }
+    
     /**
      * Tell all links that have us as an endpoint that we've
      * moved or resized so the link knows to recompute it's
@@ -1185,7 +1331,7 @@ public class LWComponent
      */
     public void setFrame(float x, float y, float w, float h)
     {
-        if (DEBUG.LAYOUT) System.out.println("*** setFrame " + x+","+y + " " + w+"x"+h + " " + this);
+        if (DEBUG.LAYOUT) out("*** setFrame " + x+","+y + " " + w+"x"+h);
 
         setSize(w, h);
         setLocation(x, y);
@@ -1207,6 +1353,8 @@ public class LWComponent
 
     private boolean linkNotificationDisabled = false;
     protected void takeLocation(float x, float y) {
+        if (DEBUG.LAYOUT) out("takeLocation " + x + "," + y);
+        if (DEBUG.LAYOUT) tufts.Util.printStackTrace("takeLocation");
         this.x = x;
         this.y = y;
     }
@@ -1219,7 +1367,7 @@ public class LWComponent
         takeLocation(x, y);
         if (!linkNotificationDisabled)
             updateConnectedLinks();
-        notify(LWKey.Location, old); // todo perf: does anyone need this except for undo?  lots of these during drags...
+        notify(LWKey.Location, old);
         // todo: setX/getX should either handle undo or throw exception if used while not during restore
     }
     public void setLocation(double x, double y) {
@@ -1281,7 +1429,7 @@ public class LWComponent
     {
         if (this.width == w && this.height == h)
             return;
-        if (DEBUG.LAYOUT) out("*** setSize   (LWC)  " + w + "x" + h);
+        if (DEBUG.LAYOUT) out("*** setSize  (LWC)  " + w + "x" + h);
         Size old = new Size(width, height);
         if (mAspect > 0) {
             if (w <= 0) w = 1;
@@ -1297,8 +1445,8 @@ public class LWComponent
                 w = (float) (h * mAspect);
                 
         }
-        if (w < 10) w = 10;
-        if (h < 10) h = 10;
+        if (w < MIN_SIZE) w = MIN_SIZE;
+        if (h < MIN_SIZE) h = MIN_SIZE;
         takeSize(w, h);
         if (getParent() != null && !(getParent() instanceof LWMap))
             getParent().layout();
@@ -1318,7 +1466,7 @@ public class LWComponent
      */
     public void setAbsoluteSize(float w, float h)
     {
-        if (DEBUG.LAYOUT) out("*** " + this + " setAbsoluteSize " + w + "x" + h);
+        if (DEBUG.LAYOUT) out("*** setAbsoluteSize " + w + "x" + h);
         setSize(w / getScale(), h / getScale());
     }
 
@@ -1536,7 +1684,7 @@ public class LWComponent
     // todo: drawing of selection should be handled by the MapViewer and/or the currently
     // active tool -- not in the component code
     protected void drawSelectionDecorations(DrawContext dc) {
-        if (isSelected() && !dc.isPrinting()) {
+        if (isSelected() && dc.isInteractive()) {
             LWPathway p = VUE.getActivePathway();
             if (p != null && p.isVisible() && p.getCurrent() == this) {
                 // SPECIAL CASE:
@@ -1577,6 +1725,17 @@ public class LWComponent
 
     protected synchronized void notifyLWCListeners(LWCEvent e)
     {
+        //if (e.key.isSignal || e.key == LWKey.Location && e.source == this) {
+        if (e.key == LWKey.UserActionCompleted || e.key == LWKey.Location && e.source == this) {
+            // only keep if the location event is on us:
+            // if this is our child that moved, obviously
+            // clear the cache (we look different)
+            //out("*** KEEPING IMAGE CACHE ***");
+            ; // keep the cached image
+        } else {
+            //out("*** CLEARING IMAGE CACHE");
+            mCachedImage = null;
+        }
         mChangeSupport.notifyListeners(this, e);
     }
     
@@ -1834,7 +1993,8 @@ public class LWComponent
     public String paramString()
     {
         return
-            //" " + x+","+y +
+            //" " + getX()+","+getY() + " " +
+            " " + VueUtil.oneDigitDecimal(getX())+","+VueUtil.oneDigitDecimal(getY()) + " " +
             VueUtil.oneDigitDecimal(width) + "x" + VueUtil.oneDigitDecimal(height);
     }
 
@@ -1851,13 +2011,150 @@ public class LWComponent
         System.out.println(s);
     }
 */
+
+    /** interface {@link XMLUnmarshalListener} -- does nothing here */
+    public void XML_initialized() {
+        mXMLRestoreUnderway = true;
+    }
+
+    /** interface {@link XMLUnmarshalListener} -- does nothing here */
+    public void XML_addNotify(String name, Object parent) {}
+
+    /** interface {@link XMLUnmarshalListener} -- call's layout */
+    public void XML_completed() {
+        mXMLRestoreUnderway = false;
+        layout();
+    }
+
+
+    public BufferedImage getAsImage(double alpha, java.awt.Dimension maxSize) {
+        if (mCachedImage == null || mCachedImageAlpha != alpha || mCachedImageMaxSize != maxSize) {
+            mCachedImage = createImage(alpha, maxSize);
+            mCachedImageAlpha = alpha;
+            mCachedImageMaxSize = maxSize;
+        }
+        return mCachedImage;
+    }
+    
+    public BufferedImage getAsImage() {
+        return getAsImage(1.0, null);
+    }
+
+    public BufferedImage createImage(double alpha, java.awt.Dimension maxSize) {
+        return createImage(alpha, maxSize, null);
+    }
+    
+    /**
+     * Create a new buffered image, of max dimension maxSize, and render the LWComponent
+     * (and all it's children), to it using the given alpha.
+     * @param alpha 0.0 (invisible) to 1.0 (no alpha)
+     * @param maxSize max dimensions for image. May be null.  Image may be smaller than maxSize.
+     * @param fillColor -- if non-null, will be rendered as background for image.  If alpha is
+     * also set, background fill will have transparency of alpha^3 to enhance contrast.
+     */
+    public BufferedImage createImage(double alpha, java.awt.Dimension maxSize, Color fillColor)
+    {
+        if (DEBUG.IMAGE) out("createImage; MAX size " + maxSize);
+        Rectangle2D.Float bounds = (Rectangle2D.Float) getBounds();
+
+        final boolean drawBorder = this instanceof LWMap && alpha != 1.0;
+
+        bounds.width += 1;
+        bounds.height += 1;
+
+        if (drawBorder) {
+            bounds.x--;
+            bounds.y--;
+            bounds.width += 2;
+            bounds.height += 2;
+        }
+            
+        if (DEBUG.IMAGE) out("createImage; natural bounds " + bounds);
+        
+        int width = (int) Math.ceil(bounds.width);
+        int height = (int) Math.ceil(bounds.height);
+        double zoom = 1.0;
+
+        if (maxSize != null) {
+            
+            if (width > maxSize.width || height > maxSize.height) {
+                Point2D offset = new Point2D.Double(); // not needed if no border-gap
+                zoom = ZoomTool.computeZoomFit(maxSize, 0, bounds, offset);
+                width = (int) Math.ceil(bounds.width * zoom);
+                height = (int) Math.ceil(bounds.height * zoom);
+            }
+        }
+        
+
+        int imageType;
+
+        if (alpha == 1.0 && fillColor != null)
+            imageType = BufferedImage.TYPE_INT_RGB;
+        else
+            imageType = BufferedImage.TYPE_INT_ARGB;
+        
+        if (DEBUG.IMAGE) out("createImage; final size " + width + "x" + height);
+
+        BufferedImage image = new BufferedImage(width, height, imageType);
+
+        java.awt.Graphics2D g = (java.awt.Graphics2D) image.getGraphics();
+        
+        /*if (c instanceof LWGroup && ((LWGroup)c).numChildren() > 1) {
+            g.setColor(new Color(255,255,255,32)); // give a bit of background
+            //g.fillRect(0, 0, width, height);
+            }*/
+
+        DrawContext dc = new DrawContext(g);
+        dc.setAlpha(alpha);
+        
+        if (fillColor != null) {
+            if (alpha != 1.0) {
+                Color c = fillColor;
+                // if we have an alpha and a fill, amplify the alpha on the background fill
+                // by changing the fill to one that has alpha*alpha, for a total of
+                // alpha*alpha*alpha given our GC already has an alpha set.
+                fillColor = new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) (alpha*alpha*255+0.5));
+            }
+            g.setColor(fillColor);
+            g.fillRect(0, 0, width, height);
+        }
+
+        dc.setAntiAlias(true);
+            
+        if (drawBorder) {
+            g.setColor(Color.darkGray);
+            g.drawRect(0, 0, width-1, height-1);
+        }
+
+        if (zoom != 1.0)
+            dc.g.scale(zoom, zoom);
+                
+        // translate so that we're un the upper-left of the GC
+        g.translate(-(int)Math.floor(bounds.getX()),
+                    -(int)Math.floor(bounds.getY()));
+
+        // GC *must* have a bounds set or we get NPE's in JComponent (textBox) rendering
+        g.setClip(bounds);
+            
+
+        // render to the image through the DrawContext/GC pointing to it
+        draw(dc);
+
+        if (DEBUG.DND || DEBUG.IMAGE) out("created image: " + image);
+
+        return image;
+    }
+
+    
     public String toString()
     {
         String cname = getClass().getName();
         String s = cname.substring(cname.lastIndexOf('.')+1);
         s += "[";
-        if (getID() != null)
-            s += VueUtil.pad(' ', 2, getID()) + " ";
+        if (getID() == null)
+            s += tufts.Util.pad(9, Integer.toHexString(hashCode()));
+        else
+            s += tufts.Util.pad(3, getID());
         if (getLabel() != null) {
             if (isAutoSized())
                 s += "\"" + getDisplayLabel() + "\" ";
