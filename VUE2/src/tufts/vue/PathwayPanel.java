@@ -29,8 +29,6 @@ import javax.swing.table.*;
 import javax.swing.border.*;
 
 /**
- * PathwayPanel.java
- *
  * Provides a panel that displays the PathwayTable with note panel
  * editable view of currently selected pathway or item on pathway, as
  * well as controls for navigating through the pathway, and
@@ -44,7 +42,7 @@ import javax.swing.border.*;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version February 2004
+ * @version $Revision: 1.62 $ / $Date: 2006-01-20 20:01:27 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel implements ActionListener
@@ -631,7 +629,7 @@ public class PathwayPanel extends JPanel implements ActionListener
     public static void main(String[] args) {
         System.out.println("PathwayPanel:main");
         DEBUG.Enabled = DEBUG.INIT = true;
-        VUE.initUI(true);
+        VUE.init(args);
         VueUtil.displayComponent(new PlaybackToolPanel());
     }
     

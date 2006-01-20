@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.GUI;
+
 import java.util.ArrayList;
 import java.awt.*;
 import java.awt.event.*;
@@ -27,8 +29,6 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 
 /**
- * PathwayTable.java
- *
  * A JTable that displays all of the pathways that exists in a given map,
  * and provides user interaction with the list of pathways.  Relies
  * on PathwayTableModel to produce a view of all the pathways that allows
@@ -41,7 +41,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version February 2004
+ * @version $Revision: 1.59 $ / $Date: 2006-01-20 20:02:01 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -66,13 +66,15 @@ public class PathwayTable extends JTable
     private LWComponent lastSelectedComponent;
     private boolean inTableSelection;
 
-    private final boolean showHeaders = true; // sets whether or not table column headers are shown
+    private static final boolean showHeaders = true; // sets whether or not table column headers are shown
     private final int[] colWidths = {20,20,13,100,20,20,20};
 
-    private final Color selectedColor = VueTheme.getTheme().getTextHighlightColor();
+    private static Color selectedColor;
 
     public PathwayTable(PathwayTableModel model) {
         super(model);
+
+        selectedColor = GUI.getTextHighlightColor();
 
         this.close = VueResources.getImageIcon("pathwayClose");
         this.open = VueResources.getImageIcon("pathwayOpen");
@@ -235,7 +237,7 @@ public class PathwayTable extends JTable
         public void actionPerformed(ActionEvent e) {
             if (VUE.getActivePathway().isLocked())
                 return;
-            Color c = VueUtil.runColorChooser("Pathway Color Selection", currentColor, VUE.getRootParent());
+            Color c = VueUtil.runColorChooser("Pathway Color Selection", currentColor, VUE.getDialogParent());
             fireEditingStopped();
             if (c != null) {
                 // why the row checking here?

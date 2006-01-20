@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.GUI;
+
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -26,12 +28,12 @@ import javax.swing.border.*;
 
 
 /**
- * PaletteButton
+ *
  * This class provides a popup radio button selector component.
  * It is used for the main tool bar tool
  *
  * @author csb
- * @version 1.1
+ * @version $Revision: 1.16 $ / $Date: 2006-01-20 20:00:32 $ / $Author: sfraize $
  **/
 public class PaletteButton extends JRadioButton implements ActionListener
 {
@@ -92,7 +94,7 @@ public class PaletteButton extends JRadioButton implements ActionListener
         }
         setBorder( null);
         setFocusable(false);
-        VueTheme.applyToolbarColor(this);
+        GUI.applyToolbarColor(this);
     }
 	
     /**
@@ -270,7 +272,7 @@ public class PaletteButton extends JRadioButton implements ActionListener
             cols++;
         int rows = (numItems + (numItems % cols )) / cols ;
 
-        if (rows < 3 && VueTheme.isMacMetalLAF() && VueUtil.getJavaVersion() < 1.5f /*&& tiger */) { // total hack for now
+        if (rows < 3 && GUI.isMacBrushedMetal() && VueUtil.getJavaVersion() < 1.5f /*&& tiger */) { // total hack for now
 
             // JAVA BUG: there appears to be an absolute minimunm width & height
             // for pop-up's: approx 125 pixels wide, no smaller, and approx 34 pixels
@@ -484,7 +486,7 @@ public class PaletteButton extends JRadioButton implements ActionListener
 
         public PBPopupMenu() {
             setFocusable(false);
-            VueTheme.applyToolbarColor(this);
+            GUI.applyToolbarColor(this);
             //setBackground(Color.white);
             setBorder(new LineBorder(getBackground().darker().darker(), 1));
             //setBorderPainted(false);

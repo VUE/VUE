@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.GUI;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Dimension;
@@ -27,8 +29,6 @@ import javax.swing.border.*;
 import java.util.Iterator;
 
 /**
- * PathwayTool.java
- *
  * MapViewer tool functionality plus pathway contextual toolbar tool.
  * The contextual toolbar maintains a JComboBox that stays synchronized
  * with whatever is in the LWPathwayList of the current map, as well
@@ -37,8 +37,8 @@ import java.util.Iterator;
  * @see LWPathwayList
  * @see LWPathway
  *
+ * @version $Revision: 1.20 $ / $Date: 2006-01-20 20:02:28 $ / $Author: sfraize $
  * @author  Scott Fraize
- * @version May 2004
  */
 public class PathwayTool extends VueSimpleTool
 {
@@ -55,8 +55,8 @@ public class PathwayTool extends VueSimpleTool
     public void actionPerformed(ActionEvent e) {
         super.actionPerformed(e);
         if (DEBUG.TOOL) System.out.println("PATHWAYTOOL " + e);
-        if (VUE.sMapInspector != null)
-            VUE.sMapInspector.showTab("Pathway");
+        if (VUE.MapInspector != null)
+            VUE.MapInspector.showTab("Pathway");
     }
 
 
@@ -154,12 +154,12 @@ public class PathwayTool extends VueSimpleTool
             Font f = combo.getFont();
             Font menuFont = new Font(f.getFontName(), f.getStyle(), f.getSize() - 2);
             combo.setFont(menuFont);
-            combo.setBackground(VueTheme.getToolbarColor());
+            GUI.applyToolbarColor(combo);
             combo.setFocusable(false);
 
             // A total hack so the visible height of the combo-box is squeezed down a bit
             // Setting the size only appears to work for the width, not the height.
-            combo.setBorder(new MatteBorder(2,0,2,0, VueTheme.getToolbarColor()));
+            combo.setBorder(new MatteBorder(2,0,2,0, GUI.getToolbarColor()));
             //combo.setBorder(new EmptyBorder(2,0,2,0)); // so height get's squeezed
             //combo.setPreferredSize(new Dimension(150, 18));
             //combo.setSize(new Dimension(150, 18));

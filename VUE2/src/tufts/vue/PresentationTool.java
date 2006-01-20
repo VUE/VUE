@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import tufts.macosx.MacOSX;
 import tufts.vue.gui.TextRow;
 
 import java.util.List;
@@ -33,6 +34,13 @@ import java.awt.geom.RoundRectangle2D;
 import java.awt.event.*;
 import javax.swing.*;
 
+/**
+ * Tool for presentation mode.
+ *
+ * @version $Revision: 1.18 $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $
+ * @author Scott Fraize
+ *
+ */
 public class PresentationTool extends VueTool
     implements VUE.ActiveViewerListener
 {
@@ -272,7 +280,7 @@ public class PresentationTool extends VueTool
         if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
             //out("makeInvisible");
             try {
-                tufts.macosx.Screen.makeMainInvisible();
+                MacOSX.makeMainInvisible();
                 invisible = true;
             } catch (Error e) {
                 System.err.println(e);
@@ -284,8 +292,8 @@ public class PresentationTool extends VueTool
         if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
             //out("makeVisible");
             try {
-                if (tufts.macosx.Screen.isMainInvisible())
-                    tufts.macosx.Screen.fadeUpMainWindow();
+                if (MacOSX.isMainInvisible())
+                    MacOSX.fadeUpMainWindow();
                 invisible = false;
             } catch (Error e) {
                 System.err.println(e);
