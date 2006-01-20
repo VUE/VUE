@@ -40,7 +40,7 @@ import javax.swing.JViewport;
  * the contents of the VIEW (the MapViewer) are scrolled.  Here, we
  * call the view the CANVAS.
  *
- * @version $Revision: 1.18 $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $
+ * @version $Revision: 1. $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $
  */
 
 public class MapViewport extends JViewport
