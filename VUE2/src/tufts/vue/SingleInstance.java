@@ -16,20 +16,16 @@
  * -----------------------------------------------------------------------------
  */
 
-/*
- * SingleInstance.java
- *
- * Created on March 22, 2004, 2:05 PM
- */
-
-/**
- *
- * @author  akumar03
- */
 package tufts.vue;
 
 import java.net.*;
 import java.io.*;
+
+/**
+ *
+ * @author  akumar03
+ * @version $Revision: 1.3 $ / $Date: 2006-01-20 20:07:34 $ / $Author: sfraize $ 
+ */
 public class SingleInstance {
     
     /** Creates a new instance of SingleInstance */
@@ -72,7 +68,7 @@ public class SingleInstance {
             public void run() {
                 while(running) {
                     try {
-                        running = tufts.vue.VUE.getInstance() != null;
+                        running = tufts.vue.VUE.getApplicationFrame() != null;
                         Thread.sleep(2000);
                     } catch(Exception e) {
                         System.out.println("Error checking instance of vue: running="+running);
