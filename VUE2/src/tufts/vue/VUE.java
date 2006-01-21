@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.317 $ / $Date: 2006-01-20 20:20:03 $ / $Author: sfraize $ 
+ * @version $Revision: 1.318 $ / $Date: 2006-01-21 01:30:52 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -308,6 +308,7 @@ public class VUE
         parseArgs(args);
         
         Log.info("startup; build: " + tufts.vue.Version.AllInfo);
+        Log.info("running in Java VM: " + System.getProperty("java.runtime.version"));
         
         try {
             initApplication(args);
