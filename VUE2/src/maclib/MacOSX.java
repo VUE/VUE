@@ -20,7 +20,7 @@ import java.awt.*;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.3 $ / $Date: 2006-01-20 16:53:59 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2006-01-21 01:52:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX
@@ -438,7 +438,16 @@ public class MacOSX
     
     // This should be private as we don't want to export NSWindow dependencies,
     // but is public for testing right now.
-    public static NSWindow getWindow(Window javaWindow)
+    public static NSWindow getWindow(Window javaWindow) {
+        try {
+            return findWindow(javaWindow);    
+        } catch (LinkageError e) {
+            eout(e);
+        }
+        return null;
+    }
+    
+    private static NSWindow findWindow(Window javaWindow)
     {
         NSWindow macWindow = (NSWindow) WindowMap.get(javaWindow);
         //NSWindow macWindowCached = (NSWindow) WindowMap.get(javaWindow);
@@ -624,9 +633,37 @@ public class MacOSX
         getMainWindow().setAlphaValue(alpha);
     }
 
+    private static void eout(LinkageError e) {
+        if (e instanceof NoSuchMethodError)
+            eout((NoSuchMethodError)e);
+        else if (e instanceof NoClassDefFoundError)
+            eout((NoClassDefFoundError)e);
+        else {
+            errout(e + ": problem locating MacOSX Java/Cocoa supper code");
+        }
+    }
+    
+    private static void eout(NoSuchMethodError e) {
+        // If tufts.macosx.MacOSX get's out of date, or
+        // it's library is not included in the build, we'll
+        // get a NoSuchMethodError
+        errout(e + "; tufts.macosx.MacOSX needs rebuild and/or VUE-MacOSX.jar needs updating");
+        e.printStackTrace();
+    }
+    private static void eout(NoClassDefFoundError e) {
+        // We'll get this if /System/Library/Java isn't in the classpath
+        errout(e + ": Not MacOSX Platform or /System/Library/Java not in classpath");
+        e.printStackTrace();
+    }
+
     protected static void out(String s) {
         System.out.println("MacOSX lib: " + s);
     }
+
+    protected static void errout(String s) {
+        System.err.println("MacOSX lib: " + s);
+    }
+    
 
 
 }
