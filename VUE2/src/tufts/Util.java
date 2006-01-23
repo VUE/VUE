@@ -349,20 +349,49 @@ public class Util
         // In Mac OS X, you MUST have %20 and NO spaces in the URL's -- reverse of Windows.
         // (Actually, that may only be for local files?).
         
-        url = url.replaceAll(" ", "%20");
-        System.err.println("openURL_Mac  [" + url + "]");
-        if ( (url.indexOf(':') < 0) && (!(url.startsWith("/"))) ) {
-            // Hack to make relative references relative to user home directory.
-            // OSX won't default to use current directory
-            // for a relative reference, so we prepend
-            // the current directory manually.
-            url = "file://" + System.getProperty("user.dir") + "/" + url;
-            System.err.println("openURL_Mac  [" + url + "]");
+        if (url.startsWith("file:////")) {
+            // don't think we have to do this, but just in case
+            // (was getting a complaint and couldn't tell if this was why or not,
+            // so now we won't see it)
+            url = "file:///" + url.substring(9);
         }
+
+        // AH-HAH! -- MacOSX openURL uses UTF-8, NOT the native MacRoman encoding.
+        
+        if (DEBUG) System.err.println("openURL_Mac0 [" + url + "]");
+        url = java.net.URLEncoder.encode(url, "UTF-8"); // URLEncoder is way overzealous...
+        if (DEBUG) System.err.println("     OUM UTF [" + url + "]");
+
+        if (true) {
+            // now decode the over-coded stuff so it looks sane and we can
+            // do our check below and still look for '/' and ':'
+            url = url.replaceFirst("%3A", ":"); // only need to do first one
+            url = url.replaceAll("%2F", "/");
+            url = url.replaceAll("\\+", "%20");
+        }
+
+        if (DEBUG) System.err.println(" OUM cleanup [" + url + "]");
+
+        if (url.indexOf(':') < 0 && !url.startsWith("/")) {
+            
+            // Hack to make relative references relative to user home directory.  OSX
+            // won't default to use current directory for a relative references, so 
+            // we're prepending the home directory manually as a bail out try-for-it.
+            
+            url = "file://" + System.getProperty("user.home") + "/" + url;
+            if (DEBUG) System.err.println("    OUM HOME [" + url + "]");
+        }
+
+        execMacOpenURL(url);
+        
+    }
+
+    private static void execMacOpenURL(String url)
+    {
         if (getJavaVersion() >= 1.4f) {
             // Can't call this directly because wont compile on the PC
             //com.apple.eio.FileManager.openURL(url);
-
+            
             if (macOpenURL_Method == null) {
                 try {
                     Class macFileManager = Class.forName("com.apple.eio.FileManager");
@@ -394,8 +423,12 @@ public class Util
             // compiler
             //    com.apple.mrj.MRJFileUtils.openURL(url);
         }
-        System.err.println("returned from openURL_Mac " + url);
+
+        if (DEBUG) System.err.println("execMacOpenURL returns (" + url + ")");
+        
     }
+
+    
 
     private static void openURL_Unix(String url)
         throws java.io.IOException
@@ -462,9 +495,9 @@ public class Util
             } else
                 buf.append(c);
         }
-        if (true) {
+        if (DEBUG) {
             System.out.println("DECODED      [" + s + "]");
-            System.out.println("             [" + buf + "]");
+            System.out.println("     TO      [" + buf + "]");
         }
         return buf.toString();
     }
@@ -773,6 +806,29 @@ public class Util
         }
     }
 
+    public static String upperCaseWords(String s)
+    {
+        //if (DEBUG) out("UCW in["+s+"]");
+
+        StringBuffer result = new StringBuffer(s.length());
+        String[] words = s.split(" ");
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            //if (DEBUG) out("word" + i + "["+word+"]");
+            if (word.length() < 1)
+                continue;
+            if (Character.isLowerCase(word.charAt(0))) {
+                result.append(Character.toUpperCase(word.charAt(0)));
+                word = word.substring(1);
+            }
+            result.append(word);
+            if (i + 1 < words.length)
+                result.append(' ');
+        }
+        //if (DEBUG) out("UCWout["+result+"]");
+        return result.toString();
+    }
+
     private static void eout(LinkageError e) {
         if (e instanceof NoSuchMethodError)
             eout((NoSuchMethodError)e);
@@ -874,90 +930,6 @@ public class Util
             return "";
     }
     
-    
-
-    public static void main(String args[])
-        throws java.io.IOException
-    {
-        //System.out.println("cursor16 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(16,16));
-        //System.out.println("cursor24 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(24,24));
-        //System.out.println("cursor32 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(32,32));
-                                       //.list(System.out);
-
-        // TESTING CODE
-        System.out.println("Default JVM character encoding for this platform: " +
-                           (new java.io.OutputStreamWriter(new java.io.ByteArrayOutputStream())).getEncoding());
-            
-        if (args.length > 0 && args[0].equals("-charsets")) {
-            Map cs = java.nio.charset.Charset.availableCharsets();
-            //System.out.println("Charsets: " + cs.values());
-            Iterator i = cs.values().iterator();
-            while (i.hasNext()) {
-                java.nio.charset.Charset o = (java.nio.charset.Charset) i.next();
-                System.out.println(o
-                                   + "\t" + o.aliases()
-                                   //+ " " + o.getClass()
-                                   );
-            }
-            System.exit(0);
-        }
-
-        
-        
-        if (args.length == 1) {
-            openURL(args[0]);
-            //else
-            //test_OpenURL();
-        } else if (args.length == 2) {
-            try {
-                // Even tho we tried putting blackships.jar in two different places in java.library.path, it claimed it couldn't find it.
-                System.loadLibrary("blackships.jar");
-                java.net.URL url = new java.net.URL("blackships/large/02_010b_DutchFamily_l.jpg");
-                System.out.println("URL: " + url);
-                System.out.println("CONTENT: " + url.getContent());
-                // cannot build a file object from a URL
-                //java.net.URL url = new java.net.URL("jar:file:/VUE/src/VUE-core.jar!/tufts/vue/images/pathway_hide_on.gif");
-                //java.net.URI uri = new java.net.URI(url.toString());
-                //java.io.File f = new java.io.File(uri);
-                //System.out.println("File " + f + " has length " + f.length() + " exists=" + f.exists());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else if (args.length == 3) {
-            JarFile jar = new JarFile(args[0]);
-            System.out.println("Got jar " + jar);
-            Enumeration e = jar.entries();
-            while (e.hasMoreElements()) {
-                JarEntry entry = (JarEntry) e.nextElement();
-                long size = entry.getSize();
-                System.out.println("Got entry " + entry + "  size=" + size);
-                if (entry.getComment() != null)
-                    System.out.println("\tcomment[" + entry.getComment() + "]");
-                    byte[] extra = entry.getExtra();
-                    if (extra != null) {
-                        System.out.println("\textra len=" + extra.length + " [" + extra + "]");
-                    }
-                if (entry.getName().endsWith("MANIFEST.MF")) {
-                    java.io.InputStream in = jar.getInputStream(entry);
-                    byte[] data = new byte[(int)size];
-                    in.read(data);
-                    System.out.println("Contents[" + new String(data) + "]");
-                }
-            }
-                
-        } else {
-            Hashtable props = System.getProperties();
-            Enumeration e = props.keys();
-            while (e.hasMoreElements()) {
-                Object key = e.nextElement();
-                //System.out.println("[1;36m" + key + "[m=" + props.get(key));
-                System.out.println(key + "=" + props.get(key));
-            }
-        }
-        
-        System.exit(0);
-    }
-
     public static void test_OpenURL()
     {
         try {
@@ -989,6 +961,17 @@ public class Util
         }
     }
 
+    public static String encodeASCII(String s) {
+        if (s == null) return null;
+        try {
+            // unfortunately, this doesn't encode non-ascii chars as % codes, only '?'
+            String encoded = new String(s.getBytes("ASCII"));
+            return encoded;
+        } catch (java.io.UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return s;
+        }
+    }
     
     /** decode the given String in 8-bit UTF-8 to the default java 16-bit unicode format
         (the platform default, which varies) for display */
@@ -1037,7 +1020,7 @@ public class Util
             s.print(TERM_CLEAR);
             
             if (prefix == null || prefix == NO_CLASS_FILTER)
-                prefix = "!tufts.Util";
+                prefix = "!tufts.Util,print";
 
             StackTraceElement[] trace = t.getStackTrace();
             int skipped = 0;
@@ -1066,7 +1049,9 @@ public class Util
             matchIsIncluded = false;
         }
 
-        if (trace.getClassName().startsWith(prefix))
+        String where = trace.getClassName() + "." + trace.getMethodName();
+
+        if (where.startsWith(prefix))
             return matchIsIncluded;
         else
             return !matchIsIncluded;
@@ -1133,6 +1118,100 @@ public class Util
     public static String pad(int wide, String s) {
         return pad(' ', wide, s, false);
     }
+
+
+
+
+    
+
+    public static void main(String args[])
+        throws java.io.IOException
+    {
+        //System.out.println("cursor16 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(16,16));
+        //System.out.println("cursor24 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(24,24));
+        //System.out.println("cursor32 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(32,32));
+                                       //.list(System.out);
+
+        DEBUG = true;
+        // TESTING CODE
+        System.out.println("Default JVM character encoding for this platform: " +
+                           (new java.io.OutputStreamWriter(new java.io.ByteArrayOutputStream())).getEncoding());
+            
+        if (args.length > 0 && args[0].equals("-charsets")) {
+            Map cs = java.nio.charset.Charset.availableCharsets();
+            //System.out.println("Charsets: " + cs.values());
+            Iterator i = cs.values().iterator();
+            while (i.hasNext()) {
+                java.nio.charset.Charset o = (java.nio.charset.Charset) i.next();
+                System.out.println(o
+                                   + "\t" + o.aliases()
+                                   //+ " " + o.getClass()
+                                   );
+            }
+            System.exit(0);
+        }
+
+        String test = "file:///Users/sfraize/Desktop/Cup»Chevron.png";
+        
+        if (args.length == 1) {
+            if ("test".equals(args[0])) {
+                execMacOpenURL(test);
+                openURL(test);
+            } else
+                openURL(args[0]);
+            //else
+            //test_OpenURL();
+        } else if (args.length == 2) {
+            try {
+                // Even tho we tried putting blackships.jar in two different places in java.library.path, it claimed it couldn't find it.
+                System.loadLibrary("blackships.jar");
+                java.net.URL url = new java.net.URL("blackships/large/02_010b_DutchFamily_l.jpg");
+                System.out.println("URL: " + url);
+                System.out.println("CONTENT: " + url.getContent());
+                // cannot build a file object from a URL
+                //java.net.URL url = new java.net.URL("jar:file:/VUE/src/VUE-core.jar!/tufts/vue/images/pathway_hide_on.gif");
+                //java.net.URI uri = new java.net.URI(url.toString());
+                //java.io.File f = new java.io.File(uri);
+                //System.out.println("File " + f + " has length " + f.length() + " exists=" + f.exists());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else if (args.length == 3) {
+            JarFile jar = new JarFile(args[0]);
+            System.out.println("Got jar " + jar);
+            Enumeration e = jar.entries();
+            while (e.hasMoreElements()) {
+                JarEntry entry = (JarEntry) e.nextElement();
+                long size = entry.getSize();
+                System.out.println("Got entry " + entry + "  size=" + size);
+                if (entry.getComment() != null)
+                    System.out.println("\tcomment[" + entry.getComment() + "]");
+                    byte[] extra = entry.getExtra();
+                    if (extra != null) {
+                        System.out.println("\textra len=" + extra.length + " [" + extra + "]");
+                    }
+                if (entry.getName().endsWith("MANIFEST.MF")) {
+                    java.io.InputStream in = jar.getInputStream(entry);
+                    byte[] data = new byte[(int)size];
+                    in.read(data);
+                    System.out.println("Contents[" + new String(data) + "]");
+                }
+            }
+                
+        } else {
+            Hashtable props = System.getProperties();
+            Enumeration e = props.keys();
+            while (e.hasMoreElements()) {
+                Object key = e.nextElement();
+                //System.out.println("[1;36m" + key + "[m=" + props.get(key));
+                System.out.println(key + "=" + props.get(key));
+            }
+        }
+        
+        System.exit(0);
+    }
+
+    
     
         
     
