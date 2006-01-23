@@ -178,16 +178,17 @@ public class LWCToolPanel extends JPanel
          // Font face & size editor
          //-------------------------------------------------------
 
-         /*
-         mFontPanel = new FontEditorPanel();
-         if (debug)
-             mFontPanel.setBackground(Color.green);
-         else
-             GUI.applyToolbarColor(mFontPanel);
+         if (true) {
+             mFontPanel = new FontEditorPanel();
+             if (debug)
+                 mFontPanel.setBackground(Color.green);
+             else
+                 GUI.applyToolbarColor(mFontPanel);
+             
+             mFontPanel.setPropertyKey(LWKey.Font);
+             mFontPanel.addPropertyChangeListener(this);
+         }
 
-         mFontPanel.setPropertyKey(LWKey.Font);
-         mFontPanel.addPropertyChangeListener(this);
-         */
  		
          //-------------------------------------------------------
          if (debug) {
