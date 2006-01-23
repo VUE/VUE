@@ -14,10 +14,14 @@ import javax.swing.text.*;
  * and enters an undo entry.
  *
  * @author Scott Fraize
- * @version August 2005
+ * @version $Revision: 1.6 $ / $Date: 2006-01-23 16:13:41 $ / $Author: sfraize $
  */
 
 // todo: create an abstract class for handling property & undo code, and subclass this and VueTextField from it.
+// or: a handler/listner that can be attached to any text field.
+
+// todo: consume all key events
+
 public class VueTextPane extends JTextPane
     implements LWComponent.Listener
 {
@@ -38,6 +42,18 @@ public class VueTextPane extends JTextPane
         if (c != null && propertyKey != null)
             attachToProperty(c, propertyKey);
         setUndoName(undoName);
+        if (GUI.isMacAqua()) {
+            try {
+                Class abc = Class.forName("apple.laf.AquaTextFieldBorder");
+                setBorder((javax.swing.border.Border) abc.newInstance());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (propertyKey != null)
+            setName(propertyKey.toString());
+        else if (undoName != null)
+            setName(undoName);
     }
 
     public VueTextPane(String undoName) {
@@ -46,6 +62,21 @@ public class VueTextPane extends JTextPane
     
     public VueTextPane() {
         this(null, null, null);
+    }
+    
+    /** We override this to do nothing, so that default focus traversal keys are left in
+     * place (and so you can't use TAB in this class.  See java 1.4 JEditorPane constructor
+     * where it installs JComponent.getManagingFocus{Forward,Backward}TraversalKeys().
+     * This doesn't work for java 1.5 -- will have to override LookAndFeel.installProperty
+     * for that.
+     */
+    public void setFocusTraversalKeys(int id, java.util.Set keystrokes) {
+        if (DEBUG.FOCUS) System.out.println(this + " ignoring setFocusTraversalKeys " + id + " " + keystrokes);
+    }
+
+    public void XsetName(String s) {
+        tufts.Util.printStackTrace("setName " + s);
+        super.setName(s);
     }
     
     protected void processKeyEvent(KeyEvent e) {
@@ -117,9 +148,11 @@ public class VueTextPane extends JTextPane
             }
             //setEditable(true);
             setEnabled(true);
+            //setFocusable(true);
         } else {
             //setEditable(false);
             setEnabled(false);
+            //setFocusable(false);
         }
         if (text == null) {
             setText("");
@@ -193,6 +226,22 @@ public class VueTextPane extends JTextPane
         }
     }
 
+    public static void main(String args[]) {
+        VUE.init(args);
+        VueUtil.displayComponent(new VueTextField("some text"));
+        DockWindow w = GUI.createDockWindow("VueTextPane Test");
+        javax.swing.JPanel panel = new javax.swing.JPanel();
+        VueTextPane tp1 = new VueTextPane();
+        VueTextPane tp2 = new VueTextPane();
+        VueTextPane tp3 = new VueTextPane();
+        panel.add(tp1);
+        panel.add(tp2);
+        panel.add(tp3);
+        //vtp.setEditable(true);
+        w.add(panel);
+        w.setVisible(true);
+        VueUtil.displayComponent(new VueTextPane(new LWMap("Test Map"), LWKey.Notes, null));
+    }
     
 
     public String toString()
