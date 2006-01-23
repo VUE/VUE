@@ -150,7 +150,7 @@ public class UndoManager
                 Iterator i = attachedThreads.iterator();
                 while (i.hasNext()) {
                     Thread t = (Thread) i.next();
-                    if (DEBUG.UNDO) System.out.println(this + " interrupting " + t);
+                    if (DEBUG.Enabled) System.out.println(this + " INTERRUPTING " + t);
                     if (t.isAlive())
                         t.interrupt();
                     // only interrupt the first time
@@ -687,7 +687,7 @@ public class UndoManager
      * called before the thread has been started.
      */
     
-    void attachThreadToUpcomingMark(UndoableThread t) {
+    void attachThreadToNextMark(UndoableThread t) {
         if (t.isAlive())
             throw new Error(t + ": not safe to attach an UndoAction to an already started thread");
         t.setMarker(mCurrentUndo);
@@ -717,7 +717,7 @@ public class UndoManager
      * of the given mark.  This may return null, which means there
      * is no current UndoManager listening for events.
      */
-    public static Object getKeyForUpcomingMark(LWComponent c) {
+    public static Object getKeyForNextMark(LWComponent c) {
         LWMap map = c.getMap();
         if (map == null)
             return null;
@@ -726,11 +726,11 @@ public class UndoManager
         if (undoManager == null)
             return null;
         else
-            return undoManager.getKeyForUpcomingMark();
-        //return currentManager.getStringKeyForUpcomingMark();
+            return undoManager.getKeyForNextMark();
+        //return currentManager.getStringKeyForNextMark();
     }
 
-    public Object getKeyForUpcomingMark() {
+    public Object getKeyForNextMark() {
         UndoMark mark = new UndoMark(this);
         if (DEBUG.UNDO || DEBUG.THREAD) System.out.println("GENERATED MARK " + mark);
         return mark;
@@ -740,7 +740,7 @@ public class UndoManager
     /**
      * Attach the current thread to the location in the undo queue marked by the given key.
      *
-     * @param undoActionKey key obtained from getKeyForUpcomingMark, which may be null,
+     * @param undoActionKey key obtained from getKeyForNextMark, which may be null,
      * in which case this method does nothing.
      */
 
@@ -753,14 +753,25 @@ public class UndoManager
             // extract the mark, because it contains the manager we need to insert the thread:mark mapping
             UndoMark mark = (UndoMark) undoActionKey;
             // store the mark in the appropriate UndoManager, and notify of error if thread was already marked
+            if (mark.manager.mThreadsWithMark.containsKey(thread)) {
+                System.err.println(thread + " already tied mark " + mark + " grouping as one undo for now");
+                // this seems to actually be "working" as we get two undoables... ?
+            } else {
+                mark.manager.mThreadsWithMark.put(thread, mark);
+                mark.action.addAttachedThread(thread);
+                if (DEBUG.UNDO || DEBUG.THREAD) System.out.println("ATTACHED " + mark + " to " + thread);
+            }
+                
+            /*
             UndoMark existingMark = (UndoMark) mark.manager.mThreadsWithMark.put(thread, mark);
-
-            mark.action.addAttachedThread(thread);
-            
             if (existingMark != null)
-                new Throwable("Error: " + thread + " was tied to mark " + existingMark + ", superceeded by " + mark).printStackTrace();
-            if (DEBUG.UNDO || DEBUG.THREAD) System.out.println("ATTACHED " + mark + " to " + thread);
+                new Throwable("Error: " + thread
+                              + " was tied to mark " + existingMark
+                              + ", superceeded by " + mark).printStackTrace();
+            */
+            
         }
+        else if (DEBUG.UNDO||DEBUG.THREAD) System.out.println("null UndoMark");
     }
     
     static void detachCurrentThread(Object undoActionKey) {
@@ -804,7 +815,7 @@ public class UndoManager
             if (DEBUG.UNDO || DEBUG.THREAD) System.out.println("Applied key " + undoActionKey + " to " + t);
         }
     }
-    private String _getStringKeyForUpcomingMark() {
+    private String _getStringKeyForNextMark() {
         final String currentUndoKey = Integer.toHexString(mCurrentUndo.hashCode());
         synchronized (this) {
             taggedUndoActions.put(currentUndoKey, mCurrentUndo);
@@ -868,6 +879,10 @@ public class UndoManager
                 // to be undoable in the first place.
                 return;
             }
+
+            if (DEBUG.UNDO || DEBUG.THREAD)
+                System.out.println("\nHandling UndoableThread " + thread + " event " + e);
+            
             perComponentChanges = null; // we can live w/out "compression" for changes on UndoableThread's
             if (DEBUG.UNDO || DEBUG.THREAD) System.out.println("\n" + thread + " initiating change in " + relevantUndoAction);
 
