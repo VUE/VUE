@@ -36,7 +36,7 @@ import javax.swing.border.*;
  * platform-specific code for opening URL's, as well as various convenience
  * functions.
  *
- * @version $Revision: 1. $ / $Date:  $ / $Author: sfraize $
+ * @version $Revision: $ / $Date: $ / $Author: sfraize $
  */
 
 public class Util
