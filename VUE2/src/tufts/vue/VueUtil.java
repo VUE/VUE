@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.66 $ / $Date: 2006-01-20 20:37:19 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2006-01-23 16:08:33 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -428,7 +428,7 @@ public class VueUtil extends tufts.Util
         Map map = new HashMap();
         for (int i = 0; i < pairs.length; i++) {
             String pair = pairs[i];
-            if (DEBUG.Enabled) System.out.println("query pair " + pair);
+            if (DEBUG.DATA || DEBUG.IMAGE) System.out.println("query pair " + pair);
             int eqIdx = pair.indexOf('=');
             if (eqIdx > 0) {
                 String key = pair.substring(0, eqIdx);

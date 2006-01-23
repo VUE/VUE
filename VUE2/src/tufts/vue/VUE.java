@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.318 $ / $Date: 2006-01-21 01:30:52 $ / $Author: sfraize $ 
+ * @version $Revision: 1.319 $ / $Date: 2006-01-23 16:06:41 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1087,9 +1087,9 @@ public class VUE
     }
     
     public static boolean multipleMapsVisible() {
-        // TODO: don't think this works in java 1.5
         if (mViewerSplit == null)
             return false;
+        // TODO: this is no longer a reliable method of determining this in java 1.5
         int dl = mViewerSplit.getDividerLocation();
         return dl >= mViewerSplit.getMinimumDividerLocation()
             && dl <= mViewerSplit.getMaximumDividerLocation();

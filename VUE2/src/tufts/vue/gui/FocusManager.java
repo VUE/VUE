@@ -146,7 +146,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.1 $ / $Date: 2006-01-20 17:00:57 $ / $Author: sfraize $ 
+ * @version $Revision: 1.2 $ / $Date: 2006-01-23 16:09:12 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -434,8 +434,8 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
      */
     private void relayUnconsumedKeyPress(KeyEvent e) {
         //if (e.getSource() == null) Util.printStackTrace("null source: " + e);
-        e = new VUEKeyEvent(e);
-        if (DEBUG.FOCUS) out(name(e) + " RELAYING");
+        //e = new VUEKeyEvent(e);
+        if (DEBUG.FOCUS || DEBUG.KEYS) out(name(e) + " RELAYING");
         try {
             //VUE.getJMenuBar().doProcessKeyPressEventToBinding(e);
             VUE.getJMenuBar().doProcessKeyEvent(e);
