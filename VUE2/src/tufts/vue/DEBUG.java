@@ -54,9 +54,10 @@ public class DEBUG
     public static boolean CASTOR = false; // castor persist (save/restore)
     public static boolean XML = false; // castor persist (save/restore)
     public static boolean THREAD = false; // threading
-    public static boolean TEXT = false; // threading
+    public static boolean TEXT = false; // text objects
     public static boolean IO = false; // file and network i/o
     public static boolean DOCK = false; // DockWindow's
+    public static boolean DATA = false; // data production / meta-data
     
     public static boolean WORK = false; // work-in-progress
 
@@ -65,10 +66,10 @@ public class DEBUG
     public static boolean META = false; // generic toggle to use in combination with other flags
 
     public static  void setAllEnabled(boolean t) {
-        CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
+        Enabled=CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
             PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
-            CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=t;
+            CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=DATA=t;
 
         // only turn META & WORK off, not on
         if (t == false)
@@ -92,6 +93,7 @@ public class DEBUG
         else if (a.equals("-debug_layout"))     DEBUG.LAYOUT = true;
         else if (a.equals("-debug_text"))       DEBUG.TEXT = true;
         else if (a.equals("-debug_io"))         DEBUG.IO = true;
+        else if (a.equals("-debug_data"))       DEBUG.DATA = true;
         else if (a.startsWith("-debug_edge"))   DEBUG.EDGE = true;
         else if (a.startsWith("-debug_event"))  DEBUG.EVENTS = true;
         else if (a.startsWith("-debug_thread")) DEBUG.THREAD = true;
