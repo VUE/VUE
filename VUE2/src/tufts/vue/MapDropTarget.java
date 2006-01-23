@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.49 $ / $Date: 2006-01-21 01:30:19 $ / $Author: sfraize $  
+ * @version $Revision: 1.50 $ / $Date: 2006-01-23 17:22:17 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -540,11 +540,11 @@ class MapDropTarget
                 if (drop.hitNode != null && !drop.isLinkAction) {
 
                     // create new node children of the hit node
-                    drop.hitNode.addChild(createNode(drop, resource, Collections.EMPTY_MAP, null));
+                    drop.hitNode.addChild(createNode(drop, resource, null));
                 
                 } else {
                     
-                    createNode(drop, resource, Collections.EMPTY_MAP, drop.nextDropLocation());
+                    createNode(drop, resource, drop.nextDropLocation());
                 }
             }
         }
@@ -650,11 +650,9 @@ class MapDropTarget
     {
         MapResource resource = new MapResource(resourceSpec);
 
-        //resource.scanForMetaData();
-
         if (DEBUG.DND) out("createNodeAndResource " + resourceSpec + " " + properties + " " + where);
 
-        LWComponent c = createNode(drop, resource, properties, where);
+        LWComponent c = createNode(drop, resource, properties, where, true);
 
         // TODO: get this so that one call is triggering the async stuff for both
         // meta-data and image loading.  Maybe the resource can will load the image...,
@@ -670,26 +668,42 @@ class MapDropTarget
         // I guess it would have to be all or nothing, and somehow group
         // ALL the loading threads under a single undo thread mark?
         
-        resource.scanForMetaDataAsync(c, true);
+        // TODO: if an image, let async image loader do this so we don't
+        // have two threads both pulling data from the same URL!
+
+        // Could wait to start this till end of all drop processing
+        // and pull it from drop.added
+
+        //resource.scanForMetaDataAsync(c, true);
 
         return c;
     }
 
-    private LWComponent createNode(DropContext drop, Resource resource, Map properties, Point2D where)
+    private LWComponent createNode(DropContext drop, Resource resource, Point2D where) {
+        return createNode(drop, resource, Collections.EMPTY_MAP, where, false);
+    }
+    
+    private LWComponent createNode(DropContext drop,
+                                   Resource resource,
+                                   Map properties,
+                                   Point2D where,
+                                   boolean newResource)
     {
         if (DEBUG.DND) out("createNode " + resource + " " + properties + " " + where);
 
         if (properties == null)
             properties = Collections.EMPTY_MAP;
 
-        boolean dropImagesAsNodes = DropImagesAsNodes && !drop.isLinkAction;
+        // can't currently generate link action when dragging an image from
+        // a web browser.
+        boolean dropImagesAsNodes = DropImagesAsNodes && !drop.isLinkAction && !DEBUG.IMAGE;
 
         LWComponent node;
         LWImage lwImage = null;
         String displayName = (String) properties.get("title");
 
         if (displayName == null)
-            displayName = getResourceTitle(resource);
+            displayName = makeResourceTitle(resource);
 
         MapResource mapResource = null;
         if (resource instanceof MapResource) { // todo: fix Resource so no more of this kind of hacking
@@ -738,6 +752,9 @@ class MapDropTarget
         if (lwImage != null) {
             // this will cause the LWImage to start loading the image
             lwImage.setResourceAndLoad(resource, mViewer.getMap().getUndoManager());
+        } else if (newResource) {
+            // if image, it will do this at end of loading
+            ((MapResource)resource).scanForMetaDataAsync(node, true);
         }
 
         drop.add(node);
@@ -821,7 +838,7 @@ class MapDropTarget
     {
         final String query = url.getQuery();
         // special case for google image search:
-        System.out.println("host " + url.getHost() + " query " + url.getQuery());
+        if (DEBUG.IMAGE || DEBUG.IO) System.out.println("host " + url.getHost() + " query " + url.getQuery());
 
         Map data = VueUtil.getQueryData(query);
         if (false && DEBUG.DND) {
@@ -873,13 +890,13 @@ class MapDropTarget
             //imageURL = imageURL.replaceAll("%2F", "/");
             //-------------------------------------------------------
                     
-            System.out.println("redirect to image search url " + imageURL);
+            if (DEBUG.IMAGE || DEBUG.IO) System.out.println("redirect to image search url " + imageURL);
             if (imageURL.indexOf(':') < 0)
                 imageURL = "http://" + imageURL;
             redirectURL = makeURL(imageURL);
             if (redirectURL == null && !imageURL.startsWith("http://"))
                 redirectURL = makeURL("http://" + imageURL);
-            System.out.println("redirect got URL " + redirectURL);
+            if (DEBUG.IMAGE || DEBUG.IO) System.out.println("redirect got URL " + redirectURL);
                     
             if (url != null) {
                 String w = (String) data.get("w");              // Google & Yahoo
@@ -975,7 +992,7 @@ class MapDropTarget
     }
 
 
-    private String getResourceTitle(Resource resource)
+    private String makeResourceTitle(Resource resource)
     {
         if (resource.getTitle() != null)
             return resource.getTitle();
@@ -1002,6 +1019,12 @@ class MapDropTarget
                 int dotIdx = name.lastIndexOf('.');
                 if (dotIdx > 0)
                     name = name.substring(0, dotIdx);
+
+                name = name.replace('_', ' ');
+                name = name.replace('.', ' ');
+                name = name.replace('-', ' ');
+
+                name = Util.upperCaseWords(name);
             }
         }
 
