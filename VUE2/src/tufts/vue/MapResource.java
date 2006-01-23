@@ -39,7 +39,7 @@ import com.sun.image.codec.jpeg.*;
  *
  * TODO: this to be refactored as AbstractResource / URLResource, and/or maybe LWResource.
  *
- * @version $Revision: 1.34 $ / $Date: 2006-01-20 19:37:36 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2006-01-23 17:21:04 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.  Create an AbstractResource class
@@ -47,6 +47,8 @@ import com.sun.image.codec.jpeg.*;
 
 public class MapResource implements Resource, XMLUnmarshalListener
 {
+    public static final String SPEC_UNSET = "<spec-unset>";
+
     static final long SIZE_UNKNOWN = -1;
     
     // todo: if have AbstractResource, can put the DataFlavor there and support serialization tag generically
@@ -58,7 +60,7 @@ public class MapResource implements Resource, XMLUnmarshalListener
     private long accessSuccessful;
     private long size = SIZE_UNKNOWN;
     protected transient boolean selected = false;
-    private String spec = "";
+    private String spec = SPEC_UNSET;
     private int type;
     private JComponent viewer;
     private JComponent preview = null;
@@ -133,7 +135,8 @@ public class MapResource implements Resource, XMLUnmarshalListener
             return this.url;
     }
     
-    public java.net.URL getURL()
+    /** @return as a property URL, or null if unable to create one */
+    public java.net.URL asURL()
     {
         URL url = null;
         try {
@@ -208,10 +211,13 @@ public class MapResource implements Resource, XMLUnmarshalListener
     public void setSpec(final String spec) {
         if (DEBUG.Enabled) {
             System.out.println(getClass().getName() + " setSpec " + spec);
-            //tufts.Util.printStackTrace();
-            // TODO: CabinetResource is CALLING setSpec every time getSpec is called!
-            // get rid of setSpec on MapResource
         }
+        
+        // TODO: will want generic ability to set the reference created
+        // date lazily, as it doesn't make sense with CabinetResource, for example,
+        // to set that until a user actually drag's one and makes use of it.
+        // So a resource is going to become somewhat akin to a Transferable.
+        
         this.spec = spec;
         this.referenceCreated = System.currentTimeMillis();
         try {
@@ -275,32 +281,32 @@ public class MapResource implements Resource, XMLUnmarshalListener
         scanForMetaDataAsync(c, false);
     }
     
-    public void scanForMetaDataAsync(final LWComponent c, boolean setLabelFromTitle) {
-        final URL _url;
-        try {
-            _url = toURL();
-        } catch (Exception e) {
-            return;
-        }
-        
-        final boolean forceTitleToLabel = (setLabelFromTitle || c.getLabel() == null || c.getLabel().equals(mTitle));
-
-        new Thread("URL meta-data search of " + _url) {
+    public void scanForMetaDataAsync(final LWComponent c, final boolean setLabelFromTitle) {
+        new Thread("URL meta-data search of " + this) {
             public void run() {
-                _scanForMetaData(_url);
-                if (forceTitleToLabel && getTitle() != null)
-                    c.setLabel(getTitle());
+                scanForMetaData(c, setLabelFromTitle);
             }
         }.start();
     }
     
-    public void scanForMetaData() {
-        URL _url = null;
-        try {
-            _url = toURL();
-        } catch (Exception e) {}
-        if (_url != null)
-            _scanForMetaData(_url);
+    void scanForMetaData(final LWComponent c, boolean setLabelFromTitle) {
+        URL _url = asURL();
+
+        if (_url == null)  {
+            if (DEBUG.Enabled) out("couldn't get URL");
+            return;
+        }
+        
+        final boolean forceTitleToLabel =
+            setLabelFromTitle
+            || c.getLabel() == null
+            || c.getLabel().equals(mTitle)
+            || c.getLabel().equals(getSpec());
+        
+        _scanForMetaData(_url);
+
+        if (forceTitleToLabel && getTitle() != null)
+            c.setLabel(getTitle());
     }
     
     private void _scanForMetaData(URL _url) {
@@ -563,17 +569,19 @@ public class MapResource implements Resource, XMLUnmarshalListener
     }
     
     public String getExtension() {
+        final String r = getSpec();
         String ext = "xxx";
-        if (spec.startsWith("http"))
+
+        if (r.startsWith("http"))
             ext = "web";
-        else if (spec.startsWith("file"))
+        else if (r.startsWith("file"))
             ext = "file";
         else {
-            ext = spec.substring(0, Math.min(spec.length(), 3));
-            if (!spec.endsWith("/")) {
-                int i = spec.lastIndexOf('.');
-                if (i > 0 && i < spec.length()-1)
-                    ext = spec.substring(i+1);
+            ext = r.substring(0, Math.min(r.length(), 3));
+            if (!r.endsWith("/")) {
+                int i = r.lastIndexOf('.');
+                if (i > 0 && i < r.length()-1)
+                    ext = r.substring(i+1);
             }
         }
         if (ext.length() > 4)
@@ -617,7 +625,7 @@ public class MapResource implements Resource, XMLUnmarshalListener
             mPropertyNames = null;
         }
         */
-        System.out.println(this + " setProperty " + key + " [" + value + "]");
+        if (DEBUG.DATA) System.out.println(this + " setProperty " + key + " [" + value + "]");
         if (key != null && value != null)
             mProperties.put(key, value);
     }
@@ -636,7 +644,30 @@ public class MapResource implements Resource, XMLUnmarshalListener
         final Object value = mProperties.get(key);
         return value == null ? null : value.toString();
     }
+
+    public int getProperty(String key, int notFoundValue) {
+        final Object value = mProperties.get(key);
+
+        int intValue = notFoundValue;
+        
+        if (value != null) {
+            if (value instanceof Number) {
+                intValue = ((Number)value).intValue();
+            } else if (value instanceof String) {
+                try {
+                    intValue = Integer.parseInt((String)value);
+                } catch (NumberFormatException e) {
+                    if (DEBUG.DATA) tufts.Util.printStackTrace(e);
+                }
+            }
+        }
+        
+        return intValue;
+    }
     
+    public boolean hasProperty(String key) {
+        return mProperties.containsKey(key);
+    }
     public Properties getProperties() {
         return mProperties;
     }
@@ -767,6 +798,7 @@ public class MapResource implements Resource, XMLUnmarshalListener
             || s.endsWith(".jpg")
             || s.endsWith(".jpeg")
             || s.endsWith(".png")
+            || s.endsWith(".ico")
             //|| s.endsWith(".bmp") // i think java 1.5 handles these now
             //|| s.endsWith(".tif")
             //|| s.endsWith(".tiff")
@@ -802,7 +834,11 @@ public class MapResource implements Resource, XMLUnmarshalListener
             return true;
 
         // todo: why .vue files reporting as text/html on MacOSX to content scraper?
-        return !s.endsWith(".vue") && isHtmlMimeType(r.getProperty("contentType"));
+
+        return !s.endsWith(".vue")
+            && isHtmlMimeType(r.getProperty("contentType"))
+            && !isImage(r) // sometimes image files claim to be text/html
+            ;
     }
         
     public boolean isHTML() {
@@ -890,6 +926,10 @@ public class MapResource implements Resource, XMLUnmarshalListener
             ex.printStackTrace();
         }
         return preview;
+    }
+
+    private void out(String s) {
+        System.out.println(this + ": " + s);
     }
     
     
