@@ -16,7 +16,7 @@ import javax.swing.AbstractButton;
  * An action for displaying a Window and tracking it's displayed state,
  * keeping in synchronized with a somebody's button (such a checkbox in a menu).
  *
- * @version $Revision: 1.1 $ / $Date: 2006-01-20 17:05:33 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-01-23 16:10:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WindowDisplayAction extends javax.swing.AbstractAction
@@ -28,16 +28,8 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
     private static final boolean showActionLabel = false;
         
     public WindowDisplayAction(Object o) {
-        /*
-          if (o instanceof ToolWindow) {
-          ToolWindow tw = (ToolWindow) o;
-          init(tw.getTitle(), tw.getWindow());
-          } else {
-        */
         Window w = (Window) o;
         init(extractTitle(w), w);
-        //}
-                
     }
         
     /*
