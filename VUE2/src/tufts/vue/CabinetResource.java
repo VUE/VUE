@@ -38,7 +38,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.14 $ / $Date: 2006-01-21 01:29:11 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2006-01-23 17:21:22 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends MapResource{
@@ -77,12 +77,13 @@ public class CabinetResource extends MapResource{
         this.entry = entry;
         this.type = Resource.URL;
         
-        //  Force information to be cached.
-        this.getEntry();
+        // No: to the below lazily -- SMF
+        //  Force information to be cached
+        //this.getEntry();
         //this.getProperties();
-        this.getSpec();
-        this.getExtension();
-        this.getTitle();
+        //this.getSpec();
+        //this.getExtension();
+        //this.getTitle();
         
     }
     
@@ -232,7 +233,7 @@ public class CabinetResource extends MapResource{
     
     
     
-    /**
+    /*
      *  Return the resource specification.  For cabinet resources, this is URL of either
      *  a local or remote file.
      *
@@ -240,22 +241,30 @@ public class CabinetResource extends MapResource{
      */
     public String getSpec() {
         //  Check for a restored resource.
-        if (this.entry == null)
-            return super.getSpec();
+        final String hasSpec = super.getSpec();
+        final osid.filing.CabinetEntry e = getEntry();
+
+        // It is best to call setSpec lazily right now, as MapResource
+        // set's the reference created time and all that in setSpec,
+        // and no point in doing that until somebody actually attempts
+        // to grab the resource and do something with it -- otherwise
+        // the creation time will be set for every object displayed in
+        // the filing browser when the browser is created, as opposed
+        // to when a user drags one out.
+        
+        if (e == null || hasSpec != SPEC_UNSET)
+            return hasSpec;
         else {
             //  Check for each of the four possible cases.
-            // TODO: spec should be atomic -- do not go setting
-            // the spec dynamically!
-            if (this.entry instanceof tufts.oki.remoteFiling.RemoteByteStore)
-                setSpec(((RemoteByteStore)this.entry).getUrl());
-            if (this.entry instanceof tufts.oki.remoteFiling.RemoteCabinet)
-                setSpec(((RemoteCabinet)this.entry).getUrl());
-            if (this.entry instanceof tufts.oki.localFiling.LocalByteStore)
-                setSpec(((LocalByteStore)this.entry).getUrl());
-            if (this.entry instanceof tufts.oki.localFiling.LocalCabinet)
-                setSpec(((LocalCabinet)this.entry).getUrl());
+            if (e instanceof tufts.oki.remoteFiling.RemoteByteStore)
+                setSpec(((RemoteByteStore)e).getUrl());
+            if (e instanceof tufts.oki.remoteFiling.RemoteCabinet)
+                setSpec(((RemoteCabinet)e).getUrl());
+            if (e instanceof tufts.oki.localFiling.LocalByteStore)
+                setSpec(((LocalByteStore)e).getUrl());
+            if (e instanceof tufts.oki.localFiling.LocalCabinet)
+                setSpec(((LocalCabinet)e).getUrl());
 
-            //  Shouldn't ever get here, but handle it anyways.
             return super.getSpec();
         }
     }
@@ -327,8 +336,7 @@ public class CabinetResource extends MapResource{
     }
     
     public void setEntry(osid.filing.CabinetEntry entry){
-        
-        this.entry = entry;   
+        this.entry = entry;
     }
     
     private void openRemoteByteStore() throws IOException,osid.filing.FilingException{
