@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.45 $ / $Date: 2006-01-20 20:26:19 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2006-01-23 16:07:17 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -642,14 +642,6 @@ class FavoritesNode extends ResourceNode {
 
 
 class VueDragTreeNodeSelection extends Vector implements Transferable {
-    /*
-    final static int FILE = 0;
-    final static int STRING = 1;
-    final static int PLAIN = 2;
-    final static int RESOURCE = 0;
-    */
-    //static DataFlavor favoritesFlavor;
-
     /**
      * try {
      * assetFlavor = new DataFlavor(Class.forName("osid.dr.Asset"),"asset");
@@ -658,38 +650,37 @@ class VueDragTreeNodeSelection extends Vector implements Transferable {
     
     /*
     private DataFlavor flavors[] = {
-        DataFlavor.plainTextFlavor,
         DataFlavor.stringFlavor,
-        //DataFlavor.plainTextFlavor,
         //DataFlavor.javaFileListFlavor
     };
     */
 
-    private String displayName = "";
+    //private String displayName = "";
    
-    private java.util.List flavors = new java.util.ArrayList(4);
+    private java.util.List flavors = new java.util.ArrayList(3);
     
     public VueDragTreeNodeSelection(Object resource) {
         addElement(resource);
 
-        flavors.add(DataFlavor.plainTextFlavor);
         flavors.add(DataFlavor.stringFlavor);
 
         if (resource instanceof MapResource) {
             
             flavors.add(Resource.DataFlavor);
+            /*
             try {
                 displayName = ((Resource)elementAt(0)).getTitle();
             } catch (Exception e) { System.out.println("FedoraSelection "+e);}
+            */
 
         } else if (resource instanceof File) {
 
             flavors.add(DataFlavor.javaFileListFlavor);
-            displayName = ((File)elementAt(0)).getName();
+            //displayName = ((File)elementAt(0)).getName();
 
         } else {
             
-            displayName = elementAt(0).toString();
+            //displayName = elementAt(0).toString();
             
         }
     }
@@ -727,20 +718,19 @@ class VueDragTreeNodeSelection extends Vector implements Transferable {
             // Always support something for the string flavor, or
             // we get an exception thrown (even tho I think that
             // may be against the published API).
-            result = get(0).toString();
+            Object o = get(0);
+            if (o instanceof File)
+                result = ((File)o).toString();
+            else
+                result = ((Resource)o).getSpec();
             
-        } else if (DataFlavor.plainTextFlavor.equals(flavor)) {
-
-            // System.out.println("I am plain"+this.elementAt(0));
-            result = new StringReader(displayName);
-
         } else if (Resource.DataFlavor.equals(flavor)) {
             
-            result = this;
+            result = (java.util.List) this;
             
         } else if (DataFlavor.javaFileListFlavor.equals(flavor)) {
             
-            result = this;
+            result = (java.util.List) this;
 
         } else {
         
