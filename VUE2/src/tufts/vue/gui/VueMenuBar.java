@@ -21,7 +21,7 @@ import javax.swing.JCheckBoxMenuItem;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.2 $ / $Date: 2006-01-20 17:25:28 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-01-23 16:10:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -62,7 +62,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
     public VueMenuBar(Object[] toolWindows)
     {
-        addFocusListener(this);
+        //addFocusListener(this);
+
         final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
         
         JMenu fileMenu = new VueMenu("File");
