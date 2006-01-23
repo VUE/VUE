@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.185 $ / $Date: 2006-01-20 21:41:04 $ / $Author: sfraize $
+ * @version $Revision: 1.186 $ / $Date: 2006-01-23 16:04:26 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1483,11 +1483,11 @@ public class LWComponent
     public float getCenterX() { return this.x + getWidth() / 2; }
     public float getCenterY() { return this.y + getHeight() / 2; }
 
-    // these 4 for persistance ONLY -- they don't deliver detectable events!
-    /** for persistance ONLY */
     public float getAbsoluteWidth() { return this.width; }
-    /** for persistance ONLY */
     public float getAbsoluteHeight() { return this.height; }
+
+
+    // these 2 for persistance ONLY -- they don't deliver detectable events!
     /** for persistance ONLY */
     public void setAbsoluteWidth(float w) { this.width = w; }
     /** for persistance ONLY */
@@ -1999,7 +1999,10 @@ public class LWComponent
     }
 
     protected void out(String s) {
-        System.out.println(this + " " + s);
+        if (DEBUG.THREAD)
+            System.out.println(Thread.currentThread() + " " + this + " " + s);
+        else
+            System.out.println(this + " " + s);
     }
     /*
     static protected void out(Object o) {
