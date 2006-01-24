@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.78 $ / $Date: 2006-01-24 00:55:06 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.78 2006-01-24 00:55:06 sfraize Exp $ -->
+<!-- $Revision: 1.79 $ / $Date: 2006-01-24 01:28:40 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.79 2006-01-24 01:28:40 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -856,7 +856,9 @@ class Version {
 
     <target name="vue" depends="" description="Run the VUE application (Default Look and Feel)">
       <java classname="tufts.vue.VUE" failonerror="true" fork="true">
-        <jvmarg value="-Dtufts.vue.features=TUFTS"/>
+        <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
+        <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
+        <jvmarg value="-Dapple.awt.brushMetalLook=true"/>
         <classpath refid="runtime.classpath"/>
       </java>
     </target>
@@ -865,8 +867,6 @@ class Version {
         <java classname="tufts.vue.VUE" failonerror="true" fork="true">
           <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
           <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
-          <jvmarg value="-Dtufts.vue.features=TUFTS"/>
-          <arg value="-useMacLookAndFeel"/>
           <classpath refid="runtime.classpath"/>
         </java>
     </target>
@@ -878,8 +878,6 @@ class Version {
           <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
           <jvmarg value="-Dapple.awt.brushMetalLook=true"/>
           <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
-          <jvmarg value="-Dtufts.vue.features=TUFTS"/>
-          <arg value="-useMacLookAndFeel"/>
           <classpath refid="runtime.classpath"/>
         </java>
     </target>
@@ -891,7 +889,6 @@ class Version {
           <jvmarg value="-Dapple.awt.brushMetalLook=true"/>
           <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=NarraVision"/>
           <jvmarg value="-Dtufts.vue.features=NarraVision"/>
-          <arg value="-useMacLookAndFeel"/>
           <classpath>
             <path refid="runtime.classpath"/>
             <pathelement path="${lib.home}/BlackShipsImages.jar"/>
@@ -963,6 +960,7 @@ VUE_Installer.zip - ${installerMD5}
       <echo message="RUNTIME CLASSPATH:         ${info.classpath}"/>
       <echo message="COMMON COMPILE CLASSPATH:  ${info.compilepath.common}"/>
       <echo message="TUFTS/VUE COMPILE CLASSPATH: ${info.compilepath.vue}"/>
+      <echo message="ant.java.version: ${ant.java.version}"/>
     </target>
 
     <target name="info-jarlib">
