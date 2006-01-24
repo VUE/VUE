@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.77 $ / $Date: 2006-01-20 22:21:29 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.77 2006-01-20 22:21:29 sfraize Exp $ -->
+<!-- $Revision: 1.78 $ / $Date: 2006-01-24 00:55:06 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.78 2006-01-24 00:55:06 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -90,6 +90,7 @@
          with what we include ourselves, but of potentially different versions.
          We need to leave that out to be sure our runtime test classpath is exactly
          the same as the classpath we distribute with -->
+    <pathelement path="/System/Library/Java"/> <!-- This for MacOSX only -->
     <pathelement path="${build.class}"/>
     <!-- pathelement location="${junit.jar}"/ -->
     <pathelement path="."/>
