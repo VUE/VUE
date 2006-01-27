@@ -31,6 +31,7 @@ import java.awt.dnd.*;
 import java.awt.datatransfer.DataFlavor;
 
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.UIManager;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
@@ -40,7 +41,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.2 $ / $Date: 2006-01-20 21:40:42 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-01-27 02:59:52 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -339,7 +340,7 @@ public class GUI
         return GMaxWindowBounds.height;
     }
 
-    /** VUE specific threshold for coniguring UI */
+    /** VUE specific threshold for configuring UI */
     public static boolean isSmallScreen() {
         refreshGraphicsInfo();
         return GScreenWidth < 1024;
@@ -447,7 +448,7 @@ public class GUI
 
     
     /** @return a new VUE application DockWindow */
-    public static DockWindow createDockWindow(String title) {
+    public static DockWindow createDockWindow(String title, boolean asToolbar) {
 
         // In Java 1.5 we can set the Window's to be always on top.  In this case, we
         // can use a hidden parent for the DockWindow, set them to be never focusable, and
@@ -467,17 +468,21 @@ public class GUI
         
         if (UseAlwaysOnTop && Util.getJavaVersion() >= 1.5f) {
             DockWindow dockWindow
-                = new DockWindow(title, DockWindow.getHiddenFrame());
+                = new DockWindow(title, DockWindow.getHiddenFrame(), null, asToolbar);
             dockWindow.setFocusableWindowState(false);
             setAlwaysOnTop(dockWindow, true);
             return dockWindow;
         } else {
             // TODO: create method in VUE for getting DockWindow parent for use elsewhere
-            return new DockWindow(title, getFullScreenWindow());
+            return new DockWindow(title, getFullScreenWindow(), null, asToolbar);
             //return new DockWindow(title, VUE.getRootWindow());
         }
     }
 
+    public static DockWindow createDockWindow(String title) {
+        return createDockWindow(title, false);
+    }
+    
     /**
      * Convience method.
      * @return a new VUE application DockWindow
@@ -485,6 +490,16 @@ public class GUI
      */
     public static DockWindow createDockWindow(String title, javax.swing.JComponent content) {
         DockWindow dw = createDockWindow(title);
+        dw.add(content);
+        return dw;
+    }
+
+    /**
+     * @return a new VUE application Dockable Toolbar
+     * @param content - a component to use for the roolbar
+     */
+    public static DockWindow createToolbar(String title, javax.swing.JComponent content) {
+        DockWindow dw = createDockWindow(title, true);
         dw.add(content);
         return dw;
     }
@@ -842,7 +857,7 @@ public class GUI
     
     public static String eventName(AWTEvent e) {
         return ""
-            + VueUtil.pad(35, name(e.getSource()))
+            + VueUtil.pad(37, name(e.getSource()))
             //+ " " + VueUtil.pad(25, baseClassName(e.getClass().getName() + "@" + Integer.toHexString(e.hashCode())))
             + " " + VueUtil.pad(20, baseClassName(e.getClass().getName()))
             + eventParamString(e)
@@ -936,8 +951,6 @@ public class GUI
         return null;
     }
 
-
-    
     private static final class EmptyIcon16 implements Icon {
         public final void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {}
         public final int getIconWidth() { return 16; }
@@ -980,6 +993,92 @@ public class GUI
             enforceIcons(menu.getComponents());
     }
 
+    public static JMenu buildMenu(JMenu menu, Action[] actions) {
+        for (int i = 0; i < actions.length; i++) {
+            Action a = actions[i];
+            if (a == null)
+                menu.addSeparator();
+            else
+                menu.add(a);
+        }
+        adjustMenuIcons(menu);
+        return menu;
+    }
+
+    public static JMenu buildMenu(String name, Action[] actions) {
+        return buildMenu(new JMenu(name), actions);
+    }
+    
+    public static JPopupMenu buildMenu(Action[] actions) {
+        JPopupMenu menu = new JPopupMenu();
+        for (int i = 0; i < actions.length; i++) {
+            Action a = actions[i];
+            if (a == null)
+                menu.addSeparator();
+            else
+                menu.add(a);
+        }
+        adjustMenuIcons(menu);
+        return menu;
+
+    }
+
+    /**
+     * Given a trigger component (such as a label), when mouse is
+     * pressed on it, pop the given menu.  Default location is below
+     * the given trigger.
+     */
+    public static class PopupMenuHandler extends tufts.vue.MouseAdapter
+        implements javax.swing.event.PopupMenuListener
+    {
+        private long mLastHidden;
+        private JPopupMenu mMenu;
+        
+        public PopupMenuHandler(Component trigger, JPopupMenu menu)
+        {
+            trigger.addMouseListener(this);
+            menu.addPopupMenuListener(this);
+            mMenu = menu;
+        }
+
+        public void mousePressed(MouseEvent e) {
+            long now = System.currentTimeMillis();
+            if (now - mLastHidden > 100)
+                showMenu(e.getComponent());
+        }
+
+        /** show the menu relative to the given trigger that activated it */
+        public void showMenu(Component trigger) {
+            mMenu.show(trigger, getMenuX(trigger), getMenuY(trigger));
+        }
+
+        /** get menu X location relative to trigger: default is 0 */
+        public int getMenuX(Component trigger) { return 0; }
+        /** get menu Y location relative to trigger: default is trigger height (places below trigger) */
+        public int getMenuY(Component trigger) { return trigger.getHeight(); }
+
+        public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+            mLastHidden = System.currentTimeMillis();
+            //out("HIDING");
+        }
+        
+        public void popupMenuWillBecomeVisible(PopupMenuEvent e) { /*out("SHOWING");*/ }
+        public void popupMenuCanceled(PopupMenuEvent e) { /*out("CANCELING");*/ }
+        
+        // One gross thing about a pop-up menu is that there's no way to know that it
+        // was just hidden by a click on the component that popped it.  That is, if you
+        // click on the menu launcher once, you want to pop it, and if you click again,
+        // you want to hide it.  But the AWT system autmatically cancels the pop-up as
+        // soon as the mouse-press happens ANYWYERE, and even before we'd get a
+        // processMouseEvent, so by the time we get this MOUSE_PRESSED, the menu is
+        // already hidden, and it looks like we should show it again!  So we have to use
+        // a simple timer.
+        
+    }
+
+
+    
+    
     public static void setRootPaneNames(RootPaneContainer r, String name) {
         r.getRootPane().setName(name + ".root");
         r.getContentPane().setName(name + ".content");
