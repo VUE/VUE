@@ -38,7 +38,7 @@ import javax.swing.border.*;
  * PaletteButtonAItems are intended to be added to PaletteButtons with the addPaletteItem
  * method. 
  *
- * @version $Revision: 1.9 $ / $Date: 2006-01-20 20:00:58 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2006-01-27 03:05:34 $ / $Author: sfraize $
  **/
 public class PaletteButtonItem extends JMenuItem
 {
@@ -66,11 +66,11 @@ public class PaletteButtonItem extends JMenuItem
         this.addMouseListener( new PaletteButtonItem.PBMouseListener() );
         this.addActionListener( new PaletteButtonItem.PaletteItemActionListener() );
         GUI.applyToolbarColor(this);
+        setFocusable(false);
     }
 	
 	
     /**
-     * setPaletteButton
      * This method sets the PaletteButton that this item is owned by.
      *
      * @param pPaletteButton - the PaletteButton object that owns this item
@@ -80,7 +80,6 @@ public class PaletteButtonItem extends JMenuItem
     }
 	
     /**
-     * getPaletteButton
      * This method returns the PaletteButton that owns this item.
      * 
      * @returns PaletteButton the owner of the item.
@@ -92,7 +91,6 @@ public class PaletteButtonItem extends JMenuItem
 
 	
     /**
-     * setContext
      * This method sets the Contest object associated with the item.
      *
      * @param pObject - the Context object that owns this item
@@ -102,7 +100,6 @@ public class PaletteButtonItem extends JMenuItem
     }
 	
     /**
-     * getContext
      * This method returns the Context for the item.
      * 
      * @returns Object the context associated with the item.
@@ -113,7 +110,6 @@ public class PaletteButtonItem extends JMenuItem
 
 
     /**
-     * setMenuItemIcon()
      * This sets teh menu item icon that's used when painting the item
      * @param pIcon - the Icon to draw
      **/
@@ -126,7 +122,6 @@ public class PaletteButtonItem extends JMenuItem
     }
 	
     /**
-     * getMenuItemIcon
      * THis returns the menu item to draw
      * @return Icon the icon
      **/
@@ -140,7 +135,6 @@ public class PaletteButtonItem extends JMenuItem
 	
 	
     /**
-     * getMenuItemSelected
      * This gets the icon to draw when the item is selected/mouse over
      * @return Icon the icon
      **/
@@ -149,7 +143,6 @@ public class PaletteButtonItem extends JMenuItem
     }
 	
     /**
-     * handlePaletteButtonItemSelection()
      * This method handles the selection of this item, and alerts the owner
      * button of the current selection.
      **/
@@ -166,7 +159,6 @@ public class PaletteButtonItem extends JMenuItem
     }
 	
     /**
-     * processMenuDragMouseEvent
      * Override of JmenuTem's method to set up our own custom painting
      * based on mouse drag events for the popup.  We want to set our current
      * icon based on mouse position.
@@ -202,7 +194,6 @@ public class PaletteButtonItem extends JMenuItem
 	
 	
     /**
-     * getPreferredSize()
      * Override because we do our own drawing since JMenuItem
      * does too much stuff that's out of our direct control
      * We return the image size of our current image.
@@ -216,7 +207,6 @@ public class PaletteButtonItem extends JMenuItem
     }
 	
     /**
-     * paint()
      * Overrides paint( Graphics g) to only draw the icon image
      * for the menu item.  This normal JMenuItem leaves annoying border
      * and background margins to allow for things like a check mark for radio
