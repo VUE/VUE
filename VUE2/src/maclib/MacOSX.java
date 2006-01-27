@@ -20,7 +20,7 @@ import java.awt.*;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.4 $ / $Date: 2006-01-21 01:52:58 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2006-01-27 17:22:54 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX
@@ -344,6 +344,31 @@ public class MacOSX
             nsw.setOpaque(false);
         }
     }
+    
+    /**
+     * Set the entire contents of the given window to
+     * render with the given alpha, letting underlying
+     * operating system windows bleed through.
+     */
+    public static void setAlpha(Window w, float alpha) {
+        NSWindow nsw = getWindow(w);
+        if (nsw != null) {
+            nsw.setAlphaValue(alpha);
+        }
+    }
+
+    /**
+     * Set the title on the underlying NSWindow.  This
+     * will have no effect on the java displayed window,
+     * (unless it's a Frame), and is mainly for debug tracking.
+     */
+    public static void setTitle(Window w, String title) {
+        NSWindow nsw = getWindow(w);
+        if (nsw != null) {
+            nsw.setTitle(title);
+        }
+    }
+    
     
     public static void setShadow(Window w, boolean hasShadow) {
         NSWindow nsw = getWindow(w);
