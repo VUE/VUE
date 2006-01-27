@@ -60,7 +60,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.277 $ / $Date: 2006-01-20 21:40:10 $ / $Author: sfraize $ 
+ * @version $Revision: 1.278 $ / $Date: 2006-01-27 17:27:30 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -178,9 +178,12 @@ public class MapViewer extends javax.swing.JComponent
         if (activeTool == null)
             activeTool = ArrowTool;
         this.mapDropTarget = new MapDropTarget(this); // new CanvasDropHandler
-        this.setDropTarget(new java.awt.dnd.DropTarget(this, mapDropTarget));
+        this.setDropTarget(new java.awt.dnd.DropTarget(this,
+                                                       MapDropTarget.ACCEPTABLE_DROP_TYPES,
+                                                       mapDropTarget));
     
         setName(instanceName);
+        //setFocusable(false);
         setOpaque(true);
         setLayout(null);
         if (map.getFillColor() != null)
@@ -2458,26 +2461,13 @@ public class MapViewer extends javax.swing.JComponent
     }
      */
     
-    private static JMenu buildMenu(String name, Action[] actions) {
-        return buildMenu(new JMenu(name), actions);
-    }
-    private static JMenu buildMenu(JMenu menu, Action[] actions) {
-        for (int i = 0; i < actions.length; i++) {
-            Action a = actions[i];
-            if (a == null)
-                menu.addSeparator();
-            else
-                menu.add(a);
-        }
-        return menu;
-    }
     
     private JPopupMenu buildMultiSelectionPopup() {
         JPopupMenu m = new JPopupMenu("Multi-Component Menu");
         
         m.add(getNodeMenu("Nodes"));
         m.add(getLinkMenu("Links"));
-        m.add(buildMenu("Arrange", Actions.ARRANGE_MENU_ACTIONS));
+        m.add(GUI.buildMenu("Arrange", Actions.ARRANGE_MENU_ACTIONS));
         m.addSeparator();
         m.add(Actions.Duplicate);
         m.add(Actions.Group);
@@ -2528,7 +2518,7 @@ public class MapViewer extends javax.swing.JComponent
         sPathRemoveItem = m.add(Actions.RemovePathwayItem);
         sPathSeparator = m.add(new JPopupMenu.Separator());
         m.add(Actions.HierarchyView);
-        m.add(buildMenu("Nudge", Actions.ARRANGE_SINGLE_MENU_ACTIONS));
+        m.add(GUI.buildMenu("Nudge", Actions.ARRANGE_SINGLE_MENU_ACTIONS));
         sAssetMenu = new JMenu("Disseminators");
         // todo: special add-to selection action that adds
         // hitComponent to selection so have way other
@@ -3074,7 +3064,8 @@ public class MapViewer extends javax.swing.JComponent
                     if (debugInspector == null)
                         debugInspector = new DockWindow("Inspector",
                                                         SwingUtilities.getWindowAncestor(MapViewer.this),
-                                                        new LWCInspector());
+                                                        new LWCInspector(),
+                                                        false);
                     debugInspector.setVisible(true);
                 } else if (c == '@') {
                     if (debugPanner == null)
@@ -4799,8 +4790,15 @@ public class MapViewer extends javax.swing.JComponent
             return;
         }
         */
-        
+
+        final boolean isVisible = super.isVisible();
+        final boolean changed = doShow != isVisible;
+
+        if (!changed)
+            return;
+
         super.setVisible(doShow);
+
         if (doShow) {
             // todo: only do this if we've just been opened
             //if (!isAnythingCurrentlyVisible())
