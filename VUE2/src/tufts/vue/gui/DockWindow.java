@@ -32,6 +32,7 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.border.*;
 
 // Just to confirm: even in 1.5, Window's that are children of
@@ -53,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.1 $ / $Date: 2006-01-20 17:00:57 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-01-27 17:25:06 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -61,6 +62,8 @@ public class DockWindow extends javax.swing.JWindow
     implements MouseListener, MouseMotionListener, FocusManager.MouseInterceptor
 {
     final static java.util.List sAllWindows = new java.util.ArrayList();
+
+    private final static int ToolbarHeight = 38;
     
     static DockRegion TopDock;
     static DockRegion BottomDock;
@@ -72,6 +75,7 @@ public class DockWindow extends javax.swing.JWindow
     //private static Color sBottomEdgeColor = new Color(164, 164, 164);
     private static final Color sBottomEdgeColor = new Color(164, 164, 164);
     private static final Color sTopGradientColor = new Color(247, 247, 247);
+    private static Color sMidGradientColor;
     private static Color sBottomGradientColor;
 
     private final static String NORTH_WEST = "northWest";
@@ -87,6 +91,7 @@ public class DockWindow extends javax.swing.JWindow
     private final WindowPane mContentPane;
     private JComponent mResizeCorner;
     private JComponent mResizeCorner2;
+    //private Action[] mMenuActions;
     
     private String mTitle;
     private int mTitleWidth;
@@ -119,8 +124,7 @@ public class DockWindow extends javax.swing.JWindow
     private boolean mStickingRight;
     private boolean mWasStickingRight;
     private boolean mHasWindowShadow = true;
-
-    
+    private boolean isToolbar;
 
     static int CollapsedHeight = 0;
     /** visible exposed height of parent DockWindow that child window shouldn't overlap */
@@ -139,26 +143,16 @@ public class DockWindow extends javax.swing.JWindow
 
     private static JFrame HiddenParentFrame;
 
-    /*
-    public static DockWindow create(String title, Window owner) {
-        if (owner == null)
-            owner = getHiddenFrame();
-        return new DockWindow(title, owner);
-    }
-    
-    public static DockWindow create(String title) {
-        return create(title, null);
-    }
-    */
-
-    public DockWindow(String title, Window owner, JComponent content)
+    /**
+     * Create a new DockWindow.  You should use GUI.createDockWindow for creating
+     * instances of DockWindow for VUE.
+     */
+    public DockWindow(String title, Window owner, JComponent content, boolean asToolbar)
     {
         super(owner == null ? getHiddenFrame() : owner);
 
         if (CollapsedHeight == 0)
             staticInit();
-        
-        GUI.setRootPaneNames(this, title);
         
         /*
         if (getParent() == HiddenParentFrame) {
@@ -166,21 +160,24 @@ public class DockWindow extends javax.swing.JWindow
             setFocusableWindowState(false);
             // TODO: Try enableInputMethods(false) to DISCONNECT from the focus management system
             // and take keys directly?
+            // enableInputMethods(false); // can't see the change
         }
         */
 
-        mContentPane = new WindowPane(title);
-        //mContentPane.setPreferredSize(new Dimension(180,100));
-        //mContentPane.setSize(180,100);
+
+        setFocusableWindowState(false); // okay, we're relying on our forced-focus system now...
+        setTitle(title);
         
+        isToolbar = asToolbar;
+
+        mContentPane = new WindowPane(title, asToolbar);
+
         if (true)
             setContentPane(mContentPane);
         else
             setContentPane(new Box(BoxLayout.Y_AXIS));
                                
-        setTitle(title);
-        
-        setResizeEnabled(true);
+        setResizeEnabled(!isToolbar);
 
         if (DEBUG.INIT || DEBUG.DOCK) out("constructed (child of " + GUI.name(owner) + ")");
 
@@ -198,15 +195,15 @@ public class DockWindow extends javax.swing.JWindow
     }
 
     public DockWindow(String title, Window owner) {
-        this(title, owner, null);
+        this(title, owner, null, false);
     }
     
     public DockWindow(String title) {
-        this(title, null, null);
+        this(title, null, null, false);
     }
     
     public DockWindow(String title, JComponent content) {
-        this(title, null, content);
+        this(title, null, content, false);
     }
 
     public void add(JComponent c) {
@@ -239,6 +236,15 @@ public class DockWindow extends javax.swing.JWindow
         else
             mContentPane.add(c);
         pack();
+    }
+
+    public void setMenuActions(Action[] actions) {
+        //mMenuActions = actions;
+        mContentPane.mTitle.setMenuActions(actions);
+    }
+        
+    public void setMenuActions(java.util.List actions) {
+        setMenuActions( (Action[]) actions.toArray(new Action[actions.size()]));
     }
         
     private static void staticInit() {
@@ -285,6 +291,10 @@ public class DockWindow extends javax.swing.JWindow
 
         //sBottomGradientColor = isDarkTitleBar ? Color.gray : Color.lightGray;
         sBottomGradientColor = isDarkTitleBar ? new Color(112,112,112) : Color.lightGray;
+
+        int midColor = (sBottomGradientColor.getRed() + sTopGradientColor.getRed()) / 2;
+
+        sMidGradientColor = new Color(midColor, midColor, midColor);
 
         refreshScreenInfo(null);
 
@@ -510,6 +520,9 @@ public class DockWindow extends javax.swing.JWindow
             // using Mac Aqua Brushed Metal.
             
             setName(GUI.OVERRIDE_REDIRECT);
+
+            // Note that we can re-set the name for debugging purposes after
+            // the peer has been created (super.addNotify())
         }
         
         super.addNotify();
@@ -517,18 +530,27 @@ public class DockWindow extends javax.swing.JWindow
         addMouseListener(this);
         addMouseMotionListener(this);
         
-        setTitle(mTitle); // make sure peer has title for a native MacOSX code, and re-set name if need be
+        // make sure peer has title for a native MacOSX code, and re-set name if it was ###override
+        setTitle(mTitle);
 
+        if (isToolbar) {
+            // enforced a fixed height on toolbars
+            mContentPane.setPreferredSize(new Dimension(getPreferredSize().width,
+                                                        ToolbarHeight));
+        }
+        
         /*
         if (Util.getJavaVersion() >= 1.5f && getParent() == HiddenParentFrame) {
             Util.invoke(this, "setAlwaysOnTop", Boolean.TRUE);
         }
         */
 
-        if (isMac && getWindowBorder() != null) // let us look at no shadow example for now: in metal we add our own anyway
+        /*
+        if (isMac && getWindowBorder() != null) {
+            // let us look at no shadow example for now: in metal we add our own anyway
             MacOSX.setShadow(this, false);
-
-        // if (DEBUG.DOCK && isMac) Util.invoke(getPeer(), "setAlpha", new Float(0.75));
+        }
+        */
 
         //Util.printStackTrace(this + " addNotify completed");
 
@@ -536,6 +558,8 @@ public class DockWindow extends javax.swing.JWindow
         if (isMacAquaMetal && Util.getJavaVersion() < 1.5f)
             MacOSX.setTransparent(this);
         */
+
+        
 
     }
 
@@ -678,14 +702,19 @@ public class DockWindow extends javax.swing.JWindow
 
         GUI.setRootPaneNames(this, title);
 
+        if (isMac && isDisplayable()) {
+            // isDisplayable true if we have a peer
+            MacOSX.setTitle(this, title);
+        }
+
+        /*
         if (isMac && getPeer() != null) {
-            
             // Make sure the NSWindow also has our name so we can find it later if needed.
-            
             //((apple.awt.CWindow)getPeer()).setTitle(getName());
             // See /System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Classes/ui.jar
             Util.invoke(getPeer(), "setTitle", title);
         }
+        */
         
     }
     
@@ -910,7 +939,7 @@ public class DockWindow extends javax.swing.JWindow
     
     void setRolledUp(boolean makeRolledUp, boolean animate) {
         if (DEBUG.DOCK) out("setRolledUp " + makeRolledUp + " animate=" + animate);
-        if (isRolledUp == makeRolledUp)
+        if (isRolledUp == makeRolledUp || isToolbar)
             return;
 
         // need to mark us as rolled up now for forthcoming
@@ -1955,6 +1984,7 @@ public class DockWindow extends javax.swing.JWindow
             else
                 mMovingStackHeight = 0;
 
+            //if (isMacAqua) MacOSX.setAlpha(this, 0.75f);
 
             if (e.isShiftDown()) {
                 // remove from any stack it's in and drag free
@@ -1997,7 +2027,7 @@ public class DockWindow extends javax.swing.JWindow
         
         if (mWindowDragUnderway)
             dropWindow(e);
-        else
+        else if (!isToolbar)
             handleMouseClicked(e); // treat a delayed drag start as a click
 
         mDragStart = null;
@@ -2079,6 +2109,8 @@ public class DockWindow extends javax.swing.JWindow
     private void dropWindow(MouseEvent e)
     {
         if (DEBUG.DOCK) out("dropWindow: curBounds " + getBounds());
+
+        //if (isMacAqua) MacOSX.setAlpha(this, 1f);
 
         GUI.refreshGraphicsInfo();
         
@@ -2194,22 +2226,26 @@ public class DockWindow extends javax.swing.JWindow
 
 
     public void mouseClicked(MouseEvent e) {}
-    public void mouseEntered(MouseEvent e) {}
-    public void mouseExited(MouseEvent e) {}
     public void mouseMoved(MouseEvent e) {}
 
+    public void mouseEntered(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {}
+    
 
     private void updateWindowShadow() {
         if (isMacAqua) {
             if (DEBUG.DOCK) out("updateWindowShadow: docked=" + isDocked() + " rolled=" + isRolledUp());
 
             boolean hideShadow =
-                isDocked() && isRolledUp()
-                || (MainDock != null && MainDock.getY() == getY() + getHeight())
+                (isToolbar && isDarkTitleBar) ||
+                (isDocked() && isRolledUp()
+                 || (MainDock != null && MainDock.getY() == getY() + getHeight()))
                 ;
                 
-            mHasWindowShadow = !hideShadow;
-            MacOSX.setShadow(this, mHasWindowShadow);
+            if (mHasWindowShadow == hideShadow) {
+                mHasWindowShadow = !hideShadow;
+                MacOSX.setShadow(this, mHasWindowShadow);
+            }
         }
     }
 
@@ -2597,14 +2633,14 @@ public class DockWindow extends javax.swing.JWindow
 
         private boolean gradientBG = false;
         
-        public WindowPane(String title)
+        public WindowPane(String title, boolean asToolbar)
         {
             // requesting double-buffering doesn't do squat to stop resize flashing on MacOSX
             super(true);
             mContent.setName(title + ".widget");
             setLayout(new BorderLayout());
             setBorder(getWindowBorder());
-            installTitlePanel(title);
+            installTitlePanel(title, asToolbar);
             add(mContent, BorderLayout.CENTER);
             mContent.setLayout(new BorderLayout());
 
@@ -2621,12 +2657,18 @@ public class DockWindow extends javax.swing.JWindow
         private void changeAll(JComponent root) {
             
             new EventRaiser(this, JComponent.class) {
-                protected void Xvisit(Component c) {
+                protected void visit(Component c) {
+
+                    if (DEBUG.INIT == false) {
+                        super.visit(c);
+                        return;
+                    }
+                        
                     if (targetClass.isInstance(c)) {
-                        System.out.print("HIT ");
+                        System.out.print("->TRANSPARENT ");
                         dispatchSafely(c);
                     } else
-                        System.out.print("    ");
+                        System.out.print("              ");
                     eoutln(GUI.name(c));
                 }
                 public void dispatch(Object target) {
@@ -2649,14 +2691,16 @@ public class DockWindow extends javax.swing.JWindow
         public void setWidget(JComponent c) {
             mContent.removeAll();
             
-            //changeAll(c);
-            if (GUI.isMacBrushedMetal() &&
+            //if (GUI.isMacBrushedMetal() && isToolbar)
+            if (isToolbar)
+                /*
                 (false
                  //|| c instanceof tufts.vue.ObjectInspectorPanel
                  //|| c instanceof tufts.vue.DRBrowser
                  || c instanceof FontPropertyPanel
                  || c instanceof LinkPropertyPanel
                  ))
+                */
             {
                 gradientBG = true;
                 changeAll(c);
@@ -2699,6 +2743,12 @@ public class DockWindow extends javax.swing.JWindow
             //g.setColor(Color.blue);
             g.fillRect(0,0, getWidth(), getHeight());
             //super.paintComponent(g);
+
+            if (false && isToolbar) {
+                g.setColor(Color.lightGray);
+                g.drawLine(0, 0, getWidth(),0);
+            }
+            
         }
 
         public void setVerticalTitle(boolean vertical) {
@@ -2726,9 +2776,12 @@ public class DockWindow extends javax.swing.JWindow
             
         
 
-        private void installTitlePanel(String title) {
+        private void installTitlePanel(String title, boolean asToolbar) {
             mTitle = new TitlePanel(title);
-            add(mTitle, BorderLayout.NORTH);
+            if (asToolbar)
+                add(new Gripper(), BorderLayout.WEST);
+            else
+                add(mTitle, BorderLayout.NORTH);
         }
 
         /*
@@ -2741,6 +2794,118 @@ public class DockWindow extends javax.swing.JWindow
         }
         */
         
+        
+    }
+
+    //private class Gripper extends javax.swing.JPanel {
+    private class Gripper extends javax.swing.Box {
+        private JComponent closeButton;
+        
+        Gripper() {
+            super(BoxLayout.Y_AXIS);
+            //super(new BorderLayout()); // close-button expands to fill whole gripper...
+            //super(null);
+            setName(DockWindow.this.getName());
+            setPreferredSize(new Dimension(10,-1));
+            if (true)
+                setOpaque(false);
+            else
+                setBackground(Color.darkGray); // looks like crap
+            //setBackground(sMidGradientColor); // looks like crap
+
+            closeButton = new CloseButton(DockWindow.this);
+
+            closeButton.setBorder(new EmptyBorder(2,1,0,0));
+
+            //add(Box.createVerticalGlue());
+            add(closeButton);
+            //closeButton.setLocation(1,1);
+            //add(Box.createVerticalGlue());
+            //add(closeButton, BorderLayout.CENTER);
+
+            /*
+
+              // Without an opposite component on mouse enter/exit events,
+              // we've no idea if on exit it's actually entering the closeButton,
+              // in which case we do NOT want to make it go invisible.
+              // We could make this work by using invokeLater on the
+              // exit, and if when it runs, the close button has gotten
+              // a mouse-enter, then don't make it invisible.
+
+            closeButton.setVisible(false);
+            addMouseListener(new tufts.vue.MouseAdapter(this) {
+                    public void mouseEntered(MouseEvent e) {
+                        //closeButton.setVisible(true);
+                    }
+                    public void mouseExited(MouseEvent e) {
+                        //closeButton.setVisible(false);
+                    }
+                });
+            */
+               
+        }
+
+        public void paintComponent(Graphics g) {
+            if (DEBUG.BOXES) {
+                g.setColor(Color.green);
+                g.drawRect(0,0, getWidth()-1, getHeight()-1);
+            }
+            if (true)
+                paintGripper((Graphics2D)g);
+            else
+                super.paintComponent(g);
+        }
+
+        private void paintGripper(Graphics2D g)
+        {
+            final int height = getHeight();
+            final int left = 0;
+            final int right = getWidth();
+            final int width = right - left;
+
+            final int yinc = 5; // if divides evenly into ToolbarHeight, will texture when stacked
+
+            for (int i = 0, y = 0; i < height; i++) {
+                g.setColor(Color.black);
+                g.drawLine(left,y-width, right,y);
+                g.setColor(Color.white);
+                g.drawLine(left,(y-width)-1, right,y-1);
+                y += yinc;
+            }
+            /*
+            for (int i = 0, y = 0; i < height; i++) {
+                g.setColor(Color.black);
+                g.drawLine(left,y, right,y-width);
+                g.setColor(Color.white);
+                g.drawLine(left,y-1, right,(y-width)-1);
+                y += yinc;
+            }
+            */
+            /*
+            //g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            for (int i = 0, y = 0; i < height; i++) {
+                g.setColor(Color.black);
+                g.drawLine(left,y-width, right,y);
+                //g.setColor(Color.white);
+                //g.drawLine(left,(y-width)-1, right,y-1);
+                y += yinc;
+            }
+            for (int i = 0, y = 0; i < height; i++) {
+                g.setColor(Color.black);
+                g.drawLine(left,y, right,y-width);
+                //g.setColor(Color.white);
+                //g.drawLine(left,y-1, right,(y-width)-1);
+                y += yinc;
+            }
+            */
+            if (false) {
+                //g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                // draw left & right border
+                g.setColor(Color.lightGray);
+                g.drawLine(0,0, 0,height);
+                g.drawLine(width-1,0, width-1,height);
+            }
+        }
         
     }
     
@@ -2780,7 +2945,10 @@ public class DockWindow extends javax.swing.JWindow
 
              mCloseButton = new CloseButton(DockWindow.this);
              
-             if (isMacAqua) {
+             // All close icons at left for now as need
+             // to leave room for the menu thingie at right
+             
+             if (true || isMacAqua) {
                  // close button at left
                  add(Box.createHorizontalStrut(6));
                  add(mCloseButton);
@@ -2790,13 +2958,25 @@ public class DockWindow extends javax.swing.JWindow
                  // close button at right
                  add(Box.createHorizontalStrut(12));
                  add(mLabel);
-                 add(Box.createHorizontalGlue());
+                 add(Box.createGlue());
                  add(mCloseButton);
                  add(Box.createHorizontalStrut(2));
              }
 
+             /*
+             if (DockWindow.this.mMenuActions != null) {
+                 add(Box.createGlue());
+                 add(new MenuButton(DockWindow.this.mMenuActions));
+             }
+             */
+             
              if (isMac)
                  installGradient(false);
+        }
+
+        void setMenuActions(Action[] actions) {
+            add(Box.createGlue());
+            add(new MenuButton(actions));
         }
 
         void setVertical(boolean vertical) {
@@ -2878,17 +3058,55 @@ public class DockWindow extends javax.swing.JWindow
         
     }
 
-    
 
+    private class MenuButton extends JLabel {
+        private JPopupMenu popMenu;
+        private long lastHidden;
+
+        MenuButton(Action[] actions) {
+            super(">");
+            setForeground(Color.gray);
+            setName(DockWindow.this.getName());
+
+            new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
+                public void mouseEntered(MouseEvent e) { setForeground(Color.black); }
+                public void mouseExited(MouseEvent e) { setForeground(Color.gray); }
+
+                public int getMenuX(Component c) { return c.getWidth(); }
+                public int getMenuY(Component c) { return 0; }
+            };
+            
+        }
+
+    }
+    
     private static class CloseButton extends JLabel {
             
+        private final Icon iconClose;
+        private final Icon iconBlank;
+        /*
         static final Icon iconClose = VueResources.getIcon("macSmallWindowCloseIcon");
         static final Icon iconBlank = isDarkTitleBar ?
             VueResources.getIcon("macSmallWindowBlankIcon_dark") :
             VueResources.getIcon("macSmallWindowBlankIcon");
+        */
         
         public CloseButton(final DockWindow dockWindow) {
             //setBorder(new EmptyBorder(0,0,1,0)); // t,l,b,r
+
+            setName(dockWindow.getName());
+
+            if (dockWindow.isToolbar) {
+                iconClose = VueResources.getIcon("macTinyWindowCloseIcon");
+                iconBlank = VueResources.getIcon("macTinyWindowBlankIcon");
+            } else {
+                iconClose = VueResources.getIcon("macSmallWindowCloseIcon");
+                iconBlank = isDarkTitleBar ?
+                    VueResources.getIcon("macSmallWindowBlankIcon_dark") :
+                    VueResources.getIcon("macSmallWindowBlankIcon");
+            }
+
+            
             if (isMacAqua)
                 setIcon(iconBlank);
             else
@@ -3143,25 +3361,29 @@ public class DockWindow extends javax.swing.JWindow
 
         //owner = null;
 
-        DockWindow win1 = new DockWindow("Dock 1", owner);
-        win1.setVisible(true);
-
+        DockWindow win1 = new DockWindow("Dock 1", owner, null, true);
+        win1.add(new FontPropertyPanel());
         //win1.setLocationRelativeTo(null); // center's on screen
+        win1.setVisible(true);
         
+        DockWindow win2 = new DockWindow("Dock 2", owner);
+        win2.add(new FontPropertyPanel());
+        win2.setLocationRelativeTo(null); // center's on screen
+        win2.setFocusableWindowState(true);
+        win2.setVisible(true);
                 
-        if (true) {
+        if (false) {
 
-            DockWindow win2 = new DockWindow("Dock 2", owner);
             DockWindow win3 = new DockWindow("Dock 3", owner);
             DockWindow win4 = new DockWindow("Dock 4", owner);
             //DockWindow win3 = new DockWindow("King Objumpy");
             //DockWindow win4 = new DockWindow("Canvas");
             
             win1.setChild(win2);
-            win2.setChild(win3);
+            //win2.setChild(win3);
             win3.setChild(win4);
             
-            win2.setVisible(true);
+            //win2.setVisible(true);
             win3.setVisible(true);
             win4.setVisible(true);
             
