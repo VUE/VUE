@@ -26,7 +26,8 @@ public class MouseAdapter implements javax.swing.event.MouseInputListener
     public MouseAdapter() {}
     public MouseAdapter(String name) { this.name = name + ": "; }
     public MouseAdapter(Class clazz) { this(clazz.getName()); }
-    
+    public MouseAdapter(Object o) { this(o.getClass()); }
+
     public static final MouseAdapter debug = new MouseAdapter("MouseAdapter");
 
 // The MouseListener methods
