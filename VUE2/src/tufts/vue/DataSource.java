@@ -86,6 +86,10 @@ public interface DataSource{
      *
      *
      */
+	
+	public boolean isIncludedInSearch();
+	
+	public void setIncludedInSearch(boolean included);
 
  
    public JComponent getAddDataSourcePanel();

@@ -34,6 +34,7 @@ import java.net.URL;
 import java.util.regex.*;
 
 import javax.swing.*;
+import java.awt.event.*;
 
 import javax.swing.tree.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -49,7 +50,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.23 $ / $Date: 2006-01-20 18:24:49 $ / $Author: sfraize $ 
+ * @version $Revision: 1.24 $ / $Date: 2006-01-27 17:53:29 $ / $Author: jeff $ 
  * @author Ranjani Saigal
  */
 
@@ -72,9 +73,6 @@ public class DataSourceList extends JList implements DropTargetListener{
     private final PolygonIcon breakIcon = new PolygonIcon(Color.LIGHT_GRAY);
     DataSourceViewer dsViewer;
     
-    
-    
-    
     public DataSourceList(DataSourceViewer dsViewer) {
         super(new DefaultListModel());
         this.dsViewer = dsViewer;
@@ -84,6 +82,8 @@ public class DataSourceList extends JList implements DropTargetListener{
         
         breakIcon.setIconWidth(1600);
         breakIcon.setIconHeight(1);
+		this.setCellRenderer(new DataSourceCellRenderer());
+				
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
                 
@@ -91,21 +91,41 @@ public class DataSourceList extends JList implements DropTargetListener{
                     
                     super.getListCellRendererComponent(list,"",index,iss,chf);
                 }
-                        else{
-                    
-                super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
-                        }
+				else{
+							JPanel panel = new JPanel();
+							panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+							JCheckBox checkBox = new JCheckBox();
+							checkBox.setEnabled(true);
+							checkBox.setBackground(VueResources.getColor("FFFFFF"));
+							if (index == list.getSelectionIndex()) {
+								checkBox.setBackground(GUI.getTextHighligtColor());
+							}
+							checkBox.setSelected( ((DataSource)value).isIncludedInSearch() );
+							panel.add(checkBox);
+							
+							if (value instanceof FavoritesDataSource) {
+								panel.add(new JLabel(myComputerIcon));
+							} else if (value instanceof LocalFileDataSource) {
+								panel.add(new JLabel(myFavoritesIcon));
+							} else {
+								panel.add(new JLabel(remoteIcon));
+							}
+							panel.add(new JLabel(((DataSource)value).getDisplayName()));
+							panel.setBackground(VueResources.getColor("FFFFFF"));
+							return panel;
+//                super.getListCellRendererComponent(list, panel, index, iss, chf);
+				}
                 
                
                 
                 if (value instanceof FavoritesDataSource){
-                    setIcon(myFavoritesIcon);
+//                    setIcon(myFavoritesIcon);
                     this.setPreferredSize(new Dimension(200,20));
                 }
                 
                 else if (value instanceof LocalFileDataSource){
                     
-                     setIcon(myComputerIcon);
+  //                   setIcon(myComputerIcon);
                     this.setPreferredSize(new Dimension(200,20)); 
                     
                 }
@@ -146,11 +166,11 @@ public class DataSourceList extends JList implements DropTargetListener{
                 }
                  
                 else{
-                    setIcon(remoteIcon);
+					
+    //                setIcon(remoteIcon);
                     this.setPreferredSize(new Dimension(200,20));
-                    
+					
                 }
-                
                 
                 return this;
                 
@@ -162,11 +182,8 @@ public class DataSourceList extends JList implements DropTargetListener{
         };
         
         this.setCellRenderer(renderer);
+    
     }
-    
-    
-    
-    
     
     
     public DefaultListModel getContents() {

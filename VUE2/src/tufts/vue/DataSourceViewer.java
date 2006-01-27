@@ -90,6 +90,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     
     
     public static DataSourceList dataSourceList;
+	
+	private boolean firstListEvent = true;
     
     public DataSourceViewer(DRBrowser drBrowser){
         
@@ -109,31 +111,41 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         setPopup();
         dataSourceList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
-                
+                System.out.println("first event? " + firstListEvent);
+				
+				
                 Object o = ((JList)e.getSource()).getSelectedValue();
                 if (o !=null){
                     
                     if (!(o instanceof String)){
-                        DataSourceViewer.this.setActiveDataSource((DataSource)o);
+						DataSource ds = (DataSource)o;
+						if (firstListEvent) {
+							ds.setIncludedInSearch(!ds.isIncludedInSearch());
+						}
+                        DataSourceViewer.this.setActiveDataSource(ds);
                     }
                     else{
                         
                         int index = ((JList)e.getSource()).getSelectedIndex();
-                        DataSourceViewer.this.setActiveDataSource((DataSource)(dataSourceList.getContents().getElementAt(index-1)));
-                        
+						DataSource ds = (DataSource)(dataSourceList.getContents().getElementAt(index-1));
+						if (firstListEvent) {
+							ds.setIncludedInSearch(!ds.isIncludedInSearch());
+						}
+						DataSourceViewer.this.setActiveDataSource(ds);
                     }
+					firstListEvent = !firstListEvent;
                 }
-                
             }}
         );
-        dataSourceList.addMouseListener(new MouseAdapter() {
+
+		dataSourceList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if(e.getButton() == e.BUTTON3) {
                     popup.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
         });
-        
+
         
         // GRID: addConditionButton
         JButton addButton=new VueButton("add");

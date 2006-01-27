@@ -40,6 +40,7 @@ public class VueDataSource implements DataSource{
     protected String address;
     protected String Id;
     protected boolean isAutoConnect;
+	protected boolean isIncludedInSearch;
     protected int publishMode;
     protected JPanel resourceViewer; 
     protected JPanel addDataSourcePanel;
@@ -179,6 +180,15 @@ public class VueDataSource implements DataSource{
        return getDisplayName();
    }
     
+	public boolean isIncludedInSearch()
+	{
+		return this.isIncludedInSearch;
+	}
+	
+	public void setIncludedInSearch(boolean included)
+	{
+		this.isIncludedInSearch = included;
+	}
     
 }
 
