@@ -24,6 +24,7 @@ import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.border.*;
 
 
@@ -33,9 +34,9 @@ import javax.swing.border.*;
  * It is used for the main tool bar tool
  *
  * @author csb
- * @version $Revision: 1.16 $ / $Date: 2006-01-20 20:00:32 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2006-01-27 03:02:15 $ / $Author: sfraize $
  **/
-public class PaletteButton extends JRadioButton implements ActionListener
+public class PaletteButton extends JRadioButton //implements ActionListener
 {
     /* this is thr eolumn threshold array to tell when to add another columng in the palette */
     static int mColThreshold[] = VueResources.getIntArray("menuFlowThreshold") ;
@@ -74,8 +75,8 @@ public class PaletteButton extends JRadioButton implements ActionListener
     protected Icon mPopupIndicatorIcon = null;	
     protected Icon mPopupIndicatorUpIcon = null;
 
-    private static final boolean debug = false;
-	
+    private long lastHidden;
+
 	
     /**
      * Creates a new PaletteButton with the passed array of items
@@ -106,7 +107,6 @@ public class PaletteButton extends JRadioButton implements ActionListener
 	
 	
     /**
-     * setContext
      * Sets a user context object.
      **/
     public void setContext( Object pContext) {
@@ -114,7 +114,6 @@ public class PaletteButton extends JRadioButton implements ActionListener
     }
 	 
     /**
-     * getContext
      * Gets teh user context object
      **/
     public Object getContext() {
@@ -142,7 +141,6 @@ public class PaletteButton extends JRadioButton implements ActionListener
 
 
     /**
-     * setPopupIconIndicatorEnabled
      * This sets the state of the mUseArrowIcon property.  It is
      * used to tell how to draw the popup visual cue.  If true,
      * then it uses the image, otherwise, it draws the default
@@ -168,7 +166,6 @@ public class PaletteButton extends JRadioButton implements ActionListener
     }
 
     /**
-     * addPaletteItem( PaletteButtonItem pItem)
      * This method adds a new PaleeteButtonItem to the PaletteButton's
      * menu.
      *
@@ -191,7 +188,6 @@ public class PaletteButton extends JRadioButton implements ActionListener
 	
 	
     /**
-     * removePaletteItem
      * This removes an item from the popup menu
      * @param pItem the item to remove
      **/
@@ -224,12 +220,11 @@ public class PaletteButton extends JRadioButton implements ActionListener
 	
 	
     /**
-     * setPaletteButtonItems
      * Sets the set of PaletteButtonItems for the popup menu
      * @param pItems the array of items.
      **/
     public void setPaletteButtonItems(PaletteButtonItem [] pItems) {
-        if (debug) System.out.println(this + " setPaletteButtonItems n=" + pItems.length);
+        if (DEBUG.INIT) System.out.println(this + " setPaletteButtonItems n=" + pItems.length);
         mItems = pItems;
         buildPalette();
     }
@@ -246,13 +241,10 @@ public class PaletteButton extends JRadioButton implements ActionListener
 	 
 	  
     /**
-     * buildPalette()
-     *
      * This method builds the PaletteButton's palette menu and sets up
      * all appropriate event listeners to handle menu selection.  It
      * also calculates the best layout fo rthe popup based on the
      * the number of items.
-     *
      **/
     protected void buildPalette() {
 		
@@ -296,34 +288,23 @@ public class PaletteButton extends JRadioButton implements ActionListener
             cols = 3;
         }
 		
-        GridLayout grid = new GridLayout(rows, cols);
-        grid.setVgap(0);
-        grid.setHgap(0);
-        if (debug) System.out.println("*** CREATED GRID LAYOUT " + grid.getRows() + "x" + grid.getColumns());
-		
         //JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 
-        PBPopupMenu pbPopup = new PBPopupMenu();
-        mPopup = pbPopup;
-        this.addMouseListener(pbPopup);
-		
-        mPopup.setLayout(grid);
+        mPopup = new PBPopupMenu(rows, cols);
+        
+        new GUI.PopupMenuHandler(this, mPopup); // installs mouse & popup listeners
 
         for (int i = 0; i < numItems; i++) {
             mPopup.add(mItems[i]);
             mItems[i].setPaletteButton(this);
-            mItems[i].addActionListener(this);
+            //mItems[i].addActionListener(this);
         }
         
-        if (debug)
+        if (DEBUG.INIT)
             System.out.println("*** CREATED POPUP " + mPopup
                                + " margin=" + mPopup.getMargin()
                                + " layout=" + mPopup.getLayout()
                                );
-        //mPopup.pack();
-        //mPopup.validate();
-        //mPopup.setSize(20,60);
-        //mPopup.setPopupSize(20,30);
 	
     }
 	
@@ -383,27 +364,27 @@ public class PaletteButton extends JRadioButton implements ActionListener
         super.fireStateChanged();
     }
     /**
-     * paint( Graphics g)
      * Overrides paint method and renders an additional icon ontop of
      * of the normal rendering to indicate if this button contains
      * a popup handler.
      *
      * @param Graphics g the Graphics.
      **/
-    public void paint( java.awt.Graphics pGraphics) {
-        super.paint( pGraphics);
+    public void paint(java.awt.Graphics g) {
+        super.paint(g);
 		
         Dimension dim = getPreferredSize();
         Insets insets = getInsets();
 		
         // now overlay the popup menu icon indicator
         // either from an icon or by brute painting
-        if( (!isPopupIconIndicatorEnabled() ) 
-            &&  (mPopup != null) 
-            && ( !mPopup.isVisible() ) ) {
+        if( !isPopupIconIndicatorEnabled()
+            && mPopup != null 
+            && !mPopup.isVisible()
+            ) {
             // draw popup arrow
-            Color saveColor = pGraphics.getColor();
-            pGraphics.setColor( Color.black);
+            Color saveColor = g.getColor();
+            g.setColor( Color.black);
 			
             int w = getWidth();
             int h = getHeight();
@@ -412,13 +393,16 @@ public class PaletteButton extends JRadioButton implements ActionListener
             int y = h + mArrowVOffset;
             int x2 = x1 + (mArrowSize * 2) -1;
 			
+            //((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+            //RenderingHints.VALUE_ANTIALIAS_ON);
+            
             for(int i=0; i< mArrowSize; i++) { 
-                pGraphics.drawLine(x1,y,x2,y);
+                g.drawLine(x1,y,x2,y);
                 x1++;
                 x2--;
                 y++;
             }
-            pGraphics.setColor( saveColor);
+            g.setColor( saveColor);
         }
         else  // Use provided popup overlay  icons
             if(   (mPopup != null) && ( !mPopup.isVisible() ) ) {
@@ -429,49 +413,35 @@ public class PaletteButton extends JRadioButton implements ActionListener
                     overlay = mPopupIndicatorDownIcon;
                 }
                 if( overlay != null) {
-                    overlay.paintIcon( this, pGraphics, insets.top, insets.left);
+                    overlay.paintIcon( this, g, insets.top, insets.left);
                 }
-                /***
-                    pGraphics.drawImage( mPopupIndicatorIcon.getImage(),
-                    0, 0 ,
-                    //Color.white,
-                    mPopupIndicatorIcon.getImageObserver()  );
-                ******/
             }
     }
 	
     /**
-     * actionPerformed( ActionEvent pEvent)
      * This method handles remote or direct  selection of a PaletteButtonItem
      *
      * It will update its own icons based on the selected item
-     *
-     * @param pEvent the action event.
      **/
-    public void actionPerformed( ActionEvent pEvent) {
-        if (DEBUG.TOOL) System.out.println(this + " calling doClick (probably vestigal)");
+    public void actionPerformed(ActionEvent e) {
+        if (DEBUG.Enabled) System.out.println(this + " " + e);
+        //if (DEBUG.TOOL) System.out.println(this + " calling doClick (probably vestigal)");
         //System.out.println(pEvent);
         // fake a click to handle radio selection after menu selection
         // this appears no longer to be needed, tho I'm leaving it in for
         // now just in case (todo cleanup: as part of tool VueTool / ToolController re-archtecting)
         // If we can really do away with this, it means VueTool no longer needs to subclass
         // AbstractAction in order to add all the buttons as action listeners.
-        doClick();		
+        //doClick();		
     }
 
     public String toString() {
         return "PaletteButton[" + getContext() + "]";
     }
-    private static boolean sDebug = false;
-    private void debug( String pStr) {
-        if( sDebug) {
-            System.out.println("PaletteButton: "+pStr);
-        }
-    }
 	
 	
     /**
-     * JPopupMenu subclass  to deal with popup triggers.
+     * JPopupMenu subclass to set up appearance of pop-up menu.
      *
      * As of java 1.4.2 on Tiger (Mac OS X 10.4+) the layout
      * of this is broken (too much space).  OS X 10.3 works
@@ -479,148 +449,34 @@ public class PaletteButton extends JRadioButton implements ActionListener
      *
      **/
     public class PBPopupMenu extends JPopupMenu
-        implements MouseListener
+                                     //implements MouseListener, PopupMenuListener
     {
-        private boolean mDebug = false;
         private boolean mIsVisibleLocked;
+        private long lastHidden;
 
-        public PBPopupMenu() {
+        public PBPopupMenu(int rows, int cols) {
+            //setBorderPainted(false);
             setFocusable(false);
             GUI.applyToolbarColor(this);
-            //setBackground(Color.white);
             setBorder(new LineBorder(getBackground().darker().darker(), 1));
-            //setBorderPainted(false);
-        }
 
-        //public int getWidth() { return 20; }
-            
-        public void setVisibleLocked(boolean t) {
-            if (mDebug) System.out.println(this + " LOCK " + t);
-            mIsVisibleLocked = t;
-        }
-	
-        public void setVisible(boolean b) {
-            //System.out.println(this + " setVisible " + b);
-            if (mDebug) new Throwable(this + " setVisible " + b).printStackTrace();
-            //if (!b) new Throwable("HIDING").printStackTrace();
-            if (mIsVisibleLocked && !b) {
-                if (mDebug) System.out.println(this + " setVisible OVERRIDE");
-                super.setVisible(true);
-            } else
-                super.setVisible(b);
+            GridLayout grid = new GridLayout(rows, cols);
+            grid.setVgap(0);
+            grid.setHgap(0);
+            if (DEBUG.INIT) System.out.println("*** CREATED GRID LAYOUT " + grid.getRows() + "x" + grid.getColumns());
+            setLayout(grid);
         }
 
         public void menuSelectionChanged(boolean isIncluded) {
-            if (mDebug) System.out.println(this + " menuSelectionChanged included=" + isIncluded);
-            //new Throwable("menuSelectionChanged").printStackTrace();
+            if (DEBUG.Enabled) System.out.println(this + " menuSelectionChanged included=" + isIncluded);
             super.menuSelectionChanged(isIncluded);
         }
-
-        /**
-         * mousePressed
-         * Thimethod will handle the mouse press event and cause the
-         * popup to display at the proper location of th
-         **/
-        private boolean mMenuWasShowing = false;
-        public void mousePressed(MouseEvent e) {
-            debug(e.paramString() + " on " + e.getSource());
-            // For most things, we'd pop up the menu at x, yy below,
-            //int x = e.getX();
-            //int y = e.getY();
-            // but this time, we use the compoent's lower left as the spot so
-            // it looks like a drop down menu
-    	
-            if (!isVisible()) {
-                mMenuWasShowing = false;
-
-                // this almost working, but not because MenuSelectionManager now
-                // SOMETIMES doesn't clear the old menu (probabaly thinks it's
-                // already hidden after we overrode it's attempts to hide it)
-                // setVisibleLocked(true);
-
-                showPopup(e);
-            } else {
-                mMenuWasShowing = true;
-                //setVisible(false);
-            }
-        }
-
-        /**
-         * mouse Released
-         * This handles the mouse release events
-         *
-         * @param MouseEvent e the event
-         **/
-        public void mouseReleased(MouseEvent e) {
-            debug(e.paramString() + " on " + e.getSource());
-
-            // if for any reason we never get this mouse released event,
-            // the pop-up menu will stay stuck on the screen till we
-            // do get one...
-            // setVisibleLocked(false);
-
-            if ( isVisible() ) {
-                ///////mPopup.setVisible( false);
-                //Component c = e.getComponent();
-                // if the palette buttons can take focus, you have
-                // to do this or they don't get clicked -- we've turned
-                // off taking focus which improves pop-up menu behaviour.
-                //debug(e.paramString() + "\tclicking " + c);
-                //((PaletteButton) c).doClick();
-            } else {
-                // this puts it back, but we need to not do this if was just showing
-                // so we can still toggle it's display on/off
-                if (!mMenuWasShowing)
-                    showPopup(e);
-                //if (mDebug) System.out.println("\tpop-up not visible");
-            }
-
-        }
-
-        public void mouseEntered(MouseEvent e) {}
-        public void mouseExited(MouseEvent e) {}
         
-        private void showPopup(MouseEvent e)
-        {
-            if (mDebug) System.out.println("\tshowing " + this);
-            Component c = e.getComponent(); 	
-            show(c, 0, c.getBounds().height);
-        }
-
-        /**
-         * mouseClicked
-         * This handles the mouse clicked events
-         *
-         * @param MouseEvent e the event
-         **/
-        public void mouseClicked(MouseEvent e) {
-            debug(e.paramString() + " on " + e.getSource());
-        }
-
-
-        private void debug( String pStr) {
-            if( mDebug ) {
-                System.out.println("PBPopupMenu " + Integer.toHexString(hashCode()) + ": " +pStr);
-            }
-        }
-        public String toString()
-        {
+        public String toString() {
             return "PBPopupMenu[" + getIcon() + "]";
         }
-        // I can't find this call anywhere in the java api or our src -- needed anymore?
-        // where was this from? -- smf
-        /*
-          public boolean isPopupMenuTrigger( MouseEvent pEvent ) {
-          boolean retValue = false;
-          System.out.println(this + " " + pEvent);
-                
-          if(pEvent.getID() == MouseEvent.MOUSE_PRESSED )
-          retValue =true;
-          return retValue;
-          }
-        */
-        
-    } // end of class PBPopupMenu
+    }
+    
 	
 	
 }  // end of class PaletteButton
