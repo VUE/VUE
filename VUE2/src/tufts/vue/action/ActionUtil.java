@@ -51,10 +51,11 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
+ * @version $Revision: 1.41 $ / $Date: 2006-01-27 03:09:15 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * 
  */
+// TODO: rename / relocate most of this code! -- SMF
 public class ActionUtil {
     private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
     private final static URL XML_MAPPING_DEFAULT =      VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
@@ -268,6 +269,7 @@ public class ActionUtil {
                          + " by " + VUE.getSystemProperty("user.name")
                          + " on platform " + VUE.getSystemProperty("os.name")
                          + " " + VUE.getSystemProperty("os.version")
+                         + " in JVM " + VUE.getSystemProperty("java.runtime.version")
                          + " -->\n");
             writer.write("<!-- Do Not Remove:"
                          + " Saved by " + tufts.vue.Version.WhatString
