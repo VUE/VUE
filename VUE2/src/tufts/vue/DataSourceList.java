@@ -50,7 +50,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.24 $ / $Date: 2006-01-27 17:53:29 $ / $Author: jeff $ 
+ * @version $Revision: 1.25 $ / $Date: 2006-01-27 18:19:38 $ / $Author: jeff $ 
  * @author Ranjani Saigal
  */
 
@@ -97,10 +97,11 @@ public class DataSourceList extends JList implements DropTargetListener{
 							JCheckBox checkBox = new JCheckBox();
 							checkBox.setEnabled(true);
 							checkBox.setBackground(VueResources.getColor("FFFFFF"));
-							if (index == list.getSelectionIndex()) {
+/*							if (index == list.getSelectionIndex()) {
 								checkBox.setBackground(GUI.getTextHighligtColor());
 							}
 							checkBox.setSelected( ((DataSource)value).isIncludedInSearch() );
+*/
 							panel.add(checkBox);
 							
 							if (value instanceof FavoritesDataSource) {
