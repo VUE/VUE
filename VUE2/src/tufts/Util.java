@@ -1020,7 +1020,7 @@ public class Util
             s.print(TERM_CLEAR);
             
             if (prefix == null || prefix == NO_CLASS_FILTER)
-                prefix = "!tufts.Util,print";
+                prefix = "!tufts.Util.print";
 
             StackTraceElement[] trace = t.getStackTrace();
             int skipped = 0;
