@@ -34,9 +34,9 @@ import javax.swing.border.*;
  * It is used for the main tool bar tool
  *
  * @author csb
- * @version $Revision: 1.17 $ / $Date: 2006-01-27 03:02:15 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2006-01-27 03:05:06 $ / $Author: sfraize $
  **/
-public class PaletteButton extends JRadioButton //implements ActionListener
+public class PaletteButton extends JRadioButton
 {
     /* this is thr eolumn threshold array to tell when to add another columng in the palette */
     static int mColThreshold[] = VueResources.getIntArray("menuFlowThreshold") ;
@@ -74,8 +74,6 @@ public class PaletteButton extends JRadioButton //implements ActionListener
     /** the current overlay popup indicator icon **/
     protected Icon mPopupIndicatorIcon = null;	
     protected Icon mPopupIndicatorUpIcon = null;
-
-    private long lastHidden;
 
 	
     /**
@@ -121,7 +119,6 @@ public class PaletteButton extends JRadioButton //implements ActionListener
     }
 	
     /**
-     * setPopupIndicatorIcon
      * Sets the popup indicator icon icon
      *
      * @param pIcon the icon
@@ -131,7 +128,6 @@ public class PaletteButton extends JRadioButton //implements ActionListener
      }
 	 
      /**
-     * getPopupIndicatorIcon
      * Gets teh popup indicator icon
      * @return the icon
      **/
@@ -309,7 +305,6 @@ public class PaletteButton extends JRadioButton //implements ActionListener
     }
 	
     /**
-     *  setPropertiesFromItem
      * This method sets teh display properties of the button based on
      * the properties set in a PaletteButtonMenu item.  This allows the 
      * primary tool button to reflect the current selected item on the main toolbar.
@@ -417,23 +412,6 @@ public class PaletteButton extends JRadioButton //implements ActionListener
                 }
             }
     }
-	
-    /**
-     * This method handles remote or direct  selection of a PaletteButtonItem
-     *
-     * It will update its own icons based on the selected item
-     **/
-    public void actionPerformed(ActionEvent e) {
-        if (DEBUG.Enabled) System.out.println(this + " " + e);
-        //if (DEBUG.TOOL) System.out.println(this + " calling doClick (probably vestigal)");
-        //System.out.println(pEvent);
-        // fake a click to handle radio selection after menu selection
-        // this appears no longer to be needed, tho I'm leaving it in for
-        // now just in case (todo cleanup: as part of tool VueTool / ToolController re-archtecting)
-        // If we can really do away with this, it means VueTool no longer needs to subclass
-        // AbstractAction in order to add all the buttons as action listeners.
-        //doClick();		
-    }
 
     public String toString() {
         return "PaletteButton[" + getContext() + "]";
@@ -449,11 +427,7 @@ public class PaletteButton extends JRadioButton //implements ActionListener
      *
      **/
     public class PBPopupMenu extends JPopupMenu
-                                     //implements MouseListener, PopupMenuListener
     {
-        private boolean mIsVisibleLocked;
-        private long lastHidden;
-
         public PBPopupMenu(int rows, int cols) {
             //setBorderPainted(false);
             setFocusable(false);
