@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.50 $ / $Date: 2006-01-23 17:22:17 $ / $Author: sfraize $  
+ * @version $Revision: 1.51 $ / $Date: 2006-01-27 17:32:30 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -60,7 +60,7 @@ class MapDropTarget
     private static final int DROP_TEXT = 4;
 
     
-    private static final int ACCEPTABLE_DROP_TYPES =
+    public static final int ACCEPTABLE_DROP_TYPES =
         DnDConstants.ACTION_COPY        // 0x1
         //| DnDConstants.ACTION_MOVE      // 0x2
         | DnDConstants.ACTION_LINK      // 0x40000000
@@ -1004,7 +1004,7 @@ class MapDropTarget
         }
         
         String spec = resource.getSpec();
-        String name = VueUtil.decodeURL(spec); // in case any %xx notations
+        String name = Util.decodeURL(spec); // in case any %xx notations
 
         int slashIdx = name.lastIndexOf('/');  //TODO: fileSeparator? test on PC
 
