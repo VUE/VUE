@@ -19,7 +19,7 @@ import javax.swing.SwingUtilities;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.2 $ / $Date: 2006-01-20 17:24:08 $ / $Author: sfraize $ 
+ * @version $Revision: 1.3 $ / $Date: 2006-01-28 23:16:49 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
 //public class VueFrame extends com.jidesoft.docking.DefaultDockableHolder
@@ -41,10 +41,12 @@ public class VueFrame extends javax.swing.JFrame
         super(title);
         setName("VueFrame" + sNameIndex++);
         GUI.setRootPaneNames(this, getName());
-        if (GUI.isMacAqua())
+        if (GUI.isMacAqua()) {
+            // note that this actually has no effect on MacOSX
             setIconImage(VueResources.getImage("vueIcon128"));
-        else
+        } else {
             setIconImage(VueResources.getImage("vueIcon32"));
+        }
         setMaximizedBounds(GUI.getMaximumWindowBounds());
 
         // we need this to make sure kdb input
