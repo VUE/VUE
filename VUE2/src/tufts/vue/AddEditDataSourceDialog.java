@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.5 $ / $Date: 2006-01-20 18:20:32 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-01-28 23:35:01 $ / $Author: sfraize $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -72,7 +72,7 @@ public class AddEditDataSourceDialog extends JDialog {
             tabbedPane.setSelectedComponent(addPanel);
         }
         if (DEBUG.DR) System.out.println(this + " calling super.show");
-        super.show();
+        super.setVisible(true);
     }
 
     public String toString() {
