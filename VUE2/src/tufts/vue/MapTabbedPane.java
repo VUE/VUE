@@ -30,7 +30,7 @@ import javax.swing.border.*;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.25 $ / $Date: 2006-01-20 19:41:15 $ / $Author: sfraize $ 
+ * @version $Revision: 1.26 $ / $Date: 2006-01-28 23:14:30 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -46,6 +46,7 @@ public class MapTabbedPane extends JTabbedPane
     MapTabbedPane(String name) {
         this.name = name;
         setName("mapTabs-" + name);
+        setFocusable(false);
         BgColor = GUI.getToolbarColor();
         setTabPlacement(javax.swing.SwingConstants.BOTTOM);
         setPreferredSize(new Dimension(300,400));
@@ -106,12 +107,12 @@ public class MapTabbedPane extends JTabbedPane
             setForeground(Color.darkGray);
             setBackground(BgColor);
         }
-        addFocusListener(this); // hope not to hear anything...
+        //addFocusListener(this); // hope not to hear anything...
         // don't let us be focusable or sometimes you can select
         // & activate a new map for interaction, but we keep
         // the focus here in the tabbed instead of giving to
         // the component in the tab.
-        setFocusable(false);
+        //setFocusable(false); // in constructor
     }
         
     private String mapToTabTitle(LWMap map) {
