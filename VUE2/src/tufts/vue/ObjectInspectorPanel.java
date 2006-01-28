@@ -32,7 +32,7 @@ import tufts.vue.filter.*;
 /**
  * The Object Inspector Panel!
  *
- * @version $Revision: 1.27 $ / $Date: 2006-01-20 19:57:56 $ / $Author: sfraize $ 
+ * @version $Revision: 1.28 $ / $Date: 2006-01-28 23:34:20 $ / $Author: sfraize $ 
  *
  */
 public class ObjectInspectorPanel extends JPanel
@@ -402,7 +402,7 @@ public class ObjectInspectorPanel extends JPanel
     public static void main(String args[]) {
         VUE.parseArgs(args);
         VUE.initUI();
-        new Frame("A Frame").show();
+        new Frame("A Frame").setVisible(true);
         ObjectInspectorPanel p = new ObjectInspectorPanel();
         //LWMap map = new LWMap("TestMap");
         LWComponent node = new LWNode("Test Node");
