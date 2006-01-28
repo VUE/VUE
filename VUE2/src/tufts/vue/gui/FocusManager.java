@@ -146,7 +146,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.4 $ / $Date: 2006-01-28 23:28:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.5 $ / $Date: 2006-01-28 23:34:09 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -1360,9 +1360,9 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
             DockWindow tool = new DockWindow("Tool", doc2);
             
-            doc1.show();
-            doc2.show();
-            tool.show();
+            doc1.setVisible(true);
+            doc2.setVisible(true);
+            tool.setVisible(true);
         }
 
         if (false) {  // SLIGHT CHANCE USEFUL
@@ -1383,9 +1383,9 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
             DockWindow tool = new DockWindow("Tool", doc2);
             
-            doc1.show();
-            doc2.show();
-            tool.show();
+            doc1.setVisible(true);
+            doc2.setVisible(true);
+            tool.setVisible(true);
         }
         
         if (false) {
@@ -1405,10 +1405,10 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
             DockWindow tool = new DockWindow("Tool", toolParent);
             
-            toolParent.show();
-            doc1.show();
-            doc2.show();
-            tool.show();
+            toolParent.setVisible(true);
+            doc1.setVisible(true);
+            doc2.setVisible(true);
+            tool.setVisible(true);
         }
         
         if (false) {

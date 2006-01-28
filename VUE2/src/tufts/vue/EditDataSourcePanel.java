@@ -29,7 +29,7 @@ import java.awt.event.*;
 
 /**
  *
- * @version $Revision: 1.15 $ / $Date: 2006-01-20 18:27:52 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2006-01-28 23:38:39 $ / $Author: sfraize $
  * @author  akumar03
  *
  */
@@ -119,7 +119,7 @@ public class EditDataSourcePanel extends JPanel{
                             if(DEBUG.DR) System.out.println(ex);
                             JOptionPane.showMessageDialog(VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
-                            dialog.hide();
+                            dialog.setVisible(false);
                             dialog.dispose();
                         }
                     }
@@ -216,7 +216,7 @@ public class EditDataSourcePanel extends JPanel{
                             if(DEBUG.DR) System.out.println(ex);
                             JOptionPane.showMessageDialog(VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
-                            dialog.hide();
+                            dialog.setVisible(false);
                             dialog.dispose();
                         }
                     }
@@ -312,7 +312,7 @@ public class EditDataSourcePanel extends JPanel{
                             if(DEBUG.DR) System.out.println(ex);
                             JOptionPane.showMessageDialog(VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
-                            dialog.hide();
+                            dialog.setVisible(false);
                             dialog.dispose();
                         }
                     }
@@ -454,7 +454,7 @@ public class EditDataSourcePanel extends JPanel{
                             if(DEBUG.DR) System.out.println(ex);
                             JOptionPane.showMessageDialog(VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
-                            dialog.hide();
+                            dialog.setVisible(false);
                             dialog.dispose();
                         }
                     }
@@ -601,7 +601,7 @@ public class EditDataSourcePanel extends JPanel{
                             if(DEBUG.DR) System.out.println(ex);
                             JOptionPane.showMessageDialog(VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
-                            dialog.hide();
+                            dialog.setVisible(false);
                             dialog.dispose();
                         }
                     }
@@ -722,7 +722,7 @@ public class EditDataSourcePanel extends JPanel{
                             if(DEBUG.DR) System.out.println(ex);
                             JOptionPane.showMessageDialog(VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
-                            dialog.hide();
+                            dialog.setVisible(false);
                             dialog.dispose();
                         }
                     }

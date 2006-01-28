@@ -26,7 +26,7 @@ import java.awt.event.*;
  * This  panel is the UI to add/edit datasources.
  *
  * @author  akumar03
- * @version $Revision: 1.17 $ / $Date: 2006-01-20 18:17:24 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2006-01-28 23:38:13 $ / $Author: sfraize $
  */
 public class AddDataSourcePanel extends JPanel {
     
@@ -106,7 +106,7 @@ public class AddDataSourcePanel extends JPanel {
                             if(DEBUG.DR) System.out.println(ex);
                             JOptionPane.showMessageDialog(VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
-                            dialog.hide();
+                            dialog.setVisible(false);
                             dialog.dispose();
                         }
                     }
@@ -212,7 +212,7 @@ public class AddDataSourcePanel extends JPanel {
                             if(DEBUG.DR) System.out.println(ex);
                             JOptionPane.showMessageDialog(VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
-                            dialog.hide();
+                            dialog.setVisible(false);
                             dialog.dispose();
                         }
                     }
@@ -296,7 +296,7 @@ public class AddDataSourcePanel extends JPanel {
                             if(DEBUG.DR) System.out.println(ex);
                             JOptionPane.showMessageDialog(VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
-                            dialog.hide();
+                            dialog.setVisible(false);
                             dialog.dispose();
                         }
                     }
@@ -422,7 +422,7 @@ public class AddDataSourcePanel extends JPanel {
                             if(DEBUG.DR) System.out.println(ex);
                             JOptionPane.showMessageDialog(VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
-                            dialog.hide();
+                            dialog.setVisible(false);
                             dialog.dispose();
                         }
                     }
@@ -554,7 +554,7 @@ public class AddDataSourcePanel extends JPanel {
                             if(DEBUG.DR) System.out.println(ex);
                             JOptionPane.showMessageDialog(VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
-                            dialog.hide();
+                            dialog.setVisible(false);
                             dialog.dispose();
                         }
                     }
@@ -672,7 +672,7 @@ public class AddDataSourcePanel extends JPanel {
                             JOptionPane.showMessageDialog(VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
                             if (DEBUG.DR) System.out.println(this + " dialog.hide");
-                            dialog.hide();
+                            dialog.setVisible(false);
                             if (DEBUG.DR) System.out.println(this + " dialog.dispose");
                             dialog.dispose();
                         }
@@ -776,7 +776,7 @@ public class AddDataSourcePanel extends JPanel {
                             JOptionPane.showMessageDialog(VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ t.getMessage(), "OSID Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
                             if (DEBUG.DR) System.out.println(this + " dialog.hide");
-                            dialog.hide();
+                            dialog.setVisible(false);
                             if (DEBUG.DR) System.out.println(this + " dialog.dispose");
                             dialog.dispose();
                         }
