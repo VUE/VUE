@@ -20,7 +20,7 @@ import java.awt.*;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-01-27 17:22:54 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-01-28 23:04:54 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX
@@ -124,6 +124,17 @@ public class MacOSX
     
     public static NSMenu getMainMenu() {
         return NSApplication.sharedApplication().mainMenu();
+    }
+
+    public static void setApplicationIcon(String imageFileName) {
+        try {
+            NSImage icon = new NSImage(imageFileName, false);
+            NSApplication.sharedApplication().setApplicationIconImage(icon);
+        } catch (LinkageError e) {
+            eout(e);
+        } catch (Throwable t) {
+            System.err.println(imageFileName + "; " + t);
+        }
     }
 
     private static NSMenu firstMenu = null;
