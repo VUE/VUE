@@ -29,7 +29,7 @@ import javax.swing.BorderFactory;
 /**
  * Scroll pane for MapViewer / MapViewport with a focus indicator.
  *
- * @version $Revision: 1.1 $ / $Date: 2006-01-20 17:00:57 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-01-28 23:16:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -41,6 +41,8 @@ public class MapScrollPane extends javax.swing.JScrollPane
     
     public MapScrollPane(MapViewer viewer) {
         super(viewer);
+
+        setFocusable(false);
         setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_ALWAYS);
         setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_ALWAYS);
         setWheelScrollingEnabled(false);
