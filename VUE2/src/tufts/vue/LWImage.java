@@ -30,6 +30,7 @@ import java.awt.AlphaComposite;
 import java.awt.image.ImageObserver;
 import java.net.URL;
 import javax.swing.ImageIcon;
+import javax.imageio.ImageIO;
 
 /**
  * Handle the presentation of an image resource, allowing cropping.
@@ -39,6 +40,8 @@ import javax.swing.ImageIcon;
 public class LWImage extends LWComponent
     implements LWSelection.ControlListener, ImageObserver
 {
+    // static { javax.imageio.ImageIO.setUseCache(true); } // doesn't appear to be working on MacOSX
+
     /** scale of images when a child of other nodes */
     private static final float ChildImageScale = 0.2f;
     
@@ -158,10 +161,10 @@ public class LWImage extends LWComponent
         // do before kicking off the prepare image doesn't need
         // to be undoable (really?  What if image had failed, and then
         // they did an update, and then it worked?)
-        new Thread("ImageLoader") {
+        new Thread("VUE-ImageLoader") {
             public void run() {
                 loadImage(mr, um);
-                if (DEBUG.IMAGE || DEBUG.THREAD) out("loadImage ImageObserver kicked off");
+                if (DEBUG.IMAGE || DEBUG.THREAD) out("loadImage returned (image loaded or loading)");
             }
         }.start();
         /*
@@ -210,6 +213,8 @@ public class LWImage extends LWComponent
         if (DEBUG.IMAGE || DEBUG.THREAD) out("loadImage");
         
         Image image = getImage(mr); // this will immediately block if host not responding
+        // todo: okay, we can skip the rest of this code as getImage now uses the ImageIO
+        // fetch
 
         if (image == null) {
             mImageError = true;
@@ -228,12 +233,13 @@ public class LWImage extends LWComponent
         if (java.awt.Toolkit.getDefaultToolkit().prepareImage(image, -1, -1, this)) {
             if (DEBUG.IMAGE || DEBUG.THREAD) out("ALREADY LOADED");
             mImage = image;
-            mImageWidth = image.getWidth(null);
-            mImageHeight = image.getHeight(null);
+            setRawImageSize(image.getWidth(null), image.getHeight(null));
             // If the size hasn't already been set, set it.
             //if (getAbsoluteWidth() < 10 && getAbsoluteHeight() < 10)
                 setSize(mImageWidth, mImageHeight);
+            notify(LWKey.RepaintAsync);
         } else {
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("ImageObserver Thread kicked off");
             mDebugChar = sDebugChar;
             if (++sDebugChar > 'Z')
                 sDebugChar = 'A';
@@ -257,6 +263,25 @@ public class LWImage extends LWComponent
         if (url == null)
             return null;
 
+        Image image = null;
+        
+        try {
+            // This allows reading of .tif & .bmp in addition to standard formats.
+            // We'll eventually want to use this for everything, and cache
+            // Resource objects themselves, but ImageIO caching doesn't
+            // appear to be working right now, so we only use it if we have to.
+            // .ico comes from a 3rd party library: aclibico.jar
+            String s = mr.getSpec().toLowerCase();
+            if (s.endsWith(".tif") || s.endsWith(".tiff") || s.endsWith(".bmp") || s.endsWith(".ico"))
+                image = ImageIO.read(url);
+        } catch (Throwable t) {
+            if (DEBUG.Enabled) Util.printStackTrace(t);
+            VUE.Log.info(url + ": " + t);
+        }
+
+        if (image != null)
+            return image;
+
         // If the host isn't responding, Toolkit.getImage will block for a while.  It
         // will apparently ALWAYS eventually get an Image object, but if it failed, we
         // eventually get callback to imageUpdate (once prepareImage is called) with an
@@ -265,7 +290,6 @@ public class LWImage extends LWComponent
         
         String s = mr.getSpec();
 
-        Image image;
             
         if (s.startsWith("file://")) {
 
@@ -275,14 +299,15 @@ public class LWImage extends LWComponent
             // this as a java bug.
             
             s = s.substring(7);
-            if (DEBUG.IMAGE || DEBUG.THREAD) out("fetching " + s);
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage " + s);
             image = java.awt.Toolkit.getDefaultToolkit().getImage(s);
         } else {
-            if (DEBUG.IMAGE || DEBUG.THREAD) out("fetching");
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage");
             image = java.awt.Toolkit.getDefaultToolkit().getImage(url);
         }
 
         if (image == null) Util.printStackTrace("image is null");
+
 
         return image;
     }
@@ -302,13 +327,33 @@ public class LWImage extends LWComponent
         return mOffset.x < 0 || mOffset.y < 0;
     }
 
+    private void setRawImageSize(int w, int h)
+    {
+        mImageWidth = w;
+        mImageHeight = h;
+
+        Resource r = getResource();
+
+        if (r != null) {
+            // todo: setProperty should be protected in Resource,
+            // or at least this info should be set in some kind
+            // of Resource content-handler helper.
+            r.setProperty("image.width",  Integer.toString(mImageWidth));
+            r.setProperty("image.height", Integer.toString(mImageHeight));
+        }
+    }
+        
+
+
 
     private static char sDebugChar = 'A';
     private char mDebugChar;
     public boolean imageUpdate(Image img, int flags, int x, int y, int width, int height)
     {
-        if (DEBUG.IMAGE && (DEBUG.META || (flags & ImageObserver.SOMEBITS) == 0))
-            out("imageUpdate " + img + " flags=" + flags + " " + width + "x" + height);
+        if ((DEBUG.IMAGE||DEBUG.THREAD) && (DEBUG.META || (flags & ImageObserver.SOMEBITS) == 0)) {
+            if ((flags & ImageObserver.ALLBITS) != 0) System.err.println("");
+            out("imageUpdate; flags=(" + flags + ") " + width + "x" + height);
+        }
         
         if ((flags & ImageObserver.ERROR) != 0) {
             if (DEBUG.IMAGE) out("ERROR");
@@ -325,35 +370,31 @@ public class LWImage extends LWComponent
             return false;
         }
             
-        Thread thread = Thread.currentThread();
 
-        if ((flags & ImageObserver.SOMEBITS) == 0) {
-            if (DEBUG.IMAGE || DEBUG.THREAD)
-                System.out.println("\n" + getResource() + " (" + flags + ") "
+        if (DEBUG.IMAGE || DEBUG.THREAD) {
+            
+            if ((flags & ImageObserver.SOMEBITS) == 0) {
+                //out("imageUpdate; flags=(" + flags + ") ");
+                //+ thread + " 0x" + Integer.toHexString(thread.hashCode())
+                //+ " " + sun.awt.AppContext.getAppContext()
+                //Thread thread = Thread.currentThread();
+                /*System.out.println("\n" + getResource() + " (" + flags + ") "
                                    + thread + " 0x" + Integer.toHexString(thread.hashCode())
-                                   + " " + sun.awt.AppContext.getAppContext()
-                                   );
-        } else {
-            if (DEBUG.IMAGE || DEBUG.THREAD) System.err.print(mDebugChar);
+                                   + " " + sun.awt.AppContext.getAppContext());*/
+            } else {
+                // Print out a letter indicating the next batch of bits has come in
+                System.err.print(mDebugChar);
+            }
+            
         }
         
         if ((flags & ImageObserver.WIDTH) != 0 && (flags & ImageObserver.HEIGHT) != 0) {
-            mImageWidth = width;
-            mImageHeight = height;
-            if (DEBUG.IMAGE || DEBUG.THREAD) System.out.println(getResource() + " GOT SIZE " + width + "x" + height);
+            setRawImageSize(width, height);
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("imageUpdate; got size " + width + "x" + height);
 
-            if (mThreadedUndoKey == null) out("imageUpdate: no undo key");
-            
-            /*
             if (mThreadedUndoKey == null) {
-                out("waiting for undo key");
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                    Util.printStackTrace(e);
-                }
+                if (DEBUG.Enabled) out("imageUpdate: no undo key");
             }
-            */
             
             // For the events triggered by the setSize below, make sure they go
             // to the right point in the undo queue.
@@ -370,6 +411,14 @@ public class LWImage extends LWComponent
             notify(LWKey.RepaintAsync);
         }
         
+
+        if (false) {
+            // the drawing of partial image results not working in current MacOSX JVM's!
+            mImage = img;
+            System.err.print("+");
+            notify(LWKey.RepaintAsync);
+        }
+        
         if ((flags & ImageObserver.ALLBITS) != 0) {
             imageLoadSucceeded(img);
             return false;
@@ -380,7 +429,7 @@ public class LWImage extends LWComponent
 
         if (Thread.interrupted()) {
             if (DEBUG.Enabled || DEBUG.IMAGE || DEBUG.THREAD)
-                System.err.println("\n" + getResource() + " *** INTERRUPTED *** " + thread);
+                System.err.println("\n" + getResource() + " *** INTERRUPTED *** " + Thread.currentThread());
             //System.err.println("\n" + getResource() + " *** INTERRUPTED *** (lowering priority) " + thread);
             // Changing priority of the Image Fetcher will prob slow down all subsequent loads
             //thread.setPriority(Thread.MIN_PRIORITY);
@@ -408,7 +457,7 @@ public class LWImage extends LWComponent
         } else {
             UndoManager.detachCurrentThread(mThreadedUndoKey); // in case our ImageFetcher get's re-used
             // todo: oh, crap, what if this image fetch thread is attached
-            // to another image load?
+            // to another active image load?
             mThreadedUndoKey = null;
         }
         if (DEBUG.Enabled) {
@@ -607,7 +656,8 @@ public class LWImage extends LWComponent
         }
         Shape oldClip = dc.g.getClip();
         dc.g.clip(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
-        //dc.g.clip(new Ellipse2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
+        //dc.g.clip(new Ellipse2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight())); // works nicely
+        //dc.g.drawImage(mImage, 0, 0, this); // no help in drawing partial images
         dc.g.drawImage(mImage, transform, null);
         dc.g.setClip(oldClip);
     }
@@ -735,6 +785,25 @@ public class LWImage extends LWComponent
         controlPoints[0] = new LWSelection.ControlPoint(getCenterX(), getCenterY());
         controlPoints[0].setColor(null); // no fill (transparent)
         return controlPoints;
+    }
+
+    public static void main(String args[]) throws Exception {
+
+        // GUI init required for fully loading all image codecs (tiff gets left behind otherwise)
+        // Ah: the TIFF reader in Java 1.5 apparently comes from the UI library:
+        // [Loaded com.sun.imageio.plugins.tiff.TIFFImageReader
+        // from /System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Classes/ui.jar]
+
+        VUE.init(args);
+        
+        System.out.println(java.util.Arrays.asList(javax.imageio.ImageIO.getReaderFormatNames()));
+        System.out.println(java.util.Arrays.asList(javax.imageio.ImageIO.getReaderMIMETypes()));
+
+        java.io.File f = new java.io.File(args[0]);
+
+        System.out.println("Reading " + f);
+
+        System.out.println("GOT " + ImageIO.read(f));
     }
 
 
