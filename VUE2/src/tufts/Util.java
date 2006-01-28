@@ -694,7 +694,7 @@ public class Util
             frame.pack();
         frame.validate();
         centerOnScreen(frame);
-        frame.show();
+        frame.setVisible(true);
         return frame;
     }
     
@@ -753,7 +753,7 @@ public class Util
 
         colorChosen = false;
         // show() blocks until a color chosen or cancled, then automatically hides the dialog:
-        colorChooserDialog.show();
+        colorChooserDialog.setVisible(true);
 
         JComponent pp = colorChooser.getPreviewPanel();
         System.out.println("CC Preview Panel: " + pp + " children=" + Arrays.asList(pp.getComponents()));
