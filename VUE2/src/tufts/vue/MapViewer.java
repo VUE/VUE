@@ -60,7 +60,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.278 $ / $Date: 2006-01-27 17:27:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.279 $ / $Date: 2006-01-28 23:09:05 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3180,7 +3180,12 @@ public class MapViewer extends javax.swing.JComponent
         private Point viewportAtDragStart;
         private boolean mLabelEditWasActiveAtMousePress;
         public void mousePressed(MouseEvent e) {
-            boolean wasFocusOwner = isFocusOwner(); // not doing it
+            //boolean wasFocusOwner = isFocusOwner();
+            // Due to a bug in the focus system, sometimes we really should have been
+            // the focus owner, but we mysteriously lost it to "null", so for now all
+            // presses will be recognized, even on *application* focus gains (which is
+            // what wasFocusOwner is there to detect) todo: fix
+            boolean wasFocusOwner = true;
             
             if (DEBUG.MOUSE || DEBUG.FOCUS) {
                 System.out.println("-----------------------------------------------------------------------------");
@@ -3195,7 +3200,9 @@ public class MapViewer extends javax.swing.JComponent
             grabVueApplicationFocus("mousePressed", e);
 
             if (wasFocusOwner == false && !GUI.isMenuPopup(e)) {
-                if (DEBUG.FOCUS) out("ignoring click on viewer focus gain");
+                //if (DEBUG.FOCUS) out("ignoring click on viewer focus gain");
+                Component owner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+                VUE.Log.info(MapViewer.this + " ignoring click on viewer focus gain; focusOwner=" + owner);
                 e.consume();
                 return;
             }
@@ -4736,6 +4743,8 @@ public class MapViewer extends javax.swing.JComponent
         if (DEBUG.FOCUS) out("focusLost (to " + GUI.name(e.getOppositeComponent()) +")");
         
         Component lostTo = e.getOppositeComponent();
+
+        //if (DEBUG.Enabled && lostTo == null) Util.printStackTrace(MapViewer.this + " focus lost to null");
         
         if (VueUtil.isMacPlatform()) {
             
@@ -4748,8 +4757,9 @@ public class MapViewer extends javax.swing.JComponent
             if (lostTo != null)
                 opName = lostTo.getName();
             // hack: check the name against the special name of Popup$HeavyWeightWindow
-            if (opName != null && opName.equals("###overrideRedirect###")) {
-                if (DEBUG.FOCUS) System.out.println("\tLOST TO POPUP!");
+            if (GUI.OVERRIDE_REDIRECT.equals(opName)) {
+                //if (DEBUG.FOCUS) System.out.println("\tFOCUS LOST TO POPUP");
+                VUE.Log.info(MapViewer.this + " focus lost to pop-up (overrideRedirect)");
                 //requestFocus();
                 // Actually, requestFocus can ADD to our problems if moving right from one rollover to another...
                 // The bug is this: on Mac, rolling right from a tip that was HeavyWeight to one
