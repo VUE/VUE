@@ -39,7 +39,7 @@ import com.sun.image.codec.jpeg.*;
  *
  * TODO: this to be refactored as AbstractResource / URLResource, and/or maybe LWResource.
  *
- * @version $Revision: 1.35 $ / $Date: 2006-01-23 17:21:04 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2006-01-28 23:12:24 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.  Create an AbstractResource class
@@ -76,7 +76,7 @@ public class MapResource implements Resource, XMLUnmarshalListener
     
     private URL url = null;
 
-    private boolean mXMLrestoreUnderway;
+    private boolean mXMLrestoreUnderway = false;
     private ArrayList mXMLpropertyList;
     
     // for castor to save and restore
@@ -85,12 +85,9 @@ public class MapResource implements Resource, XMLUnmarshalListener
     // expects SPEC to be non-null!  Castor won't let us though...
     public MapResource() {
         this.type =  Resource.NONE;
-        mXMLrestoreUnderway = true;
-        mXMLpropertyList = new ArrayList();
     }
     
     public MapResource(String spec) {
-        mXMLrestoreUnderway = false;
         setSpec(spec);
         //this.mTitle = spec; // why are we doing this??  title is an OPTIONAL field...
     }
@@ -100,25 +97,37 @@ public class MapResource implements Resource, XMLUnmarshalListener
         return null;
     }
     
-    public String toURLString() {
-        String txt;
+    private String toURLString() {
+
+        final String txt;
+        final String s = this.spec.trim();
+        final char c0 = s.length() > 0 ? s.charAt(0) : 0;
+        final char c1 = s.length() > 1 ? s.charAt(1) : 0;
+
+        if (c0 == '/' || c0 == '\\' || (Character.isLetter(c0) && c1 == ':')) {
+            // first case: MacOSX path
+            // second case: Windows path
+            // third case: Windows "C:" style path
+            txt = "file://" + s;
+        } else {
+            txt = s;
+        }
+        //if (DEBUG.Enabled) out("toURLString[" + txt + "]");
         
-        // todo fixme: this pathname may have been created on another
-        // platform, (meaning, a different separator char) unless
-        // we're going to canonicalize everything ourselves coming
-        // in...
-        
+        /*
         if (this.url == null) {
-            // this logic shouldn't be needed: if spec can be a a valid URL, this.url will already be set
-            if (spec.startsWith("file:") || spec.startsWith("http:")) {
-                System.err.println(getClass() + " BOGUS MapResource: is URL, but unrecognized! " + this);
+            // [old:this logic shouldn't be needed: if spec can be a a valid URL, this.url will already be set]
+            if (spec.startsWith("file:") || spec.startsWith("http:") || spec.startsWith("ftp:")) {
+                //System.err.println(getClass() + " BOGUS MapResource: is URL, but unrecognized! " + this);
                 txt = spec;
             }
-            // todo: handle resource: case
+            // todo: handle "resource:" case
             else
                 txt = "file:///" + spec;
+            if (DEBUG.Enabled) out("toURLString[" + txt + "]");
         } else
             txt = this.url.toString();
+        */
 
         //if (!spec.startsWith("file") && !spec.startsWith("http"))
         //    txt = "file:///" + spec;
@@ -129,42 +138,57 @@ public class MapResource implements Resource, XMLUnmarshalListener
     public java.net.URL toURL()
         throws java.net.MalformedURLException
     {
-        if (url == null)
-            return new java.net.URL(toURLString());
-        else
-            return this.url;
+        if (this.url == null) {
+            if (spec.startsWith("resource:")) {
+                final String classpathResource = spec.substring(9);
+                //System.out.println("Searching for classpath resource [" + classpathResource + "]");
+                this.url = getClass().getResource(classpathResource);
+            } else
+                this.url = new java.net.URL(toURLString());
+
+            if (DEBUG.Enabled) {
+                setProperty("url.protocol", url.getProtocol());
+                setProperty("url.host", url.getHost());
+                setProperty("url.path", url.getPath());
+                setProperty("url.query", url.getQuery());
+                setProperty("url", url.toString());
+            }
+        }
+        
+        return this.url;
     }
     
     /** @return as a property URL, or null if unable to create one */
     public java.net.URL asURL()
     {
-        URL url = null;
         try {
-            url = toURL();
+            return toURL();
         } catch (java.net.MalformedURLException e) {
-            //if (DEBUG.Enabled)
-            tufts.Util.printStackTrace(e, "MapResource.getURL " + this);
+            if (DEBUG.Enabled && DEBUG.META)
+                tufts.Util.printStackTrace(e, "FYI: MapResource.asURL[" + this + "]");
         }
-        return url;
+        return null;
     }
     
     public void displayContent() {
-        System.out.println(getClass() + " displayContent for " + this);
+        final String systemSpec;
+
+        if (VueUtil.isMacPlatform()) {
+            // toURL will fail if we have a Windows style "C:\Programs" url, so
+            // just in case don't try and construct a URL here.
+            systemSpec = toURLString();
+        } else
+            systemSpec = getSpec();
+        
+        VUE.Log.info("open [" + systemSpec + "]");
+                     
         try {
             this.accessAttempted = System.currentTimeMillis();
-            //if (getAsset() != null) {
-            //AssetViewer a = new AssetViewer(getAsset());
-            //a.setSize(600,400);
-            //a.show();
-            //} else
-            // TODO FIX: shouldn't be different for the mac here...
-            if (VueUtil.isMacPlatform())
-                VueUtil.openURL(toURLString());
-            else
-                VueUtil.openURL(getSpec());
+            VueUtil.openURL(systemSpec);
             this.accessSuccessful = System.currentTimeMillis();
         } catch (Exception e) {
-            System.err.println(e);
+            //System.err.println(e);
+            VUE.Log.error(systemSpec + "; " + e);
         }
     }
 
@@ -207,7 +231,8 @@ public class MapResource implements Resource, XMLUnmarshalListener
         return mTitle;
     }
     
-    // todo: resource's should be atomic: don't allow post construction setSpec
+    // todo: resource's should be atomic: don't allow post construction setSpec,
+    // or at least protected
     public void setSpec(final String spec) {
         if (DEBUG.Enabled) {
             System.out.println(getClass().getName() + " setSpec " + spec);
@@ -218,35 +243,38 @@ public class MapResource implements Resource, XMLUnmarshalListener
         // to set that until a user actually drag's one and makes use of it.
         // So a resource is going to become somewhat akin to a Transferable.
         
+        this.url = null;
         this.spec = spec;
         this.referenceCreated = System.currentTimeMillis();
-        try {
 
+        /*
+        try {
+            
             if (spec.startsWith("resource:")) {
                 final String classpathResource = spec.substring(9);
                 //System.out.println("Searching for classpath resource [" + classpathResource + "]");
                 url = getClass().getResource(classpathResource);
-            } else {
-                url = new URL(spec);
             }
+            //else { url = new URL(spec); } // do lazily
 
-            /*
-            String fname = url.getFile();
-            System.out.println("Resource [" + spec + "] has URL [" + url + "] file=["+url.getFile()+"] path=[" + url.getPath()+"]");
-            java.io.File file = new java.io.File(fname);
-            System.out.println("\t" + file + " exists=" +file.exists());
-            file = new java.io.File(spec);
-            System.out.println("\t" + file + " exists=" +file.exists());
-            */
+            
+//             String fname = url.getFile();
+//             System.out.println("Resource [" + spec + "] has URL [" + url + "] file=["+url.getFile()+"] path=[" + url.getPath()+"]");
+//             java.io.File file = new java.io.File(fname);
+//             System.out.println("\t" + file + " exists=" +file.exists());
+//             file = new java.io.File(spec);
+//             System.out.println("\t" + file + " exists=" +file.exists());
+
 
         } catch (MalformedURLException e) {
             // Okay for url to be null: means local file
-            //System.err.println(e);
+            if (DEBUG.Enabled) System.err.println(e);
             //System.out.println("Resource [" + spec + "] *** NOT A URL ***");
         } catch (Exception e) {
             //System.err.println(e);
             e.printStackTrace();
         }
+        */
 
         this.type = isLocalFile() ? Resource.FILE : Resource.URL;
         this.preview = null;
@@ -282,7 +310,13 @@ public class MapResource implements Resource, XMLUnmarshalListener
     }
     
     public void scanForMetaDataAsync(final LWComponent c, final boolean setLabelFromTitle) {
-        new Thread("URL meta-data search of " + this) {
+        //if (!isHTML() && !isImage()) {
+        // [oops, "http://www.google.com/" doesn't initially appear as HTML]
+            // don't bother with these for now: would only get us size & content-type
+            // anyway, which if it's a file should come from the CabinetResource
+            //return;
+        //}
+        new Thread("VUE-URL-MetaData") {
             public void run() {
                 scanForMetaData(c, setLabelFromTitle);
             }
@@ -303,13 +337,18 @@ public class MapResource implements Resource, XMLUnmarshalListener
             || c.getLabel().equals(mTitle)
             || c.getLabel().equals(getSpec());
         
-        _scanForMetaData(_url);
+        try {
+            _scanForMetaData(_url);
+        } catch (Throwable t) {
+            VUE.Log.info(_url + ": meta-data extraction failed: " + t);
+            if (DEBUG.Enabled) tufts.Util.printStackTrace(t, _url.toString());
+        }
 
         if (forceTitleToLabel && getTitle() != null)
             c.setLabel(getTitle());
     }
     
-    private void _scanForMetaData(URL _url) {
+    private void _scanForMetaData(URL _url) throws java.io.IOException {
         if (DEBUG.Enabled) System.out.println(this + " _scanForMetaData: xml props " + mXMLpropertyList);
 
         // TODO: split into scrapeHTTPMetaData for content type & size,
@@ -317,27 +356,21 @@ public class MapResource implements Resource, XMLUnmarshalListener
         // at this point to start having a whole pluggable set of content
         // meta-data scrapers.
 
-        try {
-            if (DEBUG.Enabled) System.out.println("*** Opening connection to " + _url);
-            markAccessAttempt();
-
-            Properties metaData = scrapeHTMLmetaData(_url.openConnection(), 2048);
-            if (DEBUG.Enabled) System.out.println("*** Got meta-data " + metaData);
-            markAccessSuccess();
-            String title = metaData.getProperty("title");
-            if (title != null && title.length() > 0) {
-                setProperty("title", title);
-                title = title.replace('\n', ' ').trim();
-                setTitle(title);
-            }
-            try {
-                setSize(Integer.parseInt((String) getProperty("contentLength")));
-            } catch (Exception e) {}
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("HTML meta-data scrape failed of " + _url);
+        if (DEBUG.Enabled) System.out.println("*** Opening connection to " + _url);
+        markAccessAttempt();
+        
+        Properties metaData = scrapeHTMLmetaData(_url.openConnection(), 2048);
+        if (DEBUG.Enabled) System.out.println("*** Got meta-data " + metaData);
+        markAccessSuccess();
+        String title = metaData.getProperty("title");
+        if (title != null && title.length() > 0) {
+            setProperty("title", title);
+            title = title.replace('\n', ' ').trim();
+            setTitle(title);
         }
+        try {
+            setSize(Integer.parseInt((String) getProperty("contentLength")));
+        } catch (Exception e) {}
     }
 
     private void markAccessAttempt() {
@@ -548,13 +581,13 @@ public class MapResource implements Resource, XMLUnmarshalListener
         return this.spec;
     }
     
-    /**
+    /*
      * If isLocalFile is true, this will return a file name
      * suitable to be given to java.io.File such that it
      * can be found.  Note that this may differ from getSpec.
      * If isLocalFile is false, it will return the file
      * portion of the URL, although that may not be useful.
-     */
+
     public String getFileName() {
         if (this.url == null)
             return getSpec();
@@ -562,8 +595,11 @@ public class MapResource implements Resource, XMLUnmarshalListener
             return url.getFile();
     }
     
-    public boolean isLocalFile() {
-        return url == null || url.getProtocol().equals("file");
+     */
+
+    private boolean isLocalFile() {
+        asURL();
+        return this.url == null || this.url.getProtocol().equals("file");
         //String s = spec.toLowerCase();
         //return s.startsWith("file:") || s.indexOf(':') < 0;
     }
@@ -631,8 +667,7 @@ public class MapResource implements Resource, XMLUnmarshalListener
     }
 
     public void setProperty(String key, int value) {
-        //setProperty(key, new Integer(value)); // PropertiesEditor bombs out on anything but string
-        setProperty(key, new Integer(value).toString());
+        setProperty(key, Integer.toString(value));
     }
     
     /**
@@ -716,6 +751,7 @@ public class MapResource implements Resource, XMLUnmarshalListener
     */
     
     
+    /** this is for castor persistance only */
     public java.util.List getPropertyList() {
         
         if (mXMLrestoreUnderway == false) {
@@ -723,7 +759,7 @@ public class MapResource implements Resource, XMLUnmarshalListener
             if (mProperties.size() == 0) // a hack for castor to work
                 return null;
 
-            mXMLpropertyList = new ArrayList();
+            mXMLpropertyList = new ArrayList(mProperties.size());
 
             Iterator i = mProperties.keySet().iterator();
             while (i.hasNext()) {
@@ -741,7 +777,10 @@ public class MapResource implements Resource, XMLUnmarshalListener
     
     public void XML_initialized() {
         if (DEBUG.CASTOR) System.out.println(getClass() + " XML INIT");
+        mXMLrestoreUnderway = true;
+        mXMLpropertyList = new ArrayList();
     }
+    
     public void XML_completed()
     {
         if (DEBUG.CASTOR) System.out.println(this + " XML COMPLETED");
@@ -780,43 +819,35 @@ public class MapResource implements Resource, XMLUnmarshalListener
     }
     
     public JComponent getAssetViewer(){
-        
-     return null;   
-        
-    }
-    public void setAssetViewer(JComponent viewer){
-        
-     this.viewer = viewer;   
-        
+        return null;   
     }
 
-    //todo: move to Resource spec & a new AbstractResource class
+    public void setAssetViewer(JComponent viewer){
+        this.viewer = viewer;   
+    }
+
     public static boolean isImage(final Resource r) {
+
+        if (isImageMimeType(r.getProperty("contentType")) ||    // check http contentType
+            isImageMimeType(r.getProperty("format")))           // check fedora dublin-core mime-type
+            return true;
+
         String s = r.getSpec().toLowerCase();
-        // will need java advanced imageio for bmp & tiff
         if    (s.endsWith(".gif")
             || s.endsWith(".jpg")
             || s.endsWith(".jpeg")
             || s.endsWith(".png")
+            || s.endsWith(".bmp")
             || s.endsWith(".ico")
-            //|| s.endsWith(".bmp") // i think java 1.5 handles these now
-            //|| s.endsWith(".tif")
-            //|| s.endsWith(".tiff")
+            || s.endsWith(".tif")
+            || s.endsWith(".tiff")
                ) return true;
 
-        return isImageMimeType(r.getProperty("contentType")) // http contentType
-            || isImageMimeType(r.getProperty("format")); // fedora dublin-core mime-type
+        return false;
     }
 
     private static boolean isImageMimeType(final String s) {
-        return s != null && s.startsWith("image/") && (
-            // need these sub-type checks because we only handle certian kinds of images right now
-            s.endsWith("gif") ||
-            s.endsWith("jpg") ||
-            s.endsWith("jpeg") ||
-            s.endsWith("png") ||
-            s.endsWith("unknown")
-            );
+        return s != null && s.toLowerCase().startsWith("image/");
     }
 
     private static boolean isHtmlMimeType(final String s) {
@@ -930,6 +961,18 @@ public class MapResource implements Resource, XMLUnmarshalListener
 
     private void out(String s) {
         System.out.println(this + ": " + s);
+    }
+
+    public static void main(String args[]) {
+        String rs = args.length > 0 ? args[0] : "/";
+        
+        DEBUG.Enabled = true;
+        DEBUG.DND = true;
+
+        MapResource r = new MapResource(rs);
+        System.out.println("Resource: " + r);
+        System.out.println("URL: " + r.asURL());
+        r.displayContent();
     }
     
     
