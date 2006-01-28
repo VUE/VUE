@@ -146,7 +146,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.2 $ / $Date: 2006-01-23 16:09:12 $ / $Author: sfraize $ 
+ * @version $Revision: 1.3 $ / $Date: 2006-01-28 23:15:58 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -176,6 +176,9 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
     /** forced focus component */
     protected Component mForcedFocus = null;
+    
+    /** the copmonent that had focus before we entered forced-focus */
+    protected Component mFocusOwnerBeforeForced = null;
     
     /** forced focus child -- the underlying component we may have clicked on */
     protected Component mForcedFocusClickedChild = null;
@@ -223,7 +226,9 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
                 }
             }
 
-            UseForcedFocus = GUI.UseAlwaysOnTop;
+
+            UseForcedFocus = GUI.UseAlwaysOnTop
+                || true; // Turn on for now so toolbars can have false focusableWindowState
             
         } else
             if (DEBUG.INIT) System.out.println(Singleton + ": already installed.");
@@ -393,7 +398,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         case ComponentEvent.COMPONENT_HIDDEN:
             if (UseForcedFocus && c == mForcedFocusWindow) {
                 // Be sure to clear forced focus if the Window that contains it hides
-                clearForcedFocus();
+                clearForcedFocus(true);
             }
             break;
         }
@@ -608,6 +613,8 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
         final Component clicked = (Component) e.getSource();
         
+        if (DEBUG.FOCUS) out(" inspectMouseEvent: " + name(clicked) + " " + e.paramString());
+        
         if (clicked == mForcedFocus || clicked == mForcedFocusClickedChild) {
             // leave us force-focused as is
             return;
@@ -645,22 +652,32 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             
         final boolean wasForcingFocus = mForcingFocus;
 
-        // If we're currently forcing focus, clear it.
-        if (mForcingFocus)
-            clearForcedFocus();
-
+        // We've clicked on *something*, and it's not the currently
+        // forced focus.  So if we're currently forcing focus, 
+        // it needs to be cleared.
+        
         final Component forceable;
         final Window focusCycleWindow = getFocusCycleWindow(focusCycleRoot);
 
         // The whole purpose of this FocusManager is to allow focus to Components
         // that are in Window's that are NOT focusable: so only activate
         // the forced focus if the root window is not focusable.
+        // Note that if the window contains no focusable elements, even
+        // if it's focusable window state is true, it will not be considered
+        // a focusable window.
         if (focusCycleWindow.isFocusableWindow())
             forceable = null;
         else
             forceable = getMouseClickForceFocusableComponent(clicked);
 
         if (forceable == null) {
+
+            // cases mentioned in comments below now handled in clearForcedFocus
+            if (mForcingFocus)
+                clearForcedFocus(true);
+
+            /*
+            
             // Neither the clicked component or it's immediate parent
             // was force-focusable: leave us to the regular focus system.
 
@@ -679,6 +696,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
                 // todo: we probably need our checking of immedate parent here also
                 simulateFocusGained(clicked);
             }
+            */
                 
         } else {
 
@@ -804,8 +822,12 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         do {
             if (parent instanceof Window) {
                 if (DEBUG.FOCUS) {
-                    out("focusCycleWindow of " + name(c) + " == " + name(parent) + " peer=" + parent.getPeer()
-                                     + " parent=" + name(parent.getParent()));
+                    out("focusCycleWindow of " + name(c) + " == " + name(parent)
+                        + " peer=" + name(parent.getPeer())
+                        + " parent=" + name(parent.getParent())
+                        + " focusable=" + parent.isFocusable()
+                        + " focusableWin=" + ((Window)parent).isFocusableWindow()
+                        );
                     //tufts.macosx.Screen.getWindow(parent).getParent();
                     //tufts.macosx.Screen.dumpWindows();
                 }
@@ -828,15 +850,27 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         if (DEBUG.FOCUS) out(TERM_GREEN + "SETTING FORCED FOCUS " + name(forceable) + TERM_CLEAR);
         
         if (mForcingFocus) {
+
+            // We're currently forced focus, so this is just
+            // a focus-transfer among force-focusable components.
+            // Clear the current forced focus, but not "permanently"
+
             if (mForcedFocus == forceable)
                 return;
             else
-                clearForcedFocus();
-        }
+                clearForcedFocus(false);
+
+        } else {
         
-        Component realFocusOwner = super.getFocusOwner();
-        if (realFocusOwner != null)
-            simulateFocusLost(realFocusOwner);
+            // We're beginning a new forced-focus ownership --
+            // convince the real focus owner it's lost focus
+            // with a simulated event, and remember it for
+            // later focus return once the forced-focus is over.
+
+            mFocusOwnerBeforeForced = super.getFocusOwner();
+            if (mFocusOwnerBeforeForced != null)
+                simulateFocusLost(mFocusOwnerBeforeForced, forceable);
+        }
         
         mForcedFocus = forceable;
         mForcedFocusClickedChild = child;
@@ -847,7 +881,15 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         
     }
 
-    private synchronized void clearForcedFocus()
+    // TODO: if we're forced focus, and another component REQUESTS focus (such as the
+    // MapViewer via MOUSE_ENTERED), the forced-focus component gets a REAL FOCUS_LOST
+    // event (as getFocusOwner is overridden to claim it as real focus owner), and the
+    // new component gets a REAL FOCUS_GAINED event, so our fake events are redundant in
+    // that case.  Would be safer not to have the redundant events, but I don't think
+    // it's going to hurt anything for now.  We could handle this by catching the
+    // FOCUS_LOST event on our forced-focus, and clear forced focus then...
+
+    private synchronized void clearForcedFocus(boolean permanent)
     {
         if (mForcingFocus == false)
             return;
@@ -864,9 +906,31 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         mForcedFocusCycleRoot = null;
         mForcingFocus = false;
         
-        if (DEBUG.FOCUS) out(TERM_GREEN + "CLEARED FORCED FOCUS " + name(c) + TERM_CLEAR);
+        if (DEBUG.FOCUS) out(TERM_GREEN + "CLEARED FORCED FOCUS "
+                             + name(c)
+                             + " permanent=" + permanent
+                             + " priorOwner=" + name(mFocusOwnerBeforeForced)
+                             + TERM_CLEAR);
 
-        simulateFocusLost(c);
+        simulateFocusLost(c, null);
+        
+        if (permanent) {
+            if (mFocusOwnerBeforeForced != null) {
+
+                final Component realFocusOwner = super.getFocusOwner();
+
+                if (mFocusOwnerBeforeForced != realFocusOwner && realFocusOwner != null) {
+                    Util.printStackTrace("incorrect focus return: "
+                                         + mFocusOwnerBeforeForced
+                                         + " real=" + realFocusOwner);
+                    simulateFocusGained(realFocusOwner);
+                } else {
+                    simulateFocusGained(mFocusOwnerBeforeForced);
+                }
+                
+                mFocusOwnerBeforeForced = null;
+            }
+        }
     }
 
 
@@ -928,9 +992,9 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         }
     }
 
-    private void simulateFocusLost(Component c)
+    private void simulateFocusLost(Component c, Component focusLostTo)
     {
-        AWTEvent fakeEvent = new FakeFocusEvent(c, FocusEvent.FOCUS_LOST, false, null);
+        AWTEvent fakeEvent = new FakeFocusEvent(c, FocusEvent.FOCUS_LOST, false, focusLostTo);
         if (DEBUG.FOCUS) out("DELIVERING SIMULATED " + eventName(fakeEvent));
         super.redispatchEvent(c, fakeEvent);
     }
@@ -1048,7 +1112,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         // multiple FOCUS_LOST events tho.  We can fix this easily
         // if need be.
         
-        clearForcedFocus();
+        clearForcedFocus(true);
         
         super.clearGlobalFocusOwner();
     }
