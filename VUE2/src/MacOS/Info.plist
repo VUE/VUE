@@ -47,8 +47,6 @@
 		<string>tufts.vue.VUE</string>
 		<key>JVMVersion</key>
 		<string>1.4+</string>
-		<key>Arguments</key>
-		<string>-useMacLookAndFeel</string>
 		<key>ClassPath</key>
 		<array>
                   <string>$APP_PACKAGE/Contents/VUE.jar</string>
@@ -60,7 +58,7 @@
 			<key>apple.laf.useScreenMenuBar</key>
 			<string>true</string>
 			<key>apple.awt.brushMetalLook</key>
-			<string>true</string>
+			<string>false</string>
 			<key>com.apple.mrj.application.live-resize</key>
 			<string>false</string>
 			<key>apple.awt.Antialiasing</key>
