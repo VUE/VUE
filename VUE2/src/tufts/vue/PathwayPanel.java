@@ -42,7 +42,7 @@ import javax.swing.border.*;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.62 $ / $Date: 2006-01-20 20:01:27 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2006-01-28 23:35:40 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel implements ActionListener
@@ -414,7 +414,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         else if (btn == btnElementDown) { pathway.bringForward(pathway.getCurrent()); }
 
         else if (btn == btnPathwayDelete)   { deletePathway(pathway); }
-        else if (btn == btnPathwayCreate)   { new PathwayDialog(mParentFrame, mTableModel, getLocationOnScreen()).show(); }
+        else if (btn == btnPathwayCreate)   { new PathwayDialog(mParentFrame, mTableModel, getLocationOnScreen()).setVisible(true); }
         else if (btn == btnPathwayLock)     { pathway.setLocked(!pathway.isLocked()); }
         else if (btn == btnPathwayShowOnly) {
             toggleHideEverythingButCurrentPathway();

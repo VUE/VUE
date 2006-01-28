@@ -47,7 +47,7 @@ import tufts.vue.action.*;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.35 $ / $Date: 2006-01-20 20:05:17 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2006-01-28 23:39:14 $ / $Author: sfraize $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
     
@@ -123,7 +123,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         setModal(true);
         setSize(PUB_WIDTH, PUB_HEIGHT);
         setResizable(false);
-        show();
+        setVisible(true);
     }
     
     private void setUpModeSelectionPanel() {

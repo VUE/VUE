@@ -59,7 +59,7 @@ public class AddPanel extends JPanel {
                         JOptionPane.showMessageDialog(tufts.vue.VUE.getDialogParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "Artifact", JOptionPane.ERROR_MESSAGE);
                         ex.printStackTrace();
                     } finally {
-                        AddPanel.this.dialog.hide();
+                        AddPanel.this.dialog.setVisible(false);
                         AddPanel.this.dialog.dispose();
                     }
                 }

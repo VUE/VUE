@@ -68,7 +68,7 @@ public class ExitAction extends VueAction {
             return;
         
         try {
-            VUE.getRootWindow().hide();
+            VUE.getRootWindow().setVisible(false);
             System.out.println("Saving user preferences...");
             saveDataSourceInfo();
             System.out.println("Saved user preferences.");

@@ -393,7 +393,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
             
             pack();
             setLocation(500,300);
-            show();
+            setVisible(true);
             
         }
         
@@ -521,7 +521,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
             getContentPane().add(southPanel);
             pack();
             setLocation(NodeFilterEditor.this.getLocationOnScreen());
-            show();
+            setVisible(true);
             
         }
         

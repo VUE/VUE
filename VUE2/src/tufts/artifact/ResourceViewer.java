@@ -95,7 +95,7 @@ public class ResourceViewer extends JPanel implements ActionListener,KeyListener
         ResourceViewer rv = new ResourceViewer();
         JFrame frame = new JFrame();
         frame.getContentPane().add(rv);
-        frame.show();
+        frame.setVisible(true);
         // TODO code application logic here
     }
     

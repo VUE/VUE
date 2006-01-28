@@ -34,10 +34,12 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  */
-public class LinkPropertyPanel extends JPanel
+public class LinkPropertyPanel extends Box
 {
     public LinkPropertyPanel()
     {
+	super(BoxLayout.X_AXIS);
+
         final AbstractButton mArrowStartButton = new VueButton.Toggle("link.button.arrow.start");
         final AbstractButton mArrowEndButton = new VueButton.Toggle("link.button.arrow.end");
         
@@ -46,15 +48,17 @@ public class LinkPropertyPanel extends JPanel
             Actions.LinkMakeQuadCurved,
             Actions.LinkMakeCubicCurved
         };
-        
+
         AbstractButton linkTypeMenu = new VuePopupMenu(LWKey.LinkCurves, LinkTypeActions);
         linkTypeMenu.setToolTipText("Link Style");
         linkTypeMenu.addPropertyChangeListener(GUI.getPropertyChangeHandler());
         
+        add(Box.createHorizontalStrut(3));
         add(linkTypeMenu);
-        //add(Box.createHorizontalStrut(3));
+        add(Box.createHorizontalStrut(2));
         add(mArrowStartButton);
         add(mArrowEndButton);
+        add(Box.createHorizontalStrut(5));
 
         final LWPropertyHandler arrowPropertyHandler =
             new LWPropertyHandler(LWKey.LinkArrows, GUI.getPropertyChangeHandler()) {
@@ -82,8 +86,8 @@ public class LinkPropertyPanel extends JPanel
         System.out.println("LinkToolPanel:main");
         tufts.vue.VUE.init(args);
         //tufts.Util.displayComponent(new LinkPropertyPanel());
-        new Frame("A Frame").show();
-        new DockWindow("Link", new LinkPropertyPanel()).show();
+        //new Frame("A Frame").show();
+        GUI.createToolbar("Link", new LinkPropertyPanel()).setVisible(true);
     }
 }
 

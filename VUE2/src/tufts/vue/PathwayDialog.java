@@ -90,7 +90,7 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
                     "Please rename this pathway.",
                     JOptionPane.INFORMATION_MESSAGE);
                 JDialog dialog = option.createDialog(okButton, "Pathway Name Exists");
-                dialog.show();
+                dialog.setVisible(true);
             } else {
                 VUE.getActiveMap().addPathway(new LWPathway(pathLabel));
                 dispose();

@@ -192,7 +192,7 @@ public class MapFilterModelEditor extends JPanel {
             getContentPane().add(southPanel);
             pack();
             setLocation(MapFilterModelEditor.this.getLocationOnScreen());
-            show();
+            setVisible(true);
             
         }
         
