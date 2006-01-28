@@ -146,7 +146,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.3 $ / $Date: 2006-01-28 23:15:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.4 $ / $Date: 2006-01-28 23:28:43 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -1420,13 +1420,13 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             Window parent = new DockWindow("Parent", top);
             parent.add(new JTextField());
             
-            top.show();
-            parent.show();
+            top.setVisible(true);
+            parent.setVisible(true);
             
             DockWindow child = new DockWindow("Child", parent);
             child.add(new JTextField());
             
-            child.show();
+            child.setVisible(true);
         }
         
         if (false) {
@@ -1441,10 +1441,10 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
             DockWindow tool = new DockWindow("Tool", doc1);
             
-            docParent.show();
-            doc1.show();
-            doc2.show();
-            tool.show();
+            docParent.setVisible(true);
+            doc1.setVisible(true);
+            doc2.setVisible(true);
+            tool.setVisible(true);
         }
         
         if (false) {
@@ -1462,11 +1462,11 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             Window tool = new DockWindow("Tool", top);
             //tool.add(new JTextField());
             
-            top.show();
-            docParent.show();
-            doc1.show();
-            doc2.show();
-            tool.show();
+            top.setVisible(true);
+            docParent.setVisible(true);
+            doc1.setVisible(true);
+            doc2.setVisible(true);
+            tool.setVisible(true);
         }
         
 
