@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.319 $ / $Date: 2006-01-23 16:06:41 $ / $Author: sfraize $ 
+ * @version $Revision: 1.320 $ / $Date: 2006-01-29 13:28:11 $ / $Author: jeff $ 
  */
 
 public class VUE
@@ -567,6 +567,47 @@ public class VUE
         // FYI, DataSourceViewer currently breaks if more than one DRBrowser
         DR_BROWSER = new DRBrowser(true);
         DockWindow drBrowserDock = GUI.createDockWindow("Data Sources", DR_BROWSER);
+
+		JPanel searchPanel = new JPanel();
+		searchPanel.setBackground(Color.white);
+		searchPanel.setSize(100,100);
+		searchPanel.add(new JLabel("searches"));
+		
+		JPanel browsePanel = new JPanel();
+		browsePanel.setBackground(Color.white);
+		browsePanel.setSize(100,100);
+		browsePanel.add(new JLabel("browses"));
+		
+		JPanel savedResourcesPanel = new JPanel();
+		savedResourcesPanel.setBackground(Color.white);
+		savedResourcesPanel.setSize(100,100);
+		savedResourcesPanel.add(new JLabel("saved resources"));
+		
+        DockWindow searchDock = GUI.createDockWindow("Search");
+        DockWindow browseDock = GUI.createDockWindow("Browse");
+        DockWindow savedResourcesDock = GUI.createDockWindow("SavedResources");
+		
+		drBrowserDock.setChild(searchDock);
+		drBrowserDock.setChild(browseDock);
+		drBrowserDock.setChild(savedResourcesDock);
+		
+		searchDock.add(searchPanel);
+		searchDock.setRolledUp(false,false);
+		searchDock.setLocation(100,100);
+		searchDock.setVisible(true);
+
+		browseDock.add(browsePanel);
+		browseDock.setRolledUp(false,false);
+		browseDock.setLocation(100,100);
+		browseDock.setVisible(true);
+
+		savedResourcesDock.add(savedResourcesPanel);
+		savedResourcesDock.setRolledUp(false,false);
+		savedResourcesDock.setLocation(100,100);
+		savedResourcesDock.setVisible(true);
+		
+		
+		//		DR_BROWSER.setDockWindow(searchDock);
 
         //-----------------------------------------------------------------------------
         // Map Inspector
