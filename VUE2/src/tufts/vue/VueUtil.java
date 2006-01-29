@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.67 $ / $Date: 2006-01-23 16:08:33 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2006-01-29 00:25:29 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -52,8 +52,8 @@ public class VueUtil extends tufts.Util
 
         // todo: spawn this in another thread just in case it hangs
         
-        System.err.println("Opening URL  [" + platformURL + "]");
-        
+        VUE.Log.info("openURL[" + platformURL + "]");
+                     
         if (platformURL.toLowerCase().endsWith(VueExtension)) {
             if (platformURL.startsWith("resource:")) {
                 java.net.URL url = VueResources.getURL(platformURL.substring(9));
