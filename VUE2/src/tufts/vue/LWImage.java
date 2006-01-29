@@ -147,8 +147,11 @@ public class LWImage extends LWComponent
 
     private void loadImageAndMetaDataAsync(final MapResource mr, final UndoManager um) {
 
-        int width = mr.getProperty("width", 32);
-        int height = mr.getProperty("height", 32);
+        // todo: make property fetch hierarchical so can leave out basename
+        //int width = mr.getProperty("width", 32);
+        //int height = mr.getProperty("height", 32);
+        int width = mr.getProperty("image.width", 32);
+        int height = mr.getProperty("image.height", 32);
 
         // If we know a size before loading, this will get
         // us displaying that size.  If not, we'll set
