@@ -39,7 +39,7 @@ import com.sun.image.codec.jpeg.*;
  *
  * TODO: this to be refactored as AbstractResource / URLResource, and/or maybe LWResource.
  *
- * @version $Revision: 1.37 $ / $Date: 2006-01-29 00:13:46 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2006-01-29 00:25:38 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.  Create an AbstractResource class
@@ -180,8 +180,6 @@ public class MapResource implements Resource, XMLUnmarshalListener
         } else
             systemSpec = getSpec();
         
-        VUE.Log.info("open [" + systemSpec + "]");
-                     
         try {
             this.accessAttempted = System.currentTimeMillis();
             VueUtil.openURL(systemSpec);
