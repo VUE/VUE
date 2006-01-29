@@ -63,7 +63,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     static DRBrowser drBrowser;
     static DataSource activeDataSource;
     static JPanel resourcesPanel,dataSourcePanel;
-	static DockWindow searchDockWindow;
     String breakTag = "";
     
     public final static int ADD_MODE = 0;
@@ -89,8 +88,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         setBorder(new TitledBorder("Libraries"));
         this.drBrowser = drBrowser;
         resourcesPanel = new JPanel();
-        searchDockWindow = new DockWindow("Search",drBrowser);
-		//setChild(searchDockWindow);
 		
         dataSourceList = new DataSourceList(this);
         dataSourceList.addKeyListener(this);
