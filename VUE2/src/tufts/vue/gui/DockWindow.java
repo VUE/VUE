@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.2 $ / $Date: 2006-01-27 17:25:06 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-01-29 13:28:38 $ / $Author: jeff $
  * @author Scott Fraize
  */
 
@@ -933,11 +933,11 @@ public class DockWindow extends javax.swing.JWindow
     }
 
 
-    void setRolledUp(boolean rollup) {
+    public void setRolledUp(boolean rollup) {
         setRolledUp(rollup, true);
     }
     
-    void setRolledUp(boolean makeRolledUp, boolean animate) {
+    public void setRolledUp(boolean makeRolledUp, boolean animate) {
         if (DEBUG.DOCK) out("setRolledUp " + makeRolledUp + " animate=" + animate);
         if (isRolledUp == makeRolledUp || isToolbar)
             return;
