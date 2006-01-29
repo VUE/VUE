@@ -18,11 +18,11 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.*;
 import java.awt.*;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 import osid.dr.*;
-
 
 import java.util.List;
 import java.util.Vector;
@@ -50,7 +50,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.25 $ / $Date: 2006-01-27 18:19:38 $ / $Author: jeff $ 
+ * @version $Revision: 1.26 $ / $Date: 2006-01-29 13:05:42 $ / $Author: jeff $ 
  * @author Ranjani Saigal
  */
 
@@ -82,7 +82,7 @@ public class DataSourceList extends JList implements DropTargetListener{
         
         breakIcon.setIconWidth(1600);
         breakIcon.setIconHeight(1);
-		this.setCellRenderer(new DataSourceCellRenderer());
+//		this.setCellRenderer(new DataSourceCellRenderer());
 				
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
@@ -97,13 +97,15 @@ public class DataSourceList extends JList implements DropTargetListener{
 							JCheckBox checkBox = new JCheckBox();
 							checkBox.setEnabled(true);
 							checkBox.setBackground(VueResources.getColor("FFFFFF"));
-/*							if (index == list.getSelectionIndex()) {
-								checkBox.setBackground(GUI.getTextHighligtColor());
+							if (index == 2) {
+								panel.setBackground(GUI.getTextHighlightColor());
+							} else {
+								panel.setBackground(VueResources.getColor("FFFFFF"));								
 							}
+
 							checkBox.setSelected( ((DataSource)value).isIncludedInSearch() );
-*/
 							panel.add(checkBox);
-							
+
 							if (value instanceof FavoritesDataSource) {
 								panel.add(new JLabel(myComputerIcon));
 							} else if (value instanceof LocalFileDataSource) {
@@ -112,7 +114,6 @@ public class DataSourceList extends JList implements DropTargetListener{
 								panel.add(new JLabel(remoteIcon));
 							}
 							panel.add(new JLabel(((DataSource)value).getDisplayName()));
-							panel.setBackground(VueResources.getColor("FFFFFF"));
 							return panel;
 //                super.getListCellRendererComponent(list, panel, index, iss, chf);
 				}

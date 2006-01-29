@@ -53,26 +53,23 @@ import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
 import org.xml.sax.InputSource;
 
-
+import tufts.vue.gui.*;
 
 //
 
 public class DataSourceViewer  extends JPanel implements KeyListener{
     /** Creates a new instance of DataSourceViewer */
     
-    
-    
     static DRBrowser drBrowser;
     static DataSource activeDataSource;
     static JPanel resourcesPanel,dataSourcePanel;
+	static DockWindow searchDockWindow;
     String breakTag = "";
     
     public final static int ADD_MODE = 0;
     public final static int EDIT_MODE = 1;
     private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
     private final static URL XML_MAPPING_DEFAULT = VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
-    
-    
     
     JPopupMenu popup;       // add edit popup
     AddEditDataSourceDialog addEditDialog = null;   //  The add/edit dialog box.
@@ -82,64 +79,58 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     AbstractAction saveAction;
     AbstractAction refreshAction;
     
-    
-    
-    
-    
     public static Vector  allDataSources = new Vector();
-    
     
     public static DataSourceList dataSourceList;
 	
-	private boolean firstListEvent = true;
-    
     public DataSourceViewer(DRBrowser drBrowser){
         
-        
         setLayout(new BorderLayout());
-        setBorder(new TitledBorder("Data Source"));
+        setBorder(new TitledBorder("Libraries"));
         this.drBrowser = drBrowser;
         resourcesPanel = new JPanel();
-        
+        searchDockWindow = new DockWindow("Search",drBrowser);
+		//setChild(searchDockWindow);
+		
         dataSourceList = new DataSourceList(this);
         dataSourceList.addKeyListener(this);
-        
-        
+                
         loadDataSources();
         
         // if (loadingFromFile)dataSourceChanged = false;
         setPopup();
         dataSourceList.addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent e) {
-                System.out.println("first event? " + firstListEvent);
-				
-				
+            public void valueChanged(ListSelectionEvent e) {				
                 Object o = ((JList)e.getSource()).getSelectedValue();
                 if (o !=null){
-                    
-                    if (!(o instanceof String)){
+                    if (!(o instanceof String)) {
 						DataSource ds = (DataSource)o;
-						if (firstListEvent) {
-							ds.setIncludedInSearch(!ds.isIncludedInSearch());
-						}
-                        DataSourceViewer.this.setActiveDataSource(ds);
-                    }
-                    else{
-                        
-                        int index = ((JList)e.getSource()).getSelectedIndex();
-						DataSource ds = (DataSource)(dataSourceList.getContents().getElementAt(index-1));
-						if (firstListEvent) {
-							ds.setIncludedInSearch(!ds.isIncludedInSearch());
-						}
 						DataSourceViewer.this.setActiveDataSource(ds);
                     }
-					firstListEvent = !firstListEvent;
+                    else
+					{
+                        int index = ((JList)e.getSource()).getSelectedIndex();
+						DataSource ds = (DataSource)(dataSourceList.getContents().getElementAt(index-1));
+						DataSourceViewer.this.setActiveDataSource(ds);
+                    }
                 }
             }}
         );
 
 		dataSourceList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
+				Point pt = e.getPoint();
+				System.out.print(pt);
+				// see if we are far enough over to the left to be on the checkbox
+				if (pt.x <= 20) {
+					int index = dataSourceList.locationToIndex(pt);
+					System.out.println(index);
+					DataSource ds = (DataSource)dataSourceList.getModel().getElementAt(index);
+					System.out.println(ds);
+					ds.setIncludedInSearch(!ds.isIncludedInSearch());
+					dataSourceList.repaint();
+				}
+
                 if(e.getButton() == e.BUTTON3) {
                     popup.show(e.getComponent(), e.getX(), e.getY());
                 }
