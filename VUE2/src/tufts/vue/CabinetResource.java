@@ -38,7 +38,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.16 $ / $Date: 2006-01-29 00:12:59 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2006-01-29 00:21:41 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends MapResource{
@@ -98,7 +98,7 @@ public class CabinetResource extends MapResource{
             if (this.entry instanceof tufts.oki.remoteFiling.RemoteByteStore) {
                 openRemoteByteStore();
             } else {   
-            VueUtil.openURL(getSpec());
+                super.displayContent();
             }
         }
         catch (Exception ex) {
