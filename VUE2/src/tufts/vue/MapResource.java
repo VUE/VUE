@@ -39,7 +39,7 @@ import com.sun.image.codec.jpeg.*;
  *
  * TODO: this to be refactored as AbstractResource / URLResource, and/or maybe LWResource.
  *
- * @version $Revision: 1.36 $ / $Date: 2006-01-28 23:12:24 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2006-01-29 00:13:46 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.  Create an AbstractResource class
@@ -346,6 +346,8 @@ public class MapResource implements Resource, XMLUnmarshalListener
 
         if (forceTitleToLabel && getTitle() != null)
             c.setLabel(getTitle());
+
+        if (DEBUG.Enabled) out("properties " + mProperties);
     }
     
     private void _scanForMetaData(URL _url) throws java.io.IOException {
@@ -703,6 +705,7 @@ public class MapResource implements Resource, XMLUnmarshalListener
     public boolean hasProperty(String key) {
         return mProperties.containsKey(key);
     }
+    
     public Properties getProperties() {
         return mProperties;
     }
@@ -725,7 +728,7 @@ public class MapResource implements Resource, XMLUnmarshalListener
         if (mProperties == null)
             return getSpec();
         else
-            return getSpec() + " " + mProperties;
+            return getSpec();// + " " + mProperties;
     }
     
     public int getType() {
