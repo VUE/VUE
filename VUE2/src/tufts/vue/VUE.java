@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.323 $ / $Date: 2006-01-30 06:37:53 $ / $Author: sfraize $ 
+ * @version $Revision: 1.324 $ / $Date: 2006-01-30 21:47:58 $ / $Author: jeff $ 
  */
 
 public class VUE
@@ -290,6 +290,10 @@ public class VUE
     private static boolean SKIP_SPLASH = false;
     private static DRBrowser DR_BROWSER;
     private static String NAME;
+	
+	private static DockWindow searchDock;
+	private static DockWindow browseDock;
+	private static DockWindow savedResourcesDock;
 
     //-----------------------------------------------------------------------------
     //public static final boolean TUFTS = VueResources.getBool("application.features.tufts");
@@ -425,8 +429,10 @@ public class VUE
        }
         
         // Start the loading of the data source viewer
-//        if (SKIP_DR == false && DR_BROWSER != null)
-  //          DR_BROWSER.loadDataSourceViewer();
+        if (SKIP_DR == false && DR_BROWSER != null)
+            DR_BROWSER.loadDataSourceViewer(searchDock,
+											browseDock,
+											savedResourcesDock);
         
         //Preferences p = Preferences.userNodeForPackage(VUE.class);
         //p.put("DRBROWSER.RUN", "yes, it has");
@@ -582,28 +588,30 @@ public class VUE
         // Data Source Search Dock Window
         //-----------------------------------------------------------------------------
 		
-        DockWindow searchDock = GUI.createDockWindow("Search");
+        searchDock = GUI.createDockWindow("Search");
 		
+//		Dimension startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
+//											tufts.vue.gui.DockWindow.getMaxContentHeight());        
+		Dimension startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
+											300);        
 		JPanel searchPanel = new JPanel();
 		searchPanel.setBackground(Color.white);
-		searchPanel.setSize(100,100);
+		searchPanel.setPreferredSize(startSize);
 		searchPanel.add(new JLabel("searches"));
 		
         //-----------------------------------------------------------------------------
         // Local File Data Source in Browse Dock Window
         //-----------------------------------------------------------------------------
 		
-        DockWindow browseDock = GUI.createDockWindow("Browse");
+        browseDock = GUI.createDockWindow("Browse");
 
 		JPanel browsePanel = new JPanel();
 		try
 		{
 			LocalFileDataSource localFileDataSource = new LocalFileDataSource("My Computer","");
 			browsePanel.setBackground(Color.white);
-			Dimension startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
-												tufts.vue.gui.DockWindow.getMaxContentHeight());        
 			browsePanel.setLayout(new BorderLayout());
-//			browsePanel.setPreferredSize(startSize);
+			browsePanel.setPreferredSize(startSize);
 			JComponent comp = localFileDataSource.getResourceViewer();
 			comp.setVisible(true);
 			browsePanel.add(comp);
@@ -615,11 +623,11 @@ public class VUE
         // Saved Resources Dock Window
         //-----------------------------------------------------------------------------
 		
-        DockWindow savedResourcesDock = GUI.createDockWindow("SavedResources");
+        savedResourcesDock = GUI.createDockWindow("SavedResources");
 		
 		JPanel savedResourcesPanel = new JPanel();
 		savedResourcesPanel.setBackground(Color.white);
-		savedResourcesPanel.setSize(100,100);
+		savedResourcesPanel.setPreferredSize(startSize);
 		savedResourcesPanel.add(new JLabel("saved resources"));
 		
         //-----------------------------------------------------------------------------
@@ -639,20 +647,12 @@ public class VUE
 		
 		searchDock.add(searchPanel);
 		searchDock.showRolledUp();
-		//searchDock.setRolledUp(true);
-		//searchDock.setLocation(100,100);
-		//searchDock.setVisible(true);
 
 		browseDock.add(browsePanel);
-		//browseDock.setRolledUp(false,false);
-		//browseDock.setLocation(150,150);
-		browseDock.setVisible(true);
+		browseDock.showRolledUp();
 
 		savedResourcesDock.add(savedResourcesPanel);
 		savedResourcesDock.showRolledUp();
-		//savedResourcesDock.setRolledUp(true);
-		//savedResourcesDock.setLocation(200,200);
-		//savedResourcesDock.setVisible(true);
 
         //-----------------------------------------------------------------------------
         // Map Inspector

@@ -70,13 +70,14 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
     private final static URL XML_MAPPING_DEFAULT = VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
     
-    JPopupMenu popup;       // add edit popup
-    AddEditDataSourceDialog addEditDialog = null;   //  The add/edit dialog box.
-    AbstractAction addAction;//
-    AbstractAction editAction;
-    AbstractAction deleteAction;
-    AbstractAction saveAction;
-    AbstractAction refreshAction;
+    JPopupMenu popup;
+    AddLibraryDialog addLibraryDialog;
+    AbstractAction checkForUpdatesAction;
+    AbstractAction addLibraryAction;
+    AbstractAction editLibraryAction;
+    AbstractAction removeLibraryAction;
+    AbstractAction getLibraryInfoAction;
+	JButton optionButton = new VueButton("add");
     
     public static Vector  allDataSources = new Vector();
     
@@ -94,7 +95,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
 		searchDockWindow = searchDWindow;
 		browseDockWindow = browseDWindow;
         savedResourcesDockWindow = savedResourcesDWindow;
-			
+		
 		setLayout(new BorderLayout());
         setBorder(new TitledBorder("Libraries"));
         this.drBrowser = drBrowser;
@@ -104,7 +105,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         dataSourceList.addKeyListener(this);
                 
         loadDataSources();
-        
+        dataSourceList.clearSelection();
+		
         // if (loadingFromFile)dataSourceChanged = false;
         setPopup();
         dataSourceList.addListSelectionListener(new ListSelectionListener() {
@@ -143,44 +145,16 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         });
 
         
-        // GRID: addConditionButton
-        JButton addButton=new VueButton("add");
-        addButton.setBackground(this.getBackground());
-        addButton.setToolTipText("Add new or edit data source");
+        // GRID: optionsConditionButton
+        optionButton.setBackground(this.getBackground());
+        optionButton.setToolTipText("Library Options");
         
-        addButton.addActionListener(new ActionListener() {
+        optionButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                showAddEditWindow(0);
-                
+                popup.setVisible(true);
             }
         });
-        
-        
-        // GRID: deleteConditionButton
-        JButton deleteButton=new VueButton("delete");
-        deleteButton.setBackground(this.getBackground());
-        deleteButton.setToolTipText("Delete data source");
-        
-        deleteButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                deleteDataSource(activeDataSource);
-                
-                refreshDataSourceList();
-                if (!dataSourceList.getContents().isEmpty())dataSourceList.setSelectedIndex(0);
-                else{
-                    DataSourceViewer.this.drBrowser.remove(resourcesPanel);
-                    DataSourceViewer.this.resourcesPanel  = new JPanel();
-                    DataSourceViewer.this.drBrowser.add(resourcesPanel,BorderLayout.CENTER);
-                    DataSourceViewer.this.drBrowser.repaint();
-                    DataSourceViewer.this.drBrowser.validate();
-                }
-            }
-        });
-        
-        
-        // GRID: addConditionButton
-        
-        
+               
         JButton refreshButton=new VueButton("refresh");
         
         refreshButton.setBackground(this.getBackground());
@@ -206,8 +180,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
         
         
-        topPanel.add(addButton);
-        topPanel.add(deleteButton);
+        topPanel.add(optionButton);
+//        topPanel.add(deleteButton);
         topPanel.add(refreshButton);
         topPanel.add(questionLabel);
         
@@ -299,20 +273,18 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
         refreshDataSourcePanel(ds);
         
-        
         dataSourceList.setSelectedValue(ds,true);
-        
+		
+		if (ds.getDisplayName().equals("My Computer")) {
+			searchDockWindow.setRolledUp(true);
+			browseDockWindow.setVisible(true);
+		} else {
+			searchDockWindow.setVisible(true);
+			browseDockWindow.setRolledUp(true);			
+		}		
     }
     public static void refreshDataSourcePanel(DataSource ds){
         
-		if (ds.getDisplayName().equals("My Computer")) {
-			searchDockWindow.setRolledUp(true);
-			browseDockWindow.setRolledUp(false);
-		} else {
-			searchDockWindow.setRolledUp(false);
-			browseDockWindow.setRolledUp(true);			
-		}
-		
         drBrowser.remove(resourcesPanel);
         resourcesPanel  = new JPanel();
         resourcesPanel.setLayout(new BorderLayout());
@@ -330,60 +302,43 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     
     public void  setPopup() {
         popup = new JPopupMenu();
+        popup.setLocation(new Point(optionButton.getLocation().x,
+									optionButton.getLocation().y));
         
-        
-        addAction = new AbstractAction("Add") {
+        checkForUpdatesAction = new AbstractAction("Check For Updates") {
             public void actionPerformed(ActionEvent e) {
-                showAddEditWindow(0);
+            }
+        };
+        addLibraryAction = new AbstractAction("Add Library") {
+            public void actionPerformed(ActionEvent e) {
+                if (addLibraryDialog == null) {
+					addLibraryDialog = new AddLibraryDialog();
+				} else {
+					addLibraryDialog.show();
+				}
                 DataSourceViewer.this.popup.setVisible(false);
             }
         };
-        editAction = new AbstractAction("Edit") {
+        editLibraryAction = new AbstractAction("Edit Library") {
             public void actionPerformed(ActionEvent e) {
-                showAddEditWindow(1);
-                
-                
-                DataSourceViewer.this.popup.setVisible(false);
             }
         };
-        deleteAction =  new AbstractAction("Delete") {
+        removeLibraryAction = new AbstractAction("Remove Library") {
             public void actionPerformed(ActionEvent e) {
-                deleteDataSource(activeDataSource);
-                refreshDataSourceList();
-                if (!dataSourceList.getContents().isEmpty())dataSourceList.setSelectedIndex(0);
-                else{
-                    DataSourceViewer.this.drBrowser.remove(resourcesPanel);
-                    DataSourceViewer.this.resourcesPanel  = new JPanel();
-                    DataSourceViewer.this.drBrowser.add(resourcesPanel,BorderLayout.CENTER);
-                    DataSourceViewer.this.drBrowser.repaint();
-                    DataSourceViewer.this.drBrowser.validate();
-                }
-                
-                
             }
         };
-        
-        saveAction =  new AbstractAction("Save") {
+        getLibraryInfoAction = new AbstractAction("Get Library Info") {
             public void actionPerformed(ActionEvent e) {
-                // saveDataSourceViewer();
             }
         };
-        refreshAction =  new AbstractAction("Refresh") {
-            public void actionPerformed(ActionEvent e) {
-                refreshDataSourceList();
-            }
-        };
-        popup.add(addAction);
+        popup.add(checkForUpdatesAction);
+        popup.add(addLibraryAction);
+        popup.add(editLibraryAction);
+        popup.add(removeLibraryAction);
         popup.addSeparator();
-        popup.add(editAction);
-        popup.addSeparator();
-        popup.add(deleteAction);
-        // popup.addSeparator();
-        // popup.add(saveAction);
-        popup.addSeparator();
-        popup.add(refreshAction);
-        
+        popup.add(getLibraryInfoAction);
     }
+
     private boolean checkValidUser(String userName,String password,int type) {
         if(type == 3) {
             try {
@@ -404,7 +359,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             return true;
     }
     
-    public void showAddEditWindow(int mode) {
+/*
+ public void showAddEditWindow(int mode) {
         if ((addEditDialog == null)  || true) { // always true, need to work for cases where case where the dialog already exists
             if (DEBUG.DR) System.out.println("Creating new addEditDialog...");
             addEditDialog = new AddEditDataSourceDialog();
@@ -413,11 +369,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             if (DEBUG.DR) System.out.println("Showed new addEditDialog: " + addEditDialog);
         }
     }
-    
-    
-    
-    
-    
+ */   
     
     
     public void loadDataSources(){
