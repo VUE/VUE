@@ -21,25 +21,30 @@ package tufts.vue;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.*;
+import tufts.vue.gui.*;
 
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.33 $ / $Date: 2006-01-20 18:22:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.34 $ / $Date: 2006-01-30 02:25:33 $ / $Author: jeff $ 
  */
 public class DRBrowser extends JPanel {
     public static DataSourceViewer dsViewer = null;
+	public static tufts.vue.gui.DockWindow dockWindow = null;
 
     private static final int DRBrowserWidth = 319;
 
     private JLabel loadingLabel;
    
-    public DRBrowser(boolean delayedLoading)
+    public DRBrowser(boolean delayedLoading,
+					 DockWindow searchDWindow,
+					 DockWindow browseDWindow,
+					 DockWindow savedResourcesDWindow)
     {
-        //Dimension startSize = new Dimension(400,558);
+        Dimension startSize = new Dimension(400,220);
         // todo: move this size setting to VUE app init
-        Dimension startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
-                                            tufts.vue.gui.DockWindow.getMaxContentHeight());
+        //Dimension startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
+        //                                    tufts.vue.gui.DockWindow.getMaxContentHeight());
         
         setLayout(new BorderLayout());
         setPreferredSize(startSize);
@@ -50,18 +55,33 @@ public class DRBrowser extends JPanel {
             loadingLabel.setBorder(new EmptyBorder(22,22,22,22));
             add(loadingLabel, BorderLayout.NORTH);
         } else {
-            loadDataSourceViewer();
+            loadDataSourceViewer(searchDWindow,
+								 browseDWindow,
+								 savedResourcesDWindow);
         }
     }
     
     public DRBrowser() {
-        this(false);
+        this(false,
+			 null,
+			 null,
+			 null);
     }
     
-    public void loadDataSourceViewer()
+	public void setDockWindow(tufts.vue.gui.DockWindow dWindow)
+	{
+		dockWindow = dWindow;
+	}
+	
+    public void loadDataSourceViewer(DockWindow searchDWindow,
+									 DockWindow browseDWindow,
+									 DockWindow savedResourcesDWindow)
     {
         try {
-            DataSourceViewer dsv = new DataSourceViewer(this);
+            DataSourceViewer dsv = new DataSourceViewer(this,
+														searchDWindow,
+														browseDWindow,
+														savedResourcesDWindow);
             dsv.setName("Data Source Viewer"); 
             if (dsViewer == null) {
                 // set the statics to the first initialized DRBrowser only
@@ -79,7 +99,8 @@ public class DRBrowser extends JPanel {
         }
     }
 
-    public static void main(String args[]) {
+/*
+	public static void main(String args[]) {
         DEBUG.DR = true;
         DRBrowser drb = new DRBrowser(false);
         tufts.Util.displayComponent(drb);
@@ -93,7 +114,7 @@ public class DRBrowser extends JPanel {
         
     }
 
-
+*/
        
     
 }

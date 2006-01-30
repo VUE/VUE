@@ -43,14 +43,11 @@ import osid.filing.*;
 import tufts.oki.remoteFiling.*;
 import tufts.oki.localFiling.*;
 
-
-
-
 /**
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.26 $ / $Date: 2006-01-29 13:05:42 $ / $Author: jeff $ 
+ * @version $Revision: 1.27 $ / $Date: 2006-01-30 02:25:23 $ / $Author: jeff $ 
  * @author Ranjani Saigal
  */
 
@@ -82,109 +79,64 @@ public class DataSourceList extends JList implements DropTargetListener{
         
         breakIcon.setIconWidth(1600);
         breakIcon.setIconHeight(1);
-//		this.setCellRenderer(new DataSourceCellRenderer());
 				
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
                 
-                if (value instanceof String){
-                    
+                if (value instanceof String){                    
                     super.getListCellRendererComponent(list,"",index,iss,chf);
+					
+					JPanel linePanel = new JPanel() {
+						protected void paintComponent(Graphics g) {
+							Graphics2D g2d = (Graphics2D)g;
+							g2d.setColor(Color.LIGHT_GRAY);
+							float dash1[] = {3.0f};
+							BasicStroke dashed = new BasicStroke(1.0f, 
+																 BasicStroke.CAP_BUTT, 
+																 BasicStroke.JOIN_MITER, 
+																 10.0f, dash1, 0.0f);
+							g2d.setStroke(dashed);
+							JPanel tpanel =(JPanel)(DataSourceList.this.dsViewer).getComponent(0);
+							JScrollPane jsp = (JScrollPane)tpanel.getComponent(1);
+							int width = jsp.getViewport().getViewSize().width;
+							g2d.drawLine(0, 3, width-10, 3);
+							
+							
+						}
+					};
+					this.setPreferredSize(new Dimension(200,3));
+					return linePanel;
                 }
 				else{
-							JPanel panel = new JPanel();
-							panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-							JCheckBox checkBox = new JCheckBox();
-							checkBox.setEnabled(true);
-							checkBox.setBackground(VueResources.getColor("FFFFFF"));
-							if (index == 2) {
-								panel.setBackground(GUI.getTextHighlightColor());
-							} else {
-								panel.setBackground(VueResources.getColor("FFFFFF"));								
-							}
-
-							checkBox.setSelected( ((DataSource)value).isIncludedInSearch() );
-							panel.add(checkBox);
-
-							if (value instanceof FavoritesDataSource) {
-								panel.add(new JLabel(myComputerIcon));
-							} else if (value instanceof LocalFileDataSource) {
-								panel.add(new JLabel(myFavoritesIcon));
-							} else {
-								panel.add(new JLabel(remoteIcon));
-							}
-							panel.add(new JLabel(((DataSource)value).getDisplayName()));
-							return panel;
-//                super.getListCellRendererComponent(list, panel, index, iss, chf);
-				}
-                
-               
-                
-                if (value instanceof FavoritesDataSource){
-//                    setIcon(myFavoritesIcon);
-                    this.setPreferredSize(new Dimension(200,20));
-                }
-                
-                else if (value instanceof LocalFileDataSource){
-                    
-  //                   setIcon(myComputerIcon);
-                    this.setPreferredSize(new Dimension(200,20)); 
-                    
-                }
-               
-                else  if (value instanceof String){
-                    
-                    
-                  
-                     JPanel linePanel = new JPanel() {
-                   protected void paintComponent(Graphics g) {
-                     Graphics2D g2d = (Graphics2D)g;
-                        g2d.setColor(Color.LIGHT_GRAY);
-                         float dash1[] = {3.0f};
-                        BasicStroke dashed = new BasicStroke(1.0f, 
-                                                      BasicStroke.CAP_BUTT, 
-                                                      BasicStroke.JOIN_MITER, 
-                                                     10.0f, dash1, 0.0f);
-                        g2d.setStroke(dashed);
-                        JPanel tpanel =(JPanel)(DataSourceList.this.dsViewer).getComponent(0);
-                        JScrollPane jsp = (JScrollPane)tpanel.getComponent(1);
-                        int width = jsp.getViewport().getViewSize().width;
-                        g2d.drawLine(0, 3, width-10, 3);
-
-                 
-                   }
-                   };
-                       
-                   
-                   
-                   
-                  this.setPreferredSize(new Dimension(200,3));
-                    
-                  
-                  return linePanel;
-                    
-                   
-                    
-                }
-                 
-                else{
-					
-    //                setIcon(remoteIcon);
-                    this.setPreferredSize(new Dimension(200,20));
-					
-                }
-                
-                return this;
-                
+					JPanel panel = new JPanel();
+					panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+					JCheckBox checkBox = new JCheckBox();
+					checkBox.setBackground(VueResources.getColor("FFFFFF"));
+					if (index == list.getSelectedIndex()) {
+						panel.setBackground(SystemColor.textHighlight);
+					} else {
+						panel.setBackground(VueResources.getColor("FFFFFF"));								
+					}
+						
+					checkBox.setSelected( ((DataSource)value).isIncludedInSearch() );
+					panel.add(checkBox);
+						
+					if (value instanceof FavoritesDataSource) {
+						panel.add(new JLabel(myComputerIcon));
+						checkBox.setEnabled(true);
+					} else if (value instanceof LocalFileDataSource) {
+						panel.add(new JLabel(myFavoritesIcon));
+						checkBox.setEnabled(false);
+					} else {
+						panel.add(new JLabel(remoteIcon));
+						checkBox.setEnabled(true);
+					}
+					panel.add(new JLabel(((DataSource)value).getDisplayName()));
+					return panel;
+				}                
             }
-            
-            
-            
-            
-        };
-        
+        };        
         this.setCellRenderer(renderer);
-    
     }
     
     

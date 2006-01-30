@@ -82,9 +82,20 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     
     public static DataSourceList dataSourceList;
 	
-    public DataSourceViewer(DRBrowser drBrowser){
+	static DockWindow searchDockWindow;
+	static DockWindow browseDockWindow;
+	static DockWindow savedResourcesDockWindow;
+	
+    public DataSourceViewer(DRBrowser drBrowser,
+							DockWindow searchDWindow,
+							DockWindow browseDWindow,
+							DockWindow savedResourcesDWindow) {
         
-        setLayout(new BorderLayout());
+		searchDockWindow = searchDWindow;
+		browseDockWindow = browseDWindow;
+        savedResourcesDockWindow = savedResourcesDWindow;
+			
+		setLayout(new BorderLayout());
         setBorder(new TitledBorder("Libraries"));
         this.drBrowser = drBrowser;
         resourcesPanel = new JPanel();
@@ -117,13 +128,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
 		dataSourceList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
 				Point pt = e.getPoint();
-				System.out.print(pt);
 				// see if we are far enough over to the left to be on the checkbox
-				if (pt.x <= 20) {
+				if ( (!activeDataSource.getDisplayName().equals("My Computer")) && (pt.x <= 20) ) {
 					int index = dataSourceList.locationToIndex(pt);
-					System.out.println(index);
 					DataSource ds = (DataSource)dataSourceList.getModel().getElementAt(index);
-					System.out.println(ds);
 					ds.setIncludedInSearch(!ds.isIncludedInSearch());
 					dataSourceList.repaint();
 				}
@@ -210,10 +218,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         JScrollPane dataJSP = new JScrollPane(dataSourceList);
         dataSourcePanel.add(dataJSP,BorderLayout.CENTER);
         add(dataSourcePanel,BorderLayout.CENTER);
-        drBrowser.add(resourcesPanel,BorderLayout.CENTER);
-        
-        
-        
+//        drBrowser.add(resourcesPanel,BorderLayout.CENTER);
     }
     
     public static void addDataSource(DataSource ds){
@@ -300,6 +305,14 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     }
     public static void refreshDataSourcePanel(DataSource ds){
         
+		if (ds.getDisplayName().equals("My Computer")) {
+			searchDockWindow.setRolledUp(true);
+			browseDockWindow.setRolledUp(false);
+		} else {
+			searchDockWindow.setRolledUp(false);
+			browseDockWindow.setRolledUp(true);			
+		}
+		
         drBrowser.remove(resourcesPanel);
         resourcesPanel  = new JPanel();
         resourcesPanel.setLayout(new BorderLayout());
@@ -308,7 +321,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
         JPanel dsviewer = (JPanel)ds.getResourceViewer();
         resourcesPanel.add(dsviewer,BorderLayout.CENTER);
-        drBrowser.add(resourcesPanel,BorderLayout.CENTER);
+//        drBrowser.add(resourcesPanel,BorderLayout.CENTER);
         drBrowser.repaint();
         drBrowser.validate();
         

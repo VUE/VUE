@@ -17,7 +17,7 @@ package tufts.vue;
  * -----------------------------------------------------------------------------
  */
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.12 2006-01-20 19:27:14 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.13 2006-01-30 02:25:10 jeff Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -37,7 +37,7 @@ import tufts.vue.action.*;
 
 
 /**
- * @version $Revision: 1.12 $ / $Date: 2006-01-20 19:27:14 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2006-01-30 02:25:10 $ / $Author: jeff $
  * @author  rsaigal
  */
 
@@ -89,7 +89,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
         localPanel.setLayout(new BorderLayout());
         localPanel.add(rSP,BorderLayout.CENTER);
         this.resourceViewer = localPanel;
-        DataSourceViewer.refreshDataSourcePanel(this);
+        //DataSourceViewer.refreshDataSourcePanel(this);
         
     }
     

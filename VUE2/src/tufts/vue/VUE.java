@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.320 $ / $Date: 2006-01-29 13:28:11 $ / $Author: jeff $ 
+ * @version $Revision: 1.321 $ / $Date: 2006-01-30 02:25:53 $ / $Author: jeff $ 
  */
 
 public class VUE
@@ -410,8 +410,8 @@ public class VUE
        }
         
         // Start the loading of the data source viewer
-        if (SKIP_DR == false && DR_BROWSER != null)
-            DR_BROWSER.loadDataSourceViewer();
+//        if (SKIP_DR == false && DR_BROWSER != null)
+  //          DR_BROWSER.loadDataSourceViewer();
         
         //Preferences p = Preferences.userNodeForPackage(VUE.class);
         //p.put("DRBROWSER.RUN", "yes, it has");
@@ -561,53 +561,78 @@ public class VUE
         pannerDock.setUpperRightCorner(GUI.GScreenWidth, 150);
 
         //-----------------------------------------------------------------------------
-        // Data Source Viewer
+        // Data Source Search Dock Window
         //-----------------------------------------------------------------------------
-
-        // FYI, DataSourceViewer currently breaks if more than one DRBrowser
-        DR_BROWSER = new DRBrowser(true);
-        DockWindow drBrowserDock = GUI.createDockWindow("Data Sources", DR_BROWSER);
-
+		
+        DockWindow searchDock = GUI.createDockWindow("Search");
+		
 		JPanel searchPanel = new JPanel();
 		searchPanel.setBackground(Color.white);
 		searchPanel.setSize(100,100);
 		searchPanel.add(new JLabel("searches"));
 		
+        //-----------------------------------------------------------------------------
+        // Local File Data Source in Browse Dock Window
+        //-----------------------------------------------------------------------------
+		
+        DockWindow browseDock = GUI.createDockWindow("Browse");
+
 		JPanel browsePanel = new JPanel();
-		browsePanel.setBackground(Color.white);
-		browsePanel.setSize(100,100);
-		browsePanel.add(new JLabel("browses"));
+		try
+		{
+			LocalFileDataSource localFileDataSource = new LocalFileDataSource("My Computer","");
+			browsePanel.setBackground(Color.white);
+			Dimension startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
+												tufts.vue.gui.DockWindow.getMaxContentHeight());        
+			browsePanel.setLayout(new BorderLayout());
+//			browsePanel.setPreferredSize(startSize);
+			JComponent comp = localFileDataSource.getResourceViewer();
+			comp.setVisible(true);
+			browsePanel.add(comp);
+		} catch (Exception ex) {
+			if (DEBUG.DR) System.out.println("Problem loading local file data source");
+		}
+		
+        //-----------------------------------------------------------------------------
+        // Saved Resources Dock Window
+        //-----------------------------------------------------------------------------
+		
+        DockWindow savedResourcesDock = GUI.createDockWindow("SavedResources");
 		
 		JPanel savedResourcesPanel = new JPanel();
 		savedResourcesPanel.setBackground(Color.white);
 		savedResourcesPanel.setSize(100,100);
 		savedResourcesPanel.add(new JLabel("saved resources"));
 		
-        DockWindow searchDock = GUI.createDockWindow("Search");
-        DockWindow browseDock = GUI.createDockWindow("Browse");
-        DockWindow savedResourcesDock = GUI.createDockWindow("SavedResources");
+        //-----------------------------------------------------------------------------
+        // Data Source Viewer
+        //-----------------------------------------------------------------------------
+		
+        // FYI, DataSourceViewer currently breaks if more than one DRBrowser
+        DR_BROWSER = new DRBrowser(true,
+								   searchDock,
+								   browseDock,
+								   savedResourcesDock);
+        DockWindow drBrowserDock = GUI.createDockWindow("Data Sources", DR_BROWSER);
 		
 		drBrowserDock.setChild(searchDock);
 		drBrowserDock.setChild(browseDock);
 		drBrowserDock.setChild(savedResourcesDock);
 		
 		searchDock.add(searchPanel);
-		searchDock.setRolledUp(false,false);
+		searchDock.setRolledUp(true);
 		searchDock.setLocation(100,100);
 		searchDock.setVisible(true);
 
 		browseDock.add(browsePanel);
 		browseDock.setRolledUp(false,false);
-		browseDock.setLocation(100,100);
+		browseDock.setLocation(150,150);
 		browseDock.setVisible(true);
 
 		savedResourcesDock.add(savedResourcesPanel);
-		savedResourcesDock.setRolledUp(false,false);
-		savedResourcesDock.setLocation(100,100);
+		savedResourcesDock.setRolledUp(true);
+		savedResourcesDock.setLocation(200,200);
 		savedResourcesDock.setVisible(true);
-		
-		
-		//		DR_BROWSER.setDockWindow(searchDock);
 
         //-----------------------------------------------------------------------------
         // Map Inspector
