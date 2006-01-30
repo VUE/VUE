@@ -374,6 +374,7 @@ public class Actions implements VueConstants
     };
     
     public static final LWCAction Delete =
+        // "/tufts/vue/images/delete.png" looks greate (from jide), but too unlike others
         new LWCAction("Delete", keyStroke(KeyEvent.VK_DELETE), ":general/Delete") {
             // We could use BACK_SPACE instead of DELETE because that key is bigger, and
             // on the mac it's actually LABELED "delete", even tho it sends BACK_SPACE.
