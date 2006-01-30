@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.8 $ / $Date: 2006-01-30 06:54:13 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-01-30 22:37:53 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -117,6 +117,7 @@ public class DockWindow extends javax.swing.JWindow
 
     private boolean isResizeEnabled;
     private boolean isRolledUp;
+    private boolean isStackOwner;
     private Rectangle mSavedShape;
     /** set to false as soon as we begin to go invisible */
     private boolean mShowing;
@@ -238,6 +239,11 @@ public class DockWindow extends javax.swing.JWindow
             mContentPane.add(c);
         pack();
         setSize(minUnrolledWidth(getWidth()), getHeight());
+    }
+
+    /** All DockWindow's in this DockWindow's stack show and hide with it */
+    public void setStackOwner(boolean t) {
+        isStackOwner = true;
     }
 
     public void setMenuActions(Action[] actions) {
@@ -594,8 +600,27 @@ public class DockWindow extends javax.swing.JWindow
         DockRegion.assignAllMembers();
     }
     
+    public void setStackVisible(boolean show) {
+        // If showing, show us first, then children.
+        // If hiding, do reverse.
+        if (show) {
+            super.setVisible(true);
+            //toFront();
+        }
+        if (mChild != null)
+            mChild.setStackVisible(show);
+        if (!show) {
+            super.setVisible(false);
+        }
+    }
+    
     public void setVisible(boolean show) {
         setVisible(show, true);
+    }
+
+    private void raiseChildrenLater() {
+        // apparently, sometimes, we must raise the children later for toFront to work
+        GUI.invokeAfterAWT(new Runnable() { public void run() { raiseChildren(); }});
     }
     
     protected void setVisible(boolean show, boolean autoUnrollOnShow)
@@ -604,7 +629,12 @@ public class DockWindow extends javax.swing.JWindow
 
         if (DEBUG.FOCUS || DEBUG.DOCK) out("setVisible " + show);
 
-        //super.setVisible(show);
+        if (isStackOwner && mChild != null) {
+            setStackVisible(mShowing);
+            if (isMac)
+                raiseChildrenLater();
+            return;
+        }
         
         if (show) {
             if (autoUnrollOnShow && isRolledUp())
@@ -638,8 +668,7 @@ public class DockWindow extends javax.swing.JWindow
             mParentWhenHidden = null;
             
             if (isMac && true || windowStackChanged) {
-                // apparently in this case, we must raise the children later for toFront to work
-                GUI.invokeAfterAWT(new Runnable() { public void run() { raiseChildren(); }});
+                raiseChildrenLater();
             }
         }
 
@@ -647,6 +676,7 @@ public class DockWindow extends javax.swing.JWindow
     }
 
     private void updateOnVisibilityChange() {
+
         if (mShowing == false) {
             mChildWhenHidden = mChild;
             mParentWhenHidden = mParent;
@@ -935,7 +965,7 @@ public class DockWindow extends javax.swing.JWindow
 
 
     public void setRolledUp(boolean rollup) {
-        setRolledUp(rollup, true);
+        setRolledUp(rollup, isDisplayable());
     }
     
     public void setRolledUp(boolean makeRolledUp, boolean animate) {
@@ -1515,18 +1545,6 @@ public class DockWindow extends javax.swing.JWindow
             addEdges(dw);
         }
         
-    }
-
-    public void showStack() {
-        setVisible(true, false);
-        if (mChild != null)
-            mChild.showStack();
-    }
-    
-    public void hideStack() {
-        setVisible(false, false);
-        if (mChild != null)
-            mChild.hideStack();
     }
 
     private DockWindow getStackTop() {
@@ -2282,9 +2300,12 @@ public class DockWindow extends javax.swing.JWindow
     }
 
 
-    /** add a child to the bottom of this stack */
-    public void addChild(DockWindow newChild) {
+    /** add a child to the bottom of this stack
+     * @return "this" DockWindow, for chaining calls to addChild
+     */
+    public DockWindow addChild(DockWindow newChild) {
         getStackBottom().setChild(newChild, true);
+        return this;
     }
     
 
