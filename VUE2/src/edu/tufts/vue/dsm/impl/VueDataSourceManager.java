@@ -63,9 +63,9 @@ implements edu.tufts.vue.dsm.DataSourceManager
 	
 	public VueDataSourceManager() {
 		java.io.File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
-		System.out.println("User's VUE folder is " + userFolder.getAbsolutePath());
+		//System.out.println("User's VUE folder is " + userFolder.getAbsolutePath());
 		this.xmlFilename = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
-		System.out.println("DS file is " + this.xmlFilename);
+		//System.out.println("DS file is " + this.xmlFilename);
 		refresh();
 	}
 
@@ -118,6 +118,11 @@ implements edu.tufts.vue.dsm.DataSourceManager
 					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
 					if (e.hasChildNodes()) {
 						String providerIdString = e.getFirstChild().getNodeValue();
+						
+						System.out.println(edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance());
+						System.out.println(edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance());
+						System.out.println(edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString));
+						
 						providerId = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString);
 					}
 				}
