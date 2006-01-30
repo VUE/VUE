@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.79 $ / $Date: 2006-01-24 01:28:40 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.79 2006-01-24 01:28:40 sfraize Exp $ -->
+<!-- $Revision: 1.80 $ / $Date: 2006-01-30 05:56:12 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.80 2006-01-30 05:56:12 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -117,10 +117,12 @@
   <!-- Notes about individual jar files: -->
   <!-- jlfgr-1_0.jar: Contains Java toolbarButtonGraphics -->
   <!-- castor-0.9.7.jar contains XML, JDO & DAX: we only need the XML in castor-0.9.7-xml.jar -->
+  <!-- aclibico-1.0.jar: ImageIO reader service for .ico image files (based on .bmp, for website favicon) -->
   <!-- Have started to move most recently updated libraries to the top, so any overlapping
        sub-libraries will get the latest version (as when jar'd togeter, first found is what's used).  SMF 8/29/05  -->
   <property name="thirdparty.jarfiles.names"
             value="
+                   aclibico-1.0.jar
                    xercesImpl-2.7.1.jar
                    xerces-2.7.1-xml-apis.jar
                    castor-0.9.7-xml.jar
