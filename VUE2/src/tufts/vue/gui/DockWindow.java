@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.3 $ / $Date: 2006-01-29 13:28:38 $ / $Author: jeff $
+ * @version $Revision: 1.4 $ / $Date: 2006-01-30 05:39:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -63,7 +63,7 @@ public class DockWindow extends javax.swing.JWindow
 {
     final static java.util.List sAllWindows = new java.util.ArrayList();
 
-    private final static int ToolbarHeight = 38;
+    private final static int ToolbarHeight = 37;
     
     static DockRegion TopDock;
     static DockRegion BottomDock;
@@ -165,7 +165,8 @@ public class DockWindow extends javax.swing.JWindow
         */
 
 
-        setFocusableWindowState(false); // okay, we're relying on our forced-focus system now...
+        if (asToolbar)
+            setFocusableWindowState(false);
         setTitle(title);
         
         isToolbar = asToolbar;
@@ -1828,6 +1829,10 @@ public class DockWindow extends javax.swing.JWindow
             if (!dw.isVisible() || dw == this)
                 continue;
 
+            // only dock like windows together for now
+            if (isToolbar != dw.isToolbar)
+                continue;
+
             Rectangle bounds = dw.getBounds();
             if (bounds.contains(mouseX, mouseY))
                 return dw;
@@ -2237,7 +2242,7 @@ public class DockWindow extends javax.swing.JWindow
             if (DEBUG.DOCK) out("updateWindowShadow: docked=" + isDocked() + " rolled=" + isRolledUp());
 
             boolean hideShadow =
-                (isToolbar && isDarkTitleBar) ||
+                (isToolbar /*&& isDarkTitleBar*/) ||
                 (isDocked() && isRolledUp()
                  || (MainDock != null && MainDock.getY() == getY() + getHeight()))
                 ;
@@ -3354,7 +3359,7 @@ public class DockWindow extends javax.swing.JWindow
         Window owner = null;
         if (true) {
             owner = new Frame("A Frame");
-            owner.show();
+            owner.setVisible(true);
         }
 
         //new Frame("Frame Two").show();
