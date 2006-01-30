@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.4 $ / $Date: 2006-01-30 05:39:11 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2006-01-30 05:41:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2264,9 +2264,17 @@ public class DockWindow extends javax.swing.JWindow
         }
     }
 
+    /** set the child of this DockWindow to the given child */
     public void setChild(DockWindow newChild) {
         setChild(newChild, true);
     }
+
+
+    /** add a child to the bottom of this stack */
+    public void addChild(DockWindow newChild) {
+        getStackBottom().setChild(newChild, true);
+    }
+    
 
     private void setChild(DockWindow newChild, boolean updateChildren)
     {
