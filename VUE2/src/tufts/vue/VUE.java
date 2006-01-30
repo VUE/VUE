@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.322 $ / $Date: 2006-01-30 05:43:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.323 $ / $Date: 2006-01-30 06:37:53 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -638,19 +638,21 @@ public class VUE
 		drBrowserDock.addChild(savedResourcesDock);
 		
 		searchDock.add(searchPanel);
-		searchDock.setRolledUp(true);
-		searchDock.setLocation(100,100);
-		searchDock.setVisible(true);
+		searchDock.showRolledUp();
+		//searchDock.setRolledUp(true);
+		//searchDock.setLocation(100,100);
+		//searchDock.setVisible(true);
 
 		browseDock.add(browsePanel);
-		browseDock.setRolledUp(false,false);
-		browseDock.setLocation(150,150);
+		//browseDock.setRolledUp(false,false);
+		//browseDock.setLocation(150,150);
 		browseDock.setVisible(true);
 
 		savedResourcesDock.add(savedResourcesPanel);
-		savedResourcesDock.setRolledUp(true);
-		savedResourcesDock.setLocation(200,200);
-		savedResourcesDock.setVisible(true);
+		savedResourcesDock.showRolledUp();
+		//savedResourcesDock.setRolledUp(true);
+		//savedResourcesDock.setLocation(200,200);
+		//savedResourcesDock.setVisible(true);
 
         //-----------------------------------------------------------------------------
         // Map Inspector
@@ -878,11 +880,13 @@ public class VUE
         }
 
 
+        /*
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             //pannerDock.setVisible(true);
             if (DEBUG.Enabled) linkDock.setVisible(true);
             if (DEBUG.Enabled) fontDock.setVisible(true);
         }});
+        */
 
 
     }
