@@ -33,13 +33,13 @@ import javax.swing.border.*;
  * The VueToolPanel is the component that holds the main VUE toolbar
  * and the contextual properties tools.
  *
- * @version $Revision: 1.24 $ / $Date: 2006-01-20 20:35:48 $ / $Author: sfraize $ 
+ * @version $Revision: 1.25 $ / $Date: 2006-01-30 05:45:45 $ / $Author: sfraize $ 
  *
  **/
 public class VueToolPanel extends JPanel
 {
     /** the panel where the main tools are placed **/
-    private JPanel mMainToolPanel = null;
+    private JComponent mMainToolBar = null;
 	
     /** the panel where contextual tools are placed **/
     private JPanel mContextualToolPanel = null;
@@ -53,7 +53,7 @@ public class VueToolPanel extends JPanel
     /** the current tool selection (TO DO:  remove this)  **/
     private VueTool mCurrentTool = null;
 	
-    private Box mMainBox = null;
+    //private Box mMainBox = null;
 	
     /** a map of PaletteButtons keyed off of the tool ID **/
     private Map mToolButtons = new HashMap();
@@ -65,7 +65,6 @@ public class VueToolPanel extends JPanel
      **/
     private static final boolean debug = false;
     public VueToolPanel() {
-        super();
         mButtonGroup = new ButtonGroup();
         if (debug)
             setBackground(Color.blue);
@@ -78,14 +77,11 @@ public class VueToolPanel extends JPanel
         else
             setBorder(new EmptyBorder(1,3,2,10));//tlbr
 		
-        mMainToolPanel = new JPanel();
-        mMainBox = Box.createHorizontalBox();
-		
-        BoxLayout boxLayout = new BoxLayout( mMainToolPanel, BoxLayout.X_AXIS);
-        mMainToolPanel.setLayout(boxLayout);
+        mMainToolBar = new Box(BoxLayout.X_AXIS);
+        //mMainBox = Box.createHorizontalBox();
 		
         if (debug)
-            mMainToolPanel.setBackground(Color.green);
+            mMainToolBar.setBackground(Color.green);
 
         mContextualToolPanel = new JPanel();
         mContextualToolPanel.setAlignmentX(LEFT_ALIGNMENT);
@@ -95,10 +91,14 @@ public class VueToolPanel extends JPanel
             mContextualToolPanel.setBackground(Color.orange);
 		
         setAlignmentX( LEFT_ALIGNMENT);
-        add(BorderLayout.WEST, mMainToolPanel);
+        add(BorderLayout.WEST, mMainToolBar);
         add(BorderLayout.EAST, mContextualToolPanel);
         //add( BorderLayout.CENTER, mContextualToolPanel);
         //add( BorderLayout.EAST, Box.createHorizontalGlue());
+    }
+
+    public JComponent getMainToolbar() {
+        return mMainToolBar;
     }
 	
 	
@@ -115,7 +115,7 @@ public class VueToolPanel extends JPanel
             pButton.setBackground(Color.magenta);
         else
             GUI.applyToolbarColor(pButton);
-        mMainToolPanel.add( pButton);
+        mMainToolBar.add( pButton);
         mButtonGroup.add( pButton);
         if( mButtonGroup.getButtonCount() == 1) {
             pButton.setSelected( true);
@@ -211,7 +211,10 @@ public class VueToolPanel extends JPanel
      * any components already displayed.
      **/
     private JPanel mPanelContent;
-    public void setContextualToolPanel(JPanel pPanel) {
+    void setContextualToolPanel(JPanel pPanel) {
+
+        if (true) return;
+        
         if (mPanelContent == pPanel)
             return;
         if (DEBUG.TOOL) System.out.println(this + " LOADING " + pPanel);
@@ -269,6 +272,7 @@ public class VueToolPanel extends JPanel
                 VueTool subTool = pTool.getSubTool( name);
                 if( subTool != null) {
                     PaletteButtonItem item = new PaletteButtonItem();
+                    item.setName(name);
                     item.setIcon( subTool.getIcon() );
                     item.setSelectedIcon( subTool.getSelectedIcon() );
                     item.setDisabledIcon( subTool.getDisabledIcon() );
@@ -276,8 +280,8 @@ public class VueToolPanel extends JPanel
                     item.setPressedIcon( subTool.getDownIcon() );
                     item.setMenuItemIcon( subTool.getMenuItemIcon() );
                     item.setMenuItemSelectedIcon( subTool.getMenuItemSelectedIcon() );
-                    item.setToolTipText( subTool.getToolTipText() );
-                    item.setToolTipText( pTool.getToolTipText() );
+                    //item.setToolTipText( subTool.getToolTipText() );
+                    //item.setToolTipText( pTool.getToolTipText() );
                     item.addActionListener( subTool);
 					
                     items[i] = item;
@@ -288,13 +292,13 @@ public class VueToolPanel extends JPanel
             button = new PaletteButton( items );
             button.setPropertiesFromItem( items[0]);
             button.setOverlayIcons (pTool.getOverlayUpIcon(), pTool.getOverlayDownIcon() );
-            button.setToolTipText( pTool.getToolTipText() );
         } else  {  // just a radio-like button, no popup items 
             button = new PaletteButton();
             button.setIcons( pTool.getIcon(), pTool.getDownIcon(), pTool.getSelectedIcon() ,
                              pTool.getDisabledIcon(), pTool.getRolloverIcon() );
-            button.setToolTipText( pTool.getToolTipText() );
         }
+        
+        button.setToolTipText( pTool.getToolTipText() );
         // set the user context to the VueTOol
         button.setContext( pTool);
         button.addActionListener( pTool);
