@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.7 $ / $Date: 2006-01-30 06:37:02 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2006-01-30 06:54:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -574,10 +574,6 @@ public class DockWindow extends javax.swing.JWindow
             return null;
     }
     
-    public void setVisible(boolean show) {
-        setVisible(show, true);
-    }
-    
     /** for use during application startup */
     public void showRolledUp() {
         if (DEBUG.DOCK || DEBUG.INIT) out("showRolledUp");
@@ -596,6 +592,10 @@ public class DockWindow extends javax.swing.JWindow
     
     public static void assignAllDockRegions() {
         DockRegion.assignAllMembers();
+    }
+    
+    public void setVisible(boolean show) {
+        setVisible(show, true);
     }
     
     protected void setVisible(boolean show, boolean autoUnrollOnShow)
@@ -637,12 +637,11 @@ public class DockWindow extends javax.swing.JWindow
             mChildWhenHidden = null;
             mParentWhenHidden = null;
             
-            if (isMac && windowStackChanged) {
+            if (isMac && true || windowStackChanged) {
                 // apparently in this case, we must raise the children later for toFront to work
                 GUI.invokeAfterAWT(new Runnable() { public void run() { raiseChildren(); }});
             }
         }
-
 
         DockRegion.assignAllMembers();
     }
@@ -2260,7 +2259,7 @@ public class DockWindow extends javax.swing.JWindow
                  || (MainDock != null && MainDock.getY() == getY() + getHeight()))
                 ;
                 
-            if (mHasWindowShadow == hideShadow) {
+            if (mHasWindowShadow == hideShadow && isDisplayable()) {
                 mHasWindowShadow = !hideShadow;
                 MacOSX.setShadow(this, mHasWindowShadow);
             }
