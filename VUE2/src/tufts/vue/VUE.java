@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.321 $ / $Date: 2006-01-30 02:25:53 $ / $Author: jeff $ 
+ * @version $Revision: 1.322 $ / $Date: 2006-01-30 05:43:28 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -122,7 +122,7 @@ public class VUE
     }
 
     public static String getSystemProperty(String name) {
-        // If we're an applet, System.getProperty will trhow an AccessControlException
+        // If we're an applet, System.getProperty will throw an AccessControlException
         if (false && isApplet())
             return null;
         else {
@@ -155,6 +155,10 @@ public class VUE
     public static boolean isSystemPropertyTrue(String name) {
         String value = getSystemProperty(name);
         return value != null && value.toLowerCase().equals("true");
+    }
+    
+    public static boolean hasSystemProperty(String name) {
+        return getSystemProperty(name) != null;
     }
     
     
@@ -294,7 +298,8 @@ public class VUE
     static {
         Logger.getRootLogger().removeAllAppenders(); // need to do this or we get everything twice
         //BasicConfigurator.configure();
-        Logger.getRootLogger().addAppender(new ConsoleAppender(new PatternLayout("VUE [%t] %-5p %c:%x %m%n")));
+        //Logger.getRootLogger().addAppender(new ConsoleAppender(new PatternLayout("VUE %d [%t] %-5p %c:%x %m%n")));
+        Logger.getRootLogger().addAppender(new ConsoleAppender(new PatternLayout("VUE %d [%t] %-5p %x %m%n")));
         //Log.addAppender(new ConsoleAppender(new PatternLayout("[%t] %-5p %c %x - %m%n")));
         Log.setLevel(Level.INFO);
     }
@@ -308,10 +313,26 @@ public class VUE
         parseArgs(args);
         
         Log.info("startup; build: " + tufts.vue.Version.AllInfo);
-        Log.info("running in Java VM: " + System.getProperty("java.runtime.version"));
+        Log.info("running in Java VM: " + getSystemProperty("java.runtime.version"));
         
+        if (DEBUG.Enabled)
+            Log.setLevel(Level.DEBUG);
+
         try {
+
+            initUI();
+
+            if (DEBUG.Enabled && Util.isMacPlatform()) {
+                // This is for debugging.  The application icon for a distributed version
+                // of VUE is set via an icons file specified in the Info.plist from
+                // the VUE.app directory.
+                // Be sure to call this after GUI initialized, or we are hidden from the OSX app dock.
+                tufts.macosx.MacOSX.setApplicationIcon
+                    (VUE.class.getResource("/tufts/vue/images/vueicon32x32.gif").getFile());
+            }
+            
             initApplication(args);
+            
         } catch (Throwable t) {
             Util.printStackTrace(t, "VUE initApplication failed");
         }
@@ -328,18 +349,12 @@ public class VUE
 
     private static void initApplication(String[] args)
     {
-
         /*
         if (VUE.TUFTS)
             Log.debug("TUFTS features only (no MIT/development)");
         else
             Log.debug("MIT/development features enabled");
         */
-
-        if (DEBUG.Enabled)
-            Log.setLevel(Level.DEBUG);
-
-        initUI();
 
         final Window splashScreen;
 
@@ -530,10 +545,9 @@ public class VUE
 
         DockWindow toolbarDock = null;
         
-        if (false) {
-            toolbarDock = GUI.createDockWindow(VueResources.getString("tbWindowName"));
-            //toolbarDock.setResizeEnabled(false);
-            toolbarDock.add(tbc.getToolbar());
+        if (true) {
+            //toolbarDock = GUI.createToolbar(VueResources.getString("tbWindowName"), tbc.getToolbar());
+            toolbarDock = GUI.createToolbar("Map Tools", tbc.getToolbar().getMainToolbar());
         } else {
             ApplicationFrame.addComp(tbc.getToolbar(), BorderLayout.NORTH);
             // buildToolbar()
@@ -559,6 +573,10 @@ public class VUE
         //pannerDock.setSize(120,120);
         pannerDock.setSize(112,120);
         pannerDock.setUpperRightCorner(GUI.GScreenWidth, 150);
+        pannerDock.setMenuActions(new Action[] {
+                Actions.ZoomFit,
+                Actions.ZoomActual
+            });
 
         //-----------------------------------------------------------------------------
         // Data Source Search Dock Window
@@ -615,9 +633,9 @@ public class VUE
 								   savedResourcesDock);
         DockWindow drBrowserDock = GUI.createDockWindow("Data Sources", DR_BROWSER);
 		
-		drBrowserDock.setChild(searchDock);
-		drBrowserDock.setChild(browseDock);
-		drBrowserDock.setChild(savedResourcesDock);
+		drBrowserDock.addChild(searchDock);
+		drBrowserDock.addChild(browseDock);
+		drBrowserDock.addChild(savedResourcesDock);
 		
 		searchDock.add(searchPanel);
 		searchDock.setRolledUp(true);
@@ -669,13 +687,14 @@ public class VUE
 
         // GUI.createDockWindow("Font").add(new FontEditorPanel()); // just add automatically?
 
-        final DockWindow fontDock = GUI.createDockWindow("Font", new FontPropertyPanel());
-        final DockWindow linkDock = GUI.createDockWindow("Link", new LinkPropertyPanel());
+        final DockWindow fontDock = GUI.createToolbar("Font", new FontPropertyPanel());
+        final DockWindow linkDock = GUI.createToolbar("Link", new LinkPropertyPanel());
+        final DockWindow actionDock = GUI.createToolbar("Actions", new VueActionBar());
 
-        fontDock.setResizeEnabled(false);
+        //fontDock.setResizeEnabled(false);
         //linkDock.setResizeEnabled(false);
         
-        pannerDock.setChild(linkDock);
+        //pannerDock.setChild(linkDock);
         
         //fontDock.setChild(linkDock);
 
@@ -697,6 +716,7 @@ public class VUE
             pannerDock,
             //htWindow,
             outlineDock,
+            actionDock,
             fontDock,
             linkDock,
         };
@@ -1023,6 +1043,8 @@ public class VUE
                         if (rightViewer != null)
                             rightViewer.fireViewerEvent(MapViewerEvent.PAN);
                         */
+                        leftViewer.setVisible(true);
+                        rightViewer.setVisible(true);
                     } else {
                         if (leftViewer != null && leftViewer != getActiveViewer()) {
                             if (DEBUG.TOOL || DEBUG.FOCUS)
@@ -1030,7 +1052,8 @@ public class VUE
                                     + " focus going to " + leftViewer);
                             leftViewer.requestFocus();
                             if (rightViewer != null)
-                                rightViewer.fireViewerEvent(MapViewerEvent.HIDDEN);
+                                //rightViewer.fireViewerEvent(MapViewerEvent.HIDDEN);
+                                rightViewer.setVisible(false);
                         }
                     }
                 }});
@@ -1182,7 +1205,7 @@ public class VUE
     }
     
     public static boolean isActiveViewerOnLeft() {
-        return ActiveViewer != null && ActiveViewer.getName().startsWith("*");
+        return ActiveViewer == null || ActiveViewer.getName().startsWith("*");
     }
 
     public static boolean isActiveViewerOnRight() {
