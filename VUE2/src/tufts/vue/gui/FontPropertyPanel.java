@@ -40,6 +40,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * and style (bold/italic).
  */
 public class FontPropertyPanel extends JPanel
+//public class FontPropertyPanel extends javax.swing.Box // screws up font-size combo-box editor (gets tall)
     implements ActionListener, LWPropertyProducer, PropertyChangeListener
 {
     private static String[] sFontSizes;
@@ -65,6 +66,7 @@ public class FontPropertyPanel extends JPanel
                 
     public FontPropertyPanel()
     {
+        //super(BoxLayout.X_AXIS);
         setPropertyKey(LWKey.Font); // only font key we have for now
 
         mFontCombo = new JComboBox(getFontNames());
