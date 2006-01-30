@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.47 $ / $Date: 2006-01-20 20:36:06 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2006-01-30 05:45:05 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -508,9 +508,13 @@ public class VueToolbarController
 
         VUE.init(args);
         
-        FontEditorPanel.sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts
-        VueToolbarController controller = getController();
+        
+        tufts.Util.displayComponent(getController().mToolPanel);
 
+        /*
+        //FontEditorPanel.sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" };
+        // so doesn't bother to load system fonts
+        VueToolbarController controller = getController();
         //JComponent comp = controller.createDefaultToolbar();
         VueToolPanel comp = controller.mToolPanel;
         comp.setContextualToolPanel(new NodeToolPanel());
@@ -522,5 +526,6 @@ public class VueToolbarController
         frame.validate();
         VueUtil.centerOnScreen(frame);
         frame.show();
+        */
     }
 }
