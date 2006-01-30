@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.324 $ / $Date: 2006-01-30 21:47:58 $ / $Author: jeff $ 
+ * @version $Revision: 1.325 $ / $Date: 2006-01-30 22:37:13 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -641,18 +641,19 @@ public class VUE
 								   savedResourcesDock);
         DockWindow drBrowserDock = GUI.createDockWindow("Data Sources", DR_BROWSER);
 		
+                drBrowserDock.setStackOwner(true);
 		drBrowserDock.addChild(searchDock);
 		drBrowserDock.addChild(browseDock);
 		drBrowserDock.addChild(savedResourcesDock);
 		
 		searchDock.add(searchPanel);
-		searchDock.showRolledUp();
+		searchDock.setRolledUp(true);
 
 		browseDock.add(browsePanel);
-		browseDock.showRolledUp();
+		browseDock.setRolledUp(true);
 
 		savedResourcesDock.add(savedResourcesPanel);
-		savedResourcesDock.showRolledUp();
+		savedResourcesDock.setRolledUp(true);
 
         //-----------------------------------------------------------------------------
         // Map Inspector
