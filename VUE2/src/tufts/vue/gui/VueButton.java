@@ -35,7 +35,7 @@ import javax.swing.border.*;
  * VueResources in format buttonName.Up, buttonName.down,
  * buttonName.disabled, or .raw for generated buttons.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-01-20 17:22:15 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-01-30 05:47:43 $ / $Author: sfraize $
  * @author  akumar03
  * @author  Scott Fraize
  */
@@ -94,11 +94,6 @@ public class VueButton extends JButton
         setBackground(getParent().getBackground());
     }
 
-    private void init(String key) {
-        this.key = key;
-        init(this, key);
-    }
-    
     public static class Toggle extends JToggleButton {
         // todo: make an LWPropertyHandler for boolean's
         protected String key;
@@ -140,17 +135,34 @@ public class VueButton extends JButton
     }
     
 
-    static void init(AbstractButton b, String key)
+    private void init(String key) {
+        this.key = key;
+        init(this, key);
+    }
+    
+    private static void init(AbstractButton b, String key)
     {
+        //System.out.println(GUI.name(b) + "\tINIT0 " + key + "\tTTT[" + b.getToolTipText() + "]");
+        
         if (key == null) {
             // from an action init w/no action command
+            if (b.getName() == null)
+                b.setName(b.getText());
+            if (b.getToolTipText() == null || b.getToolTipText().length() < 1) {
+                b.setToolTipText(b.getText()); 
+               if (DEBUG.Enabled) System.out.println(GUI.name(b) + " lazy setToolTipText " + b.getText());
+            }
             VueButtonIcon.installGenerated(b, b.getIcon(), null);
         } else {
+            b.setName(key);
             installResourceConfiguration(b, key);
         }
 
+        b.setRolloverEnabled(true);
+
+        //System.out.println(GUI.name(b) + "\tINIT1 " + key + "\tTTT[" + b.getToolTipText() + "]");
+        
         b.setFocusable(false);
-        b.setName(key);
         
         if (false && GUI.isOceanTheme()) {
             //b.setRolloverEnabled(true);
@@ -196,8 +208,9 @@ public class VueButton extends JButton
             if ((i = VueResources.getImageIcon(key + kDISABLED)) != null) b.setDisabledIcon(i);
         }
         String tt = VueResources.getString(key + ".tooltip");
-        if (tt != null)
+        if (tt != null) {
             b.setToolTipText(tt);
+        }
     }
 
     
