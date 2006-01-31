@@ -24,36 +24,112 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.1 $ / $Date: 2006-01-30 21:48:37 $ / $Author: jeff $
+ * @version $Revision: 1.2 $ / $Date: 2006-01-31 18:08:43 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
 import java.awt.event.*;
+import javax.swing.event.*;
 import java.awt.*;
 
-public class AddLibraryDialog extends JDialog {
+public class AddLibraryDialog extends JDialog implements ListSelectionListener {
     
-    JPanel addLibraryPanel;
+    JPanel addLibraryPanel = new JPanel();
     JList addLibraryList;
 	DefaultListModel listModel = new DefaultListModel();
-	JScrollPane jsp;
+	JScrollPane listJsp;
+	JScrollPane descriptionJsp;
 	JLabel libraryIcon;
 	JTextArea libraryDescription;
 	edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
 	edu.tufts.vue.dsm.Registry registry;
+	org.osid.registry.Provider checked[];
+	JPanel buttonPanel = new JPanel();
+	JButton cancelButton = new JButton("Canel");
+	JButton addButton = new JButton("Add");
     
-    /** Creates a new instance of AddEditDataSourceDialog */
-    public AddLibraryDialog() {
+    public AddLibraryDialog()
+	{
         super(VUE.getDialogParentAsFrame(),"ADD A LIBRARY",true);
-		addLibraryList = new JList(listModel);
-        addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
-		populate();
-		jsp = new JScrollPane(addLibraryList);
-		addLibraryPanel.setPreferredSize(new Dimension(300,400));
-        getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(jsp,BorderLayout.CENTER);
-        pack();
-        setLocation(300,300);
+		try {
+			addLibraryList = new JList(listModel);
+			addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
+			addLibraryList.setPreferredSize(new Dimension(130,160));
+			addLibraryList.addListSelectionListener(this);
+						
+			populate();
+			listJsp = new JScrollPane(addLibraryList);
+			//if (this.settings.isMac()) 
+			{ 
+				listJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+				listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 
+			}
+			
+			if (checked.length > 0) {
+				// TODO: Replace this with an image, but we need this in the Provider not just the Data Source
+				libraryIcon = new JLabel(VueResources.getImageIcon("NoImage"));
+				libraryDescription = new JTextArea(checked[0].getDescription());
+				addLibraryList.setSelectedIndex(0);
+			} else {
+				libraryIcon = new JLabel(VueResources.getImageIcon("NoImage"));
+				libraryDescription = new JTextArea();
+			}
+
+			libraryIcon.setPreferredSize(new Dimension(80,80));
+			libraryDescription.setLineWrap(true);
+			libraryDescription.setWrapStyleWord(true);
+			
+			descriptionJsp = new JScrollPane(libraryDescription);
+			//if (this.settings.isMac()) 
+			{ 
+				descriptionJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+				descriptionJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 
+			}
+
+			libraryDescription.setPreferredSize(new Dimension(220,140));			
+			
+			addLibraryPanel.setBackground(VueResources.getColor("White"));
+			setBackground(VueResources.getColor("White"));
+
+			java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
+			java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
+			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+			gbConstraints.insets = new java.awt.Insets(2,2,2,2);
+			addLibraryPanel.setLayout(gbLayout);
+			
+			gbConstraints.gridx = 0;
+			gbConstraints.gridy = 0;
+			addLibraryPanel.add(new JLabel("Locations Available:"),gbConstraints);
+			
+			gbConstraints.gridx = 0;
+			gbConstraints.gridy = 1;
+			addLibraryPanel.add(listJsp,gbConstraints);
+			
+			gbConstraints.gridx = 1;
+			gbConstraints.gridy = 1;
+			addLibraryPanel.add(libraryIcon,gbConstraints);
+			
+			gbConstraints.gridx = 2;
+			gbConstraints.gridy = 1;
+			addLibraryPanel.add(descriptionJsp,gbConstraints);
+			
+			buttonPanel.add(cancelButton);
+			buttonPanel.add(addButton);
+			addButton.setBackground(VueResources.getColor("Orange")); //TODO:  Why is this BLUE??
+			getRootPane().setDefaultButton(addButton);
+			
+			gbConstraints.gridx = 2;
+			gbConstraints.gridy = 2;
+			addLibraryPanel.add(buttonPanel,gbConstraints);
+
+			getContentPane().add(addLibraryPanel,BorderLayout.CENTER);
+			pack();
+			setLocation(300,300);
+			setSize(new Dimension(480,300));
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+		setVisible(true);
     }
 
     private void populate()
@@ -65,7 +141,7 @@ public class AddLibraryDialog extends JDialog {
 				registry = edu.tufts.vue.dsm.impl.VueRegistry.getInstance();
 			}
 			edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
-			org.osid.registry.Provider checked[] = registry.checkRegistryForNew(dataSources);
+			checked = registry.checkRegistryForNew(dataSources);
 			listModel.removeAllElements();
 			if (checked.length == 0) {
 				listModel.addElement("No new Libraries");
@@ -78,14 +154,30 @@ public class AddLibraryDialog extends JDialog {
 		}
 	}
 	
-    public void show(int mode) {
+    public void show(int mode) 
+	{
 		populate();
+		System.out.println("showing");
+		setVisible(true);
         super.setVisible(true);
     }
 
-    public String toString() {
+    public String toString() 
+	{
         return "AddLibraryDialog";
     }
+
+	public void valueChanged(ListSelectionEvent lse) {				
+		int index = ((JList)lse.getSource()).getSelectedIndex();
+		if (index != -1) {
+			try {
+				// TODO: update icon
+				libraryDescription.setText(checked[index].getDescription());
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+	}
 }
 
 
