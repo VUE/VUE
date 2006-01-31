@@ -41,7 +41,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.3 $ / $Date: 2006-01-27 02:59:52 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2006-01-31 01:05:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -646,8 +646,11 @@ public class GUI
 
         return new Rectangle(GBounds);
 
-    }    
-    
+    }
+
+    public static Icon getIcon(String name) {
+        return VueResources.getIcon(GUI.class, "icons/" + name);
+    }
 
     /**
      * In case window is off screen, size it, then set visible on screen, then place it.
