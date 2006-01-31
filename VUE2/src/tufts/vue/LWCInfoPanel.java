@@ -29,7 +29,7 @@ import tufts.vue.gui.*;
 // TODO FIX: the text input fields should save value on focus loss
 
 /**
- * @version $Revision: 1.24 $ / $Date: 2006-01-30 07:11:08 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2006-01-31 01:07:28 $ / $Author: sfraize $
  */
 
 class LWCInfoPanel extends javax.swing.JPanel
@@ -67,6 +67,10 @@ class LWCInfoPanel extends javax.swing.JPanel
 
     public LWCInfoPanel()
     {
+        super(new BorderLayout());
+        
+        setOpaque(false);
+        
         if (!GUI.isMacAqua()) {
             Border textPaneBorder = BorderFactory.createEtchedBorder();
             //Border textPaneBorder = BorderFactory.createLineBorder(Color.lightGray);
@@ -82,10 +86,11 @@ class LWCInfoPanel extends javax.swing.JPanel
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         fieldPane.setLayout(gridBag);
+        fieldPane.setOpaque(false);
         addLabelTextRows(labelTextPairs, gridBag, fieldPane);
         // settting metadata
         setUpMetadataPane();
-        setLayout(new BorderLayout());
+        metadataPane.setOpaque(false);
         add(fieldPane, BorderLayout.NORTH);
         add(metadataPane,BorderLayout.CENTER);
         VUE.ModelSelection.addListener(this);

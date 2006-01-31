@@ -32,7 +32,7 @@ import tufts.vue.filter.*;
 /**
  * The Object Inspector Panel!
  *
- * @version $Revision: 1.28 $ / $Date: 2006-01-28 23:34:20 $ / $Author: sfraize $ 
+ * @version $Revision: 1.29 $ / $Date: 2006-01-31 01:07:28 $ / $Author: sfraize $ 
  *
  */
 public class ObjectInspectorPanel extends JPanel
@@ -66,6 +66,7 @@ public class ObjectInspectorPanel extends JPanel
     public ObjectInspectorPanel() {
         super();
         
+        setOpaque(false);
         setMinimumSize( new Dimension( 240,200) );
         setLayout( new BorderLayout() );
         setBorder( new EmptyBorder( 5,5,5,5) );
@@ -180,6 +181,7 @@ public class ObjectInspectorPanel extends JPanel
         public InfoPanel() {
             setLayout( new BorderLayout() );
             setName("infoPanel");
+            setOpaque(false);
             
             //setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
             
@@ -188,6 +190,7 @@ public class ObjectInspectorPanel extends JPanel
             objectLabel.setHorizontalTextPosition(JLabel.LEFT);
             objectLabel.setVerticalAlignment(JLabel.TOP);
             labelPanel = new JPanel(new BorderLayout());
+            labelPanel.setOpaque(false);
             labelPanel.setBorder( BorderFactory.createEmptyBorder(0,0,5,0));
             labelPanel.add(objectLabel,BorderLayout.WEST);
             //previewPanel.setPreferredSize(new Dimension(75,75));
