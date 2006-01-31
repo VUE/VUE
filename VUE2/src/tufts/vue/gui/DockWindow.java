@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.10 $ / $Date: 2006-01-31 01:05:25 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2006-01-31 22:18:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -623,12 +623,15 @@ public class DockWindow extends javax.swing.JWindow
         // If hiding, do reverse.
         
         if (show) {
-            // Invoking later ensures DockWindow's that 
+            // Invoking later helps ensure DockWindow's that 
             // are set visible last are on the top of the z-order,
             // which is important for MacOSX window shadow.
+            // Unfrotunately, this is not full-proof, but
+            // adding a call to toFront seems to have fixed this?
             if (isMacAqua) {
                 GUI.invokeAfterAWT(new Runnable() { public void run() {
                     superSetVisible(true);
+                    toFront();
                 }});
             } else {
                 superSetVisible(true);
@@ -661,7 +664,7 @@ public class DockWindow extends javax.swing.JWindow
             //if (isMac && mShowing) raiseChildrenLater();
             return;
         }
-        
+
         if (show) {
             if (autoUnrollOnShow && isRolledUp())
                 setRolledUp(false);
@@ -675,6 +678,9 @@ public class DockWindow extends javax.swing.JWindow
             setShapeAnimated(getX(), getY(), getWidth(), 0);
         }
             
+        if (isVisible() == mShowing)
+            return;
+        
         updateOnVisibilityChange();
         superSetVisible(show);
 
@@ -1948,6 +1954,7 @@ public class DockWindow extends javax.swing.JWindow
         // It's okay to do this in java 1.4, as we can't be alwaysOnTop, which
         // is why this is a problem.
         
+        if (false) // turned off for now
         if (!GUI.UseAlwaysOnTop || !isMac)
             makeOnTop();
                 
@@ -1987,7 +1994,7 @@ public class DockWindow extends javax.swing.JWindow
 
         if (DEBUG.MOUSE) out("mDragStartScreen=" + mDragStartScreen + " mDragStart=" + mDragStart);
         
-        if (isMac) { // don't shadow child
+        if (false && isMac) { // don't shadow child
             // better: don't raise us up if we're rolling up, but then would
             // have to do this on mouseReleased
             // TODO: is this getting repeated after interceptMousePress?
