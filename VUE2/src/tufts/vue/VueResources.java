@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.36 $ / $Date: 2006-01-20 20:27:11 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2006-01-31 01:06:16 $ / $Author: sfraize $
  *
  */
 public class VueResources
@@ -113,7 +113,6 @@ public class VueResources
     }
     
     /**
-     * getImageIcon()
      * This method returns an ImageIcon based on the file
      * specified by the properties file
      * myIcon=/my/package/myImage.gif
@@ -123,17 +122,36 @@ public class VueResources
      * @param pLookupKey - the key in the properties file
      *  @returns ImageIcon referenced by the resource bundle's lookupkey balue
      **/
-    public static ImageIcon getImageIcon(String key)  {
-        if (DEBUG.INIT && DEBUG.META) tufts.Util.printStackTrace("getImageIcon " + key); 
+
+    public static ImageIcon getImageIcon(Class clazz, String keyOrPath)  {
+        if (DEBUG.INIT && DEBUG.META) tufts.Util.printStackTrace("getImageIcon " + keyOrPath + " in " + clazz);
+
+        String key;
+
+        if (clazz == null)
+            key = keyOrPath;
+        else
+            key = clazz.getName() + keyOrPath;
+        
         if (Cache.containsKey(key))
             return (ImageIcon) Cache.get(key);
 
         ImageIcon icon = null;
-        String str = getString(key);
-        if (str != null)
-            icon = loadImageIcon(str);
+        if (clazz == null) {
+            String str = getString(key);
+            if (str != null)
+                icon = loadImageIcon(str);
+        } else {
+            icon = loadImageIcon(clazz, keyOrPath);
+        }
         Cache.put(key, icon);
         return icon;
+    }
+    public static ImageIcon getImageIcon(String key) {
+        return getImageIcon(null, key);
+    }
+    private static boolean isPath(String key) {
+        return key.indexOf('/') >= 0;
     }
     
     public static Image getImage(String key)  {
@@ -156,18 +174,23 @@ public class VueResources
         return icon;
     }
     
-    /**
-     * @return Icon
-     **/
     public static Icon getIcon(String key)  {
         return getImageIcon(key);
     }
 
+    public static Icon getIcon(Class clazz, String path)  {
+        return getImageIcon(clazz, path);
+    }
+
     private static ImageIcon loadImageIcon(String file) {
+        return loadImageIcon(sResourceBundle.getClass(), file);
+    }
+
+    private static ImageIcon loadImageIcon(Class clazz, String file) {
         ImageIcon icon = null;
         //debug("\tloadImageIcon["+ file + "]");
         try {
-            URL resource = sResourceBundle.getClass().getResource(file); //  new URL(  urlStr );
+            URL resource = clazz.getResource(file);
             //if (DEBUG.INIT) System.out.println("\tURL[" + resource + "]");
             if (resource != null) {
                 icon = new ImageIcon(resource);
