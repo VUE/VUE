@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.9 $ / $Date: 2006-01-30 22:37:53 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2006-01-31 01:05:25 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -256,7 +256,6 @@ public class DockWindow extends javax.swing.JWindow
     }
         
     private static void staticInit() {
-
         //-------------------------------------------------------
         // INIT STATIC'S
         //-------------------------------------------------------
@@ -580,13 +579,31 @@ public class DockWindow extends javax.swing.JWindow
             return null;
     }
     
+    private void superSetVisible(final boolean show) {
+        if (DEBUG.DOCK) out("superSetVisible " + show);
+        mShowing = show;
+        super.setVisible(show);
+
+        /*
+        if (isMacAqua && show && !isStacked())
+            setWindowShadow(true);
+        
+        super.setVisible(show);
+        
+        if (isMacAqua && !show) {
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                setWindowShadow(false);
+            }});
+        }
+        */
+    }
+
     /** for use during application startup */
     public void showRolledUp() {
         if (DEBUG.DOCK || DEBUG.INIT) out("showRolledUp");
         setRolledUp(true, false);
         //updateWindowShadow();
-        //setVisible(true, false);
-        super.setVisible(true);
+        superSetVisible(true);
     }
 
     /** normally can only be in a DockRegion if visible: this allows pre-assignment during startup */
@@ -601,16 +618,26 @@ public class DockWindow extends javax.swing.JWindow
     }
     
     public void setStackVisible(boolean show) {
+
         // If showing, show us first, then children.
         // If hiding, do reverse.
+        
         if (show) {
-            super.setVisible(true);
-            //toFront();
+            // Invoking later ensures DockWindow's that 
+            // are set visible last are on the top of the z-order,
+            // which is important for MacOSX window shadow.
+            if (isMacAqua) {
+                GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    superSetVisible(true);
+                }});
+            } else {
+                superSetVisible(true);
+            }
         }
         if (mChild != null)
             mChild.setStackVisible(show);
         if (!show) {
-            super.setVisible(false);
+            superSetVisible(false);
         }
     }
     
@@ -631,8 +658,7 @@ public class DockWindow extends javax.swing.JWindow
 
         if (isStackOwner && mChild != null) {
             setStackVisible(mShowing);
-            if (isMac)
-                raiseChildrenLater();
+            //if (isMac && mShowing) raiseChildrenLater();
             return;
         }
         
@@ -650,7 +676,7 @@ public class DockWindow extends javax.swing.JWindow
         }
             
         updateOnVisibilityChange();
-        super.setVisible(show);
+        superSetVisible(show);
 
         if (show) {
             boolean windowStackChanged = false;
@@ -676,6 +702,7 @@ public class DockWindow extends javax.swing.JWindow
     }
 
     private void updateOnVisibilityChange() {
+        if (DEBUG.DOCK) out("updateOnVisibilityChange; mShowing= " + mShowing + " visible=" + isVisible());
 
         if (mShowing == false) {
             mChildWhenHidden = mChild;
@@ -866,6 +893,14 @@ public class DockWindow extends javax.swing.JWindow
     {
         if (mDockRegion != null)
             return mDockRegion.getRolledWidth(this);
+        else
+            return minUnrolledWidth(getWidth());
+    }
+        
+    private int XminRolledWidth()
+    {
+        if (mDockRegion != null)
+            return mDockRegion.getRolledWidth(this);
             
         if (isStacked() == false) {
             if (wantsSidewaysRollup()) {
@@ -890,11 +925,8 @@ public class DockWindow extends javax.swing.JWindow
         final int parentWidth = mParent == null ? Integer.MAX_VALUE : mParent.getWidth();
         final int childWidth = mChild == null ? Integer.MAX_VALUE : mChild.getWidth();
 
-        // okay, smallest for now:
+        // smallest of the two:
         return minUnrolledWidth(parentWidth < childWidth ? parentWidth : childWidth);
-        
-        //return parentWidth > childWidth ? parentWidth : childWidth;
-                
     }
 
     private int XgetRolledWidth() {
@@ -964,6 +996,12 @@ public class DockWindow extends javax.swing.JWindow
     }
 
 
+    /**
+     * Set this DockWindow to it's "rolled-up" state: just the title
+     * bar is showing.  If Component.isDisplayable() is true (it
+     * has a peer / has been shown on screen at least once), then
+     * the transition will be animated.
+     */
     public void setRolledUp(boolean rollup) {
         setRolledUp(rollup, isDisplayable());
     }
@@ -1070,6 +1108,8 @@ public class DockWindow extends javax.swing.JWindow
             GUI.postEvent(new ComponentEvent(this, ComponentEvent.COMPONENT_SHOWN));
             
         }
+
+        mContentPane.mTitle.showAsOpen(!isRolledUp);
 
         if (mResizeCorner != null) {
             mResizeCorner.setVisible(!isRolledUp);
@@ -2276,11 +2316,16 @@ public class DockWindow extends javax.swing.JWindow
                 (isDocked() && isRolledUp()
                  || (MainDock != null && MainDock.getY() == getY() + getHeight()))
                 ;
-                
-            if (mHasWindowShadow == hideShadow && isDisplayable()) {
-                mHasWindowShadow = !hideShadow;
-                MacOSX.setShadow(this, mHasWindowShadow);
-            }
+
+            setWindowShadow(!hideShadow);
+        }
+    }
+
+    private void setWindowShadow(boolean shadow) {
+        if (mHasWindowShadow != shadow && isDisplayable()) {
+            mHasWindowShadow = shadow;
+            if (DEBUG.DOCK) out("setShadow " + shadow);
+            MacOSX.setShadow(this, shadow);
         }
     }
 
@@ -2288,7 +2333,7 @@ public class DockWindow extends javax.swing.JWindow
         if (mChild != null) {
             if (DEBUG.DOCK) out("removeChild " + mChild);
             //tufts.macosx.Screen.removeChildWindow(this, mChild);
-            mChild.mParent = null;
+            mChild.setParent(null);
             mChild = null;
             updateWindowShadow();
         }
@@ -2357,7 +2402,7 @@ public class DockWindow extends javax.swing.JWindow
             }
             
             mChild = newChild;
-            mChild.mParent = this;
+            mChild.setParent(this);
             //tufts.macosx.Screen.addChildWindow(getTopParent(), mChild);
             if (updateChildren) {
                 
@@ -2382,6 +2427,12 @@ public class DockWindow extends javax.swing.JWindow
         }
 
         updateWindowShadow();
+    }
+
+    private void setParent(DockWindow parent) {
+        mParent = parent;
+        //mContentPane.setCloseButtonVisible(parent == null || !parent.getStackTop().isStackOwner);
+        mContentPane.setCloseButtonVisible(!isStacked() || isStackTop());
     }
 
 
@@ -2527,9 +2578,10 @@ public class DockWindow extends javax.swing.JWindow
         
         if (mChild != null) {
             mChild.toFront();
-            //tufts.Util.invoke(mChild.getPeer(), "toFront");
             mChild._raiseChildren();
         }
+        
+        GUI.invokeAfterAWT(new Runnable() { public void run() { updateWindowShadow(); }});
 
         StackDepth--;
     }
@@ -2698,6 +2750,11 @@ public class DockWindow extends javax.swing.JWindow
             //mContent.setBackground(Color.green);
             mContent.setOpaque(false);
 
+        }
+
+        void setCloseButtonVisible(boolean visible) {
+            if (mTitle != null)
+                mTitle.setCloseButtonVisible(visible);
         }
 
         private void changeAll(JComponent root) {
@@ -2958,14 +3015,18 @@ public class DockWindow extends javax.swing.JWindow
 
     // TODO: allow for info in the title panel: e.g., Panner shows zoom or
     // Font shows current selected font v.s. the font we'll "apply"???
-    
+
     private class TitlePanel extends javax.swing.Box {
         
         private CloseButton mCloseButton;
         private GradientPaint mGradient;
         private JLabel mLabel;
+        private JLabel mOpenLabel; // for open/close icon
         private boolean isVertical = false;
-            
+
+        private final Icon DownArrow = GUI.getIcon("DockDownArrow.gif");
+        private final Icon RightArrow = GUI.getIcon("DockRightArrow.gif");
+        
         TitlePanel(String title)
         {
             super(BoxLayout.X_AXIS);
@@ -2990,6 +3051,8 @@ public class DockWindow extends javax.swing.JWindow
              mLabel.setForeground(SystemColor.activeCaptionText);
 
              mCloseButton = new CloseButton(DockWindow.this);
+
+             mOpenLabel = new JLabel(DownArrow);
              
              // All close icons at left for now as need
              // to leave room for the menu thingie at right
@@ -2998,7 +3061,8 @@ public class DockWindow extends javax.swing.JWindow
                  // close button at left
                  add(Box.createHorizontalStrut(6));
                  add(mCloseButton);
-                 add(Box.createHorizontalStrut(12));
+                 //add(Box.createHorizontalStrut(12));
+                 add(mOpenLabel);
                  add(mLabel);
              } else {
                  // close button at right
@@ -3018,6 +3082,14 @@ public class DockWindow extends javax.swing.JWindow
              
              if (isMac)
                  installGradient(false);
+        }
+
+        void showAsOpen(boolean open) {
+            mOpenLabel.setIcon(open ? DownArrow : RightArrow);
+        }
+
+        void setCloseButtonVisible(boolean visible) {
+            mCloseButton.setHidden(!visible);
         }
 
         void setMenuActions(Action[] actions) {
@@ -3130,6 +3202,8 @@ public class DockWindow extends javax.swing.JWindow
             
         private final Icon iconClose;
         private final Icon iconBlank;
+
+        private boolean visible = true;
         /*
         static final Icon iconClose = VueResources.getIcon("macSmallWindowCloseIcon");
         static final Icon iconBlank = isDarkTitleBar ?
@@ -3167,6 +3241,16 @@ public class DockWindow extends javax.swing.JWindow
                     }
                 });
 
+        }
+
+        public void paint(Graphics g) {
+            if (visible)
+                super.paint(g);
+        }
+
+        public void setHidden(boolean hidden) {
+            this.visible = !hidden;
+            setEnabled(this.visible);
         }
 
         private void setRollover(boolean lit) {
