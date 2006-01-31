@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.80 $ / $Date: 2006-01-30 05:56:12 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.80 2006-01-30 05:56:12 sfraize Exp $ -->
+<!-- $Revision: 1.81 $ / $Date: 2006-01-31 18:07:30 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.81 2006-01-31 18:07:30 jeff Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -122,6 +122,7 @@
        sub-libraries will get the latest version (as when jar'd togeter, first found is what's used).  SMF 8/29/05  -->
   <property name="thirdparty.jarfiles.names"
             value="
+                   okiOSID-2.0a.jar
                    aclibico-1.0.jar
                    xercesImpl-2.7.1.jar
                    xerces-2.7.1-xml-apis.jar
@@ -179,13 +180,12 @@
                    jxtaid.jar
                    jxtasecurity.jar
                    log4j-1.2.12.jar
-                   logging.jar
+                   OsidLoggingPlain-1.0.jar
                    MITRepositoryTypes.jar
                    MITSearchTypes.jar
                    MRJAdapter.jar
                    okiSID_rc6_1.jar
                    okiSIDimpl.jar
-                   okiOSID-2.0.jar
                    saxon6.5.jar
                    servlet.jar
                    smete.jar
@@ -238,6 +238,7 @@
        -->
   <property name="thirdparty.jarfiles.names.minimal"
             value="
+                   okiOSID-2.0a.jar
                    apache-commons.jar
                    axis.jar
                    batik-awt-util.jar
@@ -256,7 +257,6 @@
                    jaxrpc.jar
                    MRJAdapter.jar
                    okiSID_rc6_1.jar
-                   okiOSID-2.0.jar
                    saaj.jar
                    xercesImpl-2.7.1.jar
                    xerces-2.7.1-xml-apis.jar
@@ -296,7 +296,7 @@
     <pathelement path="${lib.home}/MRJAdapter.jar"/>
     <pathelement path="${lib.home}/apple-laf.jar"/>
 
-    <pathelement path="${lib.home}/okiOSID-2.0.jar" />	
+    <pathelement path="${lib.home}/okiOSID-2.0a.jar" />	
     <pathelement path="${lib.home}/okiSID.jar" />	
     <pathelement path="${lib.home}/okiSIDImpl.jar" />	
     <pathelement path="${lib.home}/MITSearchTypes.jar" />
@@ -363,7 +363,7 @@
   <path id="compile.classpath.oki">
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
-    <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
+    <pathelement path="${lib.home}/okiOSID-2.0a.jar"/>
     <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
     <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
     <pathelement path="${lib.home}/apache-commons.jar"/>
@@ -372,7 +372,7 @@
 
   <path id="compile.classpath.oki2">
     <path refid="compile.classpath.common"/>
-    <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
+    <pathelement path="${lib.home}/okiOSID-2.0a.jar"/>
     <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
     <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
     <pathelement path="${lib.home}/apache-commons.jar"/>
@@ -382,7 +382,7 @@
   <path id="compile.classpath.oki1and2">
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
-    <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
+    <pathelement path="${lib.home}/okiOSID-2.0a.jar"/>
     <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
     <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
     <pathelement path="${lib.home}/apache-commons.jar"/>
@@ -392,7 +392,7 @@
   <path id="compile.classpath.vue">
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
-    <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
+    <pathelement path="${lib.home}/okiOSID-2.0a.jar"/>
     <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
     <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
     <pathelement path="${lib.home}/apache-commons.jar"/>
