@@ -54,12 +54,14 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.11 $ / $Date: 2006-01-31 22:18:51 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2006-02-01 01:35:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 public class DockWindow extends javax.swing.JWindow
-    implements MouseListener, MouseMotionListener, FocusManager.MouseInterceptor
+    implements MouseListener
+               , MouseMotionListener
+               , FocusManager.MouseInterceptor
 {
     final static java.util.List sAllWindows = new java.util.ArrayList();
 
@@ -138,7 +140,7 @@ public class DockWindow extends javax.swing.JWindow
     private static boolean isDarkTitleBar;
 
     // This override trick only works on MacOSX Java 1.5
-    private static final boolean OverrideMacAquaBrushedMetal = true;
+    private static final boolean OverrideMacAquaBrushedMetal = false;
 
     private static boolean SidewaysRollup = false; // experimental
 
@@ -515,7 +517,7 @@ public class DockWindow extends javax.swing.JWindow
 
     public void addNotify()
     {
-        if (isMac && OverrideMacAquaBrushedMetal) {
+        if (OverrideMacAquaBrushedMetal && GUI.isMacBrushedMetal()) {
 
             // This trick only works on MacOSX Java 1.5:
             
@@ -1954,7 +1956,6 @@ public class DockWindow extends javax.swing.JWindow
         // It's okay to do this in java 1.4, as we can't be alwaysOnTop, which
         // is why this is a problem.
         
-        if (false) // turned off for now
         if (!GUI.UseAlwaysOnTop || !isMac)
             makeOnTop();
                 
@@ -1968,6 +1969,7 @@ public class DockWindow extends javax.swing.JWindow
     }
 
     public void toFront() {
+        //tufts.Util.printClassTrace(DockWindow.class, "RAISING");
         if (DEBUG.DOCK) out("raising");
         super.toFront();
     }
@@ -2437,6 +2439,21 @@ public class DockWindow extends javax.swing.JWindow
     }
 
     private void setParent(DockWindow parent) {
+        if (mParent == parent)
+            return;
+        
+        /*
+          // This doesn't help window shadow at all...
+        if (isMac) {
+            if (mParent != null)
+                MacOSX.removeChildWindow(mParent, this);
+            if (parent != null) {
+                MacOSX.addChildWindow(parent, this);
+                MacOSX.orderAbove(parent, this);
+            }
+        }
+        */
+        
         mParent = parent;
         //mContentPane.setCloseButtonVisible(parent == null || !parent.getStackTop().isStackOwner);
         mContentPane.setCloseButtonVisible(!isStacked() || isStackTop());
@@ -2648,11 +2665,13 @@ public class DockWindow extends javax.swing.JWindow
             mChild.attachChildrenForMoving(topOfWindowStack);
         }
     }
-    private void detachChildrenForMoving(DockWindow topOfWindowStack) {
+    private void detachChildrenForMoving(final DockWindow topOfWindowStack) {
         if (isMac && mChild != null) {
-            MacOSX.removeChildWindow(topOfWindowStack, mChild);
+            //GUI.invokeAfterAWT(new Runnable() { public void run() {
+                MacOSX.removeChildWindow(topOfWindowStack, mChild);
+                mChild.toFront(); // keep on top of shadow
+                //}});
             
-            mChild.toFront(); // keep on top of shadow
             
             mChild.detachChildrenForMoving(topOfWindowStack);
 
@@ -2674,7 +2693,7 @@ public class DockWindow extends javax.swing.JWindow
             // if we do damn orderAbove...
 
 
-            if (mChild.mChild == null) {
+            if (false && mChild.mChild == null) {
                 // workaround for above bug: be sure to raise *this* window,
                 // then our child: apparently the parent is stepping entirely
                 // out of the order somehow?  W/out our toFront first, the
@@ -3498,8 +3517,8 @@ public class DockWindow extends javax.swing.JWindow
 
         //owner = null;
 
-        DockWindow win1 = new DockWindow("Dock 1", owner, null, true);
-        win1.add(new FontPropertyPanel());
+        DockWindow win1 = new DockWindow("Dock 1", owner, null, false);
+        //win1.add(new FontPropertyPanel());
         //win1.setLocationRelativeTo(null); // center's on screen
         win1.setVisible(true);
         
@@ -3509,7 +3528,7 @@ public class DockWindow extends javax.swing.JWindow
         win2.setFocusableWindowState(true);
         win2.setVisible(true);
                 
-        if (false) {
+        if (true) {
 
             DockWindow win3 = new DockWindow("Dock 3", owner);
             DockWindow win4 = new DockWindow("Dock 4", owner);
