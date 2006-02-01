@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.326 $ / $Date: 2006-02-01 00:17:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.327 $ / $Date: 2006-02-01 00:39:56 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -244,15 +244,7 @@ public class VUE
     
     static void initUI() {
         GUI.init(forceWindowsLookAndFeel);
-    }
-
-    /** initialize based on command line args, and the initlaize the GUI */
-    public static void init(String[] args) {
-        if (args != null)
-            parseArgs(args);
-
-        initUI();
-
+        
         try {
             if (DEBUG.Enabled && Util.isMacPlatform()) {
                 // This is for debugging.  The application icon for a distributed version
@@ -266,6 +258,14 @@ public class VUE
             t.printStackTrace();
         }
         
+    }
+
+    /** initialize based on command line args, and the initlaize the GUI */
+    public static void init(String[] args) {
+        if (args != null)
+            parseArgs(args);
+
+        initUI();
     }
 
     public static void init() {
@@ -340,11 +340,10 @@ public class VUE
         try {
 
             initUI();
-
             initApplication(args);
             
         } catch (Throwable t) {
-            Util.printStackTrace(t, "VUE initApplication failed");
+            Util.printStackTrace(t, "VUE init failed");
         }
 
         VUE.isStartupUnderway = false;
