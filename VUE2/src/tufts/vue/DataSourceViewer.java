@@ -71,7 +71,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     private final static URL XML_MAPPING_DEFAULT = VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
     
     JPopupMenu popup;
-    AddLibraryDialog addLibraryDialog;
+    
+	AddLibraryDialog addLibraryDialog;
+    LibraryUpdateDialog libraryUpdateDialog;
+
     AbstractAction checkForUpdatesAction;
     AbstractAction addLibraryAction;
     AbstractAction editLibraryAction;
@@ -151,7 +154,11 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
         optionButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+				popup.setLocation(optionButton.getLocation().x+70,
+								  optionButton.getLocation().y+70);
                 popup.setVisible(true);
+				popup.repaint();
+				popup.validate();
             }
         });
                
@@ -302,11 +309,14 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     
     public void  setPopup() {
         popup = new JPopupMenu();
-        popup.setLocation(new Point(optionButton.getLocation().x,
-									optionButton.getLocation().y));
-        
         checkForUpdatesAction = new AbstractAction("Check For Updates") {
             public void actionPerformed(ActionEvent e) {
+                if (libraryUpdateDialog == null) {
+					libraryUpdateDialog = new LibraryUpdateDialog();
+				} else {
+					libraryUpdateDialog.update(LibraryUpdateDialog.CHECK);
+				}
+                DataSourceViewer.this.popup.setVisible(false);
             }
         };
         addLibraryAction = new AbstractAction("Add Library") {
