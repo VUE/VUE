@@ -1068,7 +1068,9 @@ public class Util
     public static void printClassTrace(String prefix) {
         printClassTrace(prefix, "*** STACK TRACE ***");
     }
-    
+    public static void printClassTrace(Class clazz, String message) {
+        printClassTrace(clazz.getName(), message);
+    }
 
     public static void printStackTrace() {
         printClassTrace(NO_CLASS_FILTER);
@@ -1085,6 +1087,7 @@ public class Util
     public static void printStackTrace(String message) {
         printClassTrace(new Throwable(message), NO_CLASS_FILTER);
     }
+    
 
     public static String tag(Object o) {
         if (o == null)
