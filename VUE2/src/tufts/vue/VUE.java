@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.325 $ / $Date: 2006-01-30 22:37:13 $ / $Author: sfraize $ 
+ * @version $Revision: 1.326 $ / $Date: 2006-02-01 00:17:58 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -250,7 +250,22 @@ public class VUE
     public static void init(String[] args) {
         if (args != null)
             parseArgs(args);
+
         initUI();
+
+        try {
+            if (DEBUG.Enabled && Util.isMacPlatform()) {
+                // This is for debugging.  The application icon for a distributed version
+                // of VUE is set via an icons file specified in the Info.plist from
+                // the VUE.app directory.
+                // Be sure to call this after GUI initialized, or we are hidden from the OSX app dock.
+                tufts.macosx.MacOSX.setApplicationIcon
+                    (VUE.class.getResource("/tufts/vue/images/vueicon32x32.gif").getFile());
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        
     }
 
     public static void init() {
@@ -326,15 +341,6 @@ public class VUE
 
             initUI();
 
-            if (DEBUG.Enabled && Util.isMacPlatform()) {
-                // This is for debugging.  The application icon for a distributed version
-                // of VUE is set via an icons file specified in the Info.plist from
-                // the VUE.app directory.
-                // Be sure to call this after GUI initialized, or we are hidden from the OSX app dock.
-                tufts.macosx.MacOSX.setApplicationIcon
-                    (VUE.class.getResource("/tufts/vue/images/vueicon32x32.gif").getFile());
-            }
-            
             initApplication(args);
             
         } catch (Throwable t) {
