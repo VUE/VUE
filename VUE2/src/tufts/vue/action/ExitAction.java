@@ -70,7 +70,7 @@ public class ExitAction extends VueAction {
         try {
             VUE.getRootWindow().setVisible(false);
             System.out.println("Saving user preferences...");
-            saveDataSourceInfo();
+            //saveDataSourceInfo();
             System.out.println("Saved user preferences.");
         } catch (Throwable t) {
             java.awt.Toolkit.getDefaultToolkit().beep();
