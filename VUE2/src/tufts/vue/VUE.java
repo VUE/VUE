@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.327 $ / $Date: 2006-02-01 00:39:56 $ / $Author: sfraize $ 
+ * @version $Revision: 1.328 $ / $Date: 2006-02-02 21:52:10 $ / $Author: jeff $ 
  */
 
 public class VUE
@@ -646,12 +646,12 @@ public class VUE
 								   savedResourcesDock);
         DockWindow drBrowserDock = GUI.createDockWindow("Data Sources", DR_BROWSER);
 		
-                drBrowserDock.setStackOwner(true);
+		drBrowserDock.setStackOwner(true);
 		drBrowserDock.addChild(searchDock);
 		drBrowserDock.addChild(browseDock);
 		drBrowserDock.addChild(savedResourcesDock);
 		
-		searchDock.add(searchPanel);
+		//searchDock.add(searchPanel);
 		searchDock.setRolledUp(true);
 
 		browseDock.add(browsePanel);

@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.27 $ / $Date: 2006-01-30 02:25:23 $ / $Author: jeff $ 
+ * @version $Revision: 1.28 $ / $Date: 2006-02-02 21:52:10 $ / $Author: jeff $ 
  * @author Ranjani Saigal
  */
 
@@ -118,20 +118,32 @@ public class DataSourceList extends JList implements DropTargetListener{
 						panel.setBackground(VueResources.getColor("FFFFFF"));								
 					}
 						
-					checkBox.setSelected( ((DataSource)value).isIncludedInSearch() );
-					panel.add(checkBox);
+					if (value instanceof tufts.vue.DataSource) {
+						checkBox.setSelected( ((DataSource)value).isIncludedInSearch() );
+						panel.add(checkBox);
 						
-					if (value instanceof FavoritesDataSource) {
-						panel.add(new JLabel(myComputerIcon));
-						checkBox.setEnabled(true);
-					} else if (value instanceof LocalFileDataSource) {
-						panel.add(new JLabel(myFavoritesIcon));
-						checkBox.setEnabled(false);
+						if (value instanceof FavoritesDataSource) {
+							panel.add(new JLabel(myComputerIcon));
+							checkBox.setEnabled(false);
+						} else if (value instanceof LocalFileDataSource) {
+							panel.add(new JLabel(myFavoritesIcon));
+							checkBox.setEnabled(false);
+						} else {
+							panel.add(new JLabel(remoteIcon));
+							checkBox.setEnabled(true);
+						}
+						panel.add(new JLabel(((DataSource)value).getDisplayName()));
 					} else {
-						panel.add(new JLabel(remoteIcon));
-						checkBox.setEnabled(true);
+						try {
+							checkBox.setSelected( ((edu.tufts.vue.dsm.DataSource)value).isIncludedInSearch() );
+							panel.add(checkBox);
+							panel.add(new JLabel(remoteIcon));
+							checkBox.setEnabled(true);
+							panel.add(new JLabel(((edu.tufts.vue.dsm.DataSource)value).getRepository().getDisplayName()));
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
 					}
-					panel.add(new JLabel(((DataSource)value).getDisplayName()));
 					return panel;
 				}                
             }

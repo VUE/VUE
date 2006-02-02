@@ -29,7 +29,7 @@ import java.awt.event.*;
 
 /**
  *
- * @version $Revision: 1.16 $ / $Date: 2006-01-28 23:38:39 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2006-02-02 21:52:10 $ / $Author: jeff $
  * @author  akumar03
  *
  */
@@ -47,8 +47,8 @@ public class EditDataSourcePanel extends JPanel{
         setLayout(new BorderLayout());
         if (DEBUG.DR) System.out.println("EditDataSourcePanel: setBorder");
         setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-        if (DEBUG.DR) System.out.println("EditDataSourcePanel: setDataSource");
-        setDataSource(DataSourceViewer.getActiveDataSource());
+//        if (DEBUG.DR) System.out.println("EditDataSourcePanel: setDataSource");
+//        setDataSource(DataSourceViewer.getActiveDataSource());
         if (DEBUG.DR) System.out.println("EditDataSourcePanel: save data sources?????");
         DataSourceViewer.saveDataSourceViewer();
     }
