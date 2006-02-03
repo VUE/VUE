@@ -21,23 +21,87 @@ package edu.tufts.vue.ui;
 public class DefaultQueryEditor
 extends javax.swing.JPanel
 implements edu.tufts.vue.fsm.QueryEditor,
-		   java.awt.event.ActionListener
+java.awt.event.ActionListener
 {
+	private edu.tufts.vue.fsm.FederatedSearchManager fsm = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
+	private edu.tufts.vue.fsm.SourcesAndTypesManager sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
+	
+	private java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
+	private java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
+	
 	private javax.swing.JTextField field = new javax.swing.JTextField(20);
 	private java.io.Serializable criteria = null;
 	private org.osid.shared.Properties searchProperties = null;
 	
+	protected javax.swing.event.EventListenerList listenerList = new javax.swing.event.EventListenerList();
+	
+	private javax.swing.JButton searchButton = new javax.swing.JButton("Search");
+	
 	public DefaultQueryEditor() {
-		add(new javax.swing.JLabel("Query: "));
-		add(field);
 		try {
+			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+			gbConstraints.insets = new java.awt.Insets(2,2,2,2);
+			setLayout(gbLayout);
+			
+			gbConstraints.gridx = 0;
+			gbConstraints.gridy = 0;
+			add(new javax.swing.JLabel("Search:"),gbConstraints);
+			
+			// build list of repositories that are going to be searched
+			StringBuffer sBuffer = new StringBuffer();
+			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
+			for (int i=0; i < repositories.length; i++) {
+				org.osid.repository.Repository repository = repositories[i];
+				if (i > 0) {
+					sBuffer.append(", ");
+				}
+				sBuffer.append(repository.getDisplayName());
+			}
+			gbConstraints.gridx = 1;
+			gbConstraints.gridy = 0;
+			add(new javax.swing.JLabel(sBuffer.toString()),gbConstraints);
+			
+			gbConstraints.gridx = 0;
+			gbConstraints.gridy = 1;
+			add(new javax.swing.JLabel("Keywords: "),gbConstraints);
+			gbConstraints.gridx = 1;
+			gbConstraints.gridy = 1;
+			add(field,gbConstraints);
+			
+			gbConstraints.gridx = 0;
+			gbConstraints.gridy = 2;
+			add(searchButton,gbConstraints);
+			searchButton.addActionListener(this);
+			
 			searchProperties = new edu.tufts.vue.util.SharedProperties();		
 		} catch (Throwable t) {
 		}
 	}
 	
-	public void actionPerformed(java.awt.event.ActionEvent ae) {
+	public void actionPerformed(java.awt.event.ActionEvent ae)
+	{
 		this.criteria = field.getText();
+		fireSearch(new edu.tufts.vue.fsm.event.SearchEvent(this));
+	}
+	
+	public void addSearchListener(edu.tufts.vue.fsm.event.SearchListener listener)
+	{
+		listenerList.add(edu.tufts.vue.fsm.event.SearchListener.class, listener);
+	}
+    
+	public void removeSearchListener(edu.tufts.vue.fsm.event.SearchListener listener)
+	{
+		listenerList.remove(edu.tufts.vue.fsm.event.SearchListener.class, listener);
+	}
+    
+	private void fireSearch(edu.tufts.vue.fsm.event.SearchEvent evt) 
+	{
+		Object[] listeners = listenerList.getListenerList();
+		for (int i=0; i<listeners.length; i+=2) {
+			if (listeners[i] == edu.tufts.vue.fsm.event.SearchListener.class) {
+				((edu.tufts.vue.fsm.event.SearchListener)listeners[i+1]).searchPerformed(evt);
+			}
+		}
 	}
 	
 	public java.io.Serializable getCriteria() {

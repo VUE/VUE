@@ -23,7 +23,7 @@ import fedora.server.types.gen.*;
 public class AdvancedQueryEditor
 extends javax.swing.JPanel
 implements edu.tufts.vue.fsm.QueryEditor,
-		   java.awt.event.ActionListener
+java.awt.event.ActionListener
 {
 	private javax.swing.JTextField partField = new javax.swing.JTextField(12);
 	private javax.swing.JTextField valueField = new javax.swing.JTextField(20);
@@ -36,6 +36,7 @@ implements edu.tufts.vue.fsm.QueryEditor,
     private javax.swing.CellEditor defaultCellEditor;
 	private javax.swing.JComboBox maxReturnsAdvancedSearch;  // combobox for advanced search.
     private String[] maxReturnItems = {"10","20",};
+	protected javax.swing.event.EventListenerList listenerList = new javax.swing.event.EventListenerList();
 	
 	public AdvancedQueryEditor()
 	{
@@ -45,7 +46,7 @@ implements edu.tufts.vue.fsm.QueryEditor,
 			maxReturnsAdvancedSearch.setEditable(true);
 		} catch (Throwable t) {
 		}
-
+		
         conditionsTable.setPreferredScrollableViewportSize(new java.awt.Dimension(100,100));
         conditionsTable.addFocusListener(new java.awt.event.FocusListener() {
             public void focusLost(java.awt.event.FocusEvent e) {
@@ -72,9 +73,9 @@ implements edu.tufts.vue.fsm.QueryEditor,
         javax.swing.JButton deleteConditionButton=new javax.swing.JButton("delete");
         deleteConditionButton.setBackground(this.getBackground());
         deleteConditionButton.setToolTipText("Delete Condition");
-//        javax.swing.JLabel questionLabel = new javax.swing.JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
-//        questionLabel.setPreferredSize(new Dimension(22, 17));
-//        questionLabel.setToolTipText("Add or Delete conditions using +/- buttons. Click on table cell to modify  conditions");
+		//        javax.swing.JLabel questionLabel = new javax.swing.JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
+		//        questionLabel.setPreferredSize(new Dimension(22, 17));
+		//        questionLabel.setToolTipText("Add or Delete conditions using +/- buttons. Click on table cell to modify  conditions");
         
         // Now that buttons are available, register the
         // list selection listener that sets their enabled state.
@@ -111,16 +112,16 @@ implements edu.tufts.vue.fsm.QueryEditor,
         topPanel.add(addConditionButton);
         topPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(3,6,3,0));
         topPanel.add(deleteConditionButton);
-//        topPanel.add(questionLabel);
+		//        topPanel.add(questionLabel);
         
         javax.swing.JPanel returnPanel = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT,2, 0));
         returnPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(4,6,6,0));
-  //      returnPanel.add(returnLabelAdvancedSearch);
+		//      returnPanel.add(returnLabelAdvancedSearch);
         returnPanel.add(maxReturnsAdvancedSearch);
         
-//        javax.swing.JPanel bottomPanel=new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT,2,0));
-//        bottomPanel.add(advancedSearchButton);
-//        bottomPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(6,6,6,0));
+		//        javax.swing.JPanel bottomPanel=new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT,2,0));
+		//        bottomPanel.add(advancedSearchButton);
+		//        bottomPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(6,6,6,0));
         
         javax.swing.JPanel advancedSearchPanel=new javax.swing.JPanel();
         advancedSearchPanel.setLayout(new javax.swing.BoxLayout(advancedSearchPanel, javax.swing.BoxLayout.Y_AXIS));
@@ -129,7 +130,7 @@ implements edu.tufts.vue.fsm.QueryEditor,
         advancedSearchPanel.add(topPanel);
         advancedSearchPanel.add(innerConditionsPanel);
         advancedSearchPanel.add(returnPanel);
-//        advancedSearchPanel.add(bottomPanel);
+		//        advancedSearchPanel.add(bottomPanel);
         
         add(advancedSearchPanel,java.awt.BorderLayout.NORTH);
         validate();
@@ -174,8 +175,28 @@ implements edu.tufts.vue.fsm.QueryEditor,
 	public void setProperties(org.osid.shared.Properties searchProperties) {
 		this.searchProperties = searchProperties;
 	}
-
-    public class ConditionsTableModel extends javax.swing.table.AbstractTableModel {
+	
+	public void addSearchListener(edu.tufts.vue.fsm.event.SearchListener listener)
+	{
+		listenerList.add(edu.tufts.vue.fsm.event.SearchListener.class, listener);
+	}
+    
+	public void removeSearchListener(edu.tufts.vue.fsm.event.SearchListener listener)
+	{
+		listenerList.remove(edu.tufts.vue.fsm.event.SearchListener.class, listener);
+	}
+    
+	private void fireSearch(edu.tufts.vue.fsm.event.SearchEvent evt) 
+	{
+		Object[] listeners = listenerList.getListenerList();
+		for (int i=0; i<listeners.length; i+=2) {
+			if (listeners[i] == edu.tufts.vue.fsm.event.SearchListener.class) {
+				((edu.tufts.vue.fsm.event.SearchListener)listeners[i+1]).searchPerformed(evt);
+			}
+		}
+	}
+	
+	public class ConditionsTableModel extends javax.swing.table.AbstractTableModel {
         
         java.util.List m_conditions;
         
@@ -349,21 +370,21 @@ implements edu.tufts.vue.fsm.QueryEditor,
     
     public class DeleteConditionButtonListener
 		implements java.awt.event.ActionListener {
-        
+			
 			private ConditionsTableModel m_model;
-        private ConditionSelectionListener m_sListener;
-        
-        public DeleteConditionButtonListener(ConditionsTableModel model,
-											 ConditionSelectionListener sListener) {
-            m_model=model;
-            m_sListener=sListener;
-        }
-        
-        public void actionPerformed(java.awt.event.ActionEvent e) {
-            // will only be invoked if an existing row is selected
-            int r=m_sListener.getSelectedRow();
-            m_model.getConditions().remove(r);
-            m_model.fireTableRowsDeleted(r,r);
-        }
-    }
+			private ConditionSelectionListener m_sListener;
+			
+			public DeleteConditionButtonListener(ConditionsTableModel model,
+												 ConditionSelectionListener sListener) {
+				m_model=model;
+				m_sListener=sListener;
+			}
+			
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				// will only be invoked if an existing row is selected
+				int r=m_sListener.getSelectedRow();
+				m_model.getConditions().remove(r);
+				m_model.fireTableRowsDeleted(r,r);
+			}
+		}
 }
