@@ -69,15 +69,17 @@ public class ExitAction extends VueAction {
         
         try {
             VUE.getRootWindow().setVisible(false);
-            System.out.println("Saving user preferences...");
-            //saveDataSourceInfo();
-            System.out.println("Saved user preferences.");
+            if (false) {
+                System.out.println("Saving user preferences...");
+                saveDataSourceInfo();
+                System.out.println("Saved user preferences.");
+            }
         } catch (Throwable t) {
             java.awt.Toolkit.getDefaultToolkit().beep();
-            System.err.println("Error exiting view: " + t);
+            VUE.Log.error("exception exiting view: " + t);
             t.printStackTrace();
         } finally {
-            System.out.println("Exiting VUE.");
+            VUE.Log.info("Exiting VUE.");
             System.exit(0);
         }
     }
