@@ -24,9 +24,9 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.2 $ / $Date: 2006-01-31 18:08:43 $ / $Author: jeff $
+ * @version $Revision: 1.3 $ / $Date: 2006-02-04 01:49:20 $ / $Author: peter $
  * @author  akumar03
- */
+  */
 import javax.swing.*;
 import java.awt.event.*;
 import javax.swing.event.*;
@@ -45,12 +45,12 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener {
 	edu.tufts.vue.dsm.Registry registry;
 	org.osid.registry.Provider checked[];
 	JPanel buttonPanel = new JPanel();
-	JButton cancelButton = new JButton("Canel");
+	JButton cancelButton = new JButton("Cancel");
 	JButton addButton = new JButton("Add");
     
     public AddLibraryDialog()
 	{
-        super(VUE.getDialogParentAsFrame(),"ADD A LIBRARY",true);
+        super(VUE.getDialogParentAsFrame(),"Add a Library",true);
 		try {
 			addLibraryList = new JList(listModel);
 			addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
