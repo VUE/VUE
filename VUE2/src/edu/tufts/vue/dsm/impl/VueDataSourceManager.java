@@ -71,7 +71,7 @@ implements edu.tufts.vue.dsm.DataSourceManager
 
 	public void refresh() {
 		try {
-			java.io.InputStream istream = new java.io.FileInputStream(xmlFilename);
+			java.io.InputStream istream = new java.io.FileInputStream(this.xmlFilename);
             if (istream == null) {
 				// assume there are no data sources saved
 				System.out.println("no file " + xmlFilename);
