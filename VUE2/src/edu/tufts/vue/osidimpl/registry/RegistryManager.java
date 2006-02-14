@@ -27,11 +27,8 @@ package edu.tufts.vue.osidimpl.registry;
 public class RegistryManager
 implements org.osid.registry.RegistryManager
 {
-	private static final String REGISTRY_XML_FILENAME = "OSIDProviderRegistry.xml";
-	private static final String ID_MANAGER_IMPLEMENTATION = "comet.osidimpl.id.no_persist";
+	private static String xmlFilename = null;
 	private static final String FILE_NOT_FOUND_MESSAGE = "Cannot find or open ";
-	
-	private static final String ID_OSID = "org.osid.id.IdManager";
 	
 	private static final String REGISTRY_TAG = "registry";
 	private static final String PROVIDER_RECORD_TAG = "record";
@@ -107,11 +104,9 @@ implements org.osid.registry.RegistryManager
         this.configuration = configuration;
 		try {
 			if (this.idManager == null) {
-				this.idManager = (org.osid.id.IdManager)org.osid.OsidLoader.getManager(ID_OSID,
-																					   ID_MANAGER_IMPLEMENTATION,
-																					   emptyContext,
-																					   managerProperties);
-				
+				this.idManager = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance();
+				java.io.File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
+				this.xmlFilename = userFolder.getAbsolutePath() + "/OSIDProviderRegistry.xml";				
 			}
 		} catch (Throwable t) {
 			edu.tufts.vue.util.Logger.log(t);
@@ -126,9 +121,9 @@ implements org.osid.registry.RegistryManager
 	{
 		java.util.Vector result = new java.util.Vector();
 		try {
-			java.io.InputStream istream = getClass().getClassLoader().getResourceAsStream(REGISTRY_XML_FILENAME);
+			java.io.InputStream istream = new java.io.FileInputStream(this.xmlFilename);
             if (istream == null) {
-				edu.tufts.vue.util.Logger.log(FILE_NOT_FOUND_MESSAGE + REGISTRY_XML_FILENAME);
+				edu.tufts.vue.util.Logger.log(FILE_NOT_FOUND_MESSAGE + this.xmlFilename);
 				throw new org.osid.registry.RegistryException(org.osid.OsidException.CONFIGURATION_ERROR);
             }
 			
@@ -614,9 +609,9 @@ implements org.osid.registry.RegistryManager
         try {
 			String now = null;
 
-			java.io.InputStream istream = getClass().getClassLoader().getResourceAsStream(REGISTRY_XML_FILENAME);
+			java.io.InputStream istream = new java.io.FileInputStream(this.xmlFilename);;
             if (istream == null) {
-				edu.tufts.vue.util.Logger.log(FILE_NOT_FOUND_MESSAGE + REGISTRY_XML_FILENAME);
+				edu.tufts.vue.util.Logger.log(FILE_NOT_FOUND_MESSAGE + this.xmlFilename);
 				throw new org.osid.registry.RegistryException(org.osid.OsidException.CONFIGURATION_ERROR);
             }
 			
@@ -834,7 +829,7 @@ implements org.osid.registry.RegistryManager
 			transformer.setOutputProperties(properties);
 			javax.xml.transform.dom.DOMSource domSource = new javax.xml.transform.dom.DOMSource(document);
 			javax.xml.transform.stream.StreamResult result = 
-				new javax.xml.transform.stream.StreamResult (REGISTRY_XML_FILENAME);
+				new javax.xml.transform.stream.StreamResult (this.xmlFilename);
 			transformer.transform(domSource,result);
 
 			return new Provider(this,
@@ -885,9 +880,11 @@ implements org.osid.registry.RegistryManager
 			throw new org.osid.registry.RegistryException(org.osid.shared.SharedException.NULL_ARGUMENT);
 		}
 
-		java.io.InputStream istream = getClass().getClassLoader().getResourceAsStream(REGISTRY_XML_FILENAME);
-		if (istream == null) {
-			edu.tufts.vue.util.Logger.log(FILE_NOT_FOUND_MESSAGE + REGISTRY_XML_FILENAME);
+		java.io.InputStream istream;
+		try {
+			istream = new java.io.FileInputStream(this.xmlFilename);
+		} catch (Exception ex) {
+			edu.tufts.vue.util.Logger.log(FILE_NOT_FOUND_MESSAGE + this.xmlFilename);
 			throw new org.osid.registry.RegistryException(org.osid.OsidException.CONFIGURATION_ERROR);
 		}
 		
@@ -924,7 +921,7 @@ implements org.osid.registry.RegistryManager
 							transformer.setOutputProperties(properties);
 							javax.xml.transform.dom.DOMSource domSource = new javax.xml.transform.dom.DOMSource(document);
 							javax.xml.transform.stream.StreamResult result = 
-								new javax.xml.transform.stream.StreamResult (REGISTRY_XML_FILENAME);
+								new javax.xml.transform.stream.StreamResult (this.xmlFilename);
 							transformer.transform(domSource,result);
 							
 							return;
