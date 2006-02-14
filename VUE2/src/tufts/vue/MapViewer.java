@@ -60,7 +60,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.280 $ / $Date: 2006-02-14 01:33:05 $ / $Author: sfraize $ 
+ * @version $Revision: 1.281 $ / $Date: 2006-02-14 01:43:14 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1601,7 +1601,12 @@ public class MapViewer extends javax.swing.JComponent
         g.setColor(Color.lightGray);
         Font font = new Font("Verdana", Font.BOLD, 36);
         g.setFont(font);
-        String msg = "Empty Map";
+
+        final String msg;
+        if (this.map != null && this.map.isModified())
+            msg = "Empty Map";
+        else
+            msg = "New Map";
 
         int w = getWidth() / 2;
         w -= GUI.stringLength(font, msg) / 2;
