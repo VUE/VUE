@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.52 $ / $Date: 2006-01-29 00:13:58 $ / $Author: sfraize $  
+ * @version $Revision: 1.53 $ / $Date: 2006-02-14 01:33:05 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -809,7 +809,9 @@ class MapDropTarget
             try {
                 Object data = transfer.getTransferData(flavor);
                 System.out.println(" [" + data + "]");
-                //if (flavor.getHumanPresentableName().equals("text/uri-list")) readTextFlavor(flavor, transfer);
+                if (DEBUG.META)
+                    if (flavor.getHumanPresentableName().equals("text/uri-list"))
+                        readTextFlavor(flavor, transfer);
             } catch (Exception ex) {
                 System.out.println("\tEXCEPTION: getTransferData: " + ex);
             }
@@ -1086,7 +1088,6 @@ class MapDropTarget
     
     
 
-    /*
     private String readTextFlavor(DataFlavor flavor, Transferable transfer)
     {
         java.io.Reader reader = null;
@@ -1105,6 +1106,8 @@ class MapDropTarget
         }
         return value;
     }
+
+    /*
         
     private void XcreateNewNode(java.awt.Image image, Point2D where)
     {

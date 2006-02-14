@@ -60,7 +60,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.279 $ / $Date: 2006-01-28 23:09:05 $ / $Author: sfraize $ 
+ * @version $Revision: 1.280 $ / $Date: 2006-02-14 01:33:05 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2720,11 +2720,14 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     
-        private final DataFlavor LWFlavors[] = {
+    private final DataFlavor URLFlavor = GUI.makeDataFlavor(java.net.URL.class);
+    
+    private final DataFlavor LWFlavors[] = {
             LWComponent.DataFlavor,
             DataFlavor.stringFlavor,
             DataFlavor.imageFlavor,
             MapResource.DataFlavor,
+            //URLFlavor, // try text/uri-list
         };
         private class LWTransfer implements Transferable
         {
@@ -2762,7 +2765,6 @@ public class MapViewer extends javax.swing.JComponent
         
                 if (DataFlavor.stringFlavor.equals(flavor)) {
                     
-                    // this is experimental for now..
                     String s = null;
                     if (LWC.hasResource())
                         s = LWC.getResource().toString();
@@ -2796,6 +2798,10 @@ public class MapViewer extends javax.swing.JComponent
                 } else if (Resource.DataFlavor.equals(flavor)) {
 
                     data = LWC.getResource();
+
+                } else if (URLFlavor.equals(flavor) && LWC.getResource() instanceof MapResource) {
+
+                    data = ((MapResource)LWC.getResource()).asURL();
 
                 } else {
                     throw new UnsupportedFlavorException(flavor);
