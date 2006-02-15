@@ -30,7 +30,7 @@ import javax.swing.border.*;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.26 $ / $Date: 2006-01-28 23:14:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.27 $ / $Date: 2006-02-15 17:50:37 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -48,7 +48,7 @@ public class MapTabbedPane extends JTabbedPane
         setName("mapTabs-" + name);
         setFocusable(false);
         BgColor = GUI.getToolbarColor();
-        setTabPlacement(javax.swing.SwingConstants.BOTTOM);
+        setTabPlacement(javax.swing.SwingConstants.TOP);
         setPreferredSize(new Dimension(300,400));
     }
         
