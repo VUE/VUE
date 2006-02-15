@@ -32,10 +32,11 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.19 $ / $Date: 2006-01-20 20:21:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.20 $ / $Date: 2006-02-15 17:58:11 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
+    public static final boolean EnableSmallIconsForMenus = false;
     public static final String LARGE_ICON = "LargeIcon";
 
     private static List AllActionList = new ArrayList();
@@ -96,22 +97,27 @@ public class VueAction extends javax.swing.AbstractAction
     private void setIcon(String iconSpec) {
         Icon icon = null;
         if (iconSpec.startsWith(":")) {
-            icon = VueResources.getImageIconResource("/toolbarButtonGraphics/" + iconSpec.substring(1) + "16.gif");
-            setSmallIcon(icon);
+            if (EnableSmallIconsForMenus) {
+                icon = VueResources.getImageIconResource("/toolbarButtonGraphics/" + iconSpec.substring(1) + "16.gif");
+                setSmallIcon(icon);
+            }
             icon = VueResources.getImageIconResource("/toolbarButtonGraphics/" + iconSpec.substring(1) + "24.gif");
             putValue(LARGE_ICON, icon);
         } else {
-            icon = VueResources.getImageIconResource(iconSpec);
-            setSmallIcon(icon);
+            if (EnableSmallIconsForMenus) {
+                icon = VueResources.getImageIconResource(iconSpec);
+                setSmallIcon(icon);
+            }
         }
     }
 
     private void setSmallIcon(Icon icon) {
-        if (icon != null) {
-            if (icon != tufts.vue.gui.GUI.NO_ICON)
-                putValue(SMALL_ICON, icon);
-        }// else
-        //putValue(SMALL_ICON, EmptyIcon16);
+        if (EnableSmallIconsForMenus) {
+            if (icon != null) {
+                if (icon != tufts.vue.gui.GUI.NO_ICON)
+                    putValue(SMALL_ICON, icon);
+            }
+        }
     }
 
 
