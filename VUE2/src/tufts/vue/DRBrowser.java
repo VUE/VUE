@@ -26,7 +26,7 @@ import tufts.vue.gui.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.34 $ / $Date: 2006-01-30 02:25:33 $ / $Author: jeff $ 
+ * @version $Revision: 1.35 $ / $Date: 2006-02-15 17:45:51 $ / $Author: jeff $ 
  */
 public class DRBrowser extends JPanel {
     public static DataSourceViewer dsViewer = null;
@@ -41,7 +41,7 @@ public class DRBrowser extends JPanel {
 					 DockWindow browseDWindow,
 					 DockWindow savedResourcesDWindow)
     {
-        Dimension startSize = new Dimension(400,220);
+        Dimension startSize = new Dimension(400,240);
         // todo: move this size setting to VUE app init
         //Dimension startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
         //                                    tufts.vue.gui.DockWindow.getMaxContentHeight());

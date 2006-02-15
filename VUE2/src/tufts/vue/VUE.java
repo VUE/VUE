@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.328 $ / $Date: 2006-02-02 21:52:10 $ / $Author: jeff $ 
+ * @version $Revision: 1.329 $ / $Date: 2006-02-15 17:45:51 $ / $Author: jeff $ 
  */
 
 public class VUE
@@ -601,8 +601,9 @@ public class VUE
 											300);        
 		JPanel searchPanel = new JPanel();
 		searchPanel.setBackground(Color.white);
+		searchPanel.setLayout(new BorderLayout());
 		searchPanel.setPreferredSize(startSize);
-		searchPanel.add(new JLabel("searches"));
+		searchPanel.add(new JLabel("Please Select A Library"));
 		
         //-----------------------------------------------------------------------------
         // Local File Data Source in Browse Dock Window
@@ -621,14 +622,14 @@ public class VUE
 			comp.setVisible(true);
 			browsePanel.add(comp);
 		} catch (Exception ex) {
-			if (DEBUG.DR) System.out.println("Problem loading local file data source");
+			if (DEBUG.DR) System.out.println("Problem loading local file library");
 		}
 		
         //-----------------------------------------------------------------------------
         // Saved Resources Dock Window
         //-----------------------------------------------------------------------------
 		
-        savedResourcesDock = GUI.createDockWindow("SavedResources");
+        savedResourcesDock = GUI.createDockWindow("Saved Resources");
 		
 		JPanel savedResourcesPanel = new JPanel();
 		savedResourcesPanel.setBackground(Color.white);
@@ -644,14 +645,14 @@ public class VUE
 								   searchDock,
 								   browseDock,
 								   savedResourcesDock);
-        DockWindow drBrowserDock = GUI.createDockWindow("Data Sources", DR_BROWSER);
+        DockWindow drBrowserDock = GUI.createDockWindow("Resources", DR_BROWSER);
 		
 		drBrowserDock.setStackOwner(true);
 		drBrowserDock.addChild(searchDock);
 		drBrowserDock.addChild(browseDock);
 		drBrowserDock.addChild(savedResourcesDock);
 		
-		//searchDock.add(searchPanel);
+		searchDock.add(searchPanel);
 		searchDock.setRolledUp(true);
 
 		browseDock.add(browsePanel);

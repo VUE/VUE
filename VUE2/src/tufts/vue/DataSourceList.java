@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.28 $ / $Date: 2006-02-02 21:52:10 $ / $Author: jeff $ 
+ * @version $Revision: 1.29 $ / $Date: 2006-02-15 17:45:51 $ / $Author: jeff $ 
  * @author Ranjani Saigal
  */
 
@@ -65,7 +65,7 @@ public class DataSourceList extends JList implements DropTargetListener{
     DnDConstants.ACTION_MOVE;
     private final boolean debug = false;
     private final Icon myComputerIcon = VueResources.getImageIcon("dataSourceMyComputer");
-    private final Icon myFavoritesIcon = VueResources.getImageIcon("dataSourceMyFavorites");
+//    private final Icon myFavoritesIcon = VueResources.getImageIcon("dataSourceMyFavorites");
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
     private final PolygonIcon breakIcon = new PolygonIcon(Color.LIGHT_GRAY);
     DataSourceViewer dsViewer;
@@ -122,11 +122,8 @@ public class DataSourceList extends JList implements DropTargetListener{
 						checkBox.setSelected( ((DataSource)value).isIncludedInSearch() );
 						panel.add(checkBox);
 						
-						if (value instanceof FavoritesDataSource) {
+						if (value instanceof LocalFileDataSource) {
 							panel.add(new JLabel(myComputerIcon));
-							checkBox.setEnabled(false);
-						} else if (value instanceof LocalFileDataSource) {
-							panel.add(new JLabel(myFavoritesIcon));
 							checkBox.setEnabled(false);
 						} else {
 							panel.add(new JLabel(remoteIcon));

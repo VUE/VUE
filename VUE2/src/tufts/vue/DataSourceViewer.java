@@ -110,6 +110,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 	org.osid.shared.Type thumbnailType = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
 	ImageIcon noImageIcon;
 	
+	edu.tufts.vue.dsm.Registry registry;
+	org.osid.registry.Provider checked[];
+
     public DataSourceViewer(DRBrowser drBrowser,
 							DockWindow searchDWindow,
 							DockWindow browseDWindow,
@@ -144,6 +147,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 		((JPanel)queryEditor).setPreferredSize(new Dimension(400,400));
 		((JPanel)queryEditor).setMinimumSize(new Dimension(400,400));
 		searchDockWindow.add((JPanel)queryEditor);
+		//searchDockWindow.setVisible(true);
+		searchDockWindow.setRolledUp(true);
+
 		initResultSetDockWindow();
 		
         dataSourceList.clearSelection();
@@ -370,10 +376,26 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         popup = new JPopupMenu();
         checkForUpdatesAction = new AbstractAction("Check For Updates") {
             public void actionPerformed(ActionEvent e) {
-                if (libraryUpdateDialog == null) {
-					libraryUpdateDialog = new LibraryUpdateDialog();
-				} else {
-					libraryUpdateDialog.update(LibraryUpdateDialog.CHECK);
+				try {
+					if (registry == null) {
+						registry = edu.tufts.vue.dsm.impl.VueRegistry.getInstance();
+					}
+					edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
+					checked = registry.checkRegistryForUpdated(dataSources);
+					if (checked.length == 0) {
+						javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
+																  "There are no new libraries available at this time",
+																  "LIBRARY UPDATE",
+																  javax.swing.JOptionPane.INFORMATION_MESSAGE);
+					} else {
+						if (libraryUpdateDialog == null) {
+							libraryUpdateDialog = new LibraryUpdateDialog();
+						} else {
+							libraryUpdateDialog.update(LibraryUpdateDialog.CHECK);
+						}
+					} 
+				} catch (Throwable t) {
+					t.printStackTrace();
 				}
                 DataSourceViewer.this.popup.setVisible(false);
             }
@@ -383,7 +405,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 if (addLibraryDialog == null) {
 					addLibraryDialog = new AddLibraryDialog();
 				} else {
-					addLibraryDialog.show();
+					addLibraryDialog.setVisible(true);
 				}
                 DataSourceViewer.this.popup.setVisible(false);
             }
@@ -393,7 +415,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 if (editLibraryDialog == null) {
 					editLibraryDialog = new EditLibraryDialog();
 				} else {
-					editLibraryDialog.show();
+					editLibraryDialog.setVisible(true);
 				}
                 DataSourceViewer.this.popup.setVisible(false);
             }
@@ -403,7 +425,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 if (removeLibraryDialog == null) {
 					removeLibraryDialog = new RemoveLibraryDialog();
 				} else {
-					removeLibraryDialog.show();
+					removeLibraryDialog.setVisible(true);
 				}
                 DataSourceViewer.this.popup.setVisible(false);
             }
@@ -413,7 +435,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 if (getLibraryInfoDialog == null) {
 					getLibraryInfoDialog = new GetLibraryInfoDialog();
 				} else {
-					getLibraryInfoDialog.show();
+					getLibraryInfoDialog.setVisible(true);
 				}
                 DataSourceViewer.this.popup.setVisible(false);
             }
@@ -513,8 +535,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         try {
             DataSource ds1 = new LocalFileDataSource("My Computer","");
 			dataSourceList.getContents().addElement(ds1);
-            DataSource ds2 = new FavoritesDataSource("My Favorites");
-			dataSourceList.getContents().addElement(ds2);
+//            DataSource ds2 = new FavoritesDataSource("My Favorites");
+//			dataSourceList.getContents().addElement(ds2);
 //            DataSource ds3 = new FedoraDataSource("Tufts Digital Library","dl.tufts.edu", "test","test",8080);
 //            addDataSource(ds3);
 //            DataSource ds4 = new GoogleDataSource("Tufts Web","http://googlesearch.tufts.edu","tufts01","tufts01");
@@ -596,6 +618,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 
 	public void searchPerformed(edu.tufts.vue.fsm.event.SearchEvent se)
 	{
+		// this may take some time, so we change to the wait cursor
+		VUE.activateWaitCursor();
+		
 		try {
 			//do we remove old search results?  For now, always
 			clearResults();
@@ -634,6 +659,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+		VUE.clearWaitCursor();
 	}
 	
 	
