@@ -55,6 +55,7 @@ implements edu.tufts.vue.dsm.DataSourceManager
 	private static final String REGISTRATION_DATE_TAG = "oki:registrationdate";
 	private static final String HIDDEN_TAG = "oki:hidden";
 	private static final String INCLUDED_IN_SEARCH_TAG = "okiincludedinsearch";
+
 	private static String xmlFilename = null;
 
 	public static edu.tufts.vue.dsm.DataSourceManager getInstance() {
@@ -64,8 +65,41 @@ implements edu.tufts.vue.dsm.DataSourceManager
 	public VueDataSourceManager() {
 		java.io.File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
 		//System.out.println("User's VUE folder is " + userFolder.getAbsolutePath());
-		this.xmlFilename = userFolder.getAbsolutePath() + java.io.File.separator + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
-		//System.out.println("DS file is " + this.xmlFilename);
+		
+		/*
+		 If there is no InstalledDataSources file or no Extensions file, create them
+		 */
+		try {
+			javax.xml.parsers.DocumentBuilderFactory dbf = null;
+			javax.xml.parsers.DocumentBuilder db = null;
+			org.w3c.dom.Document document = null;
+			
+			dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+			db = dbf.newDocumentBuilder();
+
+			this.xmlFilename = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
+			java.io.File file = new java.io.File(this.xmlFilename);
+			if (!file.exists()) {
+				document = db.newDocument();				
+
+				org.w3c.dom.Element records = document.createElement(RECORDS_TAG);
+				document.appendChild(records);
+				
+				javax.xml.transform.TransformerFactory tf = javax.xml.transform.TransformerFactory.newInstance();
+				javax.xml.transform.Transformer transformer = tf.newTransformer();
+				java.util.Properties properties = new java.util.Properties();
+				properties.put("indent","yes");
+				transformer.setOutputProperties(properties);
+				javax.xml.transform.dom.DOMSource domSource = new javax.xml.transform.dom.DOMSource(document);
+				javax.xml.transform.stream.StreamResult result = 
+					new javax.xml.transform.stream.StreamResult (this.xmlFilename);
+				transformer.transform(domSource,result);
+			}
+		} catch (Exception ex) {
+			System.out.println("Failed to create file for installed libraries");
+			edu.tufts.vue.util.Logger.log(ex);
+		}
+		
 		refresh();
 	}
 
@@ -118,11 +152,6 @@ implements edu.tufts.vue.dsm.DataSourceManager
 					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
 					if (e.hasChildNodes()) {
 						String providerIdString = e.getFirstChild().getNodeValue();
-
-						System.out.println(edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance());
-						System.out.println(edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance());
-						System.out.println(edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString));
-
 						providerId = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString);
 					}
 				}
@@ -398,6 +427,9 @@ implements edu.tufts.vue.dsm.DataSourceManager
 	*/
 	public void save() {
         try {
+			java.io.File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
+			this.xmlFilename = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
+
 			javax.xml.parsers.DocumentBuilderFactory dbf = null;
 			javax.xml.parsers.DocumentBuilder db = null;
 			org.w3c.dom.Document document = null;

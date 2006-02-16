@@ -53,11 +53,11 @@ public class OsidClassLoader extends java.lang.ClassLoader
 		  File[] files = osid_jar_files.listFiles();
 		  for(int i=0; i<files.length; i++)
 		  {
-			  System.out.println("examining " + files[i]);
+			  //System.out.println("examining " + files[i]);
 			  if( files[i].getName().endsWith(".jar") ) {
 				try
 				{
-					System.out.println("adding to dynamic classpath " + files[i]);
+					//System.out.println("adding to dynamic classpath " + files[i]);
 					jar_files.add(new JarFile( files[i] ));
 				}
 				catch(IOException ioe)
@@ -70,7 +70,7 @@ public class OsidClassLoader extends java.lang.ClassLoader
 			  else if (files[i].isDirectory())
 			  {
 				  // search subdirectories -- one level only
-				  System.out.println("searching one level lower");
+				  //System.out.println("searching one level lower");
 				  File[] subfiles = files[i].listFiles();
 				  for(int j=0; j<subfiles.length; j++)
 				  {
@@ -78,7 +78,7 @@ public class OsidClassLoader extends java.lang.ClassLoader
 					  {
 						  try
 						  {
-							  System.out.println("adding to dynamic classpath " + subfiles[j]);
+							  //System.out.println("adding to dynamic classpath " + subfiles[j]);
 							  jar_files.add(new JarFile( subfiles[j] ));
 						  }
 						  catch(IOException ioe)

@@ -119,7 +119,7 @@ public class OsidLoader implements java.io.Serializable {
      *         ERROR_ASSIGNING_CONFIGURATION}
      */
 	 
-	private static String plugins_directory = System.getProperties().getProperty("user.home") + "/Library/Osid";
+	private static String plugins_directory = "/Library/OSID";
     public static void setPluginsDirectory(String dir)
     {
       plugins_directory = dir;
@@ -131,7 +131,7 @@ public class OsidLoader implements java.io.Serializable {
         java.util.Properties additionalConfiguration)
         throws org.osid.OsidException {
 		
-		System.out.println("Using Dynamic OSID Loader to search " + plugins_directory);
+		//System.out.println("Using Dynamic OSID Loader to search " + plugins_directory);
         try {
             if ((null != context) && (null != osidPackageManagerName) &&
                     (null != implPackageName)) {

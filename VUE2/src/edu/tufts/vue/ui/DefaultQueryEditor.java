@@ -42,10 +42,14 @@ java.awt.event.ActionListener
 			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
 			gbConstraints.insets = new java.awt.Insets(2,2,2,2);
 			setLayout(gbLayout);
+	
+			setSize(new java.awt.Dimension(400,200));
+			setPreferredSize(new java.awt.Dimension(400,200));
+			setMinimumSize(new java.awt.Dimension(400,200));
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy = 0;
-			add(new javax.swing.JLabel("Search:"),gbConstraints);
+			add(new javax.swing.JLabel("Keywords:"),gbConstraints);
 			
 			// build list of repositories that are going to be searched
 			StringBuffer sBuffer = new StringBuffer();
@@ -59,17 +63,10 @@ java.awt.event.ActionListener
 			}
 			gbConstraints.gridx = 1;
 			gbConstraints.gridy = 0;
-			add(new javax.swing.JLabel(sBuffer.toString()),gbConstraints);
-			
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy = 1;
-			add(new javax.swing.JLabel("Keywords: "),gbConstraints);
-			gbConstraints.gridx = 1;
-			gbConstraints.gridy = 1;
 			add(field,gbConstraints);
 			
 			gbConstraints.gridx = 0;
-			gbConstraints.gridy = 2;
+			gbConstraints.gridy = 1;
 			add(searchButton,gbConstraints);
 			searchButton.addActionListener(this);
 			

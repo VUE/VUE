@@ -105,12 +105,46 @@ implements org.osid.registry.RegistryManager
 		try {
 			if (this.idManager == null) {
 				this.idManager = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance();
-				java.io.File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
-				this.xmlFilename = userFolder.getAbsolutePath() + "/OSIDProviderRegistry.xml";				
 			}
 		} catch (Throwable t) {
 			edu.tufts.vue.util.Logger.log(t);
 		}
+	}
+	
+	/*
+		Look in directories beneath the install directory for a registry file.
+	 */
+
+	private String[] getXMLFilenames()
+	{
+		java.util.Vector filenameVector = new java.util.Vector();
+		try {
+			String targetFilename = tufts.vue.VueResources.getString("OSIDRegistryXmlFilename");
+			//System.out.println("target filename " + targetFilename);
+			String installDirectory = tufts.vue.VueResources.getString("dataSourceInstallDirectory");
+			//System.out.println("install Directory " + installDirectory);
+			java.io.File root = new java.io.File(installDirectory);
+			java.io.File[] files = root.listFiles();
+			for (int i=0; i < files.length; i++) {
+				if (files[i].isDirectory()) {
+					java.io.File[] subfiles = files[i].listFiles();
+					for (int j=0; j < subfiles.length; j++) {
+						if (subfiles[j].getName().equals(targetFilename)) {
+							filenameVector.addElement(subfiles[j].getAbsolutePath());
+							//System.out.println("added " + filenameVector.lastElement());
+						}
+					}
+				}
+			}			
+		} catch (Exception ex) {
+			edu.tufts.vue.util.Logger.log(ex);
+		}
+		int size = filenameVector.size();
+		String result[] = new String[size];
+		for (int i=0; i < size; i++) {
+			result[i] = (String)filenameVector.elementAt(i);
+		}
+		return result;
 	}
 	
 	/**
@@ -120,421 +154,424 @@ implements org.osid.registry.RegistryManager
 		throws org.osid.registry.RegistryException
 	{
 		java.util.Vector result = new java.util.Vector();
-		try {
-			java.io.InputStream istream = new java.io.FileInputStream(this.xmlFilename);
-            if (istream == null) {
-				edu.tufts.vue.util.Logger.log(FILE_NOT_FOUND_MESSAGE + this.xmlFilename);
-				throw new org.osid.registry.RegistryException(org.osid.OsidException.CONFIGURATION_ERROR);
-            }
-			
-			javax.xml.parsers.DocumentBuilderFactory dbf = null;
-			javax.xml.parsers.DocumentBuilder db = null;
-			org.w3c.dom.Document document = null;
-			
-			dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
-			db = dbf.newDocumentBuilder();
-			document = db.parse(istream);
-			
-			org.w3c.dom.NodeList records = document.getElementsByTagName(PROVIDER_RECORD_TAG);
-			int numRecords = records.getLength();
-			for (int i=0; i < numRecords; i++) {
-				String providerId = null;
-				String osidService = null;
-				int osidMajorVersion = 0;
-				int osidMinorVersion = 0;
-				String osidLoadKey = null;				
-				
-				String displayName = null;
-				String description = null;
-				java.util.Vector keywordVector = new java.util.Vector();
-				java.util.Vector categoryVector = new java.util.Vector();
-				java.util.Vector categoryTypeVector = new java.util.Vector();
-				
-				String creator = null;
-				String publisher = null;
-				String publisherURL = null;
-				int providerMajorVersion = 0;
-				int providerMinorVersion = 0;
-				String releaseDate = null;
-				String contactName = null;
-				String contactPhone = null;
-				String contactEMail = null;
-				String licenseAgreement = null;
-				
-				java.util.Vector rightVector = new java.util.Vector();
-				java.util.Vector rightTypeVector = new java.util.Vector();
-				String readme = null;
-				String implementationLanguage = null;
-				boolean sourceAvailable = false;
-
-				String repositoryId = null;
-				String repositoryImage = null;
-				String registrationDate = null;
-				java.util.Vector filenameVector = new java.util.Vector();
-				java.util.Vector fileDisplayNameVector = new java.util.Vector();
-				
-				org.w3c.dom.Element record = (org.w3c.dom.Element)records.item(i);
-				org.w3c.dom.NodeList nodeList = record.getElementsByTagName(PROVIDER_ID_TAG);
-				int numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						providerId = e.getFirstChild().getNodeValue();
-					}
+		String files[] = getXMLFilenames();
+		for (int f=0; f < files.length; f++) {
+			try {
+				java.io.InputStream istream = new java.io.FileInputStream(files[f]);
+				if (istream == null) {
+					edu.tufts.vue.util.Logger.log(FILE_NOT_FOUND_MESSAGE + files[f]);
+					throw new org.osid.registry.RegistryException(org.osid.OsidException.CONFIGURATION_ERROR);
 				}
 				
-				nodeList = record.getElementsByTagName(OSID_SERVICE_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						osidService = e.getFirstChild().getNodeValue();
-					}
-				}
+				javax.xml.parsers.DocumentBuilderFactory dbf = null;
+				javax.xml.parsers.DocumentBuilder db = null;
+				org.w3c.dom.Document document = null;
 				
-				nodeList = record.getElementsByTagName(OSID_MAJOR_VERSION_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						osidMajorVersion = (new Integer(e.getFirstChild().getNodeValue())).intValue();
-					}
-				}
+				dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+				db = dbf.newDocumentBuilder();
+				document = db.parse(istream);
 				
-				nodeList = record.getElementsByTagName(OSID_MINOR_VERSION_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						osidMinorVersion = (new Integer(e.getFirstChild().getNodeValue())).intValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(OSID_LOAD_KEY_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						osidLoadKey = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(DISPLAY_NAME_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						displayName = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(DESCRIPTION_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						description = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(KEYWORDS_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+				org.w3c.dom.NodeList records = document.getElementsByTagName(PROVIDER_RECORD_TAG);
+				int numRecords = records.getLength();
+				for (int i=0; i < numRecords; i++) {
+					String providerId = null;
+					String osidService = null;
+					int osidMajorVersion = 0;
+					int osidMinorVersion = 0;
+					String osidLoadKey = null;				
 					
-					org.w3c.dom.NodeList keywords = e.getElementsByTagName(KEYWORD_TAG);
-					int numKeywords = keywords.getLength();
-					for (int j=0; j < numKeywords; j++) {
-						org.w3c.dom.Element ex = (org.w3c.dom.Element)keywords.item(j);
-						if (ex.hasChildNodes()) {
-							keywordVector.addElement(ex.getFirstChild().getNodeValue());
-						}
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(CATEGORIES_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+					String displayName = null;
+					String description = null;
+					java.util.Vector keywordVector = new java.util.Vector();
+					java.util.Vector categoryVector = new java.util.Vector();
+					java.util.Vector categoryTypeVector = new java.util.Vector();
 					
-					org.w3c.dom.NodeList categories = e.getElementsByTagName(CATEGORY_TAG);
-					int numCategories = categories.getLength();
-					for (int j=0; j < numCategories; j++) {
-						org.w3c.dom.Element ex = (org.w3c.dom.Element)categories.item(j);
-						if (ex.hasChildNodes()) {
-							categoryVector.addElement(ex.getFirstChild().getNodeValue());
+					String creator = null;
+					String publisher = null;
+					String publisherURL = null;
+					int providerMajorVersion = 0;
+					int providerMinorVersion = 0;
+					String releaseDate = null;
+					String contactName = null;
+					String contactPhone = null;
+					String contactEMail = null;
+					String licenseAgreement = null;
+					
+					java.util.Vector rightVector = new java.util.Vector();
+					java.util.Vector rightTypeVector = new java.util.Vector();
+					String readme = null;
+					String implementationLanguage = null;
+					boolean sourceAvailable = false;
+					
+					String repositoryId = null;
+					String repositoryImage = null;
+					String registrationDate = null;
+					java.util.Vector filenameVector = new java.util.Vector();
+					java.util.Vector fileDisplayNameVector = new java.util.Vector();
+					
+					org.w3c.dom.Element record = (org.w3c.dom.Element)records.item(i);
+					org.w3c.dom.NodeList nodeList = record.getElementsByTagName(PROVIDER_ID_TAG);
+					int numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							providerId = e.getFirstChild().getNodeValue();
 						}
 					}
 					
-					org.w3c.dom.NodeList types = e.getElementsByTagName(CATEGORY_TYPE_TAG);
-					int numTypes = types.getLength();
-					for (int j=0; j < numTypes; j++) {
-						org.w3c.dom.Element ex = (org.w3c.dom.Element)types.item(j);
-						if (ex.hasChildNodes()) {
-							org.osid.shared.Type type = edu.tufts.vue.util.Utilities.stringToType(ex.getFirstChild().getNodeValue());
-							categoryTypeVector.addElement(type);
-						}
-					}
-				}
-								
-				nodeList = record.getElementsByTagName(CREATOR_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						creator = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(PUBLISHER_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						publisher = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(PUBLISHER_URL_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						publisherURL = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(PROVIDER_MAJOR_VERSION_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						providerMajorVersion = (new Integer(e.getFirstChild().getNodeValue())).intValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(PROVIDER_MINOR_VERSION_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						providerMinorVersion = (new Integer(e.getFirstChild().getNodeValue())).intValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(RELEASE_DATE_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						releaseDate = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(CONTACT_NAME_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						contactName = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(CONTACT_PHONE_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						contactPhone = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(CONTACT_EMAIL_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						contactEMail = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(LICENSE_AGREEMENT_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						licenseAgreement = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(RIGHTS_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					
-					org.w3c.dom.NodeList rights = e.getElementsByTagName(RIGHT_TAG);
-					int numRights = rights.getLength();
-					for (int j=0; j < numRights; j++) {
-						org.w3c.dom.Element ex = (org.w3c.dom.Element)rights.item(j);
-						if (ex.hasChildNodes()) {
-							rightVector.addElement(ex.getFirstChild().getNodeValue());
+					nodeList = record.getElementsByTagName(OSID_SERVICE_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							osidService = e.getFirstChild().getNodeValue();
 						}
 					}
 					
-					org.w3c.dom.NodeList types = e.getElementsByTagName(RIGHT_TYPE_TAG);
-					int numTypes = types.getLength();
-					for (int j=0; j < numTypes; j++) {
-						org.w3c.dom.Element ex = (org.w3c.dom.Element)types.item(j);
-						if (ex.hasChildNodes()) {
-							org.osid.shared.Type type = edu.tufts.vue.util.Utilities.stringToType(ex.getFirstChild().getNodeValue());
-							rightTypeVector.addElement(type);
-						}
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(README_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						readme = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(IMPLEMENTATION_LANGUAGE_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						implementationLanguage = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(SOURCE_AVAILABLE_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						sourceAvailable = (new Boolean(e.getFirstChild().getNodeValue())).booleanValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(REPOSITORY_ID_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						repositoryId = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(REPOSITORY_IMAGE_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						repositoryImage = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(REGISTRATION_DATE_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					if (e.hasChildNodes()) {
-						registrationDate = e.getFirstChild().getNodeValue();
-					}
-				}
-				
-				nodeList = record.getElementsByTagName(FILENAMES_TAG);
-				numNodes = nodeList.getLength();
-				for (int k=0; k < numNodes; k++) {
-					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-					
-					org.w3c.dom.NodeList filenames = e.getElementsByTagName(FILENAME_TAG);
-					int numFiles = filenames.getLength();
-					for (int j=0; j < numFiles; j++) {
-						org.w3c.dom.Element ex = (org.w3c.dom.Element)filenames.item(j);
-						if (ex.hasChildNodes()) {
-							filenameVector.addElement(ex.getFirstChild().getNodeValue());
+					nodeList = record.getElementsByTagName(OSID_MAJOR_VERSION_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							osidMajorVersion = (new Integer(e.getFirstChild().getNodeValue())).intValue();
 						}
 					}
 					
-					org.w3c.dom.NodeList names = e.getElementsByTagName(FILE_DISPLAY_NAME_TAG);
-					int numNames = names.getLength();
-					for (int j=0; j < numNames; j++) {
-						org.w3c.dom.Element ex = (org.w3c.dom.Element)names.item(j);
-						if (ex.hasChildNodes()) {
-							fileDisplayNameVector.addElement(ex.getFirstChild().getNodeValue());
+					nodeList = record.getElementsByTagName(OSID_MINOR_VERSION_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							osidMinorVersion = (new Integer(e.getFirstChild().getNodeValue())).intValue();
 						}
 					}
+					
+					nodeList = record.getElementsByTagName(OSID_LOAD_KEY_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							osidLoadKey = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(DISPLAY_NAME_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							displayName = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(DESCRIPTION_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							description = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(KEYWORDS_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						
+						org.w3c.dom.NodeList keywords = e.getElementsByTagName(KEYWORD_TAG);
+						int numKeywords = keywords.getLength();
+						for (int j=0; j < numKeywords; j++) {
+							org.w3c.dom.Element ex = (org.w3c.dom.Element)keywords.item(j);
+							if (ex.hasChildNodes()) {
+								keywordVector.addElement(ex.getFirstChild().getNodeValue());
+							}
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(CATEGORIES_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						
+						org.w3c.dom.NodeList categories = e.getElementsByTagName(CATEGORY_TAG);
+						int numCategories = categories.getLength();
+						for (int j=0; j < numCategories; j++) {
+							org.w3c.dom.Element ex = (org.w3c.dom.Element)categories.item(j);
+							if (ex.hasChildNodes()) {
+								categoryVector.addElement(ex.getFirstChild().getNodeValue());
+							}
+						}
+						
+						org.w3c.dom.NodeList types = e.getElementsByTagName(CATEGORY_TYPE_TAG);
+						int numTypes = types.getLength();
+						for (int j=0; j < numTypes; j++) {
+							org.w3c.dom.Element ex = (org.w3c.dom.Element)types.item(j);
+							if (ex.hasChildNodes()) {
+								org.osid.shared.Type type = edu.tufts.vue.util.Utilities.stringToType(ex.getFirstChild().getNodeValue());
+								categoryTypeVector.addElement(type);
+							}
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(CREATOR_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							creator = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(PUBLISHER_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							publisher = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(PUBLISHER_URL_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							publisherURL = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(PROVIDER_MAJOR_VERSION_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							providerMajorVersion = (new Integer(e.getFirstChild().getNodeValue())).intValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(PROVIDER_MINOR_VERSION_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							providerMinorVersion = (new Integer(e.getFirstChild().getNodeValue())).intValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(RELEASE_DATE_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							releaseDate = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(CONTACT_NAME_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							contactName = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(CONTACT_PHONE_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							contactPhone = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(CONTACT_EMAIL_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							contactEMail = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(LICENSE_AGREEMENT_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							licenseAgreement = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(RIGHTS_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						
+						org.w3c.dom.NodeList rights = e.getElementsByTagName(RIGHT_TAG);
+						int numRights = rights.getLength();
+						for (int j=0; j < numRights; j++) {
+							org.w3c.dom.Element ex = (org.w3c.dom.Element)rights.item(j);
+							if (ex.hasChildNodes()) {
+								rightVector.addElement(ex.getFirstChild().getNodeValue());
+							}
+						}
+						
+						org.w3c.dom.NodeList types = e.getElementsByTagName(RIGHT_TYPE_TAG);
+						int numTypes = types.getLength();
+						for (int j=0; j < numTypes; j++) {
+							org.w3c.dom.Element ex = (org.w3c.dom.Element)types.item(j);
+							if (ex.hasChildNodes()) {
+								org.osid.shared.Type type = edu.tufts.vue.util.Utilities.stringToType(ex.getFirstChild().getNodeValue());
+								rightTypeVector.addElement(type);
+							}
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(README_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							readme = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(IMPLEMENTATION_LANGUAGE_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							implementationLanguage = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(SOURCE_AVAILABLE_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							sourceAvailable = (new Boolean(e.getFirstChild().getNodeValue())).booleanValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(REPOSITORY_ID_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							repositoryId = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(REPOSITORY_IMAGE_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							repositoryImage = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(REGISTRATION_DATE_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						if (e.hasChildNodes()) {
+							registrationDate = e.getFirstChild().getNodeValue();
+						}
+					}
+					
+					nodeList = record.getElementsByTagName(FILENAMES_TAG);
+					numNodes = nodeList.getLength();
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						
+						org.w3c.dom.NodeList filenames = e.getElementsByTagName(FILENAME_TAG);
+						int numFiles = filenames.getLength();
+						for (int j=0; j < numFiles; j++) {
+							org.w3c.dom.Element ex = (org.w3c.dom.Element)filenames.item(j);
+							if (ex.hasChildNodes()) {
+								filenameVector.addElement(ex.getFirstChild().getNodeValue());
+							}
+						}
+						
+						org.w3c.dom.NodeList names = e.getElementsByTagName(FILE_DISPLAY_NAME_TAG);
+						int numNames = names.getLength();
+						for (int j=0; j < numNames; j++) {
+							org.w3c.dom.Element ex = (org.w3c.dom.Element)names.item(j);
+							if (ex.hasChildNodes()) {
+								fileDisplayNameVector.addElement(ex.getFirstChild().getNodeValue());
+							}
+						}
+					}
+					
+					/*
+					 System.out.println(providerId);
+					 System.out.println(osidService);
+					 System.out.println(osidMajorVersion);
+					 System.out.println(osidMinorVersion);
+					 System.out.println(osidLoadKey);
+					 System.out.println(displayName);
+					 System.out.println(description);
+					 System.out.println(keywordVector.toArray());
+					 System.out.println(categoryVector.toArray());
+					 System.out.println(categoryTypeVector.toArray());
+					 System.out.println(creator);
+					 System.out.println(publisher);
+					 System.out.println(publisherURL);
+					 System.out.println(majorVersion);
+					 System.out.println(minorVersion);
+					 System.out.println(releaseDate);
+					 System.out.println(contactName);
+					 System.out.println(contactPhone);
+					 System.out.println(contactEMail);
+					 System.out.println(licenseAgreement);
+					 System.out.println(rightVector.toArray());
+					 System.out.println(rightTypeVector.toArray());
+					 System.out.println(readme);
+					 System.out.println(implementationLanguage);
+					 System.out.println(sourceAvailable);
+					 System.out.println(registrationDate);
+					 System.out.println(filenameVector.toArray());
+					 System.out.println(fileDisplayNameVector.toArray());
+					 */
+					
+					result.addElement(new Provider(this,
+												   this.idManager.getId(providerId),
+												   osidService,
+												   osidMajorVersion,
+												   osidMinorVersion,
+												   osidLoadKey,				
+												   displayName,
+												   description,
+												   keywordVector,
+												   categoryVector,
+												   categoryTypeVector,
+												   creator,
+												   publisher,
+												   publisherURL,
+												   providerMajorVersion,
+												   providerMinorVersion,
+												   releaseDate,
+												   contactName,
+												   contactPhone,
+												   contactEMail,
+												   licenseAgreement,
+												   rightVector,		
+												   rightTypeVector,
+												   readme,
+												   implementationLanguage,
+												   sourceAvailable,
+												   this.idManager.getId(repositoryId),
+												   repositoryImage,
+												   registrationDate,
+												   filenameVector,
+												   fileDisplayNameVector));
 				}
-				
-				/*
-				System.out.println(providerId);
-				System.out.println(osidService);
-				System.out.println(osidMajorVersion);
-				System.out.println(osidMinorVersion);
-				System.out.println(osidLoadKey);
-				System.out.println(displayName);
-				System.out.println(description);
-				System.out.println(keywordVector.toArray());
-				System.out.println(categoryVector.toArray());
-				System.out.println(categoryTypeVector.toArray());
-				System.out.println(creator);
-				System.out.println(publisher);
-				System.out.println(publisherURL);
-				System.out.println(majorVersion);
-				System.out.println(minorVersion);
-				System.out.println(releaseDate);
-				System.out.println(contactName);
-				System.out.println(contactPhone);
-				System.out.println(contactEMail);
-				System.out.println(licenseAgreement);
-				System.out.println(rightVector.toArray());
-				System.out.println(rightTypeVector.toArray());
-				 System.out.println(readme);
-				System.out.println(implementationLanguage);
-				System.out.println(sourceAvailable);
-				 System.out.println(registrationDate);
-				System.out.println(filenameVector.toArray());
-				 System.out.println(fileDisplayNameVector.toArray());
-				*/
-				
-				result.addElement(new Provider(this,
-											   this.idManager.getId(providerId),
-											   osidService,
-											   osidMajorVersion,
-											   osidMinorVersion,
-											   osidLoadKey,				
-											   displayName,
-											   description,
-											   keywordVector,
-											   categoryVector,
-											   categoryTypeVector,
-											   creator,
-											   publisher,
-											   publisherURL,
-											   providerMajorVersion,
-											   providerMinorVersion,
-											   releaseDate,
-											   contactName,
-											   contactPhone,
-											   contactEMail,
-											   licenseAgreement,
-											   rightVector,		
-											   rightTypeVector,
-											   readme,
-											   implementationLanguage,
-											   sourceAvailable,
-											   this.idManager.getId(repositoryId),
-											   repositoryImage,
-											   registrationDate,
-											   filenameVector,
-											   fileDisplayNameVector));
+			} catch (Throwable t) {
+				edu.tufts.vue.util.Logger.log(t);
 			}
-		} catch (Throwable t) {
-			edu.tufts.vue.util.Logger.log(t);
 		}
 		return new ProviderIterator(result);
 	}

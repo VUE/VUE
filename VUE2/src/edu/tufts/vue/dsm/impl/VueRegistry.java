@@ -71,7 +71,7 @@ implements edu.tufts.vue.dsm.Registry
 				
 				int index = idVector.indexOf(providerIdString);
 				if (index == -1) {
-					System.out.println("A new provider is available");
+					//System.out.println("A new provider is available");
 					results.addElement(provider);
 				}
 			}
@@ -108,9 +108,9 @@ implements edu.tufts.vue.dsm.Registry
 					java.util.Date registrationDate = edu.tufts.vue.util.Utilities.stringToDate(provider.getRegistrationDate());
 					java.util.Date dataSourceDate = dataSources[index].getRegistrationDate();
 					if (registrationDate.after(dataSourceDate)) {
-						System.out.println("The same provider with a newer date is available");
+						//System.out.println("The same provider with a newer date is available");
 					} else {
-						System.out.println("The same provider already installed is available");
+						//System.out.println("The same provider already installed is available");
 					}
 					results.addElement(provider);
 				}

@@ -30,6 +30,7 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 	private edu.tufts.vue.fsm.SourcesAndTypesManager sourcesAndTypesManager = VueSourcesAndTypesManager.getInstance();
 	
 	private static final String FILE_NOT_FOUND_MESSAGE = "Cannot find or open ";
+	private static final String EXTENSIONS_TAG = "queryeditors";
 	private static final String QUERY_EDITORS_TAG = "queryeditors";
 	private static final String QUERY_EDITOR_TAG = "queryeditor";
 	private static final String SEARCH_TYPE_TAG = "searchtype";
@@ -40,6 +41,9 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 	private static final String QUERY_ADJUSTERS_TAG = "queryadjusters";
 	private static final String QUERY_ADJUSTER_TAG = "queryadjuster";
 	private static final String REPOSITORY_ID_TAG = "repositoryid";
+	
+	private static final String DEFAULT_SEARCH_TYPE = "search/keyword@mit.edu";
+	private static final String DEFAULT_CLASS_NAME = "edu.tufts.vue.ui.DefaultQueryEditor";
 	
 	private static edu.tufts.vue.fsm.FederatedSearchManager federatedSearchManager = new VueFederatedSearchManager();
 	
@@ -58,19 +62,45 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 	
 	private VueFederatedSearchManager() {
 		try {
-			java.io.File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
-			this.xmlFilename = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("extensionsSaveToXmlFilename");
-			java.io.InputStream istream = new java.io.FileInputStream(this.xmlFilename);
-            if (istream == null) {
-				System.out.println(FILE_NOT_FOUND_MESSAGE + this.xmlFilename);
-            }
-			
 			javax.xml.parsers.DocumentBuilderFactory dbf = null;
 			javax.xml.parsers.DocumentBuilder db = null;
 			org.w3c.dom.Document document = null;
 			
 			dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
 			db = dbf.newDocumentBuilder();
+
+			java.io.File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
+			this.xmlFilename = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("extensionsSaveToXmlFilename");
+			java.io.File file = new java.io.File(this.xmlFilename);
+            if (!file.exists()) {
+				// make a minmal one
+				document = db.newDocument();				
+				
+				org.w3c.dom.Element extensions = document.createElement(EXTENSIONS_TAG);
+				org.w3c.dom.Element editors = document.createElement(QUERY_EDITORS_TAG);
+				org.w3c.dom.Element editor = document.createElement(QUERY_EDITOR_TAG);
+				org.w3c.dom.Element searchtype = document.createElement(SEARCH_TYPE_TAG);
+				searchtype.appendChild(document.createTextNode(DEFAULT_SEARCH_TYPE));
+				org.w3c.dom.Element classname = document.createElement(CLASS_NAME_TAG);
+				classname.appendChild(document.createTextNode(DEFAULT_CLASS_NAME));
+				editor.appendChild(classname);
+				editor.appendChild(searchtype);
+				editors.appendChild(editor);
+				extensions.appendChild(editors);				
+				document.appendChild(extensions);
+				
+				javax.xml.transform.TransformerFactory tf = javax.xml.transform.TransformerFactory.newInstance();
+				javax.xml.transform.Transformer transformer = tf.newTransformer();
+				java.util.Properties properties = new java.util.Properties();
+				properties.put("indent","yes");
+				transformer.setOutputProperties(properties);
+				javax.xml.transform.dom.DOMSource domSource = new javax.xml.transform.dom.DOMSource(document);
+				javax.xml.transform.stream.StreamResult result = 
+					new javax.xml.transform.stream.StreamResult (this.xmlFilename);
+				transformer.transform(domSource,result);
+            }
+			
+			java.io.InputStream istream = new java.io.FileInputStream(this.xmlFilename);
 			document = db.parse(istream);
 			
 			org.w3c.dom.NodeList queryEditors = document.getElementsByTagName(QUERY_EDITORS_TAG);
