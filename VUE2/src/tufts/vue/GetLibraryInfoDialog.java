@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.1 $ / $Date: 2006-02-02 21:52:10 $ / $Author: jeff $
+ * @version $Revision: 1.2 $ / $Date: 2006-02-16 19:05:00 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -45,15 +45,10 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 	JButton okButton = new JButton("OK");
 	JLabel libraryIcon;
 	
-    public GetLibraryInfoDialog()
+    public GetLibraryInfoDialog(edu.tufts.vue.dsm.DataSource dataSource)
 	{
         super(VUE.getDialogParentAsFrame(),"INFO",true);
 		try {
-			// temporary fix, use first data source
-			edu.tufts.vue.dsm.DataSourceManager dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-			edu.tufts.vue.dsm.Registry registry = edu.tufts.vue.dsm.impl.VueRegistry.getInstance();
-			edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
-			dataSource = dataSources[0];
 			repository = dataSource.getRepository();
 			
 			getLibraryInfoPanel.setBackground(VueResources.getColor("White"));
@@ -81,7 +76,6 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
-		setVisible(true);
     }
 	
 	private void makePanel()
@@ -247,7 +241,7 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 			getLibraryInfoPanel.add(new javax.swing.JLabel("Supports Update?"),gbConstraints);
 			
 			gbConstraints.gridx = 1;
-			getLibraryInfoPanel.add(new javax.swing.JLabel( (dataSource.supportsUpdate()) ? "Yes" : "No" ),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel( (dataSource.supportsUpdate()) ? "The Library Supports Updating" : "The Library Is Read Only" ),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
@@ -281,22 +275,6 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 			t.printStackTrace();
 		}
 	}
-
-    public void update(int check) 
-	{
-		try {
-			getContentPane().remove(getLibraryInfoPanel);
-			makePanel();
-			getContentPane().add(getLibraryInfoPanel,BorderLayout.CENTER);
-			getContentPane().repaint();
-			getContentPane().validate();
-			pack();
-			setVisible(true);
-			super.setVisible(true);
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-    }
 
 	public void actionPerformed(java.awt.event.ActionEvent ae)
 	{

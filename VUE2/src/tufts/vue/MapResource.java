@@ -39,7 +39,7 @@ import com.sun.image.codec.jpeg.*;
  *
  * TODO: this to be refactored as AbstractResource / URLResource, and/or maybe LWResource.
  *
- * @version $Revision: 1.38 $ / $Date: 2006-01-29 00:25:38 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2006-02-16 19:05:00 $ / $Author: jeff $
  */
 
 // TODO: this needs major cleanup.  Create an AbstractResource class
@@ -915,6 +915,11 @@ public class MapResource implements Resource, XMLUnmarshalListener
         // -- the same as we get from openConnection()
         return toURL().getContent();
     }
+
+	public void setPreview(JComponent preview)
+	{
+		this.preview = preview;
+	}
 
     public JComponent getPreview()
     {

@@ -36,6 +36,7 @@ public class Osid2AssetResource extends MapResource
     private osid.OsidOwner owner = null;
     private org.osid.OsidContext context = null;
     private org.osid.repository.Asset asset = null;
+	private org.osid.shared.Type thumbnailType = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
 
 //    private osid.dr.Asset asset;
 //    private CastorFedoraObject castorFedoraObject;  // stripped version of fedora object for saving and restoring in castor will work only with this implementation of DR API.
@@ -86,6 +87,8 @@ public class Osid2AssetResource extends MapResource
                         org.osid.repository.Part part = partIterator.nextPart();
                         org.osid.repository.PartStructure partStructure = part.getPartStructure();
                         java.io.Serializable ser = part.getValue();
+						org.osid.shared.Type partStructureType = partStructure.getType();
+						
                         String name = partStructure.getDisplayName();
                         if (ser instanceof String)
                         {
@@ -113,14 +116,24 @@ public class Osid2AssetResource extends MapResource
                             org.osid.repository.Part part = partIterator.nextPart();
                             org.osid.repository.PartStructure partStructure = part.getPartStructure();
 							org.osid.shared.Type partStructureType = partStructure.getType();
-							System.out.println("psdn " + partStructure.getDisplayName());
-							System.out.println("pvalue " + part.getValue());
-							mProperties.put(partStructureType.getKeyword(),part.getValue());
+							java.io.Serializable ser = part.getValue();
+
+							// metadata discovery
+							mProperties.put(partStructureType.getKeyword(),ser);
 							if (partStructureType.isEqual(partType))
 							{
 								String s = (String)part.getValue();
                                 setSpec(s);
                             }
+
+							// preview should be a URL or an image
+							if (partStructureType.isEqual(this.thumbnailType)) {
+								if (ser instanceof String) {
+									setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((String)ser)));
+								} else {
+									setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)ser)));
+								}
+							}
                         }
                     }
                 }

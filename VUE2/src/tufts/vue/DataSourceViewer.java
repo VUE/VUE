@@ -100,11 +100,11 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 
     private String resultSetColumnHeads[] = new String[4];
     private javax.swing.table.DefaultTableModel resultSetTableModel = null;
-    private javax.swing.JTable resultSetTable = null;
+    //private VueDragTable resultSetTable = null;
+	private java.awt.Dimension resultSetPanelDimensions = new java.awt.Dimension(450,240);
     private javax.swing.JScrollPane resultSetTableJSP = null;
 	private java.util.Vector resultSetColumnIdVector = new java.util.Vector();
 	private javax.swing.JPanel resultSetPanel = new javax.swing.JPanel();
-	private java.awt.Dimension resultSetPanelDimensions = new java.awt.Dimension(450,240);
 
 	org.osid.shared.Type searchType = new edu.tufts.vue.util.Type("mit.edu","search","keyword");
 	org.osid.shared.Type thumbnailType = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
@@ -384,7 +384,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 					checked = registry.checkRegistryForUpdated(dataSources);
 					if (checked.length == 0) {
 						javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
-																  "There are no new libraries available at this time",
+																  "There are no library updates available at this time",
 																  "LIBRARY UPDATE",
 																  javax.swing.JOptionPane.INFORMATION_MESSAGE);
 					} else {
@@ -402,44 +402,88 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         };
         addLibraryAction = new AbstractAction("Add Library") {
             public void actionPerformed(ActionEvent e) {
-                if (addLibraryDialog == null) {
-					addLibraryDialog = new AddLibraryDialog();
-				} else {
-					addLibraryDialog.setVisible(true);
+				try {
+					if (registry == null) {
+						registry = edu.tufts.vue.dsm.impl.VueRegistry.getInstance();
+					}
+					edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
+					checked = registry.checkRegistryForNew(dataSources);
+					if (checked.length == 0) {
+						javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
+																  "There are no new libraries available at this time",
+																  "ADD A LIBRARY",
+																  javax.swing.JOptionPane.INFORMATION_MESSAGE);
+						DataSourceViewer.this.popup.setVisible(false);
+					} else {
+						if (addLibraryDialog == null) {
+							addLibraryDialog = new AddLibraryDialog(dataSourceList);
+						} else {
+							addLibraryDialog.setVisible(true);
+						}
+					}
+				} catch (Throwable t) {
+					t.printStackTrace();
 				}
-                DataSourceViewer.this.popup.setVisible(false);
             }
         };
+		
         editLibraryAction = new AbstractAction("Edit Library") {
             public void actionPerformed(ActionEvent e) {
-                if (editLibraryDialog == null) {
-					editLibraryDialog = new EditLibraryDialog();
-				} else {
-					editLibraryDialog.setVisible(true);
-				}
+				javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
+														  "Under Construction",
+														  "EDIT LIBRARY",
+														  javax.swing.JOptionPane.INFORMATION_MESSAGE);
                 DataSourceViewer.this.popup.setVisible(false);
             }
         };
         removeLibraryAction = new AbstractAction("Remove Library") {
             public void actionPerformed(ActionEvent e) {
-                if (removeLibraryDialog == null) {
-					removeLibraryDialog = new RemoveLibraryDialog();
-				} else {
-					removeLibraryDialog.setVisible(true);
-				}
+				javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
+														  "Under Construction",
+														  "REMOVE LIBRARY",
+														  javax.swing.JOptionPane.INFORMATION_MESSAGE);
                 DataSourceViewer.this.popup.setVisible(false);
             }
         };
+		
+		/*
+		 We only provide data source information for data sources.  We look at the current selection, which is
+		 either a data source, and "old" data source, or a divider line.
+		 */
         getLibraryInfoAction = new AbstractAction("Get Library Info") {
             public void actionPerformed(ActionEvent e) {
-                if (getLibraryInfoDialog == null) {
-					getLibraryInfoDialog = new GetLibraryInfoDialog();
-				} else {
-					getLibraryInfoDialog.setVisible(true);
+				Object o = dataSourceList.getSelectedValue();
+				if (o != null) {
+					// for the moment, we are doing double work to keep old data sources
+					if (o instanceof edu.tufts.vue.dsm.DataSource) {
+						edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
+						getLibraryInfoDialog = new GetLibraryInfoDialog(ds);
+						getLibraryInfoDialog.setVisible(true);
+					} else if (o instanceof tufts.vue.DataSource) {
+						javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
+																  "There is no information available for this library",
+																  "INFO",
+																  javax.swing.JOptionPane.INFORMATION_MESSAGE);
+					}
+					else
+					{
+						int index = dataSourceList.getSelectedIndex();
+						o = dataSourceList.getContents().getElementAt(index-1);
+						if (o instanceof edu.tufts.vue.dsm.DataSource) {
+							edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
+							getLibraryInfoDialog = new GetLibraryInfoDialog(ds);
+							getLibraryInfoDialog.setVisible(true);
+						} else if (o instanceof edu.tufts.vue.dsm.DataSource) {
+							javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
+																	  "There is no information available for this library",
+																	  "INFO",
+																	  javax.swing.JOptionPane.INFORMATION_MESSAGE);
+						}
+					}
 				}
-                DataSourceViewer.this.popup.setVisible(false);
-            }
-        };
+				DataSourceViewer.this.popup.setVisible(false);
+			}
+		};
         popup.add(checkForUpdatesAction);
         popup.add(addLibraryAction);
         popup.add(editLibraryAction);
@@ -559,13 +603,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 		resultSetColumnHeads[2] = "Type";
 		resultSetColumnHeads[3] = "Repository";
 		resultSetTableModel = new javax.swing.table.DefaultTableModel(resultSetColumnHeads,0);
-		resultSetTable = new javax.swing.JTable(resultSetTableModel);
-		resultSetTable.setGridColor(java.awt.Color.black);
-		resultSetTable.setIntercellSpacing(new java.awt.Dimension(10,1));
-		resultSetTable.setDefaultRenderer(Object.class,new IconRenderer());
-		resultSetTable.setPreferredScrollableViewportSize(resultSetPanelDimensions);
+//		resultSetTable = new VueDragTable(resultSetTableModel);
 
-		resultSetTableJSP = new javax.swing.JScrollPane(resultSetTable);
+//		resultSetTableJSP = new javax.swing.JScrollPane(resultSetTable);
+		resultSetTableJSP = new javax.swing.JScrollPane(new javax.swing.JPanel());
 //		resultSetTableJSP.setSize(resultSetPanelDimensions);
 //		resultSetTableJSP.setMaximumSize(resultSetPanelDimensions);
 		resultSetTableJSP.setPreferredSize(resultSetPanelDimensions);
@@ -583,8 +624,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 		resultSetDockWindow = GUI.createDockWindow("Search Results", resultSetPanel);
 		resultSetDockWindow.setLocation(200,200);
 		
-		resultSetTable.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
-		resultSetTable.setRowHeight(80);
+//		resultSetTable.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
+//		resultSetTable.setRowHeight(80);
 		noImageIcon = VueResources.getImageIcon("NoImage");
 	}
 	
@@ -649,6 +690,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 				rowVector.addElement(getThumbnail(asset));
 				rowVector.addElement(asset.getDisplayName());
 				rowVector.addElement(edu.tufts.vue.util.Utilities.typeToString(asset.getAssetType()));
+				rowVector.addElement(asset); // does not show in table since it is off the right of the table
 				String repositoryIdString = asset.getRepository().getIdString();
 				rowVector.addElement(repositoryDisplayNameVector.elementAt(repositoryIdStringVector.indexOf(repositoryIdString)));
 				dataVector.addElement(rowVector);

@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.3 $ / $Date: 2006-02-04 01:49:20 $ / $Author: peter $
+ * @version $Revision: 1.4 $ / $Date: 2006-02-16 19:05:00 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -32,7 +32,7 @@ import java.awt.event.*;
 import javax.swing.event.*;
 import java.awt.*;
 
-public class AddLibraryDialog extends JDialog implements ListSelectionListener {
+public class AddLibraryDialog extends JDialog implements ListSelectionListener, ActionListener {
     
     JPanel addLibraryPanel = new JPanel();
     JList addLibraryList;
@@ -44,17 +44,21 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener {
 	edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
 	edu.tufts.vue.dsm.Registry registry;
 	org.osid.registry.Provider checked[];
-	JPanel buttonPanel = new JPanel();
-	JButton cancelButton = new JButton("Cancel");
+	java.util.Vector checkedVector = new java.util.Vector();
 	JButton addButton = new JButton("Add");
+	JButton cancelButton = new JButton("Cancel");
+	JPanel buttonPanel = new JPanel();
+	DataSourceList dataSourceList;
     
-    public AddLibraryDialog()
+    public AddLibraryDialog(DataSourceList dataSourceList)
 	{
-        super(VUE.getDialogParentAsFrame(),"Add a Library",true);
+        super(VUE.getDialogParentAsFrame(),"ADD A LIBRARY",true);
+		this.dataSourceList = dataSourceList;
+		
 		try {
 			addLibraryList = new JList(listModel);
 			addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
-			addLibraryList.setPreferredSize(new Dimension(130,160));
+			addLibraryList.setPreferredSize(new Dimension(160,180));
 			addLibraryList.addListSelectionListener(this);
 						
 			populate();
@@ -75,7 +79,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener {
 				libraryDescription = new JTextArea();
 			}
 
-			libraryIcon.setPreferredSize(new Dimension(80,80));
+			libraryIcon.setPreferredSize(new Dimension(60,60));
 			libraryDescription.setLineWrap(true);
 			libraryDescription.setWrapStyleWord(true);
 			
@@ -114,8 +118,9 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener {
 			addLibraryPanel.add(descriptionJsp,gbConstraints);
 			
 			buttonPanel.add(cancelButton);
+			cancelButton.addActionListener(this);
 			buttonPanel.add(addButton);
-			addButton.setBackground(VueResources.getColor("Orange")); //TODO:  Why is this BLUE??
+			addButton.addActionListener(this);
 			getRootPane().setDefaultButton(addButton);
 			
 			gbConstraints.gridx = 2;
@@ -125,7 +130,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener {
 			getContentPane().add(addLibraryPanel,BorderLayout.CENTER);
 			pack();
 			setLocation(300,300);
-			setSize(new Dimension(480,300));
+			setSize(new Dimension(550,350));
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -143,25 +148,19 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener {
 			edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
 			checked = registry.checkRegistryForNew(dataSources);
 			listModel.removeAllElements();
+			checkedVector.removeAllElements();
 			if (checked.length == 0) {
 				listModel.addElement("No new Libraries");
 			}
 			for (int i=0; i < checked.length; i++) {
 				listModel.addElement(checked[i].getDisplayName());
+				checkedVector.addElement(checked[i]);
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 	}
 	
-    public void show(int mode) 
-	{
-		populate();
-		System.out.println("showing");
-		setVisible(true);
-        super.setVisible(true);
-    }
-
     public String toString() 
 	{
         return "AddLibraryDialog";
@@ -176,6 +175,35 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener {
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
+		}
+	}
+	
+	/*
+	 Add the current selection.  When done, remove this library as a candidate.  If none are left, close.
+	 */
+	public void actionPerformed(ActionEvent ae) {
+		if (ae.getActionCommand().equals("Add")) {
+			try {
+				int index = addLibraryList.getSelectedIndex();
+				
+				org.osid.registry.Provider provider = (org.osid.registry.Provider)this.checkedVector.elementAt(index);
+				edu.tufts.vue.dsm.DataSource ds = new edu.tufts.vue.dsm.impl.VueDataSource(provider.getProviderId());
+				dataSourceManager.add(ds);
+				dataSourceList.getContents().addElement(ds);
+				
+				listModel.removeElementAt(index);
+				checkedVector.removeElementAt(index);
+				
+				if (listModel.size() == 0) {
+					setVisible(false);
+				} else {
+					addLibraryList.setSelectedIndex(0);
+				}
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		} else {
+			setVisible(false);
 		}
 	}
 }
