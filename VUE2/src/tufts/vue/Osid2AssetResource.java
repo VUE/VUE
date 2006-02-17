@@ -37,6 +37,7 @@ public class Osid2AssetResource extends MapResource
     private org.osid.OsidContext context = null;
     private org.osid.repository.Asset asset = null;
 	private org.osid.shared.Type thumbnailType = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
+	private javax.swing.ImageIcon icon = null;
 
 //    private osid.dr.Asset asset;
 //    private CastorFedoraObject castorFedoraObject;  // stripped version of fedora object for saving and restoring in castor will work only with this implementation of DR API.
@@ -100,7 +101,7 @@ public class Osid2AssetResource extends MapResource
             }
             catch (Throwable t) 
             {
-                System.out.println("No VUE integration record.  Looking at all records");
+                //System.out.println("No VUE integration record.  Looking at all records");
             }
             if (!foundIntegrationRecord)
             {
@@ -130,8 +131,10 @@ public class Osid2AssetResource extends MapResource
 							if (partStructureType.isEqual(this.thumbnailType)) {
 								if (ser instanceof String) {
 									setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((String)ser)));
+									this.icon = new javax.swing.ImageIcon((String)ser);
 								} else {
 									setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)ser)));
+									this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
 								}
 							}
                         }
@@ -179,4 +182,9 @@ public class Osid2AssetResource extends MapResource
     {
         return this.asset;
     }    
+	
+	public javax.swing.ImageIcon getIcon()
+	{
+		return this.icon;
+	}	
 }

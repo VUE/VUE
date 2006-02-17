@@ -30,7 +30,7 @@ package tufts.vue;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.36 $ / $Date: 2006-01-20 20:06:48 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2006-02-17 20:24:58 $ / $Author: jeff $
  * @author  akumar03
  */
 import java.util.Properties;
@@ -130,4 +130,9 @@ public interface Resource
      */
     public JComponent getPreview();
       
+    /**
+		* Get preview of the object such as thummbnail, small sized image or web-page
+     *that can be displayed in the bowser.
+     */
+    public javax.swing.ImageIcon getIcon();
 }

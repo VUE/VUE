@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.46 $ / $Date: 2006-01-23 16:07:17 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2006-02-17 20:24:58 $ / $Author: jeff $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -60,6 +60,8 @@ public class VueDragTree extends JTree
     private static  ImageIcon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
     private static ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
     private static  ImageIcon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
+	private javax.swing.JPanel previewPanel = null;
+	private tufts.vue.gui.DockWindow previewDockWindow = null;
     
     public VueDragTree(Object  obj, String treeName) {
         setModel(createTreeModel(obj, treeName));
@@ -72,6 +74,25 @@ public class VueDragTree extends JTree
         
        this. getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
        resourceSelection = VUE.getResourceSelection();
+        addTreeSelectionListener(this);
+    }
+    
+    public VueDragTree(Object  obj, 
+					   String treeName, 
+					   tufts.vue.gui.DockWindow previewDockWindow,
+					   javax.swing.JPanel previewPanel) {
+        setModel(createTreeModel(obj, treeName));
+        this.setRootVisible(true);
+        this.expandRow(0);
+        this.expandRow(1);
+        this.setRootVisible(false);
+        implementDrag(this);
+        createPopupMenu();
+		this.previewPanel = previewPanel;
+		this.previewDockWindow = previewDockWindow;
+        
+		this. getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+		resourceSelection = VUE.getResourceSelection();
         addTreeSelectionListener(this);
     }
     
@@ -240,7 +261,14 @@ public class VueDragTree extends JTree
         try {
             if(e.getPath().getLastPathComponent() != null ) {
                 resourceSelection.clear();
-                resourceSelection.add((Resource)((ResourceNode)e.getPath().getLastPathComponent()).getResource());
+				Resource resource = (Resource)((ResourceNode)e.getPath().getLastPathComponent()).getResource();
+                resourceSelection.add(resource);
+				
+				this.previewDockWindow.setVisible(true);
+				this.previewPanel.removeAll();
+				this.previewPanel.add(resource.getPreview());
+				this.previewPanel.repaint();
+				this.previewPanel.validate();
                 //resourceSelection.remove(createResource(e.getPath().getLastPathComponent()));
             }
             /**
@@ -299,8 +327,36 @@ public class VueDragTree extends JTree
                     setIcon(inactiveIcon);
                 }
             }
-            else if (leaf){ setIcon(nleafIcon);}
-            else { setIcon(activeIcon); }
+            else if (leaf) {
+				/*
+				 If we are dealing with an Asset, we can see if it has a preview
+				 */
+				if (value instanceof ResourceNode) {
+					ImageIcon i = ((ResourceNode)value).getResource().getIcon();
+					if (i == null) {
+						setIcon(nleafIcon);
+					} else {						
+						setIcon(i);
+					}
+				} else {
+					setIcon(nleafIcon);
+				}
+			}
+            else { 
+				/*
+				 If we are dealing with an Asset, we can see if it has a preview
+				 */
+				if (value instanceof ResourceNode) {
+					Icon i = ((ResourceNode)value).getResource().getIcon();
+					if (i == null) {
+						setIcon(activeIcon);
+					} else {
+						setIcon(i);
+					}
+				} else {
+					setIcon(activeIcon); 
+				}
+			}
             return this;
         }
         
@@ -427,8 +483,7 @@ class ResourceNode extends DefaultMutableTreeNode {
     public ResourceNode(Resource resource) {
         
         this.resource = resource;
-        setUserObject(resource);
-        
+        setUserObject(resource);        
     }
     public Resource getResource() {
         return resource;

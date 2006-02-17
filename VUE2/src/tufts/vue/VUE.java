@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.329 $ / $Date: 2006-02-15 17:45:51 $ / $Author: jeff $ 
+ * @version $Revision: 1.330 $ / $Date: 2006-02-17 20:24:58 $ / $Author: jeff $ 
  */
 
 public class VUE
@@ -309,6 +309,7 @@ public class VUE
 	private static DockWindow searchDock;
 	private static DockWindow browseDock;
 	private static DockWindow savedResourcesDock;
+	private static DockWindow previewDock;
 
     //-----------------------------------------------------------------------------
     //public static final boolean TUFTS = VueResources.getBool("application.features.tufts");
@@ -437,7 +438,8 @@ public class VUE
         if (SKIP_DR == false && DR_BROWSER != null)
             DR_BROWSER.loadDataSourceViewer(searchDock,
 											browseDock,
-											savedResourcesDock);
+											savedResourcesDock,
+											previewDock);
         
         //Preferences p = Preferences.userNodeForPackage(VUE.class);
         //p.put("DRBROWSER.RUN", "yes, it has");
@@ -598,7 +600,7 @@ public class VUE
 //		Dimension startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
 //											tufts.vue.gui.DockWindow.getMaxContentHeight());        
 		Dimension startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
-											300);        
+											100);        
 		JPanel searchPanel = new JPanel();
 		searchPanel.setBackground(Color.white);
 		searchPanel.setLayout(new BorderLayout());
@@ -617,6 +619,8 @@ public class VUE
 			LocalFileDataSource localFileDataSource = new LocalFileDataSource("My Computer","");
 			browsePanel.setBackground(Color.white);
 			browsePanel.setLayout(new BorderLayout());
+			startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
+												300);        
 			browsePanel.setPreferredSize(startSize);
 			JComponent comp = localFileDataSource.getResourceViewer();
 			comp.setVisible(true);
@@ -637,6 +641,17 @@ public class VUE
 		savedResourcesPanel.add(new JLabel("saved resources"));
 		
         //-----------------------------------------------------------------------------
+        // Preview Dock Window
+        //-----------------------------------------------------------------------------
+		
+        previewDock = GUI.createDockWindow("Preview");
+		
+		JPanel previewPanel = new JPanel();
+		previewPanel.setBackground(Color.white);
+		previewPanel.setPreferredSize(startSize);
+		previewPanel.add(new JLabel("no preview"));
+		
+        //-----------------------------------------------------------------------------
         // Data Source Viewer
         //-----------------------------------------------------------------------------
 		
@@ -644,12 +659,14 @@ public class VUE
         DR_BROWSER = new DRBrowser(true,
 								   searchDock,
 								   browseDock,
-								   savedResourcesDock);
+								   savedResourcesDock,
+								   previewDock);
         DockWindow drBrowserDock = GUI.createDockWindow("Resources", DR_BROWSER);
 		
 		drBrowserDock.setStackOwner(true);
 		drBrowserDock.addChild(searchDock);
 		drBrowserDock.addChild(browseDock);
+		drBrowserDock.addChild(previewDock);
 		drBrowserDock.addChild(savedResourcesDock);
 		
 		searchDock.add(searchPanel);
@@ -660,6 +677,9 @@ public class VUE
 
 		savedResourcesDock.add(savedResourcesPanel);
 		savedResourcesDock.setRolledUp(true);
+
+		previewDock.add(previewPanel);
+		previewDock.setRolledUp(true);
 
         //-----------------------------------------------------------------------------
         // Map Inspector

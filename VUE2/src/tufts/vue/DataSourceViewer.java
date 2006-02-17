@@ -90,7 +90,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 	static DockWindow searchDockWindow;
 	static DockWindow browseDockWindow;
 	static DockWindow savedResourcesDockWindow;
+	static DockWindow previewDockWindow;
 	DockWindow resultSetDockWindow;
+	JPanel previewPanel = null;
 	
 	static edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
 	static edu.tufts.vue.dsm.DataSource dataSources[];
@@ -98,17 +100,14 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 	static edu.tufts.vue.fsm.QueryEditor queryEditor;
 	private edu.tufts.vue.fsm.SourcesAndTypesManager sourcesAndTypesManager;
 
-    private String resultSetColumnHeads[] = new String[4];
-    private javax.swing.table.DefaultTableModel resultSetTableModel = null;
-    //private VueDragTable resultSetTable = null;
-	private java.awt.Dimension resultSetPanelDimensions = new java.awt.Dimension(450,240);
-    private javax.swing.JScrollPane resultSetTableJSP = null;
-	private java.util.Vector resultSetColumnIdVector = new java.util.Vector();
+	private java.awt.Dimension resultSetPanelDimensions = new java.awt.Dimension(400,200);
 	private javax.swing.JPanel resultSetPanel = new javax.swing.JPanel();
 
 	org.osid.shared.Type searchType = new edu.tufts.vue.util.Type("mit.edu","search","keyword");
 	org.osid.shared.Type thumbnailType = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
 	ImageIcon noImageIcon;
+	
+	private org.osid.OsidContext context = new org.osid.OsidContext();
 	
 	edu.tufts.vue.dsm.Registry registry;
 	org.osid.registry.Provider checked[];
@@ -116,11 +115,13 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     public DataSourceViewer(DRBrowser drBrowser,
 							DockWindow searchDWindow,
 							DockWindow browseDWindow,
-							DockWindow savedResourcesDWindow) {
+							DockWindow savedResourcesDWindow,
+							DockWindow previewDWindow) {
         
 		searchDockWindow = searchDWindow;
 		browseDockWindow = browseDWindow;
         savedResourcesDockWindow = savedResourcesDWindow;
+		previewDockWindow = previewDWindow;
 		
 		setLayout(new BorderLayout());
         setBorder(new TitledBorder("Libraries"));
@@ -143,12 +144,14 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 		queryEditor = federatedSearchManager.getQueryEditorForType(new edu.tufts.vue.util.Type("mit.edu","search","keyword"));
 		queryEditor.addSearchListener(this);
 		((JPanel)queryEditor).setBackground(VueResources.getColor("FFFFFF"));
-		((JPanel)queryEditor).setSize(new Dimension(400,400));
-		((JPanel)queryEditor).setPreferredSize(new Dimension(400,400));
-		((JPanel)queryEditor).setMinimumSize(new Dimension(400,400));
+		((JPanel)queryEditor).setSize(new Dimension(100,100));
+		((JPanel)queryEditor).setPreferredSize(new Dimension(100,100));
+		((JPanel)queryEditor).setMinimumSize(new Dimension(100,100));
 		searchDockWindow.add((JPanel)queryEditor);
 		//searchDockWindow.setVisible(true);
 		searchDockWindow.setRolledUp(true);
+		
+		this.previewPanel = previewDockWindow.getWidgetPanel();
 
 		initResultSetDockWindow();
 		
@@ -597,42 +600,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 	
 	private void initResultSetDockWindow()
 	{
-		// layout result set panel
-		resultSetColumnHeads[0] = "Preview";
-		resultSetColumnHeads[1] = "Name";
-		resultSetColumnHeads[2] = "Type";
-		resultSetColumnHeads[3] = "Repository";
-		resultSetTableModel = new javax.swing.table.DefaultTableModel(resultSetColumnHeads,0);
-//		resultSetTable = new VueDragTable(resultSetTableModel);
-
-//		resultSetTableJSP = new javax.swing.JScrollPane(resultSetTable);
-		resultSetTableJSP = new javax.swing.JScrollPane(new javax.swing.JPanel());
-//		resultSetTableJSP.setSize(resultSetPanelDimensions);
-//		resultSetTableJSP.setMaximumSize(resultSetPanelDimensions);
-		resultSetTableJSP.setPreferredSize(resultSetPanelDimensions);
-		if (GUI.isMacAqua()) {
-			resultSetTableJSP.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-			resultSetTableJSP.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 
-		}
-		resultSetPanel.add(resultSetTableJSP);
-		
-		int numColumns = resultSetTableModel.getColumnCount();
-		for (int i=0; i < numColumns; i++)
-		{
-			resultSetColumnIdVector.addElement(resultSetTableModel.getColumnName(i));
-		}
-		resultSetDockWindow = GUI.createDockWindow("Search Results", resultSetPanel);
-		resultSetDockWindow.setLocation(200,200);
-		
-//		resultSetTable.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
-//		resultSetTable.setRowHeight(80);
-		noImageIcon = VueResources.getImageIcon("NoImage");
-	}
-	
-	private void clearResults()
-	{
-		int numRows = resultSetTableModel.getRowCount()-1;
-		for (int i=numRows; i >= 0; i--) resultSetTableModel.removeRow(i);
 	}
 	
 	private ImageIcon getThumbnail(org.osid.repository.Asset asset)
@@ -663,9 +630,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 		VUE.activateWaitCursor();
 		
 		try {
-			//do we remove old search results?  For now, always
-			clearResults();
-			
 			// do we want to build this each time, maybe
 			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
 			java.util.Vector repositoryIdStringVector = new java.util.Vector();
@@ -681,27 +645,32 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 			edu.tufts.vue.fsm.ResultSetManager resultSetManager = federatedSearchManager.getResultSetManager(searchCriteria,
 																											 searchType,
 																											 searchProperties);
+            java.util.Vector results = new java.util.Vector();
 			org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets();
-			String data[] = new String[4];
-			java.util.Vector dataVector = new java.util.Vector();
 			while (assetIterator.hasNextAsset()) {
-				org.osid.repository.Asset asset = assetIterator.nextAsset();
-                java.util.Vector rowVector = new java.util.Vector();
-				rowVector.addElement(getThumbnail(asset));
-				rowVector.addElement(asset.getDisplayName());
-				rowVector.addElement(edu.tufts.vue.util.Utilities.typeToString(asset.getAssetType()));
-				rowVector.addElement(asset); // does not show in table since it is off the right of the table
-				String repositoryIdString = asset.getRepository().getIdString();
-				rowVector.addElement(repositoryDisplayNameVector.elementAt(repositoryIdStringVector.indexOf(repositoryIdString)));
-				dataVector.addElement(rowVector);
+				results.addElement(new Osid2AssetResource(assetIterator.nextAsset(),this.context));
 			}			
-			resultSetTableModel.setDataVector(dataVector,resultSetColumnIdVector);
-			
+			VueDragTree resultSetTree = new VueDragTree(results.iterator(),
+														"Repository Search Results",
+														this.previewDockWindow,
+														this.previewPanel);
+            resultSetTree.setRootVisible(false);
+		
+			javax.swing.JScrollPane resultSetTreeJSP = new javax.swing.JScrollPane(resultSetTree);
+			resultSetTreeJSP.setPreferredSize(resultSetPanelDimensions);
+			if (GUI.isMacAqua()) {
+				resultSetTreeJSP.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+				resultSetTreeJSP.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 
+			}
+			DockWindow resultSetDockWindow = GUI.createDockWindow("Search Results " + queryEditor.getSearchDisplayName(), resultSetTreeJSP);
+			searchDockWindow.addChild(resultSetDockWindow);
 			resultSetDockWindow.setVisible(true);
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+		
 		VUE.clearWaitCursor();
+		searchDockWindow.setRolledUp(true);
 	}
 	
 	

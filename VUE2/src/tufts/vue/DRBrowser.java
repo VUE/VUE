@@ -26,7 +26,7 @@ import tufts.vue.gui.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.35 $ / $Date: 2006-02-15 17:45:51 $ / $Author: jeff $ 
+ * @version $Revision: 1.36 $ / $Date: 2006-02-17 20:24:57 $ / $Author: jeff $ 
  */
 public class DRBrowser extends JPanel {
     public static DataSourceViewer dsViewer = null;
@@ -39,7 +39,8 @@ public class DRBrowser extends JPanel {
     public DRBrowser(boolean delayedLoading,
 					 DockWindow searchDWindow,
 					 DockWindow browseDWindow,
-					 DockWindow savedResourcesDWindow)
+					 DockWindow savedResourcesDWindow,
+					 DockWindow previewDWindow)
     {
         Dimension startSize = new Dimension(400,240);
         // todo: move this size setting to VUE app init
@@ -57,12 +58,14 @@ public class DRBrowser extends JPanel {
         } else {
             loadDataSourceViewer(searchDWindow,
 								 browseDWindow,
-								 savedResourcesDWindow);
+								 savedResourcesDWindow,
+								 previewDWindow);
         }
     }
     
     public DRBrowser() {
         this(false,
+			 null,
 			 null,
 			 null,
 			 null);
@@ -75,13 +78,15 @@ public class DRBrowser extends JPanel {
 	
     public void loadDataSourceViewer(DockWindow searchDWindow,
 									 DockWindow browseDWindow,
-									 DockWindow savedResourcesDWindow)
+									 DockWindow savedResourcesDWindow,
+									 DockWindow previewDWindow)
     {
         try {
             DataSourceViewer dsv = new DataSourceViewer(this,
 														searchDWindow,
 														browseDWindow,
-														savedResourcesDWindow);
+														savedResourcesDWindow,
+														previewDWindow);
             dsv.setName("Data Source Viewer"); 
             if (dsViewer == null) {
                 // set the statics to the first initialized DRBrowser only
