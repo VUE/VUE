@@ -137,6 +137,13 @@ java.awt.event.ActionListener
         //advancedSearchPanel.add(advancedSearchButton,BorderLayout.SOUTH);
 	}
 	
+	// return the criteria, no longer than 20 characters worth
+	public String getSearchDisplayName() {
+		String s =  (String)getCriteria();
+		if (s.length() > 20) s = s.substring(0,20) + "...";
+		return s;
+	}
+	
 	public void actionPerformed(java.awt.event.ActionEvent ae) {
 		this.criteria = partField.getText() + "::" + valueField.getText();
 	}

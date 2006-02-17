@@ -43,9 +43,9 @@ java.awt.event.ActionListener
 			gbConstraints.insets = new java.awt.Insets(2,2,2,2);
 			setLayout(gbLayout);
 	
-			setSize(new java.awt.Dimension(400,200));
-			setPreferredSize(new java.awt.Dimension(400,200));
-			setMinimumSize(new java.awt.Dimension(400,200));
+			setSize(new java.awt.Dimension(100,100));
+			setPreferredSize(new java.awt.Dimension(100,100));
+			setMinimumSize(new java.awt.Dimension(100,100));
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy = 0;
@@ -64,6 +64,7 @@ java.awt.event.ActionListener
 			gbConstraints.gridx = 1;
 			gbConstraints.gridy = 0;
 			add(field,gbConstraints);
+			field.addActionListener(this);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy = 1;
@@ -121,5 +122,12 @@ java.awt.event.ActionListener
 	
 	public void setProperties(org.osid.shared.Properties searchProperties) {
 		this.searchProperties = searchProperties;
+	}
+
+	public String getSearchDisplayName() {
+		// return the criteria, no longer than 20 characters worth
+		String s =  (String)getCriteria();
+		if (s.length() > 20) s = s.substring(0,20) + "...";
+		return s;
 	}
 }
