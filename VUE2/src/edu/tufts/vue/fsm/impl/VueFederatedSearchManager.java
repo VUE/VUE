@@ -70,6 +70,9 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 			db = dbf.newDocumentBuilder();
 
 			java.io.File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
+			if (!userFolder.exists()) {
+				userFolder.mkdir();
+			}
 			this.xmlFilename = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("extensionsSaveToXmlFilename");
 			java.io.File file = new java.io.File(this.xmlFilename);
             if (!file.exists()) {

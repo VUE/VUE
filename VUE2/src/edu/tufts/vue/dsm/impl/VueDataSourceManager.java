@@ -70,6 +70,9 @@ implements edu.tufts.vue.dsm.DataSourceManager
 		 If there is no InstalledDataSources file or no Extensions file, create them
 		 */
 		try {
+			if (!userFolder.exists()) {
+				userFolder.mkdir();
+			}
 			javax.xml.parsers.DocumentBuilderFactory dbf = null;
 			javax.xml.parsers.DocumentBuilder db = null;
 			org.w3c.dom.Document document = null;
