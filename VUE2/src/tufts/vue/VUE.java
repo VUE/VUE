@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.331 $ / $Date: 2006-02-18 00:51:04 $ / $Author: sfraize $ 
+ * @version $Revision: 1.332 $ / $Date: 2006-02-18 01:21:19 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -560,7 +560,7 @@ public class VUE
         
         if (true) {
             //toolbarDock = GUI.createToolbar(VueResources.getString("tbWindowName"), tbc.getToolbar());
-            toolbarDock = GUI.createToolbar("Map Tools", tbc.getToolbar().getMainToolbar());
+            toolbarDock = GUI.createToolbar("Toolbar", tbc.getToolbar().getMainToolbar());
         } else {
             ApplicationFrame.addComp(tbc.getToolbar(), BorderLayout.NORTH);
             // buildToolbar()
@@ -871,6 +871,10 @@ public class VUE
         // can show after split adjust on mac
         if (Util.isMacPlatform())
             ApplicationFrame.setVisible(true);
+
+        toolbarDock.suggestLocation(0,0);
+        toolbarDock.setWidth(GUI.GScreenWidth);
+        toolbarDock.setVisible(true);
 
         //-----------------------------------------------------------------------------
         //
