@@ -20,7 +20,7 @@ import java.awt.*;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-01-28 23:04:54 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-02-18 02:56:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX
@@ -295,10 +295,14 @@ public class MacOSX
         final NSWindow NSparent = getWindow(parent);
         final NSWindow NSchild = getWindow(child);
 
-        dumpWindows();
+        if (NSparent == null || NSchild == null)
+            return;
+
+        //dumpWindows();
 
         if (true) {
             NSchild.orderWindow(NSWindow.Above, NSparent.windowNumber());
+            NSchild.orderFront("source");
             if (DEBUG) out("Ordered " + child + " over " + parent);
         } else {
             // This doesn't help our last-window-detached-from-a-parent
@@ -307,7 +311,7 @@ public class MacOSX
             if (DEBUG) out("Ordered " + parent + " under " + child);
         }
 
-        dumpWindows();
+        //dumpWindows();
         
     }
     
@@ -347,12 +351,18 @@ public class MacOSX
      * no shadow.
      */
     public static void setTransparent(Window w) {
-        NSWindow nsw = getWindow(w);
-        if (nsw != null) {
-            nsw.setBackgroundColor(NSColor.blackColor().colorWithAlphaComponent(0.0f));
-            //nsw.setBackgroundColor(NSColor.blackColor().colorWithAlphaComponent(0.1f));
-            //nsw.setBackgroundColor(NSColor.whiteColor().colorWithAlphaComponent(0.5f));
-            nsw.setOpaque(false);
+        try {
+            NSWindow nsw = getWindow(w);
+            if (nsw != null) {
+                nsw.setBackgroundColor(NSColor.blackColor().colorWithAlphaComponent(0.0f));
+                //nsw.setBackgroundColor(NSColor.blackColor().colorWithAlphaComponent(0.1f));
+                //nsw.setBackgroundColor(NSColor.whiteColor().colorWithAlphaComponent(0.5f));
+                nsw.setOpaque(false);
+            }
+        } catch (LinkageError e) {
+            eout(e);
+        } catch (Throwable t) {
+            System.err.println("setTransparent " + w + "; " + t);
         }
     }
     
@@ -374,9 +384,13 @@ public class MacOSX
      * (unless it's a Frame), and is mainly for debug tracking.
      */
     public static void setTitle(Window w, String title) {
-        NSWindow nsw = getWindow(w);
-        if (nsw != null) {
-            nsw.setTitle(title);
+        try {
+            NSWindow nsw = getWindow(w);
+            if (nsw != null) {
+                nsw.setTitle(title);
+            }
+        } catch (LinkageError e) {
+            eout(e);
         }
     }
     
