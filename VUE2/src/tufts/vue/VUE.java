@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.330 $ / $Date: 2006-02-17 20:24:58 $ / $Author: jeff $ 
+ * @version $Revision: 1.331 $ / $Date: 2006-02-18 00:51:04 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -951,7 +951,7 @@ public class VUE
         // setting them to the left of that, and then set first in
         // preShown at left edge of screen
 
-        if (DEBUG.INIT || DEBUG.DOCK) Util.printStackTrace("\n\nSTARTING PLACEMENT");
+        if (DEBUG.INIT || (DEBUG.DOCK && DEBUG.META)) Util.printStackTrace("\n\nSTARTING PLACEMENT");
         
         int top = GUI.GInsets.top;
 
