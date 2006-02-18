@@ -41,7 +41,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.4 $ / $Date: 2006-01-31 01:05:44 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2006-02-18 01:21:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -381,6 +381,8 @@ public class GUI
             DockWindow.getCollapsedHeight();
 
         //Util.printStackTrace("min="+min);
+
+        min += DockWindow.ToolbarHeight;
         
         r.y += min;
         r.height -= min;
