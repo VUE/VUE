@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.48 $ / $Date: 2006-01-30 05:45:05 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2006-02-18 02:07:33 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -54,8 +54,8 @@ public class VueToolbarController
     /** a list of available tools **/
     private VueTool[] mVueTools = null;
 	
-    /** current contextual panel **/
-    private JPanel mContextualPanel = null;
+    /* current contextual panel **/
+    //private JPanel mContextualPanel = null;
 	
     // the currently selected tool 
     private VueTool mSelectedTool = null;

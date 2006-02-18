@@ -33,11 +33,14 @@ import javax.swing.border.*;
  * The VueToolPanel is the component that holds the main VUE toolbar
  * and the contextual properties tools.
  *
- * @version $Revision: 1.25 $ / $Date: 2006-01-30 05:45:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.26 $ / $Date: 2006-02-18 02:07:33 $ / $Author: sfraize $ 
  *
  **/
 public class VueToolPanel extends JPanel
 {
+    // when we can set this to false, we can get rid of this class.
+    public static final boolean IS_CONTEXTUAL_TOOLBAR_ENABLED = true;
+    
     /** the panel where the main tools are placed **/
     private JComponent mMainToolBar = null;
 	
@@ -72,6 +75,7 @@ public class VueToolPanel extends JPanel
             GUI.applyToolbarColor(this);
 		
         setLayout( new BorderLayout() );
+        setOpaque(false);
         if (GUI.isMacBrushedMetal())
             setBorder(new EmptyBorder(0,3,2,10));//tlbr
         else
@@ -213,7 +217,7 @@ public class VueToolPanel extends JPanel
     private JPanel mPanelContent;
     void setContextualToolPanel(JPanel pPanel) {
 
-        if (true) return;
+        if (IS_CONTEXTUAL_TOOLBAR_ENABLED == false) return;
         
         if (mPanelContent == pPanel)
             return;

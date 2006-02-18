@@ -115,6 +115,7 @@ public class LWCToolPanel extends JPanel
              setBackground(Color.blue);
          else
              GUI.applyToolbarColor(this);
+         setOpaque(false);
          
          mBox = Box.createHorizontalBox();
          GUI.applyToolbarColor(mBox);

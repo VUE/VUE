@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.332 $ / $Date: 2006-02-18 01:21:19 $ / $Author: sfraize $ 
+ * @version $Revision: 1.333 $ / $Date: 2006-02-18 02:07:33 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -560,7 +560,10 @@ public class VUE
         
         if (true) {
             //toolbarDock = GUI.createToolbar(VueResources.getString("tbWindowName"), tbc.getToolbar());
-            toolbarDock = GUI.createToolbar("Toolbar", tbc.getToolbar().getMainToolbar());
+            if (VueToolPanel.IS_CONTEXTUAL_TOOLBAR_ENABLED)
+                toolbarDock = GUI.createToolbar("Toolbar", tbc.getToolbar());
+            else
+                toolbarDock = GUI.createToolbar("Toolbar", tbc.getToolbar().getMainToolbar());
         } else {
             ApplicationFrame.addComp(tbc.getToolbar(), BorderLayout.NORTH);
             // buildToolbar()
@@ -716,9 +719,12 @@ public class VUE
 
         // GUI.createDockWindow("Font").add(new FontEditorPanel()); // just add automatically?
 
-        final DockWindow fontDock = GUI.createToolbar("Font", new FontPropertyPanel());
-        final DockWindow linkDock = GUI.createToolbar("Link", new LinkPropertyPanel());
-        final DockWindow actionDock = GUI.createToolbar("Actions", new VueActionBar());
+        //final DockWindow fontDock = GUI.createToolbar("Font", new FontPropertyPanel());
+        //final DockWindow linkDock = GUI.createToolbar("Link", new LinkPropertyPanel());
+        //final DockWindow actionDock = GUI.createToolbar("Actions", new VueActionBar());
+        final DockWindow fontDock = null;
+        final DockWindow linkDock = null;
+        final DockWindow actionDock = null;
 
         //fontDock.setResizeEnabled(false);
         //linkDock.setResizeEnabled(false);
@@ -727,7 +733,7 @@ public class VUE
         
         //fontDock.setChild(linkDock);
 
-        fontDock.setLowerRightCorner(GUI.GScreenWidth, GUI.GScreenHeight);
+        //fontDock.setLowerRightCorner(GUI.GScreenWidth, GUI.GScreenHeight);
         
         //=============================================================================
         //
