@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.18 $ / $Date: 2006-02-18 02:06:48 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2006-02-18 02:25:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1917,8 +1917,16 @@ public class DockWindow extends javax.swing.JWindow
                 continue;
 
             Rectangle bounds = dw.getBounds();
-            if (bounds.contains(mouseX, mouseY))
-                return dw;
+            if (bounds.contains(mouseX, mouseY)) {
+                
+                if (hasDescendant(dw)) {
+                    // This can happen if stickiness has moved as stack up,
+                    // and the mouse is now over a child of the mover.
+                    ; // -- don't allow attachment
+                } else {
+                    return dw;
+                }
+            }
 
             // if our window is also sitting just below the
             // other window (probably via stickyness), also
