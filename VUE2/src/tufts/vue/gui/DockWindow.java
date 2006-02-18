@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.19 $ / $Date: 2006-02-18 02:25:19 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2006-02-18 15:00:04 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2261,8 +2261,8 @@ public class DockWindow extends javax.swing.JWindow
 
         if (near != null) {
 
-            if (near == mChild) {
-                out("can't drop a parent onto it's child: " + mChild);
+            if (hasDescendant(near)) {
+                VUE.Log.error("can't drop a parent onto a descendant: " + near);
             } else {
                 near.setChild(this);
             }
