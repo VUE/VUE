@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.2 $ / $Date: 2006-02-16 19:05:00 $ / $Author: jeff $
+ * @version $Revision: 1.3 $ / $Date: 2006-02-18 12:59:42 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -49,6 +49,7 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 	{
         super(VUE.getDialogParentAsFrame(),"INFO",true);
 		try {
+			this.dataSource = dataSource;
 			repository = dataSource.getRepository();
 			
 			getLibraryInfoPanel.setBackground(VueResources.getColor("White"));
@@ -56,7 +57,6 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 			
 			okButton.addActionListener(this);			
 			buttonPanel.add(okButton);
-			okButton.setBackground(VueResources.getColor("Orange")); //TODO:  Why is this BLUE??
 			getRootPane().setDefaultButton(okButton);
 			
 			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -128,6 +128,8 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
+			System.out.println("Data Source1 " + dataSource);
+			System.out.println("creatpr " + dataSource.getCreator());
 			getLibraryInfoPanel.add(new javax.swing.JLabel("Creator"),gbConstraints);
 			
 			gbConstraints.gridx = 1;
