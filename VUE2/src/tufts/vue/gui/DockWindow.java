@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.15 $ / $Date: 2006-02-17 23:01:01 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2006-02-18 00:50:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -66,6 +66,8 @@ public class DockWindow extends javax.swing.JWindow
     final static java.util.List sAllWindows = new java.util.ArrayList();
 
     private final static int ToolbarHeight = 37;
+    private final static boolean MacWindowShadowEnabled = false;
+    private static Border WindowBorder;
     
     static DockRegion TopDock;
     static DockRegion BottomDock;
@@ -280,10 +282,16 @@ public class DockWindow extends javax.swing.JWindow
         }
 
         CollapsedHeightVisible = TitleHeight;
+
+        WindowBorder = makeWindowBorder();
         
-        if (getWindowBorder() != null) {
-            Insets bi = getWindowBorder().getBorderInsets(null);
-            CollapsedHeightVisible += bi.top + bi.bottom - 2;
+        if (WindowBorder != null) {
+            Insets bi = WindowBorder.getBorderInsets(null);
+            CollapsedHeightVisible += bi.top + bi.bottom;
+            if (isMacAqua) // overlap by one pixel
+                CollapsedHeightVisible -= 1;
+            else // overlap by 2 pixels
+                CollapsedHeightVisible -= 2;
             if (!isMacAquaMetal)
                 CollapsedHeight += bi.top + bi.bottom;
         }
@@ -341,16 +349,21 @@ public class DockWindow extends javax.swing.JWindow
     }
 
     /** @return a border, if any, for the entire DockWindow (null if none) */
-
     private static Border getWindowBorder() {
+        return WindowBorder;
+    }
 
-        //if (isMacAqua && !isMacAquaMetal) {
-        if (isMacAqua) {
+    private static Border makeWindowBorder() {
+
+        if (isMacAqua && (MacWindowShadowEnabled || isMacAquaMetal)) {
             return null; // no border on MacOSX at all for now: rely on native shadowing
         } else {
-            if (false && isMacAqua) {
-                //return new LineBorder(sBottomEdgeColor);
-                return new BevelBorder(BevelBorder.RAISED, Color.lightGray, Color.gray);
+            if (isMacAqua) {
+                if (DEBUG.BOXES)
+                    return new LineBorder(Color.green);
+                else
+                    return new LineBorder(sBottomEdgeColor);
+                //return new BevelBorder(BevelBorder.RAISED, Color.lightGray, Color.gray);
             } else {
 
                 // For Windows:
@@ -547,28 +560,6 @@ public class DockWindow extends javax.swing.JWindow
             mContentPane.setPreferredSize(new Dimension(getPreferredSize().width,
                                                         ToolbarHeight));
         }
-        
-        /*
-        if (Util.getJavaVersion() >= 1.5f && getParent() == HiddenParentFrame) {
-            Util.invoke(this, "setAlwaysOnTop", Boolean.TRUE);
-        }
-        */
-
-        /*
-        if (isMac && getWindowBorder() != null) {
-            // let us look at no shadow example for now: in metal we add our own anyway
-            MacOSX.setShadow(this, false);
-        }
-        */
-
-        //Util.printStackTrace(this + " addNotify completed");
-
-        /*
-        if (isMacAquaMetal && Util.getJavaVersion() < 1.5f)
-            MacOSX.setTransparent(this);
-        */
-
-        
 
     }
 
@@ -630,7 +621,7 @@ public class DockWindow extends javax.swing.JWindow
             // which is important for MacOSX window shadow.
             // Unfrotunately, this is not full-proof, but
             // adding a call to toFront seems to have fixed this?
-            if (isMacAqua) {
+            if (isMacAqua && MacWindowShadowEnabled) {
                 GUI.invokeAfterAWT(new Runnable() { public void run() {
                     superSetVisible(true);
                     toFront();
@@ -1963,13 +1954,13 @@ public class DockWindow extends javax.swing.JWindow
         // It's okay to do this in java 1.4, as we can't be alwaysOnTop, which
         // is why this is a problem.
         
-        if (!GUI.UseAlwaysOnTop || !isMac)
-            makeOnTop();
+        if (MacWindowShadowEnabled && (!GUI.UseAlwaysOnTop || !isMac))
+            raiseStack();
                 
         return false;
     }
 
-    private void makeOnTop() {
+    private void raiseStack() {
         if (DEBUG.DOCK) out("raising my stack");
         toFront();
         raiseChildren();
@@ -2007,7 +1998,7 @@ public class DockWindow extends javax.swing.JWindow
             // better: don't raise us up if we're rolling up, but then would
             // have to do this on mouseReleased
             // TODO: is this getting repeated after interceptMousePress?
-            makeOnTop();
+            raiseStack();
         }
 
         // update screen size, insets, etc for window dragging constraints.
@@ -2046,54 +2037,12 @@ public class DockWindow extends javax.swing.JWindow
         setSize(newWidth, newHeight);
 
     }
-
+    
     private void dragMoveWindow(MouseEvent e)
     {
         if (mWindowDragUnderway == false) {
-
-            //---------------------------------
-            // We're just starting the drag
-            //---------------------------------
-            
-            Point screen = e.getPoint();
-            screen.translate(getX(), getY());
-            
-            int dx = screen.x - mDragStartScreen.x;
-            int dy = screen.y - mDragStartScreen.y;
-            
-            if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
-                if (DEBUG.MOUSE) out("delaying drag start with dx="+dx + " dy="+dy + " screen=" + screen);
+            if (!dragStartWindowMove(e))
                 return;
-            }
-            
-            mWindowDragUnderway = true;
-
-            repaintTitle();
-
-            if (isStackTop())
-                mMovingStackHeight = getStackHeight();
-            else
-                mMovingStackHeight = 0;
-
-            //if (isMacAqua) MacOSX.setAlpha(this, 0.75f);
-
-            if (e.isShiftDown()) {
-                // remove from any stack it's in and drag free
-                if (mParent != null)
-                    mParent.removeChild();
-                if (mChild != null)
-                    setChild(null);
-            } else {
-                if (isMac) {
-                    // window drag begins: attach (via OSX) all children to the parent
-                    // being dragged if we're on the mac
-                    attachChildrenForMoving(this);
-                    
-                    if (e.isAltDown())
-                        attachSiblingsForMoving();
-
-                }
-            }
         }
 
         int x = e.getX() + getX() - mDragStart.x;
@@ -2102,6 +2051,73 @@ public class DockWindow extends javax.swing.JWindow
         boolean relaxed = e.isShiftDown();
 
         setLocationConstrained(x, y, relaxed);
+    }
+
+    /** @return true if the drag has actually started */
+    private boolean dragStartWindowMove(MouseEvent e)
+    {
+        //---------------------------------
+        // We're just starting the drag
+        //---------------------------------
+            
+        Point screen = e.getPoint();
+        screen.translate(getX(), getY());
+            
+        int dx = screen.x - mDragStartScreen.x;
+        int dy = screen.y - mDragStartScreen.y;
+            
+        if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
+            if (DEBUG.MOUSE) out("delaying drag start with dx="+dx + " dy="+dy + " screen=" + screen);
+            return false;
+        }
+            
+        if (isMac) {
+            // Make sure we're all on top, otherwise can get wierd effects such as free-floating
+            // DockWindow's "slicing" in between our stack windows if it happens to have a MacOSX
+            // z-order in between two of our children.
+
+            // Children can go behind VUE window as soon as mouse goes down, which should
+            // be impossible... This is because of our MacOSX child window associations during
+            // drag.  So when a stack as dropped, we always raise it after the windows
+            // are MacOSX dissasociated.
+
+            // We need to raise them again here, because if some OTHER DockWindow was MacOSX
+            // "activated" (clicked on), it's z-order may just happen to wind up smack in the
+            // middle of our stack, which will show up as slicing thru our stack during the drag.
+                
+            raiseStack();
+        }
+
+        mWindowDragUnderway = true;
+
+        repaintTitle();
+
+        if (isStackTop())
+            mMovingStackHeight = getStackHeight();
+        else
+            mMovingStackHeight = 0;
+
+        //if (isMacAqua) MacOSX.setAlpha(this, 0.75f);
+
+        if (e.isShiftDown()) {
+            // remove from any stack it's in and drag free
+            if (mParent != null)
+                mParent.removeChild();
+            if (mChild != null)
+                setChild(null);
+        } else {
+            if (isMac) {
+                // window drag begins: attach (via OSX) all children to the parent
+                // being dragged if we're on the mac
+                attachChildrenForMoving(this);
+                    
+                if (e.isAltDown())
+                    attachSiblingsForMoving();
+
+            }
+        }
+
+        return true;
     }
     
     
@@ -2274,6 +2290,9 @@ public class DockWindow extends javax.swing.JWindow
             // because java thinks it needs to be moved when it really doesn't?
                 
             detachChildrenForMoving(this);
+            
+            // This is CRUCIAL to restore z-ordering based on proper java window parentage
+            raiseStack();
         }
 
         updateWindowShadow();
@@ -2325,6 +2344,12 @@ public class DockWindow extends javax.swing.JWindow
 
     private void updateWindowShadow() {
         if (isMacAqua) {
+
+            if (!MacWindowShadowEnabled) {
+                setWindowShadow(false);
+                return;
+            } 
+            
             if (DEBUG.DOCK) out("updateWindowShadow: docked=" + isDocked() + " rolled=" + isRolledUp());
 
             boolean hideShadow =
@@ -2365,15 +2390,6 @@ public class DockWindow extends javax.swing.JWindow
      * @return "this" DockWindow, for chaining calls to addChild
      */
     public DockWindow addChild(DockWindow newChild) {
-        /*
-        if (getStackTop().isStackOwner) {
-            newChild.pack();
-            Dimension ps = newChild.getSize();
-            ps.width = getStackTop().getWidth();
-            newChild.setPreferredSize(ps);
-            //newChild.setSize(ps);
-        }
-        */
         getStackBottom().setChild(newChild, true);
         return this;
     }
@@ -2685,8 +2701,13 @@ public class DockWindow extends javax.swing.JWindow
         if (isMac && mChild != null) {
             //GUI.invokeAfterAWT(new Runnable() { public void run() {
                 MacOSX.removeChildWindow(topOfWindowStack, mChild);
-                mChild.toFront(); // keep on top of shadow
+                //if (MacWindowShadowEnabled)
+                // BE SURE TO RESTORE Z-ORDER OVER PROPER JAVA  PARENT
+                // (also keeps on top of shadow)
+                //mChild.toFront(); 
                 //}});
+                // Don't do this here, as this only hits children
+                // in stack: we need the whole stack, including top.
             
             
             mChild.detachChildrenForMoving(topOfWindowStack);
