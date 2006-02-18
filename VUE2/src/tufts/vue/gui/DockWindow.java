@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.17 $ / $Date: 2006-02-18 01:20:48 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2006-02-18 02:06:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2350,7 +2350,7 @@ public class DockWindow extends javax.swing.JWindow
     
 
     private void updateWindowShadow() {
-        if (isMacAqua) {
+        if (isMac) {
 
             if (!MacWindowShadowEnabled) {
                 setWindowShadow(false);
