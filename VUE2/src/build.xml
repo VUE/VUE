@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.83 $ / $Date: 2006-02-21 18:35:27 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.83 2006-02-21 18:35:27 jeff Exp $ -->
+<!-- $Revision: 1.84 $ / $Date: 2006-02-21 18:44:56 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.84 2006-02-21 18:44:56 jeff Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -411,6 +411,11 @@
 -->
 
   <target name="prepare">
+  
+    <copy file="${basedir}/edu/tufts/osidimpl/repository/artifact/artifact.xml" todir="${build.class}/edu/tufts/osidimpl/repository/artifact" verbose="true"/>
+    <copy file="${basedir}/edu/tufts/osidimpl/repository/artifact/artifact_result.xml" todir="${build.class}/edu/tufts/osidimpl/repository/artifact" verbose="true"/>
+    <copy file="${basedir}/edu/tufts/osidimpl/repository/artifact/artifact_result_title.xml" todir="${build.class}/edu/tufts/osidimpl/repository/artifact" verbose="true"/>
+    <copy file="${basedir}/edu/tufts/osidimpl/repository/artifact/artifact_result_artist.htm" todir="${build.class}/edu/tufts/osidimpl/repository/artifact" verbose="true"/>
 
     <!-- Determine if Java 1.4 is available on this machine -->
     <condition property="java1.4.present"> 
