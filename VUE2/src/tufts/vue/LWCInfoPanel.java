@@ -29,7 +29,7 @@ import tufts.vue.gui.*;
 // TODO FIX: the text input fields should save value on focus loss
 
 /**
- * @version $Revision: 1.25 $ / $Date: 2006-01-31 01:07:28 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2006-02-21 22:14:41 $ / $Author: sfraize $
  */
 
 class LWCInfoPanel extends javax.swing.JPanel
@@ -77,6 +77,7 @@ class LWCInfoPanel extends javax.swing.JPanel
             labelField.setBorder(textPaneBorder);
             resourceField.setBorder(textPaneBorder);
         }
+        labelField.setEditable(false);
 
         resourceField.setEditable(false);
         resourceField.setOpaque(false);
