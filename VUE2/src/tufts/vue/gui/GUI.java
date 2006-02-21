@@ -41,7 +41,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-02-18 01:21:51 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-02-21 22:29:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -688,7 +688,7 @@ public class GUI
     }
     
     public static void setAlwaysOnTop(Window w, boolean onTop) {
-        out("setAlwaysOnTop " + onTop + " " + name(w));
+        VUE.Log.debug("setAlwaysOnTop " + onTop + " " + name(w));
         Util.invoke(w, "setAlwaysOnTop", onTop ? Boolean.TRUE : Boolean.FALSE);
     }
 
