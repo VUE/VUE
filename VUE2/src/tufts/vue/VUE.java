@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.333 $ / $Date: 2006-02-18 02:07:33 $ / $Author: sfraize $ 
+ * @version $Revision: 1.334 $ / $Date: 2006-02-21 21:19:28 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -785,6 +785,9 @@ public class VUE
         ApplicationFrame.validate();
         //if (DEBUG.INIT) out("frame validated");
 
+        ApplicationFrame.setSize((int) (GUI.GScreenWidth * 0.75),
+                                 (int) (GUI.GScreenHeight * 0.75));
+
         // MAC NOTE WITH MAXIMIZING: if Frame's current location y value
         // is less than whatever's it's maximized value is set to, maximizing
         // it will use the y value, not the max value.  True even if set
@@ -803,7 +806,8 @@ public class VUE
             ApplicationFrame.setMaximizedBounds(maxBounds);
         }
             
-        ApplicationFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
+        if (false)
+            ApplicationFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
 
         if (!SKIP_DR) {
             LWMap startupMap = null;
