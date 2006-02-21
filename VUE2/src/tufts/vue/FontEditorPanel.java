@@ -33,7 +33,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.36 $ / $Date: 2006-01-20 18:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2006-02-21 21:25:59 $ / $Author: sfraize $
  *
  */
 public class FontEditorPanel extends Box
@@ -93,6 +93,8 @@ public class FontEditorPanel extends Box
         }
         if (GUI.isMacAqua())
             mFontCombo.setBorder(new EmptyBorder(1,0,0,0));
+
+        mFontCombo.setOpaque(false);
         
         //mFontCombo.setBorder(new javax.swing.border.LineBorder(Color.green, 2));
         //mFontCombo.setBackground(Color.white); // handled by L&F tweaks in VUE.java
@@ -106,6 +108,7 @@ public class FontEditorPanel extends Box
             sFontSizes = VueResources.getStringArray("fontSizes");
         mSizeField = new JComboBox(sFontSizes);
         mSizeField.setEditable(true);
+        mSizeField.setOpaque(false);
         
         /*
         if (GUI.isMacAqua()) {
