@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.20 $ / $Date: 2006-02-18 15:00:04 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2006-02-21 21:18:53 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -187,9 +187,12 @@ public class DockWindow extends javax.swing.JWindow
 
         if (DEBUG.INIT || DEBUG.DOCK) out("constructed (child of " + GUI.name(owner) + ")");
 
-        // set a default size
-        setSize(180,100);
-        //setMinimumSize(new Dimension(180,100)); // java 1.5 only
+        if (!isToolbar) {
+            // set a default size
+            setSize(300,150);
+            //setMinimumSize(new Dimension(180,100)); // java 1.5 only
+            //setPreferredSize(new Dimension(300,150)); // interferes with height
+        }
 
         if (content != null)
             add(content);
@@ -242,7 +245,10 @@ public class DockWindow extends javax.swing.JWindow
         else
             mContentPane.add(c);
         pack();
-        setSize(minUnrolledWidth(getWidth()), getHeight());
+        int width = minUnrolledWidth(getWidth());
+        if (width < 300)
+            width = 300;
+        setSize(width, getHeight());
     }
 
     /** All DockWindow's in this DockWindow's stack show and hide with it */
@@ -796,7 +802,7 @@ public class DockWindow extends javax.swing.JWindow
     {
         final DockWindow stackTop = getStackTop();
         
-        if (stackTop.isStackOwner) {
+        if (stackTop.isStackOwner && stackTop != this) {
             if (requestedWidth < stackTop.getWidth())
                 return stackTop.getWidth();
         }
