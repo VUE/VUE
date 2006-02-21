@@ -1,0 +1,182 @@
+<!-- A "project" describes a set of targets that may be requested
+     when Ant is executed.  The "default" attribute defines the
+     target which is executed if no specific target is requested,
+     and the "basedir" attribute defines the current working directory
+     from which Ant executes the requested task.  This is normally
+     set to the current working directory.
+-->
+
+<project name="tests" default="usage" basedir=".">
+
+<!-- $Revision: 1.1 $ / $Date: 2006-02-21 18:31:56 $ -->
+
+<!-- 
+This ant build file:
+        Generates Java source from .GEN files into dist/src
+        builds from src into build/classes
+        
+-->
+
+<!-- ===================== Property Definitions =========================== -->
+<!--
+  Each of the following properties are used in the build script.
+  Values for these properties are set by the first place they are
+  defined, from the following list:
+  * Definitions on the "ant" command line (ant -Dcatalina.home=xyz compile)
+  * Definitions from a "build.properties" file in the top level
+    source directory
+  * Definitions from a "build.properties" file in the developer's
+    home directory
+  * Default definitions in this build.xml file
+
+  You will note below that property values can be composed based on the
+  contents of previously defined properties.  This is a powerful technique
+  that helps you minimize the number of changes required when your development
+  environment is modified.  Note that property composition is allowed within
+  "build.properties" files as well as in the "build.xml" script.
+  <property file="build.properties"/>
+  <property file="${user.home}/build.properties"/>
+-->
+
+<!-- ==================== File and Directory Names ======================== -->
+<!--
+  These properties generally define file and directory names (or paths) that
+  affect where the build process stores its outputs.
+-->
+  <property name="osid2.name"      value="okiOSID-2.0a" />
+  <property name="build.home"      value="${basedir}/build"/>
+  <property name="build.class"     value="${build.home}/classes" />
+  <property name="build.lib"       value="${build.home}/lib" />
+  <property name="lib.home"        value="../lib"/>
+
+<!--  ==================== Compilation Control Options ==================== -->
+<!--
+  These properties control option settings on the Javac compiler when it
+  is invoked using the <javac> task.
+
+  compile.debug        Should compilation include the debug option?
+  compile.deprecation  Should compilation include the deprecation option?
+  compile.optimize     Should compilation include the optimize option?
+-->
+  <property name="compile.debug"       value="true"/>
+  <property name="compile.deprecation" value="true"/>
+  <property name="compile.optimize"    value="false" /> 
+
+<!-- ==================== Compilation Classpath =========================== -->
+<!--
+  Rather than relying on the CLASSPATH environment variable, Ant includes
+  features that makes it easy to dynamically construct the classpath you
+  need for each compilation.
+-->
+  <path id="compile.classpath">
+    <pathelement location="${basedir}" />	
+    <pathelement location="${lib.home}" />	
+    <pathelement location="${build.class}"/>
+    <pathelement location="${lib.home}/${osid2.name}.jar" />	
+    <pathelement location="${lib.home}/id.jar" />
+    <pathelement location="${lib.home}/OsidLoggingPlain-1.0.jar" />
+    <pathelement location="${lib.home}/castor-0.9.7-xml.jar" />
+    <pathelement location="${lib.home}/xercesImpl-2.7.1.jar" />
+    <pathelement location="${lib.home}/commons-logging.jar" />
+	
+    <pathelement location="../src/build/classes" />
+    <pathelement location="../src/build/classes/edu/tufts/osidimpl/repository/artifact.ArtifactResult.class" />
+    
+    <pathelement location="${java.class.path}" />
+  </path>
+
+
+<!-- ==================== All Target ====================================== -->
+<!--
+  The "all" target is a shortcut for running the "clean" target followed 
+  by the "compile" target, to force a complete recompile.
+-->
+	<target name="usage" description="default target: show available targets">
+		<echo message="These targets are supported:" />
+		<echo message="  clean    deletes generated files" />
+		<echo message="  compile  compiles sources" />
+		<echo message="  all      perform clean, compile" />
+	</target>
+
+<!-- ==================== All Target ====================================== -->
+<!--
+  The "all" target is a shortcut for running the "clean" target followed by the 
+  "compile" target, to force a complete recompile.
+-->
+  <target name="all" depends="clean, compile"
+    description="Clean build and dist, then compile"/>
+
+
+<!-- ==================== Clean Target ==================================== -->
+<!--
+  The "clean" target deletes any previous "build" and "dist" directory,
+  so that you can be ensured the application can be built from scratch.
+-->
+
+  <target name="clean" depends="prepare">
+    <delete dir="${build.home}" />
+    <delete dir="${dist.home}" />
+  </target>
+
+
+<!-- ==================== Prepare Target ================================== -->
+<!--
+  The "prepare" target is used to create the "build" destination directory,
+  and copy the static contents of your web application to it.  If you need
+  to copy static files from external dependencies, you can customize the
+  contents of this task.
+
+  Normally, this task is executed indirectly when needed.
+-->
+
+  <target name="prepare">
+
+    <!-- Determine if Java 1.4 is available on this machine -->
+    <condition property="java1.4.present"> 
+      <equals arg1="${ant.java.version}" arg2="1.4" /> 
+    </condition>
+    
+    <!-- Set Ant batch file based on test for platform -->
+    <condition property="ant.exec" value="ant.bat"> 
+      <os family="windows"/>
+    </condition>
+    <condition property="ant.exec" value="ant"> 
+      <not>
+        <os family="windows"/>
+      </not>
+    </condition>
+    
+    <tstamp />
+  </target>
+
+<!-- ==================== Compile Target(s) ================================== -->
+<!--
+  The "compile" target transforms source files (from your "src" directory)
+  into object files in the appropriate location in the build directory.
+-->
+
+  <target name="compile" depends="prepare"
+    description="Compile Java sources">
+    <mkdir dir="${build.class}"/>
+
+    <javac srcdir="${basedir}" destdir="${build.class}"
+        debug="${compile.debug}"
+        deprecation="${compile.deprecation}"
+        optimize="${compile.optimize}"
+    >
+      <classpath refid="compile.classpath"/>
+      <include name="src/**/*.java"/>
+    </javac>
+
+  </target>
+
+<!-- ==================== Artifact Smoke Test ================================ -->
+    <target name="artifacttest" depends="compile" description="Dumps Some Artifact Repository Data" >
+        <java classname="test.repository.artifact.repositoryDump" failonerror="true" fork="true">
+      <classpath refid="compile.classpath"/>
+        </java>
+    </target>
+
+</project>
+
+
