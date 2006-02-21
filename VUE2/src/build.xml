@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.82 $ / $Date: 2006-02-18 15:24:27 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.82 2006-02-18 15:24:27 sfraize Exp $ -->
+<!-- $Revision: 1.83 $ / $Date: 2006-02-21 18:35:27 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.83 2006-02-21 18:35:27 jeff Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -447,6 +447,7 @@
            >
       <!--classpath refid="compile.classpath.vue"/-->
       <include name="tufts/*.java"/>
+      <include name="test/**/*.java"/>
       <exclude name="**/tmp/**"/>
       <exclude name="**/bak/**"/>
       <exclude name="**/old/**"/>
@@ -575,6 +576,18 @@
       <fileset dir="${build.class}" includes="tufts/oki/shared2/**"/>
     </jar>
     <copy file="${lib.home}/fedora-server.jar" todir="dist/lib/osid" verbose="true"/>
+  </target>
+
+<!-- ==================== Artifact Data Source ================================ -->
+  <target name="jar-artifact"  
+          depends="compile"
+          description="Create Artifact.jar containing all supporting files">
+
+    <mkdir dir="dist/lib/osid"/>    
+    <delete file="dist/lib/osid/TuftsArtifact-1.0.jar"/>
+    <jar zipfile="dist/lib/osid/TuftsArtifact-1.0..jar" update="true" compress="false" index="true">
+      <fileset dir="edu/tufts/osidimpl/repository/artifact" includes="*.*"/>
+    </jar>
   </target>
 
   <target name="jar-core"
