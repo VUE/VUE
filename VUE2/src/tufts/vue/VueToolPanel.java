@@ -33,7 +33,7 @@ import javax.swing.border.*;
  * The VueToolPanel is the component that holds the main VUE toolbar
  * and the contextual properties tools.
  *
- * @version $Revision: 1.26 $ / $Date: 2006-02-18 02:07:33 $ / $Author: sfraize $ 
+ * @version $Revision: 1.27 $ / $Date: 2006-02-21 22:27:47 $ / $Author: sfraize $ 
  *
  **/
 public class VueToolPanel extends JPanel
@@ -79,7 +79,8 @@ public class VueToolPanel extends JPanel
         if (GUI.isMacBrushedMetal())
             setBorder(new EmptyBorder(0,3,2,10));//tlbr
         else
-            setBorder(new EmptyBorder(1,3,2,10));//tlbr
+            setBorder(new EmptyBorder(0,3,0,10));//tlbr
+        //setBorder(new EmptyBorder(1,3,2,10));//tlbr
 		
         mMainToolBar = new Box(BoxLayout.X_AXIS);
         //mMainBox = Box.createHorizontalBox();
