@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.1 $ / $Date: 2006-02-21 18:31:56 $ -->
+<!-- $Revision: 1.2 $ / $Date: 2006-02-21 21:55:41 $ -->
 
 <!-- 
 This ant build file:
@@ -78,6 +78,7 @@ This ant build file:
     <pathelement location="${lib.home}/castor-0.9.7-xml.jar" />
     <pathelement location="${lib.home}/xercesImpl-2.7.1.jar" />
     <pathelement location="${lib.home}/commons-logging.jar" />
+    <pathelement location="${lib.home}/xerces-2.7.1-xml-apis.jar" />
 	
     <pathelement location="../src/build/classes" />
     <pathelement location="../src/build/classes/edu/tufts/osidimpl/repository/artifact.ArtifactResult.class" />
