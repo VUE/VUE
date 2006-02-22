@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.31 $ / $Date: 2006-02-22 19:33:34 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2006-02-22 23:21:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -64,6 +64,8 @@ public class DockWindow extends javax.swing.JWindow
                , FocusManager.MouseInterceptor
 {
     final static java.util.List sAllWindows = new java.util.ArrayList();
+    final static String RightArrow = "" + (char) 0x25B8 + ""; // unicode
+    final static String DownArrow = "" + (char) 0x25BE + ""; // unicode
 
     public final static int ToolbarHeight = 35;
     private final static boolean MacWindowShadowEnabled = false;
@@ -306,10 +308,20 @@ public class DockWindow extends javax.swing.JWindow
         // Simulate Linux;
         // isWindows=false; isMac=isMacAqua=isMacAquaMetal=false;
 
-        if (isMac) 
+        if (isMac)  {
             TitleFont = VueAquaLookAndFeel.SmallSystemFont;
-        else
-            TitleFont = new Font("SansSerf", Font.PLAIN, 11);
+        } else {
+            Object desktopFrameFont = Toolkit.getDefaultToolkit().getDesktopProperty("win.frame.captionFont");
+            if (desktopFrameFont instanceof Font) {
+                Font font = (Font) desktopFrameFont;
+                //System.out.println("GOT TITLE FONT " + font);
+                TitleFont = font.deriveFont(font.getSize2D() - 1f);
+                //TitleFont = font.deriveFont(Font.PLAIN);
+                //System.out.println("GOT TITLE FONT " + TitleFont);
+            } else {
+                TitleFont = new Font("SansSerf", Font.BOLD, 10);
+            }
+        }
 
         //sBottomGradientColor = isDarkTitleBar ? Color.gray : Color.lightGray;
         sBottomGradientColor = isDarkTitleBar ? new Color(112,112,112) : Color.lightGray;
@@ -2918,6 +2930,8 @@ public class DockWindow extends javax.swing.JWindow
         public void paintComponent(Graphics g) {
             if (gradientBG)
                 paintBackgroundGradient(g);
+            else
+                super.paintComponent(g);
         }
         
         private void paintBackgroundGradient(Graphics g) {
@@ -3104,8 +3118,7 @@ public class DockWindow extends javax.swing.JWindow
     // TODO: allow for info in the title panel: e.g., Panner shows zoom or
     // Font shows current selected font v.s. the font we'll "apply"???
 
-    //private class TitlePanel extends javax.swing.Box {
-    private class TitlePanel extends javax.swing.JPanel {
+    private class TitlePanel extends javax.swing.Box {
         
         private CloseButton mCloseButton;
         private GradientPaint mGradient;
@@ -3114,13 +3127,13 @@ public class DockWindow extends javax.swing.JWindow
         private boolean isVertical = false;
         private MenuButton mMenuButton;
 
-        private final Icon DownArrow = GUI.getIcon("DockDownArrow.gif");
-        private final Icon RightArrow = GUI.getIcon("DockRightArrow.gif");
+        //private final Icon DownArrow = GUI.getIcon("DockDownArrow.gif");
+        //private final Icon RightArrow = GUI.getIcon("DockRightArrow.gif");
         
         TitlePanel(String title)
         {
-            setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-            //super(BoxLayout.X_AXIS);
+            //setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+            super(BoxLayout.X_AXIS);
             setName(title);
             setOpaque(true);
             setPreferredSize(new Dimension(0, TitleHeight));
@@ -3136,22 +3149,51 @@ public class DockWindow extends javax.swing.JWindow
                  title = "";
 
              mLabel = new JLabel(title);
-             mLabel.setBorder(new EmptyBorder(1,0,0,0)); // t,l,b,r
+             //if (TitleFont.getSize() < 11)
+             //mLabel.setBorder(new EmptyBorder(2,0,0,0)); // t,l,b,r
+             //else
+                 mLabel.setBorder(new EmptyBorder(1,0,0,0)); // t,l,b,r
              // FYI, raise the label raises the icon also...
              mLabel.setFont(TitleFont);
              mLabel.setForeground(SystemColor.activeCaptionText);
+
+             mCloseButton = new CloseButton(DockWindow.this);
+
+             final int arrowWidth = 15;
+             final int arrowHeight = TitleHeight;
+
+             // The DownArrow is a bit of a wider character than the RightArrow,
+             // so we need to fix the label width.
+             mOpenLabel = new JLabel(DownArrow, JLabel.CENTER) {
+                     { // constructor
+                         setPreferredSize(getSize());
+                         setAlignmentX(0.5f);
+                     }
+                     public void setBounds(int x, int y, int width, int height) {
+                         super.setBounds(x, y, arrowWidth,arrowHeight);
+                     }
+                     public Dimension getSize() { return new Dimension(arrowWidth,arrowHeight); }
+                     public Rectangle getBounds() { return new Rectangle(getX(), getY(), arrowWidth,arrowHeight); }
+                 };
+                     
+             if (isMac)
+                 mOpenLabel.setFont(new Font("Lucida Grande", Font.PLAIN, 16));
+             else
+                 mOpenLabel.setFont(new Font("Arial Unicode MS", Font.PLAIN, 20));
+
              if (DEBUG.BOXES) {
                  mLabel.setBackground(Color.yellow);
                  mLabel.setOpaque(true);
+                 mOpenLabel.setBackground(Color.orange);
+                 mOpenLabel.setOpaque(true);
              }
-             //mLabel.setAlignmentY(0.4f);
-
-             mCloseButton = new CloseButton(DockWindow.this);
-             //mCloseButton.setAlignmentY(0.4f);
-
-             mOpenLabel = new JLabel(DownArrow);
-             mOpenLabel.setAlignmentY(0.4f);
              
+             if (isMacAqua) {
+                 mOpenLabel.setForeground(Color.darkGray);
+             } else {
+                 mOpenLabel.setForeground(SystemColor.activeCaptionText);
+             }
+
              // All close icons at left for now as need
              // to leave room for the menu thingie at right
              
@@ -3186,7 +3228,8 @@ public class DockWindow extends javax.swing.JWindow
         }
 
         void showAsOpen(boolean open) {
-            mOpenLabel.setIcon(open ? DownArrow : RightArrow);
+            //mOpenLabel.setIcon(open ? DownArrow : RightArrow);
+            mOpenLabel.setText(open ? DownArrow : RightArrow);
         }
 
         void setCloseButtonVisible(boolean visible) {
@@ -3218,6 +3261,16 @@ public class DockWindow extends javax.swing.JWindow
             // reversed gradient
             if (false) mGradient = new GradientPaint(0,           0, sBottomGradientColor,
                                                      0, TitleHeight, sTopGradientColor);
+        }
+
+        public void paint(Graphics g) {
+            if (!isMac) {
+                // this is on by default on the mac
+                Graphics2D g2 = (Graphics2D) g;
+                //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            }
+            super.paint(g);
         }
 
         public void paintComponent(Graphics g)
@@ -3335,6 +3388,7 @@ public class DockWindow extends javax.swing.JWindow
                     setForeground(isMacAqua ? Color.black : Color.white);
                 }
                 public void mouseExited(MouseEvent e) {
+                    //setForeground(isMacAqua ? Color.gray : SystemColor.activeCaption.brighter());
                     setForeground(isMacAqua ? Color.gray : Color.lightGray);
                 }
                 
