@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.30 $ / $Date: 2006-02-22 17:10:10 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2006-02-22 19:33:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3104,20 +3104,23 @@ public class DockWindow extends javax.swing.JWindow
     // TODO: allow for info in the title panel: e.g., Panner shows zoom or
     // Font shows current selected font v.s. the font we'll "apply"???
 
-    private class TitlePanel extends javax.swing.Box {
+    //private class TitlePanel extends javax.swing.Box {
+    private class TitlePanel extends javax.swing.JPanel {
         
         private CloseButton mCloseButton;
         private GradientPaint mGradient;
         private JLabel mLabel;
         private JLabel mOpenLabel; // for open/close icon
         private boolean isVertical = false;
+        private MenuButton mMenuButton;
 
         private final Icon DownArrow = GUI.getIcon("DockDownArrow.gif");
         private final Icon RightArrow = GUI.getIcon("DockRightArrow.gif");
         
         TitlePanel(String title)
         {
-            super(BoxLayout.X_AXIS);
+            setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+            //super(BoxLayout.X_AXIS);
             setName(title);
             setOpaque(true);
             setPreferredSize(new Dimension(0, TitleHeight));
@@ -3133,14 +3136,21 @@ public class DockWindow extends javax.swing.JWindow
                  title = "";
 
              mLabel = new JLabel(title);
-             mLabel.setBorder(new EmptyBorder(0,0,1,0)); // t,l,b,r
+             mLabel.setBorder(new EmptyBorder(1,0,0,0)); // t,l,b,r
              // FYI, raise the label raises the icon also...
              mLabel.setFont(TitleFont);
              mLabel.setForeground(SystemColor.activeCaptionText);
+             if (DEBUG.BOXES) {
+                 mLabel.setBackground(Color.yellow);
+                 mLabel.setOpaque(true);
+             }
+             //mLabel.setAlignmentY(0.4f);
 
              mCloseButton = new CloseButton(DockWindow.this);
+             //mCloseButton.setAlignmentY(0.4f);
 
              mOpenLabel = new JLabel(DownArrow);
+             mOpenLabel.setAlignmentY(0.4f);
              
              // All close icons at left for now as need
              // to leave room for the menu thingie at right
@@ -3149,7 +3159,6 @@ public class DockWindow extends javax.swing.JWindow
                  // close button at left
                  add(Box.createHorizontalStrut(6));
                  add(mCloseButton);
-                 //add(Box.createHorizontalStrut(12));
                  add(mOpenLabel);
                  add(mLabel);
              } else {
@@ -3161,6 +3170,10 @@ public class DockWindow extends javax.swing.JWindow
                  add(Box.createHorizontalStrut(2));
              }
 
+             add(Box.createGlue());
+             mMenuButton = new MenuButton(null);
+             add(mMenuButton);
+             
              /*
              if (DockWindow.this.mMenuActions != null) {
                  add(Box.createGlue());
@@ -3181,8 +3194,10 @@ public class DockWindow extends javax.swing.JWindow
         }
 
         void setMenuActions(Action[] actions) {
-            add(Box.createGlue());
-            add(new MenuButton(actions));
+            //add(Box.createGlue());
+            //MenuButton menu = new MenuButton(actions);
+            //add(menu);
+            mMenuButton.setMenuActions(actions);
         }
 
         void setVertical(boolean vertical) {
@@ -3209,10 +3224,10 @@ public class DockWindow extends javax.swing.JWindow
         {
             if (DEBUG.PAINT) out("TitlePanel.paintComponent");
             //if (!isMac || !DEBUG.DOCK) // for tufts.macosx.MacTest
-                paintTitle(g);
+            paintGradientEtc(g);
         }
         
-        private void paintTitle(Graphics g)
+        private void paintGradientEtc(Graphics g)
         {
             final int width = getWidth();
             final int height = getHeight();
@@ -3268,15 +3283,52 @@ public class DockWindow extends javax.swing.JWindow
     private class MenuButton extends JLabel {
         private JPopupMenu popMenu;
         private long lastHidden;
+        private Action[] menuActions;
 
-        static final char chevron = 0xBB; // unicode chevron
+        static final char chevron = 0xBB; // unicode "right-pointing double angle quotation mark"
 
         MenuButton(Action[] actions) {
             super(" " + chevron);
             setForeground(Color.gray);
             setName(DockWindow.this.getName());
             setFont(new Font("Arial", Font.PLAIN, 14));
-            setBorder(new EmptyBorder(0,0,2,1));
+            Insets borderInsets = new Insets(0,0,0,2);
+            if (DEBUG.BOXES) {
+                setBorder(new MatteBorder(borderInsets, Color.orange));
+                setBackground(Color.red);
+                setOpaque(true);
+            } else {
+                // using an empty border allows mouse over the border gap
+                // to also activate us for rollover
+                setBorder(new EmptyBorder(borderInsets));
+            }
+
+            //setPreferredSize(new Dimension(30,8));
+            setMaximumSize(new Dimension(30,TitleHeight));
+
+            setMenuActions(actions);
+            
+        }
+
+        public void paintComponent(Graphics g) {
+            if (menuActions == null)
+                return;
+            else
+                super.paintComponent(g);
+            
+        }
+
+        void setMenuActions(Action[] actions) {
+            menuActions = actions;
+
+            if (actions == null) {
+                MouseListener[] ml = getMouseListeners();
+                for (int i = 0; i < ml.length; i++) {
+                    if (ml[i] instanceof GUI.PopupMenuHandler)
+                        removeMouseListener(ml[i]);
+                }
+                return;
+            }
 
             new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
                 public void mouseEntered(MouseEvent e) {
@@ -3285,11 +3337,10 @@ public class DockWindow extends javax.swing.JWindow
                 public void mouseExited(MouseEvent e) {
                     setForeground(isMacAqua ? Color.gray : Color.lightGray);
                 }
-
+                
                 public int getMenuX(Component c) { return c.getWidth(); }
                 public int getMenuY(Component c) { return -getY(); } // 0 in parent
             };
-            
         }
 
     }
