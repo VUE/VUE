@@ -300,6 +300,11 @@ public class LWImage extends LWComponent
             // (two slashes), MUST HAVE THREE!  move this code to MapResource; find
             // out if can even force a URL to have an extra slash in it!  Report
             // this as a java bug.
+
+            // TODO: Our Cup>>Chevron unicode char example is failing
+            // here on Windows (tho it works for windows openURL).
+            // (The image load fails)
+            // Try ensuring the URL is UTF-8 first.
             
             s = s.substring(7);
             if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage " + s);
