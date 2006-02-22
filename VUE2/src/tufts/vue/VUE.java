@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.334 $ / $Date: 2006-02-21 21:19:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.335 $ / $Date: 2006-02-22 17:08:23 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -587,7 +587,7 @@ public class VUE
         //pannerDock.getWidgetPanel().setBorder(new javax.swing.border.MatteBorder(5,5,5,5, Color.green));
         pannerDock.getWidgetPanel().setBorder(new EmptyBorder(1,2,2,2));
         //pannerDock.setSize(120,120);
-        pannerDock.setSize(112,120);
+        //pannerDock.setSize(112,120);
         pannerDock.setUpperRightCorner(GUI.GScreenWidth, 150);
         pannerDock.setMenuActions(new Action[] {
                 Actions.ZoomFit,
