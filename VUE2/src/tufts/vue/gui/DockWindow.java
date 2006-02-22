@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.28 $ / $Date: 2006-02-22 15:55:37 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2006-02-22 16:02:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3280,8 +3280,12 @@ public class DockWindow extends javax.swing.JWindow
             setBorder(new EmptyBorder(0,0,2,1));
 
             new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
-                public void mouseEntered(MouseEvent e) { setForeground(Color.black); }
-                public void mouseExited(MouseEvent e) { setForeground(Color.gray); }
+                public void mouseEntered(MouseEvent e) {
+                    setForeground(isMacAqua ? Color.black : Color.white);
+                }
+                public void mouseExited(MouseEvent e) {
+                    setForeground(isMacAqua ? Color.gray : Color.lightGray);
+                }
 
                 public int getMenuX(Component c) { return c.getWidth(); }
                 public int getMenuY(Component c) { return -getY(); } // 0 in parent
