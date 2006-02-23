@@ -44,6 +44,10 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 	
 	private static final String DEFAULT_SEARCH_TYPE = "search/keyword@mit.edu";
 	private static final String DEFAULT_CLASS_NAME = "edu.tufts.vue.ui.DefaultQueryEditor";
+
+	private static final String ARTIFACT_SEARCH_TYPE = "search/artifact@tufts.edu";
+	private static final String ARTIFACT_CLASS_NAME = "edu.tufts.artifact.ui.ArtifactQueryEditor";
+	
 	
 	private static edu.tufts.vue.fsm.FederatedSearchManager federatedSearchManager = new VueFederatedSearchManager();
 	
@@ -81,6 +85,7 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 				
 				org.w3c.dom.Element extensions = document.createElement(EXTENSIONS_TAG);
 				org.w3c.dom.Element editors = document.createElement(QUERY_EDITORS_TAG);
+				
 				org.w3c.dom.Element editor = document.createElement(QUERY_EDITOR_TAG);
 				org.w3c.dom.Element searchtype = document.createElement(SEARCH_TYPE_TAG);
 				searchtype.appendChild(document.createTextNode(DEFAULT_SEARCH_TYPE));
@@ -89,6 +94,16 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 				editor.appendChild(classname);
 				editor.appendChild(searchtype);
 				editors.appendChild(editor);
+				
+				org.w3c.dom.Element artifactEditor = document.createElement(QUERY_EDITOR_TAG);
+				org.w3c.dom.Element artifactSearchtype = document.createElement(SEARCH_TYPE_TAG);
+				artifactSearchtype.appendChild(document.createTextNode(ARTIFACT_SEARCH_TYPE));
+				org.w3c.dom.Element artifactClassname = document.createElement(CLASS_NAME_TAG);
+				artifactClassname.appendChild(document.createTextNode(ARTIFACT_CLASS_NAME));
+				artifactEditor.appendChild(classname);
+				artifactEditor.appendChild(searchtype);
+				editors.appendChild(artifactEditor);
+				
 				extensions.appendChild(editors);				
 				document.appendChild(extensions);
 				

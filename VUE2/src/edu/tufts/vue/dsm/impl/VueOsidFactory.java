@@ -69,10 +69,10 @@ implements edu.tufts.vue.dsm.OsidFactory
 		String managerImplementation = null;
 		try {
 			managerImplementation = edu.tufts.vue.util.Utilities.getManagerStringFromLoadKey(osidLoadKey);
-			manager = (org.osid.repository.RepositoryManager)edu.tufts.vue.util.OsidLoader.getManager("org.osid.repository.RepositoryManager",
-																									  managerImplementation,
-																									  osidContext,
-																									  properties);
+			manager = (org.osid.repository.RepositoryManager)org.osid.OsidLoader.getManager("org.osid.repository.RepositoryManager",
+																							managerImplementation,
+																							osidContext,
+																							properties);
 			managerVector.addElement(manager);
 			keyVector.addElement(osidLoadKey);																				  
 		} catch (Throwable t) {
@@ -101,10 +101,10 @@ implements edu.tufts.vue.dsm.OsidFactory
 		}
 		org.osid.repository.RepositoryManager manager = null;
 		try {
-			manager = (org.osid.repository.RepositoryManager)edu.tufts.vue.util.OsidLoader.getManager("org.osid.repository.RepositoryManager",
-																									  managerImplementation,
-																									  context,
-																									  props);
+			manager = (org.osid.repository.RepositoryManager)org.osid.OsidLoader.getManager("org.osid.repository.RepositoryManager",
+																							managerImplementation,
+																							context,
+																							props);
 			managerVector.addElement(manager);
 			keyVector.addElement(osidLoadKey);
 		} catch (Throwable t) {
