@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.47 $ / $Date: 2006-02-17 20:24:58 $ / $Author: jeff $
+ * @version $Revision: 1.48 $ / $Date: 2006-02-23 02:55:44 $ / $Author: jeff $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -89,6 +89,7 @@ public class VueDragTree extends JTree
         implementDrag(this);
         createPopupMenu();
 		this.previewPanel = previewPanel;
+		this.previewPanel.setPreferredSize(new java.awt.Dimension(100,100));
 		this.previewDockWindow = previewDockWindow;
         
 		this. getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

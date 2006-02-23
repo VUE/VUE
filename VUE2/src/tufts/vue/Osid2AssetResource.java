@@ -107,7 +107,7 @@ public class Osid2AssetResource extends MapResource
             {
                 try
                 {
-					org.osid.shared.Type partType = new org.osid.types.mit.URLPartStructureType();
+					org.osid.shared.Type partType = new edu.tufts.vue.util.Type("mit.edu","partStructure","URL");
                     org.osid.repository.RecordIterator recordIterator = asset.getRecords();
                     while (recordIterator.hasNextRecord())
                     {
