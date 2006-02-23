@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.32 $ / $Date: 2006-02-22 23:21:18 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2006-02-23 22:26:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -64,8 +64,8 @@ public class DockWindow extends javax.swing.JWindow
                , FocusManager.MouseInterceptor
 {
     final static java.util.List sAllWindows = new java.util.ArrayList();
-    final static String RightArrow = "" + (char) 0x25B8 + ""; // unicode
-    final static String DownArrow = "" + (char) 0x25BE + ""; // unicode
+    final static String RightArrow = "" + (char) 0x25B8; // unicode
+    final static String DownArrow = "" + (char) 0x25BE; // unicode
 
     public final static int ToolbarHeight = 35;
     private final static boolean MacWindowShadowEnabled = false;
@@ -298,7 +298,7 @@ public class DockWindow extends javax.swing.JWindow
             if (isMacAqua) // overlap by one pixel
                 CollapsedHeightVisible -= 1;
             else // overlap by 2 pixels
-                CollapsedHeightVisible -= 2;
+                ; // not till we can fix up border overlap flashing; CollapsedHeightVisible -= 2;
             if (!isMacAquaMetal)
                 CollapsedHeight += bi.top + bi.bottom;
         }
@@ -315,8 +315,7 @@ public class DockWindow extends javax.swing.JWindow
             if (desktopFrameFont instanceof Font) {
                 Font font = (Font) desktopFrameFont;
                 //System.out.println("GOT TITLE FONT " + font);
-                TitleFont = font.deriveFont(font.getSize2D() - 1f);
-                //TitleFont = font.deriveFont(Font.PLAIN);
+                TitleFont = font.deriveFont(10.0f);
                 //System.out.println("GOT TITLE FONT " + TitleFont);
             } else {
                 TitleFont = new Font("SansSerf", Font.BOLD, 10);
@@ -3340,12 +3339,15 @@ public class DockWindow extends javax.swing.JWindow
 
         static final char chevron = 0xBB; // unicode "right-pointing double angle quotation mark"
 
+        final Color inactiveColor = isMacAqua ? Color.darkGray : Color.lightGray;
+
         MenuButton(Action[] actions) {
             super(" " + chevron);
-            setForeground(Color.gray);
+            //super(GUI.getIcon("btn_menu.gif"));
+            setForeground(inactiveColor);
             setName(DockWindow.this.getName());
-            setFont(new Font("Arial", Font.PLAIN, 14));
-            Insets borderInsets = new Insets(0,0,0,2);
+            setFont(new Font("Arial", Font.PLAIN, 18));
+            Insets borderInsets = new Insets(0,0,1,2);
             if (DEBUG.BOXES) {
                 setBorder(new MatteBorder(borderInsets, Color.orange));
                 setBackground(Color.red);
@@ -3389,7 +3391,7 @@ public class DockWindow extends javax.swing.JWindow
                 }
                 public void mouseExited(MouseEvent e) {
                     //setForeground(isMacAqua ? Color.gray : SystemColor.activeCaption.brighter());
-                    setForeground(isMacAqua ? Color.gray : Color.lightGray);
+                    setForeground(inactiveColor);
                 }
                 
                 public int getMenuX(Component c) { return c.getWidth(); }
@@ -3437,7 +3439,7 @@ public class DockWindow extends javax.swing.JWindow
                     public void mouseEntered(MouseEvent e) { setRollover(true); }
                     public void mouseExited(MouseEvent e) { setRollover(false); }
                     public void mouseClicked(MouseEvent e) {
-                        if (e.getClickCount() != 0 && e.getClickCount() != 2)
+                        if (visible && e.getClickCount() != 0 && e.getClickCount() != 2)
                             dockWindow.dismiss();
                     }
                 });
@@ -3451,7 +3453,7 @@ public class DockWindow extends javax.swing.JWindow
 
         public void setHidden(boolean hidden) {
             this.visible = !hidden;
-            setEnabled(this.visible);
+            //setEnabled(this.visible);
         }
 
         private void setRollover(boolean lit) {
@@ -3501,12 +3503,13 @@ public class DockWindow extends javax.swing.JWindow
             public int getIconHeight() { return iconHeight; }
             
             public void paintIcon(Component c, Graphics g, int x, int y) {
-                int xoff = x;
-                int yoff = y;
-                if (isMacAquaMetal == false) {
+                int xoff = x-1;
+                int yoff = y+1;
+                if (false && isMacAquaMetal == false) {
                     //g.setColor(SystemColor.activeCaption);
                     // we fill in case window is so narrow that title text
                     // would appear under this icon: we don't want to see that.
+                    //g.setColor(c.getBackground().brighter());
                     g.setColor(SystemColor.control);
                     //g.setColor(Color.green);
                     g.fillRect(xoff, yoff, iconSize,iconSize);
@@ -3515,8 +3518,8 @@ public class DockWindow extends javax.swing.JWindow
                 //g.drawRect(xoff, yoff, iconSize,iconSize);
                 ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                                                  RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setColor(isRollover ? Color.red : Color.lightGray);
                 //g.drawOval(xoff, yoff, iconSize,iconSize);
-                g.setColor(isRollover ? Color.red : Color.black);
                 ((Graphics2D)g).setStroke(X_STROKE);
                 int inset = 2;
                 int len = iconSize - (inset+1);
@@ -3525,7 +3528,7 @@ public class DockWindow extends javax.swing.JWindow
                 // LL to UR
                 g.drawLine(xoff+inset, yoff+len, xoff+len, yoff+inset);
 
-                border.paintBorder(c, g, x, y, iconSize, iconSize);
+                //border.paintBorder(c, g, x, y, iconSize, iconSize);
             }
             
         }
