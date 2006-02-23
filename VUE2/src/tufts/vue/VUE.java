@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.335 $ / $Date: 2006-02-22 17:08:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.336 $ / $Date: 2006-02-23 21:44:05 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -785,15 +785,23 @@ public class VUE
         ApplicationFrame.validate();
         //if (DEBUG.INIT) out("frame validated");
 
-        ApplicationFrame.setSize((int) (GUI.GScreenWidth * 0.75),
-                                 (int) (GUI.GScreenHeight * 0.75));
+        ApplicationFrame.setSize((int) (GUI.GScreenWidth - 60),
+                                 (int) (GUI.GScreenHeight - (60
+                                                             + DockWindow.ToolbarHeight
+                                                             + GUI.GInsets.top
+                                                             )));
+
+        ApplicationFrame.setLocation(30,
+                                     GUI.GInsets.top
+                                     + DockWindow.ToolbarHeight
+                                     + 30);
 
         // MAC NOTE WITH MAXIMIZING: if Frame's current location y value
         // is less than whatever's it's maximized value is set to, maximizing
         // it will use the y value, not the max value.  True even if set
         // y value after setting to maximized but before it's put on screen.
         
-        GUI.centerOnScreen(ApplicationFrame);
+        //GUI.centerOnScreen(ApplicationFrame);
 
         final boolean loadTopDock = true;
 
@@ -967,7 +975,7 @@ public class VUE
 
         if (DEBUG.INIT || (DEBUG.DOCK && DEBUG.META)) Util.printStackTrace("\n\nSTARTING PLACEMENT");
         
-        int top = GUI.GInsets.top;
+        int top = GUI.GInsets.top + DockWindow.ToolbarHeight;
 
         DockWindow toRightDW = preShown[preShown.length - 1];
         toRightDW.setUpperRightCorner(GUI.GScreenWidth, top);
