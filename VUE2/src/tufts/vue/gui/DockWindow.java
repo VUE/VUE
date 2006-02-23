@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.33 $ / $Date: 2006-02-23 22:26:33 $ / $Author: sfraize $
+ * @version $Revision: 1.34 $ / $Date: 2006-02-23 22:37:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3175,6 +3175,9 @@ public class DockWindow extends javax.swing.JWindow
                      public Rectangle getBounds() { return new Rectangle(getX(), getY(), arrowWidth,arrowHeight); }
                  };
                      
+             if (isMacAqua)
+                 mOpenLabel.setBorder(new EmptyBorder(0,0,1,0)); // t,l,b,r
+             
              if (isMac)
                  mOpenLabel.setFont(new Font("Lucida Grande", Font.PLAIN, 16));
              else
@@ -3415,7 +3418,6 @@ public class DockWindow extends javax.swing.JWindow
         */
         
         public CloseButton(final DockWindow dockWindow) {
-            //setBorder(new EmptyBorder(0,0,1,0)); // t,l,b,r
 
             setName(dockWindow.getName());
 
