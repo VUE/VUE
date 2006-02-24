@@ -120,21 +120,23 @@ public class Osid2AssetResource extends MapResource
 							java.io.Serializable ser = part.getValue();
 
 							// metadata discovery
-							mProperties.put(partStructureType.getKeyword(),ser);
-							if (partStructureType.isEqual(partType))
-							{
-								String s = (String)part.getValue();
-                                setSpec(s);
-                            }
-
-							// preview should be a URL or an image
-							if (partStructureType.isEqual(this.thumbnailType)) {
-								if (ser instanceof String) {
-									setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((String)ser)));
-									this.icon = new javax.swing.ImageIcon((String)ser);
-								} else {
-									setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)ser)));
-									this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
+							if (ser != null) {
+								mProperties.put(partStructureType.getKeyword(),ser);
+								if (partStructureType.isEqual(partType))
+								{
+									String s = (String)part.getValue();
+									setSpec(s);
+								}
+								
+								// preview should be a URL or an image
+								if (partStructureType.isEqual(this.thumbnailType)) {
+									if (ser instanceof String) {
+										setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((String)ser)));
+										this.icon = new javax.swing.ImageIcon((String)ser);
+									} else {
+										setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)ser)));
+										this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
+									}
 								}
 							}
                         }
@@ -150,7 +152,7 @@ public class Osid2AssetResource extends MapResource
                 We looked for a chance to load the spec as part of a VUE Record above.  Now try the asset content.  If that fails,
                 use the asset display name
             */
-            if ((getSpec() == null) || (getSpec().trim().length() == 0))
+            if ((getSpec() == null) || (getSpec().trim().length() == 0) || getSpec().equals(SPEC_UNSET))
             {
                 try
                 {
@@ -172,7 +174,7 @@ public class Osid2AssetResource extends MapResource
         {
             setSpec(asset.getDisplayName());
         }
-        if ((getSpec() == null) || (getSpec().trim().length() == 0))
+        if ((getSpec() == null) || (getSpec().trim().length() == 0) || getSpec().equals(SPEC_UNSET))
         {
             setSpec(asset.getDisplayName());
         }

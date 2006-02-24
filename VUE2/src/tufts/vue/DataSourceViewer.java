@@ -195,6 +195,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 					int index = dataSourceList.locationToIndex(pt);
 					edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceList.getModel().getElementAt(index);
 					ds.setIncludedInSearch(!ds.isIncludedInSearch());
+					dataSourceManager.save();
 					dataSourceList.repaint();
 				}
 
