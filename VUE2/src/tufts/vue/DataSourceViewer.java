@@ -249,7 +249,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         
         topPanel.add(optionButton);
 //        topPanel.add(deleteButton);
-        topPanel.add(refreshButton);
+//        topPanel.add(refreshButton);
         topPanel.add(questionLabel);
         
         dataSourcePanel = new JPanel();
