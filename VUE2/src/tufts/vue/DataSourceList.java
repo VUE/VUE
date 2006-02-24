@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.29 $ / $Date: 2006-02-15 17:45:51 $ / $Author: jeff $ 
+ * @version $Revision: 1.30 $ / $Date: 2006-02-24 17:54:26 $ / $Author: jeff $ 
  * @author Ranjani Saigal
  */
 
@@ -120,12 +120,12 @@ public class DataSourceList extends JList implements DropTargetListener{
 						
 					if (value instanceof tufts.vue.DataSource) {
 						checkBox.setSelected( ((DataSource)value).isIncludedInSearch() );
-						panel.add(checkBox);
 						
 						if (value instanceof LocalFileDataSource) {
 							panel.add(new JLabel(myComputerIcon));
 							checkBox.setEnabled(false);
 						} else {
+							panel.add(checkBox);
 							panel.add(new JLabel(remoteIcon));
 							checkBox.setEnabled(true);
 						}
