@@ -39,7 +39,7 @@ import com.sun.image.codec.jpeg.*;
  *
  * TODO: this to be refactored as AbstractResource / URLResource, and/or maybe LWResource.
  *
- * @version $Revision: 1.41 $ / $Date: 2006-02-24 16:18:47 $ / $Author: jeff $
+ * @version $Revision: 1.42 $ / $Date: 2006-02-24 16:42:18 $ / $Author: jeff $
  */
 
 // TODO: this needs major cleanup.  Create an AbstractResource class
@@ -139,7 +139,7 @@ public class MapResource implements Resource, XMLUnmarshalListener
         throws java.net.MalformedURLException
     {
         if (this.url == null) {
-			if (spec.equals(SPEC_UNSET) return this.url;
+			if (spec.equals(SPEC_UNSET)) return this.url;
 			
             if (spec.startsWith("resource:")) {
                 final String classpathResource = spec.substring(9);
