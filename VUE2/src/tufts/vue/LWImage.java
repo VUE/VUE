@@ -807,12 +807,48 @@ public class LWImage extends LWComponent
         System.out.println(java.util.Arrays.asList(javax.imageio.ImageIO.getReaderFormatNames()));
         System.out.println(java.util.Arrays.asList(javax.imageio.ImageIO.getReaderMIMETypes()));
 
-        java.io.File f = new java.io.File(args[0]);
+        String filename = args[0];
+        java.io.File file = new java.io.File(filename);
 
-        System.out.println("Reading " + f);
+        System.out.println("Reading " + file);
 
-        System.out.println("GOT " + ImageIO.read(f));
+        System.out.println("ImageIO.read got: " + ImageIO.read(file));
+
+        /*
+          The below code requires the JAI libraries:
+          // JAI (Java Advandced Imaging) libraries
+          /System/Library/Java/Extensions/jai_core.jar
+          /System/Library/Java/Extensions/jai_codec.jar
+
+          Using this code below will also get us decoding .fpx images,
+          tho we would need to convert it from the resulting RenderedImage / PlanarImage
+          
+        */
+
+        /*
+        try {
+            // Use the ImageCodec APIs
+            com.sun.media.jai.codec.SeekableStream stream = new com.sun.media.jai.codec.FileSeekableStream(filename);
+            String[] names = com.sun.media.jai.codec.ImageCodec.getDecoderNames(stream);
+            System.out.println("ImageCodec API's found decoders: " + java.util.Arrays.asList(names));
+            com.sun.media.jai.codec.ImageDecoder dec =
+                com.sun.media.jai.codec.ImageCodec.createImageDecoder(names[0], stream, null);
+            java.awt.image.RenderedImage im = dec.decodeAsRenderedImage();
+            System.out.println("ImageCodec API's got RenderedImage: " + im);
+            Object image = javax.media.jai.PlanarImage.wrapRenderedImage(im);
+            System.out.println("ImageCodec API's got PlanarImage: " + image);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // We're not magically getting any new codec's added to ImageIO after the above code
+        // finds the .fpx codec...
+        
+        System.out.println(java.util.Arrays.asList(javax.imageio.ImageIO.getReaderFormatNames()));
+        System.out.println(java.util.Arrays.asList(javax.imageio.ImageIO.getReaderMIMETypes()));
+
+        */
+        
     }
-
 
 }
