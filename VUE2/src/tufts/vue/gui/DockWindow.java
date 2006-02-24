@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.34 $ / $Date: 2006-02-23 22:37:29 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2006-02-24 20:24:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1269,7 +1269,7 @@ public class DockWindow extends javax.swing.JWindow
         return isRolledUp;
     }
     
-    public void setLocationConstrained(int x, int y, boolean relaxed)
+    private void dragToConstrained(int x, int y, boolean relaxed)
     {
         final Point p;
 
@@ -1297,16 +1297,23 @@ public class DockWindow extends javax.swing.JWindow
             p.y = GUI.GScreenHeight - CollapsedHeightVisible;
 
         
-        if (DEBUG.DOCK) out("setLocation1 " + x + "," + y + ((p.x == x && p.y == y) ? "" : " = " + Util.out(p)));
+        if (DEBUG.DOCK) out("dragToConstrained " + x + "," + y + ((p.x == x && p.y == y) ? "" : " = " + Util.out(p)));
         
-        setLocation(p.x, p.y);
+        dragSetLocation(p.x, p.y);
     }
     
-    public void setLocation(int x, int y)
+    private void superSetLocation(int x, int y)
     {
-        if (DEBUG.DOCK && DEBUG.META) out("setLocation0 " + x + "," + y);
-
+        if (DEBUG.DOCK && DEBUG.META) out("superSetLocation " + x + "," + y);
         super.setLocation(x, y);
+        mStickingRight = atScreenRight();
+    }
+    
+    public void dragSetLocation(int x, int y)
+    {
+        if (DEBUG.DOCK && DEBUG.META) out("dragSetLocation " + x + "," + y);
+
+        superSetLocation(x, y);
         
         if (isMac == false && mChild != null) {
             
@@ -1316,8 +1323,15 @@ public class DockWindow extends javax.swing.JWindow
 
             updateAllChildLocations();
         }
+    }
+    
 
-        mStickingRight = atScreenRight();
+    public void setLocation(int x, int y)
+    {
+        if (DEBUG.DOCK && DEBUG.META) out("setLocation " + x + "," + y);
+
+        superSetLocation(x, y);
+        updateAllChildLocations();
     }
 
     
@@ -2086,7 +2100,7 @@ public class DockWindow extends javax.swing.JWindow
         
         boolean relaxed = e.isShiftDown();
 
-        setLocationConstrained(x, y, relaxed);
+        dragToConstrained(x, y, relaxed);
     }
 
     /** @return true if the drag has actually started */
@@ -2611,13 +2625,13 @@ public class DockWindow extends javax.swing.JWindow
             // pull up the child first, then move us up.
             
             if (y >= mChild.getY()) {
-                mChild.setLocation(x, y);
+                mChild.superSetLocation(x, y);
                 if (allChildren)
                     mChild.updateAllChildLocations(); // recurse down the chain
             } else {
                 if (allChildren)
                     mChild.updateAllChildLocations(mChild.getHeight(), y); // recurse down the chain
-                mChild.setLocation(x, y);
+                mChild.superSetLocation(x, y);
             }
         }
         
