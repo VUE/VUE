@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.4 $ / $Date: 2006-02-16 19:05:00 $ / $Author: jeff $
+ * @version $Revision: 1.5 $ / $Date: 2006-02-24 17:50:04 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -189,6 +189,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 				org.osid.registry.Provider provider = (org.osid.registry.Provider)this.checkedVector.elementAt(index);
 				edu.tufts.vue.dsm.DataSource ds = new edu.tufts.vue.dsm.impl.VueDataSource(provider.getProviderId());
 				dataSourceManager.add(ds);
+				ds.setIncludedInSearch(true);
 				dataSourceList.getContents().addElement(ds);
 				
 				listModel.removeElementAt(index);
