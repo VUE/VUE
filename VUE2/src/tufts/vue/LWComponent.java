@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.187 $ / $Date: 2006-01-28 23:11:21 $ / $Author: sfraize $
+ * @version $Revision: 1.188 $ / $Date: 2006-02-26 23:30:05 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1353,8 +1353,10 @@ public class LWComponent
 
     private boolean linkNotificationDisabled = false;
     protected void takeLocation(float x, float y) {
-        if (DEBUG.LAYOUT) out("takeLocation " + x + "," + y);
-        if (DEBUG.LAYOUT) tufts.Util.printStackTrace("takeLocation");
+        if (DEBUG.LAYOUT) {
+            out("takeLocation " + x + "," + y);
+            if (DEBUG.META) tufts.Util.printStackTrace("takeLocation");
+        }
         this.x = x;
         this.y = y;
     }
@@ -2022,12 +2024,17 @@ public class LWComponent
         mXMLRestoreUnderway = true;
     }
 
-    /** interface {@link XMLUnmarshalListener} -- does nothing here */
-    public void XML_addNotify(String name, Object parent) {}
+    /** interface {@link XMLUnmarshalListener} */
+    public void XML_addNotify(String name, Object parent) {
+        if (DEBUG.XML) System.out.println("XML_addNotify; name=" + name
+                                          + "\n\tparent: " + parent
+                                          + "\n\t child: " + this);
+    }
 
     /** interface {@link XMLUnmarshalListener} -- call's layout */
     public void XML_completed() {
         mXMLRestoreUnderway = false;
+        if (DEBUG.XML) System.out.println("XML_completed " + this);
         layout();
     }
 
@@ -2166,8 +2173,8 @@ public class LWComponent
             else
                 s += "(" + getDisplayLabel() + ") ";
         }
-        if (getScale() != 1f)
-            s += "z" + getScale() + " ";
+        //if (getScale() != 1f) s += "z" + getScale() + " ";
+        if (this.scale != 1f) s += "z" + this.scale + " ";
         s += paramString() + " ";
         if (getResource() != null)
             s += getResource();
