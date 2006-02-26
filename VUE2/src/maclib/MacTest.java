@@ -3,8 +3,10 @@ package tufts.macosx;
 import com.apple.cocoa.foundation.*;
 import com.apple.cocoa.application.*;
 
+import com.apple.eawt.*;
 
 import java.awt.*;
+import java.net.*;
 
 // NOTE: This will ONLY compile on Mac OS X (or, technically, anywhere
 // you have the com.apple.cocoa.* class files available).  It is for
@@ -14,7 +16,7 @@ import java.awt.*;
 
 /**
  * Mac OSX Test Code
- * @version $Revision: 1.3 $ / $Date: 2006-01-20 20:45:47 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2006-02-26 23:31:00 $ / $Author: sfraize $
  */
 public class MacTest extends MacOSX
 {
@@ -26,7 +28,161 @@ public class MacTest extends MacOSX
 
         //test_fadeScreen();
         //test_colorPicker(args);
-        test_macPanel(args);
+        if (false)
+            test_movie(args);
+        else
+            test_macPanel(args);
+        
+    }
+    
+    // Okay, NSMovieView is just broken crap.  Doesn't even work in
+    // an NSPanel, never mind a CocoaComponent.  Need to use
+    // the quicktime.* classes -- see PlayMovie demo in QTJavaDemos.
+        
+    static void test_movie(String args[])
+    {
+        URL u = null;
+        try {
+            u = new URL(args[0]);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        
+        final URL url = u;
+
+        NSMovie movie = new NSMovie(url, false);
+        out("got movie " + movie + " url=" + movie.URL());
+        final NSMovieView movieView = new NSMovieView();
+        movieView.setMovie(movie);
+        out("got movie view " + movieView);
+
+
+        String viewStr = movieView.toString();
+        String viewHex = viewStr.substring(viewStr.indexOf("0x")+2, viewStr.length() - 1);
+        
+        out("got movie hashCode " + movieView.hashCode());
+        out("got movie view hex " + viewHex);
+        final long viewPtr = Long.parseLong(viewHex, 16);
+        out("got movie view ptr " + viewPtr);
+
+        NSSize movieSize = movieView.sizeForMagnification(1.0F);
+        final Dimension csize = movieSize.toAWTDimension();
+
+
+        //movieView.showController(false, false);
+        movieView.setEditable(false);           // changes controller to simpler/standard
+        movieView.setPlaysSelectionOnly(false); // can't see effect
+        //movieView.setPlaysEveryFrame(true);     // won't even start, or stops after shorter bursts
+        //movieView.setRate(0.5F);
+        
+        out("got movie size " + csize);
+        out("got movie rate " + movieView.rate());
+        out("isControllerVisible=" + movieView.isControllerVisible());
+        
+        
+        //Canvas movieCanvas = new quicktime.app.display.QTCanvas() { // apparenly ONLY java 1.3!!!
+        //Canvas movieCanvas = new quicktime.app.view.QTJavaCocoaCanvas() { // not accessable
+
+        Canvas movieCanvas = new CocoaComponent() {
+
+                {
+                    out("constructed " + this);
+                }
+
+                public int createNSView() {
+                    // doesn't get called, but just in case
+                    return (int) createNSViewLong();
+                }
+
+                public void addNotify() {
+                    out("addNotify " + this);
+                    super.addNotify();
+                }
+
+                protected void processEvent(AWTEvent e) {
+                    out("processEvent " + e);
+                    super.processEvent(e);
+                }
+                
+                // if this doesn't return something, createNSView will be called
+                public long createNSViewLong() {
+                    long ptr = viewPtr;
+                    out("createNSViewLong returns " + ptr);
+                    return ptr;
+                }
+
+                public void paint(Graphics g) {
+                    out("paint");
+                    super.paint(g);
+                }
+                public void update(Graphics g) {
+                    out("update");
+                    super.update(g);
+                }
+
+                public java.awt.Dimension getMaximumSize() { return csize; }
+                public java.awt.Dimension getMinimumSize() { return csize; }
+                public java.awt.Dimension getPreferredSize() { return csize; }
+                
+            };
+
+
+        out("got canvas " + movieCanvas);
+
+        //NSWindow main = NSApplication.sharedApplication().mainWindow();
+        //out("NSApplication.mainWindow="+main);
+        
+
+        Frame frame =
+            new Frame("Movie: " + url) {
+                {
+                    setBackground(Color.orange);
+                    setLayout(new FlowLayout());
+                    add(new Label("Movie: " + url));
+                }
+                public void paint(Graphics g) {
+                    out("frame paint");
+                    super.paint(g);
+                }
+                public void update(Graphics g) {
+                    out("frame update");
+                    super.update(g);
+                }
+                protected void processEvent(AWTEvent e) {
+                    out("frame processEvent " + e);
+                    super.processEvent(e);
+                }
+            };
+
+
+        if (true) {
+            frame.add(movieCanvas);
+        } else {
+            // Wow: NSMovieView doesn't even work in a real NSPanel
+            NSPanel p = new MacPanel(true);
+            p.setTitle("Movie: " + url);
+            p.setContentView(movieView);
+            p.orderFrontRegardless();
+            KEEP.add(p);
+        }
+
+        frame.pack();
+        frame.show();
+        
+        //NSWindow main = NSApplication.sharedApplication().mainWindow();
+        //out("NSApplication.mainWindow="+main);
+
+        KEEP.add(movie);
+        KEEP.add(movieView);
+        KEEP.add(movieCanvas);
+
+        // So I bet this would work fine in an NSPanel.
+        // It doesn't seem to like being in a java Frame.
+
+        dumpWindows();
+
+        //movieView.start(null);
+        
     }
     
     static void test_colorPicker(String args[])
