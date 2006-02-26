@@ -33,7 +33,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.120 $ / $Date: 2006-01-20 19:20:09 $ / $Author: sfraize $
+ * @version $Revision: 1.121 $ / $Date: 2006-02-26 23:14:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -542,9 +542,15 @@ public class LWNode extends LWContainer
         this.boundsShape.setFrame(getX(), getY(), getWidth(), getHeight());
     }
     
-    void setScaleOnChild(float scale, LWComponent c) {
-        if (DEBUG.LAYOUT) out("setScaleOnChild " + scale + "*" + ChildScale + " " + c);
-        c.setScale(scale * ChildScale);
+    void setScaleOnChild(float parentScale, LWComponent c) {
+        if (DEBUG.LAYOUT) out("setScaleOnChild " + parentScale + "*" + ChildScale + " " + c);
+        if (c instanceof LWImage) {
+            if (parentScale == 1f)
+                c.setScale(LWImage.ChildImageScale);
+            else
+                c.setScale(parentScale * (1f/ChildScale) * LWImage.ChildImageScale);
+        } else
+            c.setScale(parentScale * ChildScale);
         //c.setScale(scale * mChildScale);
     }
 
