@@ -86,26 +86,6 @@ public class LWImage extends LWComponent
         return true;
     }
 
-    /** interface {@link XMLUnmarshalListener} */
-    public void XML_addNotify(String name, Object parent) {
-        super.XML_addNotify(name, parent);
-        // this is a temporary workaround for save files that don't include the scale value
-        if (this.scale == 1f && parent instanceof LWNode)
-            setScale(ChildImageScale);
-    }
-    
-    public void XsetScale(float scale) {
-        System.out.println("LWImage.SETSCALE " + scale);
-        super.setScale(scale);
-    }
-    public float XgetScale() {
-        float scale = super.getScale();
-        System.out.println("LWImage.getScale " + scale);
-        Util.printClassTrace("tufts.vue.LW", "LWImage.GETSCALE");
-        return scale;
-    }
-    
-    /*
     public void setScale(float scale) {
         if (scale == 1f)
             super.setScale(1f);
@@ -114,28 +94,6 @@ public class LWImage extends LWComponent
             super.setScale(scale * adjustment); // produce ChildImageScale at top level child
         }
     }
-    */
-    
-    /*
-    // todo: this is a hack: handle in LWNode
-    public float getScale() {
-
-        if (getParent() instanceof LWNode == false)
-            return 1f;
-
-        float superScale = super.getScale();
-        float scale;
-        System.out.println("LWImage.superGetScale "+ superScale);
-        if (superScale == 1f) {
-            scale = ChildImageScale;
-        } else {
-            // do not include first-tier child scale-down: produce ChildImageScale at top level child
-            scale = superScale * (1f / LWNode.ChildScale) * ChildImageScale;
-        }
-        System.out.println("LWImage.getScale " + scale);
-        return scale;
-    }
-    */
 
     public void layout() {
         mIconBlock.layout();
