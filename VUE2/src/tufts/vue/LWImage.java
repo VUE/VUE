@@ -86,6 +86,7 @@ public class LWImage extends LWComponent
         return true;
     }
 
+    /*
     public void setScale(float scale) {
         if (scale == 1f)
             super.setScale(1f);
@@ -94,6 +95,14 @@ public class LWImage extends LWComponent
             super.setScale(scale * adjustment); // produce ChildImageScale at top level child
         }
     }
+    */
+
+    public void XML_addNotify(String name, Object parent) {
+        super.XML_addNotify(name, parent);
+        if (this.scale == 1f && parent instanceof LWNode)
+            setScale(ChildImageScale);
+    }
+    
 
     public void layout() {
         mIconBlock.layout();
