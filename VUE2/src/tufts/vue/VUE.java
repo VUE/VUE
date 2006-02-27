@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.336 $ / $Date: 2006-02-23 21:44:05 $ / $Author: sfraize $ 
+ * @version $Revision: 1.337 $ / $Date: 2006-02-27 14:00:17 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -785,13 +785,10 @@ public class VUE
         ApplicationFrame.validate();
         //if (DEBUG.INIT) out("frame validated");
 
-        ApplicationFrame.setSize((int) (GUI.GScreenWidth - 60),
-                                 (int) (GUI.GScreenHeight - (60
-                                                             + DockWindow.ToolbarHeight
-                                                             + GUI.GInsets.top
-                                                             )));
+        ApplicationFrame.setSize((int) (GUI.GScreenWidth * 0.75),
+                                 (int) (GUI.GScreenHeight * 0.75));
 
-        ApplicationFrame.setLocation(30,
+        ApplicationFrame.setLocation(GUI.GInsets.left + 30,
                                      GUI.GInsets.top
                                      + DockWindow.ToolbarHeight
                                      + 30);
