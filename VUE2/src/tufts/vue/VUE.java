@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.337 $ / $Date: 2006-02-27 14:00:17 $ / $Author: sfraize $ 
+ * @version $Revision: 1.338 $ / $Date: 2006-03-03 20:58:40 $ / $Author: jeff $ 
  */
 
 public class VUE
@@ -306,6 +306,7 @@ public class VUE
     private static DRBrowser DR_BROWSER;
     private static String NAME;
 	
+	private static DockWindow drBrowserDock;
 	private static DockWindow searchDock;
 	private static DockWindow browseDock;
 	private static DockWindow savedResourcesDock;
@@ -436,7 +437,8 @@ public class VUE
         
         // Start the loading of the data source viewer
         if (SKIP_DR == false && DR_BROWSER != null)
-            DR_BROWSER.loadDataSourceViewer(searchDock,
+            DR_BROWSER.loadDataSourceViewer(drBrowserDock,
+											searchDock,
 											browseDock,
 											savedResourcesDock,
 											previewDock);
@@ -660,16 +662,18 @@ public class VUE
 		
         // FYI, DataSourceViewer currently breaks if more than one DRBrowser
         DR_BROWSER = new DRBrowser(true,
+								   drBrowserDock,
 								   searchDock,
 								   browseDock,
 								   savedResourcesDock,
 								   previewDock);
-        DockWindow drBrowserDock = GUI.createDockWindow("Resources", DR_BROWSER);
+        drBrowserDock = GUI.createDockWindow("Resources", DR_BROWSER);
 		
 		drBrowserDock.setStackOwner(true);
 		drBrowserDock.addChild(searchDock);
 		drBrowserDock.addChild(browseDock);
-		drBrowserDock.addChild(previewDock);
+		//drBrowserDock.addChild(previewDock);
+		previewDock.setLocation(300,300);
 		drBrowserDock.addChild(savedResourcesDock);
 		
 		searchDock.add(searchPanel);
@@ -683,6 +687,8 @@ public class VUE
 
 		previewDock.add(previewPanel);
 		previewDock.setRolledUp(true);
+		
+		drBrowserDock.setVisible(true);
 
         //-----------------------------------------------------------------------------
         // Map Inspector

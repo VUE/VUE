@@ -26,7 +26,7 @@ import tufts.vue.gui.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.36 $ / $Date: 2006-02-17 20:24:57 $ / $Author: jeff $ 
+ * @version $Revision: 1.37 $ / $Date: 2006-03-03 20:58:40 $ / $Author: jeff $ 
  */
 public class DRBrowser extends JPanel {
     public static DataSourceViewer dsViewer = null;
@@ -37,6 +37,7 @@ public class DRBrowser extends JPanel {
     private JLabel loadingLabel;
    
     public DRBrowser(boolean delayedLoading,
+					 DockWindow librariesDWindow,
 					 DockWindow searchDWindow,
 					 DockWindow browseDWindow,
 					 DockWindow savedResourcesDWindow,
@@ -56,7 +57,8 @@ public class DRBrowser extends JPanel {
             loadingLabel.setBorder(new EmptyBorder(22,22,22,22));
             add(loadingLabel, BorderLayout.NORTH);
         } else {
-            loadDataSourceViewer(searchDWindow,
+            loadDataSourceViewer(librariesDWindow,
+								 searchDWindow,
 								 browseDWindow,
 								 savedResourcesDWindow,
 								 previewDWindow);
@@ -68,6 +70,7 @@ public class DRBrowser extends JPanel {
 			 null,
 			 null,
 			 null,
+			 null,
 			 null);
     }
     
@@ -76,13 +79,15 @@ public class DRBrowser extends JPanel {
 		dockWindow = dWindow;
 	}
 	
-    public void loadDataSourceViewer(DockWindow searchDWindow,
+    public void loadDataSourceViewer(DockWindow librariesDWindow,
+									 DockWindow searchDWindow,
 									 DockWindow browseDWindow,
 									 DockWindow savedResourcesDWindow,
 									 DockWindow previewDWindow)
     {
         try {
             DataSourceViewer dsv = new DataSourceViewer(this,
+														librariesDWindow,
 														searchDWindow,
 														browseDWindow,
 														savedResourcesDWindow,

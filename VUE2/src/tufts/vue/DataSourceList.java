@@ -47,11 +47,11 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.30 $ / $Date: 2006-02-24 17:54:26 $ / $Author: jeff $ 
+ * @version $Revision: 1.31 $ / $Date: 2006-03-03 20:58:40 $ / $Author: jeff $ 
  * @author Ranjani Saigal
  */
 
-public class DataSourceList extends JList implements DropTargetListener{
+public class DataSourceList extends JList implements DropTargetListener {
     
     DropTarget dropTarget = null;
     static final String MIME_TYPE_MAC_URLN = "application/x-mac-ostype-75726c6e";
@@ -64,11 +64,8 @@ public class DataSourceList extends JList implements DropTargetListener{
     DnDConstants.ACTION_LINK |
     DnDConstants.ACTION_MOVE;
     private final boolean debug = false;
-    private final Icon myComputerIcon = VueResources.getImageIcon("dataSourceMyComputer");
-//    private final Icon myFavoritesIcon = VueResources.getImageIcon("dataSourceMyFavorites");
-    private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
-    private final PolygonIcon breakIcon = new PolygonIcon(Color.LIGHT_GRAY);
     DataSourceViewer dsViewer;
+	edu.tufts.vue.dsm.DataSource infoDataSource;
     
     public DataSourceList(DataSourceViewer dsViewer) {
         super(new DefaultListModel());
@@ -77,78 +74,9 @@ public class DataSourceList extends JList implements DropTargetListener{
         this.setFixedCellHeight(-1);
         dropTarget = new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
         
-        breakIcon.setIconWidth(1600);
-        breakIcon.setIconHeight(1);
-				
-        DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
-            public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
-                
-                if (value instanceof String){                    
-                    super.getListCellRendererComponent(list,"",index,iss,chf);
-					
-					JPanel linePanel = new JPanel() {
-						protected void paintComponent(Graphics g) {
-							Graphics2D g2d = (Graphics2D)g;
-							g2d.setColor(Color.LIGHT_GRAY);
-							float dash1[] = {3.0f};
-							BasicStroke dashed = new BasicStroke(1.0f, 
-																 BasicStroke.CAP_BUTT, 
-																 BasicStroke.JOIN_MITER, 
-																 10.0f, dash1, 0.0f);
-							g2d.setStroke(dashed);
-							JPanel tpanel =(JPanel)(DataSourceList.this.dsViewer).getComponent(0);
-							JScrollPane jsp = (JScrollPane)tpanel.getComponent(1);
-							int width = jsp.getViewport().getViewSize().width;
-							g2d.drawLine(0, 3, width-10, 3);
-							
-							
-						}
-					};
-					this.setPreferredSize(new Dimension(200,3));
-					return linePanel;
-                }
-				else{
-					JPanel panel = new JPanel();
-					panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-					JCheckBox checkBox = new JCheckBox();
-					checkBox.setBackground(VueResources.getColor("FFFFFF"));
-					if (index == list.getSelectedIndex()) {
-						panel.setBackground(SystemColor.textHighlight);
-					} else {
-						panel.setBackground(VueResources.getColor("FFFFFF"));								
-					}
-						
-					if (value instanceof tufts.vue.DataSource) {
-						checkBox.setSelected( ((DataSource)value).isIncludedInSearch() );
-						
-						if (value instanceof LocalFileDataSource) {
-							panel.add(new JLabel(myComputerIcon));
-							checkBox.setEnabled(false);
-						} else {
-							panel.add(checkBox);
-							panel.add(new JLabel(remoteIcon));
-							checkBox.setEnabled(true);
-						}
-						panel.add(new JLabel(((DataSource)value).getDisplayName()));
-					} else {
-						try {
-							checkBox.setSelected( ((edu.tufts.vue.dsm.DataSource)value).isIncludedInSearch() );
-							panel.add(checkBox);
-							panel.add(new JLabel(remoteIcon));
-							checkBox.setEnabled(true);
-							panel.add(new JLabel(((edu.tufts.vue.dsm.DataSource)value).getRepository().getDisplayName()));
-						} catch (Throwable t) {
-							t.printStackTrace();
-						}
-					}
-					return panel;
-				}                
-            }
-        };        
-        this.setCellRenderer(renderer);
+		this.setCellRenderer(new DataSourceListCellRenderer());
     }
-    
-    
+	
     public DefaultListModel getContents() {
         return (DefaultListModel)getModel();
     }
