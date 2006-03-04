@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.5 $ / $Date: 2006-02-24 17:50:04 $ / $Author: jeff $
+ * @version $Revision: 1.6 $ / $Date: 2006-03-04 01:57:33 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -199,6 +199,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 					setVisible(false);
 				} else {
 					addLibraryList.setSelectedIndex(0);
+					DataSourceViewer.refreshDataSourcePanel(ds);
 				}
 			} catch (Throwable t) {
 				t.printStackTrace();

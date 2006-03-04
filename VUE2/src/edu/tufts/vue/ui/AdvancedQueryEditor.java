@@ -144,6 +144,10 @@ java.awt.event.ActionListener
 		return s;
 	}
 	
+	public void refresh() {
+		
+	}
+		
 	public void actionPerformed(java.awt.event.ActionEvent ae) {
 		this.criteria = partField.getText() + "::" + valueField.getText();
 	}

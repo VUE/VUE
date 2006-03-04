@@ -201,6 +201,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 					ds.setIncludedInSearch(!ds.isIncludedInSearch());
 					dataSourceManager.save();
 					dataSourceList.repaint();
+					queryEditor.refresh();
 				}
 //                if(e.getButton() == e.BUTTON3) {
 //                    popup.show(e.getComponent(), e.getX(), e.getY());
@@ -366,21 +367,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 		browseDockWindow.setRolledUp(true);			
     }
 
-    public static void refreshDataSourcePanel(DataSource ds){
-        
-        drBrowser.remove(resourcesPanel);
-        resourcesPanel  = new JPanel();
-        resourcesPanel.setLayout(new BorderLayout());
-        
-        resourcesPanel.setBorder(new TitledBorder(ds.getDisplayName()));
-        
-        JPanel dsviewer = (JPanel)ds.getResourceViewer();
-        resourcesPanel.add(dsviewer,BorderLayout.CENTER);
-//        drBrowser.add(resourcesPanel,BorderLayout.CENTER);
-        drBrowser.repaint();
-        drBrowser.validate();
-        
-        
+    public static void refreshDataSourcePanel(edu.tufts.vue.dsm.DataSource ds)
+	{
+		queryEditor.refresh();
+		//TODO: actually replace the whole editor if need be
     }
     
     public void  setPopup() {

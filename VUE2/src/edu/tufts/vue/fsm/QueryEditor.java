@@ -35,4 +35,6 @@ public interface QueryEditor
 	public void removeSearchListener(edu.tufts.vue.fsm.event.SearchListener listener);
 	
 	public String getSearchDisplayName();
+	
+	public void refresh();
 }

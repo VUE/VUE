@@ -20,8 +20,7 @@ package edu.tufts.vue.ui;
 
 public class DefaultQueryEditor
 extends javax.swing.JPanel
-implements edu.tufts.vue.fsm.QueryEditor,
-java.awt.event.ActionListener
+implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 {
 	private edu.tufts.vue.fsm.FederatedSearchManager fsm = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
 	private edu.tufts.vue.fsm.SourcesAndTypesManager sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
@@ -35,7 +34,12 @@ java.awt.event.ActionListener
 	
 	protected javax.swing.event.EventListenerList listenerList = new javax.swing.event.EventListenerList();
 	
+	private org.osid.repository.Repository[] repositories;
+	
 	private javax.swing.JButton searchButton = new javax.swing.JButton("Search");
+	private static final String SELECT_A_LIBRARY = "Select a library to search";
+	private static final String NO_MESSAGE = "";
+	private javax.swing.JLabel selectMessage = new javax.swing.JLabel(SELECT_A_LIBRARY);
 	
 	public DefaultQueryEditor() {
 		try {
@@ -49,31 +53,42 @@ java.awt.event.ActionListener
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy = 0;
-			add(new javax.swing.JLabel("Keywords:"),gbConstraints);
+			add(new javax.swing.JLabel("Keyword:"),gbConstraints);
 			
-			// build list of repositories that are going to be searched
-			StringBuffer sBuffer = new StringBuffer();
-			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
-			for (int i=0; i < repositories.length; i++) {
-				org.osid.repository.Repository repository = repositories[i];
-				if (i > 0) {
-					sBuffer.append(", ");
-				}
-				sBuffer.append(repository.getDisplayName());
-			}
 			gbConstraints.gridx = 1;
 			gbConstraints.gridy = 0;
 			add(field,gbConstraints);
 			field.addActionListener(this);
 			
-			gbConstraints.gridx = 0;
+			gbConstraints.gridx = 1;
 			gbConstraints.gridy = 1;
 			add(searchButton,gbConstraints);
 			searchButton.addActionListener(this);
 			
+			gbConstraints.gridx = 1;
+			gbConstraints.gridy = 2;
+			add(selectMessage,gbConstraints);
+			searchButton.addActionListener(this);
+			refresh();
+			
 			searchProperties = new edu.tufts.vue.util.SharedProperties();		
 		} catch (Throwable t) {
 		}
+	}
+	
+	public void refresh()
+	{
+		// behavior depends on the whether any repository is selected
+		repositories = sourcesAndTypesManager.getRepositoriesToSearch();
+		if (repositories.length == 0) {
+			searchButton.setEnabled(false);
+			selectMessage.setText(SELECT_A_LIBRARY);
+		} else {
+			searchButton.setEnabled(true);
+			selectMessage.setText(NO_MESSAGE);
+		}
+		repaint();
+		validate();
 	}
 	
 	public void actionPerformed(java.awt.event.ActionEvent ae)
