@@ -121,7 +121,7 @@ public class RemoteFileDataSource extends VueDataSource{
         localPanel.setLayout(new BorderLayout());
         localPanel.add(rSP,BorderLayout.CENTER);
         this.resourceViewer = localPanel;
-        DataSourceViewer.refreshDataSourcePanel(this);
+//        DataSourceViewer.refreshDataSourcePanel(this);
         
         
         

@@ -57,6 +57,10 @@ implements edu.tufts.vue.fsm.QueryEditor
 		}		
 	}
 
+	public void refresh() {
+		
+	}
+	
     public class TitleSearchPane extends JPanel implements ActionListener,KeyListener {
         JLabel titleLabel = new JLabel("Title: ");
         JLabel classLabel = new JLabel("Class: ");

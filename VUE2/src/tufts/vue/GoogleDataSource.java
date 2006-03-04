@@ -61,7 +61,7 @@ public class GoogleDataSource extends VueDataSource{
         
         try{
             this.resourceViewer = new TuftsGoogle(this.getDisplayName(),this.getAddress());
-            DataSourceViewer.refreshDataSourcePanel(this);
+//            DataSourceViewer.refreshDataSourcePanel(this);
         }catch (Exception ex){
             throw new DataSourceException("GoogleDataSource.setResourceViewer:"+ex.getMessage());
         }
