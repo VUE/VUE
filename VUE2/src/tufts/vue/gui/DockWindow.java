@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.35 $ / $Date: 2006-02-24 20:24:40 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2006-03-06 21:16:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3352,7 +3352,7 @@ public class DockWindow extends javax.swing.JWindow
     private class MenuButton extends JLabel {
         private JPopupMenu popMenu;
         private long lastHidden;
-        private Action[] menuActions;
+        private boolean hasMenu;
 
         static final char chevron = 0xBB; // unicode "right-pointing double angle quotation mark"
 
@@ -3383,37 +3383,49 @@ public class DockWindow extends javax.swing.JWindow
         }
 
         public void paintComponent(Graphics g) {
-            if (menuActions == null)
-                return;
-            else
+            if (hasMenu)
                 super.paintComponent(g);
-            
         }
 
         void setMenuActions(Action[] actions) {
-            menuActions = actions;
 
-            if (actions == null) {
-                MouseListener[] ml = getMouseListeners();
-                for (int i = 0; i < ml.length; i++) {
-                    if (ml[i] instanceof GUI.PopupMenuHandler)
-                        removeMouseListener(ml[i]);
+            int count = 0;
+            if (actions != null) {
+                for (int i = 0; i < actions.length; i++) {
+                    if (actions[i] != null)
+                        count++;
                 }
-                return;
             }
 
-            new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
-                public void mouseEntered(MouseEvent e) {
-                    setForeground(isMacAqua ? Color.black : Color.white);
-                }
-                public void mouseExited(MouseEvent e) {
-                    //setForeground(isMacAqua ? Color.gray : SystemColor.activeCaption.brighter());
-                    setForeground(inactiveColor);
-                }
-                
-                public int getMenuX(Component c) { return c.getWidth(); }
-                public int getMenuY(Component c) { return -getY(); } // 0 in parent
-            };
+            hasMenu = (count != 0);
+            
+            clearMenuActions();
+
+            if (hasMenu) {
+
+                new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
+                    public void mouseEntered(MouseEvent e) {
+                        setForeground(isMacAqua ? Color.black : Color.white);
+                    }
+                    public void mouseExited(MouseEvent e) {
+                        //setForeground(isMacAqua ? Color.gray : SystemColor.activeCaption.brighter());
+                        setForeground(inactiveColor);
+                    }
+                    
+                    public int getMenuX(Component c) { return c.getWidth(); }
+                    public int getMenuY(Component c) { return -getY(); } // 0 in parent
+                };
+            }
+
+            repaint();
+        }
+
+        private void clearMenuActions() {
+            MouseListener[] ml = getMouseListeners();
+            for (int i = 0; i < ml.length; i++) {
+                if (ml[i] instanceof GUI.PopupMenuHandler)
+                    removeMouseListener(ml[i]);
+            }
         }
 
     }
