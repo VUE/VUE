@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.36 $ / $Date: 2006-03-06 21:16:07 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2006-03-06 21:20:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -217,7 +217,7 @@ public class DockWindow extends javax.swing.JWindow
         this(title, null, content, false);
     }
 
-    public void add(JComponent c) {
+    private void addWidget(JComponent c, boolean replace) {
         if (DEBUG.DOCK || DEBUG.INIT) out("adding " + GUI.name(c) + " to " + GUI.name(getWidgetPanel()));
 
         // todo: cleanup
@@ -242,7 +242,7 @@ public class DockWindow extends javax.swing.JWindow
 
         }
         
-        if (true)
+        if (replace)
             mContentPane.setWidget(c);
         else
             mContentPane.add(c);
@@ -250,6 +250,13 @@ public class DockWindow extends javax.swing.JWindow
         //int width = minUnrolledWidth(getWidth());
         //if (width < 300) width = 300;
         setSize(300, getHeight());
+    }
+
+    public void add(JComponent c) {
+        addWidget(c, true);
+    }
+    public void setWidget(JComponent c) {
+        addWidget(c, true);
     }
 
     /** All DockWindow's in this DockWindow's stack show and hide with it */
