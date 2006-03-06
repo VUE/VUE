@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.338 $ / $Date: 2006-03-03 20:58:40 $ / $Author: jeff $ 
+ * @version $Revision: 1.339 $ / $Date: 2006-03-06 21:40:59 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -796,8 +796,7 @@ public class VUE
 
         ApplicationFrame.setLocation(GUI.GInsets.left + 30,
                                      GUI.GInsets.top
-                                     + DockWindow.ToolbarHeight
-                                     + 30);
+                                     + DockWindow.ToolbarHeight);
 
         // MAC NOTE WITH MAXIMIZING: if Frame's current location y value
         // is less than whatever's it's maximized value is set to, maximizing
