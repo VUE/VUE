@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.339 $ / $Date: 2006-03-06 21:40:59 $ / $Author: sfraize $ 
+ * @version $Revision: 1.340 $ / $Date: 2006-03-07 17:14:34 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -243,7 +243,7 @@ public class VUE
     }
     
     static void initUI() {
-        GUI.init(forceWindowsLookAndFeel);
+        GUI.init(forceWindowsLookAndFeel, SKIP_CUSTOM_LAF);
         
         try {
             if (DEBUG.Enabled && Util.isMacPlatform()) {
@@ -281,6 +281,8 @@ public class VUE
             } else if (args[i].equals("-nodr")) {
                 DEBUG.Enabled = true;
                 SKIP_DR = true;
+            } else if (args[i].equals("-skip_custom_laf")) {
+                SKIP_CUSTOM_LAF = true;
             } else if (args[i].equals("-win") || args[i].equals("-useWindowsLookAndFeel")) {
                 forceWindowsLookAndFeel = true;
             } else if (args[i].equals("-exit_after_init")) // for startup time trials
@@ -303,6 +305,7 @@ public class VUE
     private static boolean exitAfterInit = false;
     private static boolean SKIP_DR = false; // don't load DRBrowser, no splash & no startup map
     private static boolean SKIP_SPLASH = false;
+    private static boolean SKIP_CUSTOM_LAF = false;
     private static DRBrowser DR_BROWSER;
     private static String NAME;
 	
