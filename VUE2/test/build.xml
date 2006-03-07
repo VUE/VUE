@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.2 $ / $Date: 2006-02-21 21:55:41 $ -->
+<!-- $Revision: 1.3 $ / $Date: 2006-03-07 01:50:13 $ -->
 
 <!-- 
 This ant build file:
@@ -70,6 +70,7 @@ This ant build file:
 -->
   <path id="compile.classpath">
     <pathelement location="${basedir}" />	
+    <pathelement location="../src" />	
     <pathelement location="${lib.home}" />	
     <pathelement location="${build.class}"/>
     <pathelement location="${lib.home}/${osid2.name}.jar" />	
@@ -79,6 +80,11 @@ This ant build file:
     <pathelement location="${lib.home}/xercesImpl-2.7.1.jar" />
     <pathelement location="${lib.home}/commons-logging.jar" />
     <pathelement location="${lib.home}/xerces-2.7.1-xml-apis.jar" />
+    <pathelement location="${lib.home}/axis-fedora.jar" />
+    <pathelement location="${lib.home}/jaxrpc-api-unsigned.jar" />
+    <pathelement location="${lib.home}/fedora-server.jar" />
+    <pathelement location="${lib.home}/commons-discovery.jar" />
+    <pathelement location="${lib.home}/saaj-api-unsigned.jar" />
 	
     <pathelement location="../src/build/classes" />
     <pathelement location="../src/build/classes/edu/tufts/osidimpl/repository/artifact.ArtifactResult.class" />
@@ -174,6 +180,13 @@ This ant build file:
 <!-- ==================== Artifact Smoke Test ================================ -->
     <target name="artifacttest" depends="compile" description="Dumps Some Artifact Repository Data" >
         <java classname="test.repository.artifact.repositoryDump" failonerror="true" fork="true">
+      <classpath refid="compile.classpath"/>
+        </java>
+    </target>
+
+<!-- ==================== Tufts Digital Library Smoke Test ================================ -->
+    <target name="tdltest" depends="compile" description="Dumps Some Tufts Digital Library Repository Data" >
+        <java classname="test.repository.tdl.repositoryDump" failonerror="true" fork="true">
       <classpath refid="compile.classpath"/>
         </java>
     </target>
