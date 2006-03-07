@@ -41,7 +41,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-02-21 22:29:20 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-03-07 17:13:25 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -116,10 +116,10 @@ public class GUI
     }
 
     public static void init() {
-        init(false);
+        init(false, false);
     }
 
-    public static void init(boolean forceWindowsLookAndFeel)
+    public static void init(boolean forceWindowsLookAndFeel, boolean skipCustomLAF)
     {
         if (!initUnderway) {
             if (DEBUG.INIT) out("init: already run");
@@ -129,6 +129,8 @@ public class GUI
         org.apache.log4j.NDC.push("GUI");
 
         VUE.Log.debug("init: forceWindowsLookAndFeel=" + forceWindowsLookAndFeel);
+        if (skipCustomLAF)
+            VUE.Log.info("INIT: skipping installation of custom VUE Look & Feels");
         
         /* VUE's JIDE open-source license if we end up using this:
         tufts.Util.executeIfFound("com.jidesoft.utils.Lm", "verifyLicense",
@@ -158,14 +160,16 @@ public class GUI
         
         if (isMacAqua) {
 
-            installAquaLAFforVUE();
+            if (!skipCustomLAF)
+                installAquaLAFforVUE();
 
         } else if (Util.isMacPlatform()) {
 
             // We're forcing Swing Metal Look & Feel on the mac (our current Windows L&F)
             // (Not to be confused with Mac Aqua Brushed Metal).
             
-            installMetalTheme();
+            if (!skipCustomLAF)
+                installMetalTheme();
             setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
 
         } else {
@@ -175,8 +179,10 @@ public class GUI
             // if on Windows and forcing windows look, these meants try the native win L&F
             if (forceWindowsLookAndFeel && Util.isWindowsPlatform())
                 setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-            else
-                installMetalTheme();
+            else {
+                if (!skipCustomLAF)
+                    installMetalTheme();
+            }
         }
 
         javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(false);
