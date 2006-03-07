@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.37 $ / $Date: 2006-03-06 21:20:05 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2006-03-07 16:44:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3145,7 +3145,7 @@ public class DockWindow extends javax.swing.JWindow
         private JLabel mLabel;
         private JLabel mOpenLabel; // for open/close icon
         private boolean isVertical = false;
-        private MenuButton mMenuButton;
+        private MenuButton mMenuButton; // null of has no menu
 
         //private final Icon DownArrow = GUI.getIcon("DockDownArrow.gif");
         //private final Icon RightArrow = GUI.getIcon("DockRightArrow.gif");
@@ -3236,15 +3236,9 @@ public class DockWindow extends javax.swing.JWindow
              }
 
              add(Box.createGlue());
-             mMenuButton = new MenuButton(null);
-             add(mMenuButton);
-             
-             /*
-             if (DockWindow.this.mMenuActions != null) {
-                 add(Box.createGlue());
-                 add(new MenuButton(DockWindow.this.mMenuActions));
-             }
-             */
+             JLabel helpButton = new JLabel(GUI.getIcon("btn_help.gif"));
+             helpButton.setToolTipText("Help Text");
+             add(helpButton);
              
              if (isMac)
                  installGradient(false);
@@ -3260,10 +3254,26 @@ public class DockWindow extends javax.swing.JWindow
         }
 
         void setMenuActions(Action[] actions) {
-            //add(Box.createGlue());
-            //MenuButton menu = new MenuButton(actions);
-            //add(menu);
-            mMenuButton.setMenuActions(actions);
+            int count = 0;
+            if (actions != null) {
+                for (int i = 0; i < actions.length; i++) {
+                    if (actions[i] != null)
+                        count++;
+                }
+            }
+
+            if (count == 0) {
+                if (mMenuButton != null) {
+                    remove(mMenuButton);
+                    mMenuButton = null;
+                }
+            } else {
+                if (mMenuButton == null) {
+                    mMenuButton = new MenuButton(actions);
+                    add(mMenuButton, -1);
+                } else
+                    mMenuButton.setMenuActions(actions);
+            }
         }
 
         void setVertical(boolean vertical) {
@@ -3361,17 +3371,17 @@ public class DockWindow extends javax.swing.JWindow
         private long lastHidden;
         private boolean hasMenu;
 
-        static final char chevron = 0xBB; // unicode "right-pointing double angle quotation mark"
-
-        final Color inactiveColor = isMacAqua ? Color.darkGray : Color.lightGray;
+        //static final char chevron = 0xBB; // unicode "right-pointing double angle quotation mark"
+        //final Color inactiveColor = isMacAqua ? Color.darkGray : Color.lightGray;
 
         MenuButton(Action[] actions) {
-            super(" " + chevron);
-            //super(GUI.getIcon("btn_menu.gif"));
-            setForeground(inactiveColor);
+            //super(" " + chevron);
+            super(GUI.getIcon("btn_menu.gif"));
+            //setForeground(inactiveColor);
             setName(DockWindow.this.getName());
             setFont(new Font("Arial", Font.PLAIN, 18));
-            Insets borderInsets = new Insets(0,0,1,2);
+            //Insets borderInsets = new Insets(0,0,1,2); // chevron
+            Insets borderInsets = new Insets(1,0,0,2);
             if (DEBUG.BOXES) {
                 setBorder(new MatteBorder(borderInsets, Color.orange));
                 setBackground(Color.red);
@@ -3382,47 +3392,35 @@ public class DockWindow extends javax.swing.JWindow
                 setBorder(new EmptyBorder(borderInsets));
             }
 
-            //setPreferredSize(new Dimension(30,8));
-            setMaximumSize(new Dimension(30,TitleHeight));
+            if (false) setMaximumSize(new Dimension(30,TitleHeight));
 
             setMenuActions(actions);
             
         }
 
-        public void paintComponent(Graphics g) {
+        public void XpaintComponent(Graphics g) {
             if (hasMenu)
                 super.paintComponent(g);
         }
 
-        void setMenuActions(Action[] actions) {
-
-            int count = 0;
-            if (actions != null) {
-                for (int i = 0; i < actions.length; i++) {
-                    if (actions[i] != null)
-                        count++;
-                }
-            }
-
-            hasMenu = (count != 0);
-            
+        void setMenuActions(Action[] actions)
+        {
             clearMenuActions();
 
-            if (hasMenu) {
-
-                new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
-                    public void mouseEntered(MouseEvent e) {
-                        setForeground(isMacAqua ? Color.black : Color.white);
-                    }
-                    public void mouseExited(MouseEvent e) {
-                        //setForeground(isMacAqua ? Color.gray : SystemColor.activeCaption.brighter());
+            new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
+                /*
+                  public void mouseEntered(MouseEvent e) {
+                  setForeground(isMacAqua ? Color.black : Color.white);
+                  }
+                  public void mouseExited(MouseEvent e) {
+                  //setForeground(isMacAqua ? Color.gray : SystemColor.activeCaption.brighter());
                         setForeground(inactiveColor);
-                    }
-                    
-                    public int getMenuX(Component c) { return c.getWidth(); }
-                    public int getMenuY(Component c) { return -getY(); } // 0 in parent
-                };
-            }
+                        }
+                */
+                
+                public int getMenuX(Component c) { return c.getWidth(); }
+                public int getMenuY(Component c) { return -getY(); } // 0 in parent
+            };
 
             repaint();
         }
@@ -3736,6 +3734,7 @@ public class DockWindow extends javax.swing.JWindow
         
         win1.setMenuActions(new Action[] {
                 new tufts.vue.VueAction("Test 1"),
+                null,
                 new tufts.vue.VueAction("Test 2"),
             });
         
