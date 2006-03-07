@@ -5,6 +5,8 @@ implements org.osid.repository.RepositoryManager
 {
     private org.osid.OsidContext context = null;
     private java.util.Map configuration = null;
+	private org.osid.repository.Repository repository = null;
+	private static final String REPOSITORY_ID_STRING = "B763F416-0090-4E9F-9B65-5F390857416E-1964-00000427C7716C96";
 
     public org.osid.OsidContext getOsidContext()
     throws org.osid.repository.RepositoryException
@@ -22,6 +24,19 @@ implements org.osid.repository.RepositoryManager
     throws org.osid.repository.RepositoryException
     {
         this.configuration = configuration;
+        try
+        {
+			this.repository = new Repository("fedora.conf",
+											 REPOSITORY_ID_STRING,
+											 "Tufts Digital Library",
+											 "",
+											 new java.net.URL("http","dl.tufts.edu",8080,"fedora/"),
+											 "test",
+											 "test");
+        }
+        catch (Throwable t) {
+			t.printStackTrace();
+		}
     }
 
     public org.osid.repository.Repository createRepository(String displayName
@@ -50,19 +65,7 @@ implements org.osid.repository.RepositoryManager
     throws org.osid.repository.RepositoryException
     {
         java.util.Vector result = new java.util.Vector();
-        
-        try
-        {
-            result.addElement(new Repository("fedora.conf",
-                                         "",
-                                         "Tufts Digital Library",
-                                         "",
-                                         new java.net.URL("http","dl.tufts.edu",8080,"fedora/"),
-                                         "test",
-                                         "test"));
-        }
-        catch (Throwable t) {}
-        // insert code here to add elements to result vector
+		result.addElement(this.repository);
         return new RepositoryIterator(result);
     }
 
@@ -74,7 +77,7 @@ implements org.osid.repository.RepositoryManager
             throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.NULL_ARGUMENT);
         }
         java.util.Vector result = new java.util.Vector();
-        // insert code here to add elements to result vector
+		result.addElement(this.repository);
         return new RepositoryIterator(result);
     }
 
@@ -85,8 +88,15 @@ implements org.osid.repository.RepositoryManager
         {
             throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.NULL_ARGUMENT);
         }
-
-        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);  
+		try {
+			if (repositoryId.getIdString().equals(REPOSITORY_ID_STRING))
+			{
+				return this.repository;
+			}
+		} catch (Throwable t) {
+			
+		}
+		throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_ID);
     }
 
     public org.osid.repository.Asset getAsset(org.osid.shared.Id assetId)

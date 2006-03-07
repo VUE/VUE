@@ -117,14 +117,14 @@ public class Repository implements org.osid.repository.Repository {
         this.userName = userName;
         this.password = password;
         this.conf = conf;
-        this.configuration = getResource(conf);
+		this.configuration = getResource(conf);
         
         setFedoraProperties(configuration);
         loadFedoraObjectAssetTypes();
         //setFedoraProperties(FedoraUtils.CONF);
         searchTypes.add(new SimpleSearchType());
         searchTypes.add(new AdvancedSearchType());
-        searchTypes.add(new org.osid.types.mit.KeywordSearchType());
+        searchTypes.add(new Type("mit.edu","search","keyword"));
         //loadAssetTypes();
     }
     
@@ -450,7 +450,7 @@ public class Repository implements org.osid.repository.Repository {
 
         SearchCriteria lSearchCriteria = null;
         
-        org.osid.shared.Type keywordType = new org.osid.types.mit.KeywordSearchType();
+        org.osid.shared.Type keywordType = new Type("mit.edu","search","keyword");
         if ( (searchCriteria instanceof String) && (searchType.isEqual(keywordType)) )
         {
             lSearchCriteria = new SearchCriteria();
@@ -591,6 +591,22 @@ public class Repository implements org.osid.repository.Repository {
         if (url == null)
             url = getClass().getResource(name);
         //System.out.println("fedora.conf = "+url.getFile());
+		
+		// look in OSID location
+		if (url == null) {
+			String installDirectory = tufts.vue.VueResources.getString("dataSourceInstallDirectory") + "/TuftsDigitalLibrary";
+			java.io.File root = new java.io.File(installDirectory);
+			java.io.File[] files = root.listFiles();
+			for (int j=0; j < files.length; j++) {
+				if (files[j].getName().equals(name)) {
+					try {
+						url = files[j].toURL();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}						
+				}
+			}
+		}
         return url;
     }
     
