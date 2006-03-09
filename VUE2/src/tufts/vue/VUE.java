@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.340 $ / $Date: 2006-03-07 17:14:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.341 $ / $Date: 2006-03-09 23:58:43 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -195,43 +195,12 @@ public class VUE
         return isStartupUnderway;
     }
     
-    private static Cursor oldRootCursor;
-    private static Cursor oldViewerCursor;
-    private static MapViewer waitedViewer;
-    // todo: as a stack
-    public static synchronized void activateWaitCursor() {
-        if (oldRootCursor != null) {
-            if (DEBUG.FOCUS) out("multiple wait-cursors: already have " + oldRootCursor + "\n");
-            return;
-        }
-        if (getActiveViewer() != null) {
-            waitedViewer = getActiveViewer();
-            oldViewerCursor = waitedViewer.getCursor();
-            waitedViewer.setCursor(CURSOR_WAIT);
-        }
-        JRootPane root = SwingUtilities.getRootPane(VUE.ApplicationFrame);
-        if (root != null) {
-            //out("ACTIVATING WAIT CURSOR: current =  " + oldRootCursor + "\n");
-            oldRootCursor = root.getCursor();
-            root.setCursor(CURSOR_WAIT);
-        }
+    public static void activateWaitCursor() {
+        GUI.activateWaitCursor();
     }
     
     public static void clearWaitCursor() {
-        //_clearWaitCursor();
-        VUE.invokeAfterAWT(new Runnable() { public void run() { _clearWaitCursor(); }});
-    }
-    
-    private static void _clearWaitCursor() {
-        //out("restoring old cursor " + oldRootCursor + "\n");
-        if (oldRootCursor == null)
-            return;
-        if (waitedViewer != null) {
-            waitedViewer.setCursor(oldViewerCursor);
-            waitedViewer = null;
-        }
-        SwingUtilities.getRootPane(VUE.ApplicationFrame).setCursor(oldRootCursor);
-        oldRootCursor = null;
+        GUI.clearWaitCursor();
     }
     
     public static LWPathway getActivePathway() {
