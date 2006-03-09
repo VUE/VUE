@@ -32,7 +32,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.20 $ / $Date: 2006-02-15 17:58:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.21 $ / $Date: 2006-03-09 23:56:13 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -243,7 +243,7 @@ public class VueAction extends javax.swing.AbstractAction
      * that, the action will need it's own listener for whatever event
      * it's interested in.
      */
-    boolean enabled() { return VUE.getActiveViewer() != null; }
+    public boolean enabled() { return VUE.getActiveViewer() != null; }
 
     public void act() {
         System.err.println("Unhandled VueAction: " + getActionName());
