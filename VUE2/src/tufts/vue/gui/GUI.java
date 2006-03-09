@@ -25,6 +25,8 @@ import tufts.vue.VUE;
 import tufts.vue.VueResources;
 import tufts.vue.DEBUG;
 
+import java.util.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.dnd.*;
@@ -41,7 +43,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-03-07 17:22:32 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-03-09 23:59:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -595,6 +597,136 @@ public class GUI
         else
             return VUE.getRootWindow();
     }
+    
+    /*
+    private static Cursor oldRootCursor;
+    private static Cursor oldViewerCursor;
+    private static tufts.vue.MapViewer waitedViewer;
+
+    private static synchronized void activateWaitCursor(final Component component) {
+
+        if (oldRootCursor != null) {
+            if (DEBUG.FOCUS) out("multiple wait-cursors: already have " + oldRootCursor + "\n");
+            return;
+        }
+        if (VUE.getActiveViewer() != null) {
+            waitedViewer = VUE.getActiveViewer();
+            oldViewerCursor = waitedViewer.getCursor();
+            waitedViewer.setCursor(CURSOR_WAIT);
+        }
+        JRootPane root = SwingUtilities.getRootPane(component);
+        if (root != null) {
+            if (true||DEBUG.Enabled) out("ACTIVATING WAIT CURSOR: current =  " + oldRootCursor
+                                   + "\n\t on JRootPane " + root);
+            oldRootCursor = root.getCursor();
+            root.setCursor(CURSOR_WAIT);
+        }
+    }
+    
+    private static void _clearWaitCursor(Component component) {
+        //out("restoring old cursor " + oldRootCursor + "\n");
+        if (oldRootCursor == null)
+            return;
+        if (waitedViewer != null) {
+            waitedViewer.setCursor(oldViewerCursor);
+            waitedViewer = null;
+        }
+        SwingUtilities.getRootPane(VUE.ApplicationFrame).setCursor(oldRootCursor);
+        oldRootCursor = null;
+    }
+    */
+    
+    private static Map CursorMap = new HashMap();
+    private static boolean WaitCursorActive = false;
+    
+    public static synchronized void activateWaitCursor() {
+        //tufts.Util.printStackTrace("ACTIAVTE WAIT-CURSOR");
+        if (true||DEBUG.THREAD) VUE.Log.info("ACTIVATE WAIT CURSOR");
+        activateWaitCursorInAllWindows();
+    }
+    
+    private static synchronized void activateWaitCursorInAllWindows() {
+
+        synchronized (CursorMap) {
+            if (true||DEBUG.THREAD) VUE.Log.info("ACTIVATE WAIT CURSOR IN ALL WINDOWS");
+
+            //if (!CursorMap.isEmpty()) {
+            if (WaitCursorActive) {
+                //VUE.Log.error("attempting to activate wait cursor while one is already active");
+                VUE.Log.info("FYI, activating wait cursor for all windows while one is already active");
+                //return;
+            }
+
+            // We must activate on the MapViewer first, as is a child of ApplicationFrame or
+            // FullScreenWindow, and setting the wait cursor on those first will cause the
+            // viewer "old" cursor to already think it's the wait cursor.  We need to handle
+            // the view as it's own case as it may have a tool active that has a different
+            // cursor than the default currently active.
+            
+            activateWaitCursor(VUE.getActiveViewer());
+            activateWaitCursor(VUE.ApplicationFrame);
+            activateWaitCursor(getFullScreenWindow());
+            Iterator i = DockWindow.sAllWindows.iterator();
+            while (i.hasNext()) {
+                activateWaitCursor((DockWindow)i.next());
+            }
+
+            WaitCursorActive = true;
+        }
+    }
+    
+    private static void activateWaitCursor(final Component c) {
+        if (c == null)
+            return;
+        Cursor curCursor = c.getCursor();
+        if (curCursor != CURSOR_DEFAULT && curCursor != CURSOR_WAIT)
+            CursorMap.put(c, curCursor);
+        c.setCursor(CURSOR_WAIT);
+        if (DEBUG.THREAD) VUE.Log.info("set wait cursor on " + name(c) + " (old=" + curCursor + ")");
+    }
+    
+    
+    public static synchronized void clearWaitCursor() {
+        //tufts.Util.printStackTrace("CLEAR WAIT-CURSOR");
+        if (true||DEBUG.THREAD) VUE.Log.info("CLEAR WAIT CURSOR SCHEDULED");
+        VUE.invokeAfterAWT(new Runnable() { public void run() { clearAllWaitCursors(); }});
+    }
+    
+    private static synchronized void clearAllWaitCursors() {
+
+        synchronized (CursorMap) {
+            if (true||DEBUG.THREAD) VUE.Log.info("CLEAR ALL WAIT CURSORS");
+            if (!WaitCursorActive) {
+                if (true||DEBUG.THREAD) VUE.Log.info("\t(wait cursors already cleared)");
+                return;
+            }
+            clearWaitCursor(VUE.getActiveViewer());
+            clearWaitCursor(VUE.ApplicationFrame);
+            clearWaitCursor(getFullScreenWindow());
+            Iterator i = DockWindow.sAllWindows.iterator();
+            while (i.hasNext()) {
+                clearWaitCursor((DockWindow)i.next());
+            }
+            CursorMap.clear();
+            WaitCursorActive = false;
+        }
+    }
+
+    private static void clearWaitCursor(Component c) {
+        if (c == null)
+            return;
+        Object oldCursor = CursorMap.get(c);
+        if (oldCursor == null || oldCursor == CURSOR_WAIT) {
+            if (oldCursor == CURSOR_WAIT)
+                VUE.Log.error("old cursor on " + name(c) + " was wait cursor!  Restoring to default.");
+            if (DEBUG.THREAD) VUE.Log.info("cleared wait cursor on " + name(c) + " to default");
+            c.setCursor(CURSOR_DEFAULT);
+        } else {
+            if (DEBUG.THREAD) VUE.Log.info("cleared wait cursor on " + name(c) + " to old: " + oldCursor);
+            c.setCursor((Cursor) oldCursor);
+        }
+    }
+    
     
     /**
      * Size a normal Window to the maximum size usable in the current
