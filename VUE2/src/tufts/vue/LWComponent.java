@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.188 $ / $Date: 2006-02-26 23:30:05 $ / $Author: sfraize $
+ * @version $Revision: 1.189 $ / $Date: 2006-03-09 23:57:11 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2026,9 +2026,10 @@ public class LWComponent
 
     /** interface {@link XMLUnmarshalListener} */
     public void XML_addNotify(String name, Object parent) {
-        if (DEBUG.XML) System.out.println("XML_addNotify; name=" + name
-                                          + "\n\tparent: " + parent
-                                          + "\n\t child: " + this);
+        if (DEBUG.XML) tufts.Util.printClassTrace("tufts.vue", "XML_addNotify; name=" + name
+                                                  + "\n\tparent: " + parent
+                                                  + "\n\t child: " + this
+                                                  + "\n");
     }
 
     /** interface {@link XMLUnmarshalListener} -- call's layout */
