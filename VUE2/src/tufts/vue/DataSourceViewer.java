@@ -635,7 +635,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 	public void searchPerformed(edu.tufts.vue.fsm.event.SearchEvent se)
 	{
 		// this may take some time, so we change to the wait cursor
-		VUE.activateWaitCursor();
+		GUI.activateWaitCursor();
 		
 		try {
 			// do we want to build this each time, maybe
