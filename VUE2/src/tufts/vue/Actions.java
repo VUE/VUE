@@ -836,7 +836,7 @@ public class Actions implements VueConstants
     new VueAction("New", keyStroke(KeyEvent.VK_N, COMMAND+SHIFT), ":general/New") {
         private int count = 1;
         boolean undoable() { return false; }
-        boolean enabled() { return true; }
+        public boolean enabled() { return true; }
         public void act() {
             VUE.displayMap(new LWMap("New Map " + count++));
         }
@@ -1033,7 +1033,7 @@ public class Actions implements VueConstants
         }
          */
         
-        boolean enabled() { return VUE.getActiveViewer() != null && enabledFor(VUE.getSelection()); }
+        public boolean enabled() { return VUE.getActiveViewer() != null && enabledFor(VUE.getSelection()); }
         
         public void selectionChanged(LWSelection selection) {
             if (VUE.getActiveViewer() == null)
