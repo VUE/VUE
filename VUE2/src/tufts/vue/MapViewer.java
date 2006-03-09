@@ -60,7 +60,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.281 $ / $Date: 2006-02-14 01:43:14 $ / $Author: sfraize $ 
+ * @version $Revision: 1.282 $ / $Date: 2006-03-09 23:57:56 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3057,6 +3057,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == '{') { DEBUG.PATHWAY = !DEBUG.PATHWAY; }
                 else if (c == '}') { DEBUG.PARENTING = !DEBUG.PARENTING; }
                 else if (c == '>') { DEBUG.DND = !DEBUG.DND; }
+                else if (c == '=') { DEBUG.THREAD = !DEBUG.THREAD; }
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
                 else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(this); }
