@@ -996,6 +996,8 @@ public class Util
 
         java.awt.Toolkit.getDefaultToolkit().beep();
         
+        synchronized (System.out) {
+            
         synchronized (s) {
 
             s.print(TERM_RED);
@@ -1038,6 +1040,7 @@ public class Util
                 //ourCause.printStackTraceAsCause(s, trace);
                 s.println("CAUSE: " + cause);
 
+        }
         }
     }
 
