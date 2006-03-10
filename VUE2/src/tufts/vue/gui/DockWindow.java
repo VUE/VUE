@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.38 $ / $Date: 2006-03-07 16:44:44 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2006-03-10 00:00:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -203,6 +203,23 @@ public class DockWindow extends javax.swing.JWindow
         
         // add us to the static list of all DockWindow's
         sAllWindows.add(this);
+
+        if (false) {
+            // WAIT-CURSOR DEBUG
+            setMenuActions(new Action[] {
+                    new AbstractAction("Show Wait Cursor") {
+                        public void actionPerformed(ActionEvent ae) {
+                            GUI.activateWaitCursor();
+                        }
+                    },
+                    new AbstractAction("Clear Wait Cursor") {
+                        public void actionPerformed(ActionEvent ae) {
+                            GUI.clearWaitCursor();
+                        }
+                    },
+                });
+                    
+        }
     }
 
     public DockWindow(String title, Window owner) {
@@ -3728,14 +3745,30 @@ public class DockWindow extends javax.swing.JWindow
 
         //owner = null;
 
-        DockWindow win1 = new DockWindow("Dock 1", owner, null, false);
+        final DockWindow win1 = new DockWindow("Dock 1", owner, null, false);
         //win1.add(new FontPropertyPanel());
         //win1.setLocationRelativeTo(null); // center's on screen
         
         win1.setMenuActions(new Action[] {
                 new tufts.vue.VueAction("Test 1"),
                 null,
-                new tufts.vue.VueAction("Test 2"),
+                new tufts.vue.VueAction("Activate Wait Cursor") {
+                    public void act() {
+                        System.out.println("wait cursor");
+                        JRootPane root = SwingUtilities.getRootPane(win1);
+                        System.out.println("JRootPane: " + root);
+                        root.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                        //win1.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                    }
+                    public boolean enabled() { return true; }
+                },
+                new tufts.vue.VueAction("Clear Wait Cursor") {
+                    public void act() {
+                        System.out.println("clear wait cursor");
+                        win1.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                    }
+                    public boolean enabled() { return true; }
+                },
             });
         
         win1.setVisible(true);
@@ -3746,7 +3779,7 @@ public class DockWindow extends javax.swing.JWindow
         win2.setFocusableWindowState(true);
         win2.setVisible(true);
                 
-        if (true) {
+        if (false) {
 
             DockWindow win3 = new DockWindow("Dock 3", owner);
             DockWindow win4 = new DockWindow("Dock 4", owner);
