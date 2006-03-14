@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.342 $ / $Date: 2006-03-14 11:27:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.343 $ / $Date: 2006-03-14 11:57:21 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -212,7 +212,7 @@ public class VUE
     }
     
     static void initUI() {
-        GUI.init(forceWindowsLookAndFeel, SKIP_CUSTOM_LAF);
+        GUI.init();
         
         try {
             if (DEBUG.Enabled && Util.isMacPlatform()) {
@@ -233,7 +233,6 @@ public class VUE
     public static void init(String[] args) {
         if (args != null)
             parseArgs(args);
-
         initUI();
     }
 
@@ -250,10 +249,6 @@ public class VUE
             } else if (args[i].equals("-nodr")) {
                 DEBUG.Enabled = true;
                 SKIP_DR = true;
-            } else if (args[i].equals("-skip_custom_laf")) {
-                SKIP_CUSTOM_LAF = true;
-            } else if (args[i].equals("-win") || args[i].equals("-nativeWindowsLookAndFeel")) {
-                forceWindowsLookAndFeel = true;
             } else if (args[i].equals("-exit_after_init")) // for startup time trials
                 exitAfterInit = true;
             else
@@ -262,6 +257,9 @@ public class VUE
             if (args[i].startsWith("-debug")) DEBUG.Enabled = true;
 
         }
+
+        GUI.parseArgs(args);
+        
         if (DEBUG.INIT) System.out.println("VUE: parsed args " + allArgs);
     }
 
@@ -270,11 +268,9 @@ public class VUE
     // Variables used during VUE startup
     //-----------------------------------------------------------------------------
     
-    private static boolean forceWindowsLookAndFeel = false;
     private static boolean exitAfterInit = false;
     private static boolean SKIP_DR = false; // don't load DRBrowser, no splash & no startup map
     private static boolean SKIP_SPLASH = false;
-    private static boolean SKIP_CUSTOM_LAF = false;
     private static DRBrowser DR_BROWSER;
     private static String NAME;
 	
