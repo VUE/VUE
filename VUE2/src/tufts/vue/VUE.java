@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.341 $ / $Date: 2006-03-09 23:58:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.342 $ / $Date: 2006-03-14 11:27:44 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -252,7 +252,7 @@ public class VUE
                 SKIP_DR = true;
             } else if (args[i].equals("-skip_custom_laf")) {
                 SKIP_CUSTOM_LAF = true;
-            } else if (args[i].equals("-win") || args[i].equals("-useWindowsLookAndFeel")) {
+            } else if (args[i].equals("-win") || args[i].equals("-nativeWindowsLookAndFeel")) {
                 forceWindowsLookAndFeel = true;
             } else if (args[i].equals("-exit_after_init")) // for startup time trials
                 exitAfterInit = true;
