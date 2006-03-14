@@ -43,7 +43,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-03-09 23:59:11 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2006-03-14 11:29:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -80,7 +80,7 @@ public class GUI
 
     private static Color ToolbarColor = null;
     static final Color VueColor = new ColorUIResource(VueResources.getColor("menubarColor"));
-    //private static final Color VueColor = new ColorUIResource(Color.orange);
+    // private static final Color VueColor = new ColorUIResource(new Color(128,0,0)); // test
     
     public static Color getVueColor() {
         return VueColor;
@@ -105,6 +105,8 @@ public class GUI
     }
     
     private static Color initToolbarColor() {
+        //if (true) return new ColorUIResource(Color.orange); // test
+        
         if (isMacAqua) {
             //if (true) return new ColorUIResource(Color.red);
             if (false && isMacAquaBrushedMetal) {
