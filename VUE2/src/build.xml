@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.87 $ / $Date: 2006-03-14 11:28:32 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.87 2006-03-14 11:28:32 sfraize Exp $ -->
+<!-- $Revision: 1.88 $ / $Date: 2006-03-14 11:58:22 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.88 2006-03-14 11:58:22 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -910,17 +910,16 @@ cclass Version {
         </java>
     </target>
 
-    <target name="vue-win-native" depends="" description="Run the VUE application (Windows Native LAF + VUE Theme Installed)">
+    <target name="vue-win-native" depends="" description="Run VUE - Windows Only (Windows Native LAF, No VUE Theme possible)">
         <java classname="tufts.vue.VUE" failonerror="true" fork="true">
           <arg value="-nativeWindowsLookAndFeel"/>
           <classpath refid="runtime.classpath"/>
         </java>
     </target>
     
-    <target name="vue-win-native-vanilla" depends="" description="Run the VUE application (Windows Native LAF, No VUE Theme Installed)">
+    <target name="vue-win-force-metal" depends="" description="Run VUE - Windows Only (Force the java 1.4 Metal Theme, skipping java 1.5 Ocean Theme)">
         <java classname="tufts.vue.VUE" failonerror="true" fork="true">
-          <arg value="-skip_custom_laf"/>
-          <arg value="-nativeWindowsLookAndFeel"/>
+          <arg value="-skip_ocean_theme"/>
           <classpath refid="runtime.classpath"/>
         </java>
     </target>
