@@ -43,7 +43,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.10 $ / $Date: 2006-03-14 11:29:57 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2006-03-14 11:57:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -81,6 +81,23 @@ public class GUI
     private static Color ToolbarColor = null;
     static final Color VueColor = new ColorUIResource(VueResources.getColor("menubarColor"));
     // private static final Color VueColor = new ColorUIResource(new Color(128,0,0)); // test
+
+    private static boolean SKIP_CUSTOM_LAF = false; // test: don't install our L&F customizations
+    private static boolean SKIP_OCEAN_THEME = false; // test: in java 1.5, use default java Metal theme instead of new Ocean theme
+    private static boolean FORCE_WINDOWS_LAF = false; // test: on mac, use windows look (java metal), on windows, use native windows L&F
+
+    public static void parseArgs(String[] args) {
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-skip_custom_laf")) {
+                SKIP_CUSTOM_LAF = true;
+            } else if (args[i].equals("-skip_ocean_theme")) {
+                SKIP_OCEAN_THEME = true;
+            } else if (args[i].equals("-win") || args[i].equals("-nativeWindowsLookAndFeel")) {
+                FORCE_WINDOWS_LAF = true;
+            }
+        }
+    }
+
     
     public static Color getVueColor() {
         return VueColor;
@@ -119,11 +136,7 @@ public class GUI
             return new ColorUIResource(VueResources.getColor("toolbar.background"));
     }
 
-    public static void init() {
-        init(false, false);
-    }
-
-    public static void init(boolean forceWindowsLookAndFeel, boolean skipCustomLAF)
+    public static void init()
     {
         if (!initUnderway) {
             if (DEBUG.INIT) out("init: already run");
@@ -131,9 +144,15 @@ public class GUI
         }
         
         org.apache.log4j.NDC.push("GUI");
+        VUE.Log.debug("init");
 
-        VUE.Log.debug("init: forceWindowsLookAndFeel=" + forceWindowsLookAndFeel);
-        if (skipCustomLAF)
+        if (FORCE_WINDOWS_LAF || SKIP_CUSTOM_LAF || SKIP_OCEAN_THEME)
+            System.out.println("GUI.init; test parameters:"
+                              + "\n\tforceWindowsLookAndFeel=" + FORCE_WINDOWS_LAF
+                              + "\n\tskip_custom_laf=" + SKIP_CUSTOM_LAF
+                              + "\n\tskip_ocean_theme=" + SKIP_OCEAN_THEME);
+
+        if (SKIP_CUSTOM_LAF)
             VUE.Log.info("INIT: skipping installation of custom VUE Look & Feels");
         
         /* VUE's JIDE open-source license if we end up using this:
@@ -143,7 +162,7 @@ public class GUI
                                                  "p0HJOS:Y049mQb8BLRr9ntdkv9P6ihW" });
         */
 
-        isMacAqua = Util.isMacPlatform() && !forceWindowsLookAndFeel;
+        isMacAqua = Util.isMacPlatform() && !FORCE_WINDOWS_LAF;
 
         isMacAquaBrushedMetal =
             isMacAqua &&
@@ -164,7 +183,7 @@ public class GUI
         
         if (isMacAqua) {
 
-            if (!skipCustomLAF)
+            if (!SKIP_CUSTOM_LAF)
                 installAquaLAFforVUE();
 
         } else if (Util.isMacPlatform()) {
@@ -172,7 +191,7 @@ public class GUI
             // We're forcing Swing Metal Look & Feel on the mac (our current Windows L&F)
             // (Not to be confused with Mac Aqua Brushed Metal).
             
-            if (!skipCustomLAF)
+            if (!SKIP_CUSTOM_LAF)
                 installMetalTheme();
             setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
 
@@ -181,10 +200,10 @@ public class GUI
             // We're leaving the default look and feel alone (e.g. Windows)
 
             // if on Windows and forcing windows look, these meants try the native win L&F
-            if (forceWindowsLookAndFeel && Util.isWindowsPlatform())
+            if (FORCE_WINDOWS_LAF && Util.isWindowsPlatform())
                 setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
             else {
-                if (!skipCustomLAF)
+                if (!SKIP_CUSTOM_LAF)
                     installMetalTheme();
             }
         }
@@ -214,7 +233,7 @@ public class GUI
         
         CommonMetalTheme common = new CommonMetalTheme();
 
-        if (Util.getJavaVersion() >= 1.5f) {
+        if (Util.getJavaVersion() >= 1.5f && !SKIP_OCEAN_THEME) {
             //Theme = new OceanMetalTheme(common);
             String className = "tufts.vue.gui.OceanMetalTheme";
             try {
