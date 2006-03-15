@@ -36,7 +36,7 @@ import java.util.ArrayList;
  * A field:value editor currently specialized for resource properties displayed on
  * the object inspector info tab.
  *
- * @version $Revision: 1.24 $ / $Date: 2006-01-20 20:04:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.25 $ / $Date: 2006-03-15 18:17:38 $ / $Author: sfraize $ 
  * @author  akumar03
  */
 
@@ -149,7 +149,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         //innerPanel.setBorder(BorderFactory.createEmptyBorder(0,6,6,6));
         
         
-        innerPanel.add(labelPanel,BorderLayout.NORTH);
+        if (false) innerPanel.add(labelPanel,BorderLayout.NORTH); // TURNED OFF FOR NOW
         innerPanel.add(propertiesPanel,BorderLayout.CENTER);
         //innerPanel.add(topPanel);
         //innerPanel.setBorder(BorderFactory.createTitledBorder("Metadata"));
