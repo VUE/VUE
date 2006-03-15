@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.343 $ / $Date: 2006-03-14 11:57:21 $ / $Author: sfraize $ 
+ * @version $Revision: 1.344 $ / $Date: 2006-03-15 18:17:05 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -675,7 +675,18 @@ public class VUE
         //sResourceSelection.addListener( objectInspectorPanel);
         ObjectInspector.add(ObjectInspectorPanel);
         
+        //-----------------------------------------------------------------------------
+        // Resource Panel
+        //-----------------------------------------------------------------------------
 
+        final DockWindow resourceDock = GUI.createDockWindow("Resource Inspector", new ResourcePanel());
+        
+        //-----------------------------------------------------------------------------
+        // Pathway Panel
+        //-----------------------------------------------------------------------------
+
+        // todo
+        
         //-----------------------------------------------------------------------------
         // Outline View
         //-----------------------------------------------------------------------------
@@ -721,6 +732,7 @@ public class VUE
             drBrowserDock,
             MapInspector,
             ObjectInspector,
+            resourceDock,
             toolbarDock,
             pannerDock,
             //htWindow,
