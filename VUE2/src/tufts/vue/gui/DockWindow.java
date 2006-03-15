@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.39 $ / $Date: 2006-03-10 00:00:40 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2006-03-15 18:16:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -64,8 +64,10 @@ public class DockWindow extends javax.swing.JWindow
                , FocusManager.MouseInterceptor
 {
     final static java.util.List sAllWindows = new java.util.ArrayList();
-    final static String RightArrow = "" + (char) 0x25B8; // unicode
-    final static String DownArrow = "" + (char) 0x25BE; // unicode
+    final static char RightArrowChar = 0x25B8; // unicode
+    final static char DownArrowChar = 0x25BE; // unicode
+    //final static String RightArrow = "" + RightArrowChar;
+    //final static String DownArrow = "" + DownArrowChar;
 
     public final static int ToolbarHeight = 35;
     private final static boolean MacWindowShadowEnabled = false;
@@ -137,7 +139,7 @@ public class DockWindow extends javax.swing.JWindow
     /** visible exposed height of parent DockWindow that child window shouldn't overlap */
     private static int CollapsedHeightVisible;
     
-    private static boolean isMac;
+            static boolean isMac;
     private static boolean isMacAqua;
     private static boolean isMacAquaMetal;
     private static boolean isWindows;
@@ -3196,43 +3198,20 @@ public class DockWindow extends javax.swing.JWindow
 
              mCloseButton = new CloseButton(DockWindow.this);
 
-             final int arrowWidth = 15;
-             final int arrowHeight = TitleHeight;
-
-             // The DownArrow is a bit of a wider character than the RightArrow,
-             // so we need to fix the label width.
-             mOpenLabel = new JLabel(DownArrow, JLabel.CENTER) {
-                     { // constructor
-                         setPreferredSize(getSize());
-                         setAlignmentX(0.5f);
-                     }
-                     public void setBounds(int x, int y, int width, int height) {
-                         super.setBounds(x, y, arrowWidth,arrowHeight);
-                     }
-                     public Dimension getSize() { return new Dimension(arrowWidth,arrowHeight); }
-                     public Rectangle getBounds() { return new Rectangle(getX(), getY(), arrowWidth,arrowHeight); }
-                 };
+             mOpenLabel = new GUI.IconicLabel(DownArrowChar,
+                                              16, // point-size
+                                              isMacAqua ? Color.darkGray : SystemColor.activeCaptionText,
+                                              15, // fixed width
+                                              TitleHeight); // fixed height
                      
-             if (isMacAqua)
+             if (false&&isMacAqua)
                  mOpenLabel.setBorder(new EmptyBorder(0,0,1,0)); // t,l,b,r
              
-             if (isMac)
-                 mOpenLabel.setFont(new Font("Lucida Grande", Font.PLAIN, 16));
-             else
-                 mOpenLabel.setFont(new Font("Arial Unicode MS", Font.PLAIN, 20));
-
              if (DEBUG.BOXES) {
                  mLabel.setBackground(Color.yellow);
                  mLabel.setOpaque(true);
-                 mOpenLabel.setBackground(Color.orange);
-                 mOpenLabel.setOpaque(true);
              }
              
-             if (isMacAqua) {
-                 mOpenLabel.setForeground(Color.darkGray);
-             } else {
-                 mOpenLabel.setForeground(SystemColor.activeCaptionText);
-             }
 
              // All close icons at left for now as need
              // to leave room for the menu thingie at right
@@ -3263,7 +3242,8 @@ public class DockWindow extends javax.swing.JWindow
 
         void showAsOpen(boolean open) {
             //mOpenLabel.setIcon(open ? DownArrow : RightArrow);
-            mOpenLabel.setText(open ? DownArrow : RightArrow);
+            //mOpenLabel.setText(open ? DownArrow : RightArrow);
+            mOpenLabel.setText(open ? ""+DownArrowChar : ""+RightArrowChar);
         }
 
         void setCloseButtonVisible(boolean visible) {
@@ -3771,8 +3751,26 @@ public class DockWindow extends javax.swing.JWindow
                 },
             });
         
+        //win1.add(new WidgetBox("Folders", new JLabel("Hello World")));
+
+        WidgetStack stack = new WidgetStack();
+        stack.addPane("TUFTS Digital Library", null);
+        stack.addPane("ArtStor", null);
+        stack.addPane("My Computer", null);
+        stack.addPane("My Picture", new JLabel(new ImageIcon(VueResources.getURL("splashScreen"))));
+
+         if (true) {
+            JScrollPane sp = new JScrollPane(stack);
+            //sp.setBorder(new LineBorder(Color.red));
+            // clear default 1 pixel white border
+            sp.setBorder(null);
+            win1.add(sp);
+        } else
+            win1.add(stack);
+        
         win1.setVisible(true);
         
+        /*
         DockWindow win2 = new DockWindow("Dock 2", owner);
         win2.add(new FontPropertyPanel());
         win2.setLocationRelativeTo(null); // center's on screen
@@ -3795,6 +3793,7 @@ public class DockWindow extends javax.swing.JWindow
             win4.setVisible(true);
             
         }
+        */
             
         // called indirectly so this compiles in java 1.4
         //tufts.Util.invoke(tw0.mWindow, "setAlwaysOnTop", Boolean.TRUE);
@@ -3806,3 +3805,4 @@ public class DockWindow extends javax.swing.JWindow
     
     
 }
+
