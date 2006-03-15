@@ -43,7 +43,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.11 $ / $Date: 2006-03-14 11:57:50 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2006-03-15 18:16:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1243,6 +1243,72 @@ public class GUI
         // a simple timer.
         
     }
+
+
+    /**
+     * A class for a providing a label of fixed size to display the given unicode character.
+     * A font is selected per-platform for ensuring good results.
+     * Todo: can we get a font that will handle this on Linux?  ("Lucida Grande" is the default).
+     * The fixed sizes is useful in the case where you want a changeable icon, such as a
+     * right-arrow / down-arrow for an open/close icon, but the glyphs are actually different
+     * sizes.  This allows you to fix to the size to something that accomodates both (currently
+     * you must tune and select that size manually, and use two IconicLabels with the same size).
+     */
+    public static class IconicLabel extends JLabel {
+        
+        private final Dimension mSize;
+        
+        public IconicLabel(char iconChar, int pointSize, Color color, int width, int height) {
+            super(new String(new char[] { iconChar }), JLabel.CENTER);
+            if (Util.isWindowsPlatform())
+                 setFont(new Font("Arial Unicode MS", Font.PLAIN, pointSize+4));
+             else
+                 setFont(new Font("Lucida Grande", Font.PLAIN, pointSize));
+            // todo: this may be a problem for Linux: does it have any decent default fonts that
+            // include the fancy extended unicode character sets?
+            //setFont(new Font("Arial Unicode MS", Font.PLAIN, (int) (((float)pointSize) * 1.3)));
+
+            // todo: the Mac v.s. PC fonts are too different to get
+            // this perfect; will need need per platform glyph
+            // selection (the unicode char).  Or: could do something
+            // crazy like get the bounding box of the character in the
+            // available font, and keep scaling the point size until
+            // the bounding box matches what we're looking for...
+            
+            //mSize = getPreferredSize(); // debug
+            mSize = new Dimension(width, height);
+            setPreferredSize(mSize);
+            setMaximumSize(mSize);
+            setMinimumSize(mSize);
+            setAlignmentX(0.5f);
+            if (color != null)
+                setForeground(color);
+        }
+
+        public IconicLabel(char iconChar, int width, int height) {
+            this(iconChar, 16, null, width, height);
+        }
+        
+        public void paintComponent(Graphics g) {
+            // for debug: fill box with color so can see size
+            if (DEBUG.BOXES) {
+                g.setColor(Color.red);
+                g.fillRect(0, 0, 99, 99);
+            }
+            super.paintComponent(g);
+        }
+        
+        public void setBounds(int x, int y, int width, int height) {
+            super.setBounds(x, y, mSize.width, mSize.height);
+        }
+        
+        public Dimension getSize() { return mSize; }
+        public Dimension getPreferredSize() { return mSize; }
+        public Dimension getMaximumSize() { return mSize; }
+        public Dimension getMinimumSize() { return mSize; }
+        public Rectangle getBounds() { return new Rectangle(getX(), getY(), mSize.width, mSize.height); }
+    }
+    
 
 
     
