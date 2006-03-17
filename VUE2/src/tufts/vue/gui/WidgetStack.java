@@ -25,14 +25,16 @@ import javax.swing.*;
 
 
 /**
- * A vertical stack of collapsable/expandable regions containing arbitrary JComponents.
+ * A vertical stack of collapsable/expandable regions containing arbitrary JComponent's.
  *
- * @version $Revision: 1.1 $ / $Date: 2006-03-15 18:15:31 $ / $Author: sfraize $
+ * Note that the ultimate behaviour of the stack will be very dependent on the
+ * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
+ *
+ * @version $Revision: 1.2 $ / $Date: 2006-03-17 07:47:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends JPanel
 {
-    //private final java.util.List mPanels = new java.util.ArrayList();
     private final JPanel mGridBag;
     private final GridBagConstraints _gbc = new GridBagConstraints();
 
@@ -63,7 +65,6 @@ public class WidgetStack extends JPanel
     public void addPane(String title, JComponent widget, int verticalExpansionWeight) {
         //WidgetBox box = new WidgetBox(title, widget);
         WidgetTitle titleBar = new WidgetTitle(title, widget);
-        //mPanels.add(box);
 
         if (verticalExpansionWeight != 0)
             mExpanderWasAdded = true;
@@ -84,16 +85,26 @@ public class WidgetStack extends JPanel
 
     public void addNotify() {
         super.addNotify();
-        if (!mExpanderWasAdded) {
-            // Until we know what we want to do here, mark the empty space
-            GridBagConstraints c = (GridBagConstraints) _gbc.clone();
-            c.fill = GridBagConstraints.CENTER;
-            c.weighty = 1;
-            JLabel empty = new JLabel("empty space");
-            //empty.setPreferredSize(new Dimension(0,0));
-            //empty.setMinimumSize(new Dimension(0,0));
-            add(empty, c);
-        }
+
+        // we need this all the time as it's now possible for
+        // everything to be collpased, even if there was an
+        // expander, now that we've done away with WidgetBox
+        //if (!mExpanderWasAdded)
+        
+        // Add a component that is invisible (min size = 0), but will
+        // eat up any leftover vertical space in the gridbag, so if
+        // everything is collapsed, it will all go to the top, instead
+        // of the middle.  Note: if we end up adding panes
+        // dynamically, we'll need to manage this, or try going back
+        // to handling with a borderlayout or something.
+        
+        GridBagConstraints c = (GridBagConstraints) _gbc.clone();
+        c.fill = GridBagConstraints.CENTER;
+        c.weighty = 1;
+        JLabel empty = new JLabel("empty space");
+        empty.setPreferredSize(new Dimension(0,0));
+        empty.setMinimumSize(new Dimension(0,0));
+        add(empty, c);
     }
 
 }
@@ -128,7 +139,7 @@ class WidgetTitle extends Box {
         mWidget = widget;
         mTitle = new JLabel(label);
         mTitle.setForeground(Color.white);
-        mTitle.setFont(new Font("Arial", Font.BOLD, 12));
+        mTitle.setFont(new Font("Lucida Grande", Font.BOLD, 12));
         add(Box.createHorizontalStrut(9));
         int iconHeight = 10;
         int iconWidth = 9;
