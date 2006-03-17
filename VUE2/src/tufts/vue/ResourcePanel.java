@@ -30,7 +30,7 @@ import tufts.vue.gui.*;
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.3 $ / $Date: 2006-03-17 08:28:26 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2006-03-17 15:34:04 $ / $Author: sfraize $
  */
 
 public class ResourcePanel extends WidgetStack
@@ -53,6 +53,18 @@ public class ResourcePanel extends WidgetStack
     /** the displayed resource */
     private Resource mResource;
     
+
+    public ResourcePanel()
+    {
+        addPane("Info",         mSummary = new SummaryPane(), 0f);
+        addPane("Meta-Data",    mMetaData = new PropertiesEditor(false), 1f);
+        addPane("Preview",      mPreview = new PreviewPane(), 1f);
+
+        VUE.ModelSelection.addListener(this);
+    }
+
+    
+
     // summary fields
     private final Object[] labelTextPairs = {
         "-Title",   mTitleField,
@@ -84,6 +96,7 @@ public class ResourcePanel extends WidgetStack
 
             Font f = mTitleField.getFont();
             mTitleField.setFont(f.deriveFont(Font.BOLD));
+            //mTitleField.setFont(f.deriveFont(Font.BOLD, (float) (fontSize+2)));
 
             add(gridBag, BorderLayout.NORTH);
 
@@ -176,16 +189,6 @@ public class ResourcePanel extends WidgetStack
     }
 
 
-    public ResourcePanel()
-    {
-        addPane("Info",         mSummary = new SummaryPane());
-        addPane("Meta-Data",    mMetaData = new PropertiesEditor(false), 50);
-        addPane("Preview",      mPreview = new PreviewPane(), 50);
-
-        VUE.ModelSelection.addListener(this);
-    }
-
-    
     public void selectionChanged(LWSelection selection) {
         if (selection.isEmpty() || selection.size() > 1) {
             loadResource(null);
@@ -377,14 +380,19 @@ public class ResourcePanel extends WidgetStack
         LWComponent node = new LWNode("Test Node");
         node.setNotes("I am a note.");
         //MapResource r = new MapResource("file:///System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Home");
-        MapResource r = new MapResource("file:///VUE/src/tufts/vue/images/splash_graphic.gif");
+        String rsrc = "file:///VUE/src/tufts/vue/images/splash_graphic_1.0.gif";
+        if (args.length > 0)
+            rsrc = args[0];
+        System.out.println("Loading resource[" + rsrc + "]");
+        MapResource r = new MapResource(rsrc);
+        System.out.println("Got resource " + r);
         r.setTitle("A Very Long Long Resource Title Ya Say");
         node.setResource(r);
         for (int i = 1; i < 6; i++)
             r.setProperty("field_" + i, "value_" + i);
 
         DockWindow w = null;
-        if (args.length > 0) {
+        if (false) {
             //ToolWindow w = VUE.createToolWindow("LWCInfoPanel", p);
             JScrollPane sp = new JScrollPane(p,
                                              JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
