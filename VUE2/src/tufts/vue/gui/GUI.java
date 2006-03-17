@@ -43,7 +43,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.12 $ / $Date: 2006-03-15 18:16:43 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2006-03-17 07:47:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1128,6 +1128,7 @@ public class GUI
     
     public static final Icon EmptyIcon16 = new EmptyIcon16();
     public static final Icon NO_ICON = new EmptyIcon16();
+    public static final Insets EmptyInsets = new Insets(0,0,0,0);
         
     private static boolean anyIcons(Component[] items) {
         for (int i = 0; i < items.length; i++) {
@@ -1307,6 +1308,26 @@ public class GUI
         public Dimension getMaximumSize() { return mSize; }
         public Dimension getMinimumSize() { return mSize; }
         public Rectangle getBounds() { return new Rectangle(getX(), getY(), mSize.width, mSize.height); }
+    }
+
+    // add a color to a Font
+    public static class Face extends Font {
+        public final Color color;
+        public Face(Font f, Color c) {
+            super(f.getName(), f.getStyle(), f.getSize());
+            color = c;
+        }
+        public Face(Font f) {
+            this(f, Color.black);
+        }
+        public Face(String name, int size, Color c) {
+            super(name, Font.PLAIN, size);
+            color = c;
+        }
+        public Face(String name, int style, int size, Color c) {
+            super(name, style, size);
+            color = c;
+        }
     }
     
 
