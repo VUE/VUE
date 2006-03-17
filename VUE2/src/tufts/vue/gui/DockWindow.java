@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.40 $ / $Date: 2006-03-15 18:16:14 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2006-03-17 17:23:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -62,6 +62,7 @@ public class DockWindow extends javax.swing.JWindow
     implements MouseListener
                , MouseMotionListener
                , FocusManager.MouseInterceptor
+               , java.beans.PropertyChangeListener
 {
     final static java.util.List sAllWindows = new java.util.ArrayList();
     final static char RightArrowChar = 0x25B8; // unicode
@@ -102,6 +103,7 @@ public class DockWindow extends javax.swing.JWindow
     //private Action[] mMenuActions;
     
     private String mTitle;
+    private final String mBaseTitle;
     private int mTitleWidth;
 
     private DockWindow mChild;
@@ -176,6 +178,7 @@ public class DockWindow extends javax.swing.JWindow
 
         if (asToolbar)
             setFocusableWindowState(false);
+        mBaseTitle = title;
         setTitle(title);
         
         isToolbar = asToolbar;
@@ -265,10 +268,31 @@ public class DockWindow extends javax.swing.JWindow
             mContentPane.setWidget(c);
         else
             mContentPane.add(c);
+        if (DEBUG.Enabled) c.addPropertyChangeListener(this);
         pack();
         //int width = minUnrolledWidth(getWidth());
         //if (width < 300) width = 300;
         setSize(300, getHeight());
+    }
+
+    /** interface java.beans.PropertyChangeListener for contained component */
+    public void propertyChange(java.beans.PropertyChangeEvent e) {
+        System.out.println(e);
+        String auxTitle = null;
+        if (e.getPropertyName().equals("TITLE-INFO")) {
+            auxTitle = (String) e.getNewValue();
+        }
+        setAuxTitle(auxTitle);
+    }
+
+    private void setAuxTitle(String suffix) {
+        String newTitle;
+        if (suffix == null) {
+            newTitle = mBaseTitle;
+        } else {
+            newTitle = mBaseTitle + " [" + suffix + "]";
+        }
+        System.out.println("setAuxTitle(" + newTitle + ")");
     }
 
     public void add(JComponent c) {
@@ -811,6 +835,8 @@ public class DockWindow extends javax.swing.JWindow
             MacOSX.setTitle(this, title);
         }
 
+        repaint();
+        
         /*
         if (isMac && getPeer() != null) {
             // Make sure the NSWindow also has our name so we can find it later if needed.
@@ -3191,7 +3217,7 @@ public class DockWindow extends javax.swing.JWindow
              //if (TitleFont.getSize() < 11)
              //mLabel.setBorder(new EmptyBorder(2,0,0,0)); // t,l,b,r
              //else
-                 mLabel.setBorder(new EmptyBorder(1,0,0,0)); // t,l,b,r
+             //mLabel.setBorder(new EmptyBorder(1,0,0,0)); // t,l,b,r
              // FYI, raise the label raises the icon also...
              mLabel.setFont(TitleFont);
              mLabel.setForeground(SystemColor.activeCaptionText);
@@ -3204,7 +3230,7 @@ public class DockWindow extends javax.swing.JWindow
                                               15, // fixed width
                                               TitleHeight); // fixed height
                      
-             if (false&&isMacAqua)
+             if (isMacAqua)
                  mOpenLabel.setBorder(new EmptyBorder(0,0,1,0)); // t,l,b,r
              
              if (DEBUG.BOXES) {
