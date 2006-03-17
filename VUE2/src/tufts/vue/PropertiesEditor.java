@@ -36,7 +36,7 @@ import java.util.ArrayList;
  * A field:value editor currently specialized for resource properties displayed on
  * the object inspector info tab.
  *
- * @version $Revision: 1.25 $ / $Date: 2006-03-15 18:17:38 $ / $Author: sfraize $ 
+ * @version $Revision: 1.26 $ / $Date: 2006-03-17 07:46:31 $ / $Author: sfraize $ 
  * @author  akumar03
  */
 
@@ -99,11 +99,11 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
 
         
         JScrollPane conditionsScrollPane=new JScrollPane(propertiesTable);
-        conditionsScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+        //conditionsScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
         JPanel propertiesPanel=new JPanel();
         propertiesPanel.setLayout(new BorderLayout());
         propertiesPanel.add(conditionsScrollPane, BorderLayout.CENTER);
-        propertiesPanel.setBorder(BorderFactory.createEmptyBorder(2,0,3,0));
+        //propertiesPanel.setBorder(BorderFactory.createEmptyBorder(2,0,3,0));
         
         
         // setting the properties editor for fields
