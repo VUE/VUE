@@ -30,35 +30,54 @@ import tufts.vue.gui.*;
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.1 $ / $Date: 2006-03-15 18:14:33 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-03-17 07:49:51 $ / $Author: sfraize $
  */
 
 public class ResourcePanel extends WidgetStack
     implements VueConstants, LWSelection.Listener
 {
-    private final JTextComponent mTitleField = new JTextArea();
-    private final JTextComponent mLocationField = new JTextPane();
-    private final JLabel mSizeField = new JLabel();
+    // the collapsable pane's
+    private final JPanel mSummary;
     private final PropertiesEditor mMetaData;
     private final PreviewPane mPreview;
-    
 
+    // fields for the Summary Pane
+    private final JTextComponent mTitleField = new JTextArea();
+    private final JTextComponent mWhereField = new JTextPane();
+    private final JLabel mSizeField = new JLabel();
+
+    private final Image NoImage = VueResources.getImage("NoImage");
+    
+    /** the displayed resource */
     private Resource mResource;
     
+    // summary fields
     private final Object[] labelTextPairs = {
-        "-Title",    mTitleField,
-        "-Location", mLocationField,
+        "-Title",   mTitleField,
+        "-Where",   mWhereField,
         "-Size",    mSizeField,
     };
 
     class SummaryPane extends JPanel {
         SummaryPane() {
             super(new BorderLayout());
-            GridBagLayout gridBagLayout = new GridBagLayout();
-            JPanel gridBag = new JPanel(gridBagLayout);
-            //setLayout(gridBag);
-            addLabelTextRows(labelTextPairs, gridBagLayout, gridBag);
-            add(gridBag, BorderLayout.CENTER);
+            JPanel gridBag = new JPanel(new GridBagLayout());
+            
+            Font labelFace = new GUI.Face("Lucida Grande", Font.BOLD, 10, Color.gray);
+            Font fieldFace = new Font("Lucida Grande", Font.PLAIN, 10);
+
+            addLabelTextRows(labelTextPairs, gridBag, labelFace, fieldFace);
+
+            Font f = mTitleField.getFont();
+            mTitleField.setFont(f.deriveFont(Font.BOLD));
+
+            add(gridBag, BorderLayout.NORTH);
+
+            // allow fixed mount of veritcal space so stack isn't always resizing
+            // if the location line-wraps and makes itself taller
+            setPreferredSize(new Dimension(Short.MAX_VALUE,63));
+            setMinimumSize(new Dimension(200,63));
+            setMaximumSize(new Dimension(Short.MAX_VALUE,63));
         }
     }
     
@@ -69,40 +88,49 @@ public class ResourcePanel extends WidgetStack
         
         PreviewPane() {
             super(new BorderLayout());
-            mImage = VueResources.getImage("splashScreen");
-            //add(new JLabel(VueResources.getImageIcon("splashScreen")), BorderLayout.CENTER);
-            mImageWidth = mImage.getWidth(null);
-            mImageHeight = mImage.getHeight(null);
-            setPreferredSize(new Dimension(mImageWidth, mImageHeight));
-            //setPreferredSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
-            setMaximumSize(new Dimension(mImageWidth, mImageHeight));
-            setMinimumSize(new Dimension(16,16));
+            //loadImage(VueResources.getImage("splashScreen")); // test
+            //setBorder(new LineBorder(Color.red));
+            setMinimumSize(new Dimension(32,32));
+            setPreferredSize(new Dimension(200,200));
         }
 
         void loadResource(Resource r) {
-            mImage = null;
+            Image image = null;
+
             if (r instanceof MapResource) {
+                image = NoImage;
                 MapResource mr = (MapResource) r;
                 if (mr.isImage()) {
                     java.net.URL url = mr.asURL();
                     if (url != null)
-                        mImage = new ImageIcon(url).getImage();
+                        image = new ImageIcon(url).getImage();
                 }
+            }
+
+            loadImage(image);
+        }
+
+        private void loadImage(Image image) {
+            mImage = image;
+            if (mImage != null) {
+                mImageWidth = mImage.getWidth(null);
+                mImageHeight = mImage.getHeight(null);
+                //setPreferredSize(new Dimension(mImageWidth, mImageHeight));
+                //setMaximumSize(new Dimension(mImageWidth, mImageHeight));
             }
             repaint();
         }
 
+        /** draw the image into the current avilable space, scaling it down if needed (never scale up tho) */
         public void paintComponent(Graphics g) {
 
-            if (mImage == null) {
-                System.out.println("no image");
+            if (mImage == null)
                 return;
-            }
             
             final int w = getWidth();
             final int h = getHeight();
-            g.setColor(Color.black);
-            g.fillRect(0,0, w,h);
+            //g.setColor(Color.black);
+            //g.fillRect(0,0, w,h);
             int drawW = w;
             int drawH = h;
             if (drawW > mImageWidth)
@@ -126,16 +154,9 @@ public class ResourcePanel extends WidgetStack
 
     public ResourcePanel()
     {
-        mLocationField.setEditable(false);
-        mLocationField.setOpaque(false);
-        mLocationField.setBorder(null);
-        
-        mMetaData = new PropertiesEditor(false);
-
-        addPane("Summary", new SummaryPane());
-        addPane("Meta-Data", mMetaData, 50);
-        // for now put preview last, otherwise meta-data stays at bottom even it preview is "closed"
-        addPane("Preview", mPreview = new PreviewPane(), 50);
+        addPane("Info",         mSummary = new SummaryPane());
+        addPane("Meta-Data",    mMetaData = new PropertiesEditor(false), 50);
+        addPane("Preview",      mPreview = new PreviewPane(), 50);
 
         VUE.ModelSelection.addListener(this);
     }
@@ -150,28 +171,27 @@ public class ResourcePanel extends WidgetStack
     }
     
     
-    private void setAllEnabled(boolean tv) {
+    private void setAllEnabled(boolean enabled) {
         int pairs = labelTextPairs.length;
         for (int i = 0; i < pairs; i += 2) {
             JComponent field = (JComponent) labelTextPairs[i+1];
-            field.setEnabled(tv);
+            field.setEnabled(enabled);
         }
-        //resourceMetadataPanel.setEnabled(tv);
-        //metadataPane.setEnabled(tv);
-        mMetaData.setEnabled(tv);
+        mMetaData.setEnabled(enabled);
     }
     
     private void loadResource(final Resource rs) {
         
         if (rs != null) {
-            loadText(mLocationField, rs.getSpec());
             setAllEnabled(true);
+            loadText(mWhereField, rs.getSpec());
+            loadText(mTitleField, rs.getTitle());
         } else {
+            // leave current display, but grayed out
             setAllEnabled(false);
-            loadText(mLocationField, "");
+            return;
         }
         
-        loadText(mTitleField, rs.getTitle());
 
         String ss = "";
         if (rs instanceof MapResource) // todo: REALLY got to clean up the Resource interface & add an abstract class...
@@ -192,11 +212,10 @@ public class ResourcePanel extends WidgetStack
             mMetaData.clear();
         }
 
+        mMetaData.getPropertiesTableModel().setEditable(false);
         mResource = rs;
 
         mPreview.loadResource(rs);
-        
-        
     }
     
     //----------------------------------------------------------------------------------------
@@ -222,78 +241,73 @@ public class ResourcePanel extends WidgetStack
             c.setText(text);
     }
     
-    private void addLabelTextRows(Object[] labelTextPairs, GridBagLayout gridbag, Container container)
+    private void addLabelTextRows(Object[] labelTextPairs, Container gridBag, Font labelFace, Font fieldFace)
     {
+        // Note that the resulting alignment ends up being somehow FONT dependent!
+        // E.g., works great with Lucida Grand (MacOSX), but with system default,
+        // if the field value is a wrapping JTextPane (thus gets taller as window
+        // gets narrower), the first line of text rises slightly and is no longer
+        // in line with it's label.
+        
         GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.EAST;
         int num = labelTextPairs.length;
-        boolean lastWasLabelAbove = false;
 
-        Border lastBorder = null;
+        final int vpad = 2;
+        final Insets labelInsets = new Insets(vpad, 3, vpad, 5);
+        final Insets fieldInsets = new Insets(vpad, 0, vpad, 1);
         
         for (int i = 0; i < num; i += 2) {
             
             String txt = (String) labelTextPairs[i];
             boolean readOnly = false;
-            boolean labelAbove = false;
             if (txt.charAt(0) == '-') {
                 txt = txt.substring(1);
                 readOnly = true;
-            } else if (txt.charAt(0) == '+') {
-                labelAbove = true;
-                txt = txt.substring(1);
             }
-            txt += ": ";
-            
+
             //-------------------------------------------------------
             // Add the label field
             //-------------------------------------------------------
 
-            int topPad = lastWasLabelAbove ? 3 : 1;
-            
-            if (labelAbove) {
-                c.insets = new Insets(topPad, 0, 0, 0);
-                c.gridwidth = GridBagConstraints.REMAINDER; // last in row
-                c.anchor = GridBagConstraints.WEST;
-            } else {
-                c.insets = new Insets(topPad, 0, 1, 0);
-                c.gridwidth = GridBagConstraints.RELATIVE; // next-to-last in row
-                c.anchor = GridBagConstraints.EAST;
-                // this makes labels stay at top left of multi-line fields, tho it throws off
-                // baseline alignment for normal cases.  What we REALLY want is a baseline
-                // alignment against the first line of text in the field.
-                // c.anchor = GridBagConstraints.NORTHEAST;
-            }
+            c.gridx = 0;
+            c.gridy = i;
+            c.insets = labelInsets;
+            c.gridwidth = GridBagConstraints.RELATIVE; // next-to-last in row
             c.fill = GridBagConstraints.NONE; // the label never grows
-            c.weightx = 0.0;                  // reset
-            
+            c.anchor = GridBagConstraints.NORTHEAST;
+            c.weightx = 0.0;                  // do not expand
+
             JLabel label = new JLabel(txt);
-            gridbag.setConstraints(label, c);
-            container.add(label);
-            label.setFont(FONT_NARROW);
+            if (labelFace != null) {
+                label.setFont(labelFace);
+                if (labelFace instanceof GUI.Face)
+                    label.setForeground(((GUI.Face)labelFace).color);
+            }
+            label.setToolTipText(txt);
+                
+            gridBag.add(label, c);
+
 
             //-------------------------------------------------------
             // Add the text value field
             //-------------------------------------------------------
             
+            c.gridx = 1;
             c.gridwidth = GridBagConstraints.REMAINDER;     // last in row
             c.fill = GridBagConstraints.HORIZONTAL;
-            if (labelAbove)
-                c.insets = new Insets(0, 0, 0, 0);
-            else
-                c.insets = new Insets(0, 0, 1, 0);
-            c.weightx = 1.0;
+            c.anchor = GridBagConstraints.CENTER;
+            c.insets = fieldInsets;
+            c.weightx = 1.0; // field value expands horizontally to use all space
             
             JComponent field = (JComponent) labelTextPairs[i+1];
-            //field.setFont(VueConstants.SmallFont);
-            //field.setFont(FONT_NARROW);
-            gridbag.setConstraints(field, c);
-            container.add(field);
-
-            if (lastBorder != null && field instanceof JTextPane) {
-                field.setBorder(lastBorder);
+            if (fieldFace != null) {
+                field.setFont(fieldFace);
+                if (fieldFace instanceof GUI.Face)
+                    field.setForeground(((GUI.Face)fieldFace).color);
             }
             
+            gridBag.add(field, c);
             
             if (readOnly) {
                 Border b = field.getBorder();
@@ -301,7 +315,7 @@ public class ResourcePanel extends WidgetStack
                 //lastBorder = b;
                 if (b != null) {
                     final Insets borderInsets = b.getBorderInsets(field);
-                    System.out.println("ResourcePanel: got border insets " + borderInsets + " for " + field);
+                    //System.out.println("ResourcePanel: got border insets " + borderInsets + " for " + field);
                     field.putClientProperty(VueTextField.ActiveBorderKey, b);
                     Border emptyBorder = new EmptyBorder(borderInsets);
                     field.putClientProperty(VueTextField.InactiveBorderKey, emptyBorder);
@@ -318,17 +332,7 @@ public class ResourcePanel extends WidgetStack
                     field.setOpaque(false);
                 }
             }
-
-            lastWasLabelAbove = labelAbove;
         }
-        /**
-         * JLabel field  = new JLabel("Metadata");
-         * c.gridwidth = GridBagConstraints.REMAINDER;     //end row
-         * c.fill = GridBagConstraints.HORIZONTAL;
-         * c.anchor = GridBagConstraints.WEST;
-         * gridbag.setConstraints(field, c);
-         * container.add(field);
-         */
     }
     
     public static void main(String args[]) {
@@ -341,12 +345,14 @@ public class ResourcePanel extends WidgetStack
         ResourcePanel p = new ResourcePanel();
         LWComponent node = new LWNode("Test Node");
         node.setNotes("I am a note.");
-        node.setResource("file:///System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Home");
-        Resource r = node.getResource();
+        //MapResource r = new MapResource("file:///System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Home");
+        MapResource r = new MapResource("file:///VUE/src/tufts/vue/images/splash_graphic.gif");
+        r.setTitle("A Very Long Long Resource Title Ya Say");
+        node.setResource(r);
         for (int i = 1; i < 6; i++)
             r.setProperty("field_" + i, "value_" + i);
 
-        DockWindow w;
+        DockWindow w = null;
         if (args.length > 0) {
             //ToolWindow w = VUE.createToolWindow("LWCInfoPanel", p);
             JScrollPane sp = new JScrollPane(p,
@@ -357,21 +363,15 @@ public class ResourcePanel extends WidgetStack
             w = GUI.createDockWindow("Resource Inspector", sp);
         } else {
             w = GUI.createDockWindow("Resource Inspector", p);
+            //w = GUI.createDockWindow("Resource Inspector", p.mSummary);
             //tufts.Util.displayComponent(p);
         }
 
-        w.setVisible(true);
+        if (w != null)
+            w.setVisible(true);
         
         VUE.getSelection().setTo(node); // setLWComponent does diddly -- need this
 
-        
-        /*
-        p.setAllEnabled(true);
-        p.labelField.setEditable(true);
-        p.labelField.setEnabled(true);
-        p.mLocationField.setEditable(true);
-        p.mLocationField.setEnabled(true);
-        */
     }
     
     
