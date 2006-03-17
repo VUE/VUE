@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.344 $ / $Date: 2006-03-15 18:17:05 $ / $Author: sfraize $ 
+ * @version $Revision: 1.345 $ / $Date: 2006-03-17 07:45:51 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -656,8 +656,6 @@ public class VUE
 		previewDock.add(previewPanel);
 		previewDock.setRolledUp(true);
 		
-		drBrowserDock.setVisible(true);
-
         //-----------------------------------------------------------------------------
         // Map Inspector
         //-----------------------------------------------------------------------------
@@ -785,7 +783,7 @@ public class VUE
         
         //GUI.centerOnScreen(ApplicationFrame);
 
-        final boolean loadTopDock = true;
+        final boolean loadTopDock = false;
 
         if (loadTopDock && DockWindow.getMainDock() != null) {
             // leave room for dock at top
@@ -882,33 +880,36 @@ public class VUE
         //
         //-----------------------------------------------------------------------------
 
-        if (loadTopDock) {
 
-            // order the windows left to right for the top dock
-            final DockWindow[] preShown = new DockWindow[] {
-                drBrowserDock,
-                GUI.isSmallScreen() ? null : fontDock,
-                MapInspector,
-                ObjectInspector,
-            };
+        // order the windows left to right for the top dock
+        final DockWindow[] acrossTop = new DockWindow[] {
+            drBrowserDock,
+            GUI.isSmallScreen() ? null : fontDock,
+            MapInspector,
+            ObjectInspector,
+            resourceDock,
+        };
             
-            outlineDock.setLowerLeftCorner(0, GUI.GScreenHeight - GUI.GInsets.bottom);
-            if (DockWindow.getTopDock() != null)
-                prepareForTopDockDisplay(preShown);
-
-            // Run after AWT to ensure all peers to have been created & shown
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                positionForDocking(preShown);
-            }});
-            
-        } else {
-
-            // position inspectors based on frame location
+        outlineDock.setLowerLeftCorner(0, GUI.GScreenHeight - GUI.GInsets.bottom);
+        if (DockWindow.getTopDock() != null)
+            prepareForTopDockDisplay(acrossTop);
+        
+        // Run after AWT to ensure all peers to have been created & shown
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            positionForDocking(acrossTop);
+        }});
+        
+        
+        if (false) {
+            // old positioning code
             int inspectorx = ApplicationFrame.getX() + ApplicationFrame.getWidth();
             MapInspector.suggestLocation(inspectorx, ApplicationFrame.getY());
             ObjectInspector.suggestLocation(inspectorx, ApplicationFrame.getY() + MapInspector.getHeight() );
             pannerDock.suggestLocation(ApplicationFrame.getX() - pannerDock.getWidth(), ApplicationFrame.getY());
         }
+        
+        if (!SKIP_DR)
+            drBrowserDock.setVisible(true);
 
 
         /*
@@ -950,6 +951,7 @@ public class VUE
      * Get the given windows displayed, but off screen, ready to be moved
      * into position.
      */
+    // todo: this no longer as to do with our DockRegions: is just use for positioning
     private static void positionForDocking(DockWindow[] preShown) {
         // Set last in preSown at the right, moving back up list
         // setting them to the left of that, and then set first in
