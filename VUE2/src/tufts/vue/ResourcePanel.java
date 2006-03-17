@@ -30,7 +30,7 @@ import tufts.vue.gui.*;
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.2 $ / $Date: 2006-03-17 07:49:51 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-03-17 08:28:26 $ / $Author: sfraize $
  */
 
 public class ResourcePanel extends WidgetStack
@@ -47,7 +47,9 @@ public class ResourcePanel extends WidgetStack
     private final JLabel mSizeField = new JLabel();
 
     private final Image NoImage = VueResources.getImage("NoImage");
-    
+
+    private final boolean isMacAqua = GUI.isMacAqua();
+
     /** the displayed resource */
     private Resource mResource;
     
@@ -59,13 +61,25 @@ public class ResourcePanel extends WidgetStack
     };
 
     class SummaryPane extends JPanel {
+    
         SummaryPane() {
             super(new BorderLayout());
-            JPanel gridBag = new JPanel(new GridBagLayout());
-            
-            Font labelFace = new GUI.Face("Lucida Grande", Font.BOLD, 10, Color.gray);
-            Font fieldFace = new Font("Lucida Grande", Font.PLAIN, 10);
 
+            final String fontName;
+            final int fontSize;
+
+            if (isMacAqua) {
+                fontName = "Lucida Grande";
+                fontSize = 10;
+            } else {
+                fontName = "SansSerif";
+                fontSize = 11;
+            }
+            
+            Font fieldFace = new Font(fontName, Font.PLAIN, fontSize);
+            Font labelFace = new GUI.Face(fontName, Font.BOLD, fontSize, Color.gray);
+
+            JPanel gridBag = new JPanel(new GridBagLayout());
             addLabelTextRows(labelTextPairs, gridBag, labelFace, fieldFace);
 
             Font f = mTitleField.getFont();
@@ -79,6 +93,16 @@ public class ResourcePanel extends WidgetStack
             setMinimumSize(new Dimension(200,63));
             setMaximumSize(new Dimension(Short.MAX_VALUE,63));
         }
+
+        public void paint(Graphics g) {
+            if (!isMacAqua) {
+                // this is on by default on the mac
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            }
+            super.paint(g);
+        }
+        
     }
     
     class PreviewPane extends JPanel {
@@ -310,6 +334,12 @@ public class ResourcePanel extends WidgetStack
             gridBag.add(field, c);
             
             if (readOnly) {
+
+                field.setOpaque(false);
+                field.setBorder(null);
+                
+                /*
+                
                 Border b = field.getBorder();
                 //System.out.println("LWCInfoPanel: got border " + b);
                 //lastBorder = b;
@@ -327,10 +357,11 @@ public class ResourcePanel extends WidgetStack
                     tc.setEditable(false);
                     tc.setFocusable(false);
                 }
-                if (VueUtil.isMacPlatform()) {
+                if (VueUtil.isMacPlatform()) { // looks crappy on PC aso
                     //field.setBackground(SystemColor.control);
                     field.setOpaque(false);
-                }
+                    }
+                */
             }
         }
     }
