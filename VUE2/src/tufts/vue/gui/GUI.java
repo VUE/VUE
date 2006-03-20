@@ -34,6 +34,7 @@ import java.awt.datatransfer.DataFlavor;
 
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.border.*;
 import javax.swing.UIManager;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
@@ -43,7 +44,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.13 $ / $Date: 2006-03-17 07:47:05 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2006-03-20 18:09:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -66,7 +67,7 @@ public class GUI
     static GraphicsConfiguration GConfig;
     static Rectangle GBounds;
     static Rectangle GMaxWindowBounds;
-    public static Insets GInsets;
+    public static Insets GInsets; // todo: this should be at least package private
     public static int GScreenWidth;
     public static int GScreenHeight;
 
@@ -517,6 +518,12 @@ public class GUI
     public static DockWindow createDockWindow(String title) {
         return createDockWindow(title, false);
     }
+
+    /** the given panel must have it's title set via setName */
+    public static DockWindow createDockWindow(JPanel panel) {
+        return createDockWindow(panel.getName(), false);
+    }
+    
     
     /**
      * Convience method.
@@ -525,7 +532,7 @@ public class GUI
      */
     public static DockWindow createDockWindow(String title, javax.swing.JComponent content) {
         DockWindow dw = createDockWindow(title);
-        dw.add(content);
+        dw.setContent(content);
         return dw;
     }
 
@@ -535,7 +542,7 @@ public class GUI
      */
     public static DockWindow createToolbar(String title, javax.swing.JComponent content) {
         DockWindow dw = createDockWindow(title, true);
-        dw.add(content);
+        dw.setContent(content);
         return dw;
     }
 
@@ -1276,7 +1283,6 @@ public class GUI
             // available font, and keep scaling the point size until
             // the bounding box matches what we're looking for...
             
-            //mSize = getPreferredSize(); // debug
             mSize = new Dimension(width, height);
             setPreferredSize(mSize);
             setMaximumSize(mSize);
@@ -1289,6 +1295,13 @@ public class GUI
         public IconicLabel(char iconChar, int width, int height) {
             this(iconChar, 16, null, width, height);
         }
+
+        /*
+        public void addNotify() {
+            super.addNotify();
+            if (DEBUG.BOXES) System.out.println(name(this) + " prefSize=" + super.getPreferredSize());
+        }
+        */
         
         public void paintComponent(Graphics g) {
             // for debug: fill box with color so can see size
@@ -1309,6 +1322,77 @@ public class GUI
         public Dimension getMinimumSize() { return mSize; }
         public Rectangle getBounds() { return new Rectangle(getX(), getY(), mSize.width, mSize.height); }
     }
+
+
+    // unfinished
+    public static class PopupMenuButton extends JLabel {
+        private JPopupMenu popMenu;
+        private long lastHidden;
+        private boolean doRollover = false;
+
+        //static final char chevron = 0xBB; // unicode "right-pointing double angle quotation mark"
+        //final Color inactiveColor = isMacAqua ? Color.darkGray : Color.lightGray;
+
+        PopupMenuButton(Icon icon, Action[] actions) {
+            super(icon);
+            //setForeground(inactiveColor);
+            //setName(DockWindow.this.getName());
+            setFont(new Font("Arial", Font.PLAIN, 18));
+            //Insets borderInsets = new Insets(0,0,1,2); // chevron
+            Insets borderInsets = new Insets(1,0,0,2);
+            if (DEBUG.BOXES) {
+                setBorder(new MatteBorder(borderInsets, Color.orange));
+                setBackground(Color.red);
+                setOpaque(true);
+            } else {
+                // using an empty border allows mouse over the border gap
+                // to also activate us for rollover
+                setBorder(new EmptyBorder(borderInsets));
+            }
+
+            setMenuActions(actions);
+        }
+
+        /*
+        PopupMenuButton(char unicodeCharIcon, Action[] actions) {
+            this(new GUI.IconicLabel(unicodeCharIcon, 16, 16), actions);
+            doRollover = true;
+        }
+        */
+
+        public void setMenuActions(Action[] actions)
+        {
+            clearMenuActions();
+
+            new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
+                public void mouseEntered(MouseEvent e) {
+                    if (doRollover)
+                        setForeground(isMacAqua ? Color.black : Color.white);
+                }
+                public void mouseExited(MouseEvent e) {
+                    if (doRollover)
+                        setForeground(isMacAqua ? Color.gray : SystemColor.activeCaption.brighter());
+                    //setForeground(inactiveColor);
+                }
+                
+                public int getMenuX(Component c) { return c.getWidth(); }
+                public int getMenuY(Component c) { return -getY(); } // 0 in parent
+            };
+
+            repaint();
+        }
+
+        private void clearMenuActions() {
+            MouseListener[] ml = getMouseListeners();
+            for (int i = 0; i < ml.length; i++) {
+                if (ml[i] instanceof GUI.PopupMenuHandler)
+                    removeMouseListener(ml[i]);
+            }
+        }
+
+    }
+
+    
 
     // add a color to a Font
     public static class Face extends Font {
