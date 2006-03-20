@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.48 $ / $Date: 2006-02-23 02:55:44 $ / $Author: jeff $
+ * @version $Revision: 1.49 $ / $Date: 2006-03-20 18:13:39 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -60,8 +60,8 @@ public class VueDragTree extends JTree
     private static  ImageIcon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
     private static ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
     private static  ImageIcon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
-	private javax.swing.JPanel previewPanel = null;
-	private tufts.vue.gui.DockWindow previewDockWindow = null;
+    ///private javax.swing.JPanel previewPanel = null;
+    //	private tufts.vue.gui.DockWindow previewDockWindow = null;
     
     public VueDragTree(Object  obj, String treeName) {
         setModel(createTreeModel(obj, treeName));
@@ -77,6 +77,7 @@ public class VueDragTree extends JTree
         addTreeSelectionListener(this);
     }
     
+    /*
     public VueDragTree(Object  obj, 
 					   String treeName, 
 					   tufts.vue.gui.DockWindow previewDockWindow,
@@ -96,6 +97,7 @@ public class VueDragTree extends JTree
 		resourceSelection = VUE.getResourceSelection();
         addTreeSelectionListener(this);
     }
+    */
     
     public VueDragTree(FavoritesNode favoritesNode) {
         setModel(new DefaultTreeModel(favoritesNode));
@@ -265,11 +267,13 @@ public class VueDragTree extends JTree
 				Resource resource = (Resource)((ResourceNode)e.getPath().getLastPathComponent()).getResource();
                 resourceSelection.add(resource);
 				
-				this.previewDockWindow.setVisible(true);
-				this.previewPanel.removeAll();
-				this.previewPanel.add(resource.getPreview());
-				this.previewPanel.repaint();
-				this.previewPanel.validate();
+                /*
+                this.previewDockWindow.setVisible(true);
+                this.previewPanel.removeAll();
+                this.previewPanel.add(resource.getPreview());
+                this.previewPanel.repaint();
+                this.previewPanel.validate();
+                */
                 //resourceSelection.remove(createResource(e.getPath().getLastPathComponent()));
             }
             /**
