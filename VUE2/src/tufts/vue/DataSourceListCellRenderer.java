@@ -108,7 +108,11 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
 				panel.add(new JLabel(remoteIcon));
 				checkBox.setEnabled(true);
 				infoDataSource = (edu.tufts.vue.dsm.DataSource)value;
-				panel.add(new JLabel(infoDataSource.getRepository().getDisplayName()));
+                                try {
+                                    panel.add(new JLabel(infoDataSource.getRepository().getDisplayName()));
+                                } catch (Throwable t) {
+                                    panel.add(new JLabel(infoDataSource.toString() + " " + t));
+                                }
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
