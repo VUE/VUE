@@ -30,11 +30,11 @@ import tufts.vue.gui.*;
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.5 $ / $Date: 2006-03-20 18:13:59 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-03-20 20:40:56 $ / $Author: sfraize $
  */
 
 public class ResourcePanel extends WidgetStack
-    implements VueConstants, LWSelection.Listener
+    implements VueConstants, LWSelection.Listener, ResourceSelection.Listener
 {
     // the collapsable pane's
     private final JPanel mSummary;
@@ -61,9 +61,14 @@ public class ResourcePanel extends WidgetStack
         addPane("Preview",      mPreview = new PreviewPane(), 1f);
 
         VUE.ModelSelection.addListener(this);
+
+        VUE.getResourceSelection().addListener(this);
     }
 
-    
+
+    public void resourceSelectionChanged(ResourceSelection selection) {
+        loadResource(selection.get());
+    }
 
     // summary fields
     private final Object[] labelTextPairs = {
