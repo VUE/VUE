@@ -26,7 +26,7 @@ import tufts.vue.gui.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.38 $ / $Date: 2006-03-20 18:10:31 $ / $Author: sfraize $ 
+ * @version $Revision: 1.39 $ / $Date: 2006-03-20 20:41:48 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -104,16 +104,16 @@ public class DRBrowser extends JPanel
         previewDock.setLocation(300,300);
         drBrowserDock.addChild(savedResourcesDock);
         
-        searchDock.add(searchPane);
+        searchDock.setContent(searchPane);
         searchDock.setRolledUp(true);
         
-        browseDock.add(browsePane);
+        browseDock.setContent(browsePane);
         browseDock.setRolledUp(true);
         
-        savedResourcesDock.add(savedResourcesPane);
+        savedResourcesDock.setContent(savedResourcesPane);
         savedResourcesDock.setRolledUp(true);
         
-        previewDock.add(previewPane);
+        previewDock.setContent(previewPane);
         previewDock.setRolledUp(true);
 
     }
