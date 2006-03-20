@@ -30,7 +30,7 @@ import tufts.vue.gui.*;
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.4 $ / $Date: 2006-03-17 15:34:04 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2006-03-20 18:13:59 $ / $Author: sfraize $
  */
 
 public class ResourcePanel extends WidgetStack
@@ -374,15 +374,23 @@ public class ResourcePanel extends WidgetStack
         VUE.init(args);
 
         // Must have at least ONE active frame for our focus manager to work
-        new Frame("An Active Frame").setVisible(true);
-        
+        //new Frame("An Active Frame").setVisible(true);
+
+        String rsrc = null;
+        if (args.length > 0 && args[0].charAt(0) != '-')
+            rsrc = args[0];
+        displayTestResourcePanel(rsrc);
+    }
+
+    static void displayTestResourcePanel(String rsrc)
+    {
+        //MapResource r = new MapResource("file:///System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Home");
+        if (rsrc == null)
+            rsrc = "file:///VUE/src/tufts/vue/images/splash_graphic_1.0.gif";
+
         ResourcePanel p = new ResourcePanel();
         LWComponent node = new LWNode("Test Node");
         node.setNotes("I am a note.");
-        //MapResource r = new MapResource("file:///System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Home");
-        String rsrc = "file:///VUE/src/tufts/vue/images/splash_graphic_1.0.gif";
-        if (args.length > 0)
-            rsrc = args[0];
         System.out.println("Loading resource[" + rsrc + "]");
         MapResource r = new MapResource(rsrc);
         System.out.println("Got resource " + r);
@@ -406,8 +414,10 @@ public class ResourcePanel extends WidgetStack
             //tufts.Util.displayComponent(p);
         }
 
-        if (w != null)
+        if (w != null) {
+            w.setUpperRightCorner(GUI.GScreenWidth, GUI.GInsets.top);
             w.setVisible(true);
+        }
         
         VUE.getSelection().setTo(node); // setLWComponent does diddly -- need this
 
