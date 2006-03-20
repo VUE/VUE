@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- *
+ * @version $Revision: 1.97 $ / $Date: 2006-03-20 18:12:29 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -57,9 +57,9 @@ import tufts.vue.gui.*;
 
 public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.vue.fsm.event.SearchListener
 {
-    static DRBrowser drBrowser;
-    static Object activeDataSource;
-    static JPanel resourcesPanel,dataSourcePanel;
+    private static DRBrowser DRB;
+    private static Object activeDataSource;
+    //private static JPanel resourcesPanel,dataSourcePanel;
     String breakTag = "";
     
     public final static int ADD_MODE = 0;
@@ -87,12 +87,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     
     public static DataSourceList dataSourceList;
 	
-	static DockWindow librariesDockWindow;
-	static DockWindow searchDockWindow;
-	static DockWindow browseDockWindow;
-	static DockWindow savedResourcesDockWindow;
-	static DockWindow previewDockWindow;
-	DockWindow resultSetDockWindow;
+        DockWindow resultSetDockWindow;
 	javax.swing.JScrollPane resultSetTreeJSP;
 	JPanel previewPanel = null;
 	
@@ -114,100 +109,105 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 	edu.tufts.vue.dsm.Registry registry;
 	org.osid.registry.Provider checked[];
 
-    public DataSourceViewer(DRBrowser drBrowser,
-							DockWindow librariesDWindow,
-							DockWindow searchDWindow,
-							DockWindow browseDWindow,
-							DockWindow savedResourcesDWindow,
-							DockWindow previewDWindow) {
-        
-		librariesDockWindow = librariesDWindow;
-		searchDockWindow = searchDWindow;
-		searchDockWindow.setMenuActions(new Action[0]);
-		browseDockWindow = browseDWindow;
-        savedResourcesDockWindow = savedResourcesDWindow;
-		previewDockWindow = previewDWindow;
+    public DataSourceViewer(DRBrowser drBrowser)
+    {
+        /*
+          librariesDockWindow = librariesDWindow;
+          searchDockWindow = searchDWindow;
+          searchDockWindow.setMenuActions(new Action[0]);
+          browseDockWindow = browseDWindow;
+          savedResourcesDockWindow = savedResourcesDWindow;
+          previewDockWindow = previewDWindow;
+          resourcesPanel = new JPanel();
+        */
 		
-		setLayout(new BorderLayout());
-        setBorder(new TitledBorder("Libraries"));
-        this.drBrowser = drBrowser;
-        resourcesPanel = new JPanel();
+        setLayout(new BorderLayout());
+        //setBorder(new TitledBorder("Libraries"));
+        this.DRB = drBrowser;
 				
         dataSourceList = new DataSourceList(this);
         dataSourceList.addKeyListener(this);
                 
-		dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-		edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
-		for (int i=0; i < dataSources.length; i++) {
-			dataSourceList.getContents().addElement(dataSources[i]);
-		}
+        dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+        edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
+        for (int i=0; i < dataSources.length; i++) {
+            dataSourceList.getContents().addElement(dataSources[i]);
+        }
         loadDefaultDataSources();
 				
-		federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();		
-		sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
-		queryEditor = federatedSearchManager.getQueryEditorForType(new edu.tufts.vue.util.Type("mit.edu","search","keyword"));
-		queryEditor.addSearchListener(this);
-		((JPanel)queryEditor).setBackground(VueResources.getColor("FFFFFF"));
-		((JPanel)queryEditor).setSize(new Dimension(100,100));
-		((JPanel)queryEditor).setPreferredSize(new Dimension(100,100));
-		((JPanel)queryEditor).setMinimumSize(new Dimension(100,100));
-		searchDockWindow.add((JPanel)queryEditor);
-		//searchDockWindow.setVisible(true);
-		searchDockWindow.setRolledUp(true);
-		
-		this.previewPanel = previewDockWindow.getWidgetPanel();
+        federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();		
+        sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
+        queryEditor = federatedSearchManager.getQueryEditorForType(new edu.tufts.vue.util.Type("mit.edu","search","keyword"));
+        queryEditor.addSearchListener(this);
 
-		initResultSetDockWindow();
+        if (false) {
+            //((JPanel)queryEditor).setBackground(VueResources.getColor("FFFFFF")); // not in properties file
+            ((JPanel)queryEditor).setSize(new Dimension(100,90));
+            ((JPanel)queryEditor).setPreferredSize(new Dimension(100,90));
+            ((JPanel)queryEditor).setMinimumSize(new Dimension(100,90));
+        }
+
+        DRB.searchPane.removeAll();
+        DRB.searchPane.add((JPanel) queryEditor);
+		
+        // WORKING: stop using this preview panel?
+        //this.previewPanel = previewDockWindow.getWidgetPanel();
+
+        initResultSetDockWindow();
 		
         dataSourceList.clearSelection();
 		
         setPopup();
-		librariesDockWindow.setVisible(true); // try to make menu appear
+        // WORKING: commented out
+        //librariesDockWindow.setVisible(true); // try to make menu appear
         dataSourceList.addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent e) {				
-                Object o = ((JList)e.getSource()).getSelectedValue();
-                if (o !=null) {
-					// for the moment, we are doing double work to keep old data sources
-					if (o instanceof tufts.vue.DataSource) {
-						DataSource ds = (DataSource)o;
-						DataSourceViewer.this.setActiveDataSource(ds);
-					} else if (o instanceof edu.tufts.vue.dsm.DataSource) {
-						edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
-						DataSourceViewer.this.setActiveDataSource(ds);
-					}
-                    else
-					{
-                        int index = ((JList)e.getSource()).getSelectedIndex();
-						o = dataSourceList.getContents().getElementAt(index-1);
-						if (o instanceof tufts.vue.DataSource) {
-							DataSource ds = (DataSource)o;
-							DataSourceViewer.this.setActiveDataSource(ds);
-						} else if (o instanceof edu.tufts.vue.dsm.DataSource) {
-							edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
-							DataSourceViewer.this.setActiveDataSource(ds);
-						}
+                public void valueChanged(ListSelectionEvent e) {				
+                    Object o = ((JList)e.getSource()).getSelectedValue();
+                    if (o !=null) {
+                        // for the moment, we are doing double work to keep old data sources
+                        if (o instanceof tufts.vue.DataSource) {
+                            DataSource ds = (DataSource)o;
+                            DataSourceViewer.this.setActiveDataSource(ds);
+                        } else if (o instanceof edu.tufts.vue.dsm.DataSource) {
+                            edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
+                            DataSourceViewer.this.setActiveDataSource(ds);
+                        }
+                        else
+                            {
+                                int index = ((JList)e.getSource()).getSelectedIndex();
+                                o = dataSourceList.getContents().getElementAt(index-1);
+                                if (o instanceof tufts.vue.DataSource) {
+                                    DataSource ds = (DataSource)o;
+                                    DataSourceViewer.this.setActiveDataSource(ds);
+                                } else if (o instanceof edu.tufts.vue.dsm.DataSource) {
+                                    edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
+                                    DataSourceViewer.this.setActiveDataSource(ds);
+                                }
+                            }
                     }
-                }
-            }}
-        );
+                }}
+            );
 
-		dataSourceList.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-				Point pt = e.getPoint();
-				// see if we are far enough over to the left to be on the checkbox
-				if ( (activeDataSource instanceof edu.tufts.vue.dsm.DataSource) && (pt.x <= 20) ) {
-					int index = dataSourceList.locationToIndex(pt);
-					edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceList.getModel().getElementAt(index);
-					ds.setIncludedInSearch(!ds.isIncludedInSearch());
-					dataSourceManager.save();
-					dataSourceList.repaint();
-					queryEditor.refresh();
-				}
-//                if(e.getButton() == e.BUTTON3) {
-//                    popup.show(e.getComponent(), e.getX(), e.getY());
-//                }
-            }
-        });
+        dataSourceList.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    Point pt = e.getPoint();
+                    // see if we are far enough over to the left to be on the checkbox
+                    if ( (activeDataSource instanceof edu.tufts.vue.dsm.DataSource) && (pt.x <= 20) ) {
+                        int index = dataSourceList.locationToIndex(pt);
+                        edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceList.getModel().getElementAt(index);
+                        boolean included = !ds.isIncludedInSearch();
+                        ds.setIncludedInSearch(included);
+                        if (DEBUG.DR) out("DataSource " + ds + " [" + ds.getProviderDisplayName() + "] inclusion: " + included); 
+                        //ds.setIncludedInSearch(!ds.isIncludedInSearch());
+                        dataSourceManager.save();
+                        dataSourceList.repaint();
+                        queryEditor.refresh();
+                    }
+                    //                if(e.getButton() == e.BUTTON3) {
+                    //                    popup.show(e.getComponent(), e.getX(), e.getY());
+                    //                }
+                }
+            });
 
 /*        
         // GRID: optionsConditionButton
@@ -253,15 +253,29 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 //        topPanel.add(deleteButton);
 //        topPanel.add(refreshButton);
         topPanel.add(questionLabel);
-*/        
-        dataSourcePanel = new JPanel();
-        dataSourcePanel.setLayout(new BorderLayout());
-//        dataSourcePanel.add(topPanel,BorderLayout.NORTH);
+*/
         
-        JScrollPane dataJSP = new JScrollPane(dataSourceList);
-        dataSourcePanel.add(dataJSP,BorderLayout.CENTER);
-        add(dataSourcePanel,BorderLayout.CENTER);
-//        drBrowser.add(resourcesPanel,BorderLayout.CENTER);
+        if (true) {
+
+            // no scroll pane: always show's everything & sizes to fit
+            add(dataSourceList);
+
+        } else {
+
+            JScrollPane dataJSP = new JScrollPane(dataSourceList);
+            dataJSP.setMinimumSize(new Dimension(100,100));
+            add(dataJSP);
+            
+            /*
+            dataSourcePanel = new JPanel(new BorderLayout());
+            //dataSourcePanel.add(topPanel,BorderLayout.NORTH);
+            
+            JScrollPane dataJSP = new JScrollPane(dataSourceList);
+            dataSourcePanel.add(dataJSP,BorderLayout.CENTER);
+            add(dataSourcePanel,BorderLayout.CENTER);
+            //drBrowser.add(resourcesPanel,BorderLayout.CENTER);
+            */
+        }
     }
     
     public static void addDataSource(DataSource ds){
@@ -342,29 +356,42 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         
         this.activeDataSource = ds;
         
-//        refreshDataSourcePanel(ds);
+        //        refreshDataSourcePanel(ds);
         
         dataSourceList.setSelectedValue(ds,true);
-		searchDockWindow.setRolledUp(true);
-		if (ds instanceof LocalFileDataSource) {
-			browseDockWindow.setVisible(true);			
-			savedResourcesDockWindow.setRolledUp(true);
-		} else if (ds instanceof FavoritesDataSource) {
-			savedResourcesDockWindow.setVisible(true);
-			browseDockWindow.setRolledUp(true);			
-		}
+        
+        DRB.searchPane.setExpanded(false);
+        if (ds instanceof LocalFileDataSource) {
+            DRB.browsePane.setExpanded(true);
+            DRB.savedResourcesPane.setExpanded(false);
+        } else if (ds instanceof FavoritesDataSource) {
+            DRB.savedResourcesPane.setExpanded(true);
+            DRB.browsePane.setExpanded(false);
+        }
+
+        /*
+        searchDockWindow.setRolledUp(true);
+        if (ds instanceof LocalFileDataSource) {
+            browseDockWindow.setVisible(true);			
+            savedResourcesDockWindow.setRolledUp(true);
+        } else if (ds instanceof FavoritesDataSource) {
+            savedResourcesDockWindow.setVisible(true);
+            browseDockWindow.setRolledUp(true);			
+        }
+        */
+        
     }
 
     public void setActiveDataSource(edu.tufts.vue.dsm.DataSource ds)
-	{        
+    {        
         this.activeDataSource = ds;
         
-//        refreshDataSourcePanel(ds);
+        //        refreshDataSourcePanel(ds);
         
         dataSourceList.setSelectedValue(ds,true);
-		
-		searchDockWindow.setVisible(true);
-		browseDockWindow.setRolledUp(true);			
+        
+        DRB.searchPane.setExpanded(true);
+        DRB.browsePane.setExpanded(false);
     }
 
     public static void refreshDataSourcePanel(edu.tufts.vue.dsm.DataSource ds)
@@ -485,18 +512,32 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 				DataSourceViewer.this.popup.setVisible(false);
 			}
 		};
-/*        popup.add(checkForUpdatesAction);
+        
+
+        /*
+        popup.add(checkForUpdatesAction);
         popup.add(addLibraryAction);
         popup.add(editLibraryAction);
         popup.add(removeLibraryAction);
         popup.addSeparator();
         popup.add(getLibraryInfoAction);
-*/		Action actions[] = new Action[4];
-		actions[0] = checkForUpdatesAction;
-		actions[1] = addLibraryAction;
-		actions[2] = editLibraryAction;
-		actions[3] = removeLibraryAction;
-		librariesDockWindow.setMenuActions(actions);
+        */
+        /*
+        Action actions[] = new Action[4];
+        actions[0] = checkForUpdatesAction;
+        actions[1] = addLibraryAction;
+        actions[2] = editLibraryAction;
+        actions[3] = removeLibraryAction;
+        librariesDockWindow.setMenuActions(actions);
+        */
+
+        Widget.setMenuActions(DRB.librariesPanel,
+                              new Action[] {
+                                  checkForUpdatesAction,
+                                  addLibraryAction,
+                                  editLibraryAction,
+                                  removeLibraryAction,
+                              });
     }
 
     private boolean checkValidUser(String userName,String password,int type) {
@@ -632,55 +673,100 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 		return noImageIcon;
 	}
 
-	public void searchPerformed(edu.tufts.vue.fsm.event.SearchEvent se)
-	{
-		// this may take some time, so we change to the wait cursor
-		GUI.activateWaitCursor();
+    public void searchPerformed(edu.tufts.vue.fsm.event.SearchEvent se)
+    {
+        // this may take some time, so we change to the wait cursor
+        GUI.activateWaitCursor();
 		
-		try {
-			// do we want to build this each time, maybe
-			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
-			java.util.Vector repositoryIdStringVector = new java.util.Vector();
-			java.util.Vector repositoryDisplayNameVector = new java.util.Vector();
-			for (int i=0; i < repositories.length; i++) {
-				repositoryIdStringVector.addElement(repositories[i].getId().getIdString());
-				repositoryDisplayNameVector.addElement(repositories[i].getDisplayName());
-			}
+        try {
+
+            JPanel tmpAllResults = new JPanel(new BorderLayout()); // until splitting out results is working
+
+            WidgetStack resultsStack = new WidgetStack();
+
+            resultsStack.addPane("All Results", tmpAllResults);
+
+            org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
+            java.util.Vector repositoryIdStringVector = new java.util.Vector();
+            java.util.Vector repositoryDisplayNameVector = new java.util.Vector();
+            if (DEBUG.DR) out("searching the following " + repositories.length + " repositories:");
+            for (int i = 0; i < repositories.length; i++) {
+                String idStr = repositories[i].getId().getIdString();
+                String name = repositories[i].getDisplayName();
+                if (DEBUG.DR) System.out.println("\t#" + i + " " + idStr + " [" + name + "]");
+                repositoryIdStringVector.addElement(idStr);
+                repositoryDisplayNameVector.addElement(name);
+
+                JLabel tmpMessage = new JLabel("put " + name + " result set here", SwingConstants.CENTER);
+
+                resultsStack.addPane(name, new JScrollPane(tmpMessage));
+            }
+                        
+            java.io.Serializable searchCriteria = queryEditor.getCriteria();
+            org.osid.shared.Properties searchProperties = queryEditor.getProperties();
 			
-			java.io.Serializable searchCriteria = queryEditor.getCriteria();
-			org.osid.shared.Properties searchProperties = queryEditor.getProperties();
-			
-			edu.tufts.vue.fsm.ResultSetManager resultSetManager = federatedSearchManager.getResultSetManager(searchCriteria,
-																											 searchType,
-																											 searchProperties);
+            if (DEBUG.DR) out("Searching criteria [" + searchCriteria + "]...");
+                        
+            edu.tufts.vue.fsm.ResultSetManager resultSetManager
+                = federatedSearchManager.getResultSetManager(searchCriteria,
+                                                             searchType,
+                                                             searchProperties);
+
+            if (DEBUG.DR) out("got result set manager " + resultSetManager);
+                        
             java.util.Vector results = new java.util.Vector();
-			org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets();
-			while (assetIterator.hasNextAsset()) {
-				results.addElement(new Osid2AssetResource(assetIterator.nextAsset(),this.context));
-			}			
-			VueDragTree resultSetTree = new VueDragTree(results.iterator(),
-														"Repository Search Results",
-														this.previewDockWindow,
-														this.previewPanel);
-            resultSetTree.setRootVisible(false);
-			resultSetTreeJSP = new javax.swing.JScrollPane(resultSetTree);
+            org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets();
+            while (assetIterator.hasNextAsset()) {
+                org.osid.repository.Asset a = (org.osid.repository.Asset) assetIterator.nextAsset();
+                org.osid.shared.Id rid = a.getRepository();
+                if (DEBUG.DR) out("repository " + rid.getIdString() + " found: " + a + " [" + a.getDisplayName() + "]");
+                results.addElement(new Osid2AssetResource(a, this.context));
+            }			
+
+            Widget.setTitle(tmpAllResults, "All Results (" + results.size() + ")");
+            
+            VueDragTree resultSetTree = new VueDragTree(results.iterator(), "Repository Search Results");
+
+            tmpAllResults.add(new JScrollPane(resultSetTree));
+
+            String dockTitle = "Search Results for \"" + queryEditor.getSearchDisplayName() + "\"";// + " (" + results.size() + ")";
+            
+            if (resultSetDockWindow == null) {
+                resultSetDockWindow = GUI.createDockWindow(dockTitle, resultsStack);
+                resultSetDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
+                                                DRB.dockWindow.getY());
+            } else {
+                resultSetDockWindow.setTitle(dockTitle);
+                resultSetDockWindow.setContent(resultsStack);
+            }
+
+            resultSetDockWindow.setVisible(true);
+
+                        
+            /*
+              resultSetTree.setRootVisible(false);
+              resultSetTreeJSP = new javax.swing.JScrollPane(resultSetTree);
 		
-			DockWindow resultSetDockWindow = GUI.createDockWindow("Search Results " + queryEditor.getSearchDisplayName(), resultSetTreeJSP);
-			resultSetTreeJSP.setPreferredSize(resultSetPanelDimensions);
-			if (GUI.isMacAqua()) {
-				resultSetTreeJSP.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-				resultSetTreeJSP.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 
-			}
-				
-			searchDockWindow.addChild(resultSetDockWindow);
-			resultSetDockWindow.setVisible(true);
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+              DockWindow resultSetDockWindow = GUI.createDockWindow("Search Results " + queryEditor.getSearchDisplayName(), resultSetTreeJSP);
+              resultSetTreeJSP.setPreferredSize(resultSetPanelDimensions);
+              if (GUI.isMacAqua()) {
+              resultSetTreeJSP.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+              resultSetTreeJSP.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 
+              }
+
+              //tufts.Util.displayComponent(resultSetTree);
+              searchDockWindow.addChild(resultSetDockWindow);
+              resultSetDockWindow.setVisible(true);
+            */
+
+                        
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
 		
-		VUE.clearWaitCursor();
-		//searchDockWindow.setRolledUp(true);
-	}
+        VUE.clearWaitCursor();
+        //searchDockWindow.setRolledUp(true);
+    }
 	
 	
     /*
@@ -801,6 +887,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     }
     
     public void keyTyped(KeyEvent e) {
+    }
+
+    private void out(Object o) {
+        System.err.println("DSV: " + (o==null?"null":o.toString()));
     }
     
     
