@@ -38,7 +38,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.1 $ / $Date: 2006-03-20 18:08:27 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-03-20 20:43:42 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -52,9 +52,9 @@ public class Widget extends javax.swing.JPanel
     }
     
     public static void setExpanded(JComponent c, boolean expanded) {
-        //if (DEBUG.DOCK) System.out.println("Widget.setExpanded " + GUI.name(c) + " " + expanded);
+        if (DEBUG.DOCK) System.out.println("Widget.setExpanded " + GUI.name(c) + " " + expanded);
         c.putClientProperty(EXPANSION_KEY, expanded ? Boolean.TRUE : Boolean.FALSE);
-        //c.firePropertyChange(EXPANSION_KEY, !expanded, expanded);
+        //c.firePropertyChange("TESTPROPERTY", false, true);
     }
 
     public static void setMenuActions(JComponent c, javax.swing.Action[] actions)
@@ -63,6 +63,10 @@ public class Widget extends javax.swing.JPanel
         c.putClientProperty(MENU_ACTIONS_KEY, actions);
     }
 
+    public static boolean isWidget(JComponent c) {
+        return c instanceof Widget || c.getClientProperty(EXPANSION_KEY) != null;
+    }
+    
     // instance methods for when used as a subclassed wrapper of JPanel:
     
     /** Create a new empty Widget JPanel, with a default layout of BorderLayout */
