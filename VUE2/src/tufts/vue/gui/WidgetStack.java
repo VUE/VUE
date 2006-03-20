@@ -32,7 +32,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.4 $ / $Date: 2006-03-20 18:07:23 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2006-03-20 20:46:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends JPanel
@@ -143,11 +143,18 @@ public class WidgetStack extends JPanel
         addPane(title, widget, 1.0f);
     }
 
+    public Widget addPane(String title) {
+        Widget w = new Widget(title);
+        addPane(w, 1.0f);
+        return w;
+    }
+
 
     private void dumpSizeInfo(Component c) {
-        out("\tprefSize " + (c.isPreferredSizeSet()?" SET ":"     ") + c.getPreferredSize());
-        out("\t minSize " + (c.isMinimumSizeSet()?" SET ":"     ") + c.getMinimumSize());
-        out("\t maxSize " + (c.isMaximumSizeSet()?" SET ":"     ") + c.getMaximumSize());
+        tufts.Util.printStackTrace("java 1.5 only");
+        //out("\tprefSize " + (c.isPreferredSizeSet()?" SET ":"     ") + c.getPreferredSize());
+        //out("\t minSize " + (c.isMinimumSizeSet()?" SET ":"     ") + c.getMinimumSize());
+        //out("\t maxSize " + (c.isMaximumSizeSet()?" SET ":"     ") + c.getMaximumSize());
     }
 
     public void addNotify() {
@@ -223,7 +230,7 @@ public class WidgetStack extends JPanel
             setMinimumSize(new Dimension(50, TitleHeight));
 
             addMouseListener(new tufts.vue.MouseAdapter(label) {
-                    public void mouseClicked(MouseEvent e) { setExpanded(!mExpanded); }
+                    public void mouseClicked(MouseEvent e) { Widget.setExpanded(mWidget, !mExpanded); }
                     public void mousePressed(MouseEvent e) { mIcon.setForeground(TopGradient.brighter()); }
                     public void mouseReleased(MouseEvent e) { mIcon.setForeground(Color.white); }
                 });
@@ -232,10 +239,16 @@ public class WidgetStack extends JPanel
             // added to the WidgetStack.
 
             Object expanded = widget.getClientProperty(Widget.EXPANSION_KEY);
-            if (expanded != null)
+            if (expanded != null) {
                 propertyChange(new PropertyChangeEvent(this, Widget.EXPANSION_KEY, null, expanded));
-            else if (isExpander)
-                mExpandersOpen++; // open by default
+            } else {
+                // Make sure we store the current expansion key value if one isn't already
+                // there: this is how we know of a JComponent has been Widget-ized or not.
+                // This won't trigget a recursive propertyChange event as we're not a listener yet.
+                widget.putClientProperty(Widget.EXPANSION_KEY, Boolean.TRUE);
+                if (isExpander)
+                    mExpandersOpen++; // open by default
+            }
             
             widget.addPropertyChangeListener(this);
             
