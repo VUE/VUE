@@ -39,7 +39,7 @@ import com.sun.image.codec.jpeg.*;
  *
  * TODO: this to be refactored as AbstractResource / URLResource, and/or maybe LWResource.
  *
- * @version $Revision: 1.42 $ / $Date: 2006-02-24 16:42:18 $ / $Author: jeff $
+ * @version $Revision: 1.43 $ / $Date: 2006-03-20 18:14:32 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.  Create an AbstractResource class
@@ -234,7 +234,7 @@ public class MapResource implements Resource, XMLUnmarshalListener
     // todo: resource's should be atomic: don't allow post construction setSpec,
     // or at least protected
     public void setSpec(final String spec) {
-        if (DEBUG.Enabled) {
+        if (DEBUG.Enabled && DEBUG.META) {
             System.out.println(getClass().getName() + " setSpec " + spec);
         }
         
