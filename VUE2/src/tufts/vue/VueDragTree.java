@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.49 $ / $Date: 2006-03-20 18:13:39 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2006-03-20 20:40:16 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -263,9 +263,8 @@ public class VueDragTree extends JTree
     public void valueChanged(TreeSelectionEvent e) {
         try {
             if(e.getPath().getLastPathComponent() != null ) {
-                resourceSelection.clear();
-				Resource resource = (Resource)((ResourceNode)e.getPath().getLastPathComponent()).getResource();
-                resourceSelection.add(resource);
+                Resource resource = (Resource)((ResourceNode)e.getPath().getLastPathComponent()).getResource();
+                resourceSelection.setTo(resource);
 				
                 /*
                 this.previewDockWindow.setVisible(true);
