@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.41 $ / $Date: 2006-03-17 17:23:23 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2006-03-20 18:06:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -201,9 +201,9 @@ public class DockWindow extends javax.swing.JWindow
             //setPreferredSize(new Dimension(300,150)); // interferes with height
         }
 
-        if (content != null)
-            add(content);
-        else
+        if (content != null) {
+            setContent(content);
+        } else
             ;//pack(); // ensure peer's created
         
         // add us to the static list of all DockWindow's
@@ -239,8 +239,8 @@ public class DockWindow extends javax.swing.JWindow
         this(title, null, content, false);
     }
 
-    private void addWidget(JComponent c, boolean replace) {
-        if (DEBUG.DOCK || DEBUG.INIT) out("adding " + GUI.name(c) + " to " + GUI.name(getWidgetPanel()));
+    private void addContent(JComponent c, boolean replace) {
+        if (DEBUG.DOCK || DEBUG.INIT) out("adding " + GUI.name(c) + " to " + GUI.name(getContentPanel()));
 
         // todo: cleanup
         if (c.getBorder() == null) {
@@ -249,40 +249,101 @@ public class DockWindow extends javax.swing.JWindow
             // we can detect it for un-rolling.
 
             if (DEBUG.BOXES)
-                getWidgetPanel().setBorder(new MatteBorder(0,0,1,0, Color.green));
+                getContentPanel().setBorder(new MatteBorder(0,0,1,0, Color.green));
             else
-                getWidgetPanel().setBorder(new EmptyBorder(0,0,1,0));
+                getContentPanel().setBorder(new EmptyBorder(0,0,1,0));
 
             
         } else {
             
             if (DEBUG.BOXES)
-                getWidgetPanel().setBorder(new MatteBorder(0,0,1,0, Color.green));
+                getContentPanel().setBorder(new MatteBorder(0,0,1,0, Color.green));
             else
-                getWidgetPanel().setBorder(new EmptyBorder(0,0,1,0));
-            //getWidgetPanel().setBorder(new MatteBorder(0,0,1,0, Color.lightGray));
+                getContentPanel().setBorder(new EmptyBorder(0,0,1,0));
+            //getContentPanel().setBorder(new MatteBorder(0,0,1,0, Color.lightGray));
 
         }
         
+        if (getContent() != null)
+            getContent().removePropertyChangeListener(this);
+
         if (replace)
             mContentPane.setWidget(c);
         else
             mContentPane.add(c);
-        if (DEBUG.Enabled) c.addPropertyChangeListener(this);
+
+        c.addPropertyChangeListener(this);
+        
         pack();
+
+        setSize(300, getHeight());
         //int width = minUnrolledWidth(getWidth());
         //if (width < 300) width = 300;
-        setSize(300, getHeight());
+
+        /*
+        boolean neverDisplayed = false;
+        int minHeight = getHeight();
+        
+        if (!isDisplayable()) { // has never been displayed (or pack() called)
+            neverDisplayed = true;
+            int minWidth = 300;
+            Dimension ps = c.getPreferredSize();
+            Dimension ms = c.getMinimumSize();
+            if (DEBUG.DOCK) out("content  minSize " + ms);
+            if (DEBUG.DOCK) out("content prefSize " + ps);
+            //int minHeight = ps.height > ms.height ? ps.height : ms.height;
+            minHeight = ms.height;
+            setSize(minWidth, minHeight);
+        }
+        
+        pack();
+
+        if (neverDisplayed)
+            setSize(300, minHeight);
+        */
+        
     }
 
+    public void setContent(JComponent c) {
+        addContent(c, true);
+    }
+    
+    public JPanel getContentPanel() {
+        return mContentPane.mContent;
+    }
+
+    public Component getContent() {
+        if (mContentPane.mContent.getComponentCount() > 0)
+            return mContentPane.mContent.getComponent(0);
+        else
+            return null;
+    }
+    
+    // ** @deprecated */ public void add(JComponent c) { setContent(c); }
+    
     /** interface java.beans.PropertyChangeListener for contained component */
     public void propertyChange(java.beans.PropertyChangeEvent e) {
-        System.out.println(e);
-        String auxTitle = null;
-        if (e.getPropertyName().equals("TITLE-INFO")) {
-            auxTitle = (String) e.getNewValue();
+        
+        final String key = e.getPropertyName();
+
+        if (DEBUG.DOCK && !key.equals("ancestor")) {
+            out("Widget property change key(" + key + ") value=[" + e.getNewValue() + "]");
+            //GUI.messageAfterAWT("after awt for property change " + key);
         }
-        setAuxTitle(auxTitle);
+
+        if (key == Widget.EXPANSION_KEY) {
+            boolean expand = ((Boolean) e.getNewValue()).booleanValue();
+            setRolledUp(!expand);
+            
+        } else if (key == Widget.MENU_ACTIONS_KEY) {
+            setMenuActions((Action[]) e.getNewValue());
+                
+        } else if (key.equals("TITLE-INFO")) {
+            
+            String auxTitle = auxTitle = (String) e.getNewValue();
+            setAuxTitle(auxTitle);
+            
+        }
     }
 
     private void setAuxTitle(String suffix) {
@@ -292,15 +353,9 @@ public class DockWindow extends javax.swing.JWindow
         } else {
             newTitle = mBaseTitle + " [" + suffix + "]";
         }
-        System.out.println("setAuxTitle(" + newTitle + ")");
+        if (DEBUG.Enabled) System.out.println("setAuxTitle(" + newTitle + ")");
     }
 
-    public void add(JComponent c) {
-        addWidget(c, true);
-    }
-    public void setWidget(JComponent c) {
-        addWidget(c, true);
-    }
 
     /** All DockWindow's in this DockWindow's stack show and hide with it */
     public void setStackOwner(boolean t) {
@@ -618,6 +673,8 @@ public class DockWindow extends javax.swing.JWindow
         
         super.addNotify();
 
+        updateWindowShadow();
+        
         addMouseListener(this);
         addMouseMotionListener(this);
         
@@ -826,34 +883,25 @@ public class DockWindow extends javax.swing.JWindow
         mTitle = title;
         mTitleWidth = GUI.stringLength(TitleFont, title);
         setName(title);
-        //setName(title + "^(" + tufts.vue.gui.FocusManager.name(owner) + ")");
 
         GUI.setRootPaneNames(this, title);
 
         if (isMac && isDisplayable()) {
-            // isDisplayable true if we have a peer
-            MacOSX.setTitle(this, title);
+            // isDisplayable true if we have a peer, which we need before MacOSX lib calls
+            try {
+                MacOSX.setTitle(this, title);
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
         }
 
+        if (mContentPane != null && mContentPane.mTitle != null)
+            mContentPane.mTitle.setTitle(title);
         repaint();
-        
-        /*
-        if (isMac && getPeer() != null) {
-            // Make sure the NSWindow also has our name so we can find it later if needed.
-            //((apple.awt.CWindow)getPeer()).setTitle(getName());
-            // See /System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Classes/ui.jar
-            Util.invoke(getPeer(), "setTitle", title);
-        }
-        */
-        
     }
     
     public String getTitle() {
         return mTitle;
-    }
-    
-    public JPanel getWidgetPanel() {
-        return mContentPane.mContent;
     }
     
     private int minUnrolledHeight(int height) {
@@ -1041,6 +1089,7 @@ public class DockWindow extends javax.swing.JWindow
     */
 
     public boolean atScreenTop() {
+        //if (DEBUG.Enabled) out("atScreenTop: y=" + getY() + " <= " + GUI.GInsets.top);
         return getY() <= GUI.GInsets.top;
     }
     
@@ -1123,7 +1172,7 @@ public class DockWindow extends javax.swing.JWindow
             int rolledX = getX();
             int rolledY = getY();
             
-            if (atScreenBottom() && mParent == null // don't roll-down in stacks for now
+            if (atScreenBottom() && mParent == null  && !atScreenTop()// don't roll-down in stacks for now
                 //|| (isDocked() && mDockRegion.mGravity == DockRegion.BOTTOM)
                 ) {
                 rolledY = getY() + getHeight() - rolledHeight;
@@ -1137,7 +1186,7 @@ public class DockWindow extends javax.swing.JWindow
             else
                 setBounds(rolledX, rolledY, rolledWidth, rolledHeight);
             
-            getWidgetPanel().setVisible(false);
+            getContentPanel().setVisible(false);
 
             if (wantsSidewaysRollup())
                 mContentPane.setVerticalTitle(true);
@@ -1157,6 +1206,13 @@ public class DockWindow extends javax.swing.JWindow
                 mContentPane.setVerticalTitle(false);
             
             mStickingRight = false;
+
+            Rectangle max = GUI.GMaxWindowBounds;
+            if (DEBUG.Enabled) out("maxwinbounds: " + max);
+            if (mSavedShape.width > max.width)
+                mSavedShape.width = max.width;
+            if (mSavedShape.height > max.height)
+                mSavedShape.height = max.height;
 
             if (atScreenBottom() && mParent == null
                 //|| (isDocked() && mDockRegion.mGravity == DockRegion.BOTTOM)
@@ -1179,7 +1235,7 @@ public class DockWindow extends javax.swing.JWindow
                 setShapeAnimated(getX(), getY(), mSavedShape.width, mSavedShape.height);
             }
             
-            getWidgetPanel().setVisible(true);
+            getContentPanel().setVisible(true);
             mSavedShape = null;
 
             // pretend like we've been shown so that VueMenuBar.WindowDisplayAction
@@ -2468,7 +2524,11 @@ public class DockWindow extends javax.swing.JWindow
         if (mHasWindowShadow != shadow && isDisplayable()) {
             mHasWindowShadow = shadow;
             if (DEBUG.DOCK) out("setShadow " + shadow);
-            MacOSX.setShadow(this, shadow);
+            try {
+                MacOSX.setShadow(this, shadow);
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
         }
     }
 
@@ -2895,16 +2955,79 @@ public class DockWindow extends javax.swing.JWindow
         private boolean isVertical = false;
 
         private boolean gradientBG = false;
+
+        private Object titleConstraints = BorderLayout.NORTH;
         
+        /*
         public WindowPane(String title, boolean asToolbar)
         {
             // requesting double-buffering doesn't do squat to stop resize flashing on MacOSX
             super(true);
-            mContent.setName(title + ".widget");
+            mContent.setName(title + ".dockContent");
             setLayout(new BorderLayout());
             setBorder(getWindowBorder());
             installTitlePanel(title, asToolbar);
             add(mContent, BorderLayout.CENTER);
+            mContent.setLayout(new BorderLayout());
+
+            // need to make sure the background is set
+            // so that if there is a bevel-border, it'll
+            // do the right thing.
+            //setBackground(GUI.getVueColor());
+
+            //mContent.setBackground(Color.green);
+            mContent.setOpaque(false);
+
+        }
+        */
+
+        public WindowPane(String title, boolean asToolbar)
+        {
+            // requesting double-buffering doesn't do squat to stop resize flashing on MacOSX
+            super(true);
+            mContent.setName(title + ".dockContent");
+            Object contentConstraints;
+            if (true||asToolbar) {
+                setLayout(new BorderLayout());
+
+                if (asToolbar)
+                    titleConstraints = BorderLayout.WEST;
+                else
+                    titleConstraints = BorderLayout.NORTH;
+                contentConstraints = BorderLayout.CENTER;
+            } else {
+                setLayout(new GridBagLayout());
+                
+                GridBagConstraints c = new GridBagConstraints();
+                c.gridwidth = GridBagConstraints.REMAINDER;
+                c.weightx = 1;
+                c.gridx = 0;
+                
+                c.gridy = 0;
+                c.fill = GridBagConstraints.HORIZONTAL;
+                titleConstraints = c.clone();
+
+                c.gridy = 1;
+                c.fill = GridBagConstraints.BOTH;
+                c.weighty = 1;
+                contentConstraints = c;
+            }
+            
+            // Apparently, max bounds not respected by BorderLayout: try GridBag
+            // pref size is respected, but then it sets *everything* to max size.
+            // Okay, BoxLayout and not even freakin GridBag is handling this...
+            Rectangle max = GUI.getMaximumWindowBounds();
+            mContent.
+                setMaximumSize(new Dimension(max.width, max.height-100));
+                setMaximumSize(new Dimension(max.width, max.height-100));
+                //setPreferredSize(new Dimension(max.width, max.height-100));
+
+            
+            setBorder(getWindowBorder());
+            installTitlePanel(title, asToolbar);
+            add(mContent, contentConstraints);
+
+            
             mContent.setLayout(new BorderLayout());
 
             // need to make sure the background is set
@@ -2960,16 +3083,7 @@ public class DockWindow extends javax.swing.JWindow
             mContent.removeAll();
             
             //if (GUI.isMacBrushedMetal() && isToolbar)
-            if (isToolbar)
-                /*
-                (false
-                 //|| c instanceof tufts.vue.ObjectInspectorPanel
-                 //|| c instanceof tufts.vue.DRBrowser
-                 || c instanceof FontPropertyPanel
-                 || c instanceof LinkPropertyPanel
-                 ))
-                */
-            {
+            if (isToolbar) {
                 gradientBG = true;
                 changeAll(c);
             }
@@ -3051,7 +3165,7 @@ public class DockWindow extends javax.swing.JWindow
             if (asToolbar)
                 add(new Gripper(), BorderLayout.WEST);
             else
-                add(mTitle, BorderLayout.NORTH);
+                add(mTitle, titleConstraints);
         }
 
         /*
@@ -3266,6 +3380,10 @@ public class DockWindow extends javax.swing.JWindow
                  installGradient(false);
         }
 
+        void setTitle(String title) {
+            mLabel.setText(title);
+        }
+
         void showAsOpen(boolean open) {
             //mOpenLabel.setIcon(open ? DownArrow : RightArrow);
             //mOpenLabel.setText(open ? DownArrow : RightArrow);
@@ -3390,10 +3508,6 @@ public class DockWindow extends javax.swing.JWindow
 
 
     private class MenuButton extends JLabel {
-        private JPopupMenu popMenu;
-        private long lastHidden;
-        private boolean hasMenu;
-
         //static final char chevron = 0xBB; // unicode "right-pointing double angle quotation mark"
         //final Color inactiveColor = isMacAqua ? Color.darkGray : Color.lightGray;
 
@@ -3419,11 +3533,6 @@ public class DockWindow extends javax.swing.JWindow
 
             setMenuActions(actions);
             
-        }
-
-        public void XpaintComponent(Graphics g) {
-            if (hasMenu)
-                super.paintComponent(g);
         }
 
         void setMenuActions(Action[] actions)
