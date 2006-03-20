@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.42 $ / $Date: 2006-03-20 18:06:27 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2006-03-20 20:43:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -272,6 +272,7 @@ public class DockWindow extends javax.swing.JWindow
         else
             mContentPane.add(c);
 
+        //out("ADDPROPCHANGELISTENER: " + c);
         c.addPropertyChangeListener(this);
         
         pack();
@@ -304,6 +305,11 @@ public class DockWindow extends javax.swing.JWindow
         
     }
 
+    /** this is overriden from Container just in case it is accidentally called.  An Error is thrown if this is called. */
+    public Component add(Component c) {
+        throw new Error("can't add component's directly to the DockWindow");
+    }
+
     public void setContent(JComponent c) {
         addContent(c, true);
     }
@@ -312,14 +318,12 @@ public class DockWindow extends javax.swing.JWindow
         return mContentPane.mContent;
     }
 
-    public Component getContent() {
+    public JComponent getContent() {
         if (mContentPane.mContent.getComponentCount() > 0)
-            return mContentPane.mContent.getComponent(0);
+            return (JComponent) mContentPane.mContent.getComponent(0);
         else
             return null;
     }
-    
-    // ** @deprecated */ public void add(JComponent c) { setContent(c); }
     
     /** interface java.beans.PropertyChangeListener for contained component */
     public void propertyChange(java.beans.PropertyChangeEvent e) {
@@ -333,7 +337,7 @@ public class DockWindow extends javax.swing.JWindow
 
         if (key == Widget.EXPANSION_KEY) {
             boolean expand = ((Boolean) e.getNewValue()).booleanValue();
-            setRolledUp(!expand);
+            setRolledUp(!expand, isDisplayable(), true);
             
         } else if (key == Widget.MENU_ACTIONS_KEY) {
             setMenuActions((Action[]) e.getNewValue());
@@ -1135,9 +1139,19 @@ public class DockWindow extends javax.swing.JWindow
     }
     
     public void setRolledUp(boolean makeRolledUp, boolean animate) {
-        if (DEBUG.DOCK) out("setRolledUp " + makeRolledUp + " animate=" + animate);
+        setRolledUp(makeRolledUp, animate, false);
+    }
+    
+    private void setRolledUp(boolean makeRolledUp, boolean animate, boolean propertyChangeEvent) {
+        if (DEBUG.DOCK) out("setRolledUp " + makeRolledUp + " animate=" + animate + " propertyChangeEvent="+propertyChangeEvent);
         if (isRolledUp == makeRolledUp || isToolbar)
             return;
+
+        if (!propertyChangeEvent && Widget.isWidget(getContent())) {
+            // ensure the Widget property value is set.
+            Widget.setExpanded(getContent(), !makeRolledUp);
+            return;
+        }
 
         // need to mark us as rolled up now for forthcoming
         // size computations to work.
@@ -3889,9 +3903,9 @@ public class DockWindow extends javax.swing.JWindow
         //win1.add(new WidgetBox("Folders", new JLabel("Hello World")));
 
         WidgetStack stack = new WidgetStack();
-        stack.addPane("TUFTS Digital Library", null);
-        stack.addPane("ArtStor", null);
-        stack.addPane("My Computer", null);
+        stack.addPane("TUFTS Digital Library");
+        stack.addPane("ArtStor");
+        stack.addPane("My Computer");
         stack.addPane("My Picture", new JLabel(new ImageIcon(VueResources.getURL("splashScreen"))));
 
          if (true) {
