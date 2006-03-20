@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.97 $ / $Date: 2006-03-20 18:12:29 $ / $Author: sfraize $ *
+ * @version $Revision: 1.98 $ / $Date: 2006-03-20 20:38:47 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -679,94 +679,120 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         GUI.activateWaitCursor();
 		
         try {
-
-            JPanel tmpAllResults = new JPanel(new BorderLayout()); // until splitting out results is working
-
-            WidgetStack resultsStack = new WidgetStack();
-
-            resultsStack.addPane("All Results", tmpAllResults);
-
-            org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
-            java.util.Vector repositoryIdStringVector = new java.util.Vector();
-            java.util.Vector repositoryDisplayNameVector = new java.util.Vector();
-            if (DEBUG.DR) out("searching the following " + repositories.length + " repositories:");
-            for (int i = 0; i < repositories.length; i++) {
-                String idStr = repositories[i].getId().getIdString();
-                String name = repositories[i].getDisplayName();
-                if (DEBUG.DR) System.out.println("\t#" + i + " " + idStr + " [" + name + "]");
-                repositoryIdStringVector.addElement(idStr);
-                repositoryDisplayNameVector.addElement(name);
-
-                JLabel tmpMessage = new JLabel("put " + name + " result set here", SwingConstants.CENTER);
-
-                resultsStack.addPane(name, new JScrollPane(tmpMessage));
-            }
-                        
-            java.io.Serializable searchCriteria = queryEditor.getCriteria();
-            org.osid.shared.Properties searchProperties = queryEditor.getProperties();
-			
-            if (DEBUG.DR) out("Searching criteria [" + searchCriteria + "]...");
-                        
-            edu.tufts.vue.fsm.ResultSetManager resultSetManager
-                = federatedSearchManager.getResultSetManager(searchCriteria,
-                                                             searchType,
-                                                             searchProperties);
-
-            if (DEBUG.DR) out("got result set manager " + resultSetManager);
-                        
-            java.util.Vector results = new java.util.Vector();
-            org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets();
-            while (assetIterator.hasNextAsset()) {
-                org.osid.repository.Asset a = (org.osid.repository.Asset) assetIterator.nextAsset();
-                org.osid.shared.Id rid = a.getRepository();
-                if (DEBUG.DR) out("repository " + rid.getIdString() + " found: " + a + " [" + a.getDisplayName() + "]");
-                results.addElement(new Osid2AssetResource(a, this.context));
-            }			
-
-            Widget.setTitle(tmpAllResults, "All Results (" + results.size() + ")");
-            
-            VueDragTree resultSetTree = new VueDragTree(results.iterator(), "Repository Search Results");
-
-            tmpAllResults.add(new JScrollPane(resultSetTree));
-
-            String dockTitle = "Search Results for \"" + queryEditor.getSearchDisplayName() + "\"";// + " (" + results.size() + ")";
-            
-            if (resultSetDockWindow == null) {
-                resultSetDockWindow = GUI.createDockWindow(dockTitle, resultsStack);
-                resultSetDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
-                                                DRB.dockWindow.getY());
-            } else {
-                resultSetDockWindow.setTitle(dockTitle);
-                resultSetDockWindow.setContent(resultsStack);
-            }
-
-            resultSetDockWindow.setVisible(true);
-
-                        
-            /*
-              resultSetTree.setRootVisible(false);
-              resultSetTreeJSP = new javax.swing.JScrollPane(resultSetTree);
-		
-              DockWindow resultSetDockWindow = GUI.createDockWindow("Search Results " + queryEditor.getSearchDisplayName(), resultSetTreeJSP);
-              resultSetTreeJSP.setPreferredSize(resultSetPanelDimensions);
-              if (GUI.isMacAqua()) {
-              resultSetTreeJSP.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-              resultSetTreeJSP.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 
-              }
-
-              //tufts.Util.displayComponent(resultSetTree);
-              searchDockWindow.addChild(resultSetDockWindow);
-              resultSetDockWindow.setVisible(true);
-            */
-
-                        
+            performSearchAndDisplayResults();
         } catch (Throwable t) {
             t.printStackTrace();
         }
-		
+        
         VUE.clearWaitCursor();
-        //searchDockWindow.setRolledUp(true);
     }
+
+    private void performSearchAndDisplayResults()
+        throws org.osid.repository.RepositoryException,
+               org.osid.shared.SharedException
+    {
+        final boolean UseSingleScrollPane = true;
+            
+        JPanel tmpAllResults = new JPanel(new BorderLayout()); // until splitting out results is working
+
+        WidgetStack resultsStack = new WidgetStack();
+
+        org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
+        java.util.Vector repositoryIdStringVector = new java.util.Vector();
+        java.util.Vector repositoryDisplayNameVector = new java.util.Vector();
+        if (DEBUG.DR) out("searching the following " + repositories.length + " repositories:");
+        for (int i = 0; i < repositories.length; i++) {
+            String idStr = repositories[i].getId().getIdString();
+            String name = repositories[i].getDisplayName();
+            if (DEBUG.DR) System.out.println("\t#" + i + " " + idStr + " [" + name + "]");
+            repositoryIdStringVector.addElement(idStr);
+            repositoryDisplayNameVector.addElement(name);
+
+            JLabel tmpMessage = new JLabel("put " + name + " result set here");//, SwingConstants.CENTER);
+
+            resultsStack.addPane(name, tmpMessage);
+        }
+
+        resultsStack.addPane("All Results", tmpAllResults);
+                        
+        java.io.Serializable searchCriteria = queryEditor.getCriteria();
+        org.osid.shared.Properties searchProperties = queryEditor.getProperties();
+			
+        if (DEBUG.DR) out("Searching criteria [" + searchCriteria + "]...");
+                        
+        edu.tufts.vue.fsm.ResultSetManager resultSetManager
+            = federatedSearchManager.getResultSetManager(searchCriteria,
+                                                         searchType,
+                                                         searchProperties);
+
+        if (DEBUG.DR) out("got result set manager " + resultSetManager);
+                        
+        java.util.Vector results = new java.util.Vector();
+        org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets();
+        while (assetIterator.hasNextAsset()) {
+            org.osid.repository.Asset a = (org.osid.repository.Asset) assetIterator.nextAsset();
+            org.osid.shared.Id rid = a.getRepository();
+            if (DEBUG.DR) out("repository " + rid.getIdString() + " found: " + a + " [" + a.getDisplayName() + "]");
+            results.addElement(new Osid2AssetResource(a, this.context));
+        }			
+
+        Widget.setTitle(tmpAllResults, "All Results (" + results.size() + ")");
+            
+        VueDragTree resultSetTree = new VueDragTree(results.iterator(), "Repository Search Results");
+        resultSetTree.setRootVisible(false);
+
+        if (UseSingleScrollPane)
+            tmpAllResults.add(resultSetTree);
+        else
+            tmpAllResults.add(new JScrollPane(resultSetTree));
+
+        String dockTitle = "Search Results for \"" + queryEditor.getSearchDisplayName() + "\"";
+
+        if (resultSetDockWindow == null) {
+            if (UseSingleScrollPane) {
+                resultSetTreeJSP = new javax.swing.JScrollPane(resultsStack);
+                resultSetTreeJSP.setBorder(null);
+                resultSetDockWindow = GUI.createDockWindow(dockTitle, resultSetTreeJSP);
+            } else {
+                resultSetDockWindow = GUI.createDockWindow(dockTitle, resultsStack);
+            }
+            resultSetDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
+                                            DRB.dockWindow.getY());
+        } else {
+            resultSetDockWindow.setTitle(dockTitle);
+            if (UseSingleScrollPane) 
+                resultSetTreeJSP.setViewportView(resultsStack);
+            else
+                resultSetDockWindow.setContent(resultsStack);
+        }
+
+        resultSetDockWindow.setVisible(true);
+
+        if (false) {
+            // if move result stack back under Resources stack, probably want this.
+            DRB.searchPane.setExpanded(false);
+        }
+
+                        
+        /*
+        //searchDockWindow.setRolledUp(true);
+        
+		
+          DockWindow resultSetDockWindow = GUI.createDockWindow("Search Results " + queryEditor.getSearchDisplayName(), resultSetTreeJSP);
+          resultSetTreeJSP.setPreferredSize(resultSetPanelDimensions);
+          if (GUI.isMacAqua()) {
+          resultSetTreeJSP.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+          resultSetTreeJSP.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 
+          }
+
+          //tufts.Util.displayComponent(resultSetTree);
+          searchDockWindow.addChild(resultSetDockWindow);
+          resultSetDockWindow.setVisible(true);
+        */
+    }
+
+                        
+    
 	
 	
     /*
