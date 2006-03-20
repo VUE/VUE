@@ -19,25 +19,21 @@
 
 package tufts.vue;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.HashMap;
-
-
-public class ResourceSelection extends java.util.ArrayList
+/**
+ * The currently selected resource.  Currently only supports a single selected
+ * resource at a time.
+ *
+ * @version $Revision: 1.5 $ / $Date: 2006-03-20 20:40:26 $ / $Author: sfraize $
+ */
+public class ResourceSelection
 {
-    public static final boolean DEBUG_SELECTION = VueResources.getBool("selection.debug");
-
+    private Resource selected = null;
+    
     private java.util.List listeners = new java.util.ArrayList();
 
-    private  boolean isClone = false;
-    
     public interface Listener extends java.util.EventListener {
-        void selectionChanged(ResourceSelection selection);
+        void resourceSelectionChanged(ResourceSelection selection);
     }
-
-    //public void addSelectionControl(java.awt.geom.Point2D mapLocation, ControlListener listener)
- 
 
     public void addListener(Listener l)
     {
@@ -50,105 +46,26 @@ public class ResourceSelection extends java.util.ArrayList
 
     private void notifyListeners()
     {
-        if (isClone) throw new IllegalStateException("Resource: clone's can't notify listeners! " + this);
-        
-        Iterator i = listeners.iterator();
+        java.util.Iterator i = listeners.iterator();
         while (i.hasNext()) {
             Listener l = (Listener) i.next();
-            l.selectionChanged(this);
+            if (DEBUG.SELECTION) System.out.println("ResourceSelection notifying: " + l);
+            l.resourceSelectionChanged(this);
         }
     }
        
-    void setTo(Resource r)
-    {
-        clear0();
-        add(r);
+    public Resource get() {
+        return selected;
     }
     
-    void setTo(Iterator i)
-    {
-        clear0();
-        add(i);
-    }
-     
-    void add(Resource r)
-    {
-        if (!r.isSelected()) {
-            add0(r);
+    void setTo(Resource r) {
+        if (selected != r) {
+            if (DEBUG.SELECTION) System.out.println("ResourceSelection: set to " + r.getClass() + " " + r);
+            selected = r;
             notifyListeners();
-        } else
-            if (DEBUG_SELECTION) System.out.println("addToSelection(already): " + r);
-    }
-    
-    public boolean add(Object o)
-    {
-        throw new RuntimeException("ResourceSelection can't add " + o.getClass() + ": " + o);
-    }
-    
-    /** Make sure all in iterator are in selection & do a single change notify at the end */
-    void add(Iterator i)
-    {
-        Resource r;
-        boolean changed = false;
-        while (i.hasNext()) {
-            r = (Resource) i.next();
-            if (!r.isSelected()) {
-                add0(r);
-                changed = true;
-            }
         }
-        if (changed)
-            notifyListeners();
     }
     
-    /** Change the selection status of all ResourceComponents in iterator */
-    void toggle(Iterator i)
-    {
-        Resource r;
-        boolean changed = false;
-        while (i.hasNext()) {
-            r = (Resource) i.next();
-            if (r.isSelected())
-                remove0(r);
-            else
-                add0(r);
-            changed = true;
-        }
-        if (changed)
-            notifyListeners();
-    }
-    
-    private void add0(Resource r)
-    {
-        if (DEBUG_SELECTION) System.out.println("ResourceSelection: adding " + r);
-        
-        if (!r.isSelected()) {
-            if (!isClone) r.setSelected(true);
-            super.add(r);
-        } else
-            throw new RuntimeException("ResourceSelection: attempt to add already selected resource " + r);
-    }
-    
-    public void remove(Resource r)
-    {
-        remove0(r);
-        notifyListeners();
-    }
-
-    private void remove0(Resource r)
-    {
-        if (DEBUG_SELECTION) System.out.println("ResourceSelection: removing " + r);
-        if (!isClone) r.setSelected(false);
-        if (!super.remove(r))
-            throw new RuntimeException("ResourceSelection remove: list doesn't contain " + r);
-    }
-    
-    /**
-     * clearAndNotify
-     * This emthod clears teh selection and always notifies
-     * listeners of a change.
-     *
-     **/
     public void clearAndNotify() {
     	clear0();
     	notifyListeners();
@@ -162,86 +79,12 @@ public class ResourceSelection extends java.util.ArrayList
 
     private boolean clear0()
     {
-        if (isEmpty())
+        if (selected == null)
             return false;
-        if (DEBUG_SELECTION) System.out.println("ResourceSelection clear " + this);
-
-        if (!isClone) {
-            java.util.Iterator i = iterator();
-            while (i.hasNext()) {
-                Resource r= (Resource) i.next();
-                r.setSelected(false);
-            }
-        }
-       
-  
-        super.clear();
+        
+        if (DEBUG.SELECTION) System.out.println("ResourceSelection: clear " + selected);
+        selected = null;
         return true;
-    }
-
-    /** return bounds of map selection in map (not screen) coordinates */
-   
-
-  
-    
-    public Resource first()
-    {
-        return (Resource) get(0);
-    }
-    
-    public int countTypes(Class clazz)
-    {
-        int count = 0;
-        Iterator i = iterator();
-        while (i.hasNext())
-            if (clazz.isInstance(i.next()))
-                count++;
-        return count;
-    }
-    
-    public boolean containsType(Class clazz)
-    {
-        Iterator i = iterator();
-        while (i.hasNext())
-            if (clazz.isInstance(i.next()))
-                return true;
-        return false;
-    }
-    
-    public boolean allOfType(Class clazz)
-    {
-        Iterator i = iterator();
-        while (i.hasNext())
-            if (!clazz.isInstance(i.next()))
-                return false;
-        return true;
-    }
-
-    public boolean allOfSameType()
-    {
-        Iterator i = iterator();
-        Object first = i.next();
-        while (i.hasNext())
-            if (i.next().getClass() != first.getClass())
-                return false;
-        return true;
-    }
-
-
-    public Resource[] getArray()
-    {
-        Resource[] array = new Resource[size()];
-        super.toArray(array);
-        return array;
-    }
-
-    public Object clone()
-    {
-        ResourceSelection copy = (ResourceSelection) super.clone();
-        copy.isClone = true;
-        // if anybody tries to use these we want a NPE
-        copy.listeners = null;
-        return copy;
     }
     
 }
