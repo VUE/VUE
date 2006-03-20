@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.345 $ / $Date: 2006-03-17 07:45:51 $ / $Author: sfraize $ 
+ * @version $Revision: 1.346 $ / $Date: 2006-03-20 18:09:54 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -271,18 +271,18 @@ public class VUE
     private static boolean exitAfterInit = false;
     private static boolean SKIP_DR = false; // don't load DRBrowser, no splash & no startup map
     private static boolean SKIP_SPLASH = false;
-    private static DRBrowser DR_BROWSER;
     private static String NAME;
 	
-	private static DockWindow drBrowserDock;
+    private static DRBrowser DR_BROWSER;
+    private static DockWindow DR_BROWSER_DOCK;
+    
+    /*
 	private static DockWindow searchDock;
 	private static DockWindow browseDock;
 	private static DockWindow savedResourcesDock;
 	private static DockWindow previewDock;
+    */
 
-    //-----------------------------------------------------------------------------
-    //public static final boolean TUFTS = VueResources.getBool("application.features.tufts");
-    //public static final boolean TUFTS = false;
 
     static {
         Logger.getRootLogger().removeAllAppenders(); // need to do this or we get everything twice
@@ -405,11 +405,14 @@ public class VUE
         
         // Start the loading of the data source viewer
         if (SKIP_DR == false && DR_BROWSER != null)
-            DR_BROWSER.loadDataSourceViewer(drBrowserDock,
-											searchDock,
-											browseDock,
-											savedResourcesDock,
-											previewDock);
+            DR_BROWSER.loadDataSourceViewer();
+            /*
+            DR_BROWSER.loadDataSourceViewer(DR_BROWSER_DOCK,
+                                            searchDock,
+                                            browseDock,
+                                            savedResourcesDock,
+                                            previewDock);
+            */
         
         //Preferences p = Preferences.userNodeForPackage(VUE.class);
         //p.put("DRBROWSER.RUN", "yes, it has");
@@ -548,14 +551,13 @@ public class VUE
         //
         //=============================================================================
 
-        
         //-----------------------------------------------------------------------------
         // Panner
         //-----------------------------------------------------------------------------
 
         final DockWindow pannerDock = GUI.createDockWindow("Panner", new MapPanner());
         //pannerDock.getWidgetPanel().setBorder(new javax.swing.border.MatteBorder(5,5,5,5, Color.green));
-        pannerDock.getWidgetPanel().setBorder(new EmptyBorder(1,2,2,2));
+        pannerDock.getContentPanel().setBorder(new EmptyBorder(1,2,2,2));
         //pannerDock.setSize(120,120);
         //pannerDock.setSize(112,120);
         pannerDock.setUpperRightCorner(GUI.GScreenWidth, 150);
@@ -564,97 +566,14 @@ public class VUE
                 Actions.ZoomActual
             });
 
-        //-----------------------------------------------------------------------------
-        // Data Source Search Dock Window
-        //-----------------------------------------------------------------------------
-		
-        searchDock = GUI.createDockWindow("Search");
-		
-//		Dimension startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
-//											tufts.vue.gui.DockWindow.getMaxContentHeight());        
-		Dimension startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
-											100);        
-		JPanel searchPanel = new JPanel();
-		searchPanel.setBackground(Color.white);
-		searchPanel.setLayout(new BorderLayout());
-		searchPanel.setPreferredSize(startSize);
-		searchPanel.add(new JLabel("Please Select A Library"));
-		
-        //-----------------------------------------------------------------------------
-        // Local File Data Source in Browse Dock Window
-        //-----------------------------------------------------------------------------
-		
-        browseDock = GUI.createDockWindow("Browse");
 
-		JPanel browsePanel = new JPanel();
-		try
-		{
-			LocalFileDataSource localFileDataSource = new LocalFileDataSource("My Computer","");
-			browsePanel.setBackground(Color.white);
-			browsePanel.setLayout(new BorderLayout());
-			startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400,
-												300);        
-			browsePanel.setPreferredSize(startSize);
-			JComponent comp = localFileDataSource.getResourceViewer();
-			comp.setVisible(true);
-			browsePanel.add(comp);
-		} catch (Exception ex) {
-			if (DEBUG.DR) System.out.println("Problem loading local file library");
-		}
-		
         //-----------------------------------------------------------------------------
-        // Saved Resources Dock Window
+        // Resources Stack (Libraries / DRBrowser)
+        // DRBrowser class initializes the DockWindow itself.
         //-----------------------------------------------------------------------------
-		
-        savedResourcesDock = GUI.createDockWindow("Saved Resources");
-		
-		JPanel savedResourcesPanel = new JPanel();
-		savedResourcesPanel.setBackground(Color.white);
-		savedResourcesPanel.setPreferredSize(startSize);
-		savedResourcesPanel.add(new JLabel("saved resources"));
-		
-        //-----------------------------------------------------------------------------
-        // Preview Dock Window
-        //-----------------------------------------------------------------------------
-		
-        previewDock = GUI.createDockWindow("Preview");
-		
-		JPanel previewPanel = new JPanel();
-		previewPanel.setBackground(Color.white);
-		previewPanel.setPreferredSize(startSize);
-		previewPanel.add(new JLabel("no preview"));
-		
-        //-----------------------------------------------------------------------------
-        // Data Source Viewer
-        //-----------------------------------------------------------------------------
-		
-        // FYI, DataSourceViewer currently breaks if more than one DRBrowser
-        DR_BROWSER = new DRBrowser(true,
-								   drBrowserDock,
-								   searchDock,
-								   browseDock,
-								   savedResourcesDock,
-								   previewDock);
-        drBrowserDock = GUI.createDockWindow("Resources", DR_BROWSER);
-		
-		drBrowserDock.setStackOwner(true);
-		drBrowserDock.addChild(searchDock);
-		drBrowserDock.addChild(browseDock);
-		//drBrowserDock.addChild(previewDock);
-		previewDock.setLocation(300,300);
-		drBrowserDock.addChild(savedResourcesDock);
-		
-		searchDock.add(searchPanel);
-		searchDock.setRolledUp(true);
-
-		browseDock.add(browsePanel);
-		browseDock.setRolledUp(true);
-
-		savedResourcesDock.add(savedResourcesPanel);
-		savedResourcesDock.setRolledUp(true);
-
-		previewDock.add(previewPanel);
-		previewDock.setRolledUp(true);
+        
+        DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
+        DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK);
 		
         //-----------------------------------------------------------------------------
         // Map Inspector
@@ -727,7 +646,7 @@ public class VUE
         //=============================================================================
         
         VUE.ToolWindows = new Object[] {
-            drBrowserDock,
+            DR_BROWSER_DOCK,
             MapInspector,
             ObjectInspector,
             resourceDock,
@@ -883,7 +802,7 @@ public class VUE
 
         // order the windows left to right for the top dock
         final DockWindow[] acrossTop = new DockWindow[] {
-            drBrowserDock,
+            DR_BROWSER_DOCK,
             GUI.isSmallScreen() ? null : fontDock,
             MapInspector,
             ObjectInspector,
@@ -909,7 +828,7 @@ public class VUE
         }
         
         if (!SKIP_DR)
-            drBrowserDock.setVisible(true);
+            DR_BROWSER_DOCK.setVisible(true);
 
 
         /*
