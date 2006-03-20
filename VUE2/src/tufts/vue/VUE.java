@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.346 $ / $Date: 2006-03-20 18:09:54 $ / $Author: sfraize $ 
+ * @version $Revision: 1.347 $ / $Date: 2006-03-20 20:59:08 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -276,14 +276,6 @@ public class VUE
     private static DRBrowser DR_BROWSER;
     private static DockWindow DR_BROWSER_DOCK;
     
-    /*
-	private static DockWindow searchDock;
-	private static DockWindow browseDock;
-	private static DockWindow savedResourcesDock;
-	private static DockWindow previewDock;
-    */
-
-
     static {
         Logger.getRootLogger().removeAllAppenders(); // need to do this or we get everything twice
         //BasicConfigurator.configure();
@@ -314,6 +306,7 @@ public class VUE
             
         } catch (Throwable t) {
             Util.printStackTrace(t, "VUE init failed");
+            tufts.Util.displayComponent(new JLabel("VUE init failed: " + t.toString()));
         }
 
         VUE.isStartupUnderway = false;
@@ -580,7 +573,7 @@ public class VUE
         //-----------------------------------------------------------------------------
 
         MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"));
-        MapInspector.add(new MapInspectorPanel());
+        MapInspector.setContent(new MapInspectorPanel());
         
         //-----------------------------------------------------------------------------
         // Object Inspector
@@ -590,7 +583,7 @@ public class VUE
         ObjectInspectorPanel = new ObjectInspectorPanel();
         ModelSelection.addListener(ObjectInspectorPanel);
         //sResourceSelection.addListener( objectInspectorPanel);
-        ObjectInspector.add(ObjectInspectorPanel);
+        ObjectInspector.setContent(ObjectInspectorPanel);
         
         //-----------------------------------------------------------------------------
         // Resource Panel
