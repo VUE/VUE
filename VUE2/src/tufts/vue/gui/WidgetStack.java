@@ -19,10 +19,12 @@
 
 package tufts.vue.gui;
 
+import tufts.vue.DEBUG;
+
+import java.beans.PropertyChangeEvent;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-
 
 /**
  * A vertical stack of collapsable/expandable regions containing arbitrary JComponent's.
@@ -30,7 +32,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.3 $ / $Date: 2006-03-17 15:38:10 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2006-03-20 18:07:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends JPanel
@@ -39,9 +41,11 @@ public class WidgetStack extends JPanel
     private final GridBagConstraints _gbc = new GridBagConstraints();
     private final Insets ExpandedTitleBarInsets = GUI.EmptyInsets;
     private final Insets CollapsedTitleBarInsets = new Insets(0,0,1,0);
+    //private final Insets TitleBarInsets = new Insets(1,0,0,0);
     private final GridBagLayout mLayout;
     private final JComponent mDefaultExpander;
 
+    private int mExpanderCount = 0;
     private int mExpandersOpen = 0;
 
     public WidgetStack() {
@@ -72,6 +76,9 @@ public class WidgetStack extends JPanel
         mDefaultExpander = new JPanel();
         mDefaultExpander.setVisible(false);
         add(mDefaultExpander, c);
+
+        // todo: need to set min size on whole stack (nitems * title height)
+        // and have DockWindow respect this.
     }
 
 
@@ -87,31 +94,79 @@ public class WidgetStack extends JPanel
         boolean isExpander = (verticalExpansionWeight != 0.0f);
         WidgetTitle titleBar = new WidgetTitle(title, widget, isExpander);
 
+        if (DEBUG.DOCK) {
+            out("addPane [" + title + "] containing " + GUI.name(widget) + " expansionWeight=" + verticalExpansionWeight);
+            dumpSizeInfo(widget);
+        }
+
         if (isExpander)
-            mExpandersOpen++;
+            mExpanderCount++;
 
         _gbc.weighty = 0;
         _gbc.fill = GridBagConstraints.HORIZONTAL;
+        _gbc.insets = ExpandedTitleBarInsets;
         mGridBag.add(titleBar, _gbc);
+        
         _gbc.gridy++;
         _gbc.fill = GridBagConstraints.BOTH;
         _gbc.weighty = verticalExpansionWeight;
+        _gbc.insets = GUI.EmptyInsets;
         mGridBag.add(widget, _gbc);
 
         _gbc.gridy++;
+
+        //if (!widget.isPreferredSizeSet()) {// note: a java 1.5 api call only
+        //if (!isExpander && !widget.isMinimumSizeSet())
+        //    widget.setMinimumSize(widget.getPreferredSize());
         
     }
 
+    /**
+
+     * The given widget *must* already have it's name set to be used as the title.
+
+     * Note that if verticalExpansionWeight is zero, it is also important that the given
+     * JComponent provides a reasonable preferredSize or minimumSize. Most Swing
+     * components provide a reasonable preferredSize automatically, but pay attention to
+     * layout managers that might not do such a good job of passing up this information.
+     * Also of particular note are JScrollPanes, which by default usually will collapse
+     * down to about nothing unless you manually set the pref or min sizes them (or, say a
+     * container they're laid out in that they're expanding to fill).
+     
+     **/
+    public void addPane(JComponent widget, float verticalExpansionWeight) {
+        addPane(widget.getName(), widget, verticalExpansionWeight);
+    }
+    
+
     public void addPane(String title, JComponent widget) {
-        addPane(title, widget, 1f);
+        addPane(title, widget, 1.0f);
+    }
+
+
+    private void dumpSizeInfo(Component c) {
+        out("\tprefSize " + (c.isPreferredSizeSet()?" SET ":"     ") + c.getPreferredSize());
+        out("\t minSize " + (c.isMinimumSizeSet()?" SET ":"     ") + c.getMinimumSize());
+        out("\t maxSize " + (c.isMaximumSizeSet()?" SET ":"     ") + c.getMaximumSize());
     }
 
     public void addNotify() {
+        updateDefaultExpander();
         super.addNotify();
-        if (mExpandersOpen == 0)
+        if (mExpanderCount == 0)
             tufts.Util.printStackTrace("warning: no vertical expanding panes; WidgetStack will not layout properly");
+        setName("in " + GUI.name(getParent()));
+        //setName("in " + getParent().getName());
+        //setName("WidgetStack:" + getParent().getName());
     }
     
+    private void updateDefaultExpander() {
+        //System.out.println("EXPANDERS OPEN: " + mExpandersOpen);
+        if (mExpandersOpen == 0)
+            mDefaultExpander.setVisible(true);
+        else
+            mDefaultExpander.setVisible(false);
+    }
 
     private static final int TitleHeight = 20;
     private static final Color TopGradient = new Color(79,154,240);
@@ -125,9 +180,12 @@ public class WidgetStack extends JPanel
 
     private static final boolean isMac = tufts.Util.isMacPlatform();
 
-    class WidgetTitle extends Box {
+    private static final char Chevron = 0xBB; // unicode "right-pointing double angle quotation mark"
+
+    class WidgetTitle extends Box implements java.beans.PropertyChangeListener {
 
         private final JLabel mTitle;
+        private final MenuButton mMenuButton;
         private final JComponent mWidget;
         private final GUI.IconicLabel mIcon;
 
@@ -148,30 +206,72 @@ public class WidgetStack extends JPanel
             int iconHeight = 10;
             int iconWidth = 9;
             int fontSize = 9;
+
             mIcon = new GUI.IconicLabel(DownArrowChar, fontSize, Color.white, iconWidth, iconHeight);
             add(mIcon);
+            
             add(Box.createHorizontalStrut(4));
             add(mTitle);
-            setPreferredSize(new Dimension(-1, TitleHeight));
+
+            add(Box.createGlue());
+            mMenuButton = new MenuButton(Chevron, null);
+            add(mMenuButton);
+
+            
+            setPreferredSize(new Dimension(50, TitleHeight));
             setMaximumSize(new Dimension(Short.MAX_VALUE, TitleHeight));
             setMinimumSize(new Dimension(50, TitleHeight));
 
-
             addMouseListener(new tufts.vue.MouseAdapter(label) {
-                    public void mouseClicked(MouseEvent e) {
-                        setExpanded(!mExpanded);
-                    }
-                    public void mousePressed(MouseEvent e) {
-                        mIcon.setForeground(TopGradient.brighter());
-                    }
-                    public void mouseReleased(MouseEvent e) {
-                        mIcon.setForeground(Color.white);
-                    }
+                    public void mouseClicked(MouseEvent e) { setExpanded(!mExpanded); }
+                    public void mousePressed(MouseEvent e) { mIcon.setForeground(TopGradient.brighter()); }
+                    public void mouseReleased(MouseEvent e) { mIcon.setForeground(Color.white); }
                 });
-        
+
+            // Check for property values set on the JComponent before being
+            // added to the WidgetStack.
+
+            Object expanded = widget.getClientProperty(Widget.EXPANSION_KEY);
+            if (expanded != null)
+                propertyChange(new PropertyChangeEvent(this, Widget.EXPANSION_KEY, null, expanded));
+            else if (isExpander)
+                mExpandersOpen++; // open by default
+            
+            widget.addPropertyChangeListener(this);
+            
         }
     
+        /** interface java.beans.PropertyChangeListener for contained component */
+        public void propertyChange(java.beans.PropertyChangeEvent e) {
+            final String key = e.getPropertyName();
+        
+            if (DEBUG.DOCK && !key.equals("ancestor"))
+                out(GUI.name(e.getSource()) + " property \"" + key + "\" newValue=[" + e.getNewValue() + "]");
+
+            if (key == Widget.EXPANSION_KEY) {
+                setExpanded( ((Boolean)e.getNewValue()).booleanValue() );
+                
+            } else if (key == Widget.MENU_ACTIONS_KEY) {
+                mMenuButton.setMenuActions((Action[]) e.getNewValue());
+                
+            } else if (key.equals("name")) {
+                mTitle.setText((String) e.getNewValue());
+                
+            } else if (key.endsWith("Size")) {
+
+                Component src = (Component) e.getSource();
+            
+                if (DEBUG.DOCK) dumpSizeInfo(src);
+                if (DEBUG.DOCK) out("revalidate on size property change");
+                revalidate();
+                if (DEBUG.DOCK) dumpSizeInfo(src);
+            }
+        }
+
         private void setExpanded(boolean expanded) {
+            if (DEBUG.DOCK) out("setExpanded " + expanded);
+            if (mExpanded == expanded)
+                return;
             mExpanded = expanded;
             if (mExpanded) {
                 mIcon.setText("" + DownArrowChar);
@@ -182,17 +282,27 @@ public class WidgetStack extends JPanel
                 if (isExpander)
                     mExpandersOpen--;
             }
-            if (mExpandersOpen == 0)
-                mDefaultExpander.setVisible(true);
-            else
-                mDefaultExpander.setVisible(false);
+
+            // Could do: if only one widget open, change constraints on THAT guy to
+            // expand...  Or, as soon as all expanders close, set remaining ones to
+            // expand equally?  That could just get ugly tho (titles keep moving down
+            // out from under your mouse -- this currently happens only on our last item
+            // in the stack which isn't so bad the way we're using it, but for
+            // everything?) Really need second tier expander marks for stuff
+            // w/scroll-panes (use negative expansion weights?)  Subclassing
+            // GridBagLayout might make this easier also.
+
+            updateDefaultExpander();
                 
-            mWidget.setVisible(expanded);
             GridBagConstraints c = mLayout.getConstraints(this);
             c.insets = expanded ? ExpandedTitleBarInsets : CollapsedTitleBarInsets;
             mLayout.setConstraints(this, c);
+
+            mWidget.setVisible(expanded);
+
+            revalidate();
+            
         }
-    
 
         public void paint(Graphics g) {
             if (!isMac) {
@@ -214,8 +324,98 @@ public class WidgetStack extends JPanel
             g.fillRect(0, 0, getWidth(), TitleHeight);
         }
 
+
+        private void out(Object o) {
+            System.err.println(GUI.name(this) + " " + (o==null?"null":o.toString()));
+        }
+
     
     }
+    
+    private void out(Object o) {
+        System.err.println(GUI.name(this) + " " + (o==null?"null":o.toString()));
+    }
 
+    static class MenuButton extends GUI.IconicLabel {
+        private static final Color defaultColor = GUI.isMacAqua() ? Color.white : Color.black;
+        private static final Color activeColor = GUI.isMacAqua() ? TopGradient.brighter() : Color.white;
+
+        MenuButton(char iconChar, Action[] actions) {
+            super(iconChar, 18, defaultColor, TitleHeight, TitleHeight);
+            setAlignmentY(0.5f);
+            // todo: to keep manually picking a height and a bottom pad to get this
+            // middle aligned is no good: will eventually want to use a TextLayout to
+            // get precise bounds for center, and create as a real Icon
+            setBorder(new javax.swing.border.EmptyBorder(0,0,3,0));
+            setMenuActions(actions);
+
+            /*
+            new Action[] {
+                new tufts.vue.VueAction("foo"),
+                new tufts.vue.VueAction("bar"),
+            });
+            */
+            
+        }
+
+        void setMenuActions(Action[] actions) {
+            clearMenuActions();
+
+            if (actions == null) {
+                setVisible(false);
+                return;
+            }
+            setVisible(true);
+
+            new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
+                public void mouseEntered(MouseEvent e) { setForeground(activeColor); }
+                public void mouseExited(MouseEvent e) { setForeground(defaultColor); }
+                public int getMenuX(Component c) { return c.getWidth(); }
+                public int getMenuY(Component c) { return -getY(); } // 0 in parent
+            };
+
+            repaint();
+        }
+
+        private void clearMenuActions() {
+            MouseListener[] ml = getMouseListeners();
+            for (int i = 0; i < ml.length; i++) {
+                if (ml[i] instanceof GUI.PopupMenuHandler)
+                    removeMouseListener(ml[i]);
+            }
+        }
+
+        
+    }
+
+    public static void main(String args[])
+    {
+        // todo: appears to be a bug in GridBagLayout where if ALL
+        // components are expanders, in can sometimes add a pixel
+        // at the top of the freakin layout.  This example
+        // was all weights of 1.0.  The pixel can come in and
+        // out even during resizes: some sizes just trigger it...
+        // Okay, even if NOT all are expanders it can fail.
+        // Christ.  Yet our ResourcePanel stack and DRBrowser
+        // stack work fine... Okay, thoes have only ONE expander...
+        
+        tufts.vue.VUE.init(args);
+        
+        WidgetStack s = new WidgetStack();
+
+        String[] names = new String[] { "One",
+                                        "Two",
+                                        "Three",
+                                        "Four",
+        };
+
+        for (int i = 0; i < names.length; i++) {
+            s.addPane(names[i], new JLabel(names[i], SwingConstants.CENTER), 1f);
+        }
+        //s.addPane("Fixed", new JLabel("fixed"), 0f);
+
+        GUI.createDockWindow("WidgetStack Test", s).setVisible(true);
+    }
+        
 }    
 
