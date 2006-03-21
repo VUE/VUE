@@ -44,7 +44,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.14 $ / $Date: 2006-03-20 18:09:20 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2006-03-21 19:17:45 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -86,6 +86,7 @@ public class GUI
     private static boolean SKIP_CUSTOM_LAF = false; // test: don't install our L&F customizations
     private static boolean SKIP_OCEAN_THEME = false; // test: in java 1.5, use default java Metal theme instead of new Ocean theme
     private static boolean FORCE_WINDOWS_LAF = false; // test: on mac, use windows look (java metal), on windows, use native windows L&F
+    private static boolean SKIP_WIN_NATIVE_LAF = false;
 
     public static void parseArgs(String[] args) {
         for (int i = 0; i < args.length; i++) {
@@ -95,6 +96,8 @@ public class GUI
                 SKIP_OCEAN_THEME = true;
             } else if (args[i].equals("-win") || args[i].equals("-nativeWindowsLookAndFeel")) {
                 FORCE_WINDOWS_LAF = true;
+            } else if (args[i].equals("-nowin")) {
+                SKIP_WIN_NATIVE_LAF = true;
             }
         }
     }
@@ -147,11 +150,13 @@ public class GUI
         org.apache.log4j.NDC.push("GUI");
         VUE.Log.debug("init");
 
-        if (FORCE_WINDOWS_LAF || SKIP_CUSTOM_LAF || SKIP_OCEAN_THEME)
+        if (FORCE_WINDOWS_LAF || SKIP_CUSTOM_LAF || SKIP_OCEAN_THEME || SKIP_WIN_NATIVE_LAF)
             System.out.println("GUI.init; test parameters:"
                               + "\n\tforceWindowsLookAndFeel=" + FORCE_WINDOWS_LAF
                               + "\n\tskip_custom_laf=" + SKIP_CUSTOM_LAF
-                              + "\n\tskip_ocean_theme=" + SKIP_OCEAN_THEME);
+                              + "\n\tskip_ocean_theme=" + SKIP_OCEAN_THEME
+                              + "\n\tskip_win_native_laf=" + SKIP_WIN_NATIVE_LAF
+                               );
 
         if (SKIP_CUSTOM_LAF)
             VUE.Log.info("INIT: skipping installation of custom VUE Look & Feels");
@@ -184,8 +189,8 @@ public class GUI
         
         if (isMacAqua) {
 
-            if (!SKIP_CUSTOM_LAF)
-                installAquaLAFforVUE();
+            //if (!SKIP_CUSTOM_LAF)
+            //installAquaLAFforVUE();
 
         } else if (Util.isMacPlatform()) {
 
@@ -201,7 +206,8 @@ public class GUI
             // We're leaving the default look and feel alone (e.g. Windows)
 
             // if on Windows and forcing windows look, these meants try the native win L&F
-            if (FORCE_WINDOWS_LAF && Util.isWindowsPlatform())
+            //if (FORCE_WINDOWS_LAF && Util.isWindowsPlatform())
+            if (Util.isWindowsPlatform() && !SKIP_WIN_NATIVE_LAF)
                 setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
             else {
                 if (!SKIP_CUSTOM_LAF)
@@ -270,7 +276,7 @@ public class GUI
     }
     
 
-    public static void installAquaLAFforVUE() {
+    private static void installAquaLAFforVUE() {
         try {
             javax.swing.UIManager.setLookAndFeel(new VueAquaLookAndFeel());
         } catch (javax.swing.UnsupportedLookAndFeelException e) {
