@@ -26,19 +26,23 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import tufts.vue.gui.*;
 import tufts.vue.filter.*;
+
+
 
 
 /**
  * The Object Inspector Panel!
  *
- * @version $Revision: 1.29 $ / $Date: 2006-01-31 01:07:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.30 $ / $Date: 2006-03-21 15:34:10 $ / $Author: sfraize $ 
  *
  */
 public class ObjectInspectorPanel extends JPanel
     implements LWSelection.Listener
 {
-    // these 3 constants want to be elsewhere
+    private static final boolean WidgetStackImpl = false;
+
     public static final int INFO_TAB = 0;
     public static final int NOTES_TAB = 1;
     public static final int TREE_TAB = 2;
@@ -63,26 +67,36 @@ public class ObjectInspectorPanel extends JPanel
     
     NodeFilterPanel mNodeFilterPanel = null;
     
-    public ObjectInspectorPanel() {
-        super();
-        
-        setOpaque(false);
+    public ObjectInspectorPanel()
+    {
         setMinimumSize( new Dimension( 240,200) );
-        setLayout( new BorderLayout() );
-        setBorder( new EmptyBorder( 5,5,5,5) );
-        mTabbedPane = new JTabbedPane();
-        VueResources.initComponent( mTabbedPane, "tabPane");
         
-        mInfoPanel = new InfoPanel();
+        //mInfoPanel = new InfoPanel();
         mTreePanel = new TreePanel();
         mNotePanel = new NotePanel();
         mNodeFilterPanel = new NodeFilterPanel();
+            
+        setLayout( new BorderLayout() );
         
-        mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
-        mTabbedPane.addTab( mTreePanel.getName(),  mTreePanel);
-        mTabbedPane.addTab( mNotePanel.getName(), mNotePanel);
-        mTabbedPane.addTab(mNodeFilterPanel.getName(),mNodeFilterPanel);
-        add( BorderLayout.CENTER, mTabbedPane );
+        if (WidgetStackImpl) {
+            WidgetStack stack = new WidgetStack();
+            stack.addPane(mNotePanel);
+            stack.addPane(mNodeFilterPanel);
+            stack.addPane(mTreePanel);
+            add(stack);
+            Widget.setExpanded(mTreePanel, false);
+        } else {
+            setOpaque(false);
+            setBorder( new EmptyBorder( 5,5,5,5) );
+            mTabbedPane = new JTabbedPane();
+            VueResources.initComponent( mTabbedPane, "tabPane");
+        
+            //mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
+            mTabbedPane.addTab( mTreePanel.getName(),  mTreePanel);
+            mTabbedPane.addTab( mNotePanel.getName(), mNotePanel);
+            mTabbedPane.addTab(mNodeFilterPanel.getName(),mNodeFilterPanel);
+            add( BorderLayout.CENTER, mTabbedPane );
+        } 
         if (DEBUG.INIT) System.out.println("Created " + this);
     }
     
@@ -116,7 +130,7 @@ public class ObjectInspectorPanel extends JPanel
      *
      **/
     public void updatePanels() {
-        mInfoPanel.updatePanel( mComponent);
+        //mInfoPanel.updatePanel( mComponent);
         mTreePanel.updatePanel( mComponent);
         mNotePanel.updatePanel( mComponent);
         mNodeFilterPanel.updatePanel(mComponent);
@@ -388,14 +402,21 @@ public class ObjectInspectorPanel extends JPanel
      * Sets the selected Tab for teh panel to the specifided ObjectInspector panel key
      **/
     public void setTab( int pTabKey) {
+        JComponent picked = null;
         if (pTabKey == NOTES_TAB ) {
-            mTabbedPane.setSelectedComponent( mNotePanel);
+            picked = mNotePanel;
         } else if (pTabKey == INFO_TAB ) {
-            mTabbedPane.setSelectedComponent( mInfoPanel );
+            picked = mInfoPanel;
         } else if (pTabKey == TREE_TAB ) {
-            mTabbedPane.setSelectedComponent( mTreePanel );
+            picked = mTreePanel;
         } else if(pTabKey == FILTER_TAB) {
-            mTabbedPane.setSelectedComponent(mNodeFilterPanel);
+            picked = mNodeFilterPanel;
+        }
+        if (picked != null) {
+            if (WidgetStackImpl)
+                Widget.setExpanded(picked, true);
+            else
+                mTabbedPane.setSelectedComponent(picked);
         }
         Window w = javax.swing.SwingUtilities.getWindowAncestor(this);
         if (w != null)
