@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.99 $ / $Date: 2006-03-21 19:46:48 $ / $Author: sfraize $ *
+ * @version $Revision: 1.100 $ / $Date: 2006-03-21 21:01:20 $ / $Author: jeff $ *
  * @author  akumar03
  */
 
@@ -466,14 +466,27 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         };
         removeLibraryAction = new AbstractAction("Remove Library") {
             public void actionPerformed(ActionEvent e) {
-				javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
-														  "Under Construction",
-														  "REMOVE LIBRARY",
-														  javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                DataSourceViewer.this.popup.setVisible(false);
-            }
-        };
+				Object o = dataSourceList.getSelectedValue();
+				if (o != null) {
+					// for the moment, we are doing double work to keep old data sources
+					if (o instanceof edu.tufts.vue.dsm.DataSource) {
+						edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
+						if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
+																	  "Do you really want to remove " + ds.getRepositoryDisplayName(),
+																	  "Remove Library",
+																	  javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
+							dataSourceManager.remove(ds);
+							dataSourceManager.save();
+							dataSourceManager.refresh();
+							dataSourceList.getContents().removeElement(ds);
+						}
+					}
+				}
+				DataSourceViewer.this.popup.setVisible(false);
+			}
+		};
 		
+			
 		/*
 		 We only provide data source information for data sources.  We look at the current selection, which is
 		 either a data source, and "old" data source, or a divider line.
