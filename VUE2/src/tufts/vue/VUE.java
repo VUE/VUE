@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.347 $ / $Date: 2006-03-20 20:59:08 $ / $Author: sfraize $ 
+ * @version $Revision: 1.348 $ / $Date: 2006-03-21 19:49:15 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -260,7 +260,7 @@ public class VUE
 
         GUI.parseArgs(args);
         
-        if (DEBUG.INIT) System.out.println("VUE: parsed args " + allArgs);
+        if (true||DEBUG.INIT) System.out.println("VUE: parsed args " + allArgs);
     }
 
     
@@ -285,7 +285,12 @@ public class VUE
         Log.setLevel(Level.INFO);
     }
     
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
+
+        if (VueUtil.isMacPlatform())
+            installMacOSXApplicationEventHandlers();
+        
 
         Log.debug("VUE: main entered");
         
@@ -306,7 +311,11 @@ public class VUE
             
         } catch (Throwable t) {
             Util.printStackTrace(t, "VUE init failed");
-            tufts.Util.displayComponent(new JLabel("VUE init failed: " + t.toString()));
+            StringWriter buf = new StringWriter();
+            t.printStackTrace(new java.io.PrintWriter(buf));
+            JComponent msg = new JTextArea("VUE init failed:\n" + buf);
+            msg.setBorder(new EmptyBorder(22,22,22,22));
+            tufts.Util.displayComponent(msg);
         }
 
         VUE.isStartupUnderway = false;
@@ -460,6 +469,11 @@ public class VUE
                     Log.info("OpenApplication " + e);
                 }
             });
+        MRJAdapter.addReopenApplicationListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    Log.info("REopenDocument " + e);
+                }
+            });
         MRJAdapter.addOpenDocumentListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     Log.info("OpenDocument " + e);
@@ -565,7 +579,7 @@ public class VUE
         // DRBrowser class initializes the DockWindow itself.
         //-----------------------------------------------------------------------------
         
-        DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
+        DR_BROWSER_DOCK = GUI.createDockWindow("Libraries");
         DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK);
 		
         //-----------------------------------------------------------------------------
