@@ -32,7 +32,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-03-20 20:46:01 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-03-21 15:56:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends JPanel
@@ -147,6 +147,11 @@ public class WidgetStack extends JPanel
         Widget w = new Widget(title);
         addPane(w, 1.0f);
         return w;
+    }
+
+    /** @param c must have name set (setName) */
+    public void addPane(JComponent c) {
+        addPane(c, 1f);
     }
 
 
