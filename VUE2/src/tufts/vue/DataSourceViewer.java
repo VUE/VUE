@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.98 $ / $Date: 2006-03-20 20:38:47 $ / $Author: sfraize $ *
+ * @version $Revision: 1.99 $ / $Date: 2006-03-21 19:46:48 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -684,7 +684,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             t.printStackTrace();
         }
         
-        VUE.clearWaitCursor();
+        GUI.clearWaitCursor();
     }
 
     private void performSearchAndDisplayResults()
