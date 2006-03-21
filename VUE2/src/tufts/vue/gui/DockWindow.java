@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.43 $ / $Date: 2006-03-20 20:43:14 $ / $Author: sfraize $
+ * @version $Revision: 1.44 $ / $Date: 2006-03-21 19:16:53 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -674,7 +674,7 @@ public class DockWindow extends javax.swing.JWindow
             // Note that we can re-set the name for debugging purposes after
             // the peer has been created (super.addNotify())
         }
-        
+
         super.addNotify();
 
         updateWindowShadow();
@@ -702,9 +702,16 @@ public class DockWindow extends javax.swing.JWindow
             return null;
     }
     
+    private boolean _firstDisplay = true;
     private void superSetVisible(final boolean show) {
         if (DEBUG.DOCK) out("superSetVisible " + show);
         mShowing = show;
+
+        if (_firstDisplay) {
+            _firstDisplay = false;
+            keepOnScreen();
+        }
+        
         super.setVisible(show);
 
         /*
@@ -718,6 +725,36 @@ public class DockWindow extends javax.swing.JWindow
                 setWindowShadow(false);
             }});
         }
+        */
+    }
+
+    /** keep the bottom of the window from going below the bottom screen edge */
+    private void keepOnScreen() {
+        Rectangle r = getBounds();
+        if (keepOnScreen(r))
+            setSize(r.width, r.height);
+    }
+            
+    /** @return true of bounds were modified */
+    private boolean keepOnScreen(Rectangle r) {
+        int bottom = r.y + r.height;
+        int maxBottom = GUI.GScreenHeight;// - GUI.GInsets.bottom;
+        //out("        y="+r.y);
+        //out("   bottom="+bottom);
+        //out("maxBottom="+maxBottom);
+        if (bottom > maxBottom) {
+            r.height = maxBottom - r.y;
+            return true;
+        } else
+            return false;
+
+        /*
+          Rectangle max = GUI.GMaxWindowBounds;
+          if (DEBUG.Enabled) out("maxwinbounds: " + max);
+          if (mSavedShape.width > max.width)
+          mSavedShape.width = max.width;
+          if (mSavedShape.height > max.height)
+          mSavedShape.height = max.height;
         */
     }
 
@@ -1117,6 +1154,10 @@ public class DockWindow extends javax.swing.JWindow
     public boolean atScreenBottom() {
         int bottomEdge = getY() + getHeight();
 
+        // don't allow this for anything with a top in the upper half of the screen
+        if (getY() < GUI.GScreenHeight / 2)
+            return false;
+
         if (GUI.GInsets.bottom > 0) {
 
             return bottomEdge <= GUI.GScreenHeight
@@ -1221,34 +1262,31 @@ public class DockWindow extends javax.swing.JWindow
             
             mStickingRight = false;
 
-            Rectangle max = GUI.GMaxWindowBounds;
-            if (DEBUG.Enabled) out("maxwinbounds: " + max);
-            if (mSavedShape.width > max.width)
-                mSavedShape.width = max.width;
-            if (mSavedShape.height > max.height)
-                mSavedShape.height = max.height;
-
+            Rectangle newShape = new Rectangle(mSavedShape);
+            
             if (atScreenBottom() && mParent == null
                 //|| (isDocked() && mDockRegion.mGravity == DockRegion.BOTTOM)
                 ) {
 
-                setShapeAnimated(getX(),
-                                 getY() + getHeight() - mSavedShape.height,
-                                 mSavedShape.width,
-                                 mSavedShape.height);
+                newShape.x = getX();
+                newShape.y = getY() + getHeight() - mSavedShape.height;
                 
             } else if (atScreenRight()) {
 
+                newShape.x = GUI.GScreenWidth - mSavedShape.width;
+                newShape.y = getY();
                 mStickingRight = true;
-                setShapeAnimated(GUI.GScreenWidth - mSavedShape.width,
-                                 getY(),
-                                 mSavedShape.width,
-                                 mSavedShape.height);
 
             } else {
-                setShapeAnimated(getX(), getY(), mSavedShape.width, mSavedShape.height);
+
+                newShape.x = getX();
+                newShape.y = getY();
             }
             
+            keepOnScreen(newShape);
+
+            setShapeAnimated(newShape.x, newShape.y, newShape.width, newShape.height);
+                
             getContentPanel().setVisible(true);
             mSavedShape = null;
 
