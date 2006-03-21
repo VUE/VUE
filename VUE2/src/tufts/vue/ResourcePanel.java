@@ -30,7 +30,7 @@ import tufts.vue.gui.*;
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.6 $ / $Date: 2006-03-20 20:40:56 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-03-21 18:43:39 $ / $Author: sfraize $
  */
 
 public class ResourcePanel extends WidgetStack
@@ -124,9 +124,12 @@ public class ResourcePanel extends WidgetStack
     }
     
     class PreviewPane extends JPanel {
+        private Resource mResource;
         private Image mImage;
         private int mImageWidth;
         private int mImageHeight;
+
+        //private Image LoadingImage = null;
         
         PreviewPane() {
             super(new BorderLayout());
@@ -134,22 +137,54 @@ public class ResourcePanel extends WidgetStack
             //setBorder(new LineBorder(Color.red));
             setMinimumSize(new Dimension(32,32));
             setPreferredSize(new Dimension(200,200));
+
+            /*
+            try {
+                LoadingImage = VueResources.getImageIconResource("/tufts/vue/images/zoomin_cursor_32.gif").getImage();
+            } catch (Throwable t) { t.printStackTrace(); }
+            */
+            
+        }
+
+        public void setVisible(boolean visible) {
+            //mImage = LoadingImage;
+            mImage = null;
+            super.setVisible(visible);
+            //System.err.println("setVisible " + visible);
+            VUE.invokeAfterAWT(new Runnable() { public void run() { loadResource(mResource); }});
         }
 
         void loadResource(Resource r) {
+
+            mResource = r;
+            mImage = null;
+
+            if (!isVisible())
+                return;
+
             Image image = null;
+            boolean imageLoading = false;
 
             if (r instanceof MapResource) {
                 image = NoImage;
                 MapResource mr = (MapResource) r;
                 if (mr.isImage()) {
-                    java.net.URL url = mr.asURL();
-                    if (url != null)
-                        image = new ImageIcon(url).getImage();
+                    final java.net.URL url = mr.asURL();
+                    if (url != null) {
+                        imageLoading = true;
+                        mImage = null;
+                        repaint();
+                        GUI.activateWaitCursor();
+                        VUE.invokeAfterAWT(new Runnable() { public void run() {
+                            loadImage(new ImageIcon(url).getImage());
+                            GUI.clearWaitCursor();
+                        }});
+                    }
                 }
             }
 
-            loadImage(image);
+            if (!imageLoading)
+                loadImage(image);
         }
 
         private void loadImage(Image image) {
