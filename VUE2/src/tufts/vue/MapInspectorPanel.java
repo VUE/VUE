@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.45 $ / $Date: 2006-01-20 19:32:08 $ / $Author: sfraize $ 
+ * @version $Revision: 1.46 $ / $Date: 2006-03-23 20:36:02 $ / $Author: sfraize $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -293,7 +293,7 @@ public class MapInspectorPanel extends JPanel
             mDate.setText( mMap.getDate() );
             //mTitleEditor.setText( mMap.getLabel() );
             //mAuthorEditor.setText( mMap.getAuthor() );
-            mDescriptionEditor.attachToProperty(mMap, LWKey.Notes);
+            mDescriptionEditor.attachProperty(mMap, LWKey.Notes);
             File file = mMap.getFile() ;
             String path = "";
             if( file != null) {
