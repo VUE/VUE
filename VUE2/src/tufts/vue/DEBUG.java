@@ -57,9 +57,10 @@ public class DEBUG
     public static boolean TEXT = false; // text objects
     public static boolean IO = false; // file and network i/o
     public static boolean DOCK = false; // DockWindow's
+    public static boolean WIDGET = false; // Widget's
     public static boolean DATA = false; // data production / meta-data
     
-    public static boolean WORK = false; // work-in-progress
+    public static boolean WORK = true; // work-in-progress
 
     public static boolean DR = false; // digital repository & data sources
     
@@ -69,7 +70,7 @@ public class DEBUG
         Enabled=CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
             PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
-            CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=DATA=t;
+            CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=WIDGET=DATA=t;
 
         // only turn META & WORK off, not on
         if (t == false)
@@ -78,7 +79,7 @@ public class DEBUG
 
     public static void parseArg(String a) {
              if (a.equals("-debug_meta"))       DEBUG.META = true;
-        else if (a.equals("-debug_work"))       DEBUG.WORK = true;
+        else if (a.equals("-debug_work"))       DEBUG.WORK = !DEBUG.WORK;
         else if (a.equals("-debug_init"))       DEBUG.INIT = true;
         else if (a.equals("-debug_focus"))      DEBUG.FOCUS = true;
         else if (a.equals("-debug_dr"))         DEBUG.DR = true;
@@ -94,12 +95,14 @@ public class DEBUG
         else if (a.equals("-debug_text"))       DEBUG.TEXT = true;
         else if (a.equals("-debug_io"))         DEBUG.IO = true;
         else if (a.equals("-debug_data"))       DEBUG.DATA = true;
+        else if (a.equals("-debug_selection"))  DEBUG.SELECTION = true;
         else if (a.startsWith("-debug_edge"))   DEBUG.EDGE = true;
         else if (a.startsWith("-debug_event"))  DEBUG.EVENTS = true;
         else if (a.startsWith("-debug_thread")) DEBUG.THREAD = true;
         else if (a.startsWith("-debug_image"))  DEBUG.IMAGE = true;
         else if (a.startsWith("-debug_box"))    DEBUG.BOXES = true;
         else if (a.startsWith("-debug_dock"))   DEBUG.DOCK = true;
+        else if (a.startsWith("-debug_widget"))   DEBUG.WIDGET = true;
     }
 
     //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }
