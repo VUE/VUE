@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.50 $ / $Date: 2006-03-20 20:40:16 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2006-03-23 22:53:49 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -65,6 +65,7 @@ public class VueDragTree extends JTree
     
     public VueDragTree(Object  obj, String treeName) {
         setModel(createTreeModel(obj, treeName));
+        setName(treeName);
         this.setRootVisible(true);
         this.expandRow(0);
         this.expandRow(1);
@@ -74,7 +75,25 @@ public class VueDragTree extends JTree
         
        this. getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
        resourceSelection = VUE.getResourceSelection();
-        addTreeSelectionListener(this);
+       addTreeSelectionListener(this);
+
+       addMouseListener(new MouseAdapter() {    
+               public void mouseClicked(MouseEvent me){
+                   if  (me.getClickCount() != 2)
+                       return;
+                   
+                   TreePath path = getPathForLocation(me.getX(), me.getY());
+                   Object c = path.getLastPathComponent();
+                   if (c instanceof CabinetNode) {
+                       CabinetNode cabNode = (CabinetNode) path.getLastPathComponent();
+                       Object uo = cabNode.getUserObject();
+                       if (uo instanceof Resource)
+                           ((Resource)uo).displayContent();
+                   }
+                   
+               }
+           });
+        
     }
     
     /*
@@ -294,6 +313,10 @@ public class VueDragTree extends JTree
         protected VueDragTree tree;   
         public VueDragTreeCellRenderer(VueDragTree vdTree) {
             this.tree = vdTree;
+
+            // what was this supposed to do???  commented out as
+            // isn't doing anything right now... SMF 2006-03-23 17:40.54 
+            /*
             vdTree.addMouseMotionListener(new MouseMotionAdapter() {    
                 public void mouseClicked(MouseEvent me){         
                     if  (me.getClickCount() == 1) {
@@ -305,7 +328,8 @@ public class VueDragTree extends JTree
                     TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
                     //tree.setSelectionPath(treePath);      
                 }   
-            });    
+            });
+            */
         }
         /* -----------------------------------  */   
         
