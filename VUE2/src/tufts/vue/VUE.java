@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.349 $ / $Date: 2006-03-23 20:39:10 $ / $Author: sfraize $ 
+ * @version $Revision: 1.350 $ / $Date: 2006-03-23 23:04:16 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -537,16 +537,18 @@ public class VUE
         ModelSelection.addListener(tbc);
 
         DockWindow toolbarDock = null;
+
+        final JComponent toolbar;
         
-        if (true) {
-            //toolbarDock = GUI.createToolbar(VueResources.getString("tbWindowName"), tbc.getToolbar());
-            if (VueToolPanel.IS_CONTEXTUAL_TOOLBAR_ENABLED)
-                toolbarDock = GUI.createToolbar("Toolbar", tbc.getToolbar());
-            else
-                toolbarDock = GUI.createToolbar("Toolbar", tbc.getToolbar().getMainToolbar());
+        if (VueToolPanel.IS_CONTEXTUAL_TOOLBAR_ENABLED)
+            toolbar = tbc.getToolbar();
+        else
+            toolbar = tbc.getToolbar().getMainToolbar();
+
+        if (VueUtil.isMacPlatform()) {
+            toolbarDock = GUI.createToolbar("Toolbar", toolbar);
         } else {
-            ApplicationFrame.addComp(tbc.getToolbar(), BorderLayout.NORTH);
-            // buildToolbar()
+            ApplicationFrame.addComp(toolbar, BorderLayout.NORTH);
         }
         
         if (DEBUG.INIT) out("created ToolBar");
@@ -703,7 +705,7 @@ public class VUE
 
         ApplicationFrame.setLocation(GUI.GInsets.left + 30,
                                      GUI.GInsets.top
-                                     + DockWindow.ToolbarHeight);
+                                     + (toolbarDock == null ? 0 : DockWindow.ToolbarHeight));
 
         // MAC NOTE WITH MAXIMIZING: if Frame's current location y value
         // is less than whatever's it's maximized value is set to, maximizing
@@ -799,9 +801,11 @@ public class VUE
         if (Util.isMacPlatform())
             ApplicationFrame.setVisible(true);
 
-        toolbarDock.suggestLocation(0,0);
-        toolbarDock.setWidth(GUI.GScreenWidth);
-        toolbarDock.setVisible(true);
+        if (toolbarDock != null) {
+            toolbarDock.suggestLocation(0,0);
+            toolbarDock.setWidth(GUI.GScreenWidth);
+            toolbarDock.setVisible(true);
+        }
 
         //-----------------------------------------------------------------------------
         //
