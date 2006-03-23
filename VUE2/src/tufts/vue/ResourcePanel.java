@@ -25,21 +25,22 @@ import javax.swing.text.JTextComponent;
 import javax.swing.border.*;
 
 import tufts.vue.gui.*;
+import tufts.vue.NotePanel;
+import tufts.vue.filter.NodeFilterEditor;
 
 /**
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.7 $ / $Date: 2006-03-21 18:43:39 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2006-03-23 20:38:47 $ / $Author: sfraize $
  */
 
-public class ResourcePanel extends WidgetStack
+//public class ResourcePanel extends WidgetStack
+// TODO: if we keep this with all the node components included (not just Resource), need
+// to rename this InspectorPanel or something.
+public class ResourcePanel extends JPanel
     implements VueConstants, LWSelection.Listener, ResourceSelection.Listener
 {
-    // the collapsable pane's
-    private final JPanel mSummary;
-    private final PropertiesEditor mMetaData;
-    private final PreviewPane mPreview;
 
     // fields for the Summary Pane
     private final JTextComponent mTitleField = new JTextArea();
@@ -50,25 +51,183 @@ public class ResourcePanel extends WidgetStack
 
     private final boolean isMacAqua = GUI.isMacAqua();
 
-    /** the displayed resource */
-    private Resource mResource;
+    /* the displayed resource */
+    //private Resource mResource;
     
 
+    // Resource panes
+    private final JPanel mSummary;
+    private final PropertiesEditor mMetaData;
+    private final PreviewPane mPreview;
+    
+    // Node panes
+    private final NotePanel mNotePanel = new NotePanel();
+    private final UserMetaData mUserMetaData = new UserMetaData();
+    private final NodeTree mNodeTree = new NodeTree();
+    
     public ResourcePanel()
     {
-        addPane("Info",         mSummary = new SummaryPane(), 0f);
-        addPane("Meta-Data",    mMetaData = new PropertiesEditor(false), 1f);
-        addPane("Preview",      mPreview = new PreviewPane(), 1f);
+        super(new BorderLayout());
+        
+        mSummary = new SummaryPane();
+        mMetaData = new PropertiesEditor(false);
+        mPreview = new PreviewPane();
 
-        VUE.ModelSelection.addListener(this);
+        WidgetStack stack = new WidgetStack();
+        
+        //add(mSummary, BorderLayout.NORTH);
 
+        stack.addPane("Resource Summary",      mSummary, 0f);
+        stack.addPane("Resource Meta Data",    mMetaData, 1f);
+        stack.addPane("Resource Preview",      mPreview, 1f);
+
+        stack.addPane(mNotePanel, 1f);
+        stack.addPane(mUserMetaData, 1f);
+        stack.addPane(mNodeTree, 1f);
+
+        add(stack, BorderLayout.CENTER);
+
+        VUE.getSelection().addListener(this);
         VUE.getResourceSelection().addListener(this);
     }
 
-
-    public void resourceSelectionChanged(ResourceSelection selection) {
+    public void resourceSelectionChanged(ResourceSelection selection)
+    {
+        showNodePanes(false);
         loadResource(selection.get());
     }
+
+    public void selectionChanged(LWSelection selection) {
+        showNodePanes(true);
+        if (selection.isEmpty() || selection.size() > 1) {
+            loadResource(null);
+        } else {
+            LWComponent c = selection.first();
+            if (c.hasResource()) {
+                loadResource(c.getResource());
+                showResourcePanes(true);
+            } else {
+                showResourcePanes(false);
+            }
+            mUserMetaData.load(c);
+            mNodeTree.load(c);
+        }
+    }
+    
+    private void loadResource(final Resource rs) {
+        
+        if (rs != null) {
+            setAllEnabled(true);
+            loadText(mWhereField, rs.getSpec());
+            loadText(mTitleField, rs.getTitle());
+        } else {
+            // leave current display, but grayed out
+            setAllEnabled(false);
+            return;
+        }
+        
+
+        String ss = "";
+        if (rs instanceof MapResource) // todo: REALLY got to clean up the Resource interface & add an abstract class...
+            ss = VueUtil.abbrevBytes(((MapResource)rs).getSize());
+        mSizeField.setText(ss);
+        
+        //loading the metadata if it exists
+        if (rs != null) {
+            java.util.Properties properties = rs.getProperties();
+            if (properties != null) {
+                if (rs.getType() == Resource.ASSET_FEDORA)
+                    mMetaData.setProperties(properties, false);
+                else
+                    mMetaData.setProperties(properties, true);
+            }
+            
+        } else {
+            mMetaData.clear();
+        }
+
+        mMetaData.getPropertiesTableModel().setEditable(false);
+        //mResource = rs;
+
+        mPreview.loadResource(rs);
+    }
+    
+    private void showNodePanes(boolean visible) {
+        Widget.setHidden(mNotePanel, !visible);
+        Widget.setHidden(mUserMetaData, !visible);
+        Widget.setHidden(mNodeTree, !visible);
+    }
+    private void showResourcePanes(boolean visible) {
+        Widget.setHidden(mSummary, !visible);
+        Widget.setHidden(mMetaData, !visible);
+        Widget.setHidden(mPreview, !visible);
+    }
+
+
+    public static class NodeTree extends JPanel
+    {
+        private final OutlineViewTree tree;
+        
+        public NodeTree()
+        {
+            super(new BorderLayout());
+            setName("Node Tree");
+            tree = new OutlineViewTree();
+            
+            JScrollPane mTreeScrollPane = new JScrollPane(tree);
+            mTreeScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            add(mTreeScrollPane);
+        }
+        
+
+        public void load(LWComponent c)
+        {
+            // if the tree is not intiliazed, hidden, or doesn't contain the given node,
+            // then it switches the model of the tree using the given node
+            
+            if (!tree.isInitialized() || !isVisible() || !tree.contains(c)) {
+                //panelLabel.setText("Node: " + pNode.getLabel());
+                if (c instanceof LWContainer)
+                    tree.switchContainer((LWContainer)c);
+                else if (c instanceof LWLink)
+                    tree.switchContainer(null);
+            }
+        }
+    }
+    
+    public static class UserMetaData extends JPanel
+    {
+        private NodeFilterEditor userMetaDataEditor = null;
+        
+        public UserMetaData()
+        {
+            super(new BorderLayout());
+            setName("Custom Meta Data");
+            //setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
+
+            // todo in VUE to create map before adding panels or have a model that
+            // has selection loaded when map is added.
+            // userMetaDataEditor = new NodeFilterEditor(mNode.getNodeFilter(),true);
+            // add(userMetaDataEditor);
+        }
+
+        void load(LWComponent c) {
+            if (DEBUG.SELECTION) System.out.println("NodeFilterPanel.updatePanel: " + c);
+            if (userMetaDataEditor != null) {
+                //System.out.println("USER META SET: " + c.getNodeFilter());
+                userMetaDataEditor.setNodeFilter(c.getNodeFilter());
+            } else {
+                if (VUE.getActiveMap() != null && c.getNodeFilter() != null) {
+                    // NodeFilter bombs entirely if no active map, so don't let
+                    // it mess us up if there isn't one.
+                    userMetaDataEditor = new NodeFilterEditor(c.getNodeFilter(), true);
+                    add(userMetaDataEditor, BorderLayout.CENTER);
+                    //System.out.println("USER META DATA ADDED: " + userMetaDataEditor);
+                }
+            }
+        }
+    }
+    
 
     // summary fields
     private final Object[] labelTextPairs = {
@@ -77,10 +236,11 @@ public class ResourcePanel extends WidgetStack
         "-Size",    mSizeField,
     };
 
-    class SummaryPane extends JPanel {
+    public class SummaryPane extends JPanel {
     
         SummaryPane() {
             super(new BorderLayout());
+            //super(new GridBagLayout());
 
             final String fontName;
             final int fontSize;
@@ -93,11 +253,23 @@ public class ResourcePanel extends WidgetStack
                 fontSize = 11;
             }
             
+            /*
+            GridBagConstraints c = new GridBagConstraints();
+            mTitleField.setFont(new Font(fontName, Font.BOLD, 13));
+            mTitleField.setOpaque(false);
+            c.gridx = 0;
+            c.gridy = 0;
+            c.gridwidth = GridBagConstraints.REMAINDER; 
+            c.anchor = GridBagConstraints.NORTHWEST;
+            add(mTitleField, c);
+            */
+
             Font fieldFace = new Font(fontName, Font.PLAIN, fontSize);
             Font labelFace = new GUI.Face(fontName, Font.BOLD, fontSize, Color.gray);
 
             JPanel gridBag = new JPanel(new GridBagLayout());
-            addLabelTextRows(labelTextPairs, gridBag, labelFace, fieldFace);
+            //JPanel gridBag = this;
+            addLabelTextRows(0, labelTextPairs, gridBag, labelFace, fieldFace);
 
             Font f = mTitleField.getFont();
             mTitleField.setFont(f.deriveFont(Font.BOLD));
@@ -105,8 +277,10 @@ public class ResourcePanel extends WidgetStack
 
             add(gridBag, BorderLayout.NORTH);
 
-            // allow fixed mount of veritcal space so stack isn't always resizing
+            // allow fixed amount of veritcal space so stack isn't always resizing
             // if the location line-wraps and makes itself taller
+            // (Note that the Summary pane must be a JPanel, *containing* the
+            // gridbag, for this to work: we can't just be the gridBag directly)
             setPreferredSize(new Dimension(Short.MAX_VALUE,63));
             setMinimumSize(new Dimension(200,63));
             setMaximumSize(new Dimension(Short.MAX_VALUE,63));
@@ -229,15 +403,6 @@ public class ResourcePanel extends WidgetStack
     }
 
 
-    public void selectionChanged(LWSelection selection) {
-        if (selection.isEmpty() || selection.size() > 1) {
-            loadResource(null);
-        } else {
-            loadResource(selection.first().getResource());
-        }
-    }
-    
-    
     private void setAllEnabled(boolean enabled) {
         int pairs = labelTextPairs.length;
         for (int i = 0; i < pairs; i += 2) {
@@ -247,43 +412,6 @@ public class ResourcePanel extends WidgetStack
         mMetaData.setEnabled(enabled);
     }
     
-    private void loadResource(final Resource rs) {
-        
-        if (rs != null) {
-            setAllEnabled(true);
-            loadText(mWhereField, rs.getSpec());
-            loadText(mTitleField, rs.getTitle());
-        } else {
-            // leave current display, but grayed out
-            setAllEnabled(false);
-            return;
-        }
-        
-
-        String ss = "";
-        if (rs instanceof MapResource) // todo: REALLY got to clean up the Resource interface & add an abstract class...
-            ss = VueUtil.abbrevBytes(((MapResource)rs).getSize());
-        mSizeField.setText(ss);
-        
-        //loading the metadata if it exists
-        if (rs != null) {
-            java.util.Properties properties = rs.getProperties();
-            if (properties != null) {
-                if (rs.getType() == Resource.ASSET_FEDORA)
-                    mMetaData.setProperties(properties, false);
-                else
-                    mMetaData.setProperties(properties, true);
-            }
-            
-        } else {
-            mMetaData.clear();
-        }
-
-        mMetaData.getPropertiesTableModel().setEditable(false);
-        mResource = rs;
-
-        mPreview.loadResource(rs);
-    }
     
     //----------------------------------------------------------------------------------------
     // Utility methods
@@ -308,7 +436,7 @@ public class ResourcePanel extends WidgetStack
             c.setText(text);
     }
     
-    private void addLabelTextRows(Object[] labelTextPairs, Container gridBag, Font labelFace, Font fieldFace)
+    private static void addLabelTextRows(int starty, Object[] labelTextPairs, Container gridBag, Font labelFace, Font fieldFace)
     {
         // Note that the resulting alignment ends up being somehow FONT dependent!
         // E.g., works great with Lucida Grand (MacOSX), but with system default,
@@ -338,7 +466,7 @@ public class ResourcePanel extends WidgetStack
             //-------------------------------------------------------
 
             c.gridx = 0;
-            c.gridy = i;
+            c.gridy = starty++;
             c.insets = labelInsets;
             c.gridwidth = GridBagConstraints.RELATIVE; // next-to-last in row
             c.fill = GridBagConstraints.NONE; // the label never grows
@@ -447,9 +575,9 @@ public class ResourcePanel extends WidgetStack
                                              //JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
                                              JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
                                              );
-            w = GUI.createDockWindow("Resource Inspector", sp);
+            w = GUI.createDockWindow("Inspector", sp);
         } else {
-            w = GUI.createDockWindow("Resource Inspector", p);
+            w = GUI.createDockWindow("Inspector", p);
             //w = GUI.createDockWindow("Resource Inspector", p.mSummary);
             //tufts.Util.displayComponent(p);
         }
