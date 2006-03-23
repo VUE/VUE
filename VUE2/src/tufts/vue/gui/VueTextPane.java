@@ -14,13 +14,14 @@ import javax.swing.text.*;
  * and enters an undo entry.
  *
  * @author Scott Fraize
- * @version $Revision: 1.6 $ / $Date: 2006-01-23 16:13:41 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-03-23 20:36:20 $ / $Author: sfraize $
  */
 
 // todo: create an abstract class for handling property & undo code, and subclass this and VueTextField from it.
 // or: a handler/listner that can be attached to any text field.
 
 // todo: consume all key events
+// todo: rename LWTextPane, as is specific to to LWComponent text properties
 
 public class VueTextPane extends JTextPane
     implements LWComponent.Listener
@@ -40,7 +41,7 @@ public class VueTextPane extends JTextPane
             });
 
         if (c != null && propertyKey != null)
-            attachToProperty(c, propertyKey);
+            attachProperty(c, propertyKey);
         setUndoName(undoName);
         if (GUI.isMacAqua()) {
             try {
@@ -87,7 +88,7 @@ public class VueTextPane extends JTextPane
         super.processKeyEvent(e);
     }
 
-    public void attachToProperty(LWComponent c, Object key) {
+    public void attachProperty(LWComponent c, Object key) {
         if (c == null || key == null)
             throw new IllegalArgumentException("component=" + c + " propertyKey="+key + " neither can be null");
         saveText();
@@ -100,6 +101,14 @@ public class VueTextPane extends JTextPane
         loadPropertyValue();
         lwc.addLWCListener(this, new Object[] { propertyKey, LWKey.Deleting } );
         keyWasPressed = false;
+    }
+
+    public void detachProperty() {
+        if (lwc != null) {
+            lwc.removeLWCListener(this);
+            lwc = null;
+        }
+        setText("");
     }
 
     /** an optional special undo name for this property */
