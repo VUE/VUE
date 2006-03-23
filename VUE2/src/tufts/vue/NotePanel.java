@@ -17,13 +17,9 @@
  */
 
 /** 
- * NotesPanel.java
- *
  * Provides an editable note panel for an LWComponents notes.
  *
- * @author scottb
- * @author Scott Fraize
- * @version February 2004
+ * @version $Revision: 1.14 $ / $Date: 2006-03-23 20:36:55 $ / $Author: sfraize $
  */
 
 package tufts.vue;
@@ -35,34 +31,42 @@ import javax.swing.JScrollPane;
 import java.awt.*;
 
 public class NotePanel extends JPanel
+    implements LWSelection.Listener
 {
     /** the text pane **/
     private VueTextPane mTextPane = new VueTextPane();
 
-    public NotePanel() {
-
+    public NotePanel()
+    {
+        setName("Notes");
         setLayout( new BorderLayout() );
 		
         JScrollPane scrollPane = new JScrollPane();
 	
-        scrollPane.setSize(new Dimension( 200, 400));
-        scrollPane.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        //scrollPane.setSize(new Dimension( 200, 400));
+        //scrollPane.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setLocation(new Point(8, 9));
+        //scrollPane.setLocation(new Point(8, 9));
         scrollPane.getViewport().add(mTextPane);
 
         add(BorderLayout.CENTER, scrollPane);
+
+        VUE.getSelection().addListener(this);        
     }
 	
-    public String getName() {
-        return "Notes";
+    public void selectionChanged(LWSelection selection) {
+        if (selection.isEmpty() || selection.size() > 1) {
+            load(null);
+        } else {
+            load(selection.first());
+        }
     }
     
-    /** 
-     * Set us editing notes for @param c LWComponent
-     **/
-    public void updatePanel(LWComponent c) {
-        mTextPane.attachToProperty(c, LWKey.Notes);
+    private void load(LWComponent c) {
+        if (c == null)
+            mTextPane.detachProperty();
+        else
+            mTextPane.attachProperty(c, LWKey.Notes);
     }
 
     public String toString()
@@ -74,7 +78,7 @@ public class NotePanel extends JPanel
         DEBUG.Enabled = DEBUG.EVENTS = true;
         DEBUG.KEYS = true;
         NotePanel p = new NotePanel();
-        p.updatePanel(new LWMap("Test Map"));
+        p.load(new LWMap("Test Map"));
         try {
             if (args.length > 0) {
                 if (args[0].endsWith(".rtf")) {
