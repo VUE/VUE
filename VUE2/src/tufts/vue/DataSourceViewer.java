@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.100 $ / $Date: 2006-03-21 21:01:20 $ / $Author: jeff $ *
+ * @version $Revision: 1.101 $ / $Date: 2006-03-23 01:24:53 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -363,22 +363,11 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         DRB.searchPane.setExpanded(false);
         if (ds instanceof LocalFileDataSource) {
             DRB.browsePane.setExpanded(true);
-            DRB.savedResourcesPane.setExpanded(false);
+            //DRB.savedResourcesPane.setExpanded(false);
         } else if (ds instanceof FavoritesDataSource) {
-            DRB.savedResourcesPane.setExpanded(true);
-            DRB.browsePane.setExpanded(false);
+            //DRB.savedResourcesPane.setExpanded(true);
+            DRB.browsePane.setExpanded(true);
         }
-
-        /*
-        searchDockWindow.setRolledUp(true);
-        if (ds instanceof LocalFileDataSource) {
-            browseDockWindow.setVisible(true);			
-            savedResourcesDockWindow.setRolledUp(true);
-        } else if (ds instanceof FavoritesDataSource) {
-            savedResourcesDockWindow.setVisible(true);
-            browseDockWindow.setRolledUp(true);			
-        }
-        */
         
     }
 
