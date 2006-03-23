@@ -35,7 +35,7 @@ import tufts.vue.filter.*;
 /**
  * The Object Inspector Panel!
  *
- * @version $Revision: 1.30 $ / $Date: 2006-03-21 15:34:10 $ / $Author: sfraize $ 
+ * @version $Revision: 1.31 $ / $Date: 2006-03-23 20:38:02 $ / $Author: sfraize $ 
  *
  */
 public class ObjectInspectorPanel extends JPanel
@@ -96,7 +96,10 @@ public class ObjectInspectorPanel extends JPanel
             mTabbedPane.addTab( mNotePanel.getName(), mNotePanel);
             mTabbedPane.addTab(mNodeFilterPanel.getName(),mNodeFilterPanel);
             add( BorderLayout.CENTER, mTabbedPane );
-        } 
+        }
+
+        VUE.getSelection().addListener(this);
+        
         if (DEBUG.INIT) System.out.println("Created " + this);
     }
     
@@ -132,7 +135,7 @@ public class ObjectInspectorPanel extends JPanel
     public void updatePanels() {
         //mInfoPanel.updatePanel( mComponent);
         mTreePanel.updatePanel( mComponent);
-        mNotePanel.updatePanel( mComponent);
+        //mNotePanel.updatePanel( mComponent);
         mNodeFilterPanel.updatePanel(mComponent);
     }
     
@@ -437,7 +440,7 @@ public class ObjectInspectorPanel extends JPanel
             r.setProperty("field_" + i, "value_" + i);
         //map.addLWC(node);
         tufts.vue.gui.DockWindow w = tufts.vue.gui.GUI.createDockWindow("Object Inspector");
-        w.add(p);
+        w.setContent(p);
         w.setVisible(true);
         p.setLWComponent(node);
         VUE.getSelection().setTo(node); // setLWComponent does diddly -- need this
