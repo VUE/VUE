@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.40 $ / $Date: 2006-01-20 20:38:41 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2006-03-23 21:19:11 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -300,6 +300,8 @@ public class ZoomTool extends VueTool
      * into @param offset the offset to place the viewport at. Used to
      * figure out how to fit everything within a map on the screen and
      * where to pan to so you can see it all.
+     *
+     * @param outgoingOffset may be null (not interested in result)
      */
     public static double computeZoomFit(java.awt.Dimension viewport,
                                         int borderGap,
@@ -324,17 +326,19 @@ public class ZoomTool extends VueTool
         // Now center the components within the dimension
         // that had extra room to scale in.
                     
-        double offsetX = bounds.getX() * newZoom - borderGap;
-        double offsetY = bounds.getY() * newZoom - borderGap;
-
-        if (centerSmallerDimensionInViewport) {
-            if (centerVertical)
-                offsetY -= (viewHeight - bounds.getHeight()*newZoom) / 2;
-            else // center horizontal
-                offsetX -= (viewWidth - bounds.getWidth()*newZoom) / 2;
+        if (outgoingOffset != null) {
+            double offsetX = bounds.getX() * newZoom - borderGap;
+            double offsetY = bounds.getY() * newZoom - borderGap;
+            
+            if (centerSmallerDimensionInViewport) {
+                if (centerVertical)
+                    offsetY -= (viewHeight - bounds.getHeight()*newZoom) / 2;
+                else // center horizontal
+                    offsetX -= (viewWidth - bounds.getWidth()*newZoom) / 2;
+            }
+            outgoingOffset.setLocation(offsetX, offsetY);
         }
             
-        outgoingOffset.setLocation(offsetX, offsetY);
         return newZoom;
     }
     
