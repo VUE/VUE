@@ -32,7 +32,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-03-23 20:31:55 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2006-03-23 20:32:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends JPanel
@@ -320,10 +320,8 @@ public class WidgetStack extends JPanel
             else
                 mExpandersOpen--;
 
-            System.out.println(GUI.name(this) + " VISIBLE EXPANDER COUNT: " + mExpandersOpen);
+            if (DEBUG.WIDGET) out("VISIBLE EXPANDER COUNT: " + mExpandersOpen);
             
-            //System.out.println("EX
-
             if (mExpandersOpen < 0 || mExpandersOpen > mExpanderCount)
                 throw new IllegalStateException("WidgetStack: expanders claimed open: "
                                                 + mExpandersOpen
