@@ -26,7 +26,7 @@ import tufts.vue.gui.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.39 $ / $Date: 2006-03-20 20:41:48 $ / $Author: sfraize $ 
+ * @version $Revision: 1.40 $ / $Date: 2006-03-23 01:24:33 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -35,8 +35,8 @@ public class DRBrowser extends JPanel
     final JPanel librariesPanel;
     final Widget searchPane = new Widget("Search");
     final Widget browsePane = new Widget("Browse");
-    final Widget savedResourcesPane = new Widget("Saved Resources");
     final Widget previewPane = new Widget("Preview");
+    //final Widget savedResourcesPane = new Widget("Saved Resources");
 
     final DockWindow dockWindow;
     
@@ -73,12 +73,12 @@ public class DRBrowser extends JPanel
 
         //searchPane.setExpanded(false);
         //browsePane.setExpanded(false);
-        savedResourcesPane.setExpanded(false);
+        //savedResourcesPane.setExpanded(false);
 
         stack.addPane(searchPane, 0f);
         stack.addPane(librariesPanel, 0f);
         stack.addPane(browsePane, 1f);
-        stack.addPane(savedResourcesPane, 0f);
+        //stack.addPane(savedResourcesPane, 0f);
 
         this.dockWindow.setContent(stack);
     }
@@ -93,16 +93,15 @@ public class DRBrowser extends JPanel
         
         DockWindow searchDock = GUI.createDockWindow(searchPane);
         DockWindow browseDock = GUI.createDockWindow(browsePane);
-        DockWindow savedResourcesDock = GUI.createDockWindow(savedResourcesPane);
-        DockWindow previewDock = GUI.createDockWindow(previewPane);
-
+        //DockWindow previewDock = GUI.createDockWindow(previewPane);
+        //DockWindow savedResourcesDock = GUI.createDockWindow(savedResourcesPane);
         
         drBrowserDock.setStackOwner(true);
         drBrowserDock.addChild(searchDock);
         drBrowserDock.addChild(browseDock);
         //drBrowserDock.addChild(previewDock);
-        previewDock.setLocation(300,300);
-        drBrowserDock.addChild(savedResourcesDock);
+        //previewDock.setLocation(300,300);
+        //drBrowserDock.addChild(savedResourcesDock);
         
         searchDock.setContent(searchPane);
         searchDock.setRolledUp(true);
@@ -110,11 +109,11 @@ public class DRBrowser extends JPanel
         browseDock.setContent(browsePane);
         browseDock.setRolledUp(true);
         
-        savedResourcesDock.setContent(savedResourcesPane);
-        savedResourcesDock.setRolledUp(true);
+        //savedResourcesDock.setContent(savedResourcesPane);
+        //savedResourcesDock.setRolledUp(true);
         
-        previewDock.setContent(previewPane);
-        previewDock.setRolledUp(true);
+        //previewDock.setContent(previewPane);
+        //previewDock.setRolledUp(true);
 
     }
     
@@ -155,9 +154,9 @@ public class DRBrowser extends JPanel
         // Saved Resources
         //-----------------------------------------------------------------------------
 		
-        savedResourcesPane.setBackground(Color.white);
-        savedResourcesPane.setPreferredSize(startSize);
-        savedResourcesPane.add(new JLabel("saved resources"));
+        //savedResourcesPane.setBackground(Color.white);
+        //savedResourcesPane.setPreferredSize(startSize);
+        //savedResourcesPane.add(new JLabel("saved resources"));
 		
         //-----------------------------------------------------------------------------
         // Preview
