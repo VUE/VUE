@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.348 $ / $Date: 2006-03-21 19:49:15 $ / $Author: sfraize $ 
+ * @version $Revision: 1.349 $ / $Date: 2006-03-23 20:39:10 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -590,20 +590,23 @@ public class VUE
         MapInspector.setContent(new MapInspectorPanel());
         
         //-----------------------------------------------------------------------------
+        // Object Inspector / Resource Inspector
+        //-----------------------------------------------------------------------------
+
+        //final DockWindow resourceDock = GUI.createDockWindow("Resource Inspector", new ResourcePanel());
+        ObjectInspector = GUI.createDockWindow("Inspector", new ResourcePanel());
+        
+        //-----------------------------------------------------------------------------
         // Object Inspector
         //-----------------------------------------------------------------------------
 
+        //GUI.createDockWindow("Test OI", new ObjectInspectorPanel()).setVisible(true);
+        /*
         ObjectInspector = GUI.createDockWindow(VueResources.getString("objectInspectorTitle"));
         ObjectInspectorPanel = new ObjectInspectorPanel();
         ModelSelection.addListener(ObjectInspectorPanel);
-        //sResourceSelection.addListener( objectInspectorPanel);
         ObjectInspector.setContent(ObjectInspectorPanel);
-        
-        //-----------------------------------------------------------------------------
-        // Resource Panel
-        //-----------------------------------------------------------------------------
-
-        final DockWindow resourceDock = GUI.createDockWindow("Resource Inspector", new ResourcePanel());
+        */
         
         //-----------------------------------------------------------------------------
         // Pathway Panel
@@ -656,7 +659,7 @@ public class VUE
             DR_BROWSER_DOCK,
             MapInspector,
             ObjectInspector,
-            resourceDock,
+            //resourceDock,
             toolbarDock,
             pannerDock,
             //htWindow,
@@ -813,7 +816,7 @@ public class VUE
             GUI.isSmallScreen() ? null : fontDock,
             MapInspector,
             ObjectInspector,
-            resourceDock,
+            //resourceDock,
         };
             
         outlineDock.setLowerLeftCorner(0, GUI.GScreenHeight - GUI.GInsets.bottom);
