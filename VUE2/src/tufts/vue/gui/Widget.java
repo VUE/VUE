@@ -38,28 +38,39 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.2 $ / $Date: 2006-03-20 20:43:42 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-03-23 20:31:31 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
 {
     static final String EXPANSION_KEY = "widget.expand";
-    static final String VISIBLE_KEY = "widget.show";
+    static final String HIDDEN_KEY = "widget.hide";
     static final String MENU_ACTIONS_KEY = "widget.menuActions";
 
     public static void setTitle(JComponent c, String title) {
         c.setName(title);
     }
     
+    /** Hide the entire widget, including it's title.  Do not affect expansion state. */
+    public static void setHidden(JComponent c, boolean hidden) {
+        if (DEBUG.WIDGET) System.out.println("Widget.setHidden " + GUI.name(c) + " " + hidden);
+        c.putClientProperty(HIDDEN_KEY, hidden ? Boolean.TRUE : Boolean.FALSE);
+    }
+    
+    /** Make sure the Widget is expanded (visible).  Containing java.awt.Window
+     * will be made visible if it's not */
     public static void setExpanded(JComponent c, boolean expanded) {
-        if (DEBUG.DOCK) System.out.println("Widget.setExpanded " + GUI.name(c) + " " + expanded);
+        if (DEBUG.WIDGET) System.out.println("Widget.setExpanded " + GUI.name(c) + " " + expanded);
         c.putClientProperty(EXPANSION_KEY, expanded ? Boolean.TRUE : Boolean.FALSE);
+        java.awt.Window w = javax.swing.SwingUtilities.getWindowAncestor(c);
+        if (w != null && !w.isVisible() && !tufts.vue.VUE.isStartupUnderway())
+            w.setVisible(true);        
         //c.firePropertyChange("TESTPROPERTY", false, true);
     }
 
     public static void setMenuActions(JComponent c, javax.swing.Action[] actions)
     {
-        if (DEBUG.DOCK) System.out.println("Widget.setMenuActions " + GUI.name(c) + " " + java.util.Arrays.asList(actions));
+        if (DEBUG.WIDGET) System.out.println("Widget.setMenuActions " + GUI.name(c) + " " + java.util.Arrays.asList(actions));
         c.putClientProperty(MENU_ACTIONS_KEY, actions);
     }
 
