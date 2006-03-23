@@ -32,7 +32,7 @@ import tufts.vue.filter.NodeFilterEditor;
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.9 $ / $Date: 2006-03-23 21:18:54 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2006-03-23 21:29:38 $ / $Author: sfraize $
  */
 
 //public class ResourcePanel extends WidgetStack
@@ -309,6 +309,7 @@ public class ResourcePanel extends JPanel
             //setBorder(new LineBorder(Color.red));
             setMinimumSize(new Dimension(32,32));
             setPreferredSize(new Dimension(200,200));
+            setOpaque(false);
 
             /*
             try {
