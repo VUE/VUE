@@ -32,7 +32,7 @@ import tufts.vue.filter.NodeFilterEditor;
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.10 $ / $Date: 2006-03-23 21:29:38 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2006-03-23 22:34:05 $ / $Author: sfraize $
  */
 
 //public class ResourcePanel extends WidgetStack
@@ -295,6 +295,8 @@ public class ResourcePanel extends JPanel
         
     }
     
+    private static boolean FirstPreview = true;
+
     class PreviewPane extends JPanel {
         private Resource mResource;
         private Image mImage;
@@ -332,7 +334,16 @@ public class ResourcePanel extends JPanel
             mResource = r;
             mImage = null;
 
+            if (FirstPreview) {
+                FirstPreview = false;
+                //System.out.println("FIRST PREVIEW");
+                VUE.invokeAfterAWT(new Runnable() { public void run() {
+                    Widget.setExpanded(PreviewPane.this, true);
+                }});
+            }
+            
             if (!isVisible())
+                //if (!isVisible() && !FirstPreview)
                 return;
 
             Image image = null;
@@ -368,7 +379,17 @@ public class ResourcePanel extends JPanel
                 //setPreferredSize(new Dimension(mImageWidth, mImageHeight));
                 //setMaximumSize(new Dimension(mImageWidth, mImageHeight));
             }
+            /*
+            if (mImage != null && FirstPreview) {
+                FirstPreview = false;
+                System.out.println("FIRST PREVIEW");
+                VUE.invokeAfterAWT(new Runnable() { public void run() {
+                    Widget.setExpanded(PreviewPane.this, true);
+                }});
+            }
+            */
             repaint();
+                
         }
 
         /** draw the image into the current avilable space, scaling it down if needed (never scale up tho) */
