@@ -32,7 +32,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-03-21 15:56:08 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-03-23 20:31:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends JPanel
@@ -92,15 +92,22 @@ public class WidgetStack extends JPanel
     public void addPane(String title, JComponent widget, float verticalExpansionWeight) {
         //verticalExpansionWeight=0.0f;
         boolean isExpander = (verticalExpansionWeight != 0.0f);
-        WidgetTitle titleBar = new WidgetTitle(title, widget, isExpander);
-
-        if (DEBUG.DOCK) {
-            out("addPane [" + title + "] containing " + GUI.name(widget) + " expansionWeight=" + verticalExpansionWeight);
-            dumpSizeInfo(widget);
-        }
 
         if (isExpander)
             mExpanderCount++;
+        
+        WidgetTitle titleBar = new WidgetTitle(title, widget, isExpander);
+
+        
+        if (DEBUG.WIDGET) {
+            out("addPane:"
+                + " expansionWeight=" + verticalExpansionWeight
+                //+ " expanderCnt=" + mExpanderCount
+                //+ " isExpander=" + isExpander
+                + " [" + title + "] containing " + GUI.name(widget));
+            dumpSizeInfo(widget);
+        }
+
 
         _gbc.weighty = 0;
         _gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -156,7 +163,7 @@ public class WidgetStack extends JPanel
 
 
     private void dumpSizeInfo(Component c) {
-        tufts.Util.printStackTrace("java 1.5 only");
+        if (DEBUG.META) tufts.Util.printStackTrace("java 1.5 only");
         //out("\tprefSize " + (c.isPreferredSizeSet()?" SET ":"     ") + c.getPreferredSize());
         //out("\t minSize " + (c.isMinimumSizeSet()?" SET ":"     ") + c.getMinimumSize());
         //out("\t maxSize " + (c.isMaximumSizeSet()?" SET ":"     ") + c.getMaximumSize());
@@ -240,19 +247,29 @@ public class WidgetStack extends JPanel
                     public void mouseReleased(MouseEvent e) { mIcon.setForeground(Color.white); }
                 });
 
-            // Check for property values set on the JComponent before being
-            // added to the WidgetStack.
-
+            // Check for property values set on the JComponent before being added to the
+            // WidgetStack.  Important to handle EXPANSION_KEY before HIDDEN_KEY
+            // (changing the expansion of something that is hidden is currently
+            // undefined).  If the property is already set, we handle it via a fake
+            // propertyChangeEvent.  If it isn't set, we set the default, which won't
+            // trigger a recursive propertyChangeEvent as we haven't added us as a
+            // property change listener yet.
+            
             Object expanded = widget.getClientProperty(Widget.EXPANSION_KEY);
             if (expanded != null) {
                 propertyChange(new PropertyChangeEvent(this, Widget.EXPANSION_KEY, null, expanded));
             } else {
-                // Make sure we store the current expansion key value if one isn't already
-                // there: this is how we know of a JComponent has been Widget-ized or not.
-                // This won't trigget a recursive propertyChange event as we're not a listener yet.
+                // expanded by default                
                 widget.putClientProperty(Widget.EXPANSION_KEY, Boolean.TRUE);
-                if (isExpander)
-                    mExpandersOpen++; // open by default
+                handleWidgetDisplayChange(true); 
+            }
+                
+            Object hidden = widget.getClientProperty(Widget.HIDDEN_KEY);
+            if (hidden != null) {
+                propertyChange(new PropertyChangeEvent(this, Widget.HIDDEN_KEY, null, hidden));
+            } else {
+                // not hidden by default
+                widget.putClientProperty(Widget.HIDDEN_KEY, Boolean.FALSE);
             }
             
             widget.addPropertyChangeListener(this);
@@ -263,12 +280,15 @@ public class WidgetStack extends JPanel
         public void propertyChange(java.beans.PropertyChangeEvent e) {
             final String key = e.getPropertyName();
         
-            if (DEBUG.DOCK && !key.equals("ancestor"))
+            if (DEBUG.WIDGET && !key.equals("ancestor"))
                 out(GUI.name(e.getSource()) + " property \"" + key + "\" newValue=[" + e.getNewValue() + "]");
 
             if (key == Widget.EXPANSION_KEY) {
                 setExpanded( ((Boolean)e.getNewValue()).booleanValue() );
                 
+            } else if (key == Widget.HIDDEN_KEY) {
+                setHidden( ((Boolean)e.getNewValue()).booleanValue() );
+
             } else if (key == Widget.MENU_ACTIONS_KEY) {
                 mMenuButton.setMenuActions((Action[]) e.getNewValue());
                 
@@ -279,27 +299,35 @@ public class WidgetStack extends JPanel
 
                 Component src = (Component) e.getSource();
             
-                if (DEBUG.DOCK) dumpSizeInfo(src);
-                if (DEBUG.DOCK) out("revalidate on size property change");
+                if (DEBUG.WIDGET) dumpSizeInfo(src);
+                if (DEBUG.WIDGET) out("revalidate on size property change");
                 revalidate();
-                if (DEBUG.DOCK) dumpSizeInfo(src);
+                if (DEBUG.WIDGET) dumpSizeInfo(src);
             }
         }
 
-        private void setExpanded(boolean expanded) {
-            if (DEBUG.DOCK) out("setExpanded " + expanded);
-            if (mExpanded == expanded)
+        /**
+         * This method only does something if isExpander is true: track how many
+         * expanding Widgets (in the GridBagLayout) are visible, beacuse when we get
+         * down to 0, we need to add a default expander to take up the remaining space.
+         */
+        private void handleWidgetDisplayChange(boolean visible) {
+            if (!isExpander)
                 return;
-            mExpanded = expanded;
-            if (mExpanded) {
-                mIcon.setText("" + DownArrowChar);
-                if (isExpander)
-                    mExpandersOpen++;
-            } else {
-                mIcon.setText("" + RightArrowChar);
-                if (isExpander)
-                    mExpandersOpen--;
-            }
+
+            if (visible)
+                mExpandersOpen++;
+            else
+                mExpandersOpen--;
+
+            System.out.println(GUI.name(this) + " VISIBLE EXPANDER COUNT: " + mExpandersOpen);
+            
+            //System.out.println("EX
+
+            if (mExpandersOpen < 0 || mExpandersOpen > mExpanderCount)
+                throw new IllegalStateException("WidgetStack: expanders claimed open: "
+                                                + mExpandersOpen
+                                                + ", expander count=" + mExpanderCount);
 
             // Could do: if only one widget open, change constraints on THAT guy to
             // expand...  Or, as soon as all expanders close, set remaining ones to
@@ -310,8 +338,42 @@ public class WidgetStack extends JPanel
             // w/scroll-panes (use negative expansion weights?)  Subclassing
             // GridBagLayout might make this easier also.
 
-            updateDefaultExpander();
+            WidgetStack.this.updateDefaultExpander();
                 
+        }
+
+        private void setHidden(boolean hide) {
+            if (DEBUG.WIDGET) out("setHidden " + hide);
+
+            if (isVisible() == !hide)
+                return;
+
+            setVisible(!hide);
+            if (hide) {
+                if (mExpanded) {
+                    mWidget.setVisible(false);
+                    handleWidgetDisplayChange(false);
+                }
+            } else if (mExpanded) {
+                mWidget.setVisible(true);
+                handleWidgetDisplayChange(true);
+            }
+        }
+        
+
+        private void setExpanded(boolean expanded) {
+            if (DEBUG.WIDGET) out("setExpanded " + expanded);
+            if (mExpanded == expanded)
+                return;
+            mExpanded = expanded;
+            if (mExpanded) {
+                mIcon.setText("" + DownArrowChar);
+            } else {
+                mIcon.setText("" + RightArrowChar);
+            }
+
+            handleWidgetDisplayChange(mExpanded);
+
             GridBagConstraints c = mLayout.getConstraints(this);
             c.insets = expanded ? ExpandedTitleBarInsets : CollapsedTitleBarInsets;
             mLayout.setConstraints(this, c);
