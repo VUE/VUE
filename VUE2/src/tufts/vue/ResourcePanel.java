@@ -32,7 +32,7 @@ import tufts.vue.filter.NodeFilterEditor;
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.8 $ / $Date: 2006-03-23 20:38:47 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-03-23 21:18:54 $ / $Author: sfraize $
  */
 
 //public class ResourcePanel extends WidgetStack
@@ -141,7 +141,6 @@ public class ResourcePanel extends JPanel
                 else
                     mMetaData.setProperties(properties, true);
             }
-            
         } else {
             mMetaData.clear();
         }
@@ -178,7 +177,6 @@ public class ResourcePanel extends JPanel
             mTreeScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             add(mTreeScrollPane);
         }
-        
 
         public void load(LWComponent c)
         {
@@ -378,17 +376,23 @@ public class ResourcePanel extends JPanel
             if (mImage == null)
                 return;
             
-            final int w = getWidth();
-            final int h = getHeight();
             //g.setColor(Color.black);
             //g.fillRect(0,0, w,h);
-            int drawW = w;
-            int drawH = h;
-            if (drawW > mImageWidth)
-                drawW = mImageWidth;
-            if (drawH > mImageHeight)
-                drawH = mImageHeight;
 
+            java.awt.geom.Rectangle2D imageBounds
+                = new java.awt.geom.Rectangle2D.Float(0, 0, mImageWidth, mImageHeight);
+            final double zoomFit = ZoomTool.computeZoomFit(getSize(),
+                                                     0,
+                                                     imageBounds,
+                                                     null,
+                                                     false);
+
+            final int drawW = (int) (mImageWidth * zoomFit);
+            final int drawH = (int) (mImageHeight * zoomFit);
+                                                     
+            final int w = getWidth();
+            final int h = getHeight();
+            
             // center if drawable area is bigger than image
             int xoff = 0;
             int yoff = 0;
@@ -397,7 +401,6 @@ public class ResourcePanel extends JPanel
             if (drawH != h)
                 yoff = (h - drawH) / 2;
             
-            //System.out.println("paint; preview size: " + getSize() + "\n\tpaint size: " + drawWidth + "x" + drawHeight);
             g.drawImage(mImage, xoff, yoff, drawW, drawH, null);
         }
     }
