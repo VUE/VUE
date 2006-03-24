@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.350 $ / $Date: 2006-03-23 23:04:16 $ / $Author: sfraize $ 
+ * @version $Revision: 1.351 $ / $Date: 2006-03-24 20:33:03 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -311,11 +311,14 @@ public class VUE
             
         } catch (Throwable t) {
             Util.printStackTrace(t, "VUE init failed");
+            VueUtil.alert("VUE init failed", t);
+            /*
             StringWriter buf = new StringWriter();
             t.printStackTrace(new java.io.PrintWriter(buf));
             JComponent msg = new JTextArea("VUE init failed:\n" + buf);
             msg.setBorder(new EmptyBorder(22,22,22,22));
             tufts.Util.displayComponent(msg);
+            */
         }
 
         VUE.isStartupUnderway = false;
@@ -561,6 +564,20 @@ public class VUE
         //=============================================================================
 
         //-----------------------------------------------------------------------------
+        // Pathways panel
+        //-----------------------------------------------------------------------------
+        
+        final DockWindow pathwayDock = GUI.createDockWindow("Pathways",
+                                                            new PathwayPanel(VUE.getDialogParentAsFrame()));
+
+        //-----------------------------------------------------------------------------
+        // Formatting
+        //-----------------------------------------------------------------------------
+
+        final DockWindow formatDock = GUI.createDockWindow("Format", new FormatPanel());
+
+        
+        //-----------------------------------------------------------------------------
         // Panner
         //-----------------------------------------------------------------------------
 
@@ -662,13 +679,16 @@ public class VUE
             MapInspector,
             ObjectInspector,
             //resourceDock,
-            toolbarDock,
+            formatDock,
             pannerDock,
             //htWindow,
+            pathwayDock,
             outlineDock,
             actionDock,
-            fontDock,
-            linkDock,
+            //fontDock,
+            //linkDock,
+            toolbarDock,
+            
         };
 
         // adding the menus and toolbars
@@ -817,8 +837,9 @@ public class VUE
         // order the windows left to right for the top dock
         final DockWindow[] acrossTop = new DockWindow[] {
             DR_BROWSER_DOCK,
-            GUI.isSmallScreen() ? null : fontDock,
+            //GUI.isSmallScreen() ? null : fontDock,
             MapInspector,
+            formatDock,
             ObjectInspector,
             //resourceDock,
         };
