@@ -26,6 +26,7 @@ import java.awt.event.FocusEvent;
 import javax.swing.AbstractCellEditor;
 import javax.swing.UIManager;
 import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.JViewport;
 import javax.swing.JScrollPane;
 import javax.swing.JPanel;
@@ -44,7 +45,7 @@ import java.util.ArrayList;
  * Todo: render right from the node labels so all we have to do is repaint to refresh.
  * (still need to modify tree for hierarchy changes tho).
  *
- * @version $Revision: 1.42 $ / $Date: 2006-01-20 19:59:46 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2006-03-24 23:22:12 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  */
 
@@ -71,8 +72,11 @@ public class OutlineViewTree extends JTree
          setEditable(true);
          getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
          setCellRenderer(new OutlineViewTreeRenderer());
+         //setCellRenderer(new DefaultTreeCellRenderer());
          setCellEditor(new OutlineViewTreeEditor());
          setInvokesStopCellEditing(true); // so focus-loss during edit triggers a save instead of abort edit
+
+         setRowHeight(-1); // ahah: must do this to force variable row height
          
          //tree selection listener to keep track of the selected node 
          addTreeSelectionListener(
@@ -258,6 +262,7 @@ public class OutlineViewTree extends JTree
             selectionFromVUE = false;
         }
     }
+
     
     /**A class that specifies the rendering method of the outline view tree*/
     private class OutlineViewTreeRenderer extends OutlineViewRenderElement implements TreeCellRenderer
@@ -303,7 +308,8 @@ public class OutlineViewTree extends JTree
             else      
               setIsFocused(false);
          
-            String label = tree.convertValueToText(value, sel, expanded, leaf, row, hasFocus);   
+            String label = tree.convertValueToText(value, sel, expanded, leaf, row, hasFocus);
+            //System.out.println("render text[" + label + "]");
             setText(label);
             
             return this;
@@ -429,7 +435,7 @@ public class OutlineViewTree extends JTree
     }
     
     /** A class which displays the specified icon*/
-    private class IconPanel extends JPanel
+    private static class IconPanel extends JPanel
     {
         private ImageIcon icon = null;
         
@@ -457,58 +463,53 @@ public class OutlineViewTree extends JTree
               icon.paintIcon(this, g, 0, 0);
         }
     }
+
     
     /**A class which is used to display the rednerer for the outline view tree*/
-    private class OutlineViewRenderElement extends JPanel
+    private static class OutlineViewRenderElement extends JPanel
     {
-        private JTextArea label = null;
-        private IconPanel iconPanel = null;
+        private final JTextArea label;
+        private final IconPanel iconPanel;
         
-        private Color selectedColor = VueResources.getColor("outlineTreeSelectionColor");
-        private Color nonSelectedColor = Color.white;
+        private static final Color selectedColor = VueResources.getColor("outlineTreeSelectionColor");
+        private static final Color nonSelectedColor = Color.white;
         
         public OutlineViewRenderElement()
-        {   
-            setLayout(new FlowLayout(FlowLayout.LEFT, 5, 2));
+        {
+            super(new FlowLayout(FlowLayout.LEFT, 5, 2));
+            //super(new BorderLayout());
             setBackground(Color.white);
             
             label = new JTextArea();
             label.setEditable(false);
-            
             iconPanel = new IconPanel();
             
             add(iconPanel);
             add(label);
+            //add(iconPanel, BorderLayout.WEST);
+            //add(label, BorderLayout.CENTER);
         }
+
         
         /**A method which gets called with the value of whether the renderer is focused */
-        public void setIsFocused(boolean value)
-        {}
+        public void setIsFocused(boolean value) {}
         
         /**A method which gets called with the value of whether the renderer is selected */
         public void setIsSelected(boolean value)
         {   
             if (value)
-              label.setBackground(selectedColor);
-            
+                label.setBackground(selectedColor);
             else
-              label.setBackground(nonSelectedColor);
-          
-            repaint();
+                label.setBackground(nonSelectedColor);
         }
-        
-        public void setText(String text)
-        {
+
+        public void setText(String text) {
             label.setText(text);
         }
-        
-        public String getText()
-        {
+        public String getText() {
             return label.getText();
         }
-        
-        public void setIcon(ImageIcon icon)
-        {
+        public void setIcon(ImageIcon icon) {
             iconPanel.setIcon(icon);
         }
     }
