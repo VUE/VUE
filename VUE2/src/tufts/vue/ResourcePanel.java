@@ -32,7 +32,7 @@ import tufts.vue.filter.NodeFilterEditor;
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.13 $ / $Date: 2006-03-24 21:02:36 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2006-03-24 21:05:54 $ / $Author: sfraize $
  */
 
 //public class ResourcePanel extends WidgetStack
@@ -405,11 +405,14 @@ public class ResourcePanel extends JPanel
 
             java.awt.geom.Rectangle2D imageBounds
                 = new java.awt.geom.Rectangle2D.Float(0, 0, mImageWidth, mImageHeight);
-            final double zoomFit = ZoomTool.computeZoomFit(getSize(),
+            double zoomFit = ZoomTool.computeZoomFit(getSize(),
                                                      0,
                                                      imageBounds,
                                                      null,
                                                      false);
+
+            if (zoomFit > 1)
+                zoomFit = 1;
 
             final int drawW = (int) (mImageWidth * zoomFit);
             final int drawH = (int) (mImageHeight * zoomFit);
