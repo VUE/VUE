@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.68 $ / $Date: 2006-01-29 00:25:29 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2006-03-24 20:32:25 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -440,20 +440,52 @@ public class VueUtil extends tufts.Util
     }
 
 
-    public static void alert(javax.swing.JComponent component,String message,String title) {
-        javax.swing.JOptionPane.showMessageDialog(component,message,title,javax.swing.JOptionPane.ERROR_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));                                      
+    public static void alert(JComponent parent, String message, String title) {
+        JOptionPane.showMessageDialog(parent,
+                                      message,
+                                      title,
+                                      JOptionPane.ERROR_MESSAGE,
+                                      VueResources.getImageIcon("vueIcon32x32"));                                      
+    }
+
+    public static void alert(String title, Throwable t) {
+
+        java.io.Writer buf = new java.io.StringWriter();
+        t.printStackTrace(new java.io.PrintWriter(buf));
+        JComponent msg = new JTextArea(buf.toString());
+
+        JOptionPane.showMessageDialog(VUE.getDialogParent(),
+                                      msg,
+                                      title,
+                                      JOptionPane.ERROR_MESSAGE,
+                                      VueResources.getImageIcon("vueIcon32x32"));
+        
     }
    
-    public static void alert(String message,String title) {
-        javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),message,title,javax.swing.JOptionPane.ERROR_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));                                      
+    public static void alert(String message, String title) {
+        JOptionPane.showMessageDialog(VUE.getDialogParent(),
+                                      message,
+                                      title,
+                                      JOptionPane.ERROR_MESSAGE,
+                                      VueResources.getImageIcon("vueIcon32x32"));                                      
     }
    
-    public static int confirm(String message,String title) {
-       return JOptionPane.showConfirmDialog(VUE.getDialogParent(),message,title,JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));
+    public static int confirm(String message, String title) {
+       return JOptionPane.showConfirmDialog(VUE.getDialogParent(),
+                                            message,
+                                            title,
+                                            JOptionPane.YES_NO_OPTION,
+                                            JOptionPane.QUESTION_MESSAGE,
+                                            VueResources.getImageIcon("vueIcon32x32"));
     }
     
-    public static int confirm(javax.swing.JComponent component, String message, String title) {
-        return JOptionPane.showConfirmDialog(component,message,title,JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));
+    public static int confirm(JComponent parent, String message, String title) {
+        return JOptionPane.showConfirmDialog(parent,
+                                             message,
+                                             title,
+                                             JOptionPane.YES_NO_OPTION,
+                                             JOptionPane.QUESTION_MESSAGE,
+                                             VueResources.getImageIcon("vueIcon32x32"));
     }
     
                
