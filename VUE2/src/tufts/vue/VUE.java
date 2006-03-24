@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.353 $ / $Date: 2006-03-24 22:25:59 $ / $Author: sfraize $ 
+ * @version $Revision: 1.354 $ / $Date: 2006-03-24 22:41:13 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1652,7 +1652,7 @@ public class VUE
         //map.addLWC(new LWImage(new MapResource("/Users/sfraize/Desktop/Test Image.jpg"))).setLocation(350, 90);
         
         LWNode n1 = new LWNode("Google", new MapResource("http://www.google.com/"));
-        LWNode n2 = new LWNode("Program Files", new MapResource("C:\\Program Files"));
+        LWNode n2 = new LWNode("Program\nFiles", new MapResource("C:\\Program Files"));
         LWNode n3 = new LWNode("readme.txt", new MapResource("readme.txt"));
         LWNode n4 = new LWNode("Slash", new MapResource("file:///"));
         n1.setLocation(100, 30);
