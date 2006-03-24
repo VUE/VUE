@@ -44,7 +44,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.17 $ / $Date: 2006-03-24 21:12:12 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2006-03-24 21:12:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -731,7 +731,7 @@ public class GUI
         synchronized (CursorMap) {
             if (DEBUG.THREAD) VUE.Log.info("CLEAR ALL WAIT CURSORS");
             if (!WaitCursorActive) {
-                if (true||DEBUG.THREAD) VUE.Log.info("\t(wait cursors already cleared)");
+                if (DEBUG.THREAD) VUE.Log.info("\t(wait cursors already cleared)");
                 return;
             }
             clearWaitCursor(VUE.getActiveViewer());
