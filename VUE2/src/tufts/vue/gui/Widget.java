@@ -38,7 +38,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.4 $ / $Date: 2006-03-24 21:39:49 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2006-03-24 22:26:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -62,13 +62,10 @@ public class Widget extends javax.swing.JPanel
     public static void setExpanded(JComponent c, boolean expanded) {
         if (DEBUG.WIDGET) System.out.println("Widget.setExpanded " + GUI.name(c) + " " + expanded);
         c.putClientProperty(EXPANSION_KEY, expanded ? Boolean.TRUE : Boolean.FALSE);
-        if (expanded) { 
-            java.awt.Window w = javax.swing.SwingUtilities.getWindowAncestor(c);
-            if (w != null && !w.isVisible() && !tufts.vue.VUE.isStartupUnderway()) {
-                if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " showing containing window " + GUI.name(w));
-                w.setVisible(true);
-            }
-        }
+
+        if (expanded && !tufts.vue.VUE.isStartupUnderway())
+            GUI.makeVisibleOnScreen(c);
+        
         //c.firePropertyChange("TESTPROPERTY", false, true);
     }
 

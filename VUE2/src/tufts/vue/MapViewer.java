@@ -60,7 +60,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.282 $ / $Date: 2006-03-09 23:57:56 $ / $Author: sfraize $ 
+ * @version $Revision: 1.283 $ / $Date: 2006-03-24 22:25:02 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2529,8 +2529,9 @@ public class MapViewer extends javax.swing.JComponent
         // hitComponent to selection so have way other
         // than shift-click to add to selection (so you
         // can do it all with the mouse)
-        m.add(new VueAction("Show Object Inspector") {
-                public void act() { VUE.ObjectInspector.setVisible(true); }
+        m.add(new VueAction("Show Inspector") {
+                public void act() { GUI.makeVisibleOnScreen(this, ResourcePanel.class); }
+                //public void act() { VUE.ObjectInspector.setVisible(true); }
             });
 
         GUI.adjustMenuIcons(m);
@@ -2669,7 +2670,8 @@ public class MapViewer extends javax.swing.JComponent
             sMapPopup.addSeparator();
             sMapPopup.add(Actions.SelectAll);
             sMapPopup.add(new VueAction("Show Map Inspector") {
-                    public void act() { VUE.MapInspector.setVisible(true); }
+                    public void act() { GUI.makeVisibleOnScreen(this, MapInspectorPanel.class); }
+                    //public void act() { VUE.MapInspector.setVisible(true); }
                 });
 
             GUI.adjustMenuIcons(sMapPopup);

@@ -626,7 +626,8 @@ public abstract class LWIcon extends Rectangle2D.Float
             }.raise();
             */
 
-            VUE.ObjectInspectorPanel.setTab(ObjectInspectorPanel.NOTES_TAB);
+            tufts.vue.gui.GUI.makeVisibleOnScreen(this, NotePanel.class);
+            //VUE.ObjectInspectorPanel.setTab(ObjectInspectorPanel.NOTES_TAB);
         }
     
         private JComponent ttNotes;
@@ -726,7 +727,8 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.inPathway(); }
 
         void doDoubleClickAction() {
-            VUE.MapInspector.showTab("Pathway");
+            tufts.vue.gui.GUI.makeVisibleOnScreen(this, PathwayPanel.class);
+            //VUE.MapInspector.showTab("Pathway");
         }
         
         private JComponent ttPathway;
