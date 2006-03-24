@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.69 $ / $Date: 2006-03-24 20:32:25 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2006-03-24 20:37:09 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -453,6 +453,8 @@ public class VueUtil extends tufts.Util
         java.io.Writer buf = new java.io.StringWriter();
         t.printStackTrace(new java.io.PrintWriter(buf));
         JComponent msg = new JTextArea(buf.toString());
+        msg.setOpaque(false);
+        msg.setFont(new Font("Lucida Grande", Font.PLAIN, 9));
 
         JOptionPane.showMessageDialog(VUE.getDialogParent(),
                                       msg,
