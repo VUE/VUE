@@ -133,17 +133,19 @@ public class SaveAction extends VueAction
             System.out.println("Save code completed for " + file);
             return true;
 
-        } catch (Throwable e) {
-            Throwable originalException = e;
-            if (e.getCause() != null)
-                originalException = e.getCause();
-            if (originalException instanceof java.io.FileNotFoundException) {
-                System.out.println("Save failed: " + originalException);
+        } catch (Throwable t) {
+            VUE.Log.error("Exception attempting to save file " + file + ": " + t);
+            Throwable e = t;
+            if (t.getCause() != null)
+                e = t.getCause();
+            if (e instanceof java.io.FileNotFoundException) {
+                VueUtil.alert(e.getMessage(), "Save Failed");
             } else {
                 e.printStackTrace();
+                VueUtil.alert("Save failed for \"" + file + "\"", e);
             }
-            VUE.Log.error("Exception attempting to save file " + file);
-            VueUtil.alert("Save failed for \"" + file + "\"", originalException);
+            if (e != t)
+                VUE.Log.error("Exception attempting to save file " + file + ": " + e);
         } finally {
             VUE.clearWaitCursor();
         }
