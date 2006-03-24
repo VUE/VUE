@@ -44,7 +44,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.18 $ / $Date: 2006-03-24 21:12:28 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2006-03-24 21:16:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -112,8 +112,10 @@ public class GUI
         return ToolbarColor;
     }
     
-    public static void applyToolbarColor(Component c) {
-        if (!isMacAqua)
+    public static void applyToolbarColor(JComponent c) {
+        if (isMacAqua)
+            c.setOpaque(false);
+        else
             c.setBackground(getToolbarColor());
     }
     
