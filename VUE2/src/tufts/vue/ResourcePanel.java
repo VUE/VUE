@@ -32,7 +32,7 @@ import tufts.vue.filter.NodeFilterEditor;
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.11 $ / $Date: 2006-03-23 22:34:05 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2006-03-24 21:00:40 $ / $Author: sfraize $
  */
 
 //public class ResourcePanel extends WidgetStack
@@ -337,9 +337,9 @@ public class ResourcePanel extends JPanel
             if (FirstPreview) {
                 FirstPreview = false;
                 //System.out.println("FIRST PREVIEW");
-                VUE.invokeAfterAWT(new Runnable() { public void run() {
+                //VUE.invokeAfterAWT(new Runnable() { public void run() {
                     Widget.setExpanded(PreviewPane.this, true);
-                }});
+                    //}});
             }
             
             if (!isVisible())
