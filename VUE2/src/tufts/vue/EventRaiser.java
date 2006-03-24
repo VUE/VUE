@@ -52,7 +52,7 @@ import java.awt.Frame;
  *
  * Does not currently traverse into children of popup menus.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-01-20 18:29:05 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-03-24 22:24:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -91,7 +91,7 @@ public abstract class EventRaiser
         traverse(start);
     }
 
-    public abstract void dispatch(Object target);
+    public abstract void dispatch(Component target);
 
     
     /**
