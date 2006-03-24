@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.44 $ / $Date: 2006-03-21 19:16:53 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2006-03-24 22:26:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -907,7 +907,7 @@ public class DockWindow extends javax.swing.JWindow
     public void showTab(final String name) {
         
         new EventRaiser(this, JTabbedPane.class) {
-            public void dispatch(Object target) {
+            public void dispatch(Component target) {
                 JTabbedPane tabbedPane = (JTabbedPane) target;
                 int i = tabbedPane.indexOfTab(name);
                 if (i >= 0) {
@@ -3114,7 +3114,7 @@ public class DockWindow extends javax.swing.JWindow
                         System.out.print("              ");
                     eoutln(GUI.name(c));
                 }
-                public void dispatch(Object target) {
+                public void dispatch(Component target) {
                     if (target instanceof javax.swing.text.JTextComponent)
                         return;
                     //if (target instanceof javax.swing.AbstractButton)

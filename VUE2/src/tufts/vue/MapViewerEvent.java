@@ -21,7 +21,7 @@ package tufts.vue;
 /**
  * Broadcast events for the active map viewer.
  *
- * @version $Revision: 1.15 $ / $Date: 2006-01-20 19:54:08 $ / $Author: sfraize $ 
+ * @version $Revision: 1.16 $ / $Date: 2006-03-24 22:25:14 $ / $Author: sfraize $ 
  */
 
 public class MapViewerEvent extends EventRaiser
@@ -52,7 +52,7 @@ public class MapViewerEvent extends EventRaiser
         return (id & (DISPLAYED|FOCUSED)) != 0;
     }
 
-    public void dispatch(Object listener)
+    public void dispatch(java.awt.Component listener)
     {
         ((MapViewer.Listener)listener).mapViewerEventRaised(this);
     }
