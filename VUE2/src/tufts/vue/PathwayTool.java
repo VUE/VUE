@@ -37,7 +37,7 @@ import java.util.Iterator;
  * @see LWPathwayList
  * @see LWPathway
  *
- * @version $Revision: 1.20 $ / $Date: 2006-01-20 20:02:28 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2006-03-24 21:18:20 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 public class PathwayTool extends VueSimpleTool
@@ -145,6 +145,7 @@ public class PathwayTool extends VueSimpleTool
         
         public PathwayToolPanel() {
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+            setOpaque(false);
             if (false) {
                 JLabel label = new JLabel("Pathway playback:  ");
                 label.setBorder(new EmptyBorder(3,0,0,0));
@@ -159,7 +160,10 @@ public class PathwayTool extends VueSimpleTool
 
             // A total hack so the visible height of the combo-box is squeezed down a bit
             // Setting the size only appears to work for the width, not the height.
-            combo.setBorder(new MatteBorder(2,0,2,0, GUI.getToolbarColor()));
+            if (GUI.isMacAqua())
+                combo.setBorder(new EmptyBorder(2,0,2,0));
+            else
+                combo.setBorder(new MatteBorder(2,0,2,0, GUI.getToolbarColor()));
             //combo.setBorder(new EmptyBorder(2,0,2,0)); // so height get's squeezed
             //combo.setPreferredSize(new Dimension(150, 18));
             //combo.setSize(new Dimension(150, 18));
