@@ -44,7 +44,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.15 $ / $Date: 2006-03-21 19:17:45 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2006-03-24 20:21:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -675,19 +675,19 @@ public class GUI
     
     public static synchronized void activateWaitCursor() {
         //tufts.Util.printStackTrace("ACTIAVTE WAIT-CURSOR");
-        if (true||DEBUG.THREAD) VUE.Log.info("ACTIVATE WAIT CURSOR");
+        if (DEBUG.THREAD) VUE.Log.info("ACTIVATE WAIT CURSOR");
         activateWaitCursorInAllWindows();
     }
     
     private static synchronized void activateWaitCursorInAllWindows() {
 
         synchronized (CursorMap) {
-            if (true||DEBUG.THREAD) VUE.Log.info("ACTIVATE WAIT CURSOR IN ALL WINDOWS");
+            if (DEBUG.THREAD) VUE.Log.info("ACTIVATE WAIT CURSOR IN ALL WINDOWS");
 
             //if (!CursorMap.isEmpty()) {
             if (WaitCursorActive) {
                 //VUE.Log.error("attempting to activate wait cursor while one is already active");
-                VUE.Log.info("FYI, activating wait cursor for all windows while one is already active");
+                if (DEBUG.THREAD) VUE.Log.info("FYI, activating wait cursor for all windows while one is already active");
                 //return;
             }
 
@@ -722,7 +722,7 @@ public class GUI
     
     public static synchronized void clearWaitCursor() {
         //tufts.Util.printStackTrace("CLEAR WAIT-CURSOR");
-        if (true||DEBUG.THREAD) VUE.Log.info("CLEAR WAIT CURSOR SCHEDULED");
+        if (DEBUG.THREAD) VUE.Log.info("CLEAR WAIT CURSOR SCHEDULED");
         VUE.invokeAfterAWT(new Runnable() { public void run() { clearAllWaitCursors(); }});
     }
     
