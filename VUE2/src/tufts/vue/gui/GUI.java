@@ -20,6 +20,7 @@
 package tufts.vue.gui;
 
 import tufts.Util;
+import tufts.vue.EventRaiser;
 import tufts.vue.VueUtil;
 import tufts.vue.VUE;
 import tufts.vue.VueResources;
@@ -44,7 +45,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.19 $ / $Date: 2006-03-24 21:16:33 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2006-03-24 22:24:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -633,6 +634,47 @@ public class GUI
         else
             return VUE.getRootWindow();
     }
+
+    /**
+     * Find the containing Window of the given Component, and make sure it's displayed
+     * on screen.
+     */
+    public static void makeVisibleOnScreen(Component c)
+    {
+        java.awt.Window w = javax.swing.SwingUtilities.getWindowAncestor(c);
+        if (w != null && !w.isShowing() && !tufts.vue.VUE.isStartupUnderway()) {
+            if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " showing containing window " + GUI.name(w));
+            w.setVisible(true);
+        }
+    }
+
+    /**
+     * Find the given class in the AWT hierarchy, and make sure it's containing Window
+     * is visible on the screen.  If the found instance is a Widget, it is expanded.
+     * If it's parent is a JTabbedPane, it's tab is selected.
+     *
+     * @param clazz - a class that must be a subclass of Component (or nothing will be found)
+     */
+    public static void makeVisibleOnScreen(Object requestor, Class clazz)
+    {
+        new EventRaiser(requestor, clazz) {
+            public void dispatch(Component c) {
+                if (isWidget(c)) {
+                    Widget.setExpanded((JComponent)c, true);
+                } else {
+                    if (c.getParent() instanceof JTabbedPane)
+                        ((JTabbedPane)c.getParent()).setSelectedComponent(c);
+                    makeVisibleOnScreen(c);
+                }
+            }
+        }.raise();
+    }
+
+    public static boolean isWidget(Component c) {
+        return c instanceof JComponent && Widget.isWidget((JComponent)c);
+    }
+    
+    
     
     /*
     private static Cursor oldRootCursor;
