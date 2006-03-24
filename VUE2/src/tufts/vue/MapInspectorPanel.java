@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.46 $ / $Date: 2006-03-23 20:36:02 $ / $Author: sfraize $ 
+ * @version $Revision: 1.47 $ / $Date: 2006-03-24 21:38:12 $ / $Author: sfraize $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -53,8 +53,7 @@ public class MapInspectorPanel extends JPanel
     /** info tab panel **/
     private InfoPanel mInfoPanel = null;
     
-    /** pathways panel **/
-    private PathwayPane mPathPanel = null;
+    //private PathwayPane mPathPanel = null;
     
     /** filter panel **/
     private FilterApplyPanel mFilterApplyPanel = null;
@@ -75,13 +74,13 @@ public class MapInspectorPanel extends JPanel
         
         
         mInfoPanel = new InfoPanel();
-        mPathPanel = new PathwayPane();
+        //mPathPanel = new PathwayPane();
         mFilterApplyPanel = new FilterApplyPanel();
         mFilterCreatePanel = new FilterCreatePanel();
         //metadataPanel = new MetadataPanel();
         
         mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
-        mTabbedPane.addTab( mPathPanel.getName(),  mPathPanel);
+        //mTabbedPane.addTab( mPathPanel.getName(),  mPathPanel);
         mTabbedPane.addTab( mFilterApplyPanel.getName(), mFilterApplyPanel);
         mTabbedPane.addTab(mFilterCreatePanel.getName(),mFilterCreatePanel);
         // mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
@@ -122,7 +121,7 @@ public class MapInspectorPanel extends JPanel
         }
         else {
             mInfoPanel.updatePanel( mMap);
-            mPathPanel.updatePanel( mMap);
+            //mPathPanel.updatePanel( mMap);
             mFilterApplyPanel.updatePanel(mMap);
             mFilterCreatePanel.updatePanel(mMap);
             //   metadataPanel.updatePanel(mMap);
@@ -143,7 +142,8 @@ public class MapInspectorPanel extends JPanel
     
     
     public void activatePathwayTab() {
-        mTabbedPane.setSelectedComponent( mPathPanel);
+        //mTabbedPane.setSelectedComponent( mPathPanel);
+        tufts.Util.printStackTrace("pathway panel moved");
     }
     
     public void activateInfoTab() {
