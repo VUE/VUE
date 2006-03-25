@@ -37,6 +37,11 @@ implements org.osid.repository.AssetIterator
 	{
 		this.iteratorVector.addElement(assetIterator);
 	}
+
+	protected void reset()
+	{
+		iteratorIndex = 0;
+	}
 	
 	public boolean hasNextAsset()
 		throws org.osid.repository.RepositoryException

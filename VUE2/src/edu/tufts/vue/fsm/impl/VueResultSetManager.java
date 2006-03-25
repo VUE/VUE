@@ -32,6 +32,8 @@ implements edu.tufts.vue.fsm.ResultSetManager
 	private java.util.Vector assetVector = new java.util.Vector();
 	private java.util.Vector assetIdStringVector = new java.util.Vector();
 	
+	private AddingAssetIterator ai = null;
+	
 	protected VueResultSetManager(edu.tufts.vue.fsm.SearchEngine searchEngine)
 	{
 		this.searchEngine = searchEngine;
@@ -43,14 +45,23 @@ implements edu.tufts.vue.fsm.ResultSetManager
 
 	public org.osid.repository.AssetIterator getAssets()
 	{
-		AddingAssetIterator ai = new AddingAssetIterator();
-		int numSearches = this.searchEngine.getNumSearches();
-		for (int i=0; i < numSearches; i++) {
-			ai.add(searchEngine.getAssetIterator(i));
+		if (ai == null) {
+			ai = new AddingAssetIterator();
+			int numSearches = this.searchEngine.getNumSearches();
+			for (int i=0; i < numSearches; i++) {
+				ai.add(searchEngine.getAssetIterator(i));
+			}
+		} else {
+			ai.reset();
 		}
 		return ai;
 	}
 
+	public org.osid.repository.AssetIterator getAsset(int i)
+	{
+		return searchEngine.getAssetIterator(i);
+	}
+	
 	public void addAsset(org.osid.repository.Asset asset)
 	{
 		try {
