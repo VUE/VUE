@@ -28,7 +28,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	private java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
 	private java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
 	
-	private javax.swing.JTextField field = new javax.swing.JTextField(20);
+	private javax.swing.JTextField field = new javax.swing.JTextField(15);
 	private java.io.Serializable criteria = null;
 	private org.osid.shared.Properties searchProperties = null;
 	
