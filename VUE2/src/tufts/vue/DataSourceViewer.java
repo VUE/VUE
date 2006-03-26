@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.102 $ / $Date: 2006-03-25 02:20:57 $ / $Author: jeff $ *
+ * @version $Revision: 1.103 $ / $Date: 2006-03-26 02:11:47 $ / $Author: jeff $ *
  * @author  akumar03
  */
 
@@ -701,86 +701,86 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 
         // get our search results
 		java.io.Serializable searchCriteria = queryEditor.getCriteria();
-        org.osid.shared.Properties searchProperties = queryEditor.getProperties();
-		
         if (DEBUG.DR) out("Searching criteria [" + searchCriteria + "]...");
-		
-		// fill our results stack with individual results and aggregate results		
-        org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
-        java.util.Vector repositoryIdStringVector = new java.util.Vector();
-        java.util.Vector repositoryDisplayNameVector = new java.util.Vector();
-
-		JPanel repositorySpecificResults[] = new JPanel[repositories.length];
-		VueDragTree resultSetTrees[] = new VueDragTree[repositories.length];
-		java.util.Vector searchResults[] = new java.util.Vector[repositories.length];
-	
-        for (int i = 0; i < repositories.length; i++) {
-			edu.tufts.vue.fsm.ResultSetManager resultSetManager
+        org.osid.shared.Properties searchProperties = queryEditor.getProperties();
+				
+		edu.tufts.vue.fsm.ResultSetManager resultSetManager
             = federatedSearchManager.getResultSetManager(searchCriteria,
                                                          searchType,
                                                          searchProperties);		
-			if (DEBUG.DR) out("got result set manager " + resultSetManager);
+		if (DEBUG.DR) out("got result set manager " + resultSetManager);
+		
+		/*
+			Store our results since we will fill a panel with each repository's results and one with all.
+			We can't get the iterator contents again, without re-doing the search.
 			
-            String idStr = repositories[i].getId().getIdString();
-			//System.out.println("Found repository " + idStr);
-            String name = repositories[i].getDisplayName();
-            if (DEBUG.DR) System.out.println("\t#" + i + " " + idStr + " [" + name + "]");
-            repositoryIdStringVector.addElement(idStr);
-            repositoryDisplayNameVector.addElement(name);
+			We know the repositories we searched.  Some may have returned results, others may not.  We will
+			make a vector for each set of results with a parallel vector of repository ids.
+		 */
+		java.util.Vector resultVector = new java.util.Vector();
+		java.util.Vector repositoryIdStringVector = new java.util.Vector();
+        java.util.Vector repositoryDisplayNameVector = new java.util.Vector();
+		java.util.Vector allResultVector = new java.util.Vector();
+		
+        org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
+		int numRepositories = repositories.length;
+		for (int i=0; i < numRepositories; i++) {
+			repositoryIdStringVector.addElement(repositories[i].getId().getIdString());
+            repositoryDisplayNameVector.addElement(repositories[i].getDisplayName());
+			resultVector.addElement(new java.util.Vector());
+		}
+		
+		org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets();
+		while (assetIterator.hasNextAsset()) {
+			org.osid.repository.Asset nextAsset = assetIterator.nextAsset();
+			String repositoryIdString = nextAsset.getRepository().getIdString();
+			int index = repositoryIdStringVector.indexOf(repositoryIdString);
+			java.util.Vector v = (java.util.Vector)resultVector.elementAt(index);
 
-			// we should change the result set manager to return assets for a specific repository, if supplied its id
-			searchResults[i] = new java.util.Vector();
-			org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets();
-			while (assetIterator.hasNextAsset()) {
-				org.osid.repository.Asset a = (org.osid.repository.Asset) assetIterator.nextAsset();
-				org.osid.shared.Id rid = a.getRepository();
-				//System.out.println("Found asset in repository " + rid.getIdString());
-				if (rid.isEqual(repositories[i].getId())) {
-					//System.out.println("match");
-					searchResults[i].addElement(new Osid2AssetResource(a, this.context));
-				}
-			}			
-
-			resultSetTrees[i] = new VueDragTree(searchResults[i].iterator(), "Repository Search Results");
-			resultSetTrees[i].setRootVisible(false);
-
-			repositorySpecificResults[i] = new JPanel(new BorderLayout());
-			if (UseSingleScrollPane)
-				repositorySpecificResults[i].add(resultSetTrees[i]);
-			else
-				repositorySpecificResults[i].add(new JScrollPane(resultSetTrees[i]));
-
-            resultsStack.addPane(name, repositorySpecificResults[i]);
-			//System.out.println(searchResults[i].size() + " results for " + name); 
+			Osid2AssetResource resource = new Osid2AssetResource(nextAsset, this.context);			
+			v.addElement(resource);
+			allResultVector.addElement(resource);
+		}
+		
+		// fill our results stack with individual results and aggregate results		
+		JPanel repositorySpecificResults[] = new JPanel[numRepositories];
+		VueDragTree resultSetTrees[] = new VueDragTree[numRepositories];
+	
+        for (int i = 0; i < numRepositories; i++) {			
+			java.util.Vector v = (java.util.Vector)resultVector.elementAt(i);
+			String name = (String)repositoryDisplayNameVector.elementAt(i);
+			if (v.size() == 0) {
+				resultsStack.addPane(name, new JLabel("No results"));
+			} else {
+				resultSetTrees[i] = new VueDragTree(v.iterator(), "Repository Search Results");
+				resultSetTrees[i].setRootVisible(false);
+				
+				repositorySpecificResults[i] = new JPanel(new BorderLayout());
+				if (UseSingleScrollPane)
+					repositorySpecificResults[i].add(resultSetTrees[i]);
+				else
+					repositorySpecificResults[i].add(new JScrollPane(resultSetTrees[i]));
+				
+				resultsStack.addPane(name, repositorySpecificResults[i]);
+			}
         }
 
 		// now populate results for an aggregation across all repositories
-        edu.tufts.vue.fsm.ResultSetManager resultSetManager
-            = federatedSearchManager.getResultSetManager(searchCriteria,
-                                                         searchType,
-                                                         searchProperties);		
-        if (DEBUG.DR) out("got result set manager " + resultSetManager);
-		
-        resultsStack.addPane("All Results", tmpAllResults);
-                                                
-        java.util.Vector results = new java.util.Vector();
-        org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets();
-        while (assetIterator.hasNextAsset()) {
-            org.osid.repository.Asset a = (org.osid.repository.Asset) assetIterator.nextAsset();
-            org.osid.shared.Id rid = a.getRepository();
-            if (DEBUG.DR) out("repository " + rid.getIdString() + " found: " + a + " [" + a.getDisplayName() + "]");
-            results.addElement(new Osid2AssetResource(a, this.context));
-        }			
-
-        Widget.setTitle(tmpAllResults, "All Results (" + results.size() + ")");
+		if (allResultVector.size() == 0) {
+			resultsStack.addPane("All Results", new JLabel("No Results"));			
+		} else {			
+			resultsStack.addPane("All Results (" + allResultVector.size() + ")", tmpAllResults);
+			
+			//Widget.setTitle(tmpAllResults, "All Results (" + allResultVector.size() + ")"); // maybe doesn't do anything
             
-        VueDragTree resultSetTree = new VueDragTree(results.iterator(), "Repository Search Results");
-        resultSetTree.setRootVisible(false);
-
-        if (UseSingleScrollPane)
-            tmpAllResults.add(resultSetTree);
-        else
-            tmpAllResults.add(new JScrollPane(resultSetTree));
+			VueDragTree resultSetTree = new VueDragTree(allResultVector.iterator(), "Repository Search Results");
+			resultSetTree.setRootVisible(false);
+			
+			if (UseSingleScrollPane)
+				tmpAllResults.add(resultSetTree);
+			else
+				tmpAllResults.add(new JScrollPane(resultSetTree));
+		}
 
         String dockTitle = "Search Results for \"" + queryEditor.getSearchDisplayName() + "\"";
 
