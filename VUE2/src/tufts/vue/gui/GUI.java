@@ -45,7 +45,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.20 $ / $Date: 2006-03-24 22:24:10 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2006-03-26 16:13:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -226,7 +226,7 @@ public class GUI
         FocusManager.install();
         //tufts.Util.executeIfFound("tufts.vue.gui.WindowManager", "install", null);
 
-        org.apache.log4j.Level level = org.apache.log4j.Level.INFO;
+        org.apache.log4j.Level level = org.apache.log4j.Level.DEBUG;
 
         // if (!skipCustomLAF) level = org.apache.log4j.Level.DEBUG; // always show for the moment
         
