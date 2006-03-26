@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.51 $ / $Date: 2006-03-23 22:53:49 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2006-03-26 15:58:51 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -83,6 +83,9 @@ public class VueDragTree extends JTree
                        return;
                    
                    TreePath path = getPathForLocation(me.getX(), me.getY());
+                   if (path == null)
+                       return;
+                   
                    Object c = path.getLastPathComponent();
                    if (c instanceof CabinetNode) {
                        CabinetNode cabNode = (CabinetNode) path.getLastPathComponent();
