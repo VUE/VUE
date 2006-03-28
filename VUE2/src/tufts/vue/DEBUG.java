@@ -59,6 +59,7 @@ public class DEBUG
     public static boolean DOCK = false; // DockWindow's
     public static boolean WIDGET = false; // Widget's
     public static boolean DATA = false; // data production / meta-data
+    public static boolean RESOURCE = false; // Resources
     
     public static boolean WORK = true; // work-in-progress
 
@@ -96,6 +97,7 @@ public class DEBUG
         else if (a.equals("-debug_io"))         DEBUG.IO = true;
         else if (a.equals("-debug_data"))       DEBUG.DATA = true;
         else if (a.equals("-debug_selection"))  DEBUG.SELECTION = true;
+        else if (a.equals("-debug_resource"))   DEBUG.RESOURCE = true;
         else if (a.startsWith("-debug_edge"))   DEBUG.EDGE = true;
         else if (a.startsWith("-debug_event"))  DEBUG.EVENTS = true;
         else if (a.startsWith("-debug_thread")) DEBUG.THREAD = true;
