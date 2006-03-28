@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.3 $ / $Date: 2006-03-07 01:50:13 $ -->
+<!-- $Revision: 1.4 $ / $Date: 2006-03-28 18:03:59 $ -->
 
 <!-- 
 This ant build file:
@@ -46,7 +46,7 @@ This ant build file:
   <property name="osid2.name"      value="okiOSID-2.0a" />
   <property name="build.home"      value="${basedir}/build"/>
   <property name="build.class"     value="${build.home}/classes" />
-  <property name="build.lib"       value="${build.home}/lib" />
+  <property name="build.lib"       value="${basedir}/lib" />
   <property name="lib.home"        value="../lib"/>
 
 <!--  ==================== Compilation Control Options ==================== -->
@@ -80,9 +80,12 @@ This ant build file:
     <pathelement location="${lib.home}/xercesImpl-2.7.1.jar" />
     <pathelement location="${lib.home}/commons-logging.jar" />
     <pathelement location="${lib.home}/xerces-2.7.1-xml-apis.jar" />
-    <pathelement location="${lib.home}/axis-fedora.jar" />
+  <!--  <pathelement location="${lib.home}/axis-fedora.jar" />-->
     <pathelement location="${lib.home}/jaxrpc-api-unsigned.jar" />
-    <pathelement location="${lib.home}/fedora-server.jar" />
+   <!-- <pathelement location="${lib.home}/fedora-server.jar" />-->
+   <pathelement location="${build.lib}/fedoragentypes.jar" />
+   <pathelement location="${build.lib}/fedorautilities.jar"/>
+   <pathelement location="${build.lib}/axis.jar"/>
     <pathelement location="${lib.home}/commons-discovery.jar" />
     <pathelement location="${lib.home}/saaj-api-unsigned.jar" />
 	
