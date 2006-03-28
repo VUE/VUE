@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.52 $ / $Date: 2006-03-26 15:58:51 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2006-03-28 23:55:44 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -363,7 +363,7 @@ public class VueDragTree extends JTree
 				 If we are dealing with an Asset, we can see if it has a preview
 				 */
 				if (value instanceof ResourceNode) {
-					ImageIcon i = ((ResourceNode)value).getResource().getIcon();
+					Icon i = ((ResourceNode)value).getResource().getIcon();
 					if (i == null) {
 						setIcon(nleafIcon);
 					} else {						
