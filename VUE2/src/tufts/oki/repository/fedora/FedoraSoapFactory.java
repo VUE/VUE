@@ -57,6 +57,8 @@ public class FedoraSoapFactory {
         Call call;
         Vector disseminationList = new Vector();
         try {
+            // TODO: This method is not suuported in Fedora 2.0 and above. Neeed to fix it.
+            /**
             call = getCallMethods(repository);
             ObjectMethodsDef[] objMethods= (ObjectMethodsDef[]) call.invoke(new Object[] {pid} );
             if(objMethods == null)
@@ -70,6 +72,7 @@ public class FedoraSoapFactory {
                     disseminationList.add(record);
                 }
             }
+             */
         } catch(Throwable t) {
 			t.printStackTrace();
             throw new org.osid.repository.RepositoryException("FedoraSoapFactory.getDisseminators "+t.getMessage());
