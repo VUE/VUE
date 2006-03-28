@@ -38,9 +38,15 @@ import javax.imageio.ImageIO;
  * @version $Revision: $ / $Date: 2006/01/20 18:57:33 $ / $Author: sfraize $
  */
 public class LWImage extends LWComponent
-    implements LWSelection.ControlListener, ImageObserver
+    implements LWSelection.ControlListener, Images.Listener
 {
-    // static { javax.imageio.ImageIO.setUseCache(true); } // doesn't appear to be working on MacOSX
+    /*
+    static {
+         // this only appears to be used if the image is absolutely HUGE
+         javax.imageio.ImageIO.setUseCache(true);
+         javax.imageio.ImageIO.setCacheDirectory(new java.io.File("/tmp"));
+     }
+    */
 
     /** scale of images when a child of other nodes */
     static final float ChildImageScale = 0.2f;
@@ -115,12 +121,9 @@ public class LWImage extends LWComponent
     // todo: find a better way to do this than passing in an undo manager, which is dead ugly
     public void setResourceAndLoad(Resource r, UndoManager undoManager) {
         super.setResource(r);
-        if (r instanceof MapResource) {
-            // todo: shouldn't be casting to MapResource here
-            //loadImage((MapResource)r, undoManager);
-            loadImageAndMetaDataAsync((MapResource)r, undoManager);
-        }
+        loadImageAndMetaDataAsync(r, undoManager);
     }
+
 
     
     /*
@@ -154,13 +157,10 @@ public class LWImage extends LWComponent
     }
     */
 
-    private void loadImageAndMetaDataAsync(final MapResource mr, final UndoManager um) {
-
-        // todo: make property fetch hierarchical so can leave out basename
-        //int width = mr.getProperty("width", 32);
-        //int height = mr.getProperty("height", 32);
-        int width = mr.getProperty("image.width", 32);
-        int height = mr.getProperty("image.height", 32);
+    private void loadImageAndMetaDataAsync(final Resource r, final UndoManager um)
+    {
+        int width = r.getProperty("image.width", 32);
+        int height = r.getProperty("image.height", 32);
 
         // If we know a size before loading, this will get
         // us displaying that size.  If not, we'll set
@@ -168,6 +168,23 @@ public class LWImage extends LWComponent
         // know the real size.
         setSize(width, height);
         
+        // save a key that marks the current location in the undo-queue,
+        // to be applied to the subsequent thread that make calls
+        // to imageUpdate, so that all further property changes eminating
+        // from that thread are applied to the same location in the undo queue.
+        
+        synchronized (this) {
+            // If image is not immediately availble, need to mark current
+            // place in undo key for changes that happen due to the image
+            // arriving.
+            if (!Images.getImage(r, this))
+                mThreadedUndoKey = UndoManager.getKeyForNextMark(this);
+            else
+                mThreadedUndoKey = null;
+        }
+
+        /*
+
         //loadImage(mr, um);
         // does not need to be an undoable thread as what we
         // do before kicking off the prepare image doesn't need
@@ -179,6 +196,7 @@ public class LWImage extends LWComponent
                 if (DEBUG.IMAGE || DEBUG.THREAD) out("loadImage returned (image loaded or loading)");
             }
         }.start();
+        */
         /*
         new UndoableThread("loadImage " + mr.getSpec(), um) {
             public void run() {
@@ -187,6 +205,8 @@ public class LWImage extends LWComponent
         }.start();
         */
     }
+
+    
 
 
     // TODO: have the LWMap make a call at the end of a restore to all LWComponents
@@ -220,11 +240,12 @@ public class LWImage extends LWComponent
     // work pretty well, but will probably break if user drops more
     // than one image and starts tweaking anyone but the first one before they load
     
-    private void loadImage(MapResource mr, UndoManager undoManager)
+    /*
+    private void XloadImage(MapResource mr, UndoManager undoManager)
     {
         if (DEBUG.IMAGE || DEBUG.THREAD) out("loadImage");
         
-        Image image = getImage(mr); // this will immediately block if host not responding
+        Image image = XgetImage(mr); // this will immediately block if host not responding
         // todo: okay, we can skip the rest of this code as getImage now uses the ImageIO
         // fetch
 
@@ -268,7 +289,7 @@ public class LWImage extends LWComponent
         }
     }
 
-    private Image getImage(MapResource mr)
+    private Image XgetImage(MapResource mr)
     {
         URL url = mr.asURL();
         
@@ -329,6 +350,7 @@ public class LWImage extends LWComponent
         return image;
     }
 
+    */
     
     public void setSize(float w, float h) {
         super.setSize(w, h);
@@ -344,28 +366,74 @@ public class LWImage extends LWComponent
         return mOffset.x < 0 || mOffset.y < 0;
     }
 
-    private void setRawImageSize(int w, int h)
+    /** @see Images.Listener */
+    public synchronized void gotImageSize(Object imageSrc, int width, int height)
     {
+        mImageWidth = width;
+        mImageHeight = height;
+
+        if (mThreadedUndoKey == null) {
+            if (DEBUG.Enabled) out("gotImageSize: no undo key");
+        }
+            
+        // For the events triggered by the setSize below, make sure they go
+        // to the right point in the undo queue.
+        UndoManager.attachCurrentThreadToMark(mThreadedUndoKey);
+        
+        // If we're interrupted before this happens, and this is the drop of a new image,
+        // we'll see a zombie event complaint from this setSize which is safely ignorable.
+        // todo: suspend events if our thread was interrupted
+        if (isCropped() == false) {
+            // don't set size if we are cropped: we're probably reloading from a saved .vue
+            setSize(width, height);
+        }
+        layout();
+        notify(LWKey.RepaintAsync);
+    }
+    
+    /** @see Images.Listener */
+    public synchronized void gotImage(Object imageSrc, Image image, int w, int h) {
+        // Be sure to set the image before detaching from the thread,
+        // or when the detach issues repaint events, we won't see the image.
         mImageWidth = w;
         mImageHeight = h;
-
-        Resource r = getResource();
-
-        if (r != null) {
-            // todo: setProperty should be protected in Resource,
-            // or at least this info should be set in some kind
-            // of Resource content-handler helper.
-            r.setProperty("image.width",  Integer.toString(mImageWidth));
-            r.setProperty("image.height", Integer.toString(mImageHeight));
+        mImage = image;
+        if (isCropped() == false)
+            setSize(w, h);
+        if (mThreadedUndoKey == null) {
+            notify(LWKey.RepaintAsync);
+        } else {
+            UndoManager.detachCurrentThread(mThreadedUndoKey); // in case our ImageFetcher get's re-used
+            // todo: oh, crap, what if this image fetch thread is attached
+            // to another active image load?
+            mThreadedUndoKey = null;
         }
+
+        // Any problem using the Image Fetcher thread to do this?
+        //if (getResource() instanceof MapResource)
+        //((MapResource)getResource()).scanForMetaData(LWImage.this, true);
     }
+
+    /** @see Images.Listener */
+    public synchronized void gotImageError(Object imageSrc, String msg) {
+        // set image dimensions so if we resize w/out image it works
+        mImageError = true;
+        mImageWidth = (int) getAbsoluteWidth();
+        mImageHeight = (int) getAbsoluteHeight();
+        if (mImageWidth < 1) {
+            mImageWidth = 100;
+            mImageHeight = 100;
+            setSize(100,100);
+        }
+        notify(LWKey.RepaintAsync);
         
-
-
-
+    }
+    
+    
+    
     private static char sDebugChar = 'A';
     private char mDebugChar;
-    public boolean imageUpdate(Image img, int flags, int x, int y, int width, int height)
+    public boolean XimageUpdate(Image img, int flags, int x, int y, int width, int height)
     {
         if ((DEBUG.IMAGE||DEBUG.THREAD) && (DEBUG.META || (flags & ImageObserver.SOMEBITS) == 0)) {
             if ((flags & ImageObserver.ALLBITS) != 0) System.err.println("");
@@ -406,7 +474,7 @@ public class LWImage extends LWComponent
         }
         
         if ((flags & ImageObserver.WIDTH) != 0 && (flags & ImageObserver.HEIGHT) != 0) {
-            setRawImageSize(width, height);
+            //XsetRawImageSize(width, height);
             if (DEBUG.IMAGE || DEBUG.THREAD) out("imageUpdate; got size " + width + "x" + height);
 
             if (mThreadedUndoKey == null) {
