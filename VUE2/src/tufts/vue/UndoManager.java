@@ -747,8 +747,9 @@ public class UndoManager
     static void attachCurrentThreadToMark(Object undoActionKey) {
         if (undoActionKey != null) {
             Thread thread = Thread.currentThread();
-            if (!thread.getName().startsWith("Image Fetcher"))
-                new Throwable("Warning: attaching mark to non-Image Fetch thread: " + thread).printStackTrace();
+            
+            //if (!thread.getName().startsWith("Image Fetcher"))
+            //new Throwable("Warning: attaching mark to non-Image Fetch thread: " + thread).printStackTrace();
 
             // extract the mark, because it contains the manager we need to insert the thread:mark mapping
             UndoMark mark = (UndoMark) undoActionKey;
