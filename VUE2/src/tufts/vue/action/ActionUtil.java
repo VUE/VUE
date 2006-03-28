@@ -51,7 +51,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.41 $ / $Date: 2006-01-27 03:09:15 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2006-03-28 23:31:06 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -391,6 +391,8 @@ public class ActionUtil {
         // (tho maybe with very old save files with platform specific
         // encodings, (e.g, MacRoman or windows-1255/Cp1255) we'll 
         // lose a special char here or there, such as left-quote / right-quote).
+        
+        if (DEBUG.CASTOR || DEBUG.IO) System.out.println("\nUNMARSHALLING: " + url);
         
         BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
         String line;

@@ -151,10 +151,10 @@ public class OpenAction extends VueAction {
     }
     
     public static void main(String args[]) throws Exception {
+        VUE.parseArgs(args);
         String file = args.length == 0 ? "test.xml" : args[0];
         System.err.println("Attempting to read map from " + file);
         DEBUG.Enabled = true;
-        VUE.parseArgs(args);
         LWMap map;
         if (file.indexOf(':') >= 0)
             map = OpenAction.loadMap(new java.net.URL(file));
