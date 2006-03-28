@@ -147,7 +147,20 @@ implements edu.tufts.vue.dsm.Registry
 					org.osid.repository.RepositoryManager repositoryManager = 
 						(org.osid.repository.RepositoryManager)VueOsidFactory.getInstance().getRepositoryManagerInstance(loadKey);
 					org.osid.shared.Id repositoryId = edu.tufts.vue.util.Utilities.getRepositoryIdFromLoadKey(loadKey);
-					org.osid.repository.Repository repository = repositoryManager.getRepository(repositoryId);
+					
+					org.osid.repository.Repository repository = null;
+					try {
+						repository = repositoryManager.getRepository(repositoryId);
+					} catch (Throwable t1) {
+						// special case for when the Manager implementation does return a Repository by id
+						org.osid.repository.RepositoryIterator repositoryIterator = repositoryManager.getRepositories();
+						while (repositoryIterator.hasNextRepository()) {
+							repository = repositoryIterator.nextRepository();
+							if (repositoryId.isEqual(repository.getId())) {
+								return repository;
+							}
+						}
+					}
 					return repository;
 				}
 			}

@@ -112,7 +112,19 @@ implements edu.tufts.vue.dsm.DataSource
 		try {
 			this.repository = (edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);	
 		} catch (Throwable t) {
-			edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling getting Repository via Factory");
+			// special case for when the Manager implementation doesn't offer this method
+			try {
+				org.osid.repository.RepositoryManager repositoryManager = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey);
+				org.osid.repository.RepositoryIterator repositoryIterator = repositoryManager.getRepositories();
+				while (repositoryIterator.hasNextRepository()) {
+					repository = repositoryIterator.nextRepository();
+					if (repositoryId.isEqual(repository.getId())) {
+						this.repository = repository;
+					}
+				}
+			} catch (Throwable t1) {
+				edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling getting Repository via Factory");
+			}
 		}
 		
 		// call Repository to answer these
