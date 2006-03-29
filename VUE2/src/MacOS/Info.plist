@@ -5,7 +5,7 @@
 	<key>CFBundleName</key>
 	<string>VUE</string>
 	<key>CFBundleVersion</key>
-	<string>1.0</string>
+	<string>10.2</string>
 	<key>CFBundleAllowMixedLocalizations</key>
 	<string>true</string>
 	<key>CFBundleExecutable</key>
@@ -41,6 +41,8 @@
         
 	<key>Java</key>
 	<dict>
+		<key>VMOptions</key>
+		<string>-Xms10m -Xmx2048m</string>
 		<key>WorkingDirectory</key>
 		<string>$APP_PACKAGE/Contents/Resources/Java</string>
 		<key>MainClass</key>
