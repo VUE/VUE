@@ -31,7 +31,7 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.dnd.*;
-import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -45,7 +45,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.22 $ / $Date: 2006-03-29 22:24:22 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2006-03-29 22:44:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1511,8 +1511,57 @@ public class GUI
     
     public static String dragName(DragSourceDropEvent e) {
         return VueUtil.pad(20, baseObjectName(e)) + " drop=" + dropName(e.getDropAction()) + " success=" + e.getDropSuccess();
-    }    
+    }
+
+
+    public static void startSystemDrag(Component source, MouseEvent mouseEvent, Image image, Transferable transfer)
+    {
+        if (DEBUG.DND) out("startSystemDrag");
+            
+        Point imageOffset = new Point(image.getWidth(null) / -2, image.getHeight(null) / -2);
         
+        // this is a coordinate within the component named in DragStub
+        Point dragStart = mouseEvent.getPoint();
+            
+        // the cursor in the DragStub is determining the actual
+        // cursor: the action in the DragGestureEvent and the
+        // cursror arg to startDrag: don't know what they're doing...
+            
+        DragGestureEvent trigger = new DragGestureEvent(new DragStub(mouseEvent, source),
+                                                        DnDConstants.ACTION_COPY, // preferred action (1 only)
+                                                        dragStart, // start point
+                                                        Collections.singletonList(mouseEvent));
+        trigger
+            .startDrag(DragSource.DefaultCopyDrop, // cursor
+                       image,
+                       imageOffset,
+                       transfer,
+                       //null,  // drag source listener
+                       //MapViewer.this  // drag source listener
+                       new GUI.DragSourceAdapter()
+                       // is optional when startDrag from DragGestureEvent, but not dragSource.startDrag
+                       );
+    }
+    
+        
+    /** A relatively empty DragGestureRecognizer just so we can kick off our
+     * own drag event. */
+    private static class DragStub extends DragGestureRecognizer {
+        public DragStub(InputEvent triggerEvent, Component startFrom) {
+            super(DragSource.getDefaultDragSource(),
+                  startFrom,                    // component (drag start coordinates local to here)
+                  //DnDConstants.ACTION_COPY,   // prevents drop while command is down, tho shows w/copy cursor better
+                  DnDConstants.ACTION_COPY_OR_MOVE,
+                  null);                        // DragGestureListener (can be null)
+                super.events.add(triggerEvent);
+                //out("NEW DRAGGER");
+        }
+        protected void registerListeners() { /*out("DRAGGER REGISTER");*/ }
+        protected void unregisterListeners() { /*out("DRAGGER UN-REGISTER");*/ }
+    }
+        
+        
+
     public static class DragSourceAdapter implements DragSourceListener {
     
         public void dragOver(DragSourceDragEvent dsde) {
