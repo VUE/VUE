@@ -36,7 +36,8 @@ import javax.imageio.stream.*;
  *
  * Handle the loading of images in background threads, and memory caching based on a URL key.
  *
- * @version $Revision: 1.1 $ / $Date: 2006-03-28 23:28:25 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-03-29 04:33:47 $ / $Author: sfraize $
+ * @author Scott Fraize
  */
 public class Images
 {
@@ -156,6 +157,9 @@ public class Images
                     this.readable = r.asURL();
                 }
                 this.resource = r;
+            } else if (original instanceof java.net.URL) {
+                this.readable = (java.net.URL) original;
+                this.resource = null;
             } else
                 this.resource = null;
 
@@ -426,6 +430,12 @@ public class Images
             
     }
 
+    private static class ImageException extends Exception {
+        ImageException(String s) {
+            super(s);
+        }
+    }
+
     private static BufferedImage loadImage(ImageSource imageSRC, Images.Listener listener)
     {
         BufferedImage image = null;
@@ -436,7 +446,7 @@ public class Images
             if (DEBUG.IMAGE) tufts.Util.printStackTrace(t);
             if (listener != null) {
                 String msg;
-                if (t instanceof javax.imageio.IIOException)
+                if (t instanceof javax.imageio.IIOException || t instanceof ImageException)
                     msg = t.getMessage();
                 else
                     msg = t.toString();
@@ -487,7 +497,7 @@ public class Images
      * @return the loaded image, or null if none found
      */
     private static BufferedImage readAndCreateImage(ImageSource imageSRC, Images.Listener listener)
-        throws java.io.IOException
+        throws java.io.IOException, ImageException
     {
         if (DEBUG.IMAGE) out("creating input stream for source " + tag(imageSRC.readable));
 
@@ -525,9 +535,7 @@ public class Images
 
         if (reader == null) {
             if (DEBUG.IMAGE) out("NO IMAGE READER FOUND FOR " + imageSRC);
-            if (listener != null)
-                listener.gotImageError(imageSRC, "Unknown Image Format: " + imageSRC);
-            return null;
+            throw new ImageException("Unreadable Image Stream");
         }
 
         if (DEBUG.IMAGE) out("Chosen ImageReader for stream " + reader + " formatName=" + reader.getFormatName());
@@ -549,6 +557,7 @@ public class Images
             imageSRC.resource.setProperty("image.width",  Integer.toString(w));
             imageSRC.resource.setProperty("image.height", Integer.toString(h));
             imageSRC.resource.setProperty("image.format", reader.getFormatName());
+            imageSRC.resource.setCached(true);
         }
 
         
