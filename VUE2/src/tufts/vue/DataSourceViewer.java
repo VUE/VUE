@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.103 $ / $Date: 2006-03-26 02:11:47 $ / $Author: jeff $ *
+ * @version $Revision: 1.104 $ / $Date: 2006-03-29 16:56:46 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -766,6 +766,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         }
 
 		// now populate results for an aggregation across all repositories
+        /*
 		if (allResultVector.size() == 0) {
 			resultsStack.addPane("All Results", new JLabel("No Results"));			
 		} else {			
@@ -781,6 +782,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 			else
 				tmpAllResults.add(new JScrollPane(resultSetTree));
 		}
+        */
 
         String dockTitle = "Search Results for \"" + queryEditor.getSearchDisplayName() + "\"";
 
@@ -789,6 +791,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 resultSetTreeJSP = new javax.swing.JScrollPane(resultsStack);
                 resultSetTreeJSP.setBorder(null);
                 resultSetDockWindow = GUI.createDockWindow(dockTitle, resultSetTreeJSP);
+                resultSetDockWindow.setHeight(575);
             } else {
                 resultSetDockWindow = GUI.createDockWindow(dockTitle, resultsStack);
             }
