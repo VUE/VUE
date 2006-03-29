@@ -39,7 +39,7 @@ import javax.imageio.stream.*;
  * and memory caching based on a URL key, using a HashMap with SoftReference's
  * so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.4 $ / $Date: 2006-03-29 19:40:55 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2006-03-29 19:52:45 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -165,6 +165,7 @@ public class Images
             if (original instanceof Resource) {
                 Resource r = (Resource) original;
                 if (r.getSpec().startsWith("/"))  {
+                    // todo: Also if this is a file:/ URL (maybe slight performance increase)
                     File file = new java.io.File(r.getSpec());
                     this.readable = file;
                 } else {
@@ -298,7 +299,6 @@ public class Images
 
         }
         public synchronized void gotImageError(Object imageSrc, String msg) {
-            //this.errorSrc = imageSrc;
             this.errorMsg = msg;
             super.gotImageError(imageSrc, msg);
 
@@ -361,7 +361,7 @@ public class Images
         Loader(ImageSource imageSRC, Listener l) {
             super("VUE-ImageLoader" + LoaderCount++);
             if (l == null)
-                throw new IllegalArgumentException("Images.Loader: listener is null; results would be invisible");
+                VUE.Log.warn(this + "; nobody listening: image will be quietly cached: " + imageSRC);
             this.imageSRC = imageSRC;
             this.relay = new LoaderRelayer(imageSRC, l);
         }
@@ -589,6 +589,11 @@ public class Images
 
         //-----------------------------------------------------------------------------
         // Now read the image, creating the BufferedImage
+        // 
+        // Todo performance: using Toolkit.getImage on MacOSX gets us OSXImages, instead
+        // of the BufferedImages which we get from ImageIO, which are presumably
+        // non-writeable, and may perform better / be cached at the OS level.  This of
+        // course would only work for the original java image types: GIF, JPG, and PNG.
         //-----------------------------------------------------------------------------
 
         if (DEBUG.IMAGE) out("Reading " + reader);
