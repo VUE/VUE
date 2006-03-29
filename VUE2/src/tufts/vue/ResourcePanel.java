@@ -32,7 +32,7 @@ import tufts.vue.filter.NodeFilterEditor;
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.14 $ / $Date: 2006-03-24 21:05:54 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2006-03-29 04:32:15 $ / $Author: sfraize $
  */
 
 //public class ResourcePanel extends WidgetStack
@@ -93,6 +93,7 @@ public class ResourcePanel extends JPanel
 
     public void resourceSelectionChanged(ResourceSelection selection)
     {
+        if (DEBUG.RESOURCE) out("resource selected: " + selection.get());
         showNodePanes(false);
         loadResource(selection.get());
     }
@@ -114,12 +115,14 @@ public class ResourcePanel extends JPanel
         }
     }
     
-    private void loadResource(final Resource rs) {
+    private void loadResource(final Resource r) {
         
-        if (rs != null) {
+        if (DEBUG.RESOURCE) out("loadResource: " + r);
+        
+        if (r != null) {
             setAllEnabled(true);
-            loadText(mWhereField, rs.getSpec());
-            loadText(mTitleField, rs.getTitle());
+            loadText(mWhereField, r.getSpec());
+            loadText(mTitleField, r.getTitle());
         } else {
             // leave current display, but grayed out
             setAllEnabled(false);
@@ -127,16 +130,17 @@ public class ResourcePanel extends JPanel
         }
         
 
+        long size = r.getSize();
         String ss = "";
-        if (rs instanceof MapResource) // todo: REALLY got to clean up the Resource interface & add an abstract class...
-            ss = VueUtil.abbrevBytes(((MapResource)rs).getSize());
+        if (size >= 0)
+            ss = VueUtil.abbrevBytes(size);
         mSizeField.setText(ss);
         
         //loading the metadata if it exists
-        if (rs != null) {
-            java.util.Properties properties = rs.getProperties();
+        if (r != null) {
+            java.util.Properties properties = r.getProperties();
             if (properties != null) {
-                if (rs.getType() == Resource.ASSET_FEDORA)
+                if (r.getType() == Resource.ASSET_FEDORA)
                     mMetaData.setProperties(properties, false);
                 else
                     mMetaData.setProperties(properties, true);
@@ -148,7 +152,7 @@ public class ResourcePanel extends JPanel
         mMetaData.getPropertiesTableModel().setEditable(false);
         //mResource = rs;
 
-        mPreview.loadResource(rs);
+        mPreview.loadResource(r);
     }
     
     private void showNodePanes(boolean visible) {
@@ -297,45 +301,77 @@ public class ResourcePanel extends JPanel
     
     private static boolean FirstPreview = true;
 
-    class PreviewPane extends JPanel {
+    class PreviewPane extends JPanel
+        implements Images.Listener
+    {
         private Resource mResource;
+        private Object mPreviewData;
         private Image mImage;
         private int mImageWidth;
         private int mImageHeight;
+
+        private final JLabel StatusLabel = new JLabel("(status)", JLabel.CENTER);
+        //private final JTextArea StatusLabel = new JTextArea("(status)");
+        //private final JTextPane StatusLabel = new JTextPane();
+        // how in holy hell to get a multi-line text object centered w/out using a styled document?
 
         //private Image LoadingImage = null;
         
         PreviewPane() {
             super(new BorderLayout());
-            //loadImage(VueResources.getImage("splashScreen")); // test
-            //setBorder(new LineBorder(Color.red));
             setMinimumSize(new Dimension(32,32));
             setPreferredSize(new Dimension(200,200));
             setOpaque(false);
 
-            /*
-            try {
-                LoadingImage = VueResources.getImageIconResource("/tufts/vue/images/zoomin_cursor_32.gif").getImage();
-            } catch (Throwable t) { t.printStackTrace(); }
-            */
+            //StatusLabel.setLineWrap(true);
+            //StatusLabel.setAlignmentX(0.5f);
+            //StatusLabel.setAlignmentY(0.5f);
+            //StatusLabel.setPreferredSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
+            //StatusLabel.setBorder(new LineBorder(Color.red));
+            StatusLabel.setVisible(false);
+            add(StatusLabel);
             
         }
 
+
+        // TODO: crap; this not good enough: will need to add a component listener
+        // to know when we go visible, and keep image always null while we're hidden
         public void setVisible(boolean visible) {
             //mImage = LoadingImage;
+            // Null image in case had an old image: don't repaint with it -- we want
+            // to load the current image in case it wasn't already loaded.
             mImage = null;
             super.setVisible(visible);
-            //System.err.println("setVisible " + visible);
-            VUE.invokeAfterAWT(new Runnable() { public void run() { loadResource(mResource); }});
+            //tufts.Util.printStackTrace("SET-VISIBLE");
+            if (isShowing()) {
+                if (DEBUG.RESOURCE) out("PreviewPane; setVisible, now showing: loading resource");
+                VUE.invokeAfterAWT(new Runnable() { public void run() { loadResource(mResource); }});
+            }
         }
 
-        void loadResource(Resource r) {
+        private void status(String msg) {
+            StatusLabel.setText(msg);
+            StatusLabel.setVisible(true);
+        }
+        private void clearStatus() {
+            StatusLabel.setVisible(false);
+        }
+    
 
+        // Won't need to sync this if Images handles single notifier?
+        synchronized void loadResource(Resource r) {
+
+            if (DEBUG.RESOURCE) out("PreviewPane; loadResource: " + r);
+            
             mResource = r;
+            mPreviewData = r.getPreview();
             mImage = null;
 
-            boolean didFirstPreview = false;
+            if (mPreviewData == null && mResource.isImage())
+                mPreviewData = mResource;
 
+            /*
+            boolean didFirstPreview = false;
             if (FirstPreview) {
                 FirstPreview = false;
                 //System.out.println("FIRST PREVIEW");
@@ -344,54 +380,89 @@ public class ResourcePanel extends JPanel
                 //}});
                 didFirstPreview = true;
             }
-            
             if (!isVisible() && !didFirstPreview)
                 return;
-
-            Image image = null;
-            boolean imageLoading = false;
-
-            if (r instanceof MapResource) {
-                image = NoImage;
-                MapResource mr = (MapResource) r;
-                if (mr.isImage()) {
-                    final java.net.URL url = mr.asURL();
-                    if (url != null) {
-                        imageLoading = true;
-                        mImage = null;
-                        repaint();
-                        GUI.activateWaitCursor();
-                        VUE.invokeAfterAWT(new Runnable() { public void run() {
-                            loadImage(new ImageIcon(url).getImage());
-                            GUI.clearWaitCursor();
-                        }});
-                    }
-                }
+            */
+            
+            if (!isShowing()) {
+                if (DEBUG.RESOURCE) out("PreviewPane; not showing: no action");
+                return;
             }
 
-            if (!imageLoading)
-                loadImage(image);
+            // todo: handle if preview is a Component, and add Images.isImageableSource to check preview data
+            // and handle a String as preview data.
+
+            if (false && r.getIcon() != null) { // these not currently valid from Osid2AssetResource (size=-1x-1)
+                //displayIcon(r.getIcon());
+            } else if (mPreviewData != null) {
+                // will make callback to gotImage when we have it
+                if (!Images.getImage(mPreviewData, this)) {
+                    status("Loading...");
+                }
+            } else {
+                displayImage(NoImage);
+            }
         }
 
-        private void loadImage(Image image) {
+        
+
+        /** @see Images.Listener */
+        public synchronized void gotImageSize(Object imageSrc, int width, int height) {
+
+            if (imageSrc != mPreviewData)
+                return;
+            
+            mImageWidth = width;
+            mImageHeight = height;
+        }
+    
+        /** @see Images.Listener */
+        public synchronized void gotImage(Object imageSrc, Image image, int w, int h) {
+
+            if (imageSrc != mPreviewData)
+                return;
+            
+            displayImage(image);
+        }
+        /** @see Images.Listener */
+        public synchronized void gotImageError(Object imageSrc, String msg) {
+
+            out("image error for " + imageSrc + ": " + msg);
+
+            if (imageSrc != mPreviewData)
+                return;
+            
+            displayImage(null);
+            status("Image Error:\n" + msg);
+            
+        }
+
+        /*
+        private void displayIcon(ImageIcon icon) {
+            displayImage(icon.getImage());
+        }
+        */
+
+        private void displayImage(Image image) {
+            if (DEBUG.RESOURCE || DEBUG.IMAGE) out("PreviewPane; displayImage " + image);
+
             mImage = image;
             if (mImage != null) {
                 mImageWidth = mImage.getWidth(null);
                 mImageHeight = mImage.getHeight(null);
-                //setPreferredSize(new Dimension(mImageWidth, mImageHeight));
-                //setMaximumSize(new Dimension(mImageWidth, mImageHeight));
+                if (DEBUG.IMAGE) out("PreviewPane; displayImage " + mImageWidth + "x" + mImageHeight);
             }
-            /*
-            if (mImage != null && FirstPreview) {
+
+            if (mImage != null && mImage != NoImage && FirstPreview) {
                 FirstPreview = false;
-                System.out.println("FIRST PREVIEW");
-                VUE.invokeAfterAWT(new Runnable() { public void run() {
+                //System.out.println("FIRST PREVIEW");
+                //VUE.invokeAfterAWT(new Runnable() { public void run() {
                     Widget.setExpanded(PreviewPane.this, true);
-                }});
+                    //}});
             }
-            */
+
+            clearStatus();
             repaint();
-                
         }
 
         /** draw the image into the current avilable space, scaling it down if needed (never scale up tho) */
@@ -565,6 +636,10 @@ public class ResourcePanel extends JPanel
                 */
             }
         }
+    }
+    
+    private void out(Object o) {
+        System.out.println("ResourcePanel: " + (o==null?"null":o.toString()));
     }
     
     public static void main(String args[]) {
