@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.53 $ / $Date: 2006-02-14 01:33:05 $ / $Author: sfraize $  
+ * @version $Revision: 1.54 $ / $Date: 2006-03-29 04:32:51 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -696,7 +696,7 @@ class MapDropTarget
 
         // can't currently generate link action when dragging an image from
         // a web browser.
-        boolean dropImagesAsNodes = DropImagesAsNodes && !drop.isLinkAction && !DEBUG.IMAGE;
+        boolean dropImagesAsNodes = DropImagesAsNodes && !drop.isLinkAction /*&& !DEBUG.IMAGE*/;
 
         LWComponent node;
         LWImage lwImage = null;
@@ -705,12 +705,14 @@ class MapDropTarget
         if (displayName == null)
             displayName = makeResourceTitle(resource);
 
+        /*
         MapResource mapResource = null;
         if (resource instanceof MapResource) { // todo: fix Resource so no more of this kind of hacking
             mapResource = (MapResource) resource;
         }
+        */
         
-        if (MapResource.isImage(resource)) {
+        if (resource.isImage()) {
             if (DEBUG.DND || DEBUG.IMAGE) out("IMAGE DROP " + resource + " " + properties);
             //node = new LWImage(resource, viewer.getMap().getUndoManager());
             lwImage = new LWImage();
@@ -720,10 +722,14 @@ class MapDropTarget
                 int w = Integer.parseInt(ws);
                 int h = Integer.parseInt(hs);
                 lwImage.setSize(w, h);
+                resource.setProperty("image.width", ws);
+                resource.setProperty("image.height", hs);
+                /*
                 if (mapResource != null) {
                     mapResource.setProperty("image.width", ws);
                     mapResource.setProperty("image.height", hs);
                 }
+                */
             }
             lwImage.setLabel(displayName);
         }
@@ -999,11 +1005,12 @@ class MapDropTarget
         if (resource.getTitle() != null)
             return resource.getTitle();
 
-        if (resource instanceof MapResource) {
-            String title = ((MapResource)resource).getProperty("title");
-            if (title != null)
-                return title;
-        }
+        //if (resource instanceof MapResource) {
+        //String title = ((MapResource)resource).getProperty("title");
+        String title = resource.getProperty("title");
+        if (title != null)
+            return title;
+        //}
         
         String spec = resource.getSpec();
         String name = Util.decodeURL(spec); // in case any %xx notations
