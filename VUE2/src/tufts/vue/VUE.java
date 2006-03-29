@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.355 $ / $Date: 2006-03-26 16:06:04 $ / $Author: sfraize $ 
+ * @version $Revision: 1.356 $ / $Date: 2006-03-29 15:54:04 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -283,14 +283,15 @@ public class VUE
         Logger.getRootLogger().addAppender(new ConsoleAppender(new PatternLayout("VUE %d [%t] %-5p %x %m%n")));
         //Log.addAppender(new ConsoleAppender(new PatternLayout("[%t] %-5p %c %x - %m%n")));
         Log.setLevel(Level.INFO);
+
+        if (VueUtil.isMacPlatform())
+            installMacOSXApplicationEventHandlers();
     }
     
     public static void main(String[] args)
     {
-
-        if (VueUtil.isMacPlatform())
-            installMacOSXApplicationEventHandlers();
-        
+        //if (VueUtil.isMacPlatform())
+        //installMacOSXApplicationEventHandlers();
 
         Log.debug("VUE: main entered");
         
@@ -298,8 +299,12 @@ public class VUE
 
         parseArgs(args);
         
-        Log.info("startup; build: " + tufts.vue.Version.AllInfo);
-        Log.info("running in Java VM: " + getSystemProperty("java.runtime.version"));
+        Log.info("Startup; build: " + tufts.vue.Version.AllInfo);
+        Log.info("Running in Java VM: " + getSystemProperty("java.runtime.version")
+                 + "; MaxMemory(-Xmx)=" + VueUtil.abbrevBytes(Runtime.getRuntime().maxMemory())
+                 + ", CurMemory(-Xms)=" + VueUtil.abbrevBytes(Runtime.getRuntime().totalMemory())
+                 );
+
         Log.info("VUE version: " + VueResources.getString("vue.version"));
         
         if (DEBUG.Enabled)
@@ -423,8 +428,8 @@ public class VUE
         //Preferences p = Preferences.userNodeForPackage(VUE.class);
         //p.put("DRBROWSER.RUN", "yes, it has");
 
-        if (VueUtil.isMacPlatform())
-            installMacOSXApplicationEventHandlers();
+        //if (VueUtil.isMacPlatform())
+        //    installMacOSXApplicationEventHandlers();
 
         // MAC v.s. PC WINDOW PARENTAGE & FOCUS BEHAVIOUR:
         //
