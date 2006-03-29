@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.356 $ / $Date: 2006-03-29 15:54:04 $ / $Author: sfraize $ 
+ * @version $Revision: 1.357 $ / $Date: 2006-03-29 23:02:08 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -306,6 +306,7 @@ public class VUE
                  );
 
         Log.info("VUE version: " + VueResources.getString("vue.version"));
+        Log.info("Current Working Directory: " + getSystemProperty("user.dir"));
         
         if (DEBUG.Enabled)
             Log.setLevel(Level.DEBUG);
@@ -620,7 +621,7 @@ public class VUE
         //-----------------------------------------------------------------------------
 
         //final DockWindow resourceDock = GUI.createDockWindow("Resource Inspector", new ResourcePanel());
-        DockWindow ObjectInspector = GUI.createDockWindow("Inspector", new ResourcePanel());
+        DockWindow ObjectInspector = GUI.createDockWindow(new tufts.vue.ui.InspectorPane());
         
         //-----------------------------------------------------------------------------
         // Object Inspector
