@@ -185,8 +185,4 @@ public class Osid2AssetResource extends MapResource
         return this.asset;
     }    
 	
-	public javax.swing.ImageIcon getIcon()
-	{
-		return this.icon;
-	}	
 }
