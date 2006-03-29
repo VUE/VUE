@@ -10,6 +10,9 @@
                   so we're not adding a new version of this file.   These same
                   changes were made to all the other old mapping files.
      8/23/05 SMF: resource properties are now attributes, and backward compat with old resource save files
+     3/28/06 SMF: MapResource becomes URLResource, as MapResource is now subclassed from it (MapResource a stub class
+                  we're keeping only for backward compatability with old save files).  MapResource stub
+                  replaces URLResource stub.  AssetResource also now subclasses URLResource v.s. MapResource (test this)
   -->
           
 <mapping>
@@ -341,7 +344,7 @@
          </class>
 
         
-	<class name="tufts.vue.MapResource">
+	<class name="tufts.vue.URLResource">
 		
 		<field name="referenceCreated"  type="long">    <bind-xml name="referenceCreated" node="attribute"/></field>
 		<field name="accessAttempted"   type="long">    <bind-xml name="accessAttempted" node="attribute"/></field>
@@ -369,6 +372,8 @@
 		-->
 	</class>
 	
+        <class name="tufts.vue.MapResource" extends="tufts.vue.URLResource"> </class>
+        
         <!-- class name="tufts.vue.PropertyList">
 	  <bind-xml name="propertyList"/>
           <field type="tufts.vue.PropertyEntry" collection="arraylist">
@@ -376,14 +381,12 @@
 	  </field>
 	</class -->
                 
-	<class name="tufts.vue.AssetResource" extends="tufts.vue.MapResource">
+	<class name="tufts.vue.AssetResource" extends="tufts.vue.URLResource">
 		<field name="castorFedoraObject" type="tufts.vue.CastorFedoraObject">
 			<bind-xml name="castorFedoraObject" node="element"/>
 		</field>
 	</class>
        
-        <class name="tufts.vue.URLResource" extends="tufts.vue.MapResource">
-	</class>
         <class name="tufts.vue.CabinetResource" extends="tufts.vue.MapResource">
             <map-to xml="cabinetResource"/>
             <!-- getting rid of extension - why are we saving this?  do we even need a cabinet resource? -->
