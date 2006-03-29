@@ -28,7 +28,7 @@ import java.awt.geom.Point2D;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.38 $ / $Date: 2006-01-20 19:24:49 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2006-03-29 23:03:04 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -184,7 +184,7 @@ public class LWSelection extends java.util.ArrayList
         return this.listeners;
     }
 
-    synchronized void setTo(LWComponent c)
+    public synchronized void setTo(LWComponent c)
     {
         if (size() == 1 && first() == c)
             return;
@@ -199,7 +199,7 @@ public class LWSelection extends java.util.ArrayList
         setTo(bag.iterator());
     }
     
-    synchronized void setTo(Iterator i)
+    public synchronized void setTo(Iterator i)
     {
         if (notifyUnderway())
             return;
