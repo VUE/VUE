@@ -38,10 +38,10 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.17 $ / $Date: 2006-01-29 00:21:41 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2006-03-29 04:49:03 $ / $Author: sfraize $
  * @author  Mark Norton
  */
-public class CabinetResource extends MapResource{
+public class CabinetResource extends MapResource {
     //  Filing metadata property keywords.
     public static final String MD_NAME = DublinCoreConstants.DC_FIELDS[DublinCoreConstants.DC_TITLE];
     //public static final String MD_TIME = "md.filing.time";
@@ -350,7 +350,7 @@ public class CabinetResource extends MapResource{
         
     }
     
-    public JComponent getPreview() {
+    public Object getPreview() {
         JComponent panel = new JPanel();
         javax.swing.filechooser.FileSystemView view = javax.swing.filechooser.FileSystemView.getFileSystemView();
         try{
