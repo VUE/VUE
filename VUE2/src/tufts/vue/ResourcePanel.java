@@ -24,6 +24,7 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.border.*;
 
+import tufts.Util;
 import tufts.vue.gui.*;
 import tufts.vue.NotePanel;
 import tufts.vue.filter.NodeFilterEditor;
@@ -32,7 +33,7 @@ import tufts.vue.filter.NodeFilterEditor;
  * Display information about the selected resource, including "spec" (e.g., URL),
  * meta-data, and if available: title and a preview (e.g., an image preview or icon).
  *
- * @version $Revision: 1.17 $ / $Date: 2006-03-29 04:52:14 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2006-03-29 20:27:14 $ / $Author: sfraize $
  */
 
 //public class ResourcePanel extends WidgetStack
@@ -302,13 +303,14 @@ public class ResourcePanel extends JPanel
     private static boolean FirstPreview = true;
 
     class PreviewPane extends JPanel
-        implements Images.Listener
+        implements Images.Listener, Runnable
     {
         private Resource mResource;
         private Object mPreviewData;
         private Image mImage;
         private int mImageWidth;
         private int mImageHeight;
+        private boolean isLoading = false;
 
         private final JLabel StatusLabel = new JLabel("(status)", JLabel.CENTER);
         //private final JTextArea StatusLabel = new JTextArea("(status)");
@@ -330,13 +332,21 @@ public class ResourcePanel extends JPanel
             //StatusLabel.setBorder(new LineBorder(Color.red));
             StatusLabel.setVisible(false);
             add(StatusLabel);
+
+            /*
+            addComponentListener(new ComponentAdapter() {
+                    public void componentShown(ComponentEvent e) { handleShown(); }
+                    public void componentHidden(ComponentEvent e) { handleHidden(); }
+                });
+            */
+            //private void handleShown() {out("PREVIEW SHOWN");}
+            //private void handleHidden() {out("PREVIEW HIDDEN");}
+            
+            
             
         }
-
-
-        // TODO: crap; this not good enough: will need to add a component listener
-        // to know when we go visible, and keep image always null while we're hidden
-        public void setVisible(boolean visible) {
+        /*
+        public void XXXsetVisible(boolean visible) {
             //mImage = LoadingImage;
             // Null image in case had an old image: don't repaint with it -- we want
             // to load the current image in case it wasn't already loaded.
@@ -348,6 +358,7 @@ public class ResourcePanel extends JPanel
                 VUE.invokeAfterAWT(new Runnable() { public void run() { loadResource(mResource); }});
             }
         }
+        */
 
         private void status(String msg) {
             StatusLabel.setText(msg);
@@ -361,53 +372,65 @@ public class ResourcePanel extends JPanel
         // Won't need to sync this if Images handles single notifier?
         synchronized void loadResource(Resource r) {
 
-            if (DEBUG.RESOURCE) out("PreviewPane; loadResource: " + r);
+            if (DEBUG.RESOURCE || DEBUG.IMAGE) out("loadResource: " + r);
             
             mResource = r;
-            mPreviewData = r.getPreview();
+            if (r != null)
+                mPreviewData = r.getPreview();
+            else
+                mPreviewData = null;
             mImage = null;
 
             if (mPreviewData == null && mResource.isImage())
                 mPreviewData = mResource;
 
-            /*
-            boolean didFirstPreview = false;
-            if (FirstPreview) {
+            if (isShowing()) {
+
+                loadPreview(mPreviewData);
                 FirstPreview = false;
-                //System.out.println("FIRST PREVIEW");
-                //VUE.invokeAfterAWT(new Runnable() { public void run() {
-                Widget.setExpanded(PreviewPane.this, true);
-                //}});
-                didFirstPreview = true;
-            }
-            if (!isVisible() && !didFirstPreview)
-                return;
-            */
-            
-            if (!isShowing()) {
-                if (DEBUG.RESOURCE) out("PreviewPane; not showing: no action");
-                return;
-            }
 
-            // todo: handle if preview is a Component, and add Images.isImageableSource to check preview data
-            // and handle a String as preview data.
+            } else {
 
-            if (false && r.getIcon() != null) { // these not currently valid from Osid2AssetResource (size=-1x-1)
-                //displayIcon(r.getIcon());
-            } else if (mPreviewData instanceof Component) {
-                out("todo: handle Component preview " + mPreviewData);
-                displayImage(NoImage);
-            } else if (mPreviewData != null) {
-                // will make callback to gotImage when we have it
-                if (!Images.getImage(mPreviewData, this)) {
-                    status("Loading...");
+                if (FirstPreview && mPreviewData != null) {
+                    FirstPreview = false;
+                    Widget.setExpanded(PreviewPane.this, true);
+                    // Exposing the panel will cause repaint, which
+                    // will trigger a preview load.
+                    return;
                 }
+                
+                if (DEBUG.RESOURCE || DEBUG.IMAGE) out("not showing: no action");
+            }
+
+        }
+
+        private void loadPreview(Object previewData)
+        {
+            // todo: handle if preview is a Component, 
+            // todo: handle a String as preview data.
+
+            if (false /*&& r.getIcon() != null*/) { // these not currently valid from Osid2AssetResource (size=-1x-1)
+                //displayIcon(r.getIcon());
+            } else if (previewData instanceof java.awt.Component) {
+                out("TODO: handle Component preview " + previewData);
+                displayImage(NoImage);
+            } else if (previewData != null) { // todo: check an Images.isImageableSource
+                loadImage(previewData);
             } else {
                 displayImage(NoImage);
             }
         }
 
-        
+        private synchronized void loadImage(Object imageData) {
+            if (DEBUG.IMAGE) out("loadImage " + imageData);
+            if (!Images.getImage(imageData, this)) {
+                // will make callback to gotImage when we have it
+                isLoading = true;
+                status("Loading...");
+            } else
+                isLoading = false;
+        }
+
 
         /** @see Images.Listener */
         public synchronized void gotImageSize(Object imageSrc, int width, int height) {
@@ -426,18 +449,17 @@ public class ResourcePanel extends JPanel
                 return;
             
             displayImage(image);
+            isLoading = false;
         }
         /** @see Images.Listener */
         public synchronized void gotImageError(Object imageSrc, String msg) {
 
-            out("image error for " + imageSrc + ": " + msg);
-
             if (imageSrc != mPreviewData)
                 return;
             
-            displayImage(null);
+            displayImage(NoImage);
             status("Image Error:\n" + msg);
-            
+            isLoading = false;
         }
 
         /*
@@ -447,15 +469,16 @@ public class ResourcePanel extends JPanel
         */
 
         private void displayImage(Image image) {
-            if (DEBUG.RESOURCE || DEBUG.IMAGE) out("PreviewPane; displayImage " + image);
+            if (DEBUG.RESOURCE || DEBUG.IMAGE) out("displayImage " + image);
 
             mImage = image;
             if (mImage != null) {
                 mImageWidth = mImage.getWidth(null);
                 mImageHeight = mImage.getHeight(null);
-                if (DEBUG.IMAGE) out("PreviewPane; displayImage " + mImageWidth + "x" + mImageHeight);
+                if (DEBUG.IMAGE) out("displayImage " + mImageWidth + "x" + mImageHeight);
             }
 
+            /*
             if (mImage != null && mImage != NoImage && FirstPreview) {
                 FirstPreview = false;
                 //System.out.println("FIRST PREVIEW");
@@ -463,16 +486,35 @@ public class ResourcePanel extends JPanel
                     Widget.setExpanded(PreviewPane.this, true);
                     //}});
             }
+            */
 
             clearStatus();
             repaint();
         }
 
-        /** draw the image into the current avilable space, scaling it down if needed (never scale up tho) */
-        public void paintComponent(Graphics g) {
+        public void run() {
+            loadPreview(mPreviewData);
+        }
 
-            if (mImage == null)
+        private void out(String s) {
+            System.out.println("PreviewPane: " + s);
+        }
+        
+
+        /** draw the image into the current avilable space, scaling it down if needed (never scale up tho) */
+        public void paintComponent(Graphics g)
+        {
+            if (DEBUG.IMAGE) out("paint");
+
+            if (mImage == null) {
+                if (!isLoading && mPreviewData != null) {
+                    synchronized (this) {
+                        if (!isLoading && mPreviewData != null)
+                            VUE.invokeAfterAWT(PreviewPane.this); // load the preview
+                    }
+                }
                 return;
+            }
             
             //g.setColor(Color.black);
             //g.fillRect(0,0, w,h);
@@ -502,6 +544,7 @@ public class ResourcePanel extends JPanel
             if (drawH != h)
                 yoff = (h - drawH) / 2;
             
+            if (DEBUG.IMAGE) out("painting " + Util.tag(mImage));
             g.drawImage(mImage, xoff, yoff, drawW, drawH, null);
         }
     }
