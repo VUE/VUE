@@ -26,7 +26,7 @@ import tufts.vue.gui.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.40 $ / $Date: 2006-03-23 01:24:33 $ / $Author: sfraize $ 
+ * @version $Revision: 1.41 $ / $Date: 2006-03-29 23:02:50 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -250,7 +250,7 @@ public class DRBrowser extends JPanel
         drb.loadDataSourceViewer();
 
         if (args.length > 1)
-            ResourcePanel.displayTestResourcePanel(null);
+            tufts.vue.ui.InspectorPane.displayTestPane(null);
         
         /*
         tufts.Util.displayComponent(drb);
