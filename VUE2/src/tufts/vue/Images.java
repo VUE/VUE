@@ -36,7 +36,7 @@ import javax.imageio.stream.*;
  *
  * Handle the loading of images in background threads, and memory caching based on a URL key.
  *
- * @version $Revision: 1.2 $ / $Date: 2006-03-29 04:33:47 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-03-29 15:53:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -180,9 +180,9 @@ public class Images
         }
 
         public String toString() {
-            String s = original.toString();
+            String s = tag(original);
             if (readable != original)
-                s += "; readable=[" + readable + "]";
+                s += "; readable=[" + tag(readable) + "]";
             return s;
         }
 
@@ -448,6 +448,8 @@ public class Images
                 String msg;
                 if (t instanceof javax.imageio.IIOException || t instanceof ImageException)
                     msg = t.getMessage();
+                else if (t instanceof java.io.FileNotFoundException)
+                    msg = "Not Found: " + t.getMessage();
                 else
                     msg = t.toString();
                 listener.gotImageError(imageSRC.original, msg);
