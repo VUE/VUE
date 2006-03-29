@@ -30,7 +30,7 @@ package tufts.vue;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.38 $ / $Date: 2006-03-20 18:14:17 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2006-03-29 04:29:00 $ / $Author: sfraize $
  * @author  akumar03
  */
 import java.util.Properties;
@@ -128,6 +128,7 @@ public interface Resource
         
     /*  The follow type codes are defined for resources.
      */
+
     static final int NONE = 0;              //  Unknown type.
     static final int FILE = 1;              //  Resource is a Java File object.
     static final int URL = 2;               //  Resource is a URL.
@@ -136,12 +137,21 @@ public interface Resource
     static final int ASSET_OKIDR  = 10;     //  Resource is an OKI DR Asset.
     static final int ASSET_FEDORA = 11;     //  Resource is a Fedora Asset.
     static final int ASSET_OKIREPOSITORY  = 12;     //  Resource is an OKI Repository OSID Asset.
+
+
+    /** @return true if this resource contains displayable image data */
+    public boolean isImage();
+    
     /**  
      *  Return the title or display name associated with the resource.
      *  (any length restrictions?)
      */
     public String getTitle();
     
+    public java.net.URL asURL();
+    
+    public long getSize();
+
     /**
      *  Return a resource reference specification.  This could be a filename or URL.
      */
@@ -171,22 +181,23 @@ public interface Resource
      * @return the value for the given property key, or null if no such property.
      */
     public String getProperty(String key);
-
+    public int getProperty(String key, int notFoundValue);
     /**
      * Set the property named by the given key to value.
      */
     public void setProperty(String key, Object value);
+    public void setProperty(String key, long value);
 
     
     /** 
      *  Return true if the resource is selected.  Initialize select flag to false.
      */
-    public boolean isSelected();
+    //public boolean isSelected();
     
     /**
      *  Set the selected flag to the value given.
      */
-    public void setSelected(boolean selected);
+    //public void setSelected(boolean selected);
     
     /** 
      *  Return the resource type.  This should be one of the types defined above.
@@ -198,22 +209,33 @@ public interface Resource
      *  VueUtil.open() using the spec information.
      */
     public void displayContent();
+
+
+    /**
+     * Get preview of the object such as thummbnail, small sized image or web-page
+     * that can be displayed in the bowser.
+     */
+    public javax.swing.Icon getIcon();
+
+    /**
+     * Get preview of the object such as thummbnail, small sized image or web-page
+     * that can be displayed in the bowser.  Suggested return types are something
+     * that can be converted to image data, or a java GUI component, such as
+     * a java.awt.Component, javax.swing.JComponent, or javax.swing.Icon.
+     */
+    public Object getPreview();
+
+
+    public boolean isCached();
+    public void setCached(boolean cached);
+
+    //public void setPreview(Object preview);
+      
     
     /**
      *Associate a asset viewer with a resource. 
      *
      */
-    public JComponent getAssetViewer();
+    //public JComponent getAssetViewer();
     
-    /**
-     * Get preview of the object such as thummbnail, small sized image or web-page
-     *that can be displayed in the bowser.
-     */
-    public JComponent getPreview();
-      
-    /**
-		* Get preview of the object such as thummbnail, small sized image or web-page
-     *that can be displayed in the bowser.
-     */
-    public javax.swing.ImageIcon getIcon();
 }
