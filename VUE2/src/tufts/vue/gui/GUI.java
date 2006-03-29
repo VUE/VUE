@@ -45,7 +45,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.21 $ / $Date: 2006-03-26 16:13:14 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2006-03-29 22:24:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -530,7 +530,7 @@ public class GUI
 
     /** the given panel must have it's title set via setName */
     public static DockWindow createDockWindow(JPanel panel) {
-        return createDockWindow(panel.getName(), false);
+        return createDockWindow(panel.getName(), panel);
     }
     
     
