@@ -60,7 +60,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.283 $ / $Date: 2006-03-24 22:25:02 $ / $Author: sfraize $ 
+ * @version $Revision: 1.284 $ / $Date: 2006-03-29 22:44:30 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2530,7 +2530,7 @@ public class MapViewer extends javax.swing.JComponent
         // than shift-click to add to selection (so you
         // can do it all with the mouse)
         m.add(new VueAction("Show Inspector") {
-                public void act() { GUI.makeVisibleOnScreen(this, ResourcePanel.class); }
+                public void act() { GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class); }
                 //public void act() { VUE.ObjectInspector.setVisible(true); }
             });
 
@@ -2820,24 +2820,6 @@ public class MapViewer extends javax.swing.JComponent
             }
         }
     
-
-    /** A relatively empty DragGestureRecognizer just so we can kick off our
-     * own drag event. */
-    private static class DragStub extends DragGestureRecognizer {
-        public DragStub(InputEvent triggerEvent, Component startFrom) {
-            super(DragSource.getDefaultDragSource(),
-                  startFrom,                    // component (drag start coordinates local to here)
-                  //DnDConstants.ACTION_COPY,   // prevents drop while command is down, tho shows w/copy cursor better
-                  DnDConstants.ACTION_COPY_OR_MOVE,
-                  null);                        // DragGestureListener (can be null)
-                super.events.add(triggerEvent);
-                //MapViewer.this.out("NEW DRAGGER");
-        }
-        protected void registerListeners() { /*MapViewer.this.out("DRAGGER REGISTER");*/ }
-        protected void unregisterListeners() { /*MapViewer.this.out("DRAGGER UN-REGISTER");*/ }
-    }
-        
-        
 
     MouseWheelListener getMouseWheelListener() {
         return inputHandler;
@@ -3783,15 +3765,7 @@ public class MapViewer extends javax.swing.JComponent
         private final Dimension MaxDragSize = new Dimension(256,256);
         private void startSystemDrag(MouseEvent e)
         {
-            if (DEBUG.DND) out("startSystemDrag");
-            List events = new java.util.ArrayList(1);
-            events.add(e);
-            
-            // the cursor in the DragStub is determining the actual
-            // cursor: the action in the DragGestureEvent and the
-            // cursror arg to startDrag: don't know what they're doing...
-            
-            LWComponent toDrag;
+            final LWComponent toDrag;
 
             if (VueSelection == null || VueSelection.isEmpty()) {
                 // VueSelection could be null if the user
@@ -3805,28 +3779,10 @@ public class MapViewer extends javax.swing.JComponent
                 toDrag = draggedSelectionGroup;
             }
 
-            java.awt.image.BufferedImage dragImage = toDrag.getAsImage(0.667, MaxDragSize);
-
-            Point imageOffset = new Point(dragImage.getWidth() / -2, dragImage.getHeight() / -2);
-            
-            // this is a coordinate within the component named in DragStub
-            Point dragStart = e.getPoint();
-            
-            DragGestureEvent trigger = new DragGestureEvent(new DragStub(e, MapViewer.this),
-                                                            DnDConstants.ACTION_COPY, // preferred action (1 only)
-                                                            dragStart, // start point
-                                                            events);
-            trigger
-                .startDrag(DragSource.DefaultCopyDrop, // cursor
-                           dragImage,
-                           imageOffset,
-                           new LWTransfer(toDrag), // transferable
-                           //null,  // drag source listener
-                           //MapViewer.this  // drag source listener
-                           new GUI.DragSourceAdapter()
-                           // is optional when startDrag from DragGestureEvent, but not dragSource.startDrag
-                           );
-
+            GUI.startSystemDrag(MapViewer.this,
+                                e,
+                                toDrag.getAsImage(0.667, MaxDragSize),
+                                new LWTransfer(toDrag));
         }
             
         //private int drags=0;
