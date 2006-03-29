@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.89 $ / $Date: 2006-03-21 21:00:21 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.89 2006-03-21 21:00:21 jeff Exp $ -->
+<!-- $Revision: 1.90 $ / $Date: 2006-03-29 14:06:40 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.90 2006-03-29 14:06:40 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -876,7 +876,10 @@ cclass Version {
 
     <target name="vue" depends="" description="Run the VUE application">
       <java classname="tufts.vue.VUE" failonerror="true" fork="true">
-        <!-- These JVM args are for the Mac runtime, and will be ignored on Windows. -->
+        <!--jvmarg value="-verbosegc"/-->
+        <!-- Increase max allowed memory from default 64MB to 2GB -->
+        <jvmarg value="-Xmx2048m"/>
+        <!-- Below wo JVM args are for the Mac runtime, and will be ignored on Windows. -->
         <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
         <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
         <classpath refid="runtime.classpath"/>
