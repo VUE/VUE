@@ -34,13 +34,20 @@ import javax.imageio.stream.*;
 
 /**
  *
- * Handle the loading of images in background threads, and memory caching based on a URL key.
+ * Handle the loading of images in background threads, making callbacks to deliver
+ * results to multiple listeners that can be added at any time during the image fetch,
+ * and memory caching based on a URL key, using a HashMap with SoftReference's
+ * so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.3 $ / $Date: 2006-03-29 15:53:11 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2006-03-29 19:40:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
 {
+    public static VueAction ClearCacheAction = new VueAction("Empty Image Cache") {
+            public void act() { Cache.clear(); }
+        };
+    
     private static Map Cache = new SoftMap();
 
     
@@ -60,7 +67,7 @@ public class Images
 
 
     /**
-     * Fetch the given image.  If it's cached, the listener is called back immediately
+     * Fetch the given image.  If it's cached, listener.gotImage is called back immediately
      * in the current thread.  If not, the image is fetched asynchronously, and the
      * callbacks are made later from a special image loading thread.
      *
@@ -69,7 +76,7 @@ public class Images
      * @param listener - the Images.Listener to callback.  If null, the result
      * of the call would be only to ensure the given image is cached.
      *
-     * @return true if the a result is immediately available: the image was cached, or if there was an immediate error
+     * @return true if the result is immediately available: the image was cached, or if there was an immediate error
      **/
     
     public static boolean getImage(Object imageSRC, Images.Listener listener)
@@ -101,7 +108,7 @@ public class Images
             return null;
         }
     }
-    
+
 
     /**
      * A soft-reference cache-map for the images: if we
@@ -135,6 +142,13 @@ public class Images
 
         public synchronized boolean containsKey(Object key) {
             return get(key) != null;
+        }
+
+        public synchronized void clear() {
+            Iterator i = values().iterator();
+            while (i.hasNext())
+                ((Reference)i.next()).clear();
+            super.clear();
         }
         
     }
@@ -387,7 +401,7 @@ public class Images
                         loader.addListener(listener);
                         return null;
                     } else {
-                        // We've got no listener, so run synchronous & wait on existing thread to die:
+                        // We've got no listener, so run synchronous & wait on existing loader thread to die:
                         out("Joining " + tag(loader) + "...");
                         loader.join();
                         out("Join of " + tag(loader) + " completed, cache has filled.");
@@ -398,35 +412,29 @@ public class Images
                 BufferedImage image = (BufferedImage) Cache.get(imageSRC.key);
                 if (listener != null)
                     listener.gotImage(imageSRC.original, image, image.getWidth(), image.getHeight());
+
                 return image;
-
-            } else {
-
-                // Todo: if two "synchronous" requests come in for the same image from
-                // two different threads, we currently don't detect that.  (E.g., if
-                // listener here is null, we'd have to put something in the cache like
-                // the the current Thread we happening to be in, and then have
-                // subsequent synchronous image requests join that other Thread, tho
-                // we're asking for a deadlock risk with that...  The bottom line is
-                // that this code should NOT be called from special threads: it handles
-                // the thread creation itself.
-                
-                // TODO: if we later get an error, need to clear this!
-                // Do this caching bit in the wrapper load call
-                
-                if (listener != null) {
-                    Loader newLoader = new Loader(imageSRC, listener);
-                    newLoader.start();
-                    Cache.put(imageSRC.key, newLoader);
-                }
             }
+
+            // Image wasn't in the cache: we must go get it.
+            // If we have a listener, create a thread to do this.
+            // If we don't, do now and don't return until we have the result.
+
+            if (listener != null) {
+                Loader newLoader = new Loader(imageSRC, listener);
+                newLoader.start();
+                Cache.put(imageSRC.key, newLoader);
+            }
+            
         }
 
-
-        if (listener == null)
+        if (listener == null) {
+            // load the image and don't return until we have it
             return loadImage(imageSRC, listener);
-        else
+        } else {
+            // the image is in the process of loading
             return null;
+        }
             
     }
 
@@ -436,6 +444,7 @@ public class Images
         }
     }
 
+    /** An wrapper for readAndCreateImage that deals with exceptions, and puts successful results in the cache */
     private static BufferedImage loadImage(ImageSource imageSRC, Images.Listener listener)
     {
         BufferedImage image = null;
@@ -452,11 +461,18 @@ public class Images
                     msg = "Not Found: " + t.getMessage();
                 else
                     msg = t.toString();
+
+                // this is the one place we deliver caught exceptions
+                // during image loading:
                 listener.gotImageError(imageSRC.original, msg);
+
+                VUE.Log.warn("Image source: " + imageSRC + ": " + t);
             }
+            
             synchronized (Cache) {
                 Cache.remove(imageSRC.key);
             }
+            
         }
 
         if (image != null) {
@@ -494,7 +510,7 @@ public class Images
     }
 
     /**
-     * @param imageSRC - e.g, a  java.io.File, java.io.InputStream (but NOT a URL: must get the stream first)
+     * @param imageSRC - see ImageSource ("anything" that we can get an image data stream from)
      * @param listener - an Images.Listener: if non-null, will be issued callbacks for size & completion
      * @return the loaded image, or null if none found
      */
@@ -566,10 +582,10 @@ public class Images
         if (listener != null)
             listener.gotImageSize(imageSRC.original, w, h);
 
-        // Do NOT fetch meta-data, as if there are any problems or inconsistencies with
-        // it, we'll get an exception, even if the image is totally readable.
+        // FYI, if fetch meta-data, will need to trap exceptions here, as if there are
+        // any problems or inconsistencies with it, we'll get an exception, even if the
+        // image is totally readable.
         //out("meta-data: " + reader.getImageMetadata(0));
-
 
         //-----------------------------------------------------------------------------
         // Now read the image, creating the BufferedImage
@@ -601,63 +617,8 @@ public class Images
     }
     
 
-    /*
-    public static Image load(URL url)
-    {
-        if (url == null)
-            return null;
 
-        Image image = null;
-        
-        try {
-            image = ImageIO.read(url);
-        } catch (Throwable t) {
-            if (DEBUG.Enabled) Util.printStackTrace(t);
-            VUE.Log.info(url + ": " + t);
-        }
-
-        if (image != null)
-            return image;
-
-        // If the host isn't responding, Toolkit.getImage will block for a while.  It
-        // will apparently ALWAYS eventually get an Image object, but if it failed, we
-        // eventually get callback to imageUpdate (once prepareImage is called) with an
-        // error code.  In any case, if you don't want to block, this has to be done in
-        // a thread.
-        
-        String s = mr.getSpec();
-
-            
-        if (s.startsWith("file://")) {
-
-            // TODO: SEE Util.java: WINDOWS URL'S DON'T WORK IF START WITH FILE://
-            // (two slashes), MUST HAVE THREE!  move this code to MapResource; find
-            // out if can even force a URL to have an extra slash in it!  Report
-            // this as a java bug.
-
-            // TODO: Our Cup>>Chevron unicode char example is failing
-            // here on Windows (tho it works for windows openURL).
-            // (The image load fails)
-            // Try ensuring the URL is UTF-8 first.
-            
-            s = s.substring(7);
-            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage " + s);
-            image = java.awt.Toolkit.getDefaultToolkit().getImage(s);
-        } else {
-            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage");
-            image = java.awt.Toolkit.getDefaultToolkit().getImage(url);
-        }
-
-        if (image == null) Util.printStackTrace("image is null");
-
-
-        return image;
-    }
-    */
-
-
-
-    /* Apparently, not all decoders actually report to the listeners, (e.g., TIFF), so we're skipping this */
+    /* Apparently, not all decoders actually report to the listeners, (e.g., TIFF), so we're not using this for now */
     private static class ReadListener implements IIOReadProgressListener {
         public void sequenceStarted(ImageReader source, int minIndex) {
             out("sequenceStarted; minIndex="+minIndex);
@@ -689,11 +650,15 @@ public class Images
             return ((LWComponent)o).getDiagnosticLabel();
         
         String s = Util.tag(o);
-        if (o instanceof Thread)
-            s += "[" + ((Thread)o).getName() + "]";
-        else if (o != null)
-            s += "[" + o.toString() + "]";
-        return s;
+        s += "[";
+        if (o instanceof Thread) {
+            s += ((Thread)o).getName();
+        } else if (o instanceof BufferedImage) {
+            BufferedImage bi = (BufferedImage) o;
+            s += bi.getWidth() + "x" + bi.getHeight();
+        } else if (o != null)
+            s += o.toString();
+        return s + "]";
     }
     
     private static void out(Object o) {
