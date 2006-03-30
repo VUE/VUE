@@ -28,11 +28,13 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.border.*;
 
+import java.awt.datatransfer.*;
+
 
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.1 $ / $Date: 2006-03-29 23:01:36 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-03-30 04:53:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -70,7 +72,106 @@ public class PreviewPane extends JPanel
         //StatusLabel.setBorder(new LineBorder(Color.red));
         StatusLabel.setVisible(false);
         add(StatusLabel);
+
+        addMouseListener(new java.awt.event.MouseAdapter() {    
+                public void mouseClicked(MouseEvent me){
+                    if (mResource != null && me.getClickCount() == 2)
+                        mResource.displayContent();
+                }
+            });
+        
+        addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {    
+                public void mouseDragged(MouseEvent me){
+                    if (mResource != null)
+                        GUI.startSystemDrag(PreviewPane.this, me, mImage, new ResourceTransfer(mResource));
+                }
+            });
+        
     }
+
+
+private static class ResourceTransfer extends java.util.Vector implements Transferable {
+   
+    private java.util.List flavors = new java.util.ArrayList(3);
+    
+    public ResourceTransfer(Object resource) {
+        addElement(resource);
+
+        flavors.add(DataFlavor.stringFlavor);
+
+        if (resource instanceof MapResource) {
+            
+            flavors.add(Resource.DataFlavor);
+
+        } else if (resource instanceof java.io.File) {
+
+            flavors.add(DataFlavor.javaFileListFlavor);
+
+        }
+    }
+    
+    /* Returns the array of flavors in which it can provide the data. */
+    public synchronized java.awt.datatransfer.DataFlavor[] getTransferDataFlavors() {
+        return (DataFlavor[]) flavors.toArray(new DataFlavor[flavors.size()]);
+    }
+    
+    /* Returns whether the requested flavor is supported by this object. */
+    public boolean isDataFlavorSupported(DataFlavor flavor) {
+        if (flavor == null)
+            return false;
+
+        for (int i = 0; i < flavors.size(); i++)
+            if (flavor.equals(flavors.get(i)))
+                return true;
+        
+        return false;
+    }
+    
+    /**
+     * If the data was requested in the "java.lang.String" flavor,
+     * return the String representing the selection.
+     */
+    public synchronized Object getTransferData(DataFlavor flavor)
+        throws UnsupportedFlavorException, java.io.IOException
+    {
+        if (DEBUG.DND && DEBUG.META) System.out.println("VueDragTreeNodeSelection: getTransferData, flavor=" + flavor);
+        
+        Object result = null;
+        
+        if (DataFlavor.stringFlavor.equals(flavor)) {
+            
+            // Always support something for the string flavor, or
+            // we get an exception thrown (even tho I think that
+            // may be against the published API).
+            Object o = get(0);
+            if (o instanceof java.io.File)
+                result = ((java.io.File)o).toString();
+            else
+                result = ((Resource)o).getSpec();
+            
+        } else if (Resource.DataFlavor.equals(flavor)) {
+            
+            result = (java.util.List) this;
+            
+        } else if (DataFlavor.javaFileListFlavor.equals(flavor)) {
+            
+            result = (java.util.List) this;
+
+        } else {
+        
+            throw new UnsupportedFlavorException(flavor);
+        }
+        
+        if (DEBUG.DND && DEBUG.META) System.out.println("\treturning " + result.getClass() + "[" + result + "]");
+
+        return result;
+    }
+    
+}
+
+
+
+    
 
     private void status(String msg) {
         StatusLabel.setText(msg);
@@ -179,7 +280,7 @@ public class PreviewPane extends JPanel
     */
 
     private void displayImage(Image image) {
-        if (DEBUG.RESOURCE || DEBUG.IMAGE) out("displayImage " + image);
+        if (DEBUG.RESOURCE || DEBUG.IMAGE) out("displayImage " + Util.tag(image));
 
         mImage = image;
         if (mImage != null) {
