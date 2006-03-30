@@ -39,13 +39,16 @@ import javax.imageio.stream.*;
  * and memory caching based on a URL key, using a HashMap with SoftReference's
  * so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-03-29 19:52:45 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-03-30 04:55:06 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
 {
     public static VueAction ClearCacheAction = new VueAction("Empty Image Cache") {
-            public void act() { Cache.clear(); }
+            public void act() {
+                Cache.clear();
+                // todo: may want to abort existing Loader threads
+            }
         };
     
     private static Map Cache = new SoftMap();
@@ -181,6 +184,8 @@ public class Images
             
             if (readable instanceof java.net.URL) {
                 this.key = (URL) readable;
+                if ("file".equals(key.getProtocol()))
+                    this.readable = new File(key.getPath());
             } else if (readable instanceof java.io.File) {
                 URL k = null;
                 try {
