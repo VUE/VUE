@@ -32,6 +32,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
+import java.awt.image.BufferedImage;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -45,7 +46,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.23 $ / $Date: 2006-03-29 22:44:14 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2006-03-30 04:52:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1513,12 +1514,53 @@ public class GUI
         return VueUtil.pad(20, baseObjectName(e)) + " drop=" + dropName(e.getDropAction()) + " success=" + e.getDropSuccess();
     }
 
-
+    // todo: move to DELAYED-init block for GUI called at end of main during caching runs
+    private static final int DragSize = 128;
+    private static BufferedImage DragImage = new BufferedImage(DragSize, DragSize, BufferedImage.TYPE_INT_ARGB);
+    private static Graphics2D DragGraphicsBuf = (Graphics2D) DragImage.getGraphics();
+    private static AlphaComposite DragAlpha = AlphaComposite.getInstance(AlphaComposite.SRC, .667f);
+    public static final Color TransparentColor = new Color(0,0,0,0);
+    
     public static void startSystemDrag(Component source, MouseEvent mouseEvent, Image image, Transferable transfer)
     {
-        if (DEBUG.DND) out("startSystemDrag");
+        if (DEBUG.DND) out("startSystemDrag: " + transfer);
+        
+        Point imageOffset = new Point();
+        
+        if (image != null) {
+            int w = image.getWidth(null);
+            int h = image.getHeight(null);
+
+            if (w > 256 || h > 256) {
+                final int max = DragSize;
+                final int nw, nh;
+                if (w > h) {
+                    nw = max;
+                    nh = h * max / w;
+                } else {
+                    nh = max;
+                    nw = w * max / h;
+                }
+                
+                // todo: export this code to preview pane instead of zoom tool gunk
+
+                // todo opt: could just fill the rect below or to right of what we're about to draw
+                // FYI, this is a zillion times faster than use Image.getScaledInstance
+                DragGraphicsBuf.setColor(TransparentColor);
+                DragGraphicsBuf.fillRect(0,0, DragSize,DragSize);
+                DragGraphicsBuf.setComposite(DragAlpha);
+                DragGraphicsBuf.drawImage(image, 0, 0, nw, nh, null);
+                image = DragImage;
+                
+                w = nw;
+                h = nh;
+            }
+
+            imageOffset.x = w / -2;
+            imageOffset.y = h / -2;
             
-        Point imageOffset = new Point(image.getWidth(null) / -2, image.getHeight(null) / -2);
+        }
+        
         
         // this is a coordinate within the component named in DragStub
         Point dragStart = mouseEvent.getPoint();
