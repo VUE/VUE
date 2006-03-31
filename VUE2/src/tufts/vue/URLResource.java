@@ -37,7 +37,7 @@ import com.sun.image.codec.jpeg.*;
 /**
  * The class is handles a reference to either a local file or a URL.
  *
- * @version $Revision: 1.4 $ / $Date: 2006-03-29 04:29:34 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2006-03-31 23:47:07 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.
@@ -251,10 +251,66 @@ public class URLResource implements Resource, XMLUnmarshalListener
         return mTitle;
     }
     
+    /*
+      
+    public static Image load(URL url)
+    {
+        if (url == null)
+            return null;
+
+        Image image = null;
+        
+        try {
+            image = ImageIO.read(url);
+        } catch (Throwable t) {
+            if (DEBUG.Enabled) Util.printStackTrace(t);
+            VUE.Log.info(url + ": " + t);
+        }
+
+        if (image != null)
+            return image;
+
+        // If the host isn't responding, Toolkit.getImage will block for a while.  It
+        // will apparently ALWAYS eventually get an Image object, but if it failed, we
+        // eventually get callback to imageUpdate (once prepareImage is called) with an
+        // error code.  In any case, if you don't want to block, this has to be done in
+        // a thread.
+        
+        String s = mr.getSpec();
+
+            
+        if (s.startsWith("file://")) {
+
+            // TODO: SEE Util.java: WINDOWS URL'S DON'T WORK IF START WITH FILE://
+            // (two slashes), MUST HAVE THREE!  move this code to MapResource; find
+            // out if can even force a URL to have an extra slash in it!  Report
+            // this as a java bug.
+
+            // TODO: Our Cup>>Chevron unicode char example is failing
+            // here on Windows (tho it works for windows openURL).
+            // (The image load fails)
+            // Try ensuring the URL is UTF-8 first.
+            
+            s = s.substring(7);
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage " + s);
+            image = java.awt.Toolkit.getDefaultToolkit().getImage(s);
+        } else {
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage");
+            image = java.awt.Toolkit.getDefaultToolkit().getImage(url);
+        }
+
+        if (image == null) Util.printStackTrace("image is null");
+
+
+        return image;
+    }
+    */
+
+    
     // todo: resource's should be atomic: don't allow post construction setSpec,
     // or at least protected
     public void setSpec(final String spec) {
-        if (DEBUG.Enabled /*&& DEBUG.META*/) {
+        if (DEBUG.RESOURCE/*&& DEBUG.META*/) {
             System.err.println(getClass().getName() + " setSpec " + spec);
         }
         
@@ -856,6 +912,11 @@ public class URLResource implements Resource, XMLUnmarshalListener
             isImageMimeType(r.getProperty("format")))                   // check fedora dublin-core mime-type
             return true;
 
+        // todo: temporary hack for Osid2AssetResource w/Museum of Fine Arts, Boston
+        // actually, it needs to set the spec for this to work
+        //if (r.getProperty("largeImage") != null)
+        //return true;
+
         String s = r.getSpec().toLowerCase();
         if    (s.endsWith(".gif")
             || s.endsWith(".jpg")
@@ -906,7 +967,8 @@ public class URLResource implements Resource, XMLUnmarshalListener
         if (mPreview == null) {
             // TODO: this currently special case to Osid2AssetResource, tho names are somewhat generic..
             URL url = null;
-            url = makeURL(getProperty("mediumImage"));
+            //url = makeURL(getProperty("mediumImage"));
+            url = makeURL(getProperty("smallImage"));
             if (url == null)
                 url = makeURL(getProperty("thumbnail"));
             if (url != null)
