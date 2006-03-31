@@ -20,6 +20,7 @@
 package tufts.vue.gui;
 
 import tufts.Util;
+import tufts.vue.Resource;
 import tufts.vue.EventRaiser;
 import tufts.vue.VueUtil;
 import tufts.vue.VUE;
@@ -46,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.24 $ / $Date: 2006-03-30 04:52:33 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2006-03-31 23:37:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1521,6 +1522,10 @@ public class GUI
     private static AlphaComposite DragAlpha = AlphaComposite.getInstance(AlphaComposite.SRC, .667f);
     public static final Color TransparentColor = new Color(0,0,0,0);
     
+    /**
+     * This allows any Component to initiate a system drag without having to be a drag gesture recognizer -- it
+     * can simply be initiated from a MouseMotionListener.mouseDragged
+     */
     public static void startSystemDrag(Component source, MouseEvent mouseEvent, Image image, Transferable transfer)
     {
         if (DEBUG.DND) out("startSystemDrag: " + transfer);
@@ -1542,8 +1547,6 @@ public class GUI
                     nw = w * max / h;
                 }
                 
-                // todo: export this code to preview pane instead of zoom tool gunk
-
                 // todo opt: could just fill the rect below or to right of what we're about to draw
                 // FYI, this is a zillion times faster than use Image.getScaledInstance
                 DragGraphicsBuf.setColor(TransparentColor);
@@ -1592,8 +1595,10 @@ public class GUI
         public DragStub(InputEvent triggerEvent, Component startFrom) {
             super(DragSource.getDefaultDragSource(),
                   startFrom,                    // component (drag start coordinates local to here)
-                  //DnDConstants.ACTION_COPY,   // prevents drop while command is down, tho shows w/copy cursor better
-                  DnDConstants.ACTION_COPY_OR_MOVE,
+                  DnDConstants.ACTION_COPY |   // alone, prevents drop while command is down, tho shows w/copy cursor better
+                  DnDConstants.ACTION_MOVE |
+                  DnDConstants.ACTION_LINK
+                  ,
                   null);                        // DragGestureListener (can be null)
                 super.events.add(triggerEvent);
                 //out("NEW DRAGGER");
@@ -1622,6 +1627,105 @@ public class GUI
         public void dragDropEnd(DragSourceDropEvent dsde) {
             if (DEBUG.DND) out("      dragDropEnd " + dragName(dsde));
         }
+    }
+
+
+
+    public static class ResourceTransfer extends java.util.Vector implements Transferable
+    {
+        private final java.util.List flavors = new java.util.ArrayList(3);
+            
+        private final java.util.List content;
+    
+        public ResourceTransfer(tufts.vue.Resource r) {
+            content = Collections.singletonList(r);
+            flavors.add(DataFlavor.stringFlavor);
+            flavors.add(Resource.DataFlavor);
+        }
+
+        public ResourceTransfer(java.io.File file) {
+            content = Collections.singletonList(file);
+            flavors.add(DataFlavor.stringFlavor);
+            flavors.add(DataFlavor.javaFileListFlavor);
+        }
+        
+        /** For a list of Files or URLResource's */
+        public ResourceTransfer(java.util.List list)
+        {
+            flavors.add(DataFlavor.stringFlavor);
+
+            final Object first = list.get(0);
+
+            if (first instanceof Resource) {
+                flavors.add(Resource.DataFlavor);
+                if (first instanceof tufts.vue.URLResource)
+                    flavors.add(DataFlavor.javaFileListFlavor);
+            } else if (first instanceof java.io.File) {
+                flavors.add(DataFlavor.javaFileListFlavor);
+            }
+
+            content = list;
+        }
+        
+                    
+        /** Returns the array of flavors in which it can provide the data. */
+        public synchronized java.awt.datatransfer.DataFlavor[] getTransferDataFlavors() {
+            return (DataFlavor[]) flavors.toArray(new DataFlavor[flavors.size()]);
+        }
+    
+        /** Returns whether the requested flavor is supported by this object. */
+        public boolean isDataFlavorSupported(DataFlavor flavor) {
+            if (flavor == null)
+                return false;
+
+            for (int i = 0; i < flavors.size(); i++)
+                if (flavor.equals(flavors.get(i)))
+                    return true;
+        
+            return false;
+        }
+    
+        /**
+         * String flavor: return single Resource as text or File as text
+         * Resource flavor: return a single Resource
+         * Java file list flavor: return list of either Resources or Files
+         */
+        public synchronized Object getTransferData(DataFlavor flavor)
+            throws UnsupportedFlavorException, java.io.IOException
+        {
+            if (DEBUG.DND && DEBUG.META) System.out.println("ResourceTransfer: getTransferData, flavor=" + flavor);
+        
+            Object result = null;
+        
+            if (DataFlavor.stringFlavor.equals(flavor)) {
+            
+                // Always support something for the string flavor, or
+                // we get an exception thrown (even tho I think that
+                // may be against the published API).
+                Object o = content.get(0);
+                if (o instanceof java.io.File)
+                    result = ((java.io.File)o).toString();
+                else
+                    result = ((Resource)o).getSpec();
+            
+            } else if (Resource.DataFlavor.equals(flavor)) {
+            
+                result = content;
+            
+            } else if (DataFlavor.javaFileListFlavor.equals(flavor)) {
+            
+                result = content;
+
+            } else {
+        
+                throw new UnsupportedFlavorException(flavor);
+            }
+        
+            if (DEBUG.DND && DEBUG.META) System.out.println("\treturning " + result.getClass() + "[" + result + "]");
+
+            return result;
+        }
+    
     }
     
 
