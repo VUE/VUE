@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.25 $ / $Date: 2006-03-31 23:37:28 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2006-03-31 23:41:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1631,7 +1631,7 @@ public class GUI
 
 
 
-    public static class ResourceTransfer extends java.util.Vector implements Transferable
+    public static class ResourceTransfer implements Transferable
     {
         private final java.util.List flavors = new java.util.ArrayList(3);
             
