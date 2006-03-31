@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.104 $ / $Date: 2006-03-29 16:56:46 $ / $Author: sfraize $ *
+ * @version $Revision: 1.105 $ / $Date: 2006-03-31 23:17:16 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -677,24 +677,38 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 
     public void searchPerformed(edu.tufts.vue.fsm.event.SearchEvent se)
     {
-        // this may take some time, so we change to the wait cursor
-        GUI.activateWaitCursor();
-		
-        try {
-            performSearchAndDisplayResults();
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-        
-        GUI.clearWaitCursor();
+        ((Component)queryEditor).setVisible(false); // todo: need query editor enable/disable API
+        new Thread("VUE-Search") {
+            public void run() {
+                try {
+                    performSearchAndDisplayResults();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                } finally {
+                    ((Component)queryEditor).setVisible(true); // todo
+                }
+            }
+        }.start();
     }
 
+    private static final JLabel SearchingLabel = new JLabel("Searching...", JLabel.CENTER);
+    private static final boolean UseSingleScrollPane = true;
+    
     private void performSearchAndDisplayResults()
         throws org.osid.repository.RepositoryException,
                org.osid.shared.SharedException
     {
-        final boolean UseSingleScrollPane = true;
-            
+        String dockTitle = "Search Results for \"" + queryEditor.getSearchDisplayName() + "\"";
+
+        if (resultSetDockWindow != null) {
+            resultSetDockWindow.setTitle(dockTitle);
+
+            if (UseSingleScrollPane) 
+                resultSetTreeJSP.setViewportView(SearchingLabel);
+            else
+                resultSetDockWindow.setContent(SearchingLabel);
+        }
+        
         JPanel tmpAllResults = new JPanel(new BorderLayout()); // until splitting out results is working
 
         WidgetStack resultsStack = new WidgetStack();
@@ -784,7 +798,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 		}
         */
 
-        String dockTitle = "Search Results for \"" + queryEditor.getSearchDisplayName() + "\"";
 
         if (resultSetDockWindow == null) {
             if (UseSingleScrollPane) {
@@ -798,7 +811,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             resultSetDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
                                             DRB.dockWindow.getY());
         } else {
-            resultSetDockWindow.setTitle(dockTitle);
+
             if (UseSingleScrollPane) 
                 resultSetTreeJSP.setViewportView(resultsStack);
             else
