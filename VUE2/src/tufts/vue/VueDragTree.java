@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.53 $ / $Date: 2006-03-28 23:55:44 $ / $Author: sfraize $
+ * @version $Revision: 1.54 $ / $Date: 2006-03-31 23:38:52 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -251,7 +251,8 @@ public class VueDragTree extends JTree
                 e.startDrag(DragSource.DefaultCopyDrop, // cursor
                             imageIcon, // drag image
                             new Point(-10,-10), // drag image offset
-                            new VueDragTreeNodeSelection(resource), // transferable
+                            new tufts.vue.gui.GUI.ResourceTransfer(resource),
+                            //new VueDragTreeNodeSelection(resource), // transferable
                             this);  // drag source listener
             }
         }
@@ -270,7 +271,7 @@ public class VueDragTree extends JTree
     public void dragExit(DragSourceEvent e) {}
     public void dragOver(DragSourceDragEvent e) {}
     public void dropActionChanged(DragSourceDragEvent e) {
-        System.out.println("VueDragTree: dropActionChanged  to  " + tufts.vue.gui.GUI.dropName(e.getDropAction()));
+        if (DEBUG.DND) System.out.println("VueDragTree: dropActionChanged  to  " + tufts.vue.gui.GUI.dropName(e.getDropAction()));
     }
     
     
@@ -726,20 +727,20 @@ class FavoritesNode extends ResourceNode {
     }
 }
 
-
+/*
 class VueDragTreeNodeSelection extends Vector implements Transferable {
     /**
      * try {
      * assetFlavor = new DataFlavor(Class.forName("osid.dr.Asset"),"asset");
      * } catch (Exception e) { System.out.println("FedoraSelection "+e);}
-     **/
+     **
     
     /*
     private DataFlavor flavors[] = {
         DataFlavor.stringFlavor,
         //DataFlavor.javaFileListFlavor
     };
-    */
+    **
 
     //private String displayName = "";
    
@@ -757,7 +758,7 @@ class VueDragTreeNodeSelection extends Vector implements Transferable {
             try {
                 displayName = ((Resource)elementAt(0)).getTitle();
             } catch (Exception e) { System.out.println("FedoraSelection "+e);}
-            */
+            **
 
         } else if (resource instanceof File) {
 
@@ -771,12 +772,12 @@ class VueDragTreeNodeSelection extends Vector implements Transferable {
         }
     }
     
-    /* Returns the array of flavors in which it can provide the data. */
+// Returns the array of flavors in which it can provide the data.
     public synchronized java.awt.datatransfer.DataFlavor[] getTransferDataFlavors() {
         return (DataFlavor[]) flavors.toArray(new DataFlavor[flavors.size()]);
     }
     
-    /* Returns whether the requested flavor is supported by this object. */
+// Returns whether the requested flavor is supported by this object.
     public boolean isDataFlavorSupported(DataFlavor flavor) {
         if (flavor == null)
             return false;
@@ -791,7 +792,7 @@ class VueDragTreeNodeSelection extends Vector implements Transferable {
     /**
      * If the data was requested in the "java.lang.String" flavor,
      * return the String representing the selection.
-     */
+     **
     public synchronized Object getTransferData(DataFlavor flavor)
         throws UnsupportedFlavorException, IOException
     {
@@ -832,3 +833,4 @@ class VueDragTreeNodeSelection extends Vector implements Transferable {
 
 
 
+*/
