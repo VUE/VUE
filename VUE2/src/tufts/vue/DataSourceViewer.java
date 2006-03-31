@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.105 $ / $Date: 2006-03-31 23:17:16 $ / $Author: sfraize $ *
+ * @version $Revision: 1.106 $ / $Date: 2006-03-31 23:19:47 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -683,7 +683,11 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 try {
                     performSearchAndDisplayResults();
                 } catch (Throwable t) {
-                    t.printStackTrace();
+                    tufts.Util.printStackTrace(t);
+                    if (DEBUG.Enabled)
+                        VueUtil.alert("Query Failed", t);
+                    else
+                        VueUtil.alert("Query Failed", t.getMessage());
                 } finally {
                     ((Component)queryEditor).setVisible(true); // todo
                 }
