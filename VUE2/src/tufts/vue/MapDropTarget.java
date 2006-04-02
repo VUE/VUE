@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.54 $ / $Date: 2006-03-29 04:32:51 $ / $Author: sfraize $  
+ * @version $Revision: 1.55 $ / $Date: 2006-04-02 20:18:35 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -321,13 +321,15 @@ class MapDropTarget
                 dropType = DROP_RESOURCE_LIST;
                 dropItems = (List) foundData;
             
+                /*                
             } else if (transfer.isDataFlavorSupported(MapResource.DataFlavor)) {
                 
                 foundFlavor = MapResource.DataFlavor;
                 foundData = extractData(transfer, foundFlavor);
                 dropType = DROP_RESOURCE_LIST;
                 dropItems = (List) foundData;
-            
+                */
+                
             } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
 
                 foundFlavor = DataFlavor.javaFileListFlavor;
