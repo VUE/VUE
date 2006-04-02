@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.46 $ / $Date: 2006-03-29 00:01:09 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2006-04-02 20:15:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -242,6 +242,8 @@ public class DockWindow extends javax.swing.JWindow
     private void addContent(JComponent c, boolean replace) {
         if (DEBUG.DOCK || DEBUG.INIT) out("adding " + GUI.name(c) + " to " + GUI.name(getContentPanel()));
 
+        boolean hadContent = getContent() != null;
+
         // todo: cleanup
         if (c.getBorder() == null) {
             // enforce some kind of border so that a mouse click on at least the bottom
@@ -264,7 +266,7 @@ public class DockWindow extends javax.swing.JWindow
 
         }
         
-        if (getContent() != null)
+        if (hadContent)
             getContent().removePropertyChangeListener(this);
 
         if (replace)
@@ -275,9 +277,13 @@ public class DockWindow extends javax.swing.JWindow
         //out("ADDPROPCHANGELISTENER: " + c);
         c.addPropertyChangeListener(this);
         
-        pack();
-
-        setSize(300, getHeight());
+        if (!hadContent || !isDisplayable()) {
+            pack();
+            setSize(300, getHeight());
+        } else {
+            validate();
+        }
+        
         //int width = minUnrolledWidth(getWidth());
         //if (width < 300) width = 300;
 
