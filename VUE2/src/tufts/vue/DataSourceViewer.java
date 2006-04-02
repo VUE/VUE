@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.106 $ / $Date: 2006-03-31 23:19:47 $ / $Author: sfraize $ *
+ * @version $Revision: 1.107 $ / $Date: 2006-04-02 20:16:37 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -680,42 +680,45 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         ((Component)queryEditor).setVisible(false); // todo: need query editor enable/disable API
         new Thread("VUE-Search") {
             public void run() {
+                if (DEBUG.DR || DEBUG.THREAD) out("search thread kicked off");
                 try {
                     performSearchAndDisplayResults();
                 } catch (Throwable t) {
                     tufts.Util.printStackTrace(t);
                     if (DEBUG.Enabled)
-                        VueUtil.alert("Query Failed", t);
+                        VueUtil.alert("Search Error", t);
                     else
-                        VueUtil.alert("Query Failed", t.getMessage());
+                        VueUtil.alert(t.getMessage(), "Search Error");
                 } finally {
                     ((Component)queryEditor).setVisible(true); // todo
                 }
             }
         }.start();
     }
-
-    private static final JLabel SearchingLabel = new JLabel("Searching...", JLabel.CENTER);
+    private static JLabel SearchingLabel;
     private static final boolean UseSingleScrollPane = true;
-    
-    private void performSearchAndDisplayResults()
+   
+    private synchronized void performSearchAndDisplayResults()
         throws org.osid.repository.RepositoryException,
                org.osid.shared.SharedException
     {
-        String dockTitle = "Search Results for \"" + queryEditor.getSearchDisplayName() + "\"";
+        final String dockTitle = "Search Results for \"" + queryEditor.getSearchDisplayName() + "\"";
 
         if (resultSetDockWindow != null) {
             resultSetDockWindow.setTitle(dockTitle);
 
-            if (UseSingleScrollPane) 
+            if (SearchingLabel == null) {
+                SearchingLabel = new JLabel("Searching...", JLabel.CENTER);                
+                SearchingLabel.setOpaque(false);
+            }
+
+            if (false&&UseSingleScrollPane)
                 resultSetTreeJSP.setViewportView(SearchingLabel);
             else
                 resultSetDockWindow.setContent(SearchingLabel);
         }
         
-        JPanel tmpAllResults = new JPanel(new BorderLayout()); // until splitting out results is working
-
-        WidgetStack resultsStack = new WidgetStack();
+        final WidgetStack resultsStack = new WidgetStack();
 
         // get our search results
 		java.io.Serializable searchCriteria = queryEditor.getCriteria();
@@ -785,6 +788,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 
 		// now populate results for an aggregation across all repositories
         /*
+        JPanel tmpAllResults = new JPanel(new BorderLayout()); // until splitting out results is working
+
 		if (allResultVector.size() == 0) {
 			resultsStack.addPane("All Results", new JLabel("No Results"));			
 		} else {			
@@ -802,6 +807,21 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 		}
         */
 
+        // Do this on AWT thread to make sure we
+        // don't collide with anything going on there.
+        
+        GUI.invokeAfterAWT(new Runnable() {
+                public void run() {
+                    displaySearchResults(resultsStack, dockTitle);
+                }
+            });
+            
+
+
+    }
+
+    private void displaySearchResults(WidgetStack resultsStack, String dockTitle) {
+        if (DEBUG.DR || DEBUG.THREAD) out("diplaying results: " + dockTitle);
 
         if (resultSetDockWindow == null) {
             if (UseSingleScrollPane) {
@@ -816,9 +836,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                                             DRB.dockWindow.getY());
         } else {
 
-            if (UseSingleScrollPane) 
+            if (UseSingleScrollPane) {
                 resultSetTreeJSP.setViewportView(resultsStack);
-            else
+                resultSetDockWindow.setContent(resultSetTreeJSP);
+            } else
                 resultSetDockWindow.setContent(resultsStack);
         }
 
