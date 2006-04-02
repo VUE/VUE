@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.26 $ / $Date: 2006-03-31 23:41:47 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2006-04-02 21:36:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1522,48 +1522,99 @@ public class GUI
     private static AlphaComposite DragAlpha = AlphaComposite.getInstance(AlphaComposite.SRC, .667f);
     public static final Color TransparentColor = new Color(0,0,0,0);
     
+    public static void startLWCDrag(Component source,
+                                    MouseEvent mouseEvent,
+                                    tufts.vue.LWComponent c,
+                                    Transferable transfer)
+    {
+
+        if (true) {
+            
+            Dimension maxSize = new Dimension(256,256); // bigger for LW drags
+            startDrag(source,
+                      mouseEvent,
+                      c.getAsImage(0.667, maxSize),
+                      null,
+                      transfer);
+
+        } else {
+
+            // todo: can optimize with a single buffer for all LW
+            // drags, but to fully opt, need to do in conjunction with
+            // LWTransfer, which because of Sun's DND code, always
+            // generates it's image.
+    
+            DragGraphicsBuf.setColor(TransparentColor);
+            DragGraphicsBuf.fillRect(0,0, DragSize,DragSize);
+            
+            c.drawImage(DragGraphicsBuf, 0.667, new Dimension(DragSize,DragSize), null);
+            
+            startSystemDrag(source, mouseEvent, DragImage, transfer);
+        }
+    }
+
     /**
      * This allows any Component to initiate a system drag without having to be a drag gesture recognizer -- it
      * can simply be initiated from a MouseMotionListener.mouseDragged
+     *
+     * @param image, if non-null, is scaled to fit a 128x128 size and rendered with a transparency for dragging
      */
     public static void startSystemDrag(Component source, MouseEvent mouseEvent, Image image, Transferable transfer)
     {
         if (DEBUG.DND) out("startSystemDrag: " + transfer);
         
-        Point imageOffset = new Point();
+        Point imageOffset = null;
         
         if (image != null) {
             int w = image.getWidth(null);
             int h = image.getHeight(null);
 
-            if (w > 256 || h > 256) {
-                final int max = DragSize;
-                final int nw, nh;
-                if (w > h) {
-                    nw = max;
-                    nh = h * max / w;
-                } else {
-                    nh = max;
-                    nw = w * max / h;
-                }
-                
-                // todo opt: could just fill the rect below or to right of what we're about to draw
-                // FYI, this is a zillion times faster than use Image.getScaledInstance
-                DragGraphicsBuf.setColor(TransparentColor);
-                DragGraphicsBuf.fillRect(0,0, DragSize,DragSize);
-                DragGraphicsBuf.setComposite(DragAlpha);
-                DragGraphicsBuf.drawImage(image, 0, 0, nw, nh, null);
-                image = DragImage;
-                
-                w = nw;
-                h = nh;
+            final int max = DragSize;
+            final int nw, nh;
+            if (w > h) {
+                nw = max;
+                nh = h * max / w;
+            } else {
+                nh = max;
+                nw = w * max / h;
             }
-
-            imageOffset.x = w / -2;
-            imageOffset.y = h / -2;
             
+            // todo opt: could just fill the rect below or to right of what we're about to draw
+            // FYI, this is a zillion times faster than use Image.getScaledInstance
+            DragGraphicsBuf.setClip(null);
+            DragGraphicsBuf.setColor(TransparentColor);
+            DragGraphicsBuf.fillRect(0,0, DragSize,DragSize);
+            DragGraphicsBuf.setComposite(DragAlpha);
+            DragGraphicsBuf.drawImage(image, 0, 0, nw, nh, null);
+            image = DragImage;
+            
+            w = nw;
+            h = nh;
+
+            imageOffset = new Point(w / -2, h / -2);
         }
-        
+
+        startDrag(source, mouseEvent, image, imageOffset, transfer);
+
+    }
+
+    private static void startDrag(Component source,
+                                  MouseEvent mouseEvent,
+                                  Image rawImage,
+                                  Point dragOffset,
+                                  Transferable transfer)
+    {
+
+        if (dragOffset == null) {
+            if (rawImage == null) {
+                dragOffset = new Point(0,0);
+            } else {
+                int w = rawImage.getWidth(null);
+                int h = rawImage.getHeight(null);
+
+                dragOffset = new Point(w / -2, h / -2);
+            }
+        }
         
         // this is a coordinate within the component named in DragStub
         Point dragStart = mouseEvent.getPoint();
@@ -1578,15 +1629,16 @@ public class GUI
                                                         Collections.singletonList(mouseEvent));
         trigger
             .startDrag(DragSource.DefaultCopyDrop, // cursor
-                       image,
-                       imageOffset,
+                       rawImage,
+                       dragOffset,
                        transfer,
                        //null,  // drag source listener
                        //MapViewer.this  // drag source listener
                        new GUI.DragSourceAdapter()
                        // is optional when startDrag from DragGestureEvent, but not dragSource.startDrag
-                       );
+                       );        
     }
+    
     
         
     /** A relatively empty DragGestureRecognizer just so we can kick off our
@@ -1687,7 +1739,7 @@ public class GUI
     
         /**
          * String flavor: return single Resource as text or File as text
-         * Resource flavor: return a single Resource
+         * Resource flavor: return a list of Resource's
          * Java file list flavor: return list of either Resources or Files
          */
         public synchronized Object getTransferData(DataFlavor flavor)
