@@ -60,7 +60,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.284 $ / $Date: 2006-03-29 22:44:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.285 $ / $Date: 2006-04-02 21:37:23 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2765,6 +2765,16 @@ public class MapViewer extends javax.swing.JComponent
             public synchronized Object getTransferData(DataFlavor flavor)
                 throws UnsupportedFlavorException, java.io.IOException
             {
+                //tufts.Util.printStackTrace("GTD " + flavor.getHumanPresentableName());
+                // Note: the sun transfer handler (for drops to java) always requests
+                // all data for all types during a drop, which is a horrible waste in
+                // that we need to create a whole image every time, even it it's just
+                // the resource being dropped.  If want to optimize this out, would need
+                // to create our own Image class that delays creation of the actual
+                // image until something is requested of it.  Drops to the OS, at
+                // least in the case of MacOSX are smart and only request data for
+                // what is ultimately dropped.
+                
                 if (DEBUG.DND && DEBUG.META) System.err.print("<LWTransfer.getTransferData("
                                                   + flavor.getHumanPresentableName() + ")>");
         
@@ -3779,10 +3789,16 @@ public class MapViewer extends javax.swing.JComponent
                 toDrag = draggedSelectionGroup;
             }
 
-            GUI.startSystemDrag(MapViewer.this,
-                                e,
-                                toDrag.getAsImage(0.667, MaxDragSize),
-                                new LWTransfer(toDrag));
+            // todo performance: don't need to create a whole image
+            // buffer every time we do this drag: can just have
+            // an LWComponent method that renders into GUI's
+            // cached drag-image buffer -- map drags will start
+            // faster and we'll save a ton of allocation & GC
+            // (e.g. at 256x256x32bitxRGBA == 1MB per *drag*)
+            GUI.startLWCDrag(MapViewer.this,
+                             e,
+                             toDrag,
+                             new LWTransfer(toDrag));
         }
             
         //private int drags=0;
