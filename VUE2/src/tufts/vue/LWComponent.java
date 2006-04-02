@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.189 $ / $Date: 2006-03-09 23:57:11 $ / $Author: sfraize $
+ * @version $Revision: 1.190 $ / $Date: 2006-04-02 21:35:36 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2042,6 +2042,7 @@ public class LWComponent
 
     public BufferedImage getAsImage(double alpha, java.awt.Dimension maxSize) {
         if (mCachedImage == null || mCachedImageAlpha != alpha || mCachedImageMaxSize != maxSize) {
+            // todo opt: mCachedImage should be a SoftReference
             mCachedImage = createImage(alpha, maxSize);
             mCachedImageAlpha = alpha;
             mCachedImageMaxSize = maxSize;
@@ -2067,6 +2068,7 @@ public class LWComponent
      */
     public BufferedImage createImage(double alpha, java.awt.Dimension maxSize, Color fillColor)
     {
+        //tufts.Util.printStackTrace("CREATE IMAGE");
         if (DEBUG.IMAGE) out("createImage; MAX size " + maxSize);
         Rectangle2D.Float bounds = (Rectangle2D.Float) getBounds();
 
@@ -2091,15 +2093,14 @@ public class LWComponent
         if (maxSize != null) {
             
             if (width > maxSize.width || height > maxSize.height) {
-                Point2D offset = new Point2D.Double(); // not needed if no border-gap
-                zoom = ZoomTool.computeZoomFit(maxSize, 0, bounds, offset);
+                zoom = ZoomTool.computeZoomFit(maxSize, 0, bounds, null);
                 width = (int) Math.ceil(bounds.width * zoom);
                 height = (int) Math.ceil(bounds.height * zoom);
             }
         }
         
 
-        int imageType;
+        final int imageType;
 
         if (alpha == 1.0 && fillColor != null)
             imageType = BufferedImage.TYPE_INT_RGB;
@@ -2110,15 +2111,66 @@ public class LWComponent
 
         BufferedImage image = new BufferedImage(width, height, imageType);
 
-        java.awt.Graphics2D g = (java.awt.Graphics2D) image.getGraphics();
+        drawImage((java.awt.Graphics2D) image.getGraphics(),
+                  alpha,
+                  maxSize,
+                  fillColor);
+
+
+        if (DEBUG.DND || DEBUG.IMAGE) out("created image: " + image);
+
+        return image;
+    }
+
+    /**
+     * Useful for drawing drag images into an existing graphics buffer, or drawing exportable images.
+     *
+     * @param alpha 0.0 (invisible) to 1.0 (no alpha)
+     * @param maxSize max dimensions for image. May be null.  Image may be smaller than maxSize.
+     * @param fillColor -- if non-null, will be rendered as background for image.  If alpha is
+     * also set, background fill will have transparency of alpha^3 to enhance contrast.
+     */
+
+    public void drawImage(java.awt.Graphics2D g, double alpha, java.awt.Dimension maxSize, Color fillColor)
+    {
+        if (DEBUG.IMAGE) out("drawImage; size " + maxSize);
+        Rectangle2D.Float bounds = (Rectangle2D.Float) getBounds();
+
+        final boolean drawBorder = this instanceof LWMap && alpha != 1.0;
+
+        bounds.width += 1;
+        bounds.height += 1;
+
+        if (drawBorder) {
+            bounds.x--;
+            bounds.y--;
+            bounds.width += 2;
+            bounds.height += 2;
+        }
+            
+        if (DEBUG.IMAGE) out("drawImage; natural bounds " + bounds);
         
+        int width = (int) Math.ceil(bounds.width);
+        int height = (int) Math.ceil(bounds.height);
+        double zoom = 1.0;
+
+        if (maxSize != null) {
+            // Shrink to fit maxSize, but don't expand to fill it.
+            if (width > maxSize.width || height > maxSize.height) {
+                zoom = ZoomTool.computeZoomFit(maxSize, 0, bounds, null);
+                width = (int) Math.ceil(bounds.width * zoom);
+                height = (int) Math.ceil(bounds.height * zoom);
+            }
+        }
+        
+
         /*if (c instanceof LWGroup && ((LWGroup)c).numChildren() > 1) {
             g.setColor(new Color(255,255,255,32)); // give a bit of background
             //g.fillRect(0, 0, width, height);
             }*/
 
         DrawContext dc = new DrawContext(g);
-        dc.setAlpha(alpha);
+        dc.setAlpha(alpha, java.awt.AlphaComposite.SRC); // erase any underlying
         
         if (fillColor != null) {
             if (alpha != 1.0) {
@@ -2152,11 +2204,8 @@ public class LWComponent
 
         // render to the image through the DrawContext/GC pointing to it
         draw(dc);
-
-        if (DEBUG.DND || DEBUG.IMAGE) out("created image: " + image);
-
-        return image;
     }
+    
 
     
     public String toString()
