@@ -23,8 +23,10 @@ import tufts.Util;
 import java.util.*;
 import java.lang.ref.*;
 import java.net.URL;
-import java.io.File;
-import java.io.InputStream;
+import java.net.URI;
+import java.io.*;
+import java.nio.*;
+import java.nio.channels.*;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import javax.swing.ImageIcon;
@@ -36,22 +38,19 @@ import javax.imageio.stream.*;
  *
  * Handle the loading of images in background threads, making callbacks to deliver
  * results to multiple listeners that can be added at any time during the image fetch,
- * and memory caching based on a URL key, using a HashMap with SoftReference's
- * so if we run low on memory they just drop out of the cache.
+ * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
+ * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-03-30 04:55:06 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-04-03 23:13:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
 {
     public static VueAction ClearCacheAction = new VueAction("Empty Image Cache") {
-            public void act() {
-                Cache.clear();
-                // todo: may want to abort existing Loader threads
-            }
+            public void act() { Cache.clear(); }
         };
     
-    private static Map Cache = new SoftMap();
+    private static Map Cache = new CacheMap();
 
     
     /**
@@ -79,15 +78,11 @@ public class Images
      * @param listener - the Images.Listener to callback.  If null, the result
      * of the call would be only to ensure the given image is cached.
      *
-     * @return true if the result is immediately available: the image was cached, or if there was an immediate error
+     * @return true if the result is immediately available: the image was cached or there was an immediate error
      **/
     
     public static boolean getImage(Object imageSRC, Images.Listener listener)
     {
-        if (DEBUG.IMAGE) {
-            System.out.println("\n");
-            out("FETCHING IMAGE SOURCE " + imageSRC + " for " + tag(listener));
-        }
         try {
             if (getCachedOrLoad(imageSRC, listener) == null)
                 return false;
@@ -112,23 +107,53 @@ public class Images
         }
     }
 
+    private static class CacheEntry {
+        Reference imageRef;
+        File file;
 
-    /**
-     * A soft-reference cache-map for the images: if we
-     * run low on memory, they'll be garbage collected
-     * and will seem to have disspeared from the cache.
-     * 
+        /** image should only be null for startup init with existing cache files */
+        CacheEntry(BufferedImage image, File cacheFile)
+        {
+            if (image == null && cacheFile == null)
+                throw new IllegalArgumentException("CacheEntry: at least one of image or file must be non null");
+            this.imageRef = new SoftReference(image);
+            this.file = cacheFile;
+            if (DEBUG.IMAGE) out("new " + this);
+        }
+
+        BufferedImage getImage() {
+            // will be null if was cleared
+            return (BufferedImage) imageRef.get();
+        }
+
+        File getFile() {
+            return file;
+        }
+
+        void clear() {
+            if (imageRef != null)
+                imageRef.clear();
+        }
+
+        public String toString() {
+            return "CacheEntry[" + tag(getImage()) + "; file=" + file + "]";
+        }
+    }
+
+
+    /*
      * Not all HashMap methods covered: only safe to use
      * the onces explicity implemented here.
      */
-    private static class SoftMap extends HashMap {
+    private static class CacheMap extends HashMap {
 
+        /*
         public synchronized Object get(Object key) {
             //if (DEBUG.IMAGE) out("SoftMap; get: " + key);
             Object val = super.get(key);
             if (val == null)
                 return null;
-            Reference ref = (Reference) val;
+            //if (val instanceof CacheEntry) 
             val = ref.get();
             if (val == null) {
                 if (DEBUG.IMAGE) out("SoftMap; image was garbage collected: " + key);
@@ -137,30 +162,103 @@ public class Images
             } else
                 return val;
         }
-        
-        public synchronized Object put(Object key, Object value) {
-            //if (DEBUG.IMAGE) out("SoftMap; put: " + key);
-            return super.put(key, new SoftReference(value));
-        }
-
         public synchronized boolean containsKey(Object key) {
             return get(key) != null;
         }
+        */
+        
 
+        // for now, only clears memory cache
         public synchronized void clear() {
             Iterator i = values().iterator();
-            while (i.hasNext())
-                ((Reference)i.next()).clear();
-            super.clear();
+            while (i.hasNext()) {
+                Object entry = i.next();
+
+                // may be a Loader: todo: may want to kill thread if it is
+                // Especially: if we go off line, Loaders created
+                // immediately after that (or during) tend to hang forever.
+                // Loaders created once the OS knows we're offline
+                // will usually fail immediately with "no route to host",
+                // but even after going back online, and other images
+                // load, the originally hung Loader's won't die...
+                // So at least an image-cache should kill them.
+                
+                if (entry instanceof CacheEntry) {
+                    CacheEntry ce = (CacheEntry) entry;
+                    ce.clear();
+                    if (ce.getFile() == null)
+                        i.remove();
+                } else {
+                    // Interrupt may not be good enough: if blocked on non-async IO
+                    // (non-channel IO, e.g., "regular"), this can have no
+                    // effect.  Turns out using stop doesn't help even in this
+                    // case.
+                    ((Loader)entry).stop();
+                    //((Loader)entry).interrupt();
+                }
+            }
+
+            //super.clear();
         }
         
     }
 
+    private static URI makeKey(URL u) {
+        try {
+            return new URI(u.getProtocol(),
+                           u.getUserInfo(),
+                           u.getHost(),
+                           u.getPort(),
+                           //u.getAuthority(),
+                           u.getPath(),
+                           u.getQuery(),
+                           u.getRef()).normalize();
+        } catch (Throwable t) {
+            Util.printStackTrace(t, "can't make URI cache key from URL " + u);
+        }
+        return null;
+    }
+
+    private static URI makeKey(File file) {
+        try {
+            return file.toURI().normalize();
+        } catch (Throwable t) {
+            Util.printStackTrace(t, "can't make URI cache key from file " + file);
+        }
+        return null;
+    }
+
+    private static String keyToCacheFileName(URI key)
+        throws java.io.UnsupportedEncodingException
+    {
+        //return key.toASCIIString();
+        return java.net.URLEncoder.encode(key.toString(), "UTF-8");
+    }
+    
+    private static URI cacheFileNameToKey(String name) 
+    {
+        try {
+            return new URI(java.net.URLDecoder.decode(name, "UTF-8"));
+            //return new URL(java.net.URLDecoder.decode(name, "UTF-8"));
+        } catch (Throwable t) {
+            if (DEBUG.Enabled)
+                tufts.Util.printStackTrace(t);
+            return null;
+        }
+
+    }
+
+
+    // TODO: Using a URL as the key is very slow: it actually does host name resolution
+    // for the IP address to do compares!
+
+
     private static class ImageSource {
         final Object original;  // anything plausably covertable image source (e.g. a Resource, URL, File, stream)
         final Resource resource;// if original was a resource, it goes here.
-        final URL key;          // Unique key for caching (currently always a URL)
+        final URI key;          // Unique key for caching
         Object readable;        // the readable image source (not a Resource, and URL's converted to stream before ImageIO)
+        File cacheFile;         // If later stored in a file cache, is marked here.
 
         ImageSource(Object original) {
             this.original = original;
@@ -183,17 +281,12 @@ public class Images
 
             
             if (readable instanceof java.net.URL) {
-                this.key = (URL) readable;
-                if ("file".equals(key.getProtocol()))
-                    this.readable = new File(key.getPath());
+                URL url = (URL) readable;
+                this.key = makeKey(url);
+                if ("file".equals(key.getScheme()))
+                    this.readable = new File(url.getPath());
             } else if (readable instanceof java.io.File) {
-                URL k = null;
-                try {
-                    k = ((File) readable).toURL();
-                } catch (java.net.MalformedURLException e) {
-                    tufts.Util.printStackTrace(e);
-                }
-                this.key = k;
+                this.key = makeKey((File) readable);
             } else
                 this.key = null; // will not be cacheable
             
@@ -203,6 +296,8 @@ public class Images
             String s = tag(original);
             if (readable != original)
                 s += "; readable=[" + tag(readable) + "]";
+            if (cacheFile != null)
+                s += "; cache=" + cacheFile;
             return s;
         }
 
@@ -369,6 +464,7 @@ public class Images
                 VUE.Log.warn(this + "; nobody listening: image will be quietly cached: " + imageSRC);
             this.imageSRC = imageSRC;
             this.relay = new LoaderRelayer(imageSRC, l);
+            //setPriority(NORM_PRIORITY - 1);
         }
 
         public void run() {
@@ -384,12 +480,19 @@ public class Images
 
 
     
-    /** @return Image if cached or listener is null, otherwise makes callbacks to the listener from
-     a new thread. */
+    /**
+     * @return Image if cached or listener is null, otherwise makes callbacks to the listener from
+     * a new thread.
+     */
     private static BufferedImage getCachedOrLoad(Object _imageSRC, Images.Listener listener)
         throws java.io.IOException, java.lang.InterruptedException
     {
         final ImageSource imageSRC = new ImageSource(_imageSRC);
+
+        if (DEBUG.IMAGE) {
+            System.out.println("\n");
+            out("FETCHING IMAGE SOURCE " + imageSRC + " for " + tag(listener));
+        }
 
         synchronized (Cache) {
 
@@ -398,27 +501,88 @@ public class Images
             if (imageSRC.key != null && (entry = Cache.get(imageSRC.key)) != null) {
                 if (DEBUG.IMAGE) out("found cache entry for key " + tag(imageSRC.key) + ": " + entry);
                 
+                BufferedImage image = null;
+                
                 if (entry instanceof Loader) {
                     if (DEBUG.IMAGE) out("Image is loading into the cache via already existing Loader...");
                     Loader loader = (Loader) entry;
+
                     if (listener != null) {
                         if (DEBUG.IMAGE) out("Adding us as listener to existing Loader");
                         loader.addListener(listener);
                         return null;
-                    } else {
-                        // We've got no listener, so run synchronous & wait on existing loader thread to die:
-                        out("Joining " + tag(loader) + "...");
-                        loader.join();
-                        out("Join of " + tag(loader) + " completed, cache has filled.");
                     }
+                    
+                    // We've got no listener, so run synchronous & wait on existing loader thread to die:
+                    out("Joining " + tag(loader) + "...");
+                    loader.join();
+                    out("Join of " + tag(loader) + " completed, cache has filled.");
+                        
+                    // Note we get here only in one rare case: there was an entry in the
+                    // cache that was already loading on another thread, and somebody new
+                    // requested the image that did NOT have a listener, so we joined the
+                    // existing thread and waited for it to finish (with no listener, we
+                    // have to run synchronous).
+                        
+                    // So now that we've waited, we should be guarnateed to have a full
+                    // Image result in the cache at this point.
+                        
+                    // Note: *theoretically*, the GC could have cleared our SoftReference
+                    // betwen loading the cache and now, but in practice it should
+                    // never happen.
+                        
+                    image = ((CacheEntry)Cache.get(imageSRC.key)).getImage();
+                    if (image == null)
+                        VUE.Log.warn("Zealous GC: image tossed immediately " + imageSRC);
+
+                } else {
+                    CacheEntry ce = (CacheEntry) entry;
+                    BufferedImage cachedImage = ce.getImage();
+                     	
+                    // if we have the image, we're done (it was loaded this runtime, and not GC'd)
+                    // if not, either it was GC'd, or it's a cache file entry from the persistent
+                    // cache -- in either case, there is a file on disk -- mark it the imageSRC,
+                    // and the loader will notice it and use it.
+                    
+                    boolean emptyEntry = true;
+
+                    if (cachedImage != null) {
+                        image = cachedImage;
+                        emptyEntry = false;
+                    } else if (ce.getFile() != null) {
+                        if (ce.file.canRead()) {
+                            imageSRC.cacheFile = ce.file;
+                            emptyEntry = false;
+                        } else
+                            VUE.Log.warn("cache file no longer available: " + ce.file);
+                    }
+
+                    if (emptyEntry) {
+                        // there is a cache entry with no image OR file: this could only
+                        // happen if the disk cache is not operating, and the memory
+                        // image was garbage collected: we need to remove this entry
+                        // from the cache completely and start from scratch:
+                        out("REMOVING FROM CACHE: " + imageSRC);
+                        Cache.remove(imageSRC.key);
+                    }
+                        
                 }
 
-                // We should be guarnateed to have a full Image result in the cache at this point
-                BufferedImage image = (BufferedImage) Cache.get(imageSRC.key);
-                if (listener != null)
-                    listener.gotImage(imageSRC.original, image, image.getWidth(), image.getHeight());
+                if (image != null) {
+                    if (listener != null)
+                        listener.gotImage(imageSRC.original, image, image.getWidth(), image.getHeight());
+                    return image;
+                }
 
-                return image;
+                // We get here in the following cases:
+                // (1) We had the image, but is was GC'd -- we're going back to the cache file
+                // (2) We had the image, but is was GC'd -- original was on disk: go back to that
+                // (3) We had the image, but is was GC'd, and disk cache not working: reload original from network
+                // (4) We never had the image, but it is in disk cache: go get it
+                // (5) unlikely case case of zealous GC: reload original
+
+                // Note that original image sources that were on disk are NOT moved
+                // to the disk cache, and CacheEntry.file should always be null for those.
             }
 
             // Image wasn't in the cache: we must go get it.
@@ -442,9 +606,15 @@ public class Images
         }
             
     }
+    
 
-    private static class ImageException extends Exception {
+    static class ImageException extends Exception {
         ImageException(String s) {
+            super(s);
+        }
+    }
+    static class DataException extends ImageException {
+        DataException(String s) {
             super(s);
         }
     }
@@ -460,12 +630,17 @@ public class Images
             if (DEBUG.IMAGE) tufts.Util.printStackTrace(t);
             if (listener != null) {
                 String msg;
-                if (t instanceof javax.imageio.IIOException || t instanceof ImageException)
-                    msg = t.getMessage();
-                else if (t instanceof java.io.FileNotFoundException)
+                if (t instanceof java.io.FileNotFoundException)
                     msg = "Not Found: " + t.getMessage();
+                else if (t instanceof ThreadDeath)
+                    msg = "interrupted";
+                else if (t.getMessage() != null && t.getMessage().length() > 0)
+                    msg = t.getMessage();
                 else
                     msg = t.toString();
+                //if (t instanceof javax.imageio.IIOException || t instanceof ImageException)
+                //else
+                    //msg = t.toString();
 
                 // this is the one place we deliver caught exceptions
                 // during image loading:
@@ -480,9 +655,17 @@ public class Images
             
         }
 
+        // TODO opt: if this items was loaded from the disk cache, we're needlessly
+        // replacing the existing CacheEntry with a new one, instead of
+        // updating the old with the new in-memory image buffer.
+
         if (image != null) {
             synchronized (Cache) {
-                Cache.put(imageSRC.key, image);
+                File permanentCacheFile = null;
+                if (imageSRC.cacheFile != null)
+                    permanentCacheFile = ensurePermanentCacheFile(imageSRC.cacheFile);
+                
+                Cache.put(imageSRC.key, new CacheEntry(image, permanentCacheFile));
             }
         }
 
@@ -502,7 +685,11 @@ public class Images
     private static void setResourceMetaData(Resource r, java.net.URLConnection uc) {
         long len = uc.getContentLength();
         r.setProperty("url.contentLength", len);
-        r.setProperty("url.contentType", uc.getContentType());
+        String ct = uc.getContentType();
+        r.setProperty("url.contentType", ct);
+        if (DEBUG.Enabled && ct != null && !ct.toLowerCase().startsWith("image")) {
+            Util.printStackTrace("NON IMAGE CONTENT TYPE [" + ct + "] for " + r);
+        }
         setDateValue(r, "url.expires", uc.getExpiration());
         setDateValue(r, "url.date", uc.getDate());
         setDateValue(r, "url.lastModified", uc.getLastModified());
@@ -514,51 +701,195 @@ public class Images
         setDateValue(r, "file.lastModified", f.lastModified());
     }
 
+    private static File makeTmpCacheFile(URI key)
+        throws java.io.UnsupportedEncodingException
+    {
+        String cacheName = "." + keyToCacheFileName(key);
+        File cacheDir = getCacheDirectory();
+        File file = null;
+        if (cacheDir != null) {
+            file = new File(getCacheDirectory(), cacheName);
+            try {
+                if (!file.createNewFile())
+                    VUE.Log.debug("cache file already exists: " + file);
+            } catch (java.io.IOException e) {
+                Util.printStackTrace(e, "can't create tmp cache file " + file);
+                //VUE.Log.warn(e.toString());
+                return null;
+            }
+            if (!file.canWrite()) {
+                VUE.Log.warn("can't write cache file: " + file);
+                return null;
+            }
+            out("got tmp cache file " + file);
+        }
+        return file;
+    }
+
+    private static File ensurePermanentCacheFile(File file)
+    {
+        try {
+            // chop off the initial "." to make permanent
+            // If doesn't start with a dot, this is one of our existing cache
+            // files: nothing to do.
+            String tmpName = file.getName();
+            String permanentName;
+            if (tmpName.charAt(0) == '.') {
+                permanentName = tmpName.substring(1);
+            } else {
+                // it's already permanent: we must have loaded this from our cache originally
+                return file;
+            }
+            File permanentFile = new File(file.getParentFile(), permanentName);
+            if (file.renameTo(permanentFile))
+                return permanentFile;
+        } catch (Throwable t) {
+            tufts.Util.printStackTrace(t, "Unable to create permanent cache file from tmp " + file);
+        }
+        return null;
+    }
+    
+
+    private static File CacheDir;
+    private static File getCacheDirectory()
+    {
+        if (CacheDir == null) {
+            File dir = VueUtil.getDefaultUserFolder();
+            CacheDir = new File(dir, "cache");
+            if (!CacheDir.exists()) {
+                VUE.Log.debug("creating cache directory: " + CacheDir);
+                if (!CacheDir.mkdir())
+                    VUE.Log.warn("couldn't create cache directory " + CacheDir);
+            }
+            VUE.Log.debug("Got cache directory: " + CacheDir);
+        }
+        return CacheDir;
+    }
+
+
+    public static void loadDiskCache()
+    {
+        File dir = getCacheDirectory();
+        if (dir == null)
+            return;
+
+        VUE.Log.debug("listing cache...");
+        File[] files = dir.listFiles();
+        VUE.Log.debug("listing cache: done");
+        
+        synchronized (Cache) {
+            for (int i = 0; i < files.length; i++) {
+                File file = files[i];
+                String name = file.getName();
+                if (name.charAt(0) == '.')
+                    continue;
+                //out("found cache file " + file);
+                URI key = cacheFileNameToKey(name);
+                if (DEBUG.IMAGE && DEBUG.META) out("made cache key: " + key);
+                if (key != null)
+                    Cache.put(key, new CacheEntry(null, file));
+            }
+        }
+    }
+
+
+    
     /**
      * @param imageSRC - see ImageSource ("anything" that we can get an image data stream from)
      * @param listener - an Images.Listener: if non-null, will be issued callbacks for size & completion
      * @return the loaded image, or null if none found
      */
+    private static boolean FirstFailure = true;
     private static BufferedImage readAndCreateImage(ImageSource imageSRC, Images.Listener listener)
         throws java.io.IOException, ImageException
     {
-        if (DEBUG.IMAGE) out("creating input stream for source " + tag(imageSRC.readable));
+        if (DEBUG.IMAGE) out("READING " + imageSRC);
 
-        InputStream urlStream = null;
-        if (imageSRC.readable instanceof java.net.URL) {
+        InputStream urlStream = null; // if we create one, we need to keep this ref to close it later
+        File tmpCacheFile = null; // if we create a tmp cache file, it will be put here
+        
+        if (imageSRC.cacheFile != null) {
+            // just point us at the cache file: ImageIO will create the input stream
+            imageSRC.readable = imageSRC.cacheFile;
+            if (DEBUG.IMAGE) out("reading cache file: " + imageSRC.cacheFile);
+        
+        } else if (imageSRC.readable instanceof java.net.URL) {
             URL url = (URL) imageSRC.readable;
-            if (DEBUG.IMAGE) out("opening URL connection...");
-            java.net.URLConnection uc = url.openConnection();
-            if (imageSRC.resource != null)
-                setResourceMetaData(imageSRC.resource, uc);
-            if (DEBUG.IMAGE) out("opening URL stream...");
-            urlStream = uc.getInputStream();
-            imageSRC.readable = urlStream;
-            if (DEBUG.IMAGE) out("got URL stream");
+
+            int tries = 0;
+            boolean success = false;
+            
+            do {
+                if (DEBUG.IMAGE) out("opening URL connection...");
+                java.net.URLConnection uc = url.openConnection();
+                if (imageSRC.resource != null)
+                    setResourceMetaData(imageSRC.resource, uc);
+                if (DEBUG.IMAGE) out("opening URL stream...");
+                urlStream = uc.getInputStream();
+                if (DEBUG.IMAGE) out("got URL stream");
+
+                tmpCacheFile = makeTmpCacheFile(imageSRC.key);
+                imageSRC.cacheFile = tmpCacheFile;  // will be made permanent if no errors
+
+                if (imageSRC.cacheFile != null) {
+                    try {
+                        imageSRC.readable = new FileBackedImageInputStream(urlStream, tmpCacheFile);
+                        success = true;
+                    } catch (Images.DataException e) {
+                        VUE.Log.error(e);
+                        if (++tries > 1) {
+                            tufts.Util.printStackTrace(e);
+                            throw e;
+                        } else {
+                            VUE.Log.info("second try for " + imageSRC);
+                            urlStream.close();
+                        }
+                        // try the reconnect one more time
+                    }
+                } else {
+                    // unable to create cache file: read directly from the stream
+                    imageSRC.readable = urlStream;
+                }
+                
+            } while (!success && tries < 2);
+
         } else if (imageSRC.readable instanceof java.io.File) {
             if (imageSRC.resource != null)
                 setResourceMetaData(imageSRC.resource, (File) imageSRC.readable);
         }
         
-        ImageInputStream inputStream = ImageIO.createImageInputStream(imageSRC.readable);
+        final ImageInputStream inputStream;
+
+        if (imageSRC.readable instanceof ImageInputStream)
+            inputStream = (ImageInputStream) imageSRC.readable;
+        else
+            inputStream = ImageIO.createImageInputStream(imageSRC.readable);
 
         if (DEBUG.IMAGE) out("Got ImageInputStream " + inputStream);
-        
-        java.util.Iterator iri = ImageIO.getImageReaders(inputStream);
 
-        ImageReader reader = null;
-        int idx = 0;
-        while (iri.hasNext()) {
-            ImageReader ir = (ImageReader) iri.next();
-            if (reader == null)
-                reader = ir;
-            if (DEBUG.IMAGE) out("\tfound ImageReader #" + idx + " " + ir);
-            idx++;
-        }
+        if (inputStream == null)
+            throw new ImageException("Can't Access"); // e,g., local file permission denied
+
+        ImageReader reader = getDecoder(inputStream);
 
         if (reader == null) {
-            if (DEBUG.IMAGE) out("NO IMAGE READER FOUND FOR " + imageSRC);
-            throw new ImageException("Unreadable Image Stream");
+            badStream: {
+                if (FirstFailure) {
+                    // This FirstFailure code was an attempt to deal with what is now handled
+                    // via DataException, but it's not a bad idea to keep it around.
+                    FirstFailure = false;
+                    VUE.Log.warn("No reader found: first failure, rescanning for codecs: " + imageSRC);
+                    // TODO: okay, problem appears to be with the URLConnection / stream? Is only
+                    // getting us tiny amount of bytes the first time...
+                    if (DEBUG.Enabled) tufts.Util.printStackTrace("first failure: " + imageSRC);
+                    ImageIO.scanForPlugins();
+                    reader = getDecoder(inputStream);
+                    if (reader != null)
+                        break badStream;
+                }
+                if (DEBUG.IMAGE) out("NO IMAGE READER FOUND FOR " + imageSRC);
+                throw new ImageException("Unreadable Image Stream");
+            }
         }
 
         if (DEBUG.IMAGE) out("Chosen ImageReader for stream " + reader + " formatName=" + reader.getFormatName());
@@ -576,7 +907,7 @@ public class Images
 
         if (imageSRC.resource != null) {
             if (DEBUG.IMAGE || DEBUG.THREAD || DEBUG.RESOURCE)
-                out("setting resource meta-data for " + imageSRC.resource);
+                out("setting resource image.* meta-data for " + imageSRC.resource);
             imageSRC.resource.setProperty("image.width",  Integer.toString(w));
             imageSRC.resource.setProperty("image.height", Integer.toString(h));
             imageSRC.resource.setProperty("image.format", reader.getFormatName());
@@ -625,7 +956,23 @@ public class Images
 
         return image;
     }
-    
+
+    private static ImageReader getDecoder(ImageInputStream istream)
+    {
+        java.util.Iterator iri = ImageIO.getImageReaders(istream);
+
+        ImageReader reader = null;
+        int idx = 0;
+        while (iri.hasNext()) {
+            ImageReader ir = (ImageReader) iri.next();
+            if (reader == null)
+                reader = ir;
+            if (DEBUG.IMAGE) out("\tfound ImageReader #" + idx + " " + ir);
+            idx++;
+        }
+
+        return reader;
+    }
 
 
     /* Apparently, not all decoders actually report to the listeners, (e.g., TIFF), so we're not using this for now */
@@ -682,6 +1029,41 @@ public class Images
 
     
     /*
+    private static void copyStreamToFile(InputStream in, File file)
+        throws java.io.IOException
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2048);
+        FileOutputStream fout = new FileOutputStream(file);
+        FileChannel fcout = fout.getChannel();
+        ReadableByteChannel chin = Channels.newChannel(in);
+
+        while (true) { 
+            buf.clear(); 
+            int r = chin.read(buf);
+            //out("read " + r + " bytes");
+            if (DEBUG.IMAGE) System.err.print(r + "; ");
+            if (r == -1)
+                break; 
+            buf.flip(); 
+            fcout.write(buf);
+        }
+
+        fcout.close();
+        chin.close();
+        if (DEBUG.IMAGE) out("\nFILLED " + file);
+    }
+
+    
+    private static File cacheURLContent(URL url, InputStream in)
+        throws java.io.IOException
+    {
+        File file = getCacheFile(url);
+        copyStreamToFile(in, file);
+        return file;
+    }
+    */
+
+    /*
     static {
          // ImageIO file caching is a runtime-only scheme for allowing
          // file streams to seek backwards: nothing to with a presistant store.
@@ -718,6 +1100,8 @@ public class Images
         //loadImage(imageSRC, null);
 
 
+        /*
+          
         ImageInputStream iis = ImageIO.createImageInputStream(imageSRC);
 
         out("Got ImageInputStream " + iis);
@@ -761,6 +1145,8 @@ public class Images
         BufferedImage bi = IR.read(0);
         out("ImageReader.read(0) got " + bi);
 
+        */
+
 
 
 
@@ -801,4 +1187,162 @@ public class Images
 
      }
 
+}
+
+
+
+
+/**
+ * An implementation of <code>ImageInputStream</code> that gets its
+ * input from a regular <code>InputStream</code>.  As the data
+ * is read, is it backed by a File for seeking backward.
+ *
+ */
+class FileBackedImageInputStream extends ImageInputStreamImpl
+{
+    private InputStream stream;
+    private final RandomAccessFile cache;
+    private static final int BUFFER_LENGTH = 2048;
+    private final byte[] buf = new byte[BUFFER_LENGTH];
+    private long length = 0L;
+    private boolean foundEOF = false;
+
+    private final File file;
+
+    // todo opt: pass in content size up front to init RAF to full size at start
+    /**
+     * @param stream - image data stream -- will be closed when reading is done
+     * @param file - file to write incoming data to to use as cache
+     */
+    public FileBackedImageInputStream(InputStream stream, File file)
+        throws IOException, Images.ImageException
+    {
+        if (stream == null || file == null)
+            throw new IllegalArgumentException("FileBackedImageInputStream: stream or file is null");
+
+        this.stream = stream;
+        this.cache = new RandomAccessFile(file, "rw");
+        this.file = file;
+
+        this.cache.setLength(0); // in case already there
+
+        // TODO: this is debug to get more info on the streams that are starting
+        // with <HTML> every once in a while...
+        readUntil(BUFFER_LENGTH);
+
+        String contentTest = new String(buf, 0, 6, "US-ASCII");
+
+        if ("<HTML>".equals(contentTest.toUpperCase())) {
+            String html = new String(buf, 0, (int)length, "US-ASCII");
+            VUE.Log.error("Stream " + stream + " does not contain image data, but HTML instead: data of len " + length +
+                               "\n["
+                               + html
+                               + "]"
+                               );
+            //tufts.Util.displayComponent(new javax.swing.JTextArea(html));
+            close();
+            throw new Images.DataException("Content is HTML, not image data.");
+        }
+    }
+
+    /*
+    public void seek(long pos) throws IOException {
+        System.err.println("SEEK " + pos);
+        super.seek(pos);
+    }
+    */
+
+    /**
+     * Ensures that at least <code>pos</code> bytes are cached,
+     * or the end of the source is reached.  The return value
+     * is equal to the smaller of <code>pos</code> and the
+     * length of the source file.
+     */
+    private long readUntil(long pos) throws IOException {
+
+        //System.err.println("<=" + pos + "; ");
+        
+        // We've already got enough data cached
+        if (pos < length)
+            return pos;
+
+        // pos >= length but length isn't getting any bigger, so return it
+        if (foundEOF)
+            return length;
+
+        long len = pos - length;
+        cache.seek(length);
+        while (len > 0) {
+            // Copy a buffer's worth of data from the source to the cache
+            // BUFFER_LENGTH will always fit into an int so this is safe
+            int nbytes =
+                stream.read(buf, 0, (int)Math.min(len, (long)BUFFER_LENGTH));
+            if (nbytes == -1) {
+                if (DEBUG.IMAGE) System.err.println("<EOF @ " + length + ">");
+                foundEOF = true;
+                return length;
+            }
+
+            if (DEBUG.IMAGE) System.err.print(">" + nbytes + "; ");
+            cache.write(buf, 0, nbytes);
+            len -= nbytes;
+            length += nbytes;
+        }
+
+        return pos;
+    }
+
+    public int read() throws IOException {
+        bitOffset = 0;
+        long next = streamPos + 1;
+        long pos = readUntil(next);
+        if (pos >= next) {
+            if (DEBUG.IMAGE) System.err.println("SEEK " + streamPos+1);
+            cache.seek(streamPos++);
+            return cache.read();
+        } else {
+            return -1;
+        }
+    }
+
+    public int read(byte[] b, int off, int len) throws IOException {
+        if (b == null)
+            throw new NullPointerException();
+
+        if (off < 0 || len < 0 || off + len > b.length || off + len < 0)
+            throw new IndexOutOfBoundsException();
+
+        if (len == 0)
+            return 0;
+
+
+        checkClosed();
+
+        bitOffset = 0;
+
+        long pos = readUntil(streamPos + len);
+
+        // len will always fit into an int so this is safe
+        len = (int)Math.min((long)len, pos - streamPos);
+        if (len > 0) {
+            if (DEBUG.IMAGE) System.err.println("SEEK " + streamPos);
+            cache.seek(streamPos);
+            cache.readFully(b, off, len);
+            streamPos += len;
+            return len;
+        } else {
+            return -1;
+        }
+    }
+
+    public void close() throws IOException {
+        super.close();
+        cache.close();
+        stream.close();
+        stream = null;
+    }
+
+    public String toString() {
+        return getClass().getName() + "[" + file.toString() + "]";
+    }
 }
