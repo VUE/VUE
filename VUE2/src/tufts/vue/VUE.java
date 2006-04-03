@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.357 $ / $Date: 2006-03-29 23:02:08 $ / $Author: sfraize $ 
+ * @version $Revision: 1.358 $ / $Date: 2006-04-03 23:14:49 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -363,7 +363,7 @@ public class VUE
         VUE.activateWaitCursor();
 
         boolean gotMapFromCommandLine = false;
-        
+
         if (args.length > 0) {
             try {
                 for (int i = 0; i < args.length; i++) {
@@ -406,6 +406,13 @@ public class VUE
         }
         */
 
+        VUE.clearWaitCursor();
+        
+        Log.debug("loading disk cache...");
+        Images.loadDiskCache();
+        Log.debug("loading disk cache: done");
+
+        
         Log.debug("loading fonts...");
         FontEditorPanel.getFontNames();
         
@@ -453,7 +460,8 @@ public class VUE
         //
         // [ Assuming this is java 1.4 -- 1.5? ]
         
-        getRootWindow().setVisible(true);
+        // is done in buildApplicationInterface
+        //getRootWindow().setVisible(true);
 
         //out("ACTIONTMAP " + java.util.Arrays.asList(frame.getRootPane().getActionMap().allKeys()));
         //out("INPUTMAP " + java.util.Arrays.asList(frame.getRootPane().getInputMap().allKeys()));
@@ -462,7 +470,8 @@ public class VUE
         //out("INPUTMAP " + Arrays.asList(VUE.getActiveViewer().getInputMap().keys()));
         //out("INPUTMAP " + Arrays.asList(getInputMap().keys()));
 
-        VUE.clearWaitCursor();
+        //VUE.clearWaitCursor();
+
         
         Log.debug("initApplication completed.");
     }
