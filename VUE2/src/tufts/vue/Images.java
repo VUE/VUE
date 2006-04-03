@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-04-03 23:13:33 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2006-04-03 23:21:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -721,7 +721,7 @@ public class Images
                 VUE.Log.warn("can't write cache file: " + file);
                 return null;
             }
-            out("got tmp cache file " + file);
+            if (DEBUG.IMAGE) out("got tmp cache file " + file);
         }
         return file;
     }
