@@ -81,7 +81,7 @@ import javax.swing.text.*;
  * deriving zoomed fonts for every font found in the Document.)
  *
  * @author Scott Fraize
- * @version $Revision: 1.35 $ / $Date: 2006-01-20 20:09:49 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2006-04-03 18:59:34 $ / $Author: sfraize $
  *
  */
 
@@ -125,6 +125,7 @@ class TextBox extends JTextPane
         //setBorder(javax.swing.border.LineBorder.createGrayLineBorder());
         // don't set border -- adds small margin that screws us up, especially
         // at high scales
+        setDragEnabled(false);
         setBorder(null);
         if (text != null)
             setText(text);
