@@ -37,9 +37,26 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	private org.osid.repository.Repository[] repositories;
 	
 	private javax.swing.JButton searchButton = new javax.swing.JButton("Search");
-	private static final String SELECT_A_LIBRARY = "Select a library to search";
+	private javax.swing.JButton addButton = new javax.swing.JButton("Add");
+	private static final String SELECT_A_LIBRARY = "Select a library";
 	private static final String NO_MESSAGE = "";
 	private javax.swing.JLabel selectMessage = new javax.swing.JLabel(SELECT_A_LIBRARY);
+	
+	private javax.swing.JButton moreOptionsButton = new javax.swing.JButton("+");
+	private static final String MORE_OPTIONS = "";
+	private javax.swing.JLabel moreOptionsLabel = new javax.swing.JLabel(MORE_OPTIONS);
+
+	private javax.swing.JButton fewerOptionsButton = new javax.swing.JButton("-");
+	private static final String FEWER_OPTIONS = "";
+	private javax.swing.JLabel fewerOptionsLabel = new javax.swing.JLabel(FEWER_OPTIONS);
+	
+	private javax.swing.JPanel moreFewerPanel = new javax.swing.JPanel();
+	
+	private static final int NOTHING_SELECTED = 0;
+	private static final int BASIC = 1;
+	private static final int ADVANCED_INTERSECTION = 2;
+	private static final int ADVANCED_UNION = 3;
+	private int currentStyle = BASIC;
 	
 	public DefaultQueryEditor() {
 		try {
@@ -51,50 +68,163 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			setPreferredSize(new java.awt.Dimension(100,100));
 			setMinimumSize(new java.awt.Dimension(100,100));
 			
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy = 0;
-			add(new javax.swing.JLabel("Keyword:"),gbConstraints);
-			
-			gbConstraints.gridx = 1;
-			gbConstraints.gridy = 0;
-			add(field,gbConstraints);
-			field.addActionListener(this);
-			
-			gbConstraints.gridx = 1;
-			gbConstraints.gridy = 1;
-			add(searchButton,gbConstraints);
 			searchButton.addActionListener(this);
-			
-			gbConstraints.gridx = 1;
-			gbConstraints.gridy = 2;
-			add(selectMessage,gbConstraints);
-			searchButton.addActionListener(this);
-			refresh();
-			
+			moreOptionsButton.addActionListener(this);
+			fewerOptionsButton.addActionListener(this);
 			searchProperties = new edu.tufts.vue.util.SharedProperties();		
+
+			repositories = sourcesAndTypesManager.getRepositoriesToSearch();
+			if (repositories.length == 0) {
+				makePanel(NOTHING_SELECTED);
+			} else {
+				makePanel(BASIC);
+			}
 		} catch (Throwable t) {
 		}
 	}
 	
 	public void refresh()
 	{
-		// behavior depends on the whether any repository is selected
 		repositories = sourcesAndTypesManager.getRepositoriesToSearch();
 		if (repositories.length == 0) {
-			searchButton.setEnabled(false);
-			selectMessage.setText(SELECT_A_LIBRARY);
+			makePanel(NOTHING_SELECTED);
 		} else {
-			searchButton.setEnabled(true);
-			selectMessage.setText(NO_MESSAGE);
+			makePanel(this.currentStyle);
+		}
+	}
+	
+	private void makePanel(int kind)
+	{
+		removeAll();
+		switch (kind) {
+			case NOTHING_SELECTED:
+				makeNothingSelectedPanel();
+				break;
+			case BASIC:
+				makeBasicPanel();
+				break;
+			case ADVANCED_INTERSECTION:
+				makeAdvancedIntersectionPanel();
+				break;
+			case ADVANCED_UNION:
+				makeAdvancedUnionPanel();
+				break;
 		}
 		repaint();
 		validate();
 	}
 	
+	private void makeNothingSelectedPanel()
+	{
+		gbConstraints.gridx = 0;
+		gbConstraints.gridy = 0;
+		add(new javax.swing.JLabel("Keyword:"),gbConstraints);
+		
+		gbConstraints.gridx = 1;
+		gbConstraints.gridy = 0;
+		add(field,gbConstraints);
+		field.addActionListener(this);
+		
+		gbConstraints.gridx = 0;
+		gbConstraints.gridy = 1;
+		add(selectMessage,gbConstraints);
+		
+		gbConstraints.gridx = 1;
+		gbConstraints.gridy = 1;
+		add(searchButton,gbConstraints);
+		searchButton.setEnabled(false);
+	}
+	
+	private void makeBasicPanel()
+	{
+		gbConstraints.gridx = 0;
+		gbConstraints.gridy = 0;
+		add(new javax.swing.JLabel("Keyword:"),gbConstraints);
+		
+		gbConstraints.gridx = 1;
+		gbConstraints.gridy = 0;
+		add(field,gbConstraints);
+		field.addActionListener(this);
+		
+		gbConstraints.gridx = 0;
+		gbConstraints.gridy = 1;
+		add(moreOptionsButton,gbConstraints);
+
+		gbConstraints.gridx = 1;
+		gbConstraints.gridy = 1;
+		add(searchButton,gbConstraints);
+		searchButton.setEnabled(true);
+		this.currentStyle = BASIC;
+	}
+	
+	private void makeAdvancedIntersectionPanel()
+	{
+		gbConstraints.gridx = 0;
+		gbConstraints.gridy = 0;
+		add(new javax.swing.JLabel("Keyword:"),gbConstraints);
+		
+		gbConstraints.gridx = 1;
+		gbConstraints.gridy = 0;
+		add(field,gbConstraints);
+		field.addActionListener(this);
+		
+		gbConstraints.gridx = 0;
+		gbConstraints.gridy = 1;
+		add(fewerOptionsButton,gbConstraints);
+		
+		gbConstraints.gridx = 0;
+		gbConstraints.gridy = 2;
+		add(moreOptionsButton,gbConstraints);
+		
+		gbConstraints.gridx = 1;
+		gbConstraints.gridy = 2;
+		add(searchButton,gbConstraints);
+		searchButton.setEnabled(true);
+		this.currentStyle = ADVANCED_INTERSECTION;
+	}
+	
+	private void makeAdvancedUnionPanel()
+	{
+		gbConstraints.gridx = 0;
+		gbConstraints.gridy = 0;
+		add(new javax.swing.JLabel("Keyword:"),gbConstraints);
+		
+		gbConstraints.gridx = 1;
+		gbConstraints.gridy = 0;
+		add(field,gbConstraints);
+		field.addActionListener(this);
+		
+		gbConstraints.gridx = 0;
+		gbConstraints.gridy = 1;
+		add(fewerOptionsButton,gbConstraints);
+		
+		gbConstraints.gridx = 1;
+		gbConstraints.gridy = 1;
+		add(searchButton,gbConstraints);
+		searchButton.setEnabled(true);
+		this.currentStyle = ADVANCED_UNION;
+	}
+	
+	
+	
 	public void actionPerformed(java.awt.event.ActionEvent ae)
 	{
-		this.criteria = field.getText();
-		fireSearch(new edu.tufts.vue.fsm.event.SearchEvent(this));
+		if (ae.getSource() == this.moreOptionsButton) {
+			if (this.currentStyle == BASIC) {
+				makePanel(ADVANCED_INTERSECTION);
+			} else {
+				makePanel(ADVANCED_UNION);
+			}
+		} else if (ae.getSource() == this.fewerOptionsButton) {
+			if (this.currentStyle == ADVANCED_UNION) {
+				makePanel(ADVANCED_INTERSECTION);
+			} else {
+				makePanel(BASIC);
+			}
+		} else {
+			this.criteria = field.getText();
+			fireSearch(new edu.tufts.vue.fsm.event.SearchEvent(this));
+		}
 	}
 	
 	public void addSearchListener(edu.tufts.vue.fsm.event.SearchListener listener)
