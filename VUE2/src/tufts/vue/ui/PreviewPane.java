@@ -34,7 +34,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.4 $ / $Date: 2006-04-04 04:56:42 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2006-04-04 05:13:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -61,8 +61,8 @@ public class PreviewPane extends JPanel
         
     PreviewPane() {
         super(new BorderLayout());
-        setMinimumSize(new Dimension(32,32));
-        setPreferredSize(new Dimension(200,200));
+        setMinimumSize(new Dimension(64,64));
+        //setPreferredSize(new Dimension(200,200));
         setOpaque(false);
 
         //StatusLabel.setLineWrap(true);
