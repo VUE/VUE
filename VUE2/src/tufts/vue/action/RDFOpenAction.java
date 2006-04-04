@@ -78,7 +78,7 @@ public class RDFOpenAction extends VueAction {
     }
     
     // todo: have only one root loadMap that hanldes files & urls -- actually, make it ALL url's
-    public static LWMap loadMap(String fileName) {
+       public static LWMap loadMap(String fileName) {
         try {
             LWMap map = new LWMap(fileName);
             // create an empty model
@@ -98,14 +98,42 @@ public class RDFOpenAction extends VueAction {
             model.write(System.out);
             ResIterator iter = model.listSubjects();
             float y = 20;
-            float x = 50;
+            float x = 400;
+            // read the rdf statements and add metadata values and links
             while (iter.hasNext()) {
-                com.hp.hpl.jena.rdf.model.Resource r = iter.nextResource();
+                 com.hp.hpl.jena.rdf.model.Resource  r = iter.nextResource();                 
                 LWNode node = new LWNode(r.getURI());
-                y += 40;
+                com.hp.hpl.jena.rdf.model.StmtIterator stmtIterator = r.listProperties();
+                java.util.Properties properties = new java.util.Properties();
+                x += 80;
                 node.setLocation(x,y);
-                node.setResource(r.getURI());
+                tufts.vue.MapResource resource = new MapResource(r.getURI());
+                resource.setProperties(properties);
+                node.setResource(resource);
                 map.addNode(node);
+                while(stmtIterator.hasNext()){
+                      com.hp.hpl.jena.rdf.model.Statement stmt = stmtIterator.nextStatement();
+                      Object obj = stmt.getObject();
+                      if(obj instanceof com.hp.hpl.jena.rdf.model.Resource) {
+                          Iterator nodeIterator = map.getNodeIterator();
+                          while(nodeIterator.hasNext()) {
+                              LWNode nodeCon = (LWNode)nodeIterator.next();
+                              if(nodeCon.getResource().getSpec().equals(((com.hp.hpl.jena.rdf.model.Resource)obj).getURI())){
+                                    LWLink link = new LWLink(node,nodeCon);
+                                    link.setLabel(stmt.getPredicate().getLocalName());
+                                    node.setLocation(node.getLocation().getX(),node.getLocation().getY()-20);
+                                    nodeCon.setLocation(nodeCon.getLocation().getX(),nodeCon.getLocation().getY()-20);
+                                    map.addLink(link);
+                              }
+                          }
+                          System.out.println("Resource: "+r.getURI()+" sub resource:"+obj.toString());
+                      }else if(obj instanceof com.hp.hpl.jena.rdf.model.Literal) {
+                          properties.setProperty(stmt.getPredicate().getLocalName(), obj.toString());
+                          System.out.println("Resource: "+r.getURI()+" Literal:"+obj.toString()+" Predicate"+stmt.getPredicate());
+                      }
+                      //System.out.println("Literal="+stmt.getLiteral()+"predicate ="+stmt.getPredicate());
+                }
+               
             }
         
             return map;
