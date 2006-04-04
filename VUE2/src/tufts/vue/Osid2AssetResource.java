@@ -1,4 +1,4 @@
- /*
+/*
  * -----------------------------------------------------------------------------
  *
  * <p><b>License and Copyright: </b>The contents of this file are subject to the
@@ -26,8 +26,8 @@
 package tufts.vue;
 
 /** A wrapper for an implementation of the Repository OSID.  A osid.dr.Asset which can be used as the user 
- *  object in a DefaultMutableTreeNode.  It implements the Resource interface specification.
- */
+*  object in a DefaultMutableTreeNode.  It implements the Resource interface specification.
+*/
 
 public class Osid2AssetResource extends MapResource
 {
@@ -37,11 +37,11 @@ public class Osid2AssetResource extends MapResource
     private org.osid.OsidContext context = null;
     private org.osid.repository.Asset asset = null;
 	private org.osid.shared.Type thumbnailType = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
-	private javax.swing.ImageIcon icon = null;
-
-//    private osid.dr.Asset asset;
-//    private CastorFedoraObject castorFedoraObject;  // stripped version of fedora object for saving and restoring in castor will work only with this implementation of DR API.
-
+	private String icon = null;
+	
+	//    private osid.dr.Asset asset;
+	//    private CastorFedoraObject castorFedoraObject;  // stripped version of fedora object for saving and restoring in castor will work only with this implementation of DR API.
+	
     public Osid2AssetResource(org.osid.repository.Asset asset, org.osid.OsidContext context) throws org.osid.repository.RepositoryException 
     {
         super();
@@ -59,17 +59,17 @@ public class Osid2AssetResource extends MapResource
     
     /**
         The Resoource Title maps to the Asset DisplayName.
-        The Resource Spec maps to the value in an info field with a published Id.  This should be changed
-        to a field with a published name and a published InfoStructure Type after the OSID changes.
-    */
-
+	 The Resource Spec maps to the value in an info field with a published Id.  This should be changed
+	 to a field with a published name and a published InfoStructure Type after the OSID changes.
+	 */
+	
     public void setAsset(org.osid.repository.Asset asset) throws org.osid.repository.RepositoryException 
     {
         this.asset = asset;
         try
         {
             java.util.Properties osid_registry_properties = new java.util.Properties();
-
+			
             setType(Resource.ASSET_OKIREPOSITORY);
             String displayName = asset.getDisplayName();
             setTitle(displayName);
@@ -106,62 +106,62 @@ public class Osid2AssetResource extends MapResource
             if (!foundIntegrationRecord)
             {
                 try
-                {
-					org.osid.shared.Type partType = new edu.tufts.vue.util.Type("mit.edu","partStructure","URL");
-                    org.osid.repository.RecordIterator recordIterator = asset.getRecords();
-                    while (recordIterator.hasNextRecord())
-                    {
-                        org.osid.repository.PartIterator partIterator = recordIterator.nextRecord().getParts();
-                        while (partIterator.hasNextPart())
-                        {
-                            org.osid.repository.Part part = partIterator.nextPart();
-                            org.osid.repository.PartStructure partStructure = part.getPartStructure();
-							org.osid.shared.Type partStructureType = partStructure.getType();
-							java.io.Serializable ser = part.getValue();
-
-							// metadata discovery
-							if (ser != null) {
-								mProperties.put(partStructureType.getKeyword(),ser);
-								if (partStructureType.isEqual(partType))
-								{
-									String s = (String)part.getValue();
-									setSpec(s);
-								}
-								
-								// preview should be a URL or an image
-								if (partStructureType.isEqual(this.thumbnailType)) {
-									if (ser instanceof String) {
-										setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((String)ser)));
-										this.icon = new javax.swing.ImageIcon((String)ser);
-									} else {
-										setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)ser)));
-										this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
-									}
-								}
+			{
+				org.osid.shared.Type partType = new org.osid.types.mit.URLPartStructureType();
+				org.osid.repository.RecordIterator recordIterator = asset.getRecords();
+				while (recordIterator.hasNextRecord())
+				{
+					org.osid.repository.PartIterator partIterator = recordIterator.nextRecord().getParts();
+					while (partIterator.hasNextPart())
+					{
+						org.osid.repository.Part part = partIterator.nextPart();
+						org.osid.repository.PartStructure partStructure = part.getPartStructure();
+						org.osid.shared.Type partStructureType = partStructure.getType();
+						java.io.Serializable ser = part.getValue();
+						
+						// metadata discovery
+						mProperties.put(partStructureType.getKeyword(),ser);
+						if (partStructureType.isEqual(partType))
+						{
+							String s = (String)part.getValue();
+							setSpec(s);
+							//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL(s))));
+							this.icon = s;
+						}
+						
+						// preview should be a URL or an image
+						if (partStructureType.isEqual(this.thumbnailType)) {
+							if (ser instanceof String) {
+								//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL((String)ser))));
+								this.icon = (String)ser;
+							} else {
+								//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)ser)));
+								//this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
 							}
-                        }
-                    }
-                }
+						}
+					}
+				}
+			}
                 catch (Throwable t) 
-                {
+			{
                     t.printStackTrace();
-                }
+			}
             }
             
             /*
-                We looked for a chance to load the spec as part of a VUE Record above.  Now try the asset content.  If that fails,
-                use the asset display name
-            */
-            if ((getSpec() == null) || (getSpec().trim().length() == 0) || getSpec().equals(SPEC_UNSET))
+			 We looked for a chance to load the spec as part of a VUE Record above.  Now try the asset content.  If that fails,
+			 use the asset display name
+			 */
+            if ((getSpec() == null) || (getSpec().trim().length() == 0))
             {
                 try
-                {
-                    java.io.Serializable s = asset.getContent();
-                    if (s instanceof String)
-                    {
-                        setSpec((String)s);
-                    }
-                }
+			{
+				java.io.Serializable s = asset.getContent();
+				if (s instanceof String)
+				{
+					setSpec((String)s);
+				}
+			}
                 catch (Throwable t) {}
                 if (getSpec() == null)
                 {
@@ -174,15 +174,19 @@ public class Osid2AssetResource extends MapResource
         {
             setSpec(asset.getDisplayName());
         }
-        if ((getSpec() == null) || (getSpec().trim().length() == 0) || getSpec().equals(SPEC_UNSET))
+        if ((getSpec() == null) || (getSpec().trim().length() == 0))
         {
             setSpec(asset.getDisplayName());
         }
     }
-
+	
     public org.osid.repository.Asset getAsset() 
     {
         return this.asset;
     }    
 	
+	public String getImageIcon()
+	{
+		return this.icon;
+	}	
 }
