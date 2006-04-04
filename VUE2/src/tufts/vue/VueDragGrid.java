@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.1 $ / $Date: 2006-04-04 01:39:17 $ / $Author: jeff $
+ * @version $Revision: 1.2 $ / $Date: 2006-04-04 05:20:47 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragGrid extends JTree
@@ -313,7 +313,8 @@ public class VueDragGrid extends JTree
                                                hasFocus);
 			if (leaf) {
 				Osid2AssetResource resource = (Osid2AssetResource)((DefaultMutableTreeNode)value).getUserObject();
-				String iconURL = resource.getImageIcon();
+				//String iconURL = resource.getImageIcon();
+                                // TODO SMF: a VUE image pane that is an Icon
 				
 				// call to image load code goes here
 			 }
