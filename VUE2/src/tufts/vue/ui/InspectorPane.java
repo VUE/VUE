@@ -34,7 +34,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.2 $ / $Date: 2006-04-04 04:57:09 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-04-04 21:16:56 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -92,7 +92,7 @@ public class InspectorPane extends JPanel
         mNotePanel.setName("Node Notes");
 
         stack.addPane(mUserMetaData, 1f);
-        stack.addPane("Resource Preview",      mPreview, 0.3f);
+        stack.addPane("Resource Preview",      mPreview, 0.75f);
         //stack.addPane("Resource Summary",      mSummary, 0f);
         stack.addPane("Resource Meta Data",    mResourceMetaData, 1f);
         stack.addPane(mNotePanel, 1f);
@@ -194,6 +194,7 @@ public class InspectorPane extends JPanel
             super(new BorderLayout());
 
             mTitleField.setOpaque(false);
+            mTitleField.setAlignmentX(0.5f);
             mTitleField.setFont(textFontBold);
             mTitleField.setBorder(new EmptyBorder(0,2,5,2));
 
@@ -206,7 +207,9 @@ public class InspectorPane extends JPanel
             if (title == null || title.length() < 1) {
                 mTitleField.setVisible(false);
             } else {
-                mTitleField.setText(r.getTitle());
+                //if (title.indexOf('<') >= 0)
+                title = "<HTML>" + title;
+                mTitleField.setText(title);
                 mTitleField.setVisible(true);
             }
             mPreviewPane.loadResource(r);
