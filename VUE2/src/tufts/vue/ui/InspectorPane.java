@@ -34,7 +34,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.1 $ / $Date: 2006-03-29 23:01:16 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-04-04 04:57:09 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -42,7 +42,7 @@ public class InspectorPane extends JPanel
 {
 
     // fields for the Summary Pane
-    private final JTextComponent mTitleField = new JTextArea();
+    //private final JTextComponent mTitleField = new JTextArea();
     private final JTextComponent mWhereField = new JTextPane();
     private final JLabel mSizeField = new JLabel();
 
@@ -51,30 +51,48 @@ public class InspectorPane extends JPanel
     private final boolean isMacAqua = GUI.isMacAqua();
 
     // Resource panes
-    private final JPanel mSummary;
+    //private final JPanel mSummary;
     private final PropertiesEditor mResourceMetaData;
-    private final PreviewPane mPreview;
+    private final ResourcePreview mPreview;
     
     // Node panes
     private final NotePanel mNotePanel = new NotePanel();
     private final UserMetaData mUserMetaData = new UserMetaData();
     private final NodeTree mNodeTree = new NodeTree();
     
+    private final Font textFont;
+    private final Font textFontBold;
+    
     public InspectorPane()
     {
         super(new BorderLayout());
         setName("Selection Inspector");
 
-        mSummary = new SummaryPane();
+        String fontName;
+        int fontSize;
+
+        if (isMacAqua) {
+            fontName = "Lucida Grande";
+            fontSize = 10;
+        } else {
+            fontName = "SansSerif";
+            fontSize = 11;
+        }
+
+        textFont = new Font(fontName, Font.PLAIN, fontSize);
+        textFontBold = new Font(fontName, Font.BOLD, fontSize);
+        
+
+        //mSummary = new SummaryPane();
         mResourceMetaData = new PropertiesEditor(false);
-        mPreview = new PreviewPane();
+        mPreview = new ResourcePreview();
 
         WidgetStack stack = new WidgetStack();
 
         mNotePanel.setName("Node Notes");
 
         stack.addPane(mUserMetaData, 1f);
-        stack.addPane("Resource Preview",      mPreview, 1f);
+        stack.addPane("Resource Preview",      mPreview, 0.3f);
         //stack.addPane("Resource Summary",      mSummary, 0f);
         stack.addPane("Resource Meta Data",    mResourceMetaData, 1f);
         stack.addPane(mNotePanel, 1f);
@@ -94,6 +112,7 @@ public class InspectorPane extends JPanel
     {
         if (DEBUG.RESOURCE) out("resource selected: " + selection.get());
         showNodePanes(false);
+        showResourcePanes(true);
         loadResource(selection.get());
     }
 
@@ -119,12 +138,12 @@ public class InspectorPane extends JPanel
         if (DEBUG.RESOURCE) out("loadResource: " + r);
         
         if (r != null) {
-            setAllEnabled(true);
-            loadText(mWhereField, r.getSpec());
-            loadText(mTitleField, r.getTitle());
+            //setAllEnabled(true);
+            //loadText(mWhereField, r.getSpec());
+            //loadText(mTitleField, r.getTitle());
         } else {
             // leave current display, but grayed out
-            setAllEnabled(false);
+            ///setAllEnabled(false);
             return;
         }
         
@@ -160,12 +179,39 @@ public class InspectorPane extends JPanel
         Widget.setHidden(mNodeTree, !visible);
     }
     private void showResourcePanes(boolean visible) {
-        Widget.setHidden(mSummary, !visible);
+        //Widget.setHidden(mSummary, !visible);
         Widget.setHidden(mResourceMetaData, !visible);
         Widget.setHidden(mPreview, !visible);
     }
 
 
+    private class ResourcePreview extends JPanel {
+    
+        private final JLabel mTitleField = new JLabel("", JLabel.CENTER);
+        private final PreviewPane mPreviewPane = new PreviewPane();
+        
+        ResourcePreview() {
+            super(new BorderLayout());
+
+            mTitleField.setOpaque(false);
+            mTitleField.setFont(textFontBold);
+            mTitleField.setBorder(new EmptyBorder(0,2,5,2));
+
+            add(mPreviewPane, BorderLayout.CENTER);
+            add(mTitleField, BorderLayout.SOUTH);
+        }
+
+        void loadResource(Resource r) {
+            String title = r.getTitle();
+            if (title == null || title.length() < 1) {
+                mTitleField.setVisible(false);
+            } else {
+                mTitleField.setText(r.getTitle());
+                mTitleField.setVisible(true);
+            }
+            mPreviewPane.loadResource(r);
+        }
+    }
     public static class NodeTree extends JPanel
     {
         private final OutlineViewTree tree;
@@ -229,7 +275,7 @@ public class InspectorPane extends JPanel
         }
     }
     
-
+    /*
     // summary fields
     private final Object[] labelTextPairs = {
         "-Title",   mTitleField,
@@ -263,7 +309,7 @@ public class InspectorPane extends JPanel
             c.gridwidth = GridBagConstraints.REMAINDER; 
             c.anchor = GridBagConstraints.NORTHWEST;
             add(mTitleField, c);
-            */
+            **
 
             Font fieldFace = new Font(fontName, Font.PLAIN, fontSize);
             Font labelFace = new GUI.Face(fontName, Font.BOLD, fontSize, Color.gray);
@@ -306,6 +352,8 @@ public class InspectorPane extends JPanel
         }
         mResourceMetaData.setEnabled(enabled);
     }
+
+    */
     
     
     //----------------------------------------------------------------------------------------
