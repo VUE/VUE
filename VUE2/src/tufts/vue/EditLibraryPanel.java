@@ -44,7 +44,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener, FocusLis
 		for (int i=0; i < values.length; i++) {
 			// special case for password fields
 			if (maps[i].containsKey("password")) {
-				if ((Boolean)maps[i].get("password")) {
+				if ( ((Boolean)maps[i].get("password")).booleanValue() ) {
 					this.fields[i] = new JPasswordField();
 				} else {
 					this.fields[i] = new JTextField();
@@ -55,7 +55,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener, FocusLis
 
 			// special case for columns property
 			if (maps[i].containsKey("columns")) {
-				this.fields[i].setColumns((Integer)maps[i].get("columns"));
+				this.fields[i].setColumns( ((Integer)maps[i].get("columns")).intValue() );
 			} else {
 				this.fields[i].setColumns(20);
 			}
