@@ -34,7 +34,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.3 $ / $Date: 2006-03-31 23:23:47 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2006-04-04 04:56:42 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -155,14 +155,24 @@ public class PreviewPane extends JPanel
         }
     }
 
+    // TODO: if this triggered from an LWImage selection, and LWImage had
+    // an image error, also notify the LWImage of good data if it comes
+    // in as a result of selection.
+
     private synchronized void loadImage(Object imageData) {
         if (DEBUG.IMAGE) out("loadImage " + imageData);
+
+        // test of synchronous loading:
+        //out("***GOT IMAGE " + Images.getImage(imageData));
+        
         if (!Images.getImage(imageData, this)) {
             // will make callback to gotImage when we have it
             isLoading = true;
             status("Loading...");
-        } else
+        } else {
+            // gotImage has already been called
             isLoading = false;
+        }
     }
 
 
