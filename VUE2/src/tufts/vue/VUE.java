@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.358 $ / $Date: 2006-04-03 23:14:49 $ / $Author: sfraize $ 
+ * @version $Revision: 1.359 $ / $Date: 2006-04-04 05:12:33 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -631,6 +631,7 @@ public class VUE
 
         //final DockWindow resourceDock = GUI.createDockWindow("Resource Inspector", new ResourcePanel());
         DockWindow ObjectInspector = GUI.createDockWindow(new tufts.vue.ui.InspectorPane());
+        ObjectInspector.setHeight(575);
         
         //-----------------------------------------------------------------------------
         // Object Inspector
