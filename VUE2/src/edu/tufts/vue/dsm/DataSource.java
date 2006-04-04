@@ -143,4 +143,15 @@ public interface DataSource
 	
 	// pass through from the underlying Repository
 	public org.osid.shared.TypeIterator getSearchTypes();
+	
+	public boolean hasConfiguration();
+	
+	public String[] getConfigurationKeys();
+	
+	public String[] getConfigurationValues();
+	
+	public void setConfigurationValues(String[] values);
+	
+	public java.util.Map[] getConfigurationMaps();
+	
 }

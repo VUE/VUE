@@ -539,4 +539,47 @@ implements edu.tufts.vue.dsm.DataSource
 	public org.osid.shared.TypeIterator getSearchTypes() {
 		return this.repositorySearchTypes;
 	}
+
+	public boolean hasConfiguration()
+	{
+		return true;
+	}
+	
+	public String[] getConfigurationKeys()
+	{
+		String keys[] = new String[4];
+		keys[0] = "Display Name";
+		keys[1] = "Address";
+		keys[2] = "User Name";
+		keys[3] = "Password";
+		return keys;
+	}
+	
+	public String[] getConfigurationValues()
+	{
+		String values[] = new String[4];
+		values[0] = null;
+		values[1] = null;
+		values[2] = "jkahn";
+		values[3] = null;
+		return values;
+	}
+
+	public void setConfigurationValues(String[] values)
+	{
+		
+	}
+	
+	public java.util.Map[] getConfigurationMaps()
+	{
+		java.util.Map maps[] = new java.util.Map[4];
+		maps[0] = new java.util.HashMap();
+		maps[1] = new java.util.HashMap();
+		java.util.Map map = new java.util.HashMap();
+		map.put("password",new Boolean(true));
+		map.put("columns",new Integer(10));
+		maps[2] = map;
+		maps[3] = new java.util.HashMap();
+		return maps;
+	}
 }
