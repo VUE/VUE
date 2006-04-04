@@ -34,7 +34,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-04-04 05:13:16 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-04-04 21:41:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -62,7 +62,7 @@ public class PreviewPane extends JPanel
     PreviewPane() {
         super(new BorderLayout());
         setMinimumSize(new Dimension(64,64));
-        //setPreferredSize(new Dimension(200,200));
+        setPreferredSize(new Dimension(256,128));
         setOpaque(false);
 
         //StatusLabel.setLineWrap(true);
@@ -96,8 +96,12 @@ public class PreviewPane extends JPanel
         
     }
 
+    private void showLoadingStatus() {
+        StatusLabel.setText("Loading...");
+        StatusLabel.setVisible(true);
+    }
     private void status(String msg) {
-        StatusLabel.setText(msg);
+        StatusLabel.setText("<HTML>"+msg);
         StatusLabel.setVisible(true);
     }
     private void clearStatus() {
@@ -168,7 +172,7 @@ public class PreviewPane extends JPanel
         if (!Images.getImage(imageData, this)) {
             // will make callback to gotImage when we have it
             isLoading = true;
-            status("Loading...");
+            showLoadingStatus();
         } else {
             // gotImage has already been called
             isLoading = false;
@@ -202,7 +206,7 @@ public class PreviewPane extends JPanel
             return;
             
         displayImage(NoImage);
-        status("Image Error:\n" + msg);
+        status("Error: " + msg);
         isLoading = false;
     }
 
