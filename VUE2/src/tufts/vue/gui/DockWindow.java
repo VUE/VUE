@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.47 $ / $Date: 2006-04-02 20:15:32 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2006-04-04 22:56:24 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1374,7 +1374,7 @@ public class DockWindow extends javax.swing.JWindow
 
         // christ: JVM 1.5, on an old WIN2K box, animates a resize easily
         // 10 times faster than the mac
-        final int steps = isWindows ? 80 : 4;
+        final int steps = isWindows ? 40 : 4;
         
         final boolean moved = (x != getX() || y != getY());
         final boolean resized = (width != getWidth() || height != getHeight());
