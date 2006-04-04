@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-04-03 23:21:02 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-04-04 04:53:52 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -50,7 +50,7 @@ public class Images
             public void act() { Cache.clear(); }
         };
     
-    private static Map Cache = new CacheMap();
+    private static CacheMap Cache = new CacheMap();
 
     
     /**
@@ -147,25 +147,21 @@ public class Images
      */
     private static class CacheMap extends HashMap {
 
-        /*
         public synchronized Object get(Object key) {
-            //if (DEBUG.IMAGE) out("SoftMap; get: " + key);
-            Object val = super.get(key);
-            if (val == null)
-                return null;
-            //if (val instanceof CacheEntry) 
-            val = ref.get();
-            if (val == null) {
-                if (DEBUG.IMAGE) out("SoftMap; image was garbage collected: " + key);
-                super.remove(key);
-                return null;
-            } else
-                return val;
+            return super.get(key);
         }
+        
         public synchronized boolean containsKey(Object key) {
-            return get(key) != null;
+            return super.containsKey(key);
         }
-        */
+        
+        public synchronized Object put(Object key, Object value) {
+            return super.put(key, value);
+        }
+
+        public synchronized Object remove(Object key) {
+            return super.remove(key);
+        }
         
 
         // for now, only clears memory cache
@@ -411,7 +407,11 @@ public class Images
                 return; 
             }
             
-            // First deliver any results we've already got:
+            // Deliver any results we've already got.  It's theoretically possible
+            // for this to happen even after we have all our results, if the image
+            // completed between the time we found the Loader in the cache, and the
+            // time the requestor was added as a listener.
+            
             deliverPartialResults(newListener);
             
             if (tail == null)  {
@@ -428,13 +428,12 @@ public class Images
             
             if (width > 0)
                 l.gotImageSize(imageSRC.original, width, height);
+
             if (image != null)
                 l.gotImage(imageSRC.original, image, width, height);
 
-            if (errorMsg != null) {
-                out("DELIVERING PARTIAL RESULT ERROR FOR " + imageSRC + " [" + errorMsg + "] to: " + tag(l));
+            if (errorMsg != null) 
                 l.gotImageError(imageSRC.original, errorMsg);
-            }
 
             if (DEBUG.IMAGE) out("DONE DELIVERING PARTIAL RESULTS TO: " + tag(l));
             
@@ -464,6 +463,7 @@ public class Images
                 VUE.Log.warn(this + "; nobody listening: image will be quietly cached: " + imageSRC);
             this.imageSRC = imageSRC;
             this.relay = new LoaderRelayer(imageSRC, l);
+            setDaemon(true);
             //setPriority(NORM_PRIORITY - 1);
         }
 
@@ -494,117 +494,179 @@ public class Images
             out("FETCHING IMAGE SOURCE " + imageSRC + " for " + tag(listener));
         }
 
+
+        Object fetchResult;
+        BufferedImage cachedImage = null;
+        
         synchronized (Cache) {
+            fetchResult = getCacheFetchResult(imageSRC, listener);
+        }
 
-            Object entry;
+        if (fetchResult == IMAGE_LOADER_STARTED)
+            return null;
 
-            if (imageSRC.key != null && (entry = Cache.get(imageSRC.key)) != null) {
-                if (DEBUG.IMAGE) out("found cache entry for key " + tag(imageSRC.key) + ": " + entry);
-                
-                BufferedImage image = null;
-                
-                if (entry instanceof Loader) {
-                    if (DEBUG.IMAGE) out("Image is loading into the cache via already existing Loader...");
-                    Loader loader = (Loader) entry;
-
-                    if (listener != null) {
-                        if (DEBUG.IMAGE) out("Adding us as listener to existing Loader");
-                        loader.addListener(listener);
-                        return null;
-                    }
-                    
-                    // We've got no listener, so run synchronous & wait on existing loader thread to die:
-                    out("Joining " + tag(loader) + "...");
-                    loader.join();
-                    out("Join of " + tag(loader) + " completed, cache has filled.");
-                        
-                    // Note we get here only in one rare case: there was an entry in the
-                    // cache that was already loading on another thread, and somebody new
-                    // requested the image that did NOT have a listener, so we joined the
-                    // existing thread and waited for it to finish (with no listener, we
-                    // have to run synchronous).
-                        
-                    // So now that we've waited, we should be guarnateed to have a full
-                    // Image result in the cache at this point.
-                        
-                    // Note: *theoretically*, the GC could have cleared our SoftReference
-                    // betwen loading the cache and now, but in practice it should
-                    // never happen.
-                        
-                    image = ((CacheEntry)Cache.get(imageSRC.key)).getImage();
-                    if (image == null)
-                        VUE.Log.warn("Zealous GC: image tossed immediately " + imageSRC);
-
-                } else {
-                    CacheEntry ce = (CacheEntry) entry;
-                    BufferedImage cachedImage = ce.getImage();
-                     	
-                    // if we have the image, we're done (it was loaded this runtime, and not GC'd)
-                    // if not, either it was GC'd, or it's a cache file entry from the persistent
-                    // cache -- in either case, there is a file on disk -- mark it the imageSRC,
-                    // and the loader will notice it and use it.
-                    
-                    boolean emptyEntry = true;
-
-                    if (cachedImage != null) {
-                        image = cachedImage;
-                        emptyEntry = false;
-                    } else if (ce.getFile() != null) {
-                        if (ce.file.canRead()) {
-                            imageSRC.cacheFile = ce.file;
-                            emptyEntry = false;
-                        } else
-                            VUE.Log.warn("cache file no longer available: " + ce.file);
-                    }
-
-                    if (emptyEntry) {
-                        // there is a cache entry with no image OR file: this could only
-                        // happen if the disk cache is not operating, and the memory
-                        // image was garbage collected: we need to remove this entry
-                        // from the cache completely and start from scratch:
-                        out("REMOVING FROM CACHE: " + imageSRC);
-                        Cache.remove(imageSRC.key);
-                    }
-                        
-                }
-
-                if (image != null) {
-                    if (listener != null)
-                        listener.gotImage(imageSRC.original, image, image.getWidth(), image.getHeight());
-                    return image;
-                }
-
-                // We get here in the following cases:
-                // (1) We had the image, but is was GC'd -- we're going back to the cache file
-                // (2) We had the image, but is was GC'd -- original was on disk: go back to that
-                // (3) We had the image, but is was GC'd, and disk cache not working: reload original from network
-                // (4) We never had the image, but it is in disk cache: go get it
-                // (5) unlikely case case of zealous GC: reload original
-
-                // Note that original image sources that were on disk are NOT moved
-                // to the disk cache, and CacheEntry.file should always be null for those.
-            }
-
-            // Image wasn't in the cache: we must go get it.
-            // If we have a listener, create a thread to do this.
-            // If we don't, do now and don't return until we have the result.
+        if (fetchResult instanceof Loader) {
+            Loader loader = (Loader) fetchResult;
 
             if (listener != null) {
-                Loader newLoader = new Loader(imageSRC, listener);
-                newLoader.start();
-                Cache.put(imageSRC.key, newLoader);
+                if (DEBUG.IMAGE) out("Adding us as listener to existing Loader");
+                loader.addListener(listener);
+                return null;
             }
+                
+            // We had no listener, so run synchronous & wait on existing loader thread to die:
+            // We can't have a cache-lock when we do this.
             
+            out("Joining " + tag(loader) + "...");
+            loader.join();
+            out("Join of " + tag(loader) + " completed, cache has filled.");
+            
+            // Note we get here only in one rare case: there was an entry in the
+            // cache that was already loading on another thread, and somebody new
+            // requested the image that did NOT have a listener, so we joined the
+            // existing thread and waited for it to finish (with no listener, we
+            // have to run synchronous).
+            
+            // So now that we've waited, we should be guarnateed to have a full
+            // Image result in the cache at this point.
+            
+            // Note: theoretically, the GC could have cleared our SoftReference
+            // betwen loading the cache and now, tho this may never happen.
+            
+            cachedImage = ((CacheEntry)Cache.get(imageSRC.key)).getImage();
+            if (cachedImage == null)
+                VUE.Log.warn("Zealous GC: image tossed immediately " + imageSRC);
+
+        } else if (fetchResult instanceof BufferedImage) {
+            cachedImage = (BufferedImage) fetchResult;
         }
 
-        if (listener == null) {
-            // load the image and don't return until we have it
-            return loadImage(imageSRC, listener);
-        } else {
-            // the image is in the process of loading
-            return null;
+
+        if (cachedImage != null) {
+            if (listener != null) {
+                // immediately callback the listener with the result
+                listener.gotImage(imageSRC.original,
+                                  cachedImage,
+                                  cachedImage.getWidth(),
+                                  cachedImage.getHeight());
+            }
+            return cachedImage;
         }
+
+        // We had no image, and no Loader was started: this should only
+        // happen if there was no listener for the Loader, tho
+        // we allow the sync load to go ahead just in case.
+        // (Could get here due to an over-zealous GC).
+
+        if (listener != null)
+            Util.printStackTrace("had a listener, but no Loader created: backup syncrhonous loading for " + imageSRC);
+
+        if (DEBUG.IMAGE) out("synchronous load of " + imageSRC);
+        
+        // load the image and don't return until we have it
+        return loadImage(imageSRC, listener);
+    }
+    
+
+    private static final Object IMAGE_LOADER_STARTED = "<image-loader-created>";
+
+    /**
+     * This method should only be called in a cache lock.  It has all sorts of side
+     * effects to the cache.  At the end of this call, we usually know there is
+     * something in the cache for the given imageSRC.key -- either we found the image
+     * already there, or we found a Loader thread already started there, or we put and
+     * started a new Loader thread there.  Unless there was no listener and nothing in
+     * the cache, in which case the image needs to be loaded synchronously (and we
+     * return null).
+     *
+     * This method also deals with cache cleanup: if an entry is found to be
+     * empty (it has no disk file, and it's image has been GC'd), the entry
+     * is removed.
+     *
+     * @return If an Image, we had the image in the cache immediately availble.  If a
+     * Loader thread object, the image is loading, and we should become and additional
+     * listener (if there is a listener given), or wait for the Loader to die to get
+     * it's results.  If the special value IMAGE_LOADER_STARTED is returned, there is
+     * nothing to do be done for now -- just wait for the callbacks to the listener if
+     * one was provided.
+     */
+    private static Object getCacheFetchResult(ImageSource imageSRC, Images.Listener listener)
+    {
+        Object entry;
+        
+        if (imageSRC.key != null && (entry = Cache.get(imageSRC.key)) != null) {
+            if (DEBUG.IMAGE) out("found cache entry for key " + tag(imageSRC.key) + ": " + entry);
+                
+            if (entry instanceof Loader) {
+                if (DEBUG.IMAGE) out("Image is loading into the cache via already existing Loader...");
+                return entry;
+            }
+
+            // Entry is not a Loader, so it must be a regular CacheEntry
+            // We still may not have an image tho: it may be been
+            // garbage collected, or the entry may actually be for a file
+            // on disk.
+
+            CacheEntry ce = (CacheEntry) entry;
+            BufferedImage cachedImage = ce.getImage();
+                     	
+            // if we have the image, we're done (it was loaded this runtime, and not GC'd)
+            // if not, either it was GC'd, or it's a cache file entry from the persistent
+            // cache -- in either case, there is a file on disk -- mark it in the imageSRC,
+            // and the loader will notice it and use it.
+                    
+            boolean emptyEntry = true;
+
+            if (cachedImage != null) {
+                emptyEntry = false;
+            } else if (ce.getFile() != null) {
+                if (ce.file.canRead()) {
+                    imageSRC.cacheFile = ce.file;
+                    emptyEntry = false;
+                } else
+                    VUE.Log.warn("cache file no longer available: " + ce.file);
+            }
+
+            if (emptyEntry) {
+                // there is a cache entry with no image OR file: this could only
+                // happen if the disk cache is not operating, and the memory
+                // image was garbage collected: we need to remove this entry
+                // from the cache completely and start from scratch:
+                if (DEBUG.Enabled) out("REMOVING FROM CACHE: " + imageSRC);
+                Cache.remove(imageSRC.key);
+            }
+
+            if (cachedImage != null)
+                return cachedImage;
+
+            // The was an entry in the cache, but it was of no use:
             
+            // We get here in the following cases:
+            // (1) We had the image, but is was GC'd -- we're going back to the cache file
+            // (2) We had the image, but is was GC'd -- original was on disk: go back to that
+            // (3) We had the image, but is was GC'd, and disk cache not working: reload original from network
+            // (4) We never had the image, but it is in disk cache: go get it
+            // (5) unlikely case case of zealous GC: reload original
+
+            // Note that original image sources that were on disk are NOT moved
+            // to the disk cache, and CacheEntry.file should always be null for those.
+
+        }            
+
+        // Nothing was in the cache: we must go get it.
+        // If we have a listener, create a thread to do this.
+        // If we don't, do now and don't return until we have the result.
+        
+        if (listener != null) {
+            Loader newLoader = new Loader(imageSRC, listener);
+            Cache.put(imageSRC.key, newLoader);
+            newLoader.start();
+            return IMAGE_LOADER_STARTED;
+        }
+
+        // With no listener, and nothing found in the cache, this
+        // image will need to be loaded immediately in the current thread.
+        return null;
     }
     
 
@@ -627,30 +689,29 @@ public class Images
         try {
             image = readAndCreateImage(imageSRC, listener);
         } catch (Throwable t) {
+            
             if (DEBUG.IMAGE) tufts.Util.printStackTrace(t);
+
+            Cache.remove(imageSRC.key);
+            
             if (listener != null) {
                 String msg;
                 if (t instanceof java.io.FileNotFoundException)
                     msg = "Not Found: " + t.getMessage();
+                else if (t instanceof java.net.UnknownHostException)
+                    msg = "Unknown Host: " + t.getMessage();
                 else if (t instanceof ThreadDeath)
                     msg = "interrupted";
                 else if (t.getMessage() != null && t.getMessage().length() > 0)
                     msg = t.getMessage();
                 else
                     msg = t.toString();
-                //if (t instanceof javax.imageio.IIOException || t instanceof ImageException)
-                //else
-                    //msg = t.toString();
 
                 // this is the one place we deliver caught exceptions
                 // during image loading:
                 listener.gotImageError(imageSRC.original, msg);
 
                 VUE.Log.warn("Image source: " + imageSRC + ": " + t);
-            }
-            
-            synchronized (Cache) {
-                Cache.remove(imageSRC.key);
             }
             
         }
@@ -660,13 +721,12 @@ public class Images
         // updating the old with the new in-memory image buffer.
 
         if (image != null) {
-            synchronized (Cache) {
-                File permanentCacheFile = null;
-                if (imageSRC.cacheFile != null)
-                    permanentCacheFile = ensurePermanentCacheFile(imageSRC.cacheFile);
-                
-                Cache.put(imageSRC.key, new CacheEntry(image, permanentCacheFile));
-            }
+            File permanentCacheFile = null;
+            if (imageSRC.cacheFile != null)
+                permanentCacheFile = ensurePermanentCacheFile(imageSRC.cacheFile);
+            
+            if (DEBUG.IMAGE) out("getting cache lock for storing result");
+            Cache.put(imageSRC.key, new CacheEntry(image, permanentCacheFile));
         }
 
         return image;
@@ -836,7 +896,7 @@ public class Images
                         imageSRC.readable = new FileBackedImageInputStream(urlStream, tmpCacheFile);
                         success = true;
                     } catch (Images.DataException e) {
-                        VUE.Log.error(e);
+                        VUE.Log.error(imageSRC + ": " + e);
                         if (++tries > 1) {
                             tufts.Util.printStackTrace(e);
                             throw e;
@@ -1019,7 +1079,7 @@ public class Images
     }
     
     private static void out(Object o) {
-        String s = "Images " + (""+System.currentTimeMillis()).substring(9);
+        String s = "Images " + (""+System.currentTimeMillis()).substring(8);
         s += " [" + Thread.currentThread().getName() + "]";
         if (false)
             VUE.Log.debug(s + " " + (o==null?"null":o.toString()));
