@@ -33,7 +33,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.4 $ / $Date: 2006-04-05 21:22:42 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2006-04-05 21:26:23 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -66,7 +66,7 @@ public class InspectorPane extends JPanel
     public InspectorPane()
     {
         super(new BorderLayout());
-        setName("Selection Inspector");
+        setName("Selection Properties");
 
         String fontName;
         int fontSize;
@@ -247,7 +247,9 @@ public class InspectorPane extends JPanel
             title = "<HTML><center>" + title;
 
             
-                mTitleField.setVisible(true);
+            mTitleField.setVisible(true);
+
+            if (false) {
                 //remove(mTitleField);
                 out("OLD            size=" + mTitleField.getSize());
                 out("OLD   preferredSize=" + mTitleField.getPreferredSize());
@@ -267,6 +269,7 @@ public class InspectorPane extends JPanel
                 //mTitleField.revalidate();
                 //repaint();
                 //mTitleField.setVisible(true);
+            }
 
             //mPreviewPane.loadResource(mResource);
             //mPreviewPane.setVisible(true);
