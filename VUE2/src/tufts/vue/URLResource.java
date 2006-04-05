@@ -37,7 +37,7 @@ import com.sun.image.codec.jpeg.*;
 /**
  * The class is handles a reference to either a local file or a URL.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-03-31 23:47:07 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-04-05 21:22:27 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.
@@ -114,6 +114,28 @@ public class URLResource implements Resource, XMLUnmarshalListener
             txt = s;
         }
         //if (DEBUG.Enabled) out("toURLString[" + txt + "]");
+
+
+        /*
+          // from old LWImage code:
+        if (s.startsWith("file://")) {
+
+            // TODO: SEE Util.java: WINDOWS URL'S DON'T WORK IF START WITH FILE://
+            // (two slashes), MUST HAVE THREE!  move this code to MapResource; find
+            // out if can even force a URL to have an extra slash in it!  Report
+            // this as a java bug.
+
+            // TODO: Our Cup>>Chevron unicode char example is failing
+            // here on Windows (tho it works for windows openURL).
+            // (The image load fails)
+            // Try ensuring the URL is UTF-8 first.
+            
+            s = s.substring(7);
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage " + s);
+            image = java.awt.Toolkit.getDefaultToolkit().getImage(s);
+        } else {
+        */
+        
         
         /*
         if (this.url == null) {
@@ -139,9 +161,10 @@ public class URLResource implements Resource, XMLUnmarshalListener
     public java.net.URL toURL()
         throws java.net.MalformedURLException
     {
-        if (mURL == null) {
+        if (spec.equals(SPEC_UNSET))
+            return mURL;
             
-            if (spec.equals(SPEC_UNSET)) return mURL;
+        if (mURL == null) {
             
             /*
             if (spec.startsWith("resource:")) {
@@ -165,6 +188,27 @@ public class URLResource implements Resource, XMLUnmarshalListener
             //setProperty("url.authority", url.getAuthority()); // always same as host?
             if (mURL.getPort() != -1)
                 setProperty("url.port", mURL.getPort());
+
+
+            if ("file".equals(mURL.getProtocol())) {
+                this.type = Resource.FILE;
+                if (mTitle == null) {
+                    String title;
+                    title = mURL.getPath();
+                    if (title != null) {
+                        if (title.endsWith("/"))
+                            title = title.substring(0, title.length() - 1);
+                        title = title.substring(title.lastIndexOf('/') + 1);
+                        if (tufts.Util.isMacPlatform()) {
+                            // On MacOSX, file names with colon (':') in them display as slashes ('/')
+                            title = title.replace(':', '/');
+                        }
+                        setTitle(title);
+                    }
+                }
+            } else {
+                this.type = Resource.URL;
+            }
         }
         
         return mURL;
@@ -312,6 +356,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
     public void setSpec(final String spec) {
         if (DEBUG.RESOURCE/*&& DEBUG.META*/) {
             System.err.println(getClass().getName() + " setSpec " + spec);
+            if (DEBUG.IMAGE && mTitle == null) setTitle(spec);
         }
         
         // TODO: will want generic ability to set the reference created
@@ -330,7 +375,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
             System.err.println("Got classpath resource: " + mURL);
             this.spec = mURL.toString();
         }
-        
+
 
         /*
         try {
@@ -362,7 +407,9 @@ public class URLResource implements Resource, XMLUnmarshalListener
         */
 
         //this.type = isLocalFile() ? Resource.FILE : Resource.URL;
-        this.type = Resource.FILE;
+
+        asURL();
+        
         this.preview = null;
     }
     
