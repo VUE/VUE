@@ -27,14 +27,13 @@ import tufts.vue.filter.NodeFilterEditor;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
+import javax.swing.text.*;
 import javax.swing.border.*;
-
 
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.3 $ / $Date: 2006-04-04 21:16:56 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2006-04-05 21:22:42 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -51,7 +50,7 @@ public class InspectorPane extends JPanel
     private final boolean isMacAqua = GUI.isMacAqua();
 
     // Resource panes
-    //private final JPanel mSummary;
+    private final SummaryPane mSummaryPane;
     private final PropertiesEditor mResourceMetaData;
     private final ResourcePreview mPreview;
     
@@ -60,9 +59,10 @@ public class InspectorPane extends JPanel
     private final UserMetaData mUserMetaData = new UserMetaData();
     private final NodeTree mNodeTree = new NodeTree();
     
-    private final Font textFont;
-    private final Font textFontBold;
-    
+    private final Font mLabelFont;
+    private final Font mValueFont;
+    private final Font mValueFontBold;
+
     public InspectorPane()
     {
         super(new BorderLayout());
@@ -79,24 +79,23 @@ public class InspectorPane extends JPanel
             fontSize = 11;
         }
 
-        textFont = new Font(fontName, Font.PLAIN, fontSize);
-        textFontBold = new Font(fontName, Font.BOLD, fontSize);
-        
+        mLabelFont = new GUI.Face(fontName, Font.BOLD, fontSize, Color.gray);
+        mValueFont = new Font(fontName, Font.PLAIN, fontSize);
+        mValueFontBold = new Font(fontName, Font.BOLD, fontSize);
 
-        //mSummary = new SummaryPane();
+
+        mSummaryPane = new SummaryPane();
         mResourceMetaData = new PropertiesEditor(false);
         mPreview = new ResourcePreview();
 
         WidgetStack stack = new WidgetStack();
 
-        mNotePanel.setName("Node Notes");
-
-        stack.addPane(mUserMetaData, 1f);
-        stack.addPane("Resource Preview",      mPreview, 0.75f);
-        //stack.addPane("Resource Summary",      mSummary, 0f);
-        stack.addPane("Resource Meta Data",    mResourceMetaData, 1f);
-        stack.addPane(mNotePanel, 1f);
-        stack.addPane(mNodeTree, 1f);
+        stack.addPane("XXXX Information",       mSummaryPane,           0f);
+        stack.addPane("XXXX Keywords",          mUserMetaData,          1f);
+        stack.addPane("Content Preview",        mPreview,               0.75f);
+        stack.addPane("Content Description",    mResourceMetaData,      1f);
+        stack.addPane("XXXX Notes",             mNotePanel,             1f);
+        stack.addPane("Nested Nodes",           mNodeTree,              1f);
 
         Widget.setExpanded(mUserMetaData, false);
         Widget.setExpanded(mResourceMetaData, false);
@@ -128,11 +127,18 @@ public class InspectorPane extends JPanel
             } else {
                 showResourcePanes(false);
             }
+            mSummaryPane.load(c);
             mUserMetaData.load(c);
             mNodeTree.load(c);
+
+            setTypeName(mNotePanel, c, "Notes");
         }
     }
-    
+
+    private static void setTypeName(JComponent component, LWComponent c, String suffix) {
+        component.setName(c.getComponentTypeLabel() + " " + suffix);
+    }
+
     private void loadResource(final Resource r) {
         
         if (DEBUG.RESOURCE) out("loadResource: " + r);
@@ -174,47 +180,111 @@ public class InspectorPane extends JPanel
     }
     
     private void showNodePanes(boolean visible) {
+        Widget.setHidden(mSummaryPane, !visible);
         Widget.setHidden(mNotePanel, !visible);
         Widget.setHidden(mUserMetaData, !visible);
         Widget.setHidden(mNodeTree, !visible);
     }
     private void showResourcePanes(boolean visible) {
-        //Widget.setHidden(mSummary, !visible);
         Widget.setHidden(mResourceMetaData, !visible);
         Widget.setHidden(mPreview, !visible);
     }
 
 
-    private class ResourcePreview extends JPanel {
-    
-        private final JLabel mTitleField = new JLabel("", JLabel.CENTER);
-        private final PreviewPane mPreviewPane = new PreviewPane();
+    private class ResourcePreview extends tufts.vue.ui.PreviewPane
+    {
+        private final JLabel mTitleField;
+        //private final JTextPane mTitleField;
+        //private final JTextArea mTitleField;
+        //private final PreviewPane mPreviewPane = new PreviewPane();
         
         ResourcePreview() {
-            super(new BorderLayout());
+            //super(new BorderLayout());
 
-            mTitleField.setOpaque(false);
+            // JTextArea -- no good (no HTML)
+            //mTitleField = new JTextArea();
+            //mTitleField.setEditable(false);
+
+            // JTextPane -- no good, too fuckin hairy and slow (who needs an HTML editor?)
+            //mTitleField = new JTextPane();
+            //StyledDocument doc = new javax.swing.text.html.HTMLDocument();
+            //mTitleField.setStyledDocument(doc);
+            //mTitleField.setEditable(false);
+
+            mTitleField = new JLabel("", JLabel.CENTER);
+
+            //-------------------------------------------------------
+
+            mTitleField.setFont(mValueFontBold);
+            mTitleField.setForeground(Color.darkGray);
             mTitleField.setAlignmentX(0.5f);
-            mTitleField.setFont(textFontBold);
-            mTitleField.setBorder(new EmptyBorder(0,2,5,2));
+            //mTitleField.setBorder(new LineBorder(Color.red));
+                
+            //mTitleField.setOpaque(false);
+            //mTitleField.setBorder(new EmptyBorder(0,2,5,2));
+            //mTitleField.setSize(200,50);
+            //mTitleField.setPreferredSize(new Dimension(200,30));
+            //mTitleField.setMaximumSize(new Dimension(Short.MAX_VALUE,Short.MAX_VALUE));
+            //mTitleField.setMinimumSize(new Dimension(100, 30));
 
-            add(mPreviewPane, BorderLayout.CENTER);
+
+            //add(mPreviewPane, BorderLayout.CENTER);
             add(mTitleField, BorderLayout.SOUTH);
         }
 
         void loadResource(Resource r) {
+            super.loadResource(r);
             String title = r.getTitle();
+
+            //mPreviewPane.setVisible(false);
+            
             if (title == null || title.length() < 1) {
                 mTitleField.setVisible(false);
-            } else {
-                //if (title.indexOf('<') >= 0)
-                title = "<HTML>" + title;
-                mTitleField.setText(title);
-                mTitleField.setVisible(true);
+                return;
             }
-            mPreviewPane.loadResource(r);
+            
+            // Always use HTML, which creates auto line-wrapping for JLabels
+            title = "<HTML><center>" + title;
+
+            
+                mTitleField.setVisible(true);
+                //remove(mTitleField);
+                out("OLD            size=" + mTitleField.getSize());
+                out("OLD   preferredSize=" + mTitleField.getPreferredSize());
+                mTitleField.setText(title);
+                out("NOLAY          size=" + mTitleField.getSize());
+                out("NOLAY preferredSize=" + mTitleField.getPreferredSize());
+                //mTitleField.setSize(298, mTitleField.getHeight());
+                //mTitleField.setSize(298, mTitleField.getHeight());
+                //mTitleField.setPreferredSize(new Dimension(298, mTitleField.getHeight()));
+                //mTitleField.setSize(mTitleField.getPreferredSize());
+                //mTitleField.setSize(mTitleField.getPreferredSize());
+                out("SETSZ          size=" + mTitleField.getSize());
+                out("SETSZ preferredSize=" + mTitleField.getPreferredSize());
+                //out("SETSZ preferredSize=" + mTitleField.getPreferredSize());
+                mTitleField.setPreferredSize(null);
+                //add(mTitleField, BorderLayout.SOUTH);
+                //mTitleField.revalidate();
+                //repaint();
+                //mTitleField.setVisible(true);
+
+            //mPreviewPane.loadResource(mResource);
+            //mPreviewPane.setVisible(true);
+            //VUE.invokeAfterAWT(this);
         }
+
+        /*
+        public void run() {
+            //mTitleField.revalidate();
+            //mTitleField.setVisible(true);
+            VUE.invokeAfterAWT(new Runnable() { public void run() {
+                mPreviewPane.loadResource(mResource);
+            }});
+        }
+        */
     }
+
+    
     public static class NodeTree extends JPanel
     {
         private final OutlineViewTree tree;
@@ -222,7 +292,7 @@ public class InspectorPane extends JPanel
         public NodeTree()
         {
             super(new BorderLayout());
-            setName("Node Tree");
+            setName("Nested Nodes");
             tree = new OutlineViewTree();
             
             JScrollPane mTreeScrollPane = new JScrollPane(tree);
@@ -252,7 +322,6 @@ public class InspectorPane extends JPanel
         public UserMetaData()
         {
             super(new BorderLayout());
-            setName("Node custom keywords");
             //setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
 
             // todo in VUE to create map before adding panels or have a model that
@@ -262,6 +331,7 @@ public class InspectorPane extends JPanel
         }
 
         void load(LWComponent c) {
+            setTypeName(this, c, "Keywords");
             if (DEBUG.SELECTION) System.out.println("NodeFilterPanel.updatePanel: " + c);
             if (userMetaDataEditor != null) {
                 //System.out.println("USER META SET: " + c.getNodeFilter());
@@ -277,6 +347,33 @@ public class InspectorPane extends JPanel
             }
         }
     }
+
+    private JLabel makeLabel(String s) {
+        JLabel label = new JLabel("Label:");
+        label.setFont(mLabelFont);
+        return label;
+    }
+
+    public class SummaryPane extends tufts.Util.JPanelAA
+    {
+        final VueTextPane labelField = new VueTextPane();
+        
+        SummaryPane()
+        {
+            add(makeLabel("Label: "));
+            add(labelField);
+
+            //setPreferredSize(new Dimension(Short.MAX_VALUE,63));
+            //setMinimumSize(new Dimension(200,63));
+            //setMaximumSize(new Dimension(Short.MAX_VALUE,63));
+        }
+
+        void load(LWComponent c) {
+            setTypeName(this, c, "Information");
+            labelField.attachProperty(c, LWKey.Label);
+        }
+    }
+    
     
     /*
     // summary fields
@@ -286,9 +383,9 @@ public class InspectorPane extends JPanel
         "-Size",    mSizeField,
     };
 
-    public class SummaryPane extends JPanel {
+    public class MetaDataPane extends JPanel {
     
-        SummaryPane() {
+        MetaDataPane() {
             super(new BorderLayout());
             //super(new GridBagLayout());
 
@@ -515,7 +612,7 @@ public class InspectorPane extends JPanel
             w = GUI.createDockWindow("Inspector", sp);
         } else {
             w = GUI.createDockWindow(p);
-            //w = GUI.createDockWindow("Resource Inspector", p.mSummary);
+            //w = GUI.createDockWindow("Resource Inspector", p.mSummaryPane);
             //tufts.Util.displayComponent(p);
         }
 
