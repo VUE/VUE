@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-04-04 04:53:52 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2006-04-05 21:23:25 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -833,9 +833,9 @@ public class Images
         if (dir == null)
             return;
 
-        VUE.Log.debug("listing cache...");
+        VUE.Log.debug("listing disk cache...");
         File[] files = dir.listFiles();
-        VUE.Log.debug("listing cache: done");
+        VUE.Log.debug("listing disk cache: done; entries=" + files.length);
         
         synchronized (Cache) {
             for (int i = 0; i < files.length; i++) {
@@ -975,8 +975,10 @@ public class Images
         }
 
         
-        if (listener != null)
+        if (listener != null) {
+            if (DEBUG.IMAGE) out("Sending size to " + tag(listener));
             listener.gotImageSize(imageSRC.original, w, h);
+        }
 
         // FYI, if fetch meta-data, will need to trap exceptions here, as if there are
         // any problems or inconsistencies with it, we'll get an exception, even if the
@@ -1263,7 +1265,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
     private InputStream stream;
     private final RandomAccessFile cache;
     private static final int BUFFER_LENGTH = 2048;
-    private final byte[] buf = new byte[BUFFER_LENGTH];
+    private final byte[] streamBuf = new byte[BUFFER_LENGTH];
     private long length = 0L;
     private boolean foundEOF = false;
 
@@ -1286,22 +1288,27 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
 
         this.cache.setLength(0); // in case already there
 
-        // TODO: this is debug to get more info on the streams that are starting
-        // with <HTML> every once in a while...
-        readUntil(BUFFER_LENGTH);
+        if (true) { 
+            byte[] testBuf = new byte[16];
+            read(testBuf);
+            super.seek(0); // put as back at the start
+            String content = new String(testBuf, "US-ASCII");
+            
+            if (DEBUG.IMAGE) {
+                System.err.println("\n***CONTENT[" + content + "] streamPos=" + streamPos + " length=" + length);
+            }
 
-        String contentTest = new String(buf, 0, 6, "US-ASCII");
+            // TODO: this readUntil is debug to get more info on the streams that are starting
+            // with <HTML> every once in a while: we can inspect the cache file afterwords.
+            readUntil(BUFFER_LENGTH);
+        
+            String test = content.toUpperCase();
 
-        if ("<HTML>".equals(contentTest.toUpperCase())) {
-            String html = new String(buf, 0, (int)length, "US-ASCII");
-            VUE.Log.error("Stream " + stream + " does not contain image data, but HTML instead: data of len " + length +
-                               "\n["
-                               + html
-                               + "]"
-                               );
-            //tufts.Util.displayComponent(new javax.swing.JTextArea(html));
-            close();
-            throw new Images.DataException("Content is HTML, not image data.");
+            if (test.startsWith("<HTML>") || test.startsWith("<!DOCTYPE")) {
+                VUE.Log.error("Stream " + stream + " contains HTML, not image data; [" + content + "]");
+                close();
+                throw new Images.DataException("Content is HTML, not image data");
+            }
         }
     }
 
@@ -1336,7 +1343,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
             // Copy a buffer's worth of data from the source to the cache
             // BUFFER_LENGTH will always fit into an int so this is safe
             int nbytes =
-                stream.read(buf, 0, (int)Math.min(len, (long)BUFFER_LENGTH));
+                stream.read(streamBuf, 0, (int)Math.min(len, (long)BUFFER_LENGTH));
             if (nbytes == -1) {
                 if (DEBUG.IMAGE) System.err.println("<EOF @ " + length + ">");
                 foundEOF = true;
@@ -1344,7 +1351,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
             }
 
             if (DEBUG.IMAGE) System.err.print(">" + nbytes + "; ");
-            cache.write(buf, 0, nbytes);
+            cache.write(streamBuf, 0, nbytes);
             len -= nbytes;
             length += nbytes;
         }
