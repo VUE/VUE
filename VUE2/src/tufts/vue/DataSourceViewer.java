@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.108 $ / $Date: 2006-04-04 19:41:47 $ / $Author: jeff $ *
+ * @version $Revision: 1.109 $ / $Date: 2006-04-05 00:36:56 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -138,6 +138,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 
         DRB.searchPane.removeAll();
         DRB.searchPane.add((JPanel) queryEditor);
+        DRB.searchPane.revalidate();
+        DRB.searchPane.repaint();
 		
         // WORKING: stop using this preview panel?
         //this.previewPanel = previewDockWindow.getWidgetPanel();
