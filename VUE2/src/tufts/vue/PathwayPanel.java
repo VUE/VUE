@@ -42,7 +42,7 @@ import javax.swing.border.*;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.63 $ / $Date: 2006-01-28 23:35:40 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2006-04-05 21:24:27 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel implements ActionListener
@@ -96,7 +96,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         // element
         //-------------------------------------------------------
 
-        JPanel playbackPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        JPanel playbackPanel = new VueUtil.JPanelAA(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         JLabel playbackLabel = new JLabel("Playback on selected path:  ");
         //playbackLabel.setFont(defaultFont);
         playbackPanel.setBorder(new EmptyBorder(7,0,0,0));
@@ -113,7 +113,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         btnPathwayShowOnly = new VueButton("pathways.showOnly", this);
         //btnPathwayShowOnly = new VueButton.Toggle("pathways.showOnly", this);
         
-        JPanel pathwayMasterPanel = new VueUtil.JPanel_aa() {
+        JPanel pathwayMasterPanel = new VueUtil.JPanelAA() {
                 public void addNotify() {
                     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
                     setBackground(new Color(66,76,105));
@@ -158,7 +158,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         btnElementUp = new VueButton("move-up", this);
         btnElementDown = new VueButton("move-down", this);
 
-        JPanel elementControlPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 1, 1)) {
+        JPanel elementControlPanel = new VueUtil.JPanelAA(new FlowLayout(FlowLayout.RIGHT, 1, 1)) {
                 public void addNotify() {
                     setBackground(new Color(98,115,161));
                     setBorder(new EmptyBorder(1,2,1,5));
@@ -203,7 +203,7 @@ public class PathwayPanel extends JPanel implements ActionListener
             });
 
 
-        JPanel noteLabelPanel = new VueUtil.JPanel_aa();
+        JPanel noteLabelPanel = new VueUtil.JPanelAA();
         JLabel notesLabel = new JLabel(" Notes: ");
         //notesLabel.setFont(smallFont);
         noteLabelPanel.setLayout(new BoxLayout(noteLabelPanel, BoxLayout.X_AXIS));
