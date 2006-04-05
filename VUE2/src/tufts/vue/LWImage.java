@@ -37,17 +37,25 @@ import javax.imageio.ImageIO;
  *
  * @version $Revision: $ / $Date: 2006/01/20 18:57:33 $ / $Author: sfraize $
  */
+
+
+// TODO: get undo working again.
+// TODO: on delete, null the image so it can be garbage collected, and on
+//       un-delete, restore it via the resource, and hopefully it'll
+//       still be in the memory cache (if not, it'll be in the disk cache)
+// TODO: update bad (error) images if preview gets good data
+//       Better: handle this via listening to the resource for updates
+//       (the LWCopmonent can do this), and if it's a CONTENT_CHANGED
+//       update (v.s., say, a META_DATA_CHANGED), then we can refetch
+//       the content.  Actually, would still be nice if this happened
+//       just by selecting the object, in case the resource previewer
+//       didn't happen to be open.
+          
+
+
 public class LWImage extends LWComponent
     implements LWSelection.ControlListener, Images.Listener
 {
-    /*
-    static {
-         // this only appears to be used if the image is absolutely HUGE
-         javax.imageio.ImageIO.setUseCache(true);
-         javax.imageio.ImageIO.setCacheDirectory(new java.io.File("/tmp"));
-     }
-    */
-
     /** scale of images when a child of other nodes */
     static final float ChildImageScale = 0.2f;
     
@@ -59,7 +67,7 @@ public class LWImage extends LWComponent
     private int  mImageHeight = -1;
     private double rotation = 0;
     private Point2D.Float mOffset = new Point2D.Float(); // x & y always <= 0
-    private Object mThreadedUndoKey;
+    private Object mUndoMarkForThread;
     private boolean mImageError = false;
     
     private transient LWIcon.Block mIconBlock =
@@ -84,7 +92,7 @@ public class LWImage extends LWComponent
         i.setRotation(this.rotation);
         return i;
     }
-    
+
     public boolean isAutoSized() { return false; }
 
     /** @return true -- image's support resize (which is currently just a crop) */
@@ -114,50 +122,29 @@ public class LWImage extends LWComponent
         mIconBlock.layout();
     }
     
+    // TODO: this wants to be on LWComponent, in case this is a
+    // regular node containing an LWImage, we want the image to
+    // update, as it doesn't get selected.  This depends on
+    // how me might redo image support in maps tho, so
+    // wait on that...
+    public void setSelected(boolean selected) {
+        super.setSelected(selected);
+        if (selected && mImageError && hasResource())
+            loadResourceImage(getResource(), null);
+    }
+    
     public void setResource(Resource r) {
         setResourceAndLoad(r, null);
     }
-    
+
     // todo: find a better way to do this than passing in an undo manager, which is dead ugly
     public void setResourceAndLoad(Resource r, UndoManager undoManager) {
         super.setResource(r);
-        loadImageAndMetaDataAsync(r, undoManager);
+        loadResourceImage(r, undoManager);
     }
 
 
-    
-    /*
-    private void loadImageAsync(MapResource r) {
-        Object content = new Object();
-        try {
-            content = r.getContent();
-            imageIcon = (ImageIcon) content;
-        } catch (ClassCastException cce) {
-            cce.printStackTrace();
-            System.err.println("getContent didn't return ImageIcon: got "
-                               + content.getClass().getName() + " from " + r.getClass() + " " + r);
-            imageIcon = null;
-            //if (DEBUG.CASTOR) System.exit(0);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("error getting " + r);
-        }
-        // don't set size if this is during a restore [why not?], which is the only
-        // time width & height should be allowed less than 10
-        // [ What?? ] -- todo: this doesn't work if we're here because the resource was changed...
-        //if (this.width < 10 && this.height < 10)
-        if (imageIcon != null) {
-            int w = imageIcon.getIconWidth();
-            int h = imageIcon.getIconHeight();
-            if (w > 0 && h > 0)
-                setSize(w, h);
-        }
-        layout();
-        notify(LWKey.RepaintComponent);
-    }
-    */
-
-    private void loadImageAndMetaDataAsync(final Resource r, final UndoManager um)
+    private void loadResourceImage(final Resource r, final UndoManager um)
     {
         int width = r.getProperty("image.width", 32);
         int height = r.getProperty("image.height", 32);
@@ -176,182 +163,17 @@ public class LWImage extends LWComponent
         synchronized (this) {
             // If image is not immediately availble, need to mark current
             // place in undo key for changes that happen due to the image
-            // arriving.
+            // arriving.  We sync to be certian the key is set before
+            // we can get any image callbacks.
             if (!Images.getImage(r, this))
-                mThreadedUndoKey = UndoManager.getKeyForNextMark(this);
+                mUndoMarkForThread = UndoManager.getKeyForNextMark(this);
             else
-                mThreadedUndoKey = null;
-        }
-
-        /*
-
-        //loadImage(mr, um);
-        // does not need to be an undoable thread as what we
-        // do before kicking off the prepare image doesn't need
-        // to be undoable (really?  What if image had failed, and then
-        // they did an update, and then it worked?)
-        new Thread("VUE-ImageLoader") {
-            public void run() {
-                loadImage(mr, um);
-                if (DEBUG.IMAGE || DEBUG.THREAD) out("loadImage returned (image loaded or loading)");
-            }
-        }.start();
-        */
-        /*
-        new UndoableThread("loadImage " + mr.getSpec(), um) {
-            public void run() {
-                loadImage(mr, um);
-            }
-        }.start();
-        */
-    }
-
-    
-
-
-    // TODO: have the LWMap make a call at the end of a restore to all LWComponents
-    // telling them to start loading any media they need.  Pass in a media tracker
-    // that the LWMap and/or MapViewer can use to track/report the status of
-    // loading, and know when it's 100% complete.
-    
-    // Note: all this code will likely be superceeded by generic content
-    // loading & caching code, in which case we may not be using
-    // an ImageObserver anymore, just a generic input stream, tho actually,
-    // we wouldn't have the chance to get the size as soon as it comes in,
-    // so probably not all will be superceeded.
-
-    // TODO: problem: if you drop a second image before the first one
-    // has finished loading, both will try and set an undo mark for their thread,
-    // but the're both in the Image Fetcher thread!  So we're going to need
-    // todo our own loading after all, as I see no way for the UndoManager
-    // to tell between events coming in on the same thread, unless maybe
-    // the mark can be associated with a particular object?  I guess that
-    // COULD work: all the updates are just happening on the LWImage...
-    // Well, not exactly: the parent could resize due to setting the image
-    // size, tho that would be overriden by the un-drop of the image
-    // and removing it as child -- oh, but the hierarchy event wouldn't get
-    // tagged, so it would have be tied to any events that TOUCH that object,
-    // which does not work anyway as the image could be user changed.  Well,
-    // no, that would be detected by it coming from the unmarked thread.
-    // So any event coming from the thread and "touching" this object could
-    // be done, but that's just damn hairy...
-    
-    // Well, UndoManager is coalescing them for now, which seems to
-    // work pretty well, but will probably break if user drops more
-    // than one image and starts tweaking anyone but the first one before they load
-    
-    /*
-    private void XloadImage(MapResource mr, UndoManager undoManager)
-    {
-        if (DEBUG.IMAGE || DEBUG.THREAD) out("loadImage");
-        
-        Image image = XgetImage(mr); // this will immediately block if host not responding
-        // todo: okay, we can skip the rest of this code as getImage now uses the ImageIO
-        // fetch
-
-        if (image == null) {
-            mImageError = true;
-            return;
-        }
-
-        // don't bother to set mImage here: JVM's no longer do drawing of available bits
-
-        if (DEBUG.IMAGE) out("prepareImage on " + image);
-                
-        if (mThreadedUndoKey != null) {
-            Util.printStackTrace("already have undo key " + mThreadedUndoKey);
-            mThreadedUndoKey = null;
-        }
-
-        if (java.awt.Toolkit.getDefaultToolkit().prepareImage(image, -1, -1, this)) {
-            if (DEBUG.IMAGE || DEBUG.THREAD) out("ALREADY LOADED");
-            mImage = image;
-            setRawImageSize(image.getWidth(null), image.getHeight(null));
-            // If the size hasn't already been set, set it.
-            //if (getAbsoluteWidth() < 10 && getAbsoluteHeight() < 10)
-                setSize(mImageWidth, mImageHeight);
-            notify(LWKey.RepaintAsync);
-        } else {
-            if (DEBUG.IMAGE || DEBUG.THREAD) out("ImageObserver Thread kicked off");
-            mDebugChar = sDebugChar;
-            if (++sDebugChar > 'Z')
-                sDebugChar = 'A';
-            // save a key that marks the current location in the undo-queue,
-            // to be applied to the subsequent thread that make calls
-            // to imageUpdate, so that all further property changes eminating
-            // from that thread are applied to the same location in the undo queue.
-
-            if (undoManager == null)
-                mThreadedUndoKey = UndoManager.getKeyForNextMark(this);
-            else
-                mThreadedUndoKey = undoManager.getKeyForNextMark();
-
+                mUndoMarkForThread = null;
         }
     }
 
-    private Image XgetImage(MapResource mr)
-    {
-        URL url = mr.asURL();
-        
-        if (url == null)
-            return null;
-
-        Image image = null;
-        
-        try {
-            // This allows reading of .tif & .bmp in addition to standard formats.
-            // We'll eventually want to use this for everything, and cache
-            // Resource objects themselves, but ImageIO caching doesn't
-            // appear to be working right now, so we only use it if we have to.
-            // .ico comes from a 3rd party library: aclibico.jar
-            String s = mr.getSpec().toLowerCase();
-            if (s.endsWith(".tif") || s.endsWith(".tiff") || s.endsWith(".bmp") || s.endsWith(".ico"))
-                image = ImageIO.read(url);
-        } catch (Throwable t) {
-            if (DEBUG.Enabled) Util.printStackTrace(t);
-            VUE.Log.info(url + ": " + t);
-        }
-
-        if (image != null)
-            return image;
-
-        // If the host isn't responding, Toolkit.getImage will block for a while.  It
-        // will apparently ALWAYS eventually get an Image object, but if it failed, we
-        // eventually get callback to imageUpdate (once prepareImage is called) with an
-        // error code.  In any case, if you don't want to block, this has to be done in
-        // a thread.
-        
-        String s = mr.getSpec();
-
-            
-        if (s.startsWith("file://")) {
-
-            // TODO: SEE Util.java: WINDOWS URL'S DON'T WORK IF START WITH FILE://
-            // (two slashes), MUST HAVE THREE!  move this code to MapResource; find
-            // out if can even force a URL to have an extra slash in it!  Report
-            // this as a java bug.
-
-            // TODO: Our Cup>>Chevron unicode char example is failing
-            // here on Windows (tho it works for windows openURL).
-            // (The image load fails)
-            // Try ensuring the URL is UTF-8 first.
-            
-            s = s.substring(7);
-            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage " + s);
-            image = java.awt.Toolkit.getDefaultToolkit().getImage(s);
-        } else {
-            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage");
-            image = java.awt.Toolkit.getDefaultToolkit().getImage(url);
-        }
-
-        if (image == null) Util.printStackTrace("image is null");
-
-
-        return image;
-    }
-
-    */
     
+
     public void setSize(float w, float h) {
         super.setSize(w, h);
         // Even if we don't have an image yet, we need to keep these set in case user attemps to resize the frame.
@@ -372,13 +194,13 @@ public class LWImage extends LWComponent
         mImageWidth = width;
         mImageHeight = height;
 
-        if (mThreadedUndoKey == null) {
+        if (mUndoMarkForThread == null) {
             if (DEBUG.Enabled) out("gotImageSize: no undo key");
         }
             
         // For the events triggered by the setSize below, make sure they go
         // to the right point in the undo queue.
-        UndoManager.attachCurrentThreadToMark(mThreadedUndoKey);
+        UndoManager.attachCurrentThreadToMark(mUndoMarkForThread);
         
         // If we're interrupted before this happens, and this is the drop of a new image,
         // we'll see a zombie event complaint from this setSize which is safely ignorable.
@@ -395,18 +217,18 @@ public class LWImage extends LWComponent
     public synchronized void gotImage(Object imageSrc, Image image, int w, int h) {
         // Be sure to set the image before detaching from the thread,
         // or when the detach issues repaint events, we won't see the image.
+        mImageError = false;
         mImageWidth = w;
         mImageHeight = h;
         mImage = image;
         if (isCropped() == false)
             setSize(w, h);
-        if (mThreadedUndoKey == null) {
+        if (mUndoMarkForThread == null) {
             notify(LWKey.RepaintAsync);
         } else {
-            UndoManager.detachCurrentThread(mThreadedUndoKey); // in case our ImageFetcher get's re-used
-            // todo: oh, crap, what if this image fetch thread is attached
-            // to another active image load?
-            mThreadedUndoKey = null;
+            // in case this thread get's re-used:
+            UndoManager.detachCurrentThread(mUndoMarkForThread);
+            mUndoMarkForThread = null;
         }
 
         // Any problem using the Image Fetcher thread to do this?
@@ -429,136 +251,6 @@ public class LWImage extends LWComponent
         
     }
     
-    
-    
-    private static char sDebugChar = 'A';
-    private char mDebugChar;
-    public boolean XimageUpdate(Image img, int flags, int x, int y, int width, int height)
-    {
-        if ((DEBUG.IMAGE||DEBUG.THREAD) && (DEBUG.META || (flags & ImageObserver.SOMEBITS) == 0)) {
-            if ((flags & ImageObserver.ALLBITS) != 0) System.err.println("");
-            out("imageUpdate; flags=(" + flags + ") " + width + "x" + height);
-        }
-        
-        if ((flags & ImageObserver.ERROR) != 0) {
-            if (DEBUG.IMAGE) out("ERROR");
-            mImageError = true;
-            // set image dimensions so if we resize w/out image it works
-            mImageWidth = (int) getAbsoluteWidth();
-            mImageHeight = (int) getAbsoluteHeight();
-            if (mImageWidth < 1) {
-                mImageWidth = 100;
-                mImageHeight = 100;
-                setSize(100,100);
-            }
-            notify(LWKey.RepaintAsync);
-            return false;
-        }
-            
-
-        if (DEBUG.IMAGE || DEBUG.THREAD) {
-            
-            if ((flags & ImageObserver.SOMEBITS) == 0) {
-                //out("imageUpdate; flags=(" + flags + ") ");
-                //+ thread + " 0x" + Integer.toHexString(thread.hashCode())
-                //+ " " + sun.awt.AppContext.getAppContext()
-                //Thread thread = Thread.currentThread();
-                /*System.out.println("\n" + getResource() + " (" + flags + ") "
-                                   + thread + " 0x" + Integer.toHexString(thread.hashCode())
-                                   + " " + sun.awt.AppContext.getAppContext());*/
-            } else {
-                // Print out a letter indicating the next batch of bits has come in
-                System.err.print(mDebugChar);
-            }
-            
-        }
-        
-        if ((flags & ImageObserver.WIDTH) != 0 && (flags & ImageObserver.HEIGHT) != 0) {
-            //XsetRawImageSize(width, height);
-            if (DEBUG.IMAGE || DEBUG.THREAD) out("imageUpdate; got size " + width + "x" + height);
-
-            if (mThreadedUndoKey == null) {
-                if (DEBUG.Enabled) out("imageUpdate: no undo key");
-            }
-            
-            // For the events triggered by the setSize below, make sure they go
-            // to the right point in the undo queue.
-            UndoManager.attachCurrentThreadToMark(mThreadedUndoKey);
-            
-            // If we're interrupted before this happens, and this is the drop of a new image,
-            // we'll see a zombie event complaint from this setSize which is safely ignorable.
-            // todo: suspend events if our thread was interrupted
-            if (isCropped() == false) {
-                // don't set size if we are cropped: we're probably reloading from a saved .vue
-                setSize(width, height);
-            }
-            layout();
-            notify(LWKey.RepaintAsync);
-        }
-        
-
-        if (false) {
-            // the drawing of partial image results not working in current MacOSX JVM's!
-            mImage = img;
-            System.err.print("+");
-            notify(LWKey.RepaintAsync);
-        }
-        
-        if ((flags & ImageObserver.ALLBITS) != 0) {
-            imageLoadSucceeded(img);
-            return false;
-        }
-
-        // We're sill getting data: return true.
-        // Unless we've been interrupted: should abort and return false.
-
-        if (Thread.interrupted()) {
-            if (DEBUG.Enabled || DEBUG.IMAGE || DEBUG.THREAD)
-                System.err.println("\n" + getResource() + " *** INTERRUPTED *** " + Thread.currentThread());
-            //System.err.println("\n" + getResource() + " *** INTERRUPTED *** (lowering priority) " + thread);
-            // Changing priority of the Image Fetcher will prob slow down all subsequent loads
-            //thread.setPriority(Thread.MIN_PRIORITY);
-            
-            // let it finish anyway for now, as we don't yet handle restarting this
-            // operation if they Redo
-            return true;
-
-            // This is also not good enough: we're going to need to get an undo
-            // key right at the start as we might get interrupted even
-            // before the getImage returns..
-            //return false;
-            
-        } else
-            return true;
-    }
-
-    private void imageLoadSucceeded(Image image)
-    {
-        // Be sure to set the image before detaching from the thread,
-        // or when the detach issues repaint events, we won't see the image.
-        mImage = image;
-        if (mThreadedUndoKey == null) {
-            notify(LWKey.RepaintAsync);
-        } else {
-            UndoManager.detachCurrentThread(mThreadedUndoKey); // in case our ImageFetcher get's re-used
-            // todo: oh, crap, what if this image fetch thread is attached
-            // to another active image load?
-            mThreadedUndoKey = null;
-        }
-        if (DEBUG.Enabled) {
-            String[] tryProps = new String[] { "name", "title", "description", "comment" };
-            for (int i = 0; i < tryProps.length; i++) {
-                Object p = image.getProperty(tryProps[i], null);
-                if (p != null && p != java.awt.Image.UndefinedProperty)
-                    System.err.println("FOUND PROPERTY " + tryProps[i] + "=" + p);
-            }
-        }
-
-        // Any problem using the Image Fetcher thread to do this?
-        if (getResource() instanceof MapResource)
-            ((MapResource)getResource()).scanForMetaData(LWImage.this, true);
-        
-    }
     
     
     /**
@@ -872,6 +564,314 @@ public class LWImage extends LWComponent
         return controlPoints;
     }
 
+
+    
+    /*
+    private void loadImageAsync(MapResource r) {
+        Object content = new Object();
+        try {
+            content = r.getContent();
+            imageIcon = (ImageIcon) content;
+        } catch (ClassCastException cce) {
+            cce.printStackTrace();
+            System.err.println("getContent didn't return ImageIcon: got "
+                               + content.getClass().getName() + " from " + r.getClass() + " " + r);
+            imageIcon = null;
+            //if (DEBUG.CASTOR) System.exit(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("error getting " + r);
+        }
+        // don't set size if this is during a restore [why not?], which is the only
+        // time width & height should be allowed less than 10
+        // [ What?? ] -- todo: this doesn't work if we're here because the resource was changed...
+        //if (this.width < 10 && this.height < 10)
+        if (imageIcon != null) {
+            int w = imageIcon.getIconWidth();
+            int h = imageIcon.getIconHeight();
+            if (w > 0 && h > 0)
+                setSize(w, h);
+        }
+        layout();
+        notify(LWKey.RepaintComponent);
+    }
+    */
+
+    // TODO: have the LWMap make a call at the end of a restore to all LWComponents
+    // telling them to start loading any media they need.  Pass in a media tracker
+    // that the LWMap and/or MapViewer can use to track/report the status of
+    // loading, and know when it's 100% complete.
+    
+    // Note: all this code will likely be superceeded by generic content
+    // loading & caching code, in which case we may not be using
+    // an ImageObserver anymore, just a generic input stream, tho actually,
+    // we wouldn't have the chance to get the size as soon as it comes in,
+    // so probably not all will be superceeded.
+
+    // TODO: problem: if you drop a second image before the first one
+    // has finished loading, both will try and set an undo mark for their thread,
+    // but the're both in the Image Fetcher thread!  So we're going to need
+    // todo our own loading after all, as I see no way for the UndoManager
+    // to tell between events coming in on the same thread, unless maybe
+    // the mark can be associated with a particular object?  I guess that
+    // COULD work: all the updates are just happening on the LWImage...
+    // Well, not exactly: the parent could resize due to setting the image
+    // size, tho that would be overriden by the un-drop of the image
+    // and removing it as child -- oh, but the hierarchy event wouldn't get
+    // tagged, so it would have be tied to any events that TOUCH that object,
+    // which does not work anyway as the image could be user changed.  Well,
+    // no, that would be detected by it coming from the unmarked thread.
+    // So any event coming from the thread and "touching" this object could
+    // be done, but that's just damn hairy...
+    
+    // Well, UndoManager is coalescing them for now, which seems to
+    // work pretty well, but will probably break if user drops more
+    // than one image and starts tweaking anyone but the first one before they load
+    
+    /*
+    private void XloadImage(MapResource mr, UndoManager undoManager)
+    {
+        if (DEBUG.IMAGE || DEBUG.THREAD) out("loadImage");
+        
+        Image image = XgetImage(mr); // this will immediately block if host not responding
+        // todo: okay, we can skip the rest of this code as getImage now uses the ImageIO
+        // fetch
+
+        if (image == null) {
+            mImageError = true;
+            return;
+        }
+
+        // don't bother to set mImage here: JVM's no longer do drawing of available bits
+
+        if (DEBUG.IMAGE) out("prepareImage on " + image);
+                
+        if (mUndoMarkForThread != null) {
+            Util.printStackTrace("already have undo key " + mUndoMarkForThread);
+            mUndoMarkForThread = null;
+        }
+
+        if (java.awt.Toolkit.getDefaultToolkit().prepareImage(image, -1, -1, this)) {
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("ALREADY LOADED");
+            mImage = image;
+            setRawImageSize(image.getWidth(null), image.getHeight(null));
+            // If the size hasn't already been set, set it.
+            //if (getAbsoluteWidth() < 10 && getAbsoluteHeight() < 10)
+                setSize(mImageWidth, mImageHeight);
+            notify(LWKey.RepaintAsync);
+        } else {
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("ImageObserver Thread kicked off");
+            mDebugChar = sDebugChar;
+            if (++sDebugChar > 'Z')
+                sDebugChar = 'A';
+            // save a key that marks the current location in the undo-queue,
+            // to be applied to the subsequent thread that make calls
+            // to imageUpdate, so that all further property changes eminating
+            // from that thread are applied to the same location in the undo queue.
+
+            if (undoManager == null)
+                mUndoMarkForThread = UndoManager.getKeyForNextMark(this);
+            else
+                mUndoMarkForThread = undoManager.getKeyForNextMark();
+
+        }
+    }
+
+    private Image XgetImage(MapResource mr)
+    {
+        URL url = mr.asURL();
+        
+        if (url == null)
+            return null;
+
+        Image image = null;
+        
+        try {
+            // This allows reading of .tif & .bmp in addition to standard formats.
+            // We'll eventually want to use this for everything, and cache
+            // Resource objects themselves, but ImageIO caching doesn't
+            // appear to be working right now, so we only use it if we have to.
+            // .ico comes from a 3rd party library: aclibico.jar
+            String s = mr.getSpec().toLowerCase();
+            if (s.endsWith(".tif") || s.endsWith(".tiff") || s.endsWith(".bmp") || s.endsWith(".ico"))
+                image = ImageIO.read(url);
+        } catch (Throwable t) {
+            if (DEBUG.Enabled) Util.printStackTrace(t);
+            VUE.Log.info(url + ": " + t);
+        }
+
+        if (image != null)
+            return image;
+
+        // If the host isn't responding, Toolkit.getImage will block for a while.  It
+        // will apparently ALWAYS eventually get an Image object, but if it failed, we
+        // eventually get callback to imageUpdate (once prepareImage is called) with an
+        // error code.  In any case, if you don't want to block, this has to be done in
+        // a thread.
+        
+        String s = mr.getSpec();
+
+            
+        if (s.startsWith("file://")) {
+
+            // TODO: SEE Util.java: WINDOWS URL'S DON'T WORK IF START WITH FILE://
+            // (two slashes), MUST HAVE THREE!  move this code to MapResource; find
+            // out if can even force a URL to have an extra slash in it!  Report
+            // this as a java bug.
+
+            // TODO: Our Cup>>Chevron unicode char example is failing
+            // here on Windows (tho it works for windows openURL).
+            // (The image load fails)
+            // Try ensuring the URL is UTF-8 first.
+            
+            s = s.substring(7);
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage " + s);
+            image = java.awt.Toolkit.getDefaultToolkit().getImage(s);
+        } else {
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage");
+            image = java.awt.Toolkit.getDefaultToolkit().getImage(url);
+        }
+
+        if (image == null) Util.printStackTrace("image is null");
+
+
+        return image;
+    }
+
+    */
+    
+    /*    
+    private static char sDebugChar = 'A';
+    private char mDebugChar;
+    public boolean XimageUpdate(Image img, int flags, int x, int y, int width, int height)
+    {
+        if ((DEBUG.IMAGE||DEBUG.THREAD) && (DEBUG.META || (flags & ImageObserver.SOMEBITS) == 0)) {
+            if ((flags & ImageObserver.ALLBITS) != 0) System.err.println("");
+            out("imageUpdate; flags=(" + flags + ") " + width + "x" + height);
+        }
+        
+        if ((flags & ImageObserver.ERROR) != 0) {
+            if (DEBUG.IMAGE) out("ERROR");
+            mImageError = true;
+            // set image dimensions so if we resize w/out image it works
+            mImageWidth = (int) getAbsoluteWidth();
+            mImageHeight = (int) getAbsoluteHeight();
+            if (mImageWidth < 1) {
+                mImageWidth = 100;
+                mImageHeight = 100;
+                setSize(100,100);
+            }
+            notify(LWKey.RepaintAsync);
+            return false;
+        }
+            
+
+        if (DEBUG.IMAGE || DEBUG.THREAD) {
+            
+            if ((flags & ImageObserver.SOMEBITS) == 0) {
+                //out("imageUpdate; flags=(" + flags + ") ");
+                //+ thread + " 0x" + Integer.toHexString(thread.hashCode())
+                //+ " " + sun.awt.AppContext.getAppContext()
+                //Thread thread = Thread.currentThread();
+                //System.out.println("\n" + getResource() + " (" + flags + ") "
+                                   //+ thread + " 0x" + Integer.toHexString(thread.hashCode())
+                                   //+ " " + sun.awt.AppContext.getAppContext());
+            } else {
+                // Print out a letter indicating the next batch of bits has come in
+                System.err.print(mDebugChar);
+            }
+            
+        }
+        
+        if ((flags & ImageObserver.WIDTH) != 0 && (flags & ImageObserver.HEIGHT) != 0) {
+            //XsetRawImageSize(width, height);
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("imageUpdate; got size " + width + "x" + height);
+
+            if (mUndoMarkForThread == null) {
+                if (DEBUG.Enabled) out("imageUpdate: no undo key");
+            }
+            
+            // For the events triggered by the setSize below, make sure they go
+            // to the right point in the undo queue.
+            UndoManager.attachCurrentThreadToMark(mUndoMarkForThread);
+            
+            // If we're interrupted before this happens, and this is the drop of a new image,
+            // we'll see a zombie event complaint from this setSize which is safely ignorable.
+            // todo: suspend events if our thread was interrupted
+            if (isCropped() == false) {
+                // don't set size if we are cropped: we're probably reloading from a saved .vue
+                setSize(width, height);
+            }
+            layout();
+            notify(LWKey.RepaintAsync);
+        }
+        
+
+        if (false) {
+            // the drawing of partial image results not working in current MacOSX JVM's!
+            mImage = img;
+            System.err.print("+");
+            notify(LWKey.RepaintAsync);
+        }
+        
+        if ((flags & ImageObserver.ALLBITS) != 0) {
+            imageLoadSucceeded(img);
+            return false;
+        }
+
+        // We're sill getting data: return true.
+        // Unless we've been interrupted: should abort and return false.
+
+        if (Thread.interrupted()) {
+            if (DEBUG.Enabled || DEBUG.IMAGE || DEBUG.THREAD)
+                System.err.println("\n" + getResource() + " *** INTERRUPTED *** " + Thread.currentThread());
+            //System.err.println("\n" + getResource() + " *** INTERRUPTED *** (lowering priority) " + thread);
+            // Changing priority of the Image Fetcher will prob slow down all subsequent loads
+            //thread.setPriority(Thread.MIN_PRIORITY);
+            
+            // let it finish anyway for now, as we don't yet handle restarting this
+            // operation if they Redo
+            return true;
+
+            // This is also not good enough: we're going to need to get an undo
+            // key right at the start as we might get interrupted even
+            // before the getImage returns..
+            //return false;
+            
+        } else
+            return true;
+    }
+
+    private void imageLoadSucceeded(Image image)
+    {
+        // Be sure to set the image before detaching from the thread,
+        // or when the detach issues repaint events, we won't see the image.
+        mImage = image;
+        if (mUndoMarkForThread == null) {
+            notify(LWKey.RepaintAsync);
+        } else {
+            UndoManager.detachCurrentThread(mUndoMarkForThread); // in case our ImageFetcher get's re-used
+            // todo: oh, crap, what if this image fetch thread is attached
+            // to another active image load?
+            mUndoMarkForThread = null;
+        }
+        if (DEBUG.Enabled) {
+            String[] tryProps = new String[] { "name", "title", "description", "comment" };
+            for (int i = 0; i < tryProps.length; i++) {
+                Object p = image.getProperty(tryProps[i], null);
+                if (p != null && p != java.awt.Image.UndefinedProperty)
+                    System.err.println("FOUND PROPERTY " + tryProps[i] + "=" + p);
+            }
+        }
+
+        // Any problem using the Image Fetcher thread to do this?
+        if (getResource() instanceof MapResource)
+            ((MapResource)getResource()).scanForMetaData(LWImage.this, true);
+        
+    }
+*/
+
+    
     public static void main(String args[]) throws Exception {
 
         // GUI init required for fully loading all image codecs (tiff gets left behind otherwise)
@@ -927,5 +927,6 @@ public class LWImage extends LWComponent
         */
         
     }
+    
 
 }
