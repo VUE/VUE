@@ -20,6 +20,7 @@ package tufts;
 
 import tufts.macosx.MacOSX;
 
+import java.lang.ref.*;
 import java.util.*;
 import java.util.jar.*;
 import java.util.prefs.*;
@@ -613,6 +614,51 @@ public class Util
         }
     }
 
+
+    /**
+     * A soft-reference map for maps containing items can be garbage
+     * collected if we run low on memory (e.g., images).  If that
+     * happens, items will seem to have disspeared from the cache.
+     * 
+     * Not all HashMap methods covered: only safe to use
+     * the onces explicity implemented here.
+     */
+    public static class SoftMap extends HashMap {
+
+        public synchronized Object get(Object key) {
+            //out("SoftMap; get: " + key);
+            Object val = super.get(key);
+            if (val == null)
+                return null;
+            Reference ref = (Reference) val;
+            val = ref.get();
+            if (val == null) {
+                //out("SoftMap; image was garbage collected: " + key);
+                super.remove(key);
+                return null;
+            } else
+                return val;
+        }
+        
+        public synchronized Object put(Object key, Object value) {
+            //out("SoftMap; put: " + key);
+            return super.put(key, new SoftReference(value));
+        }
+
+        public synchronized boolean containsKey(Object key) {
+            return get(key) != null;
+        }
+
+        public synchronized void clear() {
+            Iterator i = values().iterator();
+            while (i.hasNext())
+                ((Reference)i.next()).clear();
+            super.clear();
+        }
+        
+    }
+    
+
     public static void dumpCollection(Collection c) {
         System.out.println("Collection of size: " + c.size() + " (" + c.getClass().getName() + ")");
         dumpIterator(c.iterator());
@@ -659,11 +705,11 @@ public class Util
 
 
     /** a JPanel that anti-aliases text */
-    public static class JPanel_aa extends javax.swing.JPanel {
-        public JPanel_aa(java.awt.LayoutManager layout) {
+    public static class JPanelAA extends javax.swing.JPanel {
+        public JPanelAA(java.awt.LayoutManager layout) {
             super(layout, true);
         }
-        public JPanel_aa() {}
+        public JPanelAA() {}
 
         public void paint(java.awt.Graphics g) {
             // only works when, of course, the panel is asked
@@ -671,9 +717,12 @@ public class Util
             // and just they repaint, we lose this.
             // todo: There must be a way to stick this in a global
             // property somewhere.
-            ((java.awt.Graphics2D)g).setRenderingHint
-                (java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
-                 java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+            // anti-alias is default on mac, so don't do it there.
+            if (!isMacPlatform())
+                ((java.awt.Graphics2D)g).setRenderingHint
+                    (java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                     java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             super.paint(g);
         }
     }
