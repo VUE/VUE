@@ -33,7 +33,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-04-05 21:26:23 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-04-05 21:26:52 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -249,7 +249,9 @@ public class InspectorPane extends JPanel
             
             mTitleField.setVisible(true);
 
-            if (false) {
+            if (true) {
+                mTitleField.setText(title);
+            } else { 
                 //remove(mTitleField);
                 out("OLD            size=" + mTitleField.getSize());
                 out("OLD   preferredSize=" + mTitleField.getPreferredSize());
