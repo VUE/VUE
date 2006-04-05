@@ -80,8 +80,14 @@ import javax.swing.text.*;
  * theoretically iterate through the whole document, individually
  * deriving zoomed fonts for every font found in the Document.)
  *
+ * Note that you can get center/variable alignment even with
+ * a JLabel if it's text starts with &lt;HTML&gt;, and you
+ * put in a center tag.  Unfortunately, JTextArea's don't
+ * do HTML.
+ *
+ *
  * @author Scott Fraize
- * @version $Revision: 1.36 $ / $Date: 2006-04-03 18:59:34 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2006-04-05 21:25:01 $ / $Author: sfraize $
  *
  */
 
