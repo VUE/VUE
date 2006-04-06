@@ -37,7 +37,7 @@ import com.sun.image.codec.jpeg.*;
 /**
  * The class is handles a reference to either a local file or a URL.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-04-05 21:22:27 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-04-06 01:30:33 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.
@@ -61,12 +61,12 @@ public class URLResource implements Resource, XMLUnmarshalListener
     private int type = Resource.NONE;
     private JComponent viewer;
     private JComponent preview;
-    private Icon mIcon;
+    private tufts.vue.ui.ResourceIcon mIcon;
     private Object mPreview;
     private boolean isCached;
     
     /** the metadata property map **/
-    protected Properties mProperties = new Properties();
+    private Properties mProperties = new Properties();
     
     /** property name cache **/
     private String [] mPropertyNames = null;
@@ -288,6 +288,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
     }
     
     public void setTitle(String title) {
+        if (DEBUG.RESOURCE) out(this + " setTitle " + title);
         mTitle = title;
     }
     
@@ -355,8 +356,8 @@ public class URLResource implements Resource, XMLUnmarshalListener
     // or at least protected
     public void setSpec(final String spec) {
         if (DEBUG.RESOURCE/*&& DEBUG.META*/) {
-            System.err.println(getClass().getName() + " setSpec " + spec);
-            if (DEBUG.IMAGE && mTitle == null) setTitle(spec);
+            out("setSpec " + spec);
+            //tufts.Util.printStackTrace("setSpec " + spec);
         }
         
         // TODO: will want generic ability to set the reference created
@@ -1040,12 +1041,25 @@ public class URLResource implements Resource, XMLUnmarshalListener
     }
     
     public Icon getIcon() {
+        return getIcon(32, 32);
+    }
+        
+    public Icon getIcon(int width, int height) {
+
+        if (mIcon == null) {
+            //tufts.Util.printStackTrace("getIcon " + this); System.exit(-1);
+            mIcon = new tufts.vue.ui.ResourceIcon(this, width, height);
+        } else {
+            mIcon.setSize(width, height);
+        }
         return mIcon;
     }
     
+    /*
     public void setIcon(Icon i) {
         mIcon = i;
     }
+    */
 
     public String toString() {
         if (mProperties == null)
@@ -1179,7 +1193,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
 
 
     private void out(String s) {
-        System.out.println(this + ": " + s);
+        System.out.println(getClass().getName() + ": " + s);
     }
 
     public static void main(String args[]) {
