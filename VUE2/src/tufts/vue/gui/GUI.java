@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.27 $ / $Date: 2006-04-02 21:36:19 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2006-04-06 01:55:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1058,7 +1058,11 @@ public class GUI
             }
         } else if (c instanceof java.awt.MenuComponent) {
             title = ((java.awt.MenuComponent)c).getName();
+        } else if (c instanceof java.awt.Dimension) {
+            Dimension d = (Dimension) c;
+            title = d.width + "x" + d.height;
         }
+        
 
         name = baseObjectName(c);
         if (title == null || title.startsWith("###"))
