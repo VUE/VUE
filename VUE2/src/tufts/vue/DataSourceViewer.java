@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.109 $ / $Date: 2006-04-05 00:36:56 $ / $Author: sfraize $ *
+ * @version $Revision: 1.110 $ / $Date: 2006-04-06 01:38:46 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -775,12 +775,19 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 				resultSetTrees[i].setRootVisible(false);
 				
 				resultSetGrids[i] = new VueDragGrid(v.iterator(), "Repository Search Results");
+
+                                JComponent result;
+
+                                if (true)
+                                    result = resultSetGrids[i];
+                                else
+                                    result = resultSetTrees[i];
 				
 				repositorySpecificResults[i] = new JPanel();
 				if (UseSingleScrollPane)
-					repositorySpecificResults[i].add(resultSetTrees[i]);
+                                    repositorySpecificResults[i].add(result);
 				else
-					repositorySpecificResults[i].add(new JScrollPane(resultSetTrees[i]));
+                                    repositorySpecificResults[i].add(new JScrollPane(result));
 				
 				resultsStack.addPane(name, repositorySpecificResults[i]);
 			}
