@@ -30,7 +30,7 @@ package tufts.vue;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.39 $ / $Date: 2006-03-29 04:29:00 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2006-04-06 01:23:50 $ / $Author: sfraize $
  * @author  akumar03
  */
 import java.util.Properties;
@@ -138,6 +138,11 @@ public interface Resource
     static final int ASSET_FEDORA = 11;     //  Resource is a Fedora Asset.
     static final int ASSET_OKIREPOSITORY  = 12;     //  Resource is an OKI Repository OSID Asset.
 
+    // preview preference keys: use 
+    public static final Object SMALL = "small";
+    public static final Object MEDIUM = "medium";
+    public static final Object LARGE = "large";
+
 
     /** @return true if this resource contains displayable image data */
     public boolean isImage();
@@ -216,6 +221,7 @@ public interface Resource
      * that can be displayed in the bowser.
      */
     public javax.swing.Icon getIcon();
+    public javax.swing.Icon getIcon(int width, int height);
 
     /**
      * Get preview of the object such as thummbnail, small sized image or web-page
@@ -224,6 +230,12 @@ public interface Resource
      * a java.awt.Component, javax.swing.JComponent, or javax.swing.Icon.
      */
     public Object getPreview();
+
+    /**
+     * @param preferredSize: either SMALL, MEDIUM, or LARGE. This is a general hint only and may
+     * not be respected.  If the Resource is image content, 
+     */
+    //public Object getPreview(Object preferredSize);
 
 
     public boolean isCached();
