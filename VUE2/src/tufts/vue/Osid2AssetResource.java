@@ -73,7 +73,7 @@ public class Osid2AssetResource extends MapResource
             setType(Resource.ASSET_OKIREPOSITORY);
             String displayName = asset.getDisplayName();
             setTitle(displayName);
-            mProperties.put("title",displayName);
+            setProperty("title", displayName);
             org.osid.shared.Type specPartStructureType = new tufts.osid.types.VueSpecPartStructureType();
             boolean foundIntegrationRecord = false;
             try
@@ -93,7 +93,7 @@ public class Osid2AssetResource extends MapResource
                         String name = partStructure.getDisplayName();
                         if (ser instanceof String)
                         {
-                            mProperties.put(name,ser);
+                            setProperty(name, ser);
                             if (name.equals("spec")) setSpec((String)ser);
                         }
                     }
@@ -120,7 +120,7 @@ public class Osid2AssetResource extends MapResource
 						java.io.Serializable ser = part.getValue();
 						
 						// metadata discovery
-						mProperties.put(partStructureType.getKeyword(),ser);
+						setProperty(partStructureType.getKeyword(),ser);
 						if (partStructureType.isEqual(partType))
 						{
 							String s = (String)part.getValue();
@@ -165,8 +165,8 @@ public class Osid2AssetResource extends MapResource
                 catch (Throwable t) {}
                 if (getSpec() == null)
                 {
-                    Object o = mProperties.get("spec");
-                    setSpec( (o != null) ? (String)o : asset.getDisplayName() );
+                    String o = getProperty("spec");
+                    setSpec( (o != null) ? o : asset.getDisplayName() );
                 }
             }
         }
