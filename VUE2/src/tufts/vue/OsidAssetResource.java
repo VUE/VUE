@@ -73,7 +73,7 @@ public class OsidAssetResource extends MapResource
             setType(Resource.ASSET_OKIDR);
             String displayName = asset.getDisplayName();
             setTitle(displayName);
-            mProperties.put("title",displayName);
+            setProperty("title",displayName);
             try
             {
                 setSpec( (String)asset.getContent() );            
@@ -86,7 +86,7 @@ public class OsidAssetResource extends MapResource
                         osid.dr.InfoField part = partIterator.next();
                         osid.dr.InfoPart partStructure = part.getInfoPart();
                         String dname = partStructure.getDisplayName();
-                        mProperties.put(part.getInfoPart().getDisplayName(),part.getValue());
+                        setProperty(part.getInfoPart().getDisplayName(),part.getValue());
                     }
                 }
             }
@@ -94,7 +94,7 @@ public class OsidAssetResource extends MapResource
             {
                 System.out.println("No VUE integration record.  Fetching Asset's content " + getSpec());
             }
-            Object o = mProperties.get("spec");
+            Object o = getProperty("spec");
             if (getSpec() == null)
             {
                 setSpec( (o != null) ? (String)o : asset.getDisplayName() );

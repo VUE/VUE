@@ -98,7 +98,7 @@ public class AssetResource extends MapResource{
                         if(list != null && list.getLength() != 0) {
                             // only picks the first element
                             if(list.item(0).getFirstChild() != null)
-                                mProperties.put(dcFields[i], list.item(0).getFirstChild().getNodeValue());
+                                setProperty(dcFields[i], list.item(0).getFirstChild().getNodeValue());
                         }
                     }
                 }
