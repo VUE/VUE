@@ -38,7 +38,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.19 $ / $Date: 2006-03-29 04:56:51 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2006-04-06 01:36:00 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends MapResource {
@@ -166,7 +166,7 @@ public class CabinetResource extends MapResource {
         
         //  Check for a restored resource.
         if (this.entry == null)
-            return (Properties)this.mProperties;
+            return super.getProperties();//(Properties)this.mProperties;
         else {
             try {if (this.entry instanceof tufts.oki.remoteFiling.RemoteByteStore)
                 if (this.entry instanceof RemoteByteStore) {
@@ -226,7 +226,8 @@ public class CabinetResource extends MapResource {
             catch (osid.shared.SharedException ex2) {
                 //  If we get an exception, just return what we got.
             }
-            this.mProperties = props;            //  Cache the metadata.
+            //this.mProperties = props;            //  Cache the metadata.
+            System.err.println("Unimplemented: filing properties on resource");
             return props;
         }
     }
