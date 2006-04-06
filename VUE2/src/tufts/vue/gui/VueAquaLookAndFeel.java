@@ -24,7 +24,7 @@ import javax.swing.*;
  * Left.gif and Both.gif, which are needed for Aqua tabbed-pane's
  * when there isn't enough room to display all the tabs.
  *
- * @version $Revision: 1.2 $ / $Date: 2006-01-20 17:20:19 $ / $Author: sfraize $ 
+ * @version $Revision: 1.3 $ / $Date: 2006-04-06 20:45:54 $ / $Author: sfraize $ 
  */
 // superclass of AquaJideLookAndFeel is apple.laf.AquaLookAndFeel
 //public class VueAquaLookAndFeel extends com.jidesoft.plaf.aqua.AquaJideLookAndFeel { // JIDE
@@ -32,6 +32,7 @@ public class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel
 {
     public final static Font SystemFont = new Font("Lucida Grande", Font.PLAIN, 13);
     public final static Font SmallSystemFont = new Font("Lucida Grande", Font.PLAIN, 11);
+    public final static Font SmallSystemFont12 = new Font("Lucida Grande", Font.PLAIN, 12);
     public final static Font MiniSystemFont = new Font("Lucida Grande", Font.PLAIN, 9);
     public final static Font EmphasizedMiniSystemFont = new Font("Lucida Grande", Font.BOLD, 9);
     
