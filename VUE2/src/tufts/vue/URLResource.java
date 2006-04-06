@@ -37,7 +37,7 @@ import com.sun.image.codec.jpeg.*;
 /**
  * The class is handles a reference to either a local file or a URL.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-04-06 01:30:33 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2006-04-06 01:36:41 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.
@@ -1044,6 +1044,8 @@ public class URLResource implements Resource, XMLUnmarshalListener
         return getIcon(32, 32);
     }
         
+    // TODO: calling with a different width/height only changes the size of
+    // the existing icon, thus all who have reference to this will change!
     public Icon getIcon(int width, int height) {
 
         if (mIcon == null) {
