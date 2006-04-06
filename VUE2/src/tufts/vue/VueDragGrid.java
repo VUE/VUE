@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.2 $ / $Date: 2006-04-04 05:20:47 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-04-06 01:37:25 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragGrid extends JTree
@@ -62,11 +62,11 @@ public class VueDragGrid extends JTree
     private static  ImageIcon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
     ///private javax.swing.JPanel previewPanel = null;
     //	private tufts.vue.gui.DockWindow previewDockWindow = null;
-    
+
     public VueDragGrid(Object  obj, String treeName) {
         setModel(createTreeModel(obj, treeName));
         setName(treeName);
-		setRowHeight(200);
+        setRowHeight(72);
         this.setRootVisible(true);
         this.expandRow(0);
         this.expandRow(1);
@@ -74,7 +74,9 @@ public class VueDragGrid extends JTree
         implementDrag(this);
         createPopupMenu();
         
-       this. getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        //getSelectionModel().setSelectionMode(TreeSelectionModel.CONTIGUOUS_TREE_SELECTION);
+
        resourceSelection = VUE.getResourceSelection();
        addTreeSelectionListener(this);
 
@@ -100,7 +102,8 @@ public class VueDragGrid extends JTree
         
     }
     
-    public VueDragGrid(FavoritesNode favoritesNode) {
+    public VueDragGrid(FavoritesNode favoritesNode)
+    {
         setModel(new DefaultTreeModel(favoritesNode));
         
         this.expandRow(0);
@@ -291,15 +294,15 @@ public class VueDragGrid extends JTree
         // System.out.println("elements in path = "+e.getPath().getPathCount());
     }
     
-    class VueDragGridCellRenderer extends DefaultTreeCellRenderer{
+    static class VueDragGridCellRenderer extends DefaultTreeCellRenderer{
         String meta = "";
         protected VueDragGrid tree;   
 		
         public VueDragGridCellRenderer(VueDragGrid vdTree) {
             this.tree = vdTree;
-		}
+        }
 		
-		public Component getTreeCellRendererComponent(
+        public Component getTreeCellRendererComponent(
                                                       JTree tree,
                                                       Object value,
                                                       boolean sel,
@@ -311,14 +314,12 @@ public class VueDragGrid extends JTree
             super.getTreeCellRendererComponent(tree, value, sel,
                                                expanded, leaf, row,
                                                hasFocus);
-			if (leaf) {
-				Osid2AssetResource resource = (Osid2AssetResource)((DefaultMutableTreeNode)value).getUserObject();
-				//String iconURL = resource.getImageIcon();
-                                // TODO SMF: a VUE image pane that is an Icon
-				
-				// call to image load code goes here
-			 }
-			 return this;				 
+            if (leaf) {
+                //Osid2AssetResource resource = (Osid2AssetResource)((DefaultMutableTreeNode)value).getUserObject();
+                Resource resource = (Resource)((DefaultMutableTreeNode)value).getUserObject();
+                setIcon(resource.getIcon(68,68));
+            }
+            return this;				 
         }
         
         public String getToolTipText(){
