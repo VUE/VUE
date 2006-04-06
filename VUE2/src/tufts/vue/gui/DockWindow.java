@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.48 $ / $Date: 2006-04-04 22:56:24 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2006-04-06 20:01:35 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -92,7 +92,7 @@ public class DockWindow extends javax.swing.JWindow
     private final static String SOUTH_WEST = "southWest";
     private final static String SOUTH_EAST = "southEast";
     
-    private final static int TitleHeight = 16;
+    private final static int TitleHeight = 21;
     private final static int ResizeCornerSize = 12;
     private final static int MacAquaMetalMinHeight = 37; // Mac Aqua Brushed Metal window size bug
     private static Font TitleFont;
@@ -424,7 +424,7 @@ public class DockWindow extends javax.swing.JWindow
         // isWindows=false; isMac=isMacAqua=isMacAquaMetal=false;
 
         if (isMac)  {
-            TitleFont = VueAquaLookAndFeel.SmallSystemFont;
+            TitleFont = VueAquaLookAndFeel.SmallSystemFont12;
         } else {
             Object desktopFrameFont = Toolkit.getDefaultToolkit().getDesktopProperty("win.frame.captionFont");
             if (desktopFrameFont instanceof Font) {
