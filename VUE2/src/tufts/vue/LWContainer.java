@@ -34,7 +34,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.87 $ / $Date: 2006-01-20 18:57:33 $ / $Author: sfraize $
+ * @version $Revision: 1.88 $ / $Date: 2006-04-07 20:52:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -703,10 +703,13 @@ public abstract class LWContainer extends LWComponent
                 continue;
             }
             if (c.contains(mapX, mapY)) {
+                return c.findChildAt(mapX, mapY);
+                /*
                 if (c.hasChildren())
                     return ((LWContainer)c).findChildAt(mapX, mapY);
                 else 
                     return c.isFiltered() ? null : c;
+                */
             }
         }
         // we check curved links last because they can take up so much
@@ -746,7 +749,7 @@ public abstract class LWContainer extends LWComponent
             if (focusComponent != null) System.out.println("\tfocusComponent=" + focusComponent);
         }
 
-        LWComponent found = _findDeepestChildAt(mapX, mapY, excluded, ignoreSelected);
+        LWComponent found = pickDeepestChildAt(mapX, mapY, excluded, ignoreSelected);
 
         if (DEBUG.CONTAINMENT) {
             if (found == this)
@@ -760,7 +763,7 @@ public abstract class LWContainer extends LWComponent
         return found;
     }
     
-    private LWComponent _findDeepestChildAt(float mapX, float mapY, LWComponent excluded, boolean ignoreSelected)
+    private LWComponent pickDeepestChildAt(float mapX, float mapY, LWComponent excluded, boolean ignoreSelected)
     {
         // TODO: change this gross focusComponent hack to a cleaner special case:
         // have the entire LWMap maintain a list of all the current focus components,
