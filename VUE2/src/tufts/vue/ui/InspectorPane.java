@@ -33,7 +33,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-04-05 21:26:52 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-04-07 20:14:24 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -66,7 +66,7 @@ public class InspectorPane extends JPanel
     public InspectorPane()
     {
         super(new BorderLayout());
-        setName("Selection Properties");
+        setName("Properties");
 
         String fontName;
         int fontSize;
@@ -90,11 +90,11 @@ public class InspectorPane extends JPanel
 
         WidgetStack stack = new WidgetStack();
 
-        stack.addPane("XXXX Information",       mSummaryPane,           0f);
-        stack.addPane("XXXX Keywords",          mUserMetaData,          1f);
+        stack.addPane("Information",            mSummaryPane,           0f);
         stack.addPane("Content Preview",        mPreview,               0.75f);
         stack.addPane("Content Description",    mResourceMetaData,      1f);
-        stack.addPane("XXXX Notes",             mNotePanel,             1f);
+        stack.addPane("Notes",                  mNotePanel,             1f);
+        stack.addPane("Keywords",               mUserMetaData,          1f);
         stack.addPane("Nested Nodes",           mNodeTree,              1f);
 
         Widget.setExpanded(mUserMetaData, false);
@@ -131,7 +131,7 @@ public class InspectorPane extends JPanel
             mUserMetaData.load(c);
             mNodeTree.load(c);
 
-            setTypeName(mNotePanel, c, "Notes");
+            //setTypeName(mNotePanel, c, "Notes");
         }
     }
 
@@ -336,7 +336,7 @@ public class InspectorPane extends JPanel
         }
 
         void load(LWComponent c) {
-            setTypeName(this, c, "Keywords");
+            //setTypeName(this, c, "Keywords");
             if (DEBUG.SELECTION) System.out.println("NodeFilterPanel.updatePanel: " + c);
             if (userMetaDataEditor != null) {
                 //System.out.println("USER META SET: " + c.getNodeFilter());
