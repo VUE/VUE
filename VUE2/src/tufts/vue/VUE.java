@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.359 $ / $Date: 2006-04-04 05:12:33 $ / $Author: sfraize $ 
+ * @version $Revision: 1.360 $ / $Date: 2006-04-07 20:17:28 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -615,7 +615,7 @@ public class VUE
         // DRBrowser class initializes the DockWindow itself.
         //-----------------------------------------------------------------------------
         
-        DR_BROWSER_DOCK = GUI.createDockWindow("Libraries");
+        DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
         DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK);
 		
         //-----------------------------------------------------------------------------
@@ -630,7 +630,8 @@ public class VUE
         //-----------------------------------------------------------------------------
 
         //final DockWindow resourceDock = GUI.createDockWindow("Resource Inspector", new ResourcePanel());
-        DockWindow ObjectInspector = GUI.createDockWindow(new tufts.vue.ui.InspectorPane());
+        DockWindow ObjectInspector = GUI.createDockWindow("Properties", new tufts.vue.ui.InspectorPane());
+        ObjectInspector.setMenuName("Properties / Preview");
         ObjectInspector.setHeight(575);
         
         //-----------------------------------------------------------------------------
