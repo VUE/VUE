@@ -42,7 +42,7 @@ import javax.swing.border.*;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.64 $ / $Date: 2006-04-05 21:24:27 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2006-04-07 21:22:45 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel implements ActionListener
@@ -432,28 +432,43 @@ public class PathwayPanel extends JPanel implements ActionListener
         if (pathway == null || map == null)
             return;
 
+        // This code is a bit complicated, as it both sets a pathway
+        // to be exclusively shown, or toggles it if it already is.
+
+        // So, if nothing is currently the Exclusively-shown Pathway
+        // (EXPAT), or the current EXPAT is different from the new
+        // EXPAT, then we set the filtered state for everything in the
+        // map based on it's membership in the new EXPAT -- simple enough.
+
+        // But if the old EXPAT == the new EXPAT, we have we are
+        // toggling, and so we just de-filter (show) everything on the
+        // map.
+
         Iterator i = map.getAllDescendentsIterator();
         if (exclusiveDisplay != pathway) {
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
-                c.setIsFiltered(!c.inPathway(pathway));
+                c.setFiltered(!c.inPathway(pathway));
             }
             exclusiveDisplay = pathway;
         } else {
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
-                c.setIsFiltered(false);
+                c.setFiltered(false);
             }
             exclusiveDisplay = null;
         }
+
+        // Now we make sure the Pathway objects themselves
+        // have their filter flag properly set.
 
         i = map.getPathwayList().iterator();
         while (i.hasNext()) {
             LWPathway p = (LWPathway) i.next();
             if (exclusiveDisplay == null)
-                p.setIsFiltered(false);
+                p.setFiltered(false);
             else
-                p.setIsFiltered(p != pathway);
+                p.setFiltered(p != pathway);
         }
         
         //mTableModel.fireTableDataChanged(); // so will gray filtered items
