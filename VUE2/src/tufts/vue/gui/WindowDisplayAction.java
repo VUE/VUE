@@ -16,7 +16,7 @@ import javax.swing.AbstractButton;
  * An action for displaying a Window and tracking it's displayed state,
  * keeping in synchronized with a somebody's button (such a checkbox in a menu).
  *
- * @version $Revision: 1.2 $ / $Date: 2006-01-23 16:10:37 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-04-07 20:15:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WindowDisplayAction extends javax.swing.AbstractAction
@@ -66,7 +66,9 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
             return ((java.awt.Frame)w).getTitle();
         else if (w instanceof java.awt.Dialog)
             return ((java.awt.Dialog)w).getTitle();
-        else
+        else if (w instanceof DockWindow) {
+            return ((DockWindow)w).getMenuName();
+        } else
             return ((java.awt.Window)w).getName();
     }
 
