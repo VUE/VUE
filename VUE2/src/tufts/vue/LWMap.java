@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.99 $ / $Date: 2006-01-20 19:18:40 $ / $Author: sfraize $
+ * @version $Revision: 1.100 $ / $Date: 2006-04-07 21:08:57 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -210,7 +210,7 @@ public class LWMap extends LWContainer
         Iterator i = getAllDescendentsIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            c.setIsFiltered(false);
+            c.setFiltered(false);
         }
         mLWCFilter.setFilterOn(false);       
         notify(LWKey.MapFilter);
@@ -230,9 +230,9 @@ public class LWMap extends LWContainer
                         state = !state;
                     }
                     if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_HIDE)
-                        c.setIsFiltered(state);
+                        c.setFiltered(state);
                     else if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SHOW)
-                        c.setIsFiltered(!state);
+                        c.setFiltered(!state);
                     else if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT) {
                         if (state)
                             VUE.getSelection().add(c);

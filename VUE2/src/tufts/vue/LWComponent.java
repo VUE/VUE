@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.191 $ / $Date: 2006-04-07 20:51:46 $ / $Author: sfraize $
+ * @version $Revision: 1.192 $ / $Date: 2006-04-07 21:04:54 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -77,7 +77,7 @@ public class LWComponent
     private float y;
     private UserMapType mUserMapType = null; // I think this is totally vestigal -- remove
     //private java.util.Map mUserPropertyValues = new java.util.HashMap();
-    private boolean mIsFiltered = false;
+    private boolean isFiltered = false;
     private NodeFilter nodeFilter = null;
     
     protected float width = NEEDS_DEFAULT;
@@ -405,15 +405,15 @@ public class LWComponent
      * This sets the flag for the component so that it is either
      * hidden or visible based on a match to the active LWCFilter
      **/
-    public void setIsFiltered(boolean pState) {
-    	mIsFiltered = pState;
+    public void setFiltered(boolean filtered) {
+    	isFiltered = filtered;
     }
     
     /**
      * @return true if should be hidden due to a currently applied filter, false if not
      **/
     public boolean isFiltered() {
-    	return mIsFiltered;
+    	return isFiltered;
     }
 
     /**
@@ -1891,7 +1891,7 @@ public class LWComponent
         return !isHidden();
     }
     public boolean isDrawn() {
-        return !hidden && !mIsFiltered;
+        return !hidden && !isFiltered;
     }
     public void setRollover(boolean tv)
     {
