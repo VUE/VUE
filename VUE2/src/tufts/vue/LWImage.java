@@ -95,6 +95,18 @@ public class LWImage extends LWComponent
 
     public boolean isAutoSized() { return false; }
 
+
+    /** This currently makes LWImages invisible to deep selection (they're locked in their parent node */
+    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded, boolean ignoreSelected) {
+        return getParent();
+    }
+
+    /** This currently makes LWImages invisible to selection (they're locked in their parent node */
+    protected LWComponent findChildAt(float mapX, float mapY) {
+        return getParent();
+    }
+    
+    
     /** @return true -- image's support resize (which is currently just a crop) */
     public boolean supportsUserResize() {
         return true;
