@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.190 $ / $Date: 2006-04-02 21:35:36 $ / $Author: sfraize $
+ * @version $Revision: 1.191 $ / $Date: 2006-04-07 20:51:46 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1935,6 +1935,13 @@ public class LWComponent
             return null;
         else
             return excluded == this ? null : this;
+    }
+
+
+    /** This only to be called once we  already know mapX / mapY are within this component */
+    protected LWComponent findChildAt(float mapX, float mapY)
+    {
+        return isFiltered() ? null : this;
     }
 
 
