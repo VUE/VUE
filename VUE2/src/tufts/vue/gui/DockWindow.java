@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.49 $ / $Date: 2006-04-06 20:01:35 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2006-04-07 20:14:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -103,6 +103,7 @@ public class DockWindow extends javax.swing.JWindow
     //private Action[] mMenuActions;
     
     private String mTitle;
+    private String mMenuName; // if non-null, will be used for name in menus
     private final String mBaseTitle;
     private int mTitleWidth;
 
@@ -949,6 +950,14 @@ public class DockWindow extends javax.swing.JWindow
     
     public String getTitle() {
         return mTitle;
+    }
+    
+    public String getMenuName() {
+        return mMenuName == null ? getTitle() : mMenuName;
+    }
+    
+    public void setMenuName(String s) {
+        mMenuName = s;
     }
     
     private int minUnrolledHeight(int height) {
