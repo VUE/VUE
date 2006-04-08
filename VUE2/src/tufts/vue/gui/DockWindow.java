@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.51 $ / $Date: 2006-04-07 20:23:07 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2006-04-08 04:27:04 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -97,7 +97,7 @@ public class DockWindow extends javax.swing.JWindow
     private final static int MacAquaMetalMinHeight = 37; // Mac Aqua Brushed Metal window size bug
     private static Font TitleFont;
     
-    private final WindowPane mContentPane;
+    private final ContentPane mContentPane;
     private JComponent mResizeCorner;
     private JComponent mResizeCorner2;
     //private Action[] mMenuActions;
@@ -184,7 +184,7 @@ public class DockWindow extends javax.swing.JWindow
         
         isToolbar = asToolbar;
 
-        mContentPane = new WindowPane(title, asToolbar);
+        mContentPane = new ContentPane(title, asToolbar);
 
         if (true)
             setContentPane(mContentPane);
@@ -213,16 +213,12 @@ public class DockWindow extends javax.swing.JWindow
         if (false) {
             // WAIT-CURSOR DEBUG
             setMenuActions(new Action[] {
-                    new AbstractAction("Show Wait Cursor") {
-                        public void actionPerformed(ActionEvent ae) {
+                    new AbstractAction("Show Wait Cursor") {public void actionPerformed(ActionEvent ae) {
                             GUI.activateWaitCursor();
-                        }
-                    },
-                    new AbstractAction("Clear Wait Cursor") {
-                        public void actionPerformed(ActionEvent ae) {
+                        }},
+                    new AbstractAction("Clear Wait Cursor") {public void actionPerformed(ActionEvent ae) {
                             GUI.clearWaitCursor();
-                        }
-                    },
+                        }},
                 });
                     
         }
@@ -245,27 +241,20 @@ public class DockWindow extends javax.swing.JWindow
 
         boolean hadContent = getContent() != null;
 
-        // todo: cleanup
-        if (c.getBorder() == null) {
+        /*if (c.getBorder() == null) {
             // enforce some kind of border so that a mouse click on at least the bottom
             // pixel in the window get's to us, so if it's at the bottom of the screen,
             // we can detect it for un-rolling.
-
             if (DEBUG.BOXES)
                 getContentPanel().setBorder(new MatteBorder(0,0,1,0, Color.green));
             else
                 getContentPanel().setBorder(new EmptyBorder(0,0,1,0));
-
-            
         } else {
-            
             if (DEBUG.BOXES)
                 getContentPanel().setBorder(new MatteBorder(0,0,1,0, Color.green));
             else
                 getContentPanel().setBorder(new EmptyBorder(0,0,1,0));
-            //getContentPanel().setBorder(new MatteBorder(0,0,1,0, Color.lightGray));
-
-        }
+                }*/
         
         if (hadContent)
             getContent().removePropertyChangeListener(this);
@@ -493,6 +482,12 @@ public class DockWindow extends javax.swing.JWindow
         if (isMacAqua && (MacWindowShadowEnabled || isMacAquaMetal)) {
             return null; // no border on MacOSX at all for now: rely on native shadowing
         } else {
+            if (DEBUG.BOXES)
+                return new LineBorder(Color.green);
+            else
+                return new LineBorder(new Color(51,51,51));
+            
+            /*
             if (isMacAqua) {
                 if (DEBUG.BOXES)
                     return new LineBorder(Color.green);
@@ -514,6 +509,7 @@ public class DockWindow extends javax.swing.JWindow
                 
                 //return BorderFactory.createRaisedBevelBorder();
             }
+            */
         }
     }
     
@@ -3020,7 +3016,7 @@ public class DockWindow extends javax.swing.JWindow
             return s + " ->" + mChild.mTitle + "]";
     }
 
-    private class WindowPane extends JPanel
+    private class ContentPane extends JPanel
     {
         private JPanel mContent = new JPanel(true);
         private TitlePanel mTitle;
@@ -3031,7 +3027,7 @@ public class DockWindow extends javax.swing.JWindow
         private Object titleConstraints = BorderLayout.NORTH;
         
         /*
-        public WindowPane(String title, boolean asToolbar)
+        public ContentPane(String title, boolean asToolbar)
         {
             // requesting double-buffering doesn't do squat to stop resize flashing on MacOSX
             super(true);
@@ -3053,10 +3049,9 @@ public class DockWindow extends javax.swing.JWindow
         }
         */
 
-        public WindowPane(String title, boolean asToolbar)
+        public ContentPane(String title, boolean asToolbar)
         {
-            // requesting double-buffering doesn't do squat to stop resize flashing on MacOSX
-            super(true);
+
             mContent.setName(title + ".dockContent");
             Object contentConstraints;
             if (true||asToolbar) {
@@ -3109,6 +3104,11 @@ public class DockWindow extends javax.swing.JWindow
 
             //mContent.setBackground(Color.green);
             mContent.setOpaque(false);
+            
+            mContent.setBorder(new CompoundBorder(new MatteBorder(3,2,3,2, new Color(235,235,235)),
+                                                  new LineBorder(new Color(102,102,102))));
+
+            
 
         }
 
@@ -3966,14 +3966,16 @@ public class DockWindow extends javax.swing.JWindow
         stack.addPane("My Computer");
         stack.addPane("My Picture", new JLabel(new ImageIcon(VueResources.getURL("splashScreen"))));
 
-         if (true) {
+         if (false) {
             JScrollPane sp = new JScrollPane(stack);
             //sp.setBorder(new LineBorder(Color.red));
             // clear default 1 pixel white border
             sp.setBorder(null);
-            win1.add(sp);
-        } else
-            win1.add(stack);
+            win1.setContent(sp);
+         } else {
+             //   win1.setContent(stack);
+             win1.setContent(new JLabel("foo"));
+         }
         
         win1.setVisible(true);
         
