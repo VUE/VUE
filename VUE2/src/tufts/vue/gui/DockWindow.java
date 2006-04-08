@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.52 $ / $Date: 2006-04-08 04:27:04 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2006-04-08 04:31:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3105,8 +3105,9 @@ public class DockWindow extends javax.swing.JWindow
             //mContent.setBackground(Color.green);
             mContent.setOpaque(false);
             
-            mContent.setBorder(new CompoundBorder(new MatteBorder(3,2,3,2, new Color(235,235,235)),
-                                                  new LineBorder(new Color(102,102,102))));
+            if (!isToolbar)
+                mContent.setBorder(new CompoundBorder(new MatteBorder(3,2,3,2, new Color(235,235,235)),
+                                                      new LineBorder(new Color(102,102,102))));
 
             
 
