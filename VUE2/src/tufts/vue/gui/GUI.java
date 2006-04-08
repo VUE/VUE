@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.28 $ / $Date: 2006-04-06 01:55:44 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2006-04-08 02:48:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -194,8 +194,8 @@ public class GUI
         
         if (isMacAqua) {
 
-            //if (!SKIP_CUSTOM_LAF)
-            //installAquaLAFforVUE();
+            if (!SKIP_CUSTOM_LAF)
+                installAquaLAFforVUE();
 
         } else if (Util.isMacPlatform()) {
 
