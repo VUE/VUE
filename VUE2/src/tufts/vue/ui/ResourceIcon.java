@@ -34,7 +34,7 @@ import javax.swing.*;
  * TODO: merge common code with PreviewPane, and perhaps put in a 3rd class
  * so can have multiple icons referencing the same underlying image.
  *
- * @version $Revision: 1.3 $ / $Date: 2006-04-08 01:51:35 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2006-04-08 01:53:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -64,7 +64,7 @@ public class ResourceIcon
         //add(StatusLabel);
         //loadResource(r);
         mResource = r;
-        out("Constructed " + width + "x" + height + " " + r);
+        //out("Constructed " + width + "x" + height + " " + r);
     }
         
     /** Expand's to fit the size of the component it's painted into */
@@ -80,8 +80,7 @@ public class ResourceIcon
 
     private void repaint() {
         if (mParent != null) {
-            //if (DEBUG.IMAGE)
-                out("repaint in " + GUI.name(mParent));
+            //if (DEBUG.IMAGE) out("repaint in " + GUI.name(mParent));
             mParent.repaint();
         }
         // FYI, this will not repaint if the parent is a DefaultTreeCellRenderer,
