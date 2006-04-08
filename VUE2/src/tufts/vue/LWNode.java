@@ -33,7 +33,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.122 $ / $Date: 2006-02-26 23:25:10 $ / $Author: sfraize $
+ * @version $Revision: 1.123 $ / $Date: 2006-04-08 05:11:52 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1667,16 +1667,13 @@ public class LWNode extends LWContainer
             //-------------------------------------------------------
             // Restore graphics context
             //-------------------------------------------------------
-            // todo arch: consider not restoring the scale before we draw
-            // the children, and maybe even handling this in LWContainer,
-            // as a way to see if we could get rid of all the confusing "x
-            // * getScale()" code & awkward recursive setScale code.
-            // Actually, we couldn't attempt this unless we also fully
-            // changed the children be drawn in a translated GC, and the
-            // hit-detection was compensated for more at search time
-            // instead of by resizing the object by having getHeight, etc,
-            // auto multiply by the scale factor, and actually resizing
-            // the bounds-shape when we scale an object.
+            // todo arch: consider not restoring the scale before we draw the children, and maybe
+            // even handling this in LWContainer, as a way to see if we could get rid of all the
+            // confusing "x * getScale()" code & awkward recursive setScale code.  Actually, we
+            // couldn't attempt this unless we also fully changed the children be drawn in a
+            // translated GC, and the hit-detection was compensated for more at search time instead
+            // of by resizing the object by having getHeight, etc, auto multiply by the scale
+            // factor, and actually resizing the bounds-shape when we scale an object.
             
 
             if (scale != 1f) dc.g.scale(1/scale, 1/scale);
@@ -1687,10 +1684,10 @@ public class LWNode extends LWContainer
         // Draw any children
         //-------------------------------------------------------
 
-        // This produces the cleanest code in all above -- don't
-        // need to manage scaling if we translate to a region
-        // where all the nodes will lie within, and then their
-        // positioning auto-collapses as they're scaled down...
+        // This produces the cleanest code in all above -- don't need to manage scaling if we
+        // translate to a region where all the nodes will lie within, and then their positioning
+        // auto-collapses as they're scaled down...
+
         if (hasChildren()) {
             //g.translate(childBaseX * ChildScale, childBaseY * ChildScale);
             //g.scale(ChildScale, ChildScale);
