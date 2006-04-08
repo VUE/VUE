@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.3 $ / $Date: 2006-04-06 01:37:25 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2006-04-08 01:49:07 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragGrid extends JTree
@@ -66,7 +66,7 @@ public class VueDragGrid extends JTree
     public VueDragGrid(Object  obj, String treeName) {
         setModel(createTreeModel(obj, treeName));
         setName(treeName);
-        setRowHeight(72);
+        setRowHeight(40);
         this.setRootVisible(true);
         this.expandRow(0);
         this.expandRow(1);
@@ -317,7 +317,7 @@ public class VueDragGrid extends JTree
             if (leaf) {
                 //Osid2AssetResource resource = (Osid2AssetResource)((DefaultMutableTreeNode)value).getUserObject();
                 Resource resource = (Resource)((DefaultMutableTreeNode)value).getUserObject();
-                setIcon(resource.getIcon(68,68));
+                setIcon(resource.getIcon(36,36));
             }
             return this;				 
         }
