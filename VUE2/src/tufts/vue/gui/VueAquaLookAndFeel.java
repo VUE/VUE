@@ -6,6 +6,7 @@ import tufts.vue.DEBUG;
 
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.plaf.ColorUIResource;
 
       
 // We can find the class apple.laf.AquaLookAndFeel on Mac OS X systems in:
@@ -24,7 +25,7 @@ import javax.swing.*;
  * Left.gif and Both.gif, which are needed for Aqua tabbed-pane's
  * when there isn't enough room to display all the tabs.
  *
- * @version $Revision: 1.3 $ / $Date: 2006-04-06 20:45:54 $ / $Author: sfraize $ 
+ * @version $Revision: 1.4 $ / $Date: 2006-04-08 02:48:16 $ / $Author: sfraize $ 
  */
 // superclass of AquaJideLookAndFeel is apple.laf.AquaLookAndFeel
 //public class VueAquaLookAndFeel extends com.jidesoft.plaf.aqua.AquaJideLookAndFeel { // JIDE
@@ -45,27 +46,28 @@ public class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel
         //table.put("Button.font", getFont());
 
         Font font = table.getFont("Label.font");
-        //System.out.println(font);
-        font = makeFont(font.deriveFont(10f));
+        //if (DEBUG.Enabled) System.out.println("GUI: default label font: " + font);
+        font = makeFont(font.deriveFont(11f));
         //System.out.println(font);
             
         table.put("Label.font", font);
-        table.put("Tree.font", font);
+        table.put("Label.foreground", new ColorUIResource(new Color(61, 61, 61)));
         table.put("TextField.font", font);
         table.put("TextArea.font", font);
         table.put("TextPane.font", font);
+        table.put("Tree.font", font);
         table.put("Table.font", font);
-        table.put("TableHeader.font", font);
+        //table.put("TableHeader.font", font);
+
         //table.put("ComboBox.font", font);
 
-        table.put("ToolBarUI", "tufts.vue.VueAquaLookAndFeel$ToolBarUI");
-        table.put("CommandBarUI", "tufts.vue.VueAquaLookAndFeel$CommandBarUI");
-        table.put("CommandBarTitleBarUI", "tufts.vue.VueAquaLookAndFeel$FloatingToolbarTitleUI");
+        //table.put("ToolBarUI", "tufts.vue.VueAquaLookAndFeel$ToolBarUI");
 
         // the background colors seem to be having no effect -- only foreground:
         // background -- appears to work only when manually calling
         // getCaret().setSelectionVisible as we do in our hacked KeyboardFocusManager.
-        table.put("textHighlight", new javax.swing.plaf.ColorUIResource(255, 255, 0));
+        if (false)
+            table.put("textHighlight", new javax.swing.plaf.ColorUIResource(255, 255, 0));
         //table.put("TextField.selectionBackground", new javax.swing.plaf.ColorUIResource(0, 0, 255));
         //table.put("TextField.selectionForeground", new javax.swing.plaf.ColorUIResource(0, 255, 0));
 
@@ -79,12 +81,16 @@ public class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel
         */
 
         // Settings for JIDE components:
-        table.put("CommandBar.titleBarSize", new Integer(8));
-        table.put("CommandBar.titleBarBackground", SystemColor.control);
-        //table.put("CommandBar.titleBarBackground", new javax.swing.plaf.ColorUIResource(SystemColor.window));
-        //table.put("CommandBar.titleBarBackground", SystemColor.window); // does NOT work as a ColorUIResource for some reason
-        table.put("CommandBar.titleBarForeground", new javax.swing.plaf.ColorUIResource(Color.black));
-        table.put("CommandBar.titleBarFont", font);
+        if (false) {
+            table.put("CommandBarUI", "tufts.vue.VueAquaLookAndFeel$CommandBarUI");
+            table.put("CommandBarTitleBarUI", "tufts.vue.VueAquaLookAndFeel$FloatingToolbarTitleUI");
+            table.put("CommandBar.titleBarSize", new Integer(8));
+            table.put("CommandBar.titleBarBackground", SystemColor.control);
+            //table.put("CommandBar.titleBarBackground", new javax.swing.plaf.ColorUIResource(SystemColor.window));
+            //table.put("CommandBar.titleBarBackground", SystemColor.window); // does NOT work as a ColorUIResource for some reason
+            table.put("CommandBar.titleBarForeground", new javax.swing.plaf.ColorUIResource(Color.black));
+            table.put("CommandBar.titleBarFont", font);
+        }
             
 
         //System.out.println(table);
