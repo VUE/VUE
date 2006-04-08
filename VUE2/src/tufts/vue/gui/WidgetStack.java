@@ -32,7 +32,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-03-23 20:32:50 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-04-08 23:58:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends JPanel
@@ -335,6 +335,10 @@ public class WidgetStack extends JPanel
             // everything?) Really need second tier expander marks for stuff
             // w/scroll-panes (use negative expansion weights?)  Subclassing
             // GridBagLayout might make this easier also.
+
+            // new: if last expander open, and we close it,
+            // open the next visible expander below, or if none, the
+            // one above, or none, don't allow this to collapse.
 
             WidgetStack.this.updateDefaultExpander();
                 
