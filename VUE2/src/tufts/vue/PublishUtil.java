@@ -65,8 +65,9 @@ public class PublishUtil implements  tufts.vue.DublinCoreConstants  {
         String IMSCPOrganization ="";
         String IMSCPResources = "";
         int resourceCount =2; //resourceIdentifier 1 is used for map
-        IMSCPMetadata += getMetadataString(tufts.vue.VUE.getActiveMap().getMetadata());
-        IMSCPResources += getResourceTag(tufts.vue.VUE.getActiveMap().getMetadata(), IMSCP.MAP_FILE,1);
+        Properties props = tufts.vue.VUE.getActiveMap().getMetadata().asProperties();
+        IMSCPMetadata += getMetadataString(props);
+        IMSCPResources += getResourceTag(props, IMSCP.MAP_FILE,1);
         IMSCPOrganization += "<organization identifier=\"TOC1\" structure=\"hierarchical\">";
         IMSCPOrganization += "<title>IMS Content Package of VUE Map</title> ";
         IMSCPOrganization += "<item identifier=\"ITEM1\" identifierref=\"RESOURCE1\">";
@@ -85,7 +86,7 @@ public class PublishUtil implements  tufts.vue.DublinCoreConstants  {
                 //resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
                 String entry = IMSCP.RESOURCE_FILES+File.separator+file.getName();
                 imscp.putEntry(entry,file);
-                IMSCPResources += getResourceTag(r.getProperties(),entry,resourceCount);
+                IMSCPResources += getResourceTag(r.getProperties().asProperties(), entry,resourceCount);
                 IMSCPOrganization += getItemTag("ITEM"+resourceCount, "RESOURCE"+resourceCount,"Resource "+resourceCount+" in Concept Map");
                 //resourceTable.setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
                 replaceResource(saveMap,r,new MapResource(IMSCP.RESOURCE_FILES+File.separatorChar+file.getName()));

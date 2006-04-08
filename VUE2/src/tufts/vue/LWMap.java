@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.100 $ / $Date: 2006-04-07 21:08:57 $ / $Author: sfraize $
+ * @version $Revision: 1.101 $ / $Date: 2006-04-08 23:59:29 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -80,7 +80,7 @@ public class LWMap extends LWContainer
     LWCFilter mLWCFilter;
     
     /** Metadata for Publishing **/
-    Properties metadata = new Properties();
+    PropertyMap metadata = new PropertyMap();
     
     /* Map Metadata-  this is for adding specific metadata and filtering **/
     MapFilterModel  mapFilterModel = new MapFilterModel();
@@ -349,11 +349,11 @@ public class LWMap extends LWContainer
         mDateCreated = pDate;
     }
     
-    public Properties getMetadata(){
+    public PropertyMap getMetadata(){
         return metadata;
     }
     
-    public void setMetadata(Properties metadata) {
+    public void setMetadata(PropertyMap metadata) {
         this.metadata = metadata;
     }
     

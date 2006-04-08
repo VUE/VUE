@@ -17,12 +17,6 @@
  */
 
 
-/*
- * Resource.java
- *
- * Created on January 23, 2004, 9:26 AM
- */
-
 package tufts.vue;
 
 /**
@@ -30,7 +24,7 @@ package tufts.vue;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.41 $ / $Date: 2006-04-06 01:26:24 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2006-04-08 23:59:29 $ / $Author: sfraize $
  * @author  akumar03
  */
 import java.util.Properties;
@@ -179,7 +173,8 @@ public interface Resource
      *  Return any metadata associated with this resource as a collection of Java
      *  properties.  Dublin core metadata has defined keywords (where defined?)
      */
-    public Properties getProperties();
+    //public Properties getProperties();
+    public PropertyMap getProperties();
     
 
     /**

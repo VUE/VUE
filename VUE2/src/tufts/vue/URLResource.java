@@ -37,7 +37,7 @@ import com.sun.image.codec.jpeg.*;
 /**
  * The class is handles a reference to either a local file or a URL.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-04-06 01:36:41 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-04-08 23:59:29 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.
@@ -66,7 +66,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
     private boolean isCached;
     
     /** the metadata property map **/
-    private Properties mProperties = new Properties();
+    private PropertyMap mProperties = new PropertyMap();
     
     /** property name cache **/
     private String [] mPropertyNames = null;
@@ -846,15 +846,17 @@ public class URLResource implements Resource, XMLUnmarshalListener
         return mProperties.containsKey(key);
     }
     
-    public Properties getProperties() {
+    public PropertyMap getProperties() {
         return mProperties;
     }
     
+    /*
     public void setProperties(Properties pProperties) {
         System.out.println("SET PROPERTIES " + this + " " + pProperties);
         new Throwable("setProperties").printStackTrace();
         this.mProperties = pProperties;
     }
+    */
     
     public int getType() {
         return type;

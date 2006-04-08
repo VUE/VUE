@@ -36,7 +36,7 @@ import java.util.ArrayList;
  * A field:value editor currently specialized for resource properties displayed on
  * the object inspector info tab.
  *
- * @version $Revision: 1.26 $ / $Date: 2006-03-17 07:46:31 $ / $Author: sfraize $ 
+ * @version $Revision: 1.27 $ / $Date: 2006-04-08 23:59:29 $ / $Author: sfraize $ 
  * @author  akumar03
  */
 
@@ -58,7 +58,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         tableModel = new PropertiesTableModel(editable);
         setResourePropertiesPanel();
     }
-    public PropertiesEditor(Properties properties,boolean editable) {
+    public PropertiesEditor(PropertyMap properties, boolean editable) {
         tableModel = new PropertiesTableModel(properties, editable);
         setResourePropertiesPanel();
     }
@@ -161,7 +161,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         
     }
     
-    public void setProperties(Properties properties,boolean editable) {
+    public void setProperties(PropertyMap properties,boolean editable) {
 
         tableModel.setEditable(editable);
         tableModel.setProperties(properties);
@@ -199,7 +199,8 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     
     public void clear() {
         //setProperties(new Properties(), tableModel.isEditable());
-        tableModel.setProperties(new Properties());
+        //tableModel.setProperties(new Properties());
+        tableModel.setProperties(new PropertyMap());
     }
     
     public PropertiesTableModel getPropertiesTableModel() {
@@ -207,16 +208,16 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     }
     // a model for Properties table
     private static String PROPERTY_NOT_SET = "";
-    public class PropertiesTableModel extends AbstractTableModel {
+    public static class PropertiesTableModel extends AbstractTableModel {
         java.util.List m_conditions;
-        Properties properties;
+        Map mProperties;
         boolean editable;
         
         public PropertiesTableModel(boolean editable) {
-            this(new Properties(), editable);
+            this(new PropertyMap(), editable);
         }
         
-        public PropertiesTableModel(Properties properties,boolean editable) {
+        public PropertiesTableModel(PropertyMap properties, boolean editable) {
             this.editable = editable;
             setProperties(properties);
         }
@@ -225,19 +226,15 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             return m_conditions;
         }
         
-        public Properties getProperties() {
-            return properties;
+        public Map getProperties() {
+            return mProperties;
         }
         
-        public void setProperties(Properties properties) {
+        public void setProperties(PropertyMap properties) {
             m_conditions=new ArrayList();
-            this.properties = properties;
-
-            ArrayList keys = new ArrayList(properties.size());
-            Enumeration e = properties.keys();
-            while (e.hasMoreElements()) {
-                keys.add(e.nextElement());
-            }
+            this.mProperties = properties;
+            
+            ArrayList keys = new ArrayList(properties.keySet());
             Collections.sort(keys);
             
             Iterator i = keys.iterator();
@@ -300,7 +297,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             cond.setOperator(ComparisonOperator.eq);
             cond.setValue(value);
             if (value != PROPERTY_NOT_SET)
-                properties.put(key, value);
+                mProperties.put(key, value);
             m_conditions.add(cond);
             fireTableDataChanged();
         }
@@ -321,7 +318,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
          */
         
         public void setValueAt(Object value, int row, int col) {
-            properties.remove(((Condition)m_conditions.get(row)).getProperty());
+            mProperties.remove(((Condition)m_conditions.get(row)).getProperty());
             Condition cond;
             if(row == -1)
                 cond  = new Condition();
@@ -337,7 +334,8 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             else
                 m_conditions.set(row, cond);
             
-            properties.setProperty(cond.getProperty(), cond.getValue());
+            //mProperties.setProperty(cond.getProperty(), cond.getValue());
+            mProperties.put(cond.getProperty(), cond.getValue());
             fireTableCellUpdated(row, col);
         }
         

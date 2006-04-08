@@ -29,7 +29,7 @@ import tufts.vue.gui.*;
 // TODO FIX: the text input fields should save value on focus loss
 
 /**
- * @version $Revision: 1.26 $ / $Date: 2006-02-21 22:14:41 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2006-04-08 23:59:29 $ / $Author: sfraize $
  */
 
 class LWCInfoPanel extends javax.swing.JPanel
@@ -305,7 +305,7 @@ class LWCInfoPanel extends javax.swing.JPanel
         
         //loading the metadata if it exists
         if (c.getResource() != null) {
-            java.util.Properties properties = c.getResource().getProperties();
+            PropertyMap properties = c.getResource().getProperties();
             if (properties != null) {
                 if (c.getResource().getType() == Resource.ASSET_FEDORA)
                     propertiesEditor.setProperties(properties, false);

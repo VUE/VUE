@@ -26,7 +26,7 @@ import tufts.vue.action.*;
 
 /**
  *
- * @version $Revision: 1.12 $ / $Date: 2006-01-20 18:30:12 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2006-04-08 23:59:29 $ / $Author: sfraize $
  * @author  rsaigal
  *
  */
@@ -126,8 +126,12 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
     private void publishMap(LWMap map) throws IOException {
         try {
             File savedMap = PublishUtil.saveMap(map);
-            Properties metadata = map.getMetadata();
-            String pid = getDR().ingest(savedMap.getName() ,"obj-binary.xml", PublishUtil.VUE_MIME_TYPE,savedMap, metadata).getIdString();
+            PropertyMap metadata = map.getMetadata();
+            String pid = getDR().ingest(savedMap.getName(),
+                                        "obj-binary.xml",
+                                        PublishUtil.VUE_MIME_TYPE,savedMap,
+                                        metadata.asProperties()
+                                        ).getIdString();
             JOptionPane.showMessageDialog(VUE.getDialogParent(), "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
             System.out.println("Exported Map: id = "+pid);
         } catch(IOException ex){
@@ -141,7 +145,7 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
     private void publishCMap(LWMap map) throws IOException {
         try{
             File savedCMap = PublishUtil.createIMSCP(Publisher.resourceVector);
-            Properties metadata  = map.getMetadata();
+            Properties metadata  = map.getMetadata().asProperties();
             String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml",PublishUtil.ZIP_MIME_TYPE, savedCMap, metadata).getIdString();
             JOptionPane.showMessageDialog(VUE.getDialogParent(), "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
             System.out.println("Exported Map: id = "+pid);
@@ -168,7 +172,7 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
                 File file = new File(url.getFile());
                 if(file.isFile() && b.booleanValue()) {
                     Publisher.resourceTable.getModel().setValueAt("Processing",Publisher.resourceVector.indexOf(vector),Publisher.STATUS_COL);
-                    String pid = getDR().ingest(file.getName(),"obj-binary.xml",url.openConnection().getContentType(),file, r.getProperties()).getIdString();
+                    String pid = getDR().ingest(file.getName(),"obj-binary.xml",url.openConnection().getContentType(),file, r.getProperties().asProperties()).getIdString();
                     Publisher.resourceTable.getModel().setValueAt("Done",Publisher.resourceVector.indexOf(vector),Publisher.STATUS_COL);
                     PublishUtil.replaceResource(saveMap,r,new AssetResource(getDR().getAsset(new tufts.oki.dr.fedora.PID(pid))));   
                 }

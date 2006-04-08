@@ -33,7 +33,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-04-07 20:14:24 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2006-04-08 23:59:30 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -51,7 +51,7 @@ public class InspectorPane extends JPanel
 
     // Resource panes
     private final SummaryPane mSummaryPane;
-    private final PropertiesEditor mResourceMetaData;
+    private final MetaDataPane mResourceMetaData;
     private final ResourcePreview mPreview;
     
     // Node panes
@@ -85,7 +85,8 @@ public class InspectorPane extends JPanel
 
 
         mSummaryPane = new SummaryPane();
-        mResourceMetaData = new PropertiesEditor(false);
+        //mResourceMetaData = new PropertiesEditor(false);
+        mResourceMetaData = new MetaDataPane();
         mPreview = new ResourcePreview();
 
         WidgetStack stack = new WidgetStack();
@@ -160,7 +161,10 @@ public class InspectorPane extends JPanel
             ss = VueUtil.abbrevBytes(size);
         mSizeField.setText(ss);
         
-        //loading the metadata if it exists
+        mResourceMetaData.loadResource(r);
+        mPreview.loadResource(r);
+        
+        /*
         if (r != null) {
             java.util.Properties properties = r.getProperties();
             if (properties != null) {
@@ -172,11 +176,10 @@ public class InspectorPane extends JPanel
         } else {
             mResourceMetaData.clear();
         }
-
         mResourceMetaData.getPropertiesTableModel().setEditable(false);
+        */
         //mResource = rs;
 
-        mPreview.loadResource(r);
     }
     
     private void showNodePanes(boolean visible) {
@@ -387,47 +390,18 @@ public class InspectorPane extends JPanel
         "-Where",   mWhereField,
         "-Size",    mSizeField,
     };
+    */
 
-    public class MetaDataPane extends JPanel {
+    public class MetaDataPane extends JPanel
+    {
     
         MetaDataPane() {
             super(new BorderLayout());
-            //super(new GridBagLayout());
-
-            final String fontName;
-            final int fontSize;
-
-            if (isMacAqua) {
-                fontName = "Lucida Grande";
-                fontSize = 10;
-            } else {
-                fontName = "SansSerif";
-                fontSize = 11;
-            }
-            
-            /*
-            GridBagConstraints c = new GridBagConstraints();
-            mTitleField.setFont(new Font(fontName, Font.BOLD, 13));
-            mTitleField.setOpaque(false);
-            c.gridx = 0;
-            c.gridy = 0;
-            c.gridwidth = GridBagConstraints.REMAINDER; 
-            c.anchor = GridBagConstraints.NORTHWEST;
-            add(mTitleField, c);
-            **
-
-            Font fieldFace = new Font(fontName, Font.PLAIN, fontSize);
-            Font labelFace = new GUI.Face(fontName, Font.BOLD, fontSize, Color.gray);
 
             JPanel gridBag = new JPanel(new GridBagLayout());
-            //JPanel gridBag = this;
-            addLabelTextRows(0, labelTextPairs, gridBag, labelFace, fieldFace);
+            //addLabelTextRows(0, labelTextPairs, gridBag, mLabelFont, mValueFont);
 
-            Font f = mTitleField.getFont();
-            mTitleField.setFont(f.deriveFont(Font.BOLD));
-            //mTitleField.setFont(f.deriveFont(Font.BOLD, (float) (fontSize+2)));
-
-            add(gridBag, BorderLayout.NORTH);
+            add(gridBag);
 
             // allow fixed amount of veritcal space so stack isn't always resizing
             // if the location line-wraps and makes itself taller
@@ -438,29 +412,11 @@ public class InspectorPane extends JPanel
             setMaximumSize(new Dimension(Short.MAX_VALUE,63));
         }
 
-        public void paint(Graphics g) {
-            if (!isMacAqua) {
-                // this is on by default on the mac
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            }
-            super.paint(g);
+        public void loadResource(Resource r) {
         }
         
     }
-    
-    private void setAllEnabled(boolean enabled) {
-        int pairs = labelTextPairs.length;
-        for (int i = 0; i < pairs; i += 2) {
-            JComponent field = (JComponent) labelTextPairs[i+1];
-            field.setEnabled(enabled);
-        }
-        mResourceMetaData.setEnabled(enabled);
-    }
 
-    */
-    
-    
     //----------------------------------------------------------------------------------------
     // Utility methods
     //----------------------------------------------------------------------------------------

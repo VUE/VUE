@@ -38,7 +38,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.20 $ / $Date: 2006-04-06 01:36:00 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2006-04-08 23:59:29 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends MapResource {
@@ -160,8 +160,8 @@ public class CabinetResource extends MapResource {
      *
      *  @author Mark Norton
      */
-    public java.util.Properties getFilingProperties() {
-        Properties props = new Properties();
+    public PropertyMap getFilingProperties() {
+        PropertyMap props = new PropertyMap();
         
         
         //  Check for a restored resource.
