@@ -23,6 +23,7 @@ import tufts.vue.*;
 import tufts.vue.gui.*;
 
 import java.awt.*;
+import java.awt.geom.*;
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -33,7 +34,7 @@ import javax.swing.*;
  * TODO: merge common code with PreviewPane, and perhaps put in a 3rd class
  * so can have multiple icons referencing the same underlying image.
  *
- * @version $Revision: 1.1 $ / $Date: 2006-04-06 01:35:01 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-04-08 01:47:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -210,16 +211,22 @@ public class ResourceIcon
     }
 
     private static final double MaxZoom = 2.0;
+    private static final boolean DrawBorder = false;
+    private static final int BorderWidth = 1; // width of border
+    private static final int BorderGap = 1; // whitespace around drawn border
+    private static final int BorderSpace = BorderWidth + BorderGap;
+
+    private static final boolean CropToSquare = true;
     
     public void paintIcon(Component c, Graphics g, int x, int y)
     {
-        final boolean fillComponent = (mWidth < 1);
+        final boolean expandToFit = (mWidth < 1);
         
         mParent = c;
         
         if (DEBUG.IMAGE) out("paint, parent=" + GUI.name(c));
 
-        if (!fillComponent) {
+        if (DrawBorder && !expandToFit) {
             g.setColor(Color.gray);
             g.drawRect(x, y, mWidth-1, mHeight-1);
         }
@@ -232,13 +239,15 @@ public class ResourceIcon
                         VUE.invokeAfterAWT(ResourceIcon.this); // load the preview
                 }
             }
+            g.setColor(Color.gray);
+            g.drawRect(x, y, mWidth-1, mHeight-1);
             return;
         }
 
         int fitWidth, fitHeight;
         final Dimension maxImageSize;
 
-        if (fillComponent) {
+        if (expandToFit) {
             // fill the given component
             fitWidth = c.getWidth();
             fitHeight = c.getHeight();
@@ -248,20 +257,27 @@ public class ResourceIcon
             fitWidth = mWidth;
             fitHeight = mHeight;
 
-            // Leave room for border drawn above and
-            // 1 pix of whitespace around it
-            maxImageSize = new Dimension(fitWidth - 4,
-                                         fitHeight - 4);
+            if (DrawBorder)
+                maxImageSize = new Dimension(fitWidth - BorderSpace*2, fitHeight - BorderSpace*2);
+            else
+                maxImageSize = new Dimension(fitWidth, fitHeight);
+            
             if (DEBUG.IMAGE) out("painting into " + GUI.name(maxImageSize));
         }
 
-
         double zoomFit;
-        if (mImage == NoImage && fillComponent) {
+        if (mImage == NoImage && expandToFit) {
             zoomFit = 1;
         } else {
-            java.awt.geom.Rectangle2D imageBounds
-                = new java.awt.geom.Rectangle2D.Float(0, 0, mImageWidth, mImageHeight);
+            Rectangle2D imageBounds;
+            if (CropToSquare) {
+                // square off image, then fit in icon (todo: better; crop to icon)
+                int smallestAxis = mImageWidth > mImageHeight ? mImageHeight : mImageWidth;
+                imageBounds = new Rectangle2D.Float(0, 0, smallestAxis, smallestAxis);
+            } else {
+                // fit entire image in icon
+                imageBounds = new Rectangle2D.Float(0, 0, mImageWidth, mImageHeight);
+            }
             zoomFit = ZoomTool.computeZoomFit(maxImageSize,
                                               0,
                                               imageBounds,
@@ -283,9 +299,18 @@ public class ResourceIcon
             xoff += (fitWidth - drawW) / 2;
         if (drawH != fitHeight)
             yoff += (fitHeight - drawH) / 2;
+
+        Shape oldClip = null;
+        if (CropToSquare && !expandToFit) {
+            oldClip = g.getClip();            
+            g.clipRect(x, y, mWidth, mHeight);
+        }
             
         if (DEBUG.IMAGE) out("painting " + Util.tag(mImage));
         g.drawImage(mImage, xoff, yoff, drawW, drawH, null);
+
+        if (CropToSquare && !expandToFit)
+            g.setClip(oldClip);
     }
 
     private void out(String s) {
