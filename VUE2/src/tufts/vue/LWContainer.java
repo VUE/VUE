@@ -34,7 +34,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.88 $ / $Date: 2006-04-07 20:52:13 $ / $Author: sfraize $
+ * @version $Revision: 1.89 $ / $Date: 2006-04-08 05:11:41 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -1174,7 +1174,7 @@ public abstract class LWContainer extends LWComponent
                     && (!c.isFiltered() || c.hasChildren())
                     && (clipBounds == null || c.intersects(clipBounds)))
                 {
-                    _drawChild(dc, c);
+                    drawChildSafely(dc, c);
                     if (DEBUG.PAINT) {
                              if (c instanceof LWLink) links++;
                         else if (c instanceof LWNode) nodes++;
@@ -1185,7 +1185,7 @@ public abstract class LWContainer extends LWComponent
 
             if (focused != null) {
                 setFocusComponent(focused);
-                _drawChild(dc, focused);
+                drawChildSafely(dc, focused);
             } else
                 setFocusComponent(null);
                 
@@ -1201,7 +1201,7 @@ public abstract class LWContainer extends LWComponent
         */
     }
 
-    private void _drawChild(DrawContext _dc, LWComponent c)
+    private void drawChildSafely(DrawContext _dc, LWComponent c)
     {
         // todo opt: don't create all these GC's?
         // todo: if selection going to draw in map, consolodate it here!
