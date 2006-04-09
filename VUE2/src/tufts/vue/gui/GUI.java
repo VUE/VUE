@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.29 $ / $Date: 2006-04-08 02:48:57 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2006-04-09 04:29:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1573,7 +1573,20 @@ public class GUI
             int w = image.getWidth(null);
             int h = image.getHeight(null);
 
-            final int max = DragSize;
+            int max = 0;
+
+            // Max zoom is 200% (in case of a very small icon)
+            if (w > h) {
+                if (DragSize > h*2)
+                    max = h*2;
+            } else {
+                if (DragSize > w*2)
+                    max = w*2;
+            }
+
+            if (max == 0)
+                max = DragSize;
+            
             final int nw, nh;
             if (w > h) {
                 nw = max;
