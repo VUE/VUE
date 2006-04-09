@@ -37,7 +37,7 @@ import com.sun.image.codec.jpeg.*;
 /**
  * The class is handles a reference to either a local file or a URL.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-04-08 23:59:29 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2006-04-09 00:02:25 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.
@@ -850,13 +850,10 @@ public class URLResource implements Resource, XMLUnmarshalListener
         return mProperties;
     }
     
-    /*
-    public void setProperties(Properties pProperties) {
-        System.out.println("SET PROPERTIES " + this + " " + pProperties);
-        new Throwable("setProperties").printStackTrace();
-        this.mProperties = pProperties;
+    /** @deprecated */
+    public void setProperties(Properties p) {
+        tufts.Util.printStackTrace("URLResource.setProperties: deprecated " + p);
     }
-    */
     
     public int getType() {
         return type;
