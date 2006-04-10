@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.110 $ / $Date: 2006-04-06 01:38:46 $ / $Author: sfraize $ *
+ * @version $Revision: 1.111 $ / $Date: 2006-04-10 19:35:01 $ / $Author: jeff $ *
  * @author  akumar03
  */
 
@@ -626,11 +626,13 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         try {
 			String breakTag = "";
 			dataSourceList.getContents().addElement(breakTag);
-            DataSource ds2 = new FavoritesDataSource("My Favorites");
-			dataSourceList.getContents().addElement(ds2);
-			dataSourceList.getContents().addElement(breakTag);
-            DataSource ds1 = new LocalFileDataSource("My Computer","");
+            DataSource ds1 = new FavoritesDataSource("My Saved Content");
 			dataSourceList.getContents().addElement(ds1);
+			dataSourceList.getContents().addElement(breakTag);
+            DataSource ds3 = new LocalFileDataSource("My Computer","");
+			dataSourceList.getContents().addElement(ds3);
+            DataSource ds4 = new LocalFileDataSource("My Maps","");
+			dataSourceList.getContents().addElement(ds4);
 			dataSourceList.getContents().addElement(breakTag);
 			//            DataSource ds3 = new FedoraDataSource("Tufts Digital Library","dl.tufts.edu", "test","test",8080);
 //            addDataSource(ds3);
@@ -674,7 +676,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 
     public void searchPerformed(edu.tufts.vue.fsm.event.SearchEvent se)
     {
-        ((Component)queryEditor).setVisible(false); // todo: need query editor enable/disable API
         new Thread("VUE-Search") {
             public void run() {
                 if (DEBUG.DR || DEBUG.THREAD) out("search thread kicked off");
@@ -687,7 +688,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                     else
                         VueUtil.alert(t.getMessage(), "Search Error");
                 } finally {
-                    ((Component)queryEditor).setVisible(true); // todo
+                    queryEditor.refresh();
                 }
             }
         }.start();
@@ -774,7 +775,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 				resultSetTrees[i] = new VueDragTree(v.iterator(), "Repository Search Results");
 				resultSetTrees[i].setRootVisible(false);
 				
-				resultSetGrids[i] = new VueDragGrid(v.iterator(), "Repository Search Results");
+				resultSetGrids[i] = new VueDragGrid(v.iterator());
 
                                 JComponent result;
 
