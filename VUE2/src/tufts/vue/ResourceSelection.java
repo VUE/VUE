@@ -23,7 +23,7 @@ package tufts.vue;
  * The currently selected resource.  Currently only supports a single selected
  * resource at a time.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-03-20 20:40:26 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-04-10 18:46:18 $ / $Author: sfraize $
  */
 public class ResourceSelection
 {
@@ -58,7 +58,7 @@ public class ResourceSelection
         return selected;
     }
     
-    void setTo(Resource r) {
+    public void setTo(Resource r) {
         if (selected != r) {
             if (DEBUG.SELECTION) System.out.println("ResourceSelection: set to " + r.getClass() + " " + r);
             selected = r;
