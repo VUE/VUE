@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.4 $ / $Date: 2006-03-28 18:03:59 $ -->
+<!-- $Revision: 1.5 $ / $Date: 2006-04-10 20:04:14 $ -->
 
 <!-- 
 This ant build file:
@@ -86,6 +86,7 @@ This ant build file:
    <pathelement location="${build.lib}/fedoragentypes.jar" />
    <pathelement location="${build.lib}/fedorautilities.jar"/>
    <pathelement location="${build.lib}/axis.jar"/>
+   <pathelement location="${build.lib}/junit.jar"/>
     <pathelement location="${lib.home}/commons-discovery.jar" />
     <pathelement location="${lib.home}/saaj-api-unsigned.jar" />
 	
@@ -193,7 +194,14 @@ This ant build file:
       <classpath refid="compile.classpath"/>
         </java>
     </target>
-
+<!-- =================== Fedora 2.0 Tests===================================-->
+<target name="fedora20test" depends="compile" description="Tests for loading fedora 2.0 osid and data from repository">
+    <junit printsummary="yes" haltonerror="true" haltonfailure="true" fork="true">
+        <formatter type="plain" usefile="false"/>
+        <test name="edu.tufts.osidimpl.repository.fedora_2_0.TestRepository"/>
+        <classpath refid="compile.classpath"/>
+    </junit>
+</target>
 </project>
 
 
