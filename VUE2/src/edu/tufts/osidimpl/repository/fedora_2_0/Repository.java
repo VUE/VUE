@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -88,14 +88,13 @@ public class Repository implements org.osid.repository.Repository {
     private java.util.Vector assets = new java.util.Vector();
     private org.osid.shared.Id id = null;
     private URL configuration = null;
-
+    
     
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;
     /** Creates a new instance of Repository */
     public Repository(String conf,String id,String displayName,String description,URL address,String userName,String password)
-        throws org.osid.repository.RepositoryException
-    {
+    throws org.osid.repository.RepositoryException {
         /*
         System.out.println("Repository CONSTRUCTING["
                            + conf + ", "
@@ -105,19 +104,17 @@ public class Repository implements org.osid.repository.Repository {
                            + address + ", "
                            + userName + ", "
                            + password + "] " + this);
-        */
-        try
-        {
+         */
+        try {
             this.id = new PID(id);
-        }
-        catch (Throwable t) { t.printStackTrace(); }
+        } catch (Throwable t) { t.printStackTrace(); }
         this.displayName = displayName;
         this.description = description;
         this.address = address;
         this.userName = userName;
         this.password = password;
         this.conf = conf;
-		this.configuration = getResource(conf);
+        this.configuration = getResource(conf);
         
         setFedoraProperties(configuration);
         loadFedoraObjectAssetTypes();
@@ -145,18 +142,18 @@ public class Repository implements org.osid.repository.Repository {
             prefs = FedoraUtils.getPreferences(this);
             fedoraProperties.setProperty("url.fedora.api", prefs.get("url.fedora.api","http://www.fedora.info/definitions/1/0/api/"));
             fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", "http://www.fedora.info/definitions/1/0/types/"));
-
+            
             fedoraProperties.setProperty("url.fedora.soap.access",url+ prefs.get("url.fedora.soap.access", "access/soap"));
             fedoraProperties.setProperty("url.fedora.get", url+prefs.get("url.fedora.get", "get/"));
             fedoraProperties.setProperty("url.seastar.fedora.get", "http://seastar.lib.tufts.edu:8080/fedora/get/");
             fedoraProperties.setProperty("fedora.types", prefs.get("fedora.types","TUFTS_STD_IMAGE,XML_TO_HTMLDOC,TUFTS_BINARY_FILE,TUFTS_VUE_CONCEPT_MAP,UVA_EAD_FINDING_AID,UVA_STD_IMAGE,UVA_MRSID_IMAGE,SIMPLE_DOC,MassIngest"));
-			fedoraProperties.setProperty("VUEInfoStructureId","edu.tufts.vue.recordStructureId");
-			fedoraProperties.setProperty("UVARecordStructureId","edu.uva.image.recordStructureId");
-			fedoraProperties.setProperty("ImageRecordStructureId","edu.mit.image.recordStructureId");
-			fedoraProperties.setProperty("VUEDefaultViewInfoPartId","edu.tufts.defaultView.partStructureId");
-			fedoraProperties.setProperty("ThumbnailPartStructureId","edu.uva.thumbnail.partStructureId");
-			fedoraProperties.setProperty("URLPartStructureId","edu.mit.url.partStructureId");
-		} catch (Exception ex) { System.out.println("Unable to load fedora Properties"+ex);}
+            fedoraProperties.setProperty("VUEInfoStructureId","edu.tufts.vue.recordStructureId");
+            fedoraProperties.setProperty("UVARecordStructureId","edu.uva.image.recordStructureId");
+            fedoraProperties.setProperty("ImageRecordStructureId","edu.mit.image.recordStructureId");
+            fedoraProperties.setProperty("VUEDefaultViewInfoPartId","edu.tufts.defaultView.partStructureId");
+            fedoraProperties.setProperty("ThumbnailPartStructureId","edu.uva.thumbnail.partStructureId");
+            fedoraProperties.setProperty("URLPartStructureId","edu.mit.url.partStructureId");
+        } catch (Exception ex) { System.out.println("Unable to load fedora Properties"+ex);}
         
     }
     
@@ -177,7 +174,7 @@ public class Repository implements org.osid.repository.Repository {
         return configuration;
     }
     
- 
+    
     /**To create AssetTypes that don't exist when repository is loaded. OKI NEEDS to add such a feature
      *@ param String type
      *@ return FedoraObjectAssetType
@@ -256,11 +253,11 @@ public class Repository implements org.osid.repository.Repository {
     public void deleteAsset(org.osid.shared.Id assetId) throws org.osid.repository.RepositoryException {
         throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
-
+    
     public org.osid.repository.RecordStructureIterator getRecordStructuresByType(org.osid.shared.Type recordStructureType) throws org.osid.repository.RepositoryException {
         throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
-
+    
     
     /**     Get all the AssetTypes in this Repository.  AssetTypes are used to categorize Assets.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
      *     @return org.osid.shared.TypeIterator  The order of the objects returned by the Iterator is not guaranteed.
@@ -447,37 +444,27 @@ public class Repository implements org.osid.repository.Repository {
     
     public org.osid.repository.AssetIterator getAssets(java.io.Serializable searchCriteria, org.osid.shared.Type searchType) throws org.osid.repository.RepositoryException {
         //System.out.println("SEARCHING FEDORA = "+ this.fedoraProperties.getProperty("url.fedora.soap.access"));
-
+        
         SearchCriteria lSearchCriteria = null;
         
         org.osid.shared.Type keywordType = new Type("mit.edu","search","keyword");
-        if ( (searchCriteria instanceof String) && (searchType.isEqual(keywordType)) )
-        {
+        if ( (searchCriteria instanceof String) && (searchType.isEqual(keywordType)) ) {
             lSearchCriteria = new SearchCriteria();
             lSearchCriteria.setKeywords((String)searchCriteria);
             lSearchCriteria.setMaxReturns("10");
             lSearchCriteria.setSearchOperation(SearchCriteria.FIND_OBJECTS);
             lSearchCriteria.setResults(0);
             return FedoraSoapFactory.search(this,lSearchCriteria);
-        }
-        else if (searchCriteria instanceof SearchCriteria)
-        {
+        } else if (searchCriteria instanceof SearchCriteria) {
             lSearchCriteria = (SearchCriteria)searchCriteria;
-            if(searchType.isEqual(new SimpleSearchType()))
-            {
+            if(searchType.isEqual(new SimpleSearchType())) {
                 return FedoraSoapFactory.search(this,lSearchCriteria);
-            } 
-            else if(searchType.isEqual(new AdvancedSearchType())) 
-            {
+            } else if(searchType.isEqual(new AdvancedSearchType())) {
                 return FedoraSoapFactory.advancedSearch(this,lSearchCriteria);
-            }
-            else
-            {
+            } else {
                 throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.UNKNOWN_TYPE);
             }
-        }
-        else
-        {
+        } else {
             throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.UNKNOWN_TYPE);
         }
     }
@@ -541,10 +528,6 @@ public class Repository implements org.osid.repository.Repository {
         }
         fis.close();
         if(DEBUG) System.out.println("INGESTING FILE TO FEDORA: Read Mets File:"+(System.currentTimeMillis()-sTime));
-        
-        //in.close();
-        //  s = sb.toString();
-        //String r =  s.replaceAll("%file.location%", fileName).trim();
         String r = updateMetadata(s, fileName,file.getName(),fileType,properties);
         if(DEBUG) System.out.println("INGESTING FILE TO FEDORA: Resplaced Metadata:"+(System.currentTimeMillis()-sTime));
         
@@ -590,23 +573,20 @@ public class Repository implements org.osid.repository.Repository {
         }
         if (url == null)
             url = getClass().getResource(name);
-        //System.out.println("fedora.conf = "+url.getFile());
-		
-		// look in OSID location
-		if (url == null) {
-			String installDirectory = tufts.vue.VueResources.getString("dataSourceInstallDirectory") + "/TuftsDigitalLibrary";
-			java.io.File root = new java.io.File(installDirectory);
-			java.io.File[] files = root.listFiles();
-			for (int j=0; j < files.length; j++) {
-				if (files[j].getName().equals(name)) {
-					try {
-						url = files[j].toURL();
-					} catch (Exception e) {
-						e.printStackTrace();
-					}						
-				}
-			}
-		}
+        if (url == null) {
+            String installDirectory = tufts.vue.VueResources.getString("dataSourceInstallDirectory") + "/TuftsDigitalLibrary";
+            java.io.File root = new java.io.File(installDirectory);
+            java.io.File[] files = root.listFiles();
+            for (int j=0; j < files.length; j++) {
+                if (files[j].getName().equals(name)) {
+                    try {
+                        url = files[j].toURL();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
         return url;
     }
     
