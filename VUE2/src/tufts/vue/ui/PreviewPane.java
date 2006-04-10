@@ -34,7 +34,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-04-06 01:56:38 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2006-04-10 18:47:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -239,7 +239,7 @@ public class PreviewPane extends JPanel
     }
         
 
-    private static final double MaxZoom = 2.0;
+    private static final double MaxZoom = 1.0;
     
     /** draw the image into the current avilable space, scaling it down if needed (never scale up tho) */
     public void paintComponent(Graphics g)
