@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -33,6 +33,7 @@ public class FedoraUtils {
     /** Creates a new instance of FedoraUtils */
     public static final String SEPARATOR = ",";
     public static final String NOT_DEFINED = "Property not defined";
+    public static final String OP_ACTUALS = "fedora.search.advanced.operators.actuals";
     
     private static java.util.Map prefsCache = new java.util.HashMap();
     
@@ -72,12 +73,8 @@ public class FedoraUtils {
             Preferences prefs = (Preferences) prefsCache.get(url);
             if (prefs != null)
                 return prefs;
-            //String filename = url.getFile().replaceAll("%20"," ");
-            //prefs = Preferences.userRoot().node("/");
             Class clazz = new FedoraUtils().getClass();
             prefs = Preferences.userNodeForPackage(clazz);
-            //System.out.println("*** " + clazz.getName() + ".getPreferences: loading & caching prefs from \"" + url + "\"");
-            //InputStream stream = new BufferedInputStream(new FileInputStream(filename));
             InputStream stream = new BufferedInputStream(url.openStream());
             prefs.importPreferences(stream);
             prefsCache.put(url, prefs);
@@ -101,7 +98,7 @@ public class FedoraUtils {
     }
     public static String getAdvancedSearchOperatorsActuals(Repository repository,String pOperator) throws org.osid.repository.RepositoryException{
         String[] pOperators =   getAdvancedSearchOperators(repository);
-        String[] pOperatorsActuals = getFedoraPropertyArray(repository,"fedora.search.advanced.operators.actuals");
+        String[] pOperatorsActuals = getFedoraPropertyArray(repository,OP_ACTUALS);
         String pValue = NOT_DEFINED;
         boolean flag = true;
         for(int i =0;i<pOperators.length && flag;i++) {
@@ -130,24 +127,16 @@ public class FedoraUtils {
             AbstractAction fedoraAction = new AbstractAction(record.getId().getIdString()) {
                 public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
                     try {
-                        //String fedoraUrl = mDR.getFedoraProperties().getProperty("url.fedora.get","http://vue-dl.tccs..tufts.edu:8080/fedora/get");
-                        
-                        // get part by iterating otherwise, we need the asset.                        
-//                        String fedoraUrl = mRecord.getPart(new PID(getFedoraProperty(mRepository, "DisseminationURLInfoPartId"))).getValue().toString();
                         org.osid.shared.Id id = new PID(getFedoraProperty(mRepository, "DisseminationURLInfoPartId"));
                         org.osid.repository.PartIterator partIterator = mRecord.getParts();
-                        while (partIterator.hasNextPart())
-                        {
+                        while (partIterator.hasNextPart()) {
                             org.osid.repository.Part part = partIterator.nextPart();
-//                            if (part.getId().isEqual(id))
-                            {
-                                String fedoraUrl = part.getValue().toString();
-                                URL url = new URL(fedoraUrl);
-                                URLConnection connection = url.openConnection();
-                                System.out.println("FEDORA ACTION: Content-type:"+connection.getContentType()+" for url :"+fedoraUrl);                        
-                                tufts.Util.openURL(fedoraUrl);
-                                break;
-                            }
+                            String fedoraUrl = part.getValue().toString();
+                            URL url = new URL(fedoraUrl);
+                            URLConnection connection = url.openConnection();
+                            tufts.Util.openURL(fedoraUrl);
+                            break;
+                            
                         }
                     } catch(Throwable t) {  }
                 }
@@ -157,6 +146,6 @@ public class FedoraUtils {
             throw new org.osid.repository.RepositoryException("FedoraUtils.getFedoraAction "+t.getMessage());
         }
     }
-
-    private FedoraUtils() {}    
+    
+    private FedoraUtils() {}
 }
