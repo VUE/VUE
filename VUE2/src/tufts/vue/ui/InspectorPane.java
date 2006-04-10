@@ -24,16 +24,18 @@ import tufts.vue.gui.*;
 import tufts.vue.NotePanel;
 import tufts.vue.filter.NodeFilterEditor;
 
+import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.text.*;
+import javax.swing.table.*;
 import javax.swing.border.*;
 
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-04-08 23:59:30 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-04-10 18:47:25 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -42,8 +44,8 @@ public class InspectorPane extends JPanel
 
     // fields for the Summary Pane
     //private final JTextComponent mTitleField = new JTextArea();
-    private final JTextComponent mWhereField = new JTextPane();
-    private final JLabel mSizeField = new JLabel();
+    //private final JTextComponent mWhereField = new JTextPane();
+    //private final JLabel mSizeField = new JLabel();
 
     private final Image NoImage = VueResources.getImage("NoImage");
 
@@ -60,8 +62,10 @@ public class InspectorPane extends JPanel
     private final NodeTree mNodeTree = new NodeTree();
     
     private final Font mLabelFont;
+    private final Font mTitleFont;
     private final Font mValueFont;
-    private final Font mValueFontBold;
+
+    private final Color mLabelColor = new Color(61,61,61);
 
     public InspectorPane()
     {
@@ -73,15 +77,15 @@ public class InspectorPane extends JPanel
 
         if (isMacAqua) {
             fontName = "Lucida Grande";
-            fontSize = 10;
+            fontSize = 11;
         } else {
             fontName = "SansSerif";
             fontSize = 11;
         }
 
-        mLabelFont = new GUI.Face(fontName, Font.BOLD, fontSize, Color.gray);
-        mValueFont = new Font(fontName, Font.PLAIN, fontSize);
-        mValueFontBold = new Font(fontName, Font.BOLD, fontSize);
+        mLabelFont = new GUI.Face(fontName, Font.PLAIN, fontSize, mLabelColor);
+        mValueFont = new GUI.Face(fontName, Font.PLAIN, fontSize, Color.black);
+        mTitleFont = new GUI.Face(fontName, Font.BOLD, fontSize, mLabelColor);
 
 
         mSummaryPane = new SummaryPane();
@@ -92,7 +96,7 @@ public class InspectorPane extends JPanel
         WidgetStack stack = new WidgetStack();
 
         stack.addPane("Information",            mSummaryPane,           0f);
-        stack.addPane("Content Preview",        mPreview,               0.75f);
+        stack.addPane("Content Preview",        mPreview,               0.3f);
         stack.addPane("Content Description",    mResourceMetaData,      1f);
         stack.addPane("Notes",                  mNotePanel,             1f);
         stack.addPane("Keywords",               mUserMetaData,          1f);
@@ -153,16 +157,17 @@ public class InspectorPane extends JPanel
             ///setAllEnabled(false);
             return;
         }
-        
 
+        mResourceMetaData.loadResource(r);
+        mPreview.loadResource(r);
+        
+        /*
         long size = r.getSize();
         String ss = "";
         if (size >= 0)
             ss = VueUtil.abbrevBytes(size);
         mSizeField.setText(ss);
-        
-        mResourceMetaData.loadResource(r);
-        mPreview.loadResource(r);
+        */
         
         /*
         if (r != null) {
@@ -218,8 +223,7 @@ public class InspectorPane extends JPanel
 
             //-------------------------------------------------------
 
-            mTitleField.setFont(mValueFontBold);
-            mTitleField.setForeground(Color.darkGray);
+            GUI.apply(mTitleFont, mTitleField);
             mTitleField.setAlignmentX(0.5f);
             //mTitleField.setBorder(new LineBorder(Color.red));
                 
@@ -357,7 +361,7 @@ public class InspectorPane extends JPanel
     }
 
     private JLabel makeLabel(String s) {
-        JLabel label = new JLabel("Label:");
+        JLabel label = new JLabel(s);
         label.setFont(mLabelFont);
         return label;
     }
@@ -392,12 +396,73 @@ public class InspectorPane extends JPanel
     };
     */
 
+    private class LabelRenderer extends DefaultTableCellRenderer {
+
+        LabelRenderer() {
+            setHorizontalAlignment(RIGHT);
+            setBorder(new EmptyBorder(1,1,1,7));
+            GUI.apply(mLabelFont, this);
+        }
+
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus, int row, int column) {
+            String txt = (String) value;
+            setText(txt + ":");
+            return this;
+        }
+        public boolean isOpaque() { return false; }
+    }
+    private class ValueRenderer extends DefaultTableCellRenderer {
+
+        ValueRenderer() {
+            GUI.apply(mValueFont, this);
+        }
+
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus, int row, int column) {
+            //super.setValue("<HTML>" + value); // this is noticably slower
+            super.setValue(value);
+            return this;
+        }
+        public boolean isOpaque() { return false; }
+    }
+
+
     public class MetaDataPane extends JPanel
     {
+        private JTable mTable = new JTable();
     
         MetaDataPane() {
             super(new BorderLayout());
 
+            mTable.setOpaque(false);
+            mTable.setShowVerticalLines(false);
+            mTable.setShowHorizontalLines(false);
+            mTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // not visible anyway, but just in case
+            mTable.setDefaultRenderer(String.class, new LabelRenderer());
+            mTable.setDefaultRenderer(Object.class, new ValueRenderer());
+
+            mTable.setBorder(null);  // no focus border (not working)
+            mTable.setFocusable(false); // this works
+            // NOTE: if we leave the table focusable, it will be "selectable", but
+            // invisibly so (because our renderer's currently ignore selection painting)
+            // -- e.g. clicking on a row, then doing a copy would put the current row in
+            // the cut buffer, but there would be no visual feedback that this is
+            // happening.
+
+            if (true) {
+                JScrollPane scrollPane = new JScrollPane(mTable,
+                                                         JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                         JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                scrollPane.setOpaque(false);
+                scrollPane.getViewport().setOpaque(false);
+                scrollPane.setBorder(null); // no focus border
+                add(scrollPane);
+            } else {
+                add(mTable);
+            }
+
+            /*
             JPanel gridBag = new JPanel(new GridBagLayout());
             //addLabelTextRows(0, labelTextPairs, gridBag, mLabelFont, mValueFont);
 
@@ -410,9 +475,30 @@ public class InspectorPane extends JPanel
             setPreferredSize(new Dimension(Short.MAX_VALUE,63));
             setMinimumSize(new Dimension(200,63));
             setMaximumSize(new Dimension(Short.MAX_VALUE,63));
+            */
         }
 
         public void loadResource(Resource r) {
+            mTable.setModel(r.getProperties().getTableModel());
+
+            // This is a total hand tweaked set of numbers, which will
+            // vary with the font used for labels and your standard
+            // for the longest "usual" label you might see.
+            // I've no idea why they work...
+            // Ideally, the table model we get could include a computed
+            // width of widest label in first column, and we could use that.
+            mTable.getColumnModel().getColumn(0).setMaxWidth(200);
+            mTable.getColumnModel().getColumn(0).setPreferredWidth(107);
+            mTable.getColumnModel().getColumn(1).setPreferredWidth(120);
+            
+            /*
+            Set entries = r.getProperties().entrySet();
+            Iterator i = entries.iterator();
+            while (i.hasNext()) {
+                Map.Entry e = (Map.Entry) i.next();
+                out("found entry " + Util.tag(e));
+            }
+            */
         }
         
     }
@@ -597,7 +683,16 @@ public class InspectorPane extends JPanel
         String rsrc = null;
         if (args.length > 0 && args[0].charAt(0) != '-')
             rsrc = args[0];
-        displayTestPane(rsrc);
+
+        //displayTestPane(rsrc);
+        InspectorPane ip = new InspectorPane();
+
+        VUE.getResourceSelection().setTo(new URLResource("file:///VUE/src/tufts/vue/images/splash_graphic_1.0.gif"));
+        
+        Widget.setExpanded(ip.mResourceMetaData, true);
+        GUI.createDockWindow("Test Properties", ip).setVisible(true);
+
+        
     }
 
     
