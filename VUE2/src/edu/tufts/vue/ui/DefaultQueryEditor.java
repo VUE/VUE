@@ -42,11 +42,11 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	private static final String NO_MESSAGE = "";
 	private javax.swing.JLabel selectMessage = new javax.swing.JLabel(SELECT_A_LIBRARY);
 	
-	private javax.swing.JButton moreOptionsButton = new javax.swing.JButton("+");
+	private javax.swing.JButton moreOptionsButton = new tufts.vue.gui.VueButton("advancedSearchMore");
 	private static final String MORE_OPTIONS = "";
 	private javax.swing.JLabel moreOptionsLabel = new javax.swing.JLabel(MORE_OPTIONS);
 
-	private javax.swing.JButton fewerOptionsButton = new javax.swing.JButton("-");
+	private javax.swing.JButton fewerOptionsButton = new tufts.vue.gui.VueButton("advancedSearchLess");
 	private static final String FEWER_OPTIONS = "";
 	private javax.swing.JLabel fewerOptionsLabel = new javax.swing.JLabel(FEWER_OPTIONS);
 	
@@ -58,10 +58,22 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	private static final int ADVANCED_UNION = 3;
 	private int currentStyle = BASIC;
 	
+	private javax.swing.JTextField[] advancedFields = null;
+	
+	//private javax.swing.JPanel panel = new javax.swing.JPanel();
+	
+	// advanced search universe of types
+	private java.util.Vector advancedSearchUniverseOfTypeStringsVector = new java.util.Vector();
+	private java.util.Vector advancedSearchPromptsVector = new java.util.Vector();
+	
 	public DefaultQueryEditor() {
 		try {
 			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
 			gbConstraints.insets = new java.awt.Insets(2,2,2,2);
+			gbConstraints.weighty = 0;
+			gbConstraints.ipadx = 0;
+			gbConstraints.ipady = 0;
+			
 			setLayout(gbLayout);
 	
 			setSize(new java.awt.Dimension(100,100));
@@ -73,12 +85,14 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			fewerOptionsButton.addActionListener(this);
 			searchProperties = new edu.tufts.vue.util.SharedProperties();		
 
+			populateAdvancedSearchUniverseOfTypeStringsVector();
 			repositories = sourcesAndTypesManager.getRepositoriesToSearch();
 			if (repositories.length == 0) {
 				makePanel(NOTHING_SELECTED);
 			} else {
 				makePanel(BASIC);
 			}
+			//add(new javax.swing.JScrollPane(this.panel));
 		} catch (Throwable t) {
 		}
 	}
@@ -95,7 +109,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	
 	private void makePanel(int kind)
 	{
-		removeAll();
+		this.removeAll();
 		switch (kind) {
 			case NOTHING_SELECTED:
 				makeNothingSelectedPanel();
@@ -110,8 +124,8 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 				makeAdvancedUnionPanel();
 				break;
 		}
-		repaint();
-		validate();
+		this.repaint();
+		this.validate();
 	}
 	
 	private void makeNothingSelectedPanel()
@@ -122,11 +136,15 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		
 		gbConstraints.gridx = 1;
 		gbConstraints.gridy = 0;
+		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
+		gbConstraints.weightx = 0;
 		add(field,gbConstraints);
 		field.addActionListener(this);
 		
 		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 1;
+		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		gbConstraints.weightx = 1;
 		add(selectMessage,gbConstraints);
 		
 		gbConstraints.gridx = 1;
@@ -139,10 +157,14 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	{
 		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 0;
+		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
+		gbConstraints.weightx = 0;
 		add(new javax.swing.JLabel("Keyword:"),gbConstraints);
 		
 		gbConstraints.gridx = 1;
 		gbConstraints.gridy = 0;
+		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		gbConstraints.weightx = 1;
 		add(field,gbConstraints);
 		field.addActionListener(this);
 		
@@ -152,6 +174,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 
 		gbConstraints.gridx = 1;
 		gbConstraints.gridy = 1;
+		gbConstraints.weightx = 1;
 		add(searchButton,gbConstraints);
 		searchButton.setEnabled(true);
 		this.currentStyle = BASIC;
@@ -161,25 +184,43 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	{
 		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 0;
-		add(new javax.swing.JLabel("Keyword:"),gbConstraints);
+
+		java.util.Vector typesVector = getIntersectionSearchFields();
+		java.util.Collections.sort(typesVector);
+		int size = typesVector.size();
 		
-		gbConstraints.gridx = 1;
-		gbConstraints.gridy = 0;
-		add(field,gbConstraints);
-		field.addActionListener(this);
+		if (size == 0) {
+			// no Dublin Core Types found
+			add(new javax.swing.JLabel("No Common Dublin Core OSID Types Found"),gbConstraints);
+			gbConstraints.gridy++;
+			searchButton.setEnabled(false);
+		} else {
+			this.advancedFields = new javax.swing.JTextField[size];
+			
+			for (int i=0; i < size; i++) {
+				gbConstraints.fill = java.awt.GridBagConstraints.NONE;
+				gbConstraints.weightx = 0;
+				add(new javax.swing.JLabel((String)typesVector.elementAt(i)),gbConstraints);
+				gbConstraints.gridx = 1;
+				gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+				gbConstraints.weightx = 1;
+				advancedFields[i] = new javax.swing.JTextField(8);
+				add(advancedFields[i],gbConstraints);
+				gbConstraints.gridx = 0;
+				gbConstraints.gridy++;
+			}
+			searchButton.setEnabled(true);
+		}
 		
 		gbConstraints.gridx = 0;
-		gbConstraints.gridy = 1;
 		add(fewerOptionsButton,gbConstraints);
 		
-		gbConstraints.gridx = 0;
-		gbConstraints.gridy = 2;
+		gbConstraints.gridy++;
 		add(moreOptionsButton,gbConstraints);
 		
 		gbConstraints.gridx = 1;
-		gbConstraints.gridy = 2;
 		add(searchButton,gbConstraints);
-		searchButton.setEnabled(true);
+		gbConstraints.weightx = 1;
 		this.currentStyle = ADVANCED_INTERSECTION;
 	}
 	
@@ -187,25 +228,42 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	{
 		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 0;
-		add(new javax.swing.JLabel("Keyword:"),gbConstraints);
 		
-		gbConstraints.gridx = 1;
-		gbConstraints.gridy = 0;
-		add(field,gbConstraints);
-		field.addActionListener(this);
+		java.util.Vector typesVector = getUnionSearchFields();
+		java.util.Collections.sort(typesVector);
+		int size = typesVector.size();
+		
+		if (size == 0) {
+			// no Dublin Core Types found
+			add(new javax.swing.JLabel("No Dublin Core OSID Types Found"),gbConstraints);
+			gbConstraints.gridy++;
+			searchButton.setEnabled(false);
+		} else {
+			this.advancedFields = new javax.swing.JTextField[size];
+			
+			for (int i=0; i < size; i++) {
+				gbConstraints.fill = java.awt.GridBagConstraints.NONE;
+				gbConstraints.weightx = 0;
+				add(new javax.swing.JLabel((String)typesVector.elementAt(i)),gbConstraints);
+				gbConstraints.gridx = 1;
+				advancedFields[i] = new javax.swing.JTextField(8);
+				gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+				gbConstraints.weightx = 1;
+				add(advancedFields[i],gbConstraints);
+				gbConstraints.gridx = 0;
+				gbConstraints.gridy++;
+			}
+			searchButton.setEnabled(true);
+		}
 		
 		gbConstraints.gridx = 0;
-		gbConstraints.gridy = 1;
 		add(fewerOptionsButton,gbConstraints);
 		
 		gbConstraints.gridx = 1;
-		gbConstraints.gridy = 1;
+		gbConstraints.gridy++;
 		add(searchButton,gbConstraints);
-		searchButton.setEnabled(true);
 		this.currentStyle = ADVANCED_UNION;
 	}
-	
-	
 	
 	public void actionPerformed(java.awt.event.ActionEvent ae)
 	{
@@ -239,6 +297,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
     
 	private void fireSearch(edu.tufts.vue.fsm.event.SearchEvent evt) 
 	{
+		this.searchButton.setEnabled(false);
 		Object[] listeners = listenerList.getListenerList();
 		for (int i=0; i<listeners.length; i+=2) {
 			if (listeners[i] == edu.tufts.vue.fsm.event.SearchListener.class) {
@@ -274,5 +333,191 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		String s =  (String)getCriteria();
 		if (s.length() > 20) s = s.substring(0,20) + "...";
 		return s;
+	}
+
+
+	private java.util.Vector getUnionSearchFields()
+	{
+		/*
+		 Find each repository that will be searched.  Get all the asset types and for each the
+		 mandatory record structures.  For each structure find the part structures and their
+		 types.  Check these again the VUE set (based on Dublin Core).  Return the VUE names for
+		 all that match.
+		 */
+		
+		java.util.Vector union = new java.util.Vector();
+		
+		try {
+			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
+			for (int i=0; i < repositories.length; i++) {
+
+				// not all these methods may be implemented -- in which case we are out of luck
+				try {
+					org.osid.shared.TypeIterator typeIterator = repositories[i].getAssetTypes();
+					while (typeIterator.hasNextType()) {
+						org.osid.shared.Type nextAssetType = typeIterator.nextType();
+										   
+						org.osid.repository.RecordStructureIterator recordStructureIterator = repositories[i].getMandatoryRecordStructures(nextAssetType);
+						while (recordStructureIterator.hasNextRecordStructure()) {
+							org.osid.repository.PartStructureIterator partStructureIterator = recordStructureIterator.nextRecordStructure().getPartStructures();
+							while (partStructureIterator.hasNextPartStructure()) {
+								org.osid.shared.Type nextType = partStructureIterator.nextPartStructure().getType();
+								String nextTypeString = edu.tufts.vue.util.Utilities.typeToString(nextType);
+								
+								int index = advancedSearchUniverseOfTypeStringsVector.indexOf(nextTypeString);
+								if (index != -1) {
+									String prompt = (String)advancedSearchPromptsVector.elementAt(index);
+									if (!union.contains(prompt)) {
+										union.addElement(prompt);
+									}
+								}
+							}
+						}
+					}
+				} catch (Throwable t) {
+					edu.tufts.vue.util.Logger.log(t);
+				}
+			}
+		} catch (Throwable t1) {
+			edu.tufts.vue.util.Logger.log(t1);
+		}
+		return union;
+	}
+		
+	private java.util.Vector getIntersectionSearchFields()
+	{
+		/*
+		 Find each repository that will be searched.  Get all the asset types and for each the
+		 mandatory record structures.  For each structure find the part structures and their
+		 types.  Check these again the VUE set (based on Dublin Core).  Return the VUE names for
+		 all that match.
+		 */
+		java.util.Vector intersections = new java.util.Vector();
+
+		try {
+			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
+			for (int i=0; i < repositories.length; i++) {
+				
+				java.util.Vector intersection = new java.util.Vector();				
+				// not all these methods may be implemented -- in which case we are out of luck
+				try {
+					org.osid.shared.TypeIterator typeIterator = repositories[i].getAssetTypes();
+					while (typeIterator.hasNextType()) {
+						org.osid.shared.Type nextAssetType = typeIterator.nextType();
+						
+						org.osid.repository.RecordStructureIterator recordStructureIterator = repositories[i].getMandatoryRecordStructures(nextAssetType);
+						while (recordStructureIterator.hasNextRecordStructure()) {
+							org.osid.repository.PartStructureIterator partStructureIterator = recordStructureIterator.nextRecordStructure().getPartStructures();
+							while (partStructureIterator.hasNextPartStructure()) {
+								org.osid.shared.Type nextType = partStructureIterator.nextPartStructure().getType();
+								String nextTypeString = edu.tufts.vue.util.Utilities.typeToString(nextType);
+								int index = advancedSearchUniverseOfTypeStringsVector.indexOf(nextTypeString);
+								if (index != -1) {
+									String prompt = (String)advancedSearchPromptsVector.elementAt(index);
+									if (!intersection.contains(prompt)) {
+										intersection.addElement(prompt);
+									}
+								}
+							}
+						}
+					}
+					intersections.addElement(intersection);
+				} catch (Throwable t) {
+					edu.tufts.vue.util.Logger.log(t);
+				}
+			}
+			// now find what is common accross intersections
+			int numIntersections = intersections.size();
+			if (numIntersections == 0) {
+				return intersections;
+			} else {
+				java.util.Vector intersection = (java.util.Vector)intersections.firstElement();				
+				for (int j=1; j < numIntersections; j++) {
+					java.util.Vector nextIntersection = (java.util.Vector)intersections.elementAt(j);
+					java.util.Vector newIntersection = new java.util.Vector();
+
+					int numCandidates = intersection.size();
+					for (int k=0; k < numCandidates; k++) {
+						String nextType = (String)intersection.elementAt(k);
+						if (nextIntersection.contains(nextType)) {
+							newIntersection.addElement(nextType);
+						}
+					}
+					intersection = newIntersection;
+				}
+				return intersection;
+			}
+		} catch (Throwable t1) {
+			edu.tufts.vue.util.Logger.log(t1);
+		}
+		return new java.util.Vector();
+	}
+	
+	private void populateAdvancedSearchUniverseOfTypeStringsVector()
+	{
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/contributor@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/coverage@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/creator@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/date@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/description@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/format@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/identifier@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/language@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/publisher@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/relation@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/rights@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/source@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/subject@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/title@edu.mit");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/type@edu.mit");
+		
+		advancedSearchPromptsVector.addElement("Contributor");
+		advancedSearchPromptsVector.addElement("Coverage");
+		advancedSearchPromptsVector.addElement("Creator");
+		advancedSearchPromptsVector.addElement("Date");
+		advancedSearchPromptsVector.addElement("Description");
+		advancedSearchPromptsVector.addElement("Format");
+		advancedSearchPromptsVector.addElement("Identifier");
+		advancedSearchPromptsVector.addElement("Lanugage");
+		advancedSearchPromptsVector.addElement("Publisher");
+		advancedSearchPromptsVector.addElement("Relation");
+		advancedSearchPromptsVector.addElement("Rights");
+		advancedSearchPromptsVector.addElement("Source");
+		advancedSearchPromptsVector.addElement("Subject");
+		advancedSearchPromptsVector.addElement("Title");
+		advancedSearchPromptsVector.addElement("Type");
+
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/contributor@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/coverage@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/creator@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/date@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/description@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/format@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/identifier@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/language@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/publisher@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/relation@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/rights@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/source@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/subject@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/title@mit.edu");
+		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/type@mit.edu");
+		
+		advancedSearchPromptsVector.addElement("Contributor");
+		advancedSearchPromptsVector.addElement("Coverage");
+		advancedSearchPromptsVector.addElement("Creator");
+		advancedSearchPromptsVector.addElement("Date");
+		advancedSearchPromptsVector.addElement("Description");
+		advancedSearchPromptsVector.addElement("Format");
+		advancedSearchPromptsVector.addElement("Identifier");
+		advancedSearchPromptsVector.addElement("Lanugage");
+		advancedSearchPromptsVector.addElement("Publisher");
+		advancedSearchPromptsVector.addElement("Relation");
+		advancedSearchPromptsVector.addElement("Rights");
+		advancedSearchPromptsVector.addElement("Source");
+		advancedSearchPromptsVector.addElement("Subject");
+		advancedSearchPromptsVector.addElement("Title");
+		advancedSearchPromptsVector.addElement("Type");
+		
 	}
 }
