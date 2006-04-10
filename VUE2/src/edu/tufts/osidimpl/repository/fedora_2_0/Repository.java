@@ -115,14 +115,11 @@ public class Repository implements org.osid.repository.Repository {
         this.password = password;
         this.conf = conf;
         this.configuration = getResource(conf);
-        
         setFedoraProperties(configuration);
         loadFedoraObjectAssetTypes();
-        //setFedoraProperties(FedoraUtils.CONF);
         searchTypes.add(new SimpleSearchType());
         searchTypes.add(new AdvancedSearchType());
         searchTypes.add(new Type("mit.edu","search","keyword"));
-        //loadAssetTypes();
     }
     
     /** sets a soap call to perform all digital repository operations
@@ -135,10 +132,8 @@ public class Repository implements org.osid.repository.Repository {
     
     public void setFedoraProperties(java.net.URL conf) {
         String url = address.getProtocol()+"://"+address.getHost()+":"+address.getPort()+"/"+address.getFile();
-        //System.out.println("FEDORA Address = "+ url);
         fedoraProperties = new Properties();
         try {
-            //System.out.println("Fedora Properties " + conf);
             prefs = FedoraUtils.getPreferences(this);
             fedoraProperties.setProperty("url.fedora.api", prefs.get("url.fedora.api","http://www.fedora.info/definitions/1/0/api/"));
             fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", "http://www.fedora.info/definitions/1/0/types/"));
