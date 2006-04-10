@@ -45,15 +45,15 @@ public class Osid2AssetResource extends MapResource
     public Osid2AssetResource(org.osid.repository.Asset asset, org.osid.OsidContext context) throws org.osid.repository.RepositoryException 
     {
         super();
-        try
-        {
+        try {
             this.context = context;
             this.asset = asset;
+            getProperties().holdChanges();
             setAsset(asset);
-        }
-        catch (Throwable t)
-        {
+        } catch (Throwable t) {
             System.out.println(t.getMessage());
+        } finally {
+            getProperties().releaseChanges();
         }
     }
     
@@ -103,6 +103,7 @@ public class Osid2AssetResource extends MapResource
             {
                 //System.out.println("No VUE integration record.  Looking at all records");
             }
+            
             if (!foundIntegrationRecord)
             {
                 try
