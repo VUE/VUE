@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.10 $ / $Date: 2006-04-05 21:23:25 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2006-04-10 18:40:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -685,6 +685,9 @@ public class Images
     private static BufferedImage loadImage(ImageSource imageSRC, Images.Listener listener)
     {
         BufferedImage image = null;
+
+        if (imageSRC.resource != null)
+            imageSRC.resource.getProperties().holdChanges();
         
         try {
             image = readAndCreateImage(imageSRC, listener);
@@ -713,7 +716,9 @@ public class Images
 
                 VUE.Log.warn("Image source: " + imageSRC + ": " + t);
             }
-            
+
+            if (imageSRC.resource != null)
+                imageSRC.resource.getProperties().releaseChanges();
         }
 
         // TODO opt: if this items was loaded from the disk cache, we're needlessly
@@ -741,24 +746,67 @@ public class Images
         // or put a raw Date object in there?
     }
 
+    // TODO: standardize on VUE synthesized meta-data:
+    // content.type:    (content-type / mime-type -- from URL & File)
+    // content.size:    (file or URL on-disk content size)
+    // content.modified: (file / URL last modified)
+    // content.updated:  retrieved / URL "date", will always be the read time (image load) for local files
+    //  (accessed? asOf? retrieved?)
+    // content.source: e.g., "Local Disk", "Internet" (not Web, as confuses with FTP), "Black Ships"
+            
+    // todo: these constants to move to Resource.java
+    public static final String CONTENT_SIZE = "Content.size";
+    public static final String CONTENT_TYPE = "Content.type";
+    public static final String CONTENT_MODIFIED = "Content.modified";
+    public static final String CONTENT_ASOF = "Content.asOf";
+    public static final String CONTENT_SOURCE = "Content.source";
+
     // todo: this probably wants to move to a resource impl class
     private static void setResourceMetaData(Resource r, java.net.URLConnection uc) {
-        long len = uc.getContentLength();
-        r.setProperty("url.contentLength", len);
-        String ct = uc.getContentType();
-        r.setProperty("url.contentType", ct);
-        if (DEBUG.Enabled && ct != null && !ct.toLowerCase().startsWith("image")) {
-            Util.printStackTrace("NON IMAGE CONTENT TYPE [" + ct + "] for " + r);
-        }
-        setDateValue(r, "url.expires", uc.getExpiration());
-        setDateValue(r, "url.date", uc.getDate());
-        setDateValue(r, "url.lastModified", uc.getLastModified());
+
+//         r.getProperties().holdChanges();
+//         try {
+        
+            long len = uc.getContentLength();
+            //r.setProperty("url.contentLength", len);
+            r.setProperty(CONTENT_SIZE, len); // todo: be sure to update later from cache file size for correctness
+            String ct = uc.getContentType();
+            //r.setProperty("url.contentType", ct);
+            r.setProperty(CONTENT_TYPE, ct);
+            if (DEBUG.Enabled && ct != null && !ct.toLowerCase().startsWith("image")) {
+                Util.printStackTrace("NON IMAGE CONTENT TYPE [" + ct + "] for " + r);
+            }
+            setDateValue(r, "URL.expires", uc.getExpiration());
+            //setDateValue(r, "url.date", uc.getDate());
+            setDateValue(r, CONTENT_ASOF, uc.getDate()); // should probably ignore this an generate ourselves
+            //setDateValue(r, "url.lastModified", uc.getLastModified());
+            setDateValue(r, CONTENT_MODIFIED, uc.getLastModified());
+            
+//         } catch (Throwable t) {
+//             Util.printStackTrace(t);
+//         } finally {
+//             r.getProperties().releaseChanges();
+//         }
+                      
     }
     
     // todo: this probably wants to move to a resource impl class
     private static void setResourceMetaData(Resource r, File f) {
-        r.setProperty("file.size", f.length());
-        setDateValue(r, "file.lastModified", f.lastModified());
+//         r.getProperties().holdChanges();
+//         try {
+        
+            //r.setProperty("file.size", f.length());
+            r.setProperty(CONTENT_SIZE, f.length());
+            //setDateValue(r, "file.lastModified", f.lastModified());
+            setDateValue(r, CONTENT_MODIFIED, f.lastModified());
+
+            //r.setProperty(CONTENT_TYPE, java.net.URLConnection.guessContentTypeFromName(f.getName()));
+            // todo: also URLConnection.guessContentTypeFromStream (could use in FileBackedImageInputStream)
+                
+//         } finally {
+//             r.getProperties().releaseChanges();
+//         }
+            
     }
 
     private static File makeTmpCacheFile(URI key)
@@ -872,6 +920,17 @@ public class Images
             // just point us at the cache file: ImageIO will create the input stream
             imageSRC.readable = imageSRC.cacheFile;
             if (DEBUG.IMAGE) out("reading cache file: " + imageSRC.cacheFile);
+
+            // note: can get away with this because imageSRC.resource will
+            // be null if this is for a preview icon, so don't need to worry
+            // about getting wrong size todo: a hack anyway -- include
+            // in clean-up of meta-data setting
+
+            if (imageSRC.resource != null) {
+                imageSRC.resource.setProperty(CONTENT_SIZE, imageSRC.cacheFile.length());
+                // java has no creation date for Files!  Well, last modified good enough...
+                setDateValue(imageSRC.resource, CONTENT_ASOF, imageSRC.cacheFile.lastModified());
+            }
         
         } else if (imageSRC.readable instanceof java.net.URL) {
             URL url = (URL) imageSRC.readable;
@@ -917,7 +976,10 @@ public class Images
             if (imageSRC.resource != null)
                 setResourceMetaData(imageSRC.resource, (File) imageSRC.readable);
         }
-        
+
+        if (imageSRC.resource != null) // in case any held changes
+            imageSRC.resource.getProperties().releaseChanges();
+
         final ImageInputStream inputStream;
 
         if (imageSRC.readable instanceof ImageInputStream)
@@ -968,10 +1030,13 @@ public class Images
         if (imageSRC.resource != null) {
             if (DEBUG.IMAGE || DEBUG.THREAD || DEBUG.RESOURCE)
                 out("setting resource image.* meta-data for " + imageSRC.resource);
+            
+            imageSRC.resource.getProperties().holdChanges();
             imageSRC.resource.setProperty("image.width",  Integer.toString(w));
             imageSRC.resource.setProperty("image.height", Integer.toString(h));
             imageSRC.resource.setProperty("image.format", reader.getFormatName());
             imageSRC.resource.setCached(true);
+            imageSRC.resource.getProperties().releaseChanges();
         }
 
         
