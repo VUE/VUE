@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.362 $ / $Date: 2006-04-10 18:48:40 $ / $Author: sfraize $ 
+ * @version $Revision: 1.363 $ / $Date: 2006-04-10 19:37:44 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -794,6 +794,8 @@ public class VUE
             //pannerTool.setVisible(true);
         }
         */
+
+        VUE.displayMap(new LWMap("New Map"));
 
         // Generally, we need to wait until java 1.5 JSplitPane's have been validated to
         // use the % set divider location.  Unfortunately there's a bug in at MacOS java
