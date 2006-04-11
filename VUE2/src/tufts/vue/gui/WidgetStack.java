@@ -32,7 +32,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-04-08 23:58:07 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2006-04-11 05:48:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends JPanel
@@ -173,7 +173,8 @@ public class WidgetStack extends JPanel
         updateDefaultExpander();
         super.addNotify();
         if (mExpanderCount == 0)
-            tufts.Util.printStackTrace("warning: no vertical expanding panes; WidgetStack will not layout properly");
+            if (DEBUG.Enabled) out("warning: no vertical expanders");
+            //tufts.Util.printStackTrace("warning: no vertical expanding panes; WidgetStack will not layout properly");
         setName("in " + GUI.name(getParent()));
         //setName("in " + getParent().getName());
         //setName("WidgetStack:" + getParent().getName());
