@@ -24,11 +24,12 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.111 $ / $Date: 2006-04-10 19:35:01 $ / $Author: jeff $ *
+ * @version $Revision: 1.112 $ / $Date: 2006-04-11 05:44:53 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
 import tufts.vue.gui.VueButton;
+import tufts.vue.ui.ResourceList;
 
 
 import javax.swing.*;
@@ -762,37 +763,29 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 		}
 		
 		// fill our results stack with individual results and aggregate results		
-		JPanel repositorySpecificResults[] = new JPanel[numRepositories];
-		VueDragTree resultSetTrees[] = new VueDragTree[numRepositories];
-		VueDragGrid resultSetGrids[] = new VueDragGrid[numRepositories];
-		
-        for (int i = 0; i < numRepositories; i++) {			
-			java.util.Vector v = (java.util.Vector)resultVector.elementAt(i);
-			String name = (String)repositoryDisplayNameVector.elementAt(i);
-			if (v.size() == 0) {
-				resultsStack.addPane(name, new JLabel("No results"));
-			} else {
-				resultSetTrees[i] = new VueDragTree(v.iterator(), "Repository Search Results");
-				resultSetTrees[i].setRootVisible(false);
-				
-				resultSetGrids[i] = new VueDragGrid(v.iterator());
+		//JPanel repositorySpecificResults[] = new JPanel[numRepositories];
+		//VueDragTree resultSetTrees[] = new VueDragTree[numRepositories];
+		//ResourceList resultSetLists[] = new ResourceList[numRepositories];
+                
+                for (int i = 0; i < numRepositories; i++) {			
+                    java.util.Vector v = (java.util.Vector)resultVector.elementAt(i);
+                    String name = (String)repositoryDisplayNameVector.elementAt(i);
 
-                                JComponent result;
+                    if (v.size() == 0) {
+                        resultsStack.addPane(name, new JLabel("  No results"), 0f);
+                        continue;
+                    }
 
-                                if (true)
-                                    result = resultSetGrids[i];
-                                else
-                                    result = resultSetTrees[i];
-				
-				repositorySpecificResults[i] = new JPanel();
-				if (UseSingleScrollPane)
-                                    repositorySpecificResults[i].add(result);
-				else
-                                    repositorySpecificResults[i].add(new JScrollPane(result));
-				
-				resultsStack.addPane(name, repositorySpecificResults[i]);
-			}
-        }
+                    name += " (" + v.size() + ")";
+
+                    JComponent resultSet = new ResourceList(v.iterator());
+                    
+                    if (UseSingleScrollPane) {
+                        resultsStack.addPane(name, resultSet);
+                    } else {
+                        resultsStack.addPane(name, new JScrollPane(resultSet));
+                    }
+                }
 
         // Do this on AWT thread to make sure we
         // don't collide with anything going on there.
