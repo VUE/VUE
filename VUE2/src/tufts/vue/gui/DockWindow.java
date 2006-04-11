@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.54 $ / $Date: 2006-04-11 17:57:38 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2006-04-11 19:20:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -334,6 +334,13 @@ public class DockWindow extends javax.swing.JWindow
         if (key == Widget.EXPANSION_KEY) {
             boolean expand = ((Boolean) e.getNewValue()).booleanValue();
             setRolledUp(!expand, isDisplayable(), true);
+            
+        } else if (key == Widget.HIDDEN_KEY) {
+            boolean hide = ((Boolean) e.getNewValue()).booleanValue();
+            if (hide)
+                dismiss();
+            else
+                setRolledUp(false, isVisible(), true);
             
         } else if (key == Widget.MENU_ACTIONS_KEY) {
             setMenuActions((Action[]) e.getNewValue());
@@ -873,7 +880,7 @@ public class DockWindow extends javax.swing.JWindow
     }
 
     private void updateOnVisibilityChange() {
-        if (DEBUG.DOCK) out("updateOnVisibilityChange; mShowing= " + mShowing + " visible=" + isVisible());
+        if (DEBUG.DOCK) out("updateOnVisibilityChange; mShowing=" + mShowing + " visible=" + isVisible());
 
         if (mShowing == false) {
             mChildWhenHidden = mChild;
