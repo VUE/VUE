@@ -34,7 +34,7 @@ import javax.swing.*;
  * TODO: merge common code with PreviewPane, and perhaps put in a 3rd class
  * so can have multiple icons referencing the same underlying image.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-04-11 05:28:36 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-04-11 06:25:45 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -228,7 +228,7 @@ public class ResourceIcon
             loadResource(mResource);
     }
 
-    private static final double MaxZoom = 2.0;
+    private static final double MaxZoom = 1.0;
     private static final boolean DrawBorder = false; // todo: doesn't handle cropped / squared off
     private static final int BorderWidth = 1; // width of border (todo: only works as 1)
     private static final int BorderGap = 1; // whitespace around drawn border
