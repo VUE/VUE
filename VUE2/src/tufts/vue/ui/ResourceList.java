@@ -25,10 +25,15 @@ import java.awt.*;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.1 $ / $Date: 2006-04-11 03:22:23 $ / $Author: sfraize $
+ * A list if Resource's with their icons & title's that is selectable, draggable & double-clickable
+ * for resource actions.
+ *
+ * @version $Revision: 1.2 $ / $Date: 2006-04-11 05:41:59 $ / $Author: sfraize $
  */
 public class ResourceList extends JList
     implements DragGestureListener
@@ -44,12 +49,18 @@ public class ResourceList extends JList
         }
         
         //setOpaque(false);
-        setFixedCellHeight(36);
+        setFixedCellHeight(37);
         setModel(model);
-        setCellRenderer(new ResourceRenderer());
+        setCellRenderer(new RowRenderer());
         DefaultListSelectionModel selectionModel = new DefaultListSelectionModel();
         selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         setSelectionModel(selectionModel);
+
+        selectionModel.addListSelectionListener(new ListSelectionListener() {
+                public void valueChanged(ListSelectionEvent e) {				
+                    tufts.vue.VUE.getResourceSelection().setTo(getPicked());
+                }
+            });
 
         DragSource dragSource = DragSource.getDefaultDragSource();
         dragSource.createDefaultDragGestureRecognizer(this, // Component
@@ -61,11 +72,14 @@ public class ResourceList extends JList
         
     }
 
+    private Resource getPicked() {
+        return (Resource) getSelectedValue();
+    }
+    
     public void dragGestureRecognized(DragGestureEvent e)
     {
-        System.out.println(getSelectedIndex());
         if (getSelectedIndex() != -1) {
-            Resource r = (Resource) getSelectedValue();
+            Resource r = getPicked(); 
             e.startDrag(DragSource.DefaultCopyDrop, // cursor
                         DragIcon.getImage(),
                         new Point(-10,-10), // drag image offset
@@ -74,11 +88,15 @@ public class ResourceList extends JList
         }
     }
 
-    private class ResourceRenderer extends DefaultListCellRenderer
+    private class RowRenderer extends DefaultListCellRenderer
     {
-        ResourceRenderer() {
+        RowRenderer() {
             //setOpaque(false); // selection stops working!
-            setFont(ResourceList.this.getFont());
+            //setFont(ResourceList.this.getFont()); // leave default label font
+            
+            // Border: 1 pix gray at bottom, then 2 pix empty in from left
+            setBorder(new CompoundBorder(new MatteBorder(0,0,1,0, new Color(204,204,204)),
+                                         new EmptyBorder(0,2,0,0)));
         }
         
         public Component getListCellRendererComponent(
@@ -99,8 +117,6 @@ public class ResourceList extends JList
                 setForeground(list.getForeground());
             }
             //setEnabled(list.isEnabled());
-            //setFont(list.getFont());
-            //setOpaque(true);
             return this;
         }
     }
