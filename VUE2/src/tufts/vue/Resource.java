@@ -24,7 +24,7 @@ package tufts.vue;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.42 $ / $Date: 2006-04-08 23:59:29 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2006-04-11 05:45:07 $ / $Author: sfraize $
  * @author  akumar03
  */
 import java.util.Properties;
@@ -212,10 +212,11 @@ public interface Resource
 
 
     /**
-     * Get preview of the object, e.g., a thummbnail.
+     * Get preview of the object, e.g., a thummbnail.  Currently, this should be 32x32 pixels.
      */
     public javax.swing.Icon getIcon();
-    public javax.swing.Icon getIcon(int width, int height);
+    public javax.swing.Icon getIcon(java.awt.Component painter);
+    //public javax.swing.Icon getIcon(int width, int height);
 
     /**
      * Get preview of the object such as thummbnail / small sized image. Suggested return
@@ -232,6 +233,8 @@ public interface Resource
 
 
     public boolean isCached();
+
+    // todo: should be protected or not have it
     public void setCached(boolean cached);
 
     //public void setPreview(Object preview);
