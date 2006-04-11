@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.363 $ / $Date: 2006-04-10 19:37:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.364 $ / $Date: 2006-04-11 05:47:22 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -97,7 +97,7 @@ public class VUE
     //static DockWindow ObjectInspector;
     static ObjectInspectorPanel ObjectInspectorPanel;
     
-    /** see VueDandDTree.java */ // todo: cleanup
+    // TODO: get rid of this
     public static boolean  dropIsLocal = false;
     
     private static boolean isStartupUnderway = false;
