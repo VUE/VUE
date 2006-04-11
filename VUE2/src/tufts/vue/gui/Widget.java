@@ -38,7 +38,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.5 $ / $Date: 2006-03-24 22:26:47 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-04-11 19:09:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -53,30 +53,49 @@ public class Widget extends javax.swing.JPanel
     
     /** Hide the entire widget, including it's title.  Do not affect expansion state. */
     public static void setHidden(JComponent c, boolean hidden) {
-        if (DEBUG.WIDGET) System.out.println("Widget.setHidden " + GUI.name(c) + " " + hidden);
-        c.putClientProperty(HIDDEN_KEY, hidden ? Boolean.TRUE : Boolean.FALSE);
+        if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setHidden " + hidden);
+        //c.putClientProperty(HIDDEN_KEY, hidden ? Boolean.TRUE : Boolean.FALSE);
+        setBoolean(c, HIDDEN_KEY, hidden);
     }
     
     /** Make sure the Widget is expanded (visible).  Containing java.awt.Window
      * will be made visible if it's not */
     public static void setExpanded(JComponent c, boolean expanded) {
-        if (DEBUG.WIDGET) System.out.println("Widget.setExpanded " + GUI.name(c) + " " + expanded);
-        c.putClientProperty(EXPANSION_KEY, expanded ? Boolean.TRUE : Boolean.FALSE);
+        if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setExpanded " + expanded);
+        //c.putClientProperty(EXPANSION_KEY, expanded ? Boolean.TRUE : Boolean.FALSE);
 
-        if (expanded && !tufts.vue.VUE.isStartupUnderway())
+        setBoolean(c, EXPANSION_KEY, expanded);
+        
+        if (expanded && !tufts.vue.VUE.isStartupUnderway()) {
             GUI.makeVisibleOnScreen(c);
+        }
         
         //c.firePropertyChange("TESTPROPERTY", false, true);
     }
 
     public static void setMenuActions(JComponent c, javax.swing.Action[] actions)
     {
-        if (DEBUG.WIDGET) System.out.println("Widget.setMenuActions " + GUI.name(c) + " " + java.util.Arrays.asList(actions));
+        if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setMenuActions " + java.util.Arrays.asList(actions));
         c.putClientProperty(MENU_ACTIONS_KEY, actions);
     }
 
     public static boolean isWidget(JComponent c) {
         return c instanceof Widget || c.getClientProperty(EXPANSION_KEY) != null;
+    }
+
+    /** only set property if not already set
+     * @return true if the value changed
+     */
+    private static boolean setBoolean(JComponent c, String key, boolean newValue) {
+        Boolean currentProp = (Boolean) c.getClientProperty(key);
+        // default for property value not there is false:
+        boolean current = currentProp == null ? false : currentProp.booleanValue();
+        if (current != newValue) {
+            if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " WIDGET-CHANGE " + key + "=" + newValue);
+            c.putClientProperty(key, newValue ? Boolean.TRUE : Boolean.FALSE);
+            return true;
+        } else
+            return false;
     }
     
     // instance methods for when used as a subclassed wrapper of JPanel:
@@ -95,6 +114,10 @@ public class Widget extends javax.swing.JPanel
         setExpanded(this, expanded);
     }
 
+    public void setHidden(boolean hidden) {
+        setHidden(this, hidden);
+    }
+    
     public void setMenuActions(javax.swing.Action[] actions) {
         setMenuActions(this, actions);
     }
