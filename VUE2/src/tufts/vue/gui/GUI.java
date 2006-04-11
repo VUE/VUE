@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.31 $ / $Date: 2006-04-10 18:50:59 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2006-04-11 19:21:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -645,7 +645,7 @@ public class GUI
     {
         java.awt.Window w = javax.swing.SwingUtilities.getWindowAncestor(c);
         if (w != null && !w.isShowing() && !tufts.vue.VUE.isStartupUnderway()) {
-            if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " showing containing window " + GUI.name(w));
+            if (DEBUG.WIDGET) out(GUI.name(c) + " showing containing window " + GUI.name(w));
             w.setVisible(true);
         }
     }
