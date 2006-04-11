@@ -37,7 +37,7 @@ import com.sun.image.codec.jpeg.*;
 /**
  * The class is handles a reference to either a local file or a URL.
  *
- * @version $Revision: 1.10 $ / $Date: 2006-04-09 00:02:25 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2006-04-11 05:46:01 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.
@@ -100,15 +100,34 @@ public class URLResource implements Resource, XMLUnmarshalListener
     
     private String toURLString() {
 
-        final String txt;
-        final String s = this.spec.trim();
+        String s = this.spec.trim();
+
+        
         final char c0 = s.length() > 0 ? s.charAt(0) : 0;
         final char c1 = s.length() > 1 ? s.charAt(1) : 0;
+        final String txt;
+
+        // In case there are any special characters (e.g., Unicode chars) in the
+        // file name, we must first encode them for MacOSX (local files only?)
+        // FYI, MacOSX openURL uses UTF-8, NOT the native MacRoman encoding.
+        // URLEncoder encodes EVERYTHING other than alphas tho, so we need
+        // to put it back.
+
+        // But first we DECODE it, in case there are already any encodings,
+        // we don't want to double-encode.
+        //TODO: url = java.net.URLDecoder.decode(url, "UTF-8");
+        //TODO: if (DEBUG) System.err.println("  DECODE UTF [" + url + "]");
+
+        // TODO ALSO: cache file not being %20 normalized (Seeing %252520 !)
+
+        
 
         if (c0 == '/' || c0 == '\\' || (Character.isLetter(c0) && c1 == ':')) {
             // first case: MacOSX path
             // second case: Windows path
             // third case: Windows "C:" style path
+            // TODO: consider using URN's for this, which have some code
+            // for this type of resolution.
             txt = "file://" + s;
         } else {
             txt = s;
@@ -177,17 +196,30 @@ public class URLResource implements Resource, XMLUnmarshalListener
             
             mURL = new java.net.URL(toURLString());
 
-            // todo: do this once on constrution of a URLResource
-            setProperty("url.protocol", mURL.getProtocol());
-            setProperty("url.userInfo", mURL.getUserInfo());
-            setProperty("url.host", mURL.getHost());
-            setProperty("url.path", mURL.getPath());
-            // setProperty("url.file", url.getFile()); // same as path (doesn't get us stub after last /)
-            setProperty("url.query", mURL.getQuery());
-            setProperty("url.ref", mURL.getRef());
-            //setProperty("url.authority", url.getAuthority()); // always same as host?
-            if (mURL.getPort() != -1)
-                setProperty("url.port", mURL.getPort());
+            mProperties.holdChanges();
+            try {
+
+                // todo: do this once on constrution of a URLResource
+                setProperty("URL.protocol", mURL.getProtocol());
+                setProperty("URL.userInfo", mURL.getUserInfo());
+                setProperty("URL.host", mURL.getHost());
+                setProperty("URL.path", mURL.getPath());
+                // setProperty("url.file", url.getFile()); // same as path (doesn't get us stub after last /)
+                setProperty("URL.query", mURL.getQuery());
+                setProperty("URL.ref", mURL.getRef());
+                //setProperty("url.authority", url.getAuthority()); // always same as host?
+                if (mURL.getPort() != -1)
+                    setProperty("URL.port", mURL.getPort());
+
+                //setProperty(CONTENT_TYPE,
+                setProperty("Content.type",
+                            java.net.URLConnection.guessContentTypeFromName(mURL.getPath()));
+
+                
+            } finally {
+                mProperties.releaseChanges();
+            }
+            
 
 
             if ("file".equals(mURL.getProtocol())) {
@@ -1040,21 +1072,22 @@ public class URLResource implements Resource, XMLUnmarshalListener
     }
     
     public Icon getIcon() {
-        return getIcon(32, 32);
+        return getIcon(null);
+    }
+    
+    public Icon getIcon(java.awt.Component painter) {
+        if (mIcon == null) {
+            //tufts.Util.printStackTrace("getIcon " + this); System.exit(-1);
+            mIcon = new tufts.vue.ui.ResourceIcon(this, 32, 32, painter);
+        }
+        return mIcon;
     }
         
     // TODO: calling with a different width/height only changes the size of
     // the existing icon, thus all who have reference to this will change!
-    public Icon getIcon(int width, int height) {
+    //public Icon getIcon(int width, int height) {
+        //mIcon.setSize(width, height);
 
-        if (mIcon == null) {
-            //tufts.Util.printStackTrace("getIcon " + this); System.exit(-1);
-            mIcon = new tufts.vue.ui.ResourceIcon(this, width, height);
-        } else {
-            mIcon.setSize(width, height);
-        }
-        return mIcon;
-    }
     
     /*
     public void setIcon(Icon i) {
