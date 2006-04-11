@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.112 $ / $Date: 2006-04-11 05:44:53 $ / $Author: sfraize $ *
+ * @version $Revision: 1.113 $ / $Date: 2006-04-11 19:19:45 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -348,6 +348,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     }
 	
     public void setActiveDataSource(DataSource ds){
+
+        System.out.println("SET ACTIVE DATA SOURCE " + ds);
         
         this.activeDataSource = ds;
         
@@ -357,10 +359,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         
         DRB.searchPane.setExpanded(false);
         if (ds instanceof LocalFileDataSource) {
+            DRB.browsePane.setHidden(false);
             DRB.browsePane.setExpanded(true);
             //DRB.savedResourcesPane.setExpanded(false);
         } else if (ds instanceof FavoritesDataSource) {
             //DRB.savedResourcesPane.setExpanded(true);
+            DRB.browsePane.setHidden(false);
             DRB.browsePane.setExpanded(true);
         }
         
@@ -374,8 +378,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         
         dataSourceList.setSelectedValue(ds,true);
         
+        DRB.browsePane.setHidden(true);
         DRB.searchPane.setExpanded(true);
-        DRB.browsePane.setExpanded(false);
     }
 
     public static void refreshDataSourcePanel(edu.tufts.vue.dsm.DataSource ds)
@@ -809,8 +813,16 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             } else {
                 resultSetDockWindow = GUI.createDockWindow(dockTitle, resultsStack);
             }
-            resultSetDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
-                                            DRB.dockWindow.getY());
+            if (false)
+                // put results to right of data sources
+                resultSetDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
+                                                DRB.dockWindow.getY());
+            else {
+                // put results below search panel
+                DockWindow searchDock = (DockWindow) SwingUtilities.getWindowAncestor(DRB.searchPane);
+                searchDock.addChild(resultSetDockWindow);
+            }
+                
         } else {
 
             if (UseSingleScrollPane) {
