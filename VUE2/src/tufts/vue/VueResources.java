@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.38 $ / $Date: 2006-04-12 19:24:45 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2006-04-12 19:35:58 $ / $Author: sfraize $
  *
  */
 public class VueResources
@@ -554,11 +554,15 @@ public class VueResources
                 }
             } 
         } catch (java.util.MissingResourceException e) {
-            if (dr >= 0)
-                value = new Color(dr, dg, db);
-            else
-                alert("Missing Color resource: " + key);
+            ; // will try and use default
+        } catch (Throwable t) {
+            alert("getColor: " + key + " " + t);
         }
+        if (value == null && dr >= 0)
+            value = new Color(dr, dg, db);
+        else
+            alert("Missing Color resource: " + key);
+        
         Cache.put(key, value);
         return value;
     }
