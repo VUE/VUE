@@ -33,7 +33,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.11 $ / $Date: 2006-04-12 19:25:48 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2006-04-12 20:16:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends JPanel
@@ -224,7 +224,10 @@ public class WidgetStack extends JPanel
             mWidget = widget;
             mTitle = new JLabel(label);
             mTitle.setForeground(Color.white);
-            mTitle.setFont(new Font("Lucida Grande", Font.BOLD, 12));
+            if (isMac)
+                mTitle.setFont(new Font("Lucida Grande", Font.BOLD, 11));
+            else
+                mTitle.setFont(new Font("Lucida Grande", Font.BOLD, 13));
             add(Box.createHorizontalStrut(9));
             int iconHeight = 10;
             int iconWidth = 9;
