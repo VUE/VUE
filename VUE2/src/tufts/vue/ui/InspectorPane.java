@@ -35,7 +35,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-04-10 18:47:25 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2006-04-12 20:25:31 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -421,6 +421,20 @@ public class InspectorPane extends JPanel
         public Component getTableCellRendererComponent(JTable table, Object value,
                                                        boolean isSelected, boolean hasFocus, int row, int column) {
             //super.setValue("<HTML>" + value); // this is noticably slower
+
+            /*
+            if (isSelected) {
+                //super.setForeground(table.getSelectionForeground());
+                setOpaque(true);
+                setBackground(Color.red);
+                setForeground(Color.blue);
+                //setBackground(table.getSelectionBackground());
+            } else {
+                setForeground(Color.red);
+                setOpaque(false);
+            }
+            */
+            
             super.setValue(value);
             return this;
         }
@@ -442,8 +456,8 @@ public class InspectorPane extends JPanel
             mTable.setDefaultRenderer(String.class, new LabelRenderer());
             mTable.setDefaultRenderer(Object.class, new ValueRenderer());
 
-            mTable.setBorder(null);  // no focus border (not working)
-            mTable.setFocusable(false); // this works
+            mTable.setBorder(null);  // no focus border (not helping tho)
+            //mTable.setFocusable(false); // this works
             // NOTE: if we leave the table focusable, it will be "selectable", but
             // invisibly so (because our renderer's currently ignore selection painting)
             // -- e.g. clicking on a row, then doing a copy would put the current row in
@@ -457,6 +471,7 @@ public class InspectorPane extends JPanel
                 scrollPane.setOpaque(false);
                 scrollPane.getViewport().setOpaque(false);
                 scrollPane.setBorder(null); // no focus border
+                scrollPane.getViewport().setBorder(null); // no focus border
                 add(scrollPane);
             } else {
                 add(mTable);
