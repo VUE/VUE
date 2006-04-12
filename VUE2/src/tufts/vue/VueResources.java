@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.37 $ / $Date: 2006-01-31 01:06:16 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2006-04-12 19:24:45 $ / $Author: sfraize $
  *
  */
 public class VueResources
@@ -520,17 +520,23 @@ public class VueResources
 
 
     /**
-     * getColor()
      * This method gets a color based on the color string in the
-     * the properties file.  Use format:  myColor=rgbHex
-     * grayColor=4F4F4F
-     * blue=FF
-     * or rgb decimal: e.g, : myColor=201,208,223
+     * the properties file.  Use format: myColor=R,B,G or
+     * myColor=4F4F4F.  E.g.,
+     *
+     *   myRed=FF0000
+     * myGreen=00FF00
+     *  myBlue=0000FF
+     *   myRed=255,0,0
+     * myGreen=0,255,0
+     *  myBlue=0,0,255
+     *
+     * Leading zeros may be left off hex values.
      *
      * @param key the string lookupkey in the properties file
      * @return Color the color, or null if missing
      **/
-    static public Color getColor(String key) {
+    static public Color getColor(String key, int dr, int dg, int db) {
         if (Cache.containsKey(key))
             return (Color) Cache.get(key);
 		
@@ -546,13 +552,21 @@ public class VueResources
                 } else {
                     value = makeColor(s);
                 }
-            }
-        } catch (Exception e) {
-            alert("Missing Color resource: "+key);
+            } 
+        } catch (java.util.MissingResourceException e) {
+            if (dr >= 0)
+                value = new Color(dr, dg, db);
+            else
+                alert("Missing Color resource: " + key);
         }
         Cache.put(key, value);
         return value;
     }
+
+    static public Color getColor(String key) {
+        return getColor(key, -1,-1,-1);
+    }
+    
 
     static Color makeColor(String hex) {
         if (hex.startsWith("#"))
