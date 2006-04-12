@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.56 $ / $Date: 2006-04-12 19:28:46 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2006-04-12 21:22:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -147,6 +147,7 @@ public class DockWindow extends javax.swing.JWindow
     private static boolean isMacAquaMetal;
     private static boolean isWindows;
     private static boolean isDarkTitleBar;
+    private static boolean isGradientTitle;
 
     // This override trick only works on MacOSX Java 1.5
     private static final boolean OverrideMacAquaBrushedMetal = false;
@@ -389,6 +390,8 @@ public class DockWindow extends javax.swing.JWindow
         isWindows = VueUtil.isWindowsPlatform();
 
         isDarkTitleBar = isMacAquaMetal;
+        //isGradientTitle = isMac;
+        isGradientTitle = true;
 
         if (OverrideMacAquaBrushedMetal && Util.getJavaVersion() >= 1.5f)
             isMacAquaMetal = false;
@@ -3397,11 +3400,13 @@ public class DockWindow extends javax.swing.JWindow
             setOpaque(true);
             setPreferredSize(new Dimension(0, TitleHeight));
 
+            /*
             if (!isMac) {
                 //if (isMac) setBackground(SystemColor.control);
                 setBackground(SystemColor.activeCaption);
                 //setBorder(new LineBorder(SystemColor.activeCaptionBorder));
              }
+            */
             //if (!isMacAqua) setBorder(new LineBorder(GUI.getVueColor()));
 
              if (title == null)
@@ -3456,7 +3461,7 @@ public class DockWindow extends javax.swing.JWindow
              helpButton.setToolTipText("Help Text");
              add(helpButton);
              
-             if (isMac)
+             if (isGradientTitle)
                  installGradient(false);
         }
 
@@ -3498,7 +3503,7 @@ public class DockWindow extends javax.swing.JWindow
         }
 
         void setVertical(boolean vertical) {
-            if (isMac)
+            if (isGradientTitle)
                 installGradient(vertical);
             mCloseButton.setVisible(!vertical);
             isVertical = vertical;
@@ -3539,7 +3544,7 @@ public class DockWindow extends javax.swing.JWindow
             final int width = getWidth();
             final int height = getHeight();
 
-            if (isMac)
+            if (isGradientTitle)
                 ((Graphics2D)g).setPaint(mGradient);
             else
                 g.setColor(getBackground());
