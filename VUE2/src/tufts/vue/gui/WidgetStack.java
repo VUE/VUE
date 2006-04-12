@@ -20,6 +20,7 @@
 package tufts.vue.gui;
 
 import tufts.vue.DEBUG;
+import tufts.vue.VueResources;
 
 import java.beans.PropertyChangeEvent;
 import java.awt.*;
@@ -32,7 +33,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.10 $ / $Date: 2006-04-11 05:48:26 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2006-04-12 19:25:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends JPanel
@@ -188,9 +189,11 @@ public class WidgetStack extends JPanel
             mDefaultExpander.setVisible(false);
     }
 
-    private static final int TitleHeight = 20;
-    private static final Color TopGradient = new Color(79,154,240);
-    private static final Color BottomGradient = new Color(0,133,246);
+    private static final int TitleHeight = VueResources.getInt("gui.widget.title.height", 18);
+    private static final Color TopGradient = VueResources.getColor("gui.widget.title.topColor", 108,149,221);
+    private static final Color BottomGradient = VueResources.getColor("gui.widget.title.bottomColor", 80,123,197);
+    // Mac Finder top blue: Color(79,154,240);
+    // Mac Finder bottom blue: Color(0,133,246);
     private static final GradientPaint Gradient
         = new GradientPaint(0,           0, TopGradient,
                             0, TitleHeight, BottomGradient);
