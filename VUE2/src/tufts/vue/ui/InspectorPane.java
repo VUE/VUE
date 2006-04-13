@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.13 $ / $Date: 2006-04-13 20:55:32 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2006-04-13 21:58:39 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -65,8 +65,6 @@ public class InspectorPane extends JPanel
     private final Font mTitleFont;
     private final Font mValueFont;
 
-    private final Color mLabelColor = new Color(61,61,61);
-
     private Resource mResource; // the current resource
 
     public InspectorPane()
@@ -85,9 +83,9 @@ public class InspectorPane extends JPanel
             fontSize = 11;
         }
 
-        mLabelFont = new GUI.Face(fontName, Font.PLAIN, fontSize, mLabelColor);
+        mLabelFont = new GUI.Face(fontName, Font.PLAIN, fontSize, GUI.LabelColor);
         mValueFont = new GUI.Face(fontName, Font.PLAIN, fontSize, Color.black);
-        mTitleFont = new GUI.Face(fontName, Font.BOLD, fontSize, mLabelColor);
+        mTitleFont = new GUI.Face(fontName, Font.BOLD, fontSize, GUI.LabelColor);
 
 
         mSummaryPane = new SummaryPane();
@@ -382,13 +380,24 @@ public class InspectorPane extends JPanel
         private JComponent delegate;
         private int vertScrollUnit;
 
-        private boolean DisablePaint = false; // hack till scroll-pane updating can be made saner
+        // hack till scroll-pane updating can be made saner:
+        // if value > 0, don't paint
+        private int paintDisabled = 0;
+        
         
         ScrollableGrid(JComponent delegate, int vertScrollUnit) {
-            //super(new BorderLayout());
             super(new GridBagLayout());
+            //setBackground(Color.red);
             this.delegate = delegate;
             this.vertScrollUnit = vertScrollUnit;
+        }
+
+        synchronized void setPaintDisabled(boolean disabled) {
+            if (disabled)
+                paintDisabled++;
+            else
+                paintDisabled--;
+                
         }
 
         public void validate() {
@@ -400,7 +409,7 @@ public class InspectorPane extends JPanel
             super.doLayout();
         }
         public void paint(Graphics g) {
-            if (DisablePaint)
+            if (paintDisabled > 0)
                 return;
             if (DEBUG.SCROLL) VUE.Log.debug("ScrollableGrid: paint " + g.getClip());
             super.paint(g);
@@ -446,7 +455,7 @@ public class InspectorPane extends JPanel
     {
         private JLabel[] mLabels;
         //private JLabel[] mValues;
-        private JTextComponent[] mValues;
+        private JTextArea[] mValues;
         private final ScrollableGrid mGridBag;
         private final JScrollPane mScrollPane = new JScrollPane();
     
@@ -478,10 +487,10 @@ public class InspectorPane extends JPanel
                 add(mGridBag);
             }
 
-            if (DEBUG.SCROLL)
+            if (DEBUG.Enabled)
                 mScrollPane.getVerticalScrollBar().getModel().addChangeListener(new ChangeListener() {
                         public void stateChanged(ChangeEvent e) {
-                            VUE.Log.debug("vertScrollChange " + e.getSource());
+                            if (DEBUG.SCROLL) VUE.Log.debug("vertScrollChange " + e.getSource());
                         }
                     });
             
@@ -498,15 +507,13 @@ public class InspectorPane extends JPanel
                 maxSlots = mLabels.length * 2;
 
             mLabels = new JLabel[maxSlots];
-            //mValues = new JLabel[maxSlots];
-            mValues = new JTextComponent[maxSlots];
+            mValues = new JTextArea[maxSlots];
 
             for (int i = 0; i < mLabels.length; i++) {
                 mLabels[i] = new JLabel();
-                //mValues[i] = new JLabel();
                 mValues[i] = new JTextArea();
                 mValues[i].setEditable(false);
-                ((JTextArea)mValues[i]).setLineWrap(true);
+                mValues[i].setLineWrap(true);
                 GUI.apply(mLabelFont, mLabels[i]);
                 GUI.apply(mValueFont, mValues[i]);
                 mLabels[i].setOpaque(false);
@@ -519,10 +526,19 @@ public class InspectorPane extends JPanel
 
         private void loadRow(int row, String label, String value) {
             if (DEBUG.RESOURCE) out("adding row " + row + " " + label + "=" + value);
+
             mLabels[row].setText(label + ":");
-            mLabels[row].setVisible(true);
             mValues[row].setText(value);
+            
+            // if value has at least one space, use word wrap
+            if (value.indexOf(' ') >= 0)
+                mValues[row].setWrapStyleWord(true);
+            else
+                mValues[row].setWrapStyleWord(false);
+            
+            mLabels[row].setVisible(true);
             mValues[row].setVisible(true);
+            
         }
 
         public void loadResource(Resource r) {
@@ -552,28 +568,36 @@ public class InspectorPane extends JPanel
 
             mScrollPane.getVerticalScrollBar().setValueIsAdjusting(true);
 
-            mGridBag.DisablePaint = true;
+            mGridBag.setPaintDisabled(true);
+
+            try {
             
-            TableModel model = rsrcProps.getTableModel();
+                TableModel model = rsrcProps.getTableModel();
 
-            if (mRsrcProps != rsrcProps) {
-                if (mRsrcProps != null)
-                    mRsrcProps.removeListener(this);
-                mRsrcProps = rsrcProps;
-                mRsrcProps.addListener(this);
+                if (mRsrcProps != rsrcProps) {
+                    if (mRsrcProps != null)
+                        mRsrcProps.removeListener(this);
+                    mRsrcProps = rsrcProps;
+                    mRsrcProps.addListener(this);
+                }
+                
+                int rows = model.getRowCount();
+                
+                if (rows > mLabels.length) {
+                    expandSlots();
+                    mGridBag.removeAll();
+                    addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
+                }
+                
+                loadAllRows(model);
+                
+                GUI.invokeAfterAWT(this);
+
+            } catch (Throwable t) {
+                mGridBag.setPaintDisabled(false);
+                tufts.Util.printStackTrace(t);
             }
-            
-            int rows = model.getRowCount();
-
-            if (rows > mLabels.length) {
-                expandSlots();
-                mGridBag.removeAll();
-                addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
-            }
-
-            loadAllRows(model);
-
-            GUI.invokeAfterAWT(this);
+                
             
             /*
             // none of these sync's seem to making any difference
@@ -586,15 +610,17 @@ public class InspectorPane extends JPanel
         }
 
         public synchronized void run() {
-            // Always put the scroll-bar back at the top, as it defaults
-            // to moving to the bottom.
-            mScrollPane.getVerticalScrollBar().setValue(0);
-            // Now release all scroll-bar updates.
-            mScrollPane.getVerticalScrollBar().setValueIsAdjusting(false);
-            // Now allow the grid to repaint.
-            mGridBag.DisablePaint = false;
-            mGridBag.repaint();
-            
+            try {
+                // Always put the scroll-bar back at the top, as it defaults
+                // to moving to the bottom.
+                mScrollPane.getVerticalScrollBar().setValue(0);
+                // Now release all scroll-bar updates.
+                mScrollPane.getVerticalScrollBar().setValueIsAdjusting(false);
+                // Now allow the grid to repaint.
+            } finally {
+                mGridBag.setPaintDisabled(false);
+                mGridBag.repaint();
+            }
             //loadAllRows(mRsrcProps.getTableModel());
         }
 
@@ -634,7 +660,7 @@ public class InspectorPane extends JPanel
     private final int topPad = 2;
     private final int botPad = 2;
     private final Insets labelInsets = new Insets(topPad, 0, botPad, GUI.LabelGapRight);
-    private final Insets fieldInsets = new Insets(topPad, 0, botPad, 0);
+    private final Insets fieldInsets = new Insets(topPad, 0, botPad, GUI.FieldGapRight);
     
     /** labels & values must be of same length */
     private void addLabelTextRows(int starty,
@@ -703,8 +729,11 @@ public class InspectorPane extends JPanel
         c.gridwidth = GridBagConstraints.REMAINDER;
         JComponent defaultExpander = new JPanel();
         defaultExpander.setPreferredSize(new Dimension(Short.MAX_VALUE, 1));
-        defaultExpander.setOpaque(true);
-        if (DEBUG.BOXES) defaultExpander.setBackground(Color.red);
+        if (DEBUG.BOXES) {
+            defaultExpander.setOpaque(true);
+            defaultExpander.setBackground(Color.red);
+        } else
+            defaultExpander.setOpaque(false);
         gridBag.add(defaultExpander, c);
     }
     
