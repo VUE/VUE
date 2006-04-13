@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.32 $ / $Date: 2006-04-11 19:21:48 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2006-04-13 03:48:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -55,6 +55,11 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 public class GUI
     implements tufts.vue.VueConstants/*, java.beans.PropertyChangeListener*/
 {
+    public static final int LabelGapRight = 6;
+    public static final Insets WidgetInsets = new Insets(12,10,12,10);
+    public static final Border WidgetBorder = new EmptyBorder(WidgetInsets);
+    //public static final Border WidgetBorder = new MatteBorder(WidgetInsets, Color.orange);
+    
     /** the special name AWT/Swing gives to pop-up Windows (menu's, rollovers, etc) */
     public static final String OVERRIDE_REDIRECT = "###overrideRedirect###";
     public static final String POPUP_NAME = "###VUE-POPUP###";
