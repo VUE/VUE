@@ -60,7 +60,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.285 $ / $Date: 2006-04-02 21:37:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.286 $ / $Date: 2006-04-13 03:49:59 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3034,7 +3034,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'O') { DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN; }
                 else if (c == 'P') { DEBUG.PAINT = !DEBUG.PAINT; }
                 else if (c == 'Q') { DEBUG_RENDER_QUALITY = !DEBUG_RENDER_QUALITY; }
-                else if (c == 'R') { OPTIMIZED_REPAINT = !OPTIMIZED_REPAINT; }
+                else if (c == 'R') { DEBUG.RESOURCE = !DEBUG.RESOURCE; }
                 else if (c == 'r') { DEBUG_TIMER_ROLLOVER = !DEBUG_TIMER_ROLLOVER; }
                 else if (c == 'S') { DEBUG.SELECTION = !DEBUG.SELECTION; }
                 else if (c == 'T') { DEBUG.TOOL = !DEBUG.TOOL; }
@@ -3060,6 +3060,7 @@ public class MapViewer extends javax.swing.JComponent
                 //else if (c == '$') { tufts.macosx.Screen.setMainAlpha(1f); }
                 else if (c == '~') { System.err.println("MapViewer debug abort."); System.exit(-1); }
                 else if (c == '_') { DEBUG.DYNAMIC_UPDATE = !DEBUG.DYNAMIC_UPDATE; }
+                else if (c == '*') { OPTIMIZED_REPAINT = !OPTIMIZED_REPAINT; }
                 else if (c == '\\') {
                     VUE.toggleFullScreen();
                 }
