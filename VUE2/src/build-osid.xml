@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="osid" default="fedora20" basedir=".">
+    <description>
+        This script is to manage build and deployment of osids
+    </description>
+  <property name="top.dir"     value="./.."/>
+  <property name="src"         value="${basedir}"/>
+  <property name="build.home"  value="${basedir}/build"/>
+  <property name="build.osid" value="${basedir}/build/osid"/>
+  <property name="build.class" value="${build.home}/classes" />
+  <property name="release.home" value="${basedir}/release"/>
+  <property name="lib.home"    value="../lib"/>
+  <!--  ==================== Compilation Control Options ==================== -->
+<!--
+  These properties control option settings on the Javac compiler when it
+  is invoked using the <javac> task.
+
+  compile.debug        Should compilation include the debug option?
+  compile.deprecation  Should compilation include the deprecation option?
+  compile.optimize     Should compilation include the optimize option?
+-->
+  <property name="compile.debug"       value="true"/>
+  <property name="compile.deprecation" value="false"/>
+  <property name="compile.optimize"    value="false"/>
+
+  <path id="compile.classpath.common">
+    <pathelement path="${src}"/>                
+    <pathelement path="${lib.home}/castor-0.9.7-xml.jar"/>
+    <!-- needed by fedora -->
+    <pathelement path="${lib.home}/commons-discovery.jar"/>
+    <pathelement path="${lib.home}/commons-logging.jar"/>
+    <pathelement path="${lib.home}/okiOSID-2.0a.jar" />	
+    <pathelement path="${lib.home}/okiSID.jar" />	
+    <pathelement path="${lib.home}/okiSIDImpl.jar" />	
+    <pathelement path="${lib.home}/MITSearchTypes.jar" />
+    <pathelement path="${lib.home}/MITRepositoryTypes.jar" />
+  </path>
+  
+  <target name="clean-osid" description="Delete all files in osid folder.">
+    <delete dir="${build.osid}"/>
+  </target>
+   
+  
+  <!--fedora_2_0 related tasks-->
+  <property name="fedora20.src" value="${src}/edu/tufts/osidimpl/repository/fedora_2_0"/>
+  <property name="fedora20.lib" value="${fedora20.src}/lib"/>
+  <property name="fedora20.jar" value="fedora-2.0.jar"/>
+  
+  <path id="fedora20.classpath">
+     <path refid="compile.classpath.common"/>
+    <pathelement path="${lib.home}/apache-commons.jar"/>
+    <pathelement path="${fedora20.lib}/axis.jar"/>
+    <pathelement path="${lib.home}/fedora-client.jar"/>
+    <pathelement path="${lib.home}/fedora-server.jar"/>
+    <pathelement path="${fedora20.lib}/fedoragentypes.jar"/>
+    <pathelement path="${fedora20.lib}/fedorautilities.jar"/>
+    <pathelement path="${lib.home}/jaxrpc.jar"/>
+
+  </path>
+  
+  <target name="fedora20.compile">
+     <javac srcdir="${src}"
+           destdir="${build.class}"
+             debug="${compile.debug}"
+        deprecation="${compile.deprecation}"
+           optimize="${compile.optimize}"
+           listfiles="yes">
+       <classpath refid="fedora20.classpath"/>  
+       <include name="edu/tufts/osidimpl/repository/fedora_2_0/*.java"/>
+    </javac>
+   </target>
+   <target name="fedora20.jar">
+    <jar zipfile="${build.osid}/${fedora20.jar}" update="true" compress="false" index="true">
+      <fileset dir="${build.class}" includes="edu/tufts/osidimpl/repository/fedora_2_0/**"/>
+    </jar>
+   </target>
+   <target name="fedora20" depends="fedora20.compile, fedora20.jar">
+    </target>
+  <!--END fedora_2_0 related tasks-->
+</project>
