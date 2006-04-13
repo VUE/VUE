@@ -30,12 +30,13 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.text.*;
 import javax.swing.table.*;
+import javax.swing.event.*;
 import javax.swing.border.*;
 
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.12 $ / $Date: 2006-04-13 05:22:06 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2006-04-13 20:55:32 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -376,18 +377,42 @@ public class InspectorPane extends JPanel
     };
     */
 
-    private static class ScrollGrid extends JPanel implements Scrollable {
+    
+    private static class ScrollableGrid extends JPanel implements Scrollable {
         private JComponent delegate;
         private int vertScrollUnit;
-        ScrollGrid(JComponent delegate, int vertScrollUnit) {
+
+        private boolean DisablePaint = false; // hack till scroll-pane updating can be made saner
+        
+        ScrollableGrid(JComponent delegate, int vertScrollUnit) {
             //super(new BorderLayout());
             super(new GridBagLayout());
             this.delegate = delegate;
             this.vertScrollUnit = vertScrollUnit;
         }
+
+        public void validate() {
+            if (DEBUG.SCROLL) VUE.Log.debug("ScrollableGrid; validate");
+            super.validate();
+        }
+        public void doLayout() {
+            if (DEBUG.SCROLL) VUE.Log.debug("ScrollableGrid: doLayout");
+            super.doLayout();
+        }
+        public void paint(Graphics g) {
+            if (DisablePaint)
+                return;
+            if (DEBUG.SCROLL) VUE.Log.debug("ScrollableGrid: paint " + g.getClip());
+            super.paint(g);
+        }
+//         public void paintComponent(Graphics g) {
+//             VUE.Log.debug("ScrollableGrid: paintComponent");
+//             super.paintComponent(g);
+//         }
         public Dimension getPreferredScrollableViewportSize() {
             Dimension d = delegate.getSize();
             d.height = getHeight();
+            if (DEBUG.SCROLL) VUE.Log.debug(GUI.name(delegate) + " viewportSize " + GUI.name(d));
             return d;
         }
 
@@ -422,7 +447,7 @@ public class InspectorPane extends JPanel
         private JLabel[] mLabels;
         //private JLabel[] mValues;
         private JTextComponent[] mValues;
-        private final JPanel mGridBag;
+        private final ScrollableGrid mGridBag;
         private final JScrollPane mScrollPane = new JScrollPane();
     
         MetaDataPane() {
@@ -430,9 +455,8 @@ public class InspectorPane extends JPanel
             
             expandSlots();
 
-            //mGridBag = new JPanel(new GridBagLayout());
-            mLabels[0].setText("X");
-            mGridBag = new ScrollGrid(this, mLabels[0].getPreferredSize().height + 4);
+            mLabels[0].setText("X"); // make sure label will know it's max height
+            mGridBag = new ScrollableGrid(this, mLabels[0].getPreferredSize().height + 4);
             Insets insets = (Insets) GUI.WidgetInsets.clone();
             insets.top = insets.bottom = 0;
             insets.right = 1;
@@ -453,6 +477,15 @@ public class InspectorPane extends JPanel
             } else {
                 add(mGridBag);
             }
+
+            if (DEBUG.SCROLL)
+                mScrollPane.getVerticalScrollBar().getModel().addChangeListener(new ChangeListener() {
+                        public void stateChanged(ChangeEvent e) {
+                            VUE.Log.debug("vertScrollChange " + e.getSource());
+                        }
+                    });
+            
+            
         }
 
 
@@ -510,6 +543,16 @@ public class InspectorPane extends JPanel
             // only a single sorted list exists for each resource,
             // tho of course, then we have tons of  cached
             // sorted lists laying about.
+
+            if (DEBUG.SCROLL)
+                VUE.Log.debug("scroll model listeners: "
+                              + Arrays.asList(((DefaultBoundedRangeModel)
+                                               mScrollPane.getVerticalScrollBar().getModel())
+                                              .getListeners(ChangeListener.class)));
+
+            mScrollPane.getVerticalScrollBar().setValueIsAdjusting(true);
+
+            mGridBag.DisablePaint = true;
             
             TableModel model = rsrcProps.getTableModel();
 
@@ -529,24 +572,30 @@ public class InspectorPane extends JPanel
             }
 
             loadAllRows(model);
+
+            GUI.invokeAfterAWT(this);
             
-            // also doesn't seem to help
-            //GUI.invokeAfterAWT(this);
-                
             /*
-            // none of these sync's seem to making much difference
-            // Oh, hey -- try on the AWT thread & wait to complete?
+            // none of these sync's seem to making any difference
             synchronized (mScrollPane.getTreeLock()) {
             synchronized (mScrollPane.getViewport().getTreeLock()) {
             synchronized (getTreeLock()) {
-                
             }}}
             */
             
         }
 
         public synchronized void run() {
-            loadAllRows(mRsrcProps.getTableModel());
+            // Always put the scroll-bar back at the top, as it defaults
+            // to moving to the bottom.
+            mScrollPane.getVerticalScrollBar().setValue(0);
+            // Now release all scroll-bar updates.
+            mScrollPane.getVerticalScrollBar().setValueIsAdjusting(false);
+            // Now allow the grid to repaint.
+            mGridBag.DisablePaint = false;
+            mGridBag.repaint();
+            
+            //loadAllRows(mRsrcProps.getTableModel());
         }
 
         private void loadAllRows(TableModel model) {
