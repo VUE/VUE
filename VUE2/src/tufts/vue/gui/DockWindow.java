@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.57 $ / $Date: 2006-04-12 21:22:34 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2006-04-13 03:51:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -73,6 +73,8 @@ public class DockWindow extends javax.swing.JWindow
     public final static int ToolbarHeight = 35;
     private final static boolean MacWindowShadowEnabled = false;
     private static Border WindowBorder;
+    private static Border ContentBorder;
+    private static Border ContentBorderInset;
     
     static DockRegion TopDock;
     static DockRegion BottomDock;
@@ -237,8 +239,8 @@ public class DockWindow extends javax.swing.JWindow
         this(title, null, content, false);
     }
 
-    private void addContent(JComponent c, boolean replace) {
-        if (DEBUG.DOCK || DEBUG.INIT) out("adding " + GUI.name(c) + " to " + GUI.name(getContentPanel()));
+    public void setContent(JComponent c) {
+        if (DEBUG.DOCK || DEBUG.WIDGET || DEBUG.INIT) out("adding " + GUI.name(c) + " to " + GUI.name(getContentPanel()));
 
         boolean hadContent = getContent() != null;
 
@@ -260,10 +262,7 @@ public class DockWindow extends javax.swing.JWindow
         if (hadContent)
             getContent().removePropertyChangeListener(this);
 
-        if (replace)
-            mContentPane.setWidget(c);
-        else
-            mContentPane.add(c);
+        mContentPane.setWidget(c);
 
         //out("ADDPROPCHANGELISTENER: " + c);
         c.addPropertyChangeListener(this);
@@ -274,6 +273,8 @@ public class DockWindow extends javax.swing.JWindow
         } else {
             validate();
         }
+
+        
         
         //int width = minUnrolledWidth(getWidth());
         //if (width < 300) width = 300;
@@ -307,10 +308,6 @@ public class DockWindow extends javax.swing.JWindow
         throw new Error("can't add component's directly to the DockWindow");
     }
 
-    public void setContent(JComponent c) {
-        addContent(c, true);
-    }
-    
     public JPanel getContentPanel() {
         return mContentPane.mContent;
     }
@@ -487,6 +484,34 @@ public class DockWindow extends javax.swing.JWindow
             return WindowBorder;
     }
 
+    /** @return a border, if any, for the entire DockWindow (null if none) */
+    private Border getContentBorder(JComponent c) {
+        if (isToolbar)
+            return null;
+
+        if (ContentBorder == null) {
+            ContentBorder = new CompoundBorder(new MatteBorder(3,2,3,2, new Color(235,235,235)),
+                                               new LineBorder(new Color(102,102,102)));
+            ContentBorderInset = new CompoundBorder(ContentBorder, GUI.WidgetBorder);
+        }
+
+        if (c instanceof WidgetStack || firstChild(c) instanceof WidgetStack || c instanceof JScrollPane)
+            return ContentBorder;
+        else
+            return ContentBorderInset;
+    }
+
+    /** @return first child of component, if it is a Container and has children, otherwise null */
+    private static Component firstChild(Component component) {
+        if (component instanceof Container) {
+            Container c = (Container) component;
+            if (c.getComponentCount() > 0)
+                return c.getComponent(0);
+        }
+        return null;
+            
+    }
+    
     private static Border makeWindowBorder() {
 
         if (isMacAqua && (MacWindowShadowEnabled || isMacAquaMetal)) {
@@ -3061,7 +3086,6 @@ public class DockWindow extends javax.swing.JWindow
 
         public ContentPane(String title, boolean asToolbar)
         {
-
             mContent.setName(title + ".dockContent");
             Object contentConstraints;
             if (true||asToolbar) {
@@ -3114,10 +3138,16 @@ public class DockWindow extends javax.swing.JWindow
 
             //mContent.setBackground(Color.green);
             mContent.setOpaque(false);
-            
-            if (!isToolbar)
+
+            /*
+            if (!isToolbar) {
+                //mContent.setBorder(new CompoundBorder(new MatteBorder(3,2,3,2, new Color(235,235,235)),
+                //new LineBorder(new Color(102,102,102))));
                 mContent.setBorder(new CompoundBorder(new MatteBorder(3,2,3,2, new Color(235,235,235)),
-                                                      new LineBorder(new Color(102,102,102))));
+                                                      new CompoundBorder(new LineBorder(new Color(102,102,102)),
+                                                                         new EmptyBorder(GUI.WidgetInsets))));
+            }
+            */
 
             
 
@@ -3162,7 +3192,7 @@ public class DockWindow extends javax.swing.JWindow
             
         }
 
-        public void setWidget(JComponent c) {
+        void setWidget(JComponent c) {
             mContent.removeAll();
             
             //if (GUI.isMacBrushedMetal() && isToolbar)
@@ -3171,7 +3201,9 @@ public class DockWindow extends javax.swing.JWindow
                 changeAll(c);
             }
 
+            mContent.setBorder(getContentBorder(c));
             mContent.add(c, BorderLayout.CENTER);
+
         }
 
         public void XaddNotify() {
