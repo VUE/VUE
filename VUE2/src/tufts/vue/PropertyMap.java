@@ -24,14 +24,19 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.2 $ / $Date: 2006-04-10 18:41:22 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-04-13 05:22:27 $ / $Author: sfraize $
  */
 
-public class PropertyMap extends java.util.HashMap {
+public class PropertyMap extends java.util.HashMap
+{
+    public interface Listener {
+        void propertyMapChanged(PropertyMap p);
+    }
 
     private SortedMapModel mTableModel;
     private boolean mHoldingChanges = false;
     private int mChanges;
+    private List listeners;
 
     public PropertyMap() {}
 
@@ -100,6 +105,23 @@ public class PropertyMap extends java.util.HashMap {
 
     }
 
+    public synchronized void addListener(Listener l) {
+        if (listeners == null)
+            listeners = new java.util.ArrayList();
+        listeners.add(l);
+    }
+    public synchronized void removeListener(Listener l) {
+        if (listeners != null)
+            listeners.remove(l);
+    }
+    public synchronized void notifyListeners() {
+        if (listeners != null) {
+            Iterator i = listeners.iterator();
+            while (i.hasNext())
+                ((Listener)i.next()).propertyMapChanged(this);
+        }
+    }
+
     private static class Entry implements Comparable {
         final String key;
         final Object value;
@@ -117,6 +139,8 @@ public class PropertyMap extends java.util.HashMap {
         }
     }
 
+    // TODO: move this out to viewer
+    
     private class SortedMapModel extends javax.swing.table.AbstractTableModel {
 
         private Entry[] mEntries;
@@ -143,6 +167,7 @@ public class PropertyMap extends java.util.HashMap {
             */
             if (DEBUG.RESOURCE) System.out.println("RsrcProps: model loaded " + Arrays.asList(mEntries));
             fireTableDataChanged();
+            notifyListeners();
         }
         
         public int getRowCount() {
