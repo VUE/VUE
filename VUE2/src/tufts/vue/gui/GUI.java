@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.33 $ / $Date: 2006-04-13 03:48:08 $ / $Author: sfraize $
+ * @version $Revision: 1.34 $ / $Date: 2006-04-13 21:59:35 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -55,7 +55,9 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 public class GUI
     implements tufts.vue.VueConstants/*, java.beans.PropertyChangeListener*/
 {
+    public static final Color LabelColor = new Color(61,61,61);
     public static final int LabelGapRight = 6;
+    public static final int FieldGapRight = 6;
     public static final Insets WidgetInsets = new Insets(12,10,12,10);
     public static final Border WidgetBorder = new EmptyBorder(WidgetInsets);
     //public static final Border WidgetBorder = new MatteBorder(WidgetInsets, Color.orange);
