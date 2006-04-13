@@ -26,7 +26,7 @@ import tufts.vue.gui.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.41 $ / $Date: 2006-03-29 23:02:50 $ / $Author: sfraize $ 
+ * @version $Revision: 1.42 $ / $Date: 2006-04-13 03:49:44 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -108,6 +108,8 @@ public class DRBrowser extends JPanel
         
         browseDock.setContent(browsePane);
         browseDock.setRolledUp(true);
+        //browsePane.setHidden(true);
+        //browseDock.setVisible(false); // won't work till after displayed
         
         //savedResourcesDock.setContent(savedResourcesPane);
         //savedResourcesDock.setRolledUp(true);
@@ -242,7 +244,10 @@ public class DRBrowser extends JPanel
         VUE.init(args);
         
         DEBUG.DR = true;
-        DockWindow dw = GUI.createDockWindow("Resources");
+
+        new Frame("A Frame").setVisible(true);
+        
+        DockWindow dw = GUI.createDockWindow("Test Resources");
         DRBrowser drb = new DRBrowser(true, dw);
 
         dw.setVisible(true);
