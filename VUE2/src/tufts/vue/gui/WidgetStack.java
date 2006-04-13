@@ -33,7 +33,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.12 $ / $Date: 2006-04-12 20:16:17 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2006-04-13 03:52:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends JPanel
@@ -119,7 +119,16 @@ public class WidgetStack extends JPanel
         _gbc.fill = GridBagConstraints.BOTH;
         _gbc.weighty = verticalExpansionWeight;
         _gbc.insets = GUI.EmptyInsets;
-        mGridBag.add(widget, _gbc);
+
+        if (false) {
+            JPanel widgetPanel = new JPanel(new BorderLayout());
+            widgetPanel.setOpaque(false);
+            widgetPanel.add(widget);
+            widgetPanel.setBorder(GUI.WidgetBorder);
+            mGridBag.add(widgetPanel, _gbc);
+        } else
+            mGridBag.add(widget, _gbc);
+            
 
         _gbc.gridy++;
 
