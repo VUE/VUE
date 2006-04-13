@@ -83,11 +83,11 @@ import javax.swing.text.*;
  * Note that you can get center/variable alignment even with
  * a JLabel if it's text starts with &lt;HTML&gt;, and you
  * put in a center tag.  Unfortunately, JTextArea's don't
- * do HTML.
+ * do HTML w/out setting up a StyledDocument manually.
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.37 $ / $Date: 2006-04-05 21:25:01 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2006-04-13 03:50:10 $ / $Author: sfraize $
  *
  */
 
