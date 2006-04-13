@@ -35,13 +35,12 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.10 $ / $Date: 2006-04-12 20:25:31 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2006-04-13 03:49:17 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
     implements VueConstants, LWSelection.Listener, ResourceSelection.Listener
 {
-
     // fields for the Summary Pane
     //private final JTextComponent mTitleField = new JTextArea();
     //private final JTextComponent mWhereField = new JTextPane();
@@ -396,124 +395,164 @@ public class InspectorPane extends JPanel
     };
     */
 
-    private class LabelRenderer extends DefaultTableCellRenderer {
-
-        LabelRenderer() {
-            setHorizontalAlignment(RIGHT);
-            setBorder(new EmptyBorder(1,1,1,7));
-            GUI.apply(mLabelFont, this);
+    private static class ScrollGrid extends JPanel implements Scrollable {
+        private JComponent delegate;
+        private int vertScrollUnit;
+        ScrollGrid(JComponent delegate, int vertScrollUnit) {
+            //super(new BorderLayout());
+            super(new GridBagLayout());
+            this.delegate = delegate;
+            this.vertScrollUnit = vertScrollUnit;
         }
-
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                                                       boolean isSelected, boolean hasFocus, int row, int column) {
-            String txt = (String) value;
-            setText(txt + ":");
-            return this;
-        }
-        public boolean isOpaque() { return false; }
-    }
-    private class ValueRenderer extends DefaultTableCellRenderer {
-
-        ValueRenderer() {
-            GUI.apply(mValueFont, this);
-        }
-
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                                                       boolean isSelected, boolean hasFocus, int row, int column) {
-            //super.setValue("<HTML>" + value); // this is noticably slower
-
-            /*
-            if (isSelected) {
-                //super.setForeground(table.getSelectionForeground());
-                setOpaque(true);
-                setBackground(Color.red);
-                setForeground(Color.blue);
-                //setBackground(table.getSelectionBackground());
-            } else {
-                setForeground(Color.red);
-                setOpaque(false);
-            }
-            */
+        public Dimension getPreferredScrollableViewportSize() {
+            Dimension d = delegate.getSize();
+            d.height = getHeight();
+            return d;
             
-            super.setValue(value);
-            return this;
+            //return getPreferredSize();
+            //return delegate.getPreferredSize();
+            //return delegate.getSize();
+            //return getPreferredSize();
+            //return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE);
+            //return getParent().getSize();
         }
-        public boolean isOpaque() { return false; }
-    }
 
+        /** clicking on the up/down arrows of the scroll bar use this */
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return vertScrollUnit;
+            // TODO: can make this the full height of the component given the direction vertically
+        }
+
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return vertScrollUnit*2; // what triggers this?
+        }
+    
+        public boolean getScrollableTracksViewportWidth() { return true; }
+
+        public boolean getScrollableTracksViewportHeight() { return false; }
+        
+    }
+    
 
     public class MetaDataPane extends JPanel
     {
-        private JTable mTable = new JTable();
+        private JLabel[] mLabels;
+        //private JLabel[] mValues;
+        private JTextComponent[] mValues;
+        private final JPanel mGridBag;
+        private final JScrollPane mScrollPane = new JScrollPane();
     
         MetaDataPane() {
             super(new BorderLayout());
+            
+            expandSlots();
 
-            mTable.setOpaque(false);
-            mTable.setShowVerticalLines(false);
-            mTable.setShowHorizontalLines(false);
-            mTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // not visible anyway, but just in case
-            mTable.setDefaultRenderer(String.class, new LabelRenderer());
-            mTable.setDefaultRenderer(Object.class, new ValueRenderer());
-
-            mTable.setBorder(null);  // no focus border (not helping tho)
-            //mTable.setFocusable(false); // this works
-            // NOTE: if we leave the table focusable, it will be "selectable", but
-            // invisibly so (because our renderer's currently ignore selection painting)
-            // -- e.g. clicking on a row, then doing a copy would put the current row in
-            // the cut buffer, but there would be no visual feedback that this is
-            // happening.
+            //mGridBag = new JPanel(new GridBagLayout());
+            mLabels[0].setText("X");
+            mGridBag = new ScrollGrid(this, mLabels[0].getPreferredSize().height + 4);
+            Insets insets = (Insets) GUI.WidgetInsets.clone();
+            insets.top = insets.bottom = 0;
+            mGridBag.setBorder(new EmptyBorder(insets));
+            //mGridBag.setBorder(new LineBorder(Color.red));
+            
+            addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
 
             if (true) {
-                JScrollPane scrollPane = new JScrollPane(mTable,
-                                                         JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                                         JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-                scrollPane.setOpaque(false);
-                scrollPane.getViewport().setOpaque(false);
-                scrollPane.setBorder(null); // no focus border
-                scrollPane.getViewport().setBorder(null); // no focus border
-                add(scrollPane);
+                //JPanel panel = new JPanel(new BorderLayout());
+                //JPanel panel = new ScrollPanel(this);
+                //panel.setBorder(new LineBorder(Color.green));
+                //panel.add(mGridBag);
+                mScrollPane.setViewportView(mGridBag);
+                //scrollPane.setViewportView(panel);
+                mScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                mScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                                                         
+                mScrollPane.setOpaque(false);
+                mScrollPane.getViewport().setOpaque(false);
+                //scrollPane.setBorder(null); // no focus border
+                //scrollPane.getViewport().setBorder(null); // no focus border
+                add(mScrollPane);
             } else {
-                add(mTable);
+                add(mGridBag);
             }
+        }
 
-            /*
-            JPanel gridBag = new JPanel(new GridBagLayout());
-            //addLabelTextRows(0, labelTextPairs, gridBag, mLabelFont, mValueFont);
 
-            add(gridBag);
+        private void expandSlots() {
+            int maxSlots;
+            if (mLabels == null)
+                maxSlots = 20; // initial maximum
+            else
+                maxSlots = mLabels.length * 2;
 
-            // allow fixed amount of veritcal space so stack isn't always resizing
-            // if the location line-wraps and makes itself taller
-            // (Note that the Summary pane must be a JPanel, *containing* the
-            // gridbag, for this to work: we can't just be the gridBag directly)
-            setPreferredSize(new Dimension(Short.MAX_VALUE,63));
-            setMinimumSize(new Dimension(200,63));
-            setMaximumSize(new Dimension(Short.MAX_VALUE,63));
-            */
+            mLabels = new JLabel[maxSlots];
+            //mValues = new JLabel[maxSlots];
+            mValues = new JTextComponent[maxSlots];
+
+            for (int i = 0; i < mLabels.length; i++) {
+                mLabels[i] = new JLabel();
+                //mValues[i] = new JLabel();
+                mValues[i] = new JTextArea();
+                mValues[i].setEditable(false);
+                ((JTextArea)mValues[i]).setLineWrap(true);
+                GUI.apply(mLabelFont, mLabels[i]);
+                GUI.apply(mValueFont, mValues[i]);
+                mLabels[i].setOpaque(false);
+                mValues[i].setOpaque(false);
+                mLabels[i].setVisible(false);
+                mValues[i].setVisible(false);
+            }
+            
+        }
+
+        private void loadRow(int row, String label, String value) {
+            if (DEBUG.RESOURCE) out("adding row " + row + " " + label + "=" + value);
+            mLabels[row].setText(label + ":");
+            mLabels[row].setVisible(true);
+            mValues[row].setText(value);
+            mValues[row].setVisible(true);
         }
 
         public void loadResource(Resource r) {
-            mTable.setModel(r.getProperties().getTableModel());
+            //mTable.setModel(r.getProperties().getTableModel());
+            TableModel model = r.getProperties().getTableModel();
 
-            // This is a total hand tweaked set of numbers, which will
-            // vary with the font used for labels and your standard
-            // for the longest "usual" label you might see.
-            // I've no idea why they work...
-            // Ideally, the table model we get could include a computed
-            // width of widest label in first column, and we could use that.
-            mTable.getColumnModel().getColumn(0).setMaxWidth(200);
-            mTable.getColumnModel().getColumn(0).setPreferredWidth(107);
-            mTable.getColumnModel().getColumn(1).setPreferredWidth(120);
+            int rows = model.getRowCount();
+
+            if (rows > mLabels.length)
+                expandSlots();
+
+            synchronized (mScrollPane.getTreeLock()) {
+            synchronized (mScrollPane.getViewport().getTreeLock()) {
+            synchronized (getTreeLock()) {
             
-            /*
-            Set entries = r.getProperties().entrySet();
-            Iterator i = entries.iterator();
-            while (i.hasNext()) {
-                Map.Entry e = (Map.Entry) i.next();
-                out("found entry " + Util.tag(e));
-            }
-            */
+                int row;
+                for (row = 0; row < rows; row++) {
+                    String label = model.getValueAt(row, 0).toString();
+                    String value = model.getValueAt(row, 1).toString();
+
+                    // loadRow(row++, label, value); // debug non-HTML display
+                    
+                    // FYI, some kind of HTML bug for text strings with leading slashes
+                    // -- they show up empty.  Right now, we're disable HTML for
+                    // all synthetic keys, which covers URL.path, which was the problem.
+                    //if (label.indexOf(".") < 0) 
+                          //value = "<html>"+value;
+                    
+                    loadRow(row, label, value);
+
+                           
+                }
+                for (; row < mLabels.length; row++) {
+                    //out(" clear row " + row);
+                    mLabels[row].setVisible(false);
+                    mValues[row].setVisible(false);
+                }
+
+                //mScrollPane.getViewport().setViewPosition(new Point(0,0));
+                
+            }}}
+            
         }
         
     }
@@ -521,6 +560,82 @@ public class InspectorPane extends JPanel
     //----------------------------------------------------------------------------------------
     // Utility methods
     //----------------------------------------------------------------------------------------
+    
+    
+    /** labels & values must be of same length */
+    private static void addLabelTextRows(int starty,
+                                         JLabel[] labels,
+                                         JComponent[] values,
+                                         Container gridBag,
+                                         Font labelFace,
+                                         Font fieldFace)
+    {
+        // Note that the resulting alignment ends up being somehow FONT dependent!
+        // E.g., works great with Lucida Grand (MacOSX), but with system default,
+        // if the field value is a wrapping JTextPane (thus gets taller as window
+        // gets narrower), the first line of text rises slightly and is no longer
+        // in line with it's label.
+        
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.EAST;
+        c.weighty = 0;
+
+        final int vpad = 2;
+        final Insets labelInsets = new Insets(vpad, 0, vpad, GUI.LabelGapRight);
+        final Insets fieldInsets = new Insets(vpad, 0, vpad, 0);
+        
+        for (int i = 0; i < labels.length; i++) {
+            
+            //-------------------------------------------------------
+            // Add the label field
+            //-------------------------------------------------------
+
+            c.gridx = 0;
+            c.gridy = starty++;
+            c.insets = labelInsets;
+            c.gridwidth = GridBagConstraints.RELATIVE; // next-to-last in row
+            c.fill = GridBagConstraints.NONE; // the label never grows
+            c.anchor = GridBagConstraints.NORTHEAST;
+            c.weightx = 0.0;                  // do not expand
+
+            final JLabel label = labels[i];
+            if (labelFace != null)
+                GUI.apply(labelFace, label);
+            gridBag.add(label, c);
+
+            //-------------------------------------------------------
+            // Add the text value field
+            //-------------------------------------------------------
+            
+            c.gridx = 1;
+            c.gridwidth = GridBagConstraints.REMAINDER;     // last in row
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.anchor = GridBagConstraints.CENTER;
+            c.insets = fieldInsets;
+            c.weightx = 1.0; // field value expands horizontally to use all space
+            
+            final JComponent field = values[i];
+            if (fieldFace != null)
+                GUI.apply(fieldFace, field);
+            gridBag.add(field, c);
+
+        }
+
+        // add a default vertical expander to take up extra space
+        // (so the above stack isn't vertically centered if it
+        // doesn't fill the space).
+
+        c.weighty = 1;
+        c.weightx = 1;
+        c.gridx = 0;
+        c.fill = GridBagConstraints.BOTH;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        JComponent defaultExpander = new JPanel();
+        defaultExpander.setPreferredSize(new Dimension(Short.MAX_VALUE, 1));
+        defaultExpander.setOpaque(true);
+        if (DEBUG.BOXES) defaultExpander.setBackground(Color.red);
+        gridBag.add(defaultExpander, c);
+    }
     
     private void loadText(JTextComponent c, String text) {
         String hasText = c.getText();
@@ -541,7 +656,13 @@ public class InspectorPane extends JPanel
             c.setText(text);
     }
     
-    private static void addLabelTextRows(int starty, Object[] labelTextPairs, Container gridBag, Font labelFace, Font fieldFace)
+    private final int vpad = 2;
+    private final Insets labelInsets = new Insets(vpad, 3, vpad, 5);
+    private final Insets fieldInsets = new Insets(vpad, 0, vpad, 1);
+    //private final Insets firstLabelInsets = new Insets(0, 3, vpad, 5);
+    //private final Insets firstFieldInsets = new Insets(0, 0, vpad, 1);
+        
+    private void addLabelTextRows(int starty, Object[] labelTextPairs, Container gridBag, Font labelFace, Font fieldFace)
     {
         // Note that the resulting alignment ends up being somehow FONT dependent!
         // E.g., works great with Lucida Grand (MacOSX), but with system default,
@@ -553,10 +674,6 @@ public class InspectorPane extends JPanel
         c.anchor = GridBagConstraints.EAST;
         int num = labelTextPairs.length;
 
-        final int vpad = 2;
-        final Insets labelInsets = new Insets(vpad, 3, vpad, 5);
-        final Insets fieldInsets = new Insets(vpad, 0, vpad, 1);
-        
         for (int i = 0; i < num; i += 2) {
             
             String txt = (String) labelTextPairs[i];
@@ -572,6 +689,7 @@ public class InspectorPane extends JPanel
 
             c.gridx = 0;
             c.gridy = starty++;
+            //if (i == 0) c.insets = firstLabelInsets; else
             c.insets = labelInsets;
             c.gridwidth = GridBagConstraints.RELATIVE; // next-to-last in row
             c.fill = GridBagConstraints.NONE; // the label never grows
@@ -597,6 +715,7 @@ public class InspectorPane extends JPanel
             c.gridwidth = GridBagConstraints.REMAINDER;     // last in row
             c.fill = GridBagConstraints.HORIZONTAL;
             c.anchor = GridBagConstraints.CENTER;
+            //if (i == 0) c.insets = firstFieldInsets; else
             c.insets = fieldInsets;
             c.weightx = 1.0; // field value expands horizontally to use all space
             
