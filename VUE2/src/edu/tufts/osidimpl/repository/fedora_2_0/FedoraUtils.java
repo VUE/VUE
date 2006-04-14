@@ -69,15 +69,15 @@ public class FedoraUtils {
         if(repository.getPrefernces() != null) {
             return repository.getPrefernces();
         } else {
-            URL url = repository.getConfiguration();
-            Preferences prefs = (Preferences) prefsCache.get(url);
+            String conf = repository.getConf();
+            Preferences prefs = (Preferences) prefsCache.get(conf);
             if (prefs != null)
                 return prefs;
             Class clazz = new FedoraUtils().getClass();
             prefs = Preferences.userNodeForPackage(clazz);
-            InputStream stream = new BufferedInputStream(url.openStream());
+            InputStream stream = new BufferedInputStream(clazz.getResourceAsStream(conf));
             prefs.importPreferences(stream);
-            prefsCache.put(url, prefs);
+            prefsCache.put(conf, prefs);
             stream.close();
             return prefs;
         }
