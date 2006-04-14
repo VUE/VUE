@@ -39,7 +39,7 @@ public class RepositoryManager
     throws org.osid.repository.RepositoryException {
         this.configuration = configuration;
         try {
-            this.repository = new Repository("fedora.properties",
+            this.repository = new Repository("fedora.xml",
                     REPOSITORY_ID_STRING,
                     "Tufts Digital Library",
                     "",
