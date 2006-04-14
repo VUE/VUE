@@ -87,7 +87,7 @@ public class Repository implements org.osid.repository.Repository {
     private java.util.Vector searchTypes = new java.util.Vector();
     private java.util.Vector assets = new java.util.Vector();
     private org.osid.shared.Id id = null;
-    private URL configuration = null;
+   // private URL configuration = null;
     
     
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
@@ -114,8 +114,7 @@ public class Repository implements org.osid.repository.Repository {
         this.userName = userName;
         this.password = password;
         this.conf = conf;
-        this.configuration = getResource(conf);
-        setFedoraProperties(configuration);
+        setFedoraProperties();
         loadFedoraObjectAssetTypes();
         searchTypes.add(new SimpleSearchType());
         searchTypes.add(new AdvancedSearchType());
@@ -130,7 +129,7 @@ public class Repository implements org.osid.repository.Repository {
         this.fedoraProperties = fedoraProperties;
     }
     
-    public void setFedoraProperties(java.net.URL conf) {
+    public void setFedoraProperties() {
         String url = address.getProtocol()+"://"+address.getHost()+":"+address.getPort()+"/"+address.getFile();
         fedoraProperties = new Properties();
         try {
@@ -165,8 +164,9 @@ public class Repository implements org.osid.repository.Repository {
         return fedoraProperties;
     }
     
+    //TODO: remove this method completely in future
     public URL getConfiguration() {
-        return configuration;
+        return null;
     }
     
     
@@ -559,6 +559,7 @@ public class Repository implements org.osid.repository.Repository {
     private java.net.URL getResource(String name) {
         java.net.URL url = null;
         java.io.File f = new java.io.File(name);
+        System.out.println("Name ="+ name+" File = "+ f.getAbsolutePath()+" URL:"+url);
         if (f.exists()) {
             try {
                 url = f.toURL();
@@ -570,6 +571,8 @@ public class Repository implements org.osid.repository.Repository {
             url = getClass().getResource(name);
         if (url == null) {
             String installDirectory = tufts.vue.VueResources.getString("dataSourceInstallDirectory") + "/TuftsDigitalLibrary";
+             System.out.println("Name ="+ name+" File = "+ f.getAbsolutePath()+" URL:"+url+" Install:"+installDirectory);
+       
             java.io.File root = new java.io.File(installDirectory);
             java.io.File[] files = root.listFiles();
             for (int j=0; j < files.length; j++) {
