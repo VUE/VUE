@@ -10,6 +10,9 @@
   <property name="build.class" value="${build.home}/classes" />
   <property name="release.home" value="${basedir}/release"/>
   <property name="lib.home"    value="../lib"/>
+  <!-- this property needs to be changed for respective OS -->
+  <property name="osid.home" value="C:\Libarary\OSID\"/>
+  
   <!--  ==================== Compilation Control Options ==================== -->
 <!--
   These properties control option settings on the Javac compiler when it
@@ -37,7 +40,10 @@
   </path>
   
   <target name="clean-osid" description="Delete all files in osid folder.">
-    <delete dir="${build.osid}"/>
+    <delete>
+     <fileset dir="${build.osid}" includes="**/*.jar"/>
+    </delete>
+    <mkdir dir="${dist}"/>
   </target>
    
   
@@ -58,7 +64,7 @@
 
   </path>
   
-  <target name="fedora20.compile">
+  <target name="fedora20.compile" >
      <javac srcdir="${src}"
            destdir="${build.class}"
              debug="${compile.debug}"
@@ -69,12 +75,14 @@
        <include name="edu/tufts/osidimpl/repository/fedora_2_0/*.java"/>
     </javac>
    </target>
-   <target name="fedora20.jar">
+   <target name="fedora20.jar" depends="fedora20.compile">
     <jar zipfile="${build.osid}/${fedora20.jar}" update="true" compress="false" index="true">
       <fileset dir="${build.class}" includes="edu/tufts/osidimpl/repository/fedora_2_0/**"/>
+      <fileset dir="${src}" includes="edu/tufts/osidimpl/repository/fedora_2_0/*.xml"/>
     </jar>
    </target>
-   <target name="fedora20" depends="fedora20.compile, fedora20.jar">
+   <target name="fedora20" depends="fedora20.jar">
+        <copy file="${build.osid}/${fedora20.jar}" todir="${osid.home}\fedora_2_0\"/>
     </target>
   <!--END fedora_2_0 related tasks-->
 </project>
