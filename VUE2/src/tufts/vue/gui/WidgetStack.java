@@ -23,6 +23,7 @@ import tufts.vue.DEBUG;
 import tufts.vue.VueResources;
 
 import java.beans.PropertyChangeEvent;
+import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -33,7 +34,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.13 $ / $Date: 2006-04-13 03:52:55 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2006-04-15 22:07:42 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends JPanel
@@ -42,10 +43,11 @@ public class WidgetStack extends JPanel
     private final GridBagConstraints _gbc = new GridBagConstraints();
     private final Insets ExpandedTitleBarInsets = GUI.EmptyInsets;
     private final Insets CollapsedTitleBarInsets = new Insets(0,0,1,0);
-    //private final Insets TitleBarInsets = new Insets(1,0,0,0);
     private final GridBagLayout mLayout;
     private final JComponent mDefaultExpander;
+    private final ArrayList mWidgets = new ArrayList();
 
+    private WidgetTitle mLockedWidget = null;
     private int mExpanderCount = 0;
     private int mExpandersOpen = 0;
 
@@ -99,6 +101,7 @@ public class WidgetStack extends JPanel
         
         WidgetTitle titleBar = new WidgetTitle(title, widget, isExpander);
 
+        mWidgets.add(titleBar);
         
         if (DEBUG.WIDGET) {
             out("addPane:"
@@ -198,6 +201,26 @@ public class WidgetStack extends JPanel
             mDefaultExpander.setVisible(false);
     }
 
+    private void updateLockingState() {
+        if (DEBUG.WIDGET) out("updateLockingState: expanders open = " + mExpandersOpen);
+        if (mExpandersOpen == 1) {
+            findFirstOpenExpander().setLocked(true);
+        } else if (mLockedWidget != null) {
+            mLockedWidget.setLocked(false);
+        }
+    }
+
+    private WidgetTitle findFirstOpenExpander() {
+        WidgetTitle w;
+        Iterator i = mWidgets.iterator();
+        while (i.hasNext()) {
+            w = (WidgetTitle) i.next();
+            if (w.isExpander && w.mExpanded && w.isVisible())
+                return w;
+        }
+        return null;
+    }
+
     private static final int TitleHeight = VueResources.getInt("gui.widget.title.height", 18);
     private static final Color TopGradient = VueResources.getColor("gui.widget.title.topColor", 108,149,221);
     private static final Color BottomGradient = VueResources.getColor("gui.widget.title.bottomColor", 80,123,197);
@@ -222,7 +245,8 @@ public class WidgetStack extends JPanel
         private final GUI.IconicLabel mIcon;
 
         private final boolean isExpander;
-        
+
+        private boolean isLocked = false;
         private boolean mExpanded = true;
 
         public WidgetTitle(String label, JComponent widget, boolean isExpander) {
@@ -258,9 +282,10 @@ public class WidgetStack extends JPanel
             setMinimumSize(new Dimension(50, TitleHeight));
 
             addMouseListener(new tufts.vue.MouseAdapter(label) {
-                    public void mouseClicked(MouseEvent e) { Widget.setExpanded(mWidget, !mExpanded); }
-                    public void mousePressed(MouseEvent e) { mIcon.setForeground(TopGradient.brighter()); }
-                    public void mouseReleased(MouseEvent e) { mIcon.setForeground(Color.white); }
+                    //public void mouseClicked(MouseEvent e) { if (!isLocked) Widget.setExpanded(mWidget, !mExpanded); }
+                    public void mouseClicked(MouseEvent e) { handleMouseClicked(); }
+                    public void mousePressed(MouseEvent e) { if (!isLocked) mIcon.setForeground(TopGradient.brighter()); }
+                    public void mouseReleased(MouseEvent e) { if (!isLocked) mIcon.setForeground(Color.white); }
                 });
 
             // Check for property values set on the JComponent before being added to the
@@ -291,7 +316,26 @@ public class WidgetStack extends JPanel
             widget.addPropertyChangeListener(this);
             
         }
-    
+
+        private void setLocked(boolean locked) {
+            if (isLocked == locked)
+                return;
+            isLocked = locked;
+            if (locked) {
+                mIcon.setForeground(TopGradient.darker());
+                mLockedWidget = this;
+            } else {
+                mIcon.setForeground(Color.white);
+                mLockedWidget = null;
+            }
+        }
+
+        private void handleMouseClicked() {
+            if (isLocked)
+                return;
+            Widget.setExpanded(mWidget, !mExpanded);
+        }
+
         /** interface java.beans.PropertyChangeListener for contained component */
         public void propertyChange(java.beans.PropertyChangeEvent e) {
             final String key = e.getPropertyName();
@@ -360,6 +404,12 @@ public class WidgetStack extends JPanel
                 
         }
 
+        private void updateLockingStateLater() {
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                updateLockingState();
+            }});
+        }
+
         private void setHidden(boolean hide) {
             if (DEBUG.WIDGET) out("setHidden " + hide);
 
@@ -376,6 +426,8 @@ public class WidgetStack extends JPanel
                 mWidget.setVisible(true);
                 handleWidgetDisplayChange(true);
             }
+
+            updateLockingStateLater();
         }
         
 
@@ -399,6 +451,8 @@ public class WidgetStack extends JPanel
             mWidget.setVisible(expanded);
 
             revalidate();
+            
+            updateLockingStateLater();
             
         }
 
