@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.59 $ / $Date: 2006-04-13 19:28:21 $ / $Author: sfraize $
+ * @version $Revision: 1.60 $ / $Date: 2006-04-15 22:58:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -121,6 +121,7 @@ public class DockWindow extends javax.swing.JWindow
     private Point mDragStart;
     /** absolute point on screen mouse was at when drag started */
     private Point mDragStartScreen;
+    private Dimension mMinContentSize;
     
     private Dimension mDragSizeStart;
     private boolean mMouseWasPressed;
@@ -262,6 +263,8 @@ public class DockWindow extends javax.swing.JWindow
         if (hadContent)
             getContent().removePropertyChangeListener(this);
 
+        mMinContentSize = c.getMinimumSize();
+        if (DEBUG.DOCK) out("min content size " + mMinContentSize);
         mContentPane.setWidget(c);
 
         //out("ADDPROPCHANGELISTENER: " + c);
@@ -504,6 +507,25 @@ public class DockWindow extends javax.swing.JWindow
             return ContentBorderInset;
         */
     }
+
+    private Dimension mBorderSize;
+    private Dimension getBorderSize() {
+        if (mBorderSize == null) {
+            mBorderSize = new Dimension();
+            if (getWindowBorder() != null) {
+                Insets wb = getWindowBorder().getBorderInsets(null);
+                mBorderSize.width += wb.left + wb.right;
+                mBorderSize.height += wb.top + wb.bottom;
+            }
+            if (getContentBorder(null) != null) {
+                Insets cb = getContentBorder(null).getBorderInsets(null);
+                mBorderSize.width += cb.left + cb.right;
+                mBorderSize.height += cb.top + cb.bottom;
+            }
+        }
+        return mBorderSize;
+    }
+    
 
     /** @return first child of component, if it is a Container and has children, otherwise null */
     private static Component firstChild(Component component) {
@@ -998,7 +1020,13 @@ public class DockWindow extends javax.swing.JWindow
     }
     
     private int minUnrolledHeight(int height) {
-        final int absoluteMin = TitleHeight + ResizeCornerSize;
+        int absoluteMin =
+            TitleHeight
+            + getBorderSize().height
+            + mMinContentSize.height;
+
+        if (absoluteMin < TitleHeight + ResizeCornerSize)
+            absoluteMin = TitleHeight + ResizeCornerSize;
         
         if (height < absoluteMin)
             return absoluteMin;
@@ -1015,7 +1043,10 @@ public class DockWindow extends javax.swing.JWindow
                 return stackTop.getWidth();
         }
 
-        final int absoluteMin = ResizeCornerSize * 2 + mTitleWidth + 25;
+        int absoluteMin = + getBorderSize().width + mMinContentSize.width;
+
+        if (absoluteMin < mTitleWidth + 25 + ResizeCornerSize)
+            absoluteMin = mTitleWidth + 25 + ResizeCornerSize;
         
         if (requestedWidth < absoluteMin)
             return absoluteMin;
@@ -2289,7 +2320,7 @@ public class DockWindow extends javax.swing.JWindow
     private void dragResizeWindow(MouseEvent e)
     {
         mWindowDragUnderway = true;
-            
+
         int newWidth = mDragSizeStart.width + (e.getX() - mDragStart.x);
         int newHeight = mDragSizeStart.height + (e.getY() - mDragStart.y);
 
