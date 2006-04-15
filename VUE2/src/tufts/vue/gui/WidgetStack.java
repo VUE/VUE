@@ -34,7 +34,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.14 $ / $Date: 2006-04-15 22:07:42 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2006-04-15 22:59:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends JPanel
@@ -50,6 +50,8 @@ public class WidgetStack extends JPanel
     private WidgetTitle mLockedWidget = null;
     private int mExpanderCount = 0;
     private int mExpandersOpen = 0;
+
+    private Dimension mMinSize = new Dimension();
 
     public WidgetStack() {
         mLayout = new GridBagLayout();
@@ -80,6 +82,8 @@ public class WidgetStack extends JPanel
         mDefaultExpander.setVisible(false);
         add(mDefaultExpander, c);
 
+        mMinSize.width = 100;
+
         // todo: need to set min size on whole stack (nitems * title height)
         // and have DockWindow respect this.
     }
@@ -100,8 +104,9 @@ public class WidgetStack extends JPanel
             mExpanderCount++;
         
         WidgetTitle titleBar = new WidgetTitle(title, widget, isExpander);
-
         mWidgets.add(titleBar);
+        mMinSize.height = mWidgets.size() * (TitleHeight + 1);
+        //setMinimumSize(mMinSize);
         
         if (DEBUG.WIDGET) {
             out("addPane:"
@@ -183,14 +188,13 @@ public class WidgetStack extends JPanel
     }
 
     public void addNotify() {
+        //if (DEBUG.WIDGET) out("minSize " + mMinSize);
         updateDefaultExpander();
         super.addNotify();
         if (mExpanderCount == 0)
             if (DEBUG.Enabled) out("warning: no vertical expanders");
             //tufts.Util.printStackTrace("warning: no vertical expanding panes; WidgetStack will not layout properly");
         setName("in " + GUI.name(getParent()));
-        //setName("in " + getParent().getName());
-        //setName("WidgetStack:" + getParent().getName());
     }
     
     private void updateDefaultExpander() {
