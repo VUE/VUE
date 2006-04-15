@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.60 $ / $Date: 2006-04-15 22:58:22 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2006-04-15 23:17:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -108,6 +108,7 @@ public class DockWindow extends javax.swing.JWindow
     private String mMenuName; // if non-null, will be used for name in menus
     private final String mBaseTitle;
     private int mTitleWidth;
+    private int mMinTitleWidth;
 
     private DockWindow mChild;
     private DockWindow mParent;
@@ -987,6 +988,7 @@ public class DockWindow extends javax.swing.JWindow
     public void setTitle(String title) {
         mTitle = title;
         mTitleWidth = GUI.stringLength(TitleFont, title);
+        mMinTitleWidth = mTitleWidth + 4;
         setName(title);
 
         GUI.setRootPaneNames(this, title);
@@ -1000,8 +1002,11 @@ public class DockWindow extends javax.swing.JWindow
             }
         }
 
-        if (mContentPane != null && mContentPane.mTitle != null)
+        if (mContentPane != null && mContentPane.mTitle != null) {
             mContentPane.mTitle.setTitle(title);
+            // hackish to add this to existing title width, put produces sane numbers
+            mMinTitleWidth += mContentPane.mTitle.getMinimumSize().width;
+        }
         repaint();
     }
     
@@ -1038,15 +1043,15 @@ public class DockWindow extends javax.swing.JWindow
     {
         final DockWindow stackTop = getStackTop();
         
+        int absoluteMin = getBorderSize().width + mMinContentSize.width;
+
+        if (absoluteMin < mMinTitleWidth)
+            absoluteMin = mMinTitleWidth;
+        
         if (stackTop.isStackOwner && stackTop != this) {
-            if (requestedWidth < stackTop.getWidth())
-                return stackTop.getWidth();
+            if (absoluteMin < stackTop.getWidth())
+                absoluteMin = stackTop.getWidth();
         }
-
-        int absoluteMin = + getBorderSize().width + mMinContentSize.width;
-
-        if (absoluteMin < mTitleWidth + 25 + ResizeCornerSize)
-            absoluteMin = mTitleWidth + 25 + ResizeCornerSize;
         
         if (requestedWidth < absoluteMin)
             return absoluteMin;
