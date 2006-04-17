@@ -23,8 +23,8 @@ implements org.osid.repository.Repository
 {
     private org.osid.shared.Id repositoryId = null;
 	private org.osid.shared.Type repositoryType = null;
-	private org.osid.shared.Type assetType = new Type("tufts.edu","asset","artifact");
-	private org.osid.shared.Type artifactSearchType = new Type("tufts.edu","search","artifact");
+	private org.osid.shared.Type assetType = new Type("edu.tufts","asset","artifact");
+	private org.osid.shared.Type artifactSearchType = new Type("edu.tufts","search","artifact");
     private String displayName = null;
     private String description = null;
     private java.util.Vector searchTypeVector = null;
@@ -275,7 +275,7 @@ implements org.osid.repository.Repository
 			} else {
 				query = SEARCH_URL_PREFIX + criteria + SEARCH_URL_SUFFIX;
 			}
-					
+			Utilities.log("Artifact Query " + query);
 			return new AssetIterator(query,this.repositoryId);
         }
         catch (Throwable t)
@@ -298,7 +298,7 @@ implements org.osid.repository.Repository
         {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-        if (recordStructureType.isEqual(new Type("tufts.edu","recordStructure","artifact")))
+        if (recordStructureType.isEqual(new Type("edu.tufts","recordStructure","artifact")))
         {
             java.util.Vector results = new java.util.Vector();
             results.addElement(RecordStructure.getInstance());

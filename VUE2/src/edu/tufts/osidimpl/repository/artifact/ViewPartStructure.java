@@ -22,7 +22,7 @@ public class ViewPartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id viewPartStructureId = null;
-    private org.osid.shared.Type type = new Type("mit.edu","partStructure","view","View");
+    private org.osid.shared.Type type = new Type("edu.mit","partStructure","view","View");
     private String displayName = "View";
     private String description = "View";
     private boolean mandatory = false;
@@ -69,7 +69,7 @@ implements org.osid.repository.PartStructure
     {
         try
         {
-            viewPartStructureId = Managers.getIdManager().getId("ViewPartStructureId");
+            viewPartStructureId = Utilities.getIdManager().getId("ViewPartStructureId");
         }
         catch (Throwable t)
         {

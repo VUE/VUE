@@ -22,7 +22,7 @@ public class MediumImagePartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id MEDIUM_IMAGE_PART_STRUCTURE_ID = null;
-    private org.osid.shared.Type type = new Type("mit.edu","partStructure","mediumImage","Medium Image");
+    private org.osid.shared.Type type = new Type("edu.mit","partStructure","mediumImage","Medium Image");
     private String displayName = "Medium Image";
     private String description = "Medium sized image";
     private boolean mandatory = false;
@@ -69,7 +69,7 @@ implements org.osid.repository.PartStructure
     {
         try
         {
-            this.MEDIUM_IMAGE_PART_STRUCTURE_ID = Managers.getIdManager().getId("MediumImagePartStructureId");
+            this.MEDIUM_IMAGE_PART_STRUCTURE_ID = Utilities.getIdManager().getId("MediumImagePartStructureId");
         }
         catch (Throwable t)
         {

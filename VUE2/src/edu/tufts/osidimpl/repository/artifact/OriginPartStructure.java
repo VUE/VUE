@@ -69,7 +69,7 @@ implements org.osid.repository.PartStructure
     {
         try
         {
-            this.originPartStructureId = Managers.getIdManager().getId("Origin.PartStructureId");
+            this.originPartStructureId = Utilities.getIdManager().getId("Origin.PartStructureId");
         }
         catch (Throwable t)
         {

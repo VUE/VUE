@@ -22,7 +22,7 @@ public class CurrentLocationPartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id currentLocationPartStructureId = null;
-    private org.osid.shared.Type type = new Type("mit.edu","partStructure","currentLocation","CurrentLocation");
+    private org.osid.shared.Type type = new Type("edu.mit","partStructure","currentLocation","CurrentLocation");
     private String displayName = "CurrentLocation";
     private String description = "CurrentLocation";
     private boolean mandatory = false;
@@ -69,7 +69,7 @@ implements org.osid.repository.PartStructure
     {
         try
         {
-            this.currentLocationPartStructureId = Managers.getIdManager().getId("CurrentLocationPartStructureId");
+            this.currentLocationPartStructureId = Utilities.getIdManager().getId("CurrentLocationPartStructureId");
         }
         catch (Throwable t)
         {

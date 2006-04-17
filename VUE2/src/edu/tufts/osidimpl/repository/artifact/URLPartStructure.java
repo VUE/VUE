@@ -22,7 +22,7 @@ public class URLPartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id URL_PART_STRUCTURE_ID = null;
-    private org.osid.shared.Type type = new Type("mit.edu","partStructure","URL","URL");
+    private org.osid.shared.Type type = new Type("edu.mit","partStructure","URL","URL");
     private String displayName = "URL";
     private String description = "Link to content";
     private boolean mandatory = false;
@@ -69,7 +69,7 @@ implements org.osid.repository.PartStructure
     {
         try
         {
-            this.URL_PART_STRUCTURE_ID = Managers.getIdManager().getId("URLPartStructureId");
+            this.URL_PART_STRUCTURE_ID = Utilities.getIdManager().getId("URLPartStructureId");
         }
         catch (Throwable t)
         {

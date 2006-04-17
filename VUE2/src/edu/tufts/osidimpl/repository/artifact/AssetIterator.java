@@ -66,13 +66,17 @@ implements org.osid.repository.AssetIterator
 		{
 			ArtifactResult artifactResult = loadArtifactResult(query);
 			java.util.Vector hitList = artifactResult.getHitList();
+			if (hitList == null) {
+				// no hits
+				return;
+			}
 			for (int i=0, size = hitList.size(); i < size; i++) {
 				Hit hit = (Hit)hitList.elementAt(i);
 				org.osid.repository.Asset asset = new Asset(hit.getTitle(),
 															"",
 															Utilities.getIdManager().createId(),
 															repositoryId);
-				org.osid.repository.Record record = asset.createRecord(recordStructureId);
+				org.osid.repository.Record record = asset.createRecord(this.recordStructureId);
 				
 				record.createPart(ArtifactPartStructure.getInstance().getId(),hit.getArtifact());
 				record.createPart(ThumbnailPartStructure.getInstance().getId(),hit.getThumb());
