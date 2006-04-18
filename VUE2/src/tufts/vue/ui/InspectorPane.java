@@ -36,17 +36,12 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.14 $ / $Date: 2006-04-13 21:58:39 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2006-04-18 20:48:56 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
     implements VueConstants, LWSelection.Listener, ResourceSelection.Listener
 {
-    // fields for the Summary Pane
-    //private final JTextComponent mTitleField = new JTextArea();
-    //private final JTextComponent mWhereField = new JTextPane();
-    //private final JLabel mSizeField = new JLabel();
-
     private final Image NoImage = VueResources.getImage("NoImage");
 
     private final boolean isMacAqua = GUI.isMacAqua();
@@ -61,32 +56,12 @@ public class InspectorPane extends JPanel
     private final UserMetaData mUserMetaData = new UserMetaData();
     //private final NodeTree mNodeTree = new NodeTree();
     
-    private final Font mLabelFont;
-    private final Font mTitleFont;
-    private final Font mValueFont;
-
     private Resource mResource; // the current resource
 
     public InspectorPane()
     {
         super(new BorderLayout());
         setName("Properties");
-
-        String fontName;
-        int fontSize;
-
-        if (isMacAqua) {
-            fontName = "Lucida Grande";
-            fontSize = 11;
-        } else {
-            fontName = "SansSerif";
-            fontSize = 11;
-        }
-
-        mLabelFont = new GUI.Face(fontName, Font.PLAIN, fontSize, GUI.LabelColor);
-        mValueFont = new GUI.Face(fontName, Font.PLAIN, fontSize, Color.black);
-        mTitleFont = new GUI.Face(fontName, Font.BOLD, fontSize, GUI.LabelColor);
-
 
         mSummaryPane = new SummaryPane();
         //mResourceMetaData = new PropertiesEditor(false);
@@ -200,7 +175,7 @@ public class InspectorPane extends JPanel
 
             //-------------------------------------------------------
 
-            GUI.apply(mTitleFont, mTitleField);
+            GUI.apply(GUI.TitleFace, mTitleField);
             mTitleField.setAlignmentX(0.5f);
             //mTitleField.setBorder(new LineBorder(Color.red));
                 
@@ -341,33 +316,13 @@ public class InspectorPane extends JPanel
 
     private JLabel makeLabel(String s) {
         JLabel label = new JLabel(s);
-        label.setFont(mLabelFont);
+        GUI.apply(GUI.LabelFace, label);
+        //label.setBorder(new EmptyBorder(0,0,0, GUI.LabelGapRight));
         return label;
     }
 
-    public class SummaryPane extends tufts.Util.JPanelAA
-    {
-        final VueTextPane labelField = new VueTextPane();
-        
-        SummaryPane()
-        {
-            add(makeLabel("Label: "));
-            add(labelField);
-
-            //setPreferredSize(new Dimension(Short.MAX_VALUE,63));
-            //setMinimumSize(new Dimension(200,63));
-            //setMaximumSize(new Dimension(Short.MAX_VALUE,63));
-        }
-
-        void load(LWComponent c) {
-            setTypeName(this, c, "Information");
-            labelField.attachProperty(c, LWKey.Label);
-        }
-    }
-    
-    
-    /*
     // summary fields
+    /*
     private final Object[] labelTextPairs = {
         "-Title",   mTitleField,
         "-Where",   mWhereField,
@@ -375,6 +330,67 @@ public class InspectorPane extends JPanel
     };
     */
 
+    
+    public class SummaryPane extends tufts.Util.JPanelAA
+        implements Runnable
+    {
+        //final JTextArea labelValue = new JTextArea();
+        final VueTextPane labelValue = new VueTextPane();
+        final JScrollBar labelScrollBar;
+        final VueTextField contentValue = new VueTextField();
+        
+        SummaryPane()
+        {
+            super(new GridBagLayout());
+            setBorder(new EmptyBorder(4, GUI.WidgetInsets.left, 4, 0));
+            
+            labelValue.setBorder(null);
+            contentValue.setEditable(false);
+
+            JScrollPane labelScroller = new JScrollPane(labelValue,
+                                                        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                        JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+                                                        );
+            labelScroller.setMinimumSize(new Dimension(70, 32)); // todo: get 2x row height from font
+            labelScrollBar = labelScroller.getVerticalScrollBar();
+            
+            addLabelTextPairs(new Object[] {
+                    "Label", labelScroller,
+                    //"Content", contentValue,
+                },
+                this);
+            
+            //setPreferredSize(new Dimension(Short.MAX_VALUE,100));
+            //setMinimumSize(new Dimension(200,90));
+            //setMinimumSize(new Dimension(200,63));
+            //setMaximumSize(new Dimension(Short.MAX_VALUE,63));
+        }
+
+        public void run() {
+            labelScrollBar.setValue(0);
+            labelScrollBar.setValueIsAdjusting(false);
+        }
+
+
+        void load(LWComponent c) {
+            setTypeName(this, c, "Information");
+
+            labelScrollBar.setValueIsAdjusting(true);
+            labelValue.attachProperty(c, LWKey.Label);
+            /*
+            if (c.hasResource()) {
+                contentValue.setText(c.getResource().toString());
+            } else {
+                contentValue.setText("");
+            }
+            */
+            
+            GUI.invokeAfterAWT(this);
+            
+            //out("ROWS " + labelValue.getRows() + " border=" + labelValue.getBorder());
+        }
+    }
+    
     
     private static class ScrollableGrid extends JPanel implements Scrollable {
         private JComponent delegate;
@@ -514,8 +530,8 @@ public class InspectorPane extends JPanel
                 mValues[i] = new JTextArea();
                 mValues[i].setEditable(false);
                 mValues[i].setLineWrap(true);
-                GUI.apply(mLabelFont, mLabels[i]);
-                GUI.apply(mValueFont, mValues[i]);
+                GUI.apply(GUI.LabelFace, mLabels[i]);
+                GUI.apply(GUI.ValueFace, mValues[i]);
                 mLabels[i].setOpaque(false);
                 mValues[i].setOpaque(false);
                 mLabels[i].setVisible(false);
@@ -525,7 +541,7 @@ public class InspectorPane extends JPanel
         }
 
         private void loadRow(int row, String label, String value) {
-            if (DEBUG.RESOURCE) out("adding row " + row + " " + label + "=" + value);
+            if (DEBUG.RESOURCE) out("adding row " + row + " " + label + "=[" + value + "]");
 
             mLabels[row].setText(label + ":");
             mValues[row].setText(value);
@@ -657,6 +673,18 @@ public class InspectorPane extends JPanel
     // Utility methods
     //----------------------------------------------------------------------------------------
     
+    private void addLabelTextPairs(Object[] labelTextPairs, Container gridBag) {
+        JLabel[] labels = new JLabel[labelTextPairs.length / 2];
+        JComponent[] values = new JComponent[labels.length];
+        for (int i = 0, x = 0; x < labels.length; i += 2, x++) {
+            //out("ALTP[" + x + "] label=" + labelTextPairs[i] + " value=" + GUI.name(labelTextPairs[i+1]));
+            String labelText = (String) labelTextPairs[i];
+            labels[x] = new JLabel(labelText + ":");
+            values[x] = (JComponent) labelTextPairs[i+1];
+        }
+        addLabelTextRows(0, labels, values, gridBag, GUI.LabelFace, GUI.ValueFace);
+    }
+
     private final int topPad = 2;
     private final int botPad = 2;
     private final Insets labelInsets = new Insets(topPad, 0, botPad, GUI.LabelGapRight);
@@ -679,41 +707,61 @@ public class InspectorPane extends JPanel
         GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.EAST;
         c.weighty = 0;
+        c.gridheight = 1;
 
         
         for (int i = 0; i < labels.length; i++) {
+
+            //out("ALTR[" + i + "] label=" + GUI.name(labels[i]) + " value=" + GUI.name(values[i]));
+            
+            boolean centerLabelVertically = false;
+            final JLabel label = labels[i];
+            final JComponent field = values[i];
+            
+            if (labelFace != null)
+                GUI.apply(labelFace, label);
+
+            if (field instanceof JTextComponent) {
+                if (field instanceof JTextField)
+                    centerLabelVertically = true;
+//                 JTextComponent textField = (JTextComponent) field;
+//                 editable = textField.isEditable();
+//                 if (field instanceof JTextArea) {
+//                     JTextArea textArea = (JTextArea) field;
+//                     c.gridheight = textArea.getRows();
+//                     } else if (field instanceof JTextField)
+            } else {
+                if (fieldFace != null)
+                    GUI.apply(fieldFace, field);
+            }
             
             //-------------------------------------------------------
-            // Add the label field
+            // Add the field label
             //-------------------------------------------------------
-
+            
             c.gridx = 0;
             c.gridy = starty++;
             c.insets = labelInsets;
             c.gridwidth = GridBagConstraints.RELATIVE; // next-to-last in row
             c.fill = GridBagConstraints.NONE; // the label never grows
-            c.anchor = GridBagConstraints.NORTHEAST;
+            if (centerLabelVertically)
+                c.anchor = GridBagConstraints.EAST;
+            else
+                c.anchor = GridBagConstraints.NORTHEAST;
             c.weightx = 0.0;                  // do not expand
-
-            final JLabel label = labels[i];
-            if (labelFace != null)
-                GUI.apply(labelFace, label);
             gridBag.add(label, c);
 
             //-------------------------------------------------------
-            // Add the text value field
+            // Add the field value
             //-------------------------------------------------------
             
             c.gridx = 1;
             c.gridwidth = GridBagConstraints.REMAINDER;     // last in row
             c.fill = GridBagConstraints.HORIZONTAL;
             c.anchor = GridBagConstraints.CENTER;
+            //c.anchor = GridBagConstraints.NORTH;
             c.insets = fieldInsets;
             c.weightx = 1.0; // field value expands horizontally to use all space
-            
-            final JComponent field = values[i];
-            if (fieldFace != null)
-                GUI.apply(fieldFace, field);
             gridBag.add(field, c);
 
         }
@@ -813,13 +861,16 @@ public class InspectorPane extends JPanel
         if (args.length > 0 && args[0].charAt(0) != '-')
             rsrc = args[0];
 
-        //displayTestPane(rsrc);
-        InspectorPane ip = new InspectorPane();
+        Resource r = new URLResource("file:///VUE/src/tufts/vue/images/splash_graphic_1.0.gif");
 
-        VUE.getResourceSelection().setTo(new URLResource("file:///VUE/src/tufts/vue/images/splash_graphic_1.0.gif"));
-        
-        Widget.setExpanded(ip.mResourceMetaData, true);
-        GUI.createDockWindow("Test Properties", ip).setVisible(true);
+        if (true) {
+            displayTestPane(rsrc);
+        } else {
+            InspectorPane ip = new InspectorPane();
+            VUE.getResourceSelection().setTo(r);
+            Widget.setExpanded(ip.mResourceMetaData, true);
+            GUI.createDockWindow("Test Properties", ip).setVisible(true);
+        }
 
         
     }
