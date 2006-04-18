@@ -14,7 +14,7 @@ import javax.swing.text.*;
  * and enters an undo entry.
  *
  * @author Scott Fraize
- * @version $Revision: 1.8 $ / $Date: 2006-04-13 03:52:33 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-04-18 20:46:44 $ / $Author: sfraize $
  */
 
 // todo: create an abstract class for handling property & undo code, and subclass this and VueTextField from it.
@@ -43,14 +43,9 @@ public class VueTextPane extends JTextPane
         if (c != null && propertyKey != null)
             attachProperty(c, propertyKey);
         setUndoName(undoName);
-        if (GUI.isMacAqua()) {
-            try {
-                Class abc = Class.forName("apple.laf.AquaTextFieldBorder");
-                setBorder((javax.swing.border.Border) abc.newInstance());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+
+        GUI.installBorder(this);
+
         if (propertyKey != null)
             setName(propertyKey.toString());
         else if (undoName != null)
@@ -121,7 +116,7 @@ public class VueTextPane extends JTextPane
     protected void saveText() {
         final String currentText = getText();
         if (lwc != null && (keyWasPressed || !currentText.equals(loadedText))) {
-            if (DEBUG.KEYS) System.out.println(this + " saveText [" + getText() + "]");
+            if (DEBUG.KEYS||DEBUG.TEXT) System.out.println(this + " saveText [" + getText() + "]");
             /*
             Document doc = getDocument();
             String text = null;
