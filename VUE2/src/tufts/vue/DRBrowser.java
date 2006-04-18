@@ -26,11 +26,11 @@ import tufts.vue.gui.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.42 $ / $Date: 2006-04-13 03:49:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.43 $ / $Date: 2006-04-18 21:54:43 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
-    private static final boolean SingleDockWindowImpl = false;
+    private static final boolean SingleDockWindowImpl = true;
     
     final JPanel librariesPanel;
     final Widget searchPane = new Widget("Search");
