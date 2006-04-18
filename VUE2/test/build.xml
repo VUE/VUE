@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.6 $ / $Date: 2006-04-17 20:12:17 $ -->
+<!-- $Revision: 1.7 $ / $Date: 2006-04-18 19:57:40 $ -->
 
 <!-- 
 This ant build file:
@@ -69,13 +69,16 @@ This ant build file:
   need for each compilation.
 -->
   <path id="compile.classpath">
-    <pathelement location="${lib.home}/OSIDLoggingPlain-1.0.jar" />
     <pathelement location="${basedir}" />	
-    <pathelement location="../src" />	
+    <pathelement location="../src" />
     <pathelement location="${lib.home}" />	
     <pathelement location="${build.class}"/>
     <pathelement location="${lib.home}/${osid2.name}.jar" />	
+    <pathelement location="${lib.home}/okiSID.jar" />	
+	<pathelement location="${lib.home}/log4j-1.2.12.jar" />
+	<pathelement location="${lib.home}/MRJAdapter.jar" />
     <pathelement location="${lib.home}/OSIDIdNoPersist-1.0.jar" />
+    <pathelement location="${lib.home}/OSIDLoggingPlain-1.0.jar" />
     <pathelement location="${lib.home}/castor-0.9.7-xml.jar" />
     <pathelement location="${lib.home}/xercesImpl-2.7.1.jar" />
     <pathelement location="${lib.home}/commons-logging.jar" />
@@ -90,6 +93,7 @@ This ant build file:
     <pathelement location="${lib.home}/commons-discovery.jar" />
     <pathelement location="${lib.home}/saaj-api-unsigned.jar" />
 	
+    <pathelement location="artifact.xml" />
     <pathelement location="../src/build/classes" />
     <pathelement location="../src/build/classes/edu/tufts/osidimpl/repository/artifact.ArtifactResult.class" />
     
@@ -184,6 +188,13 @@ This ant build file:
 <!-- ==================== Artifact Smoke Test ================================ -->
     <target name="artifacttest" depends="compile" description="Dumps Some Artifact Repository Data" >
         <java classname="test.repository.artifact.repositoryDump" failonerror="true" fork="true">
+      <classpath refid="compile.classpath"/>
+        </java>
+    </target>
+
+<!-- ==================== Local Files Smoke Test ================================ -->
+    <target name="localfilestest" depends="compile" description="Dumps Some Local Files Repository Data" >
+        <java classname="test.repository.localfiles.repositoryDump" failonerror="true" fork="true">
       <classpath refid="compile.classpath"/>
         </java>
     </target>
