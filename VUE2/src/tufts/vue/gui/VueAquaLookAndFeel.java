@@ -25,7 +25,7 @@ import javax.swing.plaf.ColorUIResource;
  * Left.gif and Both.gif, which are needed for Aqua tabbed-pane's
  * when there isn't enough room to display all the tabs.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-04-08 05:12:41 $ / $Author: sfraize $ 
+ * @version $Revision: 1.6 $ / $Date: 2006-04-18 20:50:06 $ / $Author: sfraize $ 
  */
 // superclass of AquaJideLookAndFeel is apple.laf.AquaLookAndFeel
 //public class VueAquaLookAndFeel extends com.jidesoft.plaf.aqua.AquaJideLookAndFeel { // JIDE
@@ -36,7 +36,6 @@ public class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel
     public final static Font SmallSystemFont12 = new Font("Lucida Grande", Font.PLAIN, 12);
     public final static Font MiniSystemFont = new Font("Lucida Grande", Font.PLAIN, 9);
     public final static Font EmphasizedMiniSystemFont = new Font("Lucida Grande", Font.BOLD, 9);
-    
 
     public String getDescription() { return super.getDescription() + " (VUE Derivative)"; }
     public void initComponentDefaults(UIDefaults table)
@@ -57,6 +56,10 @@ public class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel
         table.put("TextPane.font", font);
         table.put("Tree.font", font);
         table.put("Table.font", font);
+
+        //table.put("TextArea.border", table.get("TextField.border"));
+        //table.put("TextPane.border", table.get("TextField.border"));
+
 
         Font menuFont = table.getFont("MenuItem.font");
         //System.out.println("GUI: default menu item font " + table.getFont("MenuItem.font"));
