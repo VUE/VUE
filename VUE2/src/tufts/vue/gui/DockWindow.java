@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.61 $ / $Date: 2006-04-15 23:17:02 $ / $Author: sfraize $
+ * @version $Revision: 1.62 $ / $Date: 2006-04-18 21:53:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -328,7 +328,7 @@ public class DockWindow extends javax.swing.JWindow
         
         final String key = e.getPropertyName();
 
-        if (DEBUG.DOCK && !key.equals("ancestor")) {
+        if (DEBUG.DOCK /*&& !key.equals("ancestor")*/) {
             out("Widget property change key(" + key + ") value=[" + e.getNewValue() + "]");
             //GUI.messageAfterAWT("after awt for property change " + key);
         }
@@ -3091,6 +3091,8 @@ public class DockWindow extends javax.swing.JWindow
             return s + " ->" + mChild.mTitle + "]";
     }
 
+    /** The content-pane for the Window: has the window border, contains
+        the title and the widget content panel (which holds the widget border) */
     private class ContentPane extends JPanel
     {
         private JPanel mContent = new JPanel(true);
@@ -3101,29 +3103,6 @@ public class DockWindow extends javax.swing.JWindow
 
         private Object titleConstraints = BorderLayout.NORTH;
         
-        /*
-        public ContentPane(String title, boolean asToolbar)
-        {
-            // requesting double-buffering doesn't do squat to stop resize flashing on MacOSX
-            super(true);
-            mContent.setName(title + ".dockContent");
-            setLayout(new BorderLayout());
-            setBorder(getWindowBorder());
-            installTitlePanel(title, asToolbar);
-            add(mContent, BorderLayout.CENTER);
-            mContent.setLayout(new BorderLayout());
-
-            // need to make sure the background is set
-            // so that if there is a bevel-border, it'll
-            // do the right thing.
-            //setBackground(GUI.getVueColor());
-
-            //mContent.setBackground(Color.green);
-            mContent.setOpaque(false);
-
-        }
-        */
-
         public ContentPane(String title, boolean asToolbar)
         {
             mContent.setName(title + ".dockContent");
@@ -3188,10 +3167,55 @@ public class DockWindow extends javax.swing.JWindow
                                                                          new EmptyBorder(GUI.WidgetInsets))));
             }
             */
+        }
 
+        //public void validate() { out("validate"); super.validate(); }
+        public void doLayout() {
+
+            if (!mWindowDragUnderway) {
             
+                if (DEBUG.DOCK)
+                    out("doLayout;"
+                    + "\n\tDWsz=" + GUI.name(DockWindow.this.getSize())
+                    + "\n\t  sz=" + GUI.name(getSize())
+                    + "\n\t  ps=" + GUI.name(getPreferredSize())
+                    + "\n\t max=" + GUI.name(getMaximumSize())
+                    + "\n\t min=" + GUI.name(getMinimumSize())
+                    );
+                
+                int height = getHeight();
+                int prefHeight = getPreferredSize().height;
+                
+                if (height != prefHeight)
+                    setHeight(prefHeight);
+
+            }
+            
+            super.doLayout();
+        }
+
+        /*
+        public _ContentPane(String title, boolean asToolbar)
+        {
+            // requesting double-buffering doesn't do squat to stop resize flashing on MacOSX
+            super(true);
+            mContent.setName(title + ".dockContent");
+            setLayout(new BorderLayout());
+            setBorder(getWindowBorder());
+            installTitlePanel(title, asToolbar);
+            add(mContent, BorderLayout.CENTER);
+            mContent.setLayout(new BorderLayout());
+
+            // need to make sure the background is set
+            // so that if there is a bevel-border, it'll
+            // do the right thing.
+            //setBackground(GUI.getVueColor());
+
+            //mContent.setBackground(Color.green);
+            mContent.setOpaque(false);
 
         }
+        */
 
         void setCloseButtonVisible(boolean visible) {
             if (mTitle != null)
