@@ -11,7 +11,7 @@
   <property name="release.home" value="${basedir}/release"/>
   <property name="lib.home"    value="../lib"/>
   <!-- this property needs to be changed for respective OS -->
-  <property name="osid.home" value="C:\Libarary\OSID\"/>
+  <property name="osid.home" value="C:\Library\OSID\"/>
   
   <!--  ==================== Compilation Control Options ==================== -->
 <!--
