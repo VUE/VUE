@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.34 $ / $Date: 2006-04-13 21:59:35 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2006-04-18 20:46:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -55,6 +55,9 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 public class GUI
     implements tufts.vue.VueConstants/*, java.beans.PropertyChangeListener*/
 {
+    public static Font LabelFace; 
+    public static Font ValueFace;
+    public static Font TitleFace;
     public static final Color LabelColor = new Color(61,61,61);
     public static final int LabelGapRight = 6;
     public static final int FieldGapRight = 6;
@@ -231,6 +234,20 @@ public class GUI
         
         if (Util.getJavaVersion() < 1.5f)
             UseAlwaysOnTop = false;
+
+        String fontName;
+        int fontSize;
+        if (isMacAqua) {
+            fontName = "Lucida Grande";
+            fontSize = 11;
+        } else {
+            fontName = "SansSerif";
+            fontSize = 11;
+        }
+        LabelFace = new GUI.Face(fontName, Font.PLAIN, fontSize, GUI.LabelColor);
+        ValueFace = new GUI.Face(fontName, Font.PLAIN, fontSize, Color.black);
+        TitleFace = new GUI.Face(fontName, Font.BOLD, fontSize, GUI.LabelColor);
+        
 
         FocusManager.install();
         //tufts.Util.executeIfFound("tufts.vue.gui.WindowManager", "install", null);
@@ -1476,6 +1493,32 @@ public class GUI
             color = c;
         }
     }
+
+
+    
+    public static void installBorder(javax.swing.text.JTextComponent c) {
+        if (isMacAqua) {
+            if (c.isEditable())
+                c.setBorder(getAquaTextBorder());
+        }
+    }
+
+    private static Border AquaTextBorder = null;
+    private static Border getAquaTextBorder() {
+        if (AquaTextBorder != null)
+            return AquaTextBorder;
+        
+        try {
+            Class abc = Class.forName("apple.laf.AquaTextFieldBorder");
+            AquaTextBorder = (javax.swing.border.Border) abc.newInstance();
+        } catch (Exception e) {
+            AquaTextBorder = new LineBorder(Color.blue); // backup debug
+            e.printStackTrace();
+        }
+
+        return AquaTextBorder;
+    }
+
 
     public static void apply(Font f, Component c) {
         c.setFont(f);
