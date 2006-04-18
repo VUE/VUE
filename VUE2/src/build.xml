@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.94 $ / $Date: 2006-04-17 20:11:32 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.94 2006-04-17 20:11:32 jeff Exp $ -->
+<!-- $Revision: 1.95 $ / $Date: 2006-04-18 19:55:56 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.95 2006-04-18 19:55:56 jeff Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -597,6 +597,19 @@
          includes="edu/tufts/osidimpl/repository/artifact/*.*"/>
   </target>
 
+<!-- ==================== Local Files Data Source ================================ -->
+  <target name="jar-localfiles"  
+          depends="compile"
+          description="Create LocalFilesRepository.jar containing all supporting files">
+
+    <mkdir dir="dist/lib/osid"/>    
+    <delete file="dist/lib/osid/LocalFilesRepository-1.0.jar"/>
+    <jar jarfile="dist/lib/osid/LocalFilesRepository-1.0.jar"
+         basedir="${build.class}" 
+         includes="edu/tufts/osidimpl/repository/localfiles/*.*"/>
+  </target>
+
+<!-- ==================== Core ================================ -->
   <target name="jar-core"
           depends="compile"
           description="Create VUE-core.jar - a jar file containing all the VUE classes, resources and config files from the CVS tree.">
