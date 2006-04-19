@@ -67,18 +67,19 @@ import org.apache.commons.net.ftp.*;
 // APIM
 import fedora.server.management.FedoraAPIM;
 import fedora.server.utilities.StreamUtility;
-import fedora.client.ingest.AutoIngestor;
 
 
 public class Repository implements org.osid.repository.Repository {
     public final boolean DEBUG = false;
     public static final String DC_NAMESPACE = "dc:";
     public static final String[] DC_FIELDS = {"title","creator","subject","date","type","format","identifier","collection","coverage"};
-    
+    public static final String FEDORA_PROTOCOL = "http://";
+    public static final String FEDORA_URL = "/fedora/";
     private Preferences prefs = null;
     private String displayName = "";
     private String description = "";
-    private URL address = null;
+    private String address = null;
+    private int port = 8080; // default port for fedora
     private String userName = null;
     private String password = null;
     private String conf = null;
@@ -93,7 +94,7 @@ public class Repository implements org.osid.repository.Repository {
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;
     /** Creates a new instance of Repository */
-    public Repository(String conf,String id,String displayName,String description,URL address,String userName,String password)
+    public Repository(String conf,String id,String displayName,String description,String address,int port,String userName,String password)
     throws org.osid.repository.RepositoryException {
         /*
         System.out.println("Repository CONSTRUCTING["
@@ -111,6 +112,7 @@ public class Repository implements org.osid.repository.Repository {
         this.displayName = displayName;
         this.description = description;
         this.address = address;
+        this.port = port;
         this.userName = userName;
         this.password = password;
         this.conf = conf;
@@ -130,7 +132,7 @@ public class Repository implements org.osid.repository.Repository {
     }
     
     public void setFedoraProperties() {
-        String url = address.getProtocol()+"://"+address.getHost()+":"+address.getPort()+"/"+address.getFile();
+        String url = FEDORA_PROTOCOL+this.address+":"+this.port+FEDORA_URL;
         fedoraProperties = new Properties();
         try {
             prefs = FedoraUtils.getPreferences(this);
@@ -488,130 +490,12 @@ public class Repository implements org.osid.repository.Repository {
         return false;
     }
     
-    public  org.osid.shared.Id ingest(String fileName,String templateFileName,String fileType, File file,Properties properties) throws org.osid.repository.RepositoryException, java.net.SocketException,java.io.IOException,org.osid.shared.SharedException,javax.xml.rpc.ServiceException{
-        long sTime = System.currentTimeMillis();
-        if(DEBUG) System.out.println("INGESTING FILE TO FEDORA:fileName ="+fileName+"fileType ="+fileType+"t = 0");
-        // this part transfers file to a ftp server.  this is required since the content management part of fedora server needs object to be on web server
-        String host = FedoraUtils.getFedoraProperty(this,"admin.ftp.address");
-        String url = FedoraUtils.getFedoraProperty(this,"admin.ftp.url");
-        int port = Integer.parseInt(FedoraUtils.getFedoraProperty(this,"admin.ftp.port"));
-        String userName = FedoraUtils.getFedoraProperty(this,"admin.ftp.username");
-        String password = FedoraUtils.getFedoraProperty(this,"admin.ftp.password");
-        String directory = FedoraUtils.getFedoraProperty(this,"admin.ftp.directory");
-        FTPClient client = new FTPClient();
-        client.connect(host,port);
-        client.login(userName,password);
-        client.changeWorkingDirectory(directory);
-        client.setFileType(FTP.BINARY_FILE_TYPE);
-        client.storeFile(fileName,new FileInputStream(file));
-        client.logout();
-        client.disconnect();
-        if(DEBUG) System.out.println("INGESTING FILE TO FEDORA: Writting to FTP Server:"+(System.currentTimeMillis()-sTime));
-        fileName = url+fileName;
-        // this part does the creation of METSFile
-        int BUFFER_SIZE = 10240;
-        StringBuffer sb = new StringBuffer();
-        String s = new String();
-        BufferedInputStream fis = new BufferedInputStream(new FileInputStream(new File(getResource(templateFileName).getFile().replaceAll("%20"," "))));
-        //FileInputStream fis = new FileInputStream(new File(templateFileName));
-        //DataInputStream in = new DataInputStream(fis);
-        byte[] buf = new byte[BUFFER_SIZE];
-        int ch;
-        int len;
-        while((len =fis.read(buf)) > 0) {
-            s = s+ new String(buf);
-        }
-        fis.close();
-        if(DEBUG) System.out.println("INGESTING FILE TO FEDORA: Read Mets File:"+(System.currentTimeMillis()-sTime));
-        String r = updateMetadata(s, fileName,file.getName(),fileType,properties);
-        if(DEBUG) System.out.println("INGESTING FILE TO FEDORA: Resplaced Metadata:"+(System.currentTimeMillis()-sTime));
-        
-        //writing the to outputfile
-        File METSfile = File.createTempFile("vueMETSMap",".xml");
-        FileOutputStream fos = new FileOutputStream(METSfile);
-        fos.write(r.getBytes());
-        fos.close();
-        
-        AutoIngestor a = new AutoIngestor(address.getHost(), address.getPort(),FedoraUtils.getFedoraProperty(this,"admin.fedora.username"),FedoraUtils.getFedoraProperty(this,"admin.fedora.username"));
-        String pid = a.ingestAndCommit(new FileInputStream(METSfile),"Test Ingest");
-        if(DEBUG) System.out.println("INGESTING FILE TO FEDORA: Ingest complete:"+(System.currentTimeMillis()-sTime));
-        
-        System.out.println(" METSfile= " + METSfile.getPath()+" PID = "+pid);
-        return new PID(pid);
-    }
-    
-    private String updateMetadata(String s,String fileLocation, String fileTitle, String fileType,Properties dcFields) {
-        Calendar calendar = new GregorianCalendar();
-        //String created = calendar.get(Calendar.YEAR)+"-"+calendar.get(Calendar.MONTH)+"-"+calendar.get(Calendar.DAY_OF_MONTH);
-        //created += "T"+calendar.get(Calendar.HOUR)+":"+calendar.get(Calendar.MINUTE)+":"+calendar.get(Calendar.SECOND);
-        java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        String created = date.format(calendar.getTime());
-        String dcMetadata;
-        s = s.replaceAll("%file.location%", fileLocation).trim();
-        s = s.replaceAll("%file.title%", fileTitle);
-        s = s.replaceAll("%file.type%",fileType);
-        s = s.replaceAll("%file.created%", created);
-        s = s.replaceAll("%dc.Metadata%", getMetadataString(dcFields));
-        return s;
-        
-    }
-    
-    private java.net.URL getResource(String name) {
-        java.net.URL url = null;
-        java.io.File f = new java.io.File(name);
-        System.out.println("Name ="+ name+" File = "+ f.getAbsolutePath()+" URL:"+url);
-        if (f.exists()) {
-            try {
-                url = f.toURL();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        if (url == null)
-            url = getClass().getResource(name);
-        if (url == null) {
-            String installDirectory = tufts.vue.VueResources.getString("dataSourceInstallDirectory") + "/TuftsDigitalLibrary";
-             System.out.println("Name ="+ name+" File = "+ f.getAbsolutePath()+" URL:"+url+" Install:"+installDirectory);
-       
-            java.io.File root = new java.io.File(installDirectory);
-            java.io.File[] files = root.listFiles();
-            for (int j=0; j < files.length; j++) {
-                if (files[j].getName().equals(name)) {
-                    try {
-                        url = files[j].toURL();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-        return url;
-    }
-    
-    public static boolean isSupportedMetadataField(String field){
-        for(int i=0;i<DC_FIELDS.length;i++) {
-            if(DC_FIELDS[i].equalsIgnoreCase(field))
-                return true;
-        }
-        return false;
-    }
-    public static String getMetadataString(Properties dcFields) {
-        String metadata = "";
-        Enumeration e = dcFields.keys();
-        while(e.hasMoreElements()) {
-            String field = (String)e.nextElement();
-            if(isSupportedMetadataField(field))
-                metadata += "<"+DC_NAMESPACE+field+">"+dcFields.getProperty(field)+"</"+DC_NAMESPACE+field+">";
-        }
-        return metadata;
-    }
-    
     public String getAddress() {
-        return this.address.getHost();
+        return this.address;
     }
-    public void setAddress(String address) throws java.net.MalformedURLException {
+    public void setAddress(String address) {
         
-        this.address = new URL("http",address,8080,"fedora/");
+        this.address = address;
         
     }
     public String getUserName() {
@@ -637,6 +521,12 @@ public class Repository implements org.osid.repository.Repository {
     }
     public void setConf(Preferences prefs) {
         this.prefs = prefs;
+    }
+    public int getPort() {
+        return this.port;
+    }
+    public void setPort(int port) {
+        this.port = port;
     }
 }
 
