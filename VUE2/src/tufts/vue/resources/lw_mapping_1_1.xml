@@ -395,6 +395,11 @@
              </field -->
 	</class>
 		
+	<class name="tufts.vue.Osid2AssetResource" extends="tufts.vue.URLResource">
+		<field name="loadString" type="string">
+		</field>
+	</class>
+       
 		<!-- FEDORA OBJECTS -->
 	<class name="tufts.vue.CastorFedoraObject">
 		<field name="pid" type="string">
