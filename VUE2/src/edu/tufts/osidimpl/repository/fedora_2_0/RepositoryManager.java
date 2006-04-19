@@ -43,7 +43,8 @@ public class RepositoryManager
                     REPOSITORY_ID_STRING,
                     "Tufts Digital Library",
                     "",
-                    new java.net.URL("http","dl.tufts.edu",8080,"fedora/"),
+                    "dl.tufts.edu",
+                    8080,
                     "test",
                     "test");
         } catch (Throwable t) {
