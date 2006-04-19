@@ -85,27 +85,21 @@ public class FedoraSoapFactory {
     public static  AssetIterator search(Repository repository,SearchCriteria lSearchCriteria)  throws org.osid.repository.RepositoryException {
         FedoraAPIA APIA;
         try {
-            APIA = APIAStubFactory.getStub(repository.getAddress(),repository.getPort(),"dummy","dummy");
-            
+            APIA = APIAStubFactory.getStub(repository.getAddress(),repository.getPort(),"dummy","dummy");// username and password are not required, but fedora api is implmented that way.
             String term = lSearchCriteria.getKeywords();
             String maxResults = lSearchCriteria.getMaxReturns();
             String searchOperation = lSearchCriteria.getSearchOperation();
             String token = lSearchCriteria.getToken();
-            Call call;
             String fedoraApiUrl = repository.getFedoraProperties().getProperty("url.fedora.api");
             FieldSearchResult searchResults=new FieldSearchResult();
-            NonNegativeInteger maxRes=new NonNegativeInteger("10");
-            FieldSearchResult methodDefs = null;
-            String[] resField={"pid", "label"};
-            //String[] resField = {"pid"};
-            //call = getCallSearch(repository);
-            // call.setOperationName(new QName(fedoraApiUrl,searchOperation));
+            NonNegativeInteger maxRes=new NonNegativeInteger(maxResults);
+            String[] resField={"pid", "label","title","cModel"};
             FieldSearchQuery query=new FieldSearchQuery();
             query.setTerms(term);
             java.util.Vector resultObjects = new java.util.Vector();
             if(searchOperation == SearchCriteria.FIND_OBJECTS) {
-                methodDefs = APIA.findObjects(resField,maxRes,query);
-                ListSession listSession = methodDefs.getListSession();
+                searchResults = APIA.findObjects(resField,maxRes,query);
+                ListSession listSession = searchResults.getListSession();
                 if(listSession != null)
                     lSearchCriteria.setToken(listSession.getToken());
                 else
@@ -114,7 +108,7 @@ public class FedoraSoapFactory {
             }else {
                 if(lSearchCriteria.getToken() != null) {
                     //methodDefs =    (FieldSearchResult) call.invoke(new Object[] {lSearchCriteria.getToken()} );
-                    ListSession listSession = methodDefs.getListSession();
+                    ListSession listSession = searchResults.getListSession();
                     if(listSession != null)
                         lSearchCriteria.setToken(listSession.getToken());
                     else
@@ -122,14 +116,14 @@ public class FedoraSoapFactory {
                 }
             }
             
-            if (methodDefs != null &&  methodDefs.getResultList().length > 0){
-                ObjectFields[] fields= methodDefs.getResultList();
+            if (searchResults != null &&  searchResults.getResultList().length > 0){
+                ObjectFields[] fields= searchResults.getResultList();
                 lSearchCriteria.setResults(fields.length);
                 for(int i=0;i<fields.length;i++) {
                     String title = "No Title";
                     if(fields[i].getTitle() != null)
                         title = fields[i].getTitle()[0];
-                    resultObjects.add(new Asset(repository,fields[i].getPid(),title,repository.getAssetType(fields[i].getPid())));
+                    resultObjects.add(new Asset(repository,fields[i].getPid(),title,repository.getAssetType(fields[i].getCModel())));
                     
                     
                 }
