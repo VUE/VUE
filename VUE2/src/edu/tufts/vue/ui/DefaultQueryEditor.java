@@ -124,8 +124,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 				makeAdvancedUnionPanel();
 				break;
 		}
-		this.repaint();
-		this.validate();
+		this.revalidate();
 	}
 	
 	private void makeNothingSelectedPanel()
