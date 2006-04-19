@@ -137,8 +137,7 @@ public class Repository implements org.osid.repository.Repository {
         try {
             prefs = FedoraUtils.getPreferences(this);
             fedoraProperties.setProperty("url.fedora.api", prefs.get("url.fedora.api","http://www.fedora.info/definitions/1/0/api/"));
-            fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", "http://www.fedora.info/definitions/1/0/types/"));
-            
+            fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", "http://www.fedora.info/definitions/1/0/types/")); 
             fedoraProperties.setProperty("url.fedora.soap.access",url+ prefs.get("url.fedora.soap.access", "access/soap"));
             fedoraProperties.setProperty("url.fedora.get", url+prefs.get("url.fedora.get", "get/"));
             fedoraProperties.setProperty("url.seastar.fedora.get", "http://seastar.lib.tufts.edu:8080/fedora/get/");
@@ -440,10 +439,7 @@ public class Repository implements org.osid.repository.Repository {
     }
     
     public org.osid.repository.AssetIterator getAssets(java.io.Serializable searchCriteria, org.osid.shared.Type searchType) throws org.osid.repository.RepositoryException {
-        //System.out.println("SEARCHING FEDORA = "+ this.fedoraProperties.getProperty("url.fedora.soap.access"));
-        
         SearchCriteria lSearchCriteria = null;
-        
         org.osid.shared.Type keywordType = new Type("mit.edu","search","keyword");
         if ( (searchCriteria instanceof String) && (searchType.isEqual(keywordType)) ) {
             lSearchCriteria = new SearchCriteria();
