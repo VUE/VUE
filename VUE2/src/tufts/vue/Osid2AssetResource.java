@@ -42,6 +42,20 @@ public class Osid2AssetResource extends MapResource
 	//    private osid.dr.Asset asset;
 	//    private CastorFedoraObject castorFedoraObject;  // stripped version of fedora object for saving and restoring in castor will work only with this implementation of DR API.
 	
+	// default constructor needed for Castor
+	public Osid2AssetResource()
+	{
+	}
+	
+	public String getLoadString()
+	{
+		return getTitle();
+	}
+	
+	public void setLoadString()
+	{
+	}
+	
     public Osid2AssetResource(org.osid.repository.Asset asset, org.osid.OsidContext context) throws org.osid.repository.RepositoryException 
     {
         super();

@@ -30,6 +30,8 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
     private final PolygonIcon breakIcon = new PolygonIcon(Color.LIGHT_GRAY);
 	private edu.tufts.vue.dsm.DataSource infoDataSource;
+	private final static String OFFLINE = "offline";
+	private JLabel offlineLabel = new JLabel(OFFLINE);
 
 	public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)
 	{
@@ -44,20 +46,62 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
 			super.getListCellRendererComponent(list,((edu.tufts.vue.dsm.DataSource)value).getRepositoryDisplayName(), index, iss, chf);					
 		}
 		
-		if (value instanceof FavoritesDataSource){
+		if (value instanceof edu.tufts.vue.dsm.DataSource) {
+			edu.tufts.vue.dsm.DataSource datasource = (edu.tufts.vue.dsm.DataSource)value;
+			
 			JPanel panel = new JPanel();
-			panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+			panel.setLayout(new BoxLayout(panel,BoxLayout.X_AXIS));
+
+			JPanel checkBoxPanel = new JPanel();			
+			checkBoxPanel.setLayout(new BorderLayout());
+			// TODO: Make this font-savy
+			checkBoxPanel.setSize(new Dimension(4,4));
+			
+			JPanel namePanel = new JPanel();
+//			namePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+			// TODO: Make this font-savy
+//			namePanel.setPreferredSize(new Dimension(100,10));
+
+			JPanel offlinePanel = new JPanel();
+			offlinePanel.setLayout(new BorderLayout());
+			
+			JPanel iconPanel = new JPanel();
+			iconPanel.setLayout(new BorderLayout());
+						
 			JCheckBox checkBox = new JCheckBox();
 			checkBox.setBackground(VueResources.getColor("FFFFFF"));
+			
 			if (index == list.getSelectedIndex()) {
+				checkBoxPanel.setBackground(SystemColor.textHighlight);
+				namePanel.setBackground(SystemColor.textHighlight);
+				offlinePanel.setBackground(SystemColor.textHighlight);
+				iconPanel.setBackground(SystemColor.textHighlight);
 				panel.setBackground(SystemColor.textHighlight);
 			} else {
-				panel.setBackground(VueResources.getColor("FFFFFF"));								
+				checkBoxPanel.setBackground(VueResources.getColor("FFFFFF"));								
+				namePanel.setBackground(VueResources.getColor("FFFFFF"));
+				offlinePanel.setBackground(VueResources.getColor("FFFFFF"));
+				iconPanel.setBackground(VueResources.getColor("FFFFFF"));
+				panel.setBackground(VueResources.getColor("FFFFFF"));
 			}
-			panel.add(checkBox);
-			panel.add(new JLabel(savedResourcesIcon));
-			checkBox.setEnabled(false);
-			panel.add(new JLabel(((DataSource)value).getDisplayName()));
+			checkBoxPanel.add(checkBox, BorderLayout.WEST);
+			checkBox.setEnabled(true);
+			checkBox.setSelected(datasource.isIncludedInSearch());
+			String displayName = datasource.getRepositoryDisplayName();
+
+			// TODO: Make this font-savy
+			if (displayName.length() > 15) {
+				displayName = displayName.substring(0,15) + "...";
+			}
+			namePanel.add(checkBoxPanel);
+			namePanel.add(new JLabel(displayName));
+			offlinePanel.add(offlineLabel, BorderLayout.EAST);
+			iconPanel.add(new JLabel(savedResourcesIcon), BorderLayout.EAST);
+			
+//			panel.add(checkBoxPanel);
+			panel.add(namePanel);
+			panel.add(offlinePanel);
+			panel.add(iconPanel);
 			return panel;
 		} else if (value instanceof LocalFileDataSource){
 			JPanel panel = new JPanel();
@@ -69,9 +113,9 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
 			} else {
 				panel.setBackground(VueResources.getColor("FFFFFF"));								
 			}
-			panel.add(new JLabel(myComputerIcon));
 			checkBox.setEnabled(false);
 			panel.add(new JLabel(((DataSource)value).getDisplayName()));
+			panel.add(new JLabel(myComputerIcon));
 			return panel;
 		} else  if (value instanceof String) {
 			JPanel linePanel = new JPanel() {
@@ -90,7 +134,7 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
 			};
 			return linePanel;
 		}
-		else {
+		else  if (value instanceof FavoritesDataSource) {
 			JPanel panel = new JPanel();
 			JPanel westPanel = new JPanel();
 			panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
@@ -103,21 +147,15 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
 			}
 			
 			try {
-				checkBox.setSelected( ((edu.tufts.vue.dsm.DataSource)value).isIncludedInSearch() );
 				panel.add(checkBox);
-				panel.add(new JLabel(remoteIcon));
 				checkBox.setEnabled(true);
-				infoDataSource = (edu.tufts.vue.dsm.DataSource)value;
-                                try {
-                                    panel.add(new JLabel(infoDataSource.getRepository().getDisplayName()));
-                                } catch (Throwable t) {
-                                    panel.add(new JLabel(infoDataSource.toString() + " " + t));
-                                }
+				panel.add(new JLabel("My Saved Content"));
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
 			return panel;
 		}
+		return null;
 	}
 
 	public void actionPerformed(ActionEvent e) {

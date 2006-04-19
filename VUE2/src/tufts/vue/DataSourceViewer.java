@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.113 $ / $Date: 2006-04-11 19:19:45 $ / $Author: sfraize $ *
+ * @version $Revision: 1.114 $ / $Date: 2006-04-19 18:06:33 $ / $Author: jeff $ *
  * @author  akumar03
  */
 
@@ -187,7 +187,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 public void mouseClicked(MouseEvent e) {
                     Point pt = e.getPoint();
                     // see if we are far enough over to the left to be on the checkbox
-                    if ( (activeDataSource instanceof edu.tufts.vue.dsm.DataSource) && (pt.x <= 20) ) {
+                    if ( (activeDataSource instanceof edu.tufts.vue.dsm.DataSource) && (pt.x <= 40) ) {
                         int index = dataSourceList.locationToIndex(pt);
                         edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceList.getModel().getElementAt(index);
                         boolean included = !ds.isIncludedInSearch();
@@ -204,73 +204,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 }
             });
 
-/*        
-        // GRID: optionsConditionButton
-        optionButton.setBackground(this.getBackground());
-        optionButton.setToolTipText("Library Options");
-        
-        optionButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-				popup.setLocation(optionButton.getLocation().x+70,
-								  optionButton.getLocation().y+70);
-                popup.setVisible(true);
-				popup.repaint();
-				popup.validate();
-            }
-        });
-               
-        JButton refreshButton=new VueButton("refresh");
-        
-        refreshButton.setBackground(this.getBackground());
-        refreshButton.setToolTipText("Refresh data sources");
-        
-        refreshButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-				try {
-                    activeDataSource.setResourceViewer();
-                } catch(Exception ex){
-                    if(DEBUG.DR) System.out.println("Datasource loading problem ="+ex);
-                }
-                refreshDataSourceList();
-                
-            }
-        });
-        
-        
-        JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
-        questionLabel.setPreferredSize(new Dimension(22, 17));
-        questionLabel.setToolTipText("This panel lists data sources currently availabe to VUE. Use the data source panel buttons to edit, delete  or create new data sources");
-        
-        JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
-        
-        
-        topPanel.add(optionButton);
-//        topPanel.add(deleteButton);
-//        topPanel.add(refreshButton);
-        topPanel.add(questionLabel);
-*/
-        
-        if (true) {
-
-            // no scroll pane: always show's everything & sizes to fit
-            add(dataSourceList);
-
-        } else {
-
-            JScrollPane dataJSP = new JScrollPane(dataSourceList);
-            dataJSP.setMinimumSize(new Dimension(100,100));
-            add(dataJSP);
-            
-            /*
-            dataSourcePanel = new JPanel(new BorderLayout());
-            //dataSourcePanel.add(topPanel,BorderLayout.NORTH);
-            
-            JScrollPane dataJSP = new JScrollPane(dataSourceList);
-            dataSourcePanel.add(dataJSP,BorderLayout.CENTER);
-            add(dataSourcePanel,BorderLayout.CENTER);
-            //drBrowser.add(resourcesPanel,BorderLayout.CENTER);
-            */
-        }
+		JScrollPane dataJSP = new JScrollPane(dataSourceList);
+		dataJSP.setMinimumSize(new Dimension(100,100));
+		add(dataJSP);
     }
     
     public static void addDataSource(DataSource ds){
@@ -290,7 +226,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         
         Vector dataSourceVector = (Vector)allDataSources.get(type);
         dataSourceVector.add(ds);
-//        refreshDataSourceList();
 //        saveDataSourceViewer();
     }
     
@@ -316,32 +251,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         saveDataSourceViewer();
         
     }
-    
-/*
-	public static void refreshDataSourceList(){
-        int i =0; Vector dsVector;
-        String breakTag = "";
-        int NOOFTYPES = 8;
-        if (!(dataSourceList.getContents().isEmpty()))dataSourceList.getContents().clear();
-        for (i = 0; i < NOOFTYPES; i++){
-            dsVector = (Vector)allDataSources.get(i);
-            if (!dsVector.isEmpty()){
-                int j = 0;
-                for(j = 0; j < dsVector.size(); j++){
-                    dataSourceList.getContents().addElement(dsVector.get(j));
-                }
-                boolean breakNeeded = false; int typeCount = i+1;
-                while ((!breakNeeded) && (typeCount < NOOFTYPES)){
-                    if (!((Vector)allDataSources.get(i)).isEmpty())breakNeeded = true;
-                    typeCount++;
-                }
-                if (breakNeeded) dataSourceList.getContents().addElement(breakTag);
-            }
-        }
-        dataSourceList.setSelectedValue(getActiveDataSource(),true);
-        dataSourceList.validate();
-    }
-*/    
     
     public static Object getActiveDataSource() {
         return activeDataSource;
@@ -452,17 +361,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 						edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
 						if (ds.hasConfiguration()) {
 							displayEditOrInfo(ds);
-							/*
-							EditLibraryPanel panel = new EditLibraryPanel(ds);
-							if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
-																		  panel,
-																		  "Edit Library",
-																		  javax.swing.JOptionPane.OK_CANCEL_OPTION,
-																		  javax.swing.JOptionPane.INFORMATION_MESSAGE,
-																		  null) == javax.swing.JOptionPane.YES_OPTION) {
-								ds.setConfigurationValues(panel.getValues());
-							}
-							 */
 						} else {
 							javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
 																	  "Nothing to configure",
@@ -471,7 +369,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 						}
 					}
 				}
-                //DataSourceViewer.this.popup.setVisible(false);
             }
         };
 		 
@@ -564,69 +461,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             return true;
     }
     
-/*
- public void showAddEditWindow(int mode) {
-        if ((addEditDialog == null)  || true) { // always true, need to work for cases where case where the dialog already exists
-            if (DEBUG.DR) System.out.println("Creating new addEditDialog...");
-            addEditDialog = new AddEditDataSourceDialog();
-            if (DEBUG.DR) System.out.println("Created new addEditDialog: " + addEditDialog + "; showing...");
-            addEditDialog.show(mode);
-            if (DEBUG.DR) System.out.println("Showed new addEditDialog: " + addEditDialog);
-        }
-    }
- */   
-    
-/*    
-    public void loadDataSources(){
-        
-        Vector dataSource0 = new Vector();
-        Vector dataSource1 = new Vector();
-        Vector dataSource2 = new Vector();
-        Vector dataSource3 = new Vector();
-        Vector dataSource4 = new Vector();
-        Vector dataSource5 = new Vector();
-        Vector dataSource6 = new Vector();
-        Vector dataSource7 = new Vector();
-        
-        allDataSources.add(dataSource0);
-        allDataSources.add(dataSource1);
-        allDataSources.add(dataSource2);
-        allDataSources.add(dataSource3);
-        allDataSources.add(dataSource4);
-        allDataSources.add(dataSource5);
-        allDataSources.add(dataSource6);
-        allDataSources.add(dataSource7);
-        
-        boolean init = true;
-        File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
-        
-        int type;
-        try{
-            SaveDataSourceViewer rViewer = unMarshallMap(f);
-            Vector rsources = rViewer.getSaveDataSources();
-            while (!(rsources.isEmpty())){
-                DataSource ds = (DataSource)rsources.remove(0);
-                ds.setResourceViewer();
-                System.out.println(ds.getDisplayName()+ds.getClass());
-                try {
-                    addDataSource(ds);
-                    setActiveDataSource(ds);
-                } catch(Exception ex) {System.out.println("this is a problem in restoring the datasources");}
-            }
-            saveDataSourceViewer();
-            //refreshDataSourceList();
-        }catch (Exception ex) {
-            if(DEBUG.DR) System.out.println("Datasource loading problem ="+ex);
-            //VueUtil.alert(null,"Previously saved datasources file does not exist or cannot be read. Adding Default Datasources","Loading Datasources");
-            loadDefaultDataSources();
-        }
-        //refreshDataSourceList();
-    }
-	*/    
-    
-    /**
-     *If load datasources fails this method is called
-     */
     private void loadDefaultDataSources() {
         try {
 			String breakTag = "";
@@ -634,8 +468,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             DataSource ds1 = new FavoritesDataSource("My Saved Content");
 			dataSourceList.getContents().addElement(ds1);
 			dataSourceList.getContents().addElement(breakTag);
-            DataSource ds3 = new LocalFileDataSource("My Computer","");
-			dataSourceList.getContents().addElement(ds3);
+            DataSource ds2 = new LocalFileDataSource("My Computer","");
+			dataSourceList.getContents().addElement(ds2);
+			dataSourceList.getContents().addElement(breakTag);
             DataSource ds4 = new LocalFileDataSource("My Maps","");
 			dataSourceList.getContents().addElement(ds4);
 			dataSourceList.getContents().addElement(breakTag);
@@ -643,8 +478,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 //            addDataSource(ds3);
 //            DataSource ds4 = new GoogleDataSource("Tufts Web","http://googlesearch.tufts.edu","tufts01","tufts01");
 //            addDataSource(ds4);
-//            DataSource ds5 = new tufts.artifact.DataSource("Artifact");
-//            addDataSource(ds5);
 //            saveDataSourceViewer();
 //            setActiveDataSource(ds1);
         } catch(Exception ex) {
