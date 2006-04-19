@@ -76,13 +76,14 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			
 			setLayout(gbLayout);
 	
-			setSize(new java.awt.Dimension(100,100));
-			setPreferredSize(new java.awt.Dimension(100,100));
-			setMinimumSize(new java.awt.Dimension(100,100));
+			//setSize(new java.awt.Dimension(100,100));
+			//setPreferredSize(new java.awt.Dimension(100,100));
+			//setMinimumSize(new java.awt.Dimension(100,100));
 			
 			searchButton.addActionListener(this);
 			moreOptionsButton.addActionListener(this);
 			fewerOptionsButton.addActionListener(this);
+			field.addActionListener(this);
 			searchProperties = new edu.tufts.vue.util.SharedProperties();		
 
 			populateAdvancedSearchUniverseOfTypeStringsVector();
@@ -138,7 +139,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 		gbConstraints.weightx = 0;
 		add(field,gbConstraints);
-		field.addActionListener(this);
+		//field.addActionListener(this);
 		
 		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 1;
@@ -165,7 +166,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbConstraints.weightx = 1;
 		add(field,gbConstraints);
-		field.addActionListener(this);
+		//field.addActionListener(this);
 		
 		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 1;
@@ -280,6 +281,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			}
 		} else {
 			this.criteria = field.getText();
+                        //System.out.println("\n\nFIRESEARCH " + ae);
 			fireSearch(new edu.tufts.vue.fsm.event.SearchEvent(this));
 		}
 	}
