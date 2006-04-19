@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.95 $ / $Date: 2006-04-18 19:55:56 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.95 2006-04-18 19:55:56 jeff Exp $ -->
+<!-- $Revision: 1.96 $ / $Date: 2006-04-19 23:01:40 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.96 2006-04-19 23:01:40 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -161,11 +161,8 @@
                    cryptix-asn1.jar
                    cryptix32.jar
                    dom2.jar
-                   fedora-client.jar
-                   fedora-server.jar
-                   fedoragentypes.jar
-                   fedorautilities.jar
                    fop.jar
+                   fedora_2_0-client.jar
                    gnu-getopt-1.0.9.jar
                    googleapi.jar
                    icu4j.jar
@@ -251,7 +248,7 @@
                    commons-discovery.jar
                    commons-logging.jar
                    dom2.jar
-                   fedora-client.jar
+                   fedora_2_0-client.jar
                    fedoragentypes.jar
                    fedorautilities.jar
                    fop.jar
@@ -285,7 +282,7 @@
     <pathelement path="${lib.home}/fop.jar"/>
     <pathelement path="${lib.home}/fedorautilities.jar"/>
     <pathelement path="${lib.home}/fedoragentypes.jar"/>
-    <pathelement path="${lib.home}/fedora-client.jar"/>
+    <pathelement path="${lib.home}/fedora_2_0-client.jar"/>
     <pathelement path="${lib.home}/fedora-server.jar"/>
     <pathelement path="${lib.home}/googleapi.jar"/>
     <pathelement path="${lib.home}/axis.jar"/>
@@ -326,7 +323,6 @@
     <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
     <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
     <pathelement path="${lib.home}/dom.jar" />
-    <pathelement path="${lib.home}/tufts/fedora-server.jar"/>
 
     <!-- I'm not sure it's safe to include a prior build's class files in the current build's
          classpath - can we remove this? SMF 8/5/05.
@@ -452,7 +448,7 @@
            listfiles="yes"
            classpath="${lib.home}/VUE-MacOSX.jar"
            >
-      <!--classpath refid="compile.classpath.vue"/-->
+      <!--classpath refid="compile.cfedoraasspath.vue"/-->
       <include name="tufts/*.java"/>
       <include name="test/**/*.java"/>
       <exclude name="**/tmp/**"/>
@@ -895,7 +891,7 @@ cclass Version {
         <!-- Start with min of 10MB (VUE uses this much just starting up) -->
         <jvmarg value="-Xms10m"/>
         <!-- Increase max allowed memory from default 64MB to 2GB -->
-        <jvmarg value="-Xmx2048m"/>
+        <jvmarg value="-Xmx1024m"/>
         <!-- Below wo JVM args are for the Mac runtime, and will be ignored on Windows. -->
         <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
         <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
