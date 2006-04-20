@@ -25,6 +25,7 @@ import org.osid.repository.*;
 import java.net.*;
 import java.io.*;
 import java.util.Vector;
+import java.util.Calendar;
 
 import javax.xml.namespace.QName;
 
@@ -50,89 +51,63 @@ import fedora.server.types.gen.*;
 import fedora.server.utilities.DateUtility;
 
 public class FedoraSoapFactory {
-    // preferences for Fedora
-    
-    /** Creates a new instance of FedoraSoapFactory */
+    public static final String[] RESULT_FIELDS={"pid", "label","title","description","cModel"};
     
     public static  Vector getDisseminationRecords(String pid,org.osid.repository.RecordStructure recordStructure,Repository repository)   throws org.osid.repository.RepositoryException  {
-        Call call;
         Vector disseminationList = new Vector();
-        /**
-         * try {
-         *
-         * call = getCallMethods(repository);
-         * ObjectMethodsDef[] objMethods= (ObjectMethodsDef[]) call.invoke(new Object[] {pid} );
-         * if(objMethods == null)
-         * throw new org.osid.repository.RepositoryException("tufts.oki.repository.Asset():No Disseminations  returned");
-         * else {
-         * for(int i=0;i<objMethods.length;i++){
-         * Record record = new Record(new PID(objMethods[i].getMethodName()),recordStructure);
-         * record.createPart(((DisseminationRecordStructure)recordStructure).getBDEFPartStructure().getId(),objMethods[i].getBDefPID());
-         * String disseminationURL = repository.getFedoraProperties().getProperty("url.fedora.get")+pid+"/"+objMethods[i].getBDefPID()+"/"+objMethods[i].getMethodName();
-         * record.createPart(((DisseminationRecordStructure)recordStructure).getDisseminationURLPartStructure().getId(), disseminationURL);
-         * disseminationList.add(record);
-         * }
-         * }
-         * } catch(Throwable t) {
-         * t.printStackTrace();
-         * throw new org.osid.repository.RepositoryException("FedoraSoapFactory.getDisseminators "+t.getMessage());
-         * }
-         **/
+        FedoraAPIA APIA;
+        Calendar now = Calendar.getInstance();
+        try {
+            String date = now.get(Calendar.YEAR)+"-"+now.get(Calendar.MONTH)+"-"+now.get(Calendar.DAY_OF_MONTH)+"T"+now.get(Calendar.HOUR_OF_DAY)+":"+now.get(Calendar.MINUTE)+":"+now.get(Calendar.SECOND)+"."+now.get(Calendar.MILLISECOND)+"Z";
+            APIA = APIAStubFactory.getStub(repository.getAddress(),repository.getPort(),"dummy","dummy");// username and password are not required, but fedora api is implmented that way.
+            
+            ObjectMethodsDef[] objMethods= APIA.listMethods(pid,date);
+            if(objMethods == null)
+                throw new org.osid.repository.RepositoryException("tufts.oki.repository.Asset():No Disseminations  returned");
+            else {
+                for(int i=0;i<objMethods.length;i++){
+                    Record record = new Record(new PID(objMethods[i].getMethodName()),recordStructure);
+                    record.createPart(((DisseminationRecordStructure)recordStructure).getBDEFPartStructure().getId(),objMethods[i].getBDefPID());
+                    String disseminationURL = repository.getFedoraProperties().getProperty("url.fedora.get")+pid+"/"+objMethods[i].getBDefPID()+"/"+objMethods[i].getMethodName();
+                    record.createPart(((DisseminationRecordStructure)recordStructure).getDisseminationURLPartStructure().getId(), disseminationURL);
+                    disseminationList.add(record);
+                }
+            }
+        } catch(Throwable t) {
+            t.printStackTrace();
+            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.getDisseminators "+t.getMessage());
+        }
+        
         return disseminationList;
     }
     
     
-    public static  AssetIterator search(Repository repository,SearchCriteria lSearchCriteria)  throws org.osid.repository.RepositoryException {
+    public static  org.osid.repository.AssetIterator search(Repository repository,SearchCriteria lSearchCriteria)  throws org.osid.repository.RepositoryException {
         FedoraAPIA APIA;
         try {
             APIA = APIAStubFactory.getStub(repository.getAddress(),repository.getPort(),"dummy","dummy");// username and password are not required, but fedora api is implmented that way.
-            String term = lSearchCriteria.getKeywords();
-            String maxResults = lSearchCriteria.getMaxReturns();
-            String searchOperation = lSearchCriteria.getSearchOperation();
-            String token = lSearchCriteria.getToken();
-            String fedoraApiUrl = repository.getFedoraProperties().getProperty("url.fedora.api");
             FieldSearchResult searchResults=new FieldSearchResult();
-            NonNegativeInteger maxRes=new NonNegativeInteger(maxResults);
-            String[] resField={"pid", "label","title","cModel"};
             FieldSearchQuery query=new FieldSearchQuery();
-            query.setTerms(term);
-            java.util.Vector resultObjects = new java.util.Vector();
-            if(searchOperation == SearchCriteria.FIND_OBJECTS) {
-                searchResults = APIA.findObjects(resField,maxRes,query);
-                ListSession listSession = searchResults.getListSession();
-                if(listSession != null)
-                    lSearchCriteria.setToken(listSession.getToken());
-                else
-                    lSearchCriteria.setToken(null);
+            NonNegativeInteger maxRes=new NonNegativeInteger(lSearchCriteria.getMaxReturns());
+            query.setTerms(lSearchCriteria.getKeywords());
+            ListSession listSession = null;
+            if(lSearchCriteria.getSearchOperation() == SearchCriteria.FIND_OBJECTS) {
+                searchResults = APIA.findObjects(RESULT_FIELDS,maxRes,query);
+                listSession = searchResults.getListSession();
                 
             }else {
                 if(lSearchCriteria.getToken() != null) {
-                    //methodDefs =    (FieldSearchResult) call.invoke(new Object[] {lSearchCriteria.getToken()} );
-                    ListSession listSession = searchResults.getListSession();
-                    if(listSession != null)
-                        lSearchCriteria.setToken(listSession.getToken());
-                    else
-                        lSearchCriteria.setToken(null);
-                }
-            }
-            
-            if (searchResults != null &&  searchResults.getResultList().length > 0){
-                ObjectFields[] fields= searchResults.getResultList();
-                lSearchCriteria.setResults(fields.length);
-                for(int i=0;i<fields.length;i++) {
-                    String title = "No Title";
-                    if(fields[i].getTitle() != null)
-                        title = fields[i].getTitle()[0];
-                    resultObjects.add(new Asset(repository,fields[i].getPid(),title,repository.getAssetType(fields[i].getCModel())));
-                    
+                    searchResults = APIA.resumeFindObjects(lSearchCriteria.getToken());
+                    listSession = searchResults.getListSession();
                     
                 }
-            } else {
-                System.out.println("search returned no results");
             }
-            
-            
-            return new AssetIterator(resultObjects) ;
+            // setting the token for continuing search
+            if(listSession != null)
+                lSearchCriteria.setToken(listSession.getToken());
+            else
+                lSearchCriteria.setToken(null);
+            return getAssetIterator(repository, searchResults,lSearchCriteria);
         }catch(Throwable t) {
             t.printStackTrace();
             throw new org.osid.repository.RepositoryException("FedoraSoapFactory.search"+t.getMessage());
@@ -141,27 +116,29 @@ public class FedoraSoapFactory {
     }
     
     public static org.osid.repository.AssetIterator advancedSearch(Repository repository,SearchCriteria lSearchCriteria)  throws org.osid.repository.RepositoryException {
+        FedoraAPIA APIA;
         Condition cond[] = lSearchCriteria.getConditions();
-        String maxResults = lSearchCriteria.getMaxReturns();
-        
-        Call call;
         FieldSearchResult searchResults=new FieldSearchResult();
-        NonNegativeInteger maxRes=new NonNegativeInteger(maxResults);
-        String[] resField=new String[4];
-        resField[0]="pid";
-        resField[1]="title";
-        resField[2]="description";
-        resField[3]="cModel";
+        NonNegativeInteger maxRes=new NonNegativeInteger(lSearchCriteria.getMaxReturns());
+        
         try {
-            call = getCallAdvancedSearch(repository);
+            APIA = APIAStubFactory.getStub(repository.getAddress(),repository.getPort(),"dummy","dummy");// username and password are not required, but fedora api is implmented that way.
             FieldSearchQuery query=new FieldSearchQuery();
-            //query.setTerms(term);
             query.setConditions(cond);
+            searchResults=   APIA.findObjects(RESULT_FIELDS,maxRes,query);
             java.util.Vector resultObjects = new java.util.Vector();
-            FieldSearchResult methodDefs =    (FieldSearchResult) call.invoke(new Object[] {resField,maxRes,query} );
-            if (methodDefs != null){
-                ObjectFields[] fields= methodDefs.getResultList();
-                lSearchCriteria.setResults(fields.length);
+            return getAssetIterator(repository, searchResults,lSearchCriteria);
+        }catch(Throwable t) {
+            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.advancedSearch"+t.getMessage());
+        }
+    }
+    
+    private static org.osid.repository.AssetIterator getAssetIterator(Repository repository, FieldSearchResult searchResults, SearchCriteria searchCriteria) throws org.osid.repository.RepositoryException   {
+        try {
+            java.util.Vector resultObjects = new java.util.Vector();
+            if (searchResults != null){
+                ObjectFields[] fields= searchResults.getResultList();
+                searchCriteria.setResults(fields.length);
                 for(int i=0;i<fields.length;i++) {
                     String title = "No Title";
                     if(fields[i].getTitle() != null)
@@ -172,119 +149,10 @@ public class FedoraSoapFactory {
                 System.out.println("search return no results");
             }
             return new AssetIterator(resultObjects) ;
-        }catch(Throwable t) {
-            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.advancedSearch"+t.getMessage());
+        }catch(Throwable t){
+            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.getAssetIterator"+t.getMessage());
         }
     }
     
-    
-    private static  Call getCallMethods(Repository repository)  throws org.osid.repository.RepositoryException  {
-        //creates the new service and call instance
-        Call call;
-        try {
-            String fedoraTypeUrl = repository.getFedoraProperties().getProperty("url.fedora.type");
-            String fedoraApiUrl = repository.getFedoraProperties().getProperty("url.fedora.api");
-            Service service = new Service();
-            call=(Call)service.createCall();
-            call.setTargetEndpointAddress(new URL(repository.getFedoraProperties().getProperty("url.fedora.soap.access")));
-            //specify what method to call on the server
-            call.setOperationName(new QName(fedoraApiUrl,"GetObjectMethods"));
-            //create namingspaces for user defined types
-            QName qn1=new QName(fedoraTypeUrl, "ObjectMethodsDef");
-            QName qn2=new QName(fedoraTypeUrl, "ObjectProfile");
-            QName qn3=new QName(fedoraTypeUrl, "MethodParmDef");
-            // Any Fedora-defined types required by the SOAP service must be registered
-            // prior to invocation so the SOAP service knows the appropriate
-            // serializer/deserializer to use for these types.
-            call.registerTypeMapping(ObjectMethodsDef.class, qn1,new BeanSerializerFactory(ObjectMethodsDef.class, qn1),
-                    new BeanDeserializerFactory(ObjectMethodsDef.class, qn1));
-            call.registerTypeMapping(ObjectProfile.class, qn2,new BeanSerializerFactory(ObjectProfile.class, qn2),
-                    new BeanDeserializerFactory(ObjectProfile.class, qn2));
-            call.registerTypeMapping(MethodParmDef.class, qn3,new BeanSerializerFactory(MethodParmDef.class, qn3),
-                    new BeanDeserializerFactory(MethodParmDef.class, qn3));
-        }catch (Exception ex) {
-            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.getCallMethods "+ex.getMessage());
-        }
-        return call;
-    }
-    
-    private static Call getCallSearch(Repository repository)  throws org.osid.repository.RepositoryException {
-        Call call;
-        try {
-            String fedoraTypeUrl = repository.getFedoraProperties().getProperty("url.fedora.type");
-            String fedoraApiUrl = repository.getFedoraProperties().getProperty("url.fedora.api");
-            Service service = new Service();
-            call=(Call) service.createCall();
-            System.out.println("FEDORA ACCESS URL = "+repository.getFedoraProperties().getProperty("url.fedora.soap.access"));
-            call.setTargetEndpointAddress(new URL(repository.getFedoraProperties().getProperty("url.fedora.soap.access")));
-            
-            QName qn1 = new QName(fedoraTypeUrl, "ObjectFields");
-            QName qn2 = new QName(fedoraTypeUrl, "FieldSearchQuery");
-            QName qn3 = new QName(fedoraTypeUrl, "FieldSearchResult");
-            QName qn4 = new QName(fedoraTypeUrl, "Condition");
-            QName qn5=new QName(fedoraTypeUrl, "ComparisonOperator");
-            QName qn6=new QName(fedoraTypeUrl, "ListSession");
-            call.registerTypeMapping(ObjectFields.class, qn1,
-                    new BeanSerializerFactory(ObjectFields.class, qn1),
-                    new BeanDeserializerFactory(ObjectFields.class, qn1));
-            call.registerTypeMapping(FieldSearchQuery.class, qn2,
-                    new BeanSerializerFactory(FieldSearchQuery.class, qn2),
-                    new BeanDeserializerFactory(FieldSearchQuery.class, qn2));
-            call.registerTypeMapping(FieldSearchResult.class, qn3,
-                    new BeanSerializerFactory(FieldSearchResult.class, qn3),
-                    new BeanDeserializerFactory(FieldSearchResult.class, qn3));
-            call.registerTypeMapping(Condition.class, qn4,
-                    new BeanSerializerFactory(Condition.class, qn4),
-                    new BeanDeserializerFactory(Condition.class, qn4));
-            call.registerTypeMapping(ComparisonOperator.class, qn5,
-                    new BeanSerializerFactory(ComparisonOperator.class, qn5),
-                    new BeanDeserializerFactory(ComparisonOperator.class, qn5));
-            call.registerTypeMapping(ListSession.class, qn6,
-                    new BeanSerializerFactory(ListSession.class, qn6),
-                    new BeanDeserializerFactory(ListSession.class, qn6));
-            return call;
-        }catch (Exception ex) {
-            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.getCallSearch "+ex);
-        }
-    }
-    
-    private static Call getCallAdvancedSearch(Repository repository)  throws org.osid.repository.RepositoryException {
-        Call call;
-        try {
-            String fedoraTypeUrl = repository.getFedoraProperties().getProperty("url.fedora.type");
-            String fedoraApiUrl = repository.getFedoraProperties().getProperty("url.fedora.api");
-            Service service = new Service();
-            call=(Call) service.createCall();
-            call.setTargetEndpointAddress(new URL(repository.getFedoraProperties().getProperty("url.fedora.soap.access")));
-            call.setOperationName(new QName(fedoraApiUrl,"findObjects"));
-            QName qn1 = new QName(fedoraTypeUrl, "ObjectFields");
-            QName qn2 = new QName(fedoraTypeUrl, "FieldSearchQuery");
-            QName qn3 = new QName(fedoraTypeUrl, "FieldSearchResult");
-            QName qn4 = new QName(fedoraTypeUrl, "Condition");
-            QName qn5=new QName(fedoraTypeUrl, "ComparisonOperator");
-            QName qn6=new QName(fedoraTypeUrl, "ListSession");
-            call.registerTypeMapping(ObjectFields.class, qn1,
-                    new BeanSerializerFactory(ObjectFields.class, qn1),
-                    new BeanDeserializerFactory(ObjectFields.class, qn1));
-            call.registerTypeMapping(FieldSearchQuery.class, qn2,
-                    new BeanSerializerFactory(FieldSearchQuery.class, qn2),
-                    new BeanDeserializerFactory(FieldSearchQuery.class, qn2));
-            call.registerTypeMapping(FieldSearchResult.class, qn3,
-                    new BeanSerializerFactory(FieldSearchResult.class, qn3),
-                    new BeanDeserializerFactory(FieldSearchResult.class, qn3));
-            call.registerTypeMapping(Condition.class, qn4,
-                    new EnumSerializerFactory(Condition.class, qn4),
-                    new EnumDeserializerFactory(Condition.class, qn4));
-            call.registerTypeMapping(ComparisonOperator.class, qn5,
-                    new EnumSerializerFactory(ComparisonOperator.class, qn5),
-                    new EnumDeserializerFactory(ComparisonOperator.class, qn5));
-            call.registerTypeMapping(ListSession.class, qn6,
-                    new BeanSerializerFactory(ListSession.class, qn6),
-                    new BeanDeserializerFactory(ListSession.class, qn6));
-            return call;
-        }catch (Exception ex) {
-            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.getCallSearch "+ex.getMessage());
-        }
-    }
     
 }
