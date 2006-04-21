@@ -98,6 +98,7 @@ public class DEBUG
         else if (a.equals("-debug_data"))       DEBUG.DATA = true;
         else if (a.equals("-debug_selection"))  DEBUG.SELECTION = true;
         else if (a.equals("-debug_resource"))   DEBUG.RESOURCE = true;
+        else if (a.equals("-debug_scroll"))     DEBUG.SCROLL = true;
         else if (a.startsWith("-debug_edge"))   DEBUG.EDGE = true;
         else if (a.startsWith("-debug_event"))  DEBUG.EVENTS = true;
         else if (a.startsWith("-debug_thread")) DEBUG.THREAD = true;
