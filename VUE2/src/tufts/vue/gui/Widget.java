@@ -38,7 +38,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.6 $ / $Date: 2006-04-11 19:09:58 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-04-21 03:36:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -46,30 +46,58 @@ public class Widget extends javax.swing.JPanel
     static final String EXPANSION_KEY = "widget.expand";
     static final String HIDDEN_KEY = "widget.hide";
     static final String MENU_ACTIONS_KEY = "widget.menuActions";
+    static final String WANTS_SCROLLER_KEY = "widget.wantsScroller";
+    static final String TITLE_HIDDEN_KEY = "widget.titleHidden";
 
     public static void setTitle(JComponent c, String title) {
         c.setName(title);
     }
     
+    public static void setTitleHidden(JComponent c, boolean hidden) {
+        setBoolean(c, TITLE_HIDDEN_KEY, hidden);
+    }
+    
     /** Hide the entire widget, including it's title.  Do not affect expansion state. */
     public static void setHidden(JComponent c, boolean hidden) {
+        // make sure instance method called in case it was overriden
+        if (c instanceof Widget)
+            ((Widget)c).setHidden(hidden);
+        else
+            setHiddenImpl(c, hidden);
+    }
+    protected static void setHiddenImpl(JComponent c, boolean hidden) {
         if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setHidden " + hidden);
-        //c.putClientProperty(HIDDEN_KEY, hidden ? Boolean.TRUE : Boolean.FALSE);
         setBoolean(c, HIDDEN_KEY, hidden);
     }
+
+    public static void setWantsScroller(JComponent c, boolean scroller) {
+        if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setWantsScroller " + scroller);
+        setBoolean(c, WANTS_SCROLLER_KEY, scroller);
+    }
+    
     
     /** Make sure the Widget is expanded (visible).  Containing java.awt.Window
      * will be made visible if it's not */
     public static void setExpanded(JComponent c, boolean expanded) {
+        // make sure instance method called in case it was overriden
+        if (c instanceof Widget)
+            ((Widget)c).setExpanded(expanded);
+        else
+            setExpandedImpl(c, expanded);
+    }
+    
+    protected static void setExpandedImpl(JComponent c, boolean expanded) {
         if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setExpanded " + expanded);
         //c.putClientProperty(EXPANSION_KEY, expanded ? Boolean.TRUE : Boolean.FALSE);
 
         setBoolean(c, EXPANSION_KEY, expanded);
         
         if (expanded && !tufts.vue.VUE.isStartupUnderway()) {
+            if (isBooleanTrue(c, HIDDEN_KEY) || !c.isVisible())
+                setHidden(c, false);
             GUI.makeVisibleOnScreen(c);
         }
-        
+
         //c.firePropertyChange("TESTPROPERTY", false, true);
     }
 
@@ -83,10 +111,14 @@ public class Widget extends javax.swing.JPanel
         return c instanceof Widget || c.getClientProperty(EXPANSION_KEY) != null;
     }
 
+    public static boolean wantsScroller(JComponent c) {
+        return isBooleanTrue(c, WANTS_SCROLLER_KEY);
+    }
+
     /** only set property if not already set
      * @return true if the value changed
      */
-    private static boolean setBoolean(JComponent c, String key, boolean newValue) {
+    protected static boolean setBoolean(JComponent c, String key, boolean newValue) {
         Boolean currentProp = (Boolean) c.getClientProperty(key);
         // default for property value not there is false:
         boolean current = currentProp == null ? false : currentProp.booleanValue();
@@ -97,6 +129,11 @@ public class Widget extends javax.swing.JPanel
         } else
             return false;
     }
+
+    protected static boolean isBooleanTrue(JComponent c, Object key) {
+        Boolean boolProp = (Boolean) c.getClientProperty(key);
+        return boolProp != null && boolProp.booleanValue();
+    }
     
     // instance methods for when used as a subclassed wrapper of JPanel:
     
@@ -104,22 +141,31 @@ public class Widget extends javax.swing.JPanel
     public Widget(String title) {
         super(new java.awt.BorderLayout());
         setName(title);
+        if (DEBUG.BOXES) setBorder(new javax.swing.border.LineBorder(java.awt.Color.blue, 4));
     }
 
-    public void setTitle(String title) {
+    public final void setTitle(String title) {
         setTitle(this, title);
     }
     
     public void setExpanded(boolean expanded) {
-        setExpanded(this, expanded);
+        setExpandedImpl(this, expanded);
     }
 
     public void setHidden(boolean hidden) {
-        setHidden(this, hidden);
+        setHiddenImpl(this, hidden);
+    }
+
+    public final void setTitleHidden(boolean hidden) {
+        setTitleHidden(this, hidden);
+    }
+
+    public final void setMenuActions(javax.swing.Action[] actions) {
+        setMenuActions(this, actions);
     }
     
-    public void setMenuActions(javax.swing.Action[] actions) {
-        setMenuActions(this, actions);
+    public final void setWantsScroller(boolean scroller) {
+        setWantsScroller(this, scroller);
     }
     
     
