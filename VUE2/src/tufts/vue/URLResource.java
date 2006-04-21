@@ -37,7 +37,7 @@ import com.sun.image.codec.jpeg.*;
 /**
  * The class is handles a reference to either a local file or a URL.
  *
- * @version $Revision: 1.11 $ / $Date: 2006-04-11 05:46:01 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2006-04-21 03:32:30 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.
@@ -1078,6 +1078,12 @@ public class URLResource implements Resource, XMLUnmarshalListener
     public Icon getIcon(java.awt.Component painter) {
         if (mIcon == null) {
             //tufts.Util.printStackTrace("getIcon " + this); System.exit(-1);
+            // TODO: cannot cache this icon if there is a freakin painter,
+            // (because we'd only remember the last painter, and prior
+            // users of this icon would stop getting updates)
+            // -- this is why putting a client property in the cell renderer
+            // is key, tho it's annoying it will have to be fetched
+            // every time -- or could create an interface: Repaintable
             mIcon = new tufts.vue.ui.ResourceIcon(this, 32, 32, painter);
         }
         return mIcon;
