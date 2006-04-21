@@ -34,10 +34,10 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.15 $ / $Date: 2006-04-15 22:59:14 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2006-04-21 03:37:45 $ / $Author: sfraize $
  * @author Scott Fraize
  */
-public class WidgetStack extends JPanel
+public class WidgetStack extends Widget
 {
     private final JPanel mGridBag;
     private final GridBagConstraints _gbc = new GridBagConstraints();
@@ -54,9 +54,16 @@ public class WidgetStack extends JPanel
     private Dimension mMinSize = new Dimension();
 
     public WidgetStack() {
+        this("<>");
+    }        
+
+    public WidgetStack(String name) {
+        super(name);
         mLayout = new GridBagLayout();
         mGridBag = this;
         setLayout(mLayout);
+
+        if (DEBUG.BOXES) setBorder(new javax.swing.border.LineBorder(Color.cyan, 4));
 
         _gbc.gridwidth = GridBagConstraints.REMAINDER; // last in line as only one column
         _gbc.anchor = GridBagConstraints.NORTH;
@@ -114,14 +121,15 @@ public class WidgetStack extends JPanel
                 //+ " expanderCnt=" + mExpanderCount
                 //+ " isExpander=" + isExpander
                 + " [" + title + "] containing " + GUI.name(widget));
-            dumpSizeInfo(widget);
+            GUI.dumpSizes(widget, "WidgetStack.addPane");
         }
 
 
         _gbc.weighty = 0;
         _gbc.fill = GridBagConstraints.HORIZONTAL;
         _gbc.insets = ExpandedTitleBarInsets;
-        mGridBag.add(titleBar, _gbc);
+        if (!isBooleanTrue(widget, TITLE_HIDDEN_KEY))
+            mGridBag.add(titleBar, _gbc);
         
         _gbc.gridy++;
         _gbc.fill = GridBagConstraints.BOTH;
@@ -129,13 +137,25 @@ public class WidgetStack extends JPanel
         _gbc.insets = GUI.EmptyInsets;
 
         if (false) {
+            // Enforced white-space border
             JPanel widgetPanel = new JPanel(new BorderLayout());
             widgetPanel.setOpaque(false);
             widgetPanel.add(widget);
-            widgetPanel.setBorder(GUI.WidgetBorder);
+            widgetPanel.setBorder(GUI.WidgetInsetBorder);
             mGridBag.add(widgetPanel, _gbc);
-        } else
-            mGridBag.add(widget, _gbc);
+        } else {
+            if (false && Widget.wantsScroller(widget)) {
+                // Would need to handle seeing up through the contained
+                // widget for property changes: e.g. hidden would
+                // need to hide the scroller, not the widget.
+                JScrollPane scroller = new JScrollPane(widget,
+                                                       JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                                                       JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                mGridBag.add(scroller, _gbc);
+            } else {
+                mGridBag.add(widget, _gbc);
+            }
+        }
             
 
         _gbc.gridy++;
@@ -179,14 +199,6 @@ public class WidgetStack extends JPanel
         addPane(c, 1f);
     }
 
-
-    private void dumpSizeInfo(Component c) {
-        if (DEBUG.META) tufts.Util.printStackTrace("java 1.5 only");
-        //out("\tprefSize " + (c.isPreferredSizeSet()?" SET ":"     ") + c.getPreferredSize());
-        //out("\t minSize " + (c.isMinimumSizeSet()?" SET ":"     ") + c.getMinimumSize());
-        //out("\t maxSize " + (c.isMaximumSizeSet()?" SET ":"     ") + c.getMaximumSize());
-    }
-
     public void addNotify() {
         //if (DEBUG.WIDGET) out("minSize " + mMinSize);
         updateDefaultExpander();
@@ -206,12 +218,14 @@ public class WidgetStack extends JPanel
     }
 
     private void updateLockingState() {
+        /*
         if (DEBUG.WIDGET) out("updateLockingState: expanders open = " + mExpandersOpen);
         if (mExpandersOpen == 1) {
             findFirstOpenExpander().setLocked(true);
         } else if (mLockedWidget != null) {
             mLockedWidget.setLocked(false);
         }
+        */
     }
 
     private WidgetTitle findFirstOpenExpander() {
@@ -225,14 +239,18 @@ public class WidgetStack extends JPanel
         return null;
     }
 
-    private static final int TitleHeight = VueResources.getInt("gui.widget.title.height", 18);
-    private static final Color TopGradient = VueResources.getColor("gui.widget.title.topColor", 108,149,221);
-    private static final Color BottomGradient = VueResources.getColor("gui.widget.title.bottomColor", 80,123,197);
+    public static final int TitleHeight = VueResources.getInt("gui.widget.title.height", 18);
+    public static final Color TopGradient = VueResources.getColor("gui.widget.title.topColor", 108,149,221);
+    public static final Color BottomGradient = VueResources.getColor("gui.widget.title.bottomColor", 80,123,197);
+    
     // Mac Finder top blue: Color(79,154,240);
     // Mac Finder bottom blue: Color(0,133,246);
     private static final GradientPaint Gradient
         = new GradientPaint(0,           0, TopGradient,
                             0, TitleHeight, BottomGradient);
+    private static final GradientPaint GradientEmbedded
+        = new GradientPaint(0,           0, new Color(79,154,240),
+                            0, TitleHeight, new Color(0,133,246));
 
     private static final char RightArrowChar = 0x25B6; // unicode "black right pointing triangle"
     private static final char DownArrowChar = 0x25BC; // unicode "black down pointing triangle"
@@ -252,6 +270,8 @@ public class WidgetStack extends JPanel
 
         private boolean isLocked = false;
         private boolean mExpanded = true;
+        private boolean mEmbeddedStack = false;
+        private boolean mTitleVisible = true; // if false, display widget, but not title (implies no user control)
 
         public WidgetTitle(String label, JComponent widget, boolean isExpander) {
             super(BoxLayout.X_AXIS);
@@ -299,26 +319,34 @@ public class WidgetStack extends JPanel
             // propertyChangeEvent.  If it isn't set, we set the default, which won't
             // trigger a recursive propertyChangeEvent as we haven't added us as a
             // property change listener yet.
+
+            // todo: title-hidden currently only takes effect at init-time -- no dynamic update
+            mTitleVisible = !isBooleanTrue(widget, TITLE_HIDDEN_KEY);
             
-            Object expanded = widget.getClientProperty(Widget.EXPANSION_KEY);
+            Object expanded = widget.getClientProperty(EXPANSION_KEY);
             if (expanded != null) {
-                propertyChange(new PropertyChangeEvent(this, Widget.EXPANSION_KEY, null, expanded));
+                propertyChange(new PropertyChangeEvent(this, EXPANSION_KEY, null, expanded));
             } else {
-                // expanded by default                
-                widget.putClientProperty(Widget.EXPANSION_KEY, Boolean.TRUE);
+                // expanded by default
+                setBoolean(widget, EXPANSION_KEY, true);
                 handleWidgetDisplayChange(true); 
             }
                 
             Object hidden = widget.getClientProperty(Widget.HIDDEN_KEY);
             if (hidden != null) {
-                propertyChange(new PropertyChangeEvent(this, Widget.HIDDEN_KEY, null, hidden));
+                propertyChange(new PropertyChangeEvent(this, HIDDEN_KEY, null, hidden));
             } else {
                 // not hidden by default
-                widget.putClientProperty(Widget.HIDDEN_KEY, Boolean.FALSE);
+                setBoolean(widget, HIDDEN_KEY, false);
             }
-            
+
             widget.addPropertyChangeListener(this);
             
+        }
+
+        public void addNotify() {
+            super.addNotify();
+            mEmbeddedStack = (SwingUtilities.getAncestorOfClass(WidgetStack.class, getParent()) != null);
         }
 
         private void setLocked(boolean locked) {
@@ -344,16 +372,16 @@ public class WidgetStack extends JPanel
         public void propertyChange(java.beans.PropertyChangeEvent e) {
             final String key = e.getPropertyName();
         
-            if (DEBUG.WIDGET && !key.equals("ancestor"))
-                out(GUI.name(e.getSource()) + " property \"" + key + "\" newValue=[" + e.getNewValue() + "]");
+            if (DEBUG.WIDGET && (true || !key.equals("ancestor")))
+                out(GUI.name(e.getSource()) + " property \"" + key + "\" newValue=[" + GUI.name(e.getNewValue()) + "]");
 
-            if (key == Widget.EXPANSION_KEY) {
-                setExpanded( ((Boolean)e.getNewValue()).booleanValue() );
+            if (key == EXPANSION_KEY) {
+                setWidgetExpanded( ((Boolean)e.getNewValue()).booleanValue() );
                 
-            } else if (key == Widget.HIDDEN_KEY) {
-                setHidden( ((Boolean)e.getNewValue()).booleanValue() );
+            } else if (key == HIDDEN_KEY) {
+                setWidgetHidden( ((Boolean)e.getNewValue()).booleanValue() );
 
-            } else if (key == Widget.MENU_ACTIONS_KEY) {
+            } else if (key == MENU_ACTIONS_KEY) {
                 mMenuButton.setMenuActions((Action[]) e.getNewValue());
                 
             } else if (key.equals("name")) {
@@ -363,10 +391,10 @@ public class WidgetStack extends JPanel
 
                 Component src = (Component) e.getSource();
             
-                if (DEBUG.WIDGET) dumpSizeInfo(src);
-                if (DEBUG.WIDGET) out("revalidate on size property change");
+                if (DEBUG.WIDGET) GUI.dumpSizes(src);
+                if (true||DEBUG.WIDGET) out("revalidate on size property change");
                 revalidate();
-                if (DEBUG.WIDGET) dumpSizeInfo(src);
+                if (DEBUG.WIDGET) GUI.dumpSizes(src);
             }
         }
 
@@ -414,13 +442,14 @@ public class WidgetStack extends JPanel
             }});
         }
 
-        private void setHidden(boolean hide) {
-            if (DEBUG.WIDGET) out("setHidden " + hide);
+        private void setWidgetHidden(boolean hide) {
+            if (DEBUG.WIDGET) out("setWidgetHidden " + hide);
 
-            if (isVisible() == !hide)
+            if (mTitleVisible && isVisible() == !hide)
                 return;
 
-            setVisible(!hide);
+            setVisible(mTitleVisible && !hide);
+            
             if (hide) {
                 if (mExpanded) {
                     mWidget.setVisible(false);
@@ -435,8 +464,8 @@ public class WidgetStack extends JPanel
         }
         
 
-        private void setExpanded(boolean expanded) {
-            if (DEBUG.WIDGET) out("setExpanded " + expanded);
+        private void setWidgetExpanded(boolean expanded) {
+            if (DEBUG.WIDGET) out("setWidgetExpanded " + expanded);
             if (mExpanded == expanded)
                 return;
             mExpanded = expanded;
@@ -476,7 +505,10 @@ public class WidgetStack extends JPanel
 
         private void paintGradient(Graphics2D g)
         {
-            g.setPaint(Gradient);
+            if (false && mEmbeddedStack)
+                g.setPaint(GradientEmbedded);
+            else
+                g.setPaint(Gradient);
             g.fillRect(0, 0, getWidth(), TitleHeight);
         }
 
