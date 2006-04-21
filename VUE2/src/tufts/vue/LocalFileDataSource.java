@@ -17,7 +17,7 @@ package tufts.vue;
  * -----------------------------------------------------------------------------
  */
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.13 2006-01-30 02:25:10 jeff Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.14 2006-04-21 03:32:09 sfraize Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -37,7 +37,7 @@ import tufts.vue.action.*;
 
 
 /**
- * @version $Revision: 1.13 $ / $Date: 2006-01-30 02:25:10 $ / $Author: jeff $
+ * @version $Revision: 1.14 $ / $Date: 2006-04-21 03:32:09 $ / $Author: sfraize $
  * @author  rsaigal
  */
 
@@ -83,12 +83,18 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
         fileTree.setShowsRootHandles(true);
         fileTree.expandRow(0);
         fileTree.setRootVisible(false);
-        JPanel localPanel = new JPanel();
-        JScrollPane rSP = new JScrollPane(fileTree);
-        localPanel.setMinimumSize(new Dimension(290,100));
-        localPanel.setLayout(new BorderLayout());
-        localPanel.add(rSP,BorderLayout.CENTER);
-        this.resourceViewer = localPanel;
+
+        if (false) {
+            JPanel localPanel = new JPanel();
+            JScrollPane rSP = new JScrollPane(fileTree);
+            localPanel.setMinimumSize(new Dimension(290,100));
+            localPanel.setLayout(new BorderLayout());
+            localPanel.add(rSP,BorderLayout.CENTER);
+            this.resourceViewer = localPanel;
+        } else {
+            this.resourceViewer = fileTree;
+        }
+            
         //DataSourceViewer.refreshDataSourcePanel(this);
         
     }
