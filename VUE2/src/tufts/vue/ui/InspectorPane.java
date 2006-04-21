@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.15 $ / $Date: 2006-04-18 20:48:56 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2006-04-21 03:42:23 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -78,7 +78,7 @@ public class InspectorPane extends JPanel
         //stack.addPane("Nested Nodes",           mNodeTree,              1f);
 
         Widget.setExpanded(mUserMetaData, false);
-        Widget.setExpanded(mResourceMetaData, false);
+        //Widget.setExpanded(mResourceMetaData, false);
         //Widget.setExpanded(mNodeTree, false);
         
         add(stack, BorderLayout.CENTER);
