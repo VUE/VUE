@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.114 $ / $Date: 2006-04-19 18:06:33 $ / $Author: jeff $ *
+ * @version $Revision: 1.115 $ / $Date: 2006-04-21 03:40:05 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -94,7 +94,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 	JPanel previewPanel = null;
 	
 	static edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
-	static edu.tufts.vue.dsm.DataSource dataSources[];
+    //static edu.tufts.vue.dsm.DataSource dataSources[];
 	static edu.tufts.vue.fsm.FederatedSearchManager federatedSearchManager;
 	static edu.tufts.vue.fsm.QueryEditor queryEditor;
 	private edu.tufts.vue.fsm.SourcesAndTypesManager sourcesAndTypesManager;
@@ -131,21 +131,15 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         queryEditor = federatedSearchManager.getQueryEditorForType(new edu.tufts.vue.util.Type("mit.edu","search","keyword"));
         queryEditor.addSearchListener(this);
 
-        if (false) {
-            ((JPanel)queryEditor).setSize(new Dimension(100,90));
-            ((JPanel)queryEditor).setPreferredSize(new Dimension(100,90));
-            ((JPanel)queryEditor).setMinimumSize(new Dimension(100,90));
-        }
-
         DRB.searchPane.removeAll();
-        DRB.searchPane.add((JPanel) queryEditor);
+        DRB.searchPane.add((JPanel) queryEditor, DRBrowser.SEARCH_EDITOR);
         DRB.searchPane.revalidate();
         DRB.searchPane.repaint();
 		
         // WORKING: stop using this preview panel?
         //this.previewPanel = previewDockWindow.getWidgetPanel();
 
-        initResultSetDockWindow();
+        //resultSetDockWindow = DRB.searchDock;
 		
         dataSourceList.clearSelection();
 		
@@ -204,9 +198,14 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 }
             });
 
-		JScrollPane dataJSP = new JScrollPane(dataSourceList);
-		dataJSP.setMinimumSize(new Dimension(100,100));
-		add(dataJSP);
+        if (false) {
+            JScrollPane dataJSP = new JScrollPane(dataSourceList);
+            dataJSP.setMinimumSize(new Dimension(100,100));
+            add(dataJSP);
+        } else {
+            add(dataSourceList);
+        }
+            
     }
     
     public static void addDataSource(DataSource ds){
@@ -258,7 +257,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 	
     public void setActiveDataSource(DataSource ds){
 
-        System.out.println("SET ACTIVE DATA SOURCE " + ds);
+        if (DEBUG.DR) out("SET ACTIVE DATA SOURCE " + ds);
         
         this.activeDataSource = ds;
         
@@ -266,16 +265,21 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         
         dataSourceList.setSelectedValue(ds,true);
         
-        DRB.searchPane.setExpanded(false);
+        Widget.setExpanded(DRB.searchPane, false);
+        //Widget.setHidden(DRB.searchPane, true);
+        
         if (ds instanceof LocalFileDataSource) {
-            DRB.browsePane.setHidden(false);
-            DRB.browsePane.setExpanded(true);
+            Widget.setExpanded(DRB.browsePane, true);
+            //Widget.setHidden(DRB.browsePane, false);
+            //Widget.setExpanded(DRB.browsePane, true);
             //DRB.savedResourcesPane.setExpanded(false);
         } else if (ds instanceof FavoritesDataSource) {
             //DRB.savedResourcesPane.setExpanded(true);
-            DRB.browsePane.setHidden(false);
-            DRB.browsePane.setExpanded(true);
-        }
+            Widget.setExpanded(DRB.browsePane, true);
+            //Widget.setHidden(DRB.browsePane, false);
+            //Widget.setExpanded(DRB.browsePane, true);
+        } else
+            Widget.setHidden(DRB.browsePane, true);
         
     }
 
@@ -287,8 +291,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         
         dataSourceList.setSelectedValue(ds,true);
         
-        DRB.browsePane.setHidden(true);
-        DRB.searchPane.setExpanded(true);
+        Widget.setHidden(DRB.browsePane, true);
+        Widget.setExpanded(DRB.searchPane, true);
     }
 
     public static void refreshDataSourcePanel(edu.tufts.vue.dsm.DataSource ds)
@@ -486,10 +490,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         
     }
 	
-	private void initResultSetDockWindow()
-	{
-	}
-	
 	private ImageIcon getThumbnail(org.osid.repository.Asset asset)
 	{
 		try {
@@ -514,6 +514,23 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 
     public void searchPerformed(edu.tufts.vue.fsm.event.SearchEvent se)
     {
+        if (DEBUG.DR) {
+            System.out.println("\n");
+            out("Search includes:");
+            edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
+            for (int i = 0; i < dataSources.length; i++) {
+                edu.tufts.vue.dsm.DataSource ds = dataSources[i];
+                System.out.print("\t");
+                if (ds.isIncludedInSearch()) {
+                    System.out.print("+ ");
+                } else {
+                    System.out.print("- ");
+                }
+                System.out.println(ds.getProviderDisplayName() + " \t" + ds);
+            }
+        }
+
+
         new Thread("VUE-Search") {
             public void run() {
                 if (DEBUG.DR || DEBUG.THREAD) out("search thread kicked off");
@@ -533,110 +550,144 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     }
     private static JLabel SearchingLabel;
     private static final boolean UseSingleScrollPane = true;
-   
+
+    private static class StatusLabel extends JLabel {
+        StatusLabel(String s, boolean center) {
+            super(s, center ? CENTER : LEFT);
+            if (center)
+                setBorder(new EmptyBorder(3,0,3,0));
+            else
+                setBorder(new EmptyBorder(3,22,3,0));
+            setMinimumSize(new Dimension(getWidth(), WidgetStack.TitleHeight));
+            setPreferredSize(new Dimension(getWidth(), WidgetStack.TitleHeight));
+        }
+    }
+
     private synchronized void performSearchAndDisplayResults()
         throws org.osid.repository.RepositoryException,
                org.osid.shared.SharedException
     {
-        final String dockTitle = "Search Results for \"" + queryEditor.getSearchDisplayName() + "\"";
+        //final String dockTitle = "Search Results for \"" + queryEditor.getSearchDisplayName() + "\"";
+        final String searchString = "\"" + queryEditor.getSearchDisplayName() + "\"";
+
+        /*
+          Store our results since we will fill a panel with each repository's results and one with all.
+          We can't get the iterator contents again, without re-doing the search.
+          
+          We know the repositories we searched.  Some may have returned results, others may not.  We will
+          make a vector for each set of results with a parallel vector of repository ids.
+        */
+
+        final java.util.List resultList = new java.util.ArrayList();
+        final java.util.List repositoryIdStringList = new java.util.ArrayList();
+        final java.util.List repositoryDisplayNameList = new java.util.ArrayList();
+        //final java.util.Vector allResultList = new java.util.Vector();
+		
+        org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
+
+        final WidgetStack resultsStack = new WidgetStack("searchResults " + searchString);
+        final Widget[] resultPanes = new Widget[repositories.length];
+
+        for (int i = 0; i < repositories.length; i++) {
+            org.osid.repository.Repository r = repositories[i];
+            if (DEBUG.DR) out("to search: " + r.getDisplayName() + " \t" + r);
+            repositoryIdStringList.add(r.getId().getIdString());
+            repositoryDisplayNameList.add(r.getDisplayName());
+            resultList.add(new java.util.ArrayList());
+
+            resultPanes[i] = new Widget("Searching " + r.getDisplayName());
+            resultPanes[i].add(new StatusLabel("Searching for " + searchString + " ...", true));
+            resultsStack.addPane(resultPanes[i], 0f);
+        }
+
+        DRB.searchPane.add(resultsStack, DRBrowser.SEARCH_RESULT);
+
+        /*
+        if (SearchingLabel == null) {
+            SearchingLabel = new JLabel("Searching...", JLabel.CENTER);                
+            SearchingLabel.setOpaque(false);
+        }
+
+        DRB.searchPane.add(SearchingLabel, DRBrowser.SEARCH_RESULT);
 
         if (resultSetDockWindow != null) {
             resultSetDockWindow.setTitle(dockTitle);
-
-            if (SearchingLabel == null) {
-                SearchingLabel = new JLabel("Searching...", JLabel.CENTER);                
-                SearchingLabel.setOpaque(false);
-            }
 
             if (false&&UseSingleScrollPane)
                 resultSetTreeJSP.setViewportView(SearchingLabel);
             else
                 resultSetDockWindow.setContent(SearchingLabel);
         }
+        */
         
-        final WidgetStack resultsStack = new WidgetStack();
 
         // get our search results
-		java.io.Serializable searchCriteria = queryEditor.getCriteria();
-        if (DEBUG.DR) out("Searching criteria [" + searchCriteria + "]...");
+        java.io.Serializable searchCriteria = queryEditor.getCriteria();
+        if (DEBUG.DR) {
+            out("Searching criteria [" + searchCriteria + "] in selected repositories. SearchProps=" + queryEditor.getProperties());
+        }
         org.osid.shared.Properties searchProperties = queryEditor.getProperties();
 				
-		edu.tufts.vue.fsm.ResultSetManager resultSetManager
+        edu.tufts.vue.fsm.ResultSetManager resultSetManager
             = federatedSearchManager.getResultSetManager(searchCriteria,
                                                          searchType,
                                                          searchProperties);		
-		if (DEBUG.DR) out("got result set manager " + resultSetManager);
-		
-		/*
-			Store our results since we will fill a panel with each repository's results and one with all.
-			We can't get the iterator contents again, without re-doing the search.
-			
-			We know the repositories we searched.  Some may have returned results, others may not.  We will
-			make a vector for each set of results with a parallel vector of repository ids.
-		 */
-		java.util.Vector resultVector = new java.util.Vector();
-		java.util.Vector repositoryIdStringVector = new java.util.Vector();
-        java.util.Vector repositoryDisplayNameVector = new java.util.Vector();
-		java.util.Vector allResultVector = new java.util.Vector();
-		
-        org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
-		int numRepositories = repositories.length;
-		for (int i=0; i < numRepositories; i++) {
-			repositoryIdStringVector.addElement(repositories[i].getId().getIdString());
-            repositoryDisplayNameVector.addElement(repositories[i].getDisplayName());
-			resultVector.addElement(new java.util.Vector());
-		}
-		
-		org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets();
-		while (assetIterator.hasNextAsset()) {
-			org.osid.repository.Asset nextAsset = assetIterator.nextAsset();
-			String repositoryIdString = nextAsset.getRepository().getIdString();
-			int index = repositoryIdStringVector.indexOf(repositoryIdString);
-			java.util.Vector v = (java.util.Vector)resultVector.elementAt(index);
-
-			Osid2AssetResource resource = new Osid2AssetResource(nextAsset, this.context);			
-			v.addElement(resource);
-			allResultVector.addElement(resource);
-		}
-		
-		// fill our results stack with individual results and aggregate results		
-		//JPanel repositorySpecificResults[] = new JPanel[numRepositories];
-		//VueDragTree resultSetTrees[] = new VueDragTree[numRepositories];
-		//ResourceList resultSetLists[] = new ResourceList[numRepositories];
-                
-                for (int i = 0; i < numRepositories; i++) {			
-                    java.util.Vector v = (java.util.Vector)resultVector.elementAt(i);
-                    String name = (String)repositoryDisplayNameVector.elementAt(i);
-
-                    if (v.size() == 0) {
-                        resultsStack.addPane(name, new JLabel("  No results"), 0f);
-                        continue;
-                    }
-
-                    name += " (" + v.size() + ")";
-
-                    JComponent resultSet = new ResourceList(v.iterator());
-                    
-                    if (UseSingleScrollPane) {
-                        resultsStack.addPane(name, resultSet);
-                    } else {
-                        resultsStack.addPane(name, new JScrollPane(resultSet));
-                    }
-                }
-
-        // Do this on AWT thread to make sure we
-        // don't collide with anything going on there.
+        if (DEBUG.DR) out("got result set manager " + resultSetManager);
         
-        GUI.invokeAfterAWT(new Runnable() {
-                public void run() {
-                    displaySearchResults(resultsStack, dockTitle);
-                }
-            });
+		
+        org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets();
+        while (assetIterator.hasNextAsset()) {
+            org.osid.repository.Asset nextAsset = assetIterator.nextAsset();
+            String repositoryIdString = nextAsset.getRepository().getIdString();
+            int index = repositoryIdStringList.indexOf(repositoryIdString);
+            java.util.List v = (java.util.List) resultList.get(index);
+
+            Osid2AssetResource resource = new Osid2AssetResource(nextAsset, this.context);			
+            v.add(resource);
+            //allResultList.addElement(resource);
+        }
+
+        // Display the results in the result panes
+		
+        for (int i = 0; i < repositories.length; i++) {			
+            java.util.List v = (java.util.List) resultList.get(i);
+            String name = "Results: " + (String) repositoryDisplayNameList.get(i);
+            if (DEBUG.DR) out(name + ": " + v.size() + " results");
+                    
+            if (v.size() > 0) name += " (" + v.size() + ")";
+
+            resultPanes[i].setTitle(name);
+            resultPanes[i].removeAll();
+
+            if (v.size() == 0) {
+                //resultsStack.addPane(name, new JLabel("  No results"), 0f);
+                resultPanes[i].add(new StatusLabel("No results for " + searchString, false));
+            } else {
+                resultPanes[i].add(new ResourceList(v.iterator()));
+            }
+
+            /*
+            JComponent resultSet = new ResourceList(v.iterator());
+            if (UseSingleScrollPane) {
+                resultsStack.addPane(name, resultSet);
+            } else {
+                resultsStack.addPane(name, new JScrollPane(resultSet));
+            }
+            */
+        }
+
     }
 
-    private void displaySearchResults(WidgetStack resultsStack, String dockTitle) {
+    /*
+    // Do this on AWT thread to make sure we
+    // don't collide with anything going on there.
+    GUI.invokeAfterAWT(new Runnable() { public void run() { displaySearchResults(resultsStack, dockTitle); } });
+    private void XdisplaySearchResults(WidgetStack resultsStack, String dockTitle) {
         if (DEBUG.DR || DEBUG.THREAD) out("diplaying results: " + dockTitle);
 
+        DRB.searchPane.add(resultsStack, DRBrowser.SEARCH_RESULT);
+        //Widget.setExpanded(DRB.searchPane, true);
+        
         if (resultSetDockWindow == null) {
             if (UseSingleScrollPane) {
                 resultSetTreeJSP = new javax.swing.JScrollPane(resultsStack);
@@ -664,14 +715,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             } else
                 resultSetDockWindow.setContent(resultsStack);
         }
-
         resultSetDockWindow.setVisible(true);
-
-        if (false) {
-            // if move result stack back under Resources stack, probably want this.
-            DRB.searchPane.setExpanded(false);
-        }
     }
+    */
 
 	private void displayEditOrInfo(edu.tufts.vue.dsm.DataSource ds)
 	{
@@ -832,7 +878,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     }
 
     private void out(Object o) {
-        System.err.println("DSV: " + (o==null?"null":o.toString()));
+        System.err.println("DSV " 
+                           + new Long(System.currentTimeMillis()).toString().substring(8)
+                           + " [" + Thread.currentThread().getName() + "] "
+                           + (o==null?"null":o.toString()));
     }
     
     
