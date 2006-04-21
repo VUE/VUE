@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.62 $ / $Date: 2006-04-18 21:53:59 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2006-04-21 03:34:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -265,11 +265,17 @@ public class DockWindow extends javax.swing.JWindow
             getContent().removePropertyChangeListener(this);
 
         mMinContentSize = c.getMinimumSize();
-        if (DEBUG.DOCK) out("min content size " + mMinContentSize);
-        mContentPane.setWidget(c);
+        if (DEBUG.DOCK) GUI.dumpSizes(c, this + ":setContent");
+        mContentPane.setWidget(c, Widget.wantsScroller(c));
 
-        //out("ADDPROPCHANGELISTENER: " + c);
-        c.addPropertyChangeListener(this);
+        Component toListen = null;
+        if (c instanceof JScrollPane)
+            toListen = ((JScrollPane)c).getViewport().getView();
+        if (toListen == null)
+            toListen = c;
+
+        toListen.addPropertyChangeListener(this);
+        if (DEBUG.DOCK) out("addPropertyChangeListener: " + GUI.name(toListen));
         
         if (!hadContent || !isDisplayable()) {
             pack();
@@ -312,7 +318,7 @@ public class DockWindow extends javax.swing.JWindow
         throw new Error("can't add component's directly to the DockWindow");
     }
 
-    public JPanel getContentPanel() {
+    private JPanel getContentPanel() {
         return mContentPane.mContent;
     }
 
@@ -496,10 +502,10 @@ public class DockWindow extends javax.swing.JWindow
         if (ContentBorder == null) {
             ContentBorder = new CompoundBorder(new MatteBorder(3,2,3,2, new Color(235,235,235)),
                                                new LineBorder(new Color(102,102,102)));
-            ContentBorderInset = new CompoundBorder(ContentBorder, GUI.WidgetBorder);
+            ContentBorderInset = new CompoundBorder(ContentBorder, GUI.WidgetInsetBorder);
         }
 
-        return ContentBorder;
+        return DEBUG.BOXES ? new LineBorder(Color.orange, 4) : ContentBorder;
 
         /*
         if (c instanceof WidgetStack || firstChild(c) instanceof WidgetStack || c instanceof JScrollPane)
@@ -3091,6 +3097,37 @@ public class DockWindow extends javax.swing.JWindow
             return s + " ->" + mChild.mTitle + "]";
     }
 
+    private static class ScrollableWidthTracker extends JPanel implements Scrollable {
+        private JComponent tracked;
+        
+        ScrollableWidthTracker(JComponent wrapped, JComponent tracked) {
+            super(new BorderLayout());
+            if (DEBUG.BOXES) setBorder(new LineBorder(Color.red, 4));
+            add(wrapped);
+            this.tracked = tracked;
+        }
+
+        public Dimension getPreferredScrollableViewportSize() {
+            Dimension d = tracked.getSize(); // width is always same as tracked width
+            d.height = getHeight(); // height is always whatever we've been laid out to (preferred size)
+            //Dimension d = getSize();
+            //d.height = tracked.getHeight();
+            if (DEBUG.DOCK || DEBUG.SCROLL) VUE.Log.debug(GUI.name(tracked) + " viewportSize " + GUI.name(d));
+            return d;
+        }
+
+        /** clicking on the up/down arrows of the scroll bar use this */
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 8;
+        }
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 64;
+        }
+    
+        public boolean getScrollableTracksViewportWidth() { return true; }
+        public boolean getScrollableTracksViewportHeight() { return false; }
+    }
+    
     /** The content-pane for the Window: has the window border, contains
         the title and the widget content panel (which holds the widget border) */
     private class ContentPane extends JPanel
@@ -3102,11 +3139,13 @@ public class DockWindow extends javax.swing.JWindow
         private boolean gradientBG = false;
 
         private Object titleConstraints = BorderLayout.NORTH;
+        private JScrollPane mScroller;
+
+        private Object contentConstraints;
         
         public ContentPane(String title, boolean asToolbar)
         {
             mContent.setName(title + ".dockContent");
-            Object contentConstraints;
             if (true||asToolbar) {
                 setLayout(new BorderLayout());
 
@@ -3136,10 +3175,11 @@ public class DockWindow extends javax.swing.JWindow
             // Apparently, max bounds not respected by BorderLayout: try GridBag
             // pref size is respected, but then it sets *everything* to max size.
             // Okay, BoxLayout and not even freakin GridBag is handling this...
-            Rectangle max = GUI.getMaximumWindowBounds();
-            mContent.
-                setMaximumSize(new Dimension(max.width, max.height-100));
-                setMaximumSize(new Dimension(max.width, max.height-100));
+            
+//             Rectangle max = GUI.getMaximumWindowBounds();
+//             mContent.
+//                 setMaximumSize(new Dimension(max.width, max.height-100));
+//                 setMaximumSize(new Dimension(max.width, max.height-100));
                 //setPreferredSize(new Dimension(max.width, max.height-100));
 
             
@@ -3147,7 +3187,6 @@ public class DockWindow extends javax.swing.JWindow
             installTitlePanel(title, asToolbar);
             add(mContent, contentConstraints);
 
-            
             mContent.setLayout(new BorderLayout());
 
             // need to make sure the background is set
@@ -3157,38 +3196,21 @@ public class DockWindow extends javax.swing.JWindow
 
             //mContent.setBackground(Color.green);
             mContent.setOpaque(false);
-
-            /*
-            if (!isToolbar) {
-                //mContent.setBorder(new CompoundBorder(new MatteBorder(3,2,3,2, new Color(235,235,235)),
-                //new LineBorder(new Color(102,102,102))));
-                mContent.setBorder(new CompoundBorder(new MatteBorder(3,2,3,2, new Color(235,235,235)),
-                                                      new CompoundBorder(new LineBorder(new Color(102,102,102)),
-                                                                         new EmptyBorder(GUI.WidgetInsets))));
-            }
-            */
         }
 
         //public void validate() { out("validate"); super.validate(); }
         public void doLayout() {
 
-            if (!mWindowDragUnderway) {
-            
-                if (DEBUG.DOCK)
-                    out("doLayout;"
-                    + "\n\tDWsz=" + GUI.name(DockWindow.this.getSize())
-                    + "\n\t  sz=" + GUI.name(getSize())
-                    + "\n\t  ps=" + GUI.name(getPreferredSize())
-                    + "\n\t max=" + GUI.name(getMaximumSize())
-                    + "\n\t min=" + GUI.name(getMinimumSize())
-                    );
+
+            if (false && !mWindowDragUnderway && !isRolledUp()) {
+                if (DEBUG.DOCK && DEBUG.SCROLL) GUI.dumpSizes(this, "doLayout");
                 
                 int height = getHeight();
-                int prefHeight = getPreferredSize().height;
+                int prefHeight = Math.max(getPreferredSize().height, getMinimumSize().height);
+                prefHeight = Math.min(prefHeight, GUI.GScreenHeight);
                 
                 if (height != prefHeight)
                     setHeight(prefHeight);
-
             }
             
             super.doLayout();
@@ -3213,7 +3235,6 @@ public class DockWindow extends javax.swing.JWindow
 
             //mContent.setBackground(Color.green);
             mContent.setOpaque(false);
-
         }
         */
 
@@ -3256,17 +3277,41 @@ public class DockWindow extends javax.swing.JWindow
             
         }
 
-        void setWidget(JComponent c) {
+        void setWidget(JComponent widget, boolean scrolled) {
             mContent.removeAll();
-            
+
             //if (GUI.isMacBrushedMetal() && isToolbar)
             if (isToolbar) {
                 gradientBG = true;
-                changeAll(c);
+                changeAll(widget);
             }
 
-            mContent.setBorder(getContentBorder(c));
-            mContent.add(c, BorderLayout.CENTER);
+            mContent.setBorder(getContentBorder(widget));
+
+            if (scrolled && mScroller == null) {
+                mScroller = new JScrollPane(null,
+                                            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                                            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                mScroller.setOpaque(false);
+                mScroller.getViewport().setOpaque(false);
+                mScroller.setBorder(null);
+                mContent.add(mScroller, BorderLayout.CENTER);
+                if (DEBUG.BOXES) mScroller.setBorder(new LineBorder(Color.green, 4));
+            }
+
+            if (mScroller != null) {
+
+                mScroller.setViewportView(new ScrollableWidthTracker(widget, mContent));
+                //mScroller.setViewportView(widget);
+                
+                //JPanel p = new JPanel(new BorderLayout());
+                //p.add(widget);
+                //p.setBorder(new LineBorder(Color.red));
+                //mScroller.setViewportView(p);
+                //mScroller.setViewportView(widget);
+            } else {
+                mContent.add(widget, BorderLayout.CENTER);
+            }
 
         }
 
