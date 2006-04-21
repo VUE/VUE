@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.35 $ / $Date: 2006-04-18 20:46:22 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2006-04-21 03:42:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -62,7 +62,7 @@ public class GUI
     public static final int LabelGapRight = 6;
     public static final int FieldGapRight = 6;
     public static final Insets WidgetInsets = new Insets(12,10,12,10);
-    public static final Border WidgetBorder = new EmptyBorder(WidgetInsets);
+    public static final Border WidgetInsetBorder = new EmptyBorder(WidgetInsets);
     //public static final Border WidgetBorder = new MatteBorder(WidgetInsets, Color.orange);
     
     /** the special name AWT/Swing gives to pop-up Windows (menu's, rollovers, etc) */
@@ -555,8 +555,8 @@ public class GUI
     }
 
     /** the given panel must have it's title set via setName */
-    public static DockWindow createDockWindow(JPanel panel) {
-        return createDockWindow(panel.getName(), panel);
+    public static DockWindow createDockWindow(JComponent c) {
+        return createDockWindow(c.getName(), c);
     }
     
     
@@ -1052,11 +1052,44 @@ public class GUI
         invokeAfterAWT(new Runnable() { public void run() { postEvent(e); }});
     }
 
+
+    public static void dumpSizes(Component c) {
+        dumpSizes(c, "");
+    }
+    
+    public static void dumpSizes(Component c, String msg) {
+        //if (DEBUG.META) tufts.Util.printStackTrace("java 1.5 only");
+        boolean prfSet = false, maxSet = false, minSet = false;
+        String     sp = "     ";
+        String setMsg = " ??? ";
+        try {
+            prfSet = ((Boolean)Util.invoke(c, "isPreferredSizeSet")).booleanValue();
+            maxSet = ((Boolean)Util.invoke(c, "isMinimumSizeSet")).booleanValue();
+            minSet = ((Boolean)Util.invoke(c, "isMaximumSizeSet")).booleanValue();
+            setMsg = " SET ";
+        } catch (Throwable t) {}
+
+        out(name(c) + " sizes; " + msg
+            + "\n\t    Size" + sp + name(c.getSize())
+            + "\n\tprefSize" + (prfSet?setMsg:sp) + name(c.getPreferredSize())
+            + "\n\t minSize" + (maxSet?setMsg:sp) + name(c.getMinimumSize())
+            + "\n\t maxSize" + (minSet?setMsg:sp) + name(c.getMaximumSize())
+            );
+    }
+
+    
+
     /** @return a short name for given object, being smart about it if it's a java.awt.Component */
     public static String name(Object c) {
 
         if (c == null)
             return "null";
+
+        if (c instanceof Boolean)
+            return "bool:" + ((Boolean)c).booleanValue();
+
+        if (c instanceof String)
+            return c.toString();
 
         if (c instanceof AWTEvent)
             return eventName((AWTEvent) c);
@@ -1084,7 +1117,7 @@ public class GUI
             title = ((java.awt.MenuComponent)c).getName();
         } else if (c instanceof java.awt.Dimension) {
             Dimension d = (Dimension) c;
-            title = d.width + "x" + d.height;
+            title = "w="+ d.width + " h=" + d.height;
         }
         
 
