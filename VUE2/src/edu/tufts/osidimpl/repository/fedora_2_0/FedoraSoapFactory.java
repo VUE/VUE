@@ -27,17 +27,12 @@ import java.io.*;
 import java.util.Vector;
 import java.util.Calendar;
 
-import javax.xml.namespace.QName;
 
 
 //axis packages
-import org.apache.axis.encoding.ser.*;
 import java.net.*;
 import java.io.*;
 import org.apache.axis.types.NonNegativeInteger;
-import org.apache.axis.client.Service;
-import org.apache.axis.client.Call;
-import javax.xml.rpc.ServiceException;
 import java.rmi.RemoteException ;
 
 
@@ -46,9 +41,7 @@ import fedora.client.APIMStubFactory;
 import fedora.client.APIAStubFactory;
 import fedora.server.management.FedoraAPIM;
 import fedora.server.access.FedoraAPIA;
-import fedora.server.types.gen.RepositoryInfo;
 import fedora.server.types.gen.*;
-import fedora.server.utilities.DateUtility;
 
 public class FedoraSoapFactory {
     public static final String[] RESULT_FIELDS={"pid", "label","title","description","cModel"};
