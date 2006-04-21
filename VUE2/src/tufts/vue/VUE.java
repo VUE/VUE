@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.365 $ / $Date: 2006-04-12 19:44:10 $ / $Author: sfraize $ 
+ * @version $Revision: 1.366 $ / $Date: 2006-04-21 03:41:11 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -603,7 +603,7 @@ public class VUE
         //pannerDock.getContentPanel().setBorder(new EmptyBorder(1,2,2,2));
         //pannerDock.setSize(120,120);
         //pannerDock.setSize(112,120);
-        pannerDock.setUpperRightCorner(GUI.GScreenWidth, 150);
+        //pannerDock.setUpperRightCorner(GUI.GScreenWidth, 150);
         pannerDock.setMenuActions(new Action[] {
                 Actions.ZoomFit,
                 Actions.ZoomActual
@@ -615,8 +615,11 @@ public class VUE
         // DRBrowser class initializes the DockWindow itself.
         //-----------------------------------------------------------------------------
         
-        DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
-        DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK);
+        DR_BROWSER_DOCK = GUI.createDockWindow("Get Content");
+        //DockWindow searchDock = GUI.createDockWindow("Search");
+        DockWindow searchDock = null;
+        DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK, searchDock);
+        DR_BROWSER_DOCK.setSize(300, (int) (GUI.GScreenHeight * 0.75));
 		
         //-----------------------------------------------------------------------------
         // Map Inspector
@@ -695,8 +698,9 @@ public class VUE
         
         VUE.ToolWindows = new Object[] {
             DR_BROWSER_DOCK,
-            MapInspector,
+            searchDock,
             ObjectInspector,
+            MapInspector,
             //resourceDock,
             formatDock,
             pannerDock,
@@ -858,16 +862,19 @@ public class VUE
 
         // order the windows left to right for the top dock
         final DockWindow[] acrossTop = new DockWindow[] {
-            DR_BROWSER_DOCK,
+            MapInspector,
             //GUI.isSmallScreen() ? null : fontDock,
             pathwayDock,
-            MapInspector,
             formatDock,
             ObjectInspector,
+            DR_BROWSER_DOCK,
             //resourceDock,
         };
             
-        outlineDock.setLowerLeftCorner(0, GUI.GScreenHeight - GUI.GInsets.bottom);
+        outlineDock.setLowerLeftCorner(0,
+                                       GUI.GScreenHeight - GUI.GInsets.bottom);
+        pannerDock.setLowerRightCorner(GUI.GScreenWidth - GUI.GInsets.right,
+                                       GUI.GScreenHeight - GUI.GInsets.bottom);
         if (DockWindow.getTopDock() != null)
             prepareForTopDockDisplay(acrossTop);
         
