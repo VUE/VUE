@@ -19,6 +19,9 @@
 package tufts.vue.ui;
 
 import tufts.vue.Resource;
+import tufts.vue.VueResources;
+import tufts.vue.gui.GUI;
+import tufts.vue.gui.WidgetStack;
 
 import java.util.*;
 import java.awt.*;
@@ -30,37 +33,105 @@ import javax.swing.border.*;
 
 
 /**
- * A list if Resource's with their icons & title's that is selectable, draggable & double-clickable
- * for resource actions.
+ * A list of Resource's with their icons & title's that is selectable, draggable & double-clickable
+ * for resource actions.  Also uses a "masking" data-model that can abbreviate the results
+ * until a synthetic model item at the end of this shortened list is selected, at which
+ * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.2 $ / $Date: 2006-04-11 05:41:59 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-04-21 03:42:04 $ / $Author: sfraize $
  */
 public class ResourceList extends JList
     implements DragGestureListener
 {
-    private static ImageIcon DragIcon = tufts.vue.VueResources.getImageIcon("favorites.leafIcon");
+    public static final Color DividerColor = VueResources.getColor("ui.resourceList.dividerColor", 204,204,204);
     
-    private javax.swing.DefaultListModel model = new javax.swing.DefaultListModel();
-	
-    public ResourceList(Iterator iterator)
+    private static ImageIcon DragIcon = tufts.vue.VueResources.getImageIcon("favorites.leafIcon");
+
+    private static int PreviewItems = 4;
+    private static int PreviewModelSize = PreviewItems + 1;
+
+    private static int LeftInset = 2;
+    private static int IconSize = 32;
+    private static int IconTextGap = new JLabel().getIconTextGap();
+    private static int RowHeight = IconSize + 5;
+
+    private boolean isMasking = false;
+
+    private static class MoreLabel extends JLabel {
+        MoreLabel(int moreItems) {
+            setFont(GUI.TitleFace);
+            setForeground(WidgetStack.BottomGradient);
+            setText(moreItems + " more...");
+
+            int leftInset = LeftInset + IconSize + IconTextGap;
+
+            setBorder(new CompoundBorder(new MatteBorder(0,0,1,0, DividerColor),
+                                         new EmptyBorder(0,leftInset,0,0)));
+        }
+    }
+
+    private MoreLabel mMoreLabel = new MoreLabel(0); // failsafe
+    
+    /**
+     * A model that can intially "mask" out all but a set of initial
+     * items to preview the contents of the list, and provide a
+     * special list item at the end of the preview range, that when
+     * selected, unmasks the rest of the items in the model.
+     */
+    private class MaskingModel extends javax.swing.DefaultListModel
     {
-        while (iterator.hasNext()) {
-            model.addElement(iterator.next());
+        public int getSize() {
+            return isMasking ? Math.min(PreviewModelSize, size()) : size();
         }
         
-        //setOpaque(false);
-        setFixedCellHeight(37);
-        setModel(model);
+        public Object getElementAt(int index) {
+            if (isMasking) {
+                if (index == PreviewItems) {
+                    return mMoreLabel;
+                } else if (index > PreviewItems)
+                    return "MASKED INDEX " + index; // should never see this
+            }
+            return super.getElementAt(index);
+        }
+
+        private void unmask() {
+            isMasking = false;
+            fireContentsChanged(this, PreviewItems, size() - 1);
+        }
+    }
+    
+    public ResourceList(Iterator iterator)
+    {
+        setFixedCellHeight(RowHeight);
         setCellRenderer(new RowRenderer());
+        
+        // Set up the data-model
+        
+        final MaskingModel model = new MaskingModel();
+        while (iterator.hasNext())
+            model.addElement(iterator.next());
+        if (model.size() > PreviewModelSize) {
+            mMoreLabel = new MoreLabel(model.size() - PreviewItems);
+            isMasking = true;
+        }
+        setModel(model);
+
+        // Set up the selection-model
+        
         DefaultListSelectionModel selectionModel = new DefaultListSelectionModel();
         selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         setSelectionModel(selectionModel);
 
         selectionModel.addListSelectionListener(new ListSelectionListener() {
-                public void valueChanged(ListSelectionEvent e) {				
-                    tufts.vue.VUE.getResourceSelection().setTo(getPicked());
+                public void valueChanged(ListSelectionEvent e) {
+                    if (isMasking && getSelectedIndex() >= PreviewItems)
+                        model.unmask();
+                    else
+                        tufts.vue.VUE.getResourceSelection().setTo(getPicked());
                 }
             });
+
+        // Set up the drag handler
 
         DragSource dragSource = DragSource.getDefaultDragSource();
         dragSource.createDefaultDragGestureRecognizer(this, // Component
@@ -68,8 +139,6 @@ public class ResourceList extends JList
                                                       DnDConstants.ACTION_MOVE |
                                                       DnDConstants.ACTION_LINK,
                                                       this); // DragGestureListener
-        
-        
     }
 
     private Resource getPicked() {
@@ -94,9 +163,10 @@ public class ResourceList extends JList
             //setOpaque(false); // selection stops working!
             //setFont(ResourceList.this.getFont()); // leave default label font
             
-            // Border: 1 pix gray at bottom, then 2 pix empty in from left
-            setBorder(new CompoundBorder(new MatteBorder(0,0,1,0, new Color(204,204,204)),
-                                         new EmptyBorder(0,2,0,0)));
+            // Border: 1 pix gray at bottom, then LeftInset in from left
+            setBorder(new CompoundBorder(new MatteBorder(0,0,1,0, DividerColor),
+                                         new EmptyBorder(0,LeftInset,0,0)));
+            setAlignmentY(0.5f);
         }
         
         public Component getListCellRendererComponent(
@@ -106,9 +176,15 @@ public class ResourceList extends JList
         boolean isSelected,      // is the cell selected
         boolean cellHasFocus)    // the list and the cell have the focus
         {
+            if (value == mMoreLabel)
+                return mMoreLabel;
+            
             Resource r = (Resource) value;
             setIcon(r.getIcon(list));
-            setText("<HTML>" + r.getTitle());
+            if (false)
+                setText("<HTML>" + r.getTitle());
+            else
+                setText(r.getTitle());
             if (isSelected) {
                 setBackground(list.getSelectionBackground());
                 setForeground(list.getSelectionForeground());
