@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.366 $ / $Date: 2006-04-21 03:41:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.367 $ / $Date: 2006-04-21 16:44:54 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -866,8 +866,8 @@ public class VUE
             //GUI.isSmallScreen() ? null : fontDock,
             pathwayDock,
             formatDock,
-            ObjectInspector,
             DR_BROWSER_DOCK,
+            ObjectInspector,
             //resourceDock,
         };
             
