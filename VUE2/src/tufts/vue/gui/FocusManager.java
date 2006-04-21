@@ -146,7 +146,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-01-28 23:34:09 $ / $Author: sfraize $ 
+ * @version $Revision: 1.6 $ / $Date: 2006-04-21 03:34:39 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -257,7 +257,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
     public boolean dispatchEvent(AWTEvent e) {
         final int id = e.getID();
         
-        if (id >= HierarchyEvent.HIERARCHY_FIRST && id <= HierarchyEvent.HIERARCHY_LAST)
+        if (!DEBUG.META && id >= HierarchyEvent.HIERARCHY_FIRST && id <= HierarchyEvent.HIERARCHY_LAST)
             return super.dispatchEvent(e);
 
         // If this is a resize event, and the window is animating resize,
