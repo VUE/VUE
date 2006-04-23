@@ -74,7 +74,7 @@ public class FedoraSoapFactory {
         return disseminationList;
     }
     
-    
+
     public static  org.osid.repository.AssetIterator search(Repository repository,SearchCriteria lSearchCriteria)  throws org.osid.repository.RepositoryException {
         FedoraAPIA APIA;
         try {
@@ -107,7 +107,7 @@ public class FedoraSoapFactory {
             
         }
     }
-    
+ 
     public static org.osid.repository.AssetIterator advancedSearch(Repository repository,SearchCriteria lSearchCriteria)  throws org.osid.repository.RepositoryException {
         FedoraAPIA APIA;
         Condition cond[] = lSearchCriteria.getConditions();
@@ -125,7 +125,7 @@ public class FedoraSoapFactory {
             throw new org.osid.repository.RepositoryException("FedoraSoapFactory.advancedSearch"+t.getMessage());
         }
     }
-    
+
     private static org.osid.repository.AssetIterator getAssetIterator(Repository repository, FieldSearchResult searchResults, SearchCriteria searchCriteria) throws org.osid.repository.RepositoryException   {
         try {
             java.util.Vector resultObjects = new java.util.Vector();
