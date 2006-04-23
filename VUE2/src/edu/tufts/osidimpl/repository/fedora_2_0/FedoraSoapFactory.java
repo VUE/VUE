@@ -52,8 +52,7 @@ public class FedoraSoapFactory {
         Calendar now = Calendar.getInstance();
         try {
             String date = now.get(Calendar.YEAR)+"-"+now.get(Calendar.MONTH)+"-"+now.get(Calendar.DAY_OF_MONTH)+"T"+now.get(Calendar.HOUR_OF_DAY)+":"+now.get(Calendar.MINUTE)+":"+now.get(Calendar.SECOND)+"."+now.get(Calendar.MILLISECOND)+"Z";
-            APIA = APIAStubFactory.getStub(repository.getAddress(),repository.getPort(),"dummy","dummy");// username and password are not required, but fedora api is implmented that way.
-            
+            APIA = APIAStubFactory.getStub(repository.getAddress(),repository.getPort(),"dummy","dummy");// username and password are not required, but fedora api is implmented that way
             ObjectMethodsDef[] objMethods= APIA.listMethods(pid,date);
             if(objMethods == null)
                 throw new org.osid.repository.RepositoryException("tufts.oki.repository.Asset():No Disseminations  returned");

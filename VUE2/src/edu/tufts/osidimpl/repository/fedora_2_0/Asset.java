@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -78,11 +78,12 @@ public class Asset implements org.osid.repository.Asset{
         this.assetType = assetType;
         this.pid = new PID(id);
         // inforecords are not added to BDEFs and BMECHs
-        if(!(assetType.getKeyword().equals("fedora:BDEF") || assetType.getKeyword().equals("fedora:BMECH")))
+        if(!(assetType.getKeyword().equals("fedora:BDEF") || assetType.getKeyword().equals("fedora:BMECH"))) {
             recordVector = FedoraSoapFactory.getDisseminationRecords(id,((FedoraObjectAssetType) assetType).getDissemiationRecordStructure(),repository);
-        recordVector.add(VUERecordStructure.createVUERecord(id,(VUERecordStructure)((FedoraObjectAssetType) assetType).getVUERecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
-        recordVector.add(UVARecordStructure.createUVARecord(id,(UVARecordStructure)((FedoraObjectAssetType) assetType).getUVARecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
-        recordVector.add(ImageRecordStructure.createImageRecord(id,(ImageRecordStructure)((FedoraObjectAssetType) assetType).getImageRecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
+            //recordVector.add(VUERecordStructure.createVUERecord(id,(VUERecordStructure)((FedoraObjectAssetType) assetType).getVUERecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
+            //recordVector.add(UVARecordStructure.createUVARecord(id,(UVARecordStructure)((FedoraObjectAssetType) assetType).getUVARecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
+            recordVector.add(ImageRecordStructure.createImageRecord(id,(ImageRecordStructure)((FedoraObjectAssetType) assetType).getImageRecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
+        }
     }
     
     //this method is for viewing objects in vue.  will be gone soon.
@@ -172,20 +173,15 @@ public class Asset implements org.osid.repository.Asset{
      *     @return java.io.Serializable
      *     @throws RepositoryException if there is a general failure
      */
-    public java.io.Serializable getContent() throws org.osid.repository.RepositoryException 
-    {
+    public java.io.Serializable getContent() throws org.osid.repository.RepositoryException {
         org.osid.repository.RecordIterator ri = getRecords();
-        while (ri.hasNextRecord())
-        {
+        while (ri.hasNextRecord()) {
             org.osid.repository.Record r = ri.nextRecord();
-            if (r.getRecordStructure().getDisplayName().equals("VUE Specific Data"))
-            {
+            if (r.getRecordStructure().getDisplayName().equals("VUE Specific Data")) {
                 org.osid.repository.PartIterator pi = r.getParts();
-                while (pi.hasNextPart())
-                {
+                while (pi.hasNextPart()) {
                     org.osid.repository.Part p = pi.nextPart();
-                    if (p.getPartStructure().getDisplayName().equals("VUE Default View Part Structure"))
-                    {
+                    if (p.getPartStructure().getDisplayName().equals("VUE Default View Part Structure")) {
                         return p.getValue();
                     }
                 }
@@ -223,7 +219,7 @@ public class Asset implements org.osid.repository.Asset{
      *     @throws RepositoryException if there is a general failure
      */
     public org.osid.shared.Id getId() throws org.osid.repository.RepositoryException {
-    
+        
         return pid;
     }
     
@@ -359,7 +355,7 @@ public class Asset implements org.osid.repository.Asset{
                 org.osid.repository.Part part = partIterator.nextPart();
 //                try {
 //                    if(part.getId().isEqual(id))
-                        return part;
+                return part;
 //                } catch (org.osid.shared.SharedException ex) {
 //                    throw new org.osid.repository.RepositoryException(ex.getMessage());
 //                }
@@ -383,7 +379,7 @@ public class Asset implements org.osid.repository.Asset{
     public org.osid.shared.ObjectIterator getPartValuesByPartStructure(org.osid.shared.Id partStructureId) throws org.osid.repository.RepositoryException {
         throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
-
+    
     public org.osid.repository.Record getRecord(org.osid.shared.Id id) throws org.osid.repository.RepositoryException {
         Iterator i = recordVector.iterator();
         while(i.hasNext()) {
@@ -403,7 +399,7 @@ public class Asset implements org.osid.repository.Asset{
         Iterator i = recordVector.iterator();
         while(i.hasNext()) {
             org.osid.repository.Record record = (Record)i.next();
-            try {  
+            try {
                 if(record.getRecordStructure().getId().getIdString().equals(id.getIdString()))
                     result.add(record);
             } catch (org.osid.shared.SharedException ex) {

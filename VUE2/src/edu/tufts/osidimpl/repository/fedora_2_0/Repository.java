@@ -88,7 +88,7 @@ public class Repository implements org.osid.repository.Repository {
     private java.util.Vector searchTypes = new java.util.Vector();
     private java.util.Vector assets = new java.util.Vector();
     private org.osid.shared.Id id = null;
-   // private URL configuration = null;
+    // private URL configuration = null;
     
     
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
@@ -137,7 +137,7 @@ public class Repository implements org.osid.repository.Repository {
         try {
             prefs = FedoraUtils.getPreferences(this);
             fedoraProperties.setProperty("url.fedora.api", prefs.get("url.fedora.api","http://www.fedora.info/definitions/1/0/api/"));
-            fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", "http://www.fedora.info/definitions/1/0/types/")); 
+            fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", "http://www.fedora.info/definitions/1/0/types/"));
             fedoraProperties.setProperty("url.fedora.soap.access",url+ prefs.get("url.fedora.soap.access", "access/soap"));
             fedoraProperties.setProperty("url.fedora.get", url+prefs.get("url.fedora.get", "get/"));
             fedoraProperties.setProperty("url.seastar.fedora.get", "http://seastar.lib.tufts.edu:8080/fedora/get/");
@@ -490,11 +490,7 @@ public class Repository implements org.osid.repository.Repository {
         return this.address;
     }
     public void setAddress(String address) {
-        if(address.startsWith("http://")) 
-                this.address = address;
-        else
-            this.address = "http://"+address;
-        
+        this.address = address;
     }
     public String getUserName() {
         return this.userName;

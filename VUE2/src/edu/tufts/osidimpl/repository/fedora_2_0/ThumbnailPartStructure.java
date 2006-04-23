@@ -28,7 +28,7 @@ public class ThumbnailPartStructure
     private boolean populatedByRepository = true;
     private boolean mandatory = true;
     private boolean repeatable = false;
-    private org.osid.shared.Type type = new Type("mit.edu","partStructure","thumbnail");
+    private org.osid.shared.Type type = new Type("mit.edu","partStructure","mediumImage");
     private org.osid.repository.RecordStructure recordStructure = (org.osid.repository.RecordStructure) disseminationRecordStructure;
     
     protected ThumbnailPartStructure(org.osid.repository.RecordStructure recordStructure

@@ -57,7 +57,7 @@ public class Record  implements org.osid.repository.Record {
             try {
                 if (partStructureId.isEqual(partStructure.getId())) {
                     org.osid.repository.Part part = new Part(partStructureId,recordStructure,partStructure,value);
-                    //System.out.println("created part " + partStructureId.getIdString() + recordStructure.getDisplayName() + partStructure.getDisplayName() + value);
+                    System.out.println("created part " + partStructureId.getIdString() + recordStructure.getDisplayName() + partStructure.getDisplayName() + value);
                     this.partVector.addElement(part);
                     return part;
                 }
