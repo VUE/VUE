@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.7 $ / $Date: 2006-04-18 19:57:40 $ -->
+<!-- $Revision: 1.8 $ / $Date: 2006-04-23 14:28:13 $ -->
 
 <!-- 
 This ant build file:
@@ -92,6 +92,7 @@ This ant build file:
    <pathelement location="${build.lib}/junit.jar"/>
     <pathelement location="${lib.home}/commons-discovery.jar" />
     <pathelement location="${lib.home}/saaj-api-unsigned.jar" />
+    <pathelement location="${lib.home}/googleapi.jar" />
 	
     <pathelement location="artifact.xml" />
     <pathelement location="../src/build/classes" />
@@ -195,6 +196,13 @@ This ant build file:
 <!-- ==================== Local Files Smoke Test ================================ -->
     <target name="localfilestest" depends="compile" description="Dumps Some Local Files Repository Data" >
         <java classname="test.repository.localfiles.repositoryDump" failonerror="true" fork="true">
+      <classpath refid="compile.classpath"/>
+        </java>
+    </target>
+
+<!-- ==================== Google Global Smoke Test ================================ -->
+    <target name="googleglobaltest" depends="compile" description="Dumps Some Google Global Repository Data" >
+        <java classname="test.repository.google.global.repositoryDump" failonerror="true" fork="true">
       <classpath refid="compile.classpath"/>
         </java>
     </target>
