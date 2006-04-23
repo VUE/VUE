@@ -111,7 +111,7 @@ public class Repository implements org.osid.repository.Repository {
         } catch (Throwable t) { t.printStackTrace(); }
         this.displayName = displayName;
         this.description = description;
-        this.address = address;
+        setAddress(address);
         this.port = port;
         this.userName = userName;
         this.password = password;
@@ -490,8 +490,10 @@ public class Repository implements org.osid.repository.Repository {
         return this.address;
     }
     public void setAddress(String address) {
-        
-        this.address = address;
+        if(address.startsWith("http://")) 
+                this.address = address;
+        else
+            this.address = "http://"+address;
         
     }
     public String getUserName() {
