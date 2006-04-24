@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.116 $ / $Date: 2006-04-24 17:04:49 $ / $Author: sfraize $ *
+ * @version $Revision: 1.117 $ / $Date: 2006-04-24 17:15:55 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -516,6 +516,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 
     public void searchPerformed(edu.tufts.vue.fsm.event.SearchEvent se)
     {
+        Widget.setExpanded(DRB.browsePane, false);
         if (DEBUG.DR) {
             System.out.println("\n");
             out("Search includes:");
