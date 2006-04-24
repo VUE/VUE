@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.11 $ / $Date: 2006-04-10 18:40:40 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2006-04-24 17:25:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -108,22 +108,33 @@ public class Images
     }
 
     private static class CacheEntry {
-        Reference imageRef;
-        File file;
+        private Reference imageRef;
+        private File file;
 
         /** image should only be null for startup init with existing cache files */
         CacheEntry(BufferedImage image, File cacheFile)
         {
             if (image == null && cacheFile == null)
                 throw new IllegalArgumentException("CacheEntry: at least one of image or file must be non null");
-            this.imageRef = new SoftReference(image);
+            if (image != null)
+                this.imageRef = new SoftReference(image);
             this.file = cacheFile;
             if (DEBUG.IMAGE) out("new " + this);
         }
 
         BufferedImage getImage() {
+
+            // if don't even have a ref, this was for an init-time persitent cache file
+            if (imageRef == null)
+                return null;
+
+            BufferedImage image = (BufferedImage) imageRef.get();
             // will be null if was cleared
-            return (BufferedImage) imageRef.get();
+            if (image == null) {
+                if (DEBUG.Enabled) out("GC'd: " + file);
+                return null;
+            } else
+                return image;
         }
 
         File getFile() {

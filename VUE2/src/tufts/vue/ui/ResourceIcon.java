@@ -34,7 +34,7 @@ import javax.swing.*;
  * TODO: merge common code with PreviewPane, and perhaps put in a 3rd class
  * so can have multiple icons referencing the same underlying image.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-04-11 06:25:45 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-04-24 17:24:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -246,7 +246,7 @@ public class ResourceIcon
             mPainter = c;
         }
         
-        if (DEBUG.IMAGE) out("paint, parent=" + GUI.name(c));
+        if (DEBUG.IMAGE && DEBUG.META) out("paintIcon; parent=" + GUI.name(c));
 
         if (DrawBorder && !expandToFit) {
             g.setColor(Color.gray);
@@ -284,7 +284,7 @@ public class ResourceIcon
             else
                 maxImageSize = new Dimension(fitWidth, fitHeight);
             
-            if (DEBUG.IMAGE) out("painting into " + GUI.name(maxImageSize));
+            if (DEBUG.IMAGE && DEBUG.META) out("paintIcon; into " + GUI.name(maxImageSize));
         }
 
         double zoomFit;
@@ -328,7 +328,7 @@ public class ResourceIcon
             g.clipRect(x, y, mWidth, mHeight);
         }
             
-        if (DEBUG.IMAGE) out("painting " + Util.tag(mImage) + " as " + drawW + "x" + drawH);
+        if (DEBUG.IMAGE && DEBUG.META) out("paintIcon; " + Util.tag(mImage) + " as " + drawW + "x" + drawH);
         g.drawImage(mImage, xoff, yoff, drawW, drawH, null);
 
         if (DEBUG.BOXES) {
