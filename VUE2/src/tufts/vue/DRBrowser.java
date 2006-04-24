@@ -28,7 +28,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.44 $ / $Date: 2006-04-21 03:39:03 $ / $Author: sfraize $ 
+ * @version $Revision: 1.45 $ / $Date: 2006-04-24 17:05:25 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -109,6 +109,10 @@ public class DRBrowser extends JPanel
         };
     
     final JPanel librariesPanel;
+    final Widget browsePane = new Widget("Browse");
+    final Widget resultsPane = new Widget("Search Results");
+
+    /*
     final Widget browsePane = new Widget("Browse") {
             public void setHidden(boolean hidden) {
                 if (!hidden) Widget.setHiddenImpl(resultsPane, true);
@@ -123,6 +127,9 @@ public class DRBrowser extends JPanel
                     Widget.setHiddenImpl(browsePane, true);
                 super.setHidden(hidden);
             }
+        };
+            
+    */
             
             /*
             protected void addImpl(Component c, Object lc, int idx) {
@@ -151,7 +158,6 @@ public class DRBrowser extends JPanel
                 }
             }
             */
-        };
 
     
     //final Widget previewPane = new Widget("Preview");
@@ -207,15 +213,17 @@ public class DRBrowser extends JPanel
 
         Widget.setWantsScroller(stack, true);
 
-        stack.addPane(searchPane, 0f);
         stack.addPane(librariesPanel, 0f);
+        stack.addPane(searchPane, 0f);
         stack.addPane(browsePane, 1f);
         stack.addPane(resultsPane, 1f);
 
-        JLabel startLabel = new JLabel("Search Results", JLabel.CENTER);
-        startLabel.setPreferredSize(new Dimension(100, 100));
-        startLabel.setBorder(new MatteBorder(1,0,0,0, Color.darkGray));
-        resultsPane.add(startLabel);
+        if (false) {
+            JLabel startLabel = new JLabel("Search Results", JLabel.CENTER);
+            startLabel.setPreferredSize(new Dimension(100, 100));
+            startLabel.setBorder(new MatteBorder(1,0,0,0, Color.darkGray));
+            resultsPane.add(startLabel);
+        }
 
         this.dockWindow.setContent(stack);
     }
