@@ -28,7 +28,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.45 $ / $Date: 2006-04-24 17:05:25 $ / $Author: sfraize $ 
+ * @version $Revision: 1.46 $ / $Date: 2006-04-24 18:11:15 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -216,7 +216,7 @@ public class DRBrowser extends JPanel
         stack.addPane(librariesPanel, 0f);
         stack.addPane(searchPane, 0f);
         stack.addPane(browsePane, 1f);
-        stack.addPane(resultsPane, 1f);
+        stack.addPane(resultsPane, 0f);
 
         if (false) {
             JLabel startLabel = new JLabel("Search Results", JLabel.CENTER);
