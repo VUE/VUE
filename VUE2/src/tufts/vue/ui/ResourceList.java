@@ -38,7 +38,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.3 $ / $Date: 2006-04-21 03:42:04 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2006-04-24 17:16:50 $ / $Author: sfraize $
  */
 public class ResourceList extends JList
     implements DragGestureListener
@@ -126,8 +126,7 @@ public class ResourceList extends JList
                 public void valueChanged(ListSelectionEvent e) {
                     if (isMasking && getSelectedIndex() >= PreviewItems)
                         model.unmask();
-                    else
-                        tufts.vue.VUE.getResourceSelection().setTo(getPicked());
+                    tufts.vue.VUE.getResourceSelection().setTo(getPicked());
                 }
             });
 
