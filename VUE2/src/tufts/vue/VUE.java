@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.367 $ / $Date: 2006-04-21 16:44:54 $ / $Author: sfraize $ 
+ * @version $Revision: 1.368 $ / $Date: 2006-04-24 17:03:43 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -615,7 +615,7 @@ public class VUE
         // DRBrowser class initializes the DockWindow itself.
         //-----------------------------------------------------------------------------
         
-        DR_BROWSER_DOCK = GUI.createDockWindow("Get Content");
+        DR_BROWSER_DOCK = GUI.createDockWindow("Content");
         //DockWindow searchDock = GUI.createDockWindow("Search");
         DockWindow searchDock = null;
         DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK, searchDock);
