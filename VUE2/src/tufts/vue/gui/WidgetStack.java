@@ -34,7 +34,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.16 $ / $Date: 2006-04-21 03:37:45 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2006-04-24 17:59:56 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -85,7 +85,16 @@ public class WidgetStack extends Widget
         c.anchor = GridBagConstraints.SOUTH;
         c.weighty = 1;
         c.gridy = 64; 
-        mDefaultExpander = new JPanel();
+        mDefaultExpander = new JPanel(new BorderLayout());
+        mDefaultExpander.setMinimumSize(new Dimension(0,0));
+        mDefaultExpander.setPreferredSize(new Dimension(0,0));
+        if (DEBUG.BOXES) {
+            mDefaultExpander.setOpaque(true);
+            mDefaultExpander.setBackground(Color.darkGray);
+            JLabel l = new JLabel("WidgetStack: veritcal expander", JLabel.CENTER);
+            l.setForeground(Color.white);
+            mDefaultExpander.add(l);
+        }
         mDefaultExpander.setVisible(false);
         add(mDefaultExpander, c);
 
