@@ -31,7 +31,7 @@ implements org.osid.repository.RecordStructure
     private org.osid.repository.PartStructure BDEFPartStructure = null;
     private org.osid.repository.PartStructure disseminationURLPartStructure = null;
     private org.osid.repository.PartStructure parameterPartStructure = null;
-
+    private org.osid.repository.PartStructure thumbnailPartStructure = null;
     protected DisseminationRecordStructure(Repository repository)
     throws org.osid.repository.RepositoryException
     {
@@ -43,11 +43,13 @@ implements org.osid.repository.RecordStructure
         {
         }
         this.BDEFPartStructure = new BDEFPartStructure(this,repository);
-        this.disseminationURLPartStructure = new DisseminationURLPartStructure(this,repository);
+        this.disseminationURLPartStructure = new URLPartStructure(this,repository);
         this.parameterPartStructure = new ParameterPartStructure(this,repository);
+        this.thumbnailPartStructure = new ThumbnailPartStructure(this,repository);
         this.partsVector.add(this.BDEFPartStructure);        
         this.partsVector.add(this.disseminationURLPartStructure);        
         this.partsVector.add(this.parameterPartStructure);        
+        this.partsVector.add(this.thumbnailPartStructure);
     }
 
     public String getDisplayName()
@@ -130,6 +132,15 @@ implements org.osid.repository.RecordStructure
         return this.disseminationURLPartStructure;
     }
 
+    public org.osid.repository.PartStructure getThumbnailPartStructure()
+    throws org.osid.repository.RepositoryException
+    {
+        if (this.thumbnailPartStructure == null)
+        {
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.OPERATION_FAILED);
+        }
+        return this.thumbnailPartStructure;
+    }
     public org.osid.repository.PartStructure getParameterPartStructure()
     throws org.osid.repository.RepositoryException
     {
