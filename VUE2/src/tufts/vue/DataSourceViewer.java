@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.119 $ / $Date: 2006-04-25 20:49:10 $ / $Author: jeff $ *
+ * @version $Revision: 1.120 $ / $Date: 2006-04-25 23:12:30 $ / $Author: jeff $ *
  * @author  akumar03
  */
 
@@ -123,6 +123,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
         for (int i=0; i < dataSources.length; i++) {
             dataSourceList.getContents().addElement(dataSources[i]);
+			dataSources[i].setIncludedInSearch(true);
         }
         loadDefaultDataSources();
 				
@@ -140,8 +141,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         //this.previewPanel = previewDockWindow.getWidgetPanel();
 
         //resultSetDockWindow = DRB.searchDock;
-		
-        dataSourceList.clearSelection();
 		
         setPopup();
         // WORKING: commented out
@@ -455,6 +454,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 			dataSourceList.getContents().addElement(breakTag);
             DataSource ds2 = new LocalFileDataSource("My Computer","");
 			dataSourceList.getContents().addElement(ds2);
+			// default selection
+			dataSourceList.setSelectedValue(ds2,true);
 			dataSourceList.getContents().addElement(breakTag);
             DataSource ds4 = new LocalFileDataSource("My Maps","");
 			dataSourceList.getContents().addElement(ds4);
