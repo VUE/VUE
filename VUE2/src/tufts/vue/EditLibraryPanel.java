@@ -92,6 +92,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener, FocusLis
 			}
 			
 			updateButton.addActionListener(this);
+			gbConstraints.gridx = 1;
 			add(updateButton,gbConstraints);
 		} catch (Throwable t) {
 			

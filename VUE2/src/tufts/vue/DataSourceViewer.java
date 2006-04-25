@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.118 $ / $Date: 2006-04-25 16:52:28 $ / $Author: jeff $ *
+ * @version $Revision: 1.119 $ / $Date: 2006-04-25 20:49:10 $ / $Author: jeff $ *
  * @author  akumar03
  */
 
@@ -369,14 +369,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 					// for the moment, we are doing double work to keep old data sources
 					if (o instanceof edu.tufts.vue.dsm.DataSource) {
 						edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
-						if (ds.hasConfiguration()) {
-							displayEditOrInfo(ds);
-						} else {
-							javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
-																	  "Nothing to configure",
-																	  "EDIT LIBRARY",
-																	  javax.swing.JOptionPane.INFORMATION_MESSAGE);
-						}
+						displayEditOrInfo(ds);
 					}
 				}
             }
@@ -723,13 +716,24 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 			if (ds.hasConfiguration()) {
 				editInfoStack.addPane("Configuration",new javax.swing.JScrollPane(new EditLibraryPanel(ds)));
 			} else {
-				editInfoStack.addPane("Configuration",new JLabel("None"));
+				JPanel jc = new JPanel();
+				jc.add(new JLabel("None"));
+				editInfoStack.addPane("Configuration",jc);
+				Widget.setExpanded(jc,false);				
 			}
-			editInfoStack.addPane("Information",new javax.swing.JScrollPane(new LibraryInfoPanel(ds)));
+			
+			JPanel descriptionPanel = new JPanel();
+			java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
+			java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();			
+			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+			gbConstraints.insets = new java.awt.Insets(10,12,10,12);
+			descriptionPanel.setLayout(gbLayout);
+			descriptionPanel.add(new LibraryInfoPanel(ds),gbConstraints);		
+			editInfoStack.addPane("Description",new javax.swing.JScrollPane(descriptionPanel));
 						
 			editInfoDockWindow = GUI.createDockWindow(dockTitle, editInfoStack);
-			editInfoDockWindow.setWidth(400);
-			editInfoDockWindow.setHeight(400);
+			editInfoDockWindow.setWidth(300);
+			editInfoDockWindow.setHeight(300);
 			editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
 										   DRB.dockWindow.getY());
 			editInfoDockWindow.setTitle(dockTitle);
@@ -737,9 +741,19 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 			if (ds.hasConfiguration()) {
 				editInfoStack.addPane("Configuration", new javax.swing.JScrollPane(new EditLibraryPanel(ds)));
 			} else {
-				editInfoStack.addPane("Configuration", new JLabel("None"));
+				JPanel jc = new JPanel();
+				jc.add(new JLabel("None"));
+				editInfoStack.addPane("Configuration",jc);
+				Widget.setExpanded(jc,false);				
 			}
-			editInfoStack.addPane("Information", new javax.swing.JScrollPane(new LibraryInfoPanel(ds)));
+			JPanel descriptionPanel = new JPanel();
+			java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
+			java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();			
+			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+			gbConstraints.insets = new java.awt.Insets(10,12,10,12);
+			descriptionPanel.setLayout(gbLayout);
+			descriptionPanel.add(new LibraryInfoPanel(ds),gbConstraints);		
+			editInfoStack.addPane("Description",new javax.swing.JScrollPane(descriptionPanel));
 			
 			editInfoDockWindow.setTitle(dockTitle);
 			editInfoDockWindow.setContent(editInfoStack);
