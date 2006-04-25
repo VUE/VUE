@@ -76,6 +76,8 @@
     </javac>
    </target>
    <target name="fedora20.jar" depends="fedora20.compile">
+   
+   <mkdir dir="${build.osid}"/>
     <jar zipfile="${build.osid}/${fedora20.jar}" update="true" compress="false" index="true">
       <fileset dir="${build.class}" includes="edu/tufts/osidimpl/repository/fedora_2_0/**"/>
       <fileset dir="${src}" includes="edu/tufts/osidimpl/repository/fedora_2_0/*.xml"/>
