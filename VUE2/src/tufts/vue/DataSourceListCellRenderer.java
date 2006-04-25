@@ -31,7 +31,9 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
     private final PolygonIcon breakIcon = new PolygonIcon(Color.LIGHT_GRAY);
 	private edu.tufts.vue.dsm.DataSource infoDataSource;
 	private final static String OFFLINE = "offline";
-	private JLabel offlineLabel = new JLabel(OFFLINE);
+	private final static String ONLINE = "";
+	private JLabel offlineLabel = new JLabel(OFFLINE, JLabel.RIGHT);
+	private JLabel onlineLabel = new JLabel(ONLINE, JLabel.RIGHT);
 
 	public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)
 	{
@@ -46,78 +48,7 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
 			super.getListCellRendererComponent(list,((edu.tufts.vue.dsm.DataSource)value).getRepositoryDisplayName(), index, iss, chf);					
 		}
 		
-		if (value instanceof edu.tufts.vue.dsm.DataSource) {
-			edu.tufts.vue.dsm.DataSource datasource = (edu.tufts.vue.dsm.DataSource)value;
-			
-			JPanel panel = new JPanel();
-			panel.setLayout(new BoxLayout(panel,BoxLayout.X_AXIS));
-
-			JPanel checkBoxPanel = new JPanel();			
-			checkBoxPanel.setLayout(new BorderLayout());
-			// TODO: Make this font-savy
-			checkBoxPanel.setSize(new Dimension(4,4));
-			
-			JPanel namePanel = new JPanel();
-//			namePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-			// TODO: Make this font-savy
-//			namePanel.setPreferredSize(new Dimension(100,10));
-
-			JPanel offlinePanel = new JPanel();
-			offlinePanel.setLayout(new BorderLayout());
-			
-			JPanel iconPanel = new JPanel();
-			iconPanel.setLayout(new BorderLayout());
-						
-			JCheckBox checkBox = new JCheckBox();
-			checkBox.setBackground(VueResources.getColor("FFFFFF"));
-			
-			if (index == list.getSelectedIndex()) {
-				checkBoxPanel.setBackground(SystemColor.textHighlight);
-				namePanel.setBackground(SystemColor.textHighlight);
-				offlinePanel.setBackground(SystemColor.textHighlight);
-				iconPanel.setBackground(SystemColor.textHighlight);
-				panel.setBackground(SystemColor.textHighlight);
-			} else {
-				checkBoxPanel.setBackground(VueResources.getColor("FFFFFF"));								
-				namePanel.setBackground(VueResources.getColor("FFFFFF"));
-				offlinePanel.setBackground(VueResources.getColor("FFFFFF"));
-				iconPanel.setBackground(VueResources.getColor("FFFFFF"));
-				panel.setBackground(VueResources.getColor("FFFFFF"));
-			}
-			checkBoxPanel.add(checkBox, BorderLayout.WEST);
-			checkBox.setEnabled(true);
-			checkBox.setSelected(datasource.isIncludedInSearch());
-			String displayName = datasource.getRepositoryDisplayName();
-
-			// TODO: Make this font-savy
-			if (displayName.length() > 15) {
-				displayName = displayName.substring(0,15) + "...";
-			}
-			namePanel.add(checkBoxPanel);
-			namePanel.add(new JLabel(displayName));
-			offlinePanel.add(offlineLabel, BorderLayout.EAST);
-			iconPanel.add(new JLabel(savedResourcesIcon), BorderLayout.EAST);
-			
-//			panel.add(checkBoxPanel);
-			panel.add(namePanel);
-			panel.add(offlinePanel);
-			panel.add(iconPanel);
-			return panel;
-		} else if (value instanceof LocalFileDataSource){
-			JPanel panel = new JPanel();
-			panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-			JCheckBox checkBox = new JCheckBox();
-			checkBox.setBackground(VueResources.getColor("FFFFFF"));
-			if (index == list.getSelectedIndex()) {
-				panel.setBackground(SystemColor.textHighlight);
-			} else {
-				panel.setBackground(VueResources.getColor("FFFFFF"));								
-			}
-			checkBox.setEnabled(false);
-			panel.add(new JLabel(((DataSource)value).getDisplayName()));
-			panel.add(new JLabel(myComputerIcon));
-			return panel;
-		} else  if (value instanceof String) {
+		if (value instanceof String) {
 			JPanel linePanel = new JPanel() {
 				protected void paintComponent(Graphics g) {
 					Graphics2D g2d = (Graphics2D)g;
@@ -134,28 +65,80 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
 			};
 			return linePanel;
 		}
-		else  if (value instanceof FavoritesDataSource) {
-			JPanel panel = new JPanel();
-			JPanel westPanel = new JPanel();
-			panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-			JCheckBox checkBox = new JCheckBox();
-			checkBox.setBackground(VueResources.getColor("FFFFFF"));
-			if (index == list.getSelectedIndex()) {
-				panel.setBackground(SystemColor.textHighlight);
+
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel,BoxLayout.X_AXIS));
+		
+		// TODO: Make this font-savy
+		JPanel checkBoxPanel = new JPanel();			
+		checkBoxPanel.setLayout(new BorderLayout());
+		checkBoxPanel.setSize(new Dimension(4,4));
+		
+		JPanel namePanel = new JPanel();
+		BorderLayout nameLayout = new BorderLayout();
+		namePanel.setLayout(nameLayout);
+		
+		JPanel iconPanel = new JPanel();
+		iconPanel.setLayout(new BorderLayout());
+		
+		JCheckBox checkBox = new JCheckBox();
+		checkBoxPanel.add(checkBox, BorderLayout.WEST);
+
+		String displayName = null;
+		if (value instanceof edu.tufts.vue.dsm.DataSource) {
+			edu.tufts.vue.dsm.DataSource datasource = (edu.tufts.vue.dsm.DataSource)value;
+			displayName = datasource.getRepositoryDisplayName();
+			checkBox.setEnabled(true);
+			checkBox.setSelected(datasource.isIncludedInSearch());
+			iconPanel.add(new JLabel(remoteIcon), BorderLayout.EAST);
+			if (datasource.isOnline()) {
+				namePanel.add(onlineLabel, BorderLayout.EAST);
 			} else {
-				panel.setBackground(VueResources.getColor("FFFFFF"));								
+				namePanel.add(offlineLabel, BorderLayout.EAST);
 			}
-			
-			try {
-				panel.add(checkBox);
-				checkBox.setEnabled(true);
-				panel.add(new JLabel("My Saved Content"));
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
-			return panel;
+		} else if (value instanceof LocalFileDataSource){
+			displayName = ((DataSource)value).getDisplayName();
+			checkBox.setEnabled(false);
+			checkBox.setVisible(false);
+			iconPanel.add(new JLabel(savedResourcesIcon), BorderLayout.EAST);
+		} else  if (value instanceof FavoritesDataSource) {
+			displayName = "My Saved Content";
+			checkBox.setEnabled(true);
+			iconPanel.add(new JLabel(myComputerIcon), BorderLayout.EAST);
 		}
-		return null;
+				
+		if (index == list.getSelectedIndex()) {
+			checkBoxPanel.setBackground(SystemColor.textHighlight);
+			namePanel.setBackground(SystemColor.textHighlight);
+			iconPanel.setBackground(SystemColor.textHighlight);
+			panel.setBackground(SystemColor.textHighlight);
+		} else {
+			checkBoxPanel.setBackground(VueResources.getColor("FFFFFF"));								
+			namePanel.setBackground(VueResources.getColor("FFFFFF"));
+			iconPanel.setBackground(VueResources.getColor("FFFFFF"));
+			panel.setBackground(VueResources.getColor("FFFFFF"));
+		}
+
+		// adjust the spacing within the name panel (name and status) so labels are flush with edges
+		JLabel displayNameLabel = new JLabel(displayName);
+		double displayNameWidth;
+		while ((displayNameWidth = displayNameLabel.getPreferredSize().getWidth()) > 155) {
+			displayName = displayName.substring(0,displayName.length()-1) + "...";
+			displayNameLabel.setText(displayName);
+		}
+		while ((displayNameWidth = displayNameLabel.getPreferredSize().getWidth()) < 155) {
+			displayName = displayName + " ";
+			displayNameLabel.setText(displayName);
+		}
+		
+		namePanel.add(checkBoxPanel);
+		namePanel.add(displayNameLabel, BorderLayout.WEST);
+		
+		nameLayout.setHgap(10);
+		panel.add(checkBoxPanel);
+		panel.add(namePanel);
+		panel.add(iconPanel);
+		return panel;
 	}
 
 	public void actionPerformed(ActionEvent e) {

@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.117 $ / $Date: 2006-04-24 17:15:55 $ / $Author: sfraize $ *
+ * @version $Revision: 1.118 $ / $Date: 2006-04-25 16:52:28 $ / $Author: jeff $ *
  * @author  akumar03
  */
 
@@ -188,7 +188,11 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                         ds.setIncludedInSearch(included);
                         if (DEBUG.DR) out("DataSource " + ds + " [" + ds.getProviderDisplayName() + "] inclusion: " + included); 
                         //ds.setIncludedInSearch(!ds.isIncludedInSearch());
-                        dataSourceManager.save();
+						try {
+							dataSourceManager.save();
+						} catch (Throwable t) {
+							
+						}
                         dataSourceList.repaint();
                         queryEditor.refresh();
                     }
@@ -331,7 +335,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 DataSourceViewer.this.popup.setVisible(false);
             }
         };
-        addLibraryAction = new AbstractAction("Add Library") {
+        addLibraryAction = new AbstractAction("Add Resources") {
             public void actionPerformed(ActionEvent e) {
 				try {
 					if (registry == null) {
@@ -358,7 +362,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             }
         };
 		
-        editLibraryAction = new AbstractAction("Edit Library") {
+        editLibraryAction = new AbstractAction("View Properties") {
             public void actionPerformed(ActionEvent e) {
 				Object o = dataSourceList.getSelectedValue();
 				if (o != null) {
@@ -378,7 +382,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             }
         };
 		 
-        removeLibraryAction = new AbstractAction("Remove Library") {
+        removeLibraryAction = new AbstractAction("Remove Resource") {
             public void actionPerformed(ActionEvent e) {
 				Object o = dataSourceList.getSelectedValue();
 				if (o != null) {
@@ -400,24 +404,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 			}
 		};
 		
-			
-		/*
-		 We only provide data source information for data sources.  We look at the current selection, which is
-		 either a data source, and "old" data source, or a divider line.
-		 */
-        getLibraryInfoAction = new AbstractAction("Get Library Info") {
-            public void actionPerformed(ActionEvent e) {
-				Object o = dataSourceList.getSelectedValue();
-				if (o != null) {
-					// for the moment, we are doing double work to keep old data sources
-					if (o instanceof edu.tufts.vue.dsm.DataSource) {
-						edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
-						displayEditOrInfo(ds);
-					}
-				}
-			}
-		};
-
 		refreshMenuActions();
     }
 	
@@ -429,20 +415,20 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 			if (o instanceof edu.tufts.vue.dsm.DataSource) {
 				edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
 				removeLibraryAction.setEnabled(true);
-				getLibraryInfoAction.setEnabled(true);
+				editLibraryAction.setEnabled(true);
 			} else {
 				removeLibraryAction.setEnabled(false);
-				getLibraryInfoAction.setEnabled(false);
+				editLibraryAction.setEnabled(false);
 			}
 		} else {
 			removeLibraryAction.setEnabled(false);
-			getLibraryInfoAction.setEnabled(false);
+			editLibraryAction.setEnabled(false);
 		}
         Widget.setMenuActions(DRB.librariesPanel,
                               new Action[] {
-                                  checkForUpdatesAction,
                                   addLibraryAction,
-                                  getLibraryInfoAction,
+                                  checkForUpdatesAction,
+                                  editLibraryAction,
                                   removeLibraryAction,
                               });
 	}
