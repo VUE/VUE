@@ -40,7 +40,7 @@ implements org.osid.repository.RecordStructure
         catch (org.osid.shared.SharedException sex)
         {
         }
-        this.sVUEDefaultViewPartStructure = new VUEDefaultViewPartStructure(this, repository);
+        this.sVUEDefaultViewPartStructure = new URLPartStructure(this, repository);
         this.partsVector.add(this.sVUEDefaultViewPartStructure);        
     }
 
@@ -125,10 +125,10 @@ implements org.osid.repository.RecordStructure
         try
         {
             record = new Record(new PID(pid),recordStructure);
-            if(assetType.getKeyword().equals("TUFTS_STD_IMAGE"))
+            if(assetType.getKeyword().equals("tufts/image/archival"))
             {
                 record.createPart(recordStructure.getVUEDefaultViewPartStructure().getId(),
-                              repository.getFedoraProperties().getProperty("url.fedora.get") + "/"+objectId.getIdString()+"/bdef:11/getDefaultView/");
+                              repository.getFedoraProperties().getProperty("url.fedora.get") + ":8080/"+objectId.getIdString()+"/bdef:11/getDefaultView/");
             }
             else if(assetType.getKeyword().equals("XML_TO_HTMLDOC"))
             {

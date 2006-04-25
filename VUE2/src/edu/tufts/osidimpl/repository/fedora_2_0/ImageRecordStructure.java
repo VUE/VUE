@@ -120,9 +120,9 @@ public class ImageRecordStructure
             System.out.println("creating " + recordStructure.getType().getKeyword() + " " + recordStructure.getDisplayName());
             if(assetType.getKeyword().equals("tufts/image/archival")) {
                 record.createPart(recordStructure.getThumbnailPartStructure().getId(),
-                        "http://"+repository.getAddress()+"/fedora/get/" +objectId.getIdString()+"/bdef:TuftsImage/getThumbnail/");
+                        "http://"+repository.getAddress()+":8080/fedora/get/" +objectId.getIdString()+"/bdef:TuftsImage/getThumbnail/");
                 record.createPart(recordStructure.getURLPartStructure().getId(),
-                        "http://"+repository.getAddress()+"/fedora/get/" +objectId.getIdString()+"/bdef:AssetDef/getFullView/");
+                        "http://"+repository.getAddress()+":"+repository.getPort()+"/fedora/get/" +objectId.getIdString()+"/bdef:AssetDef/getFullView/");
             }
         } catch (Throwable t) {
             t.printStackTrace();
