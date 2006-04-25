@@ -31,12 +31,13 @@ package tufts.vue;
 
 public class Osid2AssetResource extends MapResource
 {
-    public static final String VUE_INTEGRATION_RECORD = "VUE_Integration_Record";
-    private osid.shared.SharedManager sharedManager = null;
     private osid.OsidOwner owner = null;
     private org.osid.OsidContext context = null;
     private org.osid.repository.Asset asset = null;
-	private org.osid.shared.Type thumbnailType = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
+	private org.osid.shared.Type thumbnailPartType1 = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
+	private org.osid.shared.Type thumbnailPartType2 = new edu.tufts.vue.util.Type("edu.mit","partStructure","thumbnail");
+	private org.osid.shared.Type urlPartType1 = new edu.tufts.vue.util.Type("mit.edu","partStructure","URL");
+	private org.osid.shared.Type urlPartType2 = new edu.tufts.vue.util.Type("edu.mit","partStructure","URL");
 	private String icon = null;
 	
 	//    private osid.dr.Asset asset;
@@ -80,121 +81,54 @@ public class Osid2AssetResource extends MapResource
     public void setAsset(org.osid.repository.Asset asset) throws org.osid.repository.RepositoryException 
     {
         this.asset = asset;
-        try
-        {
+        try {
             java.util.Properties osid_registry_properties = new java.util.Properties();
 			
             setType(Resource.ASSET_OKIREPOSITORY);
             String displayName = asset.getDisplayName();
             setTitle(displayName);
             setProperty("title", displayName);
-            org.osid.shared.Type specPartStructureType = new tufts.osid.types.VueSpecPartStructureType();
-            boolean foundIntegrationRecord = false;
-            try
-            {
-                org.osid.repository.RecordIterator recordIterator = asset.getRecordsByRecordStructureType(new tufts.osid.types.VueRecordStructureType());
-                if (recordIterator.hasNextRecord())
-                {
-                    foundIntegrationRecord = true;
-                    org.osid.repository.PartIterator partIterator = recordIterator.nextRecord().getParts();
-                    while (partIterator.hasNextPart())
-                    {
-                        org.osid.repository.Part part = partIterator.nextPart();
-                        org.osid.repository.PartStructure partStructure = part.getPartStructure();
-                        java.io.Serializable ser = part.getValue();
-						org.osid.shared.Type partStructureType = partStructure.getType();
-						
-                        String name = partStructure.getDisplayName();
-                        if (ser instanceof String)
-                        {
-                            setProperty(name, ser);
-                            if (name.equals("spec")) setSpec((String)ser);
-                        }
-                    }
-                }
-            }
-            catch (Throwable t) 
-            {
-                //System.out.println("No VUE integration record.  Looking at all records");
-            }
-            
-            if (!foundIntegrationRecord)
-            {
-                try
-			{
-				org.osid.shared.Type partType = new org.osid.types.mit.URLPartStructureType();
-				org.osid.repository.RecordIterator recordIterator = asset.getRecords();
-				while (recordIterator.hasNextRecord())
-				{
-					org.osid.repository.PartIterator partIterator = recordIterator.nextRecord().getParts();
-					while (partIterator.hasNextPart())
-					{
-						org.osid.repository.Part part = partIterator.nextPart();
-						org.osid.repository.PartStructure partStructure = part.getPartStructure();
-						org.osid.shared.Type partStructureType = partStructure.getType();
-						java.io.Serializable ser = part.getValue();
-						
-						// metadata discovery
-						setProperty(partStructureType.getKeyword(),ser);
-						if (partStructureType.isEqual(partType))
-						{
-							String s = (String)part.getValue();
-							setSpec(s);
-							//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL(s))));
-							this.icon = s;
-						}
-						
-						// preview should be a URL or an image
-						if (partStructureType.isEqual(this.thumbnailType)) {
-							if (ser instanceof String) {
-								//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL((String)ser))));
-								this.icon = (String)ser;
-							} else {
-								//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)ser)));
-								//this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
-							}
+			org.osid.repository.RecordIterator recordIterator = asset.getRecords();
+			while (recordIterator.hasNextRecord()) {
+				org.osid.repository.PartIterator partIterator = recordIterator.nextRecord().getParts();
+				while (partIterator.hasNextPart()) {
+					org.osid.repository.Part part = partIterator.nextPart();
+					org.osid.repository.PartStructure partStructure = part.getPartStructure();
+					org.osid.shared.Type partStructureType = partStructure.getType();
+					java.io.Serializable ser = part.getValue();
+					
+					// metadata discovery
+					setProperty(partStructureType.getKeyword(),ser);
+					if ( (partStructureType.isEqual(this.urlPartType1)) || (partStructureType.isEqual(this.urlPartType2)) ) {
+						String s = (String)part.getValue();
+						setSpec(s);
+						//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL(s))));
+						this.icon = s;
+					}
+					
+					// preview should be a URL or an image
+					if ( (partStructureType.isEqual(this.thumbnailPartType1)) || (partStructureType.isEqual(this.thumbnailPartType2)) ) {
+						if (ser instanceof String) {
+							//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL((String)ser))));
+							this.icon = (String)ser;
+						} else {
+							//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)ser)));
+							//this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
 						}
 					}
 				}
 			}
-                catch (Throwable t) 
-			{
-                    t.printStackTrace();
-			}
-            }
-            
-            /*
-			 We looked for a chance to load the spec as part of a VUE Record above.  Now try the asset content.  If that fails,
-			 use the asset display name
-			 */
-            if ((getSpec() == null) || (getSpec().trim().length() == 0))
-            {
-                try
-			{
-				java.io.Serializable s = asset.getContent();
-				if (s instanceof String)
-				{
-					setSpec((String)s);
-				}
-			}
-                catch (Throwable t) {}
-                if (getSpec() == null)
-                {
-                    String o = getProperty("spec");
-                    setSpec( (o != null) ? o : asset.getDisplayName() );
-                }
-            }
-        }
-        catch (Throwable t)
-        {
-            setSpec(asset.getDisplayName());
-        }
-        if ((getSpec() == null) || (getSpec().trim().length() == 0))
-        {
-            setSpec(asset.getDisplayName());
-        }
-    }
-	
+		}
+		catch (Throwable t) 
+		{
+			t.printStackTrace();
+		}
+		
+		if ((getSpec() == null) || (getSpec().trim().length() == 0)) {
+			setSpec( asset.getDisplayName() );
+		}
+	}
+
     public org.osid.repository.Asset getAsset() 
     {
         return this.asset;
