@@ -36,19 +36,21 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	
 	private org.osid.repository.Repository[] repositories;
 	
-	private javax.swing.JButton searchButton = new javax.swing.JButton("Search");
-	private javax.swing.JButton addButton = new javax.swing.JButton("Add");
-	private static final String SELECT_A_LIBRARY = "Select a library";
+	private javax.swing.JButton searchButton1 = new javax.swing.JButton("Search");
+	private javax.swing.JButton searchButton2 = new javax.swing.JButton("Search");
+	private static final String SELECT_A_LIBRARY = "Please Select a library";
 	private static final String NO_MESSAGE = "";
 	private javax.swing.JLabel selectMessage = new javax.swing.JLabel(SELECT_A_LIBRARY);
 	
 	private javax.swing.JButton moreOptionsButton = new tufts.vue.gui.VueButton("advancedSearchMore");
 	private static final String MORE_OPTIONS = "";
 	private javax.swing.JLabel moreOptionsLabel = new javax.swing.JLabel(MORE_OPTIONS);
+	private javax.swing.JPanel moreOptionsButtonPanel = new javax.swing.JPanel();
 
 	private javax.swing.JButton fewerOptionsButton = new tufts.vue.gui.VueButton("advancedSearchLess");
 	private static final String FEWER_OPTIONS = "";
 	private javax.swing.JLabel fewerOptionsLabel = new javax.swing.JLabel(FEWER_OPTIONS);
+	private javax.swing.JPanel fewerOptionsButtonPanel = new javax.swing.JPanel();
 	
 	private javax.swing.JPanel moreFewerPanel = new javax.swing.JPanel();
 	
@@ -59,8 +61,6 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	private int currentStyle = BASIC;
 	
 	private javax.swing.JTextField[] advancedFields = null;
-	
-	//private javax.swing.JPanel panel = new javax.swing.JPanel();
 	
 	// advanced search universe of types
 	private java.util.Vector advancedSearchUniverseOfTypeStringsVector = new java.util.Vector();
@@ -75,12 +75,40 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			gbConstraints.ipady = 0;
 			
 			setLayout(gbLayout);
-	
-			//setSize(new java.awt.Dimension(100,100));
-			//setPreferredSize(new java.awt.Dimension(100,100));
-			//setMinimumSize(new java.awt.Dimension(100,100));
 			
-			searchButton.addActionListener(this);
+			// make button panels
+			java.awt.GridBagLayout moreOptionsButtonPanelgbLayout = new java.awt.GridBagLayout();
+			java.awt.GridBagConstraints moreOptionsButtonPanelgbConstraints = new java.awt.GridBagConstraints();
+			moreOptionsButtonPanel.setLayout(moreOptionsButtonPanelgbLayout);
+			
+			moreOptionsButtonPanelgbConstraints.gridx = 0;
+			moreOptionsButtonPanelgbConstraints.gridy = 0;
+			moreOptionsButtonPanelgbConstraints.fill = java.awt.GridBagConstraints.NONE;
+			moreOptionsButtonPanelgbConstraints.weightx = 0;
+			moreOptionsButtonPanel.add(moreOptionsButton,moreOptionsButtonPanelgbConstraints);
+
+			moreOptionsButtonPanelgbConstraints.gridx = 1;
+			moreOptionsButtonPanelgbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			moreOptionsButtonPanelgbConstraints.weightx = 1;
+			moreOptionsButtonPanel.add(searchButton1,moreOptionsButtonPanelgbConstraints);
+			
+			java.awt.GridBagLayout fewerOptionsButtonPanelgbLayout = new java.awt.GridBagLayout();
+			java.awt.GridBagConstraints fewerOptionsButtonPanelgbConstraints = new java.awt.GridBagConstraints();
+			fewerOptionsButtonPanel.setLayout(fewerOptionsButtonPanelgbLayout);
+			
+			fewerOptionsButtonPanelgbConstraints.gridx = 0;
+			fewerOptionsButtonPanelgbConstraints.gridy = 0;
+			fewerOptionsButtonPanelgbConstraints.fill = java.awt.GridBagConstraints.NONE;
+			fewerOptionsButtonPanelgbConstraints.weightx = 0;
+			fewerOptionsButtonPanel.add(fewerOptionsButton,fewerOptionsButtonPanelgbConstraints);
+			
+			fewerOptionsButtonPanelgbConstraints.gridx = 1;
+			fewerOptionsButtonPanelgbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			fewerOptionsButtonPanelgbConstraints.weightx = 1;
+			fewerOptionsButtonPanel.add(this.searchButton2,fewerOptionsButtonPanelgbConstraints);
+			
+			searchButton1.addActionListener(this);
+			searchButton2.addActionListener(this);
 			moreOptionsButton.addActionListener(this);
 			fewerOptionsButton.addActionListener(this);
 			field.addActionListener(this);
@@ -121,9 +149,9 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			case ADVANCED_INTERSECTION:
 				makeAdvancedIntersectionPanel();
 				break;
-			case ADVANCED_UNION:
-				makeAdvancedUnionPanel();
-				break;
+//			case ADVANCED_UNION:
+//				makeAdvancedUnionPanel();
+//				break;
 		}
 		this.revalidate();
 	}
@@ -132,6 +160,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	{
 		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 0;
+/*
 		add(new javax.swing.JLabel("Keyword:"),gbConstraints);
 		
 		gbConstraints.gridx = 1;
@@ -145,12 +174,8 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.gridy = 1;
 		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbConstraints.weightx = 1;
+*/
 		add(selectMessage,gbConstraints);
-		
-		gbConstraints.gridx = 1;
-		gbConstraints.gridy = 1;
-		add(searchButton,gbConstraints);
-		searchButton.setEnabled(false);
 	}
 	
 	private void makeBasicPanel()
@@ -170,13 +195,15 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		
 		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 1;
-		add(moreOptionsButton,gbConstraints);
+		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
+		gbConstraints.weightx = 0;
+		add(new javax.swing.JLabel("More options:"),gbConstraints);
 
 		gbConstraints.gridx = 1;
-		gbConstraints.gridy = 1;
 		gbConstraints.weightx = 1;
-		add(searchButton,gbConstraints);
-		searchButton.setEnabled(true);
+		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		gbConstraints.weightx = 1;
+		add(moreOptionsButtonPanel,gbConstraints);
 		this.currentStyle = BASIC;
 	}
 	
@@ -193,7 +220,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			// no Dublin Core Types found
 			add(new javax.swing.JLabel("No Common Dublin Core OSID Types Found"),gbConstraints);
 			gbConstraints.gridy++;
-			searchButton.setEnabled(false);
+			searchButton2.setEnabled(false);
 		} else {
 			this.advancedFields = new javax.swing.JTextField[size];
 			
@@ -209,18 +236,18 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 				gbConstraints.gridx = 0;
 				gbConstraints.gridy++;
 			}
-			searchButton.setEnabled(true);
+			searchButton2.setEnabled(true);
 		}
 		
+		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
+		gbConstraints.weightx = 0;
 		gbConstraints.gridx = 0;
-		add(fewerOptionsButton,gbConstraints);
-		
-		gbConstraints.gridy++;
-		add(moreOptionsButton,gbConstraints);
-		
+		add(new javax.swing.JLabel("Fewer options:"),gbConstraints);
+
 		gbConstraints.gridx = 1;
-		add(searchButton,gbConstraints);
+		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbConstraints.weightx = 1;
+		add(fewerOptionsButtonPanel,gbConstraints);
 		this.currentStyle = ADVANCED_INTERSECTION;
 	}
 	
@@ -237,7 +264,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			// no Dublin Core Types found
 			add(new javax.swing.JLabel("No Dublin Core OSID Types Found"),gbConstraints);
 			gbConstraints.gridy++;
-			searchButton.setEnabled(false);
+			searchButton2.setEnabled(false);
 		} else {
 			this.advancedFields = new javax.swing.JTextField[size];
 			
@@ -253,7 +280,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 				gbConstraints.gridx = 0;
 				gbConstraints.gridy++;
 			}
-			searchButton.setEnabled(true);
+			searchButton2.setEnabled(true);
 		}
 		
 		gbConstraints.gridx = 0;
@@ -261,7 +288,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		
 		gbConstraints.gridx = 1;
 		gbConstraints.gridy++;
-		add(searchButton,gbConstraints);
+		//add(searchButton,gbConstraints);
 		this.currentStyle = ADVANCED_UNION;
 	}
 	
@@ -298,7 +325,8 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
     
 	private void fireSearch(edu.tufts.vue.fsm.event.SearchEvent evt) 
 	{
-		this.searchButton.setEnabled(false);
+		this.searchButton1.setEnabled(false);
+		this.searchButton2.setEnabled(false);
 		Object[] listeners = listenerList.getListenerList();
 		for (int i=0; i<listeners.length; i+=2) {
 			if (listeners[i] == edu.tufts.vue.fsm.event.SearchListener.class) {
@@ -399,7 +427,9 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
 			for (int i=0; i < repositories.length; i++) {
 				
-				java.util.Vector intersection = new java.util.Vector();				
+				java.util.Vector intersection = new java.util.Vector();		
+				// always add a keyword field
+				intersection.addElement("Keyword");
 				// not all these methods may be implemented -- in which case we are out of luck
 				try {
 					org.osid.shared.TypeIterator typeIterator = repositories[i].getAssetTypes();
