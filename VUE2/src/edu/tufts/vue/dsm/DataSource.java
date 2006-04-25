@@ -148,10 +148,13 @@ public interface DataSource
 	
 	public String[] getConfigurationKeys();
 	
+	public void setConfigurationKeys(String[] keys);
+	
 	public String[] getConfigurationValues();
 	
 	public void setConfigurationValues(String[] values);
 	
 	public java.util.Map[] getConfigurationMaps();
 	
+	public void setConfigurationMaps(java.util.Map[] maps);
 }

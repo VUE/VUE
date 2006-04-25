@@ -52,6 +52,7 @@ implements org.osid.repository.RepositoryManager
     {
 		this.configuration = configuration;
 		
+		System.out.println("Assigning config1");
 		if (firstTime) {
 			try {
 				org.osid.logging.LoggingManager loggingManager = (org.osid.logging.LoggingManager)org.osid.OsidLoader.getManager("org.osid.logging.LoggingManager",
@@ -80,7 +81,6 @@ implements org.osid.repository.RepositoryManager
 				 */
 				this.repositoryType = new Type("edu.tufts","repository","google");
 				this.repositoryId = Utilities.getIdManager().getId("49734F17-AD8B-450B-8841-BCBF8F3454B3-758-000002113FA638E4");
-				// id for registry 38B8EB26-8725-4024-B788-58A09045C641-762-0000021174852614
 				this.searchTypeVector.addElement(new Type("edu.mit","search","keyword"));
 				this.repository = new Repository("Google Global",
 												 "Google (not local).  This implementatin requires the user to have a key.  Keys are obtained directly from Google.",
@@ -99,8 +99,10 @@ implements org.osid.repository.RepositoryManager
 		}
 		firstTime = false;
 
+		System.out.println("Assigning config2");
+		
 		// update the Google personal key, if it has been passed with the configuration
-		Object key = configuration.getProperty("googleKey");
+		Object key = configuration.getProperty("Google Web API license key");
 		if ((key != null) && (key instanceof String)) {
 			((Repository)this.repository).setGoogleKey((String)key);
 			Utilities.log("Google key set to " + key);

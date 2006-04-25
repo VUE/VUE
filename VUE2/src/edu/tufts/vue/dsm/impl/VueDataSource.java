@@ -40,6 +40,7 @@ implements edu.tufts.vue.dsm.DataSource
 	private String[] rights = null;
 	private org.osid.shared.Type[] rightTypes = null;
 	
+	private org.osid.repository.RepositoryManager repositoryManager = null;
 	private org.osid.repository.Repository repository = null;
 	private org.osid.shared.Id repositoryId = null;
 	private org.osid.shared.Type repositoryType = null;
@@ -56,6 +57,12 @@ implements edu.tufts.vue.dsm.DataSource
 	private boolean repositorySupportsUpdate = false;
 	private org.osid.shared.TypeIterator repositoryAssetTypes = null;
 	private org.osid.shared.TypeIterator repositorySearchTypes = null;
+	
+	// configuration-related
+	private boolean isConfigured = false;
+	private String configurationKeys[] = new String[0];
+	private String configurationValues[] = new String[0];
+	private java.util.Map configurationMaps[] = new java.util.Map[0];
 	
 	public VueDataSource()
 	{
@@ -81,7 +88,10 @@ implements edu.tufts.vue.dsm.DataSource
 						 String repositoryImage,
 						 java.util.Date registrationDate,
 						 boolean isHidden,
-						 boolean isIncludedInSearch) {
+						 boolean isIncludedInSearch,
+						 String[] configurationKeys,
+						 String[] configurationValues,
+						 java.util.Map[] configurationMaps) {
 
 		this.providerId = providerId;
 		this.osidService = osidService;
@@ -103,6 +113,12 @@ implements edu.tufts.vue.dsm.DataSource
 		this.registrationDate = registrationDate;
 		setHidden(isHidden);
 		setIncludedInSearch(isIncludedInSearch);
+		this.configurationKeys = configurationKeys;
+		setConfigurationValues(configurationValues);
+		this.configurationMaps = configurationMaps;
+		if (this.configurationKeys.length > 0) {
+			this.isConfigured = true;
+		}
 		
 		setRepositoryRelatedValues();
 	}
@@ -110,11 +126,11 @@ implements edu.tufts.vue.dsm.DataSource
 	private void setRepositoryRelatedValues() {
 		// get Repository
 		try {
+			this.repositoryManager = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey);
 			this.repository = (edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);	
 		} catch (Throwable t) {
 			// special case for when the Manager implementation doesn't offer this method
 			try {
-				org.osid.repository.RepositoryManager repositoryManager = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey);
 				org.osid.repository.RepositoryIterator repositoryIterator = repositoryManager.getRepositories();
 				while (repositoryIterator.hasNextRepository()) {
 					repository = repositoryIterator.nextRepository();
@@ -266,6 +282,24 @@ implements edu.tufts.vue.dsm.DataSource
 		} catch (Throwable t) {
 			edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Provider.getRightTypes()");
 		}
+		
+		try {
+			this.configurationKeys = provider.getConfigurationKeys();
+		} catch (Throwable t) {
+			edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Provider.getConfigurationKeys()");
+		}		
+		
+		try {
+			this.configurationValues = provider.getConfigurationValues();
+		} catch (Throwable t) {
+			edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Provider.getConfigurationValues()");
+		}		
+		
+		try {
+			this.configurationMaps = provider.getConfigurationMaps();
+		} catch (Throwable t) {
+			edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Provider.getConfigurationMaps()");
+		}		
 		
 		try {
 			this.registrationDate = edu.tufts.vue.util.Utilities.stringToDate(provider.getRegistrationDate());
@@ -542,44 +576,51 @@ implements edu.tufts.vue.dsm.DataSource
 
 	public boolean hasConfiguration()
 	{
-		return true;
+		return this.isConfigured;
 	}
 	
 	public String[] getConfigurationKeys()
 	{
-		String keys[] = new String[4];
-		keys[0] = "Display Name";
-		keys[1] = "Address";
-		keys[2] = "User Name";
-		keys[3] = "Password";
-		return keys;
+		for (int i=0; i < this.configurationKeys.length; i++) System.out.println("Key " + this.configurationKeys[i]);
+		return this.configurationKeys;
+	}
+	
+	public void setConfigurationKeys(String[] keys)
+	{
+		this.configurationKeys = keys;
 	}
 	
 	public String[] getConfigurationValues()
 	{
-		String values[] = new String[4];
-		values[0] = null;
-		values[1] = null;
-		values[2] = "jkahn";
-		values[3] = null;
-		return values;
+		return this.configurationValues;
 	}
 
 	public void setConfigurationValues(String[] values)
 	{
-		
+		if (this.repositoryManager != null) {
+//		if ((this.repositoryManager != null) && (values.length == this.configurationValues.length) && (values.length == this.configurationKeys.length)) {
+			try {
+				java.util.Properties properties = new java.util.Properties();
+				for (int i=0; i < values.length; i++) {
+					this.configurationValues[i] = values[i];
+					properties.setProperty(this.configurationKeys[i],this.configurationValues[i]);
+				}
+				System.out.println("ready to assign " + properties);
+				this.repositoryManager.assignConfiguration(properties);
+				System.out.println("Assigned");
+			} catch (Throwable t) {
+				edu.tufts.vue.util.Logger.log(t);
+			}
+		}
 	}
 	
 	public java.util.Map[] getConfigurationMaps()
 	{
-		java.util.Map maps[] = new java.util.Map[4];
-		maps[0] = new java.util.HashMap();
-		maps[1] = new java.util.HashMap();
-		java.util.Map map = new java.util.HashMap();
-		map.put("password",new Boolean(true));
-		map.put("columns",new Integer(10));
-		maps[2] = map;
-		maps[3] = new java.util.HashMap();
-		return maps;
+		return this.configurationMaps;
+	}
+
+	public void setConfigurationMaps(java.util.Map[] maps)
+	{
+		this.configurationMaps = maps;
 	}
 }

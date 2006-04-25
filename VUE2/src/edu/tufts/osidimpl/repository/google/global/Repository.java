@@ -269,6 +269,9 @@ implements org.osid.repository.Repository
 		if (!knownType) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);
 		}
+		if (this.googleKey == null) {
+			throw new org.osid.repository.RepositoryException(org.osid.OsidException.PERMISSION_DENIED);
+		}
 				
 		String criteria = ((String)searchCriteria);
 		java.util.Vector result = new java.util.Vector();

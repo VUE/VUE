@@ -58,7 +58,7 @@ public class edsmTest extends TestCase
 			
 			org.osid.shared.Id providerId = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(this.providerIdString);
 			org.osid.shared.Id repositoryId = idManager.getId("VC.001");
-			
+/*			
 			org.osid.registry.Provider provider = registryManager.createProvider(providerId,
 																				 "Repository",
 																				 2,
@@ -81,6 +81,7 @@ public class edsmTest extends TestCase
 																				 "My license is here",
 																				 rightVector,
 																				 rightTypeVector,
+																				 
 																				 "Read this to know what is here",
 																				 "Java 1.4",
 																				 true,
@@ -89,7 +90,7 @@ public class edsmTest extends TestCase
 																				 null,
 																				 filenameVector,
 																				 fileDisplayNameVector);
-		} catch (Throwable t) {
+*/		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 	}

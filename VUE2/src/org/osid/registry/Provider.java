@@ -257,6 +257,51 @@ extends java.io.Serializable
 		throws org.osid.registry.RegistryException;
 	
 	/**
+		*/
+	public String[] getConfigurationKeys()
+		throws org.osid.registry.RegistryException;
+	
+	/**
+		*/
+	public void addConfigurationKey(String configurationKey)
+		throws org.osid.registry.RegistryException;
+	
+	/**
+		*/
+	public void removeConfigurationKey(String configurationKey)
+		throws org.osid.registry.RegistryException;
+	
+	/**
+		*/
+	public String[] getConfigurationValues()
+		throws org.osid.registry.RegistryException;
+	
+	/**
+		*/
+	public void addConfigurationValue(String configurationValue)
+		throws org.osid.registry.RegistryException;
+	
+	/**
+		*/
+	public void removeConfigurationValue(String configurationValue)
+		throws org.osid.registry.RegistryException;
+	
+	/**
+		*/
+	public java.util.Map[] getConfigurationMaps()
+		throws org.osid.registry.RegistryException;
+	
+	/**
+		*/
+	public void addConfigurationMap(java.util.Map configurationMap)
+		throws org.osid.registry.RegistryException;
+	
+	/**
+		*/
+	public void removeConfigurationMap(java.util.Map configurationMap)
+		throws org.osid.registry.RegistryException;
+	
+	/**
 	*/
 	public String getReadme()
 		throws org.osid.registry.RegistryException;

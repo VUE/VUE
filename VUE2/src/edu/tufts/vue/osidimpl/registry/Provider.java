@@ -54,6 +54,11 @@ public class Provider implements org.osid.registry.Provider
 
 	private java.util.Vector rightVector = new java.util.Vector();
 	private java.util.Vector rightTypeVector = new java.util.Vector();
+
+	private java.util.Vector configurationKeyVector = new java.util.Vector();
+	private java.util.Vector configurationValueVector = new java.util.Vector();
+	private java.util.Vector configurationMapVector = new java.util.Vector();
+	
 	private String readme = null;
 	private String implementationLanguage = null;
 	private boolean sourceAvailable = false;
@@ -91,6 +96,9 @@ public class Provider implements org.osid.registry.Provider
 					   String licenseAgreement,
 					   java.util.Vector rightVector,					   
 					   java.util.Vector rightTypeVector,					   
+					   java.util.Vector configurationKeyVector,					   
+					   java.util.Vector configurationValueVector,					   
+					   java.util.Vector configurationMapVector,					   
 					   String readme,
 					   String implementationLangauge,
 					   boolean sourceAvailable,
@@ -123,6 +131,9 @@ public class Provider implements org.osid.registry.Provider
 		this.licenseAgreement = licenseAgreement;
 		this.rightVector = rightVector;
 		this.rightTypeVector = rightTypeVector;
+		this.configurationKeyVector = configurationKeyVector;
+		this.configurationValueVector = configurationValueVector;
+		this.configurationMapVector = configurationMapVector;
 		this.readme = readme;
 		this.implementationLanguage = implementationLanguage;
 		this.sourceAvailable = sourceAvailable;
@@ -917,7 +928,171 @@ public class Provider implements org.osid.registry.Provider
 		}
 	}
 	
-
+	/**
+		* A description of how the Repository may be configured.
+	 * Get the value stored at construction or during an update.
+	 */
+	public String[] getConfigurationKeys()
+		throws org.osid.registry.RegistryException
+	{
+		int size = this.configurationKeyVector.size();
+		String results[] = new String[size];
+		for (int i=0; i < size; i++) results[i] = (String)this.configurationKeyVector.elementAt(i);
+		return results;
+	}
+	
+	/**
+		* A description of how the Repository may be configured.
+	 * Update the value stored at construction or during an earlier update.
+	 * This change is immediately written to the registry.
+	 */
+	public void addConfigurationKey(String configurationKey)
+		throws org.osid.registry.RegistryException
+	{
+		if ( (configurationKey == null) || (configurationKey.length() == 0) ) {
+			throw new org.osid.registry.RegistryException(org.osid.shared.SharedException.NULL_ARGUMENT);
+		}
+		
+		this.configurationKeyVector.addElement(configurationKey);
+		try {
+			syncWithXML();
+		} catch (Throwable t) {
+			log(t);
+			this.configurationKeyVector.removeElement(configurationKey);
+		}
+	}
+	
+	/**
+		* A description of how the Repository may be configured.
+	 * Update the value stored at construction or during an earlier update.
+	 * This change is immediately written to the registry.
+	 */
+	public void removeConfigurationKey(String configurationKey)
+		throws org.osid.registry.RegistryException
+	{
+		if ( (configurationKey == null) || (configurationKey.length() == 0) ) {
+			throw new org.osid.registry.RegistryException(org.osid.shared.SharedException.NULL_ARGUMENT);
+		}
+		
+		this.configurationKeyVector.removeElement(configurationKey);
+		try {
+			syncWithXML();
+		} catch (Throwable t) {
+			log(t);
+			this.configurationKeyVector.addElement(configurationKey);
+		}
+	}	
+	
+	/**
+		* A description of how the Repository may be configured.
+	 * Get the value stored at construction or during an update.
+	 */
+	public String[] getConfigurationValues()
+		throws org.osid.registry.RegistryException
+	{
+		int size = this.configurationValueVector.size();
+		String results[] = new String[size];
+		for (int i=0; i < size; i++) results[i] = (String)this.configurationValueVector.elementAt(i);
+		return results;
+	}
+	
+	/**
+		* A description of how the Repository may be configured.
+	 * Update the value stored at construction or during an earlier update.
+	 * This change is immediately written to the registry.
+	 */
+	public void addConfigurationValue(String configurationValue)
+		throws org.osid.registry.RegistryException
+	{
+		if ( (configurationValue == null) || (configurationValue.length() == 0) ) {
+			throw new org.osid.registry.RegistryException(org.osid.shared.SharedException.NULL_ARGUMENT);
+		}
+		
+		this.configurationValueVector.addElement(configurationValue);
+		try {
+			syncWithXML();
+		} catch (Throwable t) {
+			log(t);
+			this.configurationValueVector.removeElement(configurationValue);
+		}
+	}
+	
+	/**
+		* A description of how the Repository may be configured.
+	 * Update the value stored at construction or during an earlier update.
+	 * This change is immediately written to the registry.
+	 */
+	public void removeConfigurationValue(String configurationValue)
+		throws org.osid.registry.RegistryException
+	{
+		if ( (configurationValue == null) || (configurationValue.length() == 0) ) {
+			throw new org.osid.registry.RegistryException(org.osid.shared.SharedException.NULL_ARGUMENT);
+		}
+		
+		this.configurationValueVector.removeElement(configurationValue);
+		try {
+			syncWithXML();
+		} catch (Throwable t) {
+			log(t);
+			this.configurationValueVector.addElement(configurationValue);
+		}
+	}	
+	
+	/**
+		* A description of how the Repository may be configured.
+	 * Get the value stored at construction or during an update.
+	 */
+	public java.util.Map[] getConfigurationMaps()
+		throws org.osid.registry.RegistryException
+	{
+		int size = this.configurationMapVector.size();
+		java.util.Map results[] = new java.util.Map[size];
+		for (int i=0; i < size; i++) results[i] = (java.util.Map)this.configurationMapVector.elementAt(i);
+		return results;
+	}
+	
+	/**
+		* A description of how the Repository may be configured.
+	 * Update the value stored at construction or during an earlier update.
+	 * This change is immediately written to the registry.
+	 */
+	public void addConfigurationMap(java.util.Map configurationMap)
+		throws org.osid.registry.RegistryException
+	{
+		if (configurationMap == null) {
+			throw new org.osid.registry.RegistryException(org.osid.shared.SharedException.NULL_ARGUMENT);
+		}
+		
+		this.configurationMapVector.addElement(configurationMap);
+		try {
+			syncWithXML();
+		} catch (Throwable t) {
+			log(t);
+			this.configurationMapVector.removeElement(configurationMap);
+		}
+	}
+	
+	/**
+		* A description of how the Repository may be configured.
+	 * Update the value stored at construction or during an earlier update.
+	 * This change is immediately written to the registry.
+	 */
+	public void removeConfigurationMap(java.util.Map configurationMap)
+		throws org.osid.registry.RegistryException
+	{
+		if (configurationMap == null) {
+			throw new org.osid.registry.RegistryException(org.osid.shared.SharedException.NULL_ARGUMENT);
+		}
+		
+		this.configurationMapVector.removeElement(configurationMap);
+		try {
+			syncWithXML();
+		} catch (Throwable t) {
+			log(t);
+			this.configurationMapVector.addElement(configurationMap);
+		}
+	}	
+	
 	/**
 		*/
 	public String getReadme()
@@ -1184,6 +1359,9 @@ public class Provider implements org.osid.registry.Provider
 											this.licenseAgreement,
 											this.rightVector,					   
 											this.rightTypeVector,
+											this.configurationKeyVector,
+											this.configurationValueVector,
+											this.configurationMapVector,
 											this.readme,
 											this.implementationLanguage,
 											this.sourceAvailable,

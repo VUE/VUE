@@ -57,6 +57,8 @@ implements org.osid.registry.RegistryManager
 	private static final String RIGHTS_TAG = "oki:rights";
 	private static final String RIGHT_TAG = "oki:rightentry";
 	private static final String RIGHT_TYPE_TAG = "oki:righttype";
+	private static final String CONFIGURATIONS_TAG = "oki:configuration";
+	private static final String CONFIGURATION_KEY_TAG = "oki:configurationkey";
 	private static final String README_TAG = "oki:readme";
 	private static final String IMPLEMENTATION_LANGUAGE_TAG = "oki:implementationlanguage";
 	private static final String SOURCE_AVAILABLE_TAG = "oki:sourceavailable";
@@ -199,6 +201,9 @@ implements org.osid.registry.RegistryManager
 					
 					java.util.Vector rightVector = new java.util.Vector();
 					java.util.Vector rightTypeVector = new java.util.Vector();
+					java.util.Vector configurationKeyVector = new java.util.Vector();
+					java.util.Vector configurationValueVector = new java.util.Vector();
+					java.util.Vector configurationMapVector = new java.util.Vector();
 					String readme = null;
 					String implementationLanguage = null;
 					boolean sourceAvailable = false;
@@ -428,6 +433,39 @@ implements org.osid.registry.RegistryManager
 						}
 					}
 					
+					nodeList = record.getElementsByTagName("oki:configuration");
+					numNodes = nodeList.getLength();
+					
+					for (int k=0; k < numNodes; k++) {
+						org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+						
+						org.w3c.dom.NodeList configurationsNodeList = e.getElementsByTagName(CONFIGURATION_KEY_TAG);
+						int numKeys = configurationsNodeList.getLength();
+						for (int j=0; j < numKeys; j++) {
+							org.w3c.dom.Element ex = (org.w3c.dom.Element)configurationsNodeList.item(j);
+							if (ex.hasChildNodes()) {
+								configurationKeyVector.addElement(ex.getFirstChild().getNodeValue());
+//								System.out.println("key " + configurationKeyVector.lastElement());
+								
+								java.util.Map hashMap = new java.util.HashMap();
+								String password = ex.getAttribute("password");
+								if (password.equals("true")) {
+									hashMap.put("password",new Boolean(true));
+									System.out.println("password is " + password);
+								}
+								String columns = ex.getAttribute("columns");
+								if (!columns.equals("0")) {
+									hashMap.put("columns",new Integer(columns));
+								}
+								configurationMapVector.addElement(hashMap);
+//								System.out.println("m " + configurationMapVector.lastElement());
+								String value = ex.getAttribute("value");
+								configurationValueVector.addElement(value);
+//									System.out.println("v " + configurationValueVector.lastElement());
+							}
+						}					
+					}
+					
 					nodeList = record.getElementsByTagName(README_TAG);
 					numNodes = nodeList.getLength();
 					for (int k=0; k < numNodes; k++) {
@@ -560,6 +598,9 @@ implements org.osid.registry.RegistryManager
 												   licenseAgreement,
 												   rightVector,		
 												   rightTypeVector,
+												   configurationKeyVector,
+												   configurationValueVector,
+												   configurationMapVector,
 												   readme,
 												   implementationLanguage,
 												   sourceAvailable,
@@ -633,6 +674,9 @@ implements org.osid.registry.RegistryManager
 													 String licenseAgreement,
 													 java.util.Vector rightVector,					   
 													 java.util.Vector rightTypeVector,					   
+													 java.util.Vector configurationKeyVector,					   
+													 java.util.Vector configurationValueVector,					   
+													 java.util.Vector configurationMapVector,					   
 													 String readme,
 													 String implementationLanguage,
 													 boolean sourceAvailable,
@@ -804,6 +848,18 @@ implements org.osid.registry.RegistryManager
 				record.appendChild(e);
 			}			
 			
+			if (configurationKeyVector.size() > 0) {
+				e = document.createElement(CONFIGURATIONS_TAG);
+				
+				for (int j=0; j < configurationKeyVector.size(); j++) {
+					String nextKey = (String)configurationKeyVector.elementAt(j);
+					org.w3c.dom.Element el1 = document.createElement(CONFIGURATION_KEY_TAG);
+					el1.appendChild(document.createTextNode(nextKey));
+					e.appendChild(el1);
+				}
+				record.appendChild(e);
+			}
+
 			if (readme != null) {
 				e = document.createElement(README_TAG);
 				e.appendChild(document.createTextNode(readme));
@@ -892,6 +948,9 @@ implements org.osid.registry.RegistryManager
 								licenseAgreement,
 								rightVector,					   
 								rightTypeVector,
+								configurationKeyVector,
+								configurationValueVector,
+								configurationMapVector,
 								readme,
 								implementationLanguage,
 								sourceAvailable,

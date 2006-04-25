@@ -54,8 +54,11 @@ implements edu.tufts.vue.dsm.DataSourceManager
 	private static final String REPOSITORY_IMAGE_TAG = "oki:repositoryimage";
 	private static final String REGISTRATION_DATE_TAG = "oki:registrationdate";
 	private static final String HIDDEN_TAG = "oki:hidden";
-	private static final String INCLUDED_IN_SEARCH_TAG = "okiincludedinsearch";
+	private static final String INCLUDED_IN_SEARCH_TAG = "oki:includedinsearch";
 
+	private static final String CONFIGURATIONS_TAG = "oki:configuration";
+	private static final String CONFIGURATION_KEY_TAG = "oki:configurationkey";
+		
 	private static String xmlFilename = null;
 
 	public static edu.tufts.vue.dsm.DataSourceManager getInstance() {
@@ -310,6 +313,67 @@ implements edu.tufts.vue.dsm.DataSourceManager
 					}
 				}
 
+				nodeList = record.getElementsByTagName("oki:configuration");
+				numNodes = nodeList.getLength();
+				java.util.Vector configurationKeyVector = new java.util.Vector();
+				java.util.Vector configurationValueVector = new java.util.Vector();
+				java.util.Vector configurationMapVector = new java.util.Vector();
+
+				for (int k=0; k < numNodes; k++) {
+					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+					
+					org.w3c.dom.NodeList configurationsNodeList = e.getElementsByTagName(CONFIGURATION_KEY_TAG);
+					int numKeys = configurationsNodeList.getLength();
+					for (int j=0; j < numKeys; j++) {
+						org.w3c.dom.Element ex = (org.w3c.dom.Element)configurationsNodeList.item(j);
+						if (ex.hasChildNodes()) {
+							configurationKeyVector.addElement(ex.getFirstChild().getNodeValue());
+//							System.out.println("key " + configurationKeyVector.lastElement());
+							org.w3c.dom.NamedNodeMap nnm = ex.getAttributes();
+							if (nnm.getNamedItem("password") != null) {
+								System.out.println(nnm.getNamedItem("password").getNodeValue());								
+							}
+							
+							java.util.Map hashMap = new java.util.HashMap();
+							String password = ex.getAttribute("password");
+							if (password.equals("true")) {
+								hashMap.put("password",new Boolean(true));
+							}
+							String columns = ex.getAttribute("columns");
+							if (!columns.equals("0")) {
+//								System.out.println("Columms " + columns);
+								//hashMap.put("columns",new Integer(columns));
+							}
+							configurationMapVector.addElement(hashMap);
+//							System.out.println("m " + configurationMapVector.lastElement());
+							String value = ex.getAttribute("value");
+							if (value != null) {
+								configurationValueVector.addElement(value);
+//								System.out.println("v " + configurationValueVector.lastElement());
+							}
+						}
+					}					
+				}
+				size = configurationKeyVector.size();
+				String configurationKeys[] = new String[size];
+				String configurationValues[] = new String[size];
+				java.util.Map configurationMaps[] = new java.util.Map[size];
+				for (int x=0; x < size; x++) {
+					configurationKeys[x] = (String)configurationKeyVector.elementAt(x);
+					configurationValues[x] = (String)configurationValueVector.elementAt(x);
+					configurationMaps[x] = (java.util.HashMap)configurationMapVector.elementAt(x);
+				}
+				
+				nodeList = record.getElementsByTagName(REPOSITORY_ID_TAG);
+				numNodes = nodeList.getLength();
+				for (int k=0; k < numNodes; k++) {
+					org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
+					if (e.hasChildNodes()) {
+						String repositoryIdString = e.getFirstChild().getNodeValue();
+						repositoryId = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(repositoryIdString);
+					}
+				}
+
 				nodeList = record.getElementsByTagName(REPOSITORY_IMAGE_TAG);
 				numNodes = nodeList.getLength();
 				for (int k=0; k < numNodes; k++) {
@@ -395,6 +459,9 @@ implements edu.tufts.vue.dsm.DataSourceManager
 						ds.setRegistrationDate(registrationDate);
 						ds.setHidden(isHidden);
 						ds.setIncludedInSearch(isIncludedInSearch);
+						ds.setConfigurationKeys(configurationKeys);
+						ds.setConfigurationValues(configurationValues);
+						ds.setConfigurationMaps(configurationMaps);
 					}
 				}
 				if (!found) {
@@ -417,7 +484,10 @@ implements edu.tufts.vue.dsm.DataSourceManager
 																							  repositoryImage,
 																							  registrationDate,
 																							  isHidden,
-																							  isIncludedInSearch));
+																							  isIncludedInSearch,
+																							  configurationKeys,
+																							  configurationValues,
+																							  configurationMaps));
 				}
 			}
 		} catch (Throwable t) {
@@ -566,6 +636,21 @@ implements edu.tufts.vue.dsm.DataSourceManager
 					record.appendChild(e);
 				}
 
+				String configurationKeys[] = dataSource.getConfigurationKeys();
+				String configurationValues[] = dataSource.getConfigurationValues();
+				java.util.Map configurationMaps[] = dataSource.getConfigurationMaps();
+				if (configurationKeys.length > 0) {
+					e = document.createElement(CONFIGURATIONS_TAG);
+					
+					for (int j=0; j < configurationKeys.length; j++) {
+						String nextKey = configurationKeys[j];
+						org.w3c.dom.Element el1 = document.createElement(CONFIGURATION_KEY_TAG);
+						el1.appendChild(document.createTextNode(nextKey));
+						e.appendChild(el1);
+					}
+					record.appendChild(e);
+				}
+				
 				nextValue = dataSource.getRepositoryId().getIdString();
 				if (nextValue != null) {
 					e = document.createElement(REPOSITORY_ID_TAG);
