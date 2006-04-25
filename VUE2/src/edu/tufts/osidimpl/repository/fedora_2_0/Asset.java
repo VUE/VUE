@@ -80,8 +80,7 @@ public class Asset implements org.osid.repository.Asset{
         // inforecords are not added to BDEFs and BMECHs
         if(!(assetType.getKeyword().equals("fedora:BDEF") || assetType.getKeyword().equals("fedora:BMECH"))) {
             recordVector = FedoraSoapFactory.getDisseminationRecords(id,((FedoraObjectAssetType) assetType).getDissemiationRecordStructure(),repository);
-            //recordVector.add(VUERecordStructure.createVUERecord(id,(VUERecordStructure)((FedoraObjectAssetType) assetType).getVUERecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
-            //recordVector.add(UVARecordStructure.createUVARecord(id,(UVARecordStructure)((FedoraObjectAssetType) assetType).getUVARecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
+            recordVector.add(VUERecordStructure.createVUERecord(id,(VUERecordStructure)((FedoraObjectAssetType) assetType).getVUERecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
             recordVector.add(ImageRecordStructure.createImageRecord(id,(ImageRecordStructure)((FedoraObjectAssetType) assetType).getImageRecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
         }
     }
