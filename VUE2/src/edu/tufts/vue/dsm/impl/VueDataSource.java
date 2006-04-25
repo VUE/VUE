@@ -597,7 +597,7 @@ implements edu.tufts.vue.dsm.DataSource
 
 	public void setConfigurationValues(String[] values)
 	{
-		if (this.repositoryManager != null) {
+		if ((this.repositoryManager != null) && (this.configurationValues.length > 0) && (values != null) && (values.length > 0)) {
 //		if ((this.repositoryManager != null) && (values.length == this.configurationValues.length) && (values.length == this.configurationKeys.length)) {
 			try {
 				java.util.Properties properties = new java.util.Properties();
