@@ -38,7 +38,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.4 $ / $Date: 2006-04-24 17:16:50 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2006-04-25 03:00:05 $ / $Author: sfraize $
  */
 public class ResourceList extends JList
     implements DragGestureListener
@@ -129,6 +129,19 @@ public class ResourceList extends JList
                     tufts.vue.VUE.getResourceSelection().setTo(getPicked());
                 }
             });
+
+        // Set up double-click handler for displaying content
+        
+        addMouseListener(new tufts.vue.MouseAdapter("resourceList") {
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (e.getClickCount() == 2) {
+                        Resource r = getPicked();
+                        if (r != null)
+                            r.displayContent();
+                    }
+                }
+            });
+        
 
         // Set up the drag handler
 
