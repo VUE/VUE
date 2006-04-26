@@ -29,7 +29,7 @@ implements org.osid.repository.PartStructure
     private boolean populatedByRepository = true;
     private boolean mandatory = true;
     private boolean repeatable = false;
-    private org.osid.shared.Type type = new Type("mit.edu","partStructure","url");
+    private org.osid.shared.Type type = new Type("mit.edu","partStructure","URL");
     private org.osid.repository.RecordStructure recordStructure = (org.osid.repository.RecordStructure) imageRecordStructure;
 
     protected URLPartStructure(org.osid.repository.RecordStructure recordStructure

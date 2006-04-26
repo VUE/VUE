@@ -148,6 +148,11 @@ public class Repository implements org.osid.repository.Repository {
             fedoraProperties.setProperty("VUEDefaultViewInfoPartId","edu.tufts.defaultView.partStructureId");
             fedoraProperties.setProperty("ThumbnailPartStructureId","edu.uva.thumbnail.partStructureId");
             fedoraProperties.setProperty("URLPartStructureId","edu.mit.url.partStructureId");
+            fedoraProperties.setProperty("dissemination.dc","bdef:TuftsMetadata/getDublinCore/");
+            fedoraProperties.setProperty("type.image", "tufts/image/archival");
+            fedoraProperties.setProperty("assetDef.fullView" , "bdef:AssetDef/getFullView");
+            
+            
         } catch (Exception ex) { System.out.println("Unable to load fedora Properties"+ex);}
         
     }
