@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-04-26 21:04:56 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-04-26 21:07:41 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap
@@ -79,7 +79,7 @@ public class PropertyMap extends java.util.HashMap
         String key = desiredKey;
         int index = 1;
         while (containsKey(key))
-            key = desiredKey + index++;
+            key = desiredKey + "." + index++;
         put(key, value);
         return key;
     }
