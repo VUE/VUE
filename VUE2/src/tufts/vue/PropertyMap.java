@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.4 $ / $Date: 2006-04-26 20:53:04 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2006-04-26 20:55:51 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap
@@ -74,7 +74,7 @@ public class PropertyMap extends java.util.HashMap
      * Add a property with the given key.  If a key already exists
      * with this name, the key will be modified with an index.
      */
-    public void addProperty(final String desiredKey, Object value) {
+    public synchronized void addProperty(final String desiredKey, Object value) {
         String key = desiredKey;
         int index = 1;
         while (containsKey(key))
