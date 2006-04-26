@@ -24,7 +24,7 @@ package tufts.vue;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.44 $ / $Date: 2006-04-26 20:52:36 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2006-04-26 21:05:29 $ / $Author: sfraize $
  * @author  akumar03
  */
 import java.util.Properties;
@@ -191,8 +191,10 @@ public interface Resource
     /**
      * Add a property with the given key.  If a key already exists
      * with this name, the key will be modified with an index.
+     * @return - the key actually used.  Returned value will == desiredKey
+     * if it did not have to be modified.
      */
-    public void addProperty(String desiredKey, Object value);
+    public String addProperty(String desiredKey, Object value);
     
     /** 
      *  Return true if the resource is selected.  Initialize select flag to false.
