@@ -18,7 +18,10 @@
 	<entry key="fedora.search.advanced.fields" value="label,title,creator,subject,description,publisher,contributor,date,type,format,identifier,source,language,relation,coverage,rights,pid,fType,bDef,bMech,cModel,state,locker,cDate,mDate,dcmDate," />
 	<entry key="fedora.search.advanced.operators" value="contains,equals,is less than,is less than or equal to,is greater than,is greater than or equal to" />
 	<entry key="fedora.search.advanced.operators.actuals" value="has,eq,lt,le,gt,ge" />
-	<entry key="TUFTS_STD_IMAGE" value="demo:60,fedora-system:3" />
+        <entry key="type.image" value="tufts/image/archival" />
+        <entry key="assetDef.fullView" value="bdef:AssetDef/getFullView/" />
+        <entry key="dissemination.dc" value="bdef:TuftsMetadata/getDublinCore/"/>
+	<entry key="TUFTS_IMAGE" value="demo:60,fedora-system:3" />
 	<entry key="XML_TO_HTMLDOC" value="demo:77,fedora-system:3" />
 	<entry key="TUFTS_BINARY_FILE" value="demo:135,fedora-system:3" />
 	<entry key="TUFTS_VUE_CONCEPT_MAP" value="demo:211,fedora-system:3" />
