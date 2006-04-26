@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.368 $ / $Date: 2006-04-24 17:03:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.369 $ / $Date: 2006-04-26 21:19:23 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -521,6 +521,7 @@ public class VUE
         */
     }
 
+    private static final boolean ToolbarAtTopScreen = false && VueUtil.isMacPlatform();
 
     private static void buildApplicationInterface() {
 
@@ -564,7 +565,8 @@ public class VUE
         else
             toolbar = tbc.getToolbar().getMainToolbar();
 
-        if (VueUtil.isMacPlatform()) {
+
+        if (ToolbarAtTopScreen) {
             toolbarDock = GUI.createToolbar("Toolbar", toolbar);
         } else {
             ApplicationFrame.addComp(toolbar, BorderLayout.NORTH);
@@ -748,7 +750,7 @@ public class VUE
 
         ApplicationFrame.setLocation(GUI.GInsets.left,
                                      GUI.GInsets.top
-                                     + (toolbarDock == null ? 0 : DockWindow.ToolbarHeight));
+                                     + (ToolbarAtTopScreen ? DockWindow.ToolbarHeight : 0));
 
         // MAC NOTE WITH MAXIMIZING: if Frame's current location y value
         // is less than whatever's it's maximized value is set to, maximizing
@@ -943,7 +945,12 @@ public class VUE
 
         if (DEBUG.INIT || (DEBUG.DOCK && DEBUG.META)) Util.printStackTrace("\n\nSTARTING PLACEMENT");
         
-        int top = GUI.GInsets.top + DockWindow.ToolbarHeight;
+        int top = GUI.GInsets.top;
+
+        if (ToolbarAtTopScreen)
+            top += DockWindow.ToolbarHeight;
+        else
+            top += 52; // todo: tweak for PC
 
         DockWindow toRightDW = preShown[preShown.length - 1];
         toRightDW.setUpperRightCorner(GUI.GScreenWidth, top);
