@@ -37,7 +37,7 @@ import com.sun.image.codec.jpeg.*;
 /**
  * The class is handles a reference to either a local file or a URL.
  *
- * @version $Revision: 1.13 $ / $Date: 2006-04-26 20:53:20 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2006-04-26 21:05:14 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.
@@ -839,8 +839,8 @@ public class URLResource implements Resource, XMLUnmarshalListener
      * Add a property with the given key.  If a key already exists
      * with this name, the key will be modified with an index.
      */
-    public void addProperty(String desiredKey, Object value) {
-        mProperties.addProperty(desiredKey, value);
+    public String addProperty(String desiredKey, Object value) {
+        return mProperties.addProperty(desiredKey, value);
     }
     
 
