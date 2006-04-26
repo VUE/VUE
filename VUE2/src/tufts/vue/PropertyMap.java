@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.3 $ / $Date: 2006-04-13 05:22:27 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2006-04-26 20:53:04 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap
@@ -65,9 +65,23 @@ public class PropertyMap extends java.util.HashMap
         return v == null ? null : v.toString();
     }
     
+    /** Set the value for the given key, overwriting any existing value. */
     public void setProperty(String key, String value) {
         put(key, value);
     }
+
+    /**
+     * Add a property with the given key.  If a key already exists
+     * with this name, the key will be modified with an index.
+     */
+    public void addProperty(final String desiredKey, Object value) {
+        String key = desiredKey;
+        int index = 1;
+        while (containsKey(key))
+            key = desiredKey + index++;
+        put(key, value);
+    }
+    
 
     /** No listeners will be updated until releaseChanges is called.  Multiple
      * overlapping holds are okay. */
