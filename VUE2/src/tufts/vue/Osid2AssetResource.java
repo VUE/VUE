@@ -98,7 +98,7 @@ public class Osid2AssetResource extends MapResource
 					java.io.Serializable ser = part.getValue();
 					
 					// metadata discovery
-					setProperty(partStructureType.getKeyword(),ser);
+					addProperty(partStructureType.getKeyword(),ser);
 					if ( (partStructureType.isEqual(this.urlPartType1)) || (partStructureType.isEqual(this.urlPartType2)) ) {
 						String s = (String)part.getValue();
 						setSpec(s);
