@@ -143,7 +143,7 @@ public class VUERecordStructure   implements org.osid.repository.RecordStructure
                 record.createPart(recordStructure.getVUEDefaultViewPartStructure().getId(),
                         formatObjectUrl(objectId.getIdString(),repository.getFedoraProperties().getProperty("assetDef.fullView"),repository));
             }
-            if(!(assetType.getKeyword().equals("fedora:BDEF") || assetType.getKeyword().equals("fedora:BMECH"))){
+            if(!(assetType.getKeyword().equals(Repository.BDEF) || assetType.getKeyword().equals(Repository.BMECH))){
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                 factory.setValidating(false);
                 String url = formatObjectUrl(objectId.getIdString(),repository.getFedoraProperties().getProperty("dissemination.dc"),repository);

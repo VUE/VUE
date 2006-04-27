@@ -75,6 +75,8 @@ public class Repository implements org.osid.repository.Repository {
     public static final String[] DC_FIELDS = {"title","creator","subject","date","type","format","identifier","collection","coverage"};
     public static final String FEDORA_PROTOCOL = "http://";
     public static final String FEDORA_URL = "/fedora/";
+    public static final String BDEF="fedora:BDEF";
+    public static final String BMECH="fedora:BMECH";
     private Preferences prefs = null;
     private String displayName = "";
     private String description = "";
