@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -24,28 +24,9 @@ import javax.swing.JFrame;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.JPopupMenu;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseMotionAdapter;
-import java.awt.event.MouseEvent;
-import javax.swing.Action;
-import javax.swing.AbstractAction;
-import java.awt.event.ActionEvent;
-import javax.swing.AbstractButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JPanel;
-import javax.swing.JTree;
 import javax.swing.tree.*;
-import java.util.Vector;
-import java.util.Enumeration;
+import java.util.*;
 import java.io.*;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.tree.TreePath;
-
 // castor classes
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.Unmarshaller;
@@ -63,149 +44,48 @@ import osid.dr.*;
 public class FavoritesWindow extends JPanel implements ActionListener, ItemListener,KeyListener {
     private DisplayAction displayAction = null;
     public  VueDandDTree favoritesTree ;
-    private JPanel searchResultsPane ;
     private JScrollPane browsePane;
-    public JTabbedPane favoritesPane;
-   private static int FAVORITES = 1;
+    private static int FAVORITES = 1;
     private static int newFavorites = 0;
     JTextField keywords;
     boolean fileOpen = false;
-   
+    
     /** Creates a new instance of HierarchyTreeWindow */
     public FavoritesWindow(String displayName ) {
         setLayout(new BorderLayout());
-        
-        
-        favoritesPane = new JTabbedPane();
-        
-        
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+ displayName+VueResources.getString("save.favorites"));
-       
-        //System.out.println("I tried to open" + f);
-     
-            try {
+        try {
             SaveVueJTree restorefavtree = unMarshallFavorites(f);
             fileOpen = true;
-              favoritesTree =restorefavtree.restoreTree();
+            favoritesTree =restorefavtree.restoreTree();
             favoritesTree.setRootVisible(true);
             favoritesTree.expandRow(0);
             favoritesTree.setRootVisible(false);
             
             this.setFavoritesTree(favoritesTree);
-            }catch (Exception ex){
-               // System.out.println("I tried to open" + f);
-                fileOpen = false;
-               
-            }
+        }catch (Exception ex){
+            // System.out.println("I tried to open" + f);
+            fileOpen = false;
             
-           if (!fileOpen){
+        }
+        
+        if (!fileOpen){
             //  System.out.println("Afte Unmarshalling "+restorefavtree.getClass().getName()+ " root"+ restorefavtree.getSaveTreeRoot().getResourceName());
-          
-    
             MapResource favResource = new MapResource(displayName);
             favResource.setType(1);
-            
-            
             FavoritesNode favRoot= new FavoritesNode(favResource);
-           
             favoritesTree = new VueDandDTree(favRoot);
-            
             favoritesTree.setRootVisible(true);
             favoritesTree.expandRow(0);
             favoritesTree.setRootVisible(false);
             this.setFavoritesTree(favoritesTree);
             
-         }
+        }
         
         
-        searchResultsPane = new JPanel();
-        searchResultsPane.setLayout(new BorderLayout());
-        JScrollPane jsp = new JScrollPane();
-        searchResultsPane.add(jsp,BorderLayout.CENTER,0);
-        
-        
-        JPanel favSearchPanel = createfavSearchPanel(favoritesTree,favoritesPane,searchResultsPane,displayName);
-        
-        favoritesPane.addTab("Search",favSearchPanel);
-        favoritesPane.addTab("Search Results",searchResultsPane);
         browsePane = new JScrollPane(favoritesTree);
-        favoritesPane.add("Browse", browsePane);
-        createPopupMenu();
-        favoritesPane.setSelectedIndex(2);
         
-        add(favoritesPane,BorderLayout.CENTER);
-        
-    }
-    
-    
-    public JPanel createfavSearchPanel(VueDandDTree favoritesTree,JTabbedPane fp,JPanel sp, String displayName){
-        
-        JPanel FavSearchPanel = new JPanel();
-        setLayout(new BorderLayout());
-        
-        JPanel queryPanel =  new JPanel();
-        
-        
-        
-       
-        
-      
-        GridBagLayout gridbag = new GridBagLayout();
-        GridBagConstraints c = new GridBagConstraints();
-        queryPanel.setLayout(gridbag);
-        Insets defaultInsets = new Insets(2,2,2,2);
-       // c.fill = GridBagConstraints.HORIZONTAL;
-        c.anchor = GridBagConstraints.WEST;
-        
-       //adding the label Keywords
-        c.gridx = 0;
-        c.gridy = 0;
-        c.gridwidth = 1;
-        c.insets = new Insets(10,2,2, 2);
-        JLabel keyLabel = new JLabel("Keywords: ");
-        keyLabel.setFont(new Font("Arial",Font.PLAIN, 12));
-        gridbag.setConstraints(keyLabel,c);
-        queryPanel.add(keyLabel);
-          
-     
-        //adding the search box 
-        c.gridx=1;
-        c.gridy=0;
-        c.gridwidth = 2;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.insets = new Insets(10, 2,2, 2);
-        keywords = new JTextField();
-        keywords.setPreferredSize(new Dimension(225,20));
-        keywords.addKeyListener(this);
-        gridbag.setConstraints(keywords, c);
-         queryPanel.add(keywords);
-        
-        
-        
-    
-      // adding the number of search results tab.
-       
-        c.gridx=2;
-        c.gridy=1;
-       //c.gridwidth = 1;
-       c.fill = GridBagConstraints.NONE;
-       c.anchor = GridBagConstraints.EAST;
-        c.insets = new Insets(10, 2,2,2);
-        JButton searchButton = new JButton("Search");
-        searchButton.setMaximumSize(new Dimension(80,20));
-        searchButton.addActionListener(this);
-        gridbag.setConstraints(searchButton,c);
-        queryPanel.add(searchButton);
-        
-      
-          
-       
-        FavSearchPanel.setMinimumSize(new Dimension(300, 50));
-        FavSearchPanel.add(queryPanel,BorderLayout.NORTH);
-        
-        
-        return FavSearchPanel;
-        
+        add(browsePane,BorderLayout.CENTER);
         
     }
     
@@ -273,12 +153,12 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         menuItem.addActionListener(this);
         popup2.add(menuItem);
         
-         JPopupMenu popup3 = new JPopupMenu();
+        JPopupMenu popup3 = new JPopupMenu();
         
         menuItem = new JMenuItem("Add Favorites Folder");
         menuItem.addActionListener(this);
         popup3.add(menuItem);
-       
+        
         MouseListener popupListener = new PopupListener(popup,popup2,popup3);
         favoritesTree.addMouseListener(popupListener);
     }
@@ -298,8 +178,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
             
             if (tp == null){ resNode = (ResourceNode)model.getRoot();
-            }
-            else{
+            } else{
                 resNode = (ResourceNode)tp.getLastPathComponent();
                 
             }
@@ -311,8 +190,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                 
                 if (resNode.isRoot()) {
                     System.out.println("cannot delete root");
-                }
-                else {
+                } else {
                     
                     model.removeNodeFromParent(resNode);
                     
@@ -323,93 +201,91 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             
             else if (e.getActionCommand().toString().equals("Add Favorites Folder")){//add a new bookmak folder
                 
-              
-              
                 
-                         tp = new TreePath(resNode.getPath());
-                        
-                       
-                        favresNode = (FavoritesNode)tp.getLastPathComponent();
-                         
-                       
-                  
+                
+                
+                tp = new TreePath(resNode.getPath());
+                
+                
+                favresNode = (FavoritesNode)tp.getLastPathComponent();
+                
+                
+                
+                
+                if ((favresNode.isLeaf())){
                     
-                    if ((favresNode.isLeaf())){
-                        
                     
-                        
-                        MapResource favResource = new MapResource("New Favorites Folder");
-                        favResource.setType(FAVORITES);
-                        FavoritesNode favNode = new FavoritesNode(favResource);
-                        //System.out.println("Am in fav" + favNode);
-                        
-                        if (model.getRoot() != resNode){
-                            
-                         
-                            
-                            model.insertNodeInto(favNode, favresNode, (favresNode.getChildCount()));
-                            
-                            favoritesTree.expandPath(new TreePath(favresNode.getPath()));
-                            favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
-                            
-                            favoritesTree.setRootVisible(true);
-                            this.setFavoritesTree(favoritesTree);
-                            favoritesTree.setRootVisible(false);
-                        }
-                        else {
-                            
-                        
-                            model.insertNodeInto(favNode, favresNode, (favresNode.getChildCount()));
-            
-                            favoritesTree.setRootVisible(true);
-                            
-                            this.setFavoritesTree(favoritesTree);
-                            
-                            favoritesTree.expandRow(0);
-                            favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
-                            favoritesTree.setRootVisible(false);
-                            
-                            
-                        }
-                        
-                        
-                    }
                     
-                    else{
+                    MapResource favResource = new MapResource("New Favorites Folder");
+                    favResource.setType(FAVORITES);
+                    FavoritesNode favNode = new FavoritesNode(favResource);
+                    //System.out.println("Am in fav" + favNode);
+                    
+                    if (model.getRoot() != resNode){
                         
-                      
-                        MapResource favResource = new MapResource("New Favorites Folder");
-                        favResource.setType(FAVORITES);
-                        FavoritesNode favNode = new FavoritesNode(favResource);
                         
                         
-                        model.insertNodeInto(favNode,favresNode, (favresNode.getChildCount()));
-                     
+                        model.insertNodeInto(favNode, favresNode, (favresNode.getChildCount()));
                         
+                        favoritesTree.expandPath(new TreePath(favresNode.getPath()));
+                        favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
+                        
+                        favoritesTree.setRootVisible(true);
+                        this.setFavoritesTree(favoritesTree);
+                        favoritesTree.setRootVisible(false);
+                    } else {
+                        
+                        
+                        model.insertNodeInto(favNode, favresNode, (favresNode.getChildCount()));
                         
                         favoritesTree.setRootVisible(true);
                         
-                        favoritesTree.expandPath(new TreePath(favresNode.getPath()));
-                         favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
-                    
-                        favoritesTree.setRootVisible(false);
                         this.setFavoritesTree(favoritesTree);
+                        
+                        favoritesTree.expandRow(0);
+                        favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
+                        favoritesTree.setRootVisible(false);
                         
                         
                     }
                     
+                    
+                }
+                
+                else{
+                    
+                    
+                    MapResource favResource = new MapResource("New Favorites Folder");
+                    favResource.setType(FAVORITES);
+                    FavoritesNode favNode = new FavoritesNode(favResource);
+                    
+                    
+                    model.insertNodeInto(favNode,favresNode, (favresNode.getChildCount()));
+                    
+                    
+                    
+                    favoritesTree.setRootVisible(true);
+                    
+                    favoritesTree.expandPath(new TreePath(favresNode.getPath()));
+                    favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
+                    
+                    favoritesTree.setRootVisible(false);
+                    this.setFavoritesTree(favoritesTree);
+                    
+                    
+                }
                 
                 
-               
+                
+                
                 
             }//Finish add a bookmark folder
             else
                 
             {
                 
-                if (resNode instanceof FileNode) { ((FileNode)resNode).displayContent();}
-                else {
-                resNode.getResource().displayContent();
+                if (resNode instanceof FileNode) { ((FileNode)resNode).displayContent();} else {
+                    resNode.getResource().displayContent();
                 }
             }
             
@@ -441,7 +317,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             writer.flush();
             writer.close();
         } catch (Exception e) {
-           // e.printStackTrace();
+            // e.printStackTrace();
             //System.err.println("FavoritesWindow.marshallFavorites: " + e);
         }
     }
@@ -456,7 +332,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             sTree= (SaveVueJTree) unmarshaller.unmarshal(new InputSource(reader));
             reader.close();
         } catch (Exception e) {
-           // e.printStackTrace();
+            // e.printStackTrace();
             //System.err.println("FavoritesWindow.unmarshallFavorites: " + e);
             sTree = null;
         }
@@ -496,7 +372,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                     ResourceNode childNode = (ResourceNode)favRoot.getChildAt(outi);
                     
                     foundit = compareNode(searchString,childNode,serRoot,false);
-                //  System.out.println("And here "+ childNode.toString()+foundit);
+                    //  System.out.println("And here "+ childNode.toString()+foundit);
                     
                 }
                 
@@ -506,27 +382,16 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             
             
             
-      
-           serResultTree.setRootVisible(true);
+            
+            serResultTree.setRootVisible(true);
             serResultTree.setShowsRootHandles(true);
-             serResultTree.expandRow(0);
-              serResultTree.setRootVisible(false);
-           
-           
+            serResultTree.expandRow(0);
+            serResultTree.setRootVisible(false);
             
-            JScrollPane fPane = new JScrollPane(serResultTree);
-              
-          
             
-            //this.searchResultsPane.setLayout(new BorderLayout());
-           this.searchResultsPane.remove(0);
-         
-            this.searchResultsPane.add(fPane,BorderLayout.CENTER,0);
-            this.searchResultsPane.validate();
-          serResultTree.setRootVisible(false);
-           
             
-            this.favoritesPane.setSelectedIndex(1);
+            
+            
             
             
         }
@@ -638,7 +503,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             }
         }
         
-      // System.out.println("What is the child count" + newNode.getChildCount());
+        // System.out.println("What is the child count" + newNode.getChildCount());
         
         topNode.add(newNode);
         
@@ -660,81 +525,80 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         }
     }
     
- class PopupListener extends MouseAdapter {
+    class PopupListener extends MouseAdapter {
         JPopupMenu popup,popup2,popup3;
-         VueDandDTree vtree = FavoritesWindow.this.getFavoritesTree();
+        VueDandDTree vtree = FavoritesWindow.this.getFavoritesTree();
         
         PopupListener(JPopupMenu popupMenu, JPopupMenu popupMenu2, JPopupMenu popupMenu3 ) {
             popup = popupMenu;
             popup2 = popupMenu2;
-             popup3 = popupMenu3;
+            popup3 = popupMenu3;
             
         }
-
+        
         public void mousePressed(MouseEvent e) {
             
-           
-            maybeShowPopup(e);
-        }
-                 public void mouseClicked(MouseEvent e) {
             
-              if (vtree.getSelectionPath() != null){
-               DefaultMutableTreeNode seltreeNode = (DefaultMutableTreeNode)vtree.getSelectionPath().getLastPathComponent();
-               
-                  DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)vtree.getClosestPathForLocation(e.getX(), e.getY()).getLastPathComponent();
-                           if (treeNode != seltreeNode) { vtree.clearSelection();}
-                                              
-                              TreeModel vmodel = vtree.getModel();
-                           if(e.getClickCount() == 2) {
-                              
-                             if (((DefaultMutableTreeNode)vmodel.getRoot()).getChildCount() == 1) vtree.clearSelection();
-                                 if (!(seltreeNode instanceof FavoritesNode)) vtree.clearSelection();
-                           
-                           }
-                      
-                  }
-                 
             maybeShowPopup(e);
         }
-
-
-      
-
+        public void mouseClicked(MouseEvent e) {
+            
+            if (vtree.getSelectionPath() != null){
+                DefaultMutableTreeNode seltreeNode = (DefaultMutableTreeNode)vtree.getSelectionPath().getLastPathComponent();
+                
+                DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)vtree.getClosestPathForLocation(e.getX(), e.getY()).getLastPathComponent();
+                if (treeNode != seltreeNode) { vtree.clearSelection();}
+                
+                TreeModel vmodel = vtree.getModel();
+                if(e.getClickCount() == 2) {
+                    
+                    if (((DefaultMutableTreeNode)vmodel.getRoot()).getChildCount() == 1) vtree.clearSelection();
+                    if (!(seltreeNode instanceof FavoritesNode)) vtree.clearSelection();
+                    
+                }
+                
+            }
+            
+            maybeShowPopup(e);
+        }
+        
+        
+        
+        
         public void mouseReleased(MouseEvent e) {
-           
+            
             maybeShowPopup(e);
         }
-
+        
         private void maybeShowPopup(MouseEvent e) {
             
             if (e.isPopupTrigger()) {
-                   
-                    popup3.show(e.getComponent(),
-                           e.getX(), e.getY());
-                    
+                
+                popup3.show(e.getComponent(),
+                        e.getX(), e.getY());
+                
                 
                 if (vtree.getSelectionPath() != null){
-               if (vtree.getSelectionPath().getLastPathComponent() instanceof FavoritesNode){
-                    popup.show(e.getComponent(),
-                           e.getX(), e.getY());
-                         }
-                   else{
-                       popup2.show(e.getComponent(),
-                           e.getX(), e.getY());
-                       
-                   }
+                    if (vtree.getSelectionPath().getLastPathComponent() instanceof FavoritesNode){
+                        popup.show(e.getComponent(),
+                                e.getX(), e.getY());
+                    } else{
+                        popup2.show(e.getComponent(),
+                                e.getX(), e.getY());
+                        
+                    }
                 }
                 
-                 
                 
                 
-               
+                
+                
             }
-             }
         }
-   }      
-     
-    
+    }
+}
+
+
 
 
 
