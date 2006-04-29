@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.31 $ / $Date: 2006-03-03 20:58:40 $ / $Author: jeff $ 
+ * @version $Revision: 1.32 $ / $Date: 2006-04-29 16:53:49 $ / $Author: anoop $
  * @author Ranjani Saigal
  */
 
@@ -60,12 +60,12 @@ public class DataSourceList extends JList implements DropTargetListener {
     static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
     
     private final int ACCEPTABLE_DROP_TYPES =
-    DnDConstants.ACTION_COPY |
-    DnDConstants.ACTION_LINK |
-    DnDConstants.ACTION_MOVE;
+            DnDConstants.ACTION_COPY |
+            DnDConstants.ACTION_LINK |
+            DnDConstants.ACTION_MOVE;
     private final boolean debug = false;
     DataSourceViewer dsViewer;
-	edu.tufts.vue.dsm.DataSource infoDataSource;
+    edu.tufts.vue.dsm.DataSource infoDataSource;
     
     public DataSourceList(DataSourceViewer dsViewer) {
         super(new DefaultListModel());
@@ -74,9 +74,9 @@ public class DataSourceList extends JList implements DropTargetListener {
         this.setFixedCellHeight(-1);
         dropTarget = new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
         
-		this.setCellRenderer(new DataSourceListCellRenderer());
+        this.setCellRenderer(new DataSourceListCellRenderer());
     }
-	
+    
     public DefaultListModel getContents() {
         return (DefaultListModel)getModel();
     }
@@ -89,7 +89,7 @@ public class DataSourceList extends JList implements DropTargetListener {
     public void drop(DropTargetDropEvent e) {
         e.acceptDrop(DnDConstants.ACTION_COPY);
         int current = this.getSelectedIndex();
-       // System.out.println("What is the current index " + this.getSelectedIndex());
+        // System.out.println("What is the current index " + this.getSelectedIndex());
         int dropLocation = locationToIndex(e.getLocation());
         this.setSelectedIndex(dropLocation);
         
@@ -141,8 +141,7 @@ public class DataSourceList extends JList implements DropTargetListener {
                             favoritesTree.expandPath(new TreePath(rootNode.getPath()));
                             
                             favoritesTree.setRootVisible(false);
-                        }
-                        else{
+                        } else{
                             ResourceNode newNode =new  ResourceNode(resource);
                             
                             model.insertNodeInto(newNode, rootNode, 0);
@@ -151,8 +150,7 @@ public class DataSourceList extends JList implements DropTargetListener {
                             
                         }
                     }
-                }
-                else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)){
+                } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)){
                     
                     fileList = (java.util.List)transfer.getTransferData(DataFlavor.javaFileListFlavor);
                     java.util.Iterator iter = fileList.iterator();
@@ -162,143 +160,143 @@ public class DataSourceList extends JList implements DropTargetListener {
                         
                         File file = (File)iter.next();
                         
-                         // System.out.println("did i come out  here "+file);
-                          
-                          
-                          
-                          
+                        // System.out.println("did i come out  here "+file);
+                        
+                        
+                        
+                        
                         if (file.isDirectory()){
                             
-                           // System.out.println("did i come here "+file);
-                        
-                        try{
+                            // System.out.println("did i come here "+file);
                             
-                          
-                            LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
-                            osid.shared.Agent agent = null;
-                            
-                            LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
-                            
-                            
-                            
-                            CabinetResource res = new CabinetResource(cab);
-                            
-                            
-                            
-                            CabinetEntry entry = res.getEntry();
-                            
-                            
-                            
-                            
-                              if (file.getPath().toLowerCase().endsWith(".url")) {
-                    // Search a windows .url file (an internet shortcut)
-                    // for the actual web reference.
-                    String url = convertWindowsURLShortCutToURL(file);
-                    if (url != null) {
-                       //resourceSpec = url;
-                           res.setSpec("file://" + url);
-                           String resName;
-                        if (file.getName().length() > 4)
-                            resName = file.getName().substring(0, file.getName().length() - 4);
-                        else
-                            resName = file.getName();
-                           
-                            res.setTitle(resName);
-                           
-                    }
-                    
-                }
-                           
-                            
-                            
-                            
-                            CabinetNode cabNode = null;
-                            if (entry instanceof RemoteCabinetEntry)
-                                cabNode = new CabinetNode(res, CabinetNode.REMOTE);
-                            else
+                            try{
                                 
-                                cabNode = new CabinetNode(res, CabinetNode.LOCAL);
-                            
-                       
-                        
-                            
-                      
-                        
-                        
-                            model.insertNodeInto(cabNode, rootNode, 0);
-                            favoritesTree.expandPath(new TreePath(rootNode.getPath()));
-                            
-                            
-                            
-                            
-                            favoritesTree.setRootVisible(false);
-                            
-                            
-                            
-                        }catch (Exception EX) {}
-                        
-                    }
-                    
-                    else{
-                       
-                      try{
-                            
-                          
-                            LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
-                            osid.shared.Agent agent = null;
-                            
-                            LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
-                            
-                            
-                            
-                            CabinetResource res = new CabinetResource(cab);
-                            res.setTitle(file.getAbsolutePath());
-                          
-                            
-                            CabinetEntry oldentry = res.getEntry();
-                            
-                              res.setEntry(null);
-                              
-                               if (file.getPath().toLowerCase().endsWith(".url")) {
-                    // Search a windows .url file (an internet shortcut)
-                    // for the actual web reference.
-                    String url = convertWindowsURLShortCutToURL(file);
-                    if (url != null) {
-                       //resourceSpec = url;
-                           res.setSpec("file://" + url);
-                           String resName;
-                        if (file.getName().length() > 4)
-                            resName = file.getName().substring(0, file.getName().length() - 4);
-                        else
-                            resName = file.getName();
-                           res.setTitle(resourceName);
-                    }
-                }
-                            
-                            
-                              
-                            
-                            CabinetNode cabNode = null;
-                            if (oldentry instanceof RemoteCabinetEntry)
-                                cabNode = new CabinetNode(res, CabinetNode.REMOTE);
-                            else
                                 
-                                cabNode = new CabinetNode(res, CabinetNode.LOCAL);
+                                LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
+                                osid.shared.Agent agent = null;
+                                
+                                LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
+                                
+                                
+                                
+                                CabinetResource res = new CabinetResource(cab);
+                                
+                                
+                                
+                                CabinetEntry entry = res.getEntry();
+                                
+                                
+                                
+                                
+                                if (file.getPath().toLowerCase().endsWith(".url")) {
+                                    // Search a windows .url file (an internet shortcut)
+                                    // for the actual web reference.
+                                    String url = convertWindowsURLShortCutToURL(file);
+                                    if (url != null) {
+                                        //resourceSpec = url;
+                                        res.setSpec("file://" + url);
+                                        String resName;
+                                        if (file.getName().length() > 4)
+                                            resName = file.getName().substring(0, file.getName().length() - 4);
+                                        else
+                                            resName = file.getName();
+                                        
+                                        res.setTitle(resName);
+                                        
+                                    }
+                                    
+                                }
+                                
+                                
+                                
+                                
+                                CabinetNode cabNode = null;
+                                if (entry instanceof RemoteCabinetEntry)
+                                    cabNode = new CabinetNode(res, CabinetNode.REMOTE);
+                                else
+                                    
+                                    cabNode = new CabinetNode(res, CabinetNode.LOCAL);
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                model.insertNodeInto(cabNode, rootNode, 0);
+                                favoritesTree.expandPath(new TreePath(rootNode.getPath()));
+                                
+                                
+                                
+                                
+                                favoritesTree.setRootVisible(false);
+                                
+                                
+                                
+                            }catch (Exception EX) {}
                             
-                            model.insertNodeInto(cabNode, rootNode, 0);
-                            favoritesTree.expandPath(new TreePath(rootNode.getPath()));
-                            
-                      
-                            
-                            favoritesTree.setRootVisible(false);
-                            
-                            
-                            
-                        }catch (Exception EX) {}
-                   
+                        }
                         
-                    }
-                    
+                        else{
+                            
+                            try{
+                                
+                                
+                                LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
+                                osid.shared.Agent agent = null;
+                                
+                                LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
+                                
+                                
+                                
+                                CabinetResource res = new CabinetResource(cab);
+                                res.setTitle(file.getAbsolutePath());
+                                
+                                
+                                CabinetEntry oldentry = res.getEntry();
+                                
+                                res.setEntry(null);
+                                
+                                if (file.getPath().toLowerCase().endsWith(".url")) {
+                                    // Search a windows .url file (an internet shortcut)
+                                    // for the actual web reference.
+                                    String url = convertWindowsURLShortCutToURL(file);
+                                    if (url != null) {
+                                        //resourceSpec = url;
+                                        res.setSpec("file://" + url);
+                                        String resName;
+                                        if (file.getName().length() > 4)
+                                            resName = file.getName().substring(0, file.getName().length() - 4);
+                                        else
+                                            resName = file.getName();
+                                        res.setTitle(resourceName);
+                                    }
+                                }
+                                
+                                
+                                
+                                
+                                CabinetNode cabNode = null;
+                                if (oldentry instanceof RemoteCabinetEntry)
+                                    cabNode = new CabinetNode(res, CabinetNode.REMOTE);
+                                else
+                                    
+                                    cabNode = new CabinetNode(res, CabinetNode.LOCAL);
+                                
+                                model.insertNodeInto(cabNode, rootNode, 0);
+                                favoritesTree.expandPath(new TreePath(rootNode.getPath()));
+                                
+                                
+                                
+                                favoritesTree.setRootVisible(false);
+                                
+                                
+                                
+                            }catch (Exception EX) {}
+                            
+                            
+                        }
+                        
                     }
                 }
                 
@@ -336,7 +334,6 @@ public class DataSourceList extends JList implements DropTargetListener {
             favoritesTree.expandRow(0);
             favoritesTree.setRootVisible(false);
             this.setSelectedIndex(current);
-            fw.favoritesPane.setSelectedIndex(2);
             // VueUtil.alert(null, "Successfully added resource to "+ds.getDisplayName(),"Resource Added");
         } catch (Exception ex) {
             this.setSelectedIndex(current);
@@ -347,10 +344,9 @@ public class DataSourceList extends JList implements DropTargetListener {
         
         
     }
-     private static final Pattern URL_Line = Pattern.compile(".*^URL=([^\r\n]+).*", Pattern.MULTILINE|Pattern.DOTALL);
+    private static final Pattern URL_Line = Pattern.compile(".*^URL=([^\r\n]+).*", Pattern.MULTILINE|Pattern.DOTALL);
     
-        private String convertWindowsURLShortCutToURL(File file)
-    {
+    private String convertWindowsURLShortCutToURL(File file) {
         String url = null;
         try {
             if (debug) System.out.println("*** Searching for URL in: " + file);
@@ -373,7 +369,7 @@ public class DataSourceList extends JList implements DropTargetListener {
                     // for Windows 2000 as a shortcut, but NOT using
                     // Windows 2000 url DLL, so VUE can't open it.
                     url = url.substring(0,i) + ":" + url.substring(i+1);
-                   // System.out.println("**PATCHED URL ["+url+"]");
+                    // System.out.println("**PATCHED URL ["+url+"]");
                 }
                 // if this is a file:/// url to a local html page,
                 // AND we can determine that we're on another computer
@@ -392,7 +388,7 @@ public class DataSourceList extends JList implements DropTargetListener {
                         System.out.println("***  BAD FILE ["+f+"]");
                     }
                 }
-                */
+                 */
             }
         } catch (Exception e) {
             //System.out.println(e);
@@ -411,7 +407,7 @@ public class DataSourceList extends JList implements DropTargetListener {
     
     
     public void dropActionChanged( DropTargetDragEvent e ) {
-      
+        
     }
     private String readTextFlavor(DataFlavor flavor, Transferable transfer) {
         java.io.Reader reader = null;

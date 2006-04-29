@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -28,7 +28,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.46 $ / $Date: 2006-04-24 18:11:15 $ / $Author: sfraize $ 
+ * @version $Revision: 1.47 $ / $Date: 2006-04-29 16:53:49 $ / $Author: anoop $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -111,6 +111,7 @@ public class DRBrowser extends JPanel
     final JPanel librariesPanel;
     final Widget browsePane = new Widget("Browse");
     final Widget resultsPane = new Widget("Search Results");
+    final Widget favoritesPane = new Widget("Favorites");
 
     /*
     final Widget browsePane = new Widget("Browse") {
@@ -216,6 +217,7 @@ public class DRBrowser extends JPanel
         stack.addPane(librariesPanel, 0f);
         stack.addPane(searchPane, 0f);
         stack.addPane(browsePane, 1f);
+        stack.addPane(favoritesPane,0f);
         stack.addPane(resultsPane, 0f);
 
         if (false) {
@@ -233,6 +235,7 @@ public class DRBrowser extends JPanel
 
         stack.addPane(librariesPanel, 0f);
         stack.addPane(browsePane, 1f);
+        stack.addPane(favoritesPane, 0f);
         resourceDock.setContent(stack);
 
         //WidgetStack searchStack = new WidgetStack();
@@ -251,12 +254,14 @@ public class DRBrowser extends JPanel
         
         DockWindow searchDock = GUI.createDockWindow(searchPane);
         DockWindow browseDock = GUI.createDockWindow(browsePane);
+        DockWindow favoritesDock = GUI.createDockWindow(favoritesPane);
         //DockWindow previewDock = GUI.createDockWindow(previewPane);
         //DockWindow savedResourcesDock = GUI.createDockWindow(savedResourcesPane);
         
         drBrowserDock.setStackOwner(true);
         drBrowserDock.addChild(searchDock);
         drBrowserDock.addChild(browseDock);
+        drBrowserDock.addChild(favoritesDock);
         //drBrowserDock.addChild(previewDock);
         //previewDock.setLocation(300,300);
         //drBrowserDock.addChild(savedResourcesDock);
@@ -290,7 +295,7 @@ public class DRBrowser extends JPanel
         searchPane.add(new JLabel("Please Select A Library"), SEARCH_EDITOR);
 		
         //-----------------------------------------------------------------------------
-        // Local File Data Source
+        // Local File Data Source and Favorites
         //-----------------------------------------------------------------------------
         
         try {
@@ -303,6 +308,12 @@ public class DRBrowser extends JPanel
             JComponent comp = localFileDataSource.getResourceViewer();
             comp.setVisible(true);
             browsePane.add(comp);
+            FavoritesDataSource favoritesDataSource = new FavoritesDataSource("My Favorites");
+            JComponent favoritesComp = favoritesDataSource.getResourceViewer();
+            favoritesComp.setVisible(true);
+            favoritesPane.setBackground(Color.white);
+            favoritesPane.setLayout(new BorderLayout());
+            favoritesPane.add(favoritesComp);
         } catch (Exception ex) {
             if (DEBUG.DR) System.out.println("Problem loading local file library");
         }
