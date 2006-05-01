@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.122 $ / $Date: 2006-05-01 22:27:25 $ / $Author: sfraize $ *
+ * @version $Revision: 1.123 $ / $Date: 2006-05-01 22:43:31 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -614,6 +614,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             int index = repositoryIdStringList.indexOf(repositoryIdString);
             java.util.List v = (java.util.List) resultList.get(index);
             
+            // TODO: Resources eventually want to be atomic, so a factory
+            // should be queried for a resource based on the asset.
             Osid2AssetResource resource = new Osid2AssetResource(nextAsset, this.context);
             v.add(resource);
             //allResultList.addElement(resource);
@@ -622,20 +624,21 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         // Display the results in the result panes
         
         for (int i = 0; i < repositories.length; i++) {
-            java.util.List v = (java.util.List) resultList.get(i);
+            java.util.List resourceList = (java.util.List) resultList.get(i);
             String name = "Results: " + (String) repositoryDisplayNameList.get(i);
-            if (DEBUG.DR) out(name + ": " + v.size() + " results");
+            if (DEBUG.DR) out(name + ": " + resourceList.size() + " results");
             
-            if (v.size() > 0) name += " (" + v.size() + ")";
+            if (resourceList.size() > 0)
+                name += " (" + resourceList.size() + ")";
             
             resultPanes[i].setTitle(name);
             resultPanes[i].removeAll();
             
-            if (v.size() == 0) {
+            if (resourceList.size() == 0) {
                 //resultsStack.addPane(name, new JLabel("  No results"), 0f);
                 resultPanes[i].add(new StatusLabel("No results for " + searchString, false));
             } else {
-                resultPanes[i].add(new ResourceList(v));
+                resultPanes[i].add(new ResourceList(resourceList));
             }
             
             /*
