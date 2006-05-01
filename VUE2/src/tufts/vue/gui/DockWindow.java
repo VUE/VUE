@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.63 $ / $Date: 2006-04-21 03:34:13 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2006-05-01 20:56:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -494,18 +494,24 @@ public class DockWindow extends javax.swing.JWindow
             return WindowBorder;
     }
 
+
     /** @return a border, if any, for the entire DockWindow (null if none) */
     private Border getContentBorder(JComponent c) {
         if (isToolbar)
             return null;
 
         if (ContentBorder == null) {
-            ContentBorder = new CompoundBorder(new MatteBorder(3,2,3,2, new Color(235,235,235)),
-                                               new LineBorder(new Color(102,102,102)));
-            ContentBorderInset = new CompoundBorder(ContentBorder, GUI.WidgetInsetBorder);
+            if (DEBUG.BOXES)
+                return ContentBorder = new LineBorder(Color.orange, 4);
+            else
+                return null;
+            // ContentBorder = new CompoundBorder(new MatteBorder(3,2,3,2, new Color(235,235,235)),
+            //new LineBorder(new Color(102,102,102)));
+            //ContentBorderInset = new CompoundBorder(ContentBorder, GUI.WidgetInsetBorder);
+
         }
 
-        return DEBUG.BOXES ? new LineBorder(Color.orange, 4) : ContentBorder;
+        return ContentBorder;
 
         /*
         if (c instanceof WidgetStack || firstChild(c) instanceof WidgetStack || c instanceof JScrollPane)
@@ -550,10 +556,13 @@ public class DockWindow extends javax.swing.JWindow
         if (isMacAqua && (MacWindowShadowEnabled || isMacAquaMetal)) {
             return null; // no border on MacOSX at all for now: rely on native shadowing
         } else {
-            if (DEBUG.BOXES)
+            if (DEBUG.BOXES) {
                 return new LineBorder(Color.green);
-            else
-                return new LineBorder(new Color(51,51,51));
+            } else {
+                return new CompoundBorder(new LineBorder(new Color(204,204,204)),
+                                          new LineBorder(new Color(137,137,137)));
+                //return new LineBorder(new Color(51,51,51));
+            }
             
             /*
             if (isMacAqua) {
