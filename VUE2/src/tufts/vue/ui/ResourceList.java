@@ -17,6 +17,7 @@
  */
 
 package tufts.vue.ui;
+import tufts.vue.DEBUG;
 
 import tufts.vue.Resource;
 import tufts.vue.VueResources;
@@ -38,7 +39,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-04-25 03:00:05 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-05-01 22:27:04 $ / $Author: sfraize $
  */
 public class ResourceList extends JList
     implements DragGestureListener
@@ -55,13 +56,15 @@ public class ResourceList extends JList
     private static int IconTextGap = new JLabel().getIconTextGap();
     private static int RowHeight = IconSize + 5;
 
-    private boolean isMasking = false;
+    private boolean isMaskingModel = false; // are we using a masking model?
+    private boolean isMasking = false; // if using a masking model, is it currently masking most entries?
 
-    private static class MoreLabel extends JLabel {
-        MoreLabel(int moreItems) {
+    private static class MsgLabel extends JLabel {
+        MsgLabel(String txt) {
+            super(txt);
             setFont(GUI.TitleFace);
             setForeground(WidgetStack.BottomGradient);
-            setText(moreItems + " more...");
+            setPreferredSize(new Dimension(getWidth(), RowHeight / 2));
 
             int leftInset = LeftInset + IconSize + IconTextGap;
 
@@ -70,7 +73,8 @@ public class ResourceList extends JList
         }
     }
 
-    private MoreLabel mMoreLabel = new MoreLabel(0); // failsafe
+    private JLabel mMoreLabel = new MsgLabel("?"); // failsafe
+    private JLabel mLessLabel = new MsgLabel("Show top " + PreviewItems);
     
     /**
      * A model that can intially "mask" out all but a set of initial
@@ -81,7 +85,7 @@ public class ResourceList extends JList
     private class MaskingModel extends javax.swing.DefaultListModel
     {
         public int getSize() {
-            return isMasking ? Math.min(PreviewModelSize, size()) : size();
+            return isMasking ? Math.min(PreviewModelSize, size()) : size() + 1;
         }
         
         public Object getElementAt(int index) {
@@ -90,30 +94,44 @@ public class ResourceList extends JList
                     return mMoreLabel;
                 } else if (index > PreviewItems)
                     return "MASKED INDEX " + index; // should never see this
+            } else if (index == size()) {
+                return mLessLabel;
             }
             return super.getElementAt(index);
         }
 
-        private void unmask() {
+        private void expand() {
             isMasking = false;
-            fireContentsChanged(this, PreviewItems, size() - 1);
+            //fireIntervalAdded(this, PreviewItems, size() - 1);
+            fireContentsChanged(this, PreviewItems, size());
+        }
+        private void collapse() {
+            isMasking = true;
+            fireIntervalRemoved(this, PreviewItems, size());
         }
     }
     
-    public ResourceList(Iterator iterator)
+    public ResourceList(Collection resourceBag)
     {
         setFixedCellHeight(RowHeight);
         setCellRenderer(new RowRenderer());
         
         // Set up the data-model
+
+        final javax.swing.DefaultListModel model;
         
-        final MaskingModel model = new MaskingModel();
-        while (iterator.hasNext())
-            model.addElement(iterator.next());
-        if (model.size() > PreviewModelSize) {
-            mMoreLabel = new MoreLabel(model.size() - PreviewItems);
+        if (resourceBag.size() > PreviewModelSize) {
+            model = new MaskingModel();
+            isMaskingModel = true;
+            mMoreLabel = new MsgLabel((resourceBag.size() - PreviewItems) + " more...");
             isMasking = true;
-        }
+        } else
+            model = new javax.swing.DefaultListModel();
+        
+        Iterator i = resourceBag.iterator();
+        while (i.hasNext())
+            model.addElement(i.next());
+        
         setModel(model);
 
         // Set up the selection-model
@@ -124,8 +142,26 @@ public class ResourceList extends JList
 
         selectionModel.addListSelectionListener(new ListSelectionListener() {
                 public void valueChanged(ListSelectionEvent e) {
-                    if (isMasking && getSelectedIndex() >= PreviewItems)
-                        model.unmask();
+                    if (DEBUG.RESOURCE) System.out.println("valueChanged: " + GUI.name(getSelectedValue()));
+                    if (isMaskingModel) {
+                        if (isMasking && getSelectedIndex() >= PreviewItems)
+                            ((MaskingModel)model).expand();
+                        else if (!isMasking && getSelectedIndex() == model.size()) {
+
+                            // For now: do nothing: force them to click on the collapse
+                            // (keyboarding to it creates a user-loop when holding the
+                            // down arrow, where it collpases, goes back to the top, then
+                            // selects till it expands, then selects down to end and collapses
+                            // again...
+                            
+                            //((MaskingModel)model).collapse();
+                            // "selected" item doesn't exist at this point, so nothing is "picked"
+                            // this will follow with a second selection event, which will
+                            // set the resource selection to null, as nothing is picked by default.
+
+                            return;
+                        }
+                    }
                     tufts.vue.VUE.getResourceSelection().setTo(getPicked());
                 }
             });
@@ -138,6 +174,9 @@ public class ResourceList extends JList
                         Resource r = getPicked();
                         if (r != null)
                             r.displayContent();
+                    } else if (isMaskingModel && e.getClickCount() == 1) {
+                        if (getSelectedValue() == mLessLabel)
+                            ((MaskingModel)model).collapse();
                     }
                 }
             });
@@ -154,7 +193,12 @@ public class ResourceList extends JList
     }
 
     private Resource getPicked() {
-        return (Resource) getSelectedValue();
+        Object o = getSelectedValue();
+        if (o instanceof Resource)
+            return (Resource) o;
+        else
+            return null;
+        //return (Resource) getSelectedValue();
     }
     
     public void dragGestureRecognized(DragGestureEvent e)
@@ -190,6 +234,8 @@ public class ResourceList extends JList
         {
             if (value == mMoreLabel)
                 return mMoreLabel;
+            else if (value == mLessLabel)
+                return mLessLabel;
             
             Resource r = (Resource) value;
             setIcon(r.getIcon(list));
