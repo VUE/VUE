@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.121 $ / $Date: 2006-04-29 16:53:49 $ / $Author: anoop $ *
+ * @version $Revision: 1.122 $ / $Date: 2006-05-01 22:27:25 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -635,7 +635,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 //resultsStack.addPane(name, new JLabel("  No results"), 0f);
                 resultPanes[i].add(new StatusLabel("No results for " + searchString, false));
             } else {
-                resultPanes[i].add(new ResourceList(v.iterator()));
+                resultPanes[i].add(new ResourceList(v));
             }
             
             /*
