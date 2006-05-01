@@ -1,20 +1,12 @@
- /*
- * -----------------------------------------------------------------------------
- *
- * <p><b>License and Copyright: </b>The contents of this file are subject to the
- * Mozilla Public License Version 1.1 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License
- * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
- *
- * <p>Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.</p>
- *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
- * Tufts University. All rights reserved.</p>
- *
- * -----------------------------------------------------------------------------
- */
+ /*value,
+  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+  * the specific language governing rights and limitations under the License.</p>
+  *
+  * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
+  * Tufts University. All rights reserved.</p>
+  *
+  * -----------------------------------------------------------------------------
+  */
 
 
 /*
@@ -47,7 +39,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.20 $ / $Date: 2006-01-20 20:24:18 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2006-05-01 18:45:00 $ / $Author: anoop $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -55,11 +47,11 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     private static Icon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
     private static        Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
     private static        Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
-            
+    
     private final int ACCEPTABLE_DROP_TYPES =
-        DnDConstants.ACTION_COPY |
-        DnDConstants.ACTION_LINK |
-        DnDConstants.ACTION_MOVE;
+            DnDConstants.ACTION_COPY |
+            DnDConstants.ACTION_LINK |
+            DnDConstants.ACTION_MOVE;
     
     private final boolean debug = true;
     private final int FAVORITES = 1;
@@ -78,11 +70,10 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         this.getModel().addTreeModelListener(new VueTreeModelListener());
         this. getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         VueDandDTreeCellRenderer renderer = new VueDandDTreeCellRenderer(this);
-      
         this.setCellRenderer(renderer);
         new DropTarget(this, // component
-        ACCEPTABLE_DROP_TYPES, // actions
-        this);
+                ACCEPTABLE_DROP_TYPES, // actions
+                this);
         
     }
     
@@ -129,7 +120,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 foundData = transfer.getTransferData(foundFlavor);
                 //System.out.println("I am a file DROPP 2");
                 fileList = (java.util.List)foundData;
-               // System.out.println("I am a file DROPP 3");
+                // System.out.println("I am a file DROPP 3");
                 
             } else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                 
@@ -150,7 +141,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         } catch (ClassCastException ex) {
             ex.printStackTrace();
             System.err.println("TRANSFER: Transfer data did not match declared type! flavor="
-            + foundFlavor + " data=" + foundData.getClass());
+                    + foundFlavor + " data=" + foundData.getClass());
             e.dropComplete(false);
             return;
         } catch (java.io.IOException ex) {
@@ -172,8 +163,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         
         if (dropLocation.x < 4) {rootNode = (ResourceNode)model.getRoot();
         System.out.println("loc"+"x"+dropLocation.x+"y"+dropLocation.y);
-        }
-        else if ((this.getPathForLocation(dropLocation.x, dropLocation.y) == null)){rootNode = (ResourceNode)model.getRoot();
+        } else if ((this.getPathForLocation(dropLocation.x, dropLocation.y) == null)){rootNode = (ResourceNode)model.getRoot();
         System.out.println("loc"+"x"+dropLocation.x+"y"+dropLocation.y);
         }
         
@@ -181,7 +171,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             rootNode = (ResourceNode)this.getPathForLocation(dropLocation.x, dropLocation.y).getLastPathComponent();
             System.out.println("loc1"+ dropLocation.x+dropLocation.y);
             if (rootNode == tufts.vue.VueDragTree.oldnode){//System.out.println("this is same");
-            return;
+                return;
             }
             boolean parentdrop  = false;
             if (rootNode.getParent() == tufts.vue.VueDragTree.oldnode){System.out.println("Cannot move a parent node into a child.. Can cause infinite loops");
@@ -220,10 +210,9 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                         
                         this.setRootVisible(false);
                         success =true;
-                    }
-                    else if (resource.getType() == FAVORITES){
+                    } else if (resource.getType() == FAVORITES){
                         
-                       // System.out.println("Am I in Favorites? was I in this spot ever?");
+                        // System.out.println("Am I in Favorites? was I in this spot ever?");
                         ResourceNode newNode = (ResourceNode)tufts.vue.VueDragTree.oldnode.clone();
                         this.setRootVisible(true);
                         model.insertNodeInto(newNode,rootNode,(rootNode.getChildCount()));
@@ -232,8 +221,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                         
                         this.expandPath(new TreePath(rootNode.getPath()));
                         this.setRootVisible(false);
-                    }
-                    else {
+                    } else {
                         
                         ResourceNode newNode =new ResourceNode(resource);
                         this.setRootVisible(true);
@@ -310,8 +298,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 e.dropComplete(true);
                 
             }
-        }
-        else{
+        } else{
             VueUtil.alert(null, "You can only add resources to a Favorites Folder", "Error Adding Resource to Favorites");
             
             //.dropComplete(false);
@@ -407,17 +394,16 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         }
         
         public Component getTreeCellRendererComponent(JTree tree,Object value, boolean sel,boolean expanded,boolean leaf,int row,
-        boolean hasFocus) {
+                boolean hasFocus) {
             
             
-          
+            
             
             super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
             if ( !(value instanceof FileNode) && ((((ResourceNode)value).getResource()).getType()==FAVORITES) ){
                 
                 
-                if ((((DefaultMutableTreeNode)value).getChildCount()) > 0 ){ setIcon(activeIcon);}
-                else {setIcon(inactiveIcon);}
+                if ((((DefaultMutableTreeNode)value).getChildCount()) > 0 ){ setIcon(activeIcon);} else {setIcon(inactiveIcon);}
                 
                 
                 
@@ -425,7 +411,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             
             else if (leaf){ setIcon(nleafIcon);
             
-           
+            
             
             }
             
@@ -464,6 +450,14 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             System.err.println("readTextFlavor: " + e);
         }
         return value;
+    }
+    public static void main(String args[]) {
+        VUE.init(args);
+        
+        new Frame("An Active Frame").setVisible(true);
+        MapResource r = new MapResource("http://www.tufts.edu/");
+        VueDandDTree tree = new VueDandDTree(new FavoritesNode(r));
+        tufts.Util.displayComponent(tree);
     }
 }
 

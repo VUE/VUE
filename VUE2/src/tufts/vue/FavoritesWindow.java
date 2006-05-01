@@ -64,28 +64,30 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             
             this.setFavoritesTree(favoritesTree);
         }catch (Exception ex){
-            // System.out.println("I tried to open" + f);
+             System.out.println("I tried to open" + f);
             fileOpen = false;
             
         }
         
         if (!fileOpen){
-            //  System.out.println("Afte Unmarshalling "+restorefavtree.getClass().getName()+ " root"+ restorefavtree.getSaveTreeRoot().getResourceName());
+            System.out.println("Creating the tree");
             MapResource favResource = new MapResource(displayName);
-            favResource.setType(1);
+            //favResource.setType(1);
             FavoritesNode favRoot= new FavoritesNode(favResource);
-            favoritesTree = new VueDandDTree(favRoot);
-            favoritesTree.setRootVisible(true);
-            favoritesTree.expandRow(0);
-            favoritesTree.setRootVisible(false);
-            this.setFavoritesTree(favoritesTree);
-            
+            MapResource r = new MapResource("http://www.tufts.edu/");
+            favoritesTree = new VueDandDTree(new FavoritesNode(r));
+            //favoritesTree = new VueDandDTree(favRoot);
+            //favoritesTree.setRootVisible(true);
+            //favoritesTree.expandRow(0);
+            //favoritesTree.setRootVisible(false);
+            //this.setFavoritesTree(favoritesTree);
         }
         
         
-        browsePane = new JScrollPane(favoritesTree);
-        
-        add(browsePane,BorderLayout.CENTER);
+        //browsePane = new JScrollPane(favoritesTree);
+        //DefaultMutableTreeNode top = new DefaultMutableTreeNode("The Java Series");
+        //JTree tree = new JTree(top);
+        add(favoritesTree,BorderLayout.CENTER);
         
     }
     
@@ -595,6 +597,16 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                 
             }
         }
+    }
+    
+    public static void main(String args[]) {
+        VUE.init(args);
+        
+        new Frame("An Active Frame").setVisible(true);
+        
+        FavoritesWindow fw = new FavoritesWindow("http://www.tufts.edu");
+        fw.setVisible(true);
+        tufts.Util.displayComponent(fw);
     }
 }
 

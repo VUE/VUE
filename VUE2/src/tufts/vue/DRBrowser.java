@@ -28,7 +28,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.47 $ / $Date: 2006-04-29 16:53:49 $ / $Author: anoop $ 
+ * @version $Revision: 1.48 $ / $Date: 2006-05-01 18:45:00 $ / $Author: anoop $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -173,6 +173,7 @@ public class DRBrowser extends JPanel
     public DRBrowser(boolean delayedLoading, DockWindow resourceDock, DockWindow searchDock)
     {
         super(new BorderLayout());
+        if(DEBUG.DR) System.out.println("Creating DRBrowser");
         setName("Resources");
         //Dimension startSize = new Dimension(300,160);
         //setPreferredSize(startSize);
@@ -216,8 +217,8 @@ public class DRBrowser extends JPanel
 
         stack.addPane(librariesPanel, 0f);
         stack.addPane(searchPane, 0f);
-        stack.addPane(browsePane, 1f);
-        stack.addPane(favoritesPane,0f);
+        stack.addPane(browsePane, 0f);
+        stack.addPane(favoritesPane,1f);
         stack.addPane(resultsPane, 0f);
 
         if (false) {
@@ -325,7 +326,8 @@ public class DRBrowser extends JPanel
         //savedResourcesPane.setBackground(Color.white);
         //savedResourcesPane.setPreferredSize(startSize);
         //savedResourcesPane.add(new JLabel("saved resources"));
-		
+	
+        if(DEBUG.DR) System.out.println("build widgets complete");	
     }
     
     public void loadDataSourceViewer()
@@ -403,12 +405,11 @@ public class DRBrowser extends JPanel
         new Frame("A Frame").setVisible(true);
         
         DockWindow dw = GUI.createDockWindow("Test Resources");
-        DRBrowser drb = new DRBrowser(true, dw, GUI.createDockWindow("Search"));
-
+        DRBrowser drb = new DRBrowser(true, dw, GUI.createDockWindow("Search")); 
         dw.setVisible(true);
-
         drb.loadDataSourceViewer();
-
+        drb.setSize(200,200);
+        tufts.Util.displayComponent(drb);
         if (args.length > 1)
             tufts.vue.ui.InspectorPane.displayTestPane(null);
         

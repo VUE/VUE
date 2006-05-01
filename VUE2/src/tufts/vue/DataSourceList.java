@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.32 $ / $Date: 2006-04-29 16:53:49 $ / $Author: anoop $
+ * @version $Revision: 1.33 $ / $Date: 2006-05-01 18:45:00 $ / $Author: anoop $
  * @author Ranjani Saigal
  */
 
@@ -63,7 +63,7 @@ public class DataSourceList extends JList implements DropTargetListener {
             DnDConstants.ACTION_COPY |
             DnDConstants.ACTION_LINK |
             DnDConstants.ACTION_MOVE;
-    private final boolean debug = false;
+    private final boolean debug = true;
     DataSourceViewer dsViewer;
     edu.tufts.vue.dsm.DataSource infoDataSource;
     
@@ -73,7 +73,6 @@ public class DataSourceList extends JList implements DropTargetListener {
         this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
         this.setFixedCellHeight(-1);
         dropTarget = new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
-        
         this.setCellRenderer(new DataSourceListCellRenderer());
     }
     
@@ -89,31 +88,21 @@ public class DataSourceList extends JList implements DropTargetListener {
     public void drop(DropTargetDropEvent e) {
         e.acceptDrop(DnDConstants.ACTION_COPY);
         int current = this.getSelectedIndex();
-        // System.out.println("What is the current index " + this.getSelectedIndex());
         int dropLocation = locationToIndex(e.getLocation());
         this.setSelectedIndex(dropLocation);
         
         
         DataSource ds = (DataSource)getSelectedValue();
-        //DataSource ds =(DataSource)((this.getContents()).getElementAt(dropLocation));
+        System.out.println("Selected datasource:"+ds.getDisplayName());
         try {
             FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
-            
-            
             VueDandDTree favoritesTree = fw.getFavoritesTree();
             favoritesTree.setRootVisible(true);
             DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
             FavoritesNode rootNode = (FavoritesNode)model.getRoot();
-            
-            
-            //---------------------transferable Business
-            
-            
-            
             boolean success = false;
             Transferable transfer = e.getTransferable();
             DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
-            
             String resourceName = null;
             java.util.List fileList = null;
             java.util.List resourceList = null;
@@ -124,9 +113,7 @@ public class DataSourceList extends JList implements DropTargetListener {
                     java.util.Iterator iter = resourceList.iterator();
                     while(iter.hasNext()) {
                         Resource resource = (Resource) iter.next();
-                        
                         if (resource instanceof CabinetResource){
-                            
                             CabinetEntry entry = ((CabinetResource)resource).getEntry();
                             CabinetNode cabNode = null;
                             if (entry instanceof RemoteCabinetEntry)
@@ -301,35 +288,19 @@ public class DataSourceList extends JList implements DropTargetListener {
                 }
                 
                 else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)){
-                    
-                    
-                    
                     String dataString = (String)transfer.getTransferData(DataFlavor.stringFlavor);
-                    
-                    
-                    
                     Resource resource = new MapResource(dataString);
                     ResourceNode newNode =new  ResourceNode(resource);
-                    
                     model.insertNodeInto(newNode, rootNode, 0);
                     favoritesTree.expandPath(new TreePath(rootNode.getPath()));
                     favoritesTree.setRootVisible(false);
-                    
-                    
-                    
-                    
                 }
-                
-                
             } catch (Exception ex) {
                 ex.printStackTrace();
                 //System.out.println(ex);
                 //continue;
             }
-            
-            
-            e.dropComplete(success);
-            
+            e.dropComplete(success);  
             favoritesTree.setRootVisible(true);
             favoritesTree.expandRow(0);
             favoritesTree.setRootVisible(false);
@@ -395,17 +366,6 @@ public class DataSourceList extends JList implements DropTargetListener {
         }
         return url;
     }
-    
-    
-    //---------------------Accept Drop end
-    
-    
-    
-    
-    
-    
-    
-    
     public void dropActionChanged( DropTargetDragEvent e ) {
         
     }
