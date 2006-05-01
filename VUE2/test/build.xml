@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.8 $ / $Date: 2006-04-23 14:28:13 $ -->
+<!-- $Revision: 1.9 $ / $Date: 2006-05-01 19:32:17 $ -->
 
 <!-- 
 This ant build file:
@@ -203,6 +203,13 @@ This ant build file:
 <!-- ==================== Google Global Smoke Test ================================ -->
     <target name="googleglobaltest" depends="compile" description="Dumps Some Google Global Repository Data" >
         <java classname="test.repository.google.global.repositoryDump" failonerror="true" fork="true">
+      <classpath refid="compile.classpath"/>
+        </java>
+    </target>
+
+<!-- ==================== Google Local Smoke Test ================================ -->
+    <target name="googlelocaltest" depends="compile" description="Dumps Some Google Local Repository Data" >
+        <java classname="test.repository.google.local.repositoryDump" failonerror="true" fork="true">
       <classpath refid="compile.classpath"/>
         </java>
     </target>
