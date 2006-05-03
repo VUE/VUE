@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.34 $ / $Date: 2006-05-03 12:48:27 $ / $Author: anoop $
+ * @version $Revision: 1.35 $ / $Date: 2006-05-03 17:58:47 $ / $Author: anoop $
  * @author Ranjani Saigal
  */
 
@@ -90,8 +90,6 @@ public class DataSourceList extends JList implements DropTargetListener {
         int current = this.getSelectedIndex();
         int dropLocation = locationToIndex(e.getLocation());
         this.setSelectedIndex(dropLocation);
-        
-        
         DataSource ds = (DataSource)getSelectedValue();
         System.out.println("Selected datasource:"+ds.getDisplayName());
         try {
@@ -113,33 +111,17 @@ public class DataSourceList extends JList implements DropTargetListener {
                     java.util.Iterator iter = resourceList.iterator();
                     while(iter.hasNext()) {
                         Resource resource = (Resource) iter.next();
-                        if (resource instanceof CabinetResource){
-                            CabinetEntry entry = ((CabinetResource)resource).getEntry();
-                            CabinetNode cabNode = null;
-                            if (entry instanceof RemoteCabinetEntry)
-                                cabNode = new CabinetNode((CabinetResource)resource, CabinetNode.REMOTE);
-                            else
-                                cabNode = new CabinetNode((CabinetResource)resource, CabinetNode.LOCAL);
-                            
-                            cabNode.explore(); 
-                            model.insertNodeInto(cabNode, rootNode, 0);
-                            favoritesTree.expandPath(new TreePath(rootNode.getPath()));
-                            favoritesTree.setRootVisible(false);
-                        } else{
-                            ResourceNode newNode =new  ResourceNode(resource);
-                            
-                            model.insertNodeInto(newNode, rootNode, 0);
-                            favoritesTree.expandPath(new TreePath(rootNode.getPath()));
-                            favoritesTree.setRootVisible(false);
-                            
-                        }
+                        ResourceNode newNode =new  ResourceNode(resource);
+                        model.insertNodeInto(newNode, rootNode, 0);
+                        favoritesTree.expandPath(new TreePath(rootNode.getPath()));
+                        favoritesTree.setRootVisible(false);
+                        
                     }
                 } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)){
-                    
                     fileList = (java.util.List)transfer.getTransferData(DataFlavor.javaFileListFlavor);
                     java.util.Iterator iter = fileList.iterator();
                     while(iter.hasNext()){
-                        File file = (File)iter.next();                      
+                        File file = (File)iter.next();
                         if (file.isDirectory()){
                             try{
                                 LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
@@ -150,7 +132,6 @@ public class DataSourceList extends JList implements DropTargetListener {
                                 if (file.getPath().toLowerCase().endsWith(".url")) {
                                     String url = convertWindowsURLShortCutToURL(file);
                                     if (url != null) {
-                                        //resourceSpec = url;
                                         res.setSpec("file://" + url);
                                         String resName;
                                         if (file.getName().length() > 4)
@@ -168,9 +149,8 @@ public class DataSourceList extends JList implements DropTargetListener {
                                 model.insertNodeInto(cabNode, rootNode, 0);
                                 favoritesTree.expandPath(new TreePath(rootNode.getPath()));
                                 favoritesTree.setRootVisible(false);
-                            }catch (Exception EX) {}
-                        }
-                        else{
+                            }catch (Exception ex) {System.out.println("DataSourceList.drop: "+ex);}
+                        } else{
                             try{
                                 LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                                 osid.shared.Agent agent = null;
@@ -198,13 +178,11 @@ public class DataSourceList extends JList implements DropTargetListener {
                                 if (oldentry instanceof RemoteCabinetEntry)
                                     cabNode = new CabinetNode(res, CabinetNode.REMOTE);
                                 else
-                                    
                                     cabNode = new CabinetNode(res, CabinetNode.LOCAL);
-                                
                                 model.insertNodeInto(cabNode, rootNode, 0);
                                 favoritesTree.expandPath(new TreePath(rootNode.getPath()));
                                 favoritesTree.setRootVisible(false);
-                            }catch (Exception EX) {}
+                            }catch (Exception ex) {System.out.println("DataSourceList.drop: "+ex);}
                         }
                     }
                 }
@@ -227,15 +205,10 @@ public class DataSourceList extends JList implements DropTargetListener {
             favoritesTree.expandRow(0);
             favoritesTree.setRootVisible(false);
             this.setSelectedIndex(current);
-            // VueUtil.alert(null, "Successfully added resource to "+ds.getDisplayName(),"Resource Added");
         } catch (Exception ex) {
             this.setSelectedIndex(current);
-            
             VueUtil.alert(null, "You can only add resources to a Favorites Datasource","Resource Not Added");
-            
         }
-        
-        
     }
     private static final Pattern URL_Line = Pattern.compile(".*^URL=([^\r\n]+).*", Pattern.MULTILINE|Pattern.DOTALL);
     
@@ -290,21 +263,5 @@ public class DataSourceList extends JList implements DropTargetListener {
     }
     public void dropActionChanged( DropTargetDragEvent e ) {
     }
-    private String readTextFlavor(DataFlavor flavor, Transferable transfer) {
-        java.io.Reader reader = null;
-        String value = null;
-        try {
-            reader = flavor.getReaderForText(transfer);
-            if (debug) System.out.println("\treader=" + reader);
-            char buf[] = new char[512];
-            int got = reader.read(buf);
-            value = new String(buf, 0, got);
-            if (debug) System.out.println("\t[" + value + "]");
-            if (reader.read() != -1)
-                System.out.println("there was more data in the reader");
-        } catch (Exception e) {
-            System.err.println("readTextFlavor: " + e);
-        }
-        return value;
-    }
+   
 }
