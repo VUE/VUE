@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.36 $ / $Date: 2006-04-21 03:42:59 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2006-05-03 03:53:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -61,8 +61,10 @@ public class GUI
     public static final Color LabelColor = new Color(61,61,61);
     public static final int LabelGapRight = 6;
     public static final int FieldGapRight = 6;
-    public static final Insets WidgetInsets = new Insets(12,10,12,10);
-    public static final Border WidgetInsetBorder = new EmptyBorder(WidgetInsets);
+    public static final Insets WidgetInsets = new Insets(8,6,8,6);
+    public static final Border WidgetInsetBorder = DEBUG.BOXES
+        ? new MatteBorder(WidgetInsets, Color.yellow)
+        : new EmptyBorder(WidgetInsets);
     //public static final Border WidgetBorder = new MatteBorder(WidgetInsets, Color.orange);
     
     /** the special name AWT/Swing gives to pop-up Windows (menu's, rollovers, etc) */
@@ -1550,6 +1552,23 @@ public class GUI
         }
 
         return AquaTextBorder;
+    }
+
+    /**
+     * Potentially set the foreground/background color & font on the given
+     * Component, if there are any resource entries for key ending in .font,
+     * .foreground or .background
+     */
+    public static void init(Component c, String key) {
+        Color fg = VueResources.getColor(key+".foreground");
+        Color bg = VueResources.getColor(key+".background");
+        Font font = VueResources.getFont(key+".font");
+        if (fg != null)
+            c.setForeground(fg);
+        if (bg != null)
+            c.setBackground(bg);
+        if (font != null)
+            c.setFont(font);
     }
 
 
