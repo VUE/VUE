@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.64 $ / $Date: 2006-05-01 20:56:26 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2006-05-03 03:53:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -70,7 +70,7 @@ public class DockWindow extends javax.swing.JWindow
     //final static String RightArrow = "" + RightArrowChar;
     //final static String DownArrow = "" + DownArrowChar;
 
-    public final static int ToolbarHeight = 35;
+    public final static int ToolbarHeight = VueResources.getInt("gui.dockToolbar.height", 35);
     private final static boolean MacWindowShadowEnabled = false;
     private static Border WindowBorder;
     private static Border ContentBorder;
@@ -80,24 +80,20 @@ public class DockWindow extends javax.swing.JWindow
     static DockRegion BottomDock;
     static DockRegion MainDock;
 
-    // These color's for Mac title-bar only
-    //private static Color sTopGradientColor = new Color(247, 247, 247);
-    //private static Color sBottomGradientColor = isMacAquaMetal ? Color.gray : Color.lightGray;
-    //private static Color sBottomEdgeColor = new Color(164, 164, 164);
-    private static final Color sBottomEdgeColor = new Color(164, 164, 164);
-    private static final Color sTopGradientColor = new Color(247, 247, 247);
-    private static Color sMidGradientColor;
-    private static Color sBottomGradientColor;
-
+    private static final Color
+        TopGradientColor = VueResources.getColor("gui.dockWindow.title.background.top"),
+        BottomGradientColor = VueResources.getColor("gui.dockWindow.title.background.bottom");
+    
+    
     private final static String NORTH_WEST = "northWest";
     private final static String NORTH_EAST = "northEast";
     private final static String SOUTH_WEST = "southWest";
     private final static String SOUTH_EAST = "southEast";
     
     private final static int TitleHeight = VueResources.getInt("gui.dockWindow.title.height", 19);
-    private final static int ResizeCornerSize = 12;
+    private final static int ResizeCornerSize = VueResources.getInt("gui.dockWindow.resizeCorner.size", 12);
+    private final static Font TitleFont = VueResources.getFont("gui.dockWindow.title.font");
     private final static int MacAquaMetalMinHeight = 37; // Mac Aqua Brushed Metal window size bug
-    private static Font TitleFont;
     
     private final ContentPane mContentPane;
     private JComponent mResizeCorner;
@@ -430,6 +426,7 @@ public class DockWindow extends javax.swing.JWindow
         // Simulate Linux;
         // isWindows=false; isMac=isMacAqua=isMacAquaMetal=false;
 
+        /*
         if (isMac)  {
             TitleFont = VueAquaLookAndFeel.SmallSystemFont12;
         } else {
@@ -443,13 +440,12 @@ public class DockWindow extends javax.swing.JWindow
                 TitleFont = new Font("SansSerf", Font.BOLD, 10);
             }
         }
+        */
 
-        //sBottomGradientColor = isDarkTitleBar ? Color.gray : Color.lightGray;
-        sBottomGradientColor = isDarkTitleBar ? new Color(112,112,112) : Color.lightGray;
+        //sBottomGradientColor = isDarkTitleBar ? new Color(112,112,112) : Color.lightGray;
 
-        int midColor = (sBottomGradientColor.getRed() + sTopGradientColor.getRed()) / 2;
-
-        sMidGradientColor = new Color(midColor, midColor, midColor);
+        //int midColor = (sBottomGradientColor.getRed() + sTopGradientColor.getRed()) / 2;
+        //sMidGradientColor = new Color(midColor, midColor, midColor);
 
         refreshScreenInfo(null);
 
@@ -3350,10 +3346,10 @@ public class DockWindow extends javax.swing.JWindow
             //out("paintComponent");
             GradientPaint gp;
             if (false)
-            gp = new GradientPaint(0,             0, sTopGradientColor,
-                                   0, getHeight()/2, sBottomGradientColor, true);
-            gp = new GradientPaint(0,             0, sTopGradientColor,
-                                   0,   getHeight(), sBottomGradientColor);
+            gp = new GradientPaint(0,             0, TopGradientColor,
+                                   0, getHeight()/2, BottomGradientColor, true);
+            gp = new GradientPaint(0,             0, TopGradientColor,
+                                   0,   getHeight(), BottomGradientColor);
 
                 
             ((Graphics2D)g).setPaint(gp);
@@ -3569,7 +3565,8 @@ public class DockWindow extends javax.swing.JWindow
              //mLabel.setBorder(new EmptyBorder(1,0,0,0)); // t,l,b,r
              // FYI, raise the label raises the icon also...
              mLabel.setFont(TitleFont);
-             mLabel.setForeground(SystemColor.activeCaptionText);
+             mLabel.setForeground(VueResources.getColor("gui.dockWindow.title.foreground",
+                                                        SystemColor.activeCaptionText));
 
              mCloseButton = new CloseButton(DockWindow.this);
 
@@ -3661,15 +3658,15 @@ public class DockWindow extends javax.swing.JWindow
         
         private void installGradient(boolean vertical) {
             if (vertical)
-                mGradient = new GradientPaint(getHeight(), 0, sTopGradientColor,
-                                              0,           0, false ? Color.gray : sBottomGradientColor);
+                mGradient = new GradientPaint(getHeight(), 0, TopGradientColor,
+                                              0,           0, false ? Color.gray : BottomGradientColor);
             else
-                mGradient = new GradientPaint(0,           0, sTopGradientColor,
-                                              0, TitleHeight, sBottomGradientColor);
+                mGradient = new GradientPaint(0,           0, TopGradientColor,
+                                              0, TitleHeight, BottomGradientColor);
 
             // reversed gradient
-            if (false) mGradient = new GradientPaint(0,           0, sBottomGradientColor,
-                                                     0, TitleHeight, sTopGradientColor);
+            if (false) mGradient = new GradientPaint(0,           0, BottomGradientColor,
+                                                     0, TitleHeight, TopGradientColor);
         }
 
         public void paint(Graphics g) {
@@ -3704,7 +3701,7 @@ public class DockWindow extends javax.swing.JWindow
             // This add's left + right edge border when docked if we want.
             if (!mHasWindowShadow && isDocked() && getWindowBorder() == null) {
                 //g.setColor(sBottomEdgeColor);
-                g.setColor(sBottomGradientColor);
+                g.setColor(BottomGradientColor);
                 if (false) {
                     // draw left edge
                     g.drawLine(0, 0, 0, height-1);
