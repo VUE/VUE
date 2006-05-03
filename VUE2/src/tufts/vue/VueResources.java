@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.39 $ / $Date: 2006-04-12 19:35:58 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2006-05-03 03:55:47 $ / $Author: sfraize $
  *
  */
 public class VueResources
@@ -42,8 +42,33 @@ public class VueResources
     //protected static final ResourceBundle NarraVisionResourceBundle;
     protected static final ResourceBundle sResourceBundle;
 
-    protected static Map Cache = new HashMap();
+    protected static Map Cache = new HashMap() {
+            public Object put(Object key, Object value) {
+                if (value == null) return null;
+                if (DEBUG.INIT) System.out.println("VueResources.cached(" + key + ") = " + value + "");
+                return super.put(key, value);
+            }
+        };
 
+    static {
+
+        if (DEBUG.INIT) tufts.Util.printStackTrace("VueResources; FYI: static init block");
+
+        if (tufts.Util.isMacPlatform()) {
+            sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("en", "", "Mac"));
+        } else if (tufts.Util.isWindowsPlatform()) {
+            sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("en", "", "Win"));
+        } else {
+            sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources");
+        }
+
+        if (DEBUG.INIT) System.out.println("Got bundle: " + sResourceBundle
+                                           + " in locale [" + sResourceBundle.getLocale() + "]");
+
+        if (DEBUG.INIT) dumpResource("DEBUG.platform");
+    }
+    
+    /*
     static {
 
         if (DEBUG.INIT) tufts.Util.printStackTrace("VueResources; FYI: static init block");
@@ -80,12 +105,10 @@ public class VueResources
             sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources");
         }
 
-        /*        
         //NarraVisionResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("en", "US", "NV"));
         NarraVisionResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("", "", "NV"));
         sResourceBundle = NarraVisionResourceBundle;
         //sResourceBundle = VueResourceBundle;
-        */
         
         //System.out.println("DEFAULT LOCALE: " + Locale.getDefault());
         //System.out.println("RESOURCE BUNDLE: " + sResourceBundle + " locale: " + sResourceBundle.getLocale());
@@ -95,8 +118,8 @@ public class VueResources
         if (DEBUG.INIT) dumpResource("resources.narravision");
         //dumpResource("application.name");
         //dumpResource("application.title");
-
     }
+    */
 
     public static void main(String[] args) {
     }
@@ -124,7 +147,7 @@ public class VueResources
      **/
 
     public static ImageIcon getImageIcon(Class clazz, String keyOrPath)  {
-        if (DEBUG.INIT && DEBUG.META) tufts.Util.printStackTrace("getImageIcon " + keyOrPath + " in " + clazz);
+        //if (DEBUG.INIT && DEBUG.META) tufts.Util.printStackTrace("getImageIcon " + keyOrPath + " in " + clazz);
 
         String key;
 
@@ -324,25 +347,24 @@ public class VueResources
      }
     
     /**
-     * getString
      * This method returns the String from a properties file
      * for the given lookup key.
      * Format:  myString=Some Nice Message String
      * 
-     * @param pLookupKey - the key
      * @return String - the result String, null if not found
      **/
-    public final static String getString(String pLookupKey) {
+    public final static String getString(String key) {
         String result = null;
         try {
-            result = sResourceBundle.getString(pLookupKey);
+            result = sResourceBundle.getString(key);
         } catch (MissingResourceException mre) {
             // FYI: we get tons of failures that are perfectly okay.
             //if (DEBUG.INIT) alert("warning: didn't find String resource with key [" + pLookupKey + "]");
         }
         if (DEBUG.INIT) {
             if (DEBUG.META || result != null)
-                System.out.println("VueResources[" + pLookupKey + "] = " + (result==null?"null":"\"" + result + "\""));
+                System.out.println("VueResources.lookup(" + key + ") = "
+                                   + (result==null?"null":"\"" + result + "\""));
         }
         return result;
     }
@@ -407,6 +429,20 @@ public class VueResources
         }
         return value;
     }
+
+    private static int[] makeIntArray(String s, int minSize) {
+        int[] values = null;
+        if (s != null) {
+            String[] segs = s.split(",\\s*");
+            values = new int[Math.max(segs.length, minSize)];
+            for (int i = 0; i < segs.length; i++) {
+                //System.out.println("seg"+i+"=[" + segs[i] + "]");
+                values[i] = parseInt(segs[i]);
+            }
+        }
+        return values;
+    }
+    
     
     public static float[] getFloatArray(String key) {
         if (Cache.containsKey(key))
@@ -479,41 +515,49 @@ public class VueResources
 
 
     /**
-     * getFont()
      * This method gets a Font based on the Font string in the
-     * the properties file.  Use formate:  
+     * the properties file.  Use format:  
      *   myFont=fontname,plain|bold|italic|bolditalic,size
-     * 
+     * or standard java font format:
+     *  myFont=Arial-BOLD-12
      *
      * @param key the string lookupkey in the properties file
-     * @return Font the Font, or null if missing
+     * @return Font the Font, or null if missing or malformed
      **/
-    static public Font getFont( String key) {
+    static public Font getFont(String key) {
         if (Cache.containsKey(key))
             return (Font) Cache.get(key);            
 		
+        String spec = getString(key);
         Font font = null;
-		
-        try {
-            String [] strs  = getStringArray( key);
-            if( (strs != null)  && (strs.length == 3) ) {
-                String fontName = strs[0];
-                int style = 0;
-                if( strs[1].equals("bold") ) {
-                    style = Font.BOLD;
-                } else if (strs[1].equals("italic") ) {
-                    style = Font.ITALIC;
-                } else if (strs[1].equals("bolditalic") ) {
-                    style = Font.BOLD + Font. ITALIC;
+        
+        if (spec != null) {
+            try {
+                if (spec.indexOf(',') > 0) {
+                    // Old-style: or own font decoder
+                    String[] parts = getStringArray(key);
+                    String fontName = parts[0];
+                    int style = 0;
+                    if ("bold".equalsIgnoreCase(parts[1])) {
+                        style = Font.BOLD;
+                    } else if ("italic".equalsIgnoreCase(parts[1])) {
+                        style = Font.ITALIC;
+                    } else if ("bolditalic".equalsIgnoreCase(parts[1])) {
+                        style = Font.BOLD + Font. ITALIC;
+                    } else {
+                        style = Font.PLAIN;
+                    }
+                    int size = Integer.parseInt(parts[2]);
+                    font = new Font(fontName, style, size);
                 } else {
-                    style = Font.PLAIN;
+                    // new style: let Font class decode it (uses dashes instead of commas)
+                    font = Font.decode(spec);
                 }
-                Integer size = new Integer( strs[2] );
-                font = new Font( fontName, style, size.intValue()  );
+            } catch (Throwable t) {
+                alert("Missing or malformed font with key: " + key + " " + t);
             }
-        } catch (Exception e) {
-            alert("Missing or malformed font with key: "+key);
         }
+        
         Cache.put(key, font);
         return font;
     }
@@ -534,20 +578,21 @@ public class VueResources
      * Leading zeros may be left off hex values.
      *
      * @param key the string lookupkey in the properties file
-     * @return Color the color, or null if missing
+     * @return the Color found, or default color if dr != -1
      **/
-    static public Color getColor(String key, int dr, int dg, int db) {
+    static public Color getColor(String key, Color defaultColor)
+    {
         if (Cache.containsKey(key))
             return (Color) Cache.get(key);
 		
         Color value = null;
 		
         try {
-            String s = sResourceBundle.getString(key);
+            String s = getString(key);
             if (s != null) {
                 s.trim();
                 if (s.indexOf(',') > 0) {
-                    int[] rgb = _getIntArray(key, 3);
+                    int[] rgb = makeIntArray(s, 3);
                     value = new Color(rgb[0], rgb[1], rgb[2]);
                 } else {
                     value = makeColor(s);
@@ -558,17 +603,29 @@ public class VueResources
         } catch (Throwable t) {
             alert("getColor: " + key + " " + t);
         }
-        if (value == null && dr >= 0)
-            value = new Color(dr, dg, db);
-        else
-            alert("Missing Color resource: " + key);
+        
+        if (value == null) {
+            if (defaultColor != null)
+                value = defaultColor;
+          //if (dr >= 0)
+              //value = new Color(dr, dg, db);
+            else
+                alert("No such resource (color): " + key);
+        }
         
         Cache.put(key, value);
         return value;
     }
 
     static public Color getColor(String key) {
-        return getColor(key, -1,-1,-1);
+        return getColor(key, null);
+    }
+    
+    /**
+     * @param dr,dg,db - default R,G,B color values if key not found
+     */
+    static public Color getColor(String key, int dR, int dG, int dB) {
+        return getColor(key, new Color(dR, dG, dB));
     }
     
 
