@@ -34,7 +34,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.17 $ / $Date: 2006-04-24 17:59:56 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2006-05-03 04:02:53 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -146,12 +146,21 @@ public class WidgetStack extends Widget
         _gbc.insets = GUI.EmptyInsets;
 
         if (false) {
+
+            // if component has no border, add the default one
+            // Actually, this also no good: what if a scroll-pane?
+            if (widget.getBorder() == null && !(widget instanceof JScrollPane))
+                widget.setBorder(GUI.WidgetInsetBorder);
+            mGridBag.add(widget, _gbc);
+
+            /*
             // Enforced white-space border
             JPanel widgetPanel = new JPanel(new BorderLayout());
             widgetPanel.setOpaque(false);
             widgetPanel.add(widget);
             widgetPanel.setBorder(GUI.WidgetInsetBorder);
             mGridBag.add(widgetPanel, _gbc);
+            */
         } else {
             if (false && Widget.wantsScroller(widget)) {
                 // Would need to handle seeing up through the contained
@@ -249,8 +258,9 @@ public class WidgetStack extends Widget
     }
 
     public static final int TitleHeight = VueResources.getInt("gui.widget.title.height", 18);
-    public static final Color TopGradient = VueResources.getColor("gui.widget.title.topColor", 108,149,221);
-    public static final Color BottomGradient = VueResources.getColor("gui.widget.title.bottomColor", 80,123,197);
+    public static final Color
+        TopGradient = VueResources.getColor("gui.widget.title.background.top", 108,149,221),
+        BottomGradient = VueResources.getColor("gui.widget.title.background.bottom", 80,123,197);
     
     // Mac Finder top blue: Color(79,154,240);
     // Mac Finder bottom blue: Color(0,133,246);
@@ -289,11 +299,16 @@ public class WidgetStack extends Widget
             setOpaque(true);
             mWidget = widget;
             mTitle = new JLabel(label);
-            mTitle.setForeground(Color.white);
-            if (isMac)
-                mTitle.setFont(new Font("Lucida Grande", Font.BOLD, 11));
-            else
-                mTitle.setFont(new Font("Lucida Grande", Font.BOLD, 13));
+
+            GUI.init(mTitle, "gui.widget.title");
+
+//             mTitle.setForeground(Color.white);
+//             if (isMac)
+//                 mTitle.setFont(new Font("Lucida Grande", Font.BOLD, 11));
+//             else
+//                 mTitle.setFont(new Font("Lucida Grande", Font.BOLD, 13));
+
+            
             add(Box.createHorizontalStrut(9));
             int iconHeight = 10;
             int iconWidth = 9;
