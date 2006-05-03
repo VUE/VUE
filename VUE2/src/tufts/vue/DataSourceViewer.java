@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.124 $ / $Date: 2006-05-03 03:51:17 $ / $Author: anoop $ *
+ * @version $Revision: 1.125 $ / $Date: 2006-05-03 18:56:19 $ / $Author: anoop $ *
  * @author  akumar03
  */
 
@@ -61,7 +61,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     private static Object activeDataSource;
     //private static JPanel resourcesPanel,dataSourcePanel;
     String breakTag = "";
-    
+ 
     public final static int ADD_MODE = 0;
     public final static int EDIT_MODE = 1;
     private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
@@ -253,18 +253,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     }
     
     public void setActiveDataSource(DataSource ds){
-        
         if (DEBUG.DR) out("SET ACTIVE DATA SOURCE " + ds);
-        
         this.activeDataSource = ds;
-        
-        //        refreshDataSourcePanel(ds);
-        
         dataSourceList.setSelectedValue(ds,true);
-        
         Widget.setExpanded(DRB.searchPane, false);
-        //Widget.setHidden(DRB.searchPane, true);
-        
         if (ds instanceof LocalFileDataSource) {
             Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
             Widget.setExpanded(DRB.browsePane, true);
@@ -273,12 +265,14 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             //Widget.setHidden(DRB.browsePane, false);
             //Widget.setExpanded(DRB.browsePane, true);
             //DRB.savedResourcesPane.setExpanded(false);
+            if (DEBUG.DR) out("Local Filing Selected " + ds) ;
         } else if (ds instanceof FavoritesDataSource) {
-            //DRB.savedResourcesPane.setExpanded(true);
+            Widget.setExpanded(DRB.browsePane, true);
             DRB.browsePane.removeAll();
             DRB.browsePane.add(ds.getResourceViewer());
             //Widget.setHidden(DRB.browsePane, false);
             //Widget.setExpanded(DRB.browsePane, true);
+            if (DEBUG.DR) out("Local Filing Selected " + ds) ;
         } else
             Widget.setExpanded(DRB.browsePane, false);
         
@@ -286,11 +280,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     
     public void setActiveDataSource(edu.tufts.vue.dsm.DataSource ds) {
         this.activeDataSource = ds;
-        
-        //        refreshDataSourcePanel(ds);
-        
         dataSourceList.setSelectedValue(ds,true);
-        
         Widget.setExpanded(DRB.browsePane, false);
         Widget.setExpanded(DRB.searchPane, true);
     }
@@ -796,7 +786,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             } else {
                 if (DEBUG.DR) System.out.println("\tskipped item of " + item.getClass());
             }
-            
         }
         try {
             if (DEBUG.DR) System.out.println("saveDataSourceViewer: creating new SaveDataSourceViewer");
@@ -830,37 +819,18 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         }
     }
     
-    
     public  SaveDataSourceViewer unMarshallMap(File file) throws java.io.IOException, org.exolab.castor.xml.MarshalException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException{
         Unmarshaller unmarshaller = null;
         SaveDataSourceViewer sviewer = null;
-        
-        
-        
         Mapping mapping = new Mapping();
-        
-        
         unmarshaller = new Unmarshaller();
         mapping.loadMapping(XML_MAPPING_DEFAULT);
         unmarshaller.setMapping(mapping);
-        
         FileReader reader = new FileReader(file);
-        
         sviewer = (SaveDataSourceViewer) unmarshaller.unmarshal(new InputSource(reader));
-        
-        
         reader.close();
-        
-        
-        
         return sviewer;
     }
-    
-    
-    
-    
-    
-    
     
     public void keyPressed(KeyEvent e) {
     }
@@ -877,7 +847,4 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 + " [" + Thread.currentThread().getName() + "] "
                 + (o==null?"null":o.toString()));
     }
-    
-    
-    
 }
