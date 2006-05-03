@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.16 $ / $Date: 2006-04-21 03:42:23 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2006-05-03 04:04:14 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -342,7 +342,8 @@ public class InspectorPane extends JPanel
         SummaryPane()
         {
             super(new GridBagLayout());
-            setBorder(new EmptyBorder(4, GUI.WidgetInsets.left, 4, 0));
+            //setBorder(new EmptyBorder(4, GUI.WidgetInsets.left, 4, 0));
+            setBorder(GUI.WidgetInsetBorder);
             
             labelValue.setBorder(null);
             contentValue.setEditable(false);
@@ -576,6 +577,8 @@ public class InspectorPane extends JPanel
             // tho of course, then we have tons of  cached
             // sorted lists laying about.
 
+            if (DEBUG.RESOURCE) out("metaDataPane; loadProperties: pmap=" + rsrcProps);
+            
             if (DEBUG.SCROLL)
                 VUE.Log.debug("scroll model listeners: "
                               + Arrays.asList(((DefaultBoundedRangeModel)
@@ -590,6 +593,8 @@ public class InspectorPane extends JPanel
             
                 TableModel model = rsrcProps.getTableModel();
 
+                if (DEBUG.RESOURCE) out("metaDataPane; loadProperties: model=" + model);
+                
                 if (mRsrcProps != rsrcProps) {
                     if (mRsrcProps != null)
                         mRsrcProps.removeListener(this);
@@ -645,7 +650,7 @@ public class InspectorPane extends JPanel
             int row;
             for (row = 0; row < rows; row++) {
                 String label = model.getValueAt(row, 0).toString();
-                String value = model.getValueAt(row, 1).toString();
+                String value = "" + model.getValueAt(row, 1);
                 
                 // loadRow(row++, label, value); // debug non-HTML display
                 
