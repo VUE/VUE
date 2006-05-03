@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.33 $ / $Date: 2006-05-01 18:45:00 $ / $Author: anoop $
+ * @version $Revision: 1.34 $ / $Date: 2006-05-03 12:48:27 $ / $Author: anoop $
  * @author Ranjani Saigal
  */
 
@@ -121,12 +121,9 @@ public class DataSourceList extends JList implements DropTargetListener {
                             else
                                 cabNode = new CabinetNode((CabinetResource)resource, CabinetNode.LOCAL);
                             
-                            cabNode.explore();
-                            
-                            
+                            cabNode.explore(); 
                             model.insertNodeInto(cabNode, rootNode, 0);
                             favoritesTree.expandPath(new TreePath(rootNode.getPath()));
-                            
                             favoritesTree.setRootVisible(false);
                         } else{
                             ResourceNode newNode =new  ResourceNode(resource);
@@ -141,43 +138,16 @@ public class DataSourceList extends JList implements DropTargetListener {
                     
                     fileList = (java.util.List)transfer.getTransferData(DataFlavor.javaFileListFlavor);
                     java.util.Iterator iter = fileList.iterator();
-                    
-                    
                     while(iter.hasNext()){
-                        
-                        File file = (File)iter.next();
-                        
-                        // System.out.println("did i come out  here "+file);
-                        
-                        
-                        
-                        
+                        File file = (File)iter.next();                      
                         if (file.isDirectory()){
-                            
-                            // System.out.println("did i come here "+file);
-                            
                             try{
-                                
-                                
                                 LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                                 osid.shared.Agent agent = null;
-                                
                                 LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
-                                
-                                
-                                
                                 CabinetResource res = new CabinetResource(cab);
-                                
-                                
-                                
                                 CabinetEntry entry = res.getEntry();
-                                
-                                
-                                
-                                
                                 if (file.getPath().toLowerCase().endsWith(".url")) {
-                                    // Search a windows .url file (an internet shortcut)
-                                    // for the actual web reference.
                                     String url = convertWindowsURLShortCutToURL(file);
                                     if (url != null) {
                                         //resourceSpec = url;
@@ -187,63 +157,28 @@ public class DataSourceList extends JList implements DropTargetListener {
                                             resName = file.getName().substring(0, file.getName().length() - 4);
                                         else
                                             resName = file.getName();
-                                        
                                         res.setTitle(resName);
-                                        
                                     }
-                                    
                                 }
-                                
-                                
-                                
-                                
                                 CabinetNode cabNode = null;
                                 if (entry instanceof RemoteCabinetEntry)
                                     cabNode = new CabinetNode(res, CabinetNode.REMOTE);
                                 else
-                                    
                                     cabNode = new CabinetNode(res, CabinetNode.LOCAL);
-                                
-                                
-                                
-                                
-                                
-                                
-                                
                                 model.insertNodeInto(cabNode, rootNode, 0);
                                 favoritesTree.expandPath(new TreePath(rootNode.getPath()));
-                                
-                                
-                                
-                                
                                 favoritesTree.setRootVisible(false);
-                                
-                                
-                                
                             }catch (Exception EX) {}
-                            
                         }
-                        
                         else{
-                            
                             try{
-                                
-                                
                                 LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                                 osid.shared.Agent agent = null;
-                                
                                 LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
-                                
-                                
-                                
                                 CabinetResource res = new CabinetResource(cab);
                                 res.setTitle(file.getAbsolutePath());
-                                
-                                
                                 CabinetEntry oldentry = res.getEntry();
-                                
                                 res.setEntry(null);
-                                
                                 if (file.getPath().toLowerCase().endsWith(".url")) {
                                     // Search a windows .url file (an internet shortcut)
                                     // for the actual web reference.
@@ -259,10 +194,6 @@ public class DataSourceList extends JList implements DropTargetListener {
                                         res.setTitle(resourceName);
                                     }
                                 }
-                                
-                                
-                                
-                                
                                 CabinetNode cabNode = null;
                                 if (oldentry instanceof RemoteCabinetEntry)
                                     cabNode = new CabinetNode(res, CabinetNode.REMOTE);
@@ -272,18 +203,9 @@ public class DataSourceList extends JList implements DropTargetListener {
                                 
                                 model.insertNodeInto(cabNode, rootNode, 0);
                                 favoritesTree.expandPath(new TreePath(rootNode.getPath()));
-                                
-                                
-                                
                                 favoritesTree.setRootVisible(false);
-                                
-                                
-                                
                             }catch (Exception EX) {}
-                            
-                            
                         }
-                        
                     }
                 }
                 
@@ -300,7 +222,7 @@ public class DataSourceList extends JList implements DropTargetListener {
                 //System.out.println(ex);
                 //continue;
             }
-            e.dropComplete(success);  
+            e.dropComplete(success);
             favoritesTree.setRootVisible(true);
             favoritesTree.expandRow(0);
             favoritesTree.setRootVisible(false);
@@ -367,7 +289,6 @@ public class DataSourceList extends JList implements DropTargetListener {
         return url;
     }
     public void dropActionChanged( DropTargetDragEvent e ) {
-        
     }
     private String readTextFlavor(DataFlavor flavor, Transferable transfer) {
         java.io.Reader reader = null;
@@ -386,15 +307,4 @@ public class DataSourceList extends JList implements DropTargetListener {
         }
         return value;
     }
-    
-    
-    
-    
-    
-    
-    
 }
-
-
-
-
