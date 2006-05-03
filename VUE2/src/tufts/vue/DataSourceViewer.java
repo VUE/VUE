@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.123 $ / $Date: 2006-05-01 22:43:31 $ / $Author: sfraize $ *
+ * @version $Revision: 1.124 $ / $Date: 2006-05-03 03:51:17 $ / $Author: anoop $ *
  * @author  akumar03
  */
 
@@ -112,9 +112,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     
     public DataSourceViewer(DRBrowser drBrowser) {
         setLayout(new BorderLayout());
-        this.DRB = drBrowser;  
+        this.DRB = drBrowser;
         dataSourceList = new DataSourceList(this);
-        dataSourceList.addKeyListener(this); 
+        dataSourceList.addKeyListener(this);
         dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
         edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
         for (int i=0; i < dataSources.length; i++) {
@@ -268,14 +268,15 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         if (ds instanceof LocalFileDataSource) {
             Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
             Widget.setExpanded(DRB.browsePane, true);
+            DRB.browsePane.removeAll();
+            DRB.browsePane.add(ds.getResourceViewer());
             //Widget.setHidden(DRB.browsePane, false);
             //Widget.setExpanded(DRB.browsePane, true);
             //DRB.savedResourcesPane.setExpanded(false);
         } else if (ds instanceof FavoritesDataSource) {
             //DRB.savedResourcesPane.setExpanded(true);
-            Widget.setTitle(DRB.favoritesPane, "Browse: " + ds.getDisplayName());
-             Widget.setExpanded(DRB.browsePane, false);
-            Widget.setExpanded(DRB.favoritesPane, true);
+            DRB.browsePane.removeAll();
+            DRB.browsePane.add(ds.getResourceViewer());
             //Widget.setHidden(DRB.browsePane, false);
             //Widget.setExpanded(DRB.browsePane, true);
         } else

@@ -42,11 +42,11 @@ import osid.dr.*;
  * @author  Ranjani Saigal
  */
 public class FavoritesWindow extends JPanel implements ActionListener, ItemListener,KeyListener {
+    public static Dimension MIN_DIMENSION = new Dimension(100,100);
     private DisplayAction displayAction = null;
     public  VueDandDTree favoritesTree ;
     private JScrollPane browsePane;
-    private static int FAVORITES = 1;
-    private static int newFavorites = 0;
+    private static int FAVORITES = 1; 
     JTextField keywords;
     boolean fileOpen = false;
     
@@ -60,9 +60,10 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             favoritesTree =restorefavtree.restoreTree();
             favoritesTree.setRootVisible(true);
             favoritesTree.expandRow(0);
-            favoritesTree.setRootVisible(false);
-            
+            favoritesTree.setRootVisible(false);  
             this.setFavoritesTree(favoritesTree);
+            this.setMinimumSize(MIN_DIMENSION);
+            this.setSize(MIN_DIMENSION);
         }catch (Exception ex){
              System.out.println("I tried to open" + f);
             fileOpen = false;
