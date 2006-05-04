@@ -1,4 +1,5 @@
- /*
+
+/*
  * -----------------------------------------------------------------------------
  *
  * <p><b>License and Copyright: </b>The contents of this file are subject to the
@@ -45,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.55 $ / $Date: 2006-04-06 01:38:06 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2006-05-04 03:59:00 $ / $Author: anoop $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree

@@ -43,7 +43,11 @@ import osid.dr.*;
  * Modified by Anoop Kumar 04/29/06
  */
 public class FavoritesWindow extends JPanel implements ActionListener, ItemListener,KeyListener {
-    public static Dimension MIN_DIMENSION = new Dimension(100,100);
+    public static final String NEW_FAVORITES = "New Favorites Folder";
+    public static final String ADD_FAVORITES = "Add Favorites Folder";
+    public static final String REMOVE_FAVORITES = "Remove Favorites Folder";
+    public static final String OPEN_RESOURCE = "Open Resource";
+    public static final String REMOVE_RESOURCE = "Remove Resource";
     private DisplayAction displayAction = null;
     public  VueDandDTree favoritesTree ;
     private JScrollPane browsePane;
@@ -63,44 +67,31 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             favoritesTree.expandRow(0);
             favoritesTree.setRootVisible(false);
             this.setFavoritesTree(favoritesTree);
-            this.setMinimumSize(MIN_DIMENSION);
-            this.setSize(MIN_DIMENSION);
         }catch (Exception ex){
             System.out.println("I tried to open" + f);
-            fileOpen = false; 
+            fileOpen = false;
         }
         if (!fileOpen){
             System.out.println("Creating the tree");
             MapResource favResource = new MapResource(displayName);
-            //favResource.setType(1);
-            FavoritesNode favRoot= new FavoritesNode(favResource);
-            MapResource r = new MapResource("http://www.tufts.edu/");
-            favoritesTree = new VueDandDTree(new FavoritesNode(r));
+            favoritesTree = new VueDandDTree(new FavoritesNode(favResource));
+            favoritesTree.setRootVisible(false);
             //favoritesTree = new VueDandDTree(favRoot);
             //favoritesTree.setRootVisible(true);
             //favoritesTree.expandRow(0);
-            //favoritesTree.setRootVisible(false);
             //this.setFavoritesTree(favoritesTree);
-        }
-        
-        
+        }     
+        createPopupMenu();
         browsePane = new JScrollPane(favoritesTree);
-        //DefaultMutableTreeNode top = new DefaultMutableTreeNode("The Java Series");
-        //JTree tree = new JTree(top);
-        add(browsePane,BorderLayout.CENTER);
-        
+        add(browsePane,BorderLayout.CENTER); 
     }
-    
     public VueDandDTree getFavoritesTree(){
-        return (this.favoritesTree);
-        
+        return (this.favoritesTree);   
     }
     
     public void setFavoritesTree(VueDandDTree favoritesTree){
         this.favoritesTree = favoritesTree;
-        
     }
-    
     
     public Action getDisplayAction(String displayName) {
         if (displayAction == null)
@@ -122,28 +113,27 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             aButton.setSelected(state);
         }
     }
-    
-    
+
     public void createPopupMenu() {
         JMenuItem menuItem;
         JPopupMenu popup = new JPopupMenu();
-        menuItem = new JMenuItem("Add Favorites Folder");
+        menuItem = new JMenuItem(ADD_FAVORITES);
         menuItem.addActionListener(this);
         popup.add(menuItem);
-        menuItem = new JMenuItem("Remove Favorites Folder");
+        menuItem = new JMenuItem(REMOVE_FAVORITES);
         menuItem.addActionListener(this);
         popup.add(menuItem);
         
         JPopupMenu popupResource = new JPopupMenu();
-        menuItem = new JMenuItem("Open Resource");
+        menuItem = new JMenuItem(OPEN_RESOURCE);
         menuItem.addActionListener(this);
         popupResource.add(menuItem);
-        menuItem = new JMenuItem("Remove Resource");
+        menuItem = new JMenuItem(REMOVE_RESOURCE);
         menuItem.addActionListener(this);
-        popupResource.add(menuItem); 
+        popupResource.add(menuItem);
         
-        JPopupMenu popupAdd = new JPopupMenu();    
-        menuItem = new JMenuItem("Add Favorites Folder");
+        JPopupMenu popupAdd = new JPopupMenu();
+        menuItem = new JMenuItem(ADD_FAVORITES);
         menuItem.addActionListener(this);
         popupAdd.add(menuItem);
         
@@ -162,20 +152,20 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
             if (tp == null){ resNode = (ResourceNode)model.getRoot();
             } else{
-                resNode = (ResourceNode)tp.getLastPathComponent();
-                
+                resNode = (ResourceNode)tp.getLastPathComponent();                
             }
-            if (e.getActionCommand().toString().equals("Remove Resource") | e.getActionCommand().toString().equals("Remove Favorites Folder")) {
+            if (e.getActionCommand().toString().equals(REMOVE_RESOURCE) | e.getActionCommand().toString().equals(REMOVE_FAVORITES)) {
                 if (resNode.isRoot()) {
                     System.out.println("cannot delete root");
                 } else {
                     model.removeNodeFromParent(resNode);
                 }
-            } else if (e.getActionCommand().toString().equals("Add Favorites Folder")){//add a new bookmak folder
+            } else if (e.getActionCommand().toString().equals(ADD_FAVORITES)){
                 tp = new TreePath(resNode.getPath());
                 favresNode = (FavoritesNode)tp.getLastPathComponent();
                 if ((favresNode.isLeaf())){
-                    MapResource favResource = new MapResource("New Favorites Folder");
+                    MapResource favResource = new MapResource(NEW_FAVORITES);
+                    favResource.setTitle(NEW_FAVORITES);
                     favResource.setType(FAVORITES);
                     FavoritesNode favNode = new FavoritesNode(favResource);
                     //System.out.println("Am in fav" + favNode);
@@ -195,7 +185,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                         favoritesTree.setRootVisible(false);
                     }
                 } else{
-                    MapResource favResource = new MapResource("New Favorites Folder");
+                    MapResource favResource = new MapResource(NEW_FAVORITES);
+                    favResource.setTitle(NEW_FAVORITES);
                     favResource.setType(FAVORITES);
                     FavoritesNode favNode = new FavoritesNode(favResource);
                     model.insertNodeInto(favNode,favresNode, (favresNode.getChildCount()));
@@ -323,8 +314,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             }
         }
         return foundsomething;
-    }
-    
+    }   
     
     public void addSearchNode(ResourceNode topNode, ResourceNode Node) {
         ResourceNode newNode = (ResourceNode)Node.clone();
@@ -352,16 +342,16 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     }
     
     class PopupListener extends MouseAdapter {
-        JPopupMenu popup,popup2,popup3;
+        JPopupMenu popup,popupResource,popupAdd;
         VueDandDTree vtree = FavoritesWindow.this.getFavoritesTree();
         PopupListener(JPopupMenu popupMenu, JPopupMenu popupMenu2, JPopupMenu popupMenu3 ) {
             popup = popupMenu;
-            popup2 = popupMenu2;
-            popup3 = popupMenu3; 
+            popupResource = popupMenu2;
+            popupAdd = popupMenu3;
         }
         
-        public void mousePressed(MouseEvent e) {  
-            maybeShowPopup(e);
+        public void mousePressed(MouseEvent e) {
+            showPopup(e);
         }
         public void mouseClicked(MouseEvent e) {
             if (vtree.getSelectionPath() != null){
@@ -374,42 +364,32 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                     if (!(seltreeNode instanceof FavoritesNode)) vtree.clearSelection();
                 }
             }
-            maybeShowPopup(e);
+            showPopup(e);
         }
         
         public void mouseReleased(MouseEvent e) {
-            maybeShowPopup(e);
+            showPopup(e);
         }
-        private void maybeShowPopup(MouseEvent e) {
+        private void showPopup(MouseEvent e) {
             if (e.isPopupTrigger()) {
-                popup3.show(e.getComponent(),
-                        e.getX(), e.getY());
                 if (vtree.getSelectionPath() != null){
                     if (vtree.getSelectionPath().getLastPathComponent() instanceof FavoritesNode){
-                        popup.show(e.getComponent(),
-                                e.getX(), e.getY());
+                        popup.show(e.getComponent(),e.getX(), e.getY());
                     } else{
-                        popup2.show(e.getComponent(),
-                                e.getX(), e.getY());
-                        
+                        popupResource.show(e.getComponent(),e.getX(), e.getY());
                     }
+                } else {
+                  popupAdd.show(e.getComponent(),e.getX(), e.getY());  
                 }
             }
         }
     }
     
     public static void main(String args[]) {
-        VUE.init(args); 
-        new Frame("An Active Frame").setVisible(true); 
+        VUE.init(args);
+        new Frame("An Active Frame").setVisible(true);
         FavoritesWindow fw = new FavoritesWindow("http://www.tufts.edu");
         fw.setVisible(true);
         tufts.Util.displayComponent(fw);
     }
 }
-
-
-
-
-
-
-

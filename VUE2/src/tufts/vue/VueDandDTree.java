@@ -39,7 +39,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.21 $ / $Date: 2006-05-01 18:45:00 $ / $Author: anoop $
+ * @version $Revision: 1.22 $ / $Date: 2006-05-04 03:59:00 $ / $Author: anoop $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -60,9 +60,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     
     
     public VueDandDTree(FavoritesNode root){
-        
         super(root);
-        
         this.setEditable(true);
         this.setShowsRootHandles(true);
         this.expandRow(0);
@@ -78,18 +76,10 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     }
     
     
-    
-    
     public void drop(DropTargetDropEvent e ) {
         java.awt.Point dropLocation = e.getLocation();
-        
         ResourceNode rootNode;
-        
-        
-        System.out.println("get me source"+  e.getSource());
-        
         boolean success = false;
-        
         Transferable transfer = e.getTransferable();
         DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
         String resourceName = null;
@@ -101,37 +91,26 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         DataFlavor foundFlavor = null;
         Object foundData = null;
         
-        
         if (debug) System.out.println("drop: found " + dataFlavors.length +  dataFlavors.toString());
         
         
         
         try {
             if (transfer.isDataFlavorSupported(Resource.DataFlavor)) {
-                
                 foundFlavor = Resource.DataFlavor;
                 foundData = transfer.getTransferData(foundFlavor);
                 resourceList = (java.util.List)foundData;
                 
             } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                
                 foundFlavor = DataFlavor.javaFileListFlavor;
-                
                 foundData = transfer.getTransferData(foundFlavor);
-                //System.out.println("I am a file DROPP 2");
                 fileList = (java.util.List)foundData;
-                // System.out.println("I am a file DROPP 3");
-                
             } else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                
                 foundFlavor = DataFlavor.stringFlavor;
                 foundData = transfer.getTransferData(DataFlavor.stringFlavor);
                 droppedText = (String)foundData;
-                
-                
             } else {
                 System.out.println("TRANSFER: found no supported dataFlavors");
-                
             }
         } catch (UnsupportedFlavorException ex) {
             ex.printStackTrace();
@@ -161,13 +140,13 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         //else
         
         
-        if (dropLocation.x < 4) {rootNode = (ResourceNode)model.getRoot();
-        System.out.println("loc"+"x"+dropLocation.x+"y"+dropLocation.y);
-        } else if ((this.getPathForLocation(dropLocation.x, dropLocation.y) == null)){rootNode = (ResourceNode)model.getRoot();
-        System.out.println("loc"+"x"+dropLocation.x+"y"+dropLocation.y);
-        }
-        
-        else{
+        if (dropLocation.x < 4) {
+            rootNode = (ResourceNode)model.getRoot();
+            System.out.println("loc"+"x"+dropLocation.x+"y"+dropLocation.y);
+        } else if ((this.getPathForLocation(dropLocation.x, dropLocation.y) == null)){
+            rootNode = (ResourceNode)model.getRoot();
+            System.out.println("loc"+"x"+dropLocation.x+"y"+dropLocation.y);
+        }else{
             rootNode = (ResourceNode)this.getPathForLocation(dropLocation.x, dropLocation.y).getLastPathComponent();
             System.out.println("loc1"+ dropLocation.x+dropLocation.y);
             if (rootNode == tufts.vue.VueDragTree.oldnode){//System.out.println("this is same");
@@ -179,77 +158,30 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             }
             
         }
-        
-        
-        System.out.println("this is rootNode" + rootNode + "type" + rootNode.getResource().getType());
-        
         if (rootNode.getResource().getType() == FAVORITES){
-            
             if (resourceList != null){
                 java.util.Iterator iter = resourceList.iterator();
                 while(iter.hasNext()) {
                     Resource resource = (Resource) iter.next();
-                    System.out.println("RESOURCE FOUND 2" + resource + resource.getTitle() + resource.getSpec());
-                    
-                    
-                    
-                    if (resource instanceof CabinetResource){
-                        
-                        CabinetEntry entry = ((CabinetResource)resource).getEntry();
-                        CabinetNode cabNode = null;
-                        if (entry instanceof RemoteCabinetEntry)
-                            cabNode = new CabinetNode((CabinetResource)resource, CabinetNode.REMOTE);
-                        else
-                            cabNode = new CabinetNode((CabinetResource)resource, CabinetNode.LOCAL);
-                        
-                        cabNode.explore();
-                        
-                        this.setRootVisible(true);
-                        model.insertNodeInto(cabNode, rootNode, (rootNode.getChildCount()));
-                        this.expandPath(new TreePath(rootNode.getPath()));
-                        
-                        this.setRootVisible(false);
-                        success =true;
-                    } else if (resource.getType() == FAVORITES){
-                        
-                        // System.out.println("Am I in Favorites? was I in this spot ever?");
-                        ResourceNode newNode = (ResourceNode)tufts.vue.VueDragTree.oldnode.clone();
-                        this.setRootVisible(true);
-                        model.insertNodeInto(newNode,rootNode,(rootNode.getChildCount()));
-                        
-                        insertSubTree(tufts.vue.VueDragTree.oldnode,newNode,model);
-                        
-                        this.expandPath(new TreePath(rootNode.getPath()));
-                        this.setRootVisible(false);
-                    } else {
-                        
-                        ResourceNode newNode =new ResourceNode(resource);
-                        this.setRootVisible(true);
-                        model.insertNodeInto(newNode, rootNode, (rootNode.getChildCount()));
-                        this.expandPath(new TreePath(rootNode.getPath()));
-                        //this.expandRow(0);
-                        this.setRootVisible(false);
-                        
-                    }
+                    System.out.println("RESOURCE FOUND: " + resource + resource.getTitle() + resource.getSpec());
+                    ResourceNode newNode =new ResourceNode(resource);
+                    this.setRootVisible(true);
+                    model.insertNodeInto(newNode, rootNode, (rootNode.getChildCount()));
+                    this.expandPath(new TreePath(rootNode.getPath()));
+                    //this.expandRow(0);
+                    this.setRootVisible(false);
                     
                 }
-            }
-            
-            else  if (fileList != null){
-                
+            }else  if (fileList != null){
                 java.util.Iterator iter = fileList.iterator();
                 while(iter.hasNext()) {
-                    
                     File file = (File)iter.next();
-                    
-                    System.out.println("this is file " +file);
+                    System.out.println("File: " +file);
                     try{
                         LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                         osid.shared.Agent agent = null;
-                        
                         LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
                         CabinetResource res = new CabinetResource(cab);
-                        
                         CabinetEntry entry = res.getEntry();
                         CabinetNode cabNode = null;
                         if (entry instanceof RemoteCabinetEntry)
@@ -257,14 +189,11 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                         else
                             
                             cabNode = new CabinetNode(res, CabinetNode.LOCAL);
-                        
-                        
                         this.setRootVisible(true);
                         model.insertNodeInto(cabNode, rootNode, (rootNode.getChildCount()));
                         cabNode.explore();
                     }catch (Exception ex){}
                     this.expandPath(new TreePath(rootNode.getPath()));
-                    //this.expandRow(0);
                     this.setRootVisible(false);
                     
                 }
@@ -283,14 +212,6 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 
             }
             
-            else {
-                
-                // System.out.println("Vue Dand D tree it should not get here" );
-                
-            }
-            
-            
-            
             if (e.isLocalTransfer()){
                 tufts.vue.VUE.dropIsLocal = true;
                 
@@ -307,8 +228,6 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         
     }
     private void insertSubTree(ResourceNode rootNode,ResourceNode cloneNode, DefaultTreeModel treeModel){
-        
-        
         int i; int childCount = rootNode.getChildCount();
         
         
@@ -370,18 +289,10 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     
     class VueDandDTreeCellRenderer extends DefaultTreeCellRenderer {
         protected VueDandDTree tree;
-        
-        private String metaData;
-        
         public VueDandDTreeCellRenderer(VueDandDTree pTree) {
-            
-            
             this.tree = pTree;
-            
             tree.addMouseMotionListener(new MouseMotionAdapter() {
-                
                 public void mouseClicked(MouseEvent me){
-                    
                     if  (me.getClickCount() == 1) {
                         TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
                     }
@@ -389,38 +300,16 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 public void mouseMoved(MouseEvent me) {
                     TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
                 }
-                
             });
         }
         
         public Component getTreeCellRendererComponent(JTree tree,Object value, boolean sel,boolean expanded,boolean leaf,int row,
                 boolean hasFocus) {
-            
-            
-            
-            
             super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
             if ( !(value instanceof FileNode) && ((((ResourceNode)value).getResource()).getType()==FAVORITES) ){
-                
-                
                 if ((((DefaultMutableTreeNode)value).getChildCount()) > 0 ){ setIcon(activeIcon);} else {setIcon(inactiveIcon);}
-                
-                
-                
-            }
-            
-            else if (leaf){ setIcon(nleafIcon);
-            
-            
-            
-            }
-            
-            
-            else {setIcon(activeIcon);}
-            
-            
-            
-            
+            } else if (leaf){ setIcon(nleafIcon);
+            } else {setIcon(activeIcon);}
             return this;
         }
         
@@ -428,11 +317,9 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     
     
     public void dragEnter(DropTargetDragEvent me) { }
-    
     public void dragExit(DropTargetEvent e) {}
     public void dragOver(DropTargetDragEvent e) { }
-    
-    
+   
     public void dropActionChanged(DropTargetDragEvent e) { }
     private String readTextFlavor(DataFlavor flavor, Transferable transfer) {
         java.io.Reader reader = null;
