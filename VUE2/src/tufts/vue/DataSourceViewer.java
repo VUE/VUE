@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.125 $ / $Date: 2006-05-03 18:56:19 $ / $Author: anoop $ *
+ * @version $Revision: 1.126 $ / $Date: 2006-05-04 03:58:10 $ / $Author: anoop $ *
  * @author  akumar03
  */
 
@@ -262,6 +262,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             Widget.setExpanded(DRB.browsePane, true);
             DRB.browsePane.removeAll();
             DRB.browsePane.add(ds.getResourceViewer());
+            DRB.browsePane.revalidate();
             //Widget.setHidden(DRB.browsePane, false);
             //Widget.setExpanded(DRB.browsePane, true);
             //DRB.savedResourcesPane.setExpanded(false);
@@ -270,6 +271,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             Widget.setExpanded(DRB.browsePane, true);
             DRB.browsePane.removeAll();
             DRB.browsePane.add(ds.getResourceViewer());
+            DRB.browsePane.revalidate();
             //Widget.setHidden(DRB.browsePane, false);
             //Widget.setExpanded(DRB.browsePane, true);
             if (DEBUG.DR) out("Local Filing Selected " + ds) ;
