@@ -1222,6 +1222,10 @@ public class Util
      * (tho also slignly risky, as whatever you pick may in fact someday not respoond)
      * but InetAddress.isReachable is a java 1.5 API call, and VUE isn't built
      * with that yet.
+     *
+     * TODO: This currently not actually helpful to us: only will tell you if DNS
+     * is available the first time this is run in the Java VM (VUE was started),
+     * after that, the result is cached.
      */
     public static boolean isInternetReachable() {
         try {
@@ -1235,9 +1239,13 @@ public class Util
     
 
     public static void main(String args[])
-        throws java.io.IOException
+        throws Exception
     {
-        System.out.println("Internet is reachable (DNS available): " + isInternetReachable());
+        for (int i = 0; i < 30; i++) {
+            System.err.print("Internet is reachable (DNS available): ");
+            System.err.println("" + isInternetReachable());
+            Thread.sleep(2000);
+        }
         
         Enumeration nie = NetworkInterface.getNetworkInterfaces();
         while (nie.hasMoreElements()) {
