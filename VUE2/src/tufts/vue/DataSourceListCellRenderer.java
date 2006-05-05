@@ -71,6 +71,7 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
 		
 		// TODO: Make this font-savy
 		JPanel checkBoxPanel = new JPanel();			
+		checkBoxPanel.setOpaque(false);
 		checkBoxPanel.setLayout(new BorderLayout());
 		checkBoxPanel.setSize(new Dimension(4,4));
 		
@@ -83,6 +84,7 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
 		
 		JCheckBox checkBox = new JCheckBox();
 		checkBoxPanel.add(checkBox, BorderLayout.WEST);
+		checkBox.setOpaque(false);
 
 		String displayName = null;
 		if (value instanceof edu.tufts.vue.dsm.DataSource) {
@@ -108,15 +110,16 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
 		}
 				
 		if (index == list.getSelectedIndex()) {
-			checkBoxPanel.setBackground(SystemColor.textHighlight);
-			namePanel.setBackground(SystemColor.textHighlight);
-			iconPanel.setBackground(SystemColor.textHighlight);
-			panel.setBackground(SystemColor.textHighlight);
+                    checkBoxPanel.setBackground(SystemColor.textHighlight);
+                    namePanel.setBackground(SystemColor.textHighlight);
+                    iconPanel.setBackground(SystemColor.textHighlight);
+                    panel.setBackground(SystemColor.textHighlight);
 		} else {
-			checkBoxPanel.setBackground(VueResources.getColor("FFFFFF"));								
-			namePanel.setBackground(VueResources.getColor("FFFFFF"));
-			iconPanel.setBackground(VueResources.getColor("FFFFFF"));
-			panel.setBackground(VueResources.getColor("FFFFFF"));
+                    Color bg = list.getBackground();
+                    checkBoxPanel.setBackground(bg);
+                    namePanel.setBackground(bg);
+                    iconPanel.setBackground(bg);
+                    panel.setBackground(bg);
 		}
 
 		// adjust the spacing within the name panel (name and status) so labels are flush with edges
