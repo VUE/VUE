@@ -24,6 +24,7 @@ import java.lang.ref.*;
 import java.util.*;
 import java.util.jar.*;
 import java.util.prefs.*;
+import java.net.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.awt.*;
@@ -55,7 +56,8 @@ public class Util
     
     static {
 
-        DEBUG = System.getProperty("tufts.Util.debug") != null;
+        if (!DEBUG)
+            DEBUG = System.getProperty("tufts.Util.debug") != null;
             
         String osName = System.getProperty("os.name");
         String javaSpec = System.getProperty("java.specification.version");
@@ -343,48 +345,86 @@ public class Util
         }
     }
 
+
+    // GAK!  Move this code to URLResource, as it's going to have to be smart
+    // about local file drops for mac URL's, to be sure to UTF-8 DECODE them
+    // first, so we get RID of special characters or spaces, which come
+    // when the local file was dragged Safari, as opposed to the Finder
+    // (e.g., Desktop), which already decodes them for us.
+
+    // Also, we need to generically handle the decoding of ":" into "/"
+    // for these URL's. (God forbid there is HTML in the name: e.g. <i>foo</i>
+    // will send us a ':' in place of the '/', which we also don't
+    // want to mistake for a protocol below.  Actually, do fix the ':'
+    // in the display name (title), but not raw meta-data: could be confusing.
+
+
     private static java.lang.reflect.Method macOpenURL_Method = null;
     private static void openURL_Mac(String url)
-        throws java.io.IOException
     {
-        // In Mac OS X, you MUST have %20 and NO spaces in the URL's -- reverse of Windows.
-        // (Actually, that may only be for local files?).
+        boolean isLocalFile = "file:".equalsIgnoreCase(url.substring(0,5));
         
-        if (url.startsWith("file:////")) {
-            // don't think we have to do this, but just in case
-            // (was getting a complaint and couldn't tell if this was why or not,
-            // so now we won't see it)
-            url = "file:///" + url.substring(9);
+        if (DEBUG) System.err.println("openURL_Mac0 [" + url + "] isLocalFile=" + isLocalFile);
+
+        if (isLocalFile) {
+            if (url.startsWith("file:////")) {
+                // don't think we have to do this, but just in case
+                // (was getting a complaint and couldn't tell if this was why or not,
+                // so now we won't see it)
+                url = "file:///" + url.substring(9);
+            }
         }
 
-        // AH-HAH! -- MacOSX openURL uses UTF-8, NOT the native MacRoman encoding.
-        
-        if (DEBUG) System.err.println("openURL_Mac0 [" + url + "]");
-        url = java.net.URLEncoder.encode(url, "UTF-8"); // URLEncoder is way overzealous...
-        if (DEBUG) System.err.println("     OUM UTF [" + url + "]");
-
-        if (true) {
-            // now decode the over-coded stuff so it looks sane and we can
-            // do our check below and still look for '/' and ':'
-            url = url.replaceFirst("%3A", ":"); // only need to do first one
-            url = url.replaceAll("%2F", "/");
-            url = url.replaceAll("\\+", "%20");
+        try {
+            url = encodeSpecialChars_Mac(url);
+        } catch (Throwable t) {
+            printStackTrace(t);
         }
 
-        if (DEBUG) System.err.println(" OUM cleanup [" + url + "]");
+        // In Mac OS X, local files MUST have %20 and NO spaces in the URL's -- reverse of Windows.
+        // But enforcing this for regular HTTP URL's breaks them: turns existing %20's into %2520's
 
+        // If no protocol in the URL string, assume it's a pathname.  Normally, there
+        // would be nothing to do as openURL handles that fine on MacOSX, unless it's
+        // not absolute, it which case we make it absolute by assuming the users home
+        // directory.
+        
         if (url.indexOf(':') < 0 && !url.startsWith("/")) {
-            
             // Hack to make relative references relative to user home directory.  OSX
             // won't default to use current directory for a relative references, so 
             // we're prepending the home directory manually as a bail out try-for-it.
-            
             url = "file://" + System.getProperty("user.home") + "/" + url;
             if (DEBUG) System.err.println("    OUM HOME [" + url + "]");
         }
 
         execMacOpenURL(url);
+    }
+
+    private static String encodeSpecialChars_Mac(String url)
+        throws java.io.IOException
+    {
+        // In case there are any special characters (e.g., Unicode chars) in the
+        // file name, we must first encode them for MacOSX (local files only?)
+        // FYI, MacOSX openURL uses UTF-8, NOT the native MacRoman encoding.
+        // URLEncoder encodes EVERYTHING other than alphas tho, so we need
+        // to put it back.
+
+        // But first we DECODE it, in case there are already any encodings,
+        // we don't want to double-encode.
+        url = java.net.URLDecoder.decode(url, "UTF-8");
+        if (DEBUG) System.err.println("  DECODE UTF [" + url + "]");
+
+        url = java.net.URLEncoder.encode(url, "UTF-8"); // URLEncoder is way overzealous...
+        if (DEBUG) System.err.println("  ENCODE UTF [" + url + "]");
+
+        // now decode the over-coded stuff so it looks sane (has colon & slashes, etc)
+        url = url.replaceFirst("%3A", ":"); // only need to do first one
+        url = url.replaceAll("%2F", "/");
+        url = url.replaceAll("\\+", "%20");
         
+        if (DEBUG) System.err.println("     CLEANUP [" + url + "]");
+
+        return url;
     }
 
     private static void execMacOpenURL(String url)
@@ -1085,10 +1125,11 @@ public class Util
             s.println("");
 
             Throwable cause = t.getCause();
-            if (cause != null)
+            if (cause != null) {
                 //ourCause.printStackTraceAsCause(s, trace);
-                s.println("CAUSE: " + cause);
-
+                s.print(TERM_RED + "    CAUSE: " + TERM_CLEAR);
+                cause.printStackTrace();
+            }
         }
         }
     }
@@ -1174,14 +1215,48 @@ public class Util
         return pad(' ', wide, s, false);
     }
 
-
-
+    /**
+     * For now, this just determines if DNS is available, and assumes that if it is,
+     * we have external network access.  Ultimately, pinging a known "permanent",
+     * high-availability host (e.g., www.google.com), would be somewhat more accurate,
+     * (tho also slignly risky, as whatever you pick may in fact someday not respoond)
+     * but InetAddress.isReachable is a java 1.5 API call, and VUE isn't built
+     * with that yet.
+     */
+    public static boolean isInternetReachable() {
+        try {
+            InetAddress result = InetAddress.getByName("www.google.com");
+            return result != null;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
 
     
 
     public static void main(String args[])
         throws java.io.IOException
     {
+        System.out.println("Internet is reachable (DNS available): " + isInternetReachable());
+        
+        Enumeration nie = NetworkInterface.getNetworkInterfaces();
+        while (nie.hasMoreElements()) {
+            NetworkInterface ni = (NetworkInterface) nie.nextElement();
+            System.err.println("\nNetwork Interface[" + ni + "]");
+            //Enumeration ie = ni.get
+            
+        }
+
+        //System.err.println("ServerSocket: " + new ServerSocket(0)); // not sensitive to network availability
+        
+        if (args.length > 0 && args[0].startsWith("-")) {
+            String host = args[0].substring(1);
+            InetAddress[] ips = InetAddress.getAllByName(host);
+            System.out.println(host + " IP's: " + Arrays.asList(ips));
+            System.exit(0);
+        }
+        
+        
         //System.out.println("cursor16 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(16,16));
         //System.out.println("cursor24 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(24,24));
         //System.out.println("cursor32 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(32,32));
