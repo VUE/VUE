@@ -59,6 +59,8 @@ public class ExitAction extends VueAction {
         super(label);
     }
     
+    public boolean enabled() { return true; }
+
     public void act() {
         exitVue();
     }
