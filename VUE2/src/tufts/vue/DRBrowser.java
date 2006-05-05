@@ -28,7 +28,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.49 $ / $Date: 2006-05-03 03:51:17 $ / $Author: anoop $ 
+ * @version $Revision: 1.50 $ / $Date: 2006-05-05 20:51:43 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -40,17 +40,10 @@ public class DRBrowser extends JPanel
     
     final JComponent searchPane = new Widget("Search") {
             private Component editor, result;
-            private GridBagConstraints bc = new GridBagConstraints();
             {
-                //setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-                //setLayout(new GridLayout(2, 1));
-                //setLayout(new GridBagLayout());
                 setOpaque(false);
                 if (DoubleDockWindowImpl)
                     setWantsScroller(true);
-                bc.weightx = 1;
-                bc.gridx = 0;
-                bc.gridwidth = GridBagConstraints.REMAINDER; // last in row
             }
             
             protected void addImpl(Component c, Object constraints, int idx) {
@@ -62,14 +55,9 @@ public class DRBrowser extends JPanel
                     if (editor != null)
                         remove(editor);
                     editor = c;
-                    bc.gridy = 0;
-                    bc.weighty = 0;
-                    bc.gridheight = GridBagConstraints.RELATIVE;
-                    bc.fill = GridBagConstraints.HORIZONTAL;
                     constraints = BorderLayout.NORTH;
                     if (jc != null)
                         jc.setBorder(GUI.WidgetInsetBorder);
-                    if (DEBUG.BOXES && jc != null) jc.setBorder(new LineBorder(Color.magenta, 4));
                 } else if (constraints == SEARCH_RESULT) {
 
                     if (SingleDockWindowImpl) {
@@ -85,15 +73,9 @@ public class DRBrowser extends JPanel
                     if (result != null)
                         remove(result);
                     result = c;
-                    bc.gridy = 1;
-                    bc.weighty = 1;
-                    bc.gridheight = GridBagConstraints.REMAINDER;
-                    bc.fill = GridBagConstraints.BOTH;
                     constraints = BorderLayout.CENTER;
-                    if (DEBUG.BOXES && jc != null && jc.getBorder() == null) jc.setBorder(new LineBorder(Color.pink, 4));
                 } else {
                     tufts.Util.printStackTrace("illegal search pane constraints: " + constraints);
-                    bc.gridy = 2; // shouldn't see this
                 }
                 
                 //constraints = bc;
@@ -336,28 +318,8 @@ public class DRBrowser extends JPanel
             */
             if (loadingLabel != null)
                 librariesPanel.remove(loadingLabel);
-            //setMinimumSize(null); some data-sources smaller: don't allow shrinkage
-            //librariesPanel.setPreferredSize(null);
 
-            //dsv.setBorder(GUI.WidgetInsetBorder);
-            dsv.setBorder(new MatteBorder(0, GUI.WidgetInsets.left,
-                                          0, GUI.WidgetInsets.right,
-                                          Color.white));
             librariesPanel.add(dsv);
-
-//                 System.out.println("dsv == " + dsv);
-//                 System.out.println("dsv sz " + dsv.getSize());
-//                 System.out.println("dsv ps " + dsv.getPreferredSize());
-//                 System.out.println("DRB.SZ " + getSize());
-//                 System.out.println("DRB.PS " + getPreferredSize());
-//                 validate();
-//                 System.out.println("validate");
-//                 System.out.println("dsv sz " + dsv.getSize());
-//                 System.out.println("dsv ps " + dsv.getPreferredSize());
-//                 System.out.println("DRB.SZ " + getSize());
-//                 System.out.println("DRB.PS " + getPreferredSize());
-//                 //setMinimumSize(dsv.getPreferredSize());
-
 
             revalidate();
             // must do this to get re-laid out: apparently, the hierarchy
