@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.126 $ / $Date: 2006-05-04 03:58:10 $ / $Author: anoop $ *
+ * @version $Revision: 1.127 $ / $Date: 2006-05-05 20:44:21 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -253,28 +253,15 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     }
     
     public void setActiveDataSource(DataSource ds){
-        if (DEBUG.DR) out("SET ACTIVE DATA SOURCE " + ds);
+        if (DEBUG.DR) out("Set active data source: " + ds);
         this.activeDataSource = ds;
         dataSourceList.setSelectedValue(ds,true);
         Widget.setExpanded(DRB.searchPane, false);
-        if (ds instanceof LocalFileDataSource) {
+        if (ds instanceof LocalFileDataSource || ds instanceof FavoritesDataSource) {
             Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
             Widget.setExpanded(DRB.browsePane, true);
             DRB.browsePane.removeAll();
             DRB.browsePane.add(ds.getResourceViewer());
-            DRB.browsePane.revalidate();
-            //Widget.setHidden(DRB.browsePane, false);
-            //Widget.setExpanded(DRB.browsePane, true);
-            //DRB.savedResourcesPane.setExpanded(false);
-            if (DEBUG.DR) out("Local Filing Selected " + ds) ;
-        } else if (ds instanceof FavoritesDataSource) {
-            Widget.setExpanded(DRB.browsePane, true);
-            DRB.browsePane.removeAll();
-            DRB.browsePane.add(ds.getResourceViewer());
-            DRB.browsePane.revalidate();
-            //Widget.setHidden(DRB.browsePane, false);
-            //Widget.setExpanded(DRB.browsePane, true);
-            if (DEBUG.DR) out("Local Filing Selected " + ds) ;
         } else
             Widget.setExpanded(DRB.browsePane, false);
         
