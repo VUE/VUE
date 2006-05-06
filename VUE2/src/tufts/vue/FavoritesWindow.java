@@ -170,7 +170,6 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                     favResource.setTitle(NEW_FAVORITES);
                     favResource.setType(FAVORITES);
                     FavoritesNode favNode = new FavoritesNode(favResource);
-                    //System.out.println("Am in fav" + favNode);
                     if (model.getRoot() != resNode){
                         model.insertNodeInto(favNode, favresNode, (favresNode.getChildCount()));
                         favoritesTree.expandPath(new TreePath(favresNode.getPath()));
@@ -198,8 +197,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                     favoritesTree.setRootVisible(false);
                     this.setFavoritesTree(favoritesTree);
                 }
-            }
-            else {
+            } else {
                 if (resNode instanceof FileNode) { ((FileNode)resNode).displayContent();} else {
                     resNode.getResource().displayContent();
                 }
@@ -212,12 +210,20 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     public void itemStateChanged(ItemEvent e) {
         JMenuItem source = (JMenuItem)(e.getSource());
     }
-    
+    //Saves to favorites.xml in applications default directory.  May want to have a separate file for every favorites
+    public void save() {
+        if (favoritesTree != null)  {
+            tufts.vue.VueDandDTree ft = this.getFavoritesTree();
+            ft.setRootVisible(true);
+            tufts.vue.SaveVueJTree sFavTree = new tufts.vue.SaveVueJTree(ft);
+            File favFile  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites"));
+            marshallFavorites(favFile,sFavTree);
+        }
+    }
     
     public static void marshallFavorites(File file,SaveVueJTree favoritesTree) {
         Marshaller marshaller = null;
         Mapping mapping = new Mapping();
-        
         try {
             FileWriter writer = new FileWriter(file);
             marshaller = new Marshaller(writer);
@@ -226,15 +232,13 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             writer.flush();
             writer.close();
         } catch (Exception e) {
-            // e.printStackTrace();
-            //System.err.println("FavoritesWindow.marshallFavorites: " + e);
+            System.out.println("FavoritesWindow.marshallFavorites: " + e);
         }
     }
     
     public  SaveVueJTree unMarshallFavorites(File file) {
         Unmarshaller unmarshaller = null;
         SaveVueJTree sTree = null;
-        
         try {
             unmarshaller = new Unmarshaller(ActionUtil.getDefaultMapping());
             FileReader reader = new FileReader(file);

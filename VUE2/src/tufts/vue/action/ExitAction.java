@@ -60,7 +60,7 @@ public class ExitAction extends VueAction {
     }
     
     public boolean enabled() { return true; }
-
+    
     public void act() {
         exitVue();
     }
@@ -71,6 +71,7 @@ public class ExitAction extends VueAction {
         
         try {
             VUE.getRootWindow().setVisible(false);
+            saveResources();
             if (false) {
                 System.out.println("Saving user preferences...");
                 saveDataSourceInfo();
@@ -101,14 +102,11 @@ public class ExitAction extends VueAction {
                 if (ds instanceof FavoritesDataSource){
                     FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
                     if (fw.favoritesTree != null)  {
-                        //Saving favorites
                         tufts.vue.VueDandDTree ft = ((FavoritesWindow)ds.getResourceViewer()).getFavoritesTree();
                         ft.setRootVisible(true);
-                        //  System.out.println("This is tree [" + (ft.getModel()).getRoot() + "]");
                         tufts.vue.SaveVueJTree sfavtree = new tufts.vue.SaveVueJTree(ft);
                         File favf  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+ds.getDisplayName()+VueResources.getString("save.favorites"));
                         ((FavoritesWindow)ds.getResourceViewer()).marshallFavorites(favf,sfavtree);
-                        //System.out.println("Favorites Saved ["+ds.getDisplayName() + "] to " + favf);
                     }
                 }
             }
@@ -116,6 +114,17 @@ public class ExitAction extends VueAction {
         
     }
     
-    
+    public static void saveResources() {
+        DataSource ds;
+        ListModel model = tufts.vue.DataSourceViewer.dataSourceList.getModel();
+        int i;
+        for (i =0 ; i< model.getSize(); i++){
+            if (model.getElementAt(i) instanceof FavoritesDataSource) {
+                ds = (DataSource)model.getElementAt(i) ;
+                FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
+                fw.save();
+               
+            }
+        }
+    }
 }
-
