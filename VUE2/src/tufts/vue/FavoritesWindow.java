@@ -48,6 +48,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     public static final String REMOVE_FAVORITES = "Remove Favorites Folder";
     public static final String OPEN_RESOURCE = "Open Resource";
     public static final String REMOVE_RESOURCE = "Remove Resource";
+    public static final String CONFIRM_DEL_RESOURCE ="Are you sure you want to delete  the resource";
+    public static final String TITLE_DEL_RESOURCE = "Delete Resource Confirmation";
     private DisplayAction displayAction = null;
     public  VueDandDTree favoritesTree ;
     private JScrollPane browsePane;
@@ -80,13 +82,13 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             //favoritesTree.setRootVisible(true);
             //favoritesTree.expandRow(0);
             //this.setFavoritesTree(favoritesTree);
-        }     
+        }
         createPopupMenu();
         browsePane = new JScrollPane(favoritesTree);
-        add(browsePane,BorderLayout.CENTER); 
+        add(browsePane,BorderLayout.CENTER);
     }
     public VueDandDTree getFavoritesTree(){
-        return (this.favoritesTree);   
+        return (this.favoritesTree);
     }
     
     public void setFavoritesTree(VueDandDTree favoritesTree){
@@ -113,7 +115,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             aButton.setSelected(state);
         }
     }
-
+    
     public void createPopupMenu() {
         JMenuItem menuItem;
         JPopupMenu popup = new JPopupMenu();
@@ -152,13 +154,13 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
             if (tp == null){ resNode = (ResourceNode)model.getRoot();
             } else{
-                resNode = (ResourceNode)tp.getLastPathComponent();                
+                resNode = (ResourceNode)tp.getLastPathComponent();
             }
             if (e.getActionCommand().toString().equals(REMOVE_RESOURCE) | e.getActionCommand().toString().equals(REMOVE_FAVORITES)) {
-                if (resNode.isRoot()) {
-                    System.out.println("cannot delete root");
-                } else {
-                    model.removeNodeFromParent(resNode);
+                if (!resNode.isRoot()) {
+                    if(VueUtil.confirm(this,CONFIRM_DEL_RESOURCE,TITLE_DEL_RESOURCE) == JOptionPane.OK_OPTION) {
+                        model.removeNodeFromParent(resNode);
+                    }
                 }
             } else if (e.getActionCommand().toString().equals(ADD_FAVORITES)){
                 tp = new TreePath(resNode.getPath());
@@ -196,7 +198,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                     favoritesTree.setRootVisible(false);
                     this.setFavoritesTree(favoritesTree);
                 }
-            }//Finish add a bookmark folder
+            }
             else {
                 if (resNode instanceof FileNode) { ((FileNode)resNode).displayContent();} else {
                     resNode.getResource().displayContent();
@@ -314,7 +316,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             }
         }
         return foundsomething;
-    }   
+    }
     
     public void addSearchNode(ResourceNode topNode, ResourceNode Node) {
         ResourceNode newNode = (ResourceNode)Node.clone();
@@ -379,7 +381,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                         popupResource.show(e.getComponent(),e.getX(), e.getY());
                     }
                 } else {
-                  popupAdd.show(e.getComponent(),e.getX(), e.getY());  
+                    popupAdd.show(e.getComponent(),e.getX(), e.getY());
                 }
             }
         }

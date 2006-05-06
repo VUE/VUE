@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.127 $ / $Date: 2006-05-05 20:44:21 $ / $Author: sfraize $ *
+ * @version $Revision: 1.128 $ / $Date: 2006-05-06 03:20:53 $ / $Author: anoop $ *
  * @author  akumar03
  */
 
@@ -61,7 +61,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     private static Object activeDataSource;
     //private static JPanel resourcesPanel,dataSourcePanel;
     String breakTag = "";
- 
+    
     public final static int ADD_MODE = 0;
     public final static int EDIT_MODE = 1;
     private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
@@ -173,8 +173,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         dataSourceList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 Point pt = e.getPoint();
-                // see if we are far enough over to the left to be on the checkbox
-                if ( (activeDataSource instanceof edu.tufts.vue.dsm.DataSource) && (pt.x <= 40) ) {
+                 if ( (activeDataSource instanceof edu.tufts.vue.dsm.DataSource) && (pt.x <= 40) ) {
                     int index = dataSourceList.locationToIndex(pt);
                     edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceList.getModel().getElementAt(index);
                     boolean included = !ds.isIncludedInSearch();
