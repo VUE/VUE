@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.128 $ / $Date: 2006-05-06 03:20:53 $ / $Author: anoop $ *
+ * @version $Revision: 1.129 $ / $Date: 2006-05-06 17:46:27 $ / $Author: anoop $ *
  * @author  akumar03
  */
 
@@ -261,6 +261,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             Widget.setExpanded(DRB.browsePane, true);
             DRB.browsePane.removeAll();
             DRB.browsePane.add(ds.getResourceViewer());
+            DRB.browsePane.revalidate();
         } else
             Widget.setExpanded(DRB.browsePane, false);
         
