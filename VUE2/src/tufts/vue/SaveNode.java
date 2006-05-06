@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -35,12 +35,11 @@ import java.io.*;
 import java.util.Enumeration;
 
 public class SaveNode{
-   
+    
     private Resource resource;
     private Vector children;
     
-    public SaveNode(){
-        
+    public SaveNode(){ 
     }
     
     public SaveNode(ResourceNode resourceNode){
@@ -48,16 +47,11 @@ public class SaveNode{
         this.setResource(resourceNode.getResource());
         System.out.println("Resource Node" + resourceNode.getResource());
         Vector v = new Vector();
-       
-        while (e.hasMoreElements())
-        {    
-              
-               ResourceNode newResNode =(ResourceNode)e.nextElement();
-             
+        while (e.hasMoreElements()) {
+            ResourceNode newResNode =(ResourceNode)e.nextElement();
             SaveNode child = new SaveNode(newResNode);
             v.add(child);
         }
-          
         this.setChildren(v);
     }
     
@@ -75,7 +69,7 @@ public class SaveNode{
     }
     
     public Vector getChildren(){
-         return (this.children);
+        return (this.children);
     }
     
-}  
+}

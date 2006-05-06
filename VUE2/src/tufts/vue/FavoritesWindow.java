@@ -50,6 +50,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     public static final String REMOVE_RESOURCE = "Remove Resource";
     public static final String CONFIRM_DEL_RESOURCE ="Are you sure you want to delete  the resource";
     public static final String TITLE_DEL_RESOURCE = "Delete Resource Confirmation";
+    public static final String SAVE_FILE = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites");
     private DisplayAction displayAction = null;
     public  VueDandDTree favoritesTree ;
     private JScrollPane browsePane;
@@ -60,28 +61,12 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     /** Creates a new instance of HierarchyTreeWindow */
     public FavoritesWindow(String displayName ) {
         setLayout(new BorderLayout());
-        File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+ displayName+VueResources.getString("save.favorites"));
-        try {
-            SaveVueJTree restorefavtree = unMarshallFavorites(f);
-            fileOpen = true;
-            favoritesTree =restorefavtree.restoreTree();
-            favoritesTree.setRootVisible(true);
-            favoritesTree.expandRow(0);
-            favoritesTree.setRootVisible(false);
-            this.setFavoritesTree(favoritesTree);
-        }catch (Exception ex){
-            System.out.println("I tried to open" + f);
-            fileOpen = false;
-        }
+        load();
         if (!fileOpen){
-            System.out.println("Creating the tree");
+            System.out.println("Creating new favorites");
             MapResource favResource = new MapResource(displayName);
             favoritesTree = new VueDandDTree(new FavoritesNode(favResource));
             favoritesTree.setRootVisible(false);
-            //favoritesTree = new VueDandDTree(favRoot);
-            //favoritesTree.setRootVisible(true);
-            //favoritesTree.expandRow(0);
-            //this.setFavoritesTree(favoritesTree);
         }
         createPopupMenu();
         browsePane = new JScrollPane(favoritesTree);
@@ -216,11 +201,26 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             tufts.vue.VueDandDTree ft = this.getFavoritesTree();
             ft.setRootVisible(true);
             tufts.vue.SaveVueJTree sFavTree = new tufts.vue.SaveVueJTree(ft);
-            File favFile  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites"));
+            File favFile  = new File(SAVE_FILE);
             marshallFavorites(favFile,sFavTree);
         }
     }
     
+    public void load() {
+        File f  = new File(SAVE_FILE);
+        try {
+            SaveVueJTree restorefavtree = unMarshallFavorites(f);
+            fileOpen = true;
+            favoritesTree =restorefavtree.restoreTree();
+            favoritesTree.setRootVisible(true);
+            favoritesTree.expandRow(0);
+            favoritesTree.setRootVisible(false);
+            this.setFavoritesTree(favoritesTree);
+        }catch (Exception ex){
+            System.out.println("FavoritesWindow.load " + ex);
+            fileOpen = false;
+        }
+    }
     public static void marshallFavorites(File file,SaveVueJTree favoritesTree) {
         Marshaller marshaller = null;
         Mapping mapping = new Mapping();
