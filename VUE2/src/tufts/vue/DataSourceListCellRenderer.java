@@ -19,9 +19,11 @@
 package tufts.vue;
 
 import tufts.vue.gui.*;
+
 import java.awt.*;
-import javax.swing.*;
 import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.border.*;
 
 public class DataSourceListCellRenderer extends DefaultListCellRenderer implements ActionListener
 {
@@ -42,16 +44,44 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
     // The idea with renderer's is that just the value-sets
     // happen at render time.
     
-    /*
-    private JPanel panel = new JPanel();
-    private JPanel checkBoxPanel = new JPanel();			
-    private JPanel namePanel = new JPanel();
-    private JPanel iconPanel = new JPanel();
-    private JCheckBox checkBox = new JCheckBox();
-    private JLabel displayNameLabel = new JLabel();
+    //private Box mRow = new Box(BoxLayout.X_AXIS);
+    private JPanel mRow = new JPanel();
+    private JCheckBox mCheckBox = new JCheckBox();
+    private JLabel mLabel = new DefaultListCellRenderer();
+    private JLabel mIconLabel = new DefaultListCellRenderer();
 
     public DataSourceListCellRenderer()
     {
+        mRow.setLayout(new BoxLayout(mRow, BoxLayout.X_AXIS));
+        mRow.setOpaque(true);
+        
+        //mCheckBox.setOpaque(false);
+        mCheckBox.setBorderPainted(false);
+        //mCheckBox.setBorderPaintedFlat(true); // doesn't work in Aqua L&F
+        //mCheckBox.setBorder(new MatteBorder(0,6,0,6, Color.orange));
+        //mIconLabel.setBorder(new MatteBorder(0,6,0,6, Color.pink));
+
+        mLabel.setMinimumSize(new Dimension(10, mLabel.getHeight()));
+        mLabel.setPreferredSize(new Dimension(Short.MAX_VALUE, mLabel.getHeight()));
+        //mLabel.setOpaque(false);
+
+        //mIconLabel.setOpaque(true);
+
+        mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
+        mRow.add(mCheckBox);
+        mRow.add(mLabel);
+        //mRow.add(Box.createHorizontalGlue());
+        mRow.add(mIconLabel);
+        mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.right));
+
+        setSize(Short.MAX_VALUE, 1);
+        setMaximumSize(new Dimension(Short.MAX_VALUE, 1));
+        setPreferredSize(new Dimension(Short.MAX_VALUE, 1));
+
+        /*
+        breakIcon.setIconWidth(1600);
+        breakIcon.setIconHeight(1);
+        
         panel.setLayout(new BoxLayout(panel,BoxLayout.X_AXIS));
 		
         checkBoxPanel.setOpaque(false);
@@ -72,15 +102,18 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
         panel.add(checkBoxPanel);
         panel.add(namePanel);
         panel.add(iconPanel);
+        */
     }
-    */
     
 
-    public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)
+    public Component getListCellRendererComponent(JList list,
+                                                  Object value,
+                                                  int index,
+                                                  boolean selected,
+                                                  boolean cellHasFocus)
     {
-        breakIcon.setIconWidth(1600);
-        breakIcon.setIconHeight(1);
 		
+        /*
         if (value instanceof String) {                    
             super.getListCellRendererComponent(list,"",index,iss,chf);
         } else if (value instanceof tufts.vue.DataSource) {
@@ -88,8 +121,12 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
         } else if (value instanceof edu.tufts.vue.dsm.DataSource) {
             super.getListCellRendererComponent(list,((edu.tufts.vue.dsm.DataSource)value).getRepositoryDisplayName(), index, iss, chf);					
         }
+        */
 		
         if (value instanceof String) {
+            //setText("[" + value + "]");
+            return this;
+            /*
             JPanel linePanel = new JPanel() {
                     protected void paintComponent(Graphics g) {
                         Graphics2D g2d = (Graphics2D)g;
@@ -105,8 +142,36 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
                     }
                 };
             return linePanel;
+            */
         }
         
+        mCheckBox.setEnabled(true);
+
+        Color bg;
+
+        if (selected) {
+            bg = SystemColor.textHighlight;
+        } else {
+            bg = list.getBackground();
+            /*
+            // can't do this by index, because String entries throw us off
+            if (index % 2 == 0)
+                bg = list.getBackground();
+            else
+                bg = Color.blue;
+            */
+        }
+
+        mRow.setBackground(bg);
+        mCheckBox.setBackground(bg);
+        mLabel.setBackground(bg);
+        mIconLabel.setBackground(bg);
+        
+            
+
+        
+
+        /*
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel,BoxLayout.X_AXIS));
 		
@@ -125,30 +190,42 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
         JCheckBox checkBox = new JCheckBox();
         checkBoxPanel.add(checkBox, BorderLayout.WEST);
         checkBox.setOpaque(false);
+        */
+
 
         String displayName = null;
         if (value instanceof edu.tufts.vue.dsm.DataSource) {
             edu.tufts.vue.dsm.DataSource datasource = (edu.tufts.vue.dsm.DataSource)value;
             displayName = datasource.getRepositoryDisplayName();
-            checkBox.setEnabled(true);
-            checkBox.setSelected(datasource.isIncludedInSearch());
-            iconPanel.add(new JLabel(remoteIcon), BorderLayout.EAST);
+            //mCheckBox.setEnabled(true);
+            mCheckBox.setVisible(true);
+            mCheckBox.setSelected(datasource.isIncludedInSearch());
+            mIconLabel.setIcon(remoteIcon);
+            /*
             if (datasource.isOnline()) {
                 namePanel.add(onlineLabel, BorderLayout.EAST);
             } else {
                 namePanel.add(offlineLabel, BorderLayout.EAST);
             }
+            */
         } else if (value instanceof LocalFileDataSource){
             displayName = ((DataSource)value).getDisplayName();
-            checkBox.setEnabled(false);
-            checkBox.setVisible(false);
-            iconPanel.add(new JLabel(savedResourcesIcon), BorderLayout.EAST);
+            mCheckBox.setEnabled(false);
+            //mCheckBox.setVisible(false);
+            mIconLabel.setIcon(savedResourcesIcon);
         } else  if (value instanceof FavoritesDataSource) {
             displayName = "My Saved Content";
-            checkBox.setEnabled(true);
-            iconPanel.add(new JLabel(myComputerIcon), BorderLayout.EAST);
+            //mCheckBox.setEnabled(true);
+            mCheckBox.setVisible(true);
+            mIconLabel.setIcon(myComputerIcon);
         }
-				
+
+        mLabel.setText(displayName);
+
+        return mRow;
+
+        
+        /*
         if (index == list.getSelectedIndex()) {
             checkBoxPanel.setBackground(SystemColor.textHighlight);
             namePanel.setBackground(SystemColor.textHighlight);
@@ -161,8 +238,10 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
             iconPanel.setBackground(bg);
             panel.setBackground(bg);
         }
+        */
 
         // adjust the spacing within the name panel (name and status) so labels are flush with edges
+        /*
         JLabel displayNameLabel = new JLabel(displayName);
         double displayNameWidth;
         while ((displayNameWidth = displayNameLabel.getPreferredSize().getWidth()) > 155) {
@@ -182,6 +261,8 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer implemen
         panel.add(iconPanel);
 
         return panel;
+        
+        */
     }
 
     public void actionPerformed(ActionEvent e) {
