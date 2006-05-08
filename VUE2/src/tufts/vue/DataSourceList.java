@@ -47,43 +47,39 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.36 $ / $Date: 2006-05-08 16:26:25 $ / $Author: anoop $
+ * @version $Revision: 1.37 $ / $Date: 2006-05-08 23:47:30 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
-public class DataSourceList extends JList implements DropTargetListener {
-    
-    DropTarget dropTarget = null;
-    static final String MIME_TYPE_MAC_URLN = "application/x-mac-ostype-75726c6e";
-    // 75726c6e="URLN" -- mac uses this type for a flavor containing the title of a web document
-    // this existed in 1.3, but apparently went away in 1.4.
-    static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
-    
-    private final int ACCEPTABLE_DROP_TYPES =
-            DnDConstants.ACTION_COPY |
-            DnDConstants.ACTION_LINK |
-            DnDConstants.ACTION_MOVE;
+public class DataSourceList extends JList implements DropTargetListener
+{
     private final boolean debug = true;
-    DataSourceViewer dsViewer;
-    edu.tufts.vue.dsm.DataSource infoDataSource;
+    //private DropTarget dropTarget = null;
+    //DataSourceViewer dsViewer;
+    //edu.tufts.vue.dsm.DataSource infoDataSource;
     
     public DataSourceList(DataSourceViewer dsViewer) {
         super(new DefaultListModel());
-        this.dsViewer = dsViewer;
+        //this.dsViewer = dsViewer;
         this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
-        this.setFixedCellHeight(-1);
-        dropTarget = new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
+        this.setFixedCellHeight(-1);    
+    
+        int ACCEPTABLE_DROP_TYPES =
+            DnDConstants.ACTION_COPY |
+            DnDConstants.ACTION_LINK |
+            DnDConstants.ACTION_MOVE;
+
+        // TODO: create a generic resource drop handler from MapDropTarget to use
+        // in places such as this (this code originiated as a copy of MapDropTarget,
+        // but is now completely old/out of sync with with it).
+        
+        new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
         this.setCellRenderer(new DataSourceListCellRenderer());
     }
     
     public DefaultListModel getContents() {
         return (DefaultListModel)getModel();
     }
-    
-    public void dragEnter(DropTargetDragEvent e) { }
-    
-    public void dragExit(DropTargetEvent e) {}
-    public void dragOver(DropTargetDragEvent e) {}
     
     public void drop(DropTargetDropEvent e) {
         e.acceptDrop(DnDConstants.ACTION_COPY);
@@ -258,7 +254,10 @@ public class DataSourceList extends JList implements DropTargetListener {
         }
         return url;
     }
-    public void dropActionChanged( DropTargetDragEvent e ) {
-    }
+    
+    public void dragEnter(DropTargetDragEvent e) { }
+    public void dragExit(DropTargetEvent e) {}
+    public void dragOver(DropTargetDragEvent e) {}
+    public void dropActionChanged( DropTargetDragEvent e ) {}
     
 }
