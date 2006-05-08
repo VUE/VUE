@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.369 $ / $Date: 2006-04-26 21:19:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.370 $ / $Date: 2006-05-08 23:52:24 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -260,7 +260,7 @@ public class VUE
 
         GUI.parseArgs(args);
         
-        if (true||DEBUG.INIT) System.out.println("VUE: parsed args " + allArgs);
+        if (DEBUG.INIT) System.out.println("VUE: parsed args " + allArgs);
     }
 
     
