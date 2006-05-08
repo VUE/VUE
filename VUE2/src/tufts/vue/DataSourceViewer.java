@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.129 $ / $Date: 2006-05-06 17:46:27 $ / $Author: anoop $ *
+ * @version $Revision: 1.130 $ / $Date: 2006-05-08 23:49:46 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -170,27 +170,35 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             }}
         );
         
+
         dataSourceList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 Point pt = e.getPoint();
-                 if ( (activeDataSource instanceof edu.tufts.vue.dsm.DataSource) && (pt.x <= 40) ) {
+                if (activeDataSource instanceof edu.tufts.vue.dsm.DataSource
+                    && pt.x <= DataSourceListCellRenderer.FirstColumn) {
                     int index = dataSourceList.locationToIndex(pt);
-                    edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceList.getModel().getElementAt(index);
+                    edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)
+                        dataSourceList.getModel().getElementAt(index);
                     boolean included = !ds.isIncludedInSearch();
-                    ds.setIncludedInSearch(included);
                     if (DEBUG.DR) out("DataSource " + ds + " [" + ds.getProviderDisplayName() + "] inclusion: " + included);
-                    //ds.setIncludedInSearch(!ds.isIncludedInSearch());
-                    try {
-                        dataSourceManager.save();
-                    } catch (Throwable t) {
-                        
-                    }
+                    ds.setIncludedInSearch(included);
                     dataSourceList.repaint();
                     queryEditor.refresh();
+
+                    GUI.invokeAfterAWT(new Runnable() { public void run() {
+                        try {
+                            synchronized (dataSourceManager) {
+                                if (DEBUG.DR) out("DataSourceManager saving...");
+                                dataSourceManager.save();
+                                if (DEBUG.DR) out("DataSourceManager saved.");
+                            }
+                        } catch (Throwable t) {
+                            tufts.Util.printStackTrace(t);
+                        }
+                    }});
                 }
-                //                if(e.getButton() == e.BUTTON3) {
-                //                    popup.show(e.getComponent(), e.getX(), e.getY());
-                //                }
+                //if(e.getButton() == e.BUTTON3)
+                //popup.show(e.getComponent(), e.getX(), e.getY());
             }
         });
         
@@ -420,19 +428,19 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     private void loadDefaultDataSources() {
         try {
             String breakTag = "";
-            dataSourceList.getContents().addElement(breakTag);
+            //dataSourceList.getContents().addElement(breakTag);
             DataSource ds1 = new FavoritesDataSource("My Saved Content");
             dataSourceList.getContents().addElement(ds1);
-            dataSourceList.getContents().addElement(breakTag);
+            //dataSourceList.getContents().addElement(breakTag);
             DataSource ds2 = new LocalFileDataSource("My Computer","");
             dataSourceList.getContents().addElement(ds2);
             // default selection
             dataSourceList.setSelectedValue(ds2,true);
-            dataSourceList.getContents().addElement(breakTag);
+            //dataSourceList.getContents().addElement(breakTag);
             DataSource ds4 = new LocalFileDataSource("My Maps","");
             dataSourceList.getContents().addElement(ds4);
-            dataSourceList.getContents().addElement(breakTag);
-            //            DataSource ds3 = new FedoraDataSource("Tufts Digital Library","dl.tufts.edu", "test","test",8080);
+
+//            DataSource ds3 = new FedoraDataSource("Tufts Digital Library","dl.tufts.edu", "test","test",8080);
 //            addDataSource(ds3);
 //            DataSource ds4 = new GoogleDataSource("Tufts Web","http://googlesearch.tufts.edu","tufts01","tufts01");
 //            addDataSource(ds4);
