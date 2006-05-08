@@ -98,7 +98,7 @@
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}"
            listfiles="yes">
-       <classpath refid="compile.classpath"/>  
+       <classpath refid="compile.classpath.common"/>  
        <include name="edu/tufts/osidimpl/repository/favorites/*.java"/>
     </javac>
    </target>
