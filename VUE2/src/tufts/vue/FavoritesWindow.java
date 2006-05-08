@@ -54,7 +54,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     private DisplayAction displayAction = null;
     public  VueDandDTree favoritesTree ;
     private JScrollPane browsePane;
-    private static int FAVORITES = 1;
+    private static int FAVORITES = Resource.FAVORITES;
     JTextField keywords;
     boolean fileOpen = false;
     
@@ -162,38 +162,28 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     private void addFavorites(DefaultTreeModel model, ResourceNode resNode){
         TreePath tp = new TreePath(resNode.getPath());
         FavoritesNode favresNode = (FavoritesNode)tp.getLastPathComponent();
+        MapResource favResource = new MapResource(NEW_FAVORITES);
+        favResource.setTitle(NEW_FAVORITES);
+        favResource.setType(FAVORITES);
+        FavoritesNode favNode = new FavoritesNode(favResource);
+        model.insertNodeInto(favNode,favresNode, (favresNode.getChildCount()));
         if ((favresNode.isLeaf())){
-            MapResource favResource = new MapResource(NEW_FAVORITES);
-            favResource.setTitle(NEW_FAVORITES);
-            favResource.setType(FAVORITES);
-            FavoritesNode favNode = new FavoritesNode(favResource);
             if (model.getRoot() != resNode){
-                model.insertNodeInto(favNode, favresNode, (favresNode.getChildCount()));
                 favoritesTree.expandPath(new TreePath(favresNode.getPath()));
                 favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
                 favoritesTree.setRootVisible(true);
-                this.setFavoritesTree(favoritesTree);
-                favoritesTree.setRootVisible(false);
             } else {
-                model.insertNodeInto(favNode, favresNode, (favresNode.getChildCount()));
                 favoritesTree.setRootVisible(true);
-                this.setFavoritesTree(favoritesTree);
                 favoritesTree.expandRow(0);
                 favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
-                favoritesTree.setRootVisible(false);
             }
         } else{
-            MapResource favResource = new MapResource(NEW_FAVORITES);
-            favResource.setTitle(NEW_FAVORITES);
-            favResource.setType(FAVORITES);
-            FavoritesNode favNode = new FavoritesNode(favResource);
-            model.insertNodeInto(favNode,favresNode, (favresNode.getChildCount()));
             favoritesTree.setRootVisible(true);
             favoritesTree.expandPath(new TreePath(favresNode.getPath()));
             favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
-            favoritesTree.setRootVisible(false);
-            this.setFavoritesTree(favoritesTree);
         }
+        favoritesTree.setRootVisible(false);
+        
     }
     
     public void itemStateChanged(ItemEvent e) {

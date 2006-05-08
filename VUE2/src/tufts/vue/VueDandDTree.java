@@ -39,7 +39,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.22 $ / $Date: 2006-05-04 03:59:00 $ / $Author: anoop $
+ * @version $Revision: 1.23 $ / $Date: 2006-05-08 02:23:39 $ / $Author: anoop $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -54,7 +54,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             DnDConstants.ACTION_MOVE;
     
     private final boolean debug = true;
-    private final int FAVORITES = 1;
+    private final int FAVORITES = Resource.FAVORITES;
     private final boolean sametree = true;
     private final int newfavoritesnode = 0;
     
