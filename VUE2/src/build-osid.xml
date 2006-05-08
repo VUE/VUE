@@ -87,4 +87,30 @@
         <copy file="${build.osid}/${fedora20.jar}" todir="${osid.home}\fedora_2_0\"/>
     </target>
   <!--END fedora_2_0 related tasks-->
+  
+  <!-- Favorites related tasks-->
+  <property name="favorites.src" value="${src}/edu/tufts/osidimpl/repository/favorites"/>
+  <property name="favorites.jar" value="favorites.jar"/>
+  <target name="favorites.compile" >
+     <javac srcdir="${src}"
+           destdir="${build.class}"
+             debug="${compile.debug}"
+        deprecation="${compile.deprecation}"
+           optimize="${compile.optimize}"
+           listfiles="yes">
+       <classpath refid="compile.classpath"/>  
+       <include name="edu/tufts/osidimpl/repository/favorites/*.java"/>
+    </javac>
+   </target>
+   <target name="favorites.jar" depends="favorites.compile">
+   
+   <mkdir dir="${build.osid}"/>
+    <jar zipfile="${build.osid}/${favorites.jar}" update="true" compress="false" index="true">
+      <fileset dir="${build.class}" includes="edu/tufts/osidimpl/repository/favorites/**"/>
+    </jar>
+   </target>
+   <target name="favorites" depends="favorites.jar">
+        <copy file="${build.osid}/${favorites.jar}" todir="${osid.home}\favorites\"/>
+    </target>
+  <!--END Favorits related tasks-->
 </project>
