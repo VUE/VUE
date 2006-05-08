@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.35 $ / $Date: 2006-05-03 17:58:47 $ / $Author: anoop $
+ * @version $Revision: 1.36 $ / $Date: 2006-05-08 16:26:25 $ / $Author: anoop $
  * @author Ranjani Saigal
  */
 
@@ -114,8 +114,7 @@ public class DataSourceList extends JList implements DropTargetListener {
                         ResourceNode newNode =new  ResourceNode(resource);
                         model.insertNodeInto(newNode, rootNode, 0);
                         favoritesTree.expandPath(new TreePath(rootNode.getPath()));
-                        favoritesTree.setRootVisible(false);
-                        
+                        favoritesTree.setRootVisible(false);  
                     }
                 } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)){
                     fileList = (java.util.List)transfer.getTransferData(DataFlavor.javaFileListFlavor);
@@ -197,8 +196,6 @@ public class DataSourceList extends JList implements DropTargetListener {
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
-                //System.out.println(ex);
-                //continue;
             }
             e.dropComplete(success);
             favoritesTree.setRootVisible(true);
@@ -263,5 +260,5 @@ public class DataSourceList extends JList implements DropTargetListener {
     }
     public void dropActionChanged( DropTargetDragEvent e ) {
     }
-   
+    
 }
