@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.66 $ / $Date: 2006-05-08 20:01:32 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2006-05-08 20:04:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3568,12 +3568,14 @@ public class DockWindow extends javax.swing.JWindow
              mLabel.setForeground(VueResources.getColor("gui.dockWindow.title.foreground",
                                                         SystemColor.activeCaptionText));
 
+             Color iconColor = VueResources.getColor("gui.dockWindow.title.disclosureIcon.color",
+                                                     isMacAqua ? Color.darkGray : SystemColor.activeCaptionText);
+
              mCloseButton = new CloseButton(DockWindow.this);
 
              mOpenLabel = new GUI.IconicLabel(DownArrowChar,
                                               16, // point-size
-                                              mLabel.getForeground(),
-                                              //isMacAqua ? Color.darkGray : SystemColor.activeCaptionText,
+                                              iconColor,
                                               15, // fixed width
                                               TitleHeight); // fixed height
                      
