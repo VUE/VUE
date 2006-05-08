@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.65 $ / $Date: 2006-05-03 03:53:01 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2006-05-08 20:01:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3572,7 +3572,8 @@ public class DockWindow extends javax.swing.JWindow
 
              mOpenLabel = new GUI.IconicLabel(DownArrowChar,
                                               16, // point-size
-                                              isMacAqua ? Color.darkGray : SystemColor.activeCaptionText,
+                                              mLabel.getForeground(),
+                                              //isMacAqua ? Color.darkGray : SystemColor.activeCaptionText,
                                               15, // fixed width
                                               TitleHeight); // fixed height
                      
