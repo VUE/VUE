@@ -37,7 +37,7 @@ import com.sun.image.codec.jpeg.*;
 /**
  * The class is handles a reference to either a local file or a URL.
  *
- * @version $Revision: 1.14 $ / $Date: 2006-04-26 21:05:14 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2006-05-08 23:53:27 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.
@@ -995,8 +995,8 @@ public class URLResource implements Resource, XMLUnmarshalListener
         if (r.getProperty("image.format") != null)                      // we already know this is an image
             return true;
 
-        if (isImageMimeType(r.getProperty("url.contentType")) ||        // check http contentType
-            isImageMimeType(r.getProperty("format")))                   // check fedora dublin-core mime-type
+        if (isImageMimeType(r.getProperty(Images.CONTENT_TYPE)) ||        // check http contentType
+            isImageMimeType(r.getProperty("format")))                // check fedora dublin-core mime-type
             return true;
 
         // todo: temporary hack for Osid2AssetResource w/Museum of Fine Arts, Boston
@@ -1084,6 +1084,10 @@ public class URLResource implements Resource, XMLUnmarshalListener
     }
     
     public Icon getIcon(java.awt.Component painter) {
+
+        //if (!isImage())
+        //  return null;
+        
         if (mIcon == null) {
             //tufts.Util.printStackTrace("getIcon " + this); System.exit(-1);
             // TODO: cannot cache this icon if there is a freakin painter,
