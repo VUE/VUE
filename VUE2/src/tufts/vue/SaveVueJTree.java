@@ -67,15 +67,14 @@ public class SaveVueJTree {
     }
     
     public void restoreModel(DefaultTreeModel model, ResourceNode rootNode, SaveNode rootSNode){
-        int FAVORITES = 4;
+        int FAVORITES = Resource.FAVORITES;
         Vector v = rootSNode.getChildren();
         if (v != null){
             int i = v.size();
             while (i > 0){
                 i = i -1;
                 SaveNode nextSNode = (SaveNode)v.elementAt(i);
-                if (((nextSNode.getResource()).getType()) == FAVORITES){
-                    
+                if (((nextSNode.getResource()).getType()) == FAVORITES){   
                     FavoritesNode nextFNode = new FavoritesNode(nextSNode.getResource());
                     model.insertNodeInto(nextFNode,rootNode,0);
                     restoreModel(model, nextFNode, nextSNode);
