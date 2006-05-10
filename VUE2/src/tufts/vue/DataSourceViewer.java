@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.130 $ / $Date: 2006-05-08 23:49:46 $ / $Author: sfraize $ *
+ * @version $Revision: 1.131 $ / $Date: 2006-05-10 19:54:13 $ / $Author: sfraize $ *
  * @author  akumar03
  */
 
@@ -437,8 +437,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             // default selection
             dataSourceList.setSelectedValue(ds2,true);
             //dataSourceList.getContents().addElement(breakTag);
-            DataSource ds4 = new LocalFileDataSource("My Maps","");
-            dataSourceList.getContents().addElement(ds4);
+            //DataSource ds4 = new LocalFileDataSource("My Maps","");
+            //dataSourceList.getContents().addElement(ds4);
 
 //            DataSource ds3 = new FedoraDataSource("Tufts Digital Library","dl.tufts.edu", "test","test",8080);
 //            addDataSource(ds3);
