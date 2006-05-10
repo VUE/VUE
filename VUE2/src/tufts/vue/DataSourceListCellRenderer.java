@@ -45,7 +45,7 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
     private CheckBoxRenderer mCheckBox = new CheckBoxRenderer();
     //private JCheckBox mCheckBox = new JCheckBox();
 
-    private Border DividerBorder = new MatteBorder(1,0,0,0, Color.lightGray);
+    private Border DividerBorder = new MatteBorder(1,0,0,0, Color.gray);
     private Border EmptyDividerBorder = new EmptyBorder(1,0,0,0);
 
     public DataSourceListCellRenderer()
