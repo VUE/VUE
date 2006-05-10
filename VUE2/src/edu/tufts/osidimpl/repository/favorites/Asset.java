@@ -25,8 +25,7 @@ import tufts.oki.shared.*;
 import tufts.vue.*;
 
 public class Asset
-implements org.osid.repository.Asset
-{
+        implements org.osid.repository.Asset {
     private org.osid.shared.Type assetType = new Type("edu.tufts","asset","file","File");
     private org.osid.shared.Type folderType = new Type("edu.tufts","asset","favoriteFolder","A Favorites Folder");
     private org.osid.shared.Type resourceType = new Type("edu.tufts","asset","resource","Resource");
@@ -37,407 +36,327 @@ implements org.osid.repository.Asset
     private String description = null;
     private java.util.Vector recordVector = new java.util.Vector();
     private String content = null;
-	 
+    
+    protected Asset(org.osid.shared.Id repositoryId,String displayName, String description) {
+        this.displayName = displayName;
+        this.description = description;
+        this.repositoryId   = repositoryId;
+        
+    }
+    
     public String getDisplayName()
-    throws org.osid.repository.RepositoryException
-    {
+    throws org.osid.repository.RepositoryException {
         return this.displayName;
     }
-
+    
     public void updateDisplayName(String displayName)
-    throws org.osid.repository.RepositoryException
-    {
-		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);    
-	}
-
+    throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
+    }
+    
     public String getDescription()
-    throws org.osid.repository.RepositoryException
-    {
+    throws org.osid.repository.RepositoryException {
         return this.description;
     }
-
+    
     public void updateDescription(String description)
-    throws org.osid.repository.RepositoryException
-    {
-		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);    
+    throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
-
+    
     public org.osid.shared.Id getId()
-    throws org.osid.repository.RepositoryException
-    {
+    throws org.osid.repository.RepositoryException {
         return this.id;
     }
-
+    
     public org.osid.shared.Id getRepository()
-    throws org.osid.repository.RepositoryException
-    {
+    throws org.osid.repository.RepositoryException {
         return this.repositoryId;
     }
-
+    
     public java.io.Serializable getContent()
-    throws org.osid.repository.RepositoryException
-    {
+    throws org.osid.repository.RepositoryException {
         return this.content;
     }
-
+    
     public void updateContent(java.io.Serializable content)
-    throws org.osid.repository.RepositoryException
-    {
-		if (content instanceof String) {
-			this.content = (String)content;
-		} else {
-			throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);    
-		}
+    throws org.osid.repository.RepositoryException {
+        if (content instanceof String) {
+            this.content = (String)content;
+        } else {
+            throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);
+        }
     }
-
+    
     public void addAsset(org.osid.shared.Id assetId)
-    throws org.osid.repository.RepositoryException
-    {
-		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);    
+    throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
-
+    
     public void removeAsset(org.osid.shared.Id assetId
-                          , boolean includeChildren)
-    throws org.osid.repository.RepositoryException
-    {
-		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);    
+            , boolean includeChildren)
+            throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
-
+    
     public org.osid.repository.AssetIterator getAssets()
-    throws org.osid.repository.RepositoryException
-    {
-		java.util.Vector result = new java.util.Vector();
+    throws org.osid.repository.RepositoryException {
+        java.util.Vector result = new java.util.Vector();
         return new AssetIterator(result);
     }
-
+    
     public org.osid.repository.AssetIterator getAssetsByType(org.osid.shared.Type assetType)
-    throws org.osid.repository.RepositoryException
-    {
-        if (assetType == null)
-        {
+    throws org.osid.repository.RepositoryException {
+        if (assetType == null) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
         return new AssetIterator(new java.util.Vector());
     }
-
+    
     public org.osid.repository.Record createRecord(org.osid.shared.Id recordStructureId)
-    throws org.osid.repository.RepositoryException
-    {
-        if (recordStructureId == null)
-        {
+    throws org.osid.repository.RepositoryException {
+        if (recordStructureId == null) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-        try
-        {
+        try {
             org.osid.repository.Record record = new Record(recordStructureId);
             this.recordVector.addElement(record);
             return record;
-        }
-        catch (Throwable t)
-        {
+        } catch (Throwable t) {
             Utilities.log(t.getMessage());
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
         }
     }
-
+    
     public void inheritRecordStructure(org.osid.shared.Id assetId
-                                     , org.osid.shared.Id recordStructureId)
-    throws org.osid.repository.RepositoryException
-    {
-		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);    
+            , org.osid.shared.Id recordStructureId)
+            throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
-
+    
     public void copyRecordStructure(org.osid.shared.Id assetId
-                                  , org.osid.shared.Id recordStructureId)
-    throws org.osid.repository.RepositoryException
-    {
-		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);    
+            , org.osid.shared.Id recordStructureId)
+            throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
-
+    
     public void deleteRecord(org.osid.shared.Id recordId)
-    throws org.osid.repository.RepositoryException
-    {
-        if (recordId == null)
-        {
+    throws org.osid.repository.RepositoryException {
+        if (recordId == null) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-        try
-        {
-            for (int i=0, size = this.recordVector.size(); i < size; i++)
-            {
+        try {
+            for (int i=0, size = this.recordVector.size(); i < size; i++) {
                 org.osid.repository.Record record = (org.osid.repository.Record)this.recordVector.elementAt(i);
-                if (record.getId().isEqual(recordId))
-                {
+                if (record.getId().isEqual(recordId)) {
                     this.recordVector.removeElementAt(i);
                     return;
                 }
             }
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_ID);
-        }
-        catch (Throwable t)
-        {
+        } catch (Throwable t) {
             Utilities.log(t.getMessage());
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
         }
     }
-
+    
     public org.osid.repository.RecordIterator getRecords()
-    throws org.osid.repository.RepositoryException
-    {
+    throws org.osid.repository.RepositoryException {
         return new RecordIterator(this.recordVector);
     }
-
+    
     public org.osid.repository.RecordIterator getRecordsByRecordStructure(org.osid.shared.Id recordStructureId)
-    throws org.osid.repository.RepositoryException
-    {
-        if (recordStructureId == null)
-        {
+    throws org.osid.repository.RepositoryException {
+        if (recordStructureId == null) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-        try
-        {
+        try {
             return new RecordIterator(this.recordVector);
-        }
-        catch (Throwable t)
-        {
+        } catch (Throwable t) {
             Utilities.log(t.getMessage());
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
         }
     }
-
+    
     public org.osid.shared.Type getAssetType()
-    throws org.osid.repository.RepositoryException
-    {
+    throws org.osid.repository.RepositoryException {
         return this.assetType;
     }
-
+    
     public org.osid.repository.RecordStructureIterator getRecordStructures()
-    throws org.osid.repository.RepositoryException
-    {
+    throws org.osid.repository.RepositoryException {
         java.util.Vector results = new java.util.Vector();
         results.addElement(new RecordStructure());
         return new RecordStructureIterator(results);
     }
-
+    
     public org.osid.repository.RecordStructure getContentRecordStructure()
-    throws org.osid.repository.RepositoryException
-    {
+    throws org.osid.repository.RepositoryException {
         return new RecordStructure();
     }
-
+    
     public org.osid.repository.Record getRecord(org.osid.shared.Id recordId)
-    throws org.osid.repository.RepositoryException
-    {
-        if (recordId == null)
-        {
+    throws org.osid.repository.RepositoryException {
+        if (recordId == null) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-        try
-        {
-            for (int i=0, size = this.recordVector.size(); i < size; i++)
-            {
+        try {
+            for (int i=0, size = this.recordVector.size(); i < size; i++) {
                 org.osid.repository.Record record = (org.osid.repository.Record)this.recordVector.elementAt(i);
-                if (record.getId().isEqual(recordId))
-                {
+                if (record.getId().isEqual(recordId)) {
                     return record;
                 }
             }
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_ID);
-        }
-        catch (Throwable t)
-        {
+        } catch (Throwable t) {
             Utilities.log(t.getMessage());
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
         }
     }
-
+    
     public org.osid.repository.Part getPart(org.osid.shared.Id partId)
-    throws org.osid.repository.RepositoryException
-    {
-        if (partId == null)
-        {
+    throws org.osid.repository.RepositoryException {
+        if (partId == null) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-        try
-        {
-            for (int i=0, size = this.recordVector.size(); i < size; i++)
-            {
+        try {
+            for (int i=0, size = this.recordVector.size(); i < size; i++) {
                 org.osid.repository.Record record = (org.osid.repository.Record)this.recordVector.elementAt(i);
                 org.osid.repository.PartIterator partIterator = record.getParts();
-                while (partIterator.hasNextPart())
-                {
-                    org.osid.repository.Part part = partIterator.nextPart(); 	                   
-                    if (part.getId().isEqual(partId))
-                    {
+                while (partIterator.hasNextPart()) {
+                    org.osid.repository.Part part = partIterator.nextPart();
+                    if (part.getId().isEqual(partId)) {
                         return part;
                     }
                 }
             }
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_ID);
-        }
-        catch (Throwable t)
-        {
+        } catch (Throwable t) {
             Utilities.log(t.getMessage());
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
         }
     }
-
+    
     public java.io.Serializable getPartValue(org.osid.shared.Id partId)
-    throws org.osid.repository.RepositoryException
-    {
+    throws org.osid.repository.RepositoryException {
         org.osid.repository.Part part = getPart(partId);
         return part.getValue();
     }
-
+    
     public org.osid.repository.PartIterator getPartByPart(org.osid.shared.Id partStructureId)
-    throws org.osid.repository.RepositoryException
-    {
-        if (partStructureId == null)
-        {
+    throws org.osid.repository.RepositoryException {
+        if (partStructureId == null) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-        try
-        {
+        try {
             java.util.Vector results = new java.util.Vector();
-            for (int i=0, size = this.recordVector.size(); i < size; i++)
-            {
+            for (int i=0, size = this.recordVector.size(); i < size; i++) {
                 org.osid.repository.Record record = (org.osid.repository.Record)this.recordVector.elementAt(i);
                 org.osid.repository.PartIterator partIterator = record.getParts();
-                while (partIterator.hasNextPart())
-                {
-                    org.osid.repository.Part part = partIterator.nextPart(); 	                   
-                    if (part.getPartStructure().getId().isEqual(partStructureId))
-                    {
+                while (partIterator.hasNextPart()) {
+                    org.osid.repository.Part part = partIterator.nextPart();
+                    if (part.getPartStructure().getId().isEqual(partStructureId)) {
                         results.addElement(part);
                     }
                 }
             }
-            return new PartIterator(results);    
-        }
-        catch (Throwable t)
-        {
+            return new PartIterator(results);
+        } catch (Throwable t) {
             Utilities.log(t.getMessage());
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
         }
     }
-
+    
     public org.osid.shared.ObjectIterator getPartValueByPart(org.osid.shared.Id partStructureId)
-    throws org.osid.repository.RepositoryException
-    {
+    throws org.osid.repository.RepositoryException {
         java.util.Vector results = new java.util.Vector();
         org.osid.repository.PartIterator partIterator = getPartByPart(partStructureId);
-        while (partIterator.hasNextPart())
-        {
+        while (partIterator.hasNextPart()) {
             results.addElement(partIterator.nextPart().getValue());
         }
-        try
-        {
+        try {
             return new ObjectIterator(results);
-        }
-        catch (Throwable t)
-        {
+        } catch (Throwable t) {
             Utilities.log(t.getMessage());
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
         }
     }
-
+    
     public long getEffectiveDate()
-    throws org.osid.repository.RepositoryException
-    {
-		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);    
+    throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
-
+    
     public void updateEffectiveDate(long effectiveDate)
-    throws org.osid.repository.RepositoryException
-    {
-		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);    
+    throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
-
+    
     public long getExpirationDate()
-    throws org.osid.repository.RepositoryException
-    {
-		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);    
+    throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
-
+    
     public void updateExpirationDate(long expirationDate)
-    throws org.osid.repository.RepositoryException
-    {
-		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);    
+    throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
-
+    
     public org.osid.shared.ObjectIterator getPartValuesByPartStructure(org.osid.shared.Id partStructureId)
-    throws org.osid.repository.RepositoryException
-    {
-        if (partStructureId == null)
-        {
+    throws org.osid.repository.RepositoryException {
+        if (partStructureId == null) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-        try
-        {
+        try {
             java.util.Vector results = new java.util.Vector();
             org.osid.repository.PartIterator partIterator = getPartsByPartStructure(partStructureId);
-            while (partIterator.hasNextPart())
-            {
+            while (partIterator.hasNextPart()) {
                 org.osid.repository.Part part = partIterator.nextPart();
                 results.addElement(part.getValue());
             }
             return new ObjectIterator(results);
-        }
-        catch (Throwable t)
-        {
+        } catch (Throwable t) {
             Utilities.log(t.getMessage());
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
         }
     }
-
+    
     public org.osid.repository.PartIterator getPartsByPartStructure(org.osid.shared.Id partStructureId)
-    throws org.osid.repository.RepositoryException
-    {
-        if (partStructureId == null)
-        {
+    throws org.osid.repository.RepositoryException {
+        if (partStructureId == null) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-        try
-        {
+        try {
             java.util.Vector results = new java.util.Vector();
             org.osid.repository.RecordIterator recordIterator = getRecords();
-            while (recordIterator.hasNextRecord())
-            {
+            while (recordIterator.hasNextRecord()) {
                 org.osid.repository.Record record = recordIterator.nextRecord();
                 org.osid.repository.PartIterator partIterator = record.getParts();
-                while (partIterator.hasNextPart())
-                {
+                while (partIterator.hasNextPart()) {
                     org.osid.repository.Part part = partIterator.nextPart();
-                    if (part.getPartStructure().getId().isEqual(partStructureId))
-                    {
+                    if (part.getPartStructure().getId().isEqual(partStructureId)) {
                         results.addElement(part);
                     }
                 }
             }
-            return new PartIterator(results);            
-        }
-        catch (Throwable t)
-        {
+            return new PartIterator(results);
+        } catch (Throwable t) {
             Utilities.log(t.getMessage());
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
         }
     }
-
+    
     public org.osid.repository.RecordIterator getRecordsByRecordStructureType(org.osid.shared.Type recordStructureType)
-    throws org.osid.repository.RepositoryException
-    {
-        if (recordStructureType == null)
-        {
+    throws org.osid.repository.RepositoryException {
+        if (recordStructureType == null) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-
-      
+        
+        
         java.util.Vector results = new java.util.Vector();
-        for (int i=0, size = this.recordVector.size(); i < size; i++)
-        {
+        for (int i=0, size = this.recordVector.size(); i < size; i++) {
             org.osid.repository.Record r = (org.osid.repository.Record)this.recordVector.elementAt(i);
-            if (r.getRecordStructure().getType().isEqual(recordStructureType))
-            {
+            if (r.getRecordStructure().getType().isEqual(recordStructureType)) {
                 results.addElement(r);
             }
         }
