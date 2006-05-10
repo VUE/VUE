@@ -116,11 +116,11 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         } else if (value instanceof LocalFileDataSource){
             mRow.setBorder(DividerBorder);
             displayName = ((DataSource)value).getDisplayName();
-            mIconLabel.setIcon(savedResourcesIcon);
+            mIconLabel.setIcon(myComputerIcon);
         } else  if (value instanceof FavoritesDataSource) {
             mRow.setBorder(DividerBorder);
             displayName = "My Saved Content";
-            mIconLabel.setIcon(myComputerIcon);
+            mIconLabel.setIcon(savedResourcesIcon);
         } else
             mRow.setBorder(DividerBorder);
             
