@@ -69,7 +69,8 @@ public class RepositoryManager
             this.repositoryType = new Type("edu.tufts","favorites","Favorites");
             this.repositoryId = Utilities.getIdManager().getId("F0C095DF-A60F-4ACD-A889-7B02F33D7497-4296-00000865FF8DB0A2");
             this.searchTypeVector.addElement(new Type("edu.mit","search","title"));
-            this.searchTypeVector.addElement(new Type("edu.mit","search","keyword"));
+            this.searchTypeVector.addElement(new Type("mit.edu","search","keyword"));
+            this.searchTypeVector.addElement(new Type("edu.tufts","search","keyword"));
             this.repository = new Repository("Saved Content",
                     "My Favorites",
                     this.repositoryId,

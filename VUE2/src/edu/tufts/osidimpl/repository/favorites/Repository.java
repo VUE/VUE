@@ -31,10 +31,12 @@ public class Repository
         implements org.osid.repository.Repository {
     private org.osid.shared.Id repositoryId = null;
     private org.osid.shared.Type repositoryType = null;
-    private org.osid.shared.Type assetType = new Type("edu.tufts","asset","file");
+    private org.osid.shared.Type assetType = new Type("edu.tufts","favorites","Asset");
     private String displayName = null;
     private String description = null;
     private java.util.Vector searchTypeVector = null;
+    private java.util.Vector assetVector = null;
+    
     
     protected Repository(String displayName,
             String description,
@@ -47,6 +49,7 @@ public class Repository
         this.repositoryId = repositoryId;
         this.repositoryType = repositoryType;
         this.searchTypeVector = searchTypeVector;
+        this.assetVector = new Vector();
     }
     
     public String getDisplayName()
@@ -89,7 +92,13 @@ public class Repository
         if (!assetType.isEqual(this.assetType)) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);
         }
-        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
+        try {
+            Asset asset = new Asset(this.repositoryId,displayName, description);
+            assetVector.add(asset);
+            return asset;
+        } catch(Throwable t) {
+            throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_ID);
+        }
     }
     
     public void deleteAsset(org.osid.shared.Id assetId)
@@ -102,15 +111,7 @@ public class Repository
     
     public org.osid.repository.AssetIterator getAssets()
     throws org.osid.repository.RepositoryException {
-        //recurrsive descent occurse in each Asset
-        Vector result = new Vector();
-        try {
-            
-        } catch (Throwable t) {
-            Utilities.log(t);
-            throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
-        }
-        return new AssetIterator(result);
+        return new AssetIterator(assetVector);
     }
     
     
@@ -231,6 +232,7 @@ public class Repository
                 knownType = true;
             }
         }
+        System.out.println("Favorites Search Type, authority:"+searchType.getAuthority()+" domain:"+searchType.getDomain()+" keyword:"+searchType.getKeyword());
         if (!knownType) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);
         }
