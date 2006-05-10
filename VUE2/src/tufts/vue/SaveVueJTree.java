@@ -34,6 +34,7 @@ import java.io.*;
  * @author  rsaigal
  */
 public class SaveVueJTree {
+    public static final  org.osid.shared.Type favoritesType = new edu.tufts.vue.util.Type("edu.tufts","favorites","Asset");
     
     private SaveNode saveTreeRoot;
     public SaveVueJTree() {
@@ -58,9 +59,9 @@ public class SaveVueJTree {
         FavoritesNode rootNode;
         SaveNode rootSNode = this.getSaveTreeRoot();
         rootNode = new FavoritesNode(rootSNode.getResource());
-        //System.out.println("This is rootnode"+ rootSNode.getResource().toString());
         vueTree = new VueDandDTree(rootNode);
         DefaultTreeModel model = (DefaultTreeModel)vueTree.getModel();
+        
         restoreModel(model,rootNode,rootSNode);
         vueTree.expandRow(0);
         return vueTree;
@@ -74,15 +75,25 @@ public class SaveVueJTree {
             while (i > 0){
                 i = i -1;
                 SaveNode nextSNode = (SaveNode)v.elementAt(i);
-                if (((nextSNode.getResource()).getType()) == FAVORITES){   
+                if (((nextSNode.getResource()).getType()) == FAVORITES){
                     FavoritesNode nextFNode = new FavoritesNode(nextSNode.getResource());
                     model.insertNodeInto(nextFNode,rootNode,0);
                     restoreModel(model, nextFNode, nextSNode);
-                }
-                else{
+                } else{
                     ResourceNode nextNode = new ResourceNode(nextSNode.getResource());
                     model.insertNodeInto(nextNode,rootNode,0);
                     restoreModel(model, nextNode, nextSNode);
+                }
+                
+                try {
+                    System.out.println("Restoring JTree, Default Favorites: "+DataSourceViewer.getDefualtFavoritesRepository().getDisplayName());
+                    if(DataSourceViewer.getDefualtFavoritesRepository() != null){
+                        org.osid.repository.Repository repository = DataSourceViewer.getDefualtFavoritesRepository();
+                        org.osid.repository.Asset asset = repository.createAsset(nextSNode.getResource().getTitle(),nextSNode.getResource().getToolTipInformation(),favoritesType);
+                      //  asset.updateContent(nextSNode.getResource());
+                    }
+                }catch(Throwable t) {
+                    t.printStackTrace();
                 }
             }
         }

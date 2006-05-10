@@ -24,7 +24,7 @@
 
 package tufts.vue;
 /**
- * @version $Revision: 1.131 $ / $Date: 2006-05-10 19:54:13 $ / $Author: sfraize $ *
+ * @version $Revision: 1.132 $ / $Date: 2006-05-10 21:53:33 $ / $Author: anoop $ *
  * @author  akumar03
  */
 
@@ -66,7 +66,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     public final static int EDIT_MODE = 1;
     private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
     private final static URL XML_MAPPING_DEFAULT = VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
-    
+    public static final org.osid.shared.Type favoritesRepositoryType = new edu.tufts.vue.util.Type("edu.tufts","favorites","Favorites");
     JPopupMenu popup;
     
     AddLibraryDialog addLibraryDialog;
@@ -174,8 +174,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         dataSourceList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 Point pt = e.getPoint();
-                if (activeDataSource instanceof edu.tufts.vue.dsm.DataSource
-                    && pt.x <= DataSourceListCellRenderer.FirstColumn) {
+                if ( (activeDataSource instanceof edu.tufts.vue.dsm.DataSource) && (pt.x <= 40) ) {
                     int index = dataSourceList.locationToIndex(pt);
                     edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)
                         dataSourceList.getModel().getElementAt(index);
@@ -766,7 +765,27 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         return mDataSources;
         
     }
-    
+    /*
+     * returns the default favorites resources.  This is will be used to add favorites and perform search
+     */
+    public static org.osid.repository.Repository getDefualtFavoritesRepository() {
+        DefaultListModel model = dataSourceList.getContents();
+        try {
+            for(int i = 0; i<model.capacity();i++){
+                Object o = model.getElementAt(i);
+                if(o instanceof edu.tufts.vue.dsm.DataSource){
+                    edu.tufts.vue.dsm.DataSource datasource = (edu.tufts.vue.dsm.DataSource)o;
+                    org.osid.repository.Repository repository = datasource.getRepository();
+                    if(repository.getType().isEqual(favoritesRepositoryType)) {
+                        return repository;
+                    }
+                }
+            }
+        } catch(Throwable t) {
+            t.printStackTrace();
+        }
+        return null;
+    }
     public static void saveDataSourceViewer() {
         if (dataSourceList == null) {
             System.err.println("DataSourceViewer: No dataSourceList to save.");
