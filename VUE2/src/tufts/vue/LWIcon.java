@@ -439,7 +439,7 @@ public abstract class LWIcon extends Rectangle2D.Float
                 // the HTML above for just the title, and not the URL & click message.
                 label.setFont(FONT_MEDIUM_UNICODE);
 
-                if (true) {
+                if (false) {
                     // example of button a gui component in a rollover
                     JPanel panel = new JPanel();
                     panel.setName("LWIcon$Resource-Action");
