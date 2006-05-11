@@ -26,6 +26,8 @@ package tufts.vue;
 public class DEBUG
 {
     public static boolean Enabled = false; // can user turn debug switches on
+
+    public static boolean INIT = false; // startup / initializations
     
     // Can leave these as static for runtime tweaking, or
     // make final static to have compiler strip them out entirely.
@@ -44,7 +46,6 @@ public class DEBUG
     public static boolean SCROLL = false; // MapViewer scroll-bars / scrolling
     public static boolean FOCUS = false; // AWT focus events, VUE MapViewer application focus
     public static boolean EVENTS = false; // VUE LWCEvents & Action Events (not tool events)
-    public static boolean INIT = false; // startup / initializations
     public static boolean MARGINS = false; // turn off bounds margin adjustments for testing
     public static boolean DYNAMIC_UPDATE = false; // components process all LWCEvent's immediately
     public static boolean KEYS = false; // keyboard input
