@@ -28,7 +28,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.50 $ / $Date: 2006-05-05 20:51:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.51 $ / $Date: 2006-05-11 01:24:14 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -354,16 +354,31 @@ public class DRBrowser extends JPanel
         
         DEBUG.DR = true;
 
-        new Frame("A Frame").setVisible(true);
-        
+        //new Frame("A Frame").setVisible(true);
+
         DockWindow dw = GUI.createDockWindow("Test Resources");
-        DRBrowser drb = new DRBrowser(true, dw, GUI.createDockWindow("Search")); 
-        dw.setVisible(true);
+        DRBrowser drb = new DRBrowser(true, dw, null);
+        
+        if (false) {
+            //DRBrowser drb = new DRBrowser(true, dw, GUI.createDockWindow("Search")); 
+            dw.setSize(300,400);
+            dw.setVisible(true);
+        } else {
+            drb.setPreferredSize(new Dimension(200,400));
+            tufts.Util.displayComponent(drb);
+        }
+        
+        drb.loadDataSourceViewer();
+
+        GUI.makeVisibleOnScreen(drb);
+        
+        /*
         drb.loadDataSourceViewer();
         drb.setSize(200,200);
         tufts.Util.displayComponent(drb);
         if (args.length > 1)
             tufts.vue.ui.InspectorPane.displayTestPane(null);
+        */
         
         /*
         tufts.Util.displayComponent(drb);
