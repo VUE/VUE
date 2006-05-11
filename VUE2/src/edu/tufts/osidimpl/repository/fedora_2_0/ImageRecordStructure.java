@@ -16,7 +16,8 @@
  * -----------------------------------------------------------------------------
  */
 
-package  edu.tufts.osidimpl.repository.fedora_2_0;
+package   edu.tufts.osidimpl.repository.fedora_2_0;
+
 
 public class ImageRecordStructure
         implements org.osid.repository.RecordStructure {
@@ -29,6 +30,7 @@ public class ImageRecordStructure
     private org.osid.shared.Type type = new Type("edu.mit","recordStructure","image");
     private org.osid.repository.PartStructure sThumbnailPartStructure = null;
     private org.osid.repository.PartStructure sURLPartStructure = null;
+    private org.osid.repository.PartStructure sMediumImagePartStructure = null;
     
     protected ImageRecordStructure(Repository repository)
     throws org.osid.repository.RepositoryException {
@@ -38,8 +40,11 @@ public class ImageRecordStructure
         }
         this.sThumbnailPartStructure = new ThumbnailPartStructure(this, repository);
         this.sURLPartStructure = new URLPartStructure(this, repository);
+        this.sMediumImagePartStructure = new MediumImagePartStructure(this,repository);
+        
         this.partsVector.add(this.sThumbnailPartStructure);
         this.partsVector.add(this.sURLPartStructure);
+        this.partsVector.add(this.sMediumImagePartStructure);
     }
     
     public String getDisplayName()
@@ -108,6 +113,14 @@ public class ImageRecordStructure
         return this.sURLPartStructure;
     }
     
+    public org.osid.repository.PartStructure getMediumImagePartStructure()
+    throws org.osid.repository.RepositoryException {
+        if (this.sThumbnailPartStructure == null) {
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.OPERATION_FAILED);
+        }
+        return this.sMediumImagePartStructure;
+    }
+    
     public static Record createImageRecord(String pid
             , ImageRecordStructure recordStructure
             , Repository repository
@@ -120,9 +133,10 @@ public class ImageRecordStructure
             System.out.println("creating " + recordStructure.getType().getKeyword() + " " + recordStructure.getDisplayName());
             if(assetType.getKeyword().equals("tufts/image/archival")) {
                 record.createPart(recordStructure.getThumbnailPartStructure().getId(),
-                        "http://"+repository.getAddress()+":8080/fedora/get/" +objectId.getIdString()+"/bdef:TuftsImage/getThumbnail/");
+                        "http://"+repository.getAddress()+":"+"8080/fedora/get/" +objectId.getIdString()+"/bdef:TuftsImage/getThumbnail/");
                 record.createPart(recordStructure.getURLPartStructure().getId(),
                         "http://"+repository.getAddress()+":"+repository.getPort()+"/fedora/get/" +objectId.getIdString()+"/bdef:AssetDef/getFullView/");
+                record.createPart(recordStructure.getMediumImagePartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(),"bdef:TuftsImage/getMediumRes/",repository));
             }
         } catch (Throwable t) {
             t.printStackTrace();
