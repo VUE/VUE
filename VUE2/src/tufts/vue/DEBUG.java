@@ -79,34 +79,59 @@ public class DEBUG
             META = WORK = false;
     }
 
-    public static void parseArg(String a) {
-             if (a.equals("-debug_meta"))       DEBUG.META = true;
-        else if (a.equals("-debug_work"))       DEBUG.WORK = !DEBUG.WORK;
-        else if (a.equals("-debug_init"))       DEBUG.INIT = true;
-        else if (a.equals("-debug_focus"))      DEBUG.FOCUS = true;
-        else if (a.equals("-debug_dr"))         DEBUG.DR = true;
-        else if (a.equals("-debug_tool"))       DEBUG.TOOL = true;
-        else if (a.equals("-debug_drop"))       DEBUG.DND = true;
-        else if (a.equals("-debug_undo"))       DEBUG.UNDO = true;
-        else if (a.equals("-debug_castor"))     DEBUG.CASTOR = true;
-        else if (a.equals("-debug_xml"))        DEBUG.XML = true;
-        else if (a.equals("-debug_paint"))      DEBUG.PAINT = true;
-        else if (a.equals("-debug_mouse"))      DEBUG.MOUSE = true;
-        else if (a.equals("-debug_keys"))       DEBUG.KEYS = true;
-        else if (a.equals("-debug_layout"))     DEBUG.LAYOUT = true;
-        else if (a.equals("-debug_text"))       DEBUG.TEXT = true;
-        else if (a.equals("-debug_io"))         DEBUG.IO = true;
-        else if (a.equals("-debug_data"))       DEBUG.DATA = true;
-        else if (a.equals("-debug_selection"))  DEBUG.SELECTION = true;
-        else if (a.equals("-debug_resource"))   DEBUG.RESOURCE = true;
-        else if (a.equals("-debug_scroll"))     DEBUG.SCROLL = true;
-        else if (a.startsWith("-debug_edge"))   DEBUG.EDGE = true;
-        else if (a.startsWith("-debug_event"))  DEBUG.EVENTS = true;
-        else if (a.startsWith("-debug_thread")) DEBUG.THREAD = true;
-        else if (a.startsWith("-debug_image"))  DEBUG.IMAGE = true;
-        else if (a.startsWith("-debug_box"))    DEBUG.BOXES = true;
-        else if (a.startsWith("-debug_dock"))   DEBUG.DOCK = true;
-        else if (a.startsWith("-debug_widget"))   DEBUG.WIDGET = true;
+    public static void parseArg(String arg) {
+        if (arg == null || !arg.toLowerCase().startsWith("-debug"))
+            return;
+
+        if (arg.length() < 7)
+            return;
+
+        arg = arg.substring(6);
+
+        //System.out.println("parsing arg group[" + arg + "]");
+
+        String[] args;
+
+        if (arg.charAt(0) == ':')
+            args = arg.substring(1).split(",");
+        else if (arg.charAt(0) == '_')
+            args = new String[] { arg.substring(1) };
+        else
+            return;
+
+        for (int i = 0; i < args.length; i++) {
+            String a = args[i].toLowerCase();
+
+            //System.out.println("parsing arg [" + a + "]");
+            
+                 if (a.equals("meta"))       DEBUG.META = true;
+            else if (a.equals("work"))       DEBUG.WORK = !DEBUG.WORK;
+            else if (a.equals("init"))       DEBUG.INIT = true;
+            else if (a.equals("focus"))      DEBUG.FOCUS = true;
+            else if (a.equals("dr"))         DEBUG.DR = true;
+            else if (a.equals("tool"))       DEBUG.TOOL = true;
+            else if (a.equals("drop"))       DEBUG.DND = true;
+            else if (a.equals("undo"))       DEBUG.UNDO = true;
+            else if (a.equals("castor"))     DEBUG.CASTOR = true;
+            else if (a.equals("xml"))        DEBUG.XML = true;
+            else if (a.equals("paint"))      DEBUG.PAINT = true;
+            else if (a.equals("mouse"))      DEBUG.MOUSE = true;
+            else if (a.equals("keys"))       DEBUG.KEYS = true;
+            else if (a.equals("layout"))     DEBUG.LAYOUT = true;
+            else if (a.equals("text"))       DEBUG.TEXT = true;
+            else if (a.equals("io"))         DEBUG.IO = true;
+            else if (a.equals("data"))       DEBUG.DATA = true;
+            else if (a.equals("selection"))  DEBUG.SELECTION = true;
+            else if (a.equals("resource"))   DEBUG.RESOURCE = true;
+            else if (a.equals("scroll"))     DEBUG.SCROLL = true;
+            else if (a.startsWith("edge"))   DEBUG.EDGE = true;
+            else if (a.startsWith("event"))  DEBUG.EVENTS = true;
+            else if (a.startsWith("thread")) DEBUG.THREAD = true;
+            else if (a.startsWith("image"))  DEBUG.IMAGE = true;
+            else if (a.startsWith("box"))    DEBUG.BOXES = true;
+            else if (a.startsWith("dock"))   DEBUG.DOCK = true;
+            else if (a.startsWith("widget")) DEBUG.WIDGET = true;
+        }
     }
 
     //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }
