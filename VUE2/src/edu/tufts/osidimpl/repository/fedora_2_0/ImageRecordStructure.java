@@ -19,8 +19,12 @@
 package   edu.tufts.osidimpl.repository.fedora_2_0;
 
 
+
 public class ImageRecordStructure
         implements org.osid.repository.RecordStructure {
+    public static final String MEDIUM_RES = "bdef:TuftsImage/getMediumRes/";
+    public static final String THUMBNAIL = "bdef:TuftsImage/getThumbnail/";
+    public static final String FULLVIEW = "bdef:AssetDef/getFullView/";
     private java.util.Vector partsVector = new java.util.Vector();
     private String displayName = "Image Specific Data";
     private String description = "Provides information about and image (thumbnail and large view URLs)";
@@ -132,11 +136,9 @@ public class ImageRecordStructure
             record = new Record(new PID(pid),recordStructure);
             System.out.println("creating " + recordStructure.getType().getKeyword() + " " + recordStructure.getDisplayName());
             if(assetType.getKeyword().equals("tufts/image/archival")) {
-                record.createPart(recordStructure.getThumbnailPartStructure().getId(),
-                        "http://"+repository.getAddress()+":"+"8080/fedora/get/" +objectId.getIdString()+"/bdef:TuftsImage/getThumbnail/");
-                record.createPart(recordStructure.getURLPartStructure().getId(),
-                        "http://"+repository.getAddress()+":"+repository.getPort()+"/fedora/get/" +objectId.getIdString()+"/bdef:AssetDef/getFullView/");
-                record.createPart(recordStructure.getMediumImagePartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(),"bdef:TuftsImage/getMediumRes/",repository));
+                record.createPart(recordStructure.getThumbnailPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), THUMBNAIL, repository));
+                record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), FULLVIEW, repository));
+                record.createPart(recordStructure.getMediumImagePartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(),MEDIUM_RES,repository));
             }
         } catch (Throwable t) {
             t.printStackTrace();
