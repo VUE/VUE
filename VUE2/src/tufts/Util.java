@@ -766,6 +766,23 @@ public class Util
             super.paint(g);
         }
     }
+
+    public static class JLabelAA extends javax.swing.JLabel {
+        public JLabelAA(String text) {
+            super(text);
+        }
+        public JLabelAA() {}
+
+        public void paintComponent(java.awt.Graphics g) {
+            // anti-alias is default on mac, so don't do it there.
+            if (!isMacPlatform())
+                ((java.awt.Graphics2D)g).setRenderingHint
+                    (java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                     java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            super.paintComponent(g);
+        }
+    }
+    
     
     /** This is for testing individual components. It will display the given component in frame
      * of the given size. */
