@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.17 $ / $Date: 2006-05-03 04:04:14 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2006-05-11 19:57:16 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -479,7 +479,7 @@ public class InspectorPane extends JPanel
         MetaDataPane() {
             super(new BorderLayout());
             
-            expandSlots();
+            ensureSlots(20);
 
             mLabels[0].setText("X"); // make sure label will know it's max height
             mGridBag = new ScrollableGrid(this, mLabels[0].getPreferredSize().height + 4);
@@ -515,13 +515,27 @@ public class InspectorPane extends JPanel
         }
 
 
-        // double the number if available slots
-        private void expandSlots() {
-            int maxSlots;
+        /**
+         * Make sure at least this minimum number of slots is available.
+         * @return true if # of slots is expanded
+         **/
+        private boolean ensureSlots(int minSlots) {
+            int curSlots;
             if (mLabels == null)
-                maxSlots = 20; // initial maximum
+                curSlots = 0;
             else
-                maxSlots = mLabels.length * 2;
+                curSlots = mLabels.length;
+
+            if (minSlots <= curSlots)
+                return false;
+
+            int maxSlots;
+            if (curSlots == 0)
+                maxSlots = minSlots;
+            else
+                maxSlots = minSlots + 4;
+
+            if (DEBUG.RESOURCE) out("expanding slots to " + maxSlots);
 
             mLabels = new JLabel[maxSlots];
             mValues = new JTextArea[maxSlots];
@@ -538,6 +552,8 @@ public class InspectorPane extends JPanel
                 mLabels[i].setVisible(false);
                 mValues[i].setVisible(false);
             }
+            
+            return true;
             
         }
 
@@ -593,7 +609,10 @@ public class InspectorPane extends JPanel
             
                 TableModel model = rsrcProps.getTableModel();
 
-                if (DEBUG.RESOURCE) out("metaDataPane; loadProperties: model=" + model);
+                if (DEBUG.RESOURCE) out("metaDataPane; loadProperties: model=" + model
+                                        + " modelSlots=" + model.getRowCount()
+                                        + " slotsAvail=" + mLabels.length
+                                        );
                 
                 if (mRsrcProps != rsrcProps) {
                     if (mRsrcProps != null)
@@ -602,10 +621,7 @@ public class InspectorPane extends JPanel
                     mRsrcProps.addListener(this);
                 }
                 
-                int rows = model.getRowCount();
-                
-                if (rows > mLabels.length) {
-                    expandSlots();
+                if (ensureSlots(model.getRowCount())) {
                     mGridBag.removeAll();
                     addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
                 }
