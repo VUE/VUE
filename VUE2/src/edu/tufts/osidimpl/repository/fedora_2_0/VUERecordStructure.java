@@ -138,15 +138,15 @@ public class VUERecordStructure   implements org.osid.repository.RecordStructure
             record = new Record(new PID(pid),recordStructure);
             if(assetType.getKeyword().equals(repository.getFedoraProperties().getProperty("type.image"))) {
                 record.createPart(recordStructure.getVUEDefaultViewPartStructure().getId(),
-                        formatObjectUrl(objectId.getIdString(),repository.getFedoraProperties().getProperty("assetDef.fullView"),repository));
+                        Utilities.formatObjectUrl(objectId.getIdString(),repository.getFedoraProperties().getProperty("assetDef.fullView"),repository));
             } else {
                 record.createPart(recordStructure.getVUEDefaultViewPartStructure().getId(),
-                        formatObjectUrl(objectId.getIdString(),repository.getFedoraProperties().getProperty("assetDef.fullView"),repository));
+                        Utilities.formatObjectUrl(objectId.getIdString(),repository.getFedoraProperties().getProperty("assetDef.fullView"),repository));
             }
             if(!(assetType.getKeyword().equals(Repository.BDEF) || assetType.getKeyword().equals(Repository.BMECH))){
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                 factory.setValidating(false);
-                String url = formatObjectUrl(objectId.getIdString(),repository.getFedoraProperties().getProperty("dissemination.dc"),repository);
+                String url = Utilities.formatObjectUrl(objectId.getIdString(),repository.getFedoraProperties().getProperty("dissemination.dc"),repository);
                 //System.out.println("DC URL:"+ url);
                 URL dcUrl  = new URL(url);
                 if(dcUrl !=null) {
@@ -168,15 +168,7 @@ public class VUERecordStructure   implements org.osid.repository.RecordStructure
         return record;
     }
     
-    private static String formatObjectUrl(String objectId,String methodId,Repository repository) throws org.osid.repository.RepositoryException {
-        String  url = "";
-        try {
-            url = repository.getFedoraProperties().getProperty("url.fedora.get")+objectId+"/"+methodId;
-        }catch (Throwable t) {
-            t.printStackTrace();
-        }
-        return url;
-    }
+
     
     
 }
