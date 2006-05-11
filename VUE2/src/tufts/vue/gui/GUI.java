@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.37 $ / $Date: 2006-05-03 03:53:43 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2006-05-11 23:36:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1424,6 +1424,12 @@ public class GUI
                 g.setColor(Color.red);
                 g.fillRect(0, 0, 99, 99);
             }
+
+            if (!Util.isMacPlatform())
+                ((java.awt.Graphics2D)g).setRenderingHint
+                    (java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                     java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            
             super.paintComponent(g);
         }
         
