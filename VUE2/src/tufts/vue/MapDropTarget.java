@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.55 $ / $Date: 2006-04-02 20:18:35 $ / $Author: sfraize $  
+ * @version $Revision: 1.56 $ / $Date: 2006-05-11 23:03:03 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -685,6 +685,8 @@ class MapDropTarget
         return createNode(drop, resource, Collections.EMPTY_MAP, where, false);
     }
     
+    private static int MaxNodeTitleLen = VueResources.getInt("node.title.maxDefaultChars", 50);
+    
     private LWComponent createNode(DropContext drop,
                                    Resource resource,
                                    Map properties,
@@ -705,7 +707,11 @@ class MapDropTarget
         String displayName = (String) properties.get("title");
 
         if (displayName == null)
-            displayName = makeResourceTitle(resource);
+            displayName = makeNodeTitle(resource);
+
+        if (displayName.length() > MaxNodeTitleLen) {
+            displayName = displayName.substring(0,MaxNodeTitleLen) + "...";
+        }
 
         /*
         MapResource mapResource = null;
@@ -1001,19 +1007,16 @@ class MapDropTarget
         return  mViewer.screenToMapPoint(x, y);
     }
 
-
-    private String makeResourceTitle(Resource resource)
+    
+    private String makeNodeTitle(Resource resource)
     {
         if (resource.getTitle() != null)
             return resource.getTitle();
 
-        //if (resource instanceof MapResource) {
-        //String title = ((MapResource)resource).getProperty("title");
         String title = resource.getProperty("title");
         if (title != null)
             return title;
-        //}
-        
+
         String spec = resource.getSpec();
         String name = Util.decodeURL(spec); // in case any %xx notations
 
