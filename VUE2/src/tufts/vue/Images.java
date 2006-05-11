@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.12 $ / $Date: 2006-04-24 17:25:39 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2006-05-11 01:24:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -952,6 +952,7 @@ public class Images
             do {
                 if (DEBUG.IMAGE) out("opening URL connection...");
                 java.net.URLConnection uc = url.openConnection();
+                uc.setAllowUserInteraction(true);
                 if (imageSRC.resource != null)
                     setResourceMetaData(imageSRC.resource, uc);
                 if (DEBUG.IMAGE) out("opening URL stream...");
