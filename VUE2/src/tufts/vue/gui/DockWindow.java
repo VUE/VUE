@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.67 $ / $Date: 2006-05-08 20:04:32 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2006-05-11 23:33:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3558,7 +3558,7 @@ public class DockWindow extends javax.swing.JWindow
              if (title == null)
                  title = "";
 
-             mLabel = new JLabel(title);
+             mLabel = new tufts.Util.JLabelAA(title);
              //if (TitleFont.getSize() < 11)
              //mLabel.setBorder(new EmptyBorder(2,0,0,0)); // t,l,b,r
              //else
