@@ -59,7 +59,7 @@ public class FedoraSoapFactory {
             else {
                 for(int i=0;i<objMethods.length;i++){
                     Record record = new Record(new PID(objMethods[i].getMethodName()),recordStructure);
-                    record.createPart(((DisseminationRecordStructure)recordStructure).getBDEFPartStructure().getId(),objMethods[i].getBDefPID());
+                    //record.createPart(((DisseminationRecordStructure)recordStructure).getBDEFPartStructure().getId(),objMethods[i].getBDefPID());
                     String disseminationURL = repository.getFedoraProperties().getProperty("url.fedora.get")+pid+"/"+objMethods[i].getBDefPID()+"/"+objMethods[i].getMethodName();
                     record.createPart(((DisseminationRecordStructure)recordStructure).getDisseminationURLPartStructure().getId(), disseminationURL);
                     disseminationList.add(record);
