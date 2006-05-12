@@ -43,10 +43,11 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
     private JLabel mLabel = new DefaultListCellRenderer();
     private JLabel mIconLabel = new DefaultListCellRenderer();
     private CheckBoxRenderer mCheckBox = new CheckBoxRenderer();
-    //private JCheckBox mCheckBox = new JCheckBox();
 
     private Border DividerBorder = new MatteBorder(1,0,0,0, Color.gray);
     private Border EmptyDividerBorder = new EmptyBorder(1,0,0,0);
+
+    private Color AlternateRowColor = VueResources.getColor("gui.dataSourceList.alternateRowColor", 237,243,253);
 
     public DataSourceListCellRenderer()
     {
@@ -62,10 +63,6 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         mRow.add(mLabel);
         mRow.add(mIconLabel);
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.right));
-
-        //setSize(Short.MAX_VALUE, 1);
-        //setMaximumSize(new Dimension(Short.MAX_VALUE, 1));
-        //setPreferredSize(new Dimension(Short.MAX_VALUE, 1));
     }
     
 
@@ -80,14 +77,12 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         //-------------------------------------------------------
         Color bg;
         if (selected) {
-            bg = SystemColor.textHighlight;
+            bg = GUI.getTextHighlightColor();
         } else {
-            bg = list.getBackground();
-            // can't do this by index, because String entries throw us off
             if (index % 2 == 0)
                 bg = list.getBackground();
             else
-                bg = new Color(224,224,255);
+                bg = AlternateRowColor;
         }
         mRow.setBackground(bg);
         mCheckBox.setBackground(bg);
@@ -115,16 +110,21 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
             mRow.setBorder(EmptyDividerBorder);
         } else if (value instanceof LocalFileDataSource){
             mRow.setBorder(DividerBorder);
-            displayName = ((DataSource)value).getDisplayName();
+            displayName = ((DataSource)value).getDisplayName();            
             mIconLabel.setIcon(myComputerIcon);
         } else  if (value instanceof FavoritesDataSource) {
             mRow.setBorder(DividerBorder);
-            displayName = "My Saved Content";
+            displayName = ((DataSource)value).getDisplayName();            
+            //displayName = "My Saved Content";
             mIconLabel.setIcon(savedResourcesIcon);
         } else
             mRow.setBorder(DividerBorder);
             
-
+        if (value == DataSourceList.IndicatedDragOverValue)
+            mLabel.setForeground(Color.red);
+        else
+            mLabel.setForeground(Color.black);
+        
         mLabel.setText(displayName);
 
         return mRow;
