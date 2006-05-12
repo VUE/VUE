@@ -47,18 +47,21 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.38 $ / $Date: 2006-05-12 04:51:30 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2006-05-12 19:37:37 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
 public class DataSourceList extends JList implements DropTargetListener
 {
+    static Object IndicatedDragOverValue;
+    
     private static final boolean debug = true;
     
-    private static final int ACCEPTABLE_DROP_TYPES =
-        DnDConstants.ACTION_COPY |
-        DnDConstants.ACTION_LINK |
-        DnDConstants.ACTION_MOVE;
+    private static final int ACCEPTABLE_DROP_TYPES = 0
+        | DnDConstants.ACTION_COPY
+        | DnDConstants.ACTION_LINK
+        | DnDConstants.ACTION_MOVE
+        ;
 
     public DataSourceList(DataSourceViewer dsViewer) {
         super(new DefaultListModel());
@@ -74,25 +77,36 @@ public class DataSourceList extends JList implements DropTargetListener
         this.setCellRenderer(new DataSourceListCellRenderer());
     }
 
-    private Object locationToValue(Point p) {
-        int index = locationToIndex(p);
-        return getModel().getElementAt(index);
-    }
+    private Object locationToValue(Point p) { int index =
+    locationToIndex(p); return getModel().getElementAt(index); }
     
     public DefaultListModel getContents() {
         return (DefaultListModel) getModel();
+    }
+
+    private void setIndicated(Object value) {
+        if (IndicatedDragOverValue != value) {
+            IndicatedDragOverValue = value;
+            repaint();
+        }
     }
     
     public void dragOver(DropTargetDragEvent e) {
         Object over = locationToValue(e.getLocation());
         if (DEBUG.DND) out("dragOver: " + over);
-        if (over instanceof FavoritesDataSource)
+        if (over instanceof FavoritesDataSource) {
+            //e.acceptDrag(ACCEPTABLE_DROP_TYPES);
             e.acceptDrag(e.getDropAction());
-        else
+            setIndicated(over);
+        } else {
+            setIndicated(null);
             e.rejectDrag();
+        }
     }
     
-    public void drop(DropTargetDropEvent e) {
+    public void drop(DropTargetDropEvent e)
+    {
+        setIndicated(null);
         Object over = locationToValue(e.getLocation());
         if (DEBUG.DND) out("DROP over " + over);
         if (over instanceof FavoritesDataSource) {
@@ -280,11 +294,14 @@ public class DataSourceList extends JList implements DropTargetListener
     
     public void dragEnter(DropTargetDragEvent e) {
         if (DEBUG.DND) out("dragEnter");
-        e.acceptDrag(ACCEPTABLE_DROP_TYPES);        
+        setIndicated(null);
+        e.acceptDrag(ACCEPTABLE_DROP_TYPES);
     }
     public void dragExit(DropTargetEvent e) {
         if (DEBUG.DND) out("dragExit");
+        setIndicated(null);
     }
+    
     public void dropActionChanged( DropTargetDragEvent e ) {
         e.acceptDrag(ACCEPTABLE_DROP_TYPES);        
     }
