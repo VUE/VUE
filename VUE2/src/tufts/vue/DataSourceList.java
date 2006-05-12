@@ -47,28 +47,25 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.37 $ / $Date: 2006-05-08 23:47:30 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2006-05-12 04:51:30 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
 public class DataSourceList extends JList implements DropTargetListener
 {
-    private final boolean debug = true;
-    //private DropTarget dropTarget = null;
-    //DataSourceViewer dsViewer;
-    //edu.tufts.vue.dsm.DataSource infoDataSource;
+    private static final boolean debug = true;
     
+    private static final int ACCEPTABLE_DROP_TYPES =
+        DnDConstants.ACTION_COPY |
+        DnDConstants.ACTION_LINK |
+        DnDConstants.ACTION_MOVE;
+
     public DataSourceList(DataSourceViewer dsViewer) {
         super(new DefaultListModel());
         //this.dsViewer = dsViewer;
         this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
         this.setFixedCellHeight(-1);    
     
-        int ACCEPTABLE_DROP_TYPES =
-            DnDConstants.ACTION_COPY |
-            DnDConstants.ACTION_LINK |
-            DnDConstants.ACTION_MOVE;
-
         // TODO: create a generic resource drop handler from MapDropTarget to use
         // in places such as this (this code originiated as a copy of MapDropTarget,
         // but is now completely old/out of sync with with it).
@@ -76,37 +73,62 @@ public class DataSourceList extends JList implements DropTargetListener
         new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
         this.setCellRenderer(new DataSourceListCellRenderer());
     }
+
+    private Object locationToValue(Point p) {
+        int index = locationToIndex(p);
+        return getModel().getElementAt(index);
+    }
     
     public DefaultListModel getContents() {
-        return (DefaultListModel)getModel();
+        return (DefaultListModel) getModel();
+    }
+    
+    public void dragOver(DropTargetDragEvent e) {
+        Object over = locationToValue(e.getLocation());
+        if (DEBUG.DND) out("dragOver: " + over);
+        if (over instanceof FavoritesDataSource)
+            e.acceptDrag(e.getDropAction());
+        else
+            e.rejectDrag();
     }
     
     public void drop(DropTargetDropEvent e) {
-        e.acceptDrop(DnDConstants.ACTION_COPY);
+        Object over = locationToValue(e.getLocation());
+        if (DEBUG.DND) out("DROP over " + over);
+        if (over instanceof FavoritesDataSource) {
+            if (DEBUG.DND) out("drag ACCEPTED");
+            e.acceptDrop(e.getDropAction());
+        } else {
+            if (DEBUG.DND) out("drag rejected");
+            e.rejectDrop();
+            return;
+        }
+
         int current = this.getSelectedIndex();
-        int dropLocation = locationToIndex(e.getLocation());
-        this.setSelectedIndex(dropLocation);
+        setSelectedIndex(locationToIndex(e.getLocation()));
         DataSource ds = (DataSource)getSelectedValue();
-        System.out.println("Selected datasource:"+ds.getDisplayName());
+                         
+        if (DEBUG.DND) System.out.println("DROP ON DATA SOURCE: " + ds.getDisplayName());
         try {
             FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
             VueDandDTree favoritesTree = fw.getFavoritesTree();
             favoritesTree.setRootVisible(true);
             DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
             FavoritesNode rootNode = (FavoritesNode)model.getRoot();
-            boolean success = false;
+            boolean success = true;
             Transferable transfer = e.getTransferable();
             DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
             String resourceName = null;
             java.util.List fileList = null;
             java.util.List resourceList = null;
+            if (DEBUG.DND) System.out.println("RESOURCE TRANSFER FOUND: " + transfer);
             try {
                 if (transfer.isDataFlavorSupported(Resource.DataFlavor)) {
-                    if (debug) System.out.println("RESOURCE FOUND");
                     resourceList = (java.util.List) transfer.getTransferData(Resource.DataFlavor);
                     java.util.Iterator iter = resourceList.iterator();
                     while(iter.hasNext()) {
                         Resource resource = (Resource) iter.next();
+                        if (DEBUG.DND) System.out.println("RESOURCE FOUND: " + resource);
                         ResourceNode newNode =new  ResourceNode(resource);
                         model.insertNodeInto(newNode, rootNode, 0);
                         favoritesTree.expandPath(new TreePath(rootNode.getPath()));
@@ -199,6 +221,7 @@ public class DataSourceList extends JList implements DropTargetListener
             favoritesTree.setRootVisible(false);
             this.setSelectedIndex(current);
         } catch (Exception ex) {
+            if (DEBUG.DND) tufts.Util.printStackTrace(ex);
             this.setSelectedIndex(current);
             VueUtil.alert(null, "You can only add resources to a Favorites Datasource","Resource Not Added");
         }
@@ -255,9 +278,19 @@ public class DataSourceList extends JList implements DropTargetListener
         return url;
     }
     
-    public void dragEnter(DropTargetDragEvent e) { }
-    public void dragExit(DropTargetEvent e) {}
-    public void dragOver(DropTargetDragEvent e) {}
-    public void dropActionChanged( DropTargetDragEvent e ) {}
+    public void dragEnter(DropTargetDragEvent e) {
+        if (DEBUG.DND) out("dragEnter");
+        e.acceptDrag(ACCEPTABLE_DROP_TYPES);        
+    }
+    public void dragExit(DropTargetEvent e) {
+        if (DEBUG.DND) out("dragExit");
+    }
+    public void dropActionChanged( DropTargetDragEvent e ) {
+        e.acceptDrag(ACCEPTABLE_DROP_TYPES);        
+    }
+
+    private void out(String s) {
+        System.out.println("DataSourceList: " + s);
+    }
     
 }
