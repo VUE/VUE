@@ -418,7 +418,7 @@ public class Util
         if (DEBUG) System.err.println("  ENCODE UTF [" + url + "]");
 
         // now decode the over-coded stuff so it looks sane (has colon & slashes, etc)
-        url = url.replaceFirst("%3A", ":"); // only need to do first one
+        url = url.replaceAll("%3A", ":"); // be sure to do ALL of these...
         url = url.replaceAll("%2F", "/");
         url = url.replaceAll("\\+", "%20");
         
@@ -1258,10 +1258,12 @@ public class Util
     public static void main(String args[])
         throws Exception
     {
-        for (int i = 0; i < 30; i++) {
+        int tries = 1;
+        for (int i = 0; i < tries; i++) {
+            if (i > 0)
+                Thread.sleep(2000);
             System.err.print("Internet is reachable (DNS available): ");
             System.err.println("" + isInternetReachable());
-            Thread.sleep(2000);
         }
         
         Enumeration nie = NetworkInterface.getNetworkInterfaces();
