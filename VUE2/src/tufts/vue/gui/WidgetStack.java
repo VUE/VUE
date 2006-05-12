@@ -34,7 +34,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.18 $ / $Date: 2006-05-03 04:02:53 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2006-05-12 20:46:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -271,8 +271,10 @@ public class WidgetStack extends Widget
         = new GradientPaint(0,           0, new Color(79,154,240),
                             0, TitleHeight, new Color(0,133,246));
 
-    private static final char RightArrowChar = 0x25B6; // unicode "black right pointing triangle"
-    private static final char DownArrowChar = 0x25BC; // unicode "black down pointing triangle"
+    //private static final char RightArrowChar = 0x25B6; // unicode "black right pointing triangle"
+    //private static final char DownArrowChar = 0x25BC; // unicode "black down pointing triangle"
+    private static final char RightArrowChar = DockWindow.RightArrowChar;
+    private static final char DownArrowChar = DockWindow.DownArrowChar;
 
     private static final boolean isMac = tufts.Util.isMacPlatform();
 
@@ -309,12 +311,19 @@ public class WidgetStack extends Widget
 //                 mTitle.setFont(new Font("Lucida Grande", Font.BOLD, 13));
 
             
-            add(Box.createHorizontalStrut(9));
-            int iconHeight = 10;
-            int iconWidth = 9;
-            int fontSize = 9;
+            // TODO: merge with DockWindow for offset / std property
+            add(Box.createHorizontalStrut(17));
+//             int iconHeight = 10;
+//             int iconWidth = 9;
+//             int fontSize = 9;
+//             mIcon = new GUI.IconicLabel(DownArrowChar, fontSize, Color.white, iconWidth, iconHeight);
 
-            mIcon = new GUI.IconicLabel(DownArrowChar, fontSize, Color.white, iconWidth, iconHeight);
+            // TODO: merge with DockWindow code for same
+            mIcon = new GUI.IconicLabel(DownArrowChar,
+                                        16, // point-size
+                                        Color.white,
+                                        15, // fixed width
+                                        10); // fixed height
             add(mIcon);
             
             add(Box.createHorizontalStrut(4));
