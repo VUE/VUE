@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.38 $ / $Date: 2006-05-11 23:36:51 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2006-05-12 20:13:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -137,7 +137,8 @@ public class GUI
     public static Color getTextHighlightColor() {
         if (initUnderway) throw new InitError();
         if (Theme == null)
-            return Color.yellow;
+            //return Color.yellow;
+            return SystemColor.textHighlight;
         else
             return Theme.getTextHighlightColor();
     }
