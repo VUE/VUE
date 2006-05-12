@@ -34,7 +34,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.19 $ / $Date: 2006-05-12 20:46:33 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2006-05-12 20:56:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -324,6 +324,9 @@ public class WidgetStack extends Widget
                                         Color.white,
                                         15, // fixed width
                                         10); // fixed height
+             if (isMac)
+                 mIcon.setBorder(new javax.swing.border.EmptyBorder(0,0,1,0)); // t,l,b,r
+             
             add(mIcon);
             
             add(Box.createHorizontalStrut(4));
