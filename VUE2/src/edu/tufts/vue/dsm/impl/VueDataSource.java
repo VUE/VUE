@@ -623,4 +623,8 @@ implements edu.tufts.vue.dsm.DataSource
 	{
 		this.configurationMaps = maps;
 	}
+
+    public String toString() {
+        return super.toString() + "[" + getRepositoryDisplayName() + "]";
+    }
 }
