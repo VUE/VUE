@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.370 $ / $Date: 2006-05-08 23:52:24 $ / $Author: sfraize $ 
+ * @version $Revision: 1.371 $ / $Date: 2006-05-15 17:48:11 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -367,7 +367,7 @@ public class VUE
         if (args.length > 0) {
             try {
                 for (int i = 0; i < args.length; i++) {
-                    if (args[i].charAt(0) == '-')
+                    if (args[i] == null || args[i].length() < 1 || args[i].charAt(0) == '-')
                         continue;
                     LWMap map = OpenAction.loadMap(args[i]);
                     if (map != null) {
