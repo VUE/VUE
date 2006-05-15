@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -22,7 +22,7 @@
  * Created on September 19, 2003, 2:42 PM
  */
 
-package tufts.oki.shared;
+package tufts.oki.shared2;
 import java.util.*;
 
 /**
@@ -33,18 +33,18 @@ import java.util.*;
  *  CalendarIterator is fully implemented.
  */
 public class LongValueIterator implements org.osid.shared.LongValueIterator {
-    
+
     private Vector calendar_vector = null;
-    
+
     private int offset = 0;
-    
+
     /** Creates a new instance of CalendarIterator */
     public LongValueIterator(Vector vector) {
         //assert (vector != null) : "Vector passed is null.";
 
         calendar_vector = vector;
     }
-    
+
     /**
      *  @author Mark Norton
      *
@@ -53,7 +53,7 @@ public class LongValueIterator implements org.osid.shared.LongValueIterator {
     public boolean hasNextLongValue() {
         return (offset < calendar_vector.size());
     }
-    
+
     /**
      *  @author Mark Norton
      *
@@ -64,5 +64,5 @@ public class LongValueIterator implements org.osid.shared.LongValueIterator {
         offset++;
         return calendar.getTimeInMillis();
     }
-    
+
 }
