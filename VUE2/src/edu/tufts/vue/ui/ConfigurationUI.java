@@ -145,7 +145,7 @@ public class ConfigurationUI extends javax.swing.JPanel
 					this.errorMessage = "Title must be non-null";
 					return;
 				}
-				Boolean isMandatory = true;
+				Boolean isMandatory = new Boolean(true);
 				try {
 					isMandatory = new Boolean(mandatory);
 				} catch (Exception ex) {
@@ -153,7 +153,7 @@ public class ConfigurationUI extends javax.swing.JPanel
 					return;
 				}
 				
-				Integer numChars = 0;
+				Integer numChars = new Integer(0);
 				if (maxChars != null) {
 					try {
 						numChars = (new Integer(maxChars));
@@ -167,14 +167,13 @@ public class ConfigurationUI extends javax.swing.JPanel
 					}
 				}
 				
-				int uiCode = 0;
+				Integer uiCode = new Integer(0);
 				try {
-					int n = (new Integer(ui)).intValue();
+					uiCode = new Integer(ui);
+					int n = uiCode.intValue();
 					if ( (n < 0) || (n > 7) ) {
 						this.errorMessage = "Invalid UI control code";
 						return;
-					} else {
-						uiCode = n;
 					}
 				} catch (Exception ex) {
 					this.errorMessage = "Invalid UI control code";
@@ -263,9 +262,9 @@ public class ConfigurationUI extends javax.swing.JPanel
 				int uiCode = ((Integer)uiVector.elementAt(i)).intValue();
 				String defaultValue = (String)defaultValueVector.elementAt(i);
 				String title = (String)titleVector.elementAt(i);
-				Integer numChars = (Integer)maxCharsVector.elementAt(i);
+				int numChars = ((Integer)maxCharsVector.elementAt(i)).intValue();
 
-				Boolean isMandatory = (Boolean)mandatoryVector.elementAt(i);
+				boolean isMandatory = ((Boolean)mandatoryVector.elementAt(i)).booleanValue();
 				String prefix = (isMandatory) ? "*" : "";
 				javax.swing.JLabel prompt = new javax.swing.JLabel(prefix + title + ": ");
 				
@@ -305,7 +304,7 @@ public class ConfigurationUI extends javax.swing.JPanel
 					case BOOLEAN_CONTROL:
 						String[] items = new String[2];
 						if (defaultValue != null) {
-							Boolean b = new Boolean(defaultValue); // validated earlier
+							boolean b = (new Boolean(defaultValue)).booleanValue(); // validated earlier
 							if (b) {
 								items[0] = "true";
 								items[1] = "false";
