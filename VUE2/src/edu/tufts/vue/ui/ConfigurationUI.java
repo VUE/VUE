@@ -157,7 +157,7 @@ public class ConfigurationUI extends javax.swing.JPanel
 				if (maxChars != null) {
 					try {
 						numChars = (new Integer(maxChars));
-						if (numChars < 0) {
+						if (numChars.intValue() < 0) {
 							this.errorMessage = "Number of characters must be a positive integer";
 							return;
 						}
@@ -190,7 +190,7 @@ public class ConfigurationUI extends javax.swing.JPanel
 				if (defaultValue == null) {
 					defaultValueVector.addElement(null);
 				} else {
-					switch (uiCode) {
+					switch (uiCode.intValue()) {
 						case SINGLE_LINE_CLEAR_TEXT_CONTROL:
 							// no extra validation for default value since it is a string
 							break;
