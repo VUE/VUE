@@ -1,0 +1,56 @@
+#
+# Logging Types
+#
+
+oid/1.3.6.1.4.1.22316.1.1.1.2.1.1.0@osid.org:defaultLoggingPriorityType:Default Logging Priority:default:The priority Type used by the Logging OSID to inidicate a default level to be determined by the implementation.
+oid/1.3.6.1.4.1.22316.1.1.1.2.1.2.0@osid.org:traceLoggingPriorityType:Trace Logging Priority:trace:The priority Type used by the Logging OSID to indicate a trace level message.
+oid/1.3.6.1.4.1.22316.1.1.1.2.1.3.0@osid.org:debugLoggingPriorityType:Debug Logging Priority:debug:The priority Type used by the Logging OSID to indicate a debug level message.
+oid/1.3.6.1.4.1.22316.1.1.1.2.1.4.0@osid.org:infoLoggingPriorityType:Informational Logging Priority:informational:The priority Type used by the Logging OSID to indicate an informational level message.
+oid/1.3.6.1.4.1.22316.1.1.1.2.1.5.0@osid.org:noticeLoggingPriorityType:Noitice Logging Priority:notice:The priority Type used by the Logging OSID to indicate a notice level message.
+oid/1.3.6.1.4.1.22316.1.1.1.2.1.6.0@osid.org:warningLoggingPriorityType:Warning Logging Priotity:warning:The priority Type used by the Logging OSID to indicate a warning level message.
+oid/1.3.6.1.4.1.22316.1.1.1.2.1.7.0@osid.org:errorLoggingPriorityType:Error Logging Priority:error:The priority Type used by the Logging OSID to indicate an error level message.
+oid/1.3.6.1.4.1.22316.1.1.1.2.1.8.0@osid.org:criticalLoggingPriorityType:Critical Logging Priority:critcal:The priority Type used by the Logging OSID to indicate a critical level message.
+oid/1.3.6.1.4.1.22316.1.1.1.2.1.9.0@osid.org:fatalLoggingPriorityType:Fatal LoggingPriority:fatal:The priority Type used by the Logging OSID to indicate a datal level message.
+
+oid/1.3.6.1.4.1.22316.1.1.1.2.2.1.0@osid.org:defaultLoggingFormatType:Default Logging Format:default:The format Type used by the Logging OSID to indicate a default format to be determined by the implementation.
+
+#
+# Authentication Types
+#
+
+oid/1.3.6.1.4.1.22316.1.1.1.3.1.1.0@osid.org:defaultAuthenticationType:Default Authentication:default:The authentication Type used by the Authentication OSID to indicate a default to be determined by the implementation.
+
+#
+# Agent Types
+#
+
+oid/1.3.6.1.4.1.22316.1.1.1.5.1.1.0@osid.org:defaultAgentType:Default Agent:default:The agent Type used by the Agent OSID to indicate a default to be determined by the implementation.
+
+#
+# Search Types
+#
+
+oid/1.3.6.1.4.1.22316.1.1.1.7.1.0@osid.org:cqlSearchType:CQL Search:sql:The search type used for CQL queries.
+oid/1.3.6.1.4.1.22316.1.1.1.7.2.0@osid.org:propertiesSearchType:Properties Search:properties:The search type used for examining a properties set..
+
+
+#
+# Filing Types
+#
+
+oid/1.3.6.1.4.1.22316.1.1.1.8.2.1.0@osid.org:defaultFilingPropertiesType:Default Filing Properties:default:The filing properties type used by Filing to indicate anything.
+oid/1.3.6.1.4.1.22316.1.1.1.8.3.1.0@osid.org:md5DigestFilingType:MD5 Digest ALgorithm Filing:md5Digest:The digest type to indicate the MD5 algorithm.
+
+
+# 
+# Provider Types
+
+oid/1.3.6.1.4.1.22316.1.1.1.9.2.1.0@osid.org:defaultProviderPropertiesType:Default Provider Properties:default:The Provider properties type used by Provider to indicate anything.
+
+#
+# Repository Types
+#
+
+oid/1.3.6.1.4.1.22316.1.1.1.10.1.2.1.0@osid.org:plainContentRecordStructureType:Plain Content Record Structure:plain:The record structure type indicating a single blob asset.
+oid/1.3.6.1.4.1.22316.1.1.1.10.1.3.1.0@osid.org:propertyAssetPartType:Property-based Asset Part:plain:The part structure type indicating a property.
+oid/1.3.6.1.4.1.22316.1.1.1.10.2.1.0@osid.org:defaultRepositiryPropertiesType:Default Repository Properties:plain:The type indicating a default properties set for the Repository.
