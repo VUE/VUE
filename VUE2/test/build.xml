@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.9 $ / $Date: 2006-05-01 19:32:17 $ -->
+<!-- $Revision: 1.10 $ / $Date: 2006-05-17 14:40:40 $ -->
 
 <!-- 
 This ant build file:
@@ -98,6 +98,23 @@ This ant build file:
     <pathelement location="../src/build/classes" />
     <pathelement location="../src/build/classes/edu/tufts/osidimpl/repository/artifact.ArtifactResult.class" />
     
+	<!-- for provider -->
+	<pathelement path="${lib.home}/HiveSupport-1.0.jar" />
+	<pathelement path="${lib.home}/HiveRepositoryPublish-1.0.jar" />
+	<pathelement path="${lib.home}/HiveAuthentication-1.0.jar" />
+	<pathelement path="${lib.home}/OsidRegistry.jar" />
+	<pathelement path="${lib.home}/OsidProvider.jar" />
+	<pathelement path="${lib.home}/MIT-OTS.jar" />
+	<pathelement path="${lib.home}/javatar.jar" />
+
+	<!-- Hive support -->
+	<pathelement path="${lib.home}/commons-httpclient-2.0.jar" />
+	<pathelement path="${lib.home}/commons-logging-2.0.jar" />
+	<pathelement path="${lib.home}/jdom.jar" />
+	<pathelement path="${lib.home}/jhapi.jar" />
+	<pathelement path="${lib.home}/jnet.jar" />
+	<pathelement path="${lib.home}/jsse.jar" />
+
     <pathelement location="${java.class.path}" />
   </path>
 
@@ -217,6 +234,12 @@ This ant build file:
 <!-- ==================== Tufts Digital Library Smoke Test ================================ -->
     <target name="tdltest" depends="compile" description="Dumps Some Tufts Digital Library Repository Data" >
         <java classname="test.repository.tdl.repositoryDump" failonerror="true" fork="true">
+      <classpath refid="compile.classpath"/>
+        </java>
+    </target>
+<!-- ==================== Provider Smoke Test ================================ -->
+    <target name="providertest" depends="compile" description="Dumps Some Provider Data" >
+        <java classname="test.provider.provider" failonerror="true" fork="true">
       <classpath refid="compile.classpath"/>
         </java>
     </target>
