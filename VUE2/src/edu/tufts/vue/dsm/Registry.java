@@ -18,33 +18,15 @@ package edu.tufts.vue.dsm;
  * -----------------------------------------------------------------------------
  */
 
-/**
- The Registry OSID has a Provider object.  This simplified registry hides the Registry
- OSID implementation and offers only what is needed by the VUE UI or other code.
-*/
-
 public interface Registry
 {
 	/**
-	 A new provider is one that is registered by the O.K.I. Community but not currently
-	 installed in the user's VUE.
+		What is available that is not already present.
 	*/
 	public org.osid.registry.Provider[] checkRegistryForNew(DataSource[] dataSources);
 
 	/**
-	 An updated provider is one that is both registered by the O.K.I. Community and 
-	 installed in the user's VUE.  The provider has a release date after the date of the
-	 version in VUE.
+		What is available for update from what is already present.
 	 */
 	public org.osid.registry.Provider[] checkRegistryForUpdated(DataSource[] dataSources);
-
-	/**
-	 Downlaoding a data source may involve different operations depending on the user's
-	 environment and the type of provider.
-	 */
-	public void download(DataSource dataSource);
-	
-	public org.osid.registry.Provider getProvider(org.osid.shared.Id providerId);
-	
-	public org.osid.repository.Repository getRepository(org.osid.shared.Id repositoryId);
 }

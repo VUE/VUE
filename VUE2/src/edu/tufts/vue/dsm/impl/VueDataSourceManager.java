@@ -34,6 +34,7 @@ implements edu.tufts.vue.dsm.DataSourceManager
 	private static final String RECORDS_TAG = "records";
 	private static final String PROVIDER_RECORD_TAG = "record";
 	private static final String PROVIDER_ID_TAG = "oki:providerid";
+/*
 	private static final String OSID_SERVICE_TAG = "oki:osidservice";
 	private static final String OSID_MAJOR_VERSION_TAG = "oki:osidmajorversion";
 	private static final String OSID_MINOR_VERSION_TAG = "oki:osidminorversion";
@@ -54,10 +55,10 @@ implements edu.tufts.vue.dsm.DataSourceManager
 	private static final String REPOSITORY_IMAGE_TAG = "oki:repositoryimage";
 	private static final String REGISTRATION_DATE_TAG = "oki:registrationdate";
 	private static final String HIDDEN_TAG = "oki:hidden";
-	private static final String INCLUDED_IN_SEARCH_TAG = "oki:includedinsearch";
-
 	private static final String CONFIGURATIONS_TAG = "oki:configuration";
 	private static final String CONFIGURATION_KEY_TAG = "oki:configurationkey";
+*/
+	private static final String INCLUDED_IN_SEARCH_TAG = "oki:includedinsearch";
 		
 	private static String xmlFilename = null;
 
@@ -130,11 +131,11 @@ implements edu.tufts.vue.dsm.DataSourceManager
 			int numRecords = records.getLength();
 			for (int i=0; i < numRecords; i++) {
 				org.osid.shared.Id providerId = null;
+/*
 				String osidService = null;
 				int osidMajorVersion = 0;
 				int osidMinorVersion = 0;
 				String osidLoadKey = null;
-
 				String providerDisplayName = null;
 				String providerDescription = null;
 				String creator = null;
@@ -149,6 +150,7 @@ implements edu.tufts.vue.dsm.DataSourceManager
 				String repositoryImage = null;
 				java.util.Date registrationDate = null;
 				boolean isHidden = false;
+*/
 				boolean isIncludedInSearch = false;
 
 				org.w3c.dom.Element record = (org.w3c.dom.Element)records.item(i);
@@ -161,7 +163,7 @@ implements edu.tufts.vue.dsm.DataSourceManager
 						providerId = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString);
 					}
 				}
-
+/*
 				nodeList = record.getElementsByTagName(OSID_SERVICE_TAG);
 				numNodes = nodeList.getLength();
 				for (int k=0; k < numNodes; k++) {
@@ -402,7 +404,7 @@ implements edu.tufts.vue.dsm.DataSourceManager
 						isHidden = (new Boolean(hiddenString)).booleanValue();
 					}
 				}
-
+*/
 				nodeList = record.getElementsByTagName(INCLUDED_IN_SEARCH_TAG);
 				numNodes = nodeList.getLength();
 				for (int k=0; k < numNodes; k++) {
@@ -430,8 +432,8 @@ implements edu.tufts.vue.dsm.DataSourceManager
 				 System.out.println(isHidden);
 				 System.out.println(isIncludedInSearch);
 				 */
-				edu.tufts.vue.dsm.Registry registry = edu.tufts.vue.dsm.impl.VueRegistry.getInstance();
-				org.osid.repository.Repository repository = registry.getRepository(providerId);
+				//edu.tufts.vue.dsm.OsidFactory factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
+				//org.osid.repository.Repository repository = factory.getRepository(providerId);
 
 				// if we already have this data source, update it in place
 				boolean found = false;
@@ -440,7 +442,7 @@ implements edu.tufts.vue.dsm.DataSourceManager
 					if (ds.getProviderId().isEqual(providerId)) {
 						found = true;
 						ds.setProviderId(providerId);
-						ds.setOsidService(osidService);
+/*						ds.setOsidService(osidService);
 						ds.setMajorOsidVersion(osidMajorVersion);
 						ds.setMinorOsidVersion(osidMinorVersion);
 						ds.setOsidLoadKey(osidLoadKey);
@@ -457,16 +459,20 @@ implements edu.tufts.vue.dsm.DataSourceManager
 						ds.setRepositoryId(repositoryId);
 						ds.setRepositoryImage(repositoryImage);
 						ds.setRegistrationDate(registrationDate);
-						ds.setHidden(isHidden);
+*/
 						ds.setIncludedInSearch(isIncludedInSearch);
-						ds.setConfigurationKeys(configurationKeys);
+
+/*						ds.setConfigurationKeys(configurationKeys);
 						ds.setConfigurationValues(configurationValues);
 						ds.setConfigurationMaps(configurationMaps);
+ ds.setHidden(isHidden);
+*/
 					}
 				}
 				if (!found) {
 					this.dataSourceVector.addElement(new edu.tufts.vue.dsm.impl.VueDataSource(providerId,
-																							  osidService,
+																							  isIncludedInSearch));
+/*																							  osidService,
 																							  osidMajorVersion,
 																							  osidMinorVersion,
 																							  osidLoadKey,
@@ -488,6 +494,7 @@ implements edu.tufts.vue.dsm.DataSourceManager
 																							  configurationKeys,
 																							  configurationValues,
 																							  configurationMaps));
+*/
 				}
 			}
 		} catch (Throwable t) {
@@ -526,7 +533,7 @@ implements edu.tufts.vue.dsm.DataSourceManager
 					e.appendChild(document.createTextNode(nextValue));
 					record.appendChild(e);
 				}
-
+/*
 				nextValue = dataSource.getOsidService();
 				if (nextValue != null) {
 					e = document.createElement(OSID_SERVICE_TAG);
@@ -554,7 +561,7 @@ implements edu.tufts.vue.dsm.DataSourceManager
 					e.appendChild(document.createTextNode(nextValue));
 					record.appendChild(e);
 				}
-
+ 
 				nextValue = dataSource.getProviderDisplayName();
 				if (nextValue != null) {
 					e = document.createElement(DISPLAY_NAME_TAG);
@@ -678,7 +685,7 @@ implements edu.tufts.vue.dsm.DataSourceManager
 					e.appendChild(document.createTextNode(nextValue));
 					record.appendChild(e);
 				}
-
+*/
 				nextValue = (dataSource.isIncludedInSearch()) ? "true" : "false";
 				if (nextValue != null) {
 					e = document.createElement(INCLUDED_IN_SEARCH_TAG);

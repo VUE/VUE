@@ -105,13 +105,13 @@ implements edu.tufts.vue.dsm.Registry
 				int index = idVector.indexOf(providerIdString);
 				if (index != -1) {
 					// we have found a registered provider that matches one we already have; now check the dates
-					java.util.Date registrationDate = edu.tufts.vue.util.Utilities.stringToDate(provider.getRegistrationDate());
-					java.util.Date dataSourceDate = dataSources[index].getRegistrationDate();
-					if (registrationDate.after(dataSourceDate)) {
+					//java.util.Date registrationDate = edu.tufts.vue.util.Utilities.stringToDate(provider.getRegistrationDate());
+					//java.util.Date dataSourceDate = dataSources[index].getRegistrationDate();
+					//if (registrationDate.after(dataSourceDate)) {
 						//System.out.println("The same provider with a newer date is available");
-					} else {
+					//} else {
 						//System.out.println("The same provider already installed is available");
-					}
+					//}
 					results.addElement(provider);
 				}
 			}

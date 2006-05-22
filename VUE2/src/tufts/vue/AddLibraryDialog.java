@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.6 $ / $Date: 2006-03-04 01:57:33 $ / $Author: jeff $
+ * @version $Revision: 1.7 $ / $Date: 2006-05-22 17:27:50 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -42,17 +42,26 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 	JLabel libraryIcon;
 	JTextArea libraryDescription;
 	edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
-	edu.tufts.vue.dsm.Registry registry;
-	org.osid.registry.Provider checked[];
+	edu.tufts.vue.dsm.OsidFactory factory;
+	org.osid.provider.Provider checked[];
 	java.util.Vector checkedVector = new java.util.Vector();
 	JButton addButton = new JButton("Add");
-	JButton cancelButton = new JButton("Cancel");
+	JButton cancelButton = new JButton("Done");
 	JPanel buttonPanel = new JPanel();
 	DataSourceList dataSourceList;
+	
+	private static String MY_COMPUTER = "My Computer";
+	private static String MY_COMPUTER_DESCRIPTION = "Add a browse control for your filesystem.  You can configure where to start the tree.";
+	private static String MY_SAVED_CONTENT = "My Saved Content";
+	private static String MY_SAVED_CONTENT_DESCRIPTION = "Add a browse control for your saved content.  You can configure a name for this source.";
+	private static String FTP = "FTP";
+	private static String FTP_DESCRIPTION = "Add a browse control for an FTP site.  You must configure this.";
+	private static String TITLE = "ADD A LIBRARY";
+	private static String AVAILABLE = "Available";
     
     public AddLibraryDialog(DataSourceList dataSourceList)
 	{
-        super(VUE.getDialogParentAsFrame(),"ADD A LIBRARY",true);
+        super(VUE.getDialogParentAsFrame(),TITLE,true);
 		this.dataSourceList = dataSourceList;
 		
 		try {
@@ -60,7 +69,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
 			addLibraryList.setPreferredSize(new Dimension(160,180));
 			addLibraryList.addListSelectionListener(this);
-						
+			
 			populate();
 			listJsp = new JScrollPane(addLibraryList);
 			//if (this.settings.isMac()) 
@@ -103,7 +112,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy = 0;
-			addLibraryPanel.add(new JLabel("Locations Available:"),gbConstraints);
+			addLibraryPanel.add(new JLabel(AVAILABLE),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy = 1;
@@ -143,19 +152,23 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		{
 			if (dataSourceManager == null) {
 				dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-				registry = edu.tufts.vue.dsm.impl.VueRegistry.getInstance();
+				factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 			}
 			edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
-			checked = registry.checkRegistryForNew(dataSources);
+			checked = factory.checkRegistryForNew(dataSources);
 			listModel.removeAllElements();
+			
+			// place all providers on list, whether installed or not, whether duplicates or not
 			checkedVector.removeAllElements();
-			if (checked.length == 0) {
-				listModel.addElement("No new Libraries");
-			}
 			for (int i=0; i < checked.length; i++) {
 				listModel.addElement(checked[i].getDisplayName());
 				checkedVector.addElement(checked[i]);
 			}
+			
+			// add all data sources we include with VUE
+			listModel.addElement(MY_COMPUTER);
+			listModel.addElement(MY_SAVED_CONTENT);
+			listModel.addElement(FTP);
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -171,7 +184,16 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		if (index != -1) {
 			try {
 				// TODO: update icon
-				libraryDescription.setText(checked[index].getDescription());
+				String s = (String)(((JList)lse.getSource()).getSelectedValue());
+				if (s.equals(MY_COMPUTER)) {
+					libraryDescription.setText(MY_COMPUTER_DESCRIPTION);
+				} else if (s.equals(MY_SAVED_CONTENT)) {
+					libraryDescription.setText(MY_SAVED_CONTENT_DESCRIPTION);
+				} else if (s.equals(FTP)) {
+					libraryDescription.setText(FTP_DESCRIPTION);
+				} else {
+					libraryDescription.setText(checked[index].getDescription());
+				}
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
@@ -185,20 +207,32 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		if (ae.getActionCommand().equals("Add")) {
 			try {
 				int index = addLibraryList.getSelectedIndex();
-				
-				org.osid.registry.Provider provider = (org.osid.registry.Provider)this.checkedVector.elementAt(index);
-				edu.tufts.vue.dsm.DataSource ds = new edu.tufts.vue.dsm.impl.VueDataSource(provider.getProviderId());
-				dataSourceManager.add(ds);
-				ds.setIncludedInSearch(true);
-				dataSourceList.getContents().addElement(ds);
-				
-				listModel.removeElementAt(index);
-				checkedVector.removeElementAt(index);
-				
-				if (listModel.size() == 0) {
-					setVisible(false);
-				} else {
-					addLibraryList.setSelectedIndex(0);
+				String s = (String)addLibraryList.getSelectedValue();
+				if (s.equals(MY_COMPUTER)) {
+					dataSourceList.getContents().addElement(new LocalFileDataSource("My Computer",""));
+				} else if (s.equals(MY_SAVED_CONTENT)) {
+					dataSourceList.getContents().addElement(new FavoritesDataSource("My Saved Content"));
+				} else if (s.equals(FTP)) {
+					dataSourceList.getContents().addElement(new RemoteFileDataSource());
+				} else {					
+					org.osid.provider.Provider provider = (org.osid.provider.Provider)this.checkedVector.elementAt(index);
+					try {
+						if (!provider.isInstalled()) {
+							factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
+							factory.installProvider(provider.getId());
+						}
+					} catch (Throwable t) {
+						javax.swing.JOptionPane.showMessageDialog(null,
+																  t.getMessage(),
+																  "OSID Installation Error",
+																  javax.swing.JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+					edu.tufts.vue.dsm.DataSource ds = new edu.tufts.vue.dsm.impl.VueDataSource(provider.getId(),true);
+					dataSourceManager.add(ds);
+					ds.setIncludedInSearch(true);
+					dataSourceList.getContents().addElement(ds);
+					// add widget
 					DataSourceViewer.refreshDataSourcePanel(ds);
 				}
 			} catch (Throwable t) {

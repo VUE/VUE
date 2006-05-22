@@ -16,17 +16,7 @@
  * -----------------------------------------------------------------------------
  */
 
-/*
- * DataSourceViewer.java
- *
- * Created on October 15, 2003, 1:03 PM
- */
-
 package tufts.vue;
-/**
- * @version $Revision: 1.132 $ / $Date: 2006-05-10 21:53:33 $ / $Author: anoop $ *
- * @author  akumar03
- */
 
 import tufts.vue.gui.VueButton;
 import tufts.vue.ui.ResourceList;
@@ -43,7 +33,6 @@ import java.io.*;
 import java.util.*;
 import java.net.URL;
 
-
 // castor classes
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.Unmarshaller;
@@ -59,7 +48,6 @@ import tufts.vue.gui.*;
 public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.vue.fsm.event.SearchListener {
     private static DRBrowser DRB;
     private static Object activeDataSource;
-    //private static JPanel resourcesPanel,dataSourcePanel;
     String breakTag = "";
     
     public final static int ADD_MODE = 0;
@@ -316,28 +304,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         };
         addLibraryAction = new AbstractAction("Add Resources") {
             public void actionPerformed(ActionEvent e) {
-                try {
-                    if (registry == null) {
-                        registry = edu.tufts.vue.dsm.impl.VueRegistry.getInstance();
-                    }
-                    edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
-                    checked = registry.checkRegistryForNew(dataSources);
-                    if (checked.length == 0) {
-                        javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
-                                "There are no new libraries available at this time",
-                                "ADD A LIBRARY",
-                                javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                        DataSourceViewer.this.popup.setVisible(false);
-                    } else {
-                        if (addLibraryDialog == null) {
-                            addLibraryDialog = new AddLibraryDialog(dataSourceList);
-                        } else {
-                            addLibraryDialog.setVisible(true);
-                        }
-                    }
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                }
+				// there are always resources that can be added, e.g. a local file system
+				if (addLibraryDialog == null) {
+					addLibraryDialog = new AddLibraryDialog(dataSourceList);
+				} else {
+					addLibraryDialog.setVisible(true);
+				}
             }
         };
         
@@ -349,7 +321,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                     if (o instanceof edu.tufts.vue.dsm.DataSource) {
                         edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
                         displayEditOrInfo(ds);
-                    }
+                    } else {
+                        displayEditOrInfo((DataSource)o);
+					}
                 }
             }
         };
@@ -387,10 +361,15 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
                 removeLibraryAction.setEnabled(true);
                 editLibraryAction.setEnabled(true);
+            } else if (o instanceof RemoteFileDataSource) {
+				// FTP
+                removeLibraryAction.setEnabled(true);
+                editLibraryAction.setEnabled(true);
             } else {
+				// My Computer and My Saved Content
                 removeLibraryAction.setEnabled(false);
-                editLibraryAction.setEnabled(false);
-            }
+                editLibraryAction.setEnabled(true);
+			}
         } else {
             removeLibraryAction.setEnabled(false);
             editLibraryAction.setEnabled(false);
@@ -435,6 +414,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             dataSourceList.getContents().addElement(ds2);
             // default selection
             dataSourceList.setSelectedValue(ds2,true);
+			
             //dataSourceList.getContents().addElement(breakTag);
             //DataSource ds4 = new LocalFileDataSource("My Maps","");
             //dataSourceList.getContents().addElement(ds4);
@@ -686,13 +666,18 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         editInfoDockWindow.setVisible(true);
     }
     
+    private void displayEditOrInfo(DataSource ds) {
+        refreshEditInfo(ds);
+        editInfoDockWindow.setVisible(true);
+    }
+    
     private void refreshEditInfo(edu.tufts.vue.dsm.DataSource ds) {
         String dockTitle = "Library Information for " + ds.getRepositoryDisplayName();
         final WidgetStack editInfoStack = new WidgetStack();
         
         if (editInfoDockWindow == null) {
             if (ds.hasConfiguration()) {
-                editInfoStack.addPane("Configuration",new javax.swing.JScrollPane(new EditLibraryPanel(ds)));
+                editInfoStack.addPane("Configuration",new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
             } else {
                 JPanel jc = new JPanel();
                 jc.add(new JLabel("None"));
@@ -717,7 +702,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             editInfoDockWindow.setTitle(dockTitle);
         } else if (editInfoDockWindow.isVisible()) {
             if (ds.hasConfiguration()) {
-                editInfoStack.addPane("Configuration", new javax.swing.JScrollPane(new EditLibraryPanel(ds)));
+                editInfoStack.addPane("Configuration", new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
             } else {
                 JPanel jc = new JPanel();
                 jc.add(new JLabel("None"));
@@ -738,6 +723,26 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         }
     }
     
+    private void refreshEditInfo(DataSource ds) {
+        String dockTitle = "Library Information for " + ds.getDisplayName();
+        final WidgetStack editInfoStack = new WidgetStack();
+        
+        if (editInfoDockWindow == null) {
+			System.out.println("entering configuration");
+			editInfoStack.addPane("Configuration",new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
+            editInfoDockWindow = GUI.createDockWindow(dockTitle, editInfoStack);
+            editInfoDockWindow.setWidth(300);
+            editInfoDockWindow.setHeight(300);
+            editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
+										   DRB.dockWindow.getY());
+            editInfoDockWindow.setTitle(dockTitle);
+        } else if (editInfoDockWindow.isVisible()) {
+			editInfoStack.addPane("Configuration", new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
+            editInfoDockWindow.setTitle(dockTitle);
+            editInfoDockWindow.setContent(editInfoStack);
+        }
+    }
+
     /*
      * static method that returns all the datasource where Maps can be published.
      * Only FEDORA @ Tufts is available at present

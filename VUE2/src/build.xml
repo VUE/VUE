@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.99 $ / $Date: 2006-05-12 01:38:36 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.99 2006-05-12 01:38:36 sfraize Exp $ -->
+<!-- $Revision: 1.100 $ / $Date: 2006-05-22 17:31:09 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.100 2006-05-22 17:31:09 jeff Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -169,12 +169,17 @@
                    fedora-client.jar
                    gnu-getopt-1.0.9.jar
                    googleapi.jar
+				   HiveAuthentication-1.0.jar
+				   HiveRepositoryPublish-1.0.jar
+				   HiveSupport-1.0.jar
                    icu4j.jar
                    id.jar
                    jakarta-regexp-1.2.jar
                    jdom.jar
                    jena.jar
+				   jhapi.jar
                    jakarta-oro-2.0.8.jar
+				   javatar.jar
                    jhbasic_unsigned.jar
                    jlfgr-1_0.jar
                    jnet.jar
@@ -184,11 +189,14 @@
                    log4j-1.2.12.jar
                    OsidLoggingPlain-1.0.jar
                    MITAuthenticationTypes.jar
+				   MIT-OTS.jar
 				   MITRepositoryTypes.jar
                    MITSearchTypes.jar
                    MRJAdapter.jar
                    okiSID_rc6_1.jar
                    okiSIDimpl.jar
+				   OsidProvider.jar
+				   OsidRegistry.jar
                    saxon6.5.jar
                    servlet.jar
                    smete.jar
@@ -277,6 +285,7 @@
          libraries at runtime.  -->
     
     <pathelement path="."/>                
+    <pathelement path="../"/>                
     <pathelement location="${junit.jar}"/>
     <pathelement path="${lib.home}/VUE-MacOSX.jar"/>
     <pathelement path="${lib.home}/castor-0.9.7-xml.jar"/>
@@ -305,6 +314,12 @@
     <pathelement path="${lib.home}/okiSIDImpl.jar" />	
     <pathelement path="${lib.home}/MITSearchTypes.jar" />
     <pathelement path="${lib.home}/MITRepositoryTypes.jar" />
+    <pathelement path="${lib.home}/OsidProvider.jar" />
+    <pathelement path="${lib.home}/OsidRegistry.jar" />
+    <pathelement path="${lib.home}/MIT-OTS.jar" />
+    <pathelement path="${lib.home}/HiveAuthentication-1.0.jar" />
+    <pathelement path="${lib.home}/HiveRepositoryPublish-1.0.jar" />
+    <pathelement path="${lib.home}/HiveSupport-1.0.jar" />
 
     <pathelement path="${lib.home}/jaxb-api.jar" />
     <pathelement path="${lib.home}/jaxb-xjc.jar" />
@@ -314,6 +329,11 @@
     <pathelement path="${lib.home}/relaxngDatatype.jar" />
     <pathelement path="${lib.home}/SessionManager.jar" />
     <pathelement path="${lib.home}/imq.jar" />
+    <pathelement path="${lib.home}/jdom.jar" />
+	<pathelement path="${lib.home}/jhapi.jar" />
+    <pathelement path="${lib.home}/jnet.jar" />
+    <pathelement path="${lib.home}/jsse.jar" />
+    <pathelement path="${lib.home}/javatar.jar" />
     <pathelement path="${lib.home}/jms.jar" />
     <pathelement path="${lib.home}/jena.jar" />
     <pathelement path="${lib.home}/namespace.jar" />

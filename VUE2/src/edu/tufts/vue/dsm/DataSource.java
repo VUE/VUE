@@ -31,17 +31,9 @@ public interface DataSource
 	
 	public org.osid.shared.Id getProviderId();
 	
-	public String getOsidService();
+	public String getOsidName();
 	
-	public void setOsidService(String osidService);
-	
-	public int getMajorOsidVersion();
-	
-	public void setMajorOsidVersion(int majorOsidVersion);
-	
-	public int getMinorOsidVersion();
-	
-	public void setMinorOsidVersion(int minorOsidVersion);
+	public String getOsidVersion();
 	
 	public String getOsidLoadKey();
 	
@@ -49,112 +41,43 @@ public interface DataSource
 	
 	public String getProviderDisplayName();
 	
-	public void setProviderDisplayName(String providerDisplayName);
-	
 	public String getProviderDescription();
-	
-	public void setProviderDescription(String providerDescription);
 	
 	public String getCreator();
 	
-	public void setCreator(String creator);
-
 	public String getPublisher();
-	
-	public void setPublisher(String publisher);
-	
-	public String getPublisherURL();
-	
-	public void setPublisherURL(String publisherURL);
-
-	public int getProviderMajorVersion();
-	
-	public void setProviderMajorVersion(int providerMajorVersion);
-	
-	public int getProviderMinorVersion();
-	
-	public void setProviderMinorVersion(int providerMinorVersion);
 	
 	public java.util.Date getReleaseDate();
 	
-	public void setReleaseDate(java.util.Date releaseDate);
+	public String getLicense();
 	
-	public String getLicenseAgreement();
-	
-	public void setLicenseAgreement(String licenseAgreement);
-	
-	public String[] getRights();
-	
-	public void setRights(String[] rights);
-	
-	public org.osid.shared.Type[] getRightTypes();
-	
-	public void setRightTypes(org.osid.shared.Type[] rightTypes);
+	public boolean requestsLicenseAcknowledgement();
 	
 	public org.osid.shared.Id getRepositoryId();
 	
-	public void setRepositoryId(org.osid.shared.Id repositoryId);
-	
 	public org.osid.shared.Type getRepositoryType();
-	
-	public void setRepositoryType(org.osid.shared.Type repositoryType);
 	
 	public String getRepositoryDisplayName();
 	
-	public void setRepositoryDisplayName(String repositoryDisplayName);
-	
 	public String getRepositoryDescription();
 	
-	public void setRepositoryDescription(String repositoryDescription);
-	
-	public String getRepositoryImage();
-
-	public java.awt.Image getImageForRepository();
-		
-	public void setRepositoryImage(String repositoryImage);
-	
-	public java.util.Date getRegistrationDate();
-	
-	public void setRegistrationDate(java.util.Date registrationDate);
-	
 	public boolean isOnline();
-	
-	public boolean isNew();
-	
-	public void setNew(boolean isNew);
-	
-	public boolean isUpdated();
-	
-	public void setUpdated(boolean isUpdated);
-	
-	public boolean isHidden();
-	
-	public void setHidden(boolean isHidden);
-	
+
 	public boolean isIncludedInSearch();
 	
 	public void setIncludedInSearch(boolean isIncluded);
 	
-	// pass through from the underlying Repository
 	public boolean supportsUpdate();
 	
-	// pass through from the underlying Repository
 	public org.osid.shared.TypeIterator getAssetTypes();
 	
-	// pass through from the underlying Repository
 	public org.osid.shared.TypeIterator getSearchTypes();
 	
 	public boolean hasConfiguration();
 	
-	public String[] getConfigurationKeys();
+	public java.awt.Image getIcon16x16();
 	
-	public void setConfigurationKeys(String[] keys);
+	public String getConfigurationUIHints();
 	
-	public String[] getConfigurationValues();
-	
-	public void setConfigurationValues(String[] values);
-	
-	public java.util.Map[] getConfigurationMaps();
-	
-	public void setConfigurationMaps(java.util.Map[] maps);
+	public void setConfiguration(java.util.Properties properties);	
 }

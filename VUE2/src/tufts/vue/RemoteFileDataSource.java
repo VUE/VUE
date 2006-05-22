@@ -54,17 +54,18 @@ public class RemoteFileDataSource extends VueDataSource{
     private String password;
     
     public RemoteFileDataSource(){
-        
-        
+		try {
+			this.setDisplayName("Unconfigured FTP");
+		} catch (Exception ex) {
+			
+		}
     }
+ 
     public RemoteFileDataSource(String DisplayName, String address, String username, String password) throws DataSourceException {
         this.setDisplayName(DisplayName);
         this.setUserName(username);
         this.setPassword(password);
         this.setAddress(address);
-        
-        
-        
     }
     
     

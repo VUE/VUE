@@ -36,6 +36,21 @@ public interface OsidFactory
 	
 	public org.osid.id.IdManager getIdManagerInstance();
 	
+	public org.osid.provider.Provider getProvider(org.osid.shared.Id providerId)
+		throws org.osid.provider.ProviderException;
+
+	public String getResourcePath(String resourceName)
+		throws org.osid.provider.ProviderException;
+
+	public org.osid.provider.Provider[] checkRegistryForNew(DataSource[] dataSources)
+		throws org.osid.provider.ProviderException;
+
+	public org.osid.provider.Provider[] checkRegistryForUpdates(DataSource[] dataSources)
+		throws org.osid.provider.ProviderException;
+
+	public void installProvider(org.osid.shared.Id providerId)
+        throws org.osid.provider.ProviderException;
+	
 	public org.osid.repository.RepositoryManager getRepositoryManagerInstance(String osidLoadKey);
 	
 	public org.osid.repository.RepositoryManager getRepositoryManagerInstance(String osidLoadKey,

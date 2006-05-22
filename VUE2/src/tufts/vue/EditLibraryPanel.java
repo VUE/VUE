@@ -23,55 +23,79 @@ import java.awt.event.*;
 import javax.swing.event.*;
 import java.awt.*;
 
-public class EditLibraryPanel extends JPanel implements ActionListener, FocusListener
+public class EditLibraryPanel extends JPanel implements ActionListener
 {
 	JButton updateButton = new JButton("Update");
 	JTextField fields[] = null;
 	edu.tufts.vue.dsm.DataSource dataSource = null;
+	DataSource oldDataSource = null;
 	String originalValue = null;
+	edu.tufts.vue.ui.ConfigurationUI cui = null;
+	DataSourceViewer dsv = null;
 	
-	public EditLibraryPanel(edu.tufts.vue.dsm.DataSource dataSource)
+	public EditLibraryPanel(DataSourceViewer dsv,
+							edu.tufts.vue.dsm.DataSource dataSource)
 	{
 		try {
+			this.dsv = dsv;
 			this.dataSource = dataSource;
 			
-			// Get keys and values.  These will be the same length.  Keys will not be null or 0-length.
-			// Values may be null (no-default) or non-null (default value).
-			String keys[] = dataSource.getConfigurationKeys();
-			String values[] = dataSource.getConfigurationValues();
-			java.util.Map maps[] = dataSource.getConfigurationMaps();
+			String xml = dataSource.getConfigurationUIHints();
+			cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
+
+			// layout container
+			GridBagLayout gridbag = new GridBagLayout();
+			GridBagConstraints gbConstraints = new GridBagConstraints();
+			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+			gbConstraints.insets = new java.awt.Insets(2,2,2,2);
+			gbConstraints.gridx = 0;
+			gbConstraints.gridy = 0;
+			setLayout(gridbag);
 			
-			this.fields = new JTextField[keys.length];
-			for (int i=0; i < keys.length; i++) {
-				// special case for password fields
-				if (maps[i].containsKey("password")) {
-					if ( ((Boolean)maps[i].get("password")).booleanValue() ) {
-						this.fields[i] = new JPasswordField();
-					} else {
-						this.fields[i] = new JTextField();
-					}
-				} else {
-					this.fields[i] = new JTextField();
-				}
-				
-				// special case for columns property
-				if (maps[i].containsKey("columns")) {
-					this.fields[i].setColumns( ((Integer)maps[i].get("columns")).intValue() );
-				} else {
-					this.fields[i].setColumns(20);
-				}
-				
-				// rest of the initialization
-				String value = values[i];
-				if (value != null) {
-					this.fields[i].setText(value);
-				}
-				
-				// setup listeners to enable the update button
-				this.updateButton.setEnabled(false);
-				this.fields[i].addFocusListener(this);
-				this.fields[i].addActionListener(this);
+			add(cui,gbConstraints);
+			updateButton.addActionListener(this);
+			gbConstraints.gridy = 1;
+			add(updateButton,gbConstraints);
+		} catch (Throwable t) {
+			
+		}
+	}
+
+	public EditLibraryPanel(DataSourceViewer dsv,
+							DataSource dataSource)
+	{
+		try {
+			this.dsv = dsv;
+			this.oldDataSource = dataSource;
+			
+			// use canned configurations -- substitue current values for defaults
+			String xml = null;
+			if (dataSource instanceof LocalFileDataSource) {
+				xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Starting path</title><description>The path to start from</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>512</maxChars><ui>0</ui></field></configuration>";
+				LocalFileDataSource ds = (LocalFileDataSource)dataSource;
+				String name = ds.getDisplayName();
+				String address = ds.getAddress();
+				xml = xml.replaceFirst("DEFAULT_NAME",name);
+				xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
+			} else if (dataSource instanceof FavoritesDataSource) {
+				xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field></configuration>";
+				FavoritesDataSource ds = (FavoritesDataSource)dataSource;
+				String name = ds.getDisplayName();
+				xml = xml.replaceFirst("DEFAULT_NAME",name);
+			} else if (dataSource instanceof RemoteFileDataSource) {
+				xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Dane for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>FTP Address</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>256</maxChars><ui>0</ui></field><field><key>username</key><title>Username</title><description>FTP site username</description><default>DEFAULT_USERNAME</default><mandatory>true</mandatory><maxChars>64</maxChars><ui>0</ui></field><field><key>password</key><title>Password</title><description>FTP site password for username</description><default>DEFAULT_PASSWORD</default><mandatory>true</mandatory><maxChars></maxChars><ui>1</ui></field></configuration>";
+				RemoteFileDataSource ds = (RemoteFileDataSource)dataSource;
+				String name = ds.getDisplayName();
+				String address = ds.getAddress();
+				String username = ds.getUserName();
+				String password = ds.getPassword();
+				xml = xml.replaceFirst("DEFAULT_NAME",name);
+				xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
+				xml = xml.replaceFirst("DEFAULT_USERNAME",username);
+				xml = xml.replaceFirst("DEFAULT_PASSWORD",password);
 			}
+			
+			cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
 			
 			// layout container
 			GridBagLayout gridbag = new GridBagLayout();
@@ -82,69 +106,44 @@ public class EditLibraryPanel extends JPanel implements ActionListener, FocusLis
 			gbConstraints.gridy = 0;
 			setLayout(gridbag);
 			
-			// populate container
-			for (int i=0; i < keys.length; i++) {
-				add(new JLabel(keys[i] + ": "),gbConstraints);
-				gbConstraints.gridx++;
-				add(this.fields[i],gbConstraints);
-				gbConstraints.gridy++;
-				gbConstraints.gridx = 0;
-			}
-			
+			add(cui,gbConstraints);
 			updateButton.addActionListener(this);
-			gbConstraints.gridx = 1;
+			gbConstraints.gridy = 1;
 			add(updateButton,gbConstraints);
 		} catch (Throwable t) {
 			
 		}
 	}
 	
-	public void focusGained(FocusEvent fe)
-	{
-		JTextField tf = (JTextField)fe.getSource();
-		this.originalValue = tf.getText();
-	}
-	
-	public void focusLost(FocusEvent fe)
-	{
-		checkForNewData( (JTextField)fe.getSource() );
-	}
-
-	private void checkForNewData(JTextField tf)
-	{
-		String currentValue = tf.getText();
-		if (!currentValue.equals(this.originalValue)) {
-			updateButton.setEnabled(true);
-		}
-	}
-	
 	public void actionPerformed(ActionEvent ae)
 	{
-		if (ae.getSource() instanceof JButton) {
-			System.out.println("Setting values");
-			this.dataSource.setConfigurationValues(getValues());
-			updateButton.setEnabled(false);
-		} else {
-			checkForNewData( (JTextField)ae.getSource() );
-		}
-	}
-	
-	// get whatever is in the value fields, coerce a blank to a null
-	public String[] getValues()
-	{
-		String values[] = new String[0];
-		
-		if (this.fields != null) {
-			values = new String[this.fields.length];
-			for (int i=0; i < this.fields.length; i++) {
-				String value = this.fields[i].getText().trim();
-				if (value.length() == 0) {
-					values[i] = null;
-				} else {
-					values[i] = value.trim();
+		try {
+			if (ae.getSource() instanceof JButton) {
+				if (this.dataSource != null) {
+					this.dataSource.setConfiguration(cui.getProperties());
+				} else if (this.oldDataSource instanceof LocalFileDataSource) {
+					java.util.Properties p = cui.getProperties();
+					LocalFileDataSource ds = (LocalFileDataSource)this.oldDataSource;
+					ds.setDisplayName(p.getProperty("name"));
+					ds.setAddress(p.getProperty("address"));
+				} else if (this.oldDataSource instanceof FavoritesDataSource) {
+					java.util.Properties p = cui.getProperties();
+					FavoritesDataSource ds = (FavoritesDataSource)this.oldDataSource;
+					ds.setDisplayName(p.getProperty("name"));
+				} else if (this.oldDataSource instanceof RemoteFileDataSource) {
+					java.util.Properties p = cui.getProperties();
+					RemoteFileDataSource ds = (RemoteFileDataSource)this.oldDataSource;
+					ds.setDisplayName(p.getProperty("name"));
+					ds.setAddress(p.getProperty("address"));
+					ds.setUserName(p.getProperty("username"));
+					ds.setPassword(p.getProperty("password"));
 				}
 			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+			JOptionPane.showMessageDialog(VUE.getDialogParent(),"Configuration error: "+ t.getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
 		}
-		return values;
+		this.dsv.revalidate(); // this is not working, must need something else
+		this.setVisible(false);
 	}
 }
