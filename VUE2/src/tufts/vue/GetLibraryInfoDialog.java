@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.3 $ / $Date: 2006-02-18 12:59:42 $ / $Author: jeff $
+ * @version $Revision: 1.4 $ / $Date: 2006-05-22 18:01:04 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -144,36 +144,10 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Publisher URL"),gbConstraints);
-			
-			gbConstraints.gridx = 1;
-			getLibraryInfoPanel.add(new javax.swing.JLabel(dataSource.getPublisherURL()),gbConstraints);
-			
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Version"),gbConstraints);
-			
-			gbConstraints.gridx = 1;
-			getLibraryInfoPanel.add(new javax.swing.JLabel(dataSource.getProviderMajorVersion() + "." + dataSource.getProviderMinorVersion()),gbConstraints);
-			
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy++;
 			getLibraryInfoPanel.add(new javax.swing.JLabel("Release Date"),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			getLibraryInfoPanel.add(new javax.swing.JLabel(edu.tufts.vue.util.Utilities.dateToString(dataSource.getReleaseDate())),gbConstraints);
-			
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Rights"),gbConstraints);
-			
-			StringBuffer sb = new StringBuffer();
-			String rights[] = dataSource.getRights();
-			for (int j=0; j < rights.length; j++) {
-				sb.append(rights[j]);
-			}
-			gbConstraints.gridx = 1;
-			getLibraryInfoPanel.add(new javax.swing.JLabel(sb.toString()),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
@@ -187,11 +161,7 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 			getLibraryInfoPanel.add(new javax.swing.JLabel("Osid Service"),gbConstraints);
 			
 			gbConstraints.gridx = 1;
-			getLibraryInfoPanel.add(new javax.swing.JLabel(dataSource.getOsidService() +
-											 " " +
-											 dataSource.getMajorOsidVersion() +
-											 "." +
-											 dataSource.getMinorOsidVersion()),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(dataSource.getOsidVersion()),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
@@ -223,13 +193,6 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 				getLibraryInfoPanel.add(new javax.swing.JLabel(description.substring((rows-1) * numCharacters)),gbConstraints);
 				gbConstraints.gridy++;
 			}
-			
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Registration Date"),gbConstraints);
-			
-			gbConstraints.gridx = 1;
-			getLibraryInfoPanel.add(new javax.swing.JLabel(edu.tufts.vue.util.Utilities.dateToString(dataSource.getRegistrationDate())),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
@@ -266,13 +229,14 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 				getLibraryInfoPanel.add(new javax.swing.JLabel(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType())),gbConstraints);
 				gbConstraints.gridy++;
 			}
-			
+/*			
 			java.awt.Image image = null;
 			if ( (image = dataSource.getImageForRepository()) != null ) {		
 				gbConstraints.gridx = 0;
 				gbConstraints.gridy++;
 				getLibraryInfoPanel.add(new javax.swing.JLabel(new javax.swing.ImageIcon(image)),gbConstraints);
 			}
+*/
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
