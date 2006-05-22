@@ -117,6 +117,10 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
             displayName = ((DataSource)value).getDisplayName();            
             //displayName = "My Saved Content";
             mIconLabel.setIcon(savedResourcesIcon);
+        } else  if (value instanceof RemoteFileDataSource) {
+            mRow.setBorder(DividerBorder);
+            displayName = ((DataSource)value).getDisplayName();            
+            mIconLabel.setIcon(remoteIcon);
         } else
             mRow.setBorder(DividerBorder);
             

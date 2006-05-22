@@ -728,7 +728,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         final WidgetStack editInfoStack = new WidgetStack();
         
         if (editInfoDockWindow == null) {
-			System.out.println("entering configuration");
 			editInfoStack.addPane("Configuration",new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
             editInfoDockWindow = GUI.createDockWindow(dockTitle, editInfoStack);
             editInfoDockWindow.setWidth(300);

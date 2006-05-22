@@ -86,9 +86,13 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 				xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Dane for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>FTP Address</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>256</maxChars><ui>0</ui></field><field><key>username</key><title>Username</title><description>FTP site username</description><default>DEFAULT_USERNAME</default><mandatory>true</mandatory><maxChars>64</maxChars><ui>0</ui></field><field><key>password</key><title>Password</title><description>FTP site password for username</description><default>DEFAULT_PASSWORD</default><mandatory>true</mandatory><maxChars></maxChars><ui>1</ui></field></configuration>";
 				RemoteFileDataSource ds = (RemoteFileDataSource)dataSource;
 				String name = ds.getDisplayName();
+				if (name == null) name = "";
 				String address = ds.getAddress();
+				if (address == null) address = "";
 				String username = ds.getUserName();
+				if (username == null) username = "";
 				String password = ds.getPassword();
+				if (password == null) password = "";
 				xml = xml.replaceFirst("DEFAULT_NAME",name);
 				xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
 				xml = xml.replaceFirst("DEFAULT_USERNAME",username);
@@ -111,7 +115,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 			gbConstraints.gridy = 1;
 			add(updateButton,gbConstraints);
 		} catch (Throwable t) {
-			
+			t.printStackTrace();
 		}
 	}
 	
@@ -121,29 +125,31 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 			if (ae.getSource() instanceof JButton) {
 				if (this.dataSource != null) {
 					this.dataSource.setConfiguration(cui.getProperties());
+					this.dsv.setActiveDataSource(this.dataSource); // refresh
 				} else if (this.oldDataSource instanceof LocalFileDataSource) {
 					java.util.Properties p = cui.getProperties();
 					LocalFileDataSource ds = (LocalFileDataSource)this.oldDataSource;
 					ds.setDisplayName(p.getProperty("name"));
 					ds.setAddress(p.getProperty("address"));
+					this.dsv.setActiveDataSource(this.oldDataSource); // refresh
 				} else if (this.oldDataSource instanceof FavoritesDataSource) {
 					java.util.Properties p = cui.getProperties();
 					FavoritesDataSource ds = (FavoritesDataSource)this.oldDataSource;
 					ds.setDisplayName(p.getProperty("name"));
+					this.dsv.setActiveDataSource(this.oldDataSource); // refresh
 				} else if (this.oldDataSource instanceof RemoteFileDataSource) {
 					java.util.Properties p = cui.getProperties();
 					RemoteFileDataSource ds = (RemoteFileDataSource)this.oldDataSource;
 					ds.setDisplayName(p.getProperty("name"));
-					ds.setAddress(p.getProperty("address"));
 					ds.setUserName(p.getProperty("username"));
 					ds.setPassword(p.getProperty("password"));
+					ds.setAddress(p.getProperty("address")); // this must be set last
+					this.dsv.setActiveDataSource(this.oldDataSource); // refresh
 				}
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();
 			JOptionPane.showMessageDialog(VUE.getDialogParent(),"Configuration error: "+ t.getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
 		}
-		this.dsv.revalidate(); // this is not working, must need something else
-		this.setVisible(false);
 	}
 }

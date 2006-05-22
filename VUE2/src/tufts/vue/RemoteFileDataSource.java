@@ -113,7 +113,7 @@ public class RemoteFileDataSource extends VueDataSource{
                 
             }
         }catch (Exception ex)  {
-            throw new DataSourceException("GoogleDataSource.setResourceViewer:"+ex.getMessage());
+            throw new DataSourceException("RemoteFileDataSource.setResourceViewer:"+ex.getMessage());
         }
         VueDragTree fileTree = new VueDragTree(cabVector.iterator(), this.getDisplayName());
         JScrollPane rSP = new JScrollPane(fileTree);
@@ -123,9 +123,6 @@ public class RemoteFileDataSource extends VueDataSource{
         localPanel.add(rSP,BorderLayout.CENTER);
         this.resourceViewer = localPanel;
 //        DataSourceViewer.refreshDataSourcePanel(this);
-        
-        
-        
     }
     
     public JComponent getResourceViewer(){
