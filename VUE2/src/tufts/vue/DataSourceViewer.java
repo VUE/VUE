@@ -251,12 +251,16 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         this.activeDataSource = ds;
         dataSourceList.setSelectedValue(ds,true);
         Widget.setExpanded(DRB.searchPane, false);
-        if (ds instanceof LocalFileDataSource || ds instanceof FavoritesDataSource) {
-            Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
-            Widget.setExpanded(DRB.browsePane, true);
-            DRB.browsePane.removeAll();
-            DRB.browsePane.add(ds.getResourceViewer());
-            DRB.browsePane.revalidate();
+        if (ds instanceof LocalFileDataSource || ds instanceof FavoritesDataSource || ds instanceof RemoteFileDataSource) {
+			try {
+				Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
+				Widget.setExpanded(DRB.browsePane, true);
+				DRB.browsePane.removeAll();
+				DRB.browsePane.add(ds.getResourceViewer());
+				DRB.browsePane.revalidate();
+			} catch (Exception ex) {
+				// probably Remote File Data Source is no initialized
+			}
         } else
             Widget.setExpanded(DRB.browsePane, false);
         
