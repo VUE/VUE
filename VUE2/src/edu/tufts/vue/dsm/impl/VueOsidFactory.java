@@ -139,6 +139,7 @@ implements edu.tufts.vue.dsm.OsidFactory
 	public String getResourcePath(String resourceName)
 		throws org.osid.provider.ProviderException
 	{
+		System.out.println("............................................Resource name " + resourceName);
 		return providerInvocationManager.getResourcePath(resourceName);
 	}
 	
