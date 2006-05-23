@@ -95,6 +95,7 @@ implements edu.tufts.vue.dsm.OsidFactory
 		String managerImplementation = null;
 		try {
 			managerImplementation = edu.tufts.vue.util.Utilities.getManagerStringFromLoadKey(osidLoadKey);
+			System.out.println("Manager implementation is " + managerImplementation);
 			manager = (org.osid.repository.RepositoryManager)providerInvocationManager.getManager("org.osid.repository.RepositoryManager",
 																								  managerImplementation,
 																								  osidContext,

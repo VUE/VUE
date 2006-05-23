@@ -52,7 +52,6 @@ implements org.osid.repository.RepositoryManager
     {
 		this.configuration = configuration;
 		
-		System.out.println("Assigning config1");
 		if (firstTime) {
 			try {
 				org.osid.logging.LoggingManager loggingManager = (org.osid.logging.LoggingManager)org.osid.OsidLoader.getManager("org.osid.logging.LoggingManager",
@@ -99,8 +98,6 @@ implements org.osid.repository.RepositoryManager
 		}
 		firstTime = false;
 
-		System.out.println("Assigning config2");
-		
 		// update the Google personal key, if it has been passed with the configuration
 		Object key = configuration.getProperty("Google Web API license key");
 		if ((key != null) && (key instanceof String)) {

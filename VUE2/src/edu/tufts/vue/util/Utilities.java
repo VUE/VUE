@@ -47,7 +47,6 @@ public class Utilities
 		try {
 			int index = loadKey.indexOf("@");
 			String managerString = loadKey.substring(0,index);
-			//String repositoryString = loadKey(index+1);
 			return managerString;
 		} catch (Throwable t) {
 			edu.tufts.vue.util.Logger.log(t,"Trying to parse key " + loadKey);

@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.7 $ / $Date: 2006-05-22 17:27:50 $ / $Author: jeff $
+ * @version $Revision: 1.8 $ / $Date: 2006-05-23 16:09:25 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -217,7 +217,9 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 				} else {					
 					org.osid.provider.Provider provider = (org.osid.provider.Provider)this.checkedVector.elementAt(index);
 					try {
+						System.out.println("Do we need to install " + provider.getDisplayName());
 						if (!provider.isInstalled()) {
+							System.out.println("Attempting to install " + provider.getDisplayName());
 							factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 							factory.installProvider(provider.getId());
 						}

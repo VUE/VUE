@@ -130,12 +130,19 @@ implements edu.tufts.vue.dsm.DataSource
 				while (objectIterator.hasNextObject()) {
 					// we could have an early exit but probably not worth it since the properties we want are likely to be last
 					String key = (String)objectIterator.nextObject();
-					if (key.equals("icon16x16")) {
-						String path = factory.getResourcePath((String)props.getProperty(key));
-						this.icon16x16 = new javax.swing.ImageIcon(path).getImage();
+					try {
+						if (key.equals("icon16x16")) {
+							String path = factory.getResourcePath((String)props.getProperty(key));
+							this.icon16x16 = new javax.swing.ImageIcon(path).getImage();
+						}
+					} catch (Throwable t) {
+						t.printStackTrace();
 					}
-					if (key.equals("configurationUIHints")) {
+					System.out.println("Getting properties.............." + key);
+					if (key.equals("configuration")) {
 						this.configurationUIHints = (String)props.getProperty(key);
+						this.isConfigured = this.configurationUIHints != null;
+						System.out.println("Configured? " + this.isConfigured + " " + this.configurationUIHints);
 					}
 					if (key.equals("loadKey")) {
 						this.osidLoadKey = (String)props.getProperty(key);
@@ -150,7 +157,9 @@ implements edu.tufts.vue.dsm.DataSource
 	private void setRelatedValues() {
 		// get Repository
 		try {
+			System.out.println("Load key is " + this.osidLoadKey);
 			this.repositoryManager = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey);
+			this.repositoryId = edu.tufts.vue.util.Utilities.getRepositoryIdFromLoadKey(this.osidLoadKey);
 			this.repository = (edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);	
 		} catch (Throwable t) {
 			// special case for when the Manager implementation doesn't offer this method
