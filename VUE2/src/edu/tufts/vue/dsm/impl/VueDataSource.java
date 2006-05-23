@@ -138,11 +138,14 @@ implements edu.tufts.vue.dsm.DataSource
 					} catch (Throwable t) {
 						t.printStackTrace();
 					}
-					System.out.println("Getting properties.............." + key);
+					//System.out.println("Getting properties.............." + key);
 					if (key.equals("configuration")) {
-						this.configurationUIHints = (String)props.getProperty(key);
+						String config = (String)props.getProperty(key);
+						config = replaceAll(config,"&lt;","<");
+						config = replaceAll(config,"&gt;",">");
+						this.configurationUIHints = config;
+						System.out.println("Fixed up " + config);
 						this.isConfigured = this.configurationUIHints != null;
-						System.out.println("Configured? " + this.isConfigured + " " + this.configurationUIHints);
 					}
 					if (key.equals("loadKey")) {
 						this.osidLoadKey = (String)props.getProperty(key);
@@ -154,10 +157,28 @@ implements edu.tufts.vue.dsm.DataSource
 		}		
 	}
 	
+	private String replaceAll(String original, String old, String replacement)
+	{
+		String result = original;
+		int length = old.length();
+		
+		int index = -1;
+		while ((index = result.indexOf(old)) != -1) {
+			String before = result.substring(0,index);
+			String after = "";
+			try {
+				after = result.substring(index + length);
+			} catch (Exception ex) {
+			}
+			result = before + replacement + after;
+		}
+		return result;
+	}
+	
 	private void setRelatedValues() {
 		// get Repository
 		try {
-			System.out.println("Load key is " + this.osidLoadKey);
+			//System.out.println("Load key is " + this.osidLoadKey);
 			this.repositoryManager = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey);
 			this.repositoryId = edu.tufts.vue.util.Utilities.getRepositoryIdFromLoadKey(this.osidLoadKey);
 			this.repository = (edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);	
