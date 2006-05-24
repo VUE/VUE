@@ -153,7 +153,7 @@ public class ConfigurationUI extends javax.swing.JPanel
 					return;
 				}
 				
-				Integer numChars = new Integer(0);
+				Integer numChars = new Integer(15);
 				if (maxChars != null) {
 					try {
 						numChars = (new Integer(maxChars));
