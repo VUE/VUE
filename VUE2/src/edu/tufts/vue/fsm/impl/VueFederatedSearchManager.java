@@ -375,14 +375,10 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 
 				edu.tufts.vue.fsm.QueryAdjuster adjuster = getQueryAdjusterForRepository(repository.getId());		
 				if (adjuster != null) {
-					System.out.println("search type b4 " + searchType.getKeyword());
 					queries[i] = adjuster.adjustQuery(repository,
 													  searchCriteria,
 													  searchType,
 													  searchProperties);
-					System.out.println("search type after " + edu.tufts.vue.util.Utilities.typeToString(queries[i].getSearchType()));
-					System.out.println("search criteria |" + queries[i].getSearchCriteria() + "|");
-					System.out.println("search properties " + queries[i].getSearchProperties());
 				} else {
 					queries[i] = new VueQuery(repository,
 											  searchCriteria,

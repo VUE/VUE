@@ -593,7 +593,14 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             
             if (resourceList.size() == 0) {
                 //resultsStack.addPane(name, new JLabel("  No results"), 0f);
-                resultPanes[i].add(new StatusLabel("No results for " + searchString, false));
+				
+				// there might have been an exception
+				String message = resultSetManager.getExceptionMessage(i);
+				if (message != null) {
+					resultPanes[i].add(new StatusLabel(message, false));
+				} else {
+					resultPanes[i].add(new StatusLabel("No results for " + searchString, false));
+				}
             } else {
                 resultPanes[i].add(new ResourceList(resourceList));
             }

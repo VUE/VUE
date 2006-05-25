@@ -99,12 +99,11 @@ implements org.osid.repository.RepositoryManager
 		firstTime = false;
 
 		// update the Google personal key, if it has been passed with the configuration
-		Object key = configuration.getProperty("Google Web API license key");
+		Object key = configuration.getProperty("licenseKey");
 		if ((key != null) && (key instanceof String)) {
 			((Repository)this.repository).setGoogleKey((String)key);
 			Utilities.log("Google key set to " + key);
-		}
-		
+		}		
 	}
 
     public org.osid.repository.Repository createRepository(String displayName

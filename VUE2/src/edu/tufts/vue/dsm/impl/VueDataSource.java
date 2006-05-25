@@ -367,9 +367,7 @@ implements edu.tufts.vue.dsm.DataSource
 	{
 		if (this.repositoryManager != null) {
 			try {
-				System.out.println("ready to assign " + properties);
 				this.repositoryManager.assignConfiguration(properties);
-				System.out.println("Assigned");
 			} catch (Throwable t) {
 				edu.tufts.vue.util.Logger.log(t);
 			}

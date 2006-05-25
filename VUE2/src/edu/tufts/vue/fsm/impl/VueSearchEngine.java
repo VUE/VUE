@@ -98,7 +98,7 @@ implements edu.tufts.vue.fsm.SearchEngine
 	{
         try {
 			completed++;
-			status[searchIndex] = SEARCH_COMPLETED;
+			status[searchIndex] = statusCode;
 			exceptionMessages[searchIndex] = exceptionMessage;
 			durations[searchIndex] = duration;
 			assetIterators[searchIndex] = assetIterator;

@@ -29,6 +29,7 @@ public interface SearchEngine
     public static final int SEARCH_PENDING = 0;
     public static final int SEARCH_RUNNING = 1;
     public static final int SEARCH_COMPLETED = 2;
+    public static final int SEARCH_EXCEPTION = 3;
 	
 	public void search(Query[] queries);
 	

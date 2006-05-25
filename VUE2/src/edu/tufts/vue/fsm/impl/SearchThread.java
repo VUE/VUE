@@ -72,7 +72,7 @@ implements Runnable
 			
 			try {
 				this.searchEngine.searchComplete(this.searchIndex,
-												 edu.tufts.vue.fsm.SearchEngine.SEARCH_COMPLETED,
+												 edu.tufts.vue.fsm.SearchEngine.SEARCH_EXCEPTION,
 												 t.getMessage(),
 												 endTime - this.startTime,
 												 new AssetIterator(new java.util.Vector()));

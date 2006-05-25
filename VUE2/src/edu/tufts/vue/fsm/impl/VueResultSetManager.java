@@ -57,6 +57,11 @@ implements edu.tufts.vue.fsm.ResultSetManager
 		return ai;
 	}
 
+	public String getExceptionMessage(int index)
+	{
+		return searchEngine.getExceptionMessage(index);
+	}
+	
 	public org.osid.repository.AssetIterator getAsset(int i)
 	{
 		return searchEngine.getAssetIterator(i);
