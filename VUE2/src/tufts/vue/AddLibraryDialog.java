@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.9 $ / $Date: 2006-05-25 15:08:55 $ / $Author: jeff $
+ * @version $Revision: 1.10 $ / $Date: 2006-05-25 16:02:22 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -154,15 +154,20 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 				dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
 				factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 			}
-			edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
-			checked = factory.checkRegistryForNew(dataSources);
-			listModel.removeAllElements();
 			
-			// place all providers on list, whether installed or not, whether duplicates or not
-			checkedVector.removeAllElements();
-			for (int i=0; i < checked.length; i++) {
-				listModel.addElement(checked[i].getDisplayName());
-				checkedVector.addElement(checked[i]);
+			listModel.removeAllElements();
+			org.osid.provider.ProviderIterator providerIterator = factory.getProviders();
+			while (providerIterator.hasNextProvider()) {
+				org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
+				// place all providers on list, whether installed or not, whether duplicates or not
+				listModel.addElement(nextProvider.getDisplayName());
+				checkedVector.addElement(nextProvider);
+			}
+			// copy to an array
+			int size = listModel.size();
+			checked = new org.osid.provider.Provider[size];
+			for (int i=0; i < size; i++) {
+				checked[i] = (org.osid.provider.Provider)checkedVector.elementAt(i);
 			}
 			
 			// add all data sources we include with VUE

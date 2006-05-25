@@ -42,6 +42,9 @@ public interface OsidFactory
 	public String getResourcePath(String resourceName)
 		throws org.osid.provider.ProviderException;
 
+	public org.osid.provider.ProviderIterator getProviders()
+		throws org.osid.provider.ProviderException;
+
 	public org.osid.provider.Provider[] checkRegistryForNew(DataSource[] dataSources)
 		throws org.osid.provider.ProviderException;
 

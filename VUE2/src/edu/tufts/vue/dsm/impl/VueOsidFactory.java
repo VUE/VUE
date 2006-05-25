@@ -144,6 +144,12 @@ implements edu.tufts.vue.dsm.OsidFactory
 		return providerInvocationManager.getResourcePath(resourceName);
 	}
 	
+	public ProviderIterator getProviders()
+		throws org.osid.provider.ProviderException
+	{
+		return providerLookupManager.getProviders();
+	}
+	
 	public org.osid.provider.Provider[] checkRegistryForNew(edu.tufts.vue.dsm.DataSource[] dataSources)
 		throws org.osid.provider.ProviderException
 	{

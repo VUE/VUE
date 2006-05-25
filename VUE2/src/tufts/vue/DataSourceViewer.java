@@ -140,6 +140,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                     if (o instanceof tufts.vue.DataSource) {
                         DataSource ds = (DataSource)o;
                         DataSourceViewer.this.setActiveDataSource(ds);
+						refreshEditInfo(ds);
                     } else if (o instanceof edu.tufts.vue.dsm.DataSource) {
                         edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
                         DataSourceViewer.this.setActiveDataSource(ds);
@@ -150,6 +151,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                         if (o instanceof tufts.vue.DataSource) {
                             DataSource ds = (DataSource)o;
                             DataSourceViewer.this.setActiveDataSource(ds);
+                            refreshEditInfo(ds);
                         } else if (o instanceof edu.tufts.vue.dsm.DataSource) {
                             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
                             DataSourceViewer.this.setActiveDataSource(ds);
@@ -385,8 +387,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             }
             saveDataSourceViewer();
         } catch (Exception ex) {
-            if(DEBUG.DR) System.out.println("Datasource loading problem ="+ex);
-            loadDefaultDataSources();
+            System.out.println("Datasource loading problem ="+ex);
+            //loadDefaultDataSources();
         }
     }
 

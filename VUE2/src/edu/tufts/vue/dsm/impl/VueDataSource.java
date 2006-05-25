@@ -144,7 +144,7 @@ implements edu.tufts.vue.dsm.DataSource
 						config = replaceAll(config,"&lt;","<");
 						config = replaceAll(config,"&gt;",">");
 						this.configurationUIHints = config;
-						System.out.println("Fixed up " + config);
+						//System.out.println("Fixed up " + config);
 						this.isConfigured = this.configurationUIHints != null;
 					}
 					if (key.equals("loadKey")) {
