@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.40 $ / $Date: 2006-05-25 15:08:55 $ / $Author: jeff $
+ * @version $Revision: 1.41 $ / $Date: 2006-05-25 16:47:39 $ / $Author: jeff $
  * @author Ranjani Saigal
  */
 
@@ -84,9 +84,9 @@ public class DataSourceList extends JList implements DropTargetListener
 	 We are going to add some cleverness to the way data sources are ordered.  There are four types of data sources:
 	 
 	 1. edu.tufts.vue.dsm.DataSource
-	 2. FavoritesDataSource
-	 3. LocalFileDataSource
-	 4. RemoteFileDataSource
+	 2. LocalFileDataSource
+	 3. RemoteFileDataSource
+	 4. FavoritesDataSource
 	 
 	 New additions to the list are inserted at the bottom of their "group"
 	 */
@@ -95,7 +95,6 @@ public class DataSourceList extends JList implements DropTargetListener
         DefaultListModel model = (DefaultListModel)getModel();
 		int size = model.size();
 		if (o instanceof edu.tufts.vue.dsm.DataSource) {
-			// first in order, so insert after any other new and before anything 
 			for (int i=0; i < size; i++) {
 				Object obj = model.elementAt(i);
 				if (!(obj instanceof edu.tufts.vue.dsm.DataSource)) {
@@ -104,21 +103,20 @@ public class DataSourceList extends JList implements DropTargetListener
 				}
 			}
 			model.insertElementAt(o,size);
-		} else if (o instanceof FavoritesDataSource) {
-			// second in order, so insert after any other Local and before any Remote or new
+		} else if (o instanceof LocalFileDataSource) {
+			System.out.println("found a local");
 			for (int i=0; i < size; i++) {
 				Object obj = model.elementAt(i);
-				if ( (!(obj instanceof edu.tufts.vue.dsm.DataSource)) && (!(obj instanceof FavoritesDataSource)) ) {
+				if ( (!(obj instanceof edu.tufts.vue.dsm.DataSource)) && (!(obj instanceof LocalFileDataSource)) ) {
 					model.insertElementAt(o,i);
 					return;
 				}
 			}
 			model.insertElementAt(o,size);
-		} else if (o instanceof LocalFileDataSource) {
-			// third in order, so insert before any FTP
+		} else if (o instanceof RemoteFileDataSource) {
 			for (int i=0; i < size; i++) {
 				Object obj = model.elementAt(i);
-				if (obj instanceof RemoteFileDataSource) {
+				if (obj instanceof FavoritesDataSource) {
 					model.insertElementAt(o,i);
 					return;
 				}

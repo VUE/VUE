@@ -382,7 +382,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 DataSource ds = (DataSource)rsources.remove(0);
                 ds.setResourceViewer();
                 try {
-                    dataSourceList.getContents().addElement(ds);
+                    dataSourceList.addOrdered(ds);
                 } catch(Exception ex) {System.out.println("this is a problem in restoring the datasources");}
             }
             saveDataSourceViewer();
