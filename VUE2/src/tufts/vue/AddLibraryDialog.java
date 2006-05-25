@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.10 $ / $Date: 2006-05-25 16:02:22 $ / $Author: jeff $
+ * @version $Revision: 1.11 $ / $Date: 2006-05-25 21:20:10 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -49,6 +49,8 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 	JButton cancelButton = new JButton("Done");
 	JPanel buttonPanel = new JPanel();
 	DataSourceList dataSourceList;
+	DataSource oldDataSource = null;
+	edu.tufts.vue.dsm.DataSource newDataSource = null;
 	
 	private static String MY_COMPUTER = "My Computer";
 	private static String MY_COMPUTER_DESCRIPTION = "Add a browse control for your filesystem.  You can configure where to start the tree.";
@@ -205,40 +207,153 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		}
 	}
 	
-	/*
-	 Add the current selection.  When done, remove this library as a candidate.  If none are left, close.
-	 */
 	public void actionPerformed(ActionEvent ae) {
 		if (ae.getActionCommand().equals("Add")) {
 			try {
+				this.oldDataSource = null;
 				int index = addLibraryList.getSelectedIndex();
 				String s = (String)addLibraryList.getSelectedValue();
+				String xml = null;
 				if (s.equals(MY_COMPUTER)) {
-					dataSourceList.addOrdered(new LocalFileDataSource("My Computer",""));
+					LocalFileDataSource ds = new LocalFileDataSource(MY_COMPUTER,"");
+					xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Starting path</title><description>The path to start from</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>512</maxChars><ui>0</ui></field></configuration>";
+					String name = ds.getDisplayName();
+					String address = ds.getAddress();
+					xml = xml.replaceFirst("DEFAULT_NAME",name);
+					xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
+					this.oldDataSource = ds;
 				} else if (s.equals(MY_SAVED_CONTENT)) {
-					dataSourceList.addOrdered(new FavoritesDataSource("My Saved Content"));
+					FavoritesDataSource ds = new FavoritesDataSource(MY_SAVED_CONTENT);
+					xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field></configuration>";
+					String name = ds.getDisplayName();
+					xml = xml.replaceFirst("DEFAULT_NAME",name);
+					this.oldDataSource = ds;
 				} else if (s.equals(FTP)) {
-					dataSourceList.addOrdered(new RemoteFileDataSource());
+					RemoteFileDataSource ds = new RemoteFileDataSource();
+					xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Dane for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>FTP Address</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>256</maxChars><ui>0</ui></field><field><key>username</key><title>Username</title><description>FTP site username</description><default>DEFAULT_USERNAME</default><mandatory>true</mandatory><maxChars>64</maxChars><ui>0</ui></field><field><key>password</key><title>Password</title><description>FTP site password for username</description><default>DEFAULT_PASSWORD</default><mandatory>true</mandatory><maxChars></maxChars><ui>1</ui></field></configuration>";
+					String name = ds.getDisplayName();
+					if (name == null) name = "";
+					String address = ds.getAddress();
+					if (address == null) address = "";
+					String username = ds.getUserName();
+					if (username == null) username = "";
+					String password = ds.getPassword();
+					if (password == null) password = "";
+					xml = xml.replaceFirst("DEFAULT_NAME",name);
+					xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
+					xml = xml.replaceFirst("DEFAULT_USERNAME",username);
+					xml = xml.replaceFirst("DEFAULT_PASSWORD",password);
+					this.oldDataSource = ds;
 				} else {					
 					org.osid.provider.Provider provider = (org.osid.provider.Provider)this.checkedVector.elementAt(index);
+					
+					boolean proceed = true;
+					edu.tufts.vue.dsm.DataSource ds = null;
+					// show dialog containing license, if any
 					try {
-						if (provider.isInstalled()) { //To Do: reverse this
+						if (provider.requestsLicenseAcknowledgement()) {
+							String license = provider.getLicense();
+							if (license != null) {
+								javax.swing.JTextArea area = new javax.swing.JTextArea();
+								area.setLineWrap(true);
+								area.setText(license);
+								area.setEditable(false);
+								area.setSize(new Dimension(500,300));
+								if (javax.swing.JOptionPane.showOptionDialog(VUE.getDialogParent(),
+																			 area,
+																			 "License Acknowledgement",
+																			 javax.swing.JOptionPane.DEFAULT_OPTION,
+																			 javax.swing.JOptionPane.QUESTION_MESSAGE,
+																			 null,
+																			 new Object[] {
+																				 "Accept", "Decline"
+																			 },
+																			 "Decline") != 0) {
+									
+									System.out.println("Accept or Decline: Decline");
+									proceed = false;
+								} else {
+									System.out.println("Accept or Decline: Accept");
+								}
+							}
+						}
+						
+						if (proceed && provider.isInstalled()) { //To Do: reverse this
 							factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 							factory.installProvider(provider.getId());
+						}
+						
+						if (proceed) {
+							// add to data sources list
+							ds = new edu.tufts.vue.dsm.impl.VueDataSource(provider.getId(),true);
+							//dataSourceManager.add(ds);
+							ds.setIncludedInSearch(true);
+							dataSourceList.addOrdered(ds);
+							DataSourceViewer.refreshDataSourcePanel(ds);
+							
+							// show configuration, if needed
+							if (ds.hasConfiguration()) {
+								xml = ds.getConfigurationUIHints();
+								this.newDataSource = ds;
+							} else {
+								System.out.println("No configuration to show");
+							}
+							
 						}
 					} catch (Throwable t) {
 						javax.swing.JOptionPane.showMessageDialog(null,
 																  t.getMessage(),
 																  "OSID Installation Error",
 																  javax.swing.JOptionPane.ERROR_MESSAGE);
+						t.printStackTrace();
 						return;
 					}
-					edu.tufts.vue.dsm.DataSource ds = new edu.tufts.vue.dsm.impl.VueDataSource(provider.getId(),true);
-					dataSourceManager.add(ds);
-					ds.setIncludedInSearch(true);
-					dataSourceList.addOrdered(ds);
-					// add widget
-					DataSourceViewer.refreshDataSourcePanel(ds);
+				}
+			
+				if (xml != null) {
+					edu.tufts.vue.ui.ConfigurationUI cui = 
+						new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
+					cui.setPreferredSize(new Dimension(400,200));
+
+					if (javax.swing.JOptionPane.showOptionDialog(VUE.getDialogParent(),
+																 cui,
+																 "Configuration",
+																 javax.swing.JOptionPane.DEFAULT_OPTION,
+																 javax.swing.JOptionPane.QUESTION_MESSAGE,
+																 null,
+																 new Object[] {
+																	 "Cancel", "Update"
+																 },
+																 "Update") != 0) {
+						if (s.equals(MY_COMPUTER)) {
+							java.util.Properties p = cui.getProperties();
+							LocalFileDataSource ds = (LocalFileDataSource)this.oldDataSource;
+							ds.setDisplayName(p.getProperty("name"));
+							ds.setAddress(p.getProperty("address"));
+						} else if (s.equals(MY_SAVED_CONTENT)) {
+							java.util.Properties p = cui.getProperties();
+							FavoritesDataSource ds = (FavoritesDataSource)this.oldDataSource;
+							ds.setDisplayName(p.getProperty("name"));
+						} else if (s.equals(FTP)) {
+							java.util.Properties p = cui.getProperties();
+							RemoteFileDataSource ds = (RemoteFileDataSource)this.oldDataSource;
+							ds.setDisplayName(p.getProperty("name"));
+							ds.setUserName(p.getProperty("username"));
+							ds.setPassword(p.getProperty("password"));
+							try {
+								ds.setAddress(p.getProperty("address")); // this must be set last
+							} catch (Exception ex) {
+								// ignore any error for now
+							}
+						} else {
+							this.newDataSource.setConfiguration(cui.getProperties());
+						}
+					}
+				}
+				if (this.oldDataSource != null) {
+					dataSourceList.addOrdered(this.oldDataSource);
+				} else {
+					dataSourceList.addOrdered(this.newDataSource);
 				}
 			} catch (Throwable t) {
 				t.printStackTrace();
