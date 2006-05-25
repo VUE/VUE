@@ -205,6 +205,12 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.weightx = 1;
 		add(moreOptionsButtonPanel,gbConstraints);
 		this.currentStyle = BASIC;
+		
+		// enable the more options button only if there are Dublin Core fields other than 
+		// Keywords available
+		java.util.Vector intersection = getIntersectionSearchFields();
+		moreOptionsButton.setEnabled(intersection.size() > 1);
+		
 	}
 	
 	private void makeAdvancedIntersectionPanel()
@@ -216,12 +222,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		java.util.Collections.sort(typesVector);
 		int size = typesVector.size();
 		
-		if (size == 0) {
-			// no Dublin Core Types found
-			add(new javax.swing.JLabel("No Common Dublin Core OSID Types Found"),gbConstraints);
-			gbConstraints.gridy++;
-			searchButton2.setEnabled(false);
-		} else {
+		if (size > 0) {
 			this.advancedFields = new javax.swing.JTextField[size];
 			
 			for (int i=0; i < size; i++) {
@@ -301,7 +302,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 				makePanel(ADVANCED_UNION);
 			}
 		} else if (ae.getSource() == this.fewerOptionsButton) {
-			if (this.currentStyle == ADVANCED_UNION) {
+			if (this.currentStyle == ADVANCED_UNION) { // never happens under current impl
 				makePanel(ADVANCED_INTERSECTION);
 			} else {
 				makePanel(BASIC);
