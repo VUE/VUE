@@ -103,13 +103,17 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         this.DRB = drBrowser;
         dataSourceList = new DataSourceList(this);
         dataSourceList.addKeyListener(this);
+        
+		// load new data sources
         dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
         edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
         for (int i=0; i < dataSources.length; i++) {
             dataSourceList.getContents().addElement(dataSources[i]);
         }
-        loadDefaultDataSources();
         
+		// load old-style data sources
+		loadDataSources();
+		
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
         sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
         queryEditor = federatedSearchManager.getQueryEditorForType(new edu.tufts.vue.util.Type("mit.edu","search","keyword"));
@@ -195,49 +199,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         } else {
             add(dataSourceList);
         }
-        
-    }
-    
-    public static void addDataSource(DataSource ds){
-        
-        int type;
-        
-        if (ds instanceof LocalFileDataSource) type = 0;
-        else if  (ds instanceof FavoritesDataSource) type = 1;
-        else  if (ds instanceof RemoteFileDataSource) type = 2;
-        else  if (ds instanceof FedoraDataSource) type = 3;
-        else  if (ds instanceof GoogleDataSource) type = 4;
-        else  if (ds instanceof OsidDataSource) type = 5;
-        else  if (ds instanceof Osid2DataSource) type = 6;
-        else if(ds instanceof tufts.artifact.DataSource) type = 7;
-        else if(ds instanceof tufts.googleapi.DataSource) type = 8;
-        else type = 9;
-        
-        Vector dataSourceVector = (Vector)allDataSources.get(type);
-        dataSourceVector.add(ds);
-//        saveDataSourceViewer();
-    }
-    
-    public void deleteDataSource(DataSource ds){
-        
-        int type;
-        
-        if (ds instanceof LocalFileDataSource) type = 0;
-        else if (ds instanceof FavoritesDataSource) type = 1;
-        else  if (ds instanceof RemoteFileDataSource) type = 2;
-        else  if (ds instanceof FedoraDataSource) type = 3;
-        else  if (ds instanceof GoogleDataSource) type = 4;
-        else  if (ds instanceof OsidDataSource) type = 5;
-        else  if (ds instanceof Osid2DataSource) type = 6;
-        else if(ds instanceof tufts.artifact.DataSource) type = 6;
-        else if(ds instanceof tufts.googleapi.DataSource) type = 7;
-        else type = 9;
-        
-        if(VueUtil.confirm(this,"Are you sure you want to delete DataSource :"+ds.getDisplayName(),"Delete DataSource Confirmation") == JOptionPane.OK_OPTION) {
-            Vector dataSourceVector = (Vector)allDataSources.get(type);
-            dataSourceVector.removeElement(ds);
-        }
-        saveDataSourceViewer();
         
     }
     
@@ -406,7 +367,31 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             return true;
     }
     
-    private void loadDefaultDataSources() {
+    public void loadDataSources()
+	{
+        boolean init = true;
+        File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
+        
+        int type;
+        try{
+            SaveDataSourceViewer rViewer = unMarshallMap(f);
+            Vector rsources = rViewer.getSaveDataSources();
+            while (!(rsources.isEmpty())){
+                DataSource ds = (DataSource)rsources.remove(0);
+                ds.setResourceViewer();
+                try {
+                    dataSourceList.getContents().addElement(ds);
+                } catch(Exception ex) {System.out.println("this is a problem in restoring the datasources");}
+            }
+            saveDataSourceViewer();
+        } catch (Exception ex) {
+            if(DEBUG.DR) System.out.println("Datasource loading problem ="+ex);
+            loadDefaultDataSources();
+        }
+    }
+
+    private void loadDefaultDataSources() 
+	{
         try {
             String breakTag = "";
             //dataSourceList.getContents().addElement(breakTag);

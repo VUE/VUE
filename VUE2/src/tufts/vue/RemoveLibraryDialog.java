@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.1 $ / $Date: 2006-02-02 21:52:10 $ / $Author: jeff $
+ * @version $Revision: 1.2 $ / $Date: 2006-05-25 15:08:55 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -58,7 +58,6 @@ public class RemoveLibraryDialog extends JDialog implements java.awt.event.Actio
 			
 			okButton.addActionListener(this);			
 			buttonPanel.add(okButton);
-			okButton.setBackground(VueResources.getColor("Orange")); //TODO:  Why is this BLUE??
 
 			//populate();
 

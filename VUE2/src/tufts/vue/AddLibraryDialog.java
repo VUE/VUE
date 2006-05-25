@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.8 $ / $Date: 2006-05-23 16:09:25 $ / $Author: jeff $
+ * @version $Revision: 1.9 $ / $Date: 2006-05-25 15:08:55 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -209,17 +209,15 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 				int index = addLibraryList.getSelectedIndex();
 				String s = (String)addLibraryList.getSelectedValue();
 				if (s.equals(MY_COMPUTER)) {
-					dataSourceList.getContents().addElement(new LocalFileDataSource("My Computer",""));
+					dataSourceList.addOrdered(new LocalFileDataSource("My Computer",""));
 				} else if (s.equals(MY_SAVED_CONTENT)) {
-					dataSourceList.getContents().addElement(new FavoritesDataSource("My Saved Content"));
+					dataSourceList.addOrdered(new FavoritesDataSource("My Saved Content"));
 				} else if (s.equals(FTP)) {
-					dataSourceList.getContents().addElement(new RemoteFileDataSource());
+					dataSourceList.addOrdered(new RemoteFileDataSource());
 				} else {					
 					org.osid.provider.Provider provider = (org.osid.provider.Provider)this.checkedVector.elementAt(index);
 					try {
-						System.out.println("Do we need to install " + provider.getDisplayName());
-						if (!provider.isInstalled()) {
-							System.out.println("Attempting to install " + provider.getDisplayName());
+						if (provider.isInstalled()) { //To Do: reverse this
 							factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 							factory.installProvider(provider.getId());
 						}
@@ -233,7 +231,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 					edu.tufts.vue.dsm.DataSource ds = new edu.tufts.vue.dsm.impl.VueDataSource(provider.getId(),true);
 					dataSourceManager.add(ds);
 					ds.setIncludedInSearch(true);
-					dataSourceList.getContents().addElement(ds);
+					dataSourceList.addOrdered(ds);
 					// add widget
 					DataSourceViewer.refreshDataSourcePanel(ds);
 				}

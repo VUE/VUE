@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.39 $ / $Date: 2006-05-12 19:37:37 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2006-05-25 15:08:55 $ / $Author: jeff $
  * @author Ranjani Saigal
  */
 
@@ -80,6 +80,55 @@ public class DataSourceList extends JList implements DropTargetListener
     private Object locationToValue(Point p) { int index =
     locationToIndex(p); return getModel().getElementAt(index); }
     
+	/*
+	 We are going to add some cleverness to the way data sources are ordered.  There are four types of data sources:
+	 
+	 1. edu.tufts.vue.dsm.DataSource
+	 2. FavoritesDataSource
+	 3. LocalFileDataSource
+	 4. RemoteFileDataSource
+	 
+	 New additions to the list are inserted at the bottom of their "group"
+	 */
+
+	public void addOrdered(Object o) {
+        DefaultListModel model = (DefaultListModel)getModel();
+		int size = model.size();
+		if (o instanceof edu.tufts.vue.dsm.DataSource) {
+			// first in order, so insert after any other new and before anything 
+			for (int i=0; i < size; i++) {
+				Object obj = model.elementAt(i);
+				if (!(obj instanceof edu.tufts.vue.dsm.DataSource)) {
+					model.insertElementAt(o,i);
+					return;
+				}
+			}
+			model.insertElementAt(o,size);
+		} else if (o instanceof FavoritesDataSource) {
+			// second in order, so insert after any other Local and before any Remote or new
+			for (int i=0; i < size; i++) {
+				Object obj = model.elementAt(i);
+				if ( (!(obj instanceof edu.tufts.vue.dsm.DataSource)) && (!(obj instanceof FavoritesDataSource)) ) {
+					model.insertElementAt(o,i);
+					return;
+				}
+			}
+			model.insertElementAt(o,size);
+		} else if (o instanceof LocalFileDataSource) {
+			// third in order, so insert before any FTP
+			for (int i=0; i < size; i++) {
+				Object obj = model.elementAt(i);
+				if (obj instanceof RemoteFileDataSource) {
+					model.insertElementAt(o,i);
+					return;
+				}
+			}
+			model.insertElementAt(o,size);
+		} else {
+			model.addElement(o);
+		}
+	}
+	
     public DefaultListModel getContents() {
         return (DefaultListModel) getModel();
     }
