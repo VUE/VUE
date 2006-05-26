@@ -147,14 +147,6 @@ public class Actions implements VueConstants
     
     /**End of Addition by Daisuke Fujiwara*/
     
-    /** Action to Edit Datasource **/
-    public static final Action editDataSource = new VueAction("Edit DataSource") {
-            public void act() {
-                AddEditDataSourceDialog dialog = new AddEditDataSourceDialog();
-                dialog.show(AddEditDataSourceDialog.EDIT_MODE);
-            }
-        };
-        
     
     //-----------------------------------------------------------------------------
     // Link actions
