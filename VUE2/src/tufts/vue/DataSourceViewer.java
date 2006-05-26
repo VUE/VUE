@@ -103,16 +103,30 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         this.DRB = drBrowser;
         dataSourceList = new DataSourceList(this);
         dataSourceList.addKeyListener(this);
+		
+		try {
+			// load new data sources
+			dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+			edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
+			for (int i=0; i < dataSources.length; i++) {
+				dataSourceList.getContents().addElement(dataSources[i]);
+			}
+		} catch (Throwable t) {
+			javax.swing.JOptionPane.showMessageDialog(null,
+													  t.getMessage(),
+													  "Error loading data sources using Provider",
+													  javax.swing.JOptionPane.ERROR_MESSAGE);
+		}
         
-		// load new data sources
-        dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-        edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
-        for (int i=0; i < dataSources.length; i++) {
-            dataSourceList.getContents().addElement(dataSources[i]);
-        }
-        
-		// load old-style data sources
-		loadDataSources();
+		try {
+			// load old-style data sources
+			loadDataSources();
+		} catch (Throwable t) {
+			javax.swing.JOptionPane.showMessageDialog(null,
+													  t.getMessage(),
+													  "Error loading default data sources",
+													  javax.swing.JOptionPane.ERROR_MESSAGE);
+		}
 		
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
         sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
