@@ -97,6 +97,17 @@ public class provider {
 			while (oi.hasNextObject()) {
 				java.io.Serializable o = oi.nextObject();
 				System.out.println(o + " : " + props.getProperty(o));
+				
+				String key = (String)o;
+				try {
+					if (key.equals("icon16x16")) {
+						ProviderInvocationManager providerInvocationManager = this.pcm.getProviderInvocationManager();
+						String path = providerInvocationManager.getResourcePath((String)props.getProperty(o));
+						System.out.println("path " + path);
+					}
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
 			}
 		}
 	} catch (SharedException se) {
