@@ -277,18 +277,28 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                         }
                     }
                 } catch (Throwable t) {
-                    t.printStackTrace();
+					javax.swing.JOptionPane.showMessageDialog(null,
+															  t.getMessage(),
+															  "Error using Provider to check for data sources",
+															  javax.swing.JOptionPane.ERROR_MESSAGE);
                 }
                 DataSourceViewer.this.popup.setVisible(false);
             }
         };
         addLibraryAction = new AbstractAction("Add Resources") {
             public void actionPerformed(ActionEvent e) {
-				// there are always resources that can be added, e.g. a local file system
-				if (addLibraryDialog == null) {
-					addLibraryDialog = new AddLibraryDialog(dataSourceList);
-				} else {
-					addLibraryDialog.setVisible(true);
+				try {
+					// there are always resources that can be added, e.g. a local file system
+					if (addLibraryDialog == null) {
+						addLibraryDialog = new AddLibraryDialog(dataSourceList);
+					} else {
+						addLibraryDialog.setVisible(true);
+					}
+				} catch (Throwable t) {
+					javax.swing.JOptionPane.showMessageDialog(null,
+															  t.getMessage(),
+															  "Error using Provider to check for data sources",
+															  javax.swing.JOptionPane.ERROR_MESSAGE);
 				}
             }
         };
@@ -387,23 +397,26 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 	{
         boolean init = true;
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
-        
-        int type;
-        try{
-            SaveDataSourceViewer rViewer = unMarshallMap(f);
-            Vector rsources = rViewer.getSaveDataSources();
-            while (!(rsources.isEmpty())){
-                DataSource ds = (DataSource)rsources.remove(0);
-                ds.setResourceViewer();
-                try {
-                    dataSourceList.addOrdered(ds);
-                } catch(Exception ex) {System.out.println("this is a problem in restoring the datasources");}
-            }
-            saveDataSourceViewer();
-        } catch (Exception ex) {
-            System.out.println("Datasource loading problem ="+ex);
-            //loadDefaultDataSources();
-        }
+        if (!f.exists()) {
+			loadDefaultDataSources();
+		} else {
+			int type;
+			try{
+				SaveDataSourceViewer rViewer = unMarshallMap(f);
+				Vector rsources = rViewer.getSaveDataSources();
+				while (!(rsources.isEmpty())){
+					DataSource ds = (DataSource)rsources.remove(0);
+					ds.setResourceViewer();
+					try {
+						dataSourceList.addOrdered(ds);
+					} catch(Exception ex) {System.out.println("this is a problem in restoring the datasources");}
+				}
+				saveDataSourceViewer();
+			} catch (Exception ex) {
+				System.out.println("Datasource loading problem ="+ex);
+				loadDefaultDataSources();
+			}
+		}
     }
 
     private void loadDefaultDataSources() 

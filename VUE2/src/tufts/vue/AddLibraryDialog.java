@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.11 $ / $Date: 2006-05-25 21:20:10 $ / $Author: jeff $
+ * @version $Revision: 1.12 $ / $Date: 2006-05-27 00:58:41 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -150,6 +150,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 
     private void populate()
 	{
+		listModel.removeAllElements();
 		try
 		{
 			if (dataSourceManager == null) {
@@ -172,13 +173,17 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 				checked[i] = (org.osid.provider.Provider)checkedVector.elementAt(i);
 			}
 			
-			// add all data sources we include with VUE
-			listModel.addElement(MY_COMPUTER);
-			listModel.addElement(MY_SAVED_CONTENT);
-			listModel.addElement(FTP);
 		} catch (Throwable t) {
 			t.printStackTrace();
+			javax.swing.JOptionPane.showMessageDialog(null,
+													  t.getMessage(),
+													  "Error using Provider to data sources",
+													  javax.swing.JOptionPane.ERROR_MESSAGE);
 		}
+		// add all data sources we include with VUE
+		listModel.addElement(MY_COMPUTER);
+		listModel.addElement(MY_SAVED_CONTENT);
+		listModel.addElement(FTP);
 	}
 	
     public String toString() 
