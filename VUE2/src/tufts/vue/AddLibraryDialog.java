@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.12 $ / $Date: 2006-05-27 00:58:41 $ / $Author: jeff $
+ * @version $Revision: 1.13 $ / $Date: 2006-05-27 01:14:13 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -80,7 +80,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 				listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 
 			}
 			
-			if (checked.length > 0) {
+			if ((checked != null) && (checked.length > 0)) {
 				// TODO: Replace this with an image, but we need this in the Provider not just the Data Source
 				libraryIcon = new JLabel(VueResources.getImageIcon("NoImage"));
 				libraryDescription = new JTextArea(checked[0].getDescription());
@@ -177,7 +177,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			t.printStackTrace();
 			javax.swing.JOptionPane.showMessageDialog(null,
 													  t.getMessage(),
-													  "Error using Provider to data sources",
+													  "Error",
 													  javax.swing.JOptionPane.ERROR_MESSAGE);
 		}
 		// add all data sources we include with VUE

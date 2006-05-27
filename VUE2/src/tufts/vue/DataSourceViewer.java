@@ -114,7 +114,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 		} catch (Throwable t) {
 			javax.swing.JOptionPane.showMessageDialog(null,
 													  t.getMessage(),
-													  "Error loading data sources using Provider",
+													  "Error",
 													  javax.swing.JOptionPane.ERROR_MESSAGE);
 		}
         
@@ -124,7 +124,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 		} catch (Throwable t) {
 			javax.swing.JOptionPane.showMessageDialog(null,
 													  t.getMessage(),
-													  "Error loading default data sources",
+													  "Error",
 													  javax.swing.JOptionPane.ERROR_MESSAGE);
 		}
 		
@@ -279,7 +279,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 } catch (Throwable t) {
 					javax.swing.JOptionPane.showMessageDialog(null,
 															  t.getMessage(),
-															  "Error using Provider to check for data sources",
+															  "Error",
 															  javax.swing.JOptionPane.ERROR_MESSAGE);
                 }
                 DataSourceViewer.this.popup.setVisible(false);
@@ -297,7 +297,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 				} catch (Throwable t) {
 					javax.swing.JOptionPane.showMessageDialog(null,
 															  t.getMessage(),
-															  "Error using Provider to check for data sources",
+															  "Error",
 															  javax.swing.JOptionPane.ERROR_MESSAGE);
 				}
             }
