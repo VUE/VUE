@@ -19,18 +19,14 @@ import javax.swing.SwingUtilities;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.3 $ / $Date: 2006-01-28 23:16:49 $ / $Author: sfraize $ 
+ * @version $Revision: 1.4 $ / $Date: 2006-05-30 21:12:21 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
 //public class VueFrame extends com.jidesoft.docking.DefaultDockableHolder
 //public class VueFrame extends com.jidesoft.action.DefaultDockableBarDockableHolder // JIDE ENABLE
-    implements MapViewer.Listener //, MouseWheelListener
+//    implements MapViewer.Listener //, MouseWheelListener
+    implements VUE.ActiveViewerListener
 {
-    final static int TitleChangeMask =
-        MapViewerEvent.DISPLAYED |
-        MapViewerEvent.FOCUSED;
-    //MapViewerEvent.ZOOM;        // title includes zoom
-
     private static int sNameIndex = 0;
         
     public VueFrame() {
@@ -91,8 +87,26 @@ public class VueFrame extends javax.swing.JFrame
                 VUE.Log.debug(e);
             }
         });
+
+        VUE.addActiveViewerListener(this);
         
     }
+
+    public void activeViewerChanged(MapViewer viewer) {
+        setTitleFromViewer(viewer);
+    }
+
+    /*
+    final static int TitleChangeMask =
+        MapViewerEvent.DISPLAYED |
+        MapViewerEvent.FOCUSED;
+    //MapViewerEvent.ZOOM;        // title includes zoom
+    public void mapViewerEventRaised(MapViewerEvent e) {
+        if ((e.getID() & TitleChangeMask) != 0)
+            setTitleFromViewer(e.getMapViewer());
+    }
+    */
+    
 
     public void setMaximizedBounds(Rectangle r) {
         if (DEBUG.INIT) out("SETMAX " + r);
@@ -186,13 +200,11 @@ public class VueFrame extends javax.swing.JFrame
         //super.setVisible(true);
         super.setVisible(tv);
     }
-    public void mapViewerEventRaised(MapViewerEvent e) {
-        if ((e.getID() & TitleChangeMask) != 0)
-            setTitleFromViewer(e.getMapViewer());
-    }
         
     private void setTitleFromViewer(MapViewer viewer) {
-        String title = VUE.getName() + ": " + viewer.getMap().getLabel();
+        String title = VUE.getName() + ": ";
+        if (viewer != null)
+            title += viewer.getMap().getLabel();
         //if (viewer.getMap().isCurrentlyFiltered())
         // will need to listen to map for filter change state or this gets out of date
         //    title += " (Filtered)";
