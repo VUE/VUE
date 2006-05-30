@@ -30,7 +30,7 @@ import javax.swing.border.*;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.27 $ / $Date: 2006-02-15 17:50:37 $ / $Author: sfraize $ 
+ * @version $Revision: 1.28 $ / $Date: 2006-05-30 21:09:54 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -50,12 +50,19 @@ public class MapTabbedPane extends JTabbedPane
         BgColor = GUI.getToolbarColor();
         setTabPlacement(javax.swing.SwingConstants.TOP);
         setPreferredSize(new Dimension(300,400));
+
+        /*//getModel().
+        addChangeListener(new javax.swing.event.ChangeListener() {
+                public void stateChanged(javax.swing.event.ChangeEvent e) {
+                    if (DEBUG.Enabled) out("stateChanged: selectedIndex=" + getSelectedIndex());
+                }
+                });*/
     }
         
     private int mWasSelected = -1;
     protected void fireStateChanged() {
         try {
-            if (DEBUG.FOCUS) System.out.println(this + " fireStateChanged");
+            if (DEBUG.FOCUS) out("fireStateChanged, selectedIndex=" +getSelectedIndex());
             super.fireStateChanged();
         } catch (ArrayIndexOutOfBoundsException e) {
             // this is happening after we close everything and then
@@ -63,20 +70,24 @@ public class MapTabbedPane extends JTabbedPane
             // ignores it.
             System.err.println(this + " JTabbedPane.fireStateChanged: " + e);
         }
-        if (!GUI.isMacAqua()) { // don't mess w/aqua
-            int selected = getModel().getSelectedIndex();
-            if (mWasSelected >= 0) {
+        
+        int selected = getModel().getSelectedIndex();
+        
+        if (!GUI.isMacAqua()) { // don't mess w/aqua colors
+            
+            if (mWasSelected >= 0)
                 setForegroundAt(mWasSelected, Color.darkGray);
-            }
+            
             if (selected >= 0) {
                 setForegroundAt(selected, Color.black);
                 setBackgroundAt(selected, BgColor);
             }
-            mWasSelected = selected;
-            Component viewer = getSelectedViewer();
-            if (viewer != null)
-                viewer.requestFocus();
         }
+        
+        mWasSelected = selected;
+        Component viewer = getSelectedViewer();
+        if (viewer != null)
+            viewer.requestFocus();
     }
         
     public void reshape(int x, int y, int w, int h) {
@@ -96,10 +107,10 @@ public class MapTabbedPane extends JTabbedPane
     }
 
     public void focusGained(FocusEvent e) {
-        System.out.println(this + " focusGained (from " + e.getOppositeComponent() + ")");
+        out("focusGained (from " + e.getOppositeComponent() + ")");
     }
     public void focusLost(FocusEvent e) {
-        System.out.println(this + " focusLost (to " + e.getOppositeComponent() + ")");
+        out("focusLost (to " + e.getOppositeComponent() + ")");
     }
     public void addNotify() {
         super.addNotify();
@@ -212,19 +223,13 @@ public class MapTabbedPane extends JTabbedPane
     }
         
     /*
-    // put BACKINGSTORE mode on a diag switch and test
-    // performance difference -- the obvious difference is
-    // vastly better performance if an inspector window is
-    // obscuring any part of the canvas (or any other window
-    // for that mater), which kills off a huge chunk of
-    // BLIT_SCROLL_MODE's optimization.  However, using
-    // backing store completely fucks up if we start
-    // hand-panning the map, tho I'm presuming that's because
-    // the hand panning isn't being done thru the viewport
-    // yet.
-    //
+    // put BACKINGSTORE mode on a diag switch and test performance difference -- the
+    // obvious difference is vastly better performance if an inspector window is
+    // obscuring any part of the canvas (or any other window for that mater), which
+    // kills off a huge chunk of BLIT_SCROLL_MODE's optimization.  However, using
+    // backing store completely fucks up if we start hand-panning the map, tho I'm
+    // presuming that's because the hand panning isn't being done thru the viewport yet.
     //sp.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
-         
     public void addTab(LWMap pMap, Component c)
     {
     //scroller.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
@@ -293,34 +298,63 @@ public class MapTabbedPane extends JTabbedPane
                 return i;
             }
         }
-        System.out.println(this + " failed to find map " + map);
+        out("failed to find map " + map);
         return -1;
     }
-        
+
     public void closeMap(LWMap map) {
-        System.out.println(this + " closing " + map);
+        if (DEBUG.FOCUS) out("closeMap " + map);
+        
         int mapTabIndex = findTabWithMap(map);
         MapViewer viewer = getViewerAt(mapTabIndex);
+
+        if (DEBUG.FOCUS) out("closeMap"
+                             + "\n\t   indexOfMap=" + mapTabIndex
+                             + "\n\tviewerAtIndex=" + viewer
+                             + "\n\t activeViewer=" + VUE.getActiveViewer());
+        
+        // Note: if we close out the last tab (while it's selected), the selected index
+        // must change, and the JTabbedPane acts sanely, delivers change events, and
+        // causes the MapViewer in the previously second-to-last-tab, now in the last
+        // tab, to gain focus.  However, if any OTHER tab is removed, technically the
+        // selected index can (and does) stay the same, which makes sense, except the
+        // selected ITEM is now different, and JTabbedPane is completely ignorant of
+        // this, and does nothing, and delivers focus to nothing, so we must handle that
+        // manually.  This also reveals a weaknes the DefaultSingleSelectionModel, which
+        // has no code to deal with the case of a selected item from change out from
+        // under the selected index.  So what we need to do is make sure the right
+        // MapViewer forcably grabs the focus.
+        
+        boolean forceFocusTransfer = false;
+
         if (viewer == VUE.getActiveViewer()) {
-            // be sure to clear active viewer -- it was probably us.
-            // If there are other maps open, one of them will shortly get a
+
+            // If this is the active viewer, we may need to manage
+            // a focus transfer.
+            
+            // Apparently, even sometimes when it's the last tab that changes, JTabbedPane fails
+            // to tansfer focus, so we do this always...
+            //if (mapTabIndex != getTabCount() - 1)
+                forceFocusTransfer = true;
                 
+            // Immediately make sure nothing can refer this this viewer.
             VUE.setActiveViewer(null);
+
             // we might want to force notification even if selection is already empty:
             // we want all listeners, particularly the actions, to
             // update in case this is last map open
             VUE.getSelection().clear();
-                
-                
-            if (mapTabIndex >= 1)
-                VUE.setActiveViewer(getViewerAt(mapTabIndex - 1));
-            else if (getTabCount() > 1)
-                VUE.setActiveViewer(getViewerAt(mapTabIndex + 1));
-            else
-                VUE.setActiveViewer(null); // TODO: this really isn't supported... NPE's everywhere.
-            //VUE.getSelection().clearAndNotify();
         }
-        remove(mapTabIndex);
+
+        
+        removeTabAt(mapTabIndex);
+
+        if (forceFocusTransfer) {
+            int selectedIndex = getSelectedIndex();
+            if (DEBUG.FOCUS) out("FORCE FOCUS TRANSFER TO selected tab index: " + selectedIndex);
+            if (selectedIndex >= 0)
+                getViewerAt(selectedIndex).grabVueApplicationFocus("closeMap", null);
+        }
     }
         
     public void paintComponent(Graphics g) {
@@ -331,6 +365,10 @@ public class MapTabbedPane extends JTabbedPane
         
     public String toString() {
         return "MapTabbedPane<"+name+">";
+    }
+
+    private void out(String s) {
+        System.out.println(this + ": " + s);
     }
         
 }
