@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.69 $ / $Date: 2006-05-12 21:26:01 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2006-05-31 20:44:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2212,7 +2212,30 @@ public class DockWindow extends javax.swing.JWindow
             if (isToolbar != dw.isToolbar)
                 continue;
 
+
+            // For now, only find a near window if the DockWindow
+            // is exactly along the bottom of the desired parent,
+            // presumably due to stickiness.
+
+            int left = dw.getX();
+            int right = dw.getX() + dw.getWidth();
+            int bottom = dw.getY() + dw.getHeight();
+            int winRight = winX + getWidth();
+
+            if (winY == bottom &&
+                ((winX >= left && winX < right) ||
+                 (winRight > left && winRight < right)))
+                
+                return dw;
+
+
+            /*
+             * This is too agressive: from now only, ONLY attach if the window is
+             * already just below the parent.
+             *
+             
             Rectangle bounds = dw.getBounds();
+            
             if (bounds.contains(mouseX, mouseY)) {
                 
                 if (hasDescendant(dw)) {
@@ -2223,7 +2246,6 @@ public class DockWindow extends javax.swing.JWindow
                     return dw;
                 }
             }
-
             // if our window is also sitting just below the
             // other window (probably via stickyness), also
             // attach to it.
@@ -2232,6 +2254,7 @@ public class DockWindow extends javax.swing.JWindow
             if (bounds.contains(winX, winY) ||
                 bounds.contains(winX + getWidth()-1, winY))
                 return dw;
+            */
 
         }
 
@@ -4144,13 +4167,13 @@ public class DockWindow extends javax.swing.JWindow
         
         win1.setVisible(true);
         
-        /*
         DockWindow win2 = new DockWindow("Dock 2", owner);
-        win2.add(new FontPropertyPanel());
+        //win2.add(new FontPropertyPanel());
         win2.setLocationRelativeTo(null); // center's on screen
         win2.setFocusableWindowState(true);
         win2.setVisible(true);
                 
+        /*
         if (false) {
 
             DockWindow win3 = new DockWindow("Dock 3", owner);
