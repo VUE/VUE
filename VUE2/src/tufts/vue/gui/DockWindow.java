@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.72 $ / $Date: 2006-05-31 21:03:17 $ / $Author: sfraize $
+ * @version $Revision: 1.73 $ / $Date: 2006-05-31 22:27:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3633,9 +3633,12 @@ public class DockWindow extends javax.swing.JWindow
              }
 
              add(Box.createGlue());
-             JLabel helpButton = new JLabel(GUI.getIcon("btn_help.gif"));
+             //JLabel helpButton = new JLabel(GUI.getIcon("btn_help_top.gif"));
+             // todo for Melanie: new icons should be appearing in gui/icons
+             JLabel helpButton = new JLabel(VueResources.getImageIconResource("/tufts/vue/images/btn_help_top.gif"));
              helpButton.setToolTipText("Help Text");
              add(helpButton);
+             add(Box.createHorizontalStrut(2));
              
              if (isGradientTitle)
                  installGradient(false);
