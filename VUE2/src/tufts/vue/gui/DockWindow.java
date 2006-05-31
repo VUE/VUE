@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.71 $ / $Date: 2006-05-31 20:48:29 $ / $Author: sfraize $
+ * @version $Revision: 1.72 $ / $Date: 2006-05-31 21:03:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -211,18 +211,15 @@ public class DockWindow extends javax.swing.JWindow
         // add us to the static list of all DockWindow's
         sAllWindows.add(this);
 
-        if (false) {
-            // WAIT-CURSOR DEBUG
-            setMenuActions(new Action[] {
-                    new AbstractAction("Show Wait Cursor") {public void actionPerformed(ActionEvent ae) {
-                            GUI.activateWaitCursor();
-                        }},
-                    new AbstractAction("Clear Wait Cursor") {public void actionPerformed(ActionEvent ae) {
-                            GUI.clearWaitCursor();
-                        }},
-                });
-                    
-        }
+        /* WAIT-CURSOR DEBUG
+           setMenuActions(new Action[] {
+           new AbstractAction("Show Wait Cursor") {public void actionPerformed(ActionEvent ae) {
+           GUI.activateWaitCursor();
+           }},
+           new AbstractAction("Clear Wait Cursor") {public void actionPerformed(ActionEvent ae) {
+           GUI.clearWaitCursor();
+           }},
+           });} */
     }
 
     public DockWindow(String title, Window owner) {
@@ -2672,7 +2669,11 @@ public class DockWindow extends javax.swing.JWindow
     public void mouseClicked(MouseEvent e) {}
     public void mouseMoved(MouseEvent e) {}
 
-    public void mouseEntered(MouseEvent e) {}
+    public void mouseEntered(MouseEvent e) {
+        // We're trying this to make sure any rollover's in the DockWindow will always work.
+        requestFocus();
+    }
+    
     public void mouseExited(MouseEvent e) {}
     
 
