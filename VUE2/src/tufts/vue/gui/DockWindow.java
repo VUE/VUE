@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.70 $ / $Date: 2006-05-31 20:44:29 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2006-05-31 20:48:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -821,7 +821,7 @@ public class DockWindow extends javax.swing.JWindow
         //out("   bottom="+bottom);
         //out("maxBottom="+maxBottom);
         if (bottom > maxBottom) {
-            r.height = maxBottom - r.y;
+            r.height = Math.min(TitleHeight + 1, maxBottom - r.y);
             return true;
         } else
             return false;
