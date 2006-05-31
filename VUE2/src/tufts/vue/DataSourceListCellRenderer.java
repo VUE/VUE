@@ -126,6 +126,8 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
             
         if (value == DataSourceList.IndicatedDragOverValue)
             mLabel.setForeground(Color.red);
+        else if (selected)
+            mLabel.setForeground(SystemColor.textHighlightText);
         else
             mLabel.setForeground(Color.black);
         
