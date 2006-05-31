@@ -38,7 +38,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.7 $ / $Date: 2006-04-21 03:36:26 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2006-05-31 21:00:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -108,7 +108,7 @@ public class Widget extends javax.swing.JPanel
     }
 
     public static boolean isWidget(JComponent c) {
-        return c instanceof Widget || c.getClientProperty(EXPANSION_KEY) != null;
+        return c != null && (c instanceof Widget || c.getClientProperty(EXPANSION_KEY) != null);
     }
 
     public static boolean wantsScroller(JComponent c) {
