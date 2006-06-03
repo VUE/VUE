@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.13 $ / $Date: 2006-05-11 01:24:49 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2006-06-03 19:20:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -879,6 +879,9 @@ public class Images
                 VUE.Log.debug("creating cache directory: " + CacheDir);
                 if (!CacheDir.mkdir())
                     VUE.Log.warn("couldn't create cache directory " + CacheDir);
+            } else if (!CacheDir.isDirectory()) {
+                VUE.Log.warn("couldn't create cache directory (is a file) " + CacheDir);
+                return CacheDir = null;
             }
             VUE.Log.debug("Got cache directory: " + CacheDir);
         }
@@ -980,6 +983,7 @@ public class Images
                 } else {
                     // unable to create cache file: read directly from the stream
                     imageSRC.readable = urlStream;
+                    success = true;
                 }
                 
             } while (!success && tries < 2);
