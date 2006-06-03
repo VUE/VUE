@@ -61,8 +61,8 @@ public class LWImage extends LWComponent
     static final int MaxRenderSize = VueResources.getInt("image.maxRenderSize", 64); // max display pixels width or height at 100% map scale
     static final boolean RawImageSizes = false;
 
-    private final static int MinWidth = 10;
-    private final static int MinHeight = 10;
+    private final static int MinWidth = 32;
+    private final static int MinHeight = 32;
     
     private Image mImage;
     private int mImageWidth = -1;
@@ -176,7 +176,7 @@ public class LWImage extends LWComponent
         // us displaying that size.  If not, we'll set
         // us to a minimum size for display until we
         // know the real size.
-        setSize(width, height);
+        setImageSize(width, height);
         
         // save a key that marks the current location in the undo-queue,
         // to be applied to the subsequent thread that make calls
@@ -270,17 +270,18 @@ public class LWImage extends LWComponent
         mImageWidth = (int) getAbsoluteWidth();
         mImageHeight = (int) getAbsoluteHeight();
         if (mImageWidth < 1) {
-            mImageWidth = 100;
-            mImageHeight = 100;
-            setSize(100,100);
+            mImageWidth = 128;
+            mImageHeight = 128;
+            setSize(128,128);
         }
         notify(LWKey.RepaintAsync);
         
     }
 
-    private void setImageSize(int w, int h)
+    void setImageSize(int w, int h)
     {
         if (isRawImage) {
+            if (DEBUG.IMAGE) out("setImageSize RAW " + w + "x" + h);
             mImageWidth = w;
             mImageHeight = h;
         } else {
@@ -291,6 +292,7 @@ public class LWImage extends LWComponent
                 mImageHeight = MaxRenderSize;
                 mImageWidth = Math.round(w * MaxRenderSize / h);
             }
+            if (DEBUG.IMAGE) out("setImageSize FIXED " + mImageWidth + "x" + mImageHeight);
             setSize(mImageWidth, mImageHeight);
         }
     }
@@ -628,6 +630,10 @@ public class LWImage extends LWComponent
         controlPoints[0] = new LWSelection.ControlPoint(getCenterX(), getCenterY());
         controlPoints[0].setColor(null); // no fill (transparent)
         return controlPoints;
+    }
+
+    public String paramString() {
+        return super.paramString() + (isRawImage ? " RAW" : " fixed");
     }
 
 
