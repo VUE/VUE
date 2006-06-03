@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.101 $ / $Date: 2006-04-08 23:59:29 $ / $Author: sfraize $
+ * @version $Revision: 1.102 $ / $Date: 2006-06-03 04:53:34 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -399,13 +399,18 @@ public class LWMap extends LWContainer
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
             System.out.println(getLabel() + ": restore completed (nextID=" + nextID + ")");
         
-        /* now handled in LWComponent
+        /*
+          Now lay everything out.  We must wait till now to do this:
+          after all child scales have been updated.  TODO: There may
+          be an issue with the fact that we're not enforcing that this
+          be done depth-first..
+        */
+        
         Iterator i = getAllDescendentsIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.layout();
         }
-        */
         //setEventsResumed();
         markAsSaved();
     }

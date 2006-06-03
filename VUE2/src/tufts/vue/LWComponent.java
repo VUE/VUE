@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.192 $ / $Date: 2006-04-07 21:04:54 $ / $Author: sfraize $
+ * @version $Revision: 1.193 $ / $Date: 2006-06-03 04:53:15 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2043,7 +2043,7 @@ public class LWComponent
     public void XML_completed() {
         mXMLRestoreUnderway = false;
         if (DEBUG.XML) System.out.println("XML_completed " + this);
-        layout();
+        //layout(); need to wait till scale values are all set: so the LWMap needs to trigger this
     }
 
 
