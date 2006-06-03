@@ -50,7 +50,7 @@ import javax.imageio.ImageIO;
 //       the content.  Actually, would still be nice if this happened
 //       just by selecting the object, in case the resource previewer
 //       didn't happen to be open.
-          
+
 
 
 public class LWImage extends LWComponent
@@ -60,7 +60,7 @@ public class LWImage extends LWComponent
     static final float ChildImageScale = 0.2f;
     static final int MaxRenderSize = VueResources.getInt("image.maxRenderSize", 64); // max display pixels width or height at 100% map scale
     static final boolean RawImageSizes = false;
-    
+
     private final static int MinWidth = 10;
     private final static int MinHeight = 10;
     
@@ -72,6 +72,8 @@ public class LWImage extends LWComponent
     private Point2D.Float mOffset = new Point2D.Float(); // x & y always <= 0
     private Object mUndoMarkForThread;
     private boolean mImageError = false;
+    
+    private boolean isRawImage = false; // temporary for supporting old save files
     
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -115,6 +117,12 @@ public class LWImage extends LWComponent
         return true;
     }
 
+    public void setParent(LWContainer parent) {
+        super.setParent(parent);
+        if (parent instanceof LWNode == false)
+            isRawImage = true;
+    }
+
     /*
     public void setScale(float scale) {
         if (scale == 1f)
@@ -125,16 +133,13 @@ public class LWImage extends LWComponent
         }
     }
     */
-
-    /*
     public void XML_addNotify(String name, Object parent) {
         super.XML_addNotify(name, parent);
-        if (this.scale == 1f && parent instanceof LWNode)
-            setScale(ChildImageScale);
+        if (parent instanceof LWNode == false)
+            isRawImage = true;
+        //if (this.scale == 1f && parent instanceof LWNode)
+        //setScale(ChildImageScale);
     }
-    */
-    
-    
 
     public void layout() {
         mIconBlock.layout();
@@ -224,7 +229,7 @@ public class LWImage extends LWComponent
         // If we're interrupted before this happens, and this is the drop of a new image,
         // we'll see a zombie event complaint from this setSize which is safely ignorable.
         // todo: suspend events if our thread was interrupted
-        if (RawImageSizes && isCropped() == false) {
+        if (isRawImage && isCropped() == false) {
             // don't set size if we are cropped: we're probably reloading from a saved .vue
             setSize(width, height);
         }
@@ -242,7 +247,7 @@ public class LWImage extends LWComponent
         //mImageHeight = h;
         mImage = image;
 
-        if (RawImageSizes && isCropped() == false)
+        if (isRawImage && isCropped() == false)
             setSize(w, h);
         
         if (mUndoMarkForThread == null) {
@@ -275,14 +280,19 @@ public class LWImage extends LWComponent
 
     private void setImageSize(int w, int h)
     {
-        if (w > h) {
-            mImageWidth = MaxRenderSize;
-            mImageHeight = Math.round(h * MaxRenderSize / w);
+        if (isRawImage) {
+            mImageWidth = w;
+            mImageHeight = h;
         } else {
-            mImageHeight = MaxRenderSize;
-            mImageWidth = Math.round(w * MaxRenderSize / h);
+            if (w > h) {
+                mImageWidth = MaxRenderSize;
+                mImageHeight = Math.round(h * MaxRenderSize / w);
+            } else {
+                mImageHeight = MaxRenderSize;
+                mImageWidth = Math.round(w * MaxRenderSize / h);
+            }
+            setSize(mImageWidth, mImageHeight);
         }
-        setSize(mImageWidth, mImageHeight);
     }
 
     
@@ -483,7 +493,7 @@ public class LWImage extends LWComponent
             dc.g.drawImage(mImage, transform, null);
             dc.g.setComposite(AlphaComposite.Src);
         }
-        if (RawImageSizes) {
+        if (isRawImage) {
             Shape oldClip = dc.g.getClip();
             dc.g.clip(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
             //dc.g.clip(new Ellipse2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight())); // works nicely
