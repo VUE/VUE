@@ -34,14 +34,14 @@ import javax.swing.*;
  * TODO: merge common code with PreviewPane, and perhaps put in a 3rd class
  * so can have multiple icons referencing the same underlying image.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-04-24 17:24:18 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2006-06-03 20:20:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 public class ResourceIcon
     implements javax.swing.Icon, Images.Listener, Runnable
 {
-    private final Image NoImage = VueResources.getImage("NoImage");
+    private final Image NoImage = VueResources.getImage("/icon_noimage32.gif");
     
     private Resource mResource;
     private Object mPreviewData;
