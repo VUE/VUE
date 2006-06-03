@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.21 $ / $Date: 2006-06-03 21:12:20 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2006-06-03 21:56:54 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -72,7 +72,7 @@ public class InspectorPane extends JPanel
 
         stack.addPane("Information",            mSummaryPane,           0f);
         stack.addPane("Content Preview",        mPreview,               0.3f);
-        stack.addPane("Content Description",    mResourceMetaData,      1f);
+        stack.addPane("Content Info",           mResourceMetaData,      1f);
         stack.addPane("Notes",                  mNotePanel,             1f);
         stack.addPane("Keywords",               mUserMetaData,          1f);
         //stack.addPane("Nested Nodes",           mNodeTree,              1f);
