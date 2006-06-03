@@ -34,7 +34,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.23 $ / $Date: 2006-06-03 23:34:47 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2006-06-03 23:39:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -321,7 +321,7 @@ public class WidgetStack extends Widget
                 } else {
                     mGradient = Gradient;
                 }
-                mTitle.setText(VueResources.getString(localKey + ".title", label));
+                mTitle.setText(VueResources.getString(localKey + ".text", label));
             } else
                 mGradient = Gradient;
 
