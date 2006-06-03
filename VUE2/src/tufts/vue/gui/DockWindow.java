@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.74 $ / $Date: 2006-06-02 19:22:28 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2006-06-03 02:48:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3605,7 +3605,7 @@ public class DockWindow extends javax.swing.JWindow
                                               15, // fixed width
                                               TitleHeight); // fixed height
                      
-             if (isMacAqua)
+             //if (isMacAqua)
                  mOpenLabel.setBorder(new EmptyBorder(0,0,1,0)); // t,l,b,r
              
              if (DEBUG.BOXES) {
@@ -3613,31 +3613,34 @@ public class DockWindow extends javax.swing.JWindow
                  mLabel.setOpaque(true);
              }
              
-
-             // All close icons at left for now as need
-             // to leave room for the menu thingie at right
+             //JLabel helpButton = new JLabel(GUI.getIcon("btn_help_top.gif"));
+             // todo for Melanie: new icons should be appearing in gui/icons
+             JLabel helpButton = new JLabel(VueResources.getImageIconResource("/tufts/vue/images/btn_help_top.gif"));
+             helpButton.setToolTipText("Help Text");
+             String helpText = VueResources.getString("dockWindow." + getName() + ".helpText");
+             if (helpText != null)
+                 helpButton.setToolTipText(helpText);
              
-             if (true || isMacAqua) {
+             if (isMacAqua) {
                  // close button at left
                  add(Box.createHorizontalStrut(6));
                  add(mCloseButton);
                  add(mOpenLabel);
                  add(mLabel);
+                 add(Box.createGlue());
+                 add(helpButton);
              } else {
                  // close button at right
-                 add(Box.createHorizontalStrut(12));
+                 add(Box.createHorizontalStrut(6));
+                 add(mOpenLabel);
+                 add(Box.createHorizontalStrut(2));
                  add(mLabel);
                  add(Box.createGlue());
+                 add(helpButton);
+                 add(Box.createHorizontalStrut(3));
                  add(mCloseButton);
-                 add(Box.createHorizontalStrut(2));
              }
 
-             add(Box.createGlue());
-             //JLabel helpButton = new JLabel(GUI.getIcon("btn_help_top.gif"));
-             // todo for Melanie: new icons should be appearing in gui/icons
-             JLabel helpButton = new JLabel(VueResources.getImageIconResource("/tufts/vue/images/btn_help_top.gif"));
-             helpButton.setToolTipText("Help Text");
-             add(helpButton);
              add(Box.createHorizontalStrut(2));
              
              if (isGradientTitle)
@@ -3834,35 +3837,28 @@ public class DockWindow extends javax.swing.JWindow
     private static class CloseButton extends JLabel {
             
         private final Icon iconClose;
-        private final Icon iconBlank;
+        private final Icon iconOver;
 
         private boolean visible = true;
-        /*
-        static final Icon iconClose = VueResources.getIcon("macSmallWindowCloseIcon");
-        static final Icon iconBlank = isDarkTitleBar ?
-            VueResources.getIcon("macSmallWindowBlankIcon_dark") :
-            VueResources.getIcon("macSmallWindowBlankIcon");
-        */
         
         public CloseButton(final DockWindow dockWindow) {
 
             setName(dockWindow.getName());
 
             if (dockWindow.isToolbar) {
-                iconClose = VueResources.getIcon("macTinyWindowCloseIcon");
-                iconBlank = VueResources.getIcon("macTinyWindowBlankIcon");
+                iconClose = VueResources.getIcon("gui.dockToolbar.closeIcon");
+                iconOver = VueResources.getIcon("gui.dockToolbar.closeIcon.over");
             } else {
-                iconClose = VueResources.getIcon("macSmallWindowCloseIcon");
-                iconBlank = isDarkTitleBar ?
-                    VueResources.getIcon("macSmallWindowBlankIcon_dark") :
-                    VueResources.getIcon("macSmallWindowBlankIcon");
+                iconClose = VueResources.getIcon("gui.dockWindow.closeIcon");
+                iconOver = VueResources.getIcon("gui.dockWindow.closeIcon.over");
             }
 
+            setIcon(iconClose);
             
-            if (isMacAqua)
-                setIcon(iconBlank);
-            else
-                setIcon(new SquareCloseIcon());
+//             if (isMacAqua)
+//                 setIcon(iconBlank);
+//             else
+//                 setIcon(new SquareCloseIcon());
 
             addMouseListener(new tufts.vue.MouseAdapter(getClass()) {
                     public void mouseEntered(MouseEvent e) { setRollover(true); }
@@ -3886,10 +3882,11 @@ public class DockWindow extends javax.swing.JWindow
         }
 
         private void setRollover(boolean lit) {
-            if (isMacAqua)
-                setIcon(lit ? iconClose : iconBlank);
-            else
-                ((SquareCloseIcon)getIcon()).setRollover(lit);
+            setIcon(lit ? iconOver : iconClose);
+//             if (isMacAqua)
+//                 setIcon(lit ? iconClose : iconBlank);
+//             else
+//                 ((SquareCloseIcon)getIcon()).setRollover(lit);
         }
 
         private class SquareCloseIcon implements Icon {
