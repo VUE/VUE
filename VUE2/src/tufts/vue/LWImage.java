@@ -58,6 +58,8 @@ public class LWImage extends LWComponent
 {
     /** scale of images when a child of other nodes */
     static final float ChildImageScale = 0.2f;
+    static final int MaxRenderSize = VueResources.getInt("image.maxRenderSize", 64); // max display pixels width or height at 100% map scale
+    static final boolean RawImageSizes = false;
     
     private final static int MinWidth = 10;
     private final static int MinHeight = 10;
@@ -65,7 +67,8 @@ public class LWImage extends LWComponent
     private Image mImage;
     private int mImageWidth = -1;
     private int  mImageHeight = -1;
-    private double rotation = 0;
+    private double mImageScale = 1; // scale to the fixed size
+    private double mRotation = 0;
     private Point2D.Float mOffset = new Point2D.Float(); // x & y always <= 0
     private Object mUndoMarkForThread;
     private boolean mImageError = false;
@@ -89,7 +92,7 @@ public class LWImage extends LWComponent
         i.mImageHeight = mImageHeight;
         i.mImageError = mImageError;
         i.setOffset(this.mOffset);
-        i.setRotation(this.rotation);
+        i.setRotation(this.mRotation);
         return i;
     }
 
@@ -123,11 +126,14 @@ public class LWImage extends LWComponent
     }
     */
 
+    /*
     public void XML_addNotify(String name, Object parent) {
         super.XML_addNotify(name, parent);
         if (this.scale == 1f && parent instanceof LWNode)
             setScale(ChildImageScale);
     }
+    */
+    
     
 
     public void layout() {
@@ -203,8 +209,9 @@ public class LWImage extends LWComponent
     /** @see Images.Listener */
     public synchronized void gotImageSize(Object imageSrc, int width, int height)
     {
-        mImageWidth = width;
-        mImageHeight = height;
+        //mImageWidth = width;
+        //mImageHeight = height;
+        setImageSize(width, height);
 
         if (mUndoMarkForThread == null) {
             if (DEBUG.Enabled) out("gotImageSize: no undo key");
@@ -217,7 +224,7 @@ public class LWImage extends LWComponent
         // If we're interrupted before this happens, and this is the drop of a new image,
         // we'll see a zombie event complaint from this setSize which is safely ignorable.
         // todo: suspend events if our thread was interrupted
-        if (isCropped() == false) {
+        if (RawImageSizes && isCropped() == false) {
             // don't set size if we are cropped: we're probably reloading from a saved .vue
             setSize(width, height);
         }
@@ -230,11 +237,14 @@ public class LWImage extends LWComponent
         // Be sure to set the image before detaching from the thread,
         // or when the detach issues repaint events, we won't see the image.
         mImageError = false;
-        mImageWidth = w;
-        mImageHeight = h;
+        setImageSize(w, h);
+        //mImageWidth = w;
+        //mImageHeight = h;
         mImage = image;
-        if (isCropped() == false)
+
+        if (RawImageSizes && isCropped() == false)
             setSize(w, h);
+        
         if (mUndoMarkForThread == null) {
             notify(LWKey.RepaintAsync);
         } else {
@@ -262,8 +272,19 @@ public class LWImage extends LWComponent
         notify(LWKey.RepaintAsync);
         
     }
-    
-    
+
+    private void setImageSize(int w, int h)
+    {
+        if (w > h) {
+            mImageWidth = MaxRenderSize;
+            mImageHeight = h * MaxRenderSize / w;
+        } else {
+            mImageHeight = MaxRenderSize;
+            mImageWidth = w * MaxRenderSize / h;
+        }
+        setSize(mImageWidth, mImageHeight);
+    }
+
     
     /**
      * Don't let us get bigger than the size of our image, or
@@ -331,12 +352,12 @@ public class LWImage extends LWComponent
         };
     
     public void setRotation(double rad) {
-        Object old = new Double(rotation);
-        this.rotation = rad;
+        Object old = new Double(mRotation);
+        this.mRotation = rad;
         notify(KEY_Rotation, old);
     }
     public double getRotation() {
-        return rotation;
+        return mRotation;
     }
 
     public static final Key Key_ImageOffset = new Key("image.pan") {
@@ -381,7 +402,20 @@ public class LWImage extends LWComponent
             // TODO: this is a hack because images are currently special cased as tied to their parent node
             return;
         }
+
+        dc.g.translate(getX(), getY());
+        float _scale = getScale();
+        if (_scale != 1f) dc.g.scale(_scale, _scale);
         
+        drawImage(dc);
+
+        if (_scale != 1f) dc.g.scale(1/_scale, 1/_scale);
+        dc.g.translate(-getX(), -getY());
+    }
+
+    /** For interactive images as separate objects, which are currently disabled */
+    public void drawInteractive(DrawContext dc)
+    {
         drawPathwayDecorations(dc);
         drawSelectionDecorations(dc);
         
@@ -441,21 +475,25 @@ public class LWImage extends LWComponent
         }
         
         AffineTransform transform = AffineTransform.getTranslateInstance(mOffset.x, mOffset.y);
-        if (rotation != 0 && rotation != 360)
-            transform.rotate(rotation, getImageWidth() / 2, getImageHeight() / 2);
+        if (mRotation != 0 && mRotation != 360)
+            transform.rotate(mRotation, getImageWidth() / 2, getImageHeight() / 2);
         
         if (isSelected() && dc.isInteractive() && dc.getActiveTool() instanceof ImageTool) {
             dc.g.setComposite(MatteTransparency);
             dc.g.drawImage(mImage, transform, null);
             dc.g.setComposite(AlphaComposite.Src);
         }
-        Shape oldClip = dc.g.getClip();
-        dc.g.clip(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
-        //dc.g.clip(new Ellipse2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight())); // works nicely
-        //dc.g.drawImage(mImage, 0, 0, this); // no help in drawing partial images
-        dc.g.drawImage(mImage, transform, null);
-        dc.g.setClip(oldClip);
-    }
+        if (RawImageSizes) {
+            Shape oldClip = dc.g.getClip();
+            dc.g.clip(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
+            //dc.g.clip(new Ellipse2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight())); // works nicely
+            //dc.g.drawImage(mImage, 0, 0, this); // no help in drawing partial images
+            dc.g.drawImage(mImage, transform, null);
+            dc.g.setClip(oldClip);
+        } else {
+            dc.g.drawImage(mImage, 0, 0, mImageWidth, mImageHeight, null);
+        }
+   }
 
     public void mouseOver(MapMouseEvent e)
     {
