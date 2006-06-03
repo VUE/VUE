@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.40 $ / $Date: 2006-06-03 00:40:28 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2006-06-03 01:02:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1387,10 +1387,10 @@ public class GUI
         public IconicLabel(char iconChar, int pointSize, Color color, int width, int height) {
             super(new String(new char[] { iconChar }), JLabel.CENTER);
             if (Util.isWindowsPlatform())
-                 setFont(new Font("Arial Unicode MS", Font.PLAIN, pointSize+4));
+                 setFont(new Font("Lucida Sans Unicode", Font.PLAIN, pointSize+4)); // this is included in default WinXP installations
+              // setFont(new Font("Arial Unicode MS", Font.PLAIN, pointSize+4)); // this is not
              else
-                 setFont(new Font("Lucida Sans Unicode", Font.PLAIN, pointSize)); // this is included in default WinXP installations
-               //setFont(new Font("Lucida Grande", Font.PLAIN, pointSize));  // this is not (probably requires Office installed)
+                 setFont(new Font("Lucida Grande", Font.PLAIN, pointSize));
             
             // todo: this may be a problem for Linux: does it have any decent default fonts that
             // include the fancy extended unicode character sets?
