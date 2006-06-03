@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.372 $ / $Date: 2006-06-03 21:58:03 $ / $Author: sfraize $ 
+ * @version $Revision: 1.373 $ / $Date: 2006-06-03 22:44:03 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -606,10 +606,14 @@ public class VUE
         //pannerDock.setSize(120,120);
         //pannerDock.setSize(112,120);
         //pannerDock.setUpperRightCorner(GUI.GScreenWidth, 150);
-        pannerDock.setMenuActions(new Action[] {
-                Actions.ZoomFit,
-                Actions.ZoomActual
-            });
+
+        if (Util.isMacPlatform()) {
+            // Can't do this on PC as 'x' close button is on right
+            pannerDock.setMenuActions(new Action[] {
+                    Actions.ZoomFit,
+                    Actions.ZoomActual
+                });
+        }
 
 
         //-----------------------------------------------------------------------------
