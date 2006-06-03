@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.39 $ / $Date: 2006-05-12 20:13:18 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2006-06-03 00:40:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -155,7 +155,8 @@ public class GUI
             } else
                 return new ColorUIResource(SystemColor.control);
         } else
-            return new ColorUIResource(VueResources.getColor("toolbar.background"));
+            //return new ColorUIResource(VueResources.getColor("toolbar.background"));
+            return new ColorUIResource(SystemColor.control);
     }
 
     public static void init()
@@ -245,6 +246,7 @@ public class GUI
             fontSize = 11;
         } else {
             fontName = "SansSerif";
+            //fontName = "Lucida Sans Unicode";
             fontSize = 11;
         }
         LabelFace = new GUI.Face(fontName, Font.PLAIN, fontSize, GUI.LabelColor);
@@ -1387,7 +1389,9 @@ public class GUI
             if (Util.isWindowsPlatform())
                  setFont(new Font("Arial Unicode MS", Font.PLAIN, pointSize+4));
              else
-                 setFont(new Font("Lucida Grande", Font.PLAIN, pointSize));
+                 setFont(new Font("Lucida Sans Unicode", Font.PLAIN, pointSize)); // this is included in default WinXP installations
+               //setFont(new Font("Lucida Grande", Font.PLAIN, pointSize));  // this is not (probably requires Office installed)
+            
             // todo: this may be a problem for Linux: does it have any decent default fonts that
             // include the fancy extended unicode character sets?
             //setFont(new Font("Arial Unicode MS", Font.PLAIN, (int) (((float)pointSize) * 1.3)));
