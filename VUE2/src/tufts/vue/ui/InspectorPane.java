@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.18 $ / $Date: 2006-05-11 19:57:16 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2006-06-03 20:27:14 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -153,12 +153,21 @@ public class InspectorPane extends JPanel
 
     private class ResourcePreview extends tufts.vue.ui.PreviewPane
     {
+        void loadResource(Resource r) {
+            super.loadResource(r);
+            String title = r.getTitle();
+            Widget.setTitle(this, title);
+            setToolTipText(title);
+        }
+    }
+    private class InlineTitleResourcePreview extends tufts.vue.ui.PreviewPane
+    {
         private final JLabel mTitleField;
         //private final JTextPane mTitleField;
         //private final JTextArea mTitleField;
         //private final PreviewPane mPreviewPane = new PreviewPane();
         
-        ResourcePreview() {
+        InlineTitleResourcePreview() {
             //super(new BorderLayout());
 
             // JTextArea -- no good (no HTML)
