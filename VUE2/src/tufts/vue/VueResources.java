@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.40 $ / $Date: 2006-05-03 03:55:47 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2006-06-03 20:14:01 $ / $Author: sfraize $
  *
  */
 public class VueResources
@@ -178,7 +178,12 @@ public class VueResources
     }
     
     public static Image getImage(String key)  {
-        ImageIcon icon = getImageIcon(key);
+        ImageIcon icon = null;
+        if (key.charAt(0) == '/')
+            icon = getImageIcon(VueResources.class, "images" + key);
+        else
+            icon = getImageIcon(key);
+        
         if (icon != null)
             return icon.getImage();
         else {
