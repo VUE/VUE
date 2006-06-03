@@ -34,7 +34,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.21 $ / $Date: 2006-06-03 02:48:03 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2006-06-03 20:28:04 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -564,13 +564,6 @@ public class WidgetStack extends Widget
             // get precise bounds for center, and create as a real Icon
             setBorder(new javax.swing.border.EmptyBorder(0,0,3,0));
             setMenuActions(actions);
-
-            /*
-            new Action[] {
-                new tufts.vue.VueAction("foo"),
-                new tufts.vue.VueAction("bar"),
-            });
-            */
             
         }
 
