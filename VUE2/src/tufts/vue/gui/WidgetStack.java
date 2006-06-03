@@ -34,7 +34,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.22 $ / $Date: 2006-06-03 20:28:04 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2006-06-03 23:34:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -294,15 +294,37 @@ public class WidgetStack extends Widget
         private boolean mEmbeddedStack = false;
         private boolean mTitleVisible = true; // if false, display widget, but not title (implies no user control)
 
+        private Color mTopColor;
+        private final GradientPaint mGradient;
+
         public WidgetTitle(String label, JComponent widget, boolean isExpander) {
             super(BoxLayout.X_AXIS);
             this.isExpander = isExpander;
             setName(label);
             setOpaque(true);
             mWidget = widget;
-            mTitle = new JLabel(label);
 
+            mTitle = new JLabel(label);
             GUI.init(mTitle, "gui.widget.title");
+            
+            String localName = widget.getName();
+            if (localName == null)
+                localName = label;
+            if (localName != null) {
+                String localKey = "gui.widget.title." + localName;
+                GUI.init(mTitle, localKey);
+                mTopColor = VueResources.getColor(localKey + ".background.top");
+                if (mTopColor != null) {
+                    Color botColor = VueResources.getColor(localKey + ".background.bottom", BottomGradient);
+                    mGradient = new GradientPaint(0,           0, mTopColor,
+                                                  0, TitleHeight, botColor);
+                } else {
+                    mGradient = Gradient;
+                }
+                mTitle.setText(VueResources.getString(localKey + ".title", label));
+            } else
+                mGradient = Gradient;
+
 
             // TODO: merge with DockWindow for offset / std property
             add(Box.createHorizontalStrut(isMac ? 17 : 6));
@@ -336,7 +358,7 @@ public class WidgetStack extends Widget
             addMouseListener(new tufts.vue.MouseAdapter(label) {
                     //public void mouseClicked(MouseEvent e) { if (!isLocked) Widget.setExpanded(mWidget, !mExpanded); }
                     public void mouseClicked(MouseEvent e) { handleMouseClicked(); }
-                    public void mousePressed(MouseEvent e) { if (!isLocked) mIcon.setForeground(TopGradient.brighter()); }
+                    public void mousePressed(MouseEvent e) { if (!isLocked) mIcon.setForeground(mTopColor.brighter()); }
                     public void mouseReleased(MouseEvent e) { if (!isLocked) mIcon.setForeground(Color.white); }
                 });
 
@@ -382,7 +404,7 @@ public class WidgetStack extends Widget
                 return;
             isLocked = locked;
             if (locked) {
-                mIcon.setForeground(TopGradient.darker());
+                mIcon.setForeground(mTopColor.darker());
                 mLockedWidget = this;
             } else {
                 mIcon.setForeground(Color.white);
@@ -536,7 +558,7 @@ public class WidgetStack extends Widget
             if (false && mEmbeddedStack)
                 g.setPaint(GradientEmbedded);
             else
-                g.setPaint(Gradient);
+                g.setPaint(mGradient);
             g.fillRect(0, 0, getWidth(), TitleHeight);
         }
 
@@ -613,8 +635,8 @@ public class WidgetStack extends Widget
         WidgetStack s = new WidgetStack();
 
         String[] names = new String[] { "One",
-                                        "Two",
-                                        "Three",
+                                        "contentPreview",
+                                        "contentInfo",
                                         "Four",
         };
 
