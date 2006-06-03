@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.19 $ / $Date: 2006-06-03 20:27:14 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2006-06-03 20:40:47 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -156,6 +156,13 @@ public class InspectorPane extends JPanel
         void loadResource(Resource r) {
             super.loadResource(r);
             String title = r.getTitle();
+            if (title == null)
+                title = r.getProperty("title");
+            // TODO: resource property lookups should be case insensitive
+            if (title == null)
+                title = r.getProperty("Title");
+            if (title == null)
+                title = "Content Preview";
             Widget.setTitle(this, title);
             setToolTipText(title);
         }
