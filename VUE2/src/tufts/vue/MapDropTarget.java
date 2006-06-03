@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.57 $ / $Date: 2006-05-12 19:41:08 $ / $Author: sfraize $  
+ * @version $Revision: 1.58 $ / $Date: 2006-06-03 18:39:41 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -858,7 +858,7 @@ class MapDropTarget
         if (DEBUG.IMAGE || DEBUG.IO) System.out.println("host " + url.getHost() + " query " + url.getQuery());
 
         Map data = VueUtil.getQueryData(query);
-        if (false && DEBUG.DND) {
+        if (DEBUG.DND && DEBUG.META) {
             String[] pairs = query.split("&");
             for (int i = 0; i < pairs.length; i++) {
                 System.out.println("query pair " + pairs[i]);
@@ -878,8 +878,14 @@ class MapDropTarget
             imageURL = (String) data.get("img"); // Netscape search
         if (imageURL == null && host.endsWith(".ask.com"))
             imageURL = (String) data.get("u"); // ask jeeves, but only from their context page
-                
-                
+
+        // TODO: ask.com now has multiple levels of indirection of query pair sets
+        // to get through...
+        
+        // Attempt a default
+        if (imageURL == null)
+            imageURL = (String) data.get("url");
+            
         URL redirectURL = null;
 
         if (imageURL != null &&
