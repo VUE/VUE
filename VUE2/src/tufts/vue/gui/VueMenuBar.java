@@ -21,7 +21,7 @@ import javax.swing.JCheckBoxMenuItem;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-05-26 17:55:25 $ / $Author: jeff $
+ * @version $Revision: 1.6 $ / $Date: 2006-06-03 20:46:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -79,7 +79,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         //adding actions
         SaveAction saveAction = new SaveAction("Save", false);
         SaveAction saveAsAction = new SaveAction("Save As...");
-        OpenAction openAction = new OpenAction("Open Map...");
+        OpenAction openAction = new OpenAction("Open...");
         ExitAction exitAction = new ExitAction("Quit");
         Publish publishAction = new Publish("Export");
         
