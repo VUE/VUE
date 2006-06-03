@@ -376,6 +376,12 @@ public class LWImage extends LWComponent
     private static final AlphaComposite HudTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f);
     public void draw(DrawContext dc)
     {
+        LWComponent c = getParent();
+        if (c != null && c.isFiltered()) {
+            // TODO: this is a hack because images are currently special cased as tied to their parent node
+            return;
+        }
+        
         drawPathwayDecorations(dc);
         drawSelectionDecorations(dc);
         
