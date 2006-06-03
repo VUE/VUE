@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.41 $ / $Date: 2006-06-03 20:14:01 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2006-06-03 23:44:11 $ / $Author: sfraize $
  *
  */
 public class VueResources
@@ -373,6 +373,11 @@ public class VueResources
         }
         return result;
     }
+
+    public final static String getString(String key, String defaultString) {
+        String s = getString(key);
+        return s == null ? defaultString : s;
+    }
 	
     /**
      * getStringArray()
@@ -615,7 +620,7 @@ public class VueResources
           //if (dr >= 0)
               //value = new Color(dr, dg, db);
             else
-                alert("No such resource (color): " + key);
+                if (DEBUG.INIT) alert("No such resource (color): " + key);
         }
         
         Cache.put(key, value);
