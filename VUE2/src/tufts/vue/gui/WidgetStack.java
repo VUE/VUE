@@ -34,7 +34,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.20 $ / $Date: 2006-05-12 20:56:08 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2006-06-03 02:48:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -304,15 +304,8 @@ public class WidgetStack extends Widget
 
             GUI.init(mTitle, "gui.widget.title");
 
-//             mTitle.setForeground(Color.white);
-//             if (isMac)
-//                 mTitle.setFont(new Font("Lucida Grande", Font.BOLD, 11));
-//             else
-//                 mTitle.setFont(new Font("Lucida Grande", Font.BOLD, 13));
-
-            
             // TODO: merge with DockWindow for offset / std property
-            add(Box.createHorizontalStrut(17));
+            add(Box.createHorizontalStrut(isMac ? 17 : 6));
 //             int iconHeight = 10;
 //             int iconWidth = 9;
 //             int fontSize = 9;
@@ -324,18 +317,17 @@ public class WidgetStack extends Widget
                                         Color.white,
                                         15, // fixed width
                                         10); // fixed height
-             if (isMac)
+            //if (isMac)
                  mIcon.setBorder(new javax.swing.border.EmptyBorder(0,0,1,0)); // t,l,b,r
              
             add(mIcon);
             
-            add(Box.createHorizontalStrut(4));
+            add(Box.createHorizontalStrut(isMac ? 1 : 2));
             add(mTitle);
 
             add(Box.createGlue());
             mMenuButton = new MenuButton(Chevron, null);
             add(mMenuButton);
-
             
             setPreferredSize(new Dimension(50, TitleHeight));
             setMaximumSize(new Dimension(Short.MAX_VALUE, TitleHeight));
