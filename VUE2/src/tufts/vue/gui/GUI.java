@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.41 $ / $Date: 2006-06-03 01:02:05 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2006-06-03 04:07:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -747,6 +747,7 @@ public class GUI
     
     private static Map CursorMap = new HashMap();
     private static boolean WaitCursorActive = false;
+    private static Component ViewerWithWaitCursor;
     
     public static synchronized void activateWaitCursor() {
         //tufts.Util.printStackTrace("ACTIAVTE WAIT-CURSOR");
@@ -772,7 +773,7 @@ public class GUI
             // the view as it's own case as it may have a tool active that has a different
             // cursor than the default currently active.
             
-            activateWaitCursor(VUE.getActiveViewer());
+            activateWaitCursor(ViewerWithWaitCursor = VUE.getActiveViewer());
             activateWaitCursor(VUE.ApplicationFrame);
             activateWaitCursor(getFullScreenWindow());
             Iterator i = DockWindow.sAllWindows.iterator();
@@ -809,7 +810,7 @@ public class GUI
                 if (DEBUG.THREAD) VUE.Log.info("\t(wait cursors already cleared)");
                 return;
             }
-            clearWaitCursor(VUE.getActiveViewer());
+            clearWaitCursor(ViewerWithWaitCursor);
             clearWaitCursor(VUE.ApplicationFrame);
             clearWaitCursor(getFullScreenWindow());
             Iterator i = DockWindow.sAllWindows.iterator();
