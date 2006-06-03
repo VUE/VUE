@@ -277,10 +277,10 @@ public class LWImage extends LWComponent
     {
         if (w > h) {
             mImageWidth = MaxRenderSize;
-            mImageHeight = h * MaxRenderSize / w;
+            mImageHeight = Math.round(h * MaxRenderSize / w);
         } else {
             mImageHeight = MaxRenderSize;
-            mImageWidth = w * MaxRenderSize / h;
+            mImageWidth = Math.round(w * MaxRenderSize / h);
         }
         setSize(mImageWidth, mImageHeight);
     }
