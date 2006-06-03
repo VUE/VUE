@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.20 $ / $Date: 2006-06-03 20:40:47 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2006-06-03 21:12:20 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -61,7 +61,7 @@ public class InspectorPane extends JPanel
     public InspectorPane()
     {
         super(new BorderLayout());
-        setName("Properties");
+        setName("Info");
 
         mSummaryPane = new SummaryPane();
         //mResourceMetaData = new PropertiesEditor(false);
