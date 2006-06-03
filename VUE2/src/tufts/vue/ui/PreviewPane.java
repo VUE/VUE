@@ -34,14 +34,14 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-04-10 18:47:55 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-06-03 20:13:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 public class PreviewPane extends JPanel
     implements Images.Listener, Runnable
 {
-    private final Image NoImage = VueResources.getImage("NoImage");
+    private final Image NoImage = VueResources.getImage("/icon_noimage64.gif");
     
     private static boolean FirstPreview = true;
 
@@ -53,11 +53,6 @@ public class PreviewPane extends JPanel
     private boolean isLoading = false;
 
     private final JLabel StatusLabel = new JLabel("(status)", JLabel.CENTER);
-    //private final JTextArea StatusLabel = new JTextArea("(status)");
-    //private final JTextPane StatusLabel = new JTextPane();
-    // how in holy hell to get a multi-line text object centered w/out using a styled document?
-
-    //private Image LoadingImage = null;
         
     PreviewPane() {
         super(new BorderLayout());
