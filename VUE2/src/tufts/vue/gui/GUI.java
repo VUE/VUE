@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.42 $ / $Date: 2006-06-03 04:07:17 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2006-06-03 20:18:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1685,6 +1685,12 @@ public class GUI
         if (DEBUG.DND) out("startSystemDrag: " + transfer);
         
         Point imageOffset = null;
+
+        // The windows platform, at least as of XP, doesn't support dragging an image,
+        // and doing image creation noticably slows down the start of the drag, so
+        // we skip it. (Don't know about Linux)
+        if (Util.isWindowsPlatform())
+            image = null;
         
         if (image != null) {
             int w = image.getWidth(null);
