@@ -146,7 +146,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-04-21 03:34:39 $ / $Author: sfraize $ 
+ * @version $Revision: 1.7 $ / $Date: 2006-06-03 18:57:34 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -351,6 +351,8 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             
         case ComponentEvent.COMPONENT_SHOWN:
             //case PaintEvent.PAINT:
+
+            if (true) break; // Skip dialog on-top code for now and see what breaks SMF 2006-06-03 15:02.36
 
             // even if we're not using always on top in general,
             // we now always use it for 1.5 dialog's with no parent,
