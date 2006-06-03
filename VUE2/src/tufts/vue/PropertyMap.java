@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-04-26 21:07:41 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2006-06-03 21:07:19 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap
@@ -41,6 +41,10 @@ public class PropertyMap extends java.util.HashMap
     public PropertyMap() {}
 
     public synchronized Object put(Object k, Object v) {
+
+        // TODO: we want to *preserve* case for display, but not differentiate based on it...
+        //if (k instanceof String) k = ((String)k).toLowerCase();
+
         Object prior = super.put(k, v);
 
         // todo: this a bit overkill: could have a higher level
@@ -77,7 +81,7 @@ public class PropertyMap extends java.util.HashMap
      */
     public synchronized String addProperty(final String desiredKey, Object value) {
         String key = desiredKey;
-        int index = 1;
+        int index = 10;
         while (containsKey(key))
             key = desiredKey + "." + index++;
         put(key, value);
@@ -141,13 +145,24 @@ public class PropertyMap extends java.util.HashMap
     private static class Entry implements Comparable {
         final String key;
         final Object value;
-        Entry(Map.Entry e) {
-            key = tufts.Util.upperCaseWords((String) e.getKey());
-            value = e.getValue();
+        final boolean priority;
+        
+        Entry(Map.Entry e, boolean priority) {
+            this.key = tufts.Util.upperCaseWords((String) e.getKey());
+            this.value = e.getValue();
+            this.priority = priority;
         }
 
+        Entry(Map.Entry e) {
+            this(e, false);
+        }
         public int compareTo(Object o) {
-            return key.compareTo(((Entry)o).key);
+            if (priority)
+                return Short.MIN_VALUE;
+            else if (((Entry)o).priority)
+                return Short.MAX_VALUE;
+            else
+                return key.compareTo(((Entry)o).key);
         }
 
         public String toString() {
@@ -168,8 +183,14 @@ public class PropertyMap extends java.util.HashMap
             mEntries = new Entry[size()];
             Iterator i = entrySet().iterator();
             int ei = 0;
-            while (i.hasNext())
-                mEntries[ei++] = new Entry((Map.Entry)i.next());
+            while (i.hasNext()) {
+                Map.Entry e = (Map.Entry) i.next();
+                boolean priority = false;
+                if ("title".equalsIgnoreCase((String)e.getKey()))
+                    priority = true;
+                mEntries[ei++] = new Entry(e, priority);
+            }
+            
             Arrays.sort(mEntries);
 
             /*
