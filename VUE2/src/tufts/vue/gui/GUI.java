@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.44 $ / $Date: 2006-06-03 22:50:48 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2006-06-04 20:45:24 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -73,6 +73,7 @@ public class GUI
 
     public static final Color AquaFocusBorderLight = new Color(157, 191, 222);
     public static final Color AquaFocusBorderDark = new Color(137, 170, 201);
+    public static final boolean ControlMaxWindow = false;
     
     public static boolean UseAlwaysOnTop = false;
     
@@ -379,7 +380,8 @@ public class GUI
         }
 
         if (!VUE.isStartupUnderway() && VUE.getApplicationFrame() != null) {
-            VUE.getApplicationFrame().setMaximizedBounds(VueMaxWindowBounds(GMaxWindowBounds));
+            if (ControlMaxWindow)
+                VUE.getApplicationFrame().setMaximizedBounds(VueMaxWindowBounds(GMaxWindowBounds));
 
             if (DockWindow.MainDock != null) {
                 if (DockWindow.MainDock.mGravity == DockRegion.BOTTOM) {
@@ -406,7 +408,10 @@ public class GUI
 
     public static Rectangle getMaximumWindowBounds() {
         refreshGraphicsInfo();
-        return VueMaxWindowBounds(GMaxWindowBounds);
+        if (ControlMaxWindow)
+            return VueMaxWindowBounds(GMaxWindowBounds);
+        else
+            return GMaxWindowBounds;
     }
 
     public static int getMaxWindowHeight() {
