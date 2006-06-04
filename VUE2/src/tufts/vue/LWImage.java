@@ -157,6 +157,10 @@ public class LWImage extends LWComponent
     }
     
     public void setResource(Resource r) {
+        if (r == null) {
+            if (DEBUG.Enabled) out("nulling out LWImage resource: should only happen if it's creation is being undone");
+            return;
+        }
         setResourceAndLoad(r, null);
     }
 
