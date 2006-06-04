@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.47 $ / $Date: 2006-03-24 21:38:12 $ / $Author: sfraize $ 
+ * @version $Revision: 1.48 $ / $Date: 2006-06-04 23:17:00 $ / $Author: sfraize $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -403,8 +403,8 @@ public class MapInspectorPanel extends JPanel
             //setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
             setLayout(new BorderLayout());
             setBorder( BorderFactory.createEmptyBorder(10,10,0,6));
+            setName("Keywords");
         }
-        
         
         public MetadataPanel(LWMap map) {
             this();
@@ -418,9 +418,7 @@ public class MapInspectorPanel extends JPanel
         
         public void propertyChange(PropertyChangeEvent evt) {
         }
-        public String getName() {
-            return "Metadata"; // this should come from VueResources
-        }
+
         public void updatePanel( LWMap pMap) {
             // update the display
             if(propertiesEditor != null) {
