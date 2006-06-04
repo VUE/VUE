@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.373 $ / $Date: 2006-06-03 22:44:03 $ / $Author: sfraize $ 
+ * @version $Revision: 1.374 $ / $Date: 2006-06-04 22:14:26 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -871,7 +871,7 @@ public class VUE
             MapInspector,
             //GUI.isSmallScreen() ? null : fontDock,
             pathwayDock,
-            formatDock,
+            //formatDock,
             DR_BROWSER_DOCK,
             ObjectInspector,
             //resourceDock,
@@ -947,7 +947,7 @@ public class VUE
         // setting them to the left of that, and then set first in
         // preShown at left edge of screen
 
-        if (DEBUG.INIT || (DEBUG.DOCK && DEBUG.META)) Util.printStackTrace("\n\nSTARTING PLACEMENT");
+        if (DEBUG.INIT || (DEBUG.DOCK /*&& DEBUG.META*/)) Util.printStackTrace("\n\nSTARTING PLACEMENT");
         
         int top = GUI.GInsets.top;
 
@@ -956,15 +956,32 @@ public class VUE
         else
             top += 52; // todo: tweak for PC
 
-        DockWindow toRightDW = preShown[preShown.length - 1];
+        boolean squeezeDown = GUI.GScreenWidth < 1200;
+        boolean didSqueeze = false;
+
+        int nextLayout = preShown.length - 1;
+
+        if (squeezeDown) {
+            // Swap last two, so "last" is the one pushed down
+            DockWindow tmp = preShown[nextLayout];
+            preShown[nextLayout] = preShown[nextLayout - 1];
+            preShown[nextLayout - 1] = tmp;
+        }
+        
+        DockWindow toRightDW = preShown[nextLayout];
         toRightDW.setUpperRightCorner(GUI.GScreenWidth, top);
+        if (squeezeDown)
+            toRightDW.setHeight(toRightDW.getHeight() / 2);
         DockWindow curDW = null;
-        for (int i = preShown.length - 2; i > 0; i--) {
-            curDW = preShown[i];
-            if (curDW == null)
-                continue;
-            curDW.setUpperRightCorner(toRightDW.getX(), top);
-            toRightDW = curDW;
+        while (--nextLayout > 0) {
+            curDW = preShown[nextLayout];
+            if (squeezeDown && !didSqueeze) {
+                didSqueeze = true;
+                toRightDW.addChild(curDW);
+            } else {
+                curDW.setUpperRightCorner(toRightDW.getX(), top);
+                toRightDW = curDW;
+            }
         }
         if (preShown.length > 1)
             preShown[0].setLocation(0, top);
