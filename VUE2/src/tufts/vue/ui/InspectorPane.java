@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.22 $ / $Date: 2006-06-03 21:56:54 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2006-06-04 22:15:25 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -153,6 +153,9 @@ public class InspectorPane extends JPanel
 
     private class ResourcePreview extends tufts.vue.ui.PreviewPane
     {
+        ResourcePreview() {
+            setName("contentPreview");
+        }
         void loadResource(Resource r) {
             super.loadResource(r);
             String title = r.getTitle();
@@ -360,6 +363,7 @@ public class InspectorPane extends JPanel
             super(new GridBagLayout());
             //setBorder(new EmptyBorder(4, GUI.WidgetInsets.left, 4, 0));
             setBorder(GUI.WidgetInsetBorder);
+            setName("nodeSummary");
             
             labelValue.setBorder(null);
             contentValue.setEditable(false);
@@ -495,6 +499,7 @@ public class InspectorPane extends JPanel
         MetaDataPane() {
             super(new BorderLayout());
             
+            setName("contentInfo");
             ensureSlots(20);
 
             mLabels[0].setText("X"); // make sure label will know it's max height
