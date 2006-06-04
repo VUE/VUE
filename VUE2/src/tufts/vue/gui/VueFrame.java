@@ -19,7 +19,7 @@ import javax.swing.SwingUtilities;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.4 $ / $Date: 2006-05-30 21:12:21 $ / $Author: sfraize $ 
+ * @version $Revision: 1.5 $ / $Date: 2006-06-04 20:45:53 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
 //public class VueFrame extends com.jidesoft.docking.DefaultDockableHolder
@@ -43,7 +43,8 @@ public class VueFrame extends javax.swing.JFrame
         } else {
             setIconImage(VueResources.getImage("vueIcon32"));
         }
-        setMaximizedBounds(GUI.getMaximumWindowBounds());
+        if (GUI.ControlMaxWindow)
+            setMaximizedBounds(GUI.getMaximumWindowBounds());
 
         // we need this to make sure kdb input
         //setJMenuBar(new VueMenuBar());        
