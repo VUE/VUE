@@ -34,7 +34,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.24 $ / $Date: 2006-06-03 23:39:43 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2006-06-04 22:14:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -324,6 +324,9 @@ public class WidgetStack extends Widget
                 mTitle.setText(VueResources.getString(localKey + ".text", label));
             } else
                 mGradient = Gradient;
+
+            if (mTopColor == null)
+                mTopColor = TopGradient;
 
 
             // TODO: merge with DockWindow for offset / std property
