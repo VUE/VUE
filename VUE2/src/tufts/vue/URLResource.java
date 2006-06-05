@@ -37,7 +37,7 @@ import com.sun.image.codec.jpeg.*;
 /**
  * The class is handles a reference to either a local file or a URL.
  *
- * @version $Revision: 1.15 $ / $Date: 2006-05-08 23:53:27 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2006-06-05 16:31:51 $ / $Author: sfraize $
  */
 
 // TODO: this needs major cleanup.
@@ -203,6 +203,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
                 setProperty("URL.protocol", mURL.getProtocol());
                 setProperty("URL.userInfo", mURL.getUserInfo());
                 setProperty("URL.host", mURL.getHost());
+                setProperty("URL.authority", mURL.getAuthority());
                 setProperty("URL.path", mURL.getPath());
                 // setProperty("url.file", url.getFile()); // same as path (doesn't get us stub after last /)
                 setProperty("URL.query", mURL.getQuery());
