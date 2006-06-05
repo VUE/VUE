@@ -711,6 +711,38 @@ public class Util
         }
     }
 
+    public static void dumpURL(URL u) {
+        out("URL dump: " + u
+            + "\n\t  protocol " + u.getProtocol()
+            + "\n\t  userInfo " + u.getUserInfo()
+            + "\n\t authority [" + u.getAuthority() + "]"
+            + "\n\t      host [" + u.getHost() + "]"
+            + "\n\t      port " + u.getPort()
+            + "\n\t      path " + u.getPath()
+            + "\n\t      file " + u.getFile()
+            + "\n\t     query " + u.getQuery()
+            + "\n\t       ref " + u.getRef()
+            );
+        
+    }
+
+    public static void dumpURI(URI u) {
+        out("URI dump: " + u
+            + "\n\t       scheme " + u.getScheme()
+            + "\n\t rawAuthority " + u.getRawAuthority()
+            + "\n\t    authority " + u.getAuthority()
+            + "\n\t     userInfo " + u.getUserInfo()
+            + "\n\t         host " + u.getHost()
+            + "\n\t         port " + u.getPort()
+            + "\n\t      rawPath " + u.getRawPath()
+            + "\n\t         path " + u.getPath()
+            + "\n\t     rawQuery " + u.getRawQuery()
+            + "\n\t        query " + u.getQuery()
+            + "\n\t  rawFragment " + u.getRawFragment()
+            + "\n\t     fragment " + u.getFragment()
+            );
+        
+    }
 
     /** center the given window on default physical screen */
     public static void centerOnScreen(java.awt.Window window)
