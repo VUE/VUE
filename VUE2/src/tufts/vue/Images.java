@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.14 $ / $Date: 2006-06-03 19:20:39 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2006-06-05 15:23:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -290,8 +290,24 @@ public class Images
             if (readable instanceof java.net.URL) {
                 URL url = (URL) readable;
                 this.key = makeKey(url);
-                if ("file".equals(key.getScheme()))
-                    this.readable = new File(url.getPath());
+                if (DEBUG.IMAGE && DEBUG.META) {
+                    Util.dumpURL(url);
+                    try {Util.dumpURI(url.toURI());} catch (Throwable t) { out(t); }
+                }
+                if ("file".equals(key.getScheme())) {
+                    
+                    // If this is a Win32 file://C:\foo\bar path, we must include the
+                    // URL "authority", which is where the "C:" is (it's not included in
+                    // the path).  This is tested on Win2K & WinXP as of June 2006.
+                    
+                    final String driveLetter = url.getAuthority();
+                    final String fullPath;
+                    if (driveLetter != null)
+                        fullPath = driveLetter + url.getFile();
+                    else
+                        fullPath = url.getFile();
+                    this.readable = new File(fullPath);
+                }
             } else if (readable instanceof java.io.File) {
                 this.key = makeKey((File) readable);
             } else
@@ -1000,8 +1016,10 @@ public class Images
 
         if (imageSRC.readable instanceof ImageInputStream)
             inputStream = (ImageInputStream) imageSRC.readable;
-        else
+        else {
+            //if (DEBUG.IMAGE) out("ImageIO converting " + tag(imageSRC.readable) + " to InputStream...");
             inputStream = ImageIO.createImageInputStream(imageSRC.readable);
+        }
 
         if (DEBUG.IMAGE) out("Got ImageInputStream " + inputStream);
 
