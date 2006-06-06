@@ -136,7 +136,8 @@ implements edu.tufts.vue.dsm.DataSource
 							this.icon16x16 = new javax.swing.ImageIcon(path).getImage();
 						}
 					} catch (Throwable t) {
-						t.printStackTrace();
+						//t.printStackTrace();
+						System.out.println("Did not find resource");
 					}
 					//System.out.println("Getting properties.............." + key);
 					if (key.equals("configuration")) {
