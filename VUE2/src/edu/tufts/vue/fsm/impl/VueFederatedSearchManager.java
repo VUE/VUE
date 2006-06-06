@@ -78,17 +78,19 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 			//System.out.println("install Directory " + installDirectory);
 			java.io.File root = new java.io.File(installDirectory);
 			java.io.File[] files = root.listFiles();
-			for (int i=0; i < files.length; i++) {
-				if (files[i].isDirectory()) {
-					java.io.File[] subfiles = files[i].listFiles();
-					for (int j=0; j < subfiles.length; j++) {
-						if (subfiles[j].getName().equals(targetFilename)) {
-							filenameVector.addElement(subfiles[j].getAbsolutePath());
-							//System.out.println("added " + filenameVector.lastElement());
+			if (files != null) {
+				for (int i=0; i < files.length; i++) {
+					if (files[i].isDirectory()) {
+						java.io.File[] subfiles = files[i].listFiles();
+						for (int j=0; j < subfiles.length; j++) {
+							if (subfiles[j].getName().equals(targetFilename)) {
+								filenameVector.addElement(subfiles[j].getAbsolutePath());
+								//System.out.println("added " + filenameVector.lastElement());
+							}
 						}
 					}
-				}
-			}			
+				}			
+			}
 		} catch (Exception ex) {
 			edu.tufts.vue.util.Logger.log(ex);
 		}
