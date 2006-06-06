@@ -28,7 +28,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.51 $ / $Date: 2006-05-11 01:24:14 $ / $Author: sfraize $ 
+ * @version $Revision: 1.52 $ / $Date: 2006-06-06 20:15:15 $ / $Author: jeff $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -270,7 +270,7 @@ public class DRBrowser extends JPanel
         //-----------------------------------------------------------------------------
         
         searchPane.setBackground(Color.white);
-        searchPane.add(new JLabel("Please Select A Library"), SEARCH_EDITOR);
+        searchPane.add(new JLabel("Please select a searchable resource."), SEARCH_EDITOR);
 		
         //-----------------------------------------------------------------------------
         // Local File Data Source and Favorites

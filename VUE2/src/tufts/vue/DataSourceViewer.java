@@ -188,6 +188,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                     boolean included = !ds.isIncludedInSearch();
                     if (DEBUG.DR) out("DataSource " + ds + " [" + ds.getProviderDisplayName() + "] inclusion: " + included);
                     ds.setIncludedInSearch(included);
+					System.out.println("included? " + ds.isIncludedInSearch());
                     dataSourceList.repaint();
                     queryEditor.refresh();
 
@@ -247,6 +248,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         dataSourceList.setSelectedValue(ds,true);
         Widget.setExpanded(DRB.browsePane, false);
         Widget.setExpanded(DRB.searchPane, true);
+		queryEditor.refresh();
     }
     
     public static void refreshDataSourcePanel(edu.tufts.vue.dsm.DataSource ds) {
@@ -256,7 +258,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     
     public void  setPopup() {
         popup = new JPopupMenu();
-        checkForUpdatesAction = new AbstractAction("Check For Updates") {
+        checkForUpdatesAction = new AbstractAction("Update Resources") {
             public void actionPerformed(ActionEvent e) {
                 try {
                     if (registry == null) {
@@ -303,7 +305,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             }
         };
         
-        editLibraryAction = new AbstractAction("View Properties") {
+        editLibraryAction = new AbstractAction("About this Resource") {
             public void actionPerformed(ActionEvent e) {
                 Object o = dataSourceList.getSelectedValue();
                 if (o != null) {
@@ -318,7 +320,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             }
         };
         
-        removeLibraryAction = new AbstractAction("Remove Resource") {
+        removeLibraryAction = new AbstractAction("Delete Resource") {
             public void actionPerformed(ActionEvent e) {
                 Object o = dataSourceList.getSelectedValue();
                 if (o != null) {
@@ -366,10 +368,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         }
         Widget.setMenuActions(DRB.librariesPanel,
                 new Action[] {
-            addLibraryAction,
-                    checkForUpdatesAction,
                     editLibraryAction,
-                    removeLibraryAction,
+					addLibraryAction,
+                    checkForUpdatesAction,
+                    removeLibraryAction
         });
     }
     

@@ -470,6 +470,7 @@ implements edu.tufts.vue.dsm.DataSourceManager
 					}
 				}
 				if (!found) {
+					System.out.println("data source not found, adding to vector");
 					this.dataSourceVector.addElement(new edu.tufts.vue.dsm.impl.VueDataSource(providerId,
 																							  isIncludedInSearch));
 /*																							  osidService,

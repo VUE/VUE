@@ -261,6 +261,11 @@ public class ConfigurationUI extends javax.swing.JPanel
 			for (int i = 0, size = this.uiVector.size(); i < size; i++) {
 				int uiCode = ((Integer)uiVector.elementAt(i)).intValue();
 				String defaultValue = (String)defaultValueVector.elementAt(i);
+				
+				// if default value from Provider is null, check that there is not a value already set
+				
+				
+				
 				String title = (String)titleVector.elementAt(i);
 				int numChars = ((Integer)maxCharsVector.elementAt(i)).intValue();
 

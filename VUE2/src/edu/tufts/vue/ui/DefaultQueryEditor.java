@@ -38,7 +38,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	
 	private javax.swing.JButton searchButton1 = new javax.swing.JButton("Search");
 	private javax.swing.JButton searchButton2 = new javax.swing.JButton("Search");
-	private static final String SELECT_A_LIBRARY = "Please Select a library";
+	private static final String SELECT_A_LIBRARY = "Please select a searchable resource.";
 	private static final String NO_MESSAGE = "";
 	private javax.swing.JLabel selectMessage = new javax.swing.JLabel(SELECT_A_LIBRARY);
 	
@@ -165,8 +165,6 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		
 		gbConstraints.gridx = 1;
 		gbConstraints.gridy = 0;
-		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
-		gbConstraints.weightx = 0;
 		add(field,gbConstraints);
 		//field.addActionListener(this);
 		
@@ -175,6 +173,8 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbConstraints.weightx = 1;
 */
+		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
+		gbConstraints.weightx = 0;
 		add(selectMessage,gbConstraints);
 	}
 	
@@ -265,7 +265,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			// no Dublin Core Types found
 			add(new javax.swing.JLabel("No Dublin Core OSID Types Found"),gbConstraints);
 			gbConstraints.gridy++;
-			searchButton2.setEnabled(false);
+			//searchButton2.setEnabled(false);
 		} else {
 			this.advancedFields = new javax.swing.JTextField[size];
 			
@@ -326,8 +326,8 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
     
 	private void fireSearch(edu.tufts.vue.fsm.event.SearchEvent evt) 
 	{
-		this.searchButton1.setEnabled(false);
-		this.searchButton2.setEnabled(false);
+//		this.searchButton1.setEnabled(false);
+//		this.searchButton2.setEnabled(false);
 		Object[] listeners = listenerList.getListenerList();
 		for (int i=0; i<listeners.length; i+=2) {
 			if (listeners[i] == edu.tufts.vue.fsm.event.SearchListener.class) {

@@ -53,6 +53,7 @@ implements edu.tufts.vue.dsm.DataSource
 	private org.osid.shared.TypeIterator repositorySearchTypes = null;
 	
 	// Data Source Manager
+	private edu.tufts.vue.dsm.DataSourceManager dataSourceManager = null;
 	private boolean includedState = false;
 	
 	// Construct a data source from stored data
@@ -161,17 +162,21 @@ implements edu.tufts.vue.dsm.DataSource
 	private String replaceAll(String original, String old, String replacement)
 	{
 		String result = original;
-		int length = old.length();
-		
-		int index = -1;
-		while ((index = result.indexOf(old)) != -1) {
-			String before = result.substring(0,index);
-			String after = "";
-			try {
-				after = result.substring(index + length);
-			} catch (Exception ex) {
+		try {
+			int length = old.length();
+			
+			int index = -1;
+			while ((index = result.indexOf(old)) != -1) {
+				String before = result.substring(0,index);
+				String after = "";
+				try {
+					after = result.substring(index + length);
+				} catch (Exception ex) {
+				}
+				result = before + replacement + after;
 			}
-			result = before + replacement + after;
+		} catch (Exception ex) {
+			
 		}
 		return result;
 	}
@@ -335,6 +340,10 @@ implements edu.tufts.vue.dsm.DataSource
 	
 	public void setIncludedInSearch(boolean isIncluded) {
 		this.includedState = isIncluded;
+		if (this.dataSourceManager == null) {
+			dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+			dataSourceManager.save();
+		}
 	}
 	
 	public boolean supportsUpdate() {

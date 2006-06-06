@@ -24,13 +24,14 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.13 $ / $Date: 2006-05-27 01:14:13 $ / $Author: jeff $
+ * @version $Revision: 1.14 $ / $Date: 2006-06-06 20:15:15 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
 import java.awt.event.*;
 import javax.swing.event.*;
 import java.awt.*;
+import tufts.vue.gui.*;
 
 public class AddLibraryDialog extends JDialog implements ListSelectionListener, ActionListener {
     
@@ -58,8 +59,8 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 	private static String MY_SAVED_CONTENT_DESCRIPTION = "Add a browse control for your saved content.  You can configure a name for this source.";
 	private static String FTP = "FTP";
 	private static String FTP_DESCRIPTION = "Add a browse control for an FTP site.  You must configure this.";
-	private static String TITLE = "ADD A LIBRARY";
-	private static String AVAILABLE = "Available";
+	private static String TITLE = "Add Resources";
+	private static String AVAILABLE = "Resources available:";
     
     public AddLibraryDialog(DataSourceList dataSourceList)
 	{
@@ -264,7 +265,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 								area.setText(license);
 								area.setEditable(false);
 								area.setSize(new Dimension(500,300));
-								if (javax.swing.JOptionPane.showOptionDialog(VUE.getDialogParent(),
+								if (javax.swing.JOptionPane.showOptionDialog(this,
 																			 area,
 																			 "License Acknowledgement",
 																			 javax.swing.JOptionPane.DEFAULT_OPTION,
@@ -283,18 +284,29 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 							}
 						}
 						
-						if (proceed && provider.isInstalled()) { //To Do: reverse this
+						System.out.println("checking if installed");
+						if (proceed && (!provider.isInstalled())) { 
+							System.out.println("installing...");
 							factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 							factory.installProvider(provider.getId());
+						} else {
+							System.out.println("No need to install");
 						}
 						
 						if (proceed) {
 							// add to data sources list
 							ds = new edu.tufts.vue.dsm.impl.VueDataSource(provider.getId(),true);
-							//dataSourceManager.add(ds);
 							ds.setIncludedInSearch(true);
-							dataSourceList.addOrdered(ds);
-							DataSourceViewer.refreshDataSourcePanel(ds);
+							dataSourceManager.add(ds);
+							GUI.invokeAfterAWT(new Runnable() { public void run() {
+								try {
+									synchronized (dataSourceManager) {
+										dataSourceManager.save();
+									}
+								} catch (Throwable t) {
+									tufts.Util.printStackTrace(t);
+								}
+							}});
 							
 							// show configuration, if needed
 							if (ds.hasConfiguration()) {
@@ -320,7 +332,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 						new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
 					cui.setPreferredSize(new Dimension(400,200));
 
-					if (javax.swing.JOptionPane.showOptionDialog(VUE.getDialogParent(),
+					if (javax.swing.JOptionPane.showOptionDialog(this,
 																 cui,
 																 "Configuration",
 																 javax.swing.JOptionPane.DEFAULT_OPTION,
@@ -357,8 +369,10 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 				}
 				if (this.oldDataSource != null) {
 					dataSourceList.addOrdered(this.oldDataSource);
+//					DataSourceViewer.setActiveDataSource(this.oldDataSource);
 				} else {
 					dataSourceList.addOrdered(this.newDataSource);
+//					DataSourceViewer.setActiveDataSource(this.newDataSource);
 				}
 			} catch (Throwable t) {
 				t.printStackTrace();

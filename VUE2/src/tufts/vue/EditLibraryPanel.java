@@ -41,6 +41,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 			this.dataSource = dataSource;
 			
 			String xml = dataSource.getConfigurationUIHints();
+			
 			cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
 
 			// layout container
