@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.100 $ / $Date: 2006-05-22 17:31:09 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.100 2006-05-22 17:31:09 jeff Exp $ -->
+<!-- $Revision: 1.101 $ / $Date: 2006-06-06 18:14:42 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.101 2006-06-06 18:14:42 jeff Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -455,6 +455,7 @@
       </not>
     </condition>
     <mkdir dir="${build.class}"/>
+    <copy file="../etc/registry/OsidType-OID.dat" todir="${build.class}" verbose="true"/>
     <tstamp />
   </target>
 
