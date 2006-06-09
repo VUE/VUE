@@ -65,8 +65,8 @@ implements org.osid.repository.RepositoryManager
 				} catch (org.osid.logging.LoggingException lex) {
 					log = loggingManager.createLog("Google Global");
 				}
-				log.assignFormatType(new Type("edu.mit","logging","plain"));
-				log.assignPriorityType(new Type("edu.mit","logging","info"));
+				log.assignFormatType(new Type("mit.edu","logging","plain"));
+				log.assignPriorityType(new Type("mit.edu","logging","info"));
 				Utilities.setLog(log);			
 				
 				org.osid.id.IdManager idManager = (org.osid.id.IdManager)org.osid.OsidLoader.getManager("org.osid.id.IdManager",
