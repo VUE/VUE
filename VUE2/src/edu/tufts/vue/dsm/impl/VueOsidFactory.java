@@ -46,24 +46,26 @@ implements edu.tufts.vue.dsm.OsidFactory
 	
 	public static edu.tufts.vue.dsm.OsidFactory getInstance()
 	{
-		try {
-			osidContext.assignContext("com.harvestroad.authentication.username","vue");
-			osidContext.assignContext("com.harvestroad.authentication.password","vue");
-			osidContext.assignContext("com.harvestroad.authentication.host","bazzim.mit.edu");
-			osidContext.assignContext("com.harvestroad.authentication.port","80");
-		} catch (OsidException e) {
-			edu.tufts.vue.util.Logger.log("Assigning to context: this error should never happen");
-		}
-		try {
-			providerControlManager = (ProviderControlManager) edu.mit.osidimpl.OsidLoader.getManager("org.osid.provider.ProviderControlManager", 
-																									 "edu.mit.osidimpl.provider.repository",
-																									 osidContext, 
-																									 new Properties());
-			providerInvocationManager = providerControlManager.getProviderInvocationManager();
-			providerLookupManager = providerControlManager.getProviderLookupManager();
-			providerInstallationManager = providerControlManager.getProviderInstallationManager();
-		} catch (OsidException e) {
-			edu.tufts.vue.util.Logger.log("Cannot load ProviderInvocationManager: " + e.getMessage());
+		if (providerControlManager == null) {
+			try {
+				osidContext.assignContext("com.harvestroad.authentication.username","vue");
+				osidContext.assignContext("com.harvestroad.authentication.password","vue");
+				osidContext.assignContext("com.harvestroad.authentication.host","bazzim.mit.edu");
+				osidContext.assignContext("com.harvestroad.authentication.port","80");
+			} catch (OsidException e) {
+				edu.tufts.vue.util.Logger.log("Assigning to context: this error should never happen");
+			}
+			try {
+				providerControlManager = (ProviderControlManager) edu.mit.osidimpl.OsidLoader.getManager("org.osid.provider.ProviderControlManager", 
+																										 "edu.mit.osidimpl.provider.repository",
+																										 osidContext, 
+																										 new Properties());
+				providerInvocationManager = providerControlManager.getProviderInvocationManager();
+				providerLookupManager = providerControlManager.getProviderLookupManager();
+				providerInstallationManager = providerControlManager.getProviderInstallationManager();
+			} catch (OsidException e) {
+				edu.tufts.vue.util.Logger.log("Cannot load ProviderInvocationManager: " + e.getMessage());
+			}
 		}
 		return osidFactory;
 	}

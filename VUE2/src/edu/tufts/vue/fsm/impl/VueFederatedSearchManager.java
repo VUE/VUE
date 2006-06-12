@@ -374,7 +374,9 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 			edu.tufts.vue.fsm.Query queries[] = new edu.tufts.vue.fsm.Query[repositories.length];
 			for (int i=0; i < repositories.length; i++) {
 				org.osid.repository.Repository repository = repositories[i];
+/*
 
+				// We need to figure out how this should work under Provider
 				edu.tufts.vue.fsm.QueryAdjuster adjuster = getQueryAdjusterForRepository(repository.getId());		
 				if (adjuster != null) {
 					queries[i] = adjuster.adjustQuery(repository,
@@ -382,11 +384,11 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 													  searchType,
 													  searchProperties);
 				} else {
-					queries[i] = new VueQuery(repository,
+*/
+				queries[i] = new VueQuery(repository,
 											  searchCriteria,
 											  searchType,
 											  searchProperties);
-				}
 			}
 			searchEngine.search(queries);
 			return new VueResultSetManager(searchEngine);			
