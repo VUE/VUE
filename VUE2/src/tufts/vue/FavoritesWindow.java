@@ -51,6 +51,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     public static final String CONFIRM_DEL_RESOURCE ="Are you sure you want to delete  the resource";
     public static final String TITLE_DEL_RESOURCE = "Delete Resource Confirmation";
     public static final String SAVE_FILE = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites");
+    public static final int DEFAULT_SELECTION_ROW = 0;
     private DisplayAction displayAction = null;
     public  VueDandDTree favoritesTree ;
     private JScrollPane browsePane;
@@ -144,7 +145,12 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             if (e.getActionCommand().toString().equals(REMOVE_RESOURCE) | e.getActionCommand().toString().equals(REMOVE_FAVORITES)) {
                 if (!resNode.isRoot()) {
                     if(VueUtil.confirm(this,CONFIRM_DEL_RESOURCE,TITLE_DEL_RESOURCE) == JOptionPane.OK_OPTION) {
+                        TreePath parent = tp.getParentPath();
                         model.removeNodeFromParent(resNode);
+                        if(parent.getPathCount()!=1)
+                            favoritesTree.setSelectionPath(parent);
+                        else 
+                            favoritesTree.setSelectionRow(DEFAULT_SELECTION_ROW);
                     }
                 }
             } else if (e.getActionCommand().toString().equals(ADD_FAVORITES)){

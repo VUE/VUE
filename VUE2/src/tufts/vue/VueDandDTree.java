@@ -39,7 +39,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.23 $ / $Date: 2006-05-08 02:23:39 $ / $Author: anoop $
+ * @version $Revision: 1.24 $ / $Date: 2006-06-12 21:17:48 $ / $Author: anoop $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -92,9 +92,6 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         Object foundData = null;
         
         if (debug) System.out.println("drop: found " + dataFlavors.length +  dataFlavors.toString());
-        
-        
-        
         try {
             if (transfer.isDataFlavorSupported(Resource.DataFlavor)) {
                 foundFlavor = Resource.DataFlavor;
@@ -129,8 +126,6 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             e.dropComplete(false);
             return;
         }
-        
-        
         
         DefaultTreeModel model = (DefaultTreeModel)this.getModel();
         // New Favorites FolderNew Favorites Folder
@@ -229,8 +224,6 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     }
     private void insertSubTree(ResourceNode rootNode,ResourceNode cloneNode, DefaultTreeModel treeModel){
         int i; int childCount = rootNode.getChildCount();
-        
-        
         System.out.println("root" + rootNode +"childCount" + childCount);
         for (i = 0; i < childCount; i++){
             
@@ -241,8 +234,6 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             insertSubTree(newChild,newChildc,treeModel);
             
         }
-        
-        
     }
     
     
@@ -282,11 +273,6 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         }
     }
     
-    
-    
-    
-    
-    
     class VueDandDTreeCellRenderer extends DefaultTreeCellRenderer {
         protected VueDandDTree tree;
         public VueDandDTreeCellRenderer(VueDandDTree pTree) {
@@ -319,7 +305,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     public void dragEnter(DropTargetDragEvent me) { }
     public void dragExit(DropTargetEvent e) {}
     public void dragOver(DropTargetDragEvent e) { }
-   
+    
     public void dropActionChanged(DropTargetDragEvent e) { }
     private String readTextFlavor(DataFlavor flavor, Transferable transfer) {
         java.io.Reader reader = null;
