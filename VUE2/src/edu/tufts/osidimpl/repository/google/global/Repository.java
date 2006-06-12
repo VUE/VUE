@@ -40,7 +40,7 @@ implements org.osid.repository.Repository
     {
         this.displayName = displayName;
         this.description = description;
-		this.repositoryId = repositoryId;
+	this.repositoryId = repositoryId;
         this.repositoryType = repositoryType;
         this.searchTypeVector = searchTypeVector;
 	}
