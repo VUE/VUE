@@ -471,31 +471,14 @@ implements edu.tufts.vue.dsm.DataSourceManager
 				}
 				if (!found) {
 					System.out.println("data source not found, adding to vector");
-					this.dataSourceVector.addElement(new edu.tufts.vue.dsm.impl.VueDataSource(providerId,
-																							  isIncludedInSearch));
-/*																							  osidService,
-																							  osidMajorVersion,
-																							  osidMinorVersion,
-																							  osidLoadKey,
-																							  providerDisplayName,
-																							  providerDescription,
-																							  creator,
-																							  publisher,
-																							  publisherURL,
-																							  providerMajorVersion,
-																							  providerMinorVersion,
-																							  releaseDate,
-																							  rights,
-																							  rightTypes,
-																							  repositoryId,
-																							  repositoryImage,
-																							  registrationDate,
-																							  isHidden,
-																							  isIncludedInSearch,
-																							  configurationKeys,
-																							  configurationValues,
-																							  configurationMaps));
-*/
+					edu.tufts.vue.dsm.impl.VueDataSource vds = (new edu.tufts.vue.dsm.impl.VueDataSource(providerId,
+																										 isIncludedInSearch));
+					// simple check that all is working
+					if (vds.getRepositoryDisplayName() != null) {
+						this.dataSourceVector.addElement(vds);
+					} else {
+						System.out.println("Some problem loading data source");
+					}
 				}
 			}
 		} catch (Throwable t) {

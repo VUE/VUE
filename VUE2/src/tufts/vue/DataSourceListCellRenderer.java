@@ -101,7 +101,15 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
             displayName = datasource.getRepositoryDisplayName();
             mCheckBox.invisible = false;
             mCheckBox.setSelected(datasource.isIncludedInSearch());
-            mIconLabel.setIcon(remoteIcon);
+			
+			// TODO: cache or maybe return a path in place of an image for getIcon16x16
+			if (datasource.getIcon16x16() != null) {
+				Icon dsIcon = new javax.swing.ImageIcon(datasource.getIcon16x16());
+				mIconLabel.setIcon(dsIcon);
+			} else {
+				mIconLabel.setIcon(remoteIcon);
+			}
+			
             /*if (datasource.isOnline())
                 namePanel.add(onlineLabel, BorderLayout.EAST);
             } else {
