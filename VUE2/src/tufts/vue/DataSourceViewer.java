@@ -58,7 +58,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     JPopupMenu popup;
     
     AddLibraryDialog addLibraryDialog;
-    LibraryUpdateDialog libraryUpdateDialog;
+    UpdateLibraryDialog updateLibraryDialog;
     EditLibraryDialog editLibraryDialog;
     RemoveLibraryDialog removeLibraryDialog;
     GetLibraryInfoDialog getLibraryInfoDialog;
@@ -105,20 +105,18 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         dataSourceList.addKeyListener(this);
 		Widget.setExpanded(DRB.browsePane, false);
 		
+		edu.tufts.vue.dsm.DataSource dataSources[] = null;
+		
 		try {
 			// load new data sources
 			dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-			edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
+			dataSources = dataSourceManager.getDataSources();
 			for (int i=0; i < dataSources.length; i++) {
 				dataSourceList.addOrdered(dataSources[i]);
 			}
-
-			// select the first new data source, if any
-			if (dataSources.length > 0) {
-				setActiveDataSource(dataSources[0]);
-			}
 		} catch (Throwable t) {
 			System.out.println("error1............................." + t.getMessage());
+			t.printStackTrace();
 			javax.swing.JOptionPane.showMessageDialog(null,
 													  "Error loading data source",
 													  "Error",
@@ -141,6 +139,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         queryEditor = federatedSearchManager.getQueryEditorForType(new edu.tufts.vue.util.Type("mit.edu","search","keyword"));
         queryEditor.addSearchListener(this);
         
+		
+		// select the first new data source, if any
+		if ((dataSources != null) && (dataSources.length > 0)) {
+			setActiveDataSource(dataSources[0]);
+		}
+
         DRB.searchPane.removeAll();
         DRB.searchPane.add((JPanel) queryEditor, DRBrowser.SEARCH_EDITOR);
         DRB.searchPane.revalidate();
@@ -269,30 +273,25 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         checkForUpdatesAction = new AbstractAction("Update Resources") {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    if (registry == null) {
-                        registry = edu.tufts.vue.dsm.impl.VueRegistry.getInstance();
-                    }
-                    edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
-                    checked = registry.checkRegistryForUpdated(dataSources);
-                    if (checked.length == 0) {
-                        javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
-                                "There are no library updates available at this time",
-                                "LIBRARY UPDATE",
+					edu.tufts.vue.dsm.OsidFactory factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
+					org.osid.provider.ProviderIterator providerIterator = factory.getProvidersNeedingUpdate();
+					if (providerIterator.hasNextProvider()) {
+						if (updateLibraryDialog == null) {
+							updateLibraryDialog = new UpdateLibraryDialog(dataSourceList);
+						} else {
+							updateLibraryDialog.refresh();
+							updateLibraryDialog.setVisible(true);
+						}
+                    } else javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
+                                "There are no resource updates available at this time",
+                                "Update Resources",
                                 javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                    } else {
-                        if (libraryUpdateDialog == null) {
-                            libraryUpdateDialog = new LibraryUpdateDialog();
-                        } else {
-                            libraryUpdateDialog.update(LibraryUpdateDialog.CHECK);
-                        }
-                    }
                 } catch (Throwable t) {
 					javax.swing.JOptionPane.showMessageDialog(null,
 															  t.getMessage(),
 															  "Error",
 															  javax.swing.JOptionPane.ERROR_MESSAGE);
                 }
-                DataSourceViewer.this.popup.setVisible(false);
             }
         };
         addLibraryAction = new AbstractAction("Add Resources") {
@@ -302,6 +301,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 					if (addLibraryDialog == null) {
 						addLibraryDialog = new AddLibraryDialog(dataSourceList);
 					} else {
+						addLibraryDialog.refresh();
 						addLibraryDialog.setVisible(true);
 					}
 				} catch (Throwable t) {

@@ -45,6 +45,9 @@ public interface OsidFactory
 	public org.osid.provider.ProviderIterator getProviders()
 		throws org.osid.provider.ProviderException;
 
+	public org.osid.provider.ProviderIterator getProvidersNeedingUpdate()
+		throws org.osid.provider.ProviderException;
+	
 	public org.osid.provider.Provider[] checkRegistryForNew(DataSource[] dataSources)
 		throws org.osid.provider.ProviderException;
 
@@ -54,6 +57,9 @@ public interface OsidFactory
 	public void installProvider(org.osid.shared.Id providerId)
         throws org.osid.provider.ProviderException;
 	
+	public void updateProvider(org.osid.shared.Id providerId)
+		throws org.osid.provider.ProviderException;
+
 	public org.osid.repository.RepositoryManager getRepositoryManagerInstance(String osidLoadKey);
 	
 	public org.osid.repository.RepositoryManager getRepositoryManagerInstance(String osidLoadKey,

@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.15 $ / $Date: 2006-06-13 14:45:57 $ / $Author: jeff $
+ * @version $Revision: 1.16 $ / $Date: 2006-06-13 16:23:03 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -134,6 +134,11 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		setVisible(true);
     }
 
+	public void refresh()
+	{
+		populate();
+	}
+	
     private void populate()
 	{
 		listModel.removeAllElements();
@@ -173,11 +178,6 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		listModel.addElement(FTP);
 	}
 	
-    public String toString() 
-	{
-        return "AddLibraryDialog";
-    }
-
 	public void valueChanged(ListSelectionEvent lse) {				
 		int index = ((JList)lse.getSource()).getSelectedIndex();
 		if (index != -1) {

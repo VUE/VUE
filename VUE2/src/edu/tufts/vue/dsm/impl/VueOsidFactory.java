@@ -86,6 +86,12 @@ implements edu.tufts.vue.dsm.OsidFactory
 		providerInstallationManager.installProvider(providerId);
 	}
 	
+	public void updateProvider(org.osid.shared.Id providerId)
+		throws org.osid.provider.ProviderException
+	{
+		providerInstallationManager.updateInstalledProvider(providerId);
+	}
+
 	public org.osid.repository.RepositoryManager getRepositoryManagerInstance(String osidLoadKey)
 	{
 		int index = keyVector.indexOf(osidLoadKey);
@@ -142,7 +148,7 @@ implements edu.tufts.vue.dsm.OsidFactory
 	public String getResourcePath(String resourceName)
 		throws org.osid.provider.ProviderException
 	{
-		System.out.println("............................................Resource name " + resourceName);
+		System.out.println("Resource name " + resourceName);
 		return providerInvocationManager.getResourcePath(resourceName);
 	}
 	
@@ -151,6 +157,13 @@ implements edu.tufts.vue.dsm.OsidFactory
 	{
 		return providerLookupManager.getProviders();
 	}
+	
+	public org.osid.provider.ProviderIterator getProvidersNeedingUpdate()
+		throws org.osid.provider.ProviderException
+	{
+		return providerInstallationManager.getInstalledProvidersNeedingUpdate();
+	}
+	
 	
 	public org.osid.provider.Provider[] checkRegistryForNew(edu.tufts.vue.dsm.DataSource[] dataSources)
 		throws org.osid.provider.ProviderException
