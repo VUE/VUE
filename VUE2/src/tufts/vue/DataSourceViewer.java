@@ -99,6 +99,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     org.osid.registry.Provider checked[];
     
     public DataSourceViewer(DRBrowser drBrowser) {
+		GUI.activateWaitCursor();
+
         setLayout(new BorderLayout());
         this.DRB = drBrowser;
         dataSourceList = new DataSourceList(this);
@@ -235,7 +237,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         } else {
             add(dataSourceList);
         }
-        
+		GUI.clearWaitCursor();
     }
     
     public static Object getActiveDataSource() {

@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.2 $ / $Date: 2006-06-13 18:08:33 $ / $Author: jeff $
+ * @version $Revision: 1.3 $ / $Date: 2006-06-13 19:26:34 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -138,6 +138,8 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 		listModel.removeAllElements();
 		try
 		{
+			GUI.activateWaitCursor();
+
 			if (dataSourceManager == null) {
 				dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
 				factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
@@ -166,6 +168,8 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 													  t.getMessage(),
 													  "Error",
 													  javax.swing.JOptionPane.ERROR_MESSAGE);
+		} finally {
+			GUI.clearWaitCursor();
 		}
 	}
 	
@@ -216,15 +220,21 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 					}
 					
 					if (proceed) {
-						factory.updateProvider(provider.getId());
-						// show configuration, if needed
-						if (ds.hasConfiguration()) {
-							xml = ds.getConfigurationUIHints();
-							this.newDataSource = ds;
-						} else {
-							System.out.println("No configuration to show");
+						try {
+							GUI.activateWaitCursor();
+							factory.updateProvider(provider.getId());
+							// show configuration, if needed
+							if (ds.hasConfiguration()) {
+								xml = ds.getConfigurationUIHints();
+								this.newDataSource = ds;
+							} else {
+								System.out.println("No configuration to show");
+							}
+						} catch (Throwable t1) {
+							
+						} finally {
+							GUI.clearWaitCursor();
 						}
-						
 					}
 				} catch (Throwable t) {
 					javax.swing.JOptionPane.showMessageDialog(null,

@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.17 $ / $Date: 2006-06-13 18:08:33 $ / $Author: jeff $
+ * @version $Revision: 1.18 $ / $Date: 2006-06-13 19:26:34 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -144,6 +144,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		listModel.removeAllElements();
 		try
 		{
+			GUI.activateWaitCursor();
 			if (dataSourceManager == null) {
 				dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
 				factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
@@ -171,6 +172,8 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 													  t.getMessage(),
 													  "Error",
 													  javax.swing.JOptionPane.ERROR_MESSAGE);
+		} finally {
+			GUI.clearWaitCursor();
 		}
 		// add all data sources we include with VUE
 		listModel.addElement(MY_COMPUTER);
@@ -282,6 +285,13 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 						if (proceed && (!provider.isInstalled())) { 
 							System.out.println("installing...");
 							factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
+							try {
+								GUI.activateWaitCursor();
+							} catch (Throwable t1) {
+								proceed = false;
+							} finally {
+								GUI.clearWaitCursor();
+							}
 							factory.installProvider(provider.getId());
 						} else {
 							System.out.println("No need to install");
@@ -295,11 +305,10 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 							// show configuration, if needed
 							if (ds.hasConfiguration()) {
 								xml = ds.getConfigurationUIHints();
-								this.newDataSource = ds;
 							} else {
 								System.out.println("No configuration to show");
 							}
-							
+							this.newDataSource = ds;
 						}
 					} catch (Throwable t) {
 						javax.swing.JOptionPane.showMessageDialog(null,
@@ -349,7 +358,14 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 								}
 							}						
 						} else {
-							this.newDataSource.setConfiguration(cui.getProperties());
+							try {
+								GUI.activateWaitCursor();
+								this.newDataSource.setConfiguration(cui.getProperties());
+							} catch (Throwable t2) {
+								
+							} finally {
+								GUI.clearWaitCursor();
+							}
 						}
 					}
 				}
