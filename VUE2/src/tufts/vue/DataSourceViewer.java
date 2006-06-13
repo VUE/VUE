@@ -192,32 +192,39 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 
         dataSourceList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                Point pt = e.getPoint();
-                if ( (activeDataSource instanceof edu.tufts.vue.dsm.DataSource) && (pt.x <= 40) ) {
-                    int index = dataSourceList.locationToIndex(pt);
-                    edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)
-                        dataSourceList.getModel().getElementAt(index);
-                    boolean included = !ds.isIncludedInSearch();
-                    if (DEBUG.DR) out("DataSource " + ds + " [" + ds.getProviderDisplayName() + "] inclusion: " + included);
-                    ds.setIncludedInSearch(included);
-					System.out.println("included? " + ds.isIncludedInSearch());
-                    dataSourceList.repaint();
-                    queryEditor.refresh();
-
-                    GUI.invokeAfterAWT(new Runnable() { public void run() {
-                        try {
-                            synchronized (dataSourceManager) {
-                                if (DEBUG.DR) out("DataSourceManager saving...");
-                                dataSourceManager.save();
-                                if (DEBUG.DR) out("DataSourceManager saved.");
-                            }
-                        } catch (Throwable t) {
-                            tufts.Util.printStackTrace(t);
-                        }
-                    }});
-                }
-                //if(e.getButton() == e.BUTTON3)
-                //popup.show(e.getComponent(), e.getX(), e.getY());
+				if (e.getClickCount() == 2) {
+					if (activeDataSource instanceof DataSource) {
+						displayEditOrInfo((DataSource)activeDataSource);
+					} else {
+						displayEditOrInfo((edu.tufts.vue.dsm.DataSource)activeDataSource);
+					}
+				} else {
+					Point pt = e.getPoint();
+					if ( (activeDataSource instanceof edu.tufts.vue.dsm.DataSource) && (pt.x <= 40) ) {
+						int index = dataSourceList.locationToIndex(pt);
+						edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)
+							dataSourceList.getModel().getElementAt(index);
+						boolean included = !ds.isIncludedInSearch();
+						if (DEBUG.DR) out("DataSource " + ds + " [" + ds.getProviderDisplayName() + "] inclusion: " + included);
+						ds.setIncludedInSearch(included);
+						dataSourceList.repaint();
+						queryEditor.refresh();
+						
+						GUI.invokeAfterAWT(new Runnable() { public void run() {
+							try {
+								synchronized (dataSourceManager) {
+									if (DEBUG.DR) out("DataSourceManager saving...");
+									dataSourceManager.save();
+									if (DEBUG.DR) out("DataSourceManager saved.");
+								}
+							} catch (Throwable t) {
+								tufts.Util.printStackTrace(t);
+							}
+						}});
+					}
+					//if(e.getButton() == e.BUTTON3)
+					//popup.show(e.getComponent(), e.getX(), e.getY());
+				}
             }
         });
         
