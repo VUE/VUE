@@ -695,7 +695,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     }
     
     private void refreshEditInfo(edu.tufts.vue.dsm.DataSource ds) {
-        String dockTitle = "Library Information for " + ds.getRepositoryDisplayName();
+        String dockTitle = ds.getRepositoryDisplayName();
         final WidgetStack editInfoStack = new WidgetStack();
         
         if (editInfoDockWindow == null) {
