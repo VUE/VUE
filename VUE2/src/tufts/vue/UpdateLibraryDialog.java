@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.1 $ / $Date: 2006-06-13 16:23:03 $ / $Author: jeff $
+ * @version $Revision: 1.2 $ / $Date: 2006-06-13 18:08:33 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -53,7 +53,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 	DataSource oldDataSource = null;
 	edu.tufts.vue.dsm.DataSource newDataSource = null;
 	
-	private static String TITLE = "Update Resources";
+	private static String TITLE = "Update a Resource";
 	private static String AVAILABLE = "Resources available:";
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
     

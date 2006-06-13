@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.16 $ / $Date: 2006-06-13 16:23:03 $ / $Author: jeff $
+ * @version $Revision: 1.17 $ / $Date: 2006-06-13 18:08:33 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -59,7 +59,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 	private static String MY_SAVED_CONTENT_DESCRIPTION = "Add a browse control for your saved content.  You can configure a name for this source.";
 	private static String FTP = "FTP";
 	private static String FTP_DESCRIPTION = "Add a browse control for an FTP site.  You must configure this.";
-	private static String TITLE = "Add Resources";
+	private static String TITLE = "Add a Resource";
 	private static String AVAILABLE = "Resources available:";
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
     
