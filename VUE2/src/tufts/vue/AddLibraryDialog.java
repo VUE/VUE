@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.14 $ / $Date: 2006-06-06 20:15:15 $ / $Author: jeff $
+ * @version $Revision: 1.15 $ / $Date: 2006-06-13 14:45:57 $ / $Author: jeff $
  * @author  akumar03
   */
 import javax.swing.*;
@@ -37,11 +37,11 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
     
     JPanel addLibraryPanel = new JPanel();
     JList addLibraryList;
+	JTextArea descriptionTextArea;
 	DefaultListModel listModel = new DefaultListModel();
 	JScrollPane listJsp;
 	JScrollPane descriptionJsp;
-	JLabel libraryIcon;
-	JTextArea libraryDescription;
+	
 	edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
 	edu.tufts.vue.dsm.OsidFactory factory;
 	org.osid.provider.Provider checked[];
@@ -61,6 +61,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 	private static String FTP_DESCRIPTION = "Add a browse control for an FTP site.  You must configure this.";
 	private static String TITLE = "Add Resources";
 	private static String AVAILABLE = "Resources available:";
+    private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
     
     public AddLibraryDialog(DataSourceList dataSourceList)
 	{
@@ -70,40 +71,26 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		try {
 			addLibraryList = new JList(listModel);
 			addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
-			addLibraryList.setPreferredSize(new Dimension(160,180));
+			addLibraryList.setPreferredSize(new Dimension(300,180));
 			addLibraryList.addListSelectionListener(this);
+			addLibraryList.setCellRenderer(new ProviderListCellRenderer());
+			
+			descriptionTextArea = new JTextArea();
+			descriptionTextArea.setLineWrap(true);
+			descriptionTextArea.setWrapStyleWord(true);
+			descriptionTextArea.setPreferredSize(new Dimension(300,180));
 			
 			populate();
+
 			listJsp = new JScrollPane(addLibraryList);
-			//if (this.settings.isMac()) 
-			{ 
-				listJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-				listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 
-			}
+			listJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+			listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 			
-			if ((checked != null) && (checked.length > 0)) {
-				// TODO: Replace this with an image, but we need this in the Provider not just the Data Source
-				libraryIcon = new JLabel(VueResources.getImageIcon("NoImage"));
-				libraryDescription = new JTextArea(checked[0].getDescription());
-				addLibraryList.setSelectedIndex(0);
-			} else {
-				libraryIcon = new JLabel(VueResources.getImageIcon("NoImage"));
-				libraryDescription = new JTextArea();
-			}
+			descriptionTextArea.setText("description");
+			descriptionJsp = new JScrollPane(descriptionTextArea);
+			descriptionJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+			descriptionJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); 
 
-			libraryIcon.setPreferredSize(new Dimension(60,60));
-			libraryDescription.setLineWrap(true);
-			libraryDescription.setWrapStyleWord(true);
-			
-			descriptionJsp = new JScrollPane(libraryDescription);
-			//if (this.settings.isMac()) 
-			{ 
-				descriptionJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-				descriptionJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 
-			}
-
-			libraryDescription.setPreferredSize(new Dimension(220,140));			
-			
 			addLibraryPanel.setBackground(VueResources.getColor("White"));
 			setBackground(VueResources.getColor("White"));
 
@@ -121,12 +108,8 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			gbConstraints.gridy = 1;
 			addLibraryPanel.add(listJsp,gbConstraints);
 			
-			gbConstraints.gridx = 1;
-			gbConstraints.gridy = 1;
-			addLibraryPanel.add(libraryIcon,gbConstraints);
-			
-			gbConstraints.gridx = 2;
-			gbConstraints.gridy = 1;
+			gbConstraints.gridx = 0;
+			gbConstraints.gridy = 2;
 			addLibraryPanel.add(descriptionJsp,gbConstraints);
 			
 			buttonPanel.add(cancelButton);
@@ -135,14 +118,16 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			addButton.addActionListener(this);
 			getRootPane().setDefaultButton(addButton);
 			
-			gbConstraints.gridx = 2;
-			gbConstraints.gridy = 2;
+			gbConstraints.gridx = 0;
+			gbConstraints.gridy = 3;
 			addLibraryPanel.add(buttonPanel,gbConstraints);
 
 			getContentPane().add(addLibraryPanel,BorderLayout.CENTER);
 			pack();
 			setLocation(300,300);
-			setSize(new Dimension(550,350));
+			//setSize(new Dimension(300,400));
+			
+			//addLibraryList.getSelectionMdoel().setSelectionInterval(0,1);
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -164,7 +149,8 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			while (providerIterator.hasNextProvider()) {
 				org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
 				// place all providers on list, whether installed or not, whether duplicates or not
-				listModel.addElement(nextProvider.getDisplayName());
+				listModel.addElement(nextProvider);
+				descriptionTextArea.setText(nextProvider.getDescription());
 				checkedVector.addElement(nextProvider);
 			}
 			// copy to an array
@@ -196,16 +182,20 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		int index = ((JList)lse.getSource()).getSelectedIndex();
 		if (index != -1) {
 			try {
-				// TODO: update icon
-				String s = (String)(((JList)lse.getSource()).getSelectedValue());
-				if (s.equals(MY_COMPUTER)) {
-					libraryDescription.setText(MY_COMPUTER_DESCRIPTION);
-				} else if (s.equals(MY_SAVED_CONTENT)) {
-					libraryDescription.setText(MY_SAVED_CONTENT_DESCRIPTION);
-				} else if (s.equals(FTP)) {
-					libraryDescription.setText(FTP_DESCRIPTION);
-				} else {
-					libraryDescription.setText(checked[index].getDescription());
+				if (((JList)lse.getSource()).getSelectedValue() instanceof String)
+				{
+					String s = (String)(((JList)lse.getSource()).getSelectedValue());
+					if (s.equals(MY_COMPUTER)) {
+						descriptionTextArea.setText(MY_COMPUTER_DESCRIPTION);
+					} else if (s.equals(MY_SAVED_CONTENT)) {
+						descriptionTextArea.setText(MY_SAVED_CONTENT_DESCRIPTION);
+					} else if (s.equals(FTP)) {
+						descriptionTextArea.setText(FTP_DESCRIPTION);
+					}	
+				}
+				else {
+					org.osid.provider.Provider p = (org.osid.provider.Provider)(((JList)lse.getSource()).getSelectedValue());
+					descriptionTextArea.setText(p.getDescription());
 				}
 			} catch (Throwable t) {
 				t.printStackTrace();
@@ -217,41 +207,45 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		if (ae.getActionCommand().equals("Add")) {
 			try {
 				this.oldDataSource = null;
-				int index = addLibraryList.getSelectedIndex();
-				String s = (String)addLibraryList.getSelectedValue();
+				Object o = addLibraryList.getSelectedValue();
 				String xml = null;
-				if (s.equals(MY_COMPUTER)) {
-					LocalFileDataSource ds = new LocalFileDataSource(MY_COMPUTER,"");
-					xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Starting path</title><description>The path to start from</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>512</maxChars><ui>0</ui></field></configuration>";
-					String name = ds.getDisplayName();
-					String address = ds.getAddress();
-					xml = xml.replaceFirst("DEFAULT_NAME",name);
-					xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
-					this.oldDataSource = ds;
-				} else if (s.equals(MY_SAVED_CONTENT)) {
-					FavoritesDataSource ds = new FavoritesDataSource(MY_SAVED_CONTENT);
-					xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field></configuration>";
-					String name = ds.getDisplayName();
-					xml = xml.replaceFirst("DEFAULT_NAME",name);
-					this.oldDataSource = ds;
-				} else if (s.equals(FTP)) {
-					RemoteFileDataSource ds = new RemoteFileDataSource();
-					xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Dane for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>FTP Address</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>256</maxChars><ui>0</ui></field><field><key>username</key><title>Username</title><description>FTP site username</description><default>DEFAULT_USERNAME</default><mandatory>true</mandatory><maxChars>64</maxChars><ui>0</ui></field><field><key>password</key><title>Password</title><description>FTP site password for username</description><default>DEFAULT_PASSWORD</default><mandatory>true</mandatory><maxChars></maxChars><ui>1</ui></field></configuration>";
-					String name = ds.getDisplayName();
-					if (name == null) name = "";
-					String address = ds.getAddress();
-					if (address == null) address = "";
-					String username = ds.getUserName();
-					if (username == null) username = "";
-					String password = ds.getPassword();
-					if (password == null) password = "";
-					xml = xml.replaceFirst("DEFAULT_NAME",name);
-					xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
-					xml = xml.replaceFirst("DEFAULT_USERNAME",username);
-					xml = xml.replaceFirst("DEFAULT_PASSWORD",password);
-					this.oldDataSource = ds;
+				String s = null;
+				
+				if (o instanceof String) {
+					s = (String)o;
+					if (s.equals(MY_COMPUTER)) {
+						LocalFileDataSource ds = new LocalFileDataSource(MY_COMPUTER,"");
+						xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Starting path</title><description>The path to start from</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>512</maxChars><ui>0</ui></field></configuration>";
+						String name = ds.getDisplayName();
+						String address = ds.getAddress();
+						xml = xml.replaceFirst("DEFAULT_NAME",name);
+						xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
+						this.oldDataSource = ds;
+					} else if (s.equals(MY_SAVED_CONTENT)) {
+						FavoritesDataSource ds = new FavoritesDataSource(MY_SAVED_CONTENT);
+						xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field></configuration>";
+						String name = ds.getDisplayName();
+						xml = xml.replaceFirst("DEFAULT_NAME",name);
+						this.oldDataSource = ds;
+					} else if (s.equals(FTP)) {
+						RemoteFileDataSource ds = new RemoteFileDataSource();
+						xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Dane for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>FTP Address</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>256</maxChars><ui>0</ui></field><field><key>username</key><title>Username</title><description>FTP site username</description><default>DEFAULT_USERNAME</default><mandatory>true</mandatory><maxChars>64</maxChars><ui>0</ui></field><field><key>password</key><title>Password</title><description>FTP site password for username</description><default>DEFAULT_PASSWORD</default><mandatory>true</mandatory><maxChars></maxChars><ui>1</ui></field></configuration>";
+						String name = ds.getDisplayName();
+						if (name == null) name = "";
+						String address = ds.getAddress();
+						if (address == null) address = "";
+						String username = ds.getUserName();
+						if (username == null) username = "";
+						String password = ds.getPassword();
+						if (password == null) password = "";
+						xml = xml.replaceFirst("DEFAULT_NAME",name);
+						xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
+						xml = xml.replaceFirst("DEFAULT_USERNAME",username);
+						xml = xml.replaceFirst("DEFAULT_PASSWORD",password);
+						this.oldDataSource = ds;
+					}	
 				} else {					
-					org.osid.provider.Provider provider = (org.osid.provider.Provider)this.checkedVector.elementAt(index);
+					org.osid.provider.Provider provider = (org.osid.provider.Provider)o;
 					
 					boolean proceed = true;
 					edu.tufts.vue.dsm.DataSource ds = null;
@@ -297,16 +291,6 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 							// add to data sources list
 							ds = new edu.tufts.vue.dsm.impl.VueDataSource(provider.getId(),true);
 							ds.setIncludedInSearch(true);
-							dataSourceManager.add(ds);
-							GUI.invokeAfterAWT(new Runnable() { public void run() {
-								try {
-									synchronized (dataSourceManager) {
-										dataSourceManager.save();
-									}
-								} catch (Throwable t) {
-									tufts.Util.printStackTrace(t);
-								}
-							}});
 							
 							// show configuration, if needed
 							if (ds.hasConfiguration()) {
@@ -342,26 +326,28 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 																	 "Cancel", "Update"
 																 },
 																 "Update") != 0) {
-						if (s.equals(MY_COMPUTER)) {
-							java.util.Properties p = cui.getProperties();
-							LocalFileDataSource ds = (LocalFileDataSource)this.oldDataSource;
-							ds.setDisplayName(p.getProperty("name"));
-							ds.setAddress(p.getProperty("address"));
-						} else if (s.equals(MY_SAVED_CONTENT)) {
-							java.util.Properties p = cui.getProperties();
-							FavoritesDataSource ds = (FavoritesDataSource)this.oldDataSource;
-							ds.setDisplayName(p.getProperty("name"));
-						} else if (s.equals(FTP)) {
-							java.util.Properties p = cui.getProperties();
-							RemoteFileDataSource ds = (RemoteFileDataSource)this.oldDataSource;
-							ds.setDisplayName(p.getProperty("name"));
-							ds.setUserName(p.getProperty("username"));
-							ds.setPassword(p.getProperty("password"));
-							try {
-								ds.setAddress(p.getProperty("address")); // this must be set last
-							} catch (Exception ex) {
-								// ignore any error for now
-							}
+						if (s != null) {
+							if (s.equals(MY_COMPUTER)) {
+								java.util.Properties p = cui.getProperties();
+								LocalFileDataSource ds = (LocalFileDataSource)this.oldDataSource;
+								ds.setDisplayName(p.getProperty("name"));
+								ds.setAddress(p.getProperty("address"));
+							} else if (s.equals(MY_SAVED_CONTENT)) {
+								java.util.Properties p = cui.getProperties();
+								FavoritesDataSource ds = (FavoritesDataSource)this.oldDataSource;
+								ds.setDisplayName(p.getProperty("name"));
+							} else if (s.equals(FTP)) {
+								java.util.Properties p = cui.getProperties();
+								RemoteFileDataSource ds = (RemoteFileDataSource)this.oldDataSource;
+								ds.setDisplayName(p.getProperty("name"));
+								ds.setUserName(p.getProperty("username"));
+								ds.setPassword(p.getProperty("password"));
+								try {
+									ds.setAddress(p.getProperty("address")); // this must be set last
+								} catch (Exception ex) {
+									// ignore any error for now
+								}
+							}						
 						} else {
 							this.newDataSource.setConfiguration(cui.getProperties());
 						}
@@ -372,7 +358,17 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 //					DataSourceViewer.setActiveDataSource(this.oldDataSource);
 				} else {
 					dataSourceList.addOrdered(this.newDataSource);
-//					DataSourceViewer.setActiveDataSource(this.newDataSource);
+					dataSourceManager.add(this.newDataSource);
+					GUI.invokeAfterAWT(new Runnable() { public void run() {
+						try {
+							synchronized (dataSourceManager) {
+								dataSourceManager.save();
+							}
+						} catch (Throwable t) {
+							tufts.Util.printStackTrace(t);
+						}
+					}});
+					//					DataSourceViewer.setActiveDataSource(this.newDataSource);
 				}
 			} catch (Throwable t) {
 				t.printStackTrace();

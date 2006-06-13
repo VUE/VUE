@@ -103,6 +103,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         this.DRB = drBrowser;
         dataSourceList = new DataSourceList(this);
         dataSourceList.addKeyListener(this);
+		Widget.setExpanded(DRB.browsePane, false);
 		
 		try {
 			// load new data sources
@@ -111,9 +112,15 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 			for (int i=0; i < dataSources.length; i++) {
 				dataSourceList.addOrdered(dataSources[i]);
 			}
+
+			// select the first new data source, if any
+			if (dataSources.length > 0) {
+				setActiveDataSource(dataSources[0]);
+			}
 		} catch (Throwable t) {
+			System.out.println("error1............................." + t.getMessage());
 			javax.swing.JOptionPane.showMessageDialog(null,
-													  t.getMessage(),
+													  "Error loading data source",
 													  "Error",
 													  javax.swing.JOptionPane.ERROR_MESSAGE);
 		}
@@ -122,8 +129,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 			// load old-style data sources
 			loadDataSources();
 		} catch (Throwable t) {
+			System.out.println("error2............................." + t.getMessage());
 			javax.swing.JOptionPane.showMessageDialog(null,
-													  t.getMessage(),
+													  "Error loading data source",
 													  "Error",
 													  javax.swing.JOptionPane.ERROR_MESSAGE);
 		}
@@ -432,18 +440,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             DataSource ds2 = new LocalFileDataSource("My Computer","");
             dataSourceList.getContents().addElement(ds2);
             // default selection
-            dataSourceList.setSelectedValue(ds2,true);
-			
-            //dataSourceList.getContents().addElement(breakTag);
-            //DataSource ds4 = new LocalFileDataSource("My Maps","");
-            //dataSourceList.getContents().addElement(ds4);
-
-//            DataSource ds3 = new FedoraDataSource("Tufts Digital Library","dl.tufts.edu", "test","test",8080);
-//            addDataSource(ds3);
-//            DataSource ds4 = new GoogleDataSource("Tufts Web","http://googlesearch.tufts.edu","tufts01","tufts01");
-//            addDataSource(ds4);
-//            saveDataSourceViewer();
-//            setActiveDataSource(ds1);
+            dataSourceList.setSelectedValue(ds2,true);		
         } catch(Exception ex) {
             if(DEBUG.DR) System.out.println("Datasource loading problem ="+ex);
         }

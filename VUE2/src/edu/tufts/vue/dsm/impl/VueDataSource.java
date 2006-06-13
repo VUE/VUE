@@ -383,7 +383,13 @@ implements edu.tufts.vue.dsm.DataSource
 			}
 		}
 	}
-	
+
+	public java.util.Properties getConfiguration()
+	{
+		// Anoop, this should be data read from the XML files via Castor
+		return null;
+	}
+
     public String toString() {
         return super.toString() + "[" + getRepositoryDisplayName() + "]";
     }
