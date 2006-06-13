@@ -38,7 +38,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	
 	private javax.swing.JButton searchButton1 = new javax.swing.JButton("Search");
 	private javax.swing.JButton searchButton2 = new javax.swing.JButton("Search");
-	private static final String SELECT_A_LIBRARY = "Please select a searchable resource.";
+	private static final String SELECT_A_LIBRARY = "    Please select a searchable resource.";
 	private static final String NO_MESSAGE = "";
 	private javax.swing.JLabel selectMessage = new javax.swing.JLabel(SELECT_A_LIBRARY);
 	
@@ -173,8 +173,8 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbConstraints.weightx = 1;
 */
-		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
-		gbConstraints.weightx = 0;
+		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		gbConstraints.weightx = 1;
 		add(selectMessage,gbConstraints);
 	}
 	
