@@ -80,4 +80,6 @@ public interface DataSource
 	public String getConfigurationUIHints();
 	
 	public void setConfiguration(java.util.Properties properties);	
+
+	public java.util.Properties getConfiguration();	
 }
