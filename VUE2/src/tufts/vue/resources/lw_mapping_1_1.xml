@@ -534,5 +534,12 @@
        </field>
 
 	</class>
-  
+        
+        
+<!-- support for datasources persistence -->
+<class name="edu.tufts.vue.dsm.impl.VueDataSourceManager">
+    <field name="dataSourceVector" type="edu.tufts.vue.dsm.DataSource" collection="vector">
+        <bind-xml name="datasource"/>
+    </field>
+</class>
 </mapping>
