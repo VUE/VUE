@@ -155,7 +155,6 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
             mLabel.setForeground(Color.black);
         
         mLabel.setText(displayName);
-		System.out.println("rendering cell with display name: " + displayName);
 
         return mRow;
     }
