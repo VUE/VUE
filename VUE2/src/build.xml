@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.102 $ / $Date: 2006-06-12 13:41:11 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.102 2006-06-12 13:41:11 jeff Exp $ -->
+<!-- $Revision: 1.103 $ / $Date: 2006-06-13 20:58:14 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.103 2006-06-13 20:58:14 jeff Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -641,6 +641,18 @@
     <jar jarfile="dist/lib/osid/GoogleGlobalRepository-1.0.jar"
          basedir="${build.class}" 
          includes="edu/tufts/osidimpl/repository/google/global/*.*"/>
+  </target>
+
+<!-- ==================== Google Local Data Source ================================ -->
+  <target name="jar-googlelocal"  
+          depends="compile"
+          description="Create GoogleLocal.jar containing all supporting files">
+
+    <mkdir dir="dist/lib/osid"/>    
+    <delete file="dist/lib/osid/GoogleLocalRepository-1.0.jar"/>
+    <jar jarfile="dist/lib/osid/GoogleLcoalRepository-1.0.jar"
+         basedir="${build.class}" 
+         includes="edu/tufts/osidimpl/repository/google/local/*.*"/>
   </target>
 
 <!-- ==================== Core ================================ -->

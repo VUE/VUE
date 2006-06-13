@@ -37,7 +37,8 @@ implements org.osid.repository.AssetIterator
 	private String searchURL = null;
 	private String criteria = null;
 	private static Unmarshaller unmarshaller = null;
-	private static URL XML_MAPPING = VueResources.getURL("mapping.google");
+	private edu.tufts.vue.dsm.OsidFactory factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
+	private static URL XML_MAPPING;
 	private static URL url;
 	private boolean initializedByVector = false;
 	private static String result = "";
@@ -49,6 +50,13 @@ implements org.osid.repository.AssetIterator
 		initializedByVector = false;
 		this.searchURL = searchURL;
 		this.criteria = criteria;
+
+		try {
+			String path = factory.getResourcePath("google.xml");
+			XML_MAPPING = new URL("file://" + path);
+		} catch (Throwable t) {
+			Utilities.log(t);
+		}
 		search();    
 	}
 
@@ -104,7 +112,7 @@ implements org.osid.repository.AssetIterator
 			while((c=input.read())!= -1) {
 				result = result + (char) c;
 			}
-			String googleResultsFile = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.google.results");
+			String googleResultsFile = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("google_results.xml");
 			FileWriter fileWriter = new FileWriter(googleResultsFile);
 			fileWriter.write(result);
 			fileWriter.close();
@@ -121,9 +129,10 @@ implements org.osid.repository.AssetIterator
 				 else urlResource.setTitle(r.getUrl().toString());
 				 resultVector.add(new Asset(r.getTitle(),"",r.getUrl()));
 				 System.out.println(r.getTitle()+" "+r.getUrl());
-				 
 			}
-				 this.currentIndex += resultVector.size();
+		    this.iterator = resultVector.iterator();
+
+			this.currentIndex += (resultVector.size() - 1);
 		} catch (Throwable t) {
 			Utilities.log("cannot connect google");
 		}
@@ -169,7 +178,6 @@ implements org.osid.repository.AssetIterator
 		if (unmarshaller == null) {
 			unmarshaller = new Unmarshaller();
 			Mapping mapping = new Mapping();
-			System.out.println("XML_MAPPING =" +XML_MAPPING);
 			try {
 				mapping.loadMapping(XML_MAPPING);
 				unmarshaller.setMapping(mapping);

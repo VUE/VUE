@@ -98,6 +98,8 @@ implements org.osid.repository.RepositoryManager
 		}
 		firstTime = false;
 
+//		System.out.println("google local configuration is " + configuration);
+		
 		// update the URL, if it has been passed with the configuration
 		Object urlObject = configuration.getProperty("googleLocalURL");
 		Object siteObject = configuration.getProperty("googleLocalSite");
@@ -107,6 +109,10 @@ implements org.osid.repository.RepositoryManager
 		String site = (String)siteObject;
 		String client = (String)clientObject;
 
+//		System.out.println(url);
+//		System.out.println(site);
+//		System.out.println(client);
+		
 		if ( (url != null) && (url instanceof String) && (site != null) && (site instanceof String)  && (client != null) && (client instanceof String) ) {
 			
 			if((url != null) ) {
