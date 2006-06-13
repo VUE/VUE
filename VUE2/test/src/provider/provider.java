@@ -63,7 +63,20 @@ public class provider {
         }
     }
 
-
+    public void needingUpdate() {
+        try {
+			System.out.println("List of providers needing update");
+            ProviderInstallationManager pim = this.pcm.getProviderInstallationManager();
+            ProviderIterator pi = pim.getInstalledProvidersNeedingUpdate();
+            while (pi.hasNextProvider()) {
+                printProvider(pi.getNextProvider());
+            }
+        } catch (org.osid.provider.ProviderException pe) {
+            pe.printStackTrace();
+        }
+    }
+	
+	
     public void install() {
 
     }
@@ -129,6 +142,7 @@ public class provider {
 	    provider p = new provider("edu.mit.osidimpl.provider.repository");
 	    p.list();
 	    p.installed();
+		p.needingUpdate();
 	} catch (Throwable t) {
 	    t.printStackTrace();
 	}
