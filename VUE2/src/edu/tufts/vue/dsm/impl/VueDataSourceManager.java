@@ -82,52 +82,7 @@ public class VueDataSourceManager
     }
     public VueDataSourceManager() {    
     }
-    // old constructer: parses xml
-    /**
-    public VueDataSourceManager() {
-        java.io.File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
-        //System.out.println("User's VUE folder is " + userFolder.getAbsolutePath());
-        
-               
-       //          If there is no InstalledDataSources file or no Extensions file, create them
-                 
-        try {
-            if (!userFolder.exists()) {
-                userFolder.mkdir();
-            }
-            javax.xml.parsers.DocumentBuilderFactory dbf = null;
-            javax.xml.parsers.DocumentBuilder db = null;
-            org.w3c.dom.Document document = null;
-            
-            dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
-            db = dbf.newDocumentBuilder();
-            
-            this.xmlFilename = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
-            java.io.File file = new java.io.File(this.xmlFilename);
-            if (!file.exists()) {
-                document = db.newDocument();
-                
-                org.w3c.dom.Element records = document.createElement(RECORDS_TAG);
-                document.appendChild(records);
-                
-                javax.xml.transform.TransformerFactory tf = javax.xml.transform.TransformerFactory.newInstance();
-                javax.xml.transform.Transformer transformer = tf.newTransformer();
-                java.util.Properties properties = new java.util.Properties();
-                properties.put("indent","yes");
-                transformer.setOutputProperties(properties);
-                javax.xml.transform.dom.DOMSource domSource = new javax.xml.transform.dom.DOMSource(document);
-                javax.xml.transform.stream.StreamResult result =
-                        new javax.xml.transform.stream.StreamResult(this.xmlFilename);
-                transformer.transform(domSource,result);
-            }
-        } catch (Exception ex) {
-            System.out.println("Failed to create file for installed libraries");
-            edu.tufts.vue.util.Logger.log(ex);
-        }
-        
-        refresh();
-    }
-    **/
+
     public void refresh() {
         try {
             java.io.InputStream istream = new java.io.FileInputStream(this.xmlFilename);
@@ -514,7 +469,40 @@ public class VueDataSourceManager
     
     public static  void load() {
         try {
-            dataSourceManager = unMarshall(new File(xmlFilename));
+			File f = new File(xmlFilename);
+			if (!f.exists()) {
+				//  If there is no InstalledDataSources file or no Extensions file, create them
+				try {
+					if (!userFolder.exists()) {
+						userFolder.mkdir();
+					}
+					javax.xml.parsers.DocumentBuilderFactory dbf = null;
+					javax.xml.parsers.DocumentBuilder db = null;
+					org.w3c.dom.Document document = null;
+					
+					dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+					db = dbf.newDocumentBuilder();
+					
+					document = db.newDocument();
+					
+					org.w3c.dom.Element records = document.createElement(RECORDS_TAG);
+					document.appendChild(records);
+					
+					javax.xml.transform.TransformerFactory tf = javax.xml.transform.TransformerFactory.newInstance();
+					javax.xml.transform.Transformer transformer = tf.newTransformer();
+					java.util.Properties properties = new java.util.Properties();
+					properties.put("indent","yes");
+					transformer.setOutputProperties(properties);
+					javax.xml.transform.dom.DOMSource domSource = new javax.xml.transform.dom.DOMSource(document);
+					javax.xml.transform.stream.StreamResult result =
+						new javax.xml.transform.stream.StreamResult(xmlFilename);
+					transformer.transform(domSource,result);
+				} catch (Exception ex) {
+					System.out.println("Failed to create file for installed data sources");
+					edu.tufts.vue.util.Logger.log(ex);
+				}
+			}
+            dataSourceManager = unMarshall(f);
         }  catch (Throwable t) {
           System.out.println("VueDataSourceManager.load: "+t) ;
         }

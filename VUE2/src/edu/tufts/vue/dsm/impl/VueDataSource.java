@@ -20,7 +20,6 @@ package edu.tufts.vue.dsm.impl;
 
 import java.util.*;
 
-
 public class VueDataSource
         implements edu.tufts.vue.dsm.DataSource {
     private edu.tufts.vue.dsm.OsidFactory factory = VueOsidFactory.getInstance();
@@ -189,13 +188,16 @@ public class VueDataSource
     }
     
     private void setRelatedValues() {
-        // get Repository
-        try {
-            //System.out.println("Load key is " + this.osidLoadKey);
-            this.repositoryManager = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey);
-            this.repositoryId = edu.tufts.vue.util.Utilities.getRepositoryIdFromLoadKey(this.osidLoadKey);
-            this.repository = (edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);
+		try {
+			System.out.println("Load key is " + this.osidLoadKey);
+			this.repositoryId = edu.tufts.vue.util.Utilities.getRepositoryIdFromLoadKey(this.osidLoadKey);
+			System.out.println("Repository id from load key is " + this.repositoryId.getIdString());
+			this.repositoryManager = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey);
+			System.out.println("got manager");
+			this.repository = (edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);	
+			System.out.println("got repository");
         } catch (Throwable t) {
+			System.out.println("Load by key failed, trying a check of all repositories");
             // special case for when the Manager implementation doesn't offer this method
             try {
                 org.osid.repository.RepositoryIterator repositoryIterator = repositoryManager.getRepositories();
@@ -206,7 +208,9 @@ public class VueDataSource
                     }
                 }
             } catch (Throwable t1) {
-                edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling getting Repository via Factory");
+				System.out.println("Load by check of all repositories failed");
+				edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling getting Repository via Factory");
+				return;
             }
         }
         
@@ -440,7 +444,6 @@ public class VueDataSource
             entry.setEntryValue(mProperties.get(key));
             mXMLpropertyList.add(entry);
         }
-        
         
         return mXMLpropertyList;
     }

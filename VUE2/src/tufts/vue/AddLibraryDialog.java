@@ -24,9 +24,9 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.18 $ / $Date: 2006-06-13 19:26:34 $ / $Author: jeff $
+* @version $Revision: 1.19 $ / $Date: 2006-06-14 17:07:18 $ / $Author: jeff $
  * @author  akumar03
-  */
+ */
 import javax.swing.*;
 import java.awt.event.*;
 import javax.swing.event.*;
@@ -81,7 +81,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			descriptionTextArea.setPreferredSize(new Dimension(300,180));
 			
 			populate();
-
+			
 			listJsp = new JScrollPane(addLibraryList);
 			listJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 			listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -90,10 +90,10 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			descriptionJsp = new JScrollPane(descriptionTextArea);
 			descriptionJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 			descriptionJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); 
-
+			
 			addLibraryPanel.setBackground(VueResources.getColor("White"));
 			setBackground(VueResources.getColor("White"));
-
+			
 			java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
 			java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
 			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -121,7 +121,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy = 3;
 			addLibraryPanel.add(buttonPanel,gbConstraints);
-
+			
 			getContentPane().add(addLibraryPanel,BorderLayout.CENTER);
 			pack();
 			setLocation(300,300);
@@ -133,7 +133,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		}
 		setVisible(true);
     }
-
+	
 	public void refresh()
 	{
 		populate();
@@ -272,11 +272,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 																				 "Accept", "Decline"
 																			 },
 																			 "Decline") != 0) {
-									
-									System.out.println("Accept or Decline: Decline");
-									proceed = false;
-								} else {
-									System.out.println("Accept or Decline: Accept");
+									return;
 								}
 							}
 						}
@@ -287,19 +283,35 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 							factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 							try {
 								GUI.activateWaitCursor();
+								factory.installProvider(provider.getId());
 							} catch (Throwable t1) {
-								proceed = false;
+								System.out.println("install failed " + provider.getId().getIdString());
+								javax.swing.JOptionPane.showMessageDialog(this,
+																		  "Installation Failed",
+																		  "OSID Installation Error",
+																		  javax.swing.JOptionPane.ERROR_MESSAGE);
+								return;
 							} finally {
 								GUI.clearWaitCursor();
 							}
-							factory.installProvider(provider.getId());
 						} else {
 							System.out.println("No need to install");
 						}
 						
 						if (proceed) {
 							// add to data sources list
-							ds = new edu.tufts.vue.dsm.impl.VueDataSource(provider.getId(),true);
+							try {
+								System.out.println("creating data source");
+								ds = new edu.tufts.vue.dsm.impl.VueDataSource(provider.getId(),true);
+							} catch (Throwable t) {
+								System.out.println("failed creating data source");
+								javax.swing.JOptionPane.showMessageDialog(this,
+																		  "Loading Manager Failed",
+																		  "OSID Installation Error",
+																		  javax.swing.JOptionPane.ERROR_MESSAGE);
+								return;
+							}
+							System.out.println("created data source");
 							ds.setIncludedInSearch(true);
 							
 							// show configuration, if needed
@@ -311,7 +323,8 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 							this.newDataSource = ds;
 						}
 					} catch (Throwable t) {
-						javax.swing.JOptionPane.showMessageDialog(null,
+						System.out.println("configuration setup failed");
+						javax.swing.JOptionPane.showMessageDialog(this,
 																  t.getMessage(),
 																  "OSID Installation Error",
 																  javax.swing.JOptionPane.ERROR_MESSAGE);
@@ -319,12 +332,12 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 						return;
 					}
 				}
-			
+				
 				if (xml != null) {
 					edu.tufts.vue.ui.ConfigurationUI cui = 
-						new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
+					new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
 					cui.setPreferredSize(new Dimension(400,200));
-
+					
 					if (javax.swing.JOptionPane.showOptionDialog(this,
 																 cui,
 																 "Configuration",
@@ -371,17 +384,20 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 				}
 				if (this.oldDataSource != null) {
 					dataSourceList.addOrdered(this.oldDataSource);
-//					DataSourceViewer.setActiveDataSource(this.oldDataSource);
+					//					DataSourceViewer.setActiveDataSource(this.oldDataSource);
 				} else {
+					System.out.println("ready to add new data source to list");
 					dataSourceList.addOrdered(this.newDataSource);
+					System.out.println("ready to add new data source to manager");
 					dataSourceManager.add(this.newDataSource);
+					System.out.println("ready to save data source manager");
 					GUI.invokeAfterAWT(new Runnable() { public void run() {
 						try {
 							synchronized (dataSourceManager) {
 								dataSourceManager.save();
 							}
 						} catch (Throwable t) {
-							tufts.Util.printStackTrace(t);
+							System.out.println(t.getMessage());
 						}
 					}});
 					//					DataSourceViewer.setActiveDataSource(this.newDataSource);
