@@ -444,10 +444,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             String breakTag = "";
             //dataSourceList.getContents().addElement(breakTag);
             DataSource ds1 = new FavoritesDataSource("My Saved Content");
-            dataSourceList.getContents().addElement(ds1);
+            dataSourceList.addOrdered(ds1);
             //dataSourceList.getContents().addElement(breakTag);
             DataSource ds2 = new LocalFileDataSource("My Computer","");
-            dataSourceList.getContents().addElement(ds2);
+            dataSourceList.addOrdered(ds2);
             // default selection
             dataSourceList.setSelectedValue(ds2,true);		
         } catch(Exception ex) {
@@ -565,26 +565,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         }
         
         DRB.searchPane.add(resultsStack, DRBrowser.SEARCH_RESULT);
-        
-        /*
-        if (SearchingLabel == null) {
-            SearchingLabel = new JLabel("Searching...", JLabel.CENTER);
-            SearchingLabel.setOpaque(false);
-        }
-         
-        DRB.searchPane.add(SearchingLabel, DRBrowser.SEARCH_RESULT);
-         
-        if (resultSetDockWindow != null) {
-            resultSetDockWindow.setTitle(dockTitle);
-         
-            if (false&&UseSingleScrollPane)
-                resultSetTreeJSP.setViewportView(SearchingLabel);
-            else
-                resultSetDockWindow.setContent(SearchingLabel);
-        }
-         */
-        
-        
+                
         // get our search results
         java.io.Serializable searchCriteria = queryEditor.getCriteria();
         if (DEBUG.DR) {
@@ -640,60 +621,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             } else {
                 resultPanes[i].add(new ResourceList(resourceList));
             }
-            
-            /*
-            JComponent resultSet = new ResourceList(v.iterator());
-            if (UseSingleScrollPane) {
-                resultsStack.addPane(name, resultSet);
-            } else {
-                resultsStack.addPane(name, new JScrollPane(resultSet));
-            }
-             */
         }
         
     }
-    
-    /*
-    // Do this on AWT thread to make sure we
-    // don't collide with anything going on there.
-    GUI.invokeAfterAWT(new Runnable() { public void run() { displaySearchResults(resultsStack, dockTitle); } });
-    private void XdisplaySearchResults(WidgetStack resultsStack, String dockTitle) {
-        if (DEBUG.DR || DEBUG.THREAD) out("diplaying results: " + dockTitle);
-     
-        DRB.searchPane.add(resultsStack, DRBrowser.SEARCH_RESULT);
-        //Widget.setExpanded(DRB.searchPane, true);
-     
-        if (resultSetDockWindow == null) {
-            if (UseSingleScrollPane) {
-                resultSetTreeJSP = new javax.swing.JScrollPane(resultsStack);
-                resultSetTreeJSP.setBorder(null);
-                resultSetDockWindow = GUI.createDockWindow(dockTitle, resultSetTreeJSP);
-                resultSetDockWindow.setHeight(575);
-            } else {
-                resultSetDockWindow = GUI.createDockWindow(dockTitle, resultsStack);
-            }
-            if (false)
-                // put results to right of data sources
-                resultSetDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
-                                                DRB.dockWindow.getY());
-            else {
-                // put results below search panel
-                DockWindow searchDock = (DockWindow) SwingUtilities.getWindowAncestor(DRB.searchPane);
-                searchDock.addChild(resultSetDockWindow);
-            }
-     
-        } else {
-     
-            if (UseSingleScrollPane) {
-                resultSetTreeJSP.setViewportView(resultsStack);
-                resultSetDockWindow.setContent(resultSetTreeJSP);
-            } else
-                resultSetDockWindow.setContent(resultsStack);
-        }
-        resultSetDockWindow.setVisible(true);
-    }
-     */
-    
+        
     private void displayEditOrInfo(edu.tufts.vue.dsm.DataSource ds) {
         refreshEditInfo(ds);
         editInfoDockWindow.setVisible(true);
