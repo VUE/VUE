@@ -471,6 +471,7 @@
 		</field>
 		
 </class>
+<!--
 <class name = "tufts.vue.VueDataSource">
        
        <field name = "id" type = "string">
@@ -534,12 +535,24 @@
        </field>
 
 	</class>
-        
+-->        
         
 <!-- support for datasources persistence -->
 <class name="edu.tufts.vue.dsm.impl.VueDataSourceManager">
     <field name="dataSourceVector" type="edu.tufts.vue.dsm.DataSource" collection="vector">
         <bind-xml name="datasource"/>
     </field>
+</class>
+
+<class name="edu.tufts.vue.dsm.impl.VueDataSource">
+    <field name="providerIdString" type="string">
+        <bind-xml name="providerIdString" node="attribute" />
+     </field>
+     <field name="includedState" type="boolean" >
+        <bind-xml name="includedState" node="attribute" />
+     </field>
+     <field name="propertyList" type="tufts.vue.PropertyEntry" collection="vector">
+	<bind-xml name="property"/>
+     </field>
 </class>
 </mapping>
