@@ -57,7 +57,7 @@ implements org.osid.repository.AssetIterator
 		} catch (Throwable t) {
 			Utilities.log(t);
 		}
-		search();    
+		performSearch();    
 	}
 
     protected AssetIterator(java.util.Vector v)
@@ -73,7 +73,7 @@ implements org.osid.repository.AssetIterator
 		if (this.iterator.hasNext()) {
 			return true;
 		} else if (!initializedByVector) {
-			search();
+			performSearch();
 			return (this.iterator.hasNext());
 		} else {
 			return false;
@@ -84,55 +84,50 @@ implements org.osid.repository.AssetIterator
     throws org.osid.repository.RepositoryException
     {
 		try {
-			if (this.iterator.hasNext()) {
-				return (org.osid.repository.Asset)iterator.next();
+			if (hasNextAsset()) {
+				return (org.osid.repository.Asset)this.iterator.next();
 			}
 		} catch (Throwable t) {
 		}
 		throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
     }
 	
-	private void search()
-	{
-//		System.out.println("start search thread");
-//		Thread t = new Thread() {
-//			public void run() {
-				performSearch(currentIndex);
-//			}
-//		};
-	}
-	
-	private void performSearch(int searchStartIndex)
+	private void performSearch()
 	{
 		try {
-			url = new URL(this.searchURL+"&num=10&start="+searchStartIndex+"&q="+this.criteria);
-			System.out.println("Google search = " + url);
-			InputStream input = url.openStream();
-			int c;
-			while((c=input.read())!= -1) {
-				result = result + (char) c;
+			if (this.currentIndex > 100) {
+				this.iterator = (new java.util.Vector()).iterator();
+			} else {
+				url = new URL(this.searchURL+"&num=10&start="+this.currentIndex+"&q="+this.criteria);
+				//System.out.println("Google search = " + url);
+				InputStream input = url.openStream();
+				int c;
+				while((c=input.read())!= -1) {
+					result = result + (char) c;
+				}
+				String googleResultsFile = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("google_results.xml");
+				FileWriter fileWriter = new FileWriter(googleResultsFile);
+				fileWriter.write(result);
+				fileWriter.close();
+				result = "";
+				
+				GSP gsp = loadGSP(googleResultsFile);
+				java.util.Iterator i = gsp.getRES().getResultList().iterator();
+				java.util.Vector resultVector = new java.util.Vector();
+				
+				while(i.hasNext()) {
+					Result r = (Result)i.next();
+					URLResource urlResource = new URLResource(r.getUrl());
+					if (r.getTitle() != null) 
+						urlResource.setTitle(r.getTitle().replaceAll("</*[a-zA-Z]>",""));
+					 else 
+						 urlResource.setTitle(r.getUrl().toString());
+					 resultVector.add(new Asset(r.getTitle(),"",r.getUrl()));
+					 //System.out.println(r.getTitle()+" "+r.getUrl());
+				}
+				this.iterator = resultVector.iterator();
+				this.currentIndex += (resultVector.size() - 1);
 			}
-			String googleResultsFile = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("google_results.xml");
-			FileWriter fileWriter = new FileWriter(googleResultsFile);
-			fileWriter.write(result);
-			fileWriter.close();
-			result = "";
-			
-			GSP gsp = loadGSP(googleResultsFile);
-			java.util.Iterator i = gsp.getRES().getResultList().iterator();
-			java.util.Vector resultVector = new java.util.Vector();
-			
-			while(i.hasNext()) {
-				Result r = (Result)i.next();
-				URLResource urlResource = new URLResource(r.getUrl());
-				if (r.getTitle() != null) urlResource.setTitle(r.getTitle().replaceAll("</*[a-zA-Z]>",""));
-				 else urlResource.setTitle(r.getUrl().toString());
-				 resultVector.add(new Asset(r.getTitle(),"",r.getUrl()));
-				 System.out.println(r.getTitle()+" "+r.getUrl());
-			}
-		    this.iterator = resultVector.iterator();
-
-			this.currentIndex += (resultVector.size() - 1);
 		} catch (Throwable t) {
 			Utilities.log("cannot connect google");
 		}

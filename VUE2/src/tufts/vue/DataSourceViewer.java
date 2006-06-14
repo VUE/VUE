@@ -597,11 +597,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 searchType,
                 searchProperties);
         if (DEBUG.DR) out("got result set manager " + resultSetManager);
-        
-        
+                
         org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets();
-        while (assetIterator.hasNextAsset()) {
+		int counter = 0;
+        while (assetIterator.hasNextAsset() && (counter <= 100)) {
             org.osid.repository.Asset nextAsset = assetIterator.nextAsset();
+			counter++;
             String repositoryIdString = nextAsset.getRepository().getIdString();
             int index = repositoryIdStringList.indexOf(repositoryIdString);
             java.util.List v = (java.util.List) resultList.get(index);

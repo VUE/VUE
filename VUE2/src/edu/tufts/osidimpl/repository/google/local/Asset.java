@@ -47,7 +47,7 @@ implements org.osid.repository.Asset
 			org.osid.repository.Record record = createRecord(RecordStructure.getInstance().getId());
 			org.osid.repository.Part part = record.createPart(URLPartStructure.getInstance().getId(), url);
 			this.description = description;
-			this.repositoryId = repositoryId;
+			this.repositoryId = Utilities.getIdManager().getId("4C728514-3135-43EC-95CA-F588F4668C5B-304-0000001A73B8246E");
 			this.id = Utilities.getIdManager().createId();
 		} catch (Throwable t) {
 			Utilities.log(t);
