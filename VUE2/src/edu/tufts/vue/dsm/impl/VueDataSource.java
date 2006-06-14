@@ -24,7 +24,7 @@ public class VueDataSource
         implements edu.tufts.vue.dsm.DataSource {
     private edu.tufts.vue.dsm.OsidFactory factory = VueOsidFactory.getInstance();
     private tufts.vue.PropertyMap mProperties = new tufts.vue.PropertyMap();
-    private ArrayList mXMLpropertyList = null;
+    private Vector mXMLpropertyList = null;
     private org.osid.shared.Id providerId = null;
     private String osidLoadKey = null;
     private String providerIdString = null; // to support loading datasource from castor
@@ -435,7 +435,7 @@ public class VueDataSource
     public java.util.List getPropertyList() {
         if (mProperties.size() == 0) // a hack for castor to work
             return null;
-        mXMLpropertyList = new ArrayList(mProperties.size());
+        mXMLpropertyList = new Vector(mProperties.size());
         Iterator i = mProperties.keySet().iterator();
         while (i.hasNext()) {
             final String key = (String) i.next();
