@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.103 $ / $Date: 2006-06-13 20:58:14 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.103 2006-06-13 20:58:14 jeff Exp $ -->
+<!-- $Revision: 1.104 $ / $Date: 2006-06-15 20:41:12 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.104 2006-06-15 20:41:12 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -941,7 +941,7 @@ cclass Version {
         <!-- Start with min of 10MB (VUE uses this much just starting up) -->
         <jvmarg value="-Xms10m"/>
         <!-- Increase max allowed memory from default 64MB to 2GB -->
-        <jvmarg value="-Xmx2048m"/>
+        <jvmarg value="-Xmx1024m"/>
         <!-- Below wo JVM args are for the Mac runtime, and will be ignored on Windows. -->
         <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
         <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
@@ -1051,9 +1051,8 @@ VUE_Installer.zip - ${installerMD5}
                 IAlocation="C:\Program Files\InstallAnywhere 6 Standard"
                 IAProjectFile="C:\anoop\vue\builds\ia\My_Product.iap_xml"
                 BuildWindowsWithVM="true"
-          />
-          <delete dir="${basedir}/installer"/>
-          <mkdir dir="${basedir}/installer"/>
+            />
+          <delete dir="${basedir}/installer/Vue_Installer.zip"/>
           <copy file="C:\anoop\vue\builds\ia\My_Product_Build_Output\Web_Installers\InstData\Windows\VM\vue.exe" todir="${basedir}/installer"/>
            <zip destfile="${basedir}/installer/VUE_Installer.zip">
             <zipfileset dir="${basedir}/installer/" includes="vue.exe" filemode="755"/>
