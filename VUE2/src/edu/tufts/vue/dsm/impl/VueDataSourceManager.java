@@ -80,9 +80,9 @@ public class VueDataSourceManager
         load();
         return dataSourceManager;
     }
-    public VueDataSourceManager() {    
+    public VueDataSourceManager() {
     }
-
+    
     public void refresh() {
         try {
             java.io.InputStream istream = new java.io.FileInputStream(this.xmlFilename);
@@ -469,42 +469,15 @@ public class VueDataSourceManager
     
     public static  void load() {
         try {
-			File f = new File(xmlFilename);
-			if (!f.exists()) {
-				//  If there is no InstalledDataSources file or no Extensions file, create them
-				try {
-					if (!userFolder.exists()) {
-						userFolder.mkdir();
-					}
-					javax.xml.parsers.DocumentBuilderFactory dbf = null;
-					javax.xml.parsers.DocumentBuilder db = null;
-					org.w3c.dom.Document document = null;
-					
-					dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
-					db = dbf.newDocumentBuilder();
-					
-					document = db.newDocument();
-					
-					org.w3c.dom.Element records = document.createElement(RECORDS_TAG);
-					document.appendChild(records);
-					
-					javax.xml.transform.TransformerFactory tf = javax.xml.transform.TransformerFactory.newInstance();
-					javax.xml.transform.Transformer transformer = tf.newTransformer();
-					java.util.Properties properties = new java.util.Properties();
-					properties.put("indent","yes");
-					transformer.setOutputProperties(properties);
-					javax.xml.transform.dom.DOMSource domSource = new javax.xml.transform.dom.DOMSource(document);
-					javax.xml.transform.stream.StreamResult result =
-						new javax.xml.transform.stream.StreamResult(xmlFilename);
-					transformer.transform(domSource,result);
-				} catch (Exception ex) {
-					System.out.println("Failed to create file for installed data sources");
-					edu.tufts.vue.util.Logger.log(ex);
-				}
-			}
-            dataSourceManager = unMarshall(f);
+            File f = new File(xmlFilename);
+            if (f.exists()) {
+                //  If there is no InstalledDataSources file or no Extensions file, create them
+                dataSourceManager = unMarshall(f);
+            } else {
+                System.out.println("Installed datasources not found");
+            }
         }  catch (Throwable t) {
-          System.out.println("VueDataSourceManager.load: "+t) ;
+            System.out.println("VueDataSourceManager.load: "+t) ;
         }
     }
     
@@ -844,7 +817,7 @@ public class VueDataSourceManager
         }
     }
     
-   
+    
     public static  VueDataSourceManager unMarshall(File file) throws java.io.IOException, org.exolab.castor.xml.MarshalException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException{
         Unmarshaller unmarshaller = null;
         VueDataSourceManager dsm = null;
@@ -858,5 +831,5 @@ public class VueDataSourceManager
         reader.close();
         return dsm;
     }
-     
+    
 }
