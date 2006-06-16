@@ -31,6 +31,7 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
     private final Icon myComputerIcon = VueResources.getImageIcon("dataSourceMyComputer");
     private final Icon savedResourcesIcon = VueResources.getImageIcon("dataSourceSavedResources");
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
+    private final ImageIcon waitIcon = VueResources.getImageIcon("waitIcon");
 	private static String MY_COMPUTER = "My Computer";
 	private static String MY_SAVED_CONTENT = "My Saved Content";
 	private static String FTP = "FTP";
@@ -38,13 +39,15 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
     private JPanel mRow = new JPanel();
     private JLabel mLabel = new DefaultListCellRenderer();
     private JLabel mIconLabel = new DefaultListCellRenderer();
+    private JLabel waitLabel; 
     private CheckBoxRenderer mCheckBox = new CheckBoxRenderer();
 
     private Border DividerBorder = new MatteBorder(1,0,0,0, Color.gray);
     private Border EmptyDividerBorder = new EmptyBorder(1,0,0,0);
 
     private Color AlternateRowColor = VueResources.getColor("gui.dataSourceList.alternateRowColor", 237,243,253);
-
+    private boolean[] checklist = new boolean[50];
+    
     public ProviderListCellRenderer()
     {
         mRow.setLayout(new BoxLayout(mRow, BoxLayout.X_AXIS));
@@ -52,7 +55,12 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
         
         mLabel.setMinimumSize(new Dimension(10, mLabel.getHeight()));
         mLabel.setPreferredSize(new Dimension(Short.MAX_VALUE, mLabel.getHeight()));
-
+        
+        waitLabel = new JLabel();
+        waitLabel.setDoubleBuffered(true);
+        waitLabel.setIcon(waitIcon);
+        
+        
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
         mRow.add(mCheckBox);
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
@@ -61,7 +69,10 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.right));
     }
     
-
+    public void setChecked(int index)
+    {
+    	checklist[index] = true;
+    }
     public Component getListCellRendererComponent(JList list,
                                                   Object value,
                                                   int index,
@@ -80,7 +91,18 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
             else
                 bg = AlternateRowColor;
         }
+        
+        if (checklist[index])
+        {
+        	mCheckBox.setSelected(true);
+        }
+        else
+        {
+        	mCheckBox.setSelected(false);
+        }
+        
         mRow.setBackground(bg);
+        waitLabel.setBackground(bg);      
         mCheckBox.setBackground(bg);
         mLabel.setBackground(bg);
         mIconLabel.setBackground(bg);
@@ -158,7 +180,28 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
 
         return mRow;
     }
-
+    
+    public void invokeWaitingMode()
+    {
+     	mRow.remove(mCheckBox);
+     	waitIcon.setImageObserver(mRow); 
+     	mRow.add(waitLabel,0);    	
+    }
+    
+    public void endWaitingMode()
+    {
+    	
+     	mRow.remove(waitLabel);
+    	mRow.add(mCheckBox,0);
+  
+    }
+    
+    public void clearAllChecked()
+    {
+    	for (int i =0; i < checklist.length; i++)
+    		checklist[i] = false;
+    }
+    
     private static class CheckBoxRenderer extends JCheckBox {
 
         boolean invisible;

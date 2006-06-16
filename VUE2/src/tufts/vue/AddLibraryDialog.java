@@ -24,11 +24,12 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.21 $ / $Date: 2006-06-16 14:38:19 $ / $Author: jeff $
+* @version $Revision: 1.22 $ / $Date: 2006-06-16 17:29:33 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
 import java.awt.event.*;
+
 import javax.swing.event.*;
 import java.awt.*;
 import tufts.vue.gui.*;
@@ -62,6 +63,8 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 	private static String TITLE = "Add a Resource";
 	private static String AVAILABLE = "Resources available:";
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
+    private ProviderListCellRenderer providerListRenderer;
+    private Timer timer;
     
     public AddLibraryDialog(DataSourceList dataSourceList)
 	{
@@ -73,7 +76,10 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
 			addLibraryList.setPreferredSize(new Dimension(300,180));
 			addLibraryList.addListSelectionListener(this);
-			addLibraryList.setCellRenderer(new ProviderListCellRenderer());
+
+			providerListRenderer = new ProviderListCellRenderer();
+			addLibraryList.setCellRenderer(providerListRenderer);
+
 			
 			descriptionTextArea = new JTextArea();
 			descriptionTextArea.setLineWrap(true);
@@ -115,7 +121,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			buttonPanel.add(cancelButton);
 			cancelButton.addActionListener(this);
 			buttonPanel.add(addButton);
-			addButton.addActionListener(this);
+			addButton.addActionListener(this);			
 			getRootPane().setDefaultButton(addButton);
 			
 			gbConstraints.gridx = 0;
@@ -206,8 +212,8 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		}
 	}
 	
-	public void actionPerformed(ActionEvent ae) {
-		if (ae.getActionCommand().equals("Add")) {
+	public void add() {
+		
 			try {
 				this.oldDataSource = null;
 				Object o = addLibraryList.getSelectedValue();
@@ -410,13 +416,52 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 					}});
 					//					DataSourceViewer.setActiveDataSource(this.newDataSource);
 				}
+				providerListRenderer.setChecked(addLibraryList.getSelectedIndex());
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
-		} else {
+			finally
+			{
+				providerListRenderer.endWaitingMode();			
+	    		addLibraryList.repaint();
+				GUI.clearWaitCursor();
+				timer.stop();
+		}		
+	}
+	
+		public void actionPerformed(ActionEvent ae) {
+		
+			
+		if (ae.getActionCommand().equals("Add")) 
+		{			
+			GUI.activateWaitCursor();
+			providerListRenderer.invokeWaitingMode();
+			repaint();
+    	    int ONE_TNTH_SECOND = 100;
+    		
+    		timer = new Timer(ONE_TNTH_SECOND, new ActionListener() {
+    		    public void actionPerformed(ActionEvent evt) {
+    		    	repaint();    		    	
+    		    }});
+    		timer.start();
+    		
+    		AddDSThread t = new AddDSThread();
+    		t.start();
+							
+		} else 
+		{
+			providerListRenderer.clearAllChecked();
 			setVisible(false);
 		}
 	}
+		private class AddDSThread extends Thread {
+		    public AddDSThread() {
+		        super();
+		    }
+		    public void run() {
+		    	add();
+		    }
+		}
 }
 
 
