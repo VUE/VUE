@@ -69,7 +69,6 @@ public class VueDataSource
             boolean isIncludedInSearch) 
 	throws org.osid.repository.RepositoryException, org.osid.provider.ProviderException
 	{
-        
         this.providerId = providerId;
         this.includedState = isIncludedInSearch;
         setProviderValues(); // must come first
@@ -153,11 +152,6 @@ public class VueDataSource
 	{
 		System.out.println("Load key is " + this.osidLoadKey);
 		this.repositoryId = edu.tufts.vue.util.Utilities.getRepositoryIdFromLoadKey(this.osidLoadKey);
-		try {
-			System.out.println("Repository id from load key is " + this.repositoryId.getIdString());
-		} catch (Throwable t) {
-			
-		}
 		this.repositoryManager = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey);
 		System.out.println("got manager");
     }

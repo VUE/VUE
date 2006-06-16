@@ -34,8 +34,6 @@ import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
 import org.xml.sax.InputSource;
 
-
-
 public class VueDataSourceManager
         implements edu.tufts.vue.dsm.DataSourceManager {
     private static edu.tufts.vue.dsm.DataSourceManager dataSourceManager = new VueDataSourceManager();
@@ -75,7 +73,10 @@ public class VueDataSourceManager
     private static final String INCLUDED_IN_SEARCH_TAG = "oki:includedinsearch";
     private static final File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
     private static String  xmlFilename  = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
-    
+	
+	// cache of already instantiated data sources
+	private static java.util.Map cacheMap = new java.util.HashMap();
+	
     public static edu.tufts.vue.dsm.DataSourceManager getInstance() {
         load();
         return dataSourceManager;
@@ -83,6 +84,17 @@ public class VueDataSourceManager
     public VueDataSourceManager() {
     }
     
+	public void addDataSourceToCache(org.osid.shared.Id providerId,
+								DataSource dataSource)
+	{
+		cacheMap.put(providerId.getIdString(),dataSource);
+	}
+	
+	public DataSourcegetDataSourceFromCache(org.osid.shared.Id providerId)
+	{
+		return cacheMap.get(providerId.getIdString());
+	}
+	
     public void refresh() {
         try {
             java.io.InputStream istream = new java.io.FileInputStream(this.xmlFilename);
@@ -104,26 +116,6 @@ public class VueDataSourceManager
             int numRecords = records.getLength();
             for (int i=0; i < numRecords; i++) {
                 org.osid.shared.Id providerId = null;
-/*
-                                String osidService = null;
-                                int osidMajorVersion = 0;
-                                int osidMinorVersion = 0;
-                                String osidLoadKey = null;
-                                String providerDisplayName = null;
-                                String providerDescription = null;
-                                String creator = null;
-                                String publisher = null;
-                                String publisherURL = null;
-                                int providerMajorVersion = 0;
-                                int providerMinorVersion = 0;
-                                java.util.Date releaseDate = null;
-                                String[] rights = null;
-                                org.osid.shared.Type[] rightTypes = null;
-                                org.osid.shared.Id repositoryId = null;
-                                String repositoryImage = null;
-                                java.util.Date registrationDate = null;
-                                boolean isHidden = false;
- */
                 boolean isIncludedInSearch = false;
                 
                 org.w3c.dom.Element record = (org.w3c.dom.Element)records.item(i);
@@ -136,248 +128,6 @@ public class VueDataSourceManager
                         providerId = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString);
                     }
                 }
-/*
-                                nodeList = record.getElementsByTagName(OSID_SERVICE_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                osidService = e.getFirstChild().getNodeValue();
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(OSID_MAJOR_VERSION_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                osidMajorVersion = (new Integer(e.getFirstChild().getNodeValue())).intValue();
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(OSID_MINOR_VERSION_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                osidMinorVersion = (new Integer(e.getFirstChild().getNodeValue())).intValue();
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(OSID_LOAD_KEY_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                osidLoadKey = e.getFirstChild().getNodeValue();
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(DISPLAY_NAME_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                providerDisplayName = e.getFirstChild().getNodeValue();
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(DESCRIPTION_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                providerDescription = e.getFirstChild().getNodeValue();
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(CREATOR_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                creator = e.getFirstChild().getNodeValue();
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(PUBLISHER_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                publisher = e.getFirstChild().getNodeValue();
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(PUBLISHER_URL_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                publisherURL = e.getFirstChild().getNodeValue();
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(PROVIDER_MAJOR_VERSION_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                providerMajorVersion = (new Integer(e.getFirstChild().getNodeValue())).intValue();
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(PROVIDER_MINOR_VERSION_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                providerMinorVersion = (new Integer(e.getFirstChild().getNodeValue())).intValue();
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(RELEASE_DATE_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                String releaseDateString = e.getFirstChild().getNodeValue();
-                                                releaseDate = edu.tufts.vue.util.Utilities.stringToDate(releaseDateString);
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(RIGHTS_TAG);
-                                numNodes = nodeList.getLength();
-                                java.util.Vector rightVector = new java.util.Vector();
-                                java.util.Vector rightTypeVector = new java.util.Vector();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
- 
-                                        org.w3c.dom.NodeList rightsNodeList = e.getElementsByTagName(RIGHT_TAG);
-                                        int numRights = rightsNodeList.getLength();
-                                        for (int j=0; j < numRights; j++) {
-                                                org.w3c.dom.Element ex = (org.w3c.dom.Element)rightsNodeList.item(j);
-                                                if (ex.hasChildNodes()) {
-                                                        rightVector.addElement(ex.getFirstChild().getNodeValue());
-                                                }
-                                        }
- 
-                                        org.w3c.dom.NodeList types = e.getElementsByTagName(RIGHT_TYPE_TAG);
-                                        int numTypes = types.getLength();
-                                        for (int j=0; j < numTypes; j++) {
-                                                org.w3c.dom.Element ex = (org.w3c.dom.Element)types.item(j);
-                                                if (ex.hasChildNodes()) {
-                                                        rightTypeVector.addElement(edu.tufts.vue.util.Utilities.stringToType(ex.getFirstChild().getNodeValue()));
-                                                }
-                                        }
-                                }
-                                int size = rightVector.size();
-                                rights = new String[size];
-                                for (int x=0; x < size; x++) rights[x] = (String)rightVector.elementAt(x);
-                                size = rightTypeVector.size();
-                                rightTypes = new org.osid.shared.Type[size];
-                                for (int x=0; x < size; x++) rightTypes[x] = (org.osid.shared.Type)rightTypeVector.elementAt(x);
- 
-                                nodeList = record.getElementsByTagName(REPOSITORY_ID_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                String repositoryIdString = e.getFirstChild().getNodeValue();
-                                                repositoryId = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(repositoryIdString);
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName("oki:configuration");
-                                numNodes = nodeList.getLength();
-                                java.util.Vector configurationKeyVector = new java.util.Vector();
-                                java.util.Vector configurationValueVector = new java.util.Vector();
-                                java.util.Vector configurationMapVector = new java.util.Vector();
- 
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
- 
-                                        org.w3c.dom.NodeList configurationsNodeList = e.getElementsByTagName(CONFIGURATION_KEY_TAG);
-                                        int numKeys = configurationsNodeList.getLength();
-                                        for (int j=0; j < numKeys; j++) {
-                                                org.w3c.dom.Element ex = (org.w3c.dom.Element)configurationsNodeList.item(j);
-                                                if (ex.hasChildNodes()) {
-                                                        configurationKeyVector.addElement(ex.getFirstChild().getNodeValue());
-//							System.out.println("key " + configurationKeyVector.lastElement());
-                                                        org.w3c.dom.NamedNodeMap nnm = ex.getAttributes();
-                                                        if (nnm.getNamedItem("password") != null) {
-                                                                System.out.println(nnm.getNamedItem("password").getNodeValue());
-                                                        }
- 
-                                                        java.util.Map hashMap = new java.util.HashMap();
-                                                        String password = ex.getAttribute("password");
-                                                        if (password.equals("true")) {
-                                                                hashMap.put("password",new Boolean(true));
-                                                        }
-                                                        String columns = ex.getAttribute("columns");
-                                                        if (!columns.equals("0")) {
-//								System.out.println("Columms " + columns);
-                                                                //hashMap.put("columns",new Integer(columns));
-                                                        }
-                                                        configurationMapVector.addElement(hashMap);
-//							System.out.println("m " + configurationMapVector.lastElement());
-                                                        String value = ex.getAttribute("value");
-                                                        if (value != null) {
-                                                                configurationValueVector.addElement(value);
-//								System.out.println("v " + configurationValueVector.lastElement());
-                                                        }
-                                                }
-                                        }
-                                }
-                                size = configurationKeyVector.size();
-                                String configurationKeys[] = new String[size];
-                                String configurationValues[] = new String[size];
-                                java.util.Map configurationMaps[] = new java.util.Map[size];
-                                for (int x=0; x < size; x++) {
-                                        configurationKeys[x] = (String)configurationKeyVector.elementAt(x);
-                                        configurationValues[x] = (String)configurationValueVector.elementAt(x);
-                                        configurationMaps[x] = (java.util.HashMap)configurationMapVector.elementAt(x);
-                                }
- 
-                                nodeList = record.getElementsByTagName(REPOSITORY_ID_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                String repositoryIdString = e.getFirstChild().getNodeValue();
-                                                repositoryId = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(repositoryIdString);
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(REPOSITORY_IMAGE_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                repositoryImage = e.getFirstChild().getNodeValue();
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(REGISTRATION_DATE_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                String registrationDateString = e.getFirstChild().getNodeValue();
-                                                registrationDate = edu.tufts.vue.util.Utilities.stringToDate(registrationDateString);
-                                        }
-                                }
- 
-                                nodeList = record.getElementsByTagName(HIDDEN_TAG);
-                                numNodes = nodeList.getLength();
-                                for (int k=0; k < numNodes; k++) {
-                                        org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(k);
-                                        if (e.hasChildNodes()) {
-                                                String hiddenString = e.getFirstChild().getNodeValue();
-                                                isHidden = (new Boolean(hiddenString)).booleanValue();
-                                        }
-                                }
- */
                 nodeList = record.getElementsByTagName(INCLUDED_IN_SEARCH_TAG);
                 numNodes = nodeList.getLength();
                 for (int k=0; k < numNodes; k++) {
@@ -387,26 +137,6 @@ public class VueDataSourceManager
                         isIncludedInSearch = (new Boolean(includedString)).booleanValue();
                     }
                 }
-                                /*
-                                 System.out.println(providerId.getIdString());
-                                 System.out.println(osidService);
-                                 System.out.println(osidMajorVersion);
-                                 System.out.println(osidMinorVersion);
-                                 System.out.println(osidLoadKey);
-                                 System.out.println(providerDisplayName);
-                                 System.out.println(providerDescription);
-                                 System.out.println(creator);
-                                 System.out.println(publisher);
-                                 System.out.println(providerMinorVersion);
-                                 System.out.println(releaseDate);
-                                 System.out.println(repositoryId.getIdString());
-                                 System.out.println(repositoryImage);
-                                 System.out.println(registrationDate);
-                                 System.out.println(isHidden);
-                                 System.out.println(isIncludedInSearch);
-                                 */
-                //edu.tufts.vue.dsm.OsidFactory factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
-                //org.osid.repository.Repository repository = factory.getRepository(providerId);
                 
                 // if we already have this data source, update it in place
                 boolean found = false;
@@ -415,31 +145,8 @@ public class VueDataSourceManager
                     if (ds.getProviderId().isEqual(providerId)) {
                         found = true;
                         ds.setProviderId(providerId);
-/*						ds.setOsidService(osidService);
-                                                ds.setMajorOsidVersion(osidMajorVersion);
-                                                ds.setMinorOsidVersion(osidMinorVersion);
-                                                ds.setOsidLoadKey(osidLoadKey);
-                                                ds.setProviderDisplayName(providerDisplayName);
-                                                ds.setProviderDescription(providerDescription);
-                                                ds.setCreator(creator);
-                                                ds.setPublisher(publisher);
-                                                ds.setPublisherURL(publisherURL);
-                                                ds.setProviderMajorVersion(providerMajorVersion);
-                                                ds.setProviderMinorVersion(providerMinorVersion);
-                                                ds.setReleaseDate(releaseDate);
-                                                ds.setRights(rights);
-                                                ds.setRightTypes(rightTypes);
-                                                ds.setRepositoryId(repositoryId);
-                                                ds.setRepositoryImage(repositoryImage);
-                                                ds.setRegistrationDate(registrationDate);
- */
                         ds.setIncludedInSearch(isIncludedInSearch);
                         
-/*						ds.setConfigurationKeys(configurationKeys);
-                                                ds.setConfigurationValues(configurationValues);
-                                                ds.setConfigurationMaps(configurationMaps);
- ds.setHidden(isHidden);
- */
                     }
                 }
                 if (!found) {
@@ -459,9 +166,6 @@ public class VueDataSourceManager
         }
         
     }
-    
-    /**
-     */
     
     public void save() {
         marshall(new File(this.xmlFilename), this);
@@ -509,159 +213,6 @@ public class VueDataSourceManager
                     e.appendChild(document.createTextNode(nextValue));
                     record.appendChild(e);
                 }
-/*
-                                nextValue = dataSource.getOsidService();
-                                if (nextValue != null) {
-                                        e = document.createElement(OSID_SERVICE_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = (new Integer(dataSource.getMajorOsidVersion())).toString();
-                                if (nextValue != null) {
-                                        e = document.createElement(OSID_MAJOR_VERSION_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = (new Integer(dataSource.getMinorOsidVersion())).toString();
-                                if (nextValue != null) {
-                                        e = document.createElement(OSID_MINOR_VERSION_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = dataSource.getOsidLoadKey();
-                                if (nextValue != null) {
-                                        e = document.createElement(OSID_LOAD_KEY_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = dataSource.getProviderDisplayName();
-                                if (nextValue != null) {
-                                        e = document.createElement(DISPLAY_NAME_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = dataSource.getProviderDescription();
-                                if (nextValue != null) {
-                                        e = document.createElement(DESCRIPTION_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = dataSource.getCreator();
-                                if (nextValue != null) {
-                                        e = document.createElement(CREATOR_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = dataSource.getPublisher();
-                                if (nextValue != null) {
-                                        e = document.createElement(PUBLISHER_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = dataSource.getPublisherURL();
-                                if (nextValue != null) {
-                                        e = document.createElement(PUBLISHER_URL_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = (new Integer(dataSource.getProviderMajorVersion())).toString();
-                                if (nextValue != null) {
-                                        e = document.createElement(PROVIDER_MAJOR_VERSION_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = (new Integer(dataSource.getProviderMinorVersion())).toString();
-                                if (nextValue != null) {
-                                        e = document.createElement(PROVIDER_MINOR_VERSION_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = edu.tufts.vue.util.Utilities.dateToString(dataSource.getReleaseDate());
-                                if (nextValue != null) {
-                                        e = document.createElement(RELEASE_DATE_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                String rights[] = dataSource.getRights();
-                                org.osid.shared.Type rightTypes[] = dataSource.getRightTypes();
- 
-                                if (rights.length > 0) {
-                                        e = document.createElement(RIGHTS_TAG);
-                                        for (int j=0; j < rights.length; j++) {
-                                                String nextRight = rights[j];
-                                                if (nextRight != null) {
-                                                        org.w3c.dom.Element el1 = document.createElement(RIGHT_TAG);
-                                                        el1.appendChild(document.createTextNode(nextRight));
-                                                        e.appendChild(el1);
- 
-                                                        if (rightTypes.length > j) {
-                                                                String typeString = edu.tufts.vue.util.Utilities.typeToString(rightTypes[j]);
-                                                                if (typeString != null) {
-                                                                        org.w3c.dom.Element el2 = document.createElement(RIGHT_TYPE_TAG);
-                                                                        el2.appendChild(document.createTextNode(typeString));
-                                                                        e.appendChild(el2);
-                                                                }
-                                                        }
-                                                }
-                                        }
-                                        record.appendChild(e);
-                                }
- 
-                                String configurationKeys[] = dataSource.getConfigurationKeys();
-                                String configurationValues[] = dataSource.getConfigurationValues();
-                                java.util.Map configurationMaps[] = dataSource.getConfigurationMaps();
-                                if (configurationKeys.length > 0) {
-                                        e = document.createElement(CONFIGURATIONS_TAG);
- 
-                                        for (int j=0; j < configurationKeys.length; j++) {
-                                                String nextKey = configurationKeys[j];
-                                                org.w3c.dom.Element el1 = document.createElement(CONFIGURATION_KEY_TAG);
-                                                el1.appendChild(document.createTextNode(nextKey));
-                                                e.appendChild(el1);
-                                        }
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = dataSource.getRepositoryId().getIdString();
-                                if (nextValue != null) {
-                                        e = document.createElement(REPOSITORY_ID_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = dataSource.getRepositoryImage();
-                                if (nextValue != null) {
-                                        e = document.createElement(REPOSITORY_IMAGE_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = edu.tufts.vue.util.Utilities.dateToString(dataSource.getRegistrationDate());
-                                if (nextValue != null) {
-                                        e = document.createElement(REGISTRATION_DATE_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- 
-                                nextValue = (dataSource.isHidden()) ? "true" : "false";
-                                if (nextValue != null) {
-                                        e = document.createElement(HIDDEN_TAG);
-                                        e.appendChild(document.createTextNode(nextValue));
-                                        record.appendChild(e);
-                                }
- */
                 nextValue = (dataSource.isIncludedInSearch()) ? "true" : "false";
                 if (nextValue != null) {
                     e = document.createElement(INCLUDED_IN_SEARCH_TAG);
@@ -691,8 +242,6 @@ public class VueDataSourceManager
         }
     }
     
-    /**
-     */
     public edu.tufts.vue.dsm.DataSource[] getDataSources() {
         int size = this.dataSourceVector.size();
         edu.tufts.vue.dsm.DataSource dataSources[] = new edu.tufts.vue.dsm.DataSource[size];

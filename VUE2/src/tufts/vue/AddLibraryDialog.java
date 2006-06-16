@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.20 $ / $Date: 2006-06-16 14:04:32 $ / $Author: jeff $
+* @version $Revision: 1.21 $ / $Date: 2006-06-16 14:38:19 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -83,8 +83,8 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			populate();
 			
 			listJsp = new JScrollPane(addLibraryList);
-			listJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-			listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			listJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+			listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 			
 			descriptionTextArea.setText("description");
 			descriptionJsp = new JScrollPane(descriptionTextArea);
