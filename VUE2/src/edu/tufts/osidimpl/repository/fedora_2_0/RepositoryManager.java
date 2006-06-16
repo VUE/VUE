@@ -39,14 +39,29 @@ public class RepositoryManager
     throws org.osid.repository.RepositoryException {
         this.configuration = configuration;
         try {
-            this.repository = new Repository("fedora.xml",
-                    REPOSITORY_ID_STRING,
-                    "Tufts Digital Library",
-                    "",
-                    "dl.tufts.edu",
-                    8080,
-                    "test",
-                    "test");
+			System.out.println("Fedora 2.0 local configuration is " + configuration);
+			
+			Object displayname = configuration.getProperty("fedora20DisplayName");
+			Object address = configuration.getProperty("fedora20Address");
+			Object port = configuration.getProperty("fedora20Port");
+			Object username = configuration.getProperty("fedora20UserName");
+			Object password = configuration.getProperty("fedora20Password");
+			
+			if (displayname != null) {
+				String displaynameString = (String)displayname;
+				String addressString = (String)address;
+				String portString = (String)port;
+				String usernameString = (String)username;
+				String passwordString = (String)password;
+				
+				this.repository = new Repository("fedora.xml",
+												 REPOSITORY_ID_STRING,
+												 displaynameString,
+												 addressString,
+												 portString,
+												 usernameString,
+												 passwordString);
+			}
         } catch (Throwable t) {
             t.printStackTrace();
         }

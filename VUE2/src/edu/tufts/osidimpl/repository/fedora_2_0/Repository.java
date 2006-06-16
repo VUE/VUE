@@ -92,37 +92,32 @@ public class Repository implements org.osid.repository.Repository {
     private org.osid.shared.Id id = null;
     // private URL configuration = null;
     
-    
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;
     /** Creates a new instance of Repository */
-    public Repository(String conf,String id,String displayName,String description,String address,int port,String userName,String password)
+    public Repository(String conf,
+					  String id,
+					  String displayName,
+					  String address,
+					  String port,
+					  String userName,
+					  String password)
     throws org.osid.repository.RepositoryException {
-        /*
-        System.out.println("Repository CONSTRUCTING["
-                           + conf + ", "
-                           + id + ", "
-                           + displayName + ", "
-                           + description + ", "
-                           + address + ", "
-                           + userName + ", "
-                           + password + "] " + this);
-         */
         try {
             this.id = new PID(id);
+			this.displayName = displayName;
+			this.description = description;
+			setAddress(address);
+			this.port = new Integer(port).intValue();
+			this.userName = userName;
+			this.password = password;
+			this.conf = conf;
+			setFedoraProperties();
+			loadFedoraObjectAssetTypes();
+			searchTypes.add(new SimpleSearchType());
+			searchTypes.add(new AdvancedSearchType());
+			searchTypes.add(new Type("mit.edu","search","keyword"));
         } catch (Throwable t) { t.printStackTrace(); }
-        this.displayName = displayName;
-        this.description = description;
-        setAddress(address);
-        this.port = port;
-        this.userName = userName;
-        this.password = password;
-        this.conf = conf;
-        setFedoraProperties();
-        loadFedoraObjectAssetTypes();
-        searchTypes.add(new SimpleSearchType());
-        searchTypes.add(new AdvancedSearchType());
-        searchTypes.add(new Type("mit.edu","search","keyword"));
     }
     
     /** sets a soap call to perform all digital repository operations
@@ -161,12 +156,16 @@ public class Repository implements org.osid.repository.Repository {
     
     private void loadFedoraObjectAssetTypes() {
         try {
+			System.out.println("fedora types " + fedoraProperties.getProperty("fedora.types"));
             Vector fedoraTypesVector = FedoraUtils.stringToVector(fedoraProperties.getProperty("fedora.types"));
             Iterator i =fedoraTypesVector.iterator();
             while(i.hasNext()) {
                 createFedoraObjectAssetType((String)i.next());
             }
-        } catch (Throwable t) { System.out.println("Unable to load fedora types"+t.getMessage());}
+        } catch (Throwable t) { 
+			t.printStackTrace();
+			System.out.println("Unable to load fedora types"+t.getMessage());
+		}
     }
     public Properties getFedoraProperties() {
         return fedoraProperties;

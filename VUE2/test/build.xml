@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.11 $ / $Date: 2006-06-15 13:45:49 $ -->
+<!-- $Revision: 1.12 $ / $Date: 2006-06-16 13:19:37 $ -->
 
 <!-- 
 This ant build file:
@@ -83,11 +83,11 @@ This ant build file:
     <pathelement location="${lib.home}/xercesImpl-2.7.1.jar" />
     <pathelement location="${lib.home}/commons-logging.jar" />
     <pathelement location="${lib.home}/xerces-2.7.1-xml-apis.jar" />
-  <!--  <pathelement location="${lib.home}/axis-fedora.jar" />-->
+    <pathelement location="${lib.home}/axis-fedora.jar" />
     <pathelement location="${lib.home}/jaxrpc-api-unsigned.jar" />
-   <!-- <pathelement location="${lib.home}/fedora-server.jar" />-->
-  <!-- <pathelement location="${build.lib}/fedoragentypes.jar" />-->
-  <!-- <pathelement location="${build.lib}/fedorautilities.jar"/>-->
+   <pathelement location="${lib.home}/fedora-server.jar" />
+   <pathelement location="${build.lib}/fedoragentypes.jar" />
+   <pathelement location="${build.lib}/fedorautilities.jar"/>
    <pathelement location="${lib.home}/fedora_2_0-client.jar"/>
    <pathelement location="${build.lib}/axis.jar"/>
    <pathelement location="${build.lib}/junit.jar"/>

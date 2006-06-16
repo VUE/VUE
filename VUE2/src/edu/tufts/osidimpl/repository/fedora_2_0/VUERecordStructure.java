@@ -28,8 +28,8 @@ import java.io.*;
 import java.util.*;
 
 public class VUERecordStructure   implements org.osid.repository.RecordStructure {
-    public static final String[] dcFields = tufts.oki.dr.fedora.DR.DC_FIELDS;
-    public static final String  DC_NAMESPACE = tufts.oki.dr.fedora.DR.DC_NAMESPACE;
+    public static final String[] dcFields = {"title","creator","subject","date","type","format","identifier","collection","coverage"};
+    public static final String  DC_NAMESPACE = "dc:";
     
     private java.util.Vector partsVector = new java.util.Vector();
     private String displayName = "VUE Specific Data";
