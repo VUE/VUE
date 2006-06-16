@@ -85,14 +85,26 @@ public class VueDataSourceManager
     }
     
 	public void addDataSourceToCache(org.osid.shared.Id providerId,
-								DataSource dataSource)
+									 edu.tufts.vue.dsm.DataSource dataSource)
 	{
-		cacheMap.put(providerId.getIdString(),dataSource);
+		try {
+			String s = providerId.getIdString();	
+			cacheMap.put(s,dataSource);
+		} catch (Throwable t) {
+			
+		}
 	}
 	
-	public DataSourcegetDataSourceFromCache(org.osid.shared.Id providerId)
+	public edu.tufts.vue.dsm.DataSource getDataSourceFromCache(org.osid.shared.Id providerId)
 	{
-		return cacheMap.get(providerId.getIdString());
+		try {
+			String s = providerId.getIdString();	
+			if (s != null) {
+				return (edu.tufts.vue.dsm.DataSource)cacheMap.get(providerId.getIdString());
+			}
+		} catch (Throwable t) {
+		}
+		return null;
 	}
 	
     public void refresh() {
