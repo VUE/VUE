@@ -554,5 +554,8 @@
      <field name="propertyList" type="tufts.vue.PropertyEntry" collection="vector">
 	<bind-xml name="property"/>
      </field>
+     <field name="done" type="boolean">
+        <bind-xml name="done" node="element" />
+      </field>
 </class>
 </mapping>
