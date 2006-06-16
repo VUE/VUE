@@ -42,6 +42,7 @@ public class VueDataSource
     private java.awt.Image icon16x16 = null;
     private boolean isConfigured = false;
     private String configurationUIHints = null;
+    private boolean done = true; // dummy variable for castor.
     
     // from Manager loaded via Provider
     private org.osid.repository.RepositoryManager repositoryManager = null;
@@ -187,17 +188,24 @@ public class VueDataSource
         return result;
     }
     
-    private void setRelatedValues() {
-		try {
-			System.out.println("Load key is " + this.osidLoadKey);
-			this.repositoryId = edu.tufts.vue.util.Utilities.getRepositoryIdFromLoadKey(this.osidLoadKey);
-			System.out.println("Repository id from load key is " + this.repositoryId.getIdString());
-			this.repositoryManager = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey);
-			System.out.println("got manager");
-			this.repository = (edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);	
-			System.out.println("got repository");
+    private void setRepositoryManager() {
+        try {
+            System.out.println("Load key is " + this.osidLoadKey);
+            this.repositoryId = edu.tufts.vue.util.Utilities.getRepositoryIdFromLoadKey(this.osidLoadKey);
+            System.out.println("Repository id from load key is " + this.repositoryId.getIdString());
+            this.repositoryManager = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey);
+            System.out.println("got manager");
         } catch (Throwable t) {
-			System.out.println("Load by key failed, trying a check of all repositories");
+            System.out.println("Load by key failed, trying a check of all repositories");
+        }
+    }
+    
+    private void setRelatedValues() {
+        try {
+            this.repository = (edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);
+            System.out.println("got repository");
+        } catch (Throwable t) {
+            System.out.println("Load by key failed, trying a check of all repositories");
             // special case for when the Manager implementation doesn't offer this method
             try {
                 org.osid.repository.RepositoryIterator repositoryIterator = repositoryManager.getRepositories();
@@ -208,9 +216,9 @@ public class VueDataSource
                     }
                 }
             } catch (Throwable t1) {
-				System.out.println("Load by check of all repositories failed");
-				edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling getting Repository via Factory");
-				return;
+                System.out.println("Load by check of all repositories failed");
+                edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling getting Repository via Factory");
+                return;
             }
         }
         
@@ -400,7 +408,7 @@ public class VueDataSource
         try {
             providerId =  edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString);
             setProviderValues(); // must come first
-            setRelatedValues();
+            setRepositoryManager();
         } catch (Throwable t) {
             edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
         }
@@ -457,9 +465,22 @@ public class VueDataSource
                 mProperties.put(key, value);
         }
         
-        //SET configuration of repository manager.
+    }
+    
+    public boolean getDone() {
+        return this.done;
+    }
+    public void setDone(boolean done) {
+        this.done = done;
+        setRelatedValues();
         Properties p = new Properties();
-        p.put(key,value);
+        Iterator i = mProperties.keySet().iterator();
+        while (i.hasNext()) {
+            final String k = (String)i.next();
+            final String v = (String)mProperties.get(k);
+            p.put(k,v);
+        }
+      
         try{
             this.repositoryManager.assignConfiguration(p);
         } catch (Throwable t) {
