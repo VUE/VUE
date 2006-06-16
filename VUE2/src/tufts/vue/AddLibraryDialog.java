@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.19 $ / $Date: 2006-06-14 17:07:18 $ / $Author: jeff $
+* @version $Revision: 1.20 $ / $Date: 2006-06-16 14:04:32 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -304,7 +304,15 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 								System.out.println("creating data source");
 								ds = new edu.tufts.vue.dsm.impl.VueDataSource(provider.getId(),true);
 							} catch (Throwable t) {
-								System.out.println("failed creating data source");
+								javax.swing.JOptionPane.showMessageDialog(this,
+																		  "Loading Manager Failed",
+																		  "OSID Installation Error",
+																		  javax.swing.JOptionPane.ERROR_MESSAGE);
+								return;
+							}
+							try {
+								String foo = ds.getRepositoryDisplayName();
+							} catch (Throwable t3) {
 								javax.swing.JOptionPane.showMessageDialog(this,
 																		  "Loading Manager Failed",
 																		  "OSID Installation Error",
