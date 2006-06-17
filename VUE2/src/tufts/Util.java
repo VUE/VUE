@@ -1,4 +1,4 @@
- /*
+/*
  * -----------------------------------------------------------------------------
  *
  * <p><b>License and Copyright: </b>The contents of this file are subject to the
@@ -420,6 +420,9 @@ public class Util
         // now decode the over-coded stuff so it looks sane (has colon & slashes, etc)
         url = url.replaceAll("%3A", ":"); // be sure to do ALL of these...
         url = url.replaceAll("%2F", "/");
+        url = url.replaceAll("%3F", "?");
+        url = url.replaceAll("%3D", "=");
+        url = url.replaceAll("%26", "&");
         url = url.replaceAll("\\+", "%20");
         
         if (DEBUG) System.err.println("     CLEANUP [" + url + "]");
