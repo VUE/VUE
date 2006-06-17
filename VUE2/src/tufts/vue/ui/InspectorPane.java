@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.23 $ / $Date: 2006-06-04 22:15:25 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2006-06-17 00:38:35 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -572,26 +572,68 @@ public class InspectorPane extends JPanel
                 mValues[i].setOpaque(false);
                 mLabels[i].setVisible(false);
                 mValues[i].setVisible(false);
+
+                mValues[i].addMouseListener(CommonURLListener);
+                
             }
             
             return true;
             
         }
 
-        private void loadRow(int row, String label, String value) {
-            if (DEBUG.RESOURCE) out("adding row " + row + " " + label + "=[" + value + "]");
+        private class URLMouseListener extends tufts.vue.MouseAdapter {
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (e.getClickCount() != 2)
+                        return;
+                    try {
+                        final JTextArea value = (JTextArea) e.getSource();
+                        String text = value.getText();
+                        if (text.startsWith("http://")) {
+                            e.consume();
+                            final Color c = value.getForeground();
+                            value.setForeground(Color.red);
+                            value.paintImmediately(0,0, value.getWidth(), value.getHeight());
+                            tufts.vue.VueUtil.openURL(text);
+                            GUI.invokeAfterAWT(new Runnable() {
+                                    public void run() {
+                                        value.setForeground(c);
+                                    }
+                                });
+                        }
+                    } catch (Throwable t) {
+                        VUE.Log.error(t);
+                    }
+                }
+        }
 
-            mLabels[row].setText(label + ":");
-            mValues[row].setText(value);
+        private MouseListener CommonURLListener = new URLMouseListener();
+
+        private void loadRow(int row, String labelText, String valueText) {
+            if (DEBUG.RESOURCE) out("adding row " + row + " " + labelText + "=[" + valueText + "]");
+
+            final JLabel label = mLabels[row];
+            final JTextArea value = mValues[row];
+
+            label.setText(labelText + ":");
+            value.setText(valueText);
+
+            if (valueText != null && valueText.startsWith("http://")) {
+                value.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+                //value.setForeground(Color.blue);
+            } else {
+                //label.removeMouseListener(CommonURLListener);
+                value.setCursor(Cursor.getDefaultCursor());
+                //GUI.apply(GUI.ValueFace, mValues[i]);
+            }
             
             // if value has at least one space, use word wrap
-            if (value.indexOf(' ') >= 0)
-                mValues[row].setWrapStyleWord(true);
+            if (valueText.indexOf(' ') >= 0)
+                value.setWrapStyleWord(true);
             else
-                mValues[row].setWrapStyleWord(false);
+                value.setWrapStyleWord(false);
             
-            mLabels[row].setVisible(true);
-            mValues[row].setVisible(true);
+            label.setVisible(true);
+            value.setVisible(true);
             
         }
 
