@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.22 $ / $Date: 2006-06-16 17:29:33 $ / $Author: mike $
+* @version $Revision: 1.23 $ / $Date: 2006-06-19 13:40:00 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -131,6 +131,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			getContentPane().add(addLibraryPanel,BorderLayout.CENTER);
 			pack();
 			setLocation(300,300);
+
 			//setSize(new Dimension(300,400));
 			
 			//addLibraryList.getSelectionMdoel().setSelectionInterval(0,1);
@@ -426,6 +427,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 	    		addLibraryList.repaint();
 				GUI.clearWaitCursor();
 				timer.stop();
+				this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		}		
 	}
 	
@@ -433,7 +435,8 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		
 			
 		if (ae.getActionCommand().equals("Add")) 
-		{			
+		{		
+			this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 			GUI.activateWaitCursor();
 			providerListRenderer.invokeWaitingMode();
 			repaint();
