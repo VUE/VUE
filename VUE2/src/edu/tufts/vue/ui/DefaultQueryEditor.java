@@ -220,6 +220,8 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 
 		java.util.Vector typesVector = getIntersectionSearchFields();
 		java.util.Collections.sort(typesVector);
+		// always add a keyword field
+		typesVector.insertElementAt("Keyword",0);
 		int size = typesVector.size();
 		
 		if (size > 0) {
@@ -228,11 +230,15 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			for (int i=0; i < size; i++) {
 				gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 				gbConstraints.weightx = 0;
-				add(new javax.swing.JLabel((String)typesVector.elementAt(i)),gbConstraints);
+				String prompt = (String)typesVector.elementAt(i);
+				add(new javax.swing.JLabel(prompt),gbConstraints);
 				gbConstraints.gridx = 1;
 				gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
 				gbConstraints.weightx = 1;
 				advancedFields[i] = new javax.swing.JTextField(8);
+				if (prompt.equals("Keyword")) {
+					advancedFields[i].setText(this.field.getText());
+				}
 				add(advancedFields[i],gbConstraints);
 				gbConstraints.gridx = 0;
 				gbConstraints.gridy++;
@@ -429,8 +435,6 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			for (int i=0; i < repositories.length; i++) {
 				
 				java.util.Vector intersection = new java.util.Vector();		
-				// always add a keyword field
-				intersection.addElement("Keyword");
 				// not all these methods may be implemented -- in which case we are out of luck
 				try {
 					org.osid.shared.TypeIterator typeIterator = repositories[i].getAssetTypes();
