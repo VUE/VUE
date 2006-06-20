@@ -194,7 +194,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         
 
         dataSourceList.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(MouseEvent e) {            	
 				if (e.getClickCount() == 2) {
 					if (activeDataSource instanceof DataSource) {
 						displayEditOrInfo((DataSource)activeDataSource);
@@ -205,6 +205,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 					Point pt = e.getPoint();
 					if ( (activeDataSource instanceof edu.tufts.vue.dsm.DataSource) && (pt.x <= 40) ) {
 						int index = dataSourceList.locationToIndex(pt);
+						
 						edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)
 							dataSourceList.getModel().getElementAt(index);
 						boolean included = !ds.isIncludedInSearch();
@@ -626,12 +627,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         
     }
         
-    private void displayEditOrInfo(edu.tufts.vue.dsm.DataSource ds) {
+    private void displayEditOrInfo(edu.tufts.vue.dsm.DataSource ds) {    	
         refreshEditInfo(ds);
         editInfoDockWindow.setVisible(true);
     }
     
-    private void displayEditOrInfo(DataSource ds) {
+    private void displayEditOrInfo(DataSource ds) {    	
         refreshEditInfo(ds);
         editInfoDockWindow.setVisible(true);
     }
@@ -665,7 +666,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
                     DRB.dockWindow.getY());
             editInfoDockWindow.setTitle(dockTitle);
-        } else if (editInfoDockWindow.isVisible()) {
+        } else if (editInfoDockWindow.isVisible() || (!dockTitle.equals(editInfoDockWindow.getTitle()))) {
             if (ds.hasConfiguration()) {
                 editInfoStack.addPane("Configuration", new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
             } else {
@@ -700,7 +701,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
 										   DRB.dockWindow.getY());
             editInfoDockWindow.setTitle(dockTitle);
-        } else if (editInfoDockWindow.isVisible()) {
+        } else if (editInfoDockWindow.isVisible() || (!dockTitle.equals(editInfoDockWindow.getTitle()))) {
 			editInfoStack.addPane("Configuration", new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
             editInfoDockWindow.setTitle(dockTitle);
             editInfoDockWindow.setContent(editInfoStack);
