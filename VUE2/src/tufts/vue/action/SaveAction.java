@@ -28,6 +28,7 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;
 import tufts.vue.*;
+import tufts.vue.gui.VueFrame;
 
 /**
  * Save the currently active map.
@@ -131,6 +132,10 @@ public class SaveAction extends VueAction
             // don't know this as not all the above stuff is passing
             // exceptions on to us!
             System.out.println("Save code completed for " + file);
+            VueFrame frame = (VueFrame)VUE.getMainWindow();
+            String title = VUE.getName() + ": " + name;                      
+            frame.setTitle(title);
+            
             return true;
 
         } catch (Throwable t) {
