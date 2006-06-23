@@ -46,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.57 $ / $Date: 2006-05-08 02:30:44 $ / $Author: anoop $
+ * @version $Revision: 1.58 $ / $Date: 2006-06-23 18:38:14 $ / $Author: anoop $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -60,6 +60,7 @@ public class VueDragTree extends JTree
     private static  ImageIcon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
     private static ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
     private static  ImageIcon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
+    private static final int DOUBLE_CLICK = 2;
     ///private javax.swing.JPanel previewPanel = null;
     //	private tufts.vue.gui.DockWindow previewDockWindow = null;
     
@@ -77,13 +78,11 @@ public class VueDragTree extends JTree
         addTreeSelectionListener(this);
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent me){
-                if  (me.getClickCount() != 2)
+                if  (me.getClickCount() != DOUBLE_CLICK)
                     return;
-                
                 TreePath path = getPathForLocation(me.getX(), me.getY());
                 if (path == null)
                     return;
-                
                 Object c = path.getLastPathComponent();
                 if (c instanceof CabinetNode) {
                     CabinetNode cabNode = (CabinetNode) path.getLastPathComponent();
@@ -91,10 +90,8 @@ public class VueDragTree extends JTree
                     if (uo instanceof Resource)
                         ((Resource)uo).displayContent();
                 }
-                
             }
         });
-        
     }
     
     /*
@@ -161,31 +158,23 @@ public class VueDragTree extends JTree
                 TreePath path = e.getPath();
                 if (path.getLastPathComponent() instanceof CabinetNode) {
                     CabinetNode cabNode = (CabinetNode) path.getLastPathComponent();
-                    
                     if (cabNode == null) return;
-                    
                     setSelectionPath(path);
-                    
                     if (cabNode.getCabinet() != null)cabNode.getDataModel().reload();
-                    
-                    
-                    
                 }
             }
             public void treeWillCollapse(TreeExpansionEvent e) {}
         });
-        
-        
         VueDragTreeCellRenderer renderer = new VueDragTreeCellRenderer(this);
         tree.setCellRenderer(renderer);
- 
+        
         ToolTipManager.sharedInstance().registerComponent(tree);
     }
     
     
     
     
-    private DefaultTreeModel createTreeModel(Object obj, String treeName ){       
+    private DefaultTreeModel createTreeModel(Object obj, String treeName ){
         ResourceNode root = new ResourceNode(new MapResource(treeName));
         if (obj instanceof Iterator){
             Iterator i = (Iterator)obj;
@@ -202,7 +191,7 @@ public class VueDragTree extends JTree
                         cabNode = new CabinetNode(cabRes, CabinetNode.LOCAL);
                     root.add(cabNode);
                     if (cabNode.getCabinet() != null)cabNode.explore();
-                    } else {
+                } else {
                     ResourceNode node = new ResourceNode((Resource)resource);
                     root.add(node);
                 }
@@ -224,7 +213,7 @@ public class VueDragTree extends JTree
             
             if (DEBUG.DND) System.out.println(this + " dragGestureRecognized " + e);
             if (DEBUG.DND) System.out.println("selected node is " + oldnode.getClass() + "[" + oldnode + "] resource=" + resource);
-         
+            
             if (resource != null) {
                 
                 Image imageIcon = nleafIcon.getImage();
@@ -276,28 +265,12 @@ public class VueDragTree extends JTree
             if(e.getPath().getLastPathComponent() != null ) {
                 Resource resource = (Resource)((ResourceNode)e.getPath().getLastPathComponent()).getResource();
                 resourceSelection.setTo(resource);
-                
-                /*
-                this.previewDockWindow.setVisible(true);
-                this.previewPanel.removeAll();
-                this.previewPanel.add(resource.getPreview());
-                this.previewPanel.repaint();
-                this.previewPanel.validate();
-                 */
-                //resourceSelection.remove(createResource(e.getPath().getLastPathComponent()));
             }
-            /**
-             * if(e.getPath().getPathComponent(0) != null) {
-             * //resourceSelection.add(createResource(e.getPath().getLastPathComponent()));
-             * System.out.println("Added Resource = "+createResource(e.getPath().getLastPathComponent())+" : size = "+resourceSelection.size());
-             * }
-             **/
         } catch(Exception ex) {
             // VueUtil.alert(null,ex.toString(),"Error in VueDragTree Selection");
             System.out.println("VueDragTree.valueChanged "+ex.getMessage());
             ex.printStackTrace();
         }
-        // System.out.println("elements in path = "+e.getPath().getPathCount());
     }
     
     class VueDragTreeCellRenderer extends DefaultTreeCellRenderer{
@@ -306,22 +279,7 @@ public class VueDragTree extends JTree
         public VueDragTreeCellRenderer(VueDragTree vdTree) {
             this.tree = vdTree;
             
-            // what was this supposed to do???  commented out as
-            // isn't doing anything right now... SMF 2006-03-23 17:40.54
-            /*
-            vdTree.addMouseMotionListener(new MouseMotionAdapter() {
-                public void mouseClicked(MouseEvent me){
-                    if  (me.getClickCount() == 1) {
-                        TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
-                    }
-                }
-                public void mouseMoved(MouseEvent me) {
-                    //tree.clearSelection();
-                    TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
-                    //tree.setSelectionPath(treePath);
-                }
-            });
-             */
+         
         }
         /* -----------------------------------  */
         
@@ -392,7 +350,7 @@ public class VueDragTree extends JTree
         menuItem = new JMenuItem("Open Resource");
         menuItem.addActionListener(this);
         popup.add(menuItem);
-       
+        
         //Add listener to the text area so the popup menu can come up.
         MouseListener popupListener = new PopupListener(popup);
         this.addMouseListener(popupListener);
@@ -545,7 +503,7 @@ class CabinetNode extends ResourceNode {
      *  Expand the tree (ie. find the cabinet entries below this node).
      *  This only applies if the current node is a cabinet.
      */
-    public void explore() {        
+    public void explore() {
         if (this.explored)
             return;
         if(getCabinet() != null) {
@@ -565,7 +523,7 @@ class CabinetNode extends ResourceNode {
                     
                     while (i.hasNext()) {
                         CabinetEntry ce = (LocalCabinetEntry) i.next();
-                       if (ce.getDisplayName().startsWith(".")) // don't display dot files
+                        if (ce.getDisplayName().startsWith(".")) // don't display dot files
                             continue;
                         CabinetResource res = new CabinetResource(ce);
                         CabinetNode rootNode = new CabinetNode(res, this.type);
@@ -628,7 +586,7 @@ class FileNode extends ResourceNode {
             return file.isDirectory();
         } else {
             return false;
-        }        
+        }
     }
     public String toString() {
         File file = (File)getUserObject();
@@ -677,111 +635,3 @@ class FavoritesNode extends ResourceNode {
         this.explore();
     }
 }
-
-/*
-class VueDragTreeNodeSelection extends Vector implements Transferable {
-    /**
- * try {
- * assetFlavor = new DataFlavor(Class.forName("osid.dr.Asset"),"asset");
- * } catch (Exception e) { System.out.println("FedoraSelection "+e);}
- **
- 
-    /*
-    private DataFlavor flavors[] = {
-        DataFlavor.stringFlavor,
-        //DataFlavor.javaFileListFlavor
-    };
- **
- 
-    //private String displayName = "";
- 
-    private java.util.List flavors = new java.util.ArrayList(3);
- 
-    public VueDragTreeNodeSelection(Object resource) {
-        addElement(resource);
- 
-        flavors.add(DataFlavor.stringFlavor);
- 
-        if (resource instanceof MapResource) {
- 
-            flavors.add(Resource.DataFlavor);
-            /*
-            try {
-                displayName = ((Resource)elementAt(0)).getTitle();
-            } catch (Exception e) { System.out.println("FedoraSelection "+e);}
- **
- 
-        } else if (resource instanceof File) {
- 
-            flavors.add(DataFlavor.javaFileListFlavor);
-            //displayName = ((File)elementAt(0)).getName();
- 
-        } else {
- 
-            //displayName = elementAt(0).toString();
- 
-        }
-    }
- 
-// Returns the array of flavors in which it can provide the data.
-    public synchronized java.awt.datatransfer.DataFlavor[] getTransferDataFlavors() {
-        return (DataFlavor[]) flavors.toArray(new DataFlavor[flavors.size()]);
-    }
- 
-// Returns whether the requested flavor is supported by this object.
-    public boolean isDataFlavorSupported(DataFlavor flavor) {
-        if (flavor == null)
-            return false;
- 
-        for (int i = 0; i < flavors.size(); i++)
-            if (flavor.equals(flavors.get(i)))
-                return true;
- 
-        return false;
-    }
- 
-    /**
- * If the data was requested in the "java.lang.String" flavor,
- * return the String representing the selection.
- **
-    public synchronized Object getTransferData(DataFlavor flavor)
-        throws UnsupportedFlavorException, IOException
-    {
-        if (DEBUG.DND && DEBUG.META) System.out.println("VueDragTreeNodeSelection: getTransferData, flavor=" + flavor);
- 
-        Object result = null;
- 
-        if (DataFlavor.stringFlavor.equals(flavor)) {
- 
-            // Always support something for the string flavor, or
-            // we get an exception thrown (even tho I think that
-            // may be against the published API).
-            Object o = get(0);
-            if (o instanceof File)
-                result = ((File)o).toString();
-            else
-                result = ((Resource)o).getSpec();
- 
-        } else if (Resource.DataFlavor.equals(flavor)) {
- 
-            result = (java.util.List) this;
- 
-        } else if (DataFlavor.javaFileListFlavor.equals(flavor)) {
- 
-            result = (java.util.List) this;
- 
-        } else {
- 
-            throw new UnsupportedFlavorException(flavor);
-        }
- 
-        if (DEBUG.DND && DEBUG.META) System.out.println("\treturning " + result.getClass() + "[" + result + "]");
- 
-        return result;
-    }
- 
-}
- 
- 
- 
- */
