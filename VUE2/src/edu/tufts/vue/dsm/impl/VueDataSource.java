@@ -26,8 +26,10 @@ public class VueDataSource
     private tufts.vue.PropertyMap mProperties = new tufts.vue.PropertyMap();
     private Vector mXMLpropertyList = null;
     private org.osid.shared.Id providerId = null;
+    private org.osid.shared.Id dataSourceId = null;
     private String osidLoadKey = null;
     private String providerIdString = null; // to support loading datasource from castor
+    private String dataSourceIdString = null; // to support loading datasource from castor
     // from Provider OSID implementation
     private String osidName = null;
     private String osidBindingVersion = null;
@@ -61,26 +63,28 @@ public class VueDataSource
     
     // constructer required by castor
     
-    public VueDataSource() {
+    public VueDataSource() 
+	{
     }
     
-    // Construct a data source from stored data
-    public VueDataSource(org.osid.shared.Id providerId,
-            boolean isIncludedInSearch) 
+    public VueDataSource(org.osid.shared.Id dataSourceId,
+						 org.osid.shared.Id providerId,
+						 boolean isIncludedInSearch) 
 	throws org.osid.repository.RepositoryException, org.osid.provider.ProviderException
 	{
         this.providerId = providerId;
+		this.dataSourceId = dataSourceId;
         this.includedState = isIncludedInSearch;
-        setProviderValues(); // must come first
-		setRepositoryManager(); // must come second
-        setRelatedValues();
+		setProviderValues();
+		setRepositoryManager();
+		setRelatedValues();
     }
     
     private void setProviderValues()
 	throws org.osid.provider.ProviderException
 	{
         org.osid.provider.Provider provider = null;
-		provider = this.factory.getProvider(providerId);
+		provider = this.factory.getProvider(this.providerId);
 		this.osidName = provider.getOsidName();
 		this.osidBindingVersion = provider.getOsidBindingVersion();
 		this.providerDisplayName = provider.getDisplayName();
@@ -148,19 +152,20 @@ public class VueDataSource
     }
     
     private void setRepositoryManager()
-	throws org.osid.repository.RepositoryException, org.osid.provider.ProviderException
+		throws org.osid.provider.ProviderException
 	{
-		System.out.println("Load key is " + this.osidLoadKey);
+//		System.out.println("Load key is " + this.osidLoadKey);
 		this.repositoryId = edu.tufts.vue.util.Utilities.getRepositoryIdFromLoadKey(this.osidLoadKey);
-		this.repositoryManager = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey);
-		System.out.println("got manager");
+		this.repositoryManager = factory.getRepositoryManagerInstance(this.osidLoadKey);
+//		System.out.println("got manager");
     }
     
     private void setRelatedValues()
+		throws org.osid.provider.ProviderException
 	{
 		try {
-			this.repository = (edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);
-			System.out.println("got repository");
+			this.repository = (factory.getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);
+//			System.out.println("got repository");
 		} catch (Throwable t) {
 			System.out.println("Load by key failed, trying a check of all repositories");
 			// special case for when the Manager implementation doesn't offer this method
@@ -174,14 +179,14 @@ public class VueDataSource
 				}
 			} catch (Throwable t1) {
 				System.out.println("Load by check of all repositories failed");
-				return;
+				throw new org.osid.provider.ProviderException(org.osid.shared.SharedException.UNKNOWN_ID);
 			}
 		}
 		// call Repository to answer these
 		try {
 			this.repositoryDisplayName = this.repository.getDisplayName();
 		} catch (Throwable t) {
-			edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.getDisplayName()");
+			this.repositoryDisplayName = "unconfigured";
 		}
 		
 		try {
@@ -233,6 +238,10 @@ public class VueDataSource
     public org.osid.shared.Id getProviderId() {
         return this.providerId;
     }
+	
+	public org.osid.shared.Id getId() {
+		return this.dataSourceId;
+	}
     
     public void setProviderId(org.osid.shared.Id providerId) {
         this.providerId = providerId;
@@ -349,6 +358,7 @@ public class VueDataSource
     public void setIncludedState(boolean includedState) {
         this.includedState = includedState;
     }
+
     public String getProviderIdString() {
         if(this.providerIdString== null) {
             try {
@@ -359,6 +369,7 @@ public class VueDataSource
         }
         return providerIdString;
     }
+
     public void setProviderIdString(String providerIdString) {
         try {
             providerId =  edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString);
@@ -368,6 +379,28 @@ public class VueDataSource
             edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
         }
     }
+	
+    public String getDataSourceIdString() {
+        if(this.dataSourceIdString== null) {
+            try {
+                return dataSourceId.getIdString();
+            } catch (Throwable t) {
+                edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
+            }
+        }
+        return dataSourceIdString;
+    }
+	
+    public void setDataSourceIdString(String dataSourceIdString) {
+        try {
+            this.dataSourceId =  factory.getIdManagerInstance().getId(dataSourceIdString);
+            setProviderValues(); // must come first
+            setRepositoryManager();
+        } catch (Throwable t) {
+            edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
+        }
+    }
+	
     public void setConfiguration(java.util.Properties properties) {
         if (this.repositoryManager != null) {
             try {
@@ -382,6 +415,7 @@ public class VueDataSource
                 edu.tufts.vue.util.Logger.log(t);
             }
         }
+		System.out.println("now current configuration in vue data source " + mProperties);
     }
     
     public Properties getConfiguration() {
@@ -390,15 +424,19 @@ public class VueDataSource
         while (i.hasNext()) {
             final String key = (String) i.next();
             final String value = mProperties.getProperty(key);
-            properties.getProperty(key,value);
-        }
-        return properties;
+			System.out.println("k/v " + key + " / " + value);
+            properties.setProperty(key,value);
+        }        
+		return properties;
     }
     
     /** this is for castor persistance only */
     public java.util.List getPropertyList() {
-        if (mProperties.size() == 0) // a hack for castor to work
+        if (mProperties.size() == 0) {
+			// a hack for castor to work
+			System.out.println("mProperties is 0");
             return null;
+		}
         mXMLpropertyList = new Vector(mProperties.size());
         Iterator i = mProperties.keySet().iterator();
         while (i.hasNext()) {
@@ -412,23 +450,25 @@ public class VueDataSource
         return mXMLpropertyList;
     }
     
-    public void setPropertyList(Vector propertyList) {
+    public void setPropertyList(java.util.Vector propertyList) {
+		tufts.vue.PropertyEntry entry = (tufts.vue.PropertyEntry)propertyList.firstElement();
+		setProperty((String)entry.getEntryKey(),entry.getEntryValue());
     }
     
     public void setProperty(String key, Object value) {
+	
         if (key != null && value != null) {
-            if (!(value instanceof String && ((String)value).length() < 1))
+            if (!(value instanceof String && ((String)value).length() < 1)) {
                 mProperties.put(key, value);
-        }
-        
+			}
+        }        
     }
-    
+	
     public boolean getDone() {
         return this.done;
     }
     public void setDone(boolean done) {
         this.done = done;
-        setRelatedValues();
         Properties p = new Properties();
         Iterator i = mProperties.keySet().iterator();
         while (i.hasNext()) {
@@ -439,6 +479,7 @@ public class VueDataSource
       
         try{
             this.repositoryManager.assignConfiguration(p);
+			setRelatedValues();
         } catch (Throwable t) {
             edu.tufts.vue.util.Logger.log(t);
         }

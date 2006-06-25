@@ -31,6 +31,8 @@ public interface DataSource
 	
 	public org.osid.shared.Id getProviderId();
 	
+	public org.osid.shared.Id getId();
+
 	public String getOsidName();
 	
 	public String getOsidVersion();

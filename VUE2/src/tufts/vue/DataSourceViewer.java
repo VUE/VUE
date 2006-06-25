@@ -118,8 +118,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 				dataSourceList.addOrdered(dataSources[i]);
 			}
 		} catch (Throwable t) {
-			System.out.println("error1............................." + t.getMessage());
-			t.printStackTrace();
 			javax.swing.JOptionPane.showMessageDialog(null,
 													  "Error loading data source",
 													  "Error",
@@ -130,9 +128,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
 			// load old-style data sources
 			loadDataSources();
 		} catch (Throwable t) {
-			System.out.println("error2............................." + t.getMessage());
 			javax.swing.JOptionPane.showMessageDialog(null,
-													  "Error loading data source",
+													  "Error loading old data source",
 													  "Error",
 													  javax.swing.JOptionPane.ERROR_MESSAGE);
 		}
@@ -350,9 +347,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                                 "Do you really want to remove " + ds.getRepositoryDisplayName(),
                                 "Remove Library",
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
-                            dataSourceManager.remove(ds);
+                            dataSourceManager.remove(ds.getId());
                             dataSourceManager.save();
-                            dataSourceManager.refresh();
                             dataSourceList.getContents().removeElement(ds);
                         }
                     }

@@ -39,11 +39,9 @@ public interface DataSourceManager
 	
 	public void add(DataSource dataSource);	
 	
-	public void remove(DataSource dataSource);
+	public void remove(org.osid.shared.Id dataSourceId);
 	
 	public org.osid.repository.Repository[] getIncludedRepositories();
-	
-	public void refresh();
 	
 	public void save();
 

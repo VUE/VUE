@@ -43,6 +43,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 			String xml = dataSource.getConfigurationUIHints();
 			
 			cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
+			cui.setProperties(dataSource.getConfiguration());
 
 			// layout container
 			GridBagLayout gridbag = new GridBagLayout();
@@ -127,6 +128,8 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 				if (this.dataSource != null) {
 					this.dataSource.setConfiguration(cui.getProperties());
 					this.dsv.setActiveDataSource(this.dataSource); // refresh
+					edu.tufts.vue.dsm.DataSourceManager dsm = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+					dsm.save();					
 				} else if (this.oldDataSource instanceof LocalFileDataSource) {
 					java.util.Properties p = cui.getProperties();
 					LocalFileDataSource ds = (LocalFileDataSource)this.oldDataSource;

@@ -548,11 +548,14 @@
     <field name="providerIdString" type="string">
         <bind-xml name="providerIdString" node="attribute" />
      </field>
+    <field name="dataSourceIdString" type="string">
+        <bind-xml name="dataSourceIdString" node="attribute" />
+     </field>
      <field name="includedState" type="boolean" >
         <bind-xml name="includedState" node="attribute" />
      </field>
      <field name="propertyList" type="tufts.vue.PropertyEntry" collection="vector">
-	<bind-xml name="property"/>
+		<bind-xml name="property" />
      </field>
      <field name="done" type="boolean">
         <bind-xml name="done" node="element" />

@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.23 $ / $Date: 2006-06-19 13:40:00 $ / $Author: mike $
+* @version $Revision: 1.24 $ / $Date: 2006-06-25 23:10:19 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -72,6 +72,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		this.dataSourceList = dataSourceList;
 		
 		try {
+			factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 			addLibraryList = new JList(listModel);
 			addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
 			addLibraryList.setPreferredSize(new Dimension(300,180));
@@ -154,7 +155,6 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			GUI.activateWaitCursor();
 			if (dataSourceManager == null) {
 				dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-				factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 			}
 			
 			listModel.removeAllElements();
@@ -309,7 +309,9 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 							// add to data sources list
 							try {
 								System.out.println("creating data source");
-								ds = new edu.tufts.vue.dsm.impl.VueDataSource(provider.getId(),true);
+								ds = new edu.tufts.vue.dsm.impl.VueDataSource(factory.getIdManagerInstance().createId(),
+																			  provider.getId(),
+																			  true);
 							} catch (Throwable t) {
 								javax.swing.JOptionPane.showMessageDialog(this,
 																		  "Loading Manager Failed",
@@ -317,17 +319,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 																		  javax.swing.JOptionPane.ERROR_MESSAGE);
 								return;
 							}
-							try {
-								String foo = ds.getRepositoryDisplayName();
-							} catch (Throwable t3) {
-								javax.swing.JOptionPane.showMessageDialog(this,
-																		  "Loading Manager Failed",
-																		  "OSID Installation Error",
-																		  javax.swing.JOptionPane.ERROR_MESSAGE);
-								return;
-							}
 							System.out.println("created data source");
-							ds.setIncludedInSearch(true);
 							
 							// show configuration, if needed
 							if (ds.hasConfiguration()) {
@@ -389,6 +381,16 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 							try {
 								GUI.activateWaitCursor();
 								this.newDataSource.setConfiguration(cui.getProperties());
+								GUI.invokeAfterAWT(new Runnable() { public void run() {
+									try {
+										synchronized (dataSourceManager) {
+											dataSourceManager.save();
+										}
+									} catch (Throwable t) {
+										System.out.println(t.getMessage());
+									}
+								}});
+								
 							} catch (Throwable t2) {
 								
 							} finally {
@@ -405,17 +407,6 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 					dataSourceList.addOrdered(this.newDataSource);
 					System.out.println("ready to add new data source to manager");
 					dataSourceManager.add(this.newDataSource);
-					System.out.println("ready to save data source manager");
-					GUI.invokeAfterAWT(new Runnable() { public void run() {
-						try {
-							synchronized (dataSourceManager) {
-								dataSourceManager.save();
-							}
-						} catch (Throwable t) {
-							System.out.println(t.getMessage());
-						}
-					}});
-					//					DataSourceViewer.setActiveDataSource(this.newDataSource);
 				}
 				providerListRenderer.setChecked(addLibraryList.getSelectedIndex());
 			} catch (Throwable t) {

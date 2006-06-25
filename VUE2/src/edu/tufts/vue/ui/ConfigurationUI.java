@@ -446,6 +446,33 @@ public class ConfigurationUI extends javax.swing.JPanel
 		return properties;
 	}
 	
+	public void setProperties(java.util.Properties properties)
+	{
+		for (int i = 0, size = this.keyVector.size(); i < size; i++) {
+			String key = (String)keyVector.elementAt(i);
+			String value = properties.getProperty(key);
+			if (value != null) {
+				int uiCode = ((Integer)uiVector.elementAt(i)).intValue();
+				
+				switch( uiCode) {
+					case SINGLE_LINE_CLEAR_TEXT_CONTROL:				
+						javax.swing.JTextField field0 = (javax.swing.JTextField)fieldVector.elementAt(i);
+						field0.setText(value);
+						break;
+					case SINGLE_LINE_MASKED_TEXT_CONTROL:
+						javax.swing.JPasswordField field1 = (javax.swing.JPasswordField)fieldVector.elementAt(i);
+						field1.setText(value);
+						break;
+					case MULTI_LINE_TEXT_CONTROL:
+						javax.swing.JTextArea field2 = (javax.swing.JTextArea)fieldVector.elementAt(i);
+						field2.setText(value);
+						break;
+					//TO DO:  add more support for other property types
+				}
+			}
+		}
+	}
+	
 	public static void main(String args[])
 	{
 		if (args.length != 1) {
