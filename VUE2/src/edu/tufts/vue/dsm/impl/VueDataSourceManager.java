@@ -48,9 +48,8 @@ public class VueDataSourceManager
 	
     public static edu.tufts.vue.dsm.DataSourceManager getInstance() 
 	{
-        load();
         return dataSourceManager;
-    }
+}
 
     public VueDataSourceManager() 
 	{
@@ -221,6 +220,7 @@ public class VueDataSourceManager
     
     
     public static  VueDataSourceManager unMarshall(File file) throws java.io.IOException, org.exolab.castor.xml.MarshalException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException{
+        System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
         Unmarshaller unmarshaller = null;
         VueDataSourceManager dsm = null;
         Mapping mapping = new Mapping();

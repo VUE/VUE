@@ -456,7 +456,7 @@ public class VueDataSource
     }
     
     public void setProperty(String key, Object value) {
-	
+	System.out.println("VueDataSource.setProperty: key - "+ key+  " value - "+ value);
         if (key != null && value != null) {
             if (!(value instanceof String && ((String)value).length() < 1)) {
                 mProperties.put(key, value);
@@ -468,6 +468,7 @@ public class VueDataSource
         return this.done;
     }
     public void setDone(boolean done) {
+        System.out.println("VueDataSource.setDone");
         this.done = done;
         Properties p = new Properties();
         Iterator i = mProperties.keySet().iterator();
