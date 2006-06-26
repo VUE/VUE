@@ -99,52 +99,47 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     org.osid.registry.Provider checked[];
     
     public DataSourceViewer(DRBrowser drBrowser) {
-		GUI.activateWaitCursor();
-
+        GUI.activateWaitCursor();
         setLayout(new BorderLayout());
         this.DRB = drBrowser;
         dataSourceList = new DataSourceList(this);
         dataSourceList.addKeyListener(this);
-		Widget.setExpanded(DRB.browsePane, false);
-		
-		edu.tufts.vue.dsm.DataSource dataSources[] = null;
-		
-		try {
-			// load new data sources
-			dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-			edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
-			dataSources = dataSourceManager.getDataSources();
-			for (int i=0; i < dataSources.length; i++) {
-				dataSourceList.addOrdered(dataSources[i]);
-			}
-		} catch (Throwable t) {
-			javax.swing.JOptionPane.showMessageDialog(null,
-													  "Error loading data source",
-													  "Error",
-													  javax.swing.JOptionPane.ERROR_MESSAGE);
-		}
-        
-		try {
-			// load old-style data sources
-			loadDataSources();
-		} catch (Throwable t) {
-			javax.swing.JOptionPane.showMessageDialog(null,
-													  "Error loading old data source",
-													  "Error",
-													  javax.swing.JOptionPane.ERROR_MESSAGE);
-		}
-		
+        Widget.setExpanded(DRB.browsePane, false); 
+        edu.tufts.vue.dsm.DataSource dataSources[] = null;
+        try {
+            // load new data sources
+            dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+            edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
+            dataSources = dataSourceManager.getDataSources();
+            for (int i=0; i < dataSources.length; i++) {
+                dataSourceList.addOrdered(dataSources[i]);
+            }
+        } catch (Throwable t) {
+            javax.swing.JOptionPane.showMessageDialog(null,
+                    "Error loading data source",
+                    "Error",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
+        try {
+            // load old-style data sources
+            loadDataSources();
+        } catch (Throwable t) {
+            javax.swing.JOptionPane.showMessageDialog(null,
+                    "Error loading old data source",
+                    "Error",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
         sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
         queryEditor = federatedSearchManager.getQueryEditorForType(new edu.tufts.vue.util.Type("mit.edu","search","keyword"));
         queryEditor.addSearchListener(this);
         
-		
-		// select the first new data source, if any
-		if ((dataSources != null) && (dataSources.length > 0)) {
-			setActiveDataSource(dataSources[0]);
-		}
-
+        
+        // select the first new data source, if any
+        if ((dataSources != null) && (dataSources.length > 0)) {
+            setActiveDataSource(dataSources[0]);
+        }
+        
         DRB.searchPane.removeAll();
         DRB.searchPane.add((JPanel) queryEditor, DRBrowser.SEARCH_EDITOR);
         DRB.searchPane.revalidate();
@@ -154,7 +149,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         //this.previewPanel = previewDockWindow.getWidgetPanel();
         
         //resultSetDockWindow = DRB.searchDock;
-        
         setPopup();
         // WORKING: commented out
         //librariesDockWindow.setVisible(true); // try to make menu appear
@@ -166,7 +160,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                     if (o instanceof tufts.vue.DataSource) {
                         DataSource ds = (DataSource)o;
                         DataSourceViewer.this.setActiveDataSource(ds);
-						refreshEditInfo(ds);
+                        refreshEditInfo(ds);
                     } else if (o instanceof edu.tufts.vue.dsm.DataSource) {
                         edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
                         DataSourceViewer.this.setActiveDataSource(ds);
@@ -189,46 +183,44 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             }}
         );
         
-
         dataSourceList.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {            	
-				if (e.getClickCount() == 2) {
-					if (activeDataSource instanceof DataSource) {
-						displayEditOrInfo((DataSource)activeDataSource);
-					} else {
-						displayEditOrInfo((edu.tufts.vue.dsm.DataSource)activeDataSource);
-					}
-				} else {
-					Point pt = e.getPoint();
-					if ( (activeDataSource instanceof edu.tufts.vue.dsm.DataSource) && (pt.x <= 40) ) {
-						int index = dataSourceList.locationToIndex(pt);
-						
-						edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)
-							dataSourceList.getModel().getElementAt(index);
-						boolean included = !ds.isIncludedInSearch();
-						if (DEBUG.DR) out("DataSource " + ds + " [" + ds.getProviderDisplayName() + "] inclusion: " + included);
-						ds.setIncludedInSearch(included);
-						dataSourceList.repaint();
-						queryEditor.refresh();
-						
-						GUI.invokeAfterAWT(new Runnable() { public void run() {
-							try {
-								synchronized (dataSourceManager) {
-									if (DEBUG.DR) out("DataSourceManager saving...");
-									dataSourceManager.save();
-									if (DEBUG.DR) out("DataSourceManager saved.");
-								}
-							} catch (Throwable t) {
-								tufts.Util.printStackTrace(t);
-							}
-						}});
-					}
-					//if(e.getButton() == e.BUTTON3)
-					//popup.show(e.getComponent(), e.getX(), e.getY());
-				}
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    if (activeDataSource instanceof DataSource) {
+                        displayEditOrInfo((DataSource)activeDataSource);
+                    } else {
+                        displayEditOrInfo((edu.tufts.vue.dsm.DataSource)activeDataSource);
+                    }
+                } else {
+                    Point pt = e.getPoint();
+                    if ( (activeDataSource instanceof edu.tufts.vue.dsm.DataSource) && (pt.x <= 40) ) {
+                        int index = dataSourceList.locationToIndex(pt);
+                        
+                        edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)
+                        dataSourceList.getModel().getElementAt(index);
+                        boolean included = !ds.isIncludedInSearch();
+                        if (DEBUG.DR) out("DataSource " + ds + " [" + ds.getProviderDisplayName() + "] inclusion: " + included);
+                        ds.setIncludedInSearch(included);
+                        dataSourceList.repaint();
+                        queryEditor.refresh();
+                        
+                        GUI.invokeAfterAWT(new Runnable() { public void run() {
+                            try {
+                                synchronized (dataSourceManager) {
+                                    if (DEBUG.DR) out("DataSourceManager saving...");
+                                    dataSourceManager.save();
+                                    if (DEBUG.DR) out("DataSourceManager saved.");
+                                }
+                            } catch (Throwable t) {
+                                tufts.Util.printStackTrace(t);
+                            }
+                        }});
+                    }
+                    //if(e.getButton() == e.BUTTON3)
+                    //popup.show(e.getComponent(), e.getX(), e.getY());
+                }
             }
         });
-        
         if (false) {
             JScrollPane dataJSP = new JScrollPane(dataSourceList);
             dataJSP.setMinimumSize(new Dimension(100,100));
@@ -236,7 +228,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         } else {
             add(dataSourceList);
         }
-		GUI.clearWaitCursor();
+        GUI.clearWaitCursor();
     }
     
     public static Object getActiveDataSource() {
@@ -249,15 +241,15 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         dataSourceList.setSelectedValue(ds,true);
         Widget.setExpanded(DRB.searchPane, false);
         if (ds instanceof LocalFileDataSource || ds instanceof FavoritesDataSource || ds instanceof RemoteFileDataSource) {
-			try {
-				Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
-				Widget.setExpanded(DRB.browsePane, true);
-				DRB.browsePane.removeAll();
-				DRB.browsePane.add(ds.getResourceViewer());
-				DRB.browsePane.revalidate();
-			} catch (Exception ex) {
-				// probably Remote File Data Source is no initialized
-			}
+            try {
+                Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
+                Widget.setExpanded(DRB.browsePane, true);
+                DRB.browsePane.removeAll();
+                DRB.browsePane.add(ds.getResourceViewer());
+                DRB.browsePane.revalidate();
+            } catch (Exception ex) {
+                // probably Remote File Data Source is no initialized
+            }
         } else
             Widget.setExpanded(DRB.browsePane, false);
         
@@ -268,7 +260,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         dataSourceList.setSelectedValue(ds,true);
         Widget.setExpanded(DRB.browsePane, false);
         Widget.setExpanded(DRB.searchPane, true);
-		queryEditor.refresh();
+        queryEditor.refresh();
     }
     
     public static void refreshDataSourcePanel(edu.tufts.vue.dsm.DataSource ds) {
@@ -281,43 +273,43 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         checkForUpdatesAction = new AbstractAction("Update Resources") {
             public void actionPerformed(ActionEvent e) {
                 try {
-					edu.tufts.vue.dsm.OsidFactory factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
-					org.osid.provider.ProviderIterator providerIterator = factory.getProvidersNeedingUpdate();
-					if (providerIterator.hasNextProvider()) {
-						if (updateLibraryDialog == null) {
-							updateLibraryDialog = new UpdateLibraryDialog(dataSourceList);
-						} else {
-							updateLibraryDialog.refresh();
-							updateLibraryDialog.setVisible(true);
-						}
+                    edu.tufts.vue.dsm.OsidFactory factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
+                    org.osid.provider.ProviderIterator providerIterator = factory.getProvidersNeedingUpdate();
+                    if (providerIterator.hasNextProvider()) {
+                        if (updateLibraryDialog == null) {
+                            updateLibraryDialog = new UpdateLibraryDialog(dataSourceList);
+                        } else {
+                            updateLibraryDialog.refresh();
+                            updateLibraryDialog.setVisible(true);
+                        }
                     } else javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
-                                "There are no resource updates available at this time",
-                                "Update Resources",
-                                javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                            "There are no resource updates available at this time",
+                            "Update Resources",
+                            javax.swing.JOptionPane.INFORMATION_MESSAGE);
                 } catch (Throwable t) {
-					javax.swing.JOptionPane.showMessageDialog(null,
-															  t.getMessage(),
-															  "Error",
-															  javax.swing.JOptionPane.ERROR_MESSAGE);
+                    javax.swing.JOptionPane.showMessageDialog(null,
+                            t.getMessage(),
+                            "Error",
+                            javax.swing.JOptionPane.ERROR_MESSAGE);
                 }
             }
         };
         addLibraryAction = new AbstractAction("Add Resources") {
             public void actionPerformed(ActionEvent e) {
-				try {
-					// there are always resources that can be added, e.g. a local file system
-					if (addLibraryDialog == null) {
-						addLibraryDialog = new AddLibraryDialog(dataSourceList);
-					} else {
-						addLibraryDialog.refresh();
-						addLibraryDialog.setVisible(true);
-					}
-				} catch (Throwable t) {
-					javax.swing.JOptionPane.showMessageDialog(null,
-															  t.getMessage(),
-															  "Error",
-															  javax.swing.JOptionPane.ERROR_MESSAGE);
-				}
+                try {
+                    // there are always resources that can be added, e.g. a local file system
+                    if (addLibraryDialog == null) {
+                        addLibraryDialog = new AddLibraryDialog(dataSourceList);
+                    } else {
+                        addLibraryDialog.refresh();
+                        addLibraryDialog.setVisible(true);
+                    }
+                } catch (Throwable t) {
+                    javax.swing.JOptionPane.showMessageDialog(null,
+                            t.getMessage(),
+                            "Error",
+                            javax.swing.JOptionPane.ERROR_MESSAGE);
+                }
             }
         };
         
@@ -331,7 +323,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                         displayEditOrInfo(ds);
                     } else {
                         displayEditOrInfo((DataSource)o);
-					}
+                    }
                 }
             }
         };
@@ -369,22 +361,22 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 removeLibraryAction.setEnabled(true);
                 editLibraryAction.setEnabled(true);
             } else if (o instanceof RemoteFileDataSource) {
-				// FTP
+                // FTP
                 removeLibraryAction.setEnabled(true);
                 editLibraryAction.setEnabled(true);
             } else {
-				// My Computer and My Saved Content
+                // My Computer and My Saved Content
                 removeLibraryAction.setEnabled(false);
                 editLibraryAction.setEnabled(true);
-			}
+            }
         } else {
             removeLibraryAction.setEnabled(false);
             editLibraryAction.setEnabled(false);
         }
         Widget.setMenuActions(DRB.librariesPanel,
                 new Action[] {
-                    editLibraryAction,
-					addLibraryAction,
+            editLibraryAction,
+                    addLibraryAction,
                     checkForUpdatesAction,
                     removeLibraryAction
         });
@@ -410,34 +402,32 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             return true;
     }
     
-    public void loadDataSources()
-	{
+    public void loadDataSources() {
         boolean init = true;
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
         if (!f.exists()) {
-			loadDefaultDataSources();
-		} else {
-			int type;
-			try{
-				SaveDataSourceViewer rViewer = unMarshallMap(f);
-				Vector rsources = rViewer.getSaveDataSources();
-				while (!(rsources.isEmpty())){
-					DataSource ds = (DataSource)rsources.remove(0);
-					ds.setResourceViewer();
-					try {
-						dataSourceList.addOrdered(ds);
-					} catch(Exception ex) {System.out.println("this is a problem in restoring the datasources");}
-				}
-				saveDataSourceViewer();
-			} catch (Exception ex) {
-				System.out.println("Datasource loading problem ="+ex);
-				loadDefaultDataSources();
-			}
-		}
+            loadDefaultDataSources();
+        } else {
+            int type;
+            try{
+                SaveDataSourceViewer rViewer = unMarshallMap(f);
+                Vector rsources = rViewer.getSaveDataSources();
+                while (!(rsources.isEmpty())){
+                    DataSource ds = (DataSource)rsources.remove(0);
+                    ds.setResourceViewer();
+                    try {
+                        dataSourceList.addOrdered(ds);
+                    } catch(Exception ex) {System.out.println("this is a problem in restoring the datasources");}
+                }
+                saveDataSourceViewer();
+            } catch (Exception ex) {
+                System.out.println("Datasource loading problem ="+ex);
+                loadDefaultDataSources();
+            }
+        }
     }
-
-    private void loadDefaultDataSources() 
-	{
+    
+    private void loadDefaultDataSources() {
         try {
             String breakTag = "";
             //dataSourceList.getContents().addElement(breakTag);
@@ -447,7 +437,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             DataSource ds2 = new LocalFileDataSource("My Computer","");
             dataSourceList.addOrdered(ds2);
             // default selection
-            dataSourceList.setSelectedValue(ds2,true);		
+            dataSourceList.setSelectedValue(ds2,true);
         } catch(Exception ex) {
             if(DEBUG.DR) System.out.println("Datasource loading problem ="+ex);
         }
@@ -563,7 +553,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         }
         
         DRB.searchPane.add(resultsStack, DRBrowser.SEARCH_RESULT);
-                
+        
         // get our search results
         java.io.Serializable searchCriteria = queryEditor.getCriteria();
         if (DEBUG.DR) {
@@ -576,12 +566,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 searchType,
                 searchProperties);
         if (DEBUG.DR) out("got result set manager " + resultSetManager);
-                
+        
         org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets();
-		int counter = 0;
+        int counter = 0;
         while (assetIterator.hasNextAsset() && (counter <= 100)) {
             org.osid.repository.Asset nextAsset = assetIterator.nextAsset();
-			counter++;
+            counter++;
             String repositoryIdString = nextAsset.getRepository().getIdString();
             int index = repositoryIdStringList.indexOf(repositoryIdString);
             java.util.List v = (java.util.List) resultList.get(index);
@@ -608,27 +598,27 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             
             if (resourceList.size() == 0) {
                 //resultsStack.addPane(name, new JLabel("  No results"), 0f);
-				
-				// there might have been an exception
-				String message = resultSetManager.getExceptionMessage(i);
-				if (message != null) {
-					resultPanes[i].add(new StatusLabel(message, false));
-				} else {
-					resultPanes[i].add(new StatusLabel("No results for " + searchString, false));
-				}
+                
+                // there might have been an exception
+                String message = resultSetManager.getExceptionMessage(i);
+                if (message != null) {
+                    resultPanes[i].add(new StatusLabel(message, false));
+                } else {
+                    resultPanes[i].add(new StatusLabel("No results for " + searchString, false));
+                }
             } else {
                 resultPanes[i].add(new ResourceList(resourceList));
             }
         }
         
     }
-        
-    private void displayEditOrInfo(edu.tufts.vue.dsm.DataSource ds) {    	
+    
+    private void displayEditOrInfo(edu.tufts.vue.dsm.DataSource ds) {
         refreshEditInfo(ds);
         editInfoDockWindow.setVisible(true);
     }
     
-    private void displayEditOrInfo(DataSource ds) {    	
+    private void displayEditOrInfo(DataSource ds) {
         refreshEditInfo(ds);
         editInfoDockWindow.setVisible(true);
     }
@@ -690,20 +680,20 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         final WidgetStack editInfoStack = new WidgetStack();
         
         if (editInfoDockWindow == null) {
-			editInfoStack.addPane("Configuration",new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
+            editInfoStack.addPane("Configuration",new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
             editInfoDockWindow = GUI.createDockWindow(dockTitle, editInfoStack);
             editInfoDockWindow.setWidth(300);
             editInfoDockWindow.setHeight(300);
             editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
-										   DRB.dockWindow.getY());
+                    DRB.dockWindow.getY());
             editInfoDockWindow.setTitle(dockTitle);
         } else if (editInfoDockWindow.isVisible() || (!dockTitle.equals(editInfoDockWindow.getTitle()))) {
-			editInfoStack.addPane("Configuration", new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
+            editInfoStack.addPane("Configuration", new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
             editInfoDockWindow.setTitle(dockTitle);
             editInfoDockWindow.setContent(editInfoStack);
         }
     }
-
+    
     /*
      * static method that returns all the datasource where Maps can be published.
      * Only FEDORA @ Tufts is available at present
