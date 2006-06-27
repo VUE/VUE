@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.25 $ / $Date: 2006-06-27 20:25:08 $ / $Author: jeff $
+* @version $Revision: 1.26 $ / $Date: 2006-06-27 21:00:18 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -81,28 +81,28 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		try {
 			addLibraryList = new JList(listModel);
 			addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
-			addLibraryList.setPreferredSize(new Dimension(300,180));
 			addLibraryList.addListSelectionListener(this);
+			addLibraryList.setFixedCellHeight(25);
 
 			providerListRenderer = new ProviderListCellRenderer();
 			addLibraryList.setCellRenderer(providerListRenderer);
 
-			
 			descriptionTextArea = new JTextArea();
 			descriptionTextArea.setLineWrap(true);
 			descriptionTextArea.setWrapStyleWord(true);
-			descriptionTextArea.setPreferredSize(new Dimension(300,180));
 			
 			populate();
 			
 			listJsp = new JScrollPane(addLibraryList);
 			listJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-			listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+			listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+			listJsp.setPreferredSize(new Dimension(300,180));
 			
 			descriptionTextArea.setText("description");
 			descriptionJsp = new JScrollPane(descriptionTextArea);
 			descriptionJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-			descriptionJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); 
+			descriptionJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); 
+			descriptionJsp.setPreferredSize(new Dimension(300,180));
 			
 			addLibraryPanel.setBackground(VueResources.getColor("White"));
 			setBackground(VueResources.getColor("White"));

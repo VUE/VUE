@@ -70,8 +70,8 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
         mRow.add(mCheckBox);
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
         mRow.add(mLabel);
-        mRow.add(mIconLabel);
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.right));
+        mRow.add(mIconLabel);
     }
     
     public void setChecked(int index)
