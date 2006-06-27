@@ -84,7 +84,6 @@ public class VueDataSourceManager
     
     public static  void load() {
         try {
-			System.out.println("loading...........................");
             File f = new File(xmlFilename);
             if (f.exists()) {
                 dataSourceManager = unMarshall(f);
@@ -92,7 +91,7 @@ public class VueDataSourceManager
                 System.out.println("Installed datasources not found");
             }
         }  catch (Throwable t) {
-            System.out.println("VueDataSourceManager.load: "+t) ;
+			tufts.vue.VueUtil.alert("Error instantiating Provider support","Error");
         }
     }
         
@@ -218,9 +217,8 @@ public class VueDataSourceManager
             System.err.println("VueDataSourceManager.marshall " + t.getMessage());
         }
     }
-    
-    
-    public static  VueDataSourceManager unMarshall(File file) throws java.io.IOException, org.exolab.castor.xml.MarshalException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException{
+        
+    public static  VueDataSourceManager unMarshall(File file) throws java.io.IOException, org.exolab.castor.xml.MarshalException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException {
         System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
         Unmarshaller unmarshaller = null;
         VueDataSourceManager dsm = null;

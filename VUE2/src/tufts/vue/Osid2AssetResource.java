@@ -35,9 +35,7 @@ public class Osid2AssetResource extends MapResource
     private org.osid.OsidContext context = null;
     private org.osid.repository.Asset asset = null;
 	private org.osid.shared.Type thumbnailPartType1 = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
-	private org.osid.shared.Type thumbnailPartType2 = new edu.tufts.vue.util.Type("edu.mit","partStructure","thumbnail");
 	private org.osid.shared.Type urlPartType1 = new edu.tufts.vue.util.Type("mit.edu","partStructure","URL");
-	private org.osid.shared.Type urlPartType2 = new edu.tufts.vue.util.Type("edu.mit","partStructure","URL");
 	private String icon = null;
 	
 	//    private osid.dr.Asset asset;
@@ -99,7 +97,7 @@ public class Osid2AssetResource extends MapResource
 					
 					// metadata discovery
 					addProperty(partStructureType.getKeyword(),ser);
-					if ( (partStructureType.isEqual(this.urlPartType1)) || (partStructureType.isEqual(this.urlPartType2)) ) {
+					if (partStructureType.isEqual(this.urlPartType1)) {
 						String s = (String)part.getValue();
 						setSpec(s);
 						//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL(s))));
@@ -107,7 +105,7 @@ public class Osid2AssetResource extends MapResource
 					}
 					
 					// preview should be a URL or an image
-					if ( (partStructureType.isEqual(this.thumbnailPartType1)) || (partStructureType.isEqual(this.thumbnailPartType2)) ) {
+					if (partStructureType.isEqual(this.thumbnailPartType1)) {
 						if (ser instanceof String) {
 							//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL((String)ser))));
 							this.icon = (String)ser;

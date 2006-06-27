@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.24 $ / $Date: 2006-06-25 23:10:19 $ / $Author: jeff $
+* @version $Revision: 1.25 $ / $Date: 2006-06-27 20:25:08 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -73,6 +73,12 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 		
 		try {
 			factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
+		} catch (Throwable t) {
+			t.printStackTrace();
+			VueUtil.alert("Error instantiating Provider support","Error");
+		}
+
+		try {
 			addLibraryList = new JList(listModel);
 			addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
 			addLibraryList.setPreferredSize(new Dimension(300,180));
@@ -132,10 +138,6 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			getContentPane().add(addLibraryPanel,BorderLayout.CENTER);
 			pack();
 			setLocation(300,300);
-
-			//setSize(new Dimension(300,400));
-			
-			//addLibraryList.getSelectionMdoel().setSelectionInterval(0,1);
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -175,10 +177,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 			
 		} catch (Throwable t) {
 			t.printStackTrace();
-			javax.swing.JOptionPane.showMessageDialog(null,
-													  t.getMessage(),
-													  "Error",
-													  javax.swing.JOptionPane.ERROR_MESSAGE);
+			VueUtil.alert(t.getMessage(),"Error");
 		} finally {
 			GUI.clearWaitCursor();
 		}
@@ -293,10 +292,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 								factory.installProvider(provider.getId());
 							} catch (Throwable t1) {
 								System.out.println("install failed " + provider.getId().getIdString());
-								javax.swing.JOptionPane.showMessageDialog(this,
-																		  "Installation Failed",
-																		  "OSID Installation Error",
-																		  javax.swing.JOptionPane.ERROR_MESSAGE);
+								VueUtil.alert("Installation Failed","Error");
 								return;
 							} finally {
 								GUI.clearWaitCursor();
@@ -313,10 +309,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 																			  provider.getId(),
 																			  true);
 							} catch (Throwable t) {
-								javax.swing.JOptionPane.showMessageDialog(this,
-																		  "Loading Manager Failed",
-																		  "OSID Installation Error",
-																		  javax.swing.JOptionPane.ERROR_MESSAGE);
+								VueUtil.alert("Loading Manager Failed","Error");
 								return;
 							}
 							System.out.println("created data source");
@@ -331,10 +324,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 						}
 					} catch (Throwable t) {
 						System.out.println("configuration setup failed");
-						javax.swing.JOptionPane.showMessageDialog(this,
-																  t.getMessage(),
-																  "OSID Installation Error",
-																  javax.swing.JOptionPane.ERROR_MESSAGE);
+						VueUtil.alert(t.getMessage(),"OSID Installation Error");
 						t.printStackTrace();
 						return;
 					}
@@ -401,11 +391,8 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 				}
 				if (this.oldDataSource != null) {
 					dataSourceList.addOrdered(this.oldDataSource);
-					//					DataSourceViewer.setActiveDataSource(this.oldDataSource);
 				} else {
-					System.out.println("ready to add new data source to list");
 					dataSourceList.addOrdered(this.newDataSource);
-					System.out.println("ready to add new data source to manager");
 					dataSourceManager.add(this.newDataSource);
 				}
 				providerListRenderer.setChecked(addLibraryList.getSelectedIndex());

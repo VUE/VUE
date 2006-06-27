@@ -115,19 +115,13 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 dataSourceList.addOrdered(dataSources[i]);
             }
         } catch (Throwable t) {
-            javax.swing.JOptionPane.showMessageDialog(null,
-                    "Error loading data source",
-                    "Error",
-                    javax.swing.JOptionPane.ERROR_MESSAGE);
+			VueUtil.alert("Error loading data source","Error");
         }
         try {
             // load old-style data sources
             loadDataSources();
         } catch (Throwable t) {
-            javax.swing.JOptionPane.showMessageDialog(null,
-                    "Error loading old data source",
-                    "Error",
-                    javax.swing.JOptionPane.ERROR_MESSAGE);
+			VueUtil.alert("Error loading old data source","Error");
         }
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
         sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
@@ -287,10 +281,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                             "Update Resources",
                             javax.swing.JOptionPane.INFORMATION_MESSAGE);
                 } catch (Throwable t) {
-                    javax.swing.JOptionPane.showMessageDialog(null,
-                            t.getMessage(),
-                            "Error",
-                            javax.swing.JOptionPane.ERROR_MESSAGE);
+                    VueUtil.alert(t.getMessage(),"Error");
                 }
             }
         };
@@ -305,10 +296,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                         addLibraryDialog.setVisible(true);
                     }
                 } catch (Throwable t) {
-                    javax.swing.JOptionPane.showMessageDialog(null,
-                            t.getMessage(),
-                            "Error",
-                            javax.swing.JOptionPane.ERROR_MESSAGE);
+                    VueUtil.alert(t.getMessage(),"Error");
                 }
             }
         };

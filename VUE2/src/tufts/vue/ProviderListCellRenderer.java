@@ -27,7 +27,7 @@ import javax.swing.border.*;
 
 public class ProviderListCellRenderer extends DefaultListCellRenderer
 {
-	private edu.tufts.vue.dsm.OsidFactory factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
+	private edu.tufts.vue.dsm.OsidFactory factory = null;
     private final Icon myComputerIcon = VueResources.getImageIcon("dataSourceMyComputer");
     private final Icon savedResourcesIcon = VueResources.getImageIcon("dataSourceSavedResources");
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
@@ -50,6 +50,11 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
     
     public ProviderListCellRenderer()
     {
+		try {
+			factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
+		} catch (Throwable t) {
+			
+		}
         mRow.setLayout(new BoxLayout(mRow, BoxLayout.X_AXIS));
         mRow.setOpaque(true);
         

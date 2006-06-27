@@ -153,7 +153,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();
-			JOptionPane.showMessageDialog(VUE.getDialogParent(),"Configuration error: "+ t.getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
+			VueUtil.alert("Configuration error: "+ t.getMessage(),"Error");
 		}
 	}
 }
