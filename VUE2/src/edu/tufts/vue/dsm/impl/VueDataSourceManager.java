@@ -84,6 +84,7 @@ public class VueDataSourceManager
     
     public static  void load() {
         try {
+			System.out.println("loading...........................");
             File f = new File(xmlFilename);
             if (f.exists()) {
                 dataSourceManager = unMarshall(f);

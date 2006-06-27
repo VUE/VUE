@@ -34,7 +34,7 @@ implements org.osid.repository.AssetIterator
     public  Unmarshaller unmarshaller = null;    
     private java.util.Vector vector = new java.util.Vector();
 	private int arrayCount = 0;
-    public static final String CASTOR_MAPPING = "/edu/tufts/osidimpl/repository/artifact/artifact.xml";
+    public static final String CASTOR_MAPPING = "artifact.xml";
 	private org.osid.shared.Id recordStructureId = RecordStructure.getInstance().getId();
 
     protected AssetIterator(java.util.Vector vector)
@@ -122,7 +122,11 @@ implements org.osid.repository.AssetIterator
 			if (unmarshaller == null) {
 				unmarshaller = new Unmarshaller();
 				Mapping mapping = new Mapping();
-				mapping.loadMapping(getClass().getResource(CASTOR_MAPPING));
+				
+				// use Provider to find the mapping file
+				String url = Utilities.getResourcePath(CASTOR_MAPPING);
+				
+				mapping.loadMapping(new URL("file://" + url));
 				unmarshaller.setMapping(mapping);
 			}
 			return unmarshaller;

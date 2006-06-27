@@ -32,24 +32,18 @@ public class repositoryDump
         {
             org.osid.OsidContext context = new org.osid.OsidContext();
                       
-			System.out.println("logging1");
 			org.osid.logging.LoggingManager loggingManager = (org.osid.logging.LoggingManager)org.osid.OsidLoader.getManager("org.osid.logging.LoggingManager",
 																															 "comet.osidimpl.logging.plain",
 																															 context,
 																															 new java.util.Properties());
-			
-			System.out.println("logging2");
 			org.osid.logging.WritableLog log = null;
 			try {
 				log = loggingManager.getLogForWriting("ArtifactRepository");
 			} catch (org.osid.logging.LoggingException lex) {
 				log = loggingManager.createLog("ArtifactRepository");
 			}
-			log.assignFormatType(new Type("edu.mit","logging","plain"));
-			log.assignPriorityType(new Type("edu.mit","logging","info"));
-			log.appendLog("foo");
-			System.out.println("logging3");
-			System.exit(0);
+			log.assignFormatType(new Type("mit.edu","logging","plain"));
+			log.assignPriorityType(new Type("mit.edu","logging","info"));
             
 			org.osid.repository.RepositoryManager repositoryManager = (org.osid.repository.RepositoryManager)org.osid.OsidLoader.getManager(
                 "org.osid.repository.RepositoryManager",
@@ -79,7 +73,7 @@ public class repositoryDump
                 org.osid.shared.TypeIterator ti = repository.getSearchTypes();
                 while (ti.hasNextType()) System.out.println(ti.nextType().getKeyword());
 				System.out.println("starting search");
-                org.osid.repository.AssetIterator assetIterator = repository.getAssetsBySearch("Music",new Type("edu.mit","search","keyword"),new SharedProperties());
+                org.osid.repository.AssetIterator assetIterator = repository.getAssetsBySearch("Music",new Type("mit.edu","search","keyword"),new SharedProperties());
                 while (assetIterator.hasNextAsset())
                 {
                     org.osid.repository.Asset asset = assetIterator.nextAsset();

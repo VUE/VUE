@@ -421,7 +421,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 }
                 saveDataSourceViewer();
             } catch (Exception ex) {
-                System.out.println("Datasource loading problem ="+ex);
+                System.out.println("Datasource loading problem = "+ex);
+				ex.printStackTrace();
                 loadDefaultDataSources();
             }
         }

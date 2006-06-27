@@ -62,8 +62,8 @@ implements org.osid.repository.RepositoryManager
 			} catch (org.osid.logging.LoggingException lex) {
 				log = loggingManager.createLog("ArtifactRepository");
 			}
-			log.assignFormatType(new Type("edu.mit","logging","plain"));
-			log.assignPriorityType(new Type("edu.mit","logging","info"));
+			log.assignFormatType(new Type("mit.edu","logging","plain"));
+			log.assignPriorityType(new Type("mit.edu","logging","info"));
 			Utilities.setLog(log);			
 			
 			org.osid.id.IdManager idManager = (org.osid.id.IdManager)org.osid.OsidLoader.getManager("org.osid.id.IdManager",
@@ -77,9 +77,9 @@ implements org.osid.repository.RepositoryManager
 			 */
 			this.repositoryType = new Type("edu.tufts","repository","artifact");
 			this.repositoryId = Utilities.getIdManager().getId("72012680-81CF-4E5C-A07F-07841CB97B0B-1194-000002C24B7AA681");
-			this.searchTypeVector.addElement(new Type("edu.mit","search","title"));
-			this.searchTypeVector.addElement(new Type("edu.mit","search","author"));
-			this.searchTypeVector.addElement(new Type("edu.mit","search","keyword"));
+			this.searchTypeVector.addElement(new Type("mit.edu","search","title"));
+			this.searchTypeVector.addElement(new Type("mit.edu","search","author"));
+			this.searchTypeVector.addElement(new Type("mit.edu","search","keyword"));
 			this.searchTypeVector.addElement(new Type("edu.tufts","search","artifact"));
 			this.repository = new Repository("Artifact",
 											 "Tufts University Libraries Artifact Content",

@@ -4,7 +4,9 @@ public class Utilities
 {
 	private static org.osid.id.IdManager idManager = null;
     private static org.osid.logging.WritableLog log = null;
-	private static org.osid.OsidContext context = null;
+	private static org.osid.OsidContext context = new org.osid.OsidContext();
+    private static org.osid.provider.ProviderControlManager providerControlManager = null;
+    private static org.osid.provider.ProviderInvocationManager providerInvocationManager = null;
 
 	public static void setOsidContext(org.osid.OsidContext c)
 	{
@@ -54,5 +56,31 @@ public class Utilities
 	public static String typeToString(org.osid.shared.Type type)
 	{
 		return type.getDomain() + "/" + type.getKeyword() + "@" + type.getAuthority();
+	}
+	
+	public static String getResourcePath(String resourceName)
+	{
+		if (providerControlManager == null) {
+			try {
+				context.assignContext("com.harvestroad.authentication.username","vue");
+				context.assignContext("com.harvestroad.authentication.password","vue");
+				context.assignContext("com.harvestroad.authentication.host","bazzim.mit.edu");
+				context.assignContext("com.harvestroad.authentication.port","80");
+			} catch (org.osid.OsidException e) {
+			}
+			try {
+				providerControlManager = (org.osid.provider.ProviderControlManager) edu.mit.osidimpl.OsidLoader.getManager("org.osid.provider.ProviderControlManager", 
+																														   "edu.mit.osidimpl.provider.repository",
+																														   context, 
+																														   new java.util.Properties());
+				providerInvocationManager = providerControlManager.getProviderInvocationManager();
+			} catch (org.osid.OsidException e) {
+			}
+		}
+		try {
+			return providerInvocationManager.getResourcePath(resourceName);
+		} catch (org.osid.OsidException e) {
+		}
+		return null;
 	}
 }

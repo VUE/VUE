@@ -323,10 +323,6 @@ public class VueDataSource
     
     public void setIncludedInSearch(boolean isIncluded) {
         this.includedState = isIncluded;
-        if (this.dataSourceManager == null) {
-            dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-            dataSourceManager.save();
-        }
     }
     
     public boolean supportsUpdate() {
@@ -470,6 +466,10 @@ public class VueDataSource
     public void setDone(boolean done) {
         System.out.println("VueDataSource.setDone");
         this.done = done;
+        if (this.dataSourceManager == null) {
+            dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+            dataSourceManager.add(this);
+        }		
         Properties p = new Properties();
         Iterator i = mProperties.keySet().iterator();
         while (i.hasNext()) {
