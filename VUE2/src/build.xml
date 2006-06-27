@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.105 $ / $Date: 2006-06-16 13:19:36 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.105 2006-06-16 13:19:36 jeff Exp $ -->
+<!-- $Revision: 1.106 $ / $Date: 2006-06-27 18:48:04 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.106 2006-06-27 18:48:04 jeff Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -741,6 +741,14 @@
         <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
         <!-- may be able to modify this to exclude README's, .txt files, etc -->
     </jar>
+    <jar jarfile="${vue.jar}"
+         basedir="${basedir}" 
+		 update="true"
+         includes="osid.properties"/>
+    <jar jarfile="${vue.jar}"
+         basedir="${basedir}" 
+		 update="true"
+         includes="../etc/registryOsidType-OID.dat"/>
   </target>
   
   <target name="jar-narravision" depends="jar"
