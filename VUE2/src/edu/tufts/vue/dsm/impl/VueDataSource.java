@@ -23,8 +23,7 @@ import java.util.*;
 public class VueDataSource
         implements edu.tufts.vue.dsm.DataSource {
     private edu.tufts.vue.dsm.OsidFactory factory = VueOsidFactory.getInstance();
-    private tufts.vue.PropertyMap mProperties = new tufts.vue.PropertyMap();
-    private Vector mXMLpropertyList = null;
+    private Vector _propertyList = null;
     private org.osid.shared.Id providerId = null;
     private org.osid.shared.Id dataSourceId = null;
     private String osidLoadKey = null;
@@ -63,71 +62,68 @@ public class VueDataSource
     
     // constructer required by castor
     
-    public VueDataSource() 
-	{
+    public VueDataSource() {
     }
     
     public VueDataSource(org.osid.shared.Id dataSourceId,
-						 org.osid.shared.Id providerId,
-						 boolean isIncludedInSearch) 
-	throws org.osid.repository.RepositoryException, org.osid.provider.ProviderException
-	{
+            org.osid.shared.Id providerId,
+            boolean isIncludedInSearch)
+            throws org.osid.repository.RepositoryException, org.osid.provider.ProviderException {
         this.providerId = providerId;
-		this.dataSourceId = dataSourceId;
+        this.dataSourceId = dataSourceId;
         this.includedState = isIncludedInSearch;
-		setProviderValues();
-		setRepositoryManager();
-		setRelatedValues();
+        setProviderValues();
+        setRepositoryManager();
+        setRelatedValues();
     }
     
     private void setProviderValues()
-	throws org.osid.provider.ProviderException
-	{
+    throws org.osid.provider.ProviderException {
         org.osid.provider.Provider provider = null;
-		provider = this.factory.getProvider(this.providerId);
-		this.osidName = provider.getOsidName();
-		this.osidBindingVersion = provider.getOsidBindingVersion();
-		this.providerDisplayName = provider.getDisplayName();
-		this.providerDescription = provider.getDescription();
-		this.creator = provider.getCreator();
-		this.publisher = provider.getPublisher();
-		this.releaseDate = provider.getReleaseDate();
-		this.license = provider.getLicense();
-		this.requestsLicenseAcknowledgement = provider.requestsLicenseAcknowledgement();
-		org.osid.shared.PropertiesIterator propertiesIterator = provider.getProperties();
-		try {
-			while (propertiesIterator.hasNextProperties()) {
-				org.osid.shared.Properties props = propertiesIterator.nextProperties();
-				org.osid.shared.ObjectIterator objectIterator = props.getKeys();
-				while (objectIterator.hasNextObject()) {
-					// we could have an early exit but probably not worth it since the properties we want are likely to be last
-					String key = (String)objectIterator.nextObject();
-					try {
-						if (key.equals("icon16x16")) {
-							String path = factory.getResourcePath((String)props.getProperty(key));
-							this.icon16x16 = new javax.swing.ImageIcon(path).getImage();
-						}
-					} catch (Throwable t) {
-						//t.printStackTrace();
-						System.out.println("Did not find resource");
-					}
-					//System.out.println("Getting properties.............." + key);
-					if (key.equals("configuration")) {
-						String config = (String)props.getProperty(key);
-						config = replaceAll(config,"&lt;","<");
-						config = replaceAll(config,"&gt;",">");
-						this.configurationUIHints = config;
-						//System.out.println("Fixed up " + config);
-						this.isConfigured = this.configurationUIHints != null;
-					}
-					if (key.equals("loadKey")) {
-						this.osidLoadKey = (String)props.getProperty(key);
-					}
-				}
-			}
-		} catch (Throwable t) {
-			
-		}
+        provider = this.factory.getProvider(this.providerId);
+        this.osidName = provider.getOsidName();
+        this.osidBindingVersion = provider.getOsidBindingVersion();
+        this.providerDisplayName = provider.getDisplayName();
+        this.providerDescription = provider.getDescription();
+        this.creator = provider.getCreator();
+        this.publisher = provider.getPublisher();
+        this.releaseDate = provider.getReleaseDate();
+        this.license = provider.getLicense();
+        this.requestsLicenseAcknowledgement = provider.requestsLicenseAcknowledgement();
+        org.osid.shared.PropertiesIterator propertiesIterator = provider.getProperties();
+        try {
+            while (propertiesIterator.hasNextProperties()) {
+                org.osid.shared.Properties props = propertiesIterator.nextProperties();
+                org.osid.shared.ObjectIterator objectIterator = props.getKeys();
+                while (objectIterator.hasNextObject()) {
+                    // we could have an early exit but probably not worth it since the properties we want are likely to be last
+                    String key = (String)objectIterator.nextObject();
+                    try {
+                        if (key.equals("icon16x16")) {
+                            String path = factory.getResourcePath((String)props.getProperty(key));
+                            this.icon16x16 = new javax.swing.ImageIcon(path).getImage();
+                        }
+                    } catch (Throwable t) {
+                        //t.printStackTrace();
+                        System.out.println("Did not find resource");
+                    }
+                    //System.out.println("Getting properties.............." + key);
+                    if (key.equals("configuration")) {
+                        String config = (String)props.getProperty(key);
+                        config = replaceAll(config,"&lt;","<");
+                        config = replaceAll(config,"&gt;",">");
+                        this.configurationUIHints = config;
+                        //System.out.println("Fixed up " + config);
+                        this.isConfigured = this.configurationUIHints != null;
+                    }
+                    if (key.equals("loadKey")) {
+                        this.osidLoadKey = (String)props.getProperty(key);
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            
+        }
     }
     
     private String replaceAll(String original, String old, String replacement) {
@@ -152,78 +148,76 @@ public class VueDataSource
     }
     
     private void setRepositoryManager()
-		throws org.osid.provider.ProviderException
-	{
+    throws org.osid.provider.ProviderException {
 //		System.out.println("Load key is " + this.osidLoadKey);
-		this.repositoryId = edu.tufts.vue.util.Utilities.getRepositoryIdFromLoadKey(this.osidLoadKey);
-		this.repositoryManager = factory.getRepositoryManagerInstance(this.osidLoadKey);
+        this.repositoryId = edu.tufts.vue.util.Utilities.getRepositoryIdFromLoadKey(this.osidLoadKey);
+        this.repositoryManager = factory.getRepositoryManagerInstance(this.osidLoadKey);
 //		System.out.println("got manager");
     }
     
     private void setRelatedValues()
-		throws org.osid.provider.ProviderException
-	{
-		try {
-			this.repository = (factory.getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);
+    throws org.osid.provider.ProviderException {
+        try {
+            this.repository = (factory.getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);
 //			System.out.println("got repository");
-		} catch (Throwable t) {
-			System.out.println("Load by key failed, trying a check of all repositories");
-			// special case for when the Manager implementation doesn't offer this method
-			try {
-				org.osid.repository.RepositoryIterator repositoryIterator = repositoryManager.getRepositories();
-				while (repositoryIterator.hasNextRepository()) {
-					repository = repositoryIterator.nextRepository();
-					if (repositoryId.isEqual(repository.getId())) {
-						this.repository = repository;
-					}
-				}
-			} catch (Throwable t1) {
-				System.out.println("Load by check of all repositories failed");
-				throw new org.osid.provider.ProviderException(org.osid.shared.SharedException.UNKNOWN_ID);
-			}
-		}
-		// call Repository to answer these
-		try {
-			this.repositoryDisplayName = this.repository.getDisplayName();
-		} catch (Throwable t) {
-			this.repositoryDisplayName = "unconfigured";
-		}
-		
-		try {
-			this.repositoryDescription = this.repository.getDescription();
-		} catch (Throwable t) {
-			edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.getDescription()");
-		}
-		
-		try {
-			this.repositoryType = this.repository.getType();
-		} catch (Throwable t) {
-			edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.getType()");
-		}
-		
-		try {
-			this.repositoryId = this.repository.getId();
-		} catch (Throwable t) {
-			edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.getId()");
-		}
-		
-		try {
-			this.repositoryAssetTypes = this.repository.getAssetTypes();
-		} catch (Throwable t) {
-			edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.getAssetTypes()");
-		}
-		
-		try {
-			this.repositorySearchTypes = this.repository.getSearchTypes();
-		} catch (Throwable t) {
-			edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.getSearchTypes()");
-		}
-		
-		try {
-			this.repositorySupportsUpdate = this.repository.supportsUpdate();
-		} catch (Throwable t) {
-			edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.supportsUpdating()");
-		}
+        } catch (Throwable t) {
+            System.out.println("Load by key failed, trying a check of all repositories");
+            // special case for when the Manager implementation doesn't offer this method
+            try {
+                org.osid.repository.RepositoryIterator repositoryIterator = repositoryManager.getRepositories();
+                while (repositoryIterator.hasNextRepository()) {
+                    repository = repositoryIterator.nextRepository();
+                    if (repositoryId.isEqual(repository.getId())) {
+                        this.repository = repository;
+                    }
+                }
+            } catch (Throwable t1) {
+                System.out.println("Load by check of all repositories failed");
+                throw new org.osid.provider.ProviderException(org.osid.shared.SharedException.UNKNOWN_ID);
+            }
+        }
+        // call Repository to answer these
+        try {
+            this.repositoryDisplayName = this.repository.getDisplayName();
+        } catch (Throwable t) {
+            this.repositoryDisplayName = "unconfigured";
+        }
+        
+        try {
+            this.repositoryDescription = this.repository.getDescription();
+        } catch (Throwable t) {
+            edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.getDescription()");
+        }
+        
+        try {
+            this.repositoryType = this.repository.getType();
+        } catch (Throwable t) {
+            edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.getType()");
+        }
+        
+        try {
+            this.repositoryId = this.repository.getId();
+        } catch (Throwable t) {
+            edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.getId()");
+        }
+        
+        try {
+            this.repositoryAssetTypes = this.repository.getAssetTypes();
+        } catch (Throwable t) {
+            edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.getAssetTypes()");
+        }
+        
+        try {
+            this.repositorySearchTypes = this.repository.getSearchTypes();
+        } catch (Throwable t) {
+            edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.getSearchTypes()");
+        }
+        
+        try {
+            this.repositorySupportsUpdate = this.repository.supportsUpdate();
+        } catch (Throwable t) {
+            edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.supportsUpdating()");
+        }
     }
     
     //===================================================================================================================
@@ -238,10 +232,10 @@ public class VueDataSource
     public org.osid.shared.Id getProviderId() {
         return this.providerId;
     }
-	
-	public org.osid.shared.Id getId() {
-		return this.dataSourceId;
-	}
+    
+    public org.osid.shared.Id getId() {
+        return this.dataSourceId;
+    }
     
     public void setProviderId(org.osid.shared.Id providerId) {
         this.providerId = providerId;
@@ -354,7 +348,7 @@ public class VueDataSource
     public void setIncludedState(boolean includedState) {
         this.includedState = includedState;
     }
-
+    
     public String getProviderIdString() {
         if(this.providerIdString== null) {
             try {
@@ -365,7 +359,7 @@ public class VueDataSource
         }
         return providerIdString;
     }
-
+    
     public void setProviderIdString(String providerIdString) {
         try {
             providerId =  edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString);
@@ -375,7 +369,7 @@ public class VueDataSource
             edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
         }
     }
-	
+    
     public String getDataSourceIdString() {
         if(this.dataSourceIdString== null) {
             try {
@@ -386,7 +380,7 @@ public class VueDataSource
         }
         return dataSourceIdString;
     }
-	
+    
     public void setDataSourceIdString(String dataSourceIdString) {
         try {
             this.dataSourceId =  factory.getIdManagerInstance().getId(dataSourceIdString);
@@ -396,94 +390,75 @@ public class VueDataSource
             edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
         }
     }
-	
+    
     public void setConfiguration(java.util.Properties properties) {
+        _propertyList  = new Vector();
         if (this.repositoryManager != null) {
             try {
                 Enumeration keys = properties.keys();
                 while(keys.hasMoreElements()) {
                     String key = (String)keys.nextElement();
-                    mProperties.setProperty(key,properties.getProperty(key));
+                    tufts.vue.PropertyEntry pe = new tufts.vue.PropertyEntry();
+                    pe.setEntryKey(key);
+                    pe.setEntryValue(properties.getProperty(key));
+                    _propertyList.add(pe);
                 }
                 this.repositoryManager.assignConfiguration(properties);
-				setRelatedValues();
+                setRelatedValues();
             } catch (Throwable t) {
                 edu.tufts.vue.util.Logger.log(t);
             }
         }
-		System.out.println("now current configuration in vue data source " + mProperties);
     }
     
     public Properties getConfiguration() {
         Properties properties = new Properties();
-        Iterator i = mProperties.keySet().iterator();
+        Iterator i = _propertyList.iterator();
         while (i.hasNext()) {
-            final String key = (String) i.next();
-            final String value = mProperties.getProperty(key);
-			System.out.println("k/v " + key + " / " + value);
-            properties.setProperty(key,value);
-        }        
-		return properties;
+            tufts.vue.PropertyEntry pe = (tufts.vue.PropertyEntry) i.next();
+            final String k = (String) pe.getEntryKey();
+            final String v = (String) pe.getEntryValue();
+            properties.setProperty(k,v);
+            System.out.println("k/v: "+k+"/"+ v);
+        }
+        return properties;
     }
     
-    /** this is for castor persistance only */
-    public java.util.List getPropertyList() {
-        if (mProperties.size() == 0) {
-			// a hack for castor to work
-			System.out.println("mProperties is 0");
-            return null;
-		}
-        mXMLpropertyList = new Vector(mProperties.size());
-        Iterator i = mProperties.keySet().iterator();
-        while (i.hasNext()) {
-            final String key = (String) i.next();
-            final tufts.vue.PropertyEntry entry = new tufts.vue.PropertyEntry();
-            entry.setEntryKey(key);
-            entry.setEntryValue(mProperties.get(key));
-            mXMLpropertyList.add(entry);
-        }
-        
-        return mXMLpropertyList;
+    
+    public java.util.Vector getPropertyList() {
+        return this._propertyList;
     }
     
     public void setPropertyList(java.util.Vector propertyList) {
-		tufts.vue.PropertyEntry entry = (tufts.vue.PropertyEntry)propertyList.firstElement();
-		setProperty((String)entry.getEntryKey(),entry.getEntryValue());
+        this._propertyList = propertyList;
+        
     }
     
-    public void setProperty(String key, Object value) {
-	System.out.println("VueDataSource.setProperty: key - "+ key+  " value - "+ value);
-        if (key != null && value != null) {
-            if (!(value instanceof String && ((String)value).length() < 1)) {
-                mProperties.put(key, value);
-			}
-        }        
-    }
-	
     public boolean getDone() {
         return this.done;
     }
     public void setDone(boolean done) {
         System.out.println("VueDataSource.setDone");
-        this.done = done;
+        Properties p = new Properties();
+        Iterator i = _propertyList.iterator();
+        while (i.hasNext()) {
+            tufts.vue.PropertyEntry pe = (tufts.vue.PropertyEntry) i.next();
+            final String k = (String) pe.getEntryKey();
+            final String v = (String) pe.getEntryValue();
+            p.put(k,v);
+            System.out.println("Setting k/v: "+k+"/"+ v);
+        }
         if (this.dataSourceManager == null) {
             dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
             dataSourceManager.add(this);
-        }		
-        Properties p = new Properties();
-        Iterator i = mProperties.keySet().iterator();
-        while (i.hasNext()) {
-            final String k = (String)i.next();
-            final String v = (String)mProperties.get(k);
-            p.put(k,v);
         }
-      
         try{
             this.repositoryManager.assignConfiguration(p);
-			setRelatedValues();
+            setRelatedValues();
         } catch (Throwable t) {
             edu.tufts.vue.util.Logger.log(t);
         }
+        
     }
     public String toString() {
         return super.toString() + "[" + getRepositoryDisplayName() + "]";

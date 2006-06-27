@@ -42,42 +42,38 @@ public class VueDataSourceManager
     private final static URL XML_MAPPING_DEFAULT = tufts.vue.VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
     private static final File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
     private static String  xmlFilename  = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
-	
-	// cache of already instantiated data sources
-	private static java.util.Map cacheMap = new java.util.HashMap();
-	
-    public static edu.tufts.vue.dsm.DataSourceManager getInstance() 
-	{
+    
+    // cache of already instantiated data sources
+    private static java.util.Map cacheMap = new java.util.HashMap();
+    
+    public static edu.tufts.vue.dsm.DataSourceManager getInstance() {
         return dataSourceManager;
-}
-
-    public VueDataSourceManager() 
-	{
     }
     
-	public void addDataSourceToCache(org.osid.shared.Id providerId,
-									 edu.tufts.vue.dsm.DataSource dataSource)
-	{
-		try {
-			String s = providerId.getIdString();	
-			cacheMap.put(s,dataSource);
-		} catch (Throwable t) {
-			
-		}
-	}
-	
-	public edu.tufts.vue.dsm.DataSource getDataSourceFromCache(org.osid.shared.Id providerId)
-	{
-		try {
-			String s = providerId.getIdString();	
-			if (s != null) {
-				return (edu.tufts.vue.dsm.DataSource)cacheMap.get(providerId.getIdString());
-			}
-		} catch (Throwable t) {
-		}
-		return null;
-	}
-	    
+    public VueDataSourceManager() {
+    }
+    
+    public void addDataSourceToCache(org.osid.shared.Id providerId,
+            edu.tufts.vue.dsm.DataSource dataSource) {
+        try {
+            String s = providerId.getIdString();
+            cacheMap.put(s,dataSource);
+        } catch (Throwable t) {
+            
+        }
+    }
+    
+    public edu.tufts.vue.dsm.DataSource getDataSourceFromCache(org.osid.shared.Id providerId) {
+        try {
+            String s = providerId.getIdString();
+            if (s != null) {
+                return (edu.tufts.vue.dsm.DataSource)cacheMap.get(providerId.getIdString());
+            }
+        } catch (Throwable t) {
+        }
+        return null;
+    }
+    
     public void save() {
         marshall(new File(this.xmlFilename), this);
     }
@@ -91,10 +87,10 @@ public class VueDataSourceManager
                 System.out.println("Installed datasources not found");
             }
         }  catch (Throwable t) {
-			tufts.vue.VueUtil.alert("Error instantiating Provider support","Error");
+            tufts.vue.VueUtil.alert("Error instantiating Provider support","Error");
         }
     }
-        
+    
     public edu.tufts.vue.dsm.DataSource[] getDataSources() {
         int size = this.dataSourceVector.size();
         edu.tufts.vue.dsm.DataSource dataSources[] = new edu.tufts.vue.dsm.DataSource[size];
@@ -130,7 +126,7 @@ public class VueDataSourceManager
             for (int i=0, size = this.dataSourceVector.size(); i < size; i++) {
                 edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)this.dataSourceVector.elementAt(i);
                 if (dataSourceId.isEqual(ds.getId())) {
-					this.dataSourceVector.removeElementAt(i);
+                    this.dataSourceVector.removeElementAt(i);
                     save();
                 }
             }
@@ -201,6 +197,7 @@ public class VueDataSourceManager
     }
     
     public  static void marshall(File file,VueDataSourceManager dsm) {
+        System.out.println("Marshalling: file -"+ file.getAbsolutePath());
         Marshaller marshaller = null;
         Mapping mapping = new Mapping();
         
@@ -217,7 +214,7 @@ public class VueDataSourceManager
             System.err.println("VueDataSourceManager.marshall " + t.getMessage());
         }
     }
-        
+    
     public static  VueDataSourceManager unMarshall(File file) throws java.io.IOException, org.exolab.castor.xml.MarshalException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException {
         System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
         Unmarshaller unmarshaller = null;
