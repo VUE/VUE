@@ -61,7 +61,6 @@ public class SaveVueJTree {
         rootNode = new FavoritesNode(rootSNode.getResource());
         vueTree = new VueDandDTree(rootNode);
         DefaultTreeModel model = (DefaultTreeModel)vueTree.getModel();
-        
         restoreModel(model,rootNode,rootSNode);
         vueTree.expandRow(0);
         return vueTree;
@@ -86,11 +85,10 @@ public class SaveVueJTree {
                 }
                 
                 try {
-                    System.out.println("Restoring JTree, Default Favorites: "+DataSourceViewer.getDefualtFavoritesRepository().getDisplayName());
                     if(DataSourceViewer.getDefualtFavoritesRepository() != null){
+                        System.out.println("Restoring JTree, Default Favorites: "+DataSourceViewer.getDefualtFavoritesRepository().getDisplayName());
                         org.osid.repository.Repository repository = DataSourceViewer.getDefualtFavoritesRepository();
                         org.osid.repository.Asset asset = repository.createAsset(nextSNode.getResource().getTitle(),nextSNode.getResource().getToolTipInformation(),favoritesType);
-                      //  asset.updateContent(nextSNode.getResource());
                     }
                 }catch(Throwable t) {
                     t.printStackTrace();
