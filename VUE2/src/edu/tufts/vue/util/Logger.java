@@ -25,16 +25,16 @@ public class Logger
 {
 	public static void log(Throwable t,
 					  String message) {
-		System.out.println(message);
+		//System.out.println(message);
 		//t.printStackTrace();
 	}
 
 	public static void log(String message) {
-		System.out.println(message);
+		//System.out.println(message);
 	}
 
 	public static void log(Throwable t) {
 		//t.printStackTrace();
-		System.out.println(t.getMessage());
+		//System.out.println(t.getMessage());
 	}
 }
