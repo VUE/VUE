@@ -72,7 +72,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     JButton searchButton = new JButton("Search");
     
     public static Vector  allDataSources = new Vector();
-    
     public static DataSourceList dataSourceList;
     
     DockWindow resultSetDockWindow;
@@ -94,7 +93,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     ImageIcon noImageIcon;
     
     private org.osid.OsidContext context = new org.osid.OsidContext();
-    
     edu.tufts.vue.dsm.Registry registry;
     org.osid.registry.Provider checked[];
     
@@ -588,7 +586,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             resultPanes[i].removeAll();
             
             if (resourceList.size() == 0) {
-                //resultsStack.addPane(name, new JLabel("  No results"), 0f); 
+                //resultsStack.addPane(name, new JLabel("  No results"), 0f);
                 // there might have been an exception
                 String message = resultSetManager.getExceptionMessage(i);
                 if (message != null) {
@@ -689,7 +687,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
      * Only FEDORA @ Tufts is available at present
      */
     public static Vector getPublishableDataSources(int i) {
-        Vector mDataSources = new Vector(); 
+        Vector mDataSources = new Vector();
         if (dataSourceList != null) {
             Enumeration e = dataSourceList.getContents().elements();
             while(e.hasMoreElements() ) {
@@ -706,8 +704,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
      */
     public static org.osid.repository.Repository getDefualtFavoritesRepository() {
         DefaultListModel model = dataSourceList.getContents();
+        
         try {
-            for(int i = 0; i<model.capacity();i++){
+            for(int i = 0; i<model.size();i++){
                 Object o = model.getElementAt(i);
                 if(o instanceof edu.tufts.vue.dsm.DataSource){
                     edu.tufts.vue.dsm.DataSource datasource = (edu.tufts.vue.dsm.DataSource)o;
