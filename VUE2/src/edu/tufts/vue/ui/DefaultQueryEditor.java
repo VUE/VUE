@@ -61,6 +61,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	private int currentStyle = BASIC;
 	
 	private javax.swing.JTextField[] advancedFields = null;
+	private java.util.Vector typesVector = null;
 	
 	// advanced search universe of types
 	private java.util.Vector advancedSearchUniverseOfTypeStringsVector = new java.util.Vector();
@@ -218,7 +219,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 0;
 
-		java.util.Vector typesVector = getIntersectionSearchFields();
+		this.typesVector = getIntersectionSearchFields();
 		java.util.Collections.sort(typesVector);
 		// always add a keyword field
 		typesVector.insertElementAt("Keyword",0);
@@ -311,7 +312,14 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			if (this.currentStyle == ADVANCED_UNION) { // never happens under current impl
 				makePanel(ADVANCED_INTERSECTION);
 			} else {
-				makePanel(BASIC);
+				int size = this.typesVector.size();
+				for (int i=0; i < size; i++) {
+					String prompt = (String)this.typesVector.elementAt(i);
+					if (prompt.equals("Keyword")) {
+						field.setText(advancedFields[i].getText());
+					}
+					makePanel(BASIC);
+				}
 			}
 		} else {
 			this.criteria = field.getText();
