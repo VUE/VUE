@@ -364,11 +364,11 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         }
         Widget.setMenuActions(DRB.librariesPanel,
                 new Action[] {
-            editLibraryAction,
+					editLibraryAction,
                     addLibraryAction,
                     checkForUpdatesAction,
                     removeLibraryAction
-        });
+				});
     }
     
     private boolean checkValidUser(String userName,String password,int type) {

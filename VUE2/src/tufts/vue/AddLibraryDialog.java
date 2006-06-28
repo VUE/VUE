@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.26 $ / $Date: 2006-06-27 21:00:18 $ / $Author: jeff $
+* @version $Revision: 1.27 $ / $Date: 2006-06-28 19:55:39 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -283,9 +283,9 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 							}
 						}
 						
-						System.out.println("checking if installed");
+						//System.out.println("checking if installed");
 						if (proceed && (!provider.isInstalled())) { 
-							System.out.println("installing...");
+							//System.out.println("installing...");
 							factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 							try {
 								GUI.activateWaitCursor();
@@ -298,7 +298,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 								GUI.clearWaitCursor();
 							}
 						} else {
-							System.out.println("No need to install");
+							//System.out.println("No need to install");
 						}
 						
 						if (proceed) {
@@ -312,18 +312,18 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 								VueUtil.alert("Loading Manager Failed","Error");
 								return;
 							}
-							System.out.println("created data source");
+							//System.out.println("created data source");
 							
 							// show configuration, if needed
 							if (ds.hasConfiguration()) {
 								xml = ds.getConfigurationUIHints();
 							} else {
-								System.out.println("No configuration to show");
+								//System.out.println("No configuration to show");
 							}
 							this.newDataSource = ds;
 						}
 					} catch (Throwable t) {
-						System.out.println("configuration setup failed");
+						//System.out.println("configuration setup failed");
 						VueUtil.alert(t.getMessage(),"OSID Installation Error");
 						t.printStackTrace();
 						return;
@@ -391,8 +391,10 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 				}
 				if (this.oldDataSource != null) {
 					dataSourceList.addOrdered(this.oldDataSource);
+					dataSourceList.setSelectedValue(this.oldDataSource,true);
 				} else {
 					dataSourceList.addOrdered(this.newDataSource);
+					dataSourceList.setSelectedValue(this.newDataSource,true);
 					dataSourceManager.add(this.newDataSource);
 				}
 				providerListRenderer.setChecked(addLibraryList.getSelectedIndex());
