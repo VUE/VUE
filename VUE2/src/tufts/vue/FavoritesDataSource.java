@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -31,42 +31,29 @@ import javax.swing.JComponent;
 
 
 public class FavoritesDataSource extends VueDataSource{
- 
+    
     private JComponent resourceViewer;
     
-     public FavoritesDataSource(){
-        
-        
+    public FavoritesDataSource(){
     }
+    
     public FavoritesDataSource(String DisplayName) throws DataSourceException{
-          this.setDisplayName(DisplayName);   
-           this.setResourceViewer();
-        
-     }
+        this.setDisplayName(DisplayName);
+        this.setResourceViewer();
+    }
     
-    
-   
-    
-   public void  setResourceViewer() throws DataSourceException{
-       
-           this.resourceViewer = new FavoritesWindow(this.getDisplayName());
-
-
-        
-   }
-
-   public JComponent getResourceViewer(){
-       
-          return this.resourceViewer;   
-       
-   }
  
-   
+    public void  setResourceViewer() throws DataSourceException{ 
+        this.resourceViewer = new FavoritesWindow(this.getDisplayName());
+    }
     
+    public JComponent getResourceViewer(){ 
+        return this.resourceViewer;
+    }
 }
 
 
-    
+
 
 
 
