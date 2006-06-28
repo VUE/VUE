@@ -419,7 +419,7 @@ public class VueDataSource
             final String k = (String) pe.getEntryKey();
             final String v = (String) pe.getEntryValue();
             properties.setProperty(k,v);
-            System.out.println("k/v: "+k+"/"+ v);
+            //System.out.println("k/v: "+k+"/"+ v);
         }
         return properties;
     }
@@ -438,16 +438,18 @@ public class VueDataSource
         return this.done;
     }
     public void setDone(boolean done) {
-        System.out.println("VueDataSource.setDone");
         Properties p = new Properties();
-        Iterator i = _propertyList.iterator();
-        while (i.hasNext()) {
-            tufts.vue.PropertyEntry pe = (tufts.vue.PropertyEntry) i.next();
-            final String k = (String) pe.getEntryKey();
-            final String v = (String) pe.getEntryValue();
-            p.put(k,v);
-            System.out.println("Setting k/v: "+k+"/"+ v);
-        }
+		try {
+			Iterator i = _propertyList.iterator();
+			while (i.hasNext()) {
+				tufts.vue.PropertyEntry pe = (tufts.vue.PropertyEntry) i.next();
+				final String k = (String) pe.getEntryKey();
+				final String v = (String) pe.getEntryValue();
+				p.put(k,v);
+				//System.out.println("Setting k/v: "+k+"/"+ v);
+			}
+		} catch (Exception ex) {
+		}
         if (this.dataSourceManager == null) {
             dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
             dataSourceManager.add(this);

@@ -87,6 +87,7 @@ public class VueDataSourceManager
                 System.out.println("Installed datasources not found");
             }
         }  catch (Throwable t) {
+			t.printStackTrace();
             tufts.vue.VueUtil.alert("Error instantiating Provider support","Error");
         }
     }
@@ -197,7 +198,7 @@ public class VueDataSourceManager
     }
     
     public  static void marshall(File file,VueDataSourceManager dsm) {
-        System.out.println("Marshalling: file -"+ file.getAbsolutePath());
+//        System.out.println("Marshalling: file -"+ file.getAbsolutePath());
         Marshaller marshaller = null;
         Mapping mapping = new Mapping();
         
@@ -216,7 +217,7 @@ public class VueDataSourceManager
     }
     
     public static  VueDataSourceManager unMarshall(File file) throws java.io.IOException, org.exolab.castor.xml.MarshalException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException {
-        System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
+//        System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
         Unmarshaller unmarshaller = null;
         VueDataSourceManager dsm = null;
         Mapping mapping = new Mapping();
