@@ -22,9 +22,9 @@ public class CurrentLocationPartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id currentLocationPartStructureId = null;
-    private org.osid.shared.Type type = new Type("edu.mit","partStructure","currentLocation","CurrentLocation");
-    private String displayName = "CurrentLocation";
-    private String description = "CurrentLocation";
+    private org.osid.shared.Type type = new Type("mit.edu","partStructure","currentLocation","CurrentLocation");
+    private String displayName = "Current Location";
+    private String description = "Current Location";
     private boolean mandatory = false;
     private boolean populatedByRepository = true;
     private boolean repeatable = false;

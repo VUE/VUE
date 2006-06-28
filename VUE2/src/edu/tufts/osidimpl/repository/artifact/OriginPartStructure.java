@@ -22,9 +22,9 @@ public class OriginPartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id originPartStructureId = null;
-    private org.osid.shared.Type type = new Type("edu.mit","partStructure","origin","Origin");
-    private String displayName = "Museum Credit";
-    private String description = "Museum Credit";
+    private org.osid.shared.Type type = new Type("mit.edu","partStructure","origin","Origin");
+    private String displayName = "Origin";
+    private String description = "Origin";
     private boolean mandatory = false;
     private boolean populatedByRepository = true;
     private boolean repeatable = false;

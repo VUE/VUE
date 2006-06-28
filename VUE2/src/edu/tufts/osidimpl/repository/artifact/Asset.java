@@ -21,8 +21,8 @@ package edu.tufts.osidimpl.repository.artifact;
 public class Asset
 implements org.osid.repository.Asset
 {
-    private org.osid.shared.Type assetType = new Type("edu.tufts","asset","artifact","Artifact");
-    private org.osid.shared.Type recordStructureType = new Type("edu.tufts","recordStructure","artifact","Artifact Record");
+    private org.osid.shared.Type assetType = new Type("tufts.edu","asset","artifact","Artifact");
+    private org.osid.shared.Type recordStructureType = new Type("tufts.edu","recordStructure","artifact","Artifact Record");
     private org.osid.shared.Id id = null;
     private org.osid.shared.Id repositoryId = null;
     private String idString = null;

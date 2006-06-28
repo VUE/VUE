@@ -22,7 +22,7 @@ public class PeriodPartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id periodPartStructureId = null;
-    private org.osid.shared.Type type = new Type("edu.mit","partStructure","period","Period");
+    private org.osid.shared.Type type = new Type("mit.edu","partStructure","period","Period");
     private String displayName = "Period";
     private String description = "Period";
     private boolean mandatory = false;

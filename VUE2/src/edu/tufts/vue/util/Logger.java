@@ -26,7 +26,7 @@ public class Logger
 	public static void log(Throwable t,
 					  String message) {
 		System.out.println(message);
-		t.printStackTrace();
+		//t.printStackTrace();
 	}
 
 	public static void log(String message) {
@@ -34,6 +34,7 @@ public class Logger
 	}
 
 	public static void log(Throwable t) {
-		t.printStackTrace();
+		//t.printStackTrace();
+		System.out.println(t.getMessage());
 	}
 }

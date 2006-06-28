@@ -22,7 +22,7 @@ public class LargeImagePartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id LARGE_IMAGE_PART_STRUCTURE_ID = null;
-    private org.osid.shared.Type type = new Type("edu.mit","partStructure","largeImage","Large Image");
+    private org.osid.shared.Type type = new Type("mit.edu","partStructure","largeImage","Large Image");
     private String displayName = "Large Image";
     private String description = "Large image";
     private boolean mandatory = false;

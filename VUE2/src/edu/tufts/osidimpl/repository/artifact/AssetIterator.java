@@ -62,10 +62,20 @@ implements org.osid.repository.AssetIterator
 	protected AssetIterator(String query, org.osid.shared.Id repositoryId)
 	throws org.osid.repository.RepositoryException
 	{
+		ArtifactResult artifactResult = null;
+		java.util.Vector hitList = null;
 		try 
 		{
-			ArtifactResult artifactResult = loadArtifactResult(query);
-			java.util.Vector hitList = artifactResult.getHitList();
+			artifactResult = loadArtifactResult(query);
+		} catch (Exception ex) {
+			throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
+		}
+		try {
+			hitList = artifactResult.getHitList();
+		} catch (Exception ex) {
+			throw new org.osid.repository.RepositoryException(org.osid.OsidException.PERMISSION_DENIED);
+		}
+		try {
 			if (hitList == null) {
 				// no hits
 				return;

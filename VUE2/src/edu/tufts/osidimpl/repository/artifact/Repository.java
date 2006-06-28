@@ -23,8 +23,8 @@ implements org.osid.repository.Repository
 {
     private org.osid.shared.Id repositoryId = null;
 	private org.osid.shared.Type repositoryType = null;
-	private org.osid.shared.Type assetType = new Type("edu.tufts","asset","artifact");
-	private org.osid.shared.Type artifactSearchType = new Type("edu.tufts","search","artifact");
+	private org.osid.shared.Type assetType = new Type("tufts.edu","asset","artifact");
+	private org.osid.shared.Type artifactSearchType = new Type("tufts.edu","search","artifact");
     private String displayName = null;
     private String description = null;
     private java.util.Vector searchTypeVector = null;
@@ -281,6 +281,9 @@ implements org.osid.repository.Repository
         catch (Throwable t)
         {
             Utilities.log(t);
+			if (t.getMessage().equals(org.osid.OsidException.PERMISSION_DENIED)) {
+				throw new org.osid.repository.RepositoryException(org.osid.OsidException.PERMISSION_DENIED);
+			}
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
         }
     }
@@ -298,7 +301,7 @@ implements org.osid.repository.Repository
         {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-        if (recordStructureType.isEqual(new Type("edu.tufts","recordStructure","artifact")))
+        if (recordStructureType.isEqual(new Type("tufts.edu","recordStructure","artifact")))
         {
             java.util.Vector results = new java.util.Vector();
             results.addElement(RecordStructure.getInstance());

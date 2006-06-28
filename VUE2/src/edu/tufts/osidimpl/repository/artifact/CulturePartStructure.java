@@ -22,7 +22,7 @@ public class CulturePartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id culturePartStructureId = null;
-    private org.osid.shared.Type type = new Type("edu.mit","partStructure","culture","Culture");
+    private org.osid.shared.Type type = new Type("mit.edu","partStructure","culture","Culture");
     private String displayName = "Culture";
     private String description = "Culture";
     private boolean mandatory = false;

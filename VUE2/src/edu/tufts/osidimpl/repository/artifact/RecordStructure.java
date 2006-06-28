@@ -26,7 +26,7 @@ implements org.osid.repository.RecordStructure
     private String description = "Holds metadata for an Artifact asset";
     private String format = "";
     private String schema = "";
-    private org.osid.shared.Type type = new Type("edu.tufts","recordStructure","artifact");
+    private org.osid.shared.Type type = new Type("tufts.edu","recordStructure","artifact");
     private boolean repeatable = false;
 	private static RecordStructure recordStructure = new RecordStructure();
     private org.osid.shared.Id id = null;

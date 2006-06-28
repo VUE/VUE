@@ -22,7 +22,7 @@ public class ArtifactPartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id artifactrPartStructureId = null;
-    private org.osid.shared.Type type = new Type("edu.mit","partStructure","artifact","Artifact");
+    private org.osid.shared.Type type = new Type("mit.edu","partStructure","artifact","Artifact");
     private String displayName = "Artifact";
     private String description = "Typically, the name of a Artifact should be used to indicate the entity.";
     private boolean mandatory = false;

@@ -46,7 +46,8 @@ public class Utilities
 	public static void log(Throwable t)
 	{
 		try {
-			t.printStackTrace();
+			System.out.println(t.getMessage());
+			//t.printStackTrace();
 			log.appendLog(t.getMessage());
 		} catch (org.osid.logging.LoggingException lex) {
 			// swallow exception since logging is a best attempt to log an exception anyway

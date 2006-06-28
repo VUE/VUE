@@ -22,7 +22,7 @@ public class MaterialPartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id materialPartStructureId = null;
-    private org.osid.shared.Type type = new Type("edu.mit","partStructure","material","Material");
+    private org.osid.shared.Type type = new Type("mit.edu","partStructure","material","Material");
     private String displayName = "Material";
     private String description = "Material";
     private boolean mandatory = false;

@@ -22,7 +22,7 @@ public class ThumbnailPartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id THUMBNAIL_PART_STRUCTURE_ID = null;
-    private org.osid.shared.Type type = new Type("edu.mit","partStructure","thumbnail","Preview or thumbnail");
+    private org.osid.shared.Type type = new Type("mit.edu","partStructure","thumbnail","Preview or thumbnail");
     private String displayName = "Thumbnail";
     private String description = "Preview or thumbnail image";
     private boolean mandatory = false;
