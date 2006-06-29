@@ -547,6 +547,7 @@
 </class>
 
 <class name="edu.tufts.vue.dsm.impl.VueDataSource">
+    <map-to xml="edu.tufts.vue.dsm.impl.VueDataSource" />
     <field name="providerIdString" type="string">
         <bind-xml name="providerIdString" node="attribute" />
      </field>
