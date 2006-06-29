@@ -329,6 +329,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                             dataSourceManager.remove(ds.getId());
                             dataSourceManager.save();
                             dataSourceList.getContents().removeElement(ds);
+                            saveDataSourceViewer();
                         }
                     }
                 }
