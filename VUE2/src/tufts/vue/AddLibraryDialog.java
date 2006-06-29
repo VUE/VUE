@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.27 $ / $Date: 2006-06-28 19:55:39 $ / $Author: jeff $
+* @version $Revision: 1.28 $ / $Date: 2006-06-29 13:57:37 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -304,7 +304,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
 						if (proceed) {
 							// add to data sources list
 							try {
-								System.out.println("creating data source");
+								//System.out.println("creating data source");
 								ds = new edu.tufts.vue.dsm.impl.VueDataSource(factory.getIdManagerInstance().createId(),
 																			  provider.getId(),
 																			  true);
