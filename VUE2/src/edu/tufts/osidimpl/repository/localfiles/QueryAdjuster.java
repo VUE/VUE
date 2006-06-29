@@ -20,31 +20,19 @@ package edu.tufts.osidimpl.repository.localfiles;
 
 public class QueryAdjuster implements edu.tufts.vue.fsm.QueryAdjuster
 {
-	private org.osid.shared.Type oldKeywordSearchType = new Type("mit.edu","search","keyword");
-	private org.osid.shared.Type newKeywordSearchType = new Type("edu.mit","search","keyword");
-	private org.osid.shared.Type oldTitleSearchType = new Type("mit.edu","search","title");
-	private org.osid.shared.Type newTitleSearchType = new Type("edu.mit","search","title");
+	private org.osid.shared.Type keywordSearchType = new Type("mit.edu","search","keyword");
+	private org.osid.shared.Type titleSearchType = new Type("mit.edu","search","title");
 		
 	public edu.tufts.vue.fsm.Query adjustQuery(org.osid.repository.Repository repository,
 											   java.io.Serializable searchCriteria,
 											   org.osid.shared.Type searchType,
 											   org.osid.shared.Properties searchProperties)
-{
-		if (searchType.isEqual(this.oldKeywordSearchType)) {
-			return new Query(repository,
-							 searchCriteria,
-							 this.newKeywordSearchType,
-							 null);
-		} else if (searchType.isEqual(this.oldTitleSearchType)) {
-			return new Query(repository,
-							 searchCriteria,
-							 this.newTitleSearchType,
-							 null);
-		} else {
-			return new Query(repository,
-							 searchCriteria,
-							 searchType,
-							 searchProperties);
-		}
+	{
+		//nop
+		return new Query("",
+						 repository,
+						 searchCriteria,
+						 searchType,
+						 null);
 	}
 }

@@ -12,12 +12,14 @@ implements edu.tufts.vue.fsm.QueryAdjuster
 											   org.osid.shared.Properties searchProperties) 
 	{
 		if (searchCriteria instanceof String) {
-			return new Query( repository,
+			return new Query( "",
+							  repository,
 							  ((String)searchCriteria).toUpperCase(),
 							  searchType,
 							  searchProperties);			
 		} else {
-			return new Query(repository,
+			return new Query("",
+							 repository,
 							 searchCriteria,
 							 searchType,
 							 searchProperties);

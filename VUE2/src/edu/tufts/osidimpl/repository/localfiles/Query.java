@@ -29,17 +29,28 @@ implements edu.tufts.vue.fsm.Query
 	private java.io.Serializable searchCriteria = null;
 	private org.osid.shared.Type searchType = null;
 	private org.osid.shared.Properties searchProperties = null;
+	private String foreignIdString = null;
 	
-	protected Query(org.osid.repository.Repository repository,
+	protected Query(String foreignIdString,
+					org.osid.repository.Repository repository,
 					java.io.Serializable searchCriteria,
 					org.osid.shared.Type searchType,
 					org.osid.shared.Properties searchProperties) {
+		
+		this.foreignIdString = foreignIdString;
 		this.repository = repository;
 		this.searchCriteria = searchCriteria;
 		this.searchType = searchType;
 		this.searchProperties = searchProperties;
 	}
 	
+	public String getForeignIdString() {
+		return this.foreignIdString;
+	}
+	
+	public void setForeignIdString(String foreignIdString) {
+		this.foreignIdString = foreignIdString;
+	}
 	
 	public org.osid.repository.Repository getRepository() {
 		return this.repository;
