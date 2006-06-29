@@ -362,11 +362,11 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         }
         Widget.setMenuActions(DRB.librariesPanel,
                 new Action[] {
-					editLibraryAction,
+            editLibraryAction,
                     addLibraryAction,
                     checkForUpdatesAction,
                     removeLibraryAction
-				});
+        });
     }
     
     private boolean checkValidUser(String userName,String password,int type) {
@@ -392,12 +392,14 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     public void loadDataSources() {
         boolean init = true;
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
-        System.out.println("Data source file: " + f.getAbsolutePath());
+        if(DEBUG.DR) System.out.println("Data source file: " + f.getAbsolutePath());
         if (!f.exists()) {
+            if(DEBUG.DR) System.out.println("Loading Default Datasource");
             loadDefaultDataSources();
         } else {
             int type;
             try{
+                if(DEBUG.DR) System.out.println("Loading Existing Datasource");
                 SaveDataSourceViewer rViewer = unMarshallMap(f);
                 Vector rsources = rViewer.getSaveDataSources();
                 while (!(rsources.isEmpty())){
@@ -405,9 +407,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                     ds.setResourceViewer();
                     try {
                         dataSourceList.addOrdered(ds);
-                    } catch(Exception ex) {System.out.println("this is a problem in restoring the datasources");}
+                    } catch(Exception ex) {System.out.println("DataSourceViewer.loadDataSources"+ex);}
                 }
-                saveDataSourceViewer();
             } catch (Exception ex) {
                 System.out.println("Datasource loading problem = "+ex);
                 ex.printStackTrace();
@@ -427,6 +428,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             dataSourceList.addOrdered(ds2);
             // default selection
             dataSourceList.setSelectedValue(ds2,true);
+            DataSourceViewer.saveDataSourceViewer();
         } catch(Exception ex) {
             if(DEBUG.DR) System.out.println("Datasource loading problem ="+ex);
         }
@@ -729,9 +731,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         int size = dataSourceList.getModel().getSize();
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
         Vector sDataSources = new Vector();
-        for (int i = 0; i< size; i++) {
+        for (int i = 0; i<size; i++) {
             Object item = dataSourceList.getModel().getElementAt(i);
-            if (DEBUG.DR) System.out.println("saveDataSourceViewer: item " + i + " is " + item.getClass().getName() + "[" + item + "]");
+            if (DEBUG.DR) System.out.println("saveDataSourceViewer: item " + i + " is " + item.getClass().getName() + "[" + item + "] of " + size);
             if (item instanceof DataSource) {
                 sDataSources.add((DataSource)item);
             } else {
