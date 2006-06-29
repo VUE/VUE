@@ -29,6 +29,8 @@ public interface ResultSetManager
 
 	public org.osid.repository.AssetIterator getAssets();
 	
+	public org.osid.repository.AssetIterator getAssets(String foreignIdString);
+	
 	public org.osid.repository.AssetIterator getAsset(int i);
 
 	public String getExceptionMessage(int index);

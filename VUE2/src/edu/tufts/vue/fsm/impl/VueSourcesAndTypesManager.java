@@ -41,6 +41,10 @@ implements edu.tufts.vue.fsm.SourcesAndTypesManager
 		return dataSourceManager.getIncludedRepositories();
 	}
 
+	public edu.tufts.vue.dsm.DataSource[] getDataSourcesToSearch() {
+		return dataSourceManager.getIncludedDataSources();
+	}
+	
 	public org.osid.shared.Type[] getSearchTypes(int rule) {
 		try {
 			org.osid.repository.Repository[] repositories = dataSourceManager.getIncludedRepositories();

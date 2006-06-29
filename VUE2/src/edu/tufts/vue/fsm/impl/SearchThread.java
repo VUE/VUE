@@ -29,12 +29,14 @@ implements Runnable
     private java.io.Serializable searchCriteria = null;
     private org.osid.shared.Type searchType = null;
     private org.osid.repository.Repository repository = null;
+	private String foreignIdString = null;
     private org.osid.shared.Properties searchProperties = null;
     private int searchIndex = -1;
     private long startTime = 0;
 	private edu.tufts.vue.fsm.SearchEngine searchEngine = VueSearchEngine.getInstance();
 
-    public SearchThread(org.osid.repository.Repository repository,
+    public SearchThread(String foreignIdString,
+						org.osid.repository.Repository repository,
 						int searchIndex,
 						java.io.Serializable searchCriteria,
 						org.osid.shared.Type searchType,
@@ -44,6 +46,7 @@ implements Runnable
         this.searchType = searchType;
         this.searchProperties = searchProperties;
         this.repository = repository;
+		this.foreignIdString = foreignIdString;
         this.searchIndex = searchIndex;        
         this.startTime = java.util.Calendar.getInstance().getTimeInMillis();
         try
@@ -65,7 +68,8 @@ implements Runnable
 											 edu.tufts.vue.fsm.SearchEngine.SEARCH_COMPLETED,
 											 null,
 											 endTime - this.startTime,
-											 assetIterator);
+											 assetIterator,
+											 this.foreignIdString);
         } catch (Throwable t) {
 			edu.tufts.vue.util.Logger.log(t);
 			long endTime = java.util.Calendar.getInstance().getTimeInMillis();
@@ -75,7 +79,8 @@ implements Runnable
 												 edu.tufts.vue.fsm.SearchEngine.SEARCH_EXCEPTION,
 												 t.getMessage(),
 												 endTime - this.startTime,
-												 new AssetIterator(new java.util.Vector()));
+												 new AssetIterator(new java.util.Vector()),
+												 this.foreignIdString);
 			} catch (Throwable t1) {
 				edu.tufts.vue.util.Logger.log(t1);
 			}

@@ -371,6 +371,7 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 			edu.tufts.vue.fsm.SearchEngine searchEngine = new VueSearchEngine();
 
 			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
+			edu.tufts.vue.dsm.DataSource[] dataSources = sourcesAndTypesManager.getDataSourcesToSearch(); // will be same length
 			edu.tufts.vue.fsm.Query queries[] = new edu.tufts.vue.fsm.Query[repositories.length];
 			for (int i=0; i < repositories.length; i++) {
 				org.osid.repository.Repository repository = repositories[i];
@@ -385,10 +386,12 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 													  searchProperties);
 				} else {
 */
-				queries[i] = new VueQuery(repository,
-											  searchCriteria,
-											  searchType,
-											  searchProperties);
+//				System.out.println("Creating query for foreign id " + dataSources[i].getId().getIdString());
+				queries[i] = new VueQuery(dataSources[i].getId().getIdString(),
+										  repository,
+										  searchCriteria,
+										  searchType,
+										  searchProperties);
 			}
 			searchEngine.search(queries);
 			return new VueResultSetManager(searchEngine);			

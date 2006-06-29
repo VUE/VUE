@@ -30,6 +30,7 @@ public interface SourcesAndTypesManager
 	public static final int TYPES_IN_COMMON = 1;
 	
 	public org.osid.repository.Repository[] getRepositoriesToSearch();
+	public edu.tufts.vue.dsm.DataSource[] getDataSourcesToSearch();
 
 	public org.osid.shared.Type[] getSearchTypes(int rule);
 }

@@ -43,6 +43,13 @@ implements edu.tufts.vue.fsm.ResultSetManager
 		return null;
 	}
 
+	public org.osid.repository.AssetIterator getAssets(String foreignIdString)
+	{
+		ai = new AddingAssetIterator();
+		ai.add(searchEngine.getAssetIterator(foreignIdString));
+		return ai;
+	}
+	
 	public org.osid.repository.AssetIterator getAssets()
 	{
 		if (ai == null) {

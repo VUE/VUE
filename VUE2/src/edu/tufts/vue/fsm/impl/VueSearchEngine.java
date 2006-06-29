@@ -37,6 +37,7 @@ implements edu.tufts.vue.fsm.SearchEngine
 	private static String[] exceptionMessages = null;
 	private static long[] durations = null;
 	private static org.osid.repository.AssetIterator[] assetIterators = null;
+	private static java.util.Vector foreignIdStringVector = null;
 	
 	private static edu.tufts.vue.fsm.SearchEngine searchEngine = new VueSearchEngine();
 	
@@ -61,7 +62,7 @@ implements edu.tufts.vue.fsm.SearchEngine
 		exceptionMessages = new String[numberOfSearches];
 		durations = new long[numberOfSearches];
 		assetIterators = new org.osid.repository.AssetIterator[numberOfSearches];
-
+		foreignIdStringVector = new java.util.Vector();
 		
 		for (int j=0; j < numberOfSearches; j++) {
 			status[j] = SEARCH_PENDING;
@@ -74,7 +75,8 @@ implements edu.tufts.vue.fsm.SearchEngine
             int k = 0;
             for (int i=0; i < queries.length; i++)
             {
-				SearchThread searchThread = new SearchThread(queries[i].getRepository(),
+				SearchThread searchThread = new SearchThread(queries[i].getForeignIdString(),
+															 queries[i].getRepository(),
 															 k++,
 															 queries[i].getSearchCriteria(), 
 															 queries[i].getSearchType(),
@@ -94,7 +96,8 @@ implements edu.tufts.vue.fsm.SearchEngine
 							   int statusCode,
 							   String exceptionMessage,
 							   long duration,
-							   org.osid.repository.AssetIterator assetIterator)
+							   org.osid.repository.AssetIterator assetIterator,
+							   String foreignIdString)
 	{
         try {
 			completed++;
@@ -102,6 +105,7 @@ implements edu.tufts.vue.fsm.SearchEngine
 			exceptionMessages[searchIndex] = exceptionMessage;
 			durations[searchIndex] = duration;
 			assetIterators[searchIndex] = assetIterator;
+			foreignIdStringVector.addElement(foreignIdString);
 
             if (completed == numberOfSearches)
             {
@@ -157,6 +161,23 @@ implements edu.tufts.vue.fsm.SearchEngine
         }
 		return null;
     }
+
+	public org.osid.repository.AssetIterator getAssetIterator(String foreignIdString)
+	{
+		try {
+//			System.out.println("getAssetIterator in vSearchEngine " + foreignIdString);
+			int index = foreignIdStringVector.indexOf(foreignIdString);
+			if (index != -1) {
+//				System.out.print("found at index " + index);
+				return assetIterators[index];
+			} else {
+//				System.out.println("not found");
+			}
+        } catch (Throwable t) {
+			edu.tufts.vue.util.Logger.log(t,"in getAssetIterator()");
+        }
+		return null;
+	}
 	
     public String getExceptionMessage(int index)
     {

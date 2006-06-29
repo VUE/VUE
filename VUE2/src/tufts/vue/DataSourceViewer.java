@@ -523,11 +523,11 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
          */
         
         final java.util.List resultList = new java.util.ArrayList();
-        final java.util.List repositoryIdStringList = new java.util.ArrayList();
+        final java.util.List dataSourceIdStringList = new java.util.ArrayList();
         final java.util.List repositoryDisplayNameList = new java.util.ArrayList();
-        //final java.util.Vector allResultList = new java.util.Vector();
         
         org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
+        edu.tufts.vue.dsm.DataSource[] dataSources = sourcesAndTypesManager.getDataSourcesToSearch(); // will be same length
         
         final WidgetStack resultsStack = new WidgetStack("searchResults " + searchString);
         final Widget[] resultPanes = new Widget[repositories.length];
@@ -535,7 +535,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         for (int i = 0; i < repositories.length; i++) {
             org.osid.repository.Repository r = repositories[i];
             if (DEBUG.DR) out("to search: " + r.getDisplayName() + " \t" + r);
-            repositoryIdStringList.add(r.getId().getIdString());
+			
+            dataSourceIdStringList.add(dataSources[i].getId().getIdString());
             repositoryDisplayNameList.add(r.getDisplayName());
             resultList.add(new java.util.ArrayList());
             
@@ -553,30 +554,31 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         }
         org.osid.shared.Properties searchProperties = queryEditor.getProperties();
         
-        edu.tufts.vue.fsm.ResultSetManager resultSetManager
+		edu.tufts.vue.fsm.ResultSetManager resultSetManager
                 = federatedSearchManager.getResultSetManager(searchCriteria,
                 searchType,
                 searchProperties);
         if (DEBUG.DR) out("got result set manager " + resultSetManager);
         
-        org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets();
-        int counter = 0;
-        while (assetIterator.hasNextAsset() && (counter <= 100)) {
-            org.osid.repository.Asset nextAsset = assetIterator.nextAsset();
-            counter++;
-            String repositoryIdString = nextAsset.getRepository().getIdString();
-            int index = repositoryIdStringList.indexOf(repositoryIdString);
-            java.util.List v = (java.util.List) resultList.get(index);
-            
-            // TODO: Resources eventually want to be atomic, so a factory
-            // should be queried for a resource based on the asset.
-            Osid2AssetResource resource = new Osid2AssetResource(nextAsset, this.context);
-            v.add(resource);
-            //allResultList.addElement(resource);
-        }
+		System.out.println("Number of data sources " + dataSources.length);
+		for (int i=0; i < dataSources.length; i++) {
+			org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets(dataSources[i].getId().getIdString());
+			int counter = 0;
+			while (assetIterator.hasNextAsset() && (counter <= 100)) {
+				org.osid.repository.Asset nextAsset = assetIterator.nextAsset();
+				counter++;
+				String dataSourceIdString = dataSources[i].getId().getIdString();
+				int index = dataSourceIdStringList.indexOf(dataSourceIdString);
+				java.util.List v = (java.util.List) resultList.get(index);
+				
+				// TODO: Resources eventually want to be atomic, so a factory
+				// should be queried for a resource based on the asset.
+				Osid2AssetResource resource = new Osid2AssetResource(nextAsset, this.context);
+				v.add(resource);
+			}
+		}
         
-        // Display the results in the result panes
-        
+        // Display the results in the result panes        
         for (int i = 0; i < repositories.length; i++) {
             java.util.List resourceList = (java.util.List) resultList.get(i);
             String name = "Results: " + (String) repositoryDisplayNameList.get(i);

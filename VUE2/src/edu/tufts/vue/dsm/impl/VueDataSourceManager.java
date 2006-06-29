@@ -53,27 +53,6 @@ public class VueDataSourceManager
     public VueDataSourceManager() {
     }
     
-    public void addDataSourceToCache(org.osid.shared.Id providerId,
-            edu.tufts.vue.dsm.DataSource dataSource) {
-        try {
-            String s = providerId.getIdString();
-            cacheMap.put(s,dataSource);
-        } catch (Throwable t) {
-            
-        }
-    }
-    
-    public edu.tufts.vue.dsm.DataSource getDataSourceFromCache(org.osid.shared.Id providerId) {
-        try {
-            String s = providerId.getIdString();
-            if (s != null) {
-                return (edu.tufts.vue.dsm.DataSource)cacheMap.get(providerId.getIdString());
-            }
-        } catch (Throwable t) {
-        }
-        return null;
-    }
-    
     public void save() {
         marshall(new File(this.xmlFilename), this);
     }
@@ -95,7 +74,10 @@ public class VueDataSourceManager
     public edu.tufts.vue.dsm.DataSource[] getDataSources() {
         int size = this.dataSourceVector.size();
         edu.tufts.vue.dsm.DataSource dataSources[] = new edu.tufts.vue.dsm.DataSource[size];
-        for (int i=0; i < size; i++) dataSources[i] = (edu.tufts.vue.dsm.DataSource)this.dataSourceVector.elementAt(i);
+        for (int i=0; i < size; i++) 
+		{
+			dataSources[i] = (edu.tufts.vue.dsm.DataSource)this.dataSourceVector.elementAt(i);
+		}
         return dataSources;
     }
     
@@ -171,7 +153,24 @@ public class VueDataSourceManager
         return repositories;
     }
     
-    /**
+	public edu.tufts.vue.dsm.DataSource[] getIncludedDataSources() {
+        java.util.Vector results = new java.util.Vector();
+        int size = this.dataSourceVector.size();
+        for (int i=0; i < size; i++) {
+            edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)this.dataSourceVector.elementAt(i);
+            if (ds.isIncludedInSearch()) {
+                results.addElement(ds);
+            }
+        }
+        size = results.size();
+        edu.tufts.vue.dsm.DataSource dataSources[] = new edu.tufts.vue.dsm.DataSource[size];
+        for (int i=0; i < size; i++) {
+            dataSources[i] = (edu.tufts.vue.dsm.DataSource)results.elementAt(i);
+        }
+        return dataSources;
+	}
+    
+	/**
      */
     public java.awt.Image getImageForRepositoryType(org.osid.shared.Type repositoryType) {
         return null;

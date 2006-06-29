@@ -43,6 +43,8 @@ public interface DataSourceManager
 	
 	public org.osid.repository.Repository[] getIncludedRepositories();
 	
+	public DataSource[] getIncludedDataSources();
+
 	public void save();
 
 	public java.awt.Image getImageForAssetType(org.osid.shared.Type assetType);

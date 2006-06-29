@@ -37,7 +37,8 @@ public interface SearchEngine
 							   int statusCode,
 							   String exceptionMessage,
 							   long duration,
-							   org.osid.repository.AssetIterator assetIterator);
+							   org.osid.repository.AssetIterator assetIterator,
+							   String foreignIdString);
 	
 	public long getStartTime();
 	
@@ -50,6 +51,8 @@ public interface SearchEngine
 	public int getNumSearches();
 	
 	public org.osid.repository.AssetIterator getAssetIterator(int index);
+	
+	public org.osid.repository.AssetIterator getAssetIterator(String foreignIdString);
 	
 	public String getExceptionMessage(int index);
 	

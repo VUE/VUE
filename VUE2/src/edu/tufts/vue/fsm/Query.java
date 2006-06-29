@@ -24,6 +24,9 @@ package edu.tufts.vue.fsm;
 
 public interface Query
 {
+	public String getForeignIdString();
+	public void setForeignIdString(String foreignIdString);
+	
 	public org.osid.repository.Repository getRepository();
 	public void setRepository(org.osid.repository.Repository repository);
 
