@@ -151,6 +151,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 					this.dsv.setActiveDataSource(this.oldDataSource); // refresh
 				}
 			}
+                        DataSourceViewer.saveDataSourceViewer();
 		} catch (Throwable t) {
 			t.printStackTrace();
 			VueUtil.alert("Configuration error: "+ t.getMessage(),"Error");
