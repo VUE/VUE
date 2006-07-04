@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.3 $ / $Date: 2006-05-22 17:27:50 $ / $Author: jeff $
+ * @version $Revision: 1.4 $ / $Date: 2006-07-04 00:46:34 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -260,7 +260,8 @@ public class LibraryInfoPanel extends JPanel
 				add(new javax.swing.JLabel(new javax.swing.ImageIcon(image)),gbConstraints);
 			}
 		} catch (Throwable t) {
-			t.printStackTrace();
+			//t.printStackTrace();
+			System.out.println(t.getMessage());
 		}
     }
 }

@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.106 $ / $Date: 2006-06-27 18:48:04 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.106 2006-06-27 18:48:04 jeff Exp $ -->
+<!-- $Revision: 1.107 $ / $Date: 2006-07-04 00:46:33 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.107 2006-07-04 00:46:33 jeff Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -1146,6 +1146,14 @@ VUE_Installer.zip - ${installerMD5}
 
   </target>
     
+	
+	<!-- ==================== URL encoding Test ================================ -->
+    <target name="urltest" depends="compile" description="test URL encoding" >
+        <java classname="tufts.vue.urltest" failonerror="true" fork="true">
+      <classpath refid="runtime.classpath"/>
+        </java>
+    </target>
+
 </project>
 
 

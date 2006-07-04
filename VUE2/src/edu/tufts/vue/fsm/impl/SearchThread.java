@@ -55,6 +55,11 @@ implements Runnable
         }
         catch (Throwable t) {}
     }
+	
+	public void start()
+	{
+		run();
+	}
 
     public void run()
     {

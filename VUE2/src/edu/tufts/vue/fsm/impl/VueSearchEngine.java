@@ -83,7 +83,7 @@ implements edu.tufts.vue.fsm.SearchEngine
 															 queries[i].getSearchProperties());
 				status[i] = SEARCH_RUNNING;
 				try {
-					searchThread.run();
+					searchThread.start();
 				} catch (Throwable discard) {
 				}
 			}

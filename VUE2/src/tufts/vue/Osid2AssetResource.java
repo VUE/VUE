@@ -34,8 +34,9 @@ public class Osid2AssetResource extends MapResource
     private osid.OsidOwner owner = null;
     private org.osid.OsidContext context = null;
     private org.osid.repository.Asset asset = null;
-	private org.osid.shared.Type thumbnailPartType1 = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
-	private org.osid.shared.Type urlPartType1 = new edu.tufts.vue.util.Type("mit.edu","partStructure","URL");
+	private org.osid.shared.Type thumbnailPartType = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
+	private org.osid.shared.Type urlPartType = new edu.tufts.vue.util.Type("mit.edu","partStructure","URL");
+	private org.osid.shared.Type largeImagePartType = new edu.tufts.vue.util.Type("mit.edu","partStructure","largeImage");
 	private String icon = null;
 	
 	//    private osid.dr.Asset asset;
@@ -95,9 +96,14 @@ public class Osid2AssetResource extends MapResource
 					org.osid.shared.Type partStructureType = partStructure.getType();
 					java.io.Serializable ser = part.getValue();
 					
-					// metadata discovery
-					addProperty(partStructureType.getKeyword(),ser);
-					if (partStructureType.isEqual(this.urlPartType1)) {
+					// metadata discovery, allow for Type descriptions
+					String description = partStructureType.getDescription();
+					if ((description != null) && (description.trim().length() > 0)) {
+						addProperty(description,ser);
+					} else {
+						addProperty(partStructureType.getKeyword(),ser);
+					}
+					if (partStructureType.isEqual(this.urlPartType)) {
 						String s = (String)part.getValue();
 						setSpec(s);
 						//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL(s))));
@@ -105,7 +111,7 @@ public class Osid2AssetResource extends MapResource
 					}
 					
 					// preview should be a URL or an image
-					if (partStructureType.isEqual(this.thumbnailPartType1)) {
+					if (partStructureType.isEqual(this.thumbnailPartType)) {
 						if (ser instanceof String) {
 							//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL((String)ser))));
 							this.icon = (String)ser;
@@ -113,6 +119,8 @@ public class Osid2AssetResource extends MapResource
 							//setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)ser)));
 							//this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
 						}
+					}
+					else if (partStructureType.isEqual(this.largeImagePartType)) {
 					}
 				}
 			}

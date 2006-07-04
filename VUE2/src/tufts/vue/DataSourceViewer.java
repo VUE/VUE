@@ -323,8 +323,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                     if (o instanceof edu.tufts.vue.dsm.DataSource) {
                         edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
                         if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
-                                "Do you really want to remove " + ds.getRepositoryDisplayName(),
-                                "Remove Library",
+                                "Do you really want to delete " + ds.getRepositoryDisplayName(),
+                                "Delete Resource",
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
                             dataSourceManager.remove(ds.getId());
                             dataSourceManager.save();
@@ -560,7 +560,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 searchProperties);
         if (DEBUG.DR) out("got result set manager " + resultSetManager);
         
-		System.out.println("Number of data sources " + dataSources.length);
 		for (int i=0; i < dataSources.length; i++) {
 			org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets(dataSources[i].getId().getIdString());
 			int counter = 0;

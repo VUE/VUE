@@ -161,7 +161,7 @@ public class VueDataSource
             this.repository = (factory.getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);
 //			System.out.println("got repository");
         } catch (Throwable t) {
-            System.out.println("Load by key failed, trying a check of all repositories");
+            System.out.println("Load by key failed, " + this.osidLoadKey + " trying a check of all repositories");
             // special case for when the Manager implementation doesn't offer this method
             try {
                 org.osid.repository.RepositoryIterator repositoryIterator = repositoryManager.getRepositories();

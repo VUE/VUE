@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.29 $ / $Date: 2006-06-29 16:15:12 $ / $Author: anoop $
+ * @version $Revision: 1.30 $ / $Date: 2006-07-04 00:46:34 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -279,7 +279,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
                     
                     //System.out.println("checking if installed");
                     if (proceed && (!provider.isInstalled())) {
-                        //System.out.println("installing...");
+                        System.out.println("installing...");
                         factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
                         try {
                             GUI.activateWaitCursor();
