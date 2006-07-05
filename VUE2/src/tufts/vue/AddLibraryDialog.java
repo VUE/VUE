@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.30 $ / $Date: 2006-07-04 00:46:34 $ / $Author: jeff $
+ * @version $Revision: 1.31 $ / $Date: 2006-07-05 18:45:01 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -149,6 +149,8 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
     
     private void populate() {
         listModel.removeAllElements();
+		this.oldDataSource = null;
+		this.newDataSource = null;
         try {
             GUI.activateWaitCursor();
             if (dataSourceManager == null) {
@@ -385,10 +387,8 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
             }
             if (this.oldDataSource != null) {
                 dataSourceList.addOrdered(this.oldDataSource);
-                dataSourceList.setSelectedValue(this.oldDataSource,true);
             } else {
                 dataSourceList.addOrdered(this.newDataSource);
-                dataSourceList.setSelectedValue(this.newDataSource,true);
                 dataSourceManager.add(this.newDataSource);
             }
             providerListRenderer.setChecked(addLibraryList.getSelectedIndex());
@@ -403,6 +403,16 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
         }
         DataSourceViewer.saveDataSourceViewer();
     }
+	
+	public DataSource getOldDataSource()
+	{
+		return this.oldDataSource;
+	}
+	
+	public edu.tufts.vue.dsm.DataSource getNewDataSource()
+	{
+		return this.newDataSource;
+	}
     
     public void actionPerformed(ActionEvent ae) {
         

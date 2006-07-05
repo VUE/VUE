@@ -31,6 +31,10 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	private javax.swing.JTextField field = new javax.swing.JTextField(15);
 	private java.io.Serializable criteria = null;
 	private org.osid.shared.Properties searchProperties = null;
+	private org.osid.shared.Type searchType = null;
+	
+	private org.osid.shared.Type keywordSearchType = new edu.tufts.vue.util.Type("mit.edu","search","keyword");
+	private org.osid.shared.Type multiFieldSearchType = new edu.tufts.vue.util.Type("mit.edu","search","multiField");
 	
 	protected javax.swing.event.EventListenerList listenerList = new javax.swing.event.EventListenerList();
 	
@@ -143,15 +147,19 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		switch (kind) {
 			case NOTHING_SELECTED:
 				makeNothingSelectedPanel();
+				this.searchType = this.keywordSearchType;
 				break;
 			case BASIC:
 				makeBasicPanel();
+				this.searchType = this.keywordSearchType;
 				break;
 			case ADVANCED_INTERSECTION:
 				makeAdvancedIntersectionPanel();
+				this.searchType = this.multiFieldSearchType;
 				break;
 //			case ADVANCED_UNION:
 //				makeAdvancedUnionPanel();
+//				this.searchType = this.multiFieldSearchType;
 //				break;
 		}
 		this.revalidate();
@@ -351,7 +359,11 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	}
 	
 	public java.io.Serializable getCriteria() {
-		return field.getText();
+		if (this.searchType.isEqual(this.keywordSearchType)) {
+			return field.getText();
+		} else {
+			return multiFieldXML();
+		}
 	}
 	
 	public void setCriteria(java.io.Serializable searchCriteria) {
@@ -372,6 +384,16 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		this.searchProperties = searchProperties;
 	}
 
+	public void setSearchType(org.osid.shared.Type searchType)
+	{
+		this.searchType = searchType;
+	}
+	
+	public org.osid.shared.Type getSearchType()
+	{
+		return this.searchType;
+	}
+	
 	public String getSearchDisplayName() {
 		// return the criteria, no longer than 20 characters worth
 		String s =  (String)getCriteria();
@@ -437,6 +459,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		 all that match.
 		 */
 		java.util.Vector intersections = new java.util.Vector();
+		
 
 		try {
 			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
@@ -475,7 +498,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			if (numIntersections == 0) {
 				return intersections;
 			} else {
-				java.util.Vector intersection = (java.util.Vector)intersections.firstElement();				
+				java.util.Vector intersection = (java.util.Vector)intersections.firstElement();
 				for (int j=1; j < numIntersections; j++) {
 					java.util.Vector nextIntersection = (java.util.Vector)intersections.elementAt(j);
 					java.util.Vector newIntersection = new java.util.Vector();
@@ -499,38 +522,6 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	
 	private void populateAdvancedSearchUniverseOfTypeStringsVector()
 	{
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/contributor@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/coverage@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/creator@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/date@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/description@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/format@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/identifier@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/language@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/publisher@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/relation@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/rights@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/source@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/subject@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/title@edu.mit");
-		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/type@edu.mit");
-		
-		advancedSearchPromptsVector.addElement("Contributor");
-		advancedSearchPromptsVector.addElement("Coverage");
-		advancedSearchPromptsVector.addElement("Creator");
-		advancedSearchPromptsVector.addElement("Date");
-		advancedSearchPromptsVector.addElement("Description");
-		advancedSearchPromptsVector.addElement("Format");
-		advancedSearchPromptsVector.addElement("Identifier");
-		advancedSearchPromptsVector.addElement("Lanugage");
-		advancedSearchPromptsVector.addElement("Publisher");
-		advancedSearchPromptsVector.addElement("Relation");
-		advancedSearchPromptsVector.addElement("Rights");
-		advancedSearchPromptsVector.addElement("Source");
-		advancedSearchPromptsVector.addElement("Subject");
-		advancedSearchPromptsVector.addElement("Title");
-		advancedSearchPromptsVector.addElement("Type");
-
 		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/contributor@mit.edu");
 		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/coverage@mit.edu");
 		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/creator@mit.edu");
@@ -562,6 +553,37 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		advancedSearchPromptsVector.addElement("Subject");
 		advancedSearchPromptsVector.addElement("Title");
 		advancedSearchPromptsVector.addElement("Type");
-		
+	}
+	
+	private String multiFieldXML()
+	{
+		// make XML for all non-blank entries
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?><criteria>");
+		for (int i =0; i < advancedFields.length; i++) {
+			String value = advancedFields[i].getText();
+			if (value.trim().length() > 0) {
+				buffer.append("<field><type>");
+				
+				// determine type
+				String prompt = (String)typesVector.elementAt(i);
+				String typeString = null;
+				int index = advancedSearchPromptsVector.indexOf(prompt);
+				if (index == -1) {
+					typeString = "partStructure/keywords@mit.edu";
+				} else {
+					typeString = (String)advancedSearchUniverseOfTypeStringsVector.elementAt(index);
+				}
+				
+				// append elements
+				buffer.append(typeString);
+				buffer.append("</type><value>");
+				buffer.append(value);
+				buffer.append("</value><operator>contains</operator></field>");
+				if (i > 0) buffer.append("<boolean>and></boolean>");
+			}
+		}
+		buffer.append("</criteria>");
+		return buffer.toString();
 	}
 }

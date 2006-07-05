@@ -122,7 +122,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         }
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
         sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
-        queryEditor = federatedSearchManager.getQueryEditorForType(new edu.tufts.vue.util.Type("mit.edu","search","keyword"));
+        queryEditor = federatedSearchManager.getQueryEditorForType(searchType);
         queryEditor.addSearchListener(this);
         
         // select the first new data source, if any
@@ -294,6 +294,17 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                         addLibraryDialog.refresh();
                         addLibraryDialog.setVisible(true);
                     }
+					
+					// reflext addition, if any, in UI
+					DataSource ds = addLibraryDialog.getOldDataSource();
+					if (ds != null) {
+						setActiveDataSource(ds);
+					} else {
+						edu.tufts.vue.dsm.DataSource ds1 = addLibraryDialog.getNewDataSource();
+						if (ds1 != null) {
+							setActiveDataSource(ds1);
+						}
+					}
                 } catch (Throwable t) {
                     VueUtil.alert(t.getMessage(),"Error");
                 }
@@ -556,7 +567,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         
 		edu.tufts.vue.fsm.ResultSetManager resultSetManager
                 = federatedSearchManager.getResultSetManager(searchCriteria,
-                searchType,
+                queryEditor.getSearchType(),
                 searchProperties);
         if (DEBUG.DR) out("got result set manager " + resultSetManager);
         

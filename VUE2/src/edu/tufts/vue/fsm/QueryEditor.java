@@ -30,6 +30,9 @@ public interface QueryEditor
 
 	public org.osid.shared.Properties getProperties();
 	public void setProperties(org.osid.shared.Properties searchProperties);
+	
+	public void setSearchType(org.osid.shared.Type searchType);
+	public org.osid.shared.Type getSearchType();		
 
 	public void addSearchListener(edu.tufts.vue.fsm.event.SearchListener listener);
 	public void removeSearchListener(edu.tufts.vue.fsm.event.SearchListener listener);
