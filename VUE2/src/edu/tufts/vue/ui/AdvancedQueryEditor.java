@@ -37,6 +37,7 @@ java.awt.event.ActionListener
 	private javax.swing.JComboBox maxReturnsAdvancedSearch;  // combobox for advanced search.
     private String[] maxReturnItems = {"10","20",};
 	protected javax.swing.event.EventListenerList listenerList = new javax.swing.event.EventListenerList();
+	private org.osid.shared.Type searchType = null;
 	
 	public AdvancedQueryEditor()
 	{
@@ -177,6 +178,16 @@ java.awt.event.ActionListener
 			partField.setText("");		
 			valueField.setText("");		
 		}
+	}
+	
+	public void setSearchType(org.osid.shared.Type searchType)
+	{
+		this.searchType = searchType;
+	}
+	
+	public org.osid.shared.Type getSearchType()
+	{
+		return this.searchType;
 	}
 	
 	public org.osid.shared.Properties getProperties() {

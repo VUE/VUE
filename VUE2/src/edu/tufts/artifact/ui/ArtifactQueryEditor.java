@@ -38,6 +38,7 @@ implements edu.tufts.vue.fsm.QueryEditor
 
 	private java.io.Serializable criteria = null;
 	private org.osid.shared.Properties searchProperties = null;
+	private org.osid.shared.Type searchType = null;
 	
 	protected javax.swing.event.EventListenerList listenerList = new javax.swing.event.EventListenerList();
 	
@@ -59,6 +60,16 @@ implements edu.tufts.vue.fsm.QueryEditor
 
 	public void refresh() {
 		
+	}
+	
+	public void setSearchType(org.osid.shared.Type searchType)
+	{
+		this.searchType = searchType;
+	}
+	
+	public org.osid.shared.Type getSearchType()
+	{
+		return this.searchType;
 	}
 	
     public class TitleSearchPane extends JPanel implements ActionListener,KeyListener {
