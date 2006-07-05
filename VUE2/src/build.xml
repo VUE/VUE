@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.107 $ / $Date: 2006-07-04 00:46:33 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.107 2006-07-04 00:46:33 jeff Exp $ -->
+<!-- $Revision: 1.108 $ / $Date: 2006-07-05 22:12:31 $ / $Author: peter $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.108 2006-07-05 22:12:31 peter Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -455,7 +455,6 @@
       </not>
     </condition>
     <mkdir dir="${build.class}"/>
-    <copy file="../etc/registry/OsidType-OID.dat" todir="${build.class}" verbose="true"/>
     <tstamp />
   </target>
 
@@ -748,7 +747,6 @@
     <jar jarfile="${vue.jar}"
          basedir="${basedir}" 
 		 update="true"
-         includes="../etc/registryOsidType-OID.dat"/>
   </target>
   
   <target name="jar-narravision" depends="jar"
