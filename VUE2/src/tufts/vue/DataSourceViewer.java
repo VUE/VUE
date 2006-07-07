@@ -293,17 +293,17 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                         addLibraryDialog.refresh();
                         addLibraryDialog.setVisible(true);
                     }
-					
-					// reflext addition, if any, in UI
-					DataSource ds = addLibraryDialog.getOldDataSource();
-					if (ds != null) {
-						setActiveDataSource(ds);
-					} else {
-						edu.tufts.vue.dsm.DataSource ds1 = addLibraryDialog.getNewDataSource();
-						if (ds1 != null) {
-							setActiveDataSource(ds1);
-						}
-					}
+                    
+                    // reflext addition, if any, in UI
+                    DataSource ds = addLibraryDialog.getOldDataSource();
+                    if (ds != null) {
+                        setActiveDataSource(ds);
+                    } else {
+                        edu.tufts.vue.dsm.DataSource ds1 = addLibraryDialog.getNewDataSource();
+                        if (ds1 != null) {
+                            setActiveDataSource(ds1);
+                        }
+                    }
                 } catch (Throwable t) {
                     VueUtil.alert(t.getMessage(),"Error");
                 }
@@ -341,6 +341,15 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                             dataSourceList.getContents().removeElement(ds);
                             saveDataSourceViewer();
                         }
+                    } else if( o instanceof tufts.vue.DataSource) {
+                        tufts.vue.DataSource ds = (tufts.vue.DataSource) o;
+                        if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
+                                "Do you really want to delete " + ds.getDisplayName(),
+                                "Delete Resource",
+                                javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
+                            dataSourceList.getContents().removeElement(ds);
+                            saveDataSourceViewer();
+                        }
                     }
                 }
                 DataSourceViewer.this.popup.setVisible(false);
@@ -356,17 +365,15 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             // for the moment, we are doing double work to keep old data sources
             if (o instanceof edu.tufts.vue.dsm.DataSource) {
                 edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
-                removeLibraryAction.setEnabled(true);
-                editLibraryAction.setEnabled(true);
+                removeLibraryAction.setEnabled(true);  
             } else if (o instanceof RemoteFileDataSource) {
                 // FTP
-                removeLibraryAction.setEnabled(true);
-                editLibraryAction.setEnabled(true);
+                removeLibraryAction.setEnabled(true); 
             } else {
                 // My Computer and My Saved Content
-                removeLibraryAction.setEnabled(false);
-                editLibraryAction.setEnabled(true);
+                removeLibraryAction.setEnabled(true);
             }
+            editLibraryAction.setEnabled(true);
         } else {
             removeLibraryAction.setEnabled(false);
             editLibraryAction.setEnabled(false);
@@ -545,7 +552,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         for (int i = 0; i < repositories.length; i++) {
             org.osid.repository.Repository r = repositories[i];
             if (DEBUG.DR) out("to search: " + r.getDisplayName() + " \t" + r);
-			
+            
             dataSourceIdStringList.add(dataSources[i].getId().getIdString());
             repositoryDisplayNameList.add(r.getDisplayName());
             resultList.add(new java.util.ArrayList());
@@ -564,30 +571,30 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         }
         org.osid.shared.Properties searchProperties = queryEditor.getProperties();
         
-		edu.tufts.vue.fsm.ResultSetManager resultSetManager
+        edu.tufts.vue.fsm.ResultSetManager resultSetManager
                 = federatedSearchManager.getResultSetManager(searchCriteria,
                 queryEditor.getSearchType(),
                 searchProperties);
         if (DEBUG.DR) out("got result set manager " + resultSetManager);
         
-		for (int i=0; i < dataSources.length; i++) {
-			org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets(dataSources[i].getId().getIdString());
-			int counter = 0;
-			while (assetIterator.hasNextAsset() && (counter <= 100)) {
-				org.osid.repository.Asset nextAsset = assetIterator.nextAsset();
-				counter++;
-				String dataSourceIdString = dataSources[i].getId().getIdString();
-				int index = dataSourceIdStringList.indexOf(dataSourceIdString);
-				java.util.List v = (java.util.List) resultList.get(index);
-				
-				// TODO: Resources eventually want to be atomic, so a factory
-				// should be queried for a resource based on the asset.
-				Osid2AssetResource resource = new Osid2AssetResource(nextAsset, this.context);
-				v.add(resource);
-			}
-		}
+        for (int i=0; i < dataSources.length; i++) {
+            org.osid.repository.AssetIterator assetIterator = resultSetManager.getAssets(dataSources[i].getId().getIdString());
+            int counter = 0;
+            while (assetIterator.hasNextAsset() && (counter <= 100)) {
+                org.osid.repository.Asset nextAsset = assetIterator.nextAsset();
+                counter++;
+                String dataSourceIdString = dataSources[i].getId().getIdString();
+                int index = dataSourceIdStringList.indexOf(dataSourceIdString);
+                java.util.List v = (java.util.List) resultList.get(index);
+                
+                // TODO: Resources eventually want to be atomic, so a factory
+                // should be queried for a resource based on the asset.
+                Osid2AssetResource resource = new Osid2AssetResource(nextAsset, this.context);
+                v.add(resource);
+            }
+        }
         
-        // Display the results in the result panes        
+        // Display the results in the result panes
         for (int i = 0; i < repositories.length; i++) {
             java.util.List resourceList = (java.util.List) resultList.get(i);
             String name = "Results: " + (String) repositoryDisplayNameList.get(i);
