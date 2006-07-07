@@ -93,7 +93,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     ImageIcon noImageIcon;
     
     private org.osid.OsidContext context = new org.osid.OsidContext();
-    edu.tufts.vue.dsm.Registry registry;
     org.osid.registry.Provider checked[];
     
     public DataSourceViewer(DRBrowser drBrowser) {

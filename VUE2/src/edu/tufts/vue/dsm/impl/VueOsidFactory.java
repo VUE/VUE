@@ -230,55 +230,17 @@ implements edu.tufts.vue.dsm.OsidFactory
 		}
 	}
 	
-	public org.osid.registry.RegistryManager getRegistryManagerInstance()
-	{
-		if (registryManager == null) {
-			String registryImplementation = null;
-			try {
-				registryImplementation = tufts.vue.VueResources.getString("OSIDRegistryManager-2.0");
-				if (registryImplementation != null) {
-					registryManager = (org.osid.registry.RegistryManager)edu.tufts.vue.util.OsidLoader.getManager("org.osid.registry.RegistryManager",
-																												  registryImplementation,
-																												  osidContext,
-																												  properties);
-				}
-			} catch (Throwable t) {
-				edu.tufts.vue.util.Logger.log(t,"Trying to load Registry Manager in factory");
-				try {
-					registryManager = (org.osid.registry.RegistryManager)edu.tufts.vue.util.OsidLoader.getManager("org.osid.registry.RegistryManager",
-																												  registryImplementation,
-																												  osidContext,
-																												  properties);
-				} catch (Throwable t1) {
-					edu.tufts.vue.util.Logger.log(t,"Trying to load (alternate) Registry Manager in factory");
-				}
-			}
-		}		
-		return registryManager;
-	}
-
 	public org.osid.id.IdManager getIdManagerInstance()
+		throws org.osid.OsidException
 	{
 		if (idManager == null) {
 			String idImplementation = null;
-			try {
-				idImplementation = tufts.vue.VueResources.getString("OSIDIdManager-2.0");
-				if (idImplementation != null) {
-					idManager = (org.osid.id.IdManager)edu.tufts.vue.util.OsidLoader.getManager("org.osid.id.IdManager",
-																								idImplementation,
-																								osidContext,
-																								properties);
-				}
-			} catch (Throwable t) {
-				edu.tufts.vue.util.Logger.log(t,"Trying to load Registry Manager in factory");
-				try {
-					idManager = (org.osid.id.IdManager)edu.tufts.vue.util.OsidLoader.getManager("org.osid.id.IdManager",
-																								idImplementation,
-																								osidContext,
-																								properties);
-				} catch (Throwable t1) {
-					edu.tufts.vue.util.Logger.log(t,"Trying to load (alternate) Id Manager in factory");
-				}
+			idImplementation = tufts.vue.VueResources.getString("OSIDIdManager-2.0");
+			if (idImplementation != null) {
+				idManager = (org.osid.id.IdManager)org.osid.OsidLoader.getManager("org.osid.id.IdManager",
+																				  idImplementation,
+																				  osidContext,
+																				  properties);
 			}
 		}		
 		return idManager;

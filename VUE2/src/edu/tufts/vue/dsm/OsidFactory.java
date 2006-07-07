@@ -32,9 +32,8 @@ package edu.tufts.vue.dsm;
 
 public interface OsidFactory
 {
-	public org.osid.registry.RegistryManager getRegistryManagerInstance();
-	
-	public org.osid.id.IdManager getIdManagerInstance();
+	public org.osid.id.IdManager getIdManagerInstance()
+	throws org.osid.OsidException;
 	
 	public org.osid.provider.Provider getProvider(org.osid.shared.Id providerId)
 		throws org.osid.provider.ProviderException;

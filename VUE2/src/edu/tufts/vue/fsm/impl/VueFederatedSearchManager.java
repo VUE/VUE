@@ -271,13 +271,9 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 	 */
 	public edu.tufts.vue.fsm.QueryEditor getQueryEditorForType(org.osid.shared.Type searchType) {
 		try {
-			edu.tufts.vue.util.OsidClassLoader classLoader = new edu.tufts.vue.util.OsidClassLoader(Thread.currentThread().getContextClassLoader(),
-																									edu.tufts.vue.util.Utilities.getOsidDirectory());
 			if (searchType == null) {
 				// load a default
-				Class c = Class.forName("edu.tufts.vue.ui.DefaultQueryEditor",
-										true,
-										classLoader);
+				Class c = Class.forName("edu.tufts.vue.ui.DefaultQueryEditor");
 				return (edu.tufts.vue.fsm.QueryEditor)c.newInstance();			
 			} else {
 				String searchTypeString = edu.tufts.vue.util.Utilities.typeToString(searchType);
@@ -285,10 +281,9 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 				int index = -1;
 				while ( (index = queryEditorTypeVector.indexOf(searchTypeString,startIndex)) != -1) {
 					String className = (String)queryEditorClassNameVector.elementAt(index);
+					//TODO: we need to find this via Provider
 					try {
-						Class c = Class.forName(className,
-												true,
-												classLoader);
+						Class c = Class.forName(className);
 						return (edu.tufts.vue.fsm.QueryEditor)c.newInstance();
 					} catch (Throwable t) {
 						edu.tufts.vue.util.Logger.log(t,"failed to load class " + className);
@@ -298,9 +293,7 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 				}
 				
 				// load a default
-				Class c = Class.forName("edu.tufts.vue.ui.DefaultQueryEditor",
-										true,
-										classLoader);
+				Class c = Class.forName("edu.tufts.vue.ui.DefaultQueryEditor");
 				return (edu.tufts.vue.fsm.QueryEditor)c.newInstance();			
 			}
 		} catch (Throwable t) {
@@ -313,16 +306,13 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 	{
 		try {
 			String repositoryIdString = repositoryId.getIdString();
-			edu.tufts.vue.util.OsidClassLoader classLoader = new edu.tufts.vue.util.OsidClassLoader(Thread.currentThread().getContextClassLoader(),
-																									edu.tufts.vue.util.Utilities.getOsidDirectory());
 			int startIndex = 0;
 			int index = -1;
 			while ( (index = queryAdjusterRepositoryIdStringVector.indexOf(repositoryIdString,startIndex)) != -1) {
 				String className = (String)queryAdjusterClassNameVector.elementAt(index);
+				//TODO: we need to find this via Provider
 				try {
-					Class c = Class.forName(className,
-											true,
-											classLoader);
+					Class c = Class.forName(className);
 					return (edu.tufts.vue.fsm.QueryAdjuster)c.newInstance();
 				} catch (Throwable t) {
 					edu.tufts.vue.util.Logger.log(t,"failed to load class " + className);
@@ -339,18 +329,14 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 	public edu.tufts.vue.fsm.AssetViewer getAssetViewerForType(org.osid.shared.Type assetType) {
 		try {
 			String assetTypeString = edu.tufts.vue.util.Utilities.typeToString(assetType);
-			edu.tufts.vue.util.OsidClassLoader classLoader = new edu.tufts.vue.util.OsidClassLoader(Thread.currentThread().getContextClassLoader(),
-																									edu.tufts.vue.util.Utilities.getOsidDirectory());
-			
 			int startIndex = 0;
 			int index = -1;
 			
 			while ( (index = assetViewerTypeVector.indexOf(assetTypeString,startIndex)) != -1) {
 				String className = (String)assetViewerClassNameVector.elementAt(index);
+				//TODO: we need to find this via Provider
 				try {
-					Class c = Class.forName(className,
-											true,
-											classLoader);
+					Class c = Class.forName(className);
 					return (edu.tufts.vue.fsm.AssetViewer)c.newInstance();
 				} catch (Throwable t) {
 					edu.tufts.vue.util.Logger.log(t,"failed to load class " + className);
