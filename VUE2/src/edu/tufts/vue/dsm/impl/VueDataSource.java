@@ -63,6 +63,11 @@ public class VueDataSource
     // constructer required by castor
     
     public VueDataSource() {
+		try {
+			this.factory = VueOsidFactory.getInstance();
+			this.dataSourceId = this.factory.getIdManagerInstance().createId();
+		} catch (Throwable t) {			
+		}
     }
     
     public VueDataSource(org.osid.shared.Id dataSourceId,
@@ -155,10 +160,8 @@ public class VueDataSource
     
     private void setRepositoryManager()
     throws org.osid.provider.ProviderException {
-//		System.out.println("Load key is " + this.osidLoadKey);
         this.repositoryId = edu.tufts.vue.util.Utilities.getRepositoryIdFromLoadKey(this.osidLoadKey);
         this.repositoryManager = factory.getRepositoryManagerInstance(this.osidLoadKey);
-//		System.out.println("got manager");
     }
     
     private void setRelatedValues()
@@ -368,7 +371,7 @@ public class VueDataSource
     
     public void setProviderIdString(String providerIdString) {
         try {
-            providerId =  edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString);
+			providerId =  edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString);
             setProviderValues(); // must come first
             setRepositoryManager();
         } catch (Throwable t) {
@@ -377,7 +380,7 @@ public class VueDataSource
     }
     
     public String getDataSourceIdString() {
-        if(this.dataSourceIdString== null) {
+        if (this.dataSourceIdString == null) {
             try {
                 return dataSourceId.getIdString();
             } catch (Throwable t) {
@@ -455,6 +458,7 @@ public class VueDataSource
 				//System.out.println("Setting k/v: "+k+"/"+ v);
 			}
 		} catch (Exception ex) {
+			// ok, so there are no properties
 		}
         if (this.dataSourceManager == null) {
             dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
@@ -465,6 +469,7 @@ public class VueDataSource
             setRelatedValues();
         } catch (Throwable t) {
             edu.tufts.vue.util.Logger.log(t);
+			t.printStackTrace();
         }
         
     }
