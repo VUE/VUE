@@ -80,9 +80,9 @@ public class FedoraUtils {
 			try {
 				stream = new FileInputStream(conf);
 			} catch (java.io.FileNotFoundException fex) {
-				edu.tufts.vue.dsm.OsidFactory factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 				String path = null;
 				try {
+					edu.tufts.vue.dsm.OsidFactory factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 					path = factory.getResourcePath(conf);
 				} catch (Throwable t) {
 				}

@@ -22,7 +22,7 @@ import java.util.*;
 
 public class VueDataSource
         implements edu.tufts.vue.dsm.DataSource {
-    private edu.tufts.vue.dsm.OsidFactory factory = VueOsidFactory.getInstance();
+    private edu.tufts.vue.dsm.OsidFactory factory = null;
     private Vector _propertyList = null;
     private org.osid.shared.Id providerId = null;
     private org.osid.shared.Id dataSourceId = null;
@@ -69,12 +69,18 @@ public class VueDataSource
             org.osid.shared.Id providerId,
             boolean isIncludedInSearch)
             throws org.osid.repository.RepositoryException, org.osid.provider.ProviderException {
-        this.providerId = providerId;
-        this.dataSourceId = dataSourceId;
-        this.includedState = isIncludedInSearch;
-        setProviderValues();
-        setRepositoryManager();
-        setRelatedValues();
+		
+		try {
+			this.factory = VueOsidFactory.getInstance();	
+			this.providerId = providerId;
+			this.dataSourceId = dataSourceId;
+			this.includedState = isIncludedInSearch;
+			setProviderValues();
+			setRepositoryManager();
+			setRelatedValues();
+		} catch (Throwable t) {
+			throw new org.osid.provider.ProviderException(org.osid.OsidException.CONFIGURATION_ERROR);
+		}
     }
     
     private void setProviderValues()

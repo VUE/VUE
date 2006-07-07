@@ -45,6 +45,7 @@ implements edu.tufts.vue.dsm.OsidFactory
 	private static edu.tufts.vue.dsm.OsidFactory osidFactory = new VueOsidFactory();
 	
 	public static edu.tufts.vue.dsm.OsidFactory getInstance()
+		throws org.osid.provider.ProviderException
 	{
 		if (providerControlManager == null) {
 			try {
@@ -54,6 +55,7 @@ implements edu.tufts.vue.dsm.OsidFactory
 				osidContext.assignContext("com.harvestroad.authentication.port","80");
 			} catch (OsidException e) {
 				edu.tufts.vue.util.Logger.log("Assigning to context: this error should never happen");
+				throw new org.osid.provider.ProviderException(org.osid.OsidException.CONFIGURATION_ERROR);
 			}
 			try {
 				providerControlManager = (ProviderControlManager) edu.mit.osidimpl.OsidLoader.getManager("org.osid.provider.ProviderControlManager", 
@@ -65,6 +67,7 @@ implements edu.tufts.vue.dsm.OsidFactory
 				providerInstallationManager = providerControlManager.getProviderInstallationManager();
 			} catch (OsidException e) {
 				edu.tufts.vue.util.Logger.log("Cannot load ProviderInvocationManager: " + e.getMessage());
+				throw new org.osid.provider.ProviderException(org.osid.OsidException.CONFIGURATION_ERROR);
 			}
 		}
 		return osidFactory;

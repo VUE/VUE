@@ -37,7 +37,7 @@ implements org.osid.repository.AssetIterator
 	private String searchURL = null;
 	private String criteria = null;
 	private static Unmarshaller unmarshaller = null;
-	private edu.tufts.vue.dsm.OsidFactory factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
+	private edu.tufts.vue.dsm.OsidFactory factory = null;
 	private static URL XML_MAPPING;
 	private static URL url;
 	private boolean initializedByVector = false;
@@ -52,6 +52,7 @@ implements org.osid.repository.AssetIterator
 		this.criteria = criteria;
 
 		try {
+			factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 			String path = factory.getResourcePath("google.xml");
 			XML_MAPPING = new URL("file://" + path);
 		} catch (Throwable t) {
