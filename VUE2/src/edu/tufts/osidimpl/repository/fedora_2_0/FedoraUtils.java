@@ -75,7 +75,7 @@ public class FedoraUtils {
 				return prefs;
 			Class clazz = new FedoraUtils().getClass();
 			prefs = Preferences.userNodeForPackage(clazz);
-			System.out.println("trying to find preferences " + conf);
+			//System.out.println("trying to find preferences " + conf);
 			InputStream stream = null;
 			try {
 				stream = new FileInputStream(conf);

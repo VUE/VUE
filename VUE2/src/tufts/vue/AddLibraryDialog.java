@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.31 $ / $Date: 2006-07-05 18:45:01 $ / $Author: jeff $
+ * @version $Revision: 1.32 $ / $Date: 2006-07-07 19:56:02 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -211,6 +211,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
     public void add() {
         
         try {
+			boolean proceed = true;
             this.oldDataSource = null;
             Object o = addLibraryList.getSelectedValue();
             String xml = null;
@@ -252,7 +253,6 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
             } else {
                 org.osid.provider.Provider provider = (org.osid.provider.Provider)o;
                 
-                boolean proceed = true;
                 edu.tufts.vue.dsm.DataSource ds = null;
                 // show dialog containing license, if any
                 try {
@@ -338,9 +338,11 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
                         javax.swing.JOptionPane.QUESTION_MESSAGE,
                         null,
                         new Object[] {
-                    "Cancel", "Update"
+                    "Cancel", "Continue"
                 },
-                        "Update") != 0) {
+                        "Continue") == 0) {
+					proceed = false;
+				} else {
                     if (s != null) {
                         if (s.equals(MY_COMPUTER)) {
                             java.util.Properties p = cui.getProperties();
@@ -385,13 +387,15 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
                     }
                 }
             }
-            if (this.oldDataSource != null) {
-                dataSourceList.addOrdered(this.oldDataSource);
-            } else {
-                dataSourceList.addOrdered(this.newDataSource);
-                dataSourceManager.add(this.newDataSource);
-            }
-            providerListRenderer.setChecked(addLibraryList.getSelectedIndex());
+			if (proceed) {
+				if (this.oldDataSource != null) {
+					dataSourceList.addOrdered(this.oldDataSource);
+				} else {
+					dataSourceList.addOrdered(this.newDataSource);
+					dataSourceManager.add(this.newDataSource);
+				}
+				providerListRenderer.setChecked(addLibraryList.getSelectedIndex());
+			}
         } catch (Throwable t) {
             t.printStackTrace();
         } finally {

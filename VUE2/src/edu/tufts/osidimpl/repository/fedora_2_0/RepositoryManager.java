@@ -39,7 +39,7 @@ public class RepositoryManager
     throws org.osid.repository.RepositoryException {
         this.configuration = configuration;
         try {
-			System.out.println("Fedora 2.0 local configuration is " + configuration);
+			//System.out.println("Fedora 2.0 local configuration is " + configuration);
 			
 			Object displayname = configuration.getProperty("fedora20DisplayName");
 			Object address = configuration.getProperty("fedora20Address");

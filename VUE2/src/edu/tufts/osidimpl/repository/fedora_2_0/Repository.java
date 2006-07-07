@@ -156,7 +156,7 @@ public class Repository implements org.osid.repository.Repository {
     
     private void loadFedoraObjectAssetTypes() {
         try {
-			System.out.println("fedora types " + fedoraProperties.getProperty("fedora.types"));
+			//System.out.println("fedora types " + fedoraProperties.getProperty("fedora.types"));
             Vector fedoraTypesVector = FedoraUtils.stringToVector(fedoraProperties.getProperty("fedora.types"));
             Iterator i =fedoraTypesVector.iterator();
             while(i.hasNext()) {

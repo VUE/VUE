@@ -134,7 +134,7 @@ public class ImageRecordStructure
         Record record = null;
         try {
             record = new Record(new PID(pid),recordStructure);
-            System.out.println("creating " + recordStructure.getType().getKeyword() + " " + recordStructure.getDisplayName());
+            //System.out.println("creating " + recordStructure.getType().getKeyword() + " " + recordStructure.getDisplayName());
             if(assetType.getKeyword().equals("tufts/image/archival")) {
                 record.createPart(recordStructure.getThumbnailPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), THUMBNAIL, repository));
                 record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), FULLVIEW, repository));
