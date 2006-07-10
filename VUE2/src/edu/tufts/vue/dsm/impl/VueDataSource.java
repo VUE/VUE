@@ -471,7 +471,6 @@ public class VueDataSource
             edu.tufts.vue.util.Logger.log(t);
 			t.printStackTrace();
         }
-        
     }
     public String toString() {
         return super.toString() + "[" + getRepositoryDisplayName() + "]";

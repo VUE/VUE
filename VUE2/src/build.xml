@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.110 $ / $Date: 2006-07-07 11:04:15 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.110 2006-07-07 11:04:15 anoop Exp $ -->
+<!-- $Revision: 1.111 $ / $Date: 2006-07-10 15:29:45 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.111 2006-07-10 15:29:45 jeff Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -127,6 +127,7 @@
   
   <property name="thirdparty.jarfiles.names"
             value="
+				   MERLOTOsid-1.0.jar
                    okiOSID-2.0a.jar
 				   HiveAuthentication-1.0.jar
 				   HiveRepositoryPublish-1.0.jar

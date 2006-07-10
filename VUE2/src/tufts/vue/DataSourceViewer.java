@@ -337,7 +337,17 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                                 "Delete Resource",
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
                             dataSourceManager.remove(ds.getId());
-                            dataSourceManager.save();
+							GUI.invokeAfterAWT(new Runnable() { public void run() {
+								try {
+									synchronized (dataSourceManager) {
+										if (DEBUG.DR) out("DataSourceManager saving...");
+										dataSourceManager.save();
+										if (DEBUG.DR) out("DataSourceManager saved.");
+									}
+								} catch (Throwable t) {
+									tufts.Util.printStackTrace(t);
+								}
+							}});
                             dataSourceList.getContents().removeElement(ds);
                             saveDataSourceViewer();
                         }

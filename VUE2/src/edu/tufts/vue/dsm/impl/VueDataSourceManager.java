@@ -35,16 +35,14 @@ import org.exolab.castor.mapping.MappingException;
 import org.xml.sax.InputSource;
 
 public class VueDataSourceManager
-        implements edu.tufts.vue.dsm.DataSourceManager {
+        implements edu.tufts.vue.dsm.DataSourceManager
+{
     private static edu.tufts.vue.dsm.DataSourceManager dataSourceManager = new VueDataSourceManager();
-    private java.util.Vector dataSourceVector = new java.util.Vector();
+    private static java.util.Vector dataSourceVector = new java.util.Vector();
     private final static String XML_MAPPING_CURRENT_VERSION_ID = tufts.vue.VueResources.getString("mapping.lw.current_version");
     private final static URL XML_MAPPING_DEFAULT = tufts.vue.VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
     private static final File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
     private static String  xmlFilename  = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
-    
-    // cache of already instantiated data sources
-    private static java.util.Map cacheMap = new java.util.HashMap();
     
     public static edu.tufts.vue.dsm.DataSourceManager getInstance() {
         return dataSourceManager;
@@ -57,8 +55,9 @@ public class VueDataSourceManager
         marshall(new File(this.xmlFilename), this);
     }
     
-    public static  void load() {
+    public static void load() {
         try {
+			dataSourceVector = new java.util.Vector();
             File f = new File(xmlFilename);
             if (f.exists()) {
                 dataSourceManager = unMarshall(f);
@@ -71,12 +70,39 @@ public class VueDataSourceManager
         }
     }
     
+	private void removeDuplicatesFromVector()
+	{
+		try {
+			java.util.Vector v = new java.util.Vector();
+			java.util.Vector idStringVector = new java.util.Vector();
+			for (int i = 0; i < dataSourceVector.size(); i++) 
+			{
+				edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
+				String idString = ds.getId().getIdString();
+				if (!idStringVector.contains(idString)) {
+					v.addElement(ds);
+					idStringVector.addElement(idString);
+				}
+			}
+			dataSourceVector = v;
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+	
     public edu.tufts.vue.dsm.DataSource[] getDataSources() {
-        int size = this.dataSourceVector.size();
+		// There appears to be a bug that causes duplicates in the vector
+		// no idea why.  Calling a method to clear those out.
+		removeDuplicatesFromVector();
+        int size = dataSourceVector.size();
         edu.tufts.vue.dsm.DataSource dataSources[] = new edu.tufts.vue.dsm.DataSource[size];
-        for (int i=0; i < size; i++) 
-		{
-			dataSources[i] = (edu.tufts.vue.dsm.DataSource)this.dataSourceVector.elementAt(i);
+		try {
+			for (int i=0; i < size; i++) 
+			{
+				dataSources[i] = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
+			}
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
         return dataSources;
     }
@@ -87,15 +113,15 @@ public class VueDataSourceManager
         try {
             // we have to worry about duplicates
             org.osid.shared.Id dataSourceId = dataSource.getId();
-            for (int i=0, size = this.dataSourceVector.size(); i < size; i++) {
-                edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)this.dataSourceVector.elementAt(i);
+            for (int i=0, size = dataSourceVector.size(); i < size; i++) {
+                edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
                 if (dataSourceId.isEqual(ds.getId())) {
                     // duplicate, no error
                     edu.tufts.vue.util.Logger.log("cannot add a data source with an id already in use");
                     return;
                 }
             }
-            this.dataSourceVector.addElement(dataSource);
+            dataSourceVector.addElement(dataSource);
             save();
         } catch (Throwable t) {
             
@@ -106,10 +132,10 @@ public class VueDataSourceManager
      */
     public void remove(org.osid.shared.Id dataSourceId) {
         try {
-            for (int i=0, size = this.dataSourceVector.size(); i < size; i++) {
-                edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)this.dataSourceVector.elementAt(i);
+            for (int i=0, size = dataSourceVector.size(); i < size; i++) {
+                edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
                 if (dataSourceId.isEqual(ds.getId())) {
-                    this.dataSourceVector.removeElementAt(i);
+                    dataSourceVector.removeElementAt(i);
                     save();
                 }
             }
@@ -122,8 +148,8 @@ public class VueDataSourceManager
      */
     public edu.tufts.vue.dsm.DataSource getDataSource(org.osid.shared.Id dataSourceId) {
         try {
-            for (int i=0, size = this.dataSourceVector.size(); i < size; i++) {
-                edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)this.dataSourceVector.elementAt(i);
+            for (int i=0, size = dataSourceVector.size(); i < size; i++) {
+                edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
                 if (dataSourceId.isEqual(ds.getId())) {
                     return ds;
                 }
@@ -137,10 +163,11 @@ public class VueDataSourceManager
     /**
      */
     public org.osid.repository.Repository[] getIncludedRepositories() {
+		removeDuplicatesFromVector();
         java.util.Vector results = new java.util.Vector();
-        int size = this.dataSourceVector.size();
+        int size = dataSourceVector.size();
         for (int i=0; i < size; i++) {
-            edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)this.dataSourceVector.elementAt(i);
+            edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
             if (ds.isIncludedInSearch()) {
                 results.addElement(ds.getRepository());
             }
@@ -154,11 +181,12 @@ public class VueDataSourceManager
     }
     
 	public edu.tufts.vue.dsm.DataSource[] getIncludedDataSources() {
+		removeDuplicatesFromVector();
         java.util.Vector results = new java.util.Vector();
-        int size = this.dataSourceVector.size();
+        int size = dataSourceVector.size();
         for (int i=0; i < size; i++) {
-            edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)this.dataSourceVector.elementAt(i);
-            if (ds.isIncludedInSearch()) {
+            edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
+			if (ds.isIncludedInSearch()) {
                 results.addElement(ds);
             }
         }
@@ -189,11 +217,11 @@ public class VueDataSourceManager
     }
     
     public Vector getDataSourceVector() {
-        return this.dataSourceVector;
+        return dataSourceVector;
     }
     
-    public void setDataSourceVector(Vector dataSourceVector) {
-        this.dataSourceVector = dataSourceVector;
+    public void setDataSourceVector(Vector dsv) {
+        dataSourceVector = dsv;
     }
     
     public  static void marshall(File file,VueDataSourceManager dsm) {
