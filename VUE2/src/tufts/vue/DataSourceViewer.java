@@ -232,19 +232,11 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         this.activeDataSource = ds;
         dataSourceList.setSelectedValue(ds,true);
         Widget.setExpanded(DRB.searchPane, false);
-        if (ds instanceof LocalFileDataSource || ds instanceof FavoritesDataSource || ds instanceof RemoteFileDataSource) {
-            try {
-                Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
-                Widget.setExpanded(DRB.browsePane, true);
-                DRB.browsePane.removeAll();
-                DRB.browsePane.add(ds.getResourceViewer());
-                DRB.browsePane.revalidate();
-            } catch (Exception ex) {
-                // probably Remote File Data Source is no initialized
-            }
-        } else
-            Widget.setExpanded(DRB.browsePane, false);
-        
+		Widget.setExpanded(DRB.browsePane, true);
+		Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
+		DRB.browsePane.removeAll();
+		DRB.browsePane.add(ds.getResourceViewer());
+		DRB.browsePane.revalidate();
     }
     
     public void setActiveDataSource(edu.tufts.vue.dsm.DataSource ds) {
@@ -294,7 +286,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                         addLibraryDialog.setVisible(true);
                     }
                     
-                    // reflext addition, if any, in UI
+                    // reflect addition, if any, in UI
                     DataSource ds = addLibraryDialog.getOldDataSource();
                     if (ds != null) {
                         setActiveDataSource(ds);

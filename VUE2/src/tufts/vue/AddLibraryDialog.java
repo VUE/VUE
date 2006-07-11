@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.32 $ / $Date: 2006-07-07 19:56:02 $ / $Author: jeff $
+ * @version $Revision: 1.33 $ / $Date: 2006-07-11 14:36:58 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -163,7 +163,6 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
                 org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
                 // place all providers on list, whether installed or not, whether duplicates or not
                 listModel.addElement(nextProvider);
-                descriptionTextArea.setText(nextProvider.getDescription());
                 checkedVector.addElement(nextProvider);
             }
             // copy to an array
@@ -281,13 +280,13 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
                     
                     //System.out.println("checking if installed");
                     if (proceed && (!provider.isInstalled())) {
-                        System.out.println("installing...");
+                        //System.out.println("installing...");
                         factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
                         try {
                             GUI.activateWaitCursor();
                             factory.installProvider(provider.getId());
                         } catch (Throwable t1) {
-                            System.out.println("install failed " + provider.getId().getIdString());
+                            //System.out.println("install failed " + provider.getId().getIdString());
                             VueUtil.alert("Installation Failed","Error");
                             return;
                         } finally {

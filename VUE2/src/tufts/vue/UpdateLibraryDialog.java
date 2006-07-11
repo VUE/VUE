@@ -16,19 +16,20 @@
  * -----------------------------------------------------------------------------
  */
 /*
- * AddEditDataSourceDialog.java
- * The UI to Add/Edit Datasources.
+ * UpdateEditDataSourceDialog.java
+ * The UI to Update/Edit Datasources.
  * Created on June 8, 2004, 5:07 PM
  */
 
 package tufts.vue;
 
 /**
- * @version $Revision: 1.3 $ / $Date: 2006-06-13 19:26:34 $ / $Author: jeff $
+* @version $Revision: 1.4 $ / $Date: 2006-07-11 14:36:58 $ / $Author: jeff $
  * @author  akumar03
-  */
+ */
 import javax.swing.*;
 import java.awt.event.*;
+
 import javax.swing.event.*;
 import java.awt.*;
 import tufts.vue.gui.*;
@@ -37,239 +38,325 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
     
     JPanel addLibraryPanel = new JPanel();
     JList addLibraryList;
-	JTextArea descriptionTextArea;
-	DefaultListModel listModel = new DefaultListModel();
-	JScrollPane listJsp;
-	JScrollPane descriptionJsp;
-	
-	edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
-	edu.tufts.vue.dsm.OsidFactory factory;
-	org.osid.provider.Provider checked[];
-	java.util.Vector checkedVector = new java.util.Vector();
-	JButton addButton = new JButton("Add");
-	JButton cancelButton = new JButton("Done");
-	JPanel buttonPanel = new JPanel();
-	DataSourceList dataSourceList;
-	DataSource oldDataSource = null;
-	edu.tufts.vue.dsm.DataSource newDataSource = null;
-	
-	private static String TITLE = "Update a Resource";
-	private static String AVAILABLE = "Resources available:";
-    private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
+    JTextArea descriptionTextArea;
+    DefaultListModel listModel = new DefaultListModel();
+    JScrollPane listJsp;
+    JScrollPane descriptionJsp;
     
-    public UpdateLibraryDialog(DataSourceList dataSourceList)
-	{
+    edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
+    edu.tufts.vue.dsm.OsidFactory factory;
+    org.osid.provider.Provider checked[];
+    java.util.Vector checkedVector = new java.util.Vector();
+    JButton addButton = new JButton("Update");
+    JButton cancelButton = new JButton("Done");
+    JPanel buttonPanel = new JPanel();
+    DataSourceList dataSourceList;
+    edu.tufts.vue.dsm.DataSource newDataSource = null;
+    
+    private static String TITLE = "Update a Resource";
+    private static String AVAILABLE = "Resources available:";
+    private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
+    private ProviderListCellRenderer providerListRenderer;
+    private Timer timer;
+    
+    public UpdateLibraryDialog(DataSourceList dataSourceList) {
         super(VUE.getDialogParentAsFrame(),TITLE,true);
-		this.dataSourceList = dataSourceList;
-		
-		try {
-			addLibraryList = new JList(listModel);
-			addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
-			addLibraryList.setPreferredSize(new Dimension(300,180));
-			addLibraryList.addListSelectionListener(this);
-			addLibraryList.setCellRenderer(new ProviderListCellRenderer());
-			
-			descriptionTextArea = new JTextArea();
-			descriptionTextArea.setLineWrap(true);
-			descriptionTextArea.setWrapStyleWord(true);
-			descriptionTextArea.setPreferredSize(new Dimension(300,180));
-			
-			populate();
-
-			listJsp = new JScrollPane(addLibraryList);
-			listJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-			listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-			
-			descriptionTextArea.setText("description");
-			descriptionJsp = new JScrollPane(descriptionTextArea);
-			descriptionJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-			descriptionJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); 
-
-			addLibraryPanel.setBackground(VueResources.getColor("White"));
-			setBackground(VueResources.getColor("White"));
-
-			java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
-			java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
-			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
-			gbConstraints.insets = new java.awt.Insets(2,2,2,2);
-			addLibraryPanel.setLayout(gbLayout);
-			
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy = 0;
-			addLibraryPanel.add(new JLabel(AVAILABLE),gbConstraints);
-			
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy = 1;
-			addLibraryPanel.add(listJsp,gbConstraints);
-			
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy = 2;
-			addLibraryPanel.add(descriptionJsp,gbConstraints);
-			
-			buttonPanel.add(cancelButton);
-			cancelButton.addActionListener(this);
-			buttonPanel.add(addButton);
-			addButton.addActionListener(this);
-			getRootPane().setDefaultButton(addButton);
-			
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy = 3;
-			addLibraryPanel.add(buttonPanel,gbConstraints);
-
-			getContentPane().add(addLibraryPanel,BorderLayout.CENTER);
-			pack();
-			setLocation(300,300);
-			//setSize(new Dimension(300,400));
-			
-			//addLibraryList.getSelectionMdoel().setSelectionInterval(0,1);
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-		setVisible(true);
+        this.dataSourceList = dataSourceList;
+        
+        try {
+            factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            VueUtil.alert("Error instantiating Provider support","Error");
+        }
+        
+        try {
+            addLibraryList = new JList(listModel);
+            addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
+            addLibraryList.addListSelectionListener(this);
+            addLibraryList.setFixedCellHeight(25);
+            
+            providerListRenderer = new ProviderListCellRenderer();
+            addLibraryList.setCellRenderer(providerListRenderer);
+            
+            descriptionTextArea = new JTextArea();
+            descriptionTextArea.setLineWrap(true);
+            descriptionTextArea.setWrapStyleWord(true);
+            
+            populate();
+            
+            listJsp = new JScrollPane(addLibraryList);
+            listJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            listJsp.setPreferredSize(new Dimension(300,180));
+            
+            descriptionTextArea.setText("description");
+            descriptionJsp = new JScrollPane(descriptionTextArea);
+            descriptionJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+            descriptionJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            descriptionJsp.setPreferredSize(new Dimension(300,180));
+            
+            addLibraryPanel.setBackground(VueResources.getColor("White"));
+            setBackground(VueResources.getColor("White"));
+            
+            java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
+            java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
+            gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+            gbConstraints.insets = new java.awt.Insets(2,2,2,2);
+            addLibraryPanel.setLayout(gbLayout);
+            
+            gbConstraints.gridx = 0;
+            gbConstraints.gridy = 0;
+            addLibraryPanel.add(new JLabel(AVAILABLE),gbConstraints);
+            
+            gbConstraints.gridx = 0;
+            gbConstraints.gridy = 1;
+            addLibraryPanel.add(listJsp,gbConstraints);
+            
+            gbConstraints.gridx = 0;
+            gbConstraints.gridy = 2;
+            addLibraryPanel.add(descriptionJsp,gbConstraints);
+            
+            buttonPanel.add(cancelButton);
+            cancelButton.addActionListener(this);
+            buttonPanel.add(addButton);
+            addButton.addActionListener(this);
+            getRootPane().setDefaultButton(addButton);
+            
+            gbConstraints.gridx = 0;
+            gbConstraints.gridy = 3;
+            addLibraryPanel.add(buttonPanel,gbConstraints);
+            
+            getContentPane().add(addLibraryPanel,BorderLayout.CENTER);
+            pack();
+            setLocation(300,300);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        setVisible(true);
     }
-
-	public void refresh()
-	{
-		populate();
-	}
-	
-    private void populate()
-	{
-		listModel.removeAllElements();
-		try
-		{
-			GUI.activateWaitCursor();
-
-			if (dataSourceManager == null) {
-				dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-				factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
-			}
-			
-			listModel.removeAllElements();
-
-			org.osid.provider.ProviderIterator providerIterator = factory.getProvidersNeedingUpdate();
-			while (providerIterator.hasNextProvider()) {
-				org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
-				// place all providers on list, whether installed or not, whether duplicates or not
-				listModel.addElement(nextProvider);
-				descriptionTextArea.setText(nextProvider.getDescription());
-				checkedVector.addElement(nextProvider);
-			}
-			// copy to an array
-			int size = listModel.size();
-			checked = new org.osid.provider.Provider[size];
-			for (int i=0; i < size; i++) {
-				checked[i] = (org.osid.provider.Provider)checkedVector.elementAt(i);
-			}
-			
-		} catch (Throwable t) {
-			t.printStackTrace();
-			javax.swing.JOptionPane.showMessageDialog(null,
-													  t.getMessage(),
-													  "Error",
-													  javax.swing.JOptionPane.ERROR_MESSAGE);
-		} finally {
-			GUI.clearWaitCursor();
-		}
-	}
-	
-	public void valueChanged(ListSelectionEvent lse) {				
-		int index = ((JList)lse.getSource()).getSelectedIndex();
-		if (index != -1) {
-			try {
+    
+    public void refresh() {
+        populate();
+    }
+    
+    private void populate() {
+        listModel.removeAllElements();
+		this.newDataSource = null;
+        try {
+            GUI.activateWaitCursor();
+            if (dataSourceManager == null) {
+                dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+            }
+            
+            listModel.removeAllElements();
+            org.osid.provider.ProviderIterator providerIterator = factory.getProvidersNeedingUpdate();
+            while (providerIterator.hasNextProvider()) {
+                org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
+                // place all providers on list, whether installed or not, whether duplicates or not
+                listModel.addElement(nextProvider);
+                descriptionTextArea.setText(nextProvider.getDescription());
+                checkedVector.addElement(nextProvider);
+            }
+            // copy to an array
+            int size = listModel.size();
+            checked = new org.osid.provider.Provider[size];
+            for (int i=0; i < size; i++) {
+                checked[i] = (org.osid.provider.Provider)checkedVector.elementAt(i);
+            }
+            
+        } catch (Throwable t) {
+            t.printStackTrace();
+            VueUtil.alert(t.getMessage(),"Error");
+        } finally {
+            GUI.clearWaitCursor();
+        }
+    }
+    
+    public void valueChanged(ListSelectionEvent lse) {
+        int index = ((JList)lse.getSource()).getSelectedIndex();
+        if (index != -1) {
+            try {
 				org.osid.provider.Provider p = (org.osid.provider.Provider)(((JList)lse.getSource()).getSelectedValue());
 				descriptionTextArea.setText(p.getDescription());
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }
+    }
+    
+    public void add() {
+        
+        try {
+			boolean proceed = true;
+            Object o = addLibraryList.getSelectedValue();
+            String xml = null;
+            String s = null;
+            
+			org.osid.provider.Provider provider = (org.osid.provider.Provider)o;
+			edu.tufts.vue.dsm.DataSource ds = null;
+			// show dialog containing license, if any
+			try {
+				if (provider.requestsLicenseAcknowledgement()) {
+					String license = provider.getLicense();
+					if (license != null) {
+						javax.swing.JTextArea area = new javax.swing.JTextArea();
+						area.setLineWrap(true);
+						area.setText(license);
+						area.setEditable(false);
+						area.setSize(new Dimension(500,300));
+						if (javax.swing.JOptionPane.showOptionDialog(this,
+																	 area,
+																	 "License Acknowledgement",
+																	 javax.swing.JOptionPane.DEFAULT_OPTION,
+																	 javax.swing.JOptionPane.QUESTION_MESSAGE,
+																	 null,
+																	 new Object[] {
+																		 "Accept", "Decline"
+																	 },
+																	 "Decline") != 0) {
+							return;
+						}
+					}
+				}
+				
+				//System.out.println("checking if installed");
+				if (proceed && (!provider.isInstalled())) {
+					//System.out.println("installing...");
+					factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
+					try {
+						GUI.activateWaitCursor();
+						factory.installProvider(provider.getId());
+					} catch (Throwable t1) {
+						//System.out.println("install failed " + provider.getId().getIdString());
+						VueUtil.alert("Installation Failed","Error");
+						return;
+					} finally {
+						GUI.clearWaitCursor();
+					}
+				} else {
+					//System.out.println("No need to install");
+				}
+				
+				if (proceed) {
+					// add to data sources list
+					try {
+						//System.out.println("creating data source");
+						ds = new edu.tufts.vue.dsm.impl.VueDataSource(factory.getIdManagerInstance().createId(),
+																	  provider.getId(),
+																	  true);
+					} catch (Throwable t) {
+						VueUtil.alert("Loading Manager Failed","Error");
+						return;
+					}
+					//System.out.println("created data source");
+					
+					// show configuration, if needed
+					if (ds.hasConfiguration()) {
+						xml = ds.getConfigurationUIHints();
+					} else {
+						//System.out.println("No configuration to show");
+					}
+					this.newDataSource = ds;
+				}
 			} catch (Throwable t) {
+				//System.out.println("configuration setup failed");
+				VueUtil.alert(t.getMessage(),"OSID Installation Error");
 				t.printStackTrace();
+				return;
 			}
+		
+			if (xml != null) {
+				edu.tufts.vue.ui.ConfigurationUI cui =
+				new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
+				cui.setPreferredSize(new Dimension(400,200));
+				
+				if (javax.swing.JOptionPane.showOptionDialog(this,
+															 cui,
+															 "Configuration",
+															 javax.swing.JOptionPane.DEFAULT_OPTION,
+															 javax.swing.JOptionPane.QUESTION_MESSAGE,
+															 null,
+															 new Object[] {
+																 "Cancel", "Continue"
+															 },
+															 "Continue") == 0) {
+					proceed = false;
+				} else {
+					try {
+						GUI.activateWaitCursor();
+						this.newDataSource.setConfiguration(cui.getProperties());
+						GUI.invokeAfterAWT(new Runnable() { public void run() {
+							try {
+								synchronized (dataSourceManager) {
+									dataSourceManager.save();
+								}
+							} catch (Throwable t) {
+								System.out.println(t.getMessage());
+							}
+						}});
+						
+					} catch (Throwable t2) {
+						
+					} finally {
+						GUI.clearWaitCursor();
+					}
+				}
+			}
+			if (proceed) {
+				dataSourceList.addOrdered(this.newDataSource);
+				dataSourceManager.add(this.newDataSource);
+				providerListRenderer.setChecked(addLibraryList.getSelectedIndex());
+			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+		} finally {
+			providerListRenderer.endWaitingMode();
+			addLibraryList.repaint();
+			GUI.clearWaitCursor();
+			timer.stop();
+			this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		}
+		DataSourceViewer.saveDataSourceViewer();
 	}
 	
-	public void actionPerformed(ActionEvent ae) {
-		if (ae.getActionCommand().equals("Update")) {
-			try {
-				Object o = addLibraryList.getSelectedValue();
-				String xml = null;
-				org.osid.provider.Provider provider = (org.osid.provider.Provider)o;
-				
-				boolean proceed = true;
-				edu.tufts.vue.dsm.DataSource ds = null;
-				// show dialog containing license, if any
-				try {
-					if (provider.requestsLicenseAcknowledgement()) {
-						String license = provider.getLicense();
-						if (license != null) {
-							javax.swing.JTextArea area = new javax.swing.JTextArea();
-							area.setLineWrap(true);
-							area.setText(license);
-							area.setEditable(false);
-							area.setSize(new Dimension(500,300));
-							if (javax.swing.JOptionPane.showOptionDialog(this,
-																		 area,
-																		 "License Acknowledgement",
-																		 javax.swing.JOptionPane.DEFAULT_OPTION,
-																		 javax.swing.JOptionPane.QUESTION_MESSAGE,
-																		 null,
-																		 new Object[] {
-																			 "Accept", "Decline"
-																		 },
-																		 "Decline") != 0) {
-								proceed = false;
-							}
-						}
-					}
-					
-					if (proceed) {
-						try {
-							GUI.activateWaitCursor();
-							factory.updateProvider(provider.getId());
-							// show configuration, if needed
-							if (ds.hasConfiguration()) {
-								xml = ds.getConfigurationUIHints();
-								this.newDataSource = ds;
-							} else {
-								System.out.println("No configuration to show");
-							}
-						} catch (Throwable t1) {
-							
-						} finally {
-							GUI.clearWaitCursor();
-						}
-					}
-				} catch (Throwable t) {
-					javax.swing.JOptionPane.showMessageDialog(null,
-															  t.getMessage(),
-															  "OSID Installation Error",
-															  javax.swing.JOptionPane.ERROR_MESSAGE);
-					t.printStackTrace();
-					return;
-				}
-			
-				if (xml != null) {
-					edu.tufts.vue.ui.ConfigurationUI cui = 
-					new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
-					cui.setPreferredSize(new Dimension(400,200));
-					
-					if (javax.swing.JOptionPane.showOptionDialog(this,
-																 cui,
-																 "Configuration",
-																 javax.swing.JOptionPane.DEFAULT_OPTION,
-																 javax.swing.JOptionPane.QUESTION_MESSAGE,
-																 null,
-																 new Object[] {
-																	 "Cancel", "Update"
-																 },
-																 "Update") != 0) {
-						this.newDataSource.setConfiguration(cui.getProperties());
-					}
-				}
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
-		} else {
-			setVisible(false);
-		}
+	public edu.tufts.vue.dsm.DataSource getNewDataSource()
+	{
+		return this.newDataSource;
 	}
+    
+    public void actionPerformed(ActionEvent ae) {
+        
+        
+        if (ae.getActionCommand().equals("Update")) {
+            this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            GUI.activateWaitCursor();
+            providerListRenderer.invokeWaitingMode();
+            repaint();
+            int ONE_TNTH_SECOND = 100;
+            
+            timer = new Timer(ONE_TNTH_SECOND, new ActionListener() {
+                public void actionPerformed(ActionEvent evt) {
+                    repaint();
+                }});
+			timer.start();
+			
+			UpdateDSThread t = new UpdateDSThread();
+			t.start();
+			
+        } else {
+            providerListRenderer.clearAllChecked();
+            setVisible(false);
+        }
+    }
+    private class UpdateDSThread extends Thread {
+        public UpdateDSThread() {
+            super();
+        }
+        public void run() {
+            add();
+        }
+    }
 }
 
 
