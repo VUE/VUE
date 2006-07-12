@@ -146,7 +146,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-06-03 18:57:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.8 $ / $Date: 2006-07-12 03:29:45 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -339,6 +339,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             }
             break;
 
+            /*            
         case WindowEvent.WINDOW_ACTIVATED:
             
             // Window's java 1.5 doesn't give is COMPONENT_SHOWN
@@ -348,6 +349,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
                     ensureDialogStaysOnTop((Dialog)c);
             }
             break;
+            */
             
         case ComponentEvent.COMPONENT_SHOWN:
             //case PaintEvent.PAINT:
