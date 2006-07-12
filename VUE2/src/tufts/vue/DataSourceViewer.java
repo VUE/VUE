@@ -232,11 +232,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         this.activeDataSource = ds;
         dataSourceList.setSelectedValue(ds,true);
         Widget.setExpanded(DRB.searchPane, false);
-		Widget.setExpanded(DRB.browsePane, true);
-		Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
-		DRB.browsePane.removeAll();
-		DRB.browsePane.add(ds.getResourceViewer());
-		DRB.browsePane.revalidate();
+        Widget.setExpanded(DRB.browsePane, true);
+        Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
+        DRB.browsePane.removeAll();
+        DRB.browsePane.add(ds.getResourceViewer());
+        DRB.browsePane.revalidate();
+        DRB.browsePane.repaint();
     }
     
     public void setActiveDataSource(edu.tufts.vue.dsm.DataSource ds) {
