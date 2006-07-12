@@ -24,6 +24,9 @@
 
 package tufts.vue;
 import javax.swing.JComponent;
+import java.io.*;
+import edu.tufts.vue.util.*;
+
 /**
  *
  * @author  rsaigal
@@ -31,23 +34,34 @@ import javax.swing.JComponent;
 
 
 public class FavoritesDataSource extends VueDataSource{
-    
+    public static final String FOLDER= VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar;
     private JComponent resourceViewer;
+    private String saveFile;
     
     public FavoritesDataSource(){
     }
     
     public FavoritesDataSource(String DisplayName) throws DataSourceException{
         this.setDisplayName(DisplayName);
+        if(saveFile== null) {
+            saveFile = FOLDER+"f"+GUID.generate()+".xml";
+        }
         this.setResourceViewer();
     }
     
- 
-    public void  setResourceViewer() throws DataSourceException{ 
-        this.resourceViewer = new FavoritesWindow(this.getDisplayName());
+    public void setSaveFile(String saveFile ) {
+        this.saveFile = saveFile;
     }
     
-    public JComponent getResourceViewer(){ 
+    public String getSaveFile() {
+        return this.saveFile;
+    }
+    
+    public void  setResourceViewer() throws DataSourceException{
+        this.resourceViewer = new FavoritesWindow(this.getDisplayName(),this.getSaveFile());
+    }
+    
+    public JComponent getResourceViewer(){
         return this.resourceViewer;
     }
 }

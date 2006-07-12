@@ -50,7 +50,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     public static final String REMOVE_RESOURCE = "Remove Resource";
     public static final String CONFIRM_DEL_RESOURCE ="Are you sure you want to delete  the resource";
     public static final String TITLE_DEL_RESOURCE = "Delete Resource Confirmation";
-    public static final String SAVE_FILE = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites");
+//    public static final String SAVE_FILE = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites");
+    private String saveFile;
     public static final int DEFAULT_SELECTION_ROW = 0;
     private DisplayAction displayAction = null;
     public  VueDandDTree favoritesTree ;
@@ -60,8 +61,9 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     boolean fileOpen = false;
     
     /** Creates a new instance of HierarchyTreeWindow */
-    public FavoritesWindow(String displayName ) {
+    public FavoritesWindow(String displayName, String saveFile ) {
         setLayout(new BorderLayout());
+        this.saveFile = saveFile;
         load();
         if (!fileOpen){
             System.out.println("Creating new favorites");
@@ -201,13 +203,13 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             tufts.vue.VueDandDTree ft = this.getFavoritesTree();
             ft.setRootVisible(true);
             tufts.vue.SaveVueJTree sFavTree = new tufts.vue.SaveVueJTree(ft);
-            File favFile  = new File(SAVE_FILE);
+            File favFile  = new File(saveFile);
             marshallFavorites(favFile,sFavTree);
         }
     }
     
     public void load() {
-        File f  = new File(SAVE_FILE);
+        File f  = new File(saveFile);
         try {
             SaveVueJTree restorefavtree = unMarshallFavorites(f);
             fileOpen = true;
@@ -394,7 +396,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     public static void main(String args[]) {
         VUE.init(args);
         new Frame("An Active Frame").setVisible(true);
-        FavoritesWindow fw = new FavoritesWindow("http://www.tufts.edu");
+        FavoritesWindow fw = new FavoritesWindow("http://www.tufts.edu","favorites.xml");
         fw.setVisible(true);
         tufts.Util.displayComponent(fw);
     }

@@ -494,6 +494,9 @@
 </class>
 <class name="tufts.vue.FavoritesDataSource" extends="tufts.vue.VueDataSource">
     <map-to xml="tufts.vue.FavoritesDataSource" />
+    <field name = "saveFile" type="string">
+        <bind-xml name="saveFile" node="element" />
+     </field>
 </class>
 <class name="tufts.vue.RemoteFileDataSource" extends="tufts.vue.VueDataSource">
     <map-to xml="tufts.vue.RemoteFileDataSource" />
