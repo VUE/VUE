@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.33 $ / $Date: 2006-07-11 14:36:58 $ / $Author: jeff $
+ * @version $Revision: 1.34 $ / $Date: 2006-07-12 20:02:30 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -379,7 +379,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
                             }});
                             
                         } catch (Throwable t2) {
-                            
+                            t2.printStackTrace();
                         } finally {
                             GUI.clearWaitCursor();
                         }

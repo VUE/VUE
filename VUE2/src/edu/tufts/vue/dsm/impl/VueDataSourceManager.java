@@ -65,8 +65,9 @@ public class VueDataSourceManager
                 System.out.println("Installed datasources not found");
             }
         }  catch (Throwable t) {
-			t.printStackTrace();
-            tufts.vue.VueUtil.alert("Error instantiating Provider support","Error");
+//			t.printStackTrace();
+//            tufts.vue.VueUtil.alert("Error instantiating Provider support","Error");
+			System.out.println("In load via Castor " + t.getMessage());
         }
     }
     
@@ -124,7 +125,7 @@ public class VueDataSourceManager
             dataSourceVector.addElement(dataSource);
             save();
         } catch (Throwable t) {
-            
+            t.printStackTrace();
         }
     }
     

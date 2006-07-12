@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.42 $ / $Date: 2006-05-25 21:20:10 $ / $Author: jeff $
+ * @version $Revision: 1.43 $ / $Date: 2006-07-12 20:02:30 $ / $Author: jeff $
  * @author Ranjani Saigal
  */
 
@@ -95,6 +95,7 @@ public class DataSourceList extends JList implements DropTargetListener
         DefaultListModel model = (DefaultListModel)getModel();
 		int size = model.size();
 		if (o instanceof edu.tufts.vue.dsm.DataSource) {
+			if ( ((edu.tufts.vue.dsm.DataSource)o).getRepositoryDisplayName().trim().length() == 0 ) return;
 			for (int i=0; i < size; i++) {
 				Object obj = model.elementAt(i);
 				if (!(obj instanceof edu.tufts.vue.dsm.DataSource)) {
