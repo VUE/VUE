@@ -1,5 +1,15 @@
 package edu.tufts.vue.ui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JTextField;
+
+import tufts.vue.VueResources;
+import tufts.vue.gui.VueButton;
+
 /*
  * -----------------------------------------------------------------------------
  *
@@ -40,6 +50,7 @@ public class ConfigurationUI extends javax.swing.JPanel
 	private static final int FLOAT_CONTROL = 5;
 	private static final int DATE_TIME_CONTROL = 6;
 	private static final int DURATION_CONTROL = 7;
+	private static final int FILECHOOSER_CONTROL = 8;
 	
 	private java.util.Vector defaultValueVector = new java.util.Vector(); 
 	private java.util.Vector descriptionVector = new java.util.Vector(); 
@@ -52,6 +63,9 @@ public class ConfigurationUI extends javax.swing.JPanel
 		
 	private java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
 	private java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
+	private JButton chooser;
+	private ActionListener chooserActionListener;
+	private JTextField textField8;
 	
 	private String errorMessage = null;
 	
@@ -171,7 +185,7 @@ public class ConfigurationUI extends javax.swing.JPanel
 				try {
 					uiCode = new Integer(ui);
 					int n = uiCode.intValue();
-					if ( (n < 0) || (n > 7) ) {
+					if ( (n < 0) || (n > 8) ) {
 						this.errorMessage = "Invalid UI control code";
 						return;
 					}
@@ -362,7 +376,38 @@ public class ConfigurationUI extends javax.swing.JPanel
 						}
 						populateField(prompt,textField7);
 						break;
+					case FILECHOOSER_CONTROL:
+						textField8 = new javax.swing.JTextField();
+						if (numChars > 0) {
+							textField8.setColumns(numChars);
+						}
+						if (defaultValue != null) {
+							textField8.setText(defaultValue);
+						}						
+						
+						chooser = new JButton(VueResources.getString("resourceInstallation.chooserOpen"));
+						
+						
+						chooserActionListener = new ActionListener() 
+				        {
+						 public void actionPerformed(ActionEvent e)
+						 {
+							JFileChooser fileChooser = new JFileChooser();
+							fileChooser.setCurrentDirectory(new java.io.File("."));
+							fileChooser.setDialogTitle(VueResources.getString("resourceInstallation.chooserTitle"));
+							fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+							if (fileChooser.showOpenDialog(chooser) == JFileChooser.APPROVE_OPTION) 
+							{ 
+							      textField8.setText(fileChooser.getSelectedFile().toString());
+							}									 
+						 }
+						};
+									
+						chooser.addActionListener(chooserActionListener);
+					    populateField(prompt,textField8,chooser);
+						break;
 				}
+				
 				String description = (String)descriptionVector.elementAt(i);
 				if (description != null) {
 					prompt.setToolTipText(description);
@@ -388,6 +433,29 @@ public class ConfigurationUI extends javax.swing.JPanel
 		add(component,gbConstraints);
 		gbConstraints.gridy++;
 		
+		fieldVector.addElement(component);
+	}
+	
+	private void populateField(javax.swing.JLabel prompt,
+			   javax.swing.JComponent component,
+			   javax.swing.JComponent component2)
+	{
+		gbConstraints.gridx = 0;		
+		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
+		gbConstraints.weightx = 0;							
+		add(prompt,gbConstraints);
+
+		gbConstraints.gridx = 1;
+		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		gbConstraints.weightx = 1;
+		add(component,gbConstraints);
+		
+		gbConstraints.gridx = 2;
+		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
+		gbConstraints.weightx = 0.25;
+		add(component2,gbConstraints);
+		gbConstraints.gridy++;
+
 		fieldVector.addElement(component);
 	}
 	
