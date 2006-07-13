@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.34 $ / $Date: 2006-07-12 20:02:30 $ / $Author: jeff $
+ * @version $Revision: 1.35 $ / $Date: 2006-07-13 16:18:56 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -34,7 +34,7 @@ import javax.swing.event.*;
 import java.awt.*;
 import tufts.vue.gui.*;
 
-public class AddLibraryDialog extends JDialog implements ListSelectionListener, ActionListener {
+public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelectionListener, ActionListener {
     
     JPanel addLibraryPanel = new JPanel();
     JList addLibraryList;
@@ -78,6 +78,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
         }
         
         try {
+        	setLayout(new GridBagLayout());
             addLibraryList = new JList(listModel);
             addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
             addLibraryList.addListSelectionListener(this);
@@ -108,16 +109,21 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
             
             java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
             java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
-            gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+           // gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
             gbConstraints.insets = new java.awt.Insets(2,2,2,2);
             addLibraryPanel.setLayout(gbLayout);
             
             gbConstraints.gridx = 0;
             gbConstraints.gridy = 0;
+            gbConstraints.fill=GridBagConstraints.BOTH;
+            gbConstraints.weightx=1;
+            gbConstraints.weighty=0;
+            
             addLibraryPanel.add(new JLabel(AVAILABLE),gbConstraints);
             
             gbConstraints.gridx = 0;
             gbConstraints.gridy = 1;
+            gbConstraints.weighty=1;
             addLibraryPanel.add(listJsp,gbConstraints);
             
             gbConstraints.gridx = 0;
@@ -132,15 +138,22 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
             
             gbConstraints.gridx = 0;
             gbConstraints.gridy = 3;
+            gbConstraints.weighty=0;
             addLibraryPanel.add(buttonPanel,gbConstraints);
-            
-            getContentPane().add(addLibraryPanel,BorderLayout.CENTER);
+ 
+            gbConstraints.gridx=0;
+            gbConstraints.gridy=0;
+            gbConstraints.fill=GridBagConstraints.BOTH;
+            gbConstraints.weighty=1;
+            getContentPane().add(addLibraryPanel,gbConstraints);//,BorderLayout.CENTER);
             pack();
             setLocation(300,300);
         } catch (Throwable t) {
             t.printStackTrace();
         }
+        this.setMinSizeRestriction(this.getWidth(),this.getHeight());        
         setVisible(true);
+        
     }
     
     public void refresh() {
@@ -285,13 +298,12 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
                         try {
                             GUI.activateWaitCursor();
                             factory.installProvider(provider.getId());
+                            throw new Exception("bah");
                         } catch (Throwable t1) {
-                            //System.out.println("install failed " + provider.getId().getIdString());
+                            System.out.println("install failed " + provider.getId().getIdString());
                             VueUtil.alert("Installation Failed","Error");
                             return;
-                        } finally {
-                            GUI.clearWaitCursor();
-                        }
+                        } 
                     } else {
                         //System.out.println("No need to install");
                     }
@@ -378,7 +390,7 @@ public class AddLibraryDialog extends JDialog implements ListSelectionListener, 
                                 }
                             }});
                             
-                        } catch (Throwable t2) {
+                        } catch (Throwable t2) {                   
                             t2.printStackTrace();
                         } finally {
                             GUI.clearWaitCursor();
