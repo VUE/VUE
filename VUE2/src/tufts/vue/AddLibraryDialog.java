@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.35 $ / $Date: 2006-07-13 16:18:56 $ / $Author: mike $
+ * @version $Revision: 1.36 $ / $Date: 2006-07-13 16:19:55 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -297,10 +297,9 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                         factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
                         try {
                             GUI.activateWaitCursor();
-                            factory.installProvider(provider.getId());
-                            throw new Exception("bah");
+                            factory.installProvider(provider.getId());                            
                         } catch (Throwable t1) {
-                            System.out.println("install failed " + provider.getId().getIdString());
+                            //System.out.println("install failed " + provider.getId().getIdString());
                             VueUtil.alert("Installation Failed","Error");
                             return;
                         } 
