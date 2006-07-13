@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.5 $ / $Date: 2006-07-11 14:38:26 $ / $Author: jeff $
+* @version $Revision: 1.6 $ / $Date: 2006-07-13 21:04:37 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -154,6 +154,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             while (providerIterator.hasNextProvider()) {
                 org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
                 // place all providers on list, whether installed or not, whether duplicates or not
+				nextProvider = nextProvider.getNextVersion();
                 listModel.addElement(nextProvider);
                 checkedVector.addElement(nextProvider);
             }
@@ -220,6 +221,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 				}
 				
 				//System.out.println("checking if installed");
+				//System.out.println("Version " + provider.getVersion());
 				if (proceed && (!provider.isInstalled())) {
 					//System.out.println("installing...");
 					factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
