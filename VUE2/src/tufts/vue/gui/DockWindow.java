@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.76 $ / $Date: 2006-06-04 22:13:33 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2006-07-14 20:01:24 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -3615,12 +3615,13 @@ public class DockWindow extends javax.swing.JWindow
              
              //JLabel helpButton = new JLabel(GUI.getIcon("btn_help_top.gif"));
              // todo for Melanie: new icons should be appearing in gui/icons
-             JLabel helpButton = new JLabel(VueResources.getImageIconResource("/tufts/vue/images/btn_help_top.gif"));
+             VueLabel helpButton = new VueLabel(VueResources.getImageIconResource("/tufts/vue/images/btn_help_top.gif"));
              helpButton.setToolTipText("Help Text");
-             String helpText = VueResources.getString("dockWindow." + getName() + ".helpText");
+             
+             String helpText = VueResources.getString("dockWindow." + getName().replace(" ","") + ".helpText");
              if (helpText != null)
                  helpButton.setToolTipText(helpText);
-             
+                          
              if (isMacAqua) {
                  // close button at left
                  add(Box.createHorizontalStrut(6));
