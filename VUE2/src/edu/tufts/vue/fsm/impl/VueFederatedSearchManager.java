@@ -361,7 +361,6 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 			edu.tufts.vue.fsm.Query queries[] = new edu.tufts.vue.fsm.Query[repositories.length];
 			for (int i=0; i < repositories.length; i++) {
 				org.osid.repository.Repository repository = repositories[i];
-/*
 
 				// We need to figure out how this should work under Provider
 				edu.tufts.vue.fsm.QueryAdjuster adjuster = getQueryAdjusterForRepository(repository.getId());		
@@ -371,13 +370,14 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 													  searchType,
 													  searchProperties);
 				} else {
-*/
+
 //				System.out.println("Creating query for foreign id " + dataSources[i].getId().getIdString());
 				queries[i] = new VueQuery(dataSources[i].getId().getIdString(),
 										  repository,
 										  searchCriteria,
 										  searchType,
 										  searchProperties);
+				}
 			}
 			searchEngine.search(queries);
 			return new VueResultSetManager(searchEngine);			
