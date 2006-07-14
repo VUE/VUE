@@ -28,3 +28,7 @@ Select a resource from the list below and click “Add” to add to the Resource
 7. Notes
 
 Use the Notes field to add descriptive information to the selected node or link.
+
+8. Pathways
+
+The Pathways feature in VUE allows the creation of custom "trails" through nodes in maps providing learners with a sequenced manner of exploring resources. This is useful for highlighting particular nodes in large maps to show relationships or subsets of data.
