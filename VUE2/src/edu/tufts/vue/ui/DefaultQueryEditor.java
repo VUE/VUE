@@ -460,7 +460,6 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		 */
 		java.util.Vector intersections = new java.util.Vector();
 		
-
 		try {
 			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
 			for (int i=0; i < repositories.length; i++) {
@@ -468,7 +467,21 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 				java.util.Vector intersection = new java.util.Vector();		
 				// not all these methods may be implemented -- in which case we are out of luck
 				try {
-					org.osid.shared.TypeIterator typeIterator = repositories[i].getAssetTypes();
+					// must support the multi-field search type
+					boolean supportsMultiField = false;
+					org.osid.shared.TypeIterator typeIterator = repositories[i].getSearchTypes();
+					while ( (!supportsMultiField) && typeIterator.hasNextType() ) {
+						org.osid.shared.Type nextSearchType = typeIterator.nextType();
+						if (nextSearchType.isEqual(this.multiFieldSearchType)) {
+							supportsMultiField = true;
+						}
+					}
+					if (!supportsMultiField) {
+						// some repository did not have the multi-field search, so stop
+						return new java.util.Vector();
+					}
+					
+					typeIterator = repositories[i].getAssetTypes();
 					while (typeIterator.hasNextType()) {
 						org.osid.shared.Type nextAssetType = typeIterator.nextType();
 						
