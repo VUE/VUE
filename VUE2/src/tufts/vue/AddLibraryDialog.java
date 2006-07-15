@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.36 $ / $Date: 2006-07-13 16:19:55 $ / $Author: mike $
+ * @version $Revision: 1.37 $ / $Date: 2006-07-15 00:46:19 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -171,6 +171,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             }
             
             listModel.removeAllElements();
+			System.out.println("In Add Library Dialog, asking Provider for list of Providers");
             org.osid.provider.ProviderIterator providerIterator = factory.getProviders();
             while (providerIterator.hasNextProvider()) {
                 org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
@@ -291,9 +292,9 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                         }
                     }
                     
-                    //System.out.println("checking if installed");
+					System.out.println("In Add Library Dialog, checking if provider is installed");
                     if (proceed && (!provider.isInstalled())) {
-                        //System.out.println("installing...");
+						System.out.println("In Add Library Dialog, provider not yet installed, installing...");
                         factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
                         try {
                             GUI.activateWaitCursor();
@@ -304,7 +305,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             return;
                         } 
                     } else {
-                        //System.out.println("No need to install");
+						System.out.println("In Add Library Dialog, provider already installed");
                     }
                     
                     if (proceed) {

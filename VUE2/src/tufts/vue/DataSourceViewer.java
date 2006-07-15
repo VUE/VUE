@@ -105,9 +105,11 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         try {
             // load new data sources
             dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+			System.out.println("In Data Source Viewer, loading Installed data sources via Data Source Manager");
             edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
             dataSources = dataSourceManager.getDataSources();
             for (int i=0; i < dataSources.length; i++) {
+				System.out.println("In Data Source Viewer, adding data source to data source list UI");
                 dataSourceList.addOrdered(dataSources[i]);
             }
         } catch (Throwable t) {
