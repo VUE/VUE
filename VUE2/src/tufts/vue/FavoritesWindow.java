@@ -210,6 +210,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     
     public void load() {
         File f  = new File(saveFile);
+        if(f.exists()) {
         try {
             SaveVueJTree restorefavtree = unMarshallFavorites(f);
             fileOpen = true;
@@ -220,7 +221,11 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             this.setFavoritesTree(favoritesTree);
         }catch (Exception ex){
             System.out.println("FavoritesWindow.load " + ex);
+            ex.printStackTrace();
             fileOpen = false;
+        }
+        } else {
+            System.out.println("Favorites file not found: "+ f);
         }
     }
     public static void marshallFavorites(File file,SaveVueJTree favoritesTree) {
