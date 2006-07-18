@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.47 $ / $Date: 2006-07-14 20:01:24 $ / $Author: mike $
+ * @version $Revision: 1.48 $ / $Date: 2006-07-18 13:14:50 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -138,8 +138,13 @@ public class GUI
     public static Color getTextHighlightColor() {
         if (initUnderway) throw new InitError();
         if (Theme == null)
-            //return Color.yellow;
-            return SystemColor.textHighlight;
+        {
+           	//return Color.yellow;
+        	if (Util.isWindowsPlatform())
+        		return VueResources.getColor("gui.text.highlightcolor");
+        	else
+        		return SystemColor.textHighlight;
+        }
         else
             return Theme.getTextHighlightColor();
     }

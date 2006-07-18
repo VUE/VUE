@@ -177,7 +177,8 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
 		/* if (value == ProviderList.IndicatedDragOverValue)
             mLabel.setForeground(Color.red);
         else */ if (selected)
-            mLabel.setForeground(SystemColor.textHighlightText);
+        	mLabel.setForeground(Color.black);
+            //mLabel.setForeground(SystemColor.textHighlightText);
         else
             mLabel.setForeground(Color.black);
         

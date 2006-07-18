@@ -85,10 +85,9 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
                 bg = AlternateRowColor;
         }
         mRow.setBackground(bg);
-        mCheckBox.setBackground(bg);
+        mCheckBox.setBackground(bg);        
         mLabel.setBackground(bg);
         mIconLabel.setBackground(bg);
-        
         //-------------------------------------------------------
         // Set the checkbox, label & icon
         //-------------------------------------------------------
@@ -135,7 +134,8 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         if (value == DataSourceList.IndicatedDragOverValue)
             mLabel.setForeground(Color.red);
         else if (selected)
-            mLabel.setForeground(SystemColor.textHighlightText);
+        	mLabel.setForeground(Color.black);
+            //mLabel.setForeground(SystemColor.textHighlightText);
         else
             mLabel.setForeground(Color.black);
         
