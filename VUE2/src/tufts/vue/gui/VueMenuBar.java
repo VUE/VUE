@@ -21,7 +21,7 @@ import javax.swing.JCheckBoxMenuItem;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-06-03 20:46:17 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-07-18 20:43:06 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -356,7 +356,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
             for (int i = 0; i < tools.length; i++) {
                 VueTool tool = tools[i];
                 if (tool.getShortcutKey() != 0)
-                    text += " " + tool.getShortcutKey() + " - " + tool.getToolName() + "\n";
+                {
+                    text += " " + tool.getShortcutKey() + " : \t\t" + tool.getToolName() + "\n";
+                }
             }
             text += "\n";
             // get action short-cuts
@@ -369,7 +371,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
                         + KeyEvent.getKeyModifiersText(k.getModifiers())
                         + " "
                         + KeyEvent.getKeyText(k.getKeyCode());
-                    if (keyName.length() < 10)
+                    if (keyName.length() < 15)
                         keyName += ": \t\t";
                     else
                         keyName += ": \t";
@@ -380,7 +382,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             javax.swing.JTextArea t = new javax.swing.JTextArea();
             t.setFont(VueConstants.FONT_SMALL);
             t.setEditable(false);
-            t.setFocusable(false);
+          //  t.setFocusable(false);
             t.setText(text);
             t.setOpaque(false);
             return t;
