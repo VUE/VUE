@@ -19,6 +19,7 @@
 
 package tufts.vue.gui;
 
+import tufts.Util;
 import tufts.vue.DEBUG;
 import tufts.vue.VueResources;
 
@@ -26,6 +27,7 @@ import java.beans.PropertyChangeEvent;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 
 /**
@@ -34,7 +36,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.25 $ / $Date: 2006-06-04 22:14:47 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2006-07-18 16:20:27 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -286,7 +288,8 @@ public class WidgetStack extends Widget
         private final MenuButton mMenuButton;
         private final JComponent mWidget;
         private final GUI.IconicLabel mIcon;
-
+        private final RefreshButton refreshButton;
+        
         private final boolean isExpander;
 
         private boolean isLocked = false;
@@ -303,7 +306,6 @@ public class WidgetStack extends Widget
             setName(label);
             setOpaque(true);
             mWidget = widget;
-
             mTitle = new JLabel(label);
             GUI.init(mTitle, "gui.widget.title");
             
@@ -351,9 +353,15 @@ public class WidgetStack extends Widget
             add(mTitle);
 
             add(Box.createGlue());
+            
+            refreshButton = new RefreshButton("refreshButton",null);
+            add(refreshButton);
+            
+            add(Box.createHorizontalStrut(isMac ? 1 : 2));
+            
             mMenuButton = new MenuButton(Chevron, null);
             add(mMenuButton);
-            
+                        
             setPreferredSize(new Dimension(50, TitleHeight));
             setMaximumSize(new Dimension(Short.MAX_VALUE, TitleHeight));
             setMinimumSize(new Dimension(50, TitleHeight));
@@ -436,6 +444,9 @@ public class WidgetStack extends Widget
 
             } else if (key == MENU_ACTIONS_KEY) {
                 mMenuButton.setMenuActions((Action[]) e.getNewValue());
+                
+            } else if (key == REFRESH_ACTION_KEY) {
+                refreshButton.setAction((MouseListener)e.getNewValue());
                 
             } else if (key.equals("name")) {
                 mTitle.setText((String) e.getNewValue());
@@ -620,6 +631,72 @@ public class WidgetStack extends Widget
         }
 
         
+    }
+
+    static class RefreshButton extends JLabel implements MouseListener{
+    	
+    	private String iconChar;
+    	
+        RefreshButton(String icon, MouseListener action) {
+        	super();
+        	iconChar = icon;
+        	setIcon(VueResources.getImageIcon(iconChar+".raw"));        	     
+        	Insets noInsets=new Insets(0,0,0,0);
+            setAlignmentY(0.5f);
+            setBorder(new javax.swing.border.EmptyBorder(0,0,3,0));
+            addMouseListener(this);
+            setAction(action);           
+            
+        }
+
+        public void setAction(MouseListener action) 
+        {
+            clearAction();
+
+            if (action == null) {
+                setVisible(false);
+                return;
+            }
+            else
+            {            	
+            	addMouseListener(this);
+            	addMouseListener(action);
+            	setVisible(true);
+            }
+
+        }
+
+        private void clearAction() {
+            MouseListener[] ml = getMouseListeners();
+            for (int i = 0; i < ml.length; i++) {                
+                    removeMouseListener(ml[i]);
+            }
+        }
+
+		public void mouseClicked(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mousePressed(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mouseReleased(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mouseEntered(MouseEvent arg0) {			
+			setIcon(VueResources.getImageIcon(iconChar+".hover"));
+			
+		}
+
+		public void mouseExited(MouseEvent arg0) {
+			setIcon(VueResources.getImageIcon(iconChar+".raw"));
+			
+		}                
     }
 
     public static void main(String args[])

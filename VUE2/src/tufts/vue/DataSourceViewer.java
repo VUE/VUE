@@ -28,7 +28,6 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Vector;
-import java.io.File;
 import java.io.*;
 import java.util.*;
 import java.net.URL;
@@ -68,6 +67,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
     AbstractAction editLibraryAction;
     AbstractAction removeLibraryAction;
     AbstractAction getLibraryInfoAction;
+    MouseListener refreshDSMouseListener;
+    
     JButton optionButton = new VueButton("add");
     JButton searchButton = new JButton("Search");
     
@@ -238,6 +239,16 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
         DRB.browsePane.removeAll();
         DRB.browsePane.add(ds.getResourceViewer());
+        
+        if (ds instanceof LocalFileDataSource)
+        {
+        	Widget.setRefreshAction(DRB.browsePane,(MouseListener)refreshDSMouseListener);
+        }
+        else
+        {
+        	Widget.setRefreshAction(DRB.browsePane,null);
+        }
+        
         DRB.browsePane.revalidate();
         DRB.browsePane.repaint();
     }
@@ -248,6 +259,15 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         Widget.setExpanded(DRB.browsePane, false);
         Widget.setExpanded(DRB.searchPane, true);
         queryEditor.refresh();
+        
+        if (ds instanceof LocalFileDataSource)
+        {
+        	Widget.setRefreshAction(DRB.browsePane,(MouseListener)refreshDSMouseListener);
+        }
+        else
+        {
+        	Widget.setRefreshAction(DRB.browsePane,null);
+        }
     }
     
     public static void refreshDataSourcePanel(edu.tufts.vue.dsm.DataSource ds) {
@@ -320,6 +340,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             }
         };
         
+        refreshDSMouseListener = new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+            	refreshDataSourceList();
+                
+            }
+        };
         removeLibraryAction = new AbstractAction("Delete Resource") {
             public void actionPerformed(ActionEvent e) {
                 Object o = dataSourceList.getSelectedValue();
@@ -364,6 +390,53 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
         refreshMenuActions();
     }
     
+    public void refreshDataSourceList(){
+    	
+    	GUI.activateWaitCursor();
+    
+    	DataSource ds = null;
+    	DataSource oldDataSource = null;
+    	try
+    	{
+         oldDataSource = (DataSource) activeDataSource;
+    	}
+    	catch(ClassCastException cce)
+    	{
+    	 return;	
+    	}
+    	finally
+    	{
+    		GUI.clearWaitCursor();
+    	}
+    	
+    	if (oldDataSource instanceof LocalFileDataSource)
+    	{
+    		String address = ((LocalFileDataSource)oldDataSource).getAddress();
+    		String displayName = ((LocalFileDataSource)oldDataSource).getDisplayName();
+    		try
+    		{
+    			ds = new LocalFileDataSource(displayName,address);
+    		}
+    		catch(DataSourceException dse)
+    		{
+    			System.out.println("Error refreshing datasource");    			
+    			ds = oldDataSource;
+    		}
+            
+    	}
+        dataSourceList.setSelectedValue(ds,true);
+        Widget.setExpanded(DRB.searchPane, false);
+        Widget.setExpanded(DRB.browsePane, true);
+        Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
+       
+        DRB.browsePane.removeAll();
+        DRB.browsePane.add(ds.getResourceViewer());
+        DRB.browsePane.revalidate();
+        DRB.browsePane.repaint();
+               
+        GUI.clearWaitCursor();        
+    }
+    
     private void refreshMenuActions() {
         Object o = dataSourceList.getSelectedValue();
         if (o != null) {
@@ -390,6 +463,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                     checkForUpdatesAction,
                     removeLibraryAction
         });
+                
     }
     
     private boolean checkValidUser(String userName,String password,int type) {

@@ -19,9 +19,14 @@
 
 package tufts.vue.gui;
 
+import java.awt.BorderLayout;
+import java.awt.event.MouseListener;
+
 import tufts.vue.DEBUG;
 
 import javax.swing.JComponent;
+
+import com.sun.xml.rpc.processor.modeler.j2ee.xml.javaXmlTypeMappingType;
 
 
 /**
@@ -38,7 +43,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.8 $ / $Date: 2006-05-31 21:00:10 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-07-18 16:20:27 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -46,6 +51,7 @@ public class Widget extends javax.swing.JPanel
     static final String EXPANSION_KEY = "widget.expand";
     static final String HIDDEN_KEY = "widget.hide";
     static final String MENU_ACTIONS_KEY = "widget.menuActions";
+    static final String REFRESH_ACTION_KEY = "widget.refreshAction";
     static final String WANTS_SCROLLER_KEY = "widget.wantsScroller";
     static final String TITLE_HIDDEN_KEY = "widget.titleHidden";
 
@@ -100,7 +106,12 @@ public class Widget extends javax.swing.JPanel
 
         //c.firePropertyChange("TESTPROPERTY", false, true);
     }
-
+    
+    public static void setRefreshAction(JComponent c, MouseListener action)
+    {
+    //	if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setMenuAction " + action.toString());
+        c.putClientProperty(REFRESH_ACTION_KEY, action);
+    }
     public static void setMenuActions(JComponent c, javax.swing.Action[] actions)
     {
         if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setMenuActions " + java.util.Arrays.asList(actions));
@@ -141,6 +152,12 @@ public class Widget extends javax.swing.JPanel
     public Widget(String title) {
         super(new java.awt.BorderLayout());
         setName(title);
+        if (DEBUG.BOXES) setBorder(new javax.swing.border.LineBorder(java.awt.Color.blue, 4));
+    }        
+    
+    public Widget(String title, javax.swing.JButton blah) {
+        super(new java.awt.BorderLayout());
+        setName(title);        
         if (DEBUG.BOXES) setBorder(new javax.swing.border.LineBorder(java.awt.Color.blue, 4));
     }
 
