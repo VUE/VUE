@@ -1,10 +1,12 @@
 package tufts.vue.gui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Insets;
 
+import javax.swing.BorderFactory;
 import javax.swing.CellRendererPane;
 import javax.swing.JComponent;
 import javax.swing.JTextArea;
@@ -17,13 +19,14 @@ import tufts.vue.VueResources;
 
 public class JMultiLineToolTip extends JToolTip
 {
-	private static final String uiClassID = "ToolTipUI";
-	
-	String tipText;
-	JComponent component;
+	private static final String uiClassID = "ToolTipUI";	
+	private String tipText;
+	private JComponent component;
+	private final Color borderColor = new Color(105,105,105);
 	
 	public JMultiLineToolTip() {
-	    updateUI();
+	    updateUI();	    
+	    this.setBorder(BorderFactory.createLineBorder(borderColor,1));
 	}
 	
 	public void updateUI() {
@@ -35,7 +38,7 @@ public class JMultiLineToolTip extends JToolTip
 		this.columns = columns;
 		this.fixedwidth = 0;
 	}
-	
+
 	public int getColumns()
 	{
 		return columns;
@@ -59,8 +62,11 @@ public class JMultiLineToolTip extends JToolTip
 
 
 class MultiLineToolTipUI extends BasicToolTipUI {
+		
+	private final Color backgroundColor = new Color(213,223,255);
+	
 	static MultiLineToolTipUI sharedInstance = new MultiLineToolTipUI();
-	Font smallFont; 			     
+	private Font smallFont; 			     
 	static JToolTip tip;
 	protected CellRendererPane rendererPane;
 	
@@ -76,6 +82,7 @@ class MultiLineToolTipUI extends BasicToolTipUI {
 	
 	public MultiLineToolTipUI() {
 	    super();
+	    
 	}
 	
 	public void installUI(JComponent c) {
@@ -94,9 +101,9 @@ class MultiLineToolTipUI extends BasicToolTipUI {
 	
 	public void paint(Graphics g, JComponent c) {
 	    Dimension size = c.getSize();
-	    textArea.setBackground(c.getBackground());
+	    textArea.setBackground(backgroundColor);	    
 		rendererPane.paintComponent(g, textArea, c, 1, 1,
-					    size.width - 1, size.height - 1, true);
+					    size.width - 1, size.height - 1, true);		
 	}
 	
 	public Dimension getPreferredSize(JComponent c) {
