@@ -31,6 +31,7 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
     private final Icon myComputerIcon = VueResources.getImageIcon("dataSourceMyComputer");
     private final Icon savedResourcesIcon = VueResources.getImageIcon("dataSourceSavedResources");
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
+    private final Icon checkedIcon = VueResources.getImageIcon("checkMarkIcon");
     private final ImageIcon waitIcon = VueResources.getImageIcon("waitIcon");
 	private static String MY_COMPUTER = VueResources.getString("addLibrary.mycomputer.label");
 	private static String MY_SAVED_CONTENT = "My Saved Content";
@@ -39,14 +40,17 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
     private JPanel mRow = new JPanel();
     private JLabel mLabel = new DefaultListCellRenderer();
     private JLabel mIconLabel = new DefaultListCellRenderer();
-    private JLabel waitLabel; 
-    private CheckBoxRenderer mCheckBox = new CheckBoxRenderer();
-
+    private JLabel waitLabel;     
+    private JLabel checkedLabel;
+    
+    private Component blankArea;
+    
     private Border DividerBorder = new MatteBorder(1,0,0,0, Color.gray);
     private Border EmptyDividerBorder = new EmptyBorder(1,0,0,0);
 
     private Color AlternateRowColor = VueResources.getColor("gui.dataSourceList.alternateRowColor", 237,243,253);
     private boolean[] checklist = new boolean[50];
+    private int waitingMode = -1;
     
     public ProviderListCellRenderer()
     {
@@ -55,7 +59,11 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
 		} catch (Throwable t) {
 			
 		}
-        mRow.setLayout(new BoxLayout(mRow, BoxLayout.X_AXIS));
+
+		checkedLabel = new JLabel();
+		checkedLabel.setIcon(checkedIcon);
+		
+		mRow.setLayout(new BoxLayout(mRow, BoxLayout.X_AXIS));
         mRow.setOpaque(true);
         
         mLabel.setMinimumSize(new Dimension(10, mLabel.getHeight()));
@@ -66,8 +74,9 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
         waitLabel.setIcon(waitIcon);
         
         
+        blankArea = Box.createRigidArea(new Dimension(16,16));
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
-        mRow.add(mCheckBox);
+        mRow.add(blankArea);
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
         mRow.add(mLabel);
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.right));
@@ -97,18 +106,32 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
                 bg = AlternateRowColor;
         }
         
-        if (checklist[index])
+        if (index == waitingMode)
         {
-        	mCheckBox.setSelected(true);
+        	mRow.remove(1);
+         	waitIcon.setImageObserver(mRow); 
+         	mRow.add(waitLabel,1);
         }
         else
         {
-        	mCheckBox.setSelected(false);
+        	mRow.remove(1);
+        	mRow.add(blankArea,1);
+        }
+        
+        if (checklist[index] && mRow.getComponent(1) != waitLabel)
+        {
+        	mRow.remove(1);         	
+         	mRow.add(checkedLabel,1);
+        }
+        if (!checklist[index] && mRow.getComponent(1) != waitLabel)
+        {
+        	mRow.remove(1);         	
+         	mRow.add(blankArea,1);
         }
         
         mRow.setBackground(bg);
         waitLabel.setBackground(bg);      
-        mCheckBox.setBackground(bg);
+     
         mLabel.setBackground(bg);
         mIconLabel.setBackground(bg);
         
@@ -187,19 +210,14 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
         return mRow;
     }
     
-    public void invokeWaitingMode()
+    public void invokeWaitingMode(int index)
     {
-     	mRow.remove(mCheckBox);
-     	waitIcon.setImageObserver(mRow); 
-     	mRow.add(waitLabel,0);    	
+    	waitingMode = index;    	    	
     }
     
     public void endWaitingMode()
     {
-    	
-     	mRow.remove(waitLabel);
-    	mRow.add(mCheckBox,0);
-  
+    	waitingMode = -1;     	  
     }
     
     public void clearAllChecked()
@@ -208,34 +226,4 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
     		checklist[i] = false;
     }
     
-    private static class CheckBoxRenderer extends JCheckBox {
-
-        boolean invisible;
-
-        public CheckBoxRenderer() {
-            setBorderPainted(false);            
-        }
-
-        public void paint(Graphics g) {
-            if (!invisible)
-                super.paint(g);
-        }        
-        
-        public boolean isOpaque() { return false; }
-        public void validate() {}
-        public void invalidate() {}
-        public void repaint() {}
-        public void revalidate() {}
-        public void repaint(long tm, int x, int y, int width, int height) {}
-        public void repaint(Rectangle r) {}
-        protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {}
-        public void firePropertyChange(String propertyName, byte oldValue, byte newValue) {}
-        public void firePropertyChange(String propertyName, char oldValue, char newValue) {}
-        public void firePropertyChange(String propertyName, short oldValue, short newValue) {}
-        public void firePropertyChange(String propertyName, int oldValue, int newValue) {}
-        public void firePropertyChange(String propertyName, long oldValue, long newValue) {}
-        public void firePropertyChange(String propertyName, float oldValue, float newValue) {}
-        public void firePropertyChange(String propertyName, double oldValue, double newValue) {}
-        public void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {}
-    }
 }

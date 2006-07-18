@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.39 $ / $Date: 2006-07-18 14:01:16 $ / $Author: mike $
+ * @version $Revision: 1.40 $ / $Date: 2006-07-18 20:24:37 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -435,7 +435,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
         if (ae.getActionCommand().equals("Add")) {
             this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             GUI.activateWaitCursor();
-            providerListRenderer.invokeWaitingMode();
+            providerListRenderer.invokeWaitingMode(addLibraryList.getSelectedIndex());
             repaint();
             int ONE_TNTH_SECOND = 100;
             

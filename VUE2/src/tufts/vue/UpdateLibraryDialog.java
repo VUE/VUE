@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.6 $ / $Date: 2006-07-13 21:04:37 $ / $Author: jeff $
+* @version $Revision: 1.7 $ / $Date: 2006-07-18 20:24:37 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -332,7 +332,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
         if (ae.getActionCommand().equals("Update")) {
             this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             GUI.activateWaitCursor();
-            providerListRenderer.invokeWaitingMode();
+            providerListRenderer.invokeWaitingMode(addLibraryList.getSelectedIndex());
             repaint();
             int ONE_TNTH_SECOND = 100;
             
