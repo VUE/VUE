@@ -74,11 +74,15 @@ public class SaveVueJTree {
             while (i > 0){
                 i = i -1;
                 SaveNode nextSNode = (SaveNode)v.elementAt(i);
-                if (((nextSNode.getResource()).getType()) == FAVORITES){
+                if ((nextSNode.getResource() instanceof CabinetResource)){
+                    CabinetNode nextNode = CabinetNode.getCabinetNode(nextSNode.getResource().getTitle(),new File(cleanFileName(nextSNode.getResource().getSpec())),rootNode, model);
+                    model.insertNodeInto(nextNode,rootNode,0);
+                    restoreModel(model, nextNode, nextSNode);
+                }else if (((nextSNode.getResource()).getType()) == FAVORITES){
                     FavoritesNode nextFNode = new FavoritesNode(nextSNode.getResource());
                     model.insertNodeInto(nextFNode,rootNode,0);
                     restoreModel(model, nextFNode, nextSNode);
-                } else{
+                }else{
                     ResourceNode nextNode = new ResourceNode(nextSNode.getResource());
                     model.insertNodeInto(nextNode,rootNode,0);
                     restoreModel(model, nextNode, nextSNode);
@@ -95,5 +99,9 @@ public class SaveVueJTree {
                 }
             }
         }
+    }
+    
+    private String cleanFileName(String fileName) {
+        return fileName.substring(7);
     }
 }

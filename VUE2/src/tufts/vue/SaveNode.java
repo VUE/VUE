@@ -39,20 +39,22 @@ public class SaveNode{
     private Resource resource;
     private Vector children;
     
-    public SaveNode(){ 
+    public SaveNode(){
     }
     
     public SaveNode(ResourceNode resourceNode){
         Enumeration e = resourceNode.children();
         this.setResource(resourceNode.getResource());
         System.out.println("Resource Node" + resourceNode.getResource());
-        Vector v = new Vector();
-        while (e.hasMoreElements()) {
-            ResourceNode newResNode =(ResourceNode)e.nextElement();
-            SaveNode child = new SaveNode(newResNode);
-            v.add(child);
+        if(resource.getType() != Resource.FILE) {
+            Vector v = new Vector();
+            while (e.hasMoreElements()) {
+                ResourceNode newResNode =(ResourceNode)e.nextElement();
+                SaveNode child = new SaveNode(newResNode);
+                v.add(child);
+            }
+            this.setChildren(v);
         }
-        this.setChildren(v);
     }
     
     

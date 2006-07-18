@@ -39,7 +39,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.24 $ / $Date: 2006-06-12 21:17:48 $ / $Author: anoop $
+ * @version $Revision: 1.25 $ / $Date: 2006-07-18 20:59:57 $ / $Author: anoop $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -169,9 +169,9 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 }
             }else  if (fileList != null){
                 java.util.Iterator iter = fileList.iterator();
-                while(iter.hasNext()) {
+                while(iter.hasNext()) { 
                     File file = (File)iter.next();
-                    System.out.println("File: " +file);
+                    System.out.println("File Drop: " +file);
                     try{
                         LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                         osid.shared.Agent agent = null;

@@ -47,28 +47,27 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.43 $ / $Date: 2006-07-12 20:02:30 $ / $Author: jeff $
+ * @version $Revision: 1.44 $ / $Date: 2006-07-18 20:59:57 $ / $Author: anoop $
  * @author Ranjani Saigal
  */
 
-public class DataSourceList extends JList implements DropTargetListener
-{
+public class DataSourceList extends JList implements DropTargetListener {
     static Object IndicatedDragOverValue;
     
     private static final boolean debug = true;
     
     private static final int ACCEPTABLE_DROP_TYPES = 0
-        | DnDConstants.ACTION_COPY
-        | DnDConstants.ACTION_LINK
-        | DnDConstants.ACTION_MOVE
-        ;
-
+            | DnDConstants.ACTION_COPY
+            | DnDConstants.ACTION_LINK
+            | DnDConstants.ACTION_MOVE
+            ;
+    
     public DataSourceList(DataSourceViewer dsViewer) {
         super(new DefaultListModel());
         //this.dsViewer = dsViewer;
         this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
-        this.setFixedCellHeight(-1);    
-    
+        this.setFixedCellHeight(-1);
+        
         // TODO: create a generic resource drop handler from MapDropTarget to use
         // in places such as this (this code originiated as a copy of MapDropTarget,
         // but is now completely old/out of sync with with it).
@@ -76,61 +75,61 @@ public class DataSourceList extends JList implements DropTargetListener
         new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
         this.setCellRenderer(new DataSourceListCellRenderer());
     }
-
-    private Object locationToValue(Point p) { int index =
-    locationToIndex(p); return getModel().getElementAt(index); }
     
-	/*
-	 We are going to add some cleverness to the way data sources are ordered.  There are four types of data sources:
-	 
-	 1. edu.tufts.vue.dsm.DataSource
-	 2. LocalFileDataSource
-	 3. RemoteFileDataSource
-	 4. FavoritesDataSource
-	 
-	 New additions to the list are inserted at the bottom of their "group"
-	 */
-
-	public void addOrdered(Object o) {
+    private Object locationToValue(Point p) { int index =
+            locationToIndex(p); return getModel().getElementAt(index); }
+    
+        /*
+         We are going to add some cleverness to the way data sources are ordered.  There are four types of data sources:
+         
+         1. edu.tufts.vue.dsm.DataSource
+         2. LocalFileDataSource
+         3. RemoteFileDataSource
+         4. FavoritesDataSource
+         
+         New additions to the list are inserted at the bottom of their "group"
+         */
+    
+    public void addOrdered(Object o) {
         DefaultListModel model = (DefaultListModel)getModel();
-		int size = model.size();
-		if (o instanceof edu.tufts.vue.dsm.DataSource) {
-			if ( ((edu.tufts.vue.dsm.DataSource)o).getRepositoryDisplayName().trim().length() == 0 ) return;
-			for (int i=0; i < size; i++) {
-				Object obj = model.elementAt(i);
-				if (!(obj instanceof edu.tufts.vue.dsm.DataSource)) {
-					model.insertElementAt(o,i);
-					return;
-				}
-			}
-			model.insertElementAt(o,size);
-		} else if (o instanceof LocalFileDataSource) {
-			for (int i=0; i < size; i++) {
-				Object obj = model.elementAt(i);
-				if ( (!(obj instanceof edu.tufts.vue.dsm.DataSource)) && (!(obj instanceof LocalFileDataSource)) ) {
-					model.insertElementAt(o,i);
-					return;
-				}
-			}
-			model.insertElementAt(o,size);
-		} else if (o instanceof RemoteFileDataSource) {
-			for (int i=0; i < size; i++) {
-				Object obj = model.elementAt(i);
-				if (obj instanceof FavoritesDataSource) {
-					model.insertElementAt(o,i);
-					return;
-				}
-			}
-			model.insertElementAt(o,size);
-		} else {
-			model.addElement(o);
-		}
-	}
-	
+        int size = model.size();
+        if (o instanceof edu.tufts.vue.dsm.DataSource) {
+            if ( ((edu.tufts.vue.dsm.DataSource)o).getRepositoryDisplayName().trim().length() == 0 ) return;
+            for (int i=0; i < size; i++) {
+                Object obj = model.elementAt(i);
+                if (!(obj instanceof edu.tufts.vue.dsm.DataSource)) {
+                    model.insertElementAt(o,i);
+                    return;
+                }
+            }
+            model.insertElementAt(o,size);
+        } else if (o instanceof LocalFileDataSource) {
+            for (int i=0; i < size; i++) {
+                Object obj = model.elementAt(i);
+                if ( (!(obj instanceof edu.tufts.vue.dsm.DataSource)) && (!(obj instanceof LocalFileDataSource)) ) {
+                    model.insertElementAt(o,i);
+                    return;
+                }
+            }
+            model.insertElementAt(o,size);
+        } else if (o instanceof RemoteFileDataSource) {
+            for (int i=0; i < size; i++) {
+                Object obj = model.elementAt(i);
+                if (obj instanceof FavoritesDataSource) {
+                    model.insertElementAt(o,i);
+                    return;
+                }
+            }
+            model.insertElementAt(o,size);
+        } else {
+            model.addElement(o);
+        }
+    }
+    
     public DefaultListModel getContents() {
         return (DefaultListModel) getModel();
     }
-
+    
     private void setIndicated(Object value) {
         if (IndicatedDragOverValue != value) {
             IndicatedDragOverValue = value;
@@ -151,8 +150,7 @@ public class DataSourceList extends JList implements DropTargetListener
         }
     }
     
-    public void drop(DropTargetDropEvent e)
-    {
+    public void drop(DropTargetDropEvent e) {
         setIndicated(null);
         Object over = locationToValue(e.getLocation());
         if (DEBUG.DND) out("DROP over " + over);
@@ -164,11 +162,11 @@ public class DataSourceList extends JList implements DropTargetListener
             e.rejectDrop();
             return;
         }
-
+        
         int current = this.getSelectedIndex();
         setSelectedIndex(locationToIndex(e.getLocation()));
         DataSource ds = (DataSource)getSelectedValue();
-                         
+        
         if (DEBUG.DND) System.out.println("DROP ON DATA SOURCE: " + ds.getDisplayName());
         try {
             FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
@@ -189,11 +187,18 @@ public class DataSourceList extends JList implements DropTargetListener
                     java.util.Iterator iter = resourceList.iterator();
                     while(iter.hasNext()) {
                         Resource resource = (Resource) iter.next();
-                        if (DEBUG.DND) System.out.println("RESOURCE FOUND: " + resource);
-                        ResourceNode newNode =new  ResourceNode(resource);
-                        model.insertNodeInto(newNode, rootNode, 0);
+                        if (DEBUG.DND) System.out.println("RESOURCE FOUND: " + resource+ " type ="+ resource.getType()+ " resource class:"+resource.getClass());  
+                        ResourceNode newNode;
+                        if(resource.getType() == Resource.FILE){
+                         //   newNode = CabinetNode.getCabinetNode(resource.getTitle(),new File(resource.getSpec()),rootNode,model);
+                            newNode = new CabinetNode(resource);
+                        } else {
+                            newNode    =new  ResourceNode(resource);
+                        }
+                        System.out.println("IS LEAF:"+newNode.isLeaf());
+                        model.insertNodeInto(newNode, rootNode, newNode.getChildCount());
                         favoritesTree.expandPath(new TreePath(rootNode.getPath()));
-                        favoritesTree.setRootVisible(false);  
+                        favoritesTree.setRootVisible(false);
                     }
                 } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)){
                     fileList = (java.util.List)transfer.getTransferData(DataFlavor.javaFileListFlavor);
@@ -227,6 +232,7 @@ public class DataSourceList extends JList implements DropTargetListener
                                 model.insertNodeInto(cabNode, rootNode, 0);
                                 favoritesTree.expandPath(new TreePath(rootNode.getPath()));
                                 favoritesTree.setRootVisible(false);
+                                cabNode.explore();
                             }catch (Exception ex) {System.out.println("DataSourceList.drop: "+ex);}
                         } else{
                             try{
@@ -350,9 +356,9 @@ public class DataSourceList extends JList implements DropTargetListener
     }
     
     public void dropActionChanged( DropTargetDragEvent e ) {
-        e.acceptDrag(ACCEPTABLE_DROP_TYPES);        
+        e.acceptDrag(ACCEPTABLE_DROP_TYPES);
     }
-
+    
     private void out(String s) {
         System.out.println("DataSourceList: " + s);
     }

@@ -46,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.58 $ / $Date: 2006-06-23 18:38:14 $ / $Author: anoop $
+ * @version $Revision: 1.59 $ / $Date: 2006-07-18 20:59:57 $ / $Author: anoop $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -187,10 +187,10 @@ public class VueDragTree extends JTree
                     if (entry instanceof RemoteCabinetEntry)
                         cabNode = new CabinetNode(cabRes, CabinetNode.REMOTE);
                     else
-                        
                         cabNode = new CabinetNode(cabRes, CabinetNode.LOCAL);
                     root.add(cabNode);
-                    if (cabNode.getCabinet() != null)cabNode.explore();
+                    if((new File(cabRes.getSpec())).isDirectory()) cabNode.explore();
+                    else if (cabNode.getCabinet() != null)cabNode.explore();
                 } else {
                     ResourceNode node = new ResourceNode((Resource)resource);
                     root.add(node);
@@ -279,7 +279,7 @@ public class VueDragTree extends JTree
         public VueDragTreeCellRenderer(VueDragTree vdTree) {
             this.tree = vdTree;
             
-         
+            
         }
         /* -----------------------------------  */
         
@@ -443,7 +443,7 @@ class ResourceTransfer extends Object  {
  */
 class ResourceNode extends DefaultMutableTreeNode {
     private boolean explored = false;
-    private Resource resource;
+    protected Resource resource;
     public ResourceNode() {
     }
     public ResourceNode(Resource resource) {
@@ -467,25 +467,58 @@ class CabinetNode extends ResourceNode {
     private String type = "unknown";
     private boolean explored = false;
     
+    public CabinetNode(Resource resource) {
+        super(resource);
+    }
     
     public CabinetNode(CabinetResource cabinet, String type) {
         super(cabinet);
         this.type = type;
     }
-    
-    
+    public static CabinetNode  getCabinetNode(String title, File file, ResourceNode rootNode, DefaultTreeModel model){
+        CabinetNode node= null;
+        try{
+            LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
+            osid.shared.Agent agent = null;
+            LocalCabinetEntry cab;
+            if(file.isDirectory()){
+                cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
+            } else {
+                cab = new LocalCabinetEntry(file.getAbsolutePath(),agent,null);
+            }
+            CabinetResource res = new CabinetResource(cab);
+            CabinetEntry entry = res.getEntry();
+            if(title != null) {
+                res.setTitle(title);
+            }
+            if (entry instanceof RemoteCabinetEntry)
+                node =  new CabinetNode(res, CabinetNode.REMOTE);
+            else
+                node = new CabinetNode(res, CabinetNode.LOCAL);
+            model.insertNodeInto(node, rootNode, (rootNode.getChildCount()));
+            //node.explore();
+        } catch(Exception ex){
+            System.out.println("CabinetNode: "+ex);
+            ex.printStackTrace();
+        }
+        return node;
+    }
     /**
      *  Return true if this node is a leaf.
      */
     public boolean isLeaf() {
+        boolean flag = true;
         CabinetResource res = (CabinetResource) getUserObject();
-        if (res.getEntry() == null) return true;
-        if(this.type.equals(CabinetNode.REMOTE) && ((RemoteCabinetEntry)res.getEntry()).isCabinet())
-            return false;
-        else if(this.type.equals(CabinetNode.LOCAL) && ((LocalCabinetEntry)res.getEntry()).isCabinet())
-            return false;
-        else
-            return true;
+        if(res != null && res.getEntry() != null){
+            if((new File(res.getSpec()).isDirectory())) {
+                flag = false;
+            } else if(this.type.equals(CabinetNode.REMOTE) && ((RemoteCabinetEntry)res.getEntry()).isCabinet())
+                flag = false;
+            else if(this.type.equals(CabinetNode.LOCAL) && ((LocalCabinetEntry)res.getEntry()).isCabinet()) {
+                flag = false;
+            }
+        }
+        return flag;
     }
     
     /**
@@ -540,6 +573,8 @@ class CabinetNode extends ResourceNode {
             }
             return;
         } else return;
+        
+        
     }
     
     /**
@@ -625,13 +660,33 @@ class FileNode extends ResourceNode {
     }
 }
 class FavoritesNode extends ResourceNode {
-    
+    private boolean explored = false;
     public FavoritesNode(Resource resource){
         super(resource);
         
         
     }
-    public void explore() {
-        this.explore();
+    public boolean isExplored() { return explored; }
+    /*
+    public boolean isLeaf() {
+        File file = new File(resource.getSpec());
+        System.out.println("Resource: "+resource.getTitle()+ " Type:"+resource.getType()+" leaf?"+file.isDirectory());
+        if (file.isDirectory()) {
+            //System.out.println("Resource: "+resource.getSpec()+ " Type:"+resource.getType());
+            return false;
+        }
+        return true;
     }
+    public void explore() {
+        File file = new File(resource.getSpec());
+        if(!file.isDirectory())
+            return;
+        if(!isExplored()) {
+            File[] contents = file.listFiles();
+            for(int i=0; i < contents.length; ++i)
+                add(new FileNode(contents[i]));
+            explored = true;
+        }
+    }
+     */
 }
