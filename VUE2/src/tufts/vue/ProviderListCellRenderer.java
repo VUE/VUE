@@ -32,7 +32,7 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
     private final Icon savedResourcesIcon = VueResources.getImageIcon("dataSourceSavedResources");
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
     private final ImageIcon waitIcon = VueResources.getImageIcon("waitIcon");
-	private static String MY_COMPUTER = "My Computer";
+	private static String MY_COMPUTER = VueResources.getString("addLibrary.mycomputer.label");
 	private static String MY_SAVED_CONTENT = "My Saved Content";
 	private static String FTP = "FTP";
 	

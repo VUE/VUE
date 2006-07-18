@@ -509,6 +509,9 @@ public class ConfigurationUI extends javax.swing.JPanel
 					javax.swing.JTextField field7 = (javax.swing.JTextField)fieldVector.elementAt(i);
 					properties.setProperty(key,field7.getText());
 					break;
+				case FILECHOOSER_CONTROL:					
+					properties.setProperty(key,textField8.getText());
+					break;
 			}
 		}
 		return properties;

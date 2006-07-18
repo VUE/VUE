@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.38 $ / $Date: 2006-07-18 13:19:47 $ / $Author: mike $
+ * @version $Revision: 1.39 $ / $Date: 2006-07-18 14:01:16 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -54,7 +54,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     DataSource oldDataSource = null;
     edu.tufts.vue.dsm.DataSource newDataSource = null;
     
-    private static String MY_COMPUTER = "My Computer";
+    private static String MY_COMPUTER = VueResources.getString("addLibrary.mycomputer.label");
     private static String MY_COMPUTER_DESCRIPTION = "Add a browse control for your filesystem.  You can configure where to start the tree.";
     private static String MY_SAVED_CONTENT = "My Saved Content";
     private static String MY_SAVED_CONTENT_DESCRIPTION = "Add a browse control for your saved content.  You can configure a name for this source.";
@@ -66,8 +66,8 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     private ProviderListCellRenderer providerListRenderer;
     private Timer timer;
     
-    public AddLibraryDialog(DataSourceList dataSourceList) {
-        super(VUE.getDialogParentAsFrame(),TITLE,true);
+    public AddLibraryDialog(DataSourceList dataSourceList) {    	
+        super(VUE.getDialogParentAsFrame(),TITLE,true);        
         this.dataSourceList = dataSourceList;
         
         try {
