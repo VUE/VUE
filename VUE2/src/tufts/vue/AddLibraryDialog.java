@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.37 $ / $Date: 2006-07-15 00:46:19 $ / $Author: jeff $
+ * @version $Revision: 1.38 $ / $Date: 2006-07-18 13:19:47 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -234,7 +234,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                 s = (String)o;
                 if (s.equals(MY_COMPUTER)) {
                     LocalFileDataSource ds = new LocalFileDataSource(MY_COMPUTER,"");
-                    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Starting path</title><description>The path to start from</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>512</maxChars><ui>0</ui></field></configuration>";
+                    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Starting path</title><description>The path to start from</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>512</maxChars><ui>8</ui></field></configuration>";
                     String name = ds.getDisplayName();
                     String address = ds.getAddress();
                     xml = xml.replaceFirst("DEFAULT_NAME",name);
