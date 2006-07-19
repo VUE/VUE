@@ -31,15 +31,16 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
     private final Icon myComputerIcon = VueResources.getImageIcon("dataSourceMyComputer");
     private final Icon savedResourcesIcon = VueResources.getImageIcon("dataSourceSavedResources");
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
-    private final Icon checkedIcon = VueResources.getImageIcon("checkMarkIcon");
+    private final Icon checkedIcon = VueResources.getImageIcon("addLibrary.checkMarkIcon");
     private final ImageIcon waitIcon = VueResources.getImageIcon("waitIcon");
 	private static String MY_COMPUTER = VueResources.getString("addLibrary.mycomputer.label");
 	private static String MY_SAVED_CONTENT = "My Saved Content";
 	private static String FTP = "FTP";
 	
     private JPanel mRow = new JPanel();
+    private JPanel mLabelPanel = new JPanel();
     private JLabel mLabel = new DefaultListCellRenderer();
-    private JLabel mIconLabel = new DefaultListCellRenderer();
+    private JLabel mIconLabel = new JLabel();
     private JLabel waitLabel;     
     private JLabel checkedLabel;
     
@@ -62,12 +63,16 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
 
 		checkedLabel = new JLabel();
 		checkedLabel.setIcon(checkedIcon);
-		
 		mRow.setLayout(new BoxLayout(mRow, BoxLayout.X_AXIS));
+		
         mRow.setOpaque(true);
         
-        mLabel.setMinimumSize(new Dimension(10, mLabel.getHeight()));
-        mLabel.setPreferredSize(new Dimension(Short.MAX_VALUE, mLabel.getHeight()));
+       // mLabelPanel.setMinimumSize(new Dimension(5, mLabelPanel.getHeight()));
+       // mLabelPanel.setPreferredSize(new Dimension(5, mLabelPanel.getHeight()));        
+        mLabel.setMinimumSize(new Dimension(5, mLabel.getHeight()));
+        mLabel.setPreferredSize(new Dimension(5, mLabel.getHeight()));
+        mLabelPanel.setLayout(new BorderLayout());
+        mLabelPanel.add(mLabel,BorderLayout.CENTER);
         
         waitLabel = new JLabel();
         waitLabel.setDoubleBuffered(true);
@@ -76,11 +81,18 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
         
         blankArea = Box.createRigidArea(new Dimension(16,16));
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
+        
         mRow.add(blankArea);
-        mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
-        mRow.add(mLabel);
+        //mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
+        
+        //mRow.add(mLabel);             
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.right));
+        mRow.add(mLabelPanel);
+        
+        mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
         mRow.add(mIconLabel);
+        mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
+        
     }
     
     public void setChecked(int index)
@@ -131,7 +143,7 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
         
         mRow.setBackground(bg);
         waitLabel.setBackground(bg);      
-     
+        mLabelPanel.setBackground(bg);
         mLabel.setBackground(bg);
         mIconLabel.setBackground(bg);
         
