@@ -39,7 +39,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.25 $ / $Date: 2006-07-18 20:59:57 $ / $Author: anoop $
+ * @version $Revision: 1.26 $ / $Date: 2006-07-19 23:30:04 $ / $Author: anoop $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -158,8 +158,16 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 java.util.Iterator iter = resourceList.iterator();
                 while(iter.hasNext()) {
                     Resource resource = (Resource) iter.next();
-                    System.out.println("RESOURCE FOUND: " + resource + resource.getTitle() + resource.getSpec());
-                    ResourceNode newNode =new ResourceNode(resource);
+                    if (DEBUG.DND) System.out.println("RESOURCE FOUND: " + resource+ " type ="+ resource.getType()+ " resource class:"+resource.getClass());
+                    ResourceNode newNode;
+                    if(resource.getType() == Resource.FILE){
+                        //   newNode = CabinetNode.getCabinetNode(resource.getTitle(),new File(resource.getSpec()),rootNode,model);
+                        newNode = new CabinetNode(resource,CabinetNode.LOCAL);
+                        CabinetResource cr = (CabinetResource)newNode.getResource();
+                        if(DEBUG.DND) System.out.println("CABINET RESOURCE: " + resource+ "Entry: "+cr.getEntry()+ "entry type:"+cr.getEntry().getClass()+" type:"+cr.getEntry());
+                    } else {
+                        newNode    =new  ResourceNode(resource);
+                    }
                     this.setRootVisible(true);
                     model.insertNodeInto(newNode, rootNode, (rootNode.getChildCount()));
                     this.expandPath(new TreePath(rootNode.getPath()));
@@ -169,7 +177,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 }
             }else  if (fileList != null){
                 java.util.Iterator iter = fileList.iterator();
-                while(iter.hasNext()) { 
+                while(iter.hasNext()) {
                     File file = (File)iter.next();
                     System.out.println("File Drop: " +file);
                     try{

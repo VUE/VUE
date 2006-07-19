@@ -46,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.59 $ / $Date: 2006-07-18 20:59:57 $ / $Author: anoop $
+ * @version $Revision: 1.60 $ / $Date: 2006-07-19 23:30:04 $ / $Author: anoop $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -467,8 +467,9 @@ class CabinetNode extends ResourceNode {
     private String type = "unknown";
     private boolean explored = false;
     
-    public CabinetNode(Resource resource) {
+    public CabinetNode(Resource resource, String type) {
         super(resource);
+        this.type = type;
     }
     
     public CabinetNode(CabinetResource cabinet, String type) {
@@ -510,6 +511,7 @@ class CabinetNode extends ResourceNode {
         boolean flag = true;
         CabinetResource res = (CabinetResource) getUserObject();
         if(res != null && res.getEntry() != null){
+           // System.out.println("CabinetNode.isLeaf: type-"+this.type);
             if((new File(res.getSpec()).isDirectory())) {
                 flag = false;
             } else if(this.type.equals(CabinetNode.REMOTE) && ((RemoteCabinetEntry)res.getEntry()).isCabinet())
