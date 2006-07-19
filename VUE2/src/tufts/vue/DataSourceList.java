@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.44 $ / $Date: 2006-07-18 20:59:57 $ / $Author: anoop $
+ * @version $Revision: 1.45 $ / $Date: 2006-07-19 23:29:31 $ / $Author: anoop $
  * @author Ranjani Saigal
  */
 
@@ -191,11 +191,12 @@ public class DataSourceList extends JList implements DropTargetListener {
                         ResourceNode newNode;
                         if(resource.getType() == Resource.FILE){
                          //   newNode = CabinetNode.getCabinetNode(resource.getTitle(),new File(resource.getSpec()),rootNode,model);
-                            newNode = new CabinetNode(resource);
+                            newNode = new CabinetNode(resource,CabinetNode.LOCAL);
+                            CabinetResource cr = (CabinetResource)newNode.getResource();
+                            if(DEBUG.DND) System.out.println("CABINET RESOURCE: " + resource+ "Entry: "+cr.getEntry()+ "entry type:"+cr.getEntry().getClass()+" type:"+cr.getEntry());
                         } else {
                             newNode    =new  ResourceNode(resource);
                         }
-                        System.out.println("IS LEAF:"+newNode.isLeaf());
                         model.insertNodeInto(newNode, rootNode, newNode.getChildCount());
                         favoritesTree.expandPath(new TreePath(rootNode.getPath()));
                         favoritesTree.setRootVisible(false);
