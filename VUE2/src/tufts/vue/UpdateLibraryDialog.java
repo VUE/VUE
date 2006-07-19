@@ -24,14 +24,16 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.7 $ / $Date: 2006-07-18 20:24:37 $ / $Author: mike $
+* @version $Revision: 1.8 $ / $Date: 2006-07-19 16:46:58 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
+
 import java.awt.event.*;
 
 import javax.swing.event.*;
 import java.awt.*;
+
 import tufts.vue.gui.*;
 
 public class UpdateLibraryDialog extends JDialog implements ListSelectionListener, ActionListener {
@@ -71,6 +73,15 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
         }
         
         try {
+        	VueLabel helpButton = new VueLabel(VueResources.getImageIcon("addLibrary.helpIcon"));
+            helpButton.setToolTipText("Help Text");
+            
+            String helpText = VueResources.getString("addLibrary.helpText");
+            
+            if (helpText != null)
+                helpButton.setToolTipText(helpText);
+            
+            setLayout(new GridBagLayout());
             addLibraryList = new JList(listModel);
             addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
             addLibraryList.addListSelectionListener(this);
@@ -80,6 +91,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             addLibraryList.setCellRenderer(providerListRenderer);
             
             descriptionTextArea = new JTextArea();
+            descriptionTextArea.setMargin(new Insets(4,4,4,4));
             descriptionTextArea.setLineWrap(true);
             descriptionTextArea.setWrapStyleWord(true);
             
@@ -101,16 +113,30 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             
             java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
             java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
+            buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+            
             gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
             gbConstraints.insets = new java.awt.Insets(2,2,2,2);
             addLibraryPanel.setLayout(gbLayout);
             
+            JLabel avail = new JLabel(AVAILABLE);
+            JPanel availabilityPanel = new JPanel();            
+            availabilityPanel.setLayout(new BorderLayout());
+            availabilityPanel.add(avail,BorderLayout.CENTER);
+            availabilityPanel.add(helpButton,BorderLayout.EAST);
+            
             gbConstraints.gridx = 0;
             gbConstraints.gridy = 0;
-            addLibraryPanel.add(new JLabel(AVAILABLE),gbConstraints);
+            gbConstraints.gridwidth = 1;
+            gbConstraints.fill=GridBagConstraints.BOTH;
+            gbConstraints.weightx=1;
+            gbConstraints.weighty=1;
+            gbConstraints.insets = new Insets(4,15,4,15);
+            addLibraryPanel.add(availabilityPanel,gbConstraints);
             
             gbConstraints.gridx = 0;
             gbConstraints.gridy = 1;
+            gbConstraints.weighty=1;
             addLibraryPanel.add(listJsp,gbConstraints);
             
             gbConstraints.gridx = 0;
@@ -118,16 +144,31 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             addLibraryPanel.add(descriptionJsp,gbConstraints);
             
             buttonPanel.add(cancelButton);
-            cancelButton.addActionListener(this);
+            
+            cancelButton.setMinimumSize(new Dimension(80,25));
+            cancelButton.setPreferredSize(new Dimension(80,25));
+            cancelButton.addActionListener(this);            
+            
             buttonPanel.add(addButton);
+            
+            addButton.setMinimumSize(new Dimension(80,25));
+            addButton.setPreferredSize(new Dimension(80,25));
             addButton.addActionListener(this);
+            
             getRootPane().setDefaultButton(addButton);
             
             gbConstraints.gridx = 0;
             gbConstraints.gridy = 3;
+            gbConstraints.weighty=0;            
+            gbConstraints.anchor=GridBagConstraints.EAST;
             addLibraryPanel.add(buttonPanel,gbConstraints);
             
-            getContentPane().add(addLibraryPanel,BorderLayout.CENTER);
+            gbConstraints.gridx=0;
+            gbConstraints.gridy=0;
+            gbConstraints.fill=GridBagConstraints.BOTH;
+            gbConstraints.weighty=1;
+            getContentPane().add(addLibraryPanel,gbConstraints);
+            
             pack();
             setLocation(300,300);
         } catch (Throwable t) {
