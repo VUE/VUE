@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.41 $ / $Date: 2006-07-19 15:27:19 $ / $Author: mike $
+ * @version $Revision: 1.42 $ / $Date: 2006-07-20 15:22:40 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -139,11 +139,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             gbConstraints.insets = new Insets(4,15,4,15);
             
             addLibraryPanel.add(availabilityPanel,gbConstraints);
-            
-            
-            
-            
-            
+                                                            
             gbConstraints.gridx = 0;
             gbConstraints.gridy = 1;
             gbConstraints.weighty=1;

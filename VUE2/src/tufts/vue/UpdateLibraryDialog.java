@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.8 $ / $Date: 2006-07-19 16:46:58 $ / $Author: mike $
+* @version $Revision: 1.9 $ / $Date: 2006-07-20 15:22:40 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -76,7 +76,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
         	VueLabel helpButton = new VueLabel(VueResources.getImageIcon("addLibrary.helpIcon"));
             helpButton.setToolTipText("Help Text");
             
-            String helpText = VueResources.getString("addLibrary.helpText");
+            String helpText = VueResources.getString("updateLibrary.helpText");
             
             if (helpText != null)
                 helpButton.setToolTipText(helpText);
