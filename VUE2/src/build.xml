@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.112 $ / $Date: 2006-07-15 00:46:18 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.112 2006-07-15 00:46:18 jeff Exp $ -->
+<!-- $Revision: 1.113 $ / $Date: 2006-07-20 20:25:21 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.113 2006-07-20 20:25:21 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -154,7 +154,7 @@
                    apple-laf.jar
                    avalon-framework-cvs-20020806.jar
                    axis-ant.jar
-                   axis-fedora.jar
+                   fedoragentypes.jar
                    batik-awt-util.jar
                    batik-ext.jar
                    batik-svggen.jar
@@ -168,8 +168,6 @@
                    cryptix32.jar
                    dom2.jar
                    fop.jar
-                   fedora_2_0-client.jar
-                   fedora-client.jar
                    gnu-getopt-1.0.9.jar
                    googleapi.jar
                    icu4j.jar
