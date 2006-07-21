@@ -36,7 +36,7 @@ import java.util.ArrayList;
  * A field:value editor currently specialized for resource properties displayed on
  * the object inspector info tab.
  *
- * @version $Revision: 1.27 $ / $Date: 2006-04-08 23:59:29 $ / $Author: sfraize $ 
+ * @version $Revision: 1.28 $ / $Date: 2006-07-21 20:42:02 $ / $Author: anoop $ 
  * @author  akumar03
  */
 
@@ -119,6 +119,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         
         
         //disable buttons if not editable
+        System.out.println("Editable: "+tableModel.isEditable());
         if(tableModel.isEditable()) {
             addPropertyButton.setEnabled(true);
             deletePropertyButton.setEnabled(true);
@@ -149,7 +150,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         //innerPanel.setBorder(BorderFactory.createEmptyBorder(0,6,6,6));
         
         
-        if (false) innerPanel.add(labelPanel,BorderLayout.NORTH); // TURNED OFF FOR NOW
+        innerPanel.add(labelPanel,BorderLayout.NORTH);
         innerPanel.add(propertiesPanel,BorderLayout.CENTER);
         //innerPanel.add(topPanel);
         //innerPanel.setBorder(BorderFactory.createTitledBorder("Metadata"));
