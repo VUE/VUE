@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.375 $ / $Date: 2006-07-24 00:16:49 $ / $Author: sfraize $ 
+ * @version $Revision: 1.376 $ / $Date: 2006-07-24 06:01:05 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -821,7 +821,7 @@ public class VUE
         // Generally, we need to wait until java 1.5 JSplitPane's have been validated to
         // use the % set divider location.  Unfortunately there's a bug in at MacOS java
         // 1.5 BasicSplitPaneUI (it's not in the 1.4 version), where setKeepHidden isn't
-        // be called when the divider goes to the wall via setDividerLocation, only when
+        // being called when the divider goes to the wall via setDividerLocation, only when
         // the one-touch buttons are manually clicked.  So, for example, if the user
         // de-maximizes the frame, suddenly a hidden split-pane will pop out!  So, we've
         // hacked into the UI code, grabbed the damn right-one-touch button, grabbed
@@ -860,9 +860,20 @@ public class VUE
             mViewerSplit.setDividerLocation(1.0);
         }
 
-        // can show after split adjust on mac
-        if (Util.isMacPlatform())
+        // can show after split adjust on mac (turns out: only on older, slower macs)
+        if (Util.isMacPlatform()) {
             ApplicationFrame.setVisible(true);
+
+            if (SplitPaneRightButtonOneTouchActionHandler != null) {
+                // This is backup: hit it one more time just in case, as on the
+                // newer, faster intel Mac's, the timing is changed and the
+                // above is no longer catching it.
+                GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    SplitPaneRightButtonOneTouchActionHandler.actionPerformed(null);                  
+                }});
+            }
+        }
+        
 
         if (toolbarDock != null) {
             toolbarDock.suggestLocation(0,0);
