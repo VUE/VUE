@@ -110,11 +110,12 @@ public class DataSourceViewer extends JPanel
         try {
             // load new data sources
             dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-			System.out.println("In Data Source Viewer, loading Installed data sources via Data Source Manager");
+            VUE.Log.info("DataSourceViewer; loading Installed data sources via Data Source Manager");
             edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
             dataSources = dataSourceManager.getDataSources();
+            VUE.Log.info("DataSourceViewer; finished loading data sources.");
             for (int i=0; i < dataSources.length; i++) {
-				System.out.println("In Data Source Viewer, adding data source to data source list UI");
+                VUE.Log.info("DataSourceViewer; adding data source to data source list UI: " + dataSources[i]);
                 dataSourceList.addOrdered(dataSources[i]);
             }
         } catch (Throwable t) {
@@ -122,7 +123,9 @@ public class DataSourceViewer extends JPanel
         }
         try {
             // load old-style data sources
+            VUE.Log.info("DataSourceViewer; Loading old style data sources...");
             loadDataSources();
+            VUE.Log.info("DataSourceViewer; Loaded old style data sources.");
         } catch (Throwable t) {
             VueUtil.alert("Error loading old data source","Error");
         }
@@ -659,7 +662,7 @@ public class DataSourceViewer extends JPanel
 
             setName("VUE SearchThread: " + searchString + " in " + mRepositoryName);
 
-            mResultPane = new Widget("Searching " + r.getDisplayName());
+            mResultPane = new Widget("Searching " + mRepositoryName);
             mStatusLabel = new StatusLabel("Searching for " + mSearchString + " ...", true);
             mResultPane.add(mStatusLabel);
 
@@ -673,18 +676,17 @@ public class DataSourceViewer extends JPanel
             try {
                 adjustQuery();
                 processResultsAndDisplay(mRepository.getAssetsBySearch(mSearchCriteria, mSearchType, mSearchProperties));
-                //} catch (org.osid.repository.RepositoryException t) {
             } catch (Throwable t) {
                 tufts.Util.printStackTrace(t);
                 mResultPane.setTitle("Results: " + mRepositoryName);
                 mResultPane.removeAll();
-                JTextArea textArea = new JTextArea("Search Failed: " + t);
-                textArea.setBorder(new EmptyBorder(2,3,3,2));
+                JTextArea textArea = new JTextArea(mRepositoryName + ": Search Error: " + t);
+                textArea.setBorder(new EmptyBorder(3,22,4,0));
                 textArea.setLineWrap(true);
                 textArea.setWrapStyleWord(true);
-                textArea.setOpaque(false);
+                textArea.setEditable(false);
+                //textArea.setOpaque(false);
                 mResultPane.add(textArea);
-                //mStatusLabel.setText("Failed: " + t.toString());
             }
         }
 
@@ -710,18 +712,30 @@ public class DataSourceViewer extends JPanel
         private void processResultsAndDisplay(org.osid.repository.AssetIterator assetIterator)
             throws org.osid.repository.RepositoryException
         {
-            final java.util.List resourceList = new java.util.ArrayList();            
+            if (DEBUG.DR) out("processing AssetIterator...");
+            
+            final java.util.List resourceList = new java.util.ArrayList();
 
-            int maxResult = 0;
-            while (assetIterator.hasNextAsset() && (maxResult++ < 10)) {
+            final int maxResult = 100;
+            int resultCount = 0;
+            while (assetIterator.hasNextAsset()) {
                 org.osid.repository.Asset asset = assetIterator.nextAsset();
+                if (++resultCount > maxResult)
+                    continue;
                 resourceList.add(Osid2AssetResourceFactory.createResource(asset,
                                                                           mRepository,
                                                                           DataSourceViewer.this.context));
             }
 
+            if (DEBUG.DR) out("done processing AssetIterator");
+            
             String name = "Results: " + mRepositoryName;
-            if (DEBUG.DR) out(name + ": " + resourceList.size() + " results");
+
+            if (DEBUG.DR) {
+                if (resultCount > maxResult)
+                    out(name + "; returned a total of " + resultCount + " matches");
+                out(name + "; " + resourceList.size() + " results");
+            }
             
             if (resourceList.size() > 0)
                 name += " (" + resourceList.size() + ")";
