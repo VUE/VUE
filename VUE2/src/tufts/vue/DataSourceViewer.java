@@ -44,7 +44,11 @@ import org.xml.sax.InputSource;
 
 import tufts.vue.gui.*;
 
-public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.vue.fsm.event.SearchListener {
+public class DataSourceViewer extends JPanel
+    implements KeyListener, edu.tufts.vue.fsm.event.SearchListener
+{
+    private static final boolean UseFederatedSearchManager = false;
+    
     private static DRBrowser DRB;
     private static Object activeDataSource;
     String breakTag = "";
@@ -570,25 +574,29 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 System.out.println(ds.getProviderDisplayName() + " \t" + ds);
             }
         }
-        
-        
-        new Thread("VUE-Search") {
-            public void run() {
-                if (DEBUG.DR || DEBUG.THREAD) out("search thread kicked off");
-                try {
-                    performSearchAndDisplayResults();
-                } catch (Throwable t) {
-                    tufts.Util.printStackTrace(t);
-                    if (DEBUG.Enabled)
-                        VueUtil.alert("Search Error", t);
-                    else
-                        VueUtil.alert(t.getMessage(), "Search Error");
-                } finally {
-                    queryEditor.refresh();
+
+        if (UseFederatedSearchManager) {
+            new Thread("VUE-Search") {
+                public void run() {
+                    if (DEBUG.DR || DEBUG.THREAD) out("search thread kicked off");
+                    try {
+                        performFederatedSearchAndDisplayResults();
+                    } catch (Throwable t) {
+                        tufts.Util.printStackTrace(t);
+                        if (DEBUG.Enabled)
+                            VueUtil.alert("Search Error", t);
+                        else
+                            VueUtil.alert(t.getMessage(), "Search Error");
+                    } finally {
+                        queryEditor.refresh();
+                    }
                 }
-            }
-        }.start();
+            }.start();
+        } else {
+            performParallelSearchesAndDisplayResults();
+        }
     }
+    
     private static JLabel SearchingLabel;
     private static final boolean UseSingleScrollPane = true;
     
@@ -603,10 +611,188 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
             setPreferredSize(new Dimension(getWidth(), WidgetStack.TitleHeight));
         }
     }
+
+    private static class Osid2AssetResourceFactory {
+
+        // TODO: Resources want to be atomic, so we should cache
+        // the result of converting the Asset to a Resource, and
+        // store the resource in a hash based on the Asset to 
+        // return for future lookups.
+        
+        static Resource createResource(org.osid.repository.Asset asset,
+                                       org.osid.repository.Repository repository,
+                                       org.osid.OsidContext context)
+            throws org.osid.repository.RepositoryException
+        {
+            return new Osid2AssetResource(asset, context);
+        }
+    }
+
+    private class SearchThread extends Thread
+    {
+        public final Widget mResultPane;
+
+        private final org.osid.repository.Repository mRepository;
+        private final String mSearchString;
+        
+        private java.io.Serializable mSearchCriteria;
+        private org.osid.shared.Type mSearchType;
+        private org.osid.shared.Properties mSearchProperties;
+
+        private final JLabel mStatusLabel;
+        private final String mRepositoryName;
+
+        public SearchThread(org.osid.repository.Repository r,
+                            String searchString,
+                            Serializable searchCriteria,
+                            org.osid.shared.Type searchType,
+                            org.osid.shared.Properties searchProperties)
+            throws org.osid.repository.RepositoryException
+        {
+            mRepository = r;
+            mSearchString = searchString;
+            mSearchCriteria = searchCriteria;
+            mSearchType = searchType;
+            mSearchProperties = searchProperties;
+
+            mRepositoryName = r.getDisplayName();
+
+            setName("VUE SearchThread: " + searchString + " in " + mRepositoryName);
+
+            mResultPane = new Widget("Searching " + r.getDisplayName());
+            mStatusLabel = new StatusLabel("Searching for " + mSearchString + " ...", true);
+            mResultPane.add(mStatusLabel);
+
+            if (DEBUG.DR) out("created search thread for: " + mRepositoryName + " \t" + mRepository);
+        }
+
+        public void run() {
+
+            if (DEBUG.DR) out("KICKED OFF");
+            
+            try {
+                adjustQuery();
+                processResultsAndDisplay(mRepository.getAssetsBySearch(mSearchCriteria, mSearchType, mSearchProperties));
+                //} catch (org.osid.repository.RepositoryException t) {
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t);
+                mResultPane.setTitle("Results: " + mRepositoryName);
+                mResultPane.removeAll();
+                JTextArea textArea = new JTextArea("Search Failed: " + t);
+                textArea.setBorder(new EmptyBorder(2,3,3,2));
+                textArea.setLineWrap(true);
+                textArea.setWrapStyleWord(true);
+                textArea.setOpaque(false);
+                mResultPane.add(textArea);
+                //mStatusLabel.setText("Failed: " + t.toString());
+            }
+        }
+
+        private void adjustQuery()
+            throws org.osid.repository.RepositoryException
+        {
+            //if (DEBUG.DR) out("checking for query adjustment");
+            edu.tufts.vue.fsm.QueryAdjuster adjuster = federatedSearchManager
+                .getQueryAdjusterForRepository(mRepository.getId());
+            if (adjuster != null) {
+                edu.tufts.vue.fsm.Query q = adjuster.adjustQuery(mRepository,
+                                                                 mSearchCriteria,
+                                                                 mSearchType,
+                                                                 mSearchProperties);
+                mSearchCriteria = q.getSearchCriteria();
+                mSearchType = q.getSearchType();
+                mSearchProperties = q.getSearchProperties();
+                if (DEBUG.DR) out("adjusted query");
+            }
+            //if (DEBUG.DR) out("done checking for query adjustment");
+        }
+
+        private void processResultsAndDisplay(org.osid.repository.AssetIterator assetIterator)
+            throws org.osid.repository.RepositoryException
+        {
+            final java.util.List resourceList = new java.util.ArrayList();            
+
+            int maxResult = 0;
+            while (assetIterator.hasNextAsset() && (maxResult++ < 10)) {
+                org.osid.repository.Asset asset = assetIterator.nextAsset();
+                resourceList.add(Osid2AssetResourceFactory.createResource(asset,
+                                                                          mRepository,
+                                                                          DataSourceViewer.this.context));
+            }
+
+            String name = "Results: " + mRepositoryName;
+            if (DEBUG.DR) out(name + ": " + resourceList.size() + " results");
+            
+            if (resourceList.size() > 0)
+                name += " (" + resourceList.size() + ")";
+
+            mResultPane.setTitle(name);
+            mResultPane.removeAll();
+            
+            if (resourceList.size() == 0) {
+                mResultPane.add(new StatusLabel("No results for " + mSearchString, false));
+            } else {
+                mResultPane.add(new ResourceList(resourceList));
+            }
+
+            // must call revalidate because we're coming from another thread:
+            mResultPane.revalidate();
+        }
+    }
+                                              
+
     
-    private synchronized void performSearchAndDisplayResults()
-    throws org.osid.repository.RepositoryException,
-            org.osid.shared.SharedException {
+    
+    private synchronized void performParallelSearchesAndDisplayResults()
+    {
+        final String searchString = "\"" + queryEditor.getSearchDisplayName() + "\"";
+        final WidgetStack resultsStack = new WidgetStack("searchResults " + searchString);
+        final org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
+        final java.io.Serializable searchCriteria = queryEditor.getCriteria();
+        final org.osid.shared.Type searchType = queryEditor.getSearchType();
+        final org.osid.shared.Properties searchProperties = queryEditor.getProperties();
+        final Thread[] threads = new Thread[repositories.length];
+        
+        if (DEBUG.DR) {
+            out("Searching criteria [" + searchString + "] in selected repositories."
+                + "\n\tsearchType=" + searchType
+                + "\n\tsearchProps=" + searchProperties);
+        }
+    
+        for (int i = 0; i < repositories.length; i++) { 
+            final org.osid.repository.Repository repository = repositories[i];
+
+            SearchThread searchThread = null;
+            try {
+
+                searchThread = new SearchThread(repository, searchString,
+                                                searchCriteria, searchType, searchProperties);
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t, "Failed to create search in " + repository);
+                if (DEBUG.Enabled)
+                    VueUtil.alert("Search Error", t);
+                else
+                    VueUtil.alert(t.getMessage(), "Search Error");
+            }
+            
+            threads[i] = searchThread;
+            resultsStack.addPane(searchThread.mResultPane, 0f);
+        }
+        
+        DRB.searchPane.add(resultsStack, DRBrowser.SEARCH_RESULT);
+
+        //-----------------------------------------------------------------------------
+        // KICK OFF THE SEARCH THREADS
+        //-----------------------------------------------------------------------------
+
+        for (int i = 0; i < threads.length; i++)
+            threads[i].start();
+    }
+    
+    private synchronized void performFederatedSearchAndDisplayResults()
+        throws org.osid.repository.RepositoryException,
+               org.osid.shared.SharedException
+    {
         //final String dockTitle = "Search Results for \"" + queryEditor.getSearchDisplayName() + "\"";
         final String searchString = "\"" + queryEditor.getSearchDisplayName() + "\"";
         
@@ -698,7 +884,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener, edu.tufts.
                 resultPanes[i].add(new ResourceList(resourceList));
             }
         }
-        
     }
     
     private void displayEditOrInfo(edu.tufts.vue.dsm.DataSource ds) {
