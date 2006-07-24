@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.113 $ / $Date: 2006-07-20 20:25:21 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.113 2006-07-20 20:25:21 anoop Exp $ -->
+<!-- $Revision: 1.114 $ / $Date: 2006-07-24 20:37:50 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.114 2006-07-24 20:37:50 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -726,7 +726,7 @@
     <echo message="Building ${vue.jar}..."/>
     <jar destfile="${vue.jar}" compress="true" index="true" update="false" duplicate="preserve">
         <manifest>
-        <attribute name="Description" value="Tufts/MIT VUE 0.9+ (Visual Understanding Environment)"/>
+        <attribute name="Description" value="Tufts VUE 1.x (Visual Understanding Environment)"/>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Built" value="${TODAY} ${TSTAMP}"/>
         <attribute name="Build-Platform" value="${os.name} ${os.version} ${os.arch}"/>
