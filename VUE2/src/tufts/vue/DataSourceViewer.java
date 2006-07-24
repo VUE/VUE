@@ -99,9 +99,12 @@ public class DataSourceViewer extends JPanel
     
     private org.osid.OsidContext context = new org.osid.OsidContext();
     org.osid.registry.Provider checked[];
+
+    private final ThreadGroup mSearchThreadGroup;
     
     public DataSourceViewer(DRBrowser drBrowser) {
         GUI.activateWaitCursor();
+        
         setLayout(new BorderLayout());
         this.DRB = drBrowser;
         dataSourceList = new DataSourceList(this);
@@ -134,6 +137,8 @@ public class DataSourceViewer extends JPanel
         queryEditor = federatedSearchManager.getQueryEditorForType(searchType);
         queryEditor.addSearchListener(this);
         
+        mSearchThreadGroup = new ThreadGroup("VUE-SearchParent");
+        
         // select the first new data source, if any
         if ((dataSources != null) && (dataSources.length > 0)) {
             setActiveDataSource(dataSources[0]);
@@ -155,6 +160,7 @@ public class DataSourceViewer extends JPanel
         } else {
             add(dataSourceList);
         }
+
         GUI.clearWaitCursor();
     }
     
@@ -627,11 +633,15 @@ public class DataSourceViewer extends JPanel
                                        org.osid.OsidContext context)
             throws org.osid.repository.RepositoryException
         {
-            return new Osid2AssetResource(asset, context);
+            Resource r = new Osid2AssetResource(asset, context);
+            r.addProperty("_Repository", repository.getDisplayName());
+            return r;
         }
     }
 
-    private class SearchThread extends Thread
+    private static int SearchCounter = 0;
+    
+    private  class SearchThread extends Thread
     {
         public final Widget mResultPane;
 
@@ -652,6 +662,9 @@ public class DataSourceViewer extends JPanel
                             org.osid.shared.Properties searchProperties)
             throws org.osid.repository.RepositoryException
         {
+            super(mSearchThreadGroup, "VUE.Search" + (SearchCounter++) + " " + searchString + " in " + r.getDisplayName());
+            setDaemon(true);
+            
             mRepository = r;
             mSearchString = searchString;
             mSearchCriteria = searchCriteria;
@@ -659,8 +672,6 @@ public class DataSourceViewer extends JPanel
             mSearchProperties = searchProperties;
 
             mRepositoryName = r.getDisplayName();
-
-            setName("VUE SearchThread: " + searchString + " in " + mRepositoryName);
 
             mResultPane = new Widget("Searching " + mRepositoryName);
             mStatusLabel = new StatusLabel("Searching for " + mSearchString + " ...", true);
@@ -671,23 +682,56 @@ public class DataSourceViewer extends JPanel
 
         public void run() {
 
+            if (stopped())
+                return;
+
             if (DEBUG.DR) out("KICKED OFF");
             
             try {
                 adjustQuery();
+                if (stopped())
+                    return;
+
+                // TODO: ultimately, the repository will need some kind of callback
+                // architecture, so that a search can be aborted even while waiting for
+                // the server to come back, tho it'll probably need to use channel based
+                // NIO to really get that working.  Should that day come, the federated
+                // search manager could handle this full threading and calling us back
+                // as results come in, so we could skip our threading code here, and so
+                // other GUI's could take advantage of the fully parallel search code.
+                
+                // INVOKE THE SEARCH, and immediately hand off to processResultsAndDisplay
                 processResultsAndDisplay(mRepository.getAssetsBySearch(mSearchCriteria, mSearchType, mSearchProperties));
+                
             } catch (Throwable t) {
                 tufts.Util.printStackTrace(t);
+                if (stopped())
+                    return;
                 mResultPane.setTitle("Results: " + mRepositoryName);
                 mResultPane.removeAll();
                 JTextArea textArea = new JTextArea(mRepositoryName + ": Search Error: " + t);
-                textArea.setBorder(new EmptyBorder(3,22,4,0));
+                textArea.setBorder(new EmptyBorder(4,22,6,0));
                 textArea.setLineWrap(true);
                 textArea.setWrapStyleWord(true);
                 textArea.setEditable(false);
-                //textArea.setOpaque(false);
+                textArea.setOpaque(false);
                 mResultPane.add(textArea);
             }
+        }
+
+        // As we create a new Widget for the output of every search, in terms of a new
+        // search replacing a still running search, we're already safe UI wise even if
+        // we never interrupted a search, but we might as well be careful about it / not
+        // waste cycles, and it's nice if the user can abort if desired.
+        
+        private boolean stopped() {
+            if (isInterrupted()) {
+                if (DEBUG.DR) out("ABORTED");
+                mResultPane.setTitle(mRepositoryName + " (Aborted)");
+                mStatusLabel.setText("Search Aborted.");
+                return true;
+            } else
+                return false;
         }
 
         private void adjustQuery()
@@ -712,8 +756,11 @@ public class DataSourceViewer extends JPanel
         private void processResultsAndDisplay(org.osid.repository.AssetIterator assetIterator)
             throws org.osid.repository.RepositoryException
         {
-            if (DEBUG.DR) out("processing AssetIterator...");
+            if (stopped())
+                return;
             
+            if (DEBUG.DR) out("processing AssetIterator...");
+
             final java.util.List resourceList = new java.util.ArrayList();
 
             final int maxResult = 100;
@@ -740,6 +787,9 @@ public class DataSourceViewer extends JPanel
             if (resourceList.size() > 0)
                 name += " (" + resourceList.size() + ")";
 
+            if (stopped())
+                return;
+            
             mResultPane.setTitle(name);
             mResultPane.removeAll();
             
@@ -755,10 +805,17 @@ public class DataSourceViewer extends JPanel
     }
                                               
 
-    
-    
     private synchronized void performParallelSearchesAndDisplayResults()
     {
+        if (DEBUG.DR) {
+            synchronized (System.out) {
+                System.out.println("Current search thread group:");
+                mSearchThreadGroup.list();
+            }
+        }
+        
+        mSearchThreadGroup.interrupt();
+        
         final String searchString = "\"" + queryEditor.getSearchDisplayName() + "\"";
         final WidgetStack resultsStack = new WidgetStack("searchResults " + searchString);
         final org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
