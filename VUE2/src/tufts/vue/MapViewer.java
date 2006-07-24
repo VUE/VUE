@@ -60,7 +60,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.287 $ / $Date: 2006-06-04 23:09:56 $ / $Author: sfraize $ 
+ * @version $Revision: 1.288 $ / $Date: 2006-07-24 05:20:42 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -82,12 +82,6 @@ public class MapViewer extends javax.swing.JComponent
     static final int RolloverAutoZoomDelay = VueResources.getInt("mapViewer.rolloverAutoZoomDelay");
     static final int RolloverMinZoomDeltaTrigger_int = VueResources.getInt("mapViewer.rolloverMinZoomDeltaTrigger", 10);
     static final float RolloverMinZoomDeltaTrigger = RolloverMinZoomDeltaTrigger_int > 0 ? RolloverMinZoomDeltaTrigger_int / 100f : 0f;
-    /** for initiating a Drag that can go off the map */
-    private static final int SYSTEM_DRAG_MODIFIER =
-        VueUtil.isMacPlatform() ?
-        InputEvent.META_MASK :
-        InputEvent.ALT_MASK;
-        
     
     private Rectangle2D.Float RepaintRegion = null; // could handle in DrawContext
     private Rectangle paintedSelectionBounds = null;
@@ -2816,9 +2810,9 @@ public class MapViewer extends javax.swing.JComponent
 
                     data = LWC.getResource();
 
-                } else if (URLFlavor.equals(flavor) && LWC.getResource() instanceof MapResource) {
+                } else if (URLFlavor.equals(flavor) && LWC.getResource() instanceof URLResource) {
 
-                    data = ((MapResource)LWC.getResource()).asURL();
+                    data = ((URLResource)LWC.getResource()).asURL();
 
                 } else {
                     throw new UnsupportedFlavorException(flavor);
@@ -2834,7 +2828,7 @@ public class MapViewer extends javax.swing.JComponent
     MouseWheelListener getMouseWheelListener() {
         return inputHandler;
     }
-    
+
     // todo: if java ever supports moving an inner class to another file,
     // move the InputHandler out: this file has gotten too big.
     // or: just get rid of this and make it all MapViewer methods.
@@ -3054,7 +3048,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == '=') { DEBUG.THREAD = !DEBUG.THREAD; }
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
-                else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(this); }
+                //else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(this); }
                 //else if (c == '&') { tufts.macosx.Screen.fadeFromBlack(); }
                 //else if (c == '@') { tufts.macosx.Screen.setMainAlpha(.5f); }
                 //else if (c == '$') { tufts.macosx.Screen.setMainAlpha(1f); }
@@ -3282,6 +3276,7 @@ public class MapViewer extends javax.swing.JComponent
                 // a context menu depending on what's in selection.
                 //-------------------------------------------------------
                 displayContextMenu(e, hitComponent);
+                return;
             }
             else if (hitComponent != null) {
                 // special case handling for KEY_TOOL_LINK which
@@ -3346,7 +3341,7 @@ public class MapViewer extends javax.swing.JComponent
                 
                 // SPECIAL CASE for dragging the entire selection
                 if (activeTool.supportsSelection()
-                    && (noModifierKeysDown(e) || onlyModifierDown(e, SYSTEM_DRAG_MODIFIER))
+                    && (noModifierKeysDown(e) || isSystemDragStart(e))
                     //&& VueSelection.size() > 1
                     && VueSelection.contains(mapX, mapY))
                 {
@@ -3378,7 +3373,7 @@ public class MapViewer extends javax.swing.JComponent
             
             if (dragComponent != null)
                 dragOffset.setLocation(dragComponent.getX() - mapX,
-                dragComponent.getY() - mapY);
+                                       dragComponent.getY() - mapY);
             
         }
         
@@ -3813,7 +3808,7 @@ public class MapViewer extends javax.swing.JComponent
             //System.out.println("drag " + drags++);
             if (mouseWasDragged == false) {
 
-                if (onlyModifierDown(e, SYSTEM_DRAG_MODIFIER)) {
+                if (isSystemDragStart(e)) {
                     startSystemDrag(e);
                     // we'll get no more mouseDragged, and no mouseReleased
                     return;
@@ -4434,8 +4429,33 @@ public class MapViewer extends javax.swing.JComponent
             return (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
         }
         
+        /*
+        // for initiating a Drag that can go off the map 
+        private static final int SYSTEM_DRAG_MODIFIER =
+        InputEvent.BUTTON1_DOWN_MASK
+        | (
+           VueUtil.isMacPlatform() ?
+           InputEvent.META_DOWN_MASK :
+           InputEvent.ALT_DOWN_MASK);
+        
         private final boolean onlyModifierDown(MouseEvent e, int modifier) {
-            return (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == modifier;
+            //out("RAW MODIFIER TEST [" + InputEvent.getModifiersExText(InputEvent.META_DOWN_MASK + InputEvent.BUTTON1_DOWN_MASK) + "]");
+            out("ONLY MODIFIER DOWN CHECKING AGAINST InputEvent [" + InputEvent.getModifiersExText(modifier) + "]");
+            out("ONLY MODIFIER DOWN CHECKING AGAINST MouseEVent [" + MouseEvent.getMouseModifiersText(modifier) + "]");
+            return (e.getModifiersEx() & modifier) == modifier;
+            //return (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == modifier;
+        }
+        */
+
+        private final int SYSTEM_DRAG_MODIFIER = VueUtil.isMacPlatform() ? InputEvent.META_MASK : InputEvent.ALT_MASK;
+    
+        private final boolean isSystemDragStart(MouseEvent e) {
+            //out("   MODIFIERS ACCORDING TO InputEvent [" + InputEvent.getModifiersExText(e.getModifiers()) + "]");
+            //out("   MODIFIERS ACCORDING TO MouseEvent [" + MouseEvent.getMouseModifiersText(e.getModifiers()) + "]");
+            //out("EX MODIFIERS ACCORDING TO InputEvent [" + InputEvent.getModifiersExText(e.getModifiersEx()) + "]");
+            //out("EX MODIFIERS ACCORDING TO MouseEvent [" + MouseEvent.getMouseModifiersText(e.getModifiersEx()) + "]");
+            // button is 0 (!) on the PC, which is why <= 1 compare for getB
+            return !e.isPopupTrigger() && e.getButton() <= 1 && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == SYSTEM_DRAG_MODIFIER;
         }
         
         private final boolean isDoubleClickEvent(MouseEvent e) {
