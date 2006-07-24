@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.77 $ / $Date: 2006-07-14 20:01:24 $ / $Author: mike $
+ * @version $Revision: 1.78 $ / $Date: 2006-07-24 00:15:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -64,6 +64,8 @@ public class DockWindow extends javax.swing.JWindow
                , FocusManager.MouseInterceptor
                , java.beans.PropertyChangeListener
 {
+    public static final int DefaultWidth = 300;
+    
     final static java.util.List sAllWindows = new java.util.ArrayList();
     final static char RightArrowChar = 0x25B8; // unicode
     final static char DownArrowChar = 0x25BE; // unicode
@@ -198,7 +200,7 @@ public class DockWindow extends javax.swing.JWindow
 
         if (!isToolbar) {
             // set a default size
-            setSize(300,150);
+            setSize(DefaultWidth,150);
             //setMinimumSize(new Dimension(180,100)); // java 1.5 only
             //setPreferredSize(new Dimension(300,150)); // interferes with height
         }
@@ -272,7 +274,7 @@ public class DockWindow extends javax.swing.JWindow
         
         if (!hadContent || !isDisplayable()) {
             pack();
-            setSize(300, getHeight());
+            setSize(DefaultWidth, getHeight());
         } else {
             validate();
         }
