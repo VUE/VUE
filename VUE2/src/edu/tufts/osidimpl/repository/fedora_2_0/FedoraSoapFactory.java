@@ -66,8 +66,7 @@ public class FedoraSoapFactory {
                 }
             }
         } catch(Throwable t) {
-            t.printStackTrace();
-            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.getDisseminators "+t.getMessage());
+            throw wrappedException("getDisseminators", t);
         }
         
         return disseminationList;
@@ -101,9 +100,7 @@ public class FedoraSoapFactory {
                 lSearchCriteria.setToken(null);
             return getAssetIterator(repository, searchResults,lSearchCriteria);
         }catch(Throwable t) {
-            t.printStackTrace();
-            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.search"+t.getMessage());
-            
+            throw wrappedException("search", t);
         }
     }
  
@@ -121,7 +118,7 @@ public class FedoraSoapFactory {
             java.util.Vector resultObjects = new java.util.Vector();
             return getAssetIterator(repository, searchResults,lSearchCriteria);
         }catch(Throwable t) {
-            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.advancedSearch"+t.getMessage());
+            throw wrappedException("advancedSearch", t);
         }
     }
 
@@ -142,9 +139,20 @@ public class FedoraSoapFactory {
             }
             return new AssetIterator(resultObjects) ;
         }catch(Throwable t){
-            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.getAssetIterator"+t.getMessage());
+            throw wrappedException("getAssetIterator", t);
         }
     }
+
+
+    private static org.osid.repository.RepositoryException wrappedException(String method, Throwable cause)
+    {
+        cause.printStackTrace();
+        org.osid.repository.RepositoryException re =
+            new org.osid.repository.RepositoryException("FedoraSoapFactory." + method + "; cause is " + cause);
+        re.initCause(cause);
+        return re;
+    }
+
     
     
 }
