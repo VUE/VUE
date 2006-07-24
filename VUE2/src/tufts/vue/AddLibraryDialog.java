@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.43 $ / $Date: 2006-07-24 15:22:45 $ / $Author: mike $
+ * @version $Revision: 1.44 $ / $Date: 2006-07-24 18:09:50 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -44,7 +44,8 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     DefaultListModel listModel = new DefaultListModel();
     JScrollPane listJsp;
     JScrollPane descriptionJsp;
-    
+    JPanel progressBarPanel = new JPanel();
+    JProgressBar progressBar = new JProgressBar();
     edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
     edu.tufts.vue.dsm.OsidFactory factory;
     org.osid.provider.Provider checked[];
@@ -101,8 +102,10 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             descriptionTextArea.setMargin(new Insets(4,4,4,4));
             descriptionTextArea.setLineWrap(true);
             descriptionTextArea.setWrapStyleWord(true);
+       
             
-            populate();
+            progressBar.setIndeterminate(true);
+            
             
             listJsp = new JScrollPane(addLibraryList);
             listJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -136,7 +139,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             gbConstraints.gridwidth = 1;
             gbConstraints.fill=GridBagConstraints.BOTH;
             gbConstraints.weightx=1;
-            gbConstraints.weighty=1;
+            gbConstraints.weighty=0;
             gbConstraints.insets = new Insets(4,15,4,15);
             
             addLibraryPanel.add(availabilityPanel,gbConstraints);
@@ -145,6 +148,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             gbConstraints.gridy = 1;
             gbConstraints.weighty=1;
             addLibraryPanel.add(listJsp,gbConstraints);
+ 
             
             gbConstraints.gridx = 0;
             gbConstraints.gridy = 2;
@@ -172,20 +176,49 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             gbConstraints.gridx=0;
             gbConstraints.gridy=0;
             gbConstraints.fill=GridBagConstraints.BOTH;
-            gbConstraints.weighty=1;
-            getContentPane().add(addLibraryPanel,gbConstraints);//,BorderLayout.CENTER);
+            gbConstraints.weighty=0;
+            progressBarPanel.setLayout(new GridBagLayout());
+            progressBarPanel.add(progressBar,gbConstraints);
+            JLabel progressBarLabel = new JLabel(VueResources.getString("addLibrary.retrievingDataLabel"));
+            
+            gbConstraints.gridx=0;
+            gbConstraints.gridy=1;
+            gbConstraints.fill=GridBagConstraints.BOTH;
+            gbConstraints.weighty=0;
+            progressBarPanel.add(progressBarLabel,gbConstraints);
+            
+            
+            progressBarPanel.setPreferredSize(new Dimension(368,472));            
+            gbConstraints.gridx=0;
+            gbConstraints.gridy=0;
+            gbConstraints.fill=GridBagConstraints.BOTH;
+            gbConstraints.weighty=0;
+            getContentPane().add(progressBarPanel,gbConstraints);//,BorderLayout.CENTER);
+        //    getContentPane().add(addLibraryPanel,gbConstraints);//,BorderLayout.CENTER);
             pack();
             setLocation(300,300);
         } catch (Throwable t) {
             t.printStackTrace();
         }
         this.setMinSizeRestriction(this.getWidth(),this.getHeight());        
-        setVisible(true);
         
+        
+        //populate();
+        PopulateThread t = new PopulateThread();
+        t.start();
+        setVisible(true);
     }
     
     public void refresh() {
-        populate();
+    	getContentPane().remove(addLibraryPanel);
+    	java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
+    	gbConstraints.gridx=0;
+        gbConstraints.gridy=0;
+        gbConstraints.fill=GridBagConstraints.BOTH;
+        gbConstraints.weighty=0;
+        getContentPane().add(progressBarPanel,gbConstraints);//,BorderLayout.CENTER);
+    	PopulateThread t = new PopulateThread();
+        t.start();
     }
     
     private void populate() {
@@ -193,7 +226,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
 		this.oldDataSource = null;
 		this.newDataSource = null;
         try {
-            GUI.activateWaitCursor();
+       //     GUI.activateWaitCursor();
             if (dataSourceManager == null) {
                 dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
             }
@@ -218,7 +251,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             t.printStackTrace();
             VueUtil.alert(t.getMessage(),"Error");
         } finally {
-            GUI.clearWaitCursor();
+  //          GUI.clearWaitCursor();
         }
         // add all data sources we include with VUE
         listModel.addElement(MY_COMPUTER);
@@ -487,6 +520,39 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
         }
         public void run() {
             add();
+        }
+    }
+    
+    private class PopulateThread extends Thread {
+        public PopulateThread() {
+            super();
+        }
+        public void run() {
+        	try
+        	{
+        		populate();
+        	}
+        	catch(Exception e)
+        	{
+        		e.printStackTrace();        		
+        	}
+            finally
+            {
+            	java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();            
+            	gbConstraints.insets = new Insets(4,15,4,15);
+            	gbConstraints.gridwidth = 1;
+            	gbConstraints.fill=GridBagConstraints.BOTH;
+            	gbConstraints.weightx=1;            
+            	getContentPane().remove(progressBarPanel);
+            	gbConstraints.gridx=0;
+            	gbConstraints.gridy=0;
+            	gbConstraints.fill=GridBagConstraints.BOTH;
+            	gbConstraints.weighty=1;
+            	getContentPane().add(addLibraryPanel,gbConstraints);//,BorderLayout.CENTER);
+            	validate();
+            	repaint();
+            }
+            
         }
     }
 }
