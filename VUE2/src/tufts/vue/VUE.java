@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.374 $ / $Date: 2006-06-04 22:14:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.375 $ / $Date: 2006-07-24 00:16:49 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -749,8 +749,19 @@ public class VUE
         ApplicationFrame.validate();
         //if (DEBUG.INIT) out("frame validated");
 
-        ApplicationFrame.setSize((int) (GUI.GScreenWidth * 0.75),
-                                 (int) (GUI.GScreenHeight * 0.75));
+        int appWidth = (int) (GUI.GScreenWidth * 0.75);
+        int appHeight = (int) (GUI.GScreenHeight * 0.75);
+
+        // If you've got a wide screen, leave at least 600
+        // pixels at the right for two full 300pix DockWindow's
+        if (GUI.GScreenWidth >= 1600) { 
+            int maxWidth = GUI.GScreenWidth - (GUI.GInsets.left + DockWindow.DefaultWidth * 2);
+            if (appWidth > maxWidth)
+                appWidth = maxWidth;
+        }
+                              
+
+        ApplicationFrame.setSize(appWidth, appHeight);
 
         ApplicationFrame.setLocation(GUI.GInsets.left,
                                      GUI.GInsets.top
