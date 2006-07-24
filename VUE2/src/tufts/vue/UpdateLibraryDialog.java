@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.9 $ / $Date: 2006-07-20 15:22:40 $ / $Author: mike $
+* @version $Revision: 1.10 $ / $Date: 2006-07-24 15:22:45 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -113,7 +113,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             
             java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
             java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
-            buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+            
             
             gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
             gbConstraints.insets = new java.awt.Insets(2,2,2,2);
@@ -143,7 +143,18 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             gbConstraints.gridy = 2;
             addLibraryPanel.add(descriptionJsp,gbConstraints);
             
-            buttonPanel.add(cancelButton);
+            buttonPanel.setLayout(new BoxLayout(buttonPanel,BoxLayout.X_AXIS));            
+            
+            buttonPanel.add(Box.createHorizontalGlue());
+            cancelButton.setPreferredSize(addButton.getPreferredSize());
+            buttonPanel.add(cancelButton);            
+            buttonPanel.add(Box.createHorizontalStrut(6));
+            cancelButton.addActionListener(this);
+
+            buttonPanel.add(addButton);
+            addButton.addActionListener(this);
+
+            /*buttonPanel.add(cancelButton);
             
             cancelButton.setMinimumSize(new Dimension(80,25));
             cancelButton.setPreferredSize(new Dimension(80,25));
@@ -154,7 +165,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             addButton.setMinimumSize(new Dimension(80,25));
             addButton.setPreferredSize(new Dimension(80,25));
             addButton.addActionListener(this);
-            
+            */
             getRootPane().setDefaultButton(addButton);
             
             gbConstraints.gridx = 0;

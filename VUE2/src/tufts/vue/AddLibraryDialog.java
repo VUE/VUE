@@ -24,10 +24,11 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.42 $ / $Date: 2006-07-20 15:22:40 $ / $Author: mike $
+ * @version $Revision: 1.43 $ / $Date: 2006-07-24 15:22:45 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
+
 import java.awt.event.*;
 
 import javax.swing.event.*;
@@ -150,25 +151,13 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             addLibraryPanel.add(descriptionJsp,gbConstraints);
             
             
-            java.awt.GridBagLayout gridBagLayout = new java.awt.GridBagLayout();
-            java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
-            buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
             
-            //gridBagConstraints.gridx=0;
-            //gridBagConstraints.gridy=0;
-            //gridBagConstraints.weighty=1;
-            //gridBagConstraints.ipadx=10;
-            //gridBagConstraints.anchor=GridBagConstraints.EAST;
+            buttonPanel.setLayout(new BoxLayout(buttonPanel,BoxLayout.X_AXIS));            
+            buttonPanel.add(Box.createHorizontalGlue());
+            addButton.setPreferredSize(cancelButton.getPreferredSize());
             buttonPanel.add(cancelButton);            
-            cancelButton.setMinimumSize(new Dimension(60,25));
-            cancelButton.setPreferredSize(new Dimension(60,25));
             cancelButton.addActionListener(this);
-            
-            //gridBagConstraints.gridx=1;
-            //gridBagConstraints.gridy=0;
-            //gridBagConstraints.weighty=1;
-            addButton.setMinimumSize(new Dimension(60,25));
-            addButton.setPreferredSize(new Dimension(60,25));
+            buttonPanel.add(Box.createHorizontalStrut(6));
             buttonPanel.add(addButton);
             addButton.addActionListener(this);
             
