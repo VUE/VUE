@@ -43,7 +43,7 @@ import com.sun.xml.rpc.processor.modeler.j2ee.xml.javaXmlTypeMappingType;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.9 $ / $Date: 2006-07-18 16:20:27 $ / $Author: mike $
+ * @version $Revision: 1.10 $ / $Date: 2006-07-25 19:40:02 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -51,6 +51,7 @@ public class Widget extends javax.swing.JPanel
     static final String EXPANSION_KEY = "widget.expand";
     static final String HIDDEN_KEY = "widget.hide";
     static final String MENU_ACTIONS_KEY = "widget.menuActions";
+    static final String HELP_ACTION_KEY = "widget.helpAction";
     static final String REFRESH_ACTION_KEY = "widget.refreshAction";
     static final String WANTS_SCROLLER_KEY = "widget.wantsScroller";
     static final String TITLE_HIDDEN_KEY = "widget.titleHidden";
@@ -105,6 +106,12 @@ public class Widget extends javax.swing.JPanel
         }
 
         //c.firePropertyChange("TESTPROPERTY", false, true);
+    }
+    
+    public static void setHelpAction(JComponent c, String action)
+    {
+    //	if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setMenuAction " + action.toString());
+        c.putClientProperty(HELP_ACTION_KEY, action);
     }
     
     public static void setRefreshAction(JComponent c, MouseListener action)

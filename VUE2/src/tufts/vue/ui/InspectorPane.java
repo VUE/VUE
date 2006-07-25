@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.24 $ / $Date: 2006-06-17 00:38:35 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2006-07-25 19:40:02 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -85,21 +85,32 @@ public class InspectorPane extends JPanel
 
         VUE.getSelection().addListener(this);
         VUE.getResourceSelection().addListener(this);
+        Widget.setHelpAction(mSummaryPane,VueResources.getString("dockWindow.Info.summaryPane.helpText"));;
+        Widget.setHelpAction(mPreview,VueResources.getString("dockWindow.Info.previewPane.helpText"));;
+        Widget.setHelpAction(mResourceMetaData,VueResources.getString("dockWindow.Info.resourcePane.helpText"));;
+        Widget.setHelpAction(mNotePanel,VueResources.getString("dockWindow.Info.notesPane.helpText"));;
+        Widget.setHelpAction(mUserMetaData,VueResources.getString("dockWindow.Info.userPane.helpText"));;
+        
     }
 
     public void resourceSelectionChanged(ResourceSelection selection)
-    {
+    {    	
         if (DEBUG.RESOURCE) out("resource selected: " + selection.get());
         showNodePanes(false);
         showResourcePanes(true);
         loadResource(selection.get());
     }
 
-    public void selectionChanged(LWSelection selection) {
+    public void selectionChanged(LWSelection selection) {  
         showNodePanes(true);
-        if (selection.isEmpty() || selection.size() > 1) {
+        if (selection.isEmpty() || selection.size() > 1) {        	
             loadResource(null);
+            this.setEnabled(false);
+            this.getParent().setEnabled(false);
+            showNodePanes(false);
         } else {
+        	this.setEnabled(true);
+        	this.getParent().setEnabled(true);
             LWComponent c = selection.first();
             if (c.hasResource()) {
                 loadResource(c.getResource());

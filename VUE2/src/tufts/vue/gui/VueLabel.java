@@ -9,7 +9,12 @@ public class VueLabel extends JLabel
 	public VueLabel(ImageIcon imageIconResource) {
 		super(imageIconResource);
 	}
-
+	
+	public VueLabel()
+	{
+		super();
+	}
+	
 	public JToolTip createToolTip()
 	{
 		JMultiLineToolTip tip = new JMultiLineToolTip();

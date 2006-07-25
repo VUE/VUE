@@ -30,13 +30,15 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import com.sun.tools.xjc.generator.unmarshaller.automaton.Alphabet.SuperClass;
+
 /**
  * A vertical stack of collapsable/expandable regions containing arbitrary JComponent's.
  *
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.27 $ / $Date: 2006-07-25 14:15:55 $ / $Author: mike $
+ * @version $Revision: 1.28 $ / $Date: 2006-07-25 19:40:02 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -182,7 +184,7 @@ public class WidgetStack extends Widget
 
         //if (!widget.isPreferredSizeSet()) {// note: a java 1.5 api call only
         //if (!isExpander && !widget.isMinimumSizeSet())
-        //    widget.setMinimumSize(widget.getPreferredSize());
+        //    widget.setMinimumSize(widget.getPreferredSize());                
         
     }
 
@@ -289,6 +291,7 @@ public class WidgetStack extends Widget
         private final JComponent mWidget;
         private final GUI.IconicLabel mIcon;
         private final RefreshButton refreshButton;
+        private final HelpButton helpButton;
         
         private final boolean isExpander;
 
@@ -356,6 +359,9 @@ public class WidgetStack extends Widget
             
             refreshButton = new RefreshButton("refreshButton",null);
             add(refreshButton);
+        
+            helpButton = new HelpButton(null);
+            add(helpButton);
             
             add(Box.createHorizontalStrut(isMac ? 1 : 2));
             
@@ -448,6 +454,8 @@ public class WidgetStack extends Widget
             } else if (key == REFRESH_ACTION_KEY) {
                 refreshButton.setAction((MouseListener)e.getNewValue());
                 
+            } else if (key == HELP_ACTION_KEY) {                
+                helpButton.setHelpText((String)e.getNewValue());
             } else if (key.equals("name")) {
                 mTitle.setText((String) e.getNewValue());
                 
@@ -642,6 +650,66 @@ public class WidgetStack extends Widget
         
     }
 
+    static class HelpButton extends VueLabel implements MouseListener {
+        
+
+        HelpButton(Action[] actions) {
+            //super(iconChar, 18, defaultColor, TitleHeight, TitleHeight);
+        	super();
+        	setIcon(VueResources.getImageIcon("dockWindow.helpIcon.raw"));
+        	
+        	Insets noInsets=new Insets(5,0,0,0);
+
+        	// todo: to keep manually picking a height and a bottom pad to get this
+            // middle aligned is no good: will eventually want to use a TextLayout to
+            // get precise bounds for center, and create as a real Icon
+        	addMouseListener(this);
+            setBorder(new javax.swing.border.EmptyBorder(3,3,3,3));
+            setHelpText(null);
+        }    
+        
+        public void setHelpText(String text) 
+        {            
+            if (text == null) {
+            	this.setToolTipText(null);
+                setVisible(false);
+                return;
+            }
+            else
+            {
+            	this.setToolTipText(text);
+            	setVisible(true);
+            }
+        }        
+        
+        public void mouseClicked(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mousePressed(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mouseReleased(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mouseEntered(MouseEvent arg0) {			
+			setIcon(VueResources.getImageIcon("dockWindow.helpIcon.hover"));
+			repaint();
+			
+		}
+
+		public void mouseExited(MouseEvent arg0) {
+			setIcon(VueResources.getImageIcon("dockWindow.helpIcon.raw"));
+			repaint();
+			
+		}                
+
+    }
     static class RefreshButton extends JLabel implements MouseListener{
     	
     	private String iconChar;
@@ -721,7 +789,7 @@ public class WidgetStack extends Widget
         
         tufts.vue.VUE.init(args);
         
-        WidgetStack s = new WidgetStack();
+        WidgetStack s = new WidgetStack("Test");
 
         String[] names = new String[] { "One",
                                         "contentPreview",

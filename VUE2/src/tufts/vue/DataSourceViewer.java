@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import tufts.vue.gui.VueButton;
+import tufts.vue.gui.Widget;
 import tufts.vue.ui.ResourceList;
 
 
@@ -160,7 +161,11 @@ public class DataSourceViewer extends JPanel
         } else {
             add(dataSourceList);
         }
-
+        
+        Widget.setHelpAction(DRB.librariesPanel,VueResources.getString("dockWindow.Content.libraryPane.helpText"));;
+        Widget.setHelpAction(DRB.browsePane,VueResources.getString("dockWindow.Content.browsePane.helpText"));;
+        Widget.setHelpAction(DRB.resultsPane,VueResources.getString("dockWindow.Content.resultsPane.helpText"));;
+        Widget.setHelpAction(DRB.searchPane,VueResources.getString("dockWindow.Content.searchPane.helpText"));;
         GUI.clearWaitCursor();
     }
     

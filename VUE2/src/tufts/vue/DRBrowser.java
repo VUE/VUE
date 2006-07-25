@@ -28,7 +28,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.53 $ / $Date: 2006-06-13 18:04:23 $ / $Author: jeff $ 
+ * @version $Revision: 1.54 $ / $Date: 2006-07-25 19:40:01 $ / $Author: mike $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -192,7 +192,7 @@ public class DRBrowser extends JPanel
         resultsPane.setTitleHidden(true);
         resultsPane.setHidden(true);
 
-        WidgetStack stack = new WidgetStack("singleDock");
+        WidgetStack stack = new WidgetStack(getName());
 
         Widget.setWantsScroller(stack, true);
 
