@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.78 $ / $Date: 2006-07-24 00:15:59 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2006-07-25 16:45:05 $ / $Author: peter $
  * @author Scott Fraize
  */
 
@@ -3620,7 +3620,7 @@ public class DockWindow extends javax.swing.JWindow
              VueLabel helpButton = new VueLabel(VueResources.getImageIconResource("/tufts/vue/images/btn_help_top.gif"));
              helpButton.setToolTipText("Help Text");
              
-             String helpText = VueResources.getString("dockWindow." + getName().replace(" ","") + ".helpText");
+             String helpText = VueResources.getString("dockWindow." + getName().replaceAll(" ","") + ".helpText");
              if (helpText != null)
                  helpButton.setToolTipText(helpText);
                           
