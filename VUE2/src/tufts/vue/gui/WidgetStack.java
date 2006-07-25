@@ -36,7 +36,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.26 $ / $Date: 2006-07-18 16:20:27 $ / $Author: mike $
+ * @version $Revision: 1.27 $ / $Date: 2006-07-25 14:15:55 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -280,7 +280,7 @@ public class WidgetStack extends Widget
 
     private static final boolean isMac = tufts.Util.isMacPlatform();
 
-    private static final char Chevron = 0xBB; // unicode "right-pointing double angle quotation mark"
+    //private static final char Chevron = 0xBB; // unicode "right-pointing double angle quotation mark"
 
     class WidgetTitle extends Box implements java.beans.PropertyChangeListener {
 
@@ -359,7 +359,7 @@ public class WidgetStack extends Widget
             
             add(Box.createHorizontalStrut(isMac ? 1 : 2));
             
-            mMenuButton = new MenuButton(Chevron, null);
+            mMenuButton = new MenuButton(null);
             add(mMenuButton);
                         
             setPreferredSize(new Dimension(50, TitleHeight));
@@ -588,17 +588,26 @@ public class WidgetStack extends Widget
         System.err.println(GUI.name(this) + " " + (o==null?"null":o.toString()));
     }
 
-    static class MenuButton extends GUI.IconicLabel {
+    static class MenuButton extends JButton {
         private static final Color defaultColor = GUI.isMacAqua() ? Color.white : Color.black;
         private static final Color activeColor = GUI.isMacAqua() ? TopGradient.brighter() : Color.white;
 
-        MenuButton(char iconChar, Action[] actions) {
-            super(iconChar, 18, defaultColor, TitleHeight, TitleHeight);
-            setAlignmentY(0.5f);
+        MenuButton(Action[] actions) {
+            //super(iconChar, 18, defaultColor, TitleHeight, TitleHeight);
+        	super();
+        	setIcon(VueResources.getImageIcon("dockWindow.menuIcon.raw"));
+        	setRolloverEnabled(true);
+        	setRolloverIcon(VueResources.getImageIcon("dockWindow.menuIcon.hover"));
+        	Insets noInsets=new Insets(5,0,0,0);
+        	//store the icon you want to display in imageIcon		        		
+        	setMargin(noInsets);			
+        //	setBorder(BorderFactory.createEmptyBorder());
+        	setContentAreaFilled(false);
+            //setAlignmentY(0.5f);
             // todo: to keep manually picking a height and a bottom pad to get this
             // middle aligned is no good: will eventually want to use a TextLayout to
             // get precise bounds for center, and create as a real Icon
-            setBorder(new javax.swing.border.EmptyBorder(0,0,3,0));
+            setBorder(new javax.swing.border.EmptyBorder(3,3,3,3));
             setMenuActions(actions);
             
         }
