@@ -35,7 +35,7 @@ import java.awt.Frame;
 
 import fedora.server.management.FedoraAPIM;
 import fedora.server.utilities.StreamUtility;
-import fedora.client.ingest.AutoIngestor;
+//import fedora.client.ingest.AutoIngestor;
 
 /**
  *
