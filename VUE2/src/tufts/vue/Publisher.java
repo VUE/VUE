@@ -40,14 +40,14 @@ import java.util.*;
 
 import fedora.server.management.FedoraAPIM;
 import fedora.server.utilities.StreamUtility;
-import fedora.client.ingest.AutoIngestor;
+//import fedora.client.ingest.AutoIngestor;
 
 import tufts.vue.action.*;
 
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.36 $ / $Date: 2006-01-28 23:39:14 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2006-07-25 00:17:20 $ / $Author: peter $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
     

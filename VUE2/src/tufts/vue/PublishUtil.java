@@ -40,7 +40,7 @@ import java.util.*;
 
 import fedora.server.management.FedoraAPIM;
 import fedora.server.utilities.StreamUtility;
-import fedora.client.ingest.AutoIngestor;
+//import fedora.client.ingest.AutoIngestor;
 
 import tufts.vue.action.*;
 
