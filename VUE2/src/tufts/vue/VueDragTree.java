@@ -46,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.60 $ / $Date: 2006-07-19 23:30:04 $ / $Author: anoop $
+ * @version $Revision: 1.61 $ / $Date: 2006-07-26 18:49:42 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -512,6 +512,8 @@ class CabinetNode extends ResourceNode {
         CabinetResource res = (CabinetResource) getUserObject();
         if(res != null && res.getEntry() != null){
            // System.out.println("CabinetNode.isLeaf: type-"+this.type);
+            // TODO: if we really want CabinetNode to do lazy setSpec, don't to this getSpec here,
+            // is it completely defeats the purpose...
             if((new File(res.getSpec()).isDirectory())) {
                 flag = false;
             } else if(this.type.equals(CabinetNode.REMOTE) && ((RemoteCabinetEntry)res.getEntry()).isCabinet())

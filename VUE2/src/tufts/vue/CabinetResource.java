@@ -38,7 +38,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.22 $ / $Date: 2006-07-18 20:59:57 $ / $Author: anoop $
+ * @version $Revision: 1.23 $ / $Date: 2006-07-26 18:48:07 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends MapResource {
@@ -267,6 +267,13 @@ public class CabinetResource extends MapResource {
             return super.getSpec();
         }
     }
+
+    /*
+    public void setSpec(final String spec) {
+        super.setSpec(spec);
+        if (DEBUG.RESOURCE) tufts.Util.printStackTrace("SET SPEC");
+    }
+    */
     
     /*
      *  Return the title of this cabinet resource.  The cabinet entry display name is
