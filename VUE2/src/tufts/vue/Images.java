@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.16 $ / $Date: 2006-06-17 01:26:20 $ / $Author: peter $
+ * @version $Revision: 1.17 $ / $Date: 2006-07-26 18:46:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -277,7 +277,8 @@ public class Images
                     File file = new java.io.File(r.getSpec());
                     this.readable = file;
                 } else {
-                    this.readable = r.asURL();
+                    if (DEBUG.IMAGE) tufts.Util.printStackTrace("converting Resource to IMAGE " + r);
+                    this.readable = r.getImageSource();
                 }
                 this.resource = r;
             } else if (original instanceof java.net.URL) {
@@ -1066,7 +1067,10 @@ public class Images
         if (DEBUG.IMAGE) out("ImageReader got size " + w + "x" + h);
 
 
-        if (imageSRC.resource != null) {
+        //----------------------------------------------------------------------------------------
+        // TODO: IS CAUSING DEADLOCK:
+        //----------------------------------------------------------------------------------------
+        if (false && imageSRC.resource != null) {
             if (DEBUG.IMAGE || DEBUG.THREAD || DEBUG.RESOURCE)
                 out("setting resource image.* meta-data for " + imageSRC.resource);
             

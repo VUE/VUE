@@ -31,16 +31,32 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.*;
 
-import com.sun.image.codec.jpeg.*;
-
 
 /**
- * The class is handles a reference to either a local file or a URL.
+ * The Resource impl handles references to local files or single URL's, as well as
+ * any underlying type of asset (OSID or not) that can obtain it's various parts via URL's.
  *
- * @version $Revision: 1.16 $ / $Date: 2006-06-05 16:31:51 $ / $Author: sfraize $
+ * An "asset" is defined very generically as anything, that given some kind basic
+ * key/meta-data (e.g., a file name, a URL, etc), can at some later point,
+ * reliably and repeatably convert that name/key to underlyling data of interest.
+ * This is basically what the Resource interface was created to handle.
+ *
+ * An "Asset" is a proper org.osid.repository.Asset.
+ *
+ * When this class is used for an asset with parts (e..g, Osid2AssetResource), it should
+ * also be what allows us to completely throw away any underlying
+ * org.osid.repository.Asset (using it only as a paramatizer for what is really a
+ * factory constructor: should covert to that), because all the assets can be had via
+ * URL's, and we've extracted the relvant information at construction time.  If the
+ * asset part(s) CANNOT be accessed via URL, then we need a real, new subclass of
+ * URLResource that handles the non URL cases, or even just a raw implementor of
+ * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
+ * to be obtained.
+ *
+ * @version $Revision: 1.17 $ / $Date: 2006-07-26 18:46:51 $ / $Author: sfraize $
  */
 
-// TODO: this needs major cleanup.
+// TODO: this class currently a humongous mess...
 
 public class URLResource implements Resource, XMLUnmarshalListener
 {
@@ -48,22 +64,26 @@ public class URLResource implements Resource, XMLUnmarshalListener
 
     static final long SIZE_UNKNOWN = -1;
     
-    // todo: if have AbstractResource, can put the DataFlavor there and support serialization tag generically
-    // (can't put on an interface)
-    //public static final java.awt.datatransfer.DataFlavor DataFlavor = tufts.vue.gui.GUI.makeDataFlavor(MapResource.class);
-    
     private long referenceCreated; // this currently meaningless -- gets set every time -- is there anything meaningful here?
     private long accessAttempted;
     private long accessSuccessful;
     private long size = SIZE_UNKNOWN;
-    protected transient boolean selected = false;
+    //protected transient boolean selected = false;
     private String spec = SPEC_UNSET;
     private int type = Resource.NONE;
     private JComponent viewer;
-    private JComponent preview;
+    //private JComponent preview;
     private tufts.vue.ui.ResourceIcon mIcon;
-    private Object mPreview;
+    //private Object mPreview;
     private boolean isCached;
+    private boolean isImage;
+
+    //private URL mURL = null;
+    // TODO performance: store as strings and only do conversion when
+    // we ask for them.
+    private URL mURL_Browse;
+    private URL mURL_Thumbnail;
+    private URL mURL_Image;
     
     /** the metadata property map **/
     private PropertyMap mProperties = new PropertyMap();
@@ -74,7 +94,6 @@ public class URLResource implements Resource, XMLUnmarshalListener
     /** an optional resource title */
     protected String mTitle;
     
-    private URL mURL = null;
 
     private boolean mXMLrestoreUnderway = false;
     private ArrayList mXMLpropertyList;
@@ -177,7 +196,40 @@ public class URLResource implements Resource, XMLUnmarshalListener
         return txt;
     }
     
-    public java.net.URL toURL()
+    // TODO: GIT RID OF ALL THIS LAZY CREATION CRAP, AND MERGE THIS INTO SET SPEC, INCLUDING toURLString crap
+    private java.net.URL toURL() throws java.net.MalformedURLException
+    {
+        if (false) throw new java.net.MalformedURLException();
+        if (mURL_Browse == null) {
+            mURL_Browse = new java.net.URL(toURLString());
+            if ("file".equals(mURL_Browse.getProtocol())) {
+                this.type = Resource.FILE;
+                if (mTitle == null) {
+                    String title;
+                    title = mURL_Browse.getPath();
+                    if (title != null) {
+                        if (title.endsWith("/"))
+                            title = title.substring(0, title.length() - 1);
+                        title = title.substring(title.lastIndexOf('/') + 1);
+                        if (tufts.Util.isMacPlatform()) {
+                            // On MacOSX, file names with colon (':') in them display as slashes ('/')
+                            title = title.replace(':', '/');
+                        }
+                        setTitle(title);
+                    }
+                }
+            } else {
+                this.type = Resource.URL;
+            }
+            setProperty("Content.type", java.net.URLConnection.guessContentTypeFromName(mURL_Browse.getPath()));
+        }
+        return mURL_Browse;
+        ///mURL = new java.net.URL(toURLString());
+    }
+
+
+    /*
+    private java.net.URL toURL_OLD()
         throws java.net.MalformedURLException
     {
         if (spec.equals(SPEC_UNSET))
@@ -185,17 +237,24 @@ public class URLResource implements Resource, XMLUnmarshalListener
             
         if (mURL == null) {
             
-            /*
+
             if (spec.startsWith("resource:")) {
                 final String classpathResource = spec.substring(9);
                 //System.out.println("Searching for classpath resource [" + classpathResource + "]");
                 mURL = getClass().getResource(classpathResource);
             } else
                 mURL = new java.net.URL(toURLString());
-            */
+
             
             mURL = new java.net.URL(toURLString());
 
+            setProperty("Content.type",
+                        java.net.URLConnection.guessContentTypeFromName(mURL.getPath()));
+            
+
+            // This no longer makes sense as we're now more like an Asset, and
+            // no single URL part need be singled out.
+                
             mProperties.holdChanges();
             try {
 
@@ -246,9 +305,20 @@ public class URLResource implements Resource, XMLUnmarshalListener
         
         return mURL;
     }
+
+*/
+    
+    /** @see tufts.vue.Resource */
+    public Object getImageSource() {
+        if (mURL_Image != null)
+            return mURL_Image;
+        else
+            return asURL();
+    }
     
     /** @return as a property URL, or null if unable to create one */
-    public java.net.URL asURL()
+    // get this private/gone
+    java.net.URL asURL()
     {
         try {
             return toURL();
@@ -258,6 +328,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
         }
         return null;
     }
+
     
     /** If given string is a valid URL, make one and return it, otherwise, return null. */
     private static java.net.URL makeURL(String s)
@@ -272,7 +343,10 @@ public class URLResource implements Resource, XMLUnmarshalListener
     public void displayContent() {
         final String systemSpec;
 
-        if (VueUtil.isMacPlatform()) {
+        if (mURL_Browse != null) {
+            systemSpec = mURL_Browse.toString();
+
+        } else if (VueUtil.isMacPlatform()) {
             // toURL will fail if we have a Windows style "C:\Programs" url, so
             // just in case don't try and construct a URL here.
             systemSpec = toURLString();
@@ -280,7 +354,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
             systemSpec = getSpec();
         
         try {
-            this.accessAttempted = System.currentTimeMillis();
+            //this.accessAttempted = System.currentTimeMillis();
             VueUtil.openURL(systemSpec);
             this.accessSuccessful = System.currentTimeMillis();
         } catch (Exception e) {
@@ -288,6 +362,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
             VUE.Log.error(systemSpec + "; " + e);
         }
     }
+
 
     public long getReferenceCreated() {
         return this.referenceCreated;
@@ -384,9 +459,15 @@ public class URLResource implements Resource, XMLUnmarshalListener
     }
     */
 
+    private void setAsImage(boolean asImage) {
+        isImage = asImage;
+        if (DEBUG.DR || DEBUG.RESOURCE) setProperty("@isImage", ""+ asImage);
+    }
+
     
-    // todo: resource's should be atomic: don't allow post construction setSpec,
+    // TODO TODO TODO: resource's should be atomic: don't allow post construction setSpec,
     // or at least protected
+    /** @deprecated -- or perhaps, change to setLocalResource? setRawURL? setRawResource? */
     public void setSpec(final String spec) {
         if (DEBUG.RESOURCE/*&& DEBUG.META*/) {
             out("setSpec " + spec);
@@ -398,18 +479,30 @@ public class URLResource implements Resource, XMLUnmarshalListener
         // to set that until a user actually drag's one and makes use of it.
         // So a resource is going to become somewhat akin to a Transferable.
         
-        mURL = null;
         this.spec = spec;
-        this.referenceCreated = System.currentTimeMillis();
+        //this.referenceCreated = System.currentTimeMillis();
 
-        if (spec != null && spec.startsWith("resource:")) {
+        if (spec == null)
+            throw new Error("Resource.setSpec can't be null");
+
+
+        if (spec.startsWith("resource:")) {
             final String classpathResource = spec.substring(9);
             System.err.println("Searching for classpath resource [" + classpathResource + "]");
-            mURL = getClass().getResource(classpathResource);
-            System.err.println("Got classpath resource: " + mURL);
-            this.spec = mURL.toString();
+            mURL_Browse = getClass().getResource(classpathResource);
+            System.err.println("Got classpath resource: " + mURL_Browse);
+            //this.spec = mURL_Browse.toString();
+        } else {
+            if (!isImage) // once an image, always an image (cause setURL_Image may be called before setURL_Browse)
+                setAsImage(looksLikeImageFile(spec));
+            mURL_Browse = makeURL(spec);
+            //setURL_Browse(spec);
         }
 
+        if (DEBUG.DR || DEBUG.RESOURCE) {
+            setProperty("@<spec>", spec);
+            setProperty("@Browse", "" + mURL_Browse);
+        }
 
         /*
         try {
@@ -444,7 +537,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
 
         asURL();
         
-        this.preview = null;
+        //this.preview = null;
     }
     
     /**
@@ -754,6 +847,12 @@ public class URLResource implements Resource, XMLUnmarshalListener
     
     public String getSpec() {
         return this.spec;
+        /*
+        if (mURL_Browse == null)
+            return SPEC_UNSET;
+        else
+            return mURL_Browse.toString();
+        */
     }
     
     /*
@@ -774,7 +873,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
 
     private boolean isLocalFile() {
         asURL();
-        return mURL == null || mURL.getProtocol().equals("file");
+        return mURL_Browse == null || mURL_Browse.getProtocol().equals("file");
         //String s = spec.toLowerCase();
         //return s.startsWith("file:") || s.indexOf(':') < 0;
     }
@@ -860,6 +959,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
      **/
     public String getProperty(String key) {
         final Object value = mProperties.get(key);
+        if (DEBUG.RESOURCE) out("getProperty[" + key + "]=" + value);
         return value == null ? null : value.toString();
     }
 
@@ -988,16 +1088,39 @@ public class URLResource implements Resource, XMLUnmarshalListener
     
 
     public boolean isImage() {
-        return isImage(this);
+        //return isImage(this);
+        return isImage;
+    }
+
+    /* guiess if a URL or File contains image dta */
+    private static boolean looksLikeImageFile(String path) {
+        String s = path.toLowerCase();
+        if    (s.endsWith(".gif")
+            || s.endsWith(".jpg")
+            || s.endsWith(".jpeg")
+            || s.endsWith(".png")
+            || s.endsWith(".tif")
+            || s.endsWith(".tiff")
+            || s.endsWith(".fpx")
+            || s.endsWith(".bmp")
+            || s.endsWith(".ico")
+               ) return true;
+        return false;
     }
     
-    public static boolean isImage(final Resource r)
+    
+    /*
+    private static boolean isImage(final Resource r)
     {
+          // doesn't make sense to check these now?  Wouldn't the Images code will never have been
+          // called unless we already considered this an image?
+          // Oh, crap: backward compat with recently saved files?  But still...
+          
         if (r.getProperty("image.format") != null)                      // we already know this is an image
             return true;
 
-        if (isImageMimeType(r.getProperty(Images.CONTENT_TYPE)) ||        // check http contentType
-            isImageMimeType(r.getProperty("format")))                // check fedora dublin-core mime-type
+        if (isImageMimeType(r.getProperty(Images.CONTENT_TYPE)))        // check http contentType
+            // || isImageMimeType(r.getProperty("format")))                // TODO: hack for FEDORA dublin-core mime-type
             return true;
 
         // todo: temporary hack for Osid2AssetResource w/Museum of Fine Arts, Boston
@@ -1009,6 +1132,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
         if    (s.endsWith(".gif")
             || s.endsWith(".jpg")
             || s.endsWith(".jpeg")
+            || s.endsWith("=jpeg") // temporary hack for MFA until Resources become more Asset-like
             || s.endsWith(".png")
             || s.endsWith(".tif")
             || s.endsWith(".tiff")
@@ -1019,6 +1143,20 @@ public class URLResource implements Resource, XMLUnmarshalListener
 
         return false;
     }
+    */
+
+    /*
+    public java.net.URL getImageURL() {
+
+        // TODO: temporary hack Hack for FEDORA images, as the image URL is different
+        // than the double-click URL.
+        String imageURL = getProperty("Medium Image");
+        if (imageURL != null && getProperty("Identifier") != null) // Make sure it's FEDORA
+            return makeURL(imageURL);
+        else
+            return asURL();
+    }
+    */
 
     private static boolean isImageMimeType(final String s) {
         return s != null && s.toLowerCase().startsWith("image/");
@@ -1029,7 +1167,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
     }
 
 
-    public static boolean isHTML(final Resource r) {
+    private static boolean isHTML(final Resource r) {
         String s = r.getSpec().toLowerCase();
 
         if (s.endsWith(".html") || s.endsWith(".htm"))
@@ -1039,19 +1177,66 @@ public class URLResource implements Resource, XMLUnmarshalListener
 
         return !s.endsWith(".vue")
             && isHtmlMimeType(r.getProperty("url.contentType"))
-            && !isImage(r) // sometimes image files claim to be text/html
+            //&& !isImage(r) // sometimes image files claim to be text/html
             ;
     }
         
     public boolean isHTML() {
-        return isHTML(this);
+        if (isImage)
+            return false;
+        else
+            return isHTML(this);
     }
 
+    // TODO: combine these into a constructor only for integrity (e.g., Osid2AssetResource is factory only)
+    
+    /** This is the "default" URL */
+    protected void setURL_Browse(String s) {
+        setSpec(s);// backward compat for now just in case
+        /*
+        mURL_Browse = makeURL(s);
+        this.spec = s; // backward compat for now just in case
+        if (DEBUG.DR || DEBUG.RESOURCE) addProperty("@@spec", spec);
+        if (DEBUG.DR || DEBUG.RESOURCE) addProperty("@Browse", "" + mURL_Browse);
+        */
+    }
+
+    protected void setURL_Thumbnail(String s) {
+        mURL_Thumbnail = makeURL(s);
+        if (DEBUG.DR || DEBUG.RESOURCE) addProperty("@Thumb", "" + mURL_Thumbnail);
+        //mPreview = mURL_Thumbnail;
+    }
+
+    /** If given any valid URL, this resource will consider itself image content, no matter
+     * what's at the other end of that URL, so care should be taken to ensure it's
+     * valid image data (as opposed to say, an HTML page)
+     */
+    protected void setURL_Image(String s) {
+        mURL_Image = makeURL(s);
+        if (DEBUG.DR || DEBUG.RESOURCE) addProperty("@Image", "" + mURL_Image);
+        if (mURL_Image != null)
+            setAsImage(true);
+    }
+
+    /** Return this object if cached (can use the full, raw content for preview),
+     * otherwise thumbnail if there is one.  TODO: don't make this decision
+     * for the UI... just always return thumbnail URL if there is one (null if none).
+     */
     public Object getPreview() {
 
         if (isCached)
             return this;
+        else if (mURL_Thumbnail != null)
+            return mURL_Thumbnail;
+        else if (mURL_Image != null)
+            return mURL_Image;
+        else if (isImage)
+            return this;
+        else
+            return null;
+
         
+        /*
         if (mPreview == null) {
             // TODO: this currently special case to Osid2AssetResource, tho names are somewhat generic..
             URL url = null;
@@ -1059,10 +1244,18 @@ public class URLResource implements Resource, XMLUnmarshalListener
             url = makeURL(getProperty("smallImage"));
             if (url == null)
                 url = makeURL(getProperty("thumbnail"));
+
+            if (url == null) { // TODO: Hack for MFA until Resource has API for setting Asset-like meta-data
+                url = makeURL(getProperty("Preview Or Thumbnail"));
+                if (DEBUG.RESOURCE) tufts.Util.printStackTrace("got MFA preview " + url);
+            }
+            
             if (url != null)
                 mPreview = url;
         }
         return mPreview;
+        */
+        
     }
 
     public boolean isCached() {
@@ -1073,12 +1266,14 @@ public class URLResource implements Resource, XMLUnmarshalListener
     public void setCached(boolean cached) {
         isCached = cached;
     }
-    
+
+    /*
     public void setPreview(Object preview) {
         // todo: ignored for now (Osid2AssetResource putting gunk here)
         //mPreview = preview;
         //out("Ignoring setPreview " + preview);
     }
+    */
     
     public Icon getIcon() {
         return getIcon(null);

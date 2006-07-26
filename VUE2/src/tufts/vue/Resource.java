@@ -24,7 +24,7 @@ package tufts.vue;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.45 $ / $Date: 2006-04-26 21:05:29 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2006-07-26 18:46:51 $ / $Author: sfraize $
  * @author  akumar03
  */
 import java.util.Properties;
@@ -140,6 +140,16 @@ public interface Resource
 
     /** @return true if this resource contains displayable image data */
     public boolean isImage();
+
+    /**
+     * @return an object suitable to be handed to the Java ImageIO API that can
+     * in some way be read and converted to an image: e.g., java.net.URL, java.io.File,
+     * java.io.InputStream, javax.imageio.stream.ImageInputStream, etc.
+     * If the object provides a convenient, unique, persisent key, such as URL or File,
+     * the VUE Images code can use that to cache the result on disk.
+     * May return null if no image is available.
+     */
+    public Object getImageSource();
     
     /**  
      *  Return the title or display name associated with the resource.
@@ -147,7 +157,7 @@ public interface Resource
      */
     public String getTitle();
     
-    public java.net.URL asURL();
+    //public java.net.URL asURL();
     
     public long getSize();
 
