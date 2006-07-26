@@ -34,7 +34,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.10 $ / $Date: 2006-06-21 01:47:03 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2006-07-26 18:50:06 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -108,6 +108,10 @@ public class PreviewPane extends JPanel
 
         if (DEBUG.RESOURCE || DEBUG.IMAGE) out("loadResource: " + r);
             
+        // CURRENTLY: if a URLResource has already cached image, it will
+        // return SELF to be used again, otherwise, it returns
+        // the URL (messy...)
+
         mResource = r;
         if (r != null)
             mPreviewData = r.getPreview();
@@ -115,8 +119,10 @@ public class PreviewPane extends JPanel
             mPreviewData = null;
         mImage = null;
 
-        if (mPreviewData == null && mResource.isImage())
-            mPreviewData = mResource;
+//        if (mPreviewData == null && mResource.isImage())
+//            mPreviewData = mResource;
+
+        if (DEBUG.RESOURCE) out("GOT PREVIEW DATA " + mPreviewData);
 
         if (isShowing()) {
 
@@ -125,7 +131,7 @@ public class PreviewPane extends JPanel
 
         } else {
 
-            if (FirstPreview && mPreviewData != null) {
+            if (FirstPreview /*&& mPreviewData != null*/) {
                 FirstPreview = false;
                 Widget.setExpanded(PreviewPane.this, true);
                 // Exposing the panel will cause repaint, which
@@ -148,6 +154,8 @@ public class PreviewPane extends JPanel
 
         if (false /*&& r.getIcon() != null*/) { // these not currently valid from Osid2AssetResource (size=-1x-1)
             //displayIcon(r.getIcon());
+        } else if (previewData == null) {
+            displayImage(NoImage);
         } else if (previewData instanceof java.awt.Component) {
             out("TODO: handle Component preview " + previewData);
             displayImage(NoImage);
