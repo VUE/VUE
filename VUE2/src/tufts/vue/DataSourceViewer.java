@@ -639,7 +639,7 @@ public class DataSourceViewer extends JPanel
             throws org.osid.repository.RepositoryException
         {
             Resource r = new Osid2AssetResource(asset, context);
-            r.addProperty("_Repository", repository.getDisplayName());
+            if (DEBUG.DR) r.addProperty("@_Repository", repository.getDisplayName());
             return r;
         }
     }
