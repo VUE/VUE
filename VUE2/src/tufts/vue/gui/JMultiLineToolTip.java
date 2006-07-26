@@ -27,8 +27,6 @@ public class JMultiLineToolTip extends JToolTip
 	
 	public JMultiLineToolTip() {
 	    updateUI();	    
-	    //	show the tooltip 4 minutes..	    
-	    ToolTipManager.sharedInstance().setDismissDelay(240000);
 	    this.setBorder(BorderFactory.createLineBorder(borderColor,1));
 	}
 	
