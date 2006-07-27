@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.377 $ / $Date: 2006-07-26 21:26:20 $ / $Author: mike $ 
+ * @version $Revision: 1.378 $ / $Date: 2006-07-27 22:19:26 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1318,6 +1318,10 @@ public class VUE
      * @return true if we're cleared to exit, false if we want to abort the exit
      */
     public static boolean isOkayToExit() {
+
+        if (mMapTabsLeft == null) // so debug harnesses can quit (no maps displayed)
+            return true;
+        
         int tabs = mMapTabsLeft.getTabCount();
         LWMap ensureChecked = getActiveMap(); // in case of full-screen
         for (int i = 0; i < tabs; i++) {
