@@ -129,7 +129,7 @@ public class LWCToolPanel extends JPanel
          //-------------------------------------------------------
          // Fill Color menu
          //-------------------------------------------------------
-         
+         //TODO: need to come back here and move these tooltips into properties. -mikek         
          Color [] fillColors = VueResources.getColorArray("fillColorValues");
          String [] fillColorNames = VueResources.getStringArray("fillColorNames");
          mFillColorButton = new ColorMenuButton(fillColors, fillColorNames, true);
