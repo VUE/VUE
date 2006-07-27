@@ -146,7 +146,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-07-12 03:29:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.9 $ / $Date: 2006-07-27 22:16:41 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -195,7 +195,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
     /** The last target of a MOUSE_PRESSED event  */
     protected Object mMousePressedTarget;
         
-    private static boolean UseForcedFocus = false;
+    private static final boolean UseForcedFocus = false;
 
     private static boolean isJavaVersion_15_orLater = Util.getJavaVersion() >= 1.5f;
     
@@ -227,8 +227,8 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             }
 
 
-            UseForcedFocus = GUI.UseAlwaysOnTop
-                || true; // Turn on for now so toolbars can have false focusableWindowState
+            //UseForcedFocus = GUI.UseAlwaysOnTop
+            //    || true; // Turn on for now so toolbars can have false focusableWindowState
             
         } else
             if (DEBUG.INIT) System.out.println(Singleton + ": already installed.");
@@ -351,10 +351,12 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             break;
             */
             
+
+// Skip dialog on-top code for now and see what breaks SMF 2006-06-03 15:02.36
+/*
         case ComponentEvent.COMPONENT_SHOWN:
             //case PaintEvent.PAINT:
 
-            if (true) break; // Skip dialog on-top code for now and see what breaks SMF 2006-06-03 15:02.36
 
             // even if we're not using always on top in general,
             // we now always use it for 1.5 dialog's with no parent,
@@ -377,7 +379,8 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
             if (forceOnTop) {
                 final Window window = (Window) e.getSource();
-                if (false /*&& w.isAlwaysOnTop()*/) {
+                if (false //&& w.isAlwaysOnTop()
+            ) {
                     out(name(window) + " toFront");
                     window.toFront();
                 } else {
@@ -398,6 +401,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             }
             
             break;
+*/
             
         case ComponentEvent.COMPONENT_HIDDEN:
             if (UseForcedFocus && c == mForcedFocusWindow) {
@@ -1334,11 +1338,13 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         
         DEBUG.SELECTION=true; // for testing Command-A text-select pass up to VueMenuBar
 
+        /*
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-trace")) { 
                 UseForcedFocus = false;
             }
         }
+        */
 
         
         if (true) { // MAYBE USEFUL
