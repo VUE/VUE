@@ -39,10 +39,10 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-05-01 22:27:04 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-07-27 22:24:59 $ / $Author: sfraize $
  */
 public class ResourceList extends JList
-    implements DragGestureListener
+    implements DragGestureListener, tufts.vue.ResourceSelection.Listener
 {
     public static final Color DividerColor = VueResources.getColor("ui.resourceList.dividerColor", 204,204,204);
     
@@ -56,8 +56,13 @@ public class ResourceList extends JList
     private static int IconTextGap = new JLabel().getIconTextGap();
     private static int RowHeight = IconSize + 5;
 
+    private DefaultListModel mDataModel;
+    
+
     private boolean isMaskingModel = false; // are we using a masking model?
     private boolean isMasking = false; // if using a masking model, is it currently masking most entries?
+
+    private final String mName;
 
     private static class MsgLabel extends JLabel {
         MsgLabel(String txt) {
@@ -113,26 +118,36 @@ public class ResourceList extends JList
     
     public ResourceList(Collection resourceBag)
     {
+        this(resourceBag, null);
+    }
+    
+    public ResourceList(Collection resourceBag, String name)
+    {
+        setName(name);
+        mName = name;
         setFixedCellHeight(RowHeight);
         setCellRenderer(new RowRenderer());
         
         // Set up the data-model
 
-        final javax.swing.DefaultListModel model;
+        //final javax.swing.DefaultListModel model;
         
         if (resourceBag.size() > PreviewModelSize) {
-            model = new MaskingModel();
+            mDataModel = new MaskingModel();
             isMaskingModel = true;
             mMoreLabel = new MsgLabel((resourceBag.size() - PreviewItems) + " more...");
             isMasking = true;
         } else
-            model = new javax.swing.DefaultListModel();
+            mDataModel = new javax.swing.DefaultListModel();
+
+        // can easily change this to faster ArrayList v.s. vector by subclassing AbstractListModel
+        // We don't need synchronized as list only in use one at a time, by the awt.
         
         Iterator i = resourceBag.iterator();
         while (i.hasNext())
-            model.addElement(i.next());
+            mDataModel.addElement(i.next());
         
-        setModel(model);
+        setModel(mDataModel);
 
         // Set up the selection-model
         
@@ -142,11 +157,11 @@ public class ResourceList extends JList
 
         selectionModel.addListSelectionListener(new ListSelectionListener() {
                 public void valueChanged(ListSelectionEvent e) {
-                    if (DEBUG.RESOURCE) System.out.println("valueChanged: " + GUI.name(getSelectedValue()));
+                    if (DEBUG.RESOURCE) System.out.println(ResourceList.this + " valueChanged: " + e + " curSelectedValue=" + GUI.name(getSelectedValue()));
                     if (isMaskingModel) {
                         if (isMasking && getSelectedIndex() >= PreviewItems)
-                            ((MaskingModel)model).expand();
-                        else if (!isMasking && getSelectedIndex() == model.size()) {
+                            ((MaskingModel)mDataModel).expand();
+                        else if (!isMasking && getSelectedIndex() == mDataModel.size()) {
 
                             // For now: do nothing: force them to click on the collapse
                             // (keyboarding to it creates a user-loop when holding the
@@ -162,7 +177,8 @@ public class ResourceList extends JList
                             return;
                         }
                     }
-                    tufts.vue.VUE.getResourceSelection().setTo(getPicked());
+                    if (getPicked() != null)
+                        tufts.vue.VUE.getResourceSelection().setTo(getPicked(), ResourceList.this);
                 }
             });
 
@@ -174,13 +190,14 @@ public class ResourceList extends JList
                         Resource r = getPicked();
                         if (r != null)
                             r.displayContent();
-                    } else if (isMaskingModel && e.getClickCount() == 1) {
-                        if (getSelectedValue() == mLessLabel)
-                            ((MaskingModel)model).collapse();
+                    } else if (e.getClickCount() == 1) {
+                        if (isMaskingModel && getSelectedValue() == mLessLabel)
+                            ((MaskingModel)mDataModel).collapse();
                     }
                 }
             });
-        
+
+        tufts.vue.VUE.getResourceSelection().addListener(this);
 
         // Set up the drag handler
 
@@ -192,10 +209,25 @@ public class ResourceList extends JList
                                                       this); // DragGestureListener
     }
 
+    /** ResourceSelection.Listener */
+    public void resourceSelectionChanged(tufts.vue.ResourceSelection.Event e) {
+        if (e.source == this)
+            return;
+        if (getPicked() == e.selected) {
+            ; // do nothing; already selected
+        } else {
+            // TODO: if list contains selected item, select it!
+            clearSelection();
+        }
+            
+    }
+
     private Resource getPicked() {
         Object o = getSelectedValue();
         if (o instanceof Resource)
             return (Resource) o;
+        else if (o instanceof ResourceIcon)
+            return ((ResourceIcon)o).getResource();
         else
             return null;
         //return (Resource) getSelectedValue();
@@ -211,6 +243,16 @@ public class ResourceList extends JList
                         new tufts.vue.gui.GUI.ResourceTransfer(r),
                         new tufts.vue.gui.GUI.DragSourceAdapter());
         }
+    }
+
+    public String toString() {
+        String tag;
+        if (mName == null)
+            tag = "@" + Integer.toHexString(hashCode());
+        else
+            tag = "[" + mName + "]";
+
+        return "ResourceList" + tag + " ";
     }
 
     private class RowRenderer extends DefaultListCellRenderer
@@ -236,9 +278,31 @@ public class ResourceList extends JList
                 return mMoreLabel;
             else if (value == mLessLabel)
                 return mLessLabel;
+
+            ResourceIcon icon;
+            Resource r;
+
+            if (value instanceof Resource) {
+                r = (Resource) value;
+                icon = new ResourceIcon(r, 32, 32, list);
+                mDataModel.set(index, icon); // don't want to trigger a model change tho...
+            } else {
+                icon = (ResourceIcon) value;
+                r = icon.getResource();
+            }
             
-            Resource r = (Resource) value;
-            setIcon(r.getIcon(list));
+            setIcon(icon);
+
+            // TODO: need to change model to contain a list of ResourceIcon's
+            // (can pull resource itself from the icon for the title),
+            // which are created when we load the model, and then
+            // can tell each ResourceIcon what it's true and real
+            // and forever repainting parent is (this JList),
+            // for repaint updates.  Yes, that means allocating all those
+            // ResourceIcons...  or hey, we could stuff it with resources,
+            // and the first TIME we display it, we create the resource icon,
+            // then stuff it back in the list? Yeah...
+            
             if (false)
                 setText("<HTML>" + r.getTitle());
             else
