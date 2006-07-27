@@ -34,7 +34,7 @@ import javax.swing.*;
  * TODO: merge common code with PreviewPane, and perhaps put in a 3rd class
  * so can have multiple icons referencing the same underlying image.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-06-03 20:20:11 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-07-27 22:28:53 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -78,7 +78,8 @@ public class ResourceIcon
         //loadResource(r);
         mResource = r;
         mPainter = painter;
-        //out("Constructed " + width + "x" + height + " " + r);
+        if (DEBUG.IMAGE) out("Constructed " + width + "x" + height + " " + r
+                             + " painter=" + GUI.name(painter) + "@" + Integer.toHexString((painter.hashCode())));
     }
         
     /** Act like a regular Icon */
@@ -99,7 +100,7 @@ public class ResourceIcon
 
     private void repaint() {
         if (mPainter != null) {
-            //if (DEBUG.IMAGE) out("repaint in " + GUI.name(mPainter));
+            if (DEBUG.IMAGE) out("repaint in " + GUI.name(mPainter));
             mPainter.repaint();
         }
         // FYI, this will not repaint if the parent is a DefaultTreeCellRenderer,
@@ -121,6 +122,10 @@ public class ResourceIcon
     private void clearStatus() {
         //StatusLabel.setVisible(false);
     }
+
+    public Resource getResource() {
+        return mResource;
+    }
     
 
     synchronized void loadResource(Resource r) {
@@ -134,8 +139,9 @@ public class ResourceIcon
             mPreviewData = null;
         mImage = null;
 
-        if (mPreviewData == null && mResource.isImage())
-            mPreviewData = mResource;
+        // URLResource decides this
+        //if (mPreviewData == null && mResource.isImage())
+        //    mPreviewData = mResource;
 
         loadPreview(mPreviewData);
     }
@@ -181,8 +187,7 @@ public class ResourceIcon
     /** @see Images.Listener */
     public synchronized void gotImageSize(Object imageSrc, int width, int height) {
 
-        if (imageSrc != mPreviewData)
-            return;
+        //if (imageSrc != mPreviewData) return;
             
         mImageWidth = width;
         mImageHeight = height;
@@ -191,8 +196,7 @@ public class ResourceIcon
     /** @see Images.Listener */
     public synchronized void gotImage(Object imageSrc, Image image, int w, int h) {
 
-        if (imageSrc != mPreviewData)
-            return;
+        //if (imageSrc != mPreviewData) return;
             
         displayImage(image);
         isLoading = false;
@@ -200,8 +204,7 @@ public class ResourceIcon
     /** @see Images.Listener */
     public synchronized void gotImageError(Object imageSrc, String msg) {
 
-        if (imageSrc != mPreviewData)
-            return;
+        //if (imageSrc != mPreviewData) return;
             
         displayImage(NoImage);
         status("Error: " + msg);
@@ -240,14 +243,15 @@ public class ResourceIcon
     {
         final boolean expandToFit = (mWidth < 1);
 
+        if (DEBUG.IMAGE && DEBUG.META) out("paintIcon; onto=" + GUI.name(c)
+                                           + " painter=" + GUI.name(mPainter) + "@" + Integer.toHexString((mPainter.hashCode())));
+
         if (mPainter == null) {
             // note this means repaint updates would stop in a new parent,
             // tho assuming it's loaded by then, regular paints would work fine.
             mPainter = c;
         }
         
-        if (DEBUG.IMAGE && DEBUG.META) out("paintIcon; parent=" + GUI.name(c));
-
         if (DrawBorder && !expandToFit) {
             g.setColor(Color.gray);
             g.drawRect(x, y, mWidth-1, mHeight-1);
@@ -343,7 +347,8 @@ public class ResourceIcon
     }
 
     private void out(String s) {
-        System.out.println("ResourceIcon: " + s);
+        String name = "ResourceIcon" + "@" + Integer.toHexString(hashCode());
+        VUE.Log.debug(name + " " + s);
     }
         
     
