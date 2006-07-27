@@ -28,7 +28,7 @@ import java.awt.geom.Point2D;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.39 $ / $Date: 2006-03-29 23:03:04 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2006-07-27 22:26:19 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -192,6 +192,8 @@ public class LWSelection extends java.util.ArrayList
             return;
         clear0();
         add(c);
+        if (VUE.getResourceSelection().get() != c.getResource())
+            VUE.getResourceSelection().setTo(null, this);
     }
     
     void setTo(Collection bag)
