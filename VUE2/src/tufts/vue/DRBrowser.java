@@ -28,7 +28,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.55 $ / $Date: 2006-07-27 19:28:12 $ / $Author: sfraize $ 
+ * @version $Revision: 1.56 $ / $Date: 2006-07-27 19:54:13 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -354,15 +354,24 @@ public class DRBrowser extends JPanel
         
         DEBUG.DR = true;
 
-        DockWindow drDock = GUI.createDockWindow("Content");
+        Frame owner = new Frame("parentWindow");
+        owner.setVisible(true);
+
+        //DockWindow drDock = GUI.createDockWindow("Content");
+        DockWindow drDock = new DockWindow("Content", owner);
         DRBrowser drBrowser = new DRBrowser(true, drDock, null);
 		
-        DockWindow inspector = GUI.createDockWindow("Info", new tufts.vue.ui.InspectorPane());
+        //DockWindow inspector = GUI.createDockWindow("Info", new tufts.vue.ui.InspectorPane());
+        DockWindow inspector = new DockWindow("Info", owner, new tufts.vue.ui.InspectorPane(), false);
         inspector.setMenuName("Info / Preview");
 
         int maxHeight = GUI.getMaximumWindowBounds().height;
 
-        inspector.setSize(500, maxHeight);
+        int inspectorWidth = GUI.GScreenWidth / 2;
+        if (inspectorWidth > 800)
+            inspectorWidth = 800;
+
+        inspector.setSize(inspectorWidth, maxHeight);
         inspector.setUpperRightCorner(GUI.GScreenWidth, GUI.GInsets.top);
         //inspector.setVisible(true);
         
