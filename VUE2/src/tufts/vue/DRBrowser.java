@@ -28,7 +28,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.54 $ / $Date: 2006-07-25 19:40:01 $ / $Author: mike $ 
+ * @version $Revision: 1.55 $ / $Date: 2006-07-27 19:28:12 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -354,8 +354,25 @@ public class DRBrowser extends JPanel
         
         DEBUG.DR = true;
 
-        //new Frame("A Frame").setVisible(true);
+        DockWindow drDock = GUI.createDockWindow("Content");
+        DRBrowser drBrowser = new DRBrowser(true, drDock, null);
+		
+        DockWindow inspector = GUI.createDockWindow("Info", new tufts.vue.ui.InspectorPane());
+        inspector.setMenuName("Info / Preview");
 
+        int maxHeight = GUI.getMaximumWindowBounds().height;
+
+        inspector.setSize(500, maxHeight);
+        inspector.setUpperRightCorner(GUI.GScreenWidth, GUI.GInsets.top);
+        //inspector.setVisible(true);
+        
+        drDock.setSize(300, (int) (GUI.GScreenHeight * 0.75));
+        drDock.setUpperRightCorner(GUI.GScreenWidth - inspector.getWidth(), GUI.GInsets.top);
+        drDock.setVisible(true);
+
+        drBrowser.loadDataSourceViewer();
+
+        /*
         DockWindow dw = GUI.createDockWindow("Test Resources");
         DRBrowser drb = new DRBrowser(true, dw, null);
         
@@ -371,7 +388,8 @@ public class DRBrowser extends JPanel
         drb.loadDataSourceViewer();
 
         GUI.makeVisibleOnScreen(drb);
-        
+
+        */
         /*
         drb.loadDataSourceViewer();
         drb.setSize(200,200);
