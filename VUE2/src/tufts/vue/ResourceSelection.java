@@ -23,7 +23,7 @@ package tufts.vue;
  * The currently selected resource.  Currently only supports a single selected
  * resource at a time.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-04-10 18:46:18 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2006-07-27 22:25:43 $ / $Author: sfraize $
  */
 public class ResourceSelection
 {
@@ -32,7 +32,15 @@ public class ResourceSelection
     private java.util.List listeners = new java.util.ArrayList();
 
     public interface Listener extends java.util.EventListener {
-        void resourceSelectionChanged(ResourceSelection selection);
+        void resourceSelectionChanged(ResourceSelection.Event e);
+    }
+    public static class Event {
+        final public Resource selected;
+        final public Object source;
+        public Event(Resource r, Object src) {
+            selected = r;
+            source = src;
+        }
     }
 
     public void addListener(Listener l)
@@ -44,13 +52,14 @@ public class ResourceSelection
         listeners.remove(l);
     }
 
-    private void notifyListeners()
+    private void notifyListeners(Object source)
     {
         java.util.Iterator i = listeners.iterator();
+        Event e = new Event(this.selected, source);
         while (i.hasNext()) {
             Listener l = (Listener) i.next();
             if (DEBUG.SELECTION) System.out.println("ResourceSelection notifying: " + l);
-            l.resourceSelectionChanged(this);
+            l.resourceSelectionChanged(e);
         }
     }
        
@@ -59,22 +68,26 @@ public class ResourceSelection
     }
     
     public void setTo(Resource r) {
+        setTo(r, null);
+    }
+    
+    public void setTo(Resource r, Object src) {
         if (selected != r) {
             if (DEBUG.SELECTION) System.out.println("ResourceSelection: set to " + r.getClass() + " " + r);
             selected = r;
-            notifyListeners();
+            notifyListeners(src);
         }
     }
     
     public void clearAndNotify() {
     	clear0();
-    	notifyListeners();
+    	notifyListeners(null);
     }
     
     public void clear()
     {
         if (clear0())
-            notifyListeners();
+            notifyListeners(null);
     }
 
     private boolean clear0()
