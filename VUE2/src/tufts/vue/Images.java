@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.17 $ / $Date: 2006-07-26 18:46:51 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2006-07-27 22:30:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -291,15 +291,17 @@ public class Images
             if (readable instanceof java.net.URL) {
                 URL url = (URL) readable;
                 this.key = makeKey(url);
+                /*
                 if (DEBUG.IMAGE && DEBUG.META) {
                     Util.dumpURL(url);
                     
                     /* the toURI() method is new in Java 1.5.  Can we use the equivalent Java 1.4
                      * technique to avoid Java version problems? - peter 16-Jun-06 
                     try {Util.dumpURI(url.toURI());} catch (Throwable t) { out(t); }
-                    */
+                    *
                     try {Util.dumpURI(new URI(url.toString()));} catch (Throwable t) { out(t); }
                 }
+                */
                 if ("file".equals(key.getScheme())) {
                     
                     // If this is a Win32 file://C:\foo\bar path, we must include the
