@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.25 $ / $Date: 2006-07-25 19:40:02 $ / $Author: mike $
+ * @version $Revision: 1.26 $ / $Date: 2006-07-27 22:27:20 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -93,12 +93,14 @@ public class InspectorPane extends JPanel
         
     }
 
-    public void resourceSelectionChanged(ResourceSelection selection)
+    public void resourceSelectionChanged(ResourceSelection.Event e)
     {    	
-        if (DEBUG.RESOURCE) out("resource selected: " + selection.get());
+        if (e.selected == null)
+            return;
+        if (DEBUG.RESOURCE) out("resource selected: " + e.selected);
         showNodePanes(false);
         showResourcePanes(true);
-        loadResource(selection.get());
+        loadResource(e.selected);
     }
 
     public void selectionChanged(LWSelection selection) {  
@@ -620,7 +622,7 @@ public class InspectorPane extends JPanel
         private MouseListener CommonURLListener = new URLMouseListener();
 
         private void loadRow(int row, String labelText, String valueText) {
-            if (DEBUG.RESOURCE) out("adding row " + row + " " + labelText + "=[" + valueText + "]");
+            if (DEBUG.RESOURCE && DEBUG.META) out("adding row " + row + " " + labelText + "=[" + valueText + "]");
 
             final JLabel label = mLabels[row];
             final JTextArea value = mValues[row];
@@ -667,7 +669,10 @@ public class InspectorPane extends JPanel
             // tho of course, then we have tons of  cached
             // sorted lists laying about.
 
-            if (DEBUG.RESOURCE) out("metaDataPane; loadProperties: pmap=" + rsrcProps);
+            if (DEBUG.RESOURCE) {
+                out("metaDataPane; loadProperties: " + rsrcProps.size());
+                if (DEBUG.META) out("metaDataPane; loadProperties: pmap=" + rsrcProps);
+            }
             
             if (DEBUG.SCROLL)
                 VUE.Log.debug("scroll model listeners: "
@@ -681,6 +686,8 @@ public class InspectorPane extends JPanel
 
             try {
             
+                if (DEBUG.RESOURCE) out("metaDataPane; fetching table model...");
+                
                 TableModel model = rsrcProps.getTableModel();
 
                 if (DEBUG.RESOURCE) out("metaDataPane; loadProperties: model=" + model
@@ -900,7 +907,8 @@ public class InspectorPane extends JPanel
     }
     
     private void out(Object o) {
-        System.out.println("Inspector: " + (o==null?"null":o.toString()));
+        //System.out.println("Inspector: " + (o==null?"null":o.toString()));
+        VUE.Log.debug("InspectorPane: " + (o==null?"null":o.toString()));
     }
     
     public static void displayTestPane(String rsrc)
