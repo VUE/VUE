@@ -9,6 +9,8 @@ import java.awt.Insets;
 import javax.swing.BorderFactory;
 import javax.swing.CellRendererPane;
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
@@ -23,7 +25,7 @@ public class JMultiLineToolTip extends JToolTip
 	private static final String uiClassID = "ToolTipUI";	
 	private String tipText;
 	private JComponent component;
-	private final Color borderColor = new Color(105,105,105);
+	private final Color borderColor = new Color(105,105,105);	
 	
 	public JMultiLineToolTip() {
 	    updateUI();	    
@@ -65,13 +67,11 @@ public class JMultiLineToolTip extends JToolTip
 class MultiLineToolTipUI extends BasicToolTipUI {
 		
 	private final Color backgroundColor = new Color(213,223,255);
-	
-	static MultiLineToolTipUI sharedInstance = new MultiLineToolTipUI();
-	private Font smallFont; 			     
+	private JScrollPane scrollPane;
+	static MultiLineToolTipUI sharedInstance = new MultiLineToolTipUI();	
 	static JToolTip tip;
-	protected CellRendererPane rendererPane;
-	
-	private static JTextArea textArea ;
+	protected CellRendererPane rendererPane;	
+	private static JEditorPane textArea ;
 	
 	
 		
@@ -88,8 +88,9 @@ class MultiLineToolTipUI extends BasicToolTipUI {
 	
 	public void installUI(JComponent c) {
 	    super.installUI(c);
-		tip = (JToolTip)c;
+		tip = (JToolTip)c;		
 	    rendererPane = new CellRendererPane();
+	    
 	    c.add(rendererPane);
 	}
 	
@@ -111,32 +112,40 @@ class MultiLineToolTipUI extends BasicToolTipUI {
 		String tipText = ((JToolTip)c).getTipText();
 		if (tipText == null)
 			return new Dimension(0,0);
-		textArea = new JTextArea(tipText );
-		textArea.setFont(VueConstants.FONT_SMALL);
+		
+		textArea = new JEditorPane("text/html",tipText );
+		Font font = new Font("SansSerif", Font.PLAIN, 8);
+		textArea.setFont(font);
+		scrollPane = new JScrollPane(textArea);
+		
+		//textArea.setFont(VueConstants.FONT_SMALL);
 		textArea.setMargin(new Insets(4,4,4,4));
-	    rendererPane.removeAll();
-		rendererPane.add(textArea );
-		textArea.setWrapStyleWord(true);
+	    
+		rendererPane.removeAll();
+		rendererPane.add(scrollPane);
+		
+		//textArea.setWrapStyleWord(true);
 		int width = ((JMultiLineToolTip)c).getFixedWidth();
 		int columns = ((JMultiLineToolTip)c).getColumns();
 		
-		if( columns > 0 )
-		{
-			textArea.setColumns(columns);
-			textArea.setSize(0,0);
-		textArea.setLineWrap(true);
-			textArea.setSize( textArea.getPreferredSize() );
-		}
-		else if( width > 0 )
-		{
-		textArea.setLineWrap(true);
-			Dimension d = textArea.getPreferredSize();
-			d.width = width;
-			d.height++;
-			textArea.setSize(d);
-		}
-		else
-			textArea.setLineWrap(false);
+	//	if( columns > 0 )
+//		{			
+		
+		//	textArea.setColumns(columns);
+		//	textArea.setSize(0,0);
+		//textArea.setLineWrap(true);
+//			textArea.setSize( textArea.getPreferredSize() );
+		//}
+	//	else if( width > 0 )
+//		{
+		//textArea.setLineWrap(true);
+	//		Dimension d = textArea.getPreferredSize();
+//			d.width = width;
+			//d.height++;
+		//	textArea.setSize(d);
+	//	}
+//		else
+			//textArea.setLineWrap(false);
 
 
 		Dimension dim = textArea.getPreferredSize();
