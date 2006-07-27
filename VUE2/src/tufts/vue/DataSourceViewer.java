@@ -722,6 +722,9 @@ public class DataSourceViewer extends JPanel
                 textArea.setOpaque(false);
                 mResultPane.add(textArea);
             }
+
+            // must call revalidate because we're coming from another thread:
+            mResultPane.revalidate();
         }
 
         // As we create a new Widget for the output of every search, in terms of a new
@@ -801,11 +804,8 @@ public class DataSourceViewer extends JPanel
             if (resourceList.size() == 0) {
                 mResultPane.add(new StatusLabel("No results for " + mSearchString, false));
             } else {
-                mResultPane.add(new ResourceList(resourceList));
+                mResultPane.add(new ResourceList(resourceList, name));
             }
-
-            // must call revalidate because we're coming from another thread:
-            mResultPane.revalidate();
         }
     }
                                               
