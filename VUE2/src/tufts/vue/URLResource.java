@@ -53,7 +53,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.17 $ / $Date: 2006-07-26 18:46:51 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2006-07-27 22:32:02 $ / $Author: sfraize $
  */
 
 // TODO: this class currently a humongous mess...
@@ -1231,6 +1231,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
         else if (mURL_Image != null)
             return mURL_Image;
         else if (isImage)
+            // TODO: this not a good idea... only doing it so Images can put meta-data back into it
             return this;
         else
             return null;
@@ -1279,6 +1280,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
         return getIcon(null);
     }
     
+    /* should deprecate: ResourceIcon could discover painter the first time it paints */
     public Icon getIcon(java.awt.Component painter) {
 
         //if (!isImage())
