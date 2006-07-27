@@ -32,7 +32,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.32 $ / $Date: 2006-01-20 19:26:27 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2006-07-27 17:37:11 $ / $Author: mike $
  * 
  * deprecated - on the way out
  */
@@ -47,6 +47,10 @@ public class LinkToolPanel extends LWCToolPanel
     {
         final AbstractButton mArrowStartButton = new VueButton.Toggle("link.button.arrow.start");
         final AbstractButton mArrowEndButton = new VueButton.Toggle("link.button.arrow.end");
+        
+        //setting up tooltips for link specific buttons.
+        mArrowStartButton.setToolTipText(VueResources.getString("linkToolPanel.startArrow.toolTip"));
+        mArrowEndButton.setToolTipText(VueResources.getString("linkToolPanel.endArrow.toolTip"));
         
         final Action[] LinkTypeActions = new Action[] { 
             Actions.LinkMakeStraight,
