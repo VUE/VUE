@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-06-03 21:07:19 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-07-27 22:30:29 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap
@@ -92,6 +92,7 @@ public class PropertyMap extends java.util.HashMap
     /** No listeners will be updated until releaseChanges is called.  Multiple
      * overlapping holds are okay. */
     public synchronized void holdChanges() {
+        if (DEBUG.RESOURCE) out("holding changes");
         mHoldingChanges = true;
     }
 
@@ -105,9 +106,10 @@ public class PropertyMap extends java.util.HashMap
     public synchronized void releaseChanges() {
         mHoldingChanges = false;
         if (mChanges > 0 && mTableModel != null) {
-            if (DEBUG.RESOURCE) System.out.println("RsrcProps: releasing changes " + mChanges);
+            if (DEBUG.RESOURCE) out("releasing changes " + mChanges);
             mTableModel.reload();
         }
+        if (DEBUG.RESOURCE) out("released changes " + mChanges);
         mChanges = 0;
     }
 
@@ -170,17 +172,26 @@ public class PropertyMap extends java.util.HashMap
         }
     }
 
+    private void out(Object o) {
+        VUE.Log.debug("PropertyMap: " + (o==null?"null":o.toString()));
+    }
+    
+
     // TODO: move this out to viewer
     
     private class SortedMapModel extends javax.swing.table.AbstractTableModel {
 
         private Entry[] mEntries;
         
-        SortedMapModel() { reload(); }
+        SortedMapModel() {
+            if (DEBUG.RESOURCE) out("new SortedMapModel");
+            reload();
+        }
 
         // make sure there is a sync on the HashMap before this is called
         private void reload() {
             mEntries = new Entry[size()];
+            if (DEBUG.RESOURCE) out("SortedMapModel: reload " + mEntries.length + " items");
             Iterator i = entrySet().iterator();
             int ei = 0;
             while (i.hasNext()) {
@@ -202,7 +213,11 @@ public class PropertyMap extends java.util.HashMap
                         return k1.compareTo(k2);
                     }});
             */
-            if (DEBUG.RESOURCE) System.out.println("RsrcProps: model loaded " + Arrays.asList(mEntries));
+            if (DEBUG.RESOURCE) {
+                out("loaded " + mEntries.length + " entries");
+                if (DEBUG.META)
+                    out("model loaded " + Arrays.asList(mEntries));
+            }
             fireTableDataChanged();
             notifyListeners();
         }
