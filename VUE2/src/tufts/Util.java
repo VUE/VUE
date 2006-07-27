@@ -1138,6 +1138,7 @@ public class Util
         java.awt.Toolkit.getDefaultToolkit().beep();
         
         synchronized (System.out) {
+        synchronized (System.err) {
             
         synchronized (s) {
 
@@ -1183,7 +1184,7 @@ public class Util
                 cause.printStackTrace();
             }
         }
-        }
+        }}
     }
 
     private static boolean includeInTrace(StackTraceElement trace, String prefix) {
