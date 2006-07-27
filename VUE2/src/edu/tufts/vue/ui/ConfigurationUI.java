@@ -76,6 +76,7 @@ public class ConfigurationUI extends javax.swing.JPanel
 			System.out.println("Error: " + this.errorMessage);
 		} else {
 			populatePanel();
+			
 		}
 	}
 
@@ -265,7 +266,7 @@ public class ConfigurationUI extends javax.swing.JPanel
 			// setup panel layout
 			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
 			gbConstraints.insets = new java.awt.Insets(2,2,2,2);
-			gbConstraints.weighty = 0;
+			gbConstraints.weighty = 1;
 			gbConstraints.ipadx = 0;
 			gbConstraints.ipady = 0;
 			setLayout(gbLayout);
@@ -303,6 +304,7 @@ public class ConfigurationUI extends javax.swing.JPanel
 						break;
 					case SINGLE_LINE_MASKED_TEXT_CONTROL:
 						javax.swing.JPasswordField textField1 = new javax.swing.JPasswordField();
+						
 						if (numChars > 0) {
 							textField1.setColumns(numChars);
 						}
@@ -417,6 +419,7 @@ public class ConfigurationUI extends javax.swing.JPanel
 			this.errorMessage = ex.getMessage();
 			ex.printStackTrace();
 		}
+		
 	}
 	
 	private void populateField(javax.swing.JLabel prompt,
@@ -452,7 +455,8 @@ public class ConfigurationUI extends javax.swing.JPanel
 		
 		gbConstraints.gridx = 2;
 		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
-		gbConstraints.weightx = 0.25;
+		gbConstraints.anchor = java.awt.GridBagConstraints.EAST;
+		gbConstraints.weightx = 0;
 		add(component2,gbConstraints);
 		gbConstraints.gridy++;
 

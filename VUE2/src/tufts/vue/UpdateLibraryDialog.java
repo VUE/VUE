@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.11 $ / $Date: 2006-07-27 15:58:28 $ / $Author: mike $
+* @version $Revision: 1.12 $ / $Date: 2006-07-27 19:51:36 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -322,7 +322,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 			if (xml != null) {
 				edu.tufts.vue.ui.ConfigurationUI cui =
 				new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
-				cui.setPreferredSize(new Dimension(400,200));
+				cui.setPreferredSize(new Dimension(350,(int)cui.getPreferredSize().getHeight()));
 				
 				if (javax.swing.JOptionPane.showOptionDialog(this,
 															 cui,

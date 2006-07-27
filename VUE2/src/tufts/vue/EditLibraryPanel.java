@@ -112,7 +112,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 			gbConstraints.fill= java.awt.GridBagConstraints.NONE;
 			gbConstraints.gridy = 0;
 			setLayout(gridbag);
-			cui.setPreferredSize(new Dimension(310,100));
+			cui.setPreferredSize(new Dimension(280,(int)cui.getPreferredSize().getHeight()));
 			add(cui,gbConstraints);
 			updateButton.addActionListener(this);
 			gbConstraints.gridy = 1;

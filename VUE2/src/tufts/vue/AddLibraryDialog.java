@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.44 $ / $Date: 2006-07-24 18:09:50 $ / $Author: mike $
+ * @version $Revision: 1.45 $ / $Date: 2006-07-27 19:51:36 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -401,13 +401,15 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             if (xml != null) {
                 edu.tufts.vue.ui.ConfigurationUI cui =
                         new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
-                cui.setPreferredSize(new Dimension(400,200));
+                
+                cui.setPreferredSize(new Dimension(350,(int)cui.getPreferredSize().getHeight()));
+               
                 
                 if (javax.swing.JOptionPane.showOptionDialog(this,
                         cui,
                         "Configuration",
                         javax.swing.JOptionPane.DEFAULT_OPTION,
-                        javax.swing.JOptionPane.QUESTION_MESSAGE,
+                        javax.swing.JOptionPane.PLAIN_MESSAGE,
                         null,
                         new Object[] {
                     "Cancel", "Continue"
