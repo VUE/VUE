@@ -1003,20 +1003,26 @@ public class DataSourceViewer extends JPanel
 			map.addProperty("Supports Update?",(Object)supportsUpd);
 			
 			org.osid.shared.TypeIterator typeIterator = repository.getAssetTypes();
-			StringBuilder assetTypes = new StringBuilder();
+			StringBuffer assetTypes = new StringBuffer();
 			while (typeIterator.hasNextType()) {
 				assetTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
 				assetTypes.append(", ");
 			}
+			
+			if (assetTypes.length() > 0)
+				assetTypes.delete(assetTypes.length()-2,assetTypes.length()-1);
+			
 			map.addProperty("Asset Types",(Object)assetTypes.toString());
 			
 			typeIterator = repository.getSearchTypes();
-			StringBuilder searchTypes = new StringBuilder();
+			StringBuffer searchTypes = new StringBuffer();
 			while (typeIterator.hasNextType()) {
-				searchTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
+				searchTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));				
 				searchTypes.append(", ");
 				
 			}
+			if (searchTypes.length() > 0)
+				searchTypes.delete(searchTypes.length()-2,searchTypes.length()-1);
 			
 			map.addProperty("Search Types",(Object)searchTypes.toString());
 	
