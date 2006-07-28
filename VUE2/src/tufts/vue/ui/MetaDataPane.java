@@ -161,7 +161,7 @@ public class MetaDataPane extends JPanel
    private MouseListener CommonURLListener = new URLMouseListener();
 
    private void loadRow(int row, String labelText, String valueText) {
-       if (DEBUG.RESOURCE) out("adding row " + row + " " + labelText + "=[" + valueText + "]");
+       if (DEBUG.RESOURCE && DEBUG.META) out("adding row " + row + " " + labelText + "=[" + valueText + "]");
 
        JLabel label = mLabels[row];
        JTextArea value = mValues[row];       
