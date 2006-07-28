@@ -57,7 +57,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.378 $ / $Date: 2006-07-27 22:19:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.379 $ / $Date: 2006-07-28 20:28:56 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -286,6 +286,7 @@ public class VUE
 
         //set tooltips to psuedo-perm
         ToolTipManager.sharedInstance().setDismissDelay(240000);
+        ToolTipManager.sharedInstance().setInitialDelay(500);
         if (VueUtil.isMacPlatform())
             installMacOSXApplicationEventHandlers();
     }
