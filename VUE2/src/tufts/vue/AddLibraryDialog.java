@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.45 $ / $Date: 2006-07-27 19:51:36 $ / $Author: mike $
+ * @version $Revision: 1.46 $ / $Date: 2006-07-28 23:23:02 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -82,6 +82,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
         
         try {
         	VueLabel helpButton = new VueLabel(VueResources.getImageIcon("addLibrary.helpIcon"));
+        	
             helpButton.setToolTipText("Help Text");
             
             String helpText = VueResources.getString("addLibrary.helpText");
@@ -89,7 +90,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             if (helpText != null)
                 helpButton.setToolTipText(helpText);
             
-        	setLayout(new GridBagLayout());
+        	getContentPane().setLayout(new GridBagLayout());
             addLibraryList = new JList(listModel);
             addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
             addLibraryList.addListSelectionListener(this);

@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.12 $ / $Date: 2006-07-27 19:51:36 $ / $Author: mike $
+* @version $Revision: 1.13 $ / $Date: 2006-07-28 23:23:02 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -81,7 +81,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             if (helpText != null)
                 helpButton.setToolTipText(helpText);
             
-            setLayout(new GridBagLayout());
+            getContentPane().setLayout(new GridBagLayout());
             addLibraryList = new JList(listModel);
             addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
             addLibraryList.addListSelectionListener(this);
