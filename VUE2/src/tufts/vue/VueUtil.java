@@ -30,12 +30,14 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.70 $ / $Date: 2006-03-24 20:37:09 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2006-07-28 18:30:19 $ / $Author: anoop $
  * @author Scott Fraize
  *
  */
 public class VueUtil extends tufts.Util
 {
+    public static final String DEFAULT_WINDOWS_FOLDER = "vue_2";
+    public static final String DEFAULT_MAC_FOLDER = ".vue_2";
     private static String currentDirectoryPath = "";
     private static String VueExtension = null;
     
@@ -105,7 +107,7 @@ public class VueUtil extends tufts.Util
         File userHome = new File(VUE.getSystemProperty("user.home"));
         if(userHome == null) 
             userHome = new File(VUE.getSystemProperty("java.io.tmpdir"));
-        final String vueUserDir = isWindowsPlatform() ? "vue" : ".vue";
+        final String vueUserDir = isWindowsPlatform() ? DEFAULT_WINDOWS_FOLDER : DEFAULT_MAC_FOLDER;
         File userFolder = new File(userHome.getPath() + File.separatorChar + vueUserDir);
         if(userFolder.isDirectory())
             return userFolder;
