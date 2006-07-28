@@ -38,7 +38,7 @@ import com.sun.tools.xjc.generator.unmarshaller.automaton.Alphabet.SuperClass;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.28 $ / $Date: 2006-07-25 19:40:02 $ / $Author: mike $
+ * @version $Revision: 1.29 $ / $Date: 2006-07-28 20:55:31 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -657,7 +657,7 @@ public class WidgetStack extends Widget
             //super(iconChar, 18, defaultColor, TitleHeight, TitleHeight);
         	super();
         	setIcon(VueResources.getImageIcon("dockWindow.helpIcon.raw"));
-        	
+        	this.setFocusable(true);
         	Insets noInsets=new Insets(5,0,0,0);
 
         	// todo: to keep manually picking a height and a bottom pad to get this
