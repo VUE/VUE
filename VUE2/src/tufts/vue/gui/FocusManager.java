@@ -146,7 +146,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-07-27 22:16:41 $ / $Author: sfraize $ 
+ * @version $Revision: 1.10 $ / $Date: 2006-07-28 18:26:25 $ / $Author: mike $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -270,12 +270,15 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
         switch (id) {
         case MouseEvent.MOUSE_MOVED:
+        case MouseEvent.MOUSE_ENTERED:
+        case MouseEvent.MOUSE_EXITED:        
         case MouseEvent.MOUSE_DRAGGED:
             //case ComponentEvent.COMPONENT_MOVED:
             //case ComponentEvent.COMPONENT_RESIZED:
             //case PaintEvent.PAINT:
             //case PaintEvent.UPDATE:
             // do don't report these.
+        	
             if (DEBUG.META == false)
                 break;
             
@@ -624,7 +627,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         if (DEBUG.FOCUS) out(" inspectMouseEvent: " + name(clicked) + " " + e.paramString());
         
         if (clicked == mForcedFocus || clicked == mForcedFocusClickedChild) {
-            // leave us force-focused as is
+            // leave us force-focused as is        	
             return;
         }
 
@@ -734,13 +737,14 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
     private static boolean isForceFocusableType(Component c)
     {
-        return 
+        return
                c instanceof javax.swing.text.JTextComponent
             || c instanceof javax.swing.AbstractButton
             || c instanceof javax.swing.JComboBox
             || c instanceof javax.swing.JTree
             || c instanceof javax.swing.JTable
             ;
+                             
 
         /*
         return (false
