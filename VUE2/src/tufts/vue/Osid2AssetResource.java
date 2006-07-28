@@ -38,6 +38,7 @@ public class Osid2AssetResource extends MapResource
 
     private static final org.osid.shared.Type FedoraImagePartType = // TODO: temporary hack for Fedora (also: note differing authority conventions!
         new edu.tufts.vue.util.Type("edu.mit","partStructure","mediumImage");
+    // TODO: Google Global is currently using edu.mit authority also for URL part type...
     
     private osid.OsidOwner owner = null;
     private org.osid.OsidContext context = null;
@@ -154,10 +155,10 @@ public class Osid2AssetResource extends MapResource
 
                 if (description != null && description.trim().length() > 0) {
                     key = description;
-                    if (DEBUG.DR) key += "|d";
+                    //if (DEBUG.DR) key += "|d";
                 } else {
                     key = partStructureType.getKeyword();
-                    if (DEBUG.DR) key += "|k";
+                    //if (DEBUG.DR) key += "|k";
                     /*
                     if (DEBUG.DR) {
                         String idName = record.getId().getIdString();
@@ -230,7 +231,15 @@ public class Osid2AssetResource extends MapResource
             if (DEBUG.DR) {
                 addProperty("ZRECORD", recordDesc);
             }
+        }
 
+        // This is a default catch-all: if we've failed to find the right part-types,
+        // and/or they were improperly specified, if there's any part with the name 'URL',
+        // use that for the spec.
+        if (getSpec() == SPEC_UNSET) {
+            String defaultURL = getProperty("URL");
+            if (DEBUG.RESOURCE && DEBUG.META) VUE.Log.warn("Osid2AssetResource failsafe: using URL property " + defaultURL);
+            setSpec(defaultURL);
         }
     }
     
