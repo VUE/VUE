@@ -1139,7 +1139,6 @@ public class Util
         
         synchronized (System.out) {
         synchronized (System.err) {
-            
         synchronized (s) {
 
             s.print(TERM_RED);
@@ -1183,6 +1182,8 @@ public class Util
                 s.print(TERM_RED + "    CAUSE: " + TERM_CLEAR);
                 cause.printStackTrace();
             }
+            s.println("END " + t + "\n");
+            
         }
         }}
     }

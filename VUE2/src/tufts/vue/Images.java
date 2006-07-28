@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.18 $ / $Date: 2006-07-27 22:30:08 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2006-07-28 22:18:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -809,7 +809,7 @@ public class Images
             //r.setProperty("url.contentType", ct);
             r.setProperty(CONTENT_TYPE, ct);
             if (DEBUG.Enabled && ct != null && !ct.toLowerCase().startsWith("image")) {
-                Util.printStackTrace("NON IMAGE CONTENT TYPE [" + ct + "] for " + r);
+                Util.printStackTrace("FYI: NON IMAGE CONTENT TYPE [" + ct + "] for " + r);
             }
             setDateValue(r, "URL.expires", uc.getExpiration());
             //setDateValue(r, "url.date", uc.getDate());
@@ -979,9 +979,17 @@ public class Images
             do {
                 if (DEBUG.IMAGE) out("opening URL connection...");
                 java.net.URLConnection uc = url.openConnection();
-                uc.setAllowUserInteraction(true);
-                if (imageSRC.resource != null)
-                    setResourceMetaData(imageSRC.resource, uc);
+                //uc.setAllowUserInteraction(true);
+                if (imageSRC.resource != null) {
+                    try {
+                        setResourceMetaData(imageSRC.resource, uc);
+                    } catch (Throwable t) {
+                        // Don't fail if a problem with meta data: still give
+                        // a chance for the content to work...
+                        tufts.Util.printStackTrace(t, "URLConnection Meta Data Failure");
+                        //imageSRC.resource.setProperty("MetaDataFailure", t.toString());
+                    }
+                }
                 if (DEBUG.IMAGE) out("opening URL stream...");
                 urlStream = uc.getInputStream();
                 if (DEBUG.IMAGE) out("got URL stream");
@@ -1196,7 +1204,7 @@ public class Images
         if (false)
             VUE.Log.debug(s + " " + (o==null?"null":o.toString()));
         else
-            System.out.println(s + " " + (o==null?"null":o.toString()));
+            System.err.println(s + " " + (o==null?"null":o.toString()));
     }
 
     
