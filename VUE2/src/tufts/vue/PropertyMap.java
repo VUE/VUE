@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.10 $ / $Date: 2006-07-28 00:07:21 $ / $Author: mike $
+ * @version $Revision: 1.11 $ / $Date: 2006-07-28 13:33:35 $ / $Author: mike $
  */
 
 public class PropertyMap extends java.util.HashMap
@@ -199,7 +199,7 @@ public class PropertyMap extends java.util.HashMap
                 boolean priority = false;
                 if ("title".equalsIgnoreCase((String)e.getKey()))
                     priority = true;                
-                if ("name".equalsIgnoreCase((String)e.getKey()))
+                else if ("name".equalsIgnoreCase((String)e.getKey()))
                     priority = true;
                 mEntries[ei++] = new Entry(e, priority);
             }
