@@ -28,7 +28,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.57 $ / $Date: 2006-07-28 14:05:36 $ / $Author: mike $ 
+ * @version $Revision: 1.58 $ / $Date: 2006-07-28 22:49:50 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -174,6 +174,7 @@ public class DRBrowser extends JPanel
         if (delayedLoading) {
             loadingLabel = new JLabel(VueResources.getString("dockWindow.Resources.loading.label"), SwingConstants.CENTER);
             loadingLabel.setMinimumSize(new Dimension(150, 80));
+            loadingLabel.setBorder(new EmptyBorder(8,0,8,0));
             add(loadingLabel);
         } else {
             loadDataSourceViewer();
