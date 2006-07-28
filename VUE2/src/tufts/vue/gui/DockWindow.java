@@ -31,6 +31,7 @@ import tufts.vue.VueResources;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
@@ -54,7 +55,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.79 $ / $Date: 2006-07-25 16:45:05 $ / $Author: peter $
+ * @version $Revision: 1.80 $ / $Date: 2006-07-28 22:04:14 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -3777,18 +3778,21 @@ public class DockWindow extends javax.swing.JWindow
     }
 
 
-    private class MenuButton extends JLabel {
-        //static final char chevron = 0xBB; // unicode "right-pointing double angle quotation mark"
-        //final Color inactiveColor = isMacAqua ? Color.darkGray : Color.lightGray;
+    private class MenuButton extends JLabel implements MouseListener 
+    {
 
-        MenuButton(Action[] actions) {
-            //super(" " + chevron);
-            super(GUI.getIcon("btn_menu.gif"));
-            //setForeground(inactiveColor);
+
+        MenuButton(Action[] actions) 
+        {
+        	super();        	
+        	setFocusable(true);
+        	setIcon(VueResources.getIcon("dockWindow.panner.menu.raw"));        	
+        
             setName(DockWindow.this.getName());
             setFont(new Font("Arial", Font.PLAIN, 18));
-            //Insets borderInsets = new Insets(0,0,1,2); // chevron
-            Insets borderInsets = new Insets(1,0,0,2);
+        
+            Insets borderInsets = new Insets(1,1,1,1);
+        
             if (DEBUG.BOXES) {
                 setBorder(new MatteBorder(borderInsets, Color.orange));
                 setBackground(Color.red);
@@ -3802,13 +3806,23 @@ public class DockWindow extends javax.swing.JWindow
             if (false) setMaximumSize(new Dimension(30,TitleHeight));
 
             setMenuActions(actions);
-            
         }
+            
+            
+    		public void mouseEntered(MouseEvent arg0) {    			
+    			setIcon(VueResources.getImageIcon("dockWindow.panner.menu.hover"));
+    		}
+
+    		public void mouseExited(MouseEvent arg0) {
+    			setIcon(VueResources.getImageIcon("dockWindow.panner.menu.raw"));    			
+    			
+    		}       
+
 
         void setMenuActions(Action[] actions)
         {
             clearMenuActions();
-
+            addMouseListener(this);
             new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
                 /*
                   public void mouseEntered(MouseEvent e) {
@@ -3834,6 +3848,24 @@ public class DockWindow extends javax.swing.JWindow
                     removeMouseListener(ml[i]);
             }
         }
+
+
+		public void mouseClicked(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		public void mousePressed(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		public void mouseReleased(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}	
 
     }
     
