@@ -1,4 +1,4 @@
- /*
+  /*
   * -----------------------------------------------------------------------------
   *
   * <p><b>License and Copyright: </b>The contents of this file are subject to the
@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-07-27 22:30:29 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2006-07-28 00:07:21 $ / $Author: mike $
  */
 
 public class PropertyMap extends java.util.HashMap
@@ -198,12 +198,14 @@ public class PropertyMap extends java.util.HashMap
                 Map.Entry e = (Map.Entry) i.next();
                 boolean priority = false;
                 if ("title".equalsIgnoreCase((String)e.getKey()))
+                    priority = true;                
+                if ("name".equalsIgnoreCase((String)e.getKey()))
                     priority = true;
                 mEntries[ei++] = new Entry(e, priority);
             }
             
             Arrays.sort(mEntries);
-
+            
             /*
             mEntries = (Map.Entry[]) PropertyMap.this.entrySet().toArray(new Map.Entry[size()]);
             Arrays.sort(mEntries, new Comparator() {

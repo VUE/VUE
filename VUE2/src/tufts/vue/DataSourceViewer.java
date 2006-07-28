@@ -18,13 +18,16 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueButton;
 import tufts.vue.gui.Widget;
+import tufts.vue.ui.MetaDataPane;
 import tufts.vue.ui.ResourceList;
 
 
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -972,8 +975,70 @@ public class DataSourceViewer extends JPanel
         editInfoDockWindow.setVisible(true);
     }
     
+    private PropertyMap buildPropertyMap(edu.tufts.vue.dsm.DataSource dataSource)
+    {
+    	PropertyMap map = new PropertyMap();    	
+    	
+    	try {
+			org.osid.repository.Repository repository = dataSource.getRepository();
+			
+		
+					
+			map.addProperty("Repository Id",(Object)repository.getId().getIdString());
+			map.addProperty("Name",(Object)repository.getDisplayName());
+			map.addProperty("Description",(Object)repository.getDescription());
+			map.addProperty("Type",(Object)edu.tufts.vue.util.Utilities.typeToString(repository.getType()));
+			map.addProperty("Creator",(Object)dataSource.getCreator());
+			map.addProperty("Publisher",(Object)dataSource.getPublisher());
+			map.addProperty("Release Date",(Object)edu.tufts.vue.util.Utilities.dateToString(dataSource.getReleaseDate()));
+			map.addProperty("Provider Id",(Object)dataSource.getProviderId().getIdString());
+			String osidName = dataSource.getOsidName() + " " + dataSource.getOsidVersion();
+			map.addProperty("Osid Service",(Object)osidName);
+			map.addProperty("Osid Load Key",(Object)dataSource.getOsidLoadKey());
+			map.addProperty("Provider Display Name",(Object)dataSource.getProviderDisplayName());
+			map.addProperty("Provider Description",(Object)dataSource.getProviderDescription());
+			String online = dataSource.isOnline() ? "Yes" : "No";
+			map.addProperty("Online?",(Object)online);
+			String supportsUpd = dataSource.supportsUpdate() ? "The Library Supports Updating" : "The Library Is Read Only";
+			map.addProperty("Supports Update?",(Object)supportsUpd);
+			
+			org.osid.shared.TypeIterator typeIterator = repository.getAssetTypes();
+			StringBuilder assetTypes = new StringBuilder();
+			while (typeIterator.hasNextType()) {
+				assetTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
+				assetTypes.append(", ");
+			}
+			map.addProperty("Asset Types",(Object)assetTypes.toString());
+			
+			typeIterator = repository.getSearchTypes();
+			StringBuilder searchTypes = new StringBuilder();
+			while (typeIterator.hasNextType()) {
+				searchTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
+				searchTypes.append(", ");
+				
+			}
+			
+			map.addProperty("Search Types",(Object)searchTypes.toString());
+	
+			
+/*			java.awt.Image image = null;
+			if ( (image = dataSource.getIcon16x16()) != null ) {		
+				gbConstraints.gridx = 0;
+				gbConstraints.gridy++;
+				add(new javax.swing.JLabel(new javax.swing.ImageIcon(image)),gbConstraints);
+			}*/
+		} catch (Throwable t) {
+			//t.printStackTrace();
+			System.out.println(t.getMessage());
+		}
+    	
+    	return map;
+    }
+    
     private void refreshEditInfo(edu.tufts.vue.dsm.DataSource ds) {
         String dockTitle = ds.getRepositoryDisplayName();
+        PropertyMap dsProps = buildPropertyMap(ds);
+        
         final WidgetStack editInfoStack = new WidgetStack();
         
         if (editInfoDockWindow == null) {
@@ -986,14 +1051,19 @@ public class DataSourceViewer extends JPanel
                 Widget.setExpanded(jc,false);
             }
             
-            JPanel descriptionPanel = new JPanel();
+            
+            //JPanel descriptionPanel = new JPanel();
             java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
             java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
-            gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
-            gbConstraints.insets = new java.awt.Insets(10,12,10,12);
-            descriptionPanel.setLayout(gbLayout);
-            descriptionPanel.add(new LibraryInfoPanel(ds),gbConstraints);
-            editInfoStack.addPane("Description",new javax.swing.JScrollPane(descriptionPanel));
+            //gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+            //gbConstraints.insets = new java.awt.Insets(10,12,10,12);
+            //descriptionPanel.setLayout(gbLayout);
+            MetaDataPane metaDataPane = new MetaDataPane();
+            metaDataPane.loadProperties(dsProps);
+            //descriptionPanel.add(metaDataPane,gbConstraints);
+            //descriptionPanel.add(new LibraryInfoPanel(ds),gbConstraints);
+            //editInfoStack.addPane("Description",new javax.swing.JScrollPane(descriptionPanel,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
+            editInfoStack.addPane("Content Description",metaDataPane);
             
             editInfoDockWindow = GUI.createDockWindow(dockTitle, editInfoStack);
             editInfoDockWindow.setWidth(300);
@@ -1010,14 +1080,18 @@ public class DataSourceViewer extends JPanel
                 editInfoStack.addPane("Configuration",jc);
                 Widget.setExpanded(jc,false);
             }
-            JPanel descriptionPanel = new JPanel();
-            java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
-            java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
-            gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
-            gbConstraints.insets = new java.awt.Insets(10,12,10,12);
-            descriptionPanel.setLayout(gbLayout);
-            descriptionPanel.add(new LibraryInfoPanel(ds),gbConstraints);
-            editInfoStack.addPane("Description",new javax.swing.JScrollPane(descriptionPanel));
+            //JPanel descriptionPanel = new JPanel();
+            //java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
+            //java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
+            //gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+            //gbConstraints.insets = new java.awt.Insets(10,12,10,12);
+            //descriptionPanel.setLayout(new BorderLayout());
+            MetaDataPane metaDataPane = new MetaDataPane();
+            metaDataPane.loadProperties(dsProps);
+            metaDataPane.setPreferredSize(new Dimension(editInfoDockWindow.getWidth(),metaDataPane.getHeight()));
+            //descriptionPanel.add(metaDataPane,BorderLayout.CENTER);
+            //descriptionPanel.add(new LibraryInfoPanel(ds),gbConstraints);
+            editInfoStack.addPane("Content Description",metaDataPane);
             
             editInfoDockWindow.setTitle(dockTitle);
             editInfoDockWindow.setContent(editInfoStack);
