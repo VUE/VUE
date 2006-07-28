@@ -28,7 +28,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.56 $ / $Date: 2006-07-27 19:54:13 $ / $Author: sfraize $ 
+ * @version $Revision: 1.57 $ / $Date: 2006-07-28 14:05:36 $ / $Author: mike $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -172,7 +172,7 @@ public class DRBrowser extends JPanel
         buildWidgets();
         
         if (delayedLoading) {
-            loadingLabel = new JLabel("Loading data sources...", SwingConstants.CENTER);
+            loadingLabel = new JLabel(VueResources.getString("dockWindow.Resources.loading.label"), SwingConstants.CENTER);
             loadingLabel.setMinimumSize(new Dimension(150, 80));
             add(loadingLabel);
         } else {
