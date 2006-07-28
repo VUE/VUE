@@ -24,6 +24,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.FocusEvent;
 import javax.swing.AbstractCellEditor;
+import javax.swing.BoxLayout;
 import javax.swing.UIManager;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
@@ -32,6 +33,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.tree.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.ImageIcon;
@@ -45,7 +47,7 @@ import java.util.ArrayList;
  * Todo: render right from the node labels so all we have to do is repaint to refresh.
  * (still need to modify tree for hierarchy changes tho).
  *
- * @version $Revision: 1.43 $ / $Date: 2006-03-24 23:22:12 $ / $Author: sfraize $
+ * @version $Revision: 1.44 $ / $Date: 2006-07-28 21:27:29 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  */
 
@@ -67,9 +69,10 @@ public class OutlineViewTree extends JTree
    
     /** Creates a new instance of OverviewTree */
     public OutlineViewTree()
-    {
+    {    	 
          setModel(null);
          setEditable(true);
+         setFocusable(true);
          getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
          setCellRenderer(new OutlineViewTreeRenderer());
          //setCellRenderer(new DefaultTreeCellRenderer());
@@ -310,6 +313,7 @@ public class OutlineViewTree extends JTree
          
             String label = tree.convertValueToText(value, sel, expanded, leaf, row, hasFocus);
             //System.out.println("render text[" + label + "]");
+            
             setText(label);
             
             return this;
@@ -339,9 +343,10 @@ public class OutlineViewTree extends JTree
         // This method is called when a cell value is edited by the user.
         public Component getTreeCellEditorComponent(JTree tree, Object value, boolean isSelected, boolean expanded, boolean leaf, int row) 
         {
+        	//editorElement.setFont(VueConstants.FONT_MEDIUM);
             editorElement.setBackground(Color.white);   
             editorElement.setBorder( UIManager.getBorder("Table.focusCellHighlightBorder") );
-             
+            
             // Configure the component with the specified value
             String label = tree.convertValueToText(value, isSelected, expanded, leaf, row, true);
             editorElement.setText(label);
@@ -476,11 +481,19 @@ public class OutlineViewTree extends JTree
         
         public OutlineViewRenderElement()
         {
-            super(new FlowLayout(FlowLayout.LEFT, 5, 2));
+            //super(new FlowLayout(FlowLayout.LEFT, 5, 2));
+        	super();
+        	BoxLayout box = new BoxLayout(OutlineViewRenderElement.this,BoxLayout.X_AXIS);
+        	setLayout(box);
+        	setBorder(new EmptyBorder(new Insets(2,2,2,2)));
             //super(new BorderLayout());
             setBackground(Color.white);
             
+            
             label = new JTextArea();
+            
+            
+            label.setFont(VueResources.getFont("toolbar.font"));
             label.setEditable(false);
             iconPanel = new IconPanel();
             
@@ -525,9 +538,12 @@ public class OutlineViewTree extends JTree
         
         public OutlineViewEditorElement(OutlineViewTreeEditor editor)
         {
-            setLayout(new FlowLayout(FlowLayout.LEFT, 5, 2));
+        	BoxLayout box = new BoxLayout(OutlineViewEditorElement.this,BoxLayout.X_AXIS);
+        	setLayout(box);
+        	setBorder(new EmptyBorder(new Insets(2,2,2,2)));
          
             label = new JTextArea();
+            label.setFont(VueResources.getFont("toolbar.font"));
             label.setEditable(true);
             label.setLineWrap(true);
             label.setColumns(30);
