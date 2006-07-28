@@ -298,6 +298,7 @@ public class DataSourceViewer extends JPanel
     
     public void  setPopup() {
         popup = new JPopupMenu();
+        
         checkForUpdatesAction = new AbstractAction("Update Resources") {
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -405,6 +406,7 @@ public class DataSourceViewer extends JPanel
                     }
                 }
                 DataSourceViewer.this.popup.setVisible(false);
+                
             }
         };
         
@@ -477,11 +479,15 @@ public class DataSourceViewer extends JPanel
             removeLibraryAction.setEnabled(false);
             editLibraryAction.setEnabled(false);
         }
+        
+        //TODO : This is temporary but they decided to disable update for 1.5 -mikek
+        checkForUpdatesAction.setEnabled(false);
         Widget.setMenuActions(DRB.librariesPanel,
                 new Action[] {
-            editLibraryAction,
-                    addLibraryAction,
-                    checkForUpdatesAction,
+        			addLibraryAction,
+        			checkForUpdatesAction,
+        			null,
+        			editLibraryAction,                    
                     removeLibraryAction
         });
                 
