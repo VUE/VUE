@@ -81,7 +81,7 @@ implements org.osid.repository.RepositoryManager
 				this.repositoryType = new Type("edu.tufts","repository","google");
 				this.repositoryId = Utilities.getIdManager().getId("49734F17-AD8B-450B-8841-BCBF8F3454B3-758-000002113FA638E4");
 				this.searchTypeVector.addElement(new Type("mit.edu","search","keyword"));
-				this.repository = new Repository("Google Global",
+				this.repository = new Repository("Google",
 												 "Google (not local).  This implementatin requires the user to have a key.  Keys are obtained directly from Google.",
 												 this.repositoryId,
 												 this.repositoryType,
