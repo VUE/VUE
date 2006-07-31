@@ -285,8 +285,8 @@ public class ConfigurationUI extends javax.swing.JPanel
 				int numChars = ((Integer)maxCharsVector.elementAt(i)).intValue();
 
 				boolean isMandatory = ((Boolean)mandatoryVector.elementAt(i)).booleanValue();
-				String prefix = (isMandatory) ? "*" : "";
-				javax.swing.JLabel prompt = new javax.swing.JLabel(prefix + title + ": ");
+				//String prefix = (isMandatory) ? "*" : "";
+				javax.swing.JLabel prompt = new javax.swing.JLabel(title + ": ");
 				
 				switch (uiCode) {
 					// create appropriate field
