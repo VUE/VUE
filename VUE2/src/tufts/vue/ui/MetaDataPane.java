@@ -290,6 +290,13 @@ public class MetaDataPane extends JPanel
            // all synthetic keys, which covers URL.path, which was the problem.
            //if (label.indexOf(".") < 0) 
            //value = "<html>"+value;
+
+           char c = 0;
+           try {
+               c = label.charAt(0);
+           } catch (Throwable t) {}
+           if (!DEBUG.Enabled && (c == '@' || c == '~'))
+               continue;
            
            loadRow(row, label, value);
            
