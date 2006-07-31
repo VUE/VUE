@@ -59,8 +59,8 @@ public class DataSourceViewer extends JPanel
     
     public final static int ADD_MODE = 0;
     public final static int EDIT_MODE = 1;
-    private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
-    private final static URL XML_MAPPING_DEFAULT = VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
+    //private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
+    //private final static URL XML_MAPPING_DEFAULT = VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
     public static final org.osid.shared.Type favoritesRepositoryType = new edu.tufts.vue.util.Type("edu.tufts","favorites","Favorites");
     JPopupMenu popup;
     
@@ -648,7 +648,7 @@ public class DataSourceViewer extends JPanel
             throws org.osid.repository.RepositoryException
         {
             Resource r = new Osid2AssetResource(asset, context);
-            if (DEBUG.DR) r.addProperty("@_Repository", repository.getDisplayName());
+            if (DEBUG.DR) r.addProperty("~Repository", repository.getDisplayName());
             return r;
         }
     }
@@ -1176,20 +1176,23 @@ public class DataSourceViewer extends JPanel
         int size = dataSourceList.getModel().getSize();
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
         Vector sDataSources = new Vector();
+        if (DEBUG.DR) out("saveDataSourceViewer: found " + size + " dataSources: scanning for local's to save...");
         for (int i = 0; i<size; i++) {
             Object item = dataSourceList.getModel().getElementAt(i);
-            if (DEBUG.DR) System.out.println("saveDataSourceViewer: item " + i + " is " + item.getClass().getName() + "[" + item + "] of " + size);
+            if (DEBUG.DR) System.err.print("\tsaveDataSourceViewer: item " + i + " is " + tufts.Util.tag(item) + "[" + item + "]...");
             if (item instanceof DataSource) {
                 sDataSources.add((DataSource)item);
+                if (DEBUG.DR) System.err.println("saving");
             } else {
-                if (DEBUG.DR) System.out.println("\tskipped item of " + item.getClass());
+                if (DEBUG.DR) System.err.println("skipping");
             }
         }
         try {
-            if (DEBUG.DR) System.out.println("saveDataSourceViewer: creating new SaveDataSourceViewer");
+            if (DEBUG.DR) out("saveDataSourceViewer: creating new SaveDataSourceViewer");
             SaveDataSourceViewer sViewer= new SaveDataSourceViewer(sDataSources);
-            if (DEBUG.DR) System.out.println("saveDataSourceViewer: marshallMap: saving " + sViewer + " to " + f);
+            if (DEBUG.DR) out("saveDataSourceViewer: marshallMap: saving " + sViewer + " to " + f);
             marshallMap(f,sViewer);
+            if (DEBUG.DR) out("saveDataSourceViewer: saved");
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -1198,17 +1201,17 @@ public class DataSourceViewer extends JPanel
     
     public  static void marshallMap(File file,SaveDataSourceViewer dataSourceViewer) {
         Marshaller marshaller = null;
-        Mapping mapping = new Mapping();
+        //Mapping mapping = new Mapping();
         
         try {
             FileWriter writer = new FileWriter(file);
             marshaller = new Marshaller(writer);
-            if (DEBUG.DR) System.out.println("DataSourceViewer.marshallMap: loading mapping " + XML_MAPPING_DEFAULT);
-            mapping.loadMapping(XML_MAPPING_DEFAULT);
-            marshaller.setMapping(mapping);
-            if (DEBUG.DR) System.out.println("DataSourceViewer.marshallMap: marshalling " + dataSourceViewer + " to " + file + "...");
+            //if (DEBUG.DR) out("marshallMap: loading mapping " + XML_MAPPING_DEFAULT);
+            //mapping.loadMapping(XML_MAPPING_DEFAULT);
+            marshaller.setMapping(tufts.vue.action.ActionUtil.getDefaultMapping());
+            if (DEBUG.DR) out("marshallMap: marshalling " + dataSourceViewer + " to " + file + "...");
             marshaller.marshal(dataSourceViewer);
-            if (DEBUG.DR) System.out.println("DataSourceViewer.marshallMap: done marshalling.");
+            if (DEBUG.DR) out("marshallMap: done marshalling.");
             writer.flush();
             writer.close();
         } catch (Throwable t) {
@@ -1218,12 +1221,12 @@ public class DataSourceViewer extends JPanel
     }
     
     public  SaveDataSourceViewer unMarshallMap(File file) throws java.io.IOException, org.exolab.castor.xml.MarshalException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException{
-        Unmarshaller unmarshaller = null;
+        Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
         SaveDataSourceViewer sviewer = null;
-        Mapping mapping = new Mapping();
-        unmarshaller = new Unmarshaller();
-        mapping.loadMapping(XML_MAPPING_DEFAULT);
-        unmarshaller.setMapping(mapping);
+        //Mapping mapping = new Mapping();
+        //unmarshaller = new Unmarshaller();
+        //mapping.loadMapping(XML_MAPPING_DEFAULT);
+        //unmarshaller.setMapping(mapping);
         FileReader reader = new FileReader(file);
         sviewer = (SaveDataSourceViewer) unmarshaller.unmarshal(new InputSource(reader));
         reader.close();
@@ -1239,7 +1242,7 @@ public class DataSourceViewer extends JPanel
     public void keyTyped(KeyEvent e) {
     }
     
-    private void out(Object o) {
+    private static void out(Object o) {
         System.err.println("DSV "
                 + new Long(System.currentTimeMillis()).toString().substring(8)
                 + " [" + Thread.currentThread().getName() + "] "

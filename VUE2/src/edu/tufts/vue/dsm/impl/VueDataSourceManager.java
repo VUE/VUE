@@ -39,8 +39,8 @@ public class VueDataSourceManager
 {
     private static edu.tufts.vue.dsm.DataSourceManager dataSourceManager = new VueDataSourceManager();
     private static java.util.Vector dataSourceVector = new java.util.Vector();
-    private final static String XML_MAPPING_CURRENT_VERSION_ID = tufts.vue.VueResources.getString("mapping.lw.current_version");
-    private final static URL XML_MAPPING_DEFAULT = tufts.vue.VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
+    //private final static String XML_MAPPING_CURRENT_VERSION_ID = tufts.vue.VueResources.getString("mapping.lw.current_version");
+    //private final static URL XML_MAPPING_DEFAULT = tufts.vue.VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
     private static final File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
     private static String  xmlFilename  = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
     
@@ -228,12 +228,13 @@ public class VueDataSourceManager
     public  static void marshall(File file,VueDataSourceManager dsm) {
 //        System.out.println("Marshalling: file -"+ file.getAbsolutePath());
         Marshaller marshaller = null;
-        Mapping mapping = new Mapping();
+        //Mapping mapping = new Mapping();
+        Mapping mapping = tufts.vue.action.ActionUtil.getDefaultMapping();
         
         try {
             FileWriter writer = new FileWriter(file);
             marshaller = new Marshaller(writer);
-            mapping.loadMapping(XML_MAPPING_DEFAULT);
+            //mapping.loadMapping(XML_MAPPING_DEFAULT);
             marshaller.setMapping(mapping);
             marshaller.marshal(dsm);
             writer.flush();
@@ -246,15 +247,18 @@ public class VueDataSourceManager
     
     public static  VueDataSourceManager unMarshall(File file) throws java.io.IOException, org.exolab.castor.xml.MarshalException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException {
 //        System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
+        
+        Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
+        /*
         Unmarshaller unmarshaller = null;
-        VueDataSourceManager dsm = null;
         Mapping mapping = new Mapping();
         unmarshaller = new Unmarshaller();
         unmarshaller.setIgnoreExtraElements(true);
         mapping.loadMapping(XML_MAPPING_DEFAULT);
         unmarshaller.setMapping(mapping);
+        */
         FileReader reader = new FileReader(file);
-        dsm = (VueDataSourceManager) unmarshaller.unmarshal(new InputSource(reader));
+        VueDataSourceManager dsm = (VueDataSourceManager) unmarshaller.unmarshal(new InputSource(reader));
         reader.close();
         return dsm;
     }

@@ -247,7 +247,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         Unmarshaller unmarshaller = null;
         SaveVueJTree sTree = null;
         try {
-            unmarshaller = new Unmarshaller(ActionUtil.getDefaultMapping());
+            //unmarshaller = new Unmarshaller(ActionUtil.getDefaultMapping());
+            unmarshaller = ActionUtil.getDefaultUnmarshaller(file.toString());
             FileReader reader = new FileReader(file);
             sTree= (SaveVueJTree) unmarshaller.unmarshal(new InputSource(reader));
             reader.close();
