@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.59 $ / $Date: 2006-06-03 20:27:56 $ / $Author: sfraize $  
+ * @version $Revision: 1.60 $ / $Date: 2006-07-31 18:33:01 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -485,8 +485,8 @@ class MapDropTarget
             if (drop.hit != null) {
                 if (overwriteResource) {
                     drop.hit.setResource(foundURL.toString());
-                    // hack: clean this up:  resource should load meta-data on CREATION.
-                    ((MapResource)drop.hit.getResource()).scanForMetaDataAsync(drop.hit);
+                    // TODO: clean this up:  resource should load meta-data on CREATION.
+                    ((URLResource)drop.hit.getResource()).scanForMetaDataAsync(drop.hit);
                 } else if (drop.hitNode != null) {
                     drop.hitNode.addChild(createNodeAndResource(drop, foundURL.toString(), properties, drop.location));
                 } else {
@@ -637,7 +637,8 @@ class MapDropTarget
         //if (hitComponent != null && fileList.size() == 1) {
                 
         if (drop.hit != null) {
-            if (drop.isLinkAction) {
+            // TODO: CONSOLODATE THE SET-RESOURCE CODE FROM ALL THE PROCESSING SUB-ROUTINES
+            if (drop.isLinkAction || drop.hit instanceof LWLink) { // hack for now: if a link, just always set resource...
                 drop.hit.setResource(resourceSpec);
             } else if (drop.hitNode != null) {
                 drop.hitNode.addChild(createNodeAndResource(drop, resourceSpec, props, null));
@@ -650,7 +651,7 @@ class MapDropTarget
 
     private LWComponent createNodeAndResource(DropContext drop, String resourceSpec, Map properties, Point2D where)
     {
-        MapResource resource = new MapResource(resourceSpec);
+        URLResource resource = new URLResource(resourceSpec);
 
         if (DEBUG.DND) out("createNodeAndResource " + resourceSpec + " " + properties + " " + where);
 
@@ -769,7 +770,7 @@ class MapDropTarget
             lwImage.setResourceAndLoad(resource, mViewer.getMap().getUndoManager());
         } else if (newResource) {
             // if image, it will do this at end of loading
-            ((MapResource)resource).scanForMetaDataAsync(node, true);
+            ((URLResource)resource).scanForMetaDataAsync(node, true);
         }
 
         drop.add(node);
