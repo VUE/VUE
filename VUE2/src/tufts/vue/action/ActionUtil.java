@@ -51,7 +51,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.42 $ / $Date: 2006-03-28 23:31:06 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2006-07-31 18:31:36 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -203,6 +203,58 @@ public class ActionUtil {
         }
         return (Mapping) result;
     }
+
+    public static Unmarshaller getDefaultUnmarshaller()
+        throws org.exolab.castor.mapping.MappingException
+    {
+        return getDefaultUnmarshaller(null, "(unknown source)");
+    }
+    public static Unmarshaller getDefaultUnmarshaller(String sourceName)
+        throws org.exolab.castor.mapping.MappingException
+    {
+        return getDefaultUnmarshaller(null, sourceName);
+    }
+    
+    /**
+     * Return the default unmarshaller for VUE data, which includes an installed
+     * unmarshall listener, which is required for the proper restoration of VUE objects.
+     */
+    public static Unmarshaller getDefaultUnmarshaller(Mapping mapping, String sourceName)
+        throws org.exolab.castor.mapping.MappingException
+    {
+        if (mapping == null)
+            mapping = getDefaultMapping();
+        
+        // todo: can cache this with it's mapping set (tho need to cache by mapping,
+        // as we still have different mapping files for old versions of the VUE save file)
+        Unmarshaller unmarshaller = new Unmarshaller();
+        
+        unmarshaller.setIgnoreExtraAttributes(true);
+        unmarshaller.setIgnoreExtraElements(true);
+        unmarshaller.setValidation(false);
+        //unmarshaller.setWhitespacePreserve(true); // doesn't affect elements!  (e.g. <notes> foo bar </notes>)
+        // HOWEVER: castor 0.9.7 now automatically encodes/decodes white space for attributes...
+        //unmarshaller.setLogWriter(new PrintWriter(System.out));
+        Logger logger = new Logger(System.err);
+        if (sourceName != null)
+            logger.setPrefix("Castor " + sourceName);
+        else
+            logger.setPrefix("Castor");
+        unmarshaller.setLogWriter(logger);
+        //unmarshaller.setLogWriter(new Logger.getSystemLogger());
+        // not a good sign: above getSystemLogger is decl public in castor code, but not public in doc, and non-existent in jar
+
+        if (DEBUG.XML) unmarshaller.setDebug(true);
+        
+        unmarshaller.setUnmarshalListener(new VueUnmarshalListener());
+        unmarshaller.setMapping(mapping);
+
+        if (DEBUG.CASTOR || DEBUG.XML || DEBUG.IO)
+            VUE.Log.debug("got default unmarshaller for mapping " + mapping + " source " + sourceName + "\n\n");
+
+        return unmarshaller;
+    }
+    
 
     private static Mapping getMapping(URL mappingSource) {
         Object result = _loadMapping(mappingSource);
@@ -446,6 +498,10 @@ public class ActionUtil {
         }
             
         try {
+            Unmarshaller unmarshaller = getDefaultUnmarshaller(mapping, url.toString());
+
+            /*
+            
             Unmarshaller unmarshaller = new Unmarshaller(); // todo: can cache this with it's mapping set
             unmarshaller.setIgnoreExtraAttributes(true);
             unmarshaller.setIgnoreExtraElements(true);
@@ -463,6 +519,8 @@ public class ActionUtil {
 
             unmarshaller.setUnmarshalListener(new VueUnmarshalListener());
             unmarshaller.setMapping(mapping);
+
+            */
 
             // unmarshall the map:
             
