@@ -86,7 +86,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
     private void setNodeFilterPanel() {
         lWMap= tufts.vue.VUE.getActiveMap();
         addButton.setToolTipText("Add Node Filter");
-        deleteButton.setToolTipText("Delete Delete Filter");
+        deleteButton.setToolTipText("Delete Node Filter");
         elementsModel = new ElementComboBoxModel();
         elementsModel.setElements(lWMap.getMapFilterModel().getKeyVector());
         elements = new JComboBox(elementsModel);
