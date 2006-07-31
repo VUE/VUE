@@ -45,14 +45,11 @@ public class Osid2AssetResource extends MapResource
     private org.osid.repository.Asset asset = null;
     private String icon = null;
 	
-    //    private osid.dr.Asset asset;
-    //    private CastorFedoraObject castorFedoraObject;  // stripped version of fedora object for saving and restoring in castor will work only with this implementation of DR API.
-	
     // default constructor needed for Castor
     public Osid2AssetResource() {}
 	
-    public String getLoadString()
-    {
+    /** @deprecated: don't know what this is for, but storing title a third time is more than redundant -- get rid of this */
+    public String getLoadString() {
         return getTitle();
     }
 	
@@ -84,12 +81,11 @@ public class Osid2AssetResource extends MapResource
     {
         this.asset = asset;
         try {
+            if (DEBUG.RESOURCE) out("setAsset " + asset + quoteL(asset.getDisplayName()));
             setAssetImpl(asset);
         } catch (Throwable t) {
             tufts.Util.printStackTrace(t);
         }
-        //if ((getSpec() == null) || (getSpec().trim().length() == 0)) {
-        //setSpec( asset.getDisplayName() );
     }
 
     private static String quoteF(String s) {
@@ -211,7 +207,7 @@ public class Osid2AssetResource extends MapResource
                     ////setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL(s))));
                     //this.icon = s;
                 } else if (ThumbnailPartType.isEqual(partStructureType)) {
-                    setURL_Thumbnail(value.toString());
+                    setURL_Thumb(value.toString());
 
                     /*
                     if (value instanceof String) {
@@ -228,18 +224,18 @@ public class Osid2AssetResource extends MapResource
                 }
             }
             
-            if (DEBUG.DR) {
-                addProperty("ZRECORD", recordDesc);
-            }
+            if (DEBUG.DR) addProperty("~Record", recordDesc);
         }
 
         // This is a default catch-all: if we've failed to find the right part-types,
         // and/or they were improperly specified, if there's any part with the name 'URL',
         // use that for the spec.
-        if (getSpec() == SPEC_UNSET) {
+        if (getSpec() == SPEC_UNSET && mURL_Browse == null) {
             String defaultURL = getProperty("URL");
-            if (DEBUG.RESOURCE && DEBUG.META) VUE.Log.warn("Osid2AssetResource failsafe: using URL property " + defaultURL);
-            setSpec(defaultURL);
+            if (defaultURL != null) {
+                if (DEBUG.RESOURCE && DEBUG.META) VUE.Log.warn("Osid2AssetResource failsafe: using URL property " + defaultURL);
+                setSpec(defaultURL);
+            }
         }
     }
     
