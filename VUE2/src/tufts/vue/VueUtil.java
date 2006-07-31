@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.71 $ / $Date: 2006-07-28 18:30:19 $ / $Author: anoop $
+ * @version $Revision: 1.72 $ / $Date: 2006-07-31 20:37:25 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -443,6 +443,14 @@ public class VueUtil extends tufts.Util
 
 
     public static void alert(JComponent parent, String message, String title) {
+        JOptionPane.showMessageDialog(parent,
+                                      message,
+                                      title,
+                                      JOptionPane.ERROR_MESSAGE,
+                                      VueResources.getImageIcon("vueIcon32x32"));                                      
+    }
+    
+    public static void alert(Container parent, String message, String title) {
         JOptionPane.showMessageDialog(parent,
                                       message,
                                       title,

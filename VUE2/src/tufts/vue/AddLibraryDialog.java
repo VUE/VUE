@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.47 $ / $Date: 2006-07-31 15:26:51 $ / $Author: mike $
+ * @version $Revision: 1.48 $ / $Date: 2006-07-31 20:37:25 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -77,7 +77,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
         } catch (Throwable t) {
             t.printStackTrace();
-            VueUtil.alert("Error instantiating Provider support","Error");
+            VueUtil.alert(this,"Error instantiating Provider support","Error");
         }
         
         try {
@@ -250,7 +250,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             
         } catch (Throwable t) {
             t.printStackTrace();
-            VueUtil.alert(t.getMessage(),"Error");
+            VueUtil.alert(this,t.getMessage(),"Error");
         } finally {
   //          GUI.clearWaitCursor();
         }
@@ -359,11 +359,12 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
 						System.out.println("In Add Library Dialog, provider not yet installed, installing...");
                         factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
                         try {
+                        	
                             GUI.activateWaitCursor();
                             factory.installProvider(provider.getId());                            
                         } catch (Throwable t1) {
                             //System.out.println("install failed " + provider.getId().getIdString());
-                            VueUtil.alert("Installation Failed","Error");
+                            VueUtil.alert(this,"Installation Failed","Error");
                             return;
                         } 
                     } else {
@@ -378,7 +379,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                                     provider.getId(),
                                     true);
                         } catch (Throwable t) {
-                            VueUtil.alert("Loading Manager Failed","Error");
+                            VueUtil.alert(this,"Loading Manager Failed","Error");
                             return;
                         }
                         //System.out.println("created data source");
@@ -393,7 +394,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     }
                 } catch (Throwable t) {
                     //System.out.println("configuration setup failed");
-                    VueUtil.alert(t.getMessage(),"OSID Installation Error");
+                    VueUtil.alert(this,t.getMessage(),"OSID Installation Error");
                     t.printStackTrace();
                     return;
                 }
