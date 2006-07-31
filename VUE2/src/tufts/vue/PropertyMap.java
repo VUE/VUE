@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.11 $ / $Date: 2006-07-28 13:33:35 $ / $Author: mike $
+ * @version $Revision: 1.12 $ / $Date: 2006-07-31 18:34:33 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap
@@ -92,7 +92,7 @@ public class PropertyMap extends java.util.HashMap
     /** No listeners will be updated until releaseChanges is called.  Multiple
      * overlapping holds are okay. */
     public synchronized void holdChanges() {
-        if (DEBUG.RESOURCE) out("holding changes");
+        if (DEBUG.RESOURCE && DEBUG.META) out("holding changes");
         mHoldingChanges = true;
     }
 
@@ -106,10 +106,10 @@ public class PropertyMap extends java.util.HashMap
     public synchronized void releaseChanges() {
         mHoldingChanges = false;
         if (mChanges > 0 && mTableModel != null) {
-            if (DEBUG.RESOURCE) out("releasing changes " + mChanges);
+            if (DEBUG.RESOURCE && DEBUG.META) out("releasing changes " + mChanges);
             mTableModel.reload();
         }
-        if (DEBUG.RESOURCE) out("released changes " + mChanges);
+        if (DEBUG.RESOURCE && DEBUG.META) out("released changes " + mChanges);
         mChanges = 0;
     }
 
