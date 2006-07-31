@@ -296,26 +296,34 @@
          </class>
 
         
-	<class name="tufts.vue.MapResource">
-		
-	  <field name="referenceCreated" type="long">   <bind-xml name="referenceCreated" node="attribute"/></field>
-	  <field name="accessAttempted"  type="long">   <bind-xml name="accessAttempted" node="attribute"/></field>
-	  <field name="accessSuccessful" type="long">   <bind-xml name="accessSuccessful" node="attribute"/></field>
-	  <field name="size"             type="long">   <bind-xml name="size" node="attribute"/></field>
-	  <field name="spec"             type="string"> <bind-xml name="spec" node="element"/></field>
-	  <field name="title"            type="string"> <bind-xml name="title" node="element"/></field>
-	  <field name="type"             type="integer"><bind-xml name="type" node="element"/></field>
-          
-          <field name="propertyList" set-method="setPropertyList" get-method="getPropertyList" type="java.lang.Object" collection="collection">
-	    <bind-xml name="property" />
-	  </field>
+        <class name="tufts.vue.MapResource" extends="tufts.vue.URLResource"> </class>
 
-	  <!--
-	      <field name="castorFedoraObject" type="tufts.vue.CastorFedoraObject">
-		<bind-xml name="castorFedoraObject" node="element"/>
-	      </field>
-	      -->
-	
+	<class name="tufts.vue.URLResource">
+		
+		<field name="referenceCreated"  type="long">    <bind-xml name="referenceCreated" node="attribute"/></field>
+		<field name="accessAttempted"   type="long">    <bind-xml name="accessAttempted" node="attribute"/></field>
+		<field name="accessSuccessful"  type="long">    <bind-xml name="accessSuccessful" node="attribute"/></field>
+		<field name="size"              type="long">    <bind-xml name="size" node="attribute"/></field>
+	        <field name="spec"             type="string"> <bind-xml name="spec" node="element"/></field>
+		<field name="title"             type="string">  <bind-xml name="title" node="element"/></field>
+	        <field name="type"             type="integer"><bind-xml name="type" node="element"/></field>
+
+                <field name="propertyList" type="tufts.vue.PropertyEntry" collection="collection">
+			<bind-xml name="property"/>
+		</field>
+                
+                <!-- field name="propertyMap" collection="map">
+			<bind-xml name="property"/>
+		</field -->
+                <!-- field name="propertyList" type="tufts.vue.PropertyList" node="element">
+			<bind-xml name="resourcePropertyList"/>
+		</field -->
+
+		<!--
+		<field name="castorFedoraObject" type="tufts.vue.CastorFedoraObject">
+			<bind-xml name="castorFedoraObject" node="element"/>
+		</field>
+		-->
 	</class>
 	
 	<class name="tufts.vue.AssetResource" extends="tufts.vue.MapResource">
@@ -324,8 +332,6 @@
 		</field>
 	</class>
        
-        <class name="tufts.vue.URLResource" extends="tufts.vue.MapResource">
-	</class>
         <class name="tufts.vue.CabinetResource" extends="tufts.vue.MapResource">
             <map-to xml="cabinetResource"/>
             <field name="extension" type="string">
