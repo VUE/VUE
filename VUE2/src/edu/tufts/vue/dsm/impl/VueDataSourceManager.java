@@ -43,7 +43,7 @@ public class VueDataSourceManager
     //private final static URL XML_MAPPING_DEFAULT = tufts.vue.VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
     private static final File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
     private static String  xmlFilename  = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
-    
+    private static boolean marshalling = false;
     public static edu.tufts.vue.dsm.DataSourceManager getInstance() {
         return dataSourceManager;
     }
@@ -51,7 +51,7 @@ public class VueDataSourceManager
     public VueDataSourceManager() {
     }
     
-    public void save() {
+   public  void save() {
         marshall(new File(this.xmlFilename), this);
     }
     
@@ -60,7 +60,7 @@ public class VueDataSourceManager
 			dataSourceVector = new java.util.Vector();
             File f = new File(xmlFilename);
             if (f.exists()) {
-                dataSourceManager = unMarshall(f);
+                dataSourceManager = unMarshall(f); 
             } else {
                 System.out.println("Installed datasources not found");
             }
@@ -123,7 +123,7 @@ public class VueDataSourceManager
                 }
             }
             dataSourceVector.addElement(dataSource);
-            save();
+            if(!marshalling) save();
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -137,7 +137,7 @@ public class VueDataSourceManager
                 edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
                 if (dataSourceId.isEqual(ds.getId())) {
                     dataSourceVector.removeElementAt(i);
-                    save();
+                    if(!marshalling) save();
                 }
             }
         } catch (Throwable t) {
@@ -226,11 +226,11 @@ public class VueDataSourceManager
     }
     
     public  static void marshall(File file,VueDataSourceManager dsm) {
-//        System.out.println("Marshalling: file -"+ file.getAbsolutePath());
+    //    System.out.println("Marshalling: file -"+ file.getAbsolutePath());
         Marshaller marshaller = null;
         //Mapping mapping = new Mapping();
         Mapping mapping = tufts.vue.action.ActionUtil.getDefaultMapping();
-        
+        marshalling = true;
         try {
             FileWriter writer = new FileWriter(file);
             marshaller = new Marshaller(writer);
@@ -243,10 +243,11 @@ public class VueDataSourceManager
             t.printStackTrace();
             System.err.println("VueDataSourceManager.marshall " + t.getMessage());
         }
+        marshalling = false;
     }
     
     public static  VueDataSourceManager unMarshall(File file) throws java.io.IOException, org.exolab.castor.xml.MarshalException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException {
-//        System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
+     // System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
         
         Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
         /*
@@ -257,9 +258,11 @@ public class VueDataSourceManager
         mapping.loadMapping(XML_MAPPING_DEFAULT);
         unmarshaller.setMapping(mapping);
         */
+        marshalling = true;
         FileReader reader = new FileReader(file);
         VueDataSourceManager dsm = (VueDataSourceManager) unmarshaller.unmarshal(new InputSource(reader));
         reader.close();
+        marshalling = false;
         return dsm;
     }
     
