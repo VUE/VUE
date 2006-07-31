@@ -55,7 +55,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.81 $ / $Date: 2006-07-31 15:53:56 $ / $Author: mike $
+ * @version $Revision: 1.82 $ / $Date: 2006-07-31 20:07:23 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -223,6 +223,7 @@ public class DockWindow extends javax.swing.JWindow
            GUI.clearWaitCursor();
            }},
            });} */
+        setFocusable(true);
     }
 
     public DockWindow(String title, Window owner) {
