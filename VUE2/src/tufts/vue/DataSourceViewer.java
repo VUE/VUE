@@ -59,8 +59,6 @@ public class DataSourceViewer extends JPanel
     
     public final static int ADD_MODE = 0;
     public final static int EDIT_MODE = 1;
-    //private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
-    //private final static URL XML_MAPPING_DEFAULT = VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
     public static final org.osid.shared.Type favoritesRepositoryType = new edu.tufts.vue.util.Type("edu.tufts","favorites","Favorites");
     JPopupMenu popup;
     
@@ -723,7 +721,11 @@ public class DataSourceViewer extends JPanel
                     return;
                 mResultPane.setTitle("Results: " + mRepositoryName);
                 mResultPane.removeAll();
-                JTextArea textArea = new JTextArea(mRepositoryName + ": Search Error: " + t);
+                final JTextArea textArea;
+                if (DEBUG.Enabled)
+                    textArea = new JTextArea(mRepositoryName + ": Search Error: " + t);
+                else
+                    textArea = new JTextArea(mRepositoryName + ": Search Error: Please check the resource configuration.");
                 textArea.setBorder(new EmptyBorder(4,22,6,0));
                 textArea.setLineWrap(true);
                 textArea.setWrapStyleWord(true);
@@ -1201,13 +1203,10 @@ public class DataSourceViewer extends JPanel
     
     public  static void marshallMap(File file,SaveDataSourceViewer dataSourceViewer) {
         Marshaller marshaller = null;
-        //Mapping mapping = new Mapping();
         
         try {
             FileWriter writer = new FileWriter(file);
             marshaller = new Marshaller(writer);
-            //if (DEBUG.DR) out("marshallMap: loading mapping " + XML_MAPPING_DEFAULT);
-            //mapping.loadMapping(XML_MAPPING_DEFAULT);
             marshaller.setMapping(tufts.vue.action.ActionUtil.getDefaultMapping());
             if (DEBUG.DR) out("marshallMap: marshalling " + dataSourceViewer + " to " + file + "...");
             marshaller.marshal(dataSourceViewer);
@@ -1220,15 +1219,15 @@ public class DataSourceViewer extends JPanel
         }
     }
     
-    public  SaveDataSourceViewer unMarshallMap(File file) throws java.io.IOException, org.exolab.castor.xml.MarshalException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException{
+    public  SaveDataSourceViewer unMarshallMap(File file)
+        throws java.io.IOException,
+               org.exolab.castor.xml.MarshalException,
+               org.exolab.castor.mapping.MappingException,
+               org.exolab.castor.xml.ValidationException
+    {
         Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
-        SaveDataSourceViewer sviewer = null;
-        //Mapping mapping = new Mapping();
-        //unmarshaller = new Unmarshaller();
-        //mapping.loadMapping(XML_MAPPING_DEFAULT);
-        //unmarshaller.setMapping(mapping);
         FileReader reader = new FileReader(file);
-        sviewer = (SaveDataSourceViewer) unmarshaller.unmarshal(new InputSource(reader));
+        SaveDataSourceViewer sviewer = (SaveDataSourceViewer) unmarshaller.unmarshal(new InputSource(reader));
         reader.close();
         return sviewer;
     }
