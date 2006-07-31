@@ -1111,7 +1111,7 @@ public class DataSourceViewer extends JPanel
     }
     
     private void refreshEditInfo(DataSource ds) {
-        String dockTitle = "Library Information for " + ds.getDisplayName();
+        String dockTitle = ds.getDisplayName();
         final WidgetStack editInfoStack = new WidgetStack();
         
         if (editInfoDockWindow == null) {
