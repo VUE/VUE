@@ -53,7 +53,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.18 $ / $Date: 2006-07-27 22:32:02 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2006-07-31 18:35:15 $ / $Author: sfraize $
  */
 
 // TODO: this class currently a humongous mess...
@@ -61,6 +61,10 @@ import java.awt.image.*;
 public class URLResource implements Resource, XMLUnmarshalListener
 {
     public static final String SPEC_UNSET = "<spec-unset>";
+
+    private static final String BROWSE_KEY = "@Browse";
+    private static final String IMAGE_KEY = "@Image";
+    private static final String THUMB_KEY = "@Thumb";
 
     static final long SIZE_UNKNOWN = -1;
     
@@ -81,8 +85,8 @@ public class URLResource implements Resource, XMLUnmarshalListener
     //private URL mURL = null;
     // TODO performance: store as strings and only do conversion when
     // we ask for them.
-    private URL mURL_Browse;
-    private URL mURL_Thumbnail;
+    protected URL mURL_Browse;
+    private URL mURL_Thumb;
     private URL mURL_Image;
     
     /** the metadata property map **/
@@ -102,14 +106,21 @@ public class URLResource implements Resource, XMLUnmarshalListener
     
     // we REALLY need to get rid of this constructor: all the code
     // expects SPEC to be non-null!  Castor won't let us though...
-    public URLResource() {}
+    public URLResource() { init(); }
     
     public URLResource(String spec) {
+        init();
         setSpec(spec);
     }
     
     public URLResource(URL url) {
+        init();
         setSpec(url.toString());
+    }
+
+    private void init() {
+        if (DEBUG.RESOURCE || DEBUG.DR)
+            setProperty("@ instance", getClass().getName() + "@" + Integer.toHexString(hashCode()));
     }
     
     
@@ -396,7 +407,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
     }
     
     public void setTitle(String title) {
-        if (DEBUG.RESOURCE) out(this + " setTitle " + title);
+        if (DEBUG.DATA || (DEBUG.RESOURCE && DEBUG.META)) out("setTitle " + title);
         mTitle = title;
     }
     
@@ -501,7 +512,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
 
         if (DEBUG.DR || DEBUG.RESOURCE) {
             setProperty("@<spec>", spec);
-            setProperty("@Browse", "" + mURL_Browse);
+            setProperty(BROWSE_KEY, "" + mURL_Browse);
         }
 
         /*
@@ -928,7 +939,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
      * Does nothing if either key or value is null, or value is an empty String.
      */
     public void setProperty(String key, Object value) {
-        if (DEBUG.DATA) System.out.println(this + " setProperty " + key + " [" + value + "]");
+        if (DEBUG.DATA) out("setProperty " + key + " [" + value + "]");
         if (key != null && value != null) {
             if (!(value instanceof String && ((String)value).length() < 1))
                 mProperties.put(key, value);
@@ -1057,8 +1068,20 @@ public class URLResource implements Resource, XMLUnmarshalListener
             final PropertyEntry entry = (PropertyEntry) i.next();
             final Object key = entry.getEntryKey();
             final Object value = entry.getEntryValue();
-            setProperty((String)key, value);
+
+            // This comes via the SPEC (todo: merge these two?)
+            //if (BROWSE_KEY.equals(key))
+            //    setURL_Browse((String) value);
+            // else
+            // TODO: faster to do single hashed lookup a end
+            if (IMAGE_KEY.equals(key))
+                setURL_Image((String) value);
+            else if (THUMB_KEY.equals(key))
+                setURL_Thumb((String) value);
+            else
+                setProperty((String)key, value);
         }
+
         mXMLpropertyList = null;
         mXMLrestoreUnderway = false;
     }
@@ -1201,10 +1224,11 @@ public class URLResource implements Resource, XMLUnmarshalListener
         */
     }
 
-    protected void setURL_Thumbnail(String s) {
-        mURL_Thumbnail = makeURL(s);
-        if (DEBUG.DR || DEBUG.RESOURCE) addProperty("@Thumb", "" + mURL_Thumbnail);
-        //mPreview = mURL_Thumbnail;
+    protected void setURL_Thumb(String s) {
+        mURL_Thumb = makeURL(s);
+        //if (DEBUG.DR || DEBUG.RESOURCE)
+        setProperty(THUMB_KEY, "" + mURL_Thumb);
+        //mPreview = mURL_Thumb;
     }
 
     /** If given any valid URL, this resource will consider itself image content, no matter
@@ -1213,7 +1237,8 @@ public class URLResource implements Resource, XMLUnmarshalListener
      */
     protected void setURL_Image(String s) {
         mURL_Image = makeURL(s);
-        if (DEBUG.DR || DEBUG.RESOURCE) addProperty("@Image", "" + mURL_Image);
+        //if (DEBUG.DR || DEBUG.RESOURCE)
+        setProperty(IMAGE_KEY, "" + mURL_Image);
         if (mURL_Image != null)
             setAsImage(true);
     }
@@ -1226,8 +1251,8 @@ public class URLResource implements Resource, XMLUnmarshalListener
 
         if (isCached)
             return this;
-        else if (mURL_Thumbnail != null)
-            return mURL_Thumbnail;
+        else if (mURL_Thumb != null)
+            return mURL_Thumb;
         else if (mURL_Image != null)
             return mURL_Image;
         else if (isImage)
@@ -1442,8 +1467,8 @@ public class URLResource implements Resource, XMLUnmarshalListener
     */
 
 
-    private void out(String s) {
-        System.out.println(getClass().getName() + ": " + s);
+    protected void out(String s) {
+        System.err.println(getClass().getName() + "@" + Integer.toHexString(hashCode()) + ": " + s);
     }
 
     public static void main(String args[]) {
