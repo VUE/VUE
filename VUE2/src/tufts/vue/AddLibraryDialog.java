@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.46 $ / $Date: 2006-07-28 23:23:02 $ / $Author: mike $
+ * @version $Revision: 1.47 $ / $Date: 2006-07-31 15:26:51 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -413,9 +413,9 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                         javax.swing.JOptionPane.PLAIN_MESSAGE,
                         null,
                         new Object[] {
-                    "Cancel", "Continue"
+                    "Continue", "Cancel"
                 },
-                        "Continue") == 0) {
+                        "Continue") == 1) {
 					proceed = false;
 				} else {
                     if (s != null) {

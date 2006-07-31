@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.13 $ / $Date: 2006-07-28 23:23:02 $ / $Author: mike $
+* @version $Revision: 1.14 $ / $Date: 2006-07-31 15:26:51 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -331,9 +331,9 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 															 javax.swing.JOptionPane.QUESTION_MESSAGE,
 															 null,
 															 new Object[] {
-																 "Cancel", "Continue"
+																 "Continue", "Cancel"
 															 },
-															 "Continue") == 0) {
+															 "Continue") == 1) {
 					proceed = false;
 				} else {
 					try {
