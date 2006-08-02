@@ -254,6 +254,7 @@ public class VueDataSource
         return this.osidName;
     }
     
+  
     public String getOsidVersion() {
         return this.osidBindingVersion;
     }
@@ -270,6 +271,9 @@ public class VueDataSource
         return this.providerDisplayName;
     }
     
+    public void setProviderDisplayName(String providerDisplayName) {
+        this.providerDisplayName = providerDisplayName;
+    }
     public String getProviderDescription() {
         return this.providerDescription;
     }
