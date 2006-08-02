@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.102 $ / $Date: 2006-06-03 04:53:34 $ / $Author: sfraize $
+ * @version $Revision: 1.103 $ / $Date: 2006-08-02 18:46:08 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -409,7 +409,7 @@ public class LWMap extends LWContainer
         Iterator i = getAllDescendentsIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            c.layout();
+            c.layout("completeXMLRestore");
         }
         //setEventsResumed();
         markAsSaved();
