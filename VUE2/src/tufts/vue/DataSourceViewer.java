@@ -782,7 +782,7 @@ public class DataSourceViewer extends JPanel
 
             final java.util.List resourceList = new java.util.ArrayList();
 
-            final int maxResult = 100;
+            final int maxResult = 10000;
             int resultCount = 0;
             while (assetIterator.hasNextAsset()) {
                 org.osid.repository.Asset asset = assetIterator.nextAsset();
