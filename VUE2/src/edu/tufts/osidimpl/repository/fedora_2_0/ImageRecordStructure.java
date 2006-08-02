@@ -158,7 +158,7 @@ public class ImageRecordStructure
                 record.createPart(recordStructure.getThumbnailPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), THUMBNAIL, repository));
                 record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), FULLVIEW, repository));
                 record.createPart(recordStructure.getMediumImagePartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(),MEDIUM_RES,repository));
-                record.createPart(LargeImagePartStructure.getInstance().getId(), Utilities.formatObjectUrl(objectId.getIdString(),FULLVIEW,repository));
+                record.createPart(LargeImagePartStructure.getInstance().getId(), Utilities.formatObjectUrl(objectId.getIdString(),MEDIUM_RES,repository));
 				
 				// get the XML for the Dublin Core metadata for this asset; parse it to fill in part structures
 				String dcURL = Utilities.formatObjectUrl(objectId.getIdString(),"bdef:TuftsMetadata/getDublinCore/",repository);				
