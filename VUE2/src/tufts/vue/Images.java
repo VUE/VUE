@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.19 $ / $Date: 2006-07-28 22:18:47 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2006-08-02 18:45:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1463,12 +1463,12 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
             int nbytes =
                 stream.read(streamBuf, 0, (int)Math.min(len, (long)BUFFER_LENGTH));
             if (nbytes == -1) {
-                if (DEBUG.IMAGE) System.err.println("<EOF @ " + length + ">");
+                if (DEBUG.IMAGE && DEBUG.IO) System.err.println("<EOF @ " + length + ">");
                 foundEOF = true;
                 return length;
             }
 
-            if (DEBUG.IMAGE) System.err.print(">" + nbytes + "; ");
+            if (DEBUG.IMAGE && DEBUG.IO) System.err.print(">" + nbytes + "; ");
             cache.write(streamBuf, 0, nbytes);
             len -= nbytes;
             length += nbytes;
@@ -1482,7 +1482,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
         long next = streamPos + 1;
         long pos = readUntil(next);
         if (pos >= next) {
-            if (DEBUG.IMAGE) System.err.println("SEEK " + streamPos+1);
+            if (DEBUG.IMAGE && DEBUG.IO) System.err.println("SEEK " + streamPos+1);
             cache.seek(streamPos++);
             return cache.read();
         } else {
@@ -1510,7 +1510,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
         // len will always fit into an int so this is safe
         len = (int)Math.min((long)len, pos - streamPos);
         if (len > 0) {
-            if (DEBUG.IMAGE) System.err.println("SEEK " + streamPos);
+            if (DEBUG.IMAGE && DEBUG.IO) System.err.println("SEEK " + streamPos);
             cache.seek(streamPos);
             cache.readFully(b, off, len);
             streamPos += len;

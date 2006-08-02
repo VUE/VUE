@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.193 $ / $Date: 2006-06-03 04:53:15 $ / $Author: sfraize $
+ * @version $Revision: 1.194 $ / $Date: 2006-08-02 18:43:12 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -837,7 +837,7 @@ public class LWComponent
      */
     protected void layout() {
         if (mXMLRestoreUnderway == false)
-            layout(null);
+            layout("default");
     }
     protected void layout(Object triggerKey) {}
     
@@ -2010,9 +2010,9 @@ public class LWComponent
     protected void out(String s) {
         if (DEBUG.THREAD) {
             String thread = Thread.currentThread().toString().substring(6);
-            System.out.println(thread + " " + this + " " + s);
+            System.err.println(thread + " " + this + " " + s);
         } else {
-            System.out.println(this + " " + s);
+            System.err.println(this + " " + s);
         }
     }
     /*
