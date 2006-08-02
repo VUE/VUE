@@ -33,7 +33,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.124 $ / $Date: 2006-06-03 03:53:11 $ / $Author: sfraize $
+ * @version $Revision: 1.125 $ / $Date: 2006-08-02 18:45:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -606,7 +606,7 @@ public class LWNode extends LWContainer
         }
         inLayout = true;
         if (DEBUG.LAYOUT) {
-            String msg = "*** LAYOUT, src="+triggerKey
+            String msg = "*** LAYOUT, trigger="+triggerKey
                 + " cur=" + curSize
                 + " request=" + request
                 + " isAutoSized=" + isAutoSized();
@@ -1102,8 +1102,10 @@ public class LWNode extends LWContainer
             //width += IconPadLeft;
         }
 
-        if (hasChildren())
+        if (hasChildren()) {
+            if (DEBUG.LAYOUT) out("*** textSize b4 layoutBoxed_children: " + text);
             layoutBoxed_children(min, text);
+        }
         
         if (iconShowing())
             layoutBoxed_icon(request, min, text);
@@ -1157,15 +1159,15 @@ public class LWNode extends LWContainer
     /** will CHANGE min.width and min.height */ 
     private void layoutBoxed_children(Size min, Size text) {
         if (DEBUG.LAYOUT) out("*** layoutBoxed_children; min=" + min + " text=" + text);
+
+        mBoxedLayoutChildY = EdgePadY + text.height; // must set before layoutChildren, as may be used in childOffsetY()
+        
         Size children = layoutChildren(new Size(), false);
         final float childSpan = childOffsetX() + children.width + ChildPadX;
         if (min.width < childSpan)
             min.width = childSpan;
         min.height += children.height;
         min.height += ChildOffsetY + ChildrenPadBottom; // additional space below last child before bottom of node
-
-        mBoxedLayoutChildY = EdgePadY + text.height;
-        
     }
 
     // good for single column layout only.  layout code is in BAD NEED of complete re-architecting.
@@ -1265,7 +1267,7 @@ public class LWNode extends LWContainer
     // todo: may not need all three args
     private Size layoutBoxed_floating_text(Size request, Size curSize, Object triggerKey)
     {
-        if (DEBUG.LAYOUT) out("*** layoutBoxed_floating_text, req="+request + " cur=" + curSize + " src=" + triggerKey);
+        if (DEBUG.LAYOUT) out("*** layoutBoxed_floating_text, req="+request + " cur=" + curSize + " trigger=" + triggerKey);
 
         final Size min = new Size(); // the minimum size of the Node
 
@@ -1486,6 +1488,7 @@ public class LWNode extends LWContainer
     private Size layoutChildren(float baseX, float baseY, Size result)
     {
         if (DEBUG.LAYOUT) out("*** layoutChildren at " + baseX + "," + baseY);
+        if (DEBUG.LAYOUT) Util.printClassTrace("tufts.vue.LW", "*** layoutChildren");
         //if (baseX > 0) new Throwable("LAYOUT-CHILDREN").printStackTrace();
         if (true)
             layoutChildrenSingleColumn(baseX, baseY, result);
@@ -1991,6 +1994,7 @@ public class LWNode extends LWContainer
             //baseY = (float) (mIconResource.getY() + IconHeight + ChildOffsetY);
             //baseY = (float) dividerUnderline.getY1();
             baseY = mBoxedLayoutChildY;
+            if (DEBUG.LAYOUT) out("*** childOffsetY starting with precomputed " + baseY + " to produce " + (baseY + ChildOffsetY));
         } else {
             baseY = relativeLabelY() + getLabelBox().getHeight();
         }
