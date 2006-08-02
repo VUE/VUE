@@ -1,5 +1,8 @@
 package edu.tufts.vue.ui;
 
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
 /*
  * -----------------------------------------------------------------------------
  *
@@ -88,7 +91,14 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			java.awt.GridBagLayout moreOptionsButtonPanelgbLayout = new java.awt.GridBagLayout();
 			java.awt.GridBagConstraints moreOptionsButtonPanelgbConstraints = new java.awt.GridBagConstraints();
 			moreOptionsButtonPanel.setLayout(moreOptionsButtonPanelgbLayout);
-			
+			searchButton1.setEnabled(false);
+			searchButton2.setEnabled(false);
+			field.addKeyListener(new KeyAdapter(){
+			      public void keyReleased(KeyEvent ke){
+			          searchButton1.setEnabled(field.getText().equals("")==false);
+			          searchButton2.setEnabled(field.getText().equals("")==false);
+			        }
+			      });
 			moreOptionsButtonPanelgbConstraints.gridx = 0;
 			moreOptionsButtonPanelgbConstraints.gridy = 0;
 			moreOptionsButtonPanelgbConstraints.fill = java.awt.GridBagConstraints.NONE;
@@ -224,12 +234,27 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		moreOptionsButton.setEnabled(intersection.size() > 1);
 		
 	}
-	
+	private class AdvancedFieldKeyListener extends KeyAdapter
+	{
+		 public void keyReleased(KeyEvent ke)
+		 {
+			 int len = advancedFields.length;
+			 int sum = 0;
+			 for (int i=0;i < len; i++)
+			 {
+				 sum +=((String)(advancedFields[i].getText())).replaceAll(" ","").length();
+			 }
+		         searchButton2.setEnabled(sum > 0 ? true:false);
+		         searchButton1.setEnabled(sum > 0 ? true:false);
+		 }
+			
+	}
 	private void makeAdvancedIntersectionPanel()
 	{
 		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 0;
-
+		AdvancedFieldKeyListener advancedKeyListener = new AdvancedFieldKeyListener();
+		
 		this.typesVector = getIntersectionSearchFields();
 		java.util.Collections.sort(typesVector);
 		// always add a keyword field
@@ -248,6 +273,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 				gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
 				gbConstraints.weightx = 1;
 				advancedFields[i] = new javax.swing.JTextField(8);
+				advancedFields[i].addKeyListener(advancedKeyListener);
 				if (prompt.equals("Keyword")) {
 					advancedFields[i].setText(this.field.getText());
 				} else {
@@ -258,7 +284,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 				gbConstraints.gridx = 0;
 				gbConstraints.gridy++;
 			}
-			searchButton2.setEnabled(true);
+			//searchButton2.setEnabled(true);
 		}
 		
 		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
@@ -302,7 +328,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 				gbConstraints.gridx = 0;
 				gbConstraints.gridy++;
 			}
-			searchButton2.setEnabled(true);
+			//searchButton2.setEnabled(true);
 		}
 		
 		gbConstraints.gridx = 0;
