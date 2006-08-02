@@ -465,6 +465,8 @@ public class VueDataSource
             dataSourceManager.add(this);
         }
         try{
+			//System.out.println("properties " + p);
+			//System.out.println("manager " + this.repositoryManager);
             this.repositoryManager.assignConfiguration(p);
             setRelatedValues();
         } catch (Throwable t) {

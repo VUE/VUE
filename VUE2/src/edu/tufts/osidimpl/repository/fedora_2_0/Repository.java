@@ -91,6 +91,8 @@ public class Repository implements org.osid.repository.Repository {
     private java.util.Vector assets = new java.util.Vector();
     private org.osid.shared.Id id = null;
     // private URL configuration = null;
+	private org.osid.shared.Type keywordSearchType = new Type("mit.edu","search","keyword");
+	private org.osid.shared.Type multiFieldSearchType = new Type("mit.edu","search","multiField");
     
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;
@@ -114,9 +116,8 @@ public class Repository implements org.osid.repository.Repository {
 			this.conf = conf;
 			setFedoraProperties();
 			loadFedoraObjectAssetTypes();
-			searchTypes.add(new SimpleSearchType());
-			searchTypes.add(new AdvancedSearchType());
-			searchTypes.add(new Type("mit.edu","search","keyword"));
+			searchTypes.add(keywordSearchType);
+			searchTypes.add(multiFieldSearchType);
         } catch (Throwable t) { t.printStackTrace(); }
     }
     
@@ -139,24 +140,22 @@ public class Repository implements org.osid.repository.Repository {
             fedoraProperties.setProperty("url.fedora.get", url+prefs.get("url.fedora.get", "get/"));
             fedoraProperties.setProperty("url.seastar.fedora.get", "http://seastar.lib.tufts.edu:8080/fedora/get/");
             fedoraProperties.setProperty("fedora.types", prefs.get("fedora.types","TUFTS_STD_IMAGE,XML_TO_HTMLDOC,TUFTS_BINARY_FILE,TUFTS_VUE_CONCEPT_MAP,UVA_EAD_FINDING_AID,UVA_STD_IMAGE,UVA_MRSID_IMAGE,SIMPLE_DOC,MassIngest"));
-            fedoraProperties.setProperty("VUEInfoStructureId","edu.tufts.vue.recordStructureId");
-            fedoraProperties.setProperty("UVARecordStructureId","edu.uva.image.recordStructureId");
             fedoraProperties.setProperty("ImageRecordStructureId","edu.mit.image.recordStructureId");
             fedoraProperties.setProperty("VUEDefaultViewInfoPartId","edu.tufts.defaultView.partStructureId");
-            fedoraProperties.setProperty("ThumbnailPartStructureId","edu.uva.thumbnail.partStructureId");
-            fedoraProperties.setProperty("URLPartStructureId","edu.mit.url.partStructureId");
+            fedoraProperties.setProperty("ThumbnailPartStructureId","mit.edu.thumbnail.partStructureId");
+            fedoraProperties.setProperty("URLPartStructureId","mit.edu.partStructureId");
             fedoraProperties.setProperty("dissemination.dc","bdef:TuftsMetadata/getDublinCore/");
             fedoraProperties.setProperty("type.image", "tufts/image/archival");
             fedoraProperties.setProperty("assetDef.fullView" , "bdef:AssetDef/getFullView");
             
             
-        } catch (Exception ex) { System.out.println("Unable to load fedora Properties"+ex);}
+        } catch (Exception ex) { ex.printStackTrace(); System.out.println("Unable to load fedora Properties"+ex);}
         
     }
     
     private void loadFedoraObjectAssetTypes() {
         try {
-			//System.out.println("fedora types " + fedoraProperties.getProperty("fedora.types"));
+//			System.out.println("fedora types " + fedoraProperties.getProperty("fedora.types"));
             Vector fedoraTypesVector = FedoraUtils.stringToVector(fedoraProperties.getProperty("fedora.types"));
             Iterator i =fedoraTypesVector.iterator();
             while(i.hasNext()) {
@@ -336,7 +335,9 @@ public class Repository implements org.osid.repository.Repository {
      *     @throws RepositoryException if there is a general failure
      */
     public org.osid.repository.RecordStructureIterator getMandatoryRecordStructures(org.osid.shared.Type assetType) throws org.osid.repository.RepositoryException {
-        return new RecordStructureIterator(new java.util.Vector());
+		java.util.Vector v = new java.util.Vector();
+		v.addElement(new ImageRecordStructure(this));
+        return new RecordStructureIterator(v);
     }
     
     /**     Get all the SearchTypes supported by this Repository.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
@@ -445,27 +446,12 @@ public class Repository implements org.osid.repository.Repository {
     }
     
     public org.osid.repository.AssetIterator getAssets(java.io.Serializable searchCriteria, org.osid.shared.Type searchType) throws org.osid.repository.RepositoryException {
-        SearchCriteria lSearchCriteria = null;
-        org.osid.shared.Type keywordType = new Type("mit.edu","search","keyword");
-        if ( (searchCriteria instanceof String) && (searchType.isEqual(keywordType)) ) {
-            lSearchCriteria = new SearchCriteria();
-            lSearchCriteria.setKeywords((String)searchCriteria);
-            lSearchCriteria.setMaxReturns("10");
-            lSearchCriteria.setSearchOperation(SearchCriteria.FIND_OBJECTS);
-            lSearchCriteria.setResults(0);
-            return FedoraSoapFactory.search(this,lSearchCriteria);
-        } else if (searchCriteria instanceof SearchCriteria) {
-            lSearchCriteria = (SearchCriteria)searchCriteria;
-            if(searchType.isEqual(new SimpleSearchType())) {
-                return FedoraSoapFactory.search(this,lSearchCriteria);
-            } else if(searchType.isEqual(new AdvancedSearchType())) {
-                return FedoraSoapFactory.advancedSearch(this,lSearchCriteria);
-            } else {
-                throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.UNKNOWN_TYPE);
-            }
-        } else {
+        if ( (searchCriteria instanceof String) && 
+			 (searchType.isEqual(keywordSearchType) || searchType.isEqual(multiFieldSearchType)) ) {
+			return new AssetIterator(this, searchCriteria, searchType);
+		} else {
             throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.UNKNOWN_TYPE);
-        }
+		}		
     }
     
     public org.osid.shared.Type getType() throws org.osid.repository.RepositoryException {

@@ -27,11 +27,11 @@ public class ImageRecordStructure
     public static final String FULLVIEW = "bdef:AssetDef/getFullView/";
     private java.util.Vector partsVector = new java.util.Vector();
     private String displayName = "Image Specific Data";
-    private String description = "Provides information about and image (thumbnail and large view URLs)";
+    private String description = "Provides information about and image (thumbnail and view URLs)";
     private org.osid.shared.Id id = null;
     private String schema = null;
     private String format = "Plain Text";
-    private org.osid.shared.Type type = new Type("edu.mit","recordStructure","image");
+    private org.osid.shared.Type type = new Type("mit.edu","recordStructure","image");
     private org.osid.repository.PartStructure sThumbnailPartStructure = null;
     private org.osid.repository.PartStructure sURLPartStructure = null;
     private org.osid.repository.PartStructure sMediumImagePartStructure = null;
@@ -49,6 +49,23 @@ public class ImageRecordStructure
         this.partsVector.add(this.sThumbnailPartStructure);
         this.partsVector.add(this.sURLPartStructure);
         this.partsVector.add(this.sMediumImagePartStructure);
+		
+		this.partsVector.add(ContributorPartStructure.getInstance());
+		this.partsVector.add(CoveragePartStructure.getInstance());
+		this.partsVector.add(CreatorPartStructure.getInstance());
+		this.partsVector.add(DatePartStructure.getInstance());
+		this.partsVector.add(DescriptionPartStructure.getInstance());
+		this.partsVector.add(FormatPartStructure.getInstance());
+		this.partsVector.add(IdentifierPartStructure.getInstance());
+		this.partsVector.add(LanguagePartStructure.getInstance());
+		this.partsVector.add(LargeImagePartStructure.getInstance());
+		this.partsVector.add(PublisherPartStructure.getInstance());
+		this.partsVector.add(RelationPartStructure.getInstance());
+		this.partsVector.add(RightsPartStructure.getInstance());
+		this.partsVector.add(SourcePartStructure.getInstance());
+		this.partsVector.add(SubjectPartStructure.getInstance());
+		this.partsVector.add(TitlePartStructure.getInstance());
+		this.partsVector.add(TypePartStructure.getInstance());
     }
     
     public String getDisplayName()
@@ -126,11 +143,13 @@ public class ImageRecordStructure
     }
     
     public static Record createImageRecord(String pid
-            , ImageRecordStructure recordStructure
-            , Repository repository
-            , PID objectId
-            , FedoraObjectAssetType assetType)
-            throws org.osid.repository.RepositoryException {
+										   , ImageRecordStructure recordStructure
+										   , Repository repository
+										   , PID objectId
+										   , FedoraObjectAssetType assetType
+										   , String displayName
+										   , String identifier)
+		throws org.osid.repository.RepositoryException {
         Record record = null;
         try {
             record = new Record(new PID(pid),recordStructure);
@@ -139,7 +158,187 @@ public class ImageRecordStructure
                 record.createPart(recordStructure.getThumbnailPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), THUMBNAIL, repository));
                 record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), FULLVIEW, repository));
                 record.createPart(recordStructure.getMediumImagePartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(),MEDIUM_RES,repository));
-            }
+                record.createPart(LargeImagePartStructure.getInstance().getId(), Utilities.formatObjectUrl(objectId.getIdString(),FULLVIEW,repository));
+				
+				// get the XML for the Dublin Core metadata for this asset; parse it to fill in part structures
+				String dcURL = Utilities.formatObjectUrl(objectId.getIdString(),"bdef:TuftsMetadata/getDublinCore/",repository);				
+				String contributor = "";
+				String coverage = "";
+				String creator = "";
+				String date = "";
+				String description = "";
+				String format = "";
+				String language = "";
+				String publisher = "";
+				String relation = "";
+				String rights = "";
+				String source = "";
+				String subject = "";
+				String type = "";
+
+				try 
+				{
+					java.net.URL url = new java.net.URL(dcURL);
+					java.net.URLConnection connection = url.openConnection();
+					java.net.HttpURLConnection http = (java.net.HttpURLConnection)connection;
+					java.io.InputStreamReader in = new java.io.InputStreamReader(http.getInputStream());
+					StringBuffer xml = new StringBuffer();
+					try
+					{
+						int i = 0;
+						while ( (i = in.read()) != -1 )
+						{
+							xml.append(Character.toString((char)i));
+						}
+					}
+					catch (Throwable t) {}
+					//System.out.println("xml " + xml);
+					
+					javax.xml.parsers.DocumentBuilderFactory dbf = null;
+					javax.xml.parsers.DocumentBuilder db = null;
+					org.w3c.dom.Document document = null;
+					
+					dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+					db = dbf.newDocumentBuilder();
+					document = db.parse(new java.io.ByteArrayInputStream(xml.toString().getBytes()));
+					
+					// for each DOC (maps 1-to-1 with Asset)
+					org.w3c.dom.NodeList dcs = document.getElementsByTagName("dc:contributor");
+					int numDCs = dcs.getLength();
+					for (int i=0; i < numDCs; i++)
+					{
+						org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
+						if (dc.hasChildNodes()) 
+						{
+							contributor = dc.getFirstChild().getNodeValue();
+							record.createPart(ContributorPartStructure.getInstance().getId(),contributor);				
+						}
+					}
+					dcs = document.getElementsByTagName("dc:creator");
+					numDCs = dcs.getLength();
+					for (int i=0; i < numDCs; i++)
+					{
+						org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
+						if (dc.hasChildNodes()) 
+						{
+							creator = dc.getFirstChild().getNodeValue();
+							record.createPart(CreatorPartStructure.getInstance().getId(),creator);				
+						}
+					}
+					dcs = document.getElementsByTagName("dc:date");
+					numDCs = dcs.getLength();
+					for (int i=0; i < numDCs; i++)
+					{
+						org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
+						if (dc.hasChildNodes()) 
+						{
+							date = dc.getFirstChild().getNodeValue();
+							record.createPart(DatePartStructure.getInstance().getId(),date);				
+						}
+					}
+					dcs = document.getElementsByTagName("dc:description");
+					numDCs = dcs.getLength();
+					for (int i=0; i < numDCs; i++)
+					{
+						org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
+						if (dc.hasChildNodes()) 
+						{
+							description = dc.getFirstChild().getNodeValue();
+							record.createPart(DescriptionPartStructure.getInstance().getId(),description);				
+						}
+					}
+					dcs = document.getElementsByTagName("dc:format");
+					numDCs = dcs.getLength();
+					for (int i=0; i < numDCs; i++)
+					{
+						org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
+						if (dc.hasChildNodes()) 
+						{
+							format = dc.getFirstChild().getNodeValue();
+							record.createPart(FormatPartStructure.getInstance().getId(),format);				
+						}
+					}
+					dcs = document.getElementsByTagName("dc:language");
+					numDCs = dcs.getLength();
+					for (int i=0; i < numDCs; i++)
+					{
+						org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
+						if (dc.hasChildNodes()) 
+						{
+							language = dc.getFirstChild().getNodeValue();
+							record.createPart(LanguagePartStructure.getInstance().getId(),language);				
+						}
+					}
+					dcs = document.getElementsByTagName("dc:publisher");
+					numDCs = dcs.getLength();
+					for (int i=0; i < numDCs; i++)
+					{
+						org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
+						if (dc.hasChildNodes()) 
+						{
+							publisher = dc.getFirstChild().getNodeValue();
+							record.createPart(PublisherPartStructure.getInstance().getId(),publisher);				
+						}
+					}
+					dcs = document.getElementsByTagName("dc:relation");
+					numDCs = dcs.getLength();
+					for (int i=0; i < numDCs; i++)
+					{
+						org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
+						if (dc.hasChildNodes()) 
+						{
+							relation = dc.getFirstChild().getNodeValue();
+							record.createPart(RelationPartStructure.getInstance().getId(),relation);				
+						}
+					}
+					dcs = document.getElementsByTagName("dc:rights");
+					numDCs = dcs.getLength();
+					for (int i=0; i < numDCs; i++)
+					{
+						org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
+						if (dc.hasChildNodes()) 
+						{
+							rights = dc.getFirstChild().getNodeValue();
+							record.createPart(RightsPartStructure.getInstance().getId(),rights);				
+						}
+					}
+					dcs = document.getElementsByTagName("dc:source");
+					numDCs = dcs.getLength();
+					for (int i=0; i < numDCs; i++)
+					{
+						org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
+						if (dc.hasChildNodes()) 
+						{
+							creator = dc.getFirstChild().getNodeValue();
+							record.createPart(SourcePartStructure.getInstance().getId(),source);				
+						}
+					}
+					dcs = document.getElementsByTagName("dc:subject");
+					numDCs = dcs.getLength();
+					for (int i=0; i < numDCs; i++)
+					{
+						org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
+						if (dc.hasChildNodes()) 
+						{
+							creator = dc.getFirstChild().getNodeValue();
+							record.createPart(SubjectPartStructure.getInstance().getId(),subject);
+						}
+					}
+					dcs = document.getElementsByTagName("dc:type");
+					numDCs = dcs.getLength();
+					for (int i=0; i < numDCs; i++)
+					{
+						org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
+						if (dc.hasChildNodes()) 
+						{
+							type = dc.getFirstChild().getNodeValue();
+							record.createPart(TypePartStructure.getInstance().getId(),type);				
+						}
+					}
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+			}
         } catch (Throwable t) {
             t.printStackTrace();
         }

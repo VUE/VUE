@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.15 $ / $Date: 2006-07-31 20:37:25 $ / $Author: mike $
+* @version $Revision: 1.16 $ / $Date: 2006-08-02 14:43:41 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -202,13 +202,24 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             }
             
             listModel.removeAllElements();
+			
+			// find the ids of all providers in VUE
+			java.util.Vector installedProviderVector = new java.util.Vector();
+			edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
+			for (int i=0; i < dataSources.length; i++) {
+				installedProviderVector.addElement(dataSources[i].getProviderId().getIdString());
+			}
+			
             org.osid.provider.ProviderIterator providerIterator = factory.getProvidersNeedingUpdate();
             while (providerIterator.hasNextProvider()) {
                 org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
-                // place all providers on list, whether installed or not, whether duplicates or not
-				nextProvider = nextProvider.getNextVersion();
-                listModel.addElement(nextProvider);
-                checkedVector.addElement(nextProvider);
+                // place only providers that are already added to VUE
+				String idString = nextProvider.getId().getIdString();
+				if (installedProviderVector.contains(idString)) {
+					nextProvider = nextProvider.getNextVersion();
+					listModel.addElement(nextProvider);
+					checkedVector.addElement(nextProvider);
+				}
             }
             // copy to an array
             int size = listModel.size();

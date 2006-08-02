@@ -71,6 +71,9 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	private java.util.Vector advancedSearchUniverseOfTypeStringsVector = new java.util.Vector();
 	private java.util.Vector advancedSearchPromptsVector = new java.util.Vector();
 	
+	// maintain a vector for current values
+	private String[] advancedSearchFieldsText = null;
+	
 	public DefaultQueryEditor() {
 		try {
 			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -247,6 +250,9 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 				advancedFields[i] = new javax.swing.JTextField(8);
 				if (prompt.equals("Keyword")) {
 					advancedFields[i].setText(this.field.getText());
+				} else {
+					int index = advancedSearchPromptsVector.indexOf(prompt);
+					advancedFields[i].setText(this.advancedSearchFieldsText[index]);
 				}
 				add(advancedFields[i],gbConstraints);
 				gbConstraints.gridx = 0;
@@ -320,11 +326,15 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			if (this.currentStyle == ADVANCED_UNION) { // never happens under current impl
 				makePanel(ADVANCED_INTERSECTION);
 			} else {
+				// make sure keywords is sticky, and so are other fields
 				int size = this.typesVector.size();
 				for (int i=0; i < size; i++) {
 					String prompt = (String)this.typesVector.elementAt(i);
 					if (prompt.equals("Keyword")) {
 						field.setText(advancedFields[i].getText());
+					} else {						
+						int index = advancedSearchPromptsVector.indexOf(prompt);
+						advancedSearchFieldsText[index] = advancedFields[i].getText();
 					}
 					makePanel(BASIC);
 				}
@@ -551,21 +561,38 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/title@mit.edu");
 		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/type@mit.edu");
 		
+		advancedSearchFieldsText = new String[15];
+		int index = 0;
 		advancedSearchPromptsVector.addElement("Contributor");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Coverage");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Creator");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Date");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Description");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Format");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Identifier");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Lanugage");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Publisher");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Relation");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Rights");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Source");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Subject");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Title");
+		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Type");
+		advancedSearchFieldsText[index++] = null;
 	}
 	
 	private String multiFieldXML()
@@ -593,7 +620,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 				buffer.append("</type><value>");
 				buffer.append(value);
 				buffer.append("</value><operator>contains</operator></field>");
-				if (i > 0) buffer.append("<boolean>and></boolean>");
+				if (i > 0) buffer.append("<boolean>and</boolean>");
 			}
 		}
 		buffer.append("</criteria>");

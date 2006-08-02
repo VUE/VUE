@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.12 $ / $Date: 2006-06-16 13:19:37 $ -->
+<!-- $Revision: 1.13 $ / $Date: 2006-08-02 14:43:42 $ -->
 
 <!-- 
 This ant build file:
@@ -73,28 +73,28 @@ This ant build file:
     <pathelement location="../src" />
     <pathelement location="${lib.home}" />	
     <pathelement location="${build.class}"/>
+    <pathelement location="../src/dist/lib/osid/Fedora20Repository-1.0.jar"/>
+    <pathelement location="${lib.home}/commons-discovery.jar" />
+    <pathelement location="${lib.home}/jaxrpc-api-unsigned.jar" />
+    <pathelement location="${lib.home}/smeteclient.jar" />
+    <pathelement location="${lib.home}/axis-ant.jar" />
+    <pathelement location="${lib.home}/commons-logging.jar" />	
     <pathelement location="${lib.home}/${osid2.name}.jar" />	
-    <pathelement location="${lib.home}/okiSID.jar" />	
-	<pathelement location="${lib.home}/log4j-1.2.12.jar" />
-	<pathelement location="${lib.home}/MRJAdapter.jar" />
+    <pathelement location="${lib.home}/wsdl4j.jar" />
+    <pathelement location="${lib.home}/axis.jar"/>
     <pathelement location="${lib.home}/OSIDIdNoPersist-1.0.jar" />
     <pathelement location="${lib.home}/OSIDLoggingPlain-1.0.jar" />
-    <pathelement location="${lib.home}/castor-0.9.7-xml.jar" />
+    <pathelement location="${lib.home}/fedora_2_0-client.jar"/>
+    <pathelement location="${lib.home}/saaj-api-unsigned.jar" />
     <pathelement location="${lib.home}/xercesImpl-2.7.1.jar" />
-    <pathelement location="${lib.home}/commons-logging.jar" />
-    <pathelement location="${lib.home}/xerces-2.7.1-xml-apis.jar" />
-    <pathelement location="${lib.home}/axis-fedora.jar" />
-    <pathelement location="${lib.home}/jaxrpc-api-unsigned.jar" />
-   <pathelement location="${lib.home}/fedora-server.jar" />
-   <pathelement location="${build.lib}/fedoragentypes.jar" />
-   <pathelement location="${build.lib}/fedorautilities.jar"/>
-   <pathelement location="${lib.home}/fedora_2_0-client.jar"/>
-   <pathelement location="${build.lib}/axis.jar"/>
-   <pathelement location="${build.lib}/junit.jar"/>
-    <pathelement location="${lib.home}/commons-discovery.jar" />
+    <pathelement location="${build.lib}/junit.jar"/>
     <pathelement location="${lib.home}/saaj-api-unsigned.jar" />
     <pathelement location="${lib.home}/googleapi.jar" />
 	
+    <pathelement location="${lib.home}/okiSID.jar" />	
+	<pathelement location="${lib.home}/log4j-1.2.12.jar" />
+	<pathelement location="${lib.home}/MRJAdapter.jar" />
+
     <pathelement location="artifact.xml" />
     <pathelement location="../src/build/classes" />
     <pathelement location="../src/build/classes/edu/tufts/osidimpl/repository/artifact.ArtifactResult.class" />
@@ -251,6 +251,12 @@ This ant build file:
         <test name="edu.tufts.osidimpl.repository.fedora_2_0.TestRepository"/>
         <classpath refid="compile.classpath"/>
     </junit>
+</target>
+<!-- =================== Fedora 2.0 Tests===================================-->
+<target name="fedoratest" depends="compile" description="Tests for loading fedora 2.0 osid and data from repository">
+        <java classname="test.repository.fedora20.repositoryDump" failonerror="true" fork="true">
+      <classpath refid="compile.classpath"/>
+        </java>
 </target>
 </project>
 

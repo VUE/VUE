@@ -39,7 +39,6 @@ public class FedoraObjectAssetType extends org.osid.shared.Type {
     private String id;
     private String type ="tufts/image/archival";
     private org.osid.repository.RecordStructure disseminationRecordStructure = null;
-    private org.osid.repository.RecordStructure sVUERecordStructure = null;
     private org.osid.repository.RecordStructure sImageRecordStructure = null;
     /** Creates a new instance of FedoraObjectAssetType */
     public FedoraObjectAssetType(Repository repository,String type) throws org.osid.repository.RepositoryException {
@@ -58,21 +57,14 @@ public class FedoraObjectAssetType extends org.osid.shared.Type {
     throws org.osid.repository.RepositoryException {
         return (org.osid.repository.RecordStructureIterator) new RecordStructureIterator(recordStructures);
     }
-    public org.osid.repository.RecordStructure getDissemiationRecordStructure()  throws org.osid.repository.RepositoryException  {
+    
+	public org.osid.repository.RecordStructure getDissemiationRecordStructure()  throws org.osid.repository.RepositoryException  {
         if(this.disseminationRecordStructure == null)
             throw new org.osid.repository.RepositoryException("Dissemination RecordStructure doesn't exist");
         return this.disseminationRecordStructure;
         
     }
-    
-    public org.osid.repository.RecordStructure getVUERecordStructure()  throws org.osid.repository.RepositoryException  {
-        if(this.sVUERecordStructure == null)
-            throw new org.osid.repository.RepositoryException("VUE RecordStructure doesn't exist");
-        return this.sVUERecordStructure;
-        
-    }
-    
-    
+       
     public org.osid.repository.RecordStructure getImageRecordStructure()  throws org.osid.repository.RepositoryException  {
         if(this.sImageRecordStructure == null)
             throw new org.osid.repository.RepositoryException("Image RecordStructure doesn't exist");
@@ -83,10 +75,8 @@ public class FedoraObjectAssetType extends org.osid.shared.Type {
     private void loadRecordStructures() throws org.osid.repository.RepositoryException {
         try {
             disseminationRecordStructure = new DisseminationRecordStructure(repository);
-            sVUERecordStructure = new VUERecordStructure(repository);
             sImageRecordStructure = new ImageRecordStructure(repository);
             recordStructures.add(disseminationRecordStructure);
-            recordStructures.add(sVUERecordStructure);
             recordStructures.add(sImageRecordStructure);
         }catch(Exception ex) {
             throw new org.osid.repository.RepositoryException("FedoraObjecAssetType.loadRecordStructure  "+ex);
