@@ -25,8 +25,8 @@ implements org.osid.repository.AssetIterator
 {
     private java.util.Iterator iterator = null;
 	private SearchCriteria lSearchCriteria = null;
-	private String numberToAskForString = "30";
-	private int numberToAskFor = 30;
+	private String numberToAskForString = "100";
+	private int numberToAskFor = 100;
 	private int numberAskedFor = 0;
 	private org.osid.shared.Type searchType = null;
 	private org.osid.shared.Type keywordSearchType = new Type("mit.edu","search","keyword");
@@ -146,10 +146,12 @@ implements org.osid.repository.AssetIterator
 		return conditions;
 	}
 	
-	// Results are paged.  If the current result set is exhausted, and we used a soap-supported search, search again.
+	// Results are not paged.  If the current result set is exhausted, and we used a soap-supported search, search again.
     public boolean hasNextAsset()
 		throws org.osid.repository.RepositoryException
     {
+		return iterator.hasNext();
+/*
         if (this.iterator.hasNext()) {
 			return true;
 		} else if (lSearchCriteria != null) {
@@ -170,6 +172,7 @@ implements org.osid.repository.AssetIterator
 					while (ai.hasNextAsset()) {
 						org.osid.repository.Asset a = ai.nextAsset();
 						v.addElement(a);
+						System.out.println(a.getDisplayName());
 					}
 					this.iterator = v.iterator();
 				}
@@ -181,6 +184,7 @@ implements org.osid.repository.AssetIterator
 		} else {
 			return false;
 		}
+*/
     }
 	
     public org.osid.repository.Asset nextAsset()
