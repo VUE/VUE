@@ -557,6 +557,9 @@
     <field name="dataSourceIdString" type="string">
         <bind-xml name="dataSourceIdString" node="attribute" />
      </field>
+     <field name="providerDisplayName" type="string">
+        <bind-xml name="providerDisplayName" node="element" />
+     </field>
      <field name="includedState" type="boolean" >
         <bind-xml name="includedState" node="attribute" />
      </field>
