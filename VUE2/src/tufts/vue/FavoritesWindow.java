@@ -151,7 +151,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                         model.removeNodeFromParent(resNode);
                         if(parent.getPathCount()!=1)
                             favoritesTree.setSelectionPath(parent);
-                        else 
+                        else
                             favoritesTree.setSelectionRow(DEFAULT_SELECTION_ROW);
                     }
                 }
@@ -211,19 +211,19 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     public void load() {
         File f  = new File(saveFile);
         if(f.exists()) {
-        try {
-            SaveVueJTree restorefavtree = unMarshallFavorites(f);
-            fileOpen = true;
-            favoritesTree =restorefavtree.restoreTree();
-            favoritesTree.setRootVisible(true);
-            favoritesTree.expandRow(0);
-            favoritesTree.setRootVisible(false);
-            this.setFavoritesTree(favoritesTree);
-        }catch (Exception ex){
-            System.out.println("FavoritesWindow.load " + ex);
-            ex.printStackTrace();
-            fileOpen = false;
-        }
+            try {
+                SaveVueJTree restorefavtree = unMarshallFavorites(f);
+                fileOpen = true;
+                favoritesTree =restorefavtree.restoreTree();
+                favoritesTree.setRootVisible(true);
+                favoritesTree.expandRow(0);
+                favoritesTree.setRootVisible(false);
+                this.setFavoritesTree(favoritesTree);
+            }catch (Exception ex){
+                System.out.println("FavoritesWindow.load " + ex);
+                ex.printStackTrace();
+                fileOpen = false;
+            }
         } else {
             System.out.println("Favorites file not found: "+ f);
         }
@@ -369,13 +369,23 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         }
         public void mouseClicked(MouseEvent e) {
             if (vtree.getSelectionPath() != null){
-                DefaultMutableTreeNode seltreeNode = (DefaultMutableTreeNode)vtree.getSelectionPath().getLastPathComponent();
+                DefaultMutableTreeNode selTreeNode = (DefaultMutableTreeNode)vtree.getSelectionPath().getLastPathComponent();
                 DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)vtree.getClosestPathForLocation(e.getX(), e.getY()).getLastPathComponent();
-                if (treeNode != seltreeNode) { vtree.clearSelection();}
+                if (treeNode != selTreeNode) { vtree.clearSelection();}
                 TreeModel vmodel = vtree.getModel();
                 if(e.getClickCount() == 2) {
-                    if (((DefaultMutableTreeNode)vmodel.getRoot()).getChildCount() == 1) vtree.clearSelection();
-                    if (!(seltreeNode instanceof FavoritesNode)) vtree.clearSelection();
+                   if (((DefaultMutableTreeNode)vmodel.getRoot()).getChildCount() == 1) vtree.clearSelection();
+                    if (!(selTreeNode instanceof FavoritesNode)) vtree.clearSelection();
+                    if((selTreeNode instanceof ResourceNode)) {
+                        TreePath path = vtree.getPathForLocation(e.getX(), e.getY());
+                        if (path == null)
+                            return;
+                        Object uo = selTreeNode.getUserObject();
+                        System.out.println("instance of favorites node- res class"+ uo.getClass());
+                    
+                        if (uo instanceof Resource)
+                            ((Resource)uo).displayContent();
+                    }
                 }
             }
             showPopup(e);
