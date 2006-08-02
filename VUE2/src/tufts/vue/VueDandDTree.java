@@ -39,7 +39,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.26 $ / $Date: 2006-07-19 23:30:04 $ / $Author: anoop $
+ * @version $Revision: 1.27 $ / $Date: 2006-08-02 18:57:51 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -61,7 +61,8 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     
     public VueDandDTree(FavoritesNode root){
         super(root);
-        this.setEditable(true);
+        this.setRowHeight(0);
+        this.setEditable(false);
         this.setShowsRootHandles(true);
         this.expandRow(0);
         this.setExpandsSelectedPaths(true);
@@ -281,10 +282,16 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         }
     }
     
-    class VueDandDTreeCellRenderer extends DefaultTreeCellRenderer {
+    class VueDandDTreeCellRenderer extends DefaultTreeCellRenderer
+    {
         protected VueDandDTree tree;
+        private boolean hasImageIcon;
+        private Dimension imageIconPrefSize = new Dimension(Short.MAX_VALUE, 32+3);
+        private Dimension defaultPrefSize = new Dimension(Short.MAX_VALUE, 19); // todo: common default for VueDragTree
+        
         public VueDandDTreeCellRenderer(VueDandDTree pTree) {
             this.tree = pTree;
+            setAlignmentY(0.5f);            
             tree.addMouseMotionListener(new MouseMotionAdapter() {
                 public void mouseClicked(MouseEvent me){
                     if  (me.getClickCount() == 1) {
@@ -296,14 +303,45 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 }
             });
         }
+
+        public Dimension getPreferredSize() {
+            if (hasImageIcon)
+                return imageIconPrefSize;
+            else
+                return defaultPrefSize;
+        }
         
-        public Component getTreeCellRendererComponent(JTree tree,Object value, boolean sel,boolean expanded,boolean leaf,int row,
-                boolean hasFocus) {
+        public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
+                                                      boolean expanded,boolean leaf,int row, boolean hasFocus)
+        {
             super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-            if ( !(value instanceof FileNode) && ((((ResourceNode)value).getResource()).getType()==FAVORITES) ){
-                if ((((DefaultMutableTreeNode)value).getChildCount()) > 0 ){ setIcon(activeIcon);} else {setIcon(inactiveIcon);}
-            } else if (leaf){ setIcon(nleafIcon);
-            } else {setIcon(activeIcon);}
+
+            ResourceNode node = (ResourceNode) value;
+
+            hasImageIcon = false;
+            
+            if ( !(node instanceof FileNode) && (node.getResource().getType() == FAVORITES)) {
+                if (node.getChildCount() > 0 ) {
+                    setIcon(activeIcon);
+                } else {
+                    setIcon(inactiveIcon);
+                }
+            } else if (leaf) {
+                Icon icon = nleafIcon;
+                Resource r = node.getResource();
+                //System.out.println("level " + node.getLevel() + " for " + r);
+                // Only do Osid assets for now...
+                if (node.getLevel() == 1 /*&& r instanceof Osid2AssetResource*/) {
+                    Icon i = r.getIcon(tree);
+                    if (i != null) {
+                        hasImageIcon = true;
+                        icon = i;
+                    }
+                }
+                setIcon(icon);
+            } else {
+                setIcon(activeIcon);
+            }
             return this;
         }
         
