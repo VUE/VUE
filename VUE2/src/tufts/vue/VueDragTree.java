@@ -46,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.62 $ / $Date: 2006-08-03 05:33:36 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2006-08-03 06:45:15 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -77,6 +77,7 @@ public class VueDragTree extends JTree
         createPopupMenu();
         this. getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         resourceSelection = VUE.getResourceSelection();
+        resourceSelection.addListener(this);
         addTreeSelectionListener(this);
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent me){
@@ -136,8 +137,11 @@ public class VueDragTree extends JTree
         //if (getPicked() == e.selected) {
         //    ; // do nothing; already selected
         } else {
-            // TODO: if contains selected item, select it!
+            // todo: if contains selected item, select it
+            // TODO: clearing the selection isn't working! don't know
+            // if is just a repaint issue.
             clearSelection();
+            //setSelectionRow(-1);
             repaint();
         }
     }
