@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.45 $ / $Date: 2006-07-19 23:29:31 $ / $Author: anoop $
+ * @version $Revision: 1.46 $ / $Date: 2006-08-03 05:33:36 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
@@ -241,7 +241,7 @@ public class DataSourceList extends JList implements DropTargetListener {
                                 osid.shared.Agent agent = null;
                                 LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
                                 CabinetResource res = new CabinetResource(cab);
-                                res.setTitle(file.getAbsolutePath());
+                                //res.setTitle(file.getAbsolutePath());
                                 CabinetEntry oldentry = res.getEntry();
                                 res.setEntry(null);
                                 if (file.getPath().toLowerCase().endsWith(".url")) {

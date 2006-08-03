@@ -39,7 +39,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.27 $ / $Date: 2006-08-02 18:57:51 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2006-08-03 05:33:36 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -331,7 +331,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 Resource r = node.getResource();
                 //System.out.println("level " + node.getLevel() + " for " + r);
                 // Only do Osid assets for now...
-                if (node.getLevel() == 1 /*&& r instanceof Osid2AssetResource*/) {
+                if (node.getLevel() == 1 && r.isImage()) {
                     Icon i = r.getIcon(tree);
                     if (i != null) {
                         hasImageIcon = true;

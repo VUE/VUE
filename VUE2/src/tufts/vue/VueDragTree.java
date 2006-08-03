@@ -46,14 +46,16 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.61 $ / $Date: 2006-07-26 18:49:42 $ / $Author: sfraize $
+ * @version $Revision: 1.62 $ / $Date: 2006-08-03 05:33:36 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
-        implements DragGestureListener,
-        DragSourceListener,
-        TreeSelectionListener,
-        ActionListener {
+    implements ResourceSelection.Listener,
+               DragGestureListener,
+               DragSourceListener,
+               TreeSelectionListener,
+               ActionListener
+{
     
     public static ResourceNode oldnode;
     private ResourceSelection resourceSelection = null;
@@ -127,6 +129,18 @@ public class VueDragTree extends JTree
         addTreeSelectionListener(this);
     }
     
+    /** ResourceSelection.Listener */
+    public void resourceSelectionChanged(tufts.vue.ResourceSelection.Event e) {
+        if (e.source == this) {
+            return;
+        //if (getPicked() == e.selected) {
+        //    ; // do nothing; already selected
+        } else {
+            // TODO: if contains selected item, select it!
+            clearSelection();
+            repaint();
+        }
+    }
     
     private void  implementDrag(VueDragTree tree){
         DragSource dragSource = DragSource.getDefaultDragSource();
@@ -455,7 +469,11 @@ class ResourceNode extends DefaultMutableTreeNode {
         return resource;
     }
     public String toString() {
-        return resource.getTitle();
+        String title = resource.getTitle();
+        if (title == null || title.length() == 0)
+            return resource.getSpec();
+        else
+            return title;
     }
 }
 
@@ -489,9 +507,9 @@ class CabinetNode extends ResourceNode {
             }
             CabinetResource res = new CabinetResource(cab);
             CabinetEntry entry = res.getEntry();
-            if(title != null) {
-                res.setTitle(title);
-            }
+
+            //if (title != null) res.setTitle(title);
+
             if (entry instanceof RemoteCabinetEntry)
                 node =  new CabinetNode(res, CabinetNode.REMOTE);
             else
@@ -514,6 +532,8 @@ class CabinetNode extends ResourceNode {
            // System.out.println("CabinetNode.isLeaf: type-"+this.type);
             // TODO: if we really want CabinetNode to do lazy setSpec, don't to this getSpec here,
             // is it completely defeats the purpose...
+            // TODO: this is a rediculously slow way to go about figuring this flag, which
+            // we should already know...
             if((new File(res.getSpec()).isDirectory())) {
                 flag = false;
             } else if(this.type.equals(CabinetNode.REMOTE) && ((RemoteCabinetEntry)res.getEntry()).isCabinet())

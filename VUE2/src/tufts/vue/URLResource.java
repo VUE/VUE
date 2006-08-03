@@ -53,7 +53,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.19 $ / $Date: 2006-07-31 18:35:15 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2006-08-03 05:33:36 $ / $Author: sfraize $
  */
 
 // TODO: this class currently a humongous mess...
@@ -106,7 +106,9 @@ public class URLResource implements Resource, XMLUnmarshalListener
     
     // we REALLY need to get rid of this constructor: all the code
     // expects SPEC to be non-null!  Castor won't let us though...
-    public URLResource() { init(); }
+    public URLResource() {
+        init();
+    }
     
     public URLResource(String spec) {
         init();
@@ -119,8 +121,12 @@ public class URLResource implements Resource, XMLUnmarshalListener
     }
 
     private void init() {
-        if (DEBUG.RESOURCE || DEBUG.DR)
-            setProperty("@ instance", getClass().getName() + "@" + Integer.toHexString(hashCode()));
+        if (DEBUG.RESOURCE || DEBUG.DR) {
+            //out("init");
+            String iname = getClass().getName() + "@" + Integer.toHexString(hashCode());
+            //tufts.Util.printStackTrace("INIT " + iname);
+            setProperty("@ instance", iname);
+        }
     }
     
     
@@ -882,7 +888,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
     
      */
 
-    private boolean isLocalFile() {
+    protected boolean isLocalFile() {
         asURL();
         return mURL_Browse == null || mURL_Browse.getProtocol().equals("file");
         //String s = spec.toLowerCase();
@@ -1080,6 +1086,12 @@ public class URLResource implements Resource, XMLUnmarshalListener
                 setURL_Thumb((String) value);
             else
                 setProperty((String)key, value);
+        }
+
+        if (DEBUG.DR) {
+            // note the restored values
+            if (spec != SPEC_UNSET) setProperty("@(spec)", spec);
+            if (mTitle != null) setProperty("@(title)", mTitle);
         }
 
         mXMLpropertyList = null;

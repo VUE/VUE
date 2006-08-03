@@ -73,17 +73,38 @@ public class SaveVueJTree {
             int i = v.size();
             while (i > 0){
                 i = i -1;
-                SaveNode nextSNode = (SaveNode)v.elementAt(i);
-                if ((nextSNode.getResource() instanceof CabinetResource)){
-                    CabinetNode nextNode = CabinetNode.getCabinetNode(nextSNode.getResource().getTitle(),new File(cleanFileName(nextSNode.getResource().getSpec())),rootNode, model);
+                final SaveNode nextSNode = (SaveNode)v.elementAt(i);
+                final Resource resource = nextSNode.getResource();
+                if (resource instanceof CabinetResource) {
+                    final ResourceNode nextNode;
+                    // todo: URLResource or CabinetResource should handle below (isFile/toFile)
+                    final File file = new File(cleanFileName(resource.getSpec()));
+                    if (file.isDirectory()) {
+                        //nextNode = CabinetNode.getCabinetNode(file.getName(), file, rootNode, model);
+                        // the title arg (first) should be ignored now anyway
+                        nextNode = CabinetNode.getCabinetNode(resource.getTitle(), file, rootNode, model);
+                    } else {
+                        // this just in case it was a URLResource, not a CabinetResource (todo: should handle elsewhere commonly)
+                        String title = resource.getTitle();
+                        if (title == null || title.length() == 0) {
+                            if (resource instanceof URLResource) {
+                                // this is a total hack just to fix this crazy stuff up for now
+                                // (we're editing the resource when it's restored!)
+                                ((URLResource)resource).setTitle(file.getName());
+                            }
+                        }
+                        nextNode = new ResourceNode(resource);
+                    }
+                    //nextNode = new CabinetNode(resource, CabinetNode.LOCAL);
+                        
                     model.insertNodeInto(nextNode,rootNode,0);
                     restoreModel(model, nextNode, nextSNode);
-                }else if (((nextSNode.getResource()).getType()) == FAVORITES){
-                    FavoritesNode nextFNode = new FavoritesNode(nextSNode.getResource());
+                }else if (resource.getType() == FAVORITES){
+                    FavoritesNode nextFNode = new FavoritesNode(resource);
                     model.insertNodeInto(nextFNode,rootNode,0);
                     restoreModel(model, nextFNode, nextSNode);
                 }else{
-                    ResourceNode nextNode = new ResourceNode(nextSNode.getResource());
+                    ResourceNode nextNode = new ResourceNode(resource);
                     model.insertNodeInto(nextNode,rootNode,0);
                     restoreModel(model, nextNode, nextSNode);
                 }
@@ -102,6 +123,9 @@ public class SaveVueJTree {
     }
     
     private String cleanFileName(String fileName) {
-        return fileName.substring(7);
+        if (fileName.startsWith("file://"))
+            return fileName.substring(7);
+        else
+            return fileName;
     }
 }

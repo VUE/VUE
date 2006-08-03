@@ -38,7 +38,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.23 $ / $Date: 2006-07-26 18:48:07 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2006-08-03 05:33:36 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends MapResource {
@@ -67,6 +67,7 @@ public class CabinetResource extends MapResource {
     public CabinetResource () {
         this.entry = entry;
         this.type = Resource.URL;
+        if (DEBUG.RESOURCE) out("RESTORED");
     }
     
     /** 
@@ -75,8 +76,9 @@ public class CabinetResource extends MapResource {
      */
     public CabinetResource(osid.filing.CabinetEntry entry) {
         this.entry = entry;
-        // No: to the below lazily -- SMF
-        //  Force information to be cached
+
+        getSpec();
+
         //this.getEntry();
         //this.getProperties();
         //this.getSpec();
@@ -129,7 +131,7 @@ public class CabinetResource extends MapResource {
                 ex.printStackTrace();
             }
 
-            File file =  new File (url.getFile());  //  Extract the file portion.
+            File file =  new File(url.getFile());  //  Extract the file portion.
             if (file.isDirectory())
                 this.extension = new String ("dir");              //  Directories don't have extensions.
             else {
@@ -264,7 +266,22 @@ public class CabinetResource extends MapResource {
             if (e instanceof tufts.oki.localFiling.LocalCabinet)
                 setSpec(((LocalCabinet)e).getUrl());
 
-            return super.getSpec();
+            final String spec = super.getSpec();
+            setProperty("URL", spec);
+            
+            //final String title = getTitle();
+            //if (title == null || title.length() == 0) {
+                final String fname;
+                if (spec.startsWith("file://"))
+                    fname = spec.substring(7);
+                else
+                    fname = spec;
+                try {
+                    setTitle(new File(fname).getName());
+                } catch (Throwable t) { t.printStackTrace(); }
+                //}
+
+            return spec;
         }
     }
 
