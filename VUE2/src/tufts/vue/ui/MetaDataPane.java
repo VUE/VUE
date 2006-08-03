@@ -295,8 +295,12 @@ public class MetaDataPane extends JPanel
            try {
                c = label.charAt(0);
            } catch (Throwable t) {}
-           if (!DEBUG.Enabled && (c == '@' || c == '~'))
+
+           if (!DEBUG.Enabled && (c == '@' || c == '~')) {
+               mLabels[row].setVisible(false);
+               mValues[row].setVisible(false);
                continue;
+           }
            
            loadRow(row, label, value);
            
