@@ -25,6 +25,7 @@ import java.awt.event.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 
+import javax.swing.border.*;
 import javax.swing.tree.*;
 import java.util.Vector;
 import javax.swing.event.*;
@@ -39,7 +40,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.28 $ / $Date: 2006-08-03 05:33:36 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2006-08-03 06:36:31 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -47,7 +48,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     private static Icon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
     private static        Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
     private static        Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
-    
+
     private final int ACCEPTABLE_DROP_TYPES =
             DnDConstants.ACTION_COPY |
             DnDConstants.ACTION_LINK |
@@ -281,14 +282,18 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         public void treeStructureChanged(TreeModelEvent e) {
         }
     }
-    
+
     class VueDandDTreeCellRenderer extends DefaultTreeCellRenderer
     {
         protected VueDandDTree tree;
         private boolean hasImageIcon;
         private Dimension imageIconPrefSize = new Dimension(Short.MAX_VALUE, 32+3);
-        private Dimension defaultPrefSize = new Dimension(Short.MAX_VALUE, 19); // todo: common default for VueDragTree
-        
+        private Dimension defaultPrefSize = new Dimension(Short.MAX_VALUE, 20); // todo: common default for VueDragTree
+
+        private Border lineBorder = new MatteBorder(1,0,0,0, tufts.vue.ui.ResourceList.DividerColor);
+        private Border leftInsetBorder = lineBorder;
+        //private Border leftInsetBorder = new CompoundBorder(lineBorder, new EmptyBorder(0,8,0,0));
+
         public VueDandDTreeCellRenderer(VueDandDTree pTree) {
             this.tree = pTree;
             setAlignmentY(0.5f);            
@@ -316,8 +321,12 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         {
             super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 
-            ResourceNode node = (ResourceNode) value;
+            final ResourceNode node = (ResourceNode) value;
+            final int level = node.getLevel();
 
+            //if (sel) setBackground(getTextSelectionColor());
+            //else setBackground(Color.white);
+            
             hasImageIcon = false;
             
             if ( !(node instanceof FileNode) && (node.getResource().getType() == FAVORITES)) {
@@ -331,7 +340,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 Resource r = node.getResource();
                 //System.out.println("level " + node.getLevel() + " for " + r);
                 // Only do Osid assets for now...
-                if (node.getLevel() == 1 && r.isImage()) {
+                if (level == 1 && r.isImage()) {
                     Icon i = r.getIcon(tree);
                     if (i != null) {
                         hasImageIcon = true;
@@ -342,6 +351,17 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             } else {
                 setIcon(activeIcon);
             }
+
+            if (level != 1 || row == 0) {
+                setBorder(null);
+            } else if (hasImageIcon) {
+                setBorder(lineBorder);
+                //setIconTextGap(4);
+            } else {
+                setBorder(leftInsetBorder);
+                //setIconTextGap(12);
+            }
+            
             return this;
         }
         
