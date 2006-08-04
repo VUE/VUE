@@ -402,6 +402,8 @@ public abstract class LWIcon extends Rectangle2D.Float
             mLWC.getResource().displayContent();
         }
         
+        final static String gap = "&nbsp;";
+        
         private JComponent ttResource;
         private String ttLastString;
         private boolean hadTitle = false;
@@ -422,11 +424,14 @@ public abstract class LWIcon extends Rectangle2D.Float
                 hadTitle = hasTitle;
                 ttLastString = mLWC.getResource().getSpec();
                 // todo perf: use StringBuffer
-                final String prettyURL = VueUtil.decodeURL(ttLastString);
+                String prettyURL = VueUtil.decodeURL(ttLastString);
+                if (prettyURL.startsWith("file://") && prettyURL.length() > 7)
+                    prettyURL = prettyURL.substring(7);
                 final String html =
-                    "<html>&nbsp;<b>"
-                    + prettyURL + "</b>"
-                    + (hasTitle?("<font size=-2><br>&nbsp;"+mLWC.getResource().getTitle()+"</font>"):"")
+                    "<html>"
+                    + (hasTitle ? (gap + "<b>"+mLWC.getResource().getTitle()+"</b>&nbsp;<br>") : "")
+                    + gap + prettyURL + gap
+                    //+ (hasTitle?("<font size=-2><br>&nbsp;"+mLWC.getResource().getTitle()+"</font>"):"")
                     + "<font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;"
                     ;
                 
