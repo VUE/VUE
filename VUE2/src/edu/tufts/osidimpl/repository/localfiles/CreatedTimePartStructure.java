@@ -22,7 +22,7 @@ public class CreatedTimePartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id createdTimerPartStructureId = null;
-    private org.osid.shared.Type type = new Type("edu.mit","partStructure","createdTime","Created Time");
+    private org.osid.shared.Type type = new Type("mit.edu","partStructure","createdTime","Created Time");
     private String displayName = "Created Time";
     private String description = "Time the entity was created.";
     private boolean mandatory = false;

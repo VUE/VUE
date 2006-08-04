@@ -186,7 +186,7 @@ implements org.osid.repository.Repository
         java.util.Vector results = new java.util.Vector();
         try
         {
-            results.addElement(new Type("edu.mit","asset","valid"));
+            results.addElement(new Type("mit.edu","asset","valid"));
             return new TypeIterator(results);
         }
         catch (Throwable t)
@@ -199,7 +199,7 @@ implements org.osid.repository.Repository
     public org.osid.shared.Type getStatus(org.osid.shared.Id assetId)
     throws org.osid.repository.RepositoryException
     {
-        return new Type("edu.mit","asset","valid");
+        return new Type("mit.edu","asset","valid");
     }
 
     public boolean validateAsset(org.osid.shared.Id assetId)
@@ -260,6 +260,7 @@ implements org.osid.repository.Repository
         boolean knownType = false;
 		for (int searchTypeNum = 0, size = this.searchTypeVector.size(); searchTypeNum < size; searchTypeNum++)
 		{
+			
 			org.osid.shared.Type type = (org.osid.shared.Type)(this.searchTypeVector.elementAt(searchTypeNum));
 			if (type.isEqual(searchType))
 			{

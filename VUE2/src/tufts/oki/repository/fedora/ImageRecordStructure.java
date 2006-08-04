@@ -9,7 +9,7 @@ implements org.osid.repository.RecordStructure
     private org.osid.shared.Id id = null;
     private String schema = null;
     private String format = "Plain Text";
-    private org.osid.shared.Type type = new Type("edu.mit","recordStructure","image");
+    private org.osid.shared.Type type = new Type("mit.edu","recordStructure","image");
     private org.osid.repository.PartStructure sThumbnailPartStructure = null;
     private org.osid.repository.PartStructure sURLPartStructure = null;
 

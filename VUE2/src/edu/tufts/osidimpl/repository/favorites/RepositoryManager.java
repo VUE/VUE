@@ -57,8 +57,8 @@ public class RepositoryManager
             } catch (org.osid.logging.LoggingException lex) {
                 log = loggingManager.createLog("Favorites");
             }
-            log.assignFormatType(new Type("edu.mit","logging","plain"));
-            log.assignPriorityType(new Type("edu.mit","logging","info"));
+            log.assignFormatType(new Type("mit.edu","logging","plain"));
+            log.assignPriorityType(new Type("mit.edu","logging","info"));
             Utilities.setLog(log);
             
             org.osid.id.IdManager idManager = (org.osid.id.IdManager)org.osid.OsidLoader.getManager("org.osid.id.IdManager",
@@ -68,7 +68,7 @@ public class RepositoryManager
             Utilities.setIdManager(idManager);
             this.repositoryType = new Type("edu.tufts","favorites","Favorites");
             this.repositoryId = Utilities.getIdManager().getId("F0C095DF-A60F-4ACD-A889-7B02F33D7497-4296-00000865FF8DB0A2");
-            this.searchTypeVector.addElement(new Type("edu.mit","search","title"));
+            this.searchTypeVector.addElement(new Type("mit.edu","search","title"));
             this.searchTypeVector.addElement(new Type("mit.edu","search","keyword"));
             this.searchTypeVector.addElement(new Type("edu.tufts","search","keyword"));
             this.repository = new Repository("Saved Content",

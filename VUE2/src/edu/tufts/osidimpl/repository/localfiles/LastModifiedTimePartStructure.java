@@ -22,7 +22,7 @@ public class LastModifiedTimePartStructure
 implements org.osid.repository.PartStructure
 {
     private org.osid.shared.Id lastModifiedTimePartStructureId = null;
-    private org.osid.shared.Type type = new Type("edu.mit","partStructure","lastModifiedTime","LastModifiedTime");
+    private org.osid.shared.Type type = new Type("mit.edu","partStructure","lastModifiedTime","LastModifiedTime");
     private String displayName = "LastModifiedTime";
     private String description = "LastModifiedTime";
     private boolean mandatory = false;

@@ -4,7 +4,7 @@ public class SharedProperties
 implements org.osid.shared.Properties
 {
     private java.util.Map map = new java.util.HashMap();
-    private org.osid.shared.Type type = new Type("edu.mit","shared","empty");
+    private org.osid.shared.Type type = new Type("mit.edu","shared","empty");
 
     public SharedProperties()
     throws org.osid.shared.SharedException

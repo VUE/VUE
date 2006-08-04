@@ -38,8 +38,8 @@ public class Osid2AssetResource extends MapResource
 
     // SEE Fedora Impl: edu/tufts/osidimpl/repository/fedora_2_0/ImageRecordStructure.java
     private static final org.osid.shared.Type FedoraImagePartType = // TODO: temporary hack for Fedora (also: note differing authority conventions!
-        new edu.tufts.vue.util.Type("edu.mit","partStructure","mediumImage");
-    // TODO: Google Global is currently using edu.mit authority also for URL part type...
+        new edu.tufts.vue.util.Type("mit.edu","partStructure","mediumImage");
+    // TODO: Google Global is currently using mit.edu authority also for URL part type...
     
     private osid.OsidOwner owner = null;
     private org.osid.OsidContext context = null;

@@ -21,7 +21,7 @@ package edu.tufts.osidimpl.repository.google.global;
 public class QueryAdjuster implements edu.tufts.vue.fsm.QueryAdjuster
 {
 	private org.osid.shared.Type oldKeywordSearchType = new Type("mit.edu","search","keyword");
-	private org.osid.shared.Type newKeywordSearchType = new Type("edu.mit","search","keyword");
+	private org.osid.shared.Type newKeywordSearchType = new Type("mit.edu","search","keyword");
 		
 	public edu.tufts.vue.fsm.Query adjustQuery(org.osid.repository.Repository repository,
 											   java.io.Serializable searchCriteria,

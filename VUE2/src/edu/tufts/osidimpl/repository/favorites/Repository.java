@@ -167,7 +167,7 @@ public class Repository
     throws org.osid.repository.RepositoryException {
         java.util.Vector results = new java.util.Vector();
         try {
-            results.addElement(new Type("edu.mit","asset","valid"));
+            results.addElement(new Type("mit.edu","asset","valid"));
             return new TypeIterator(results);
         } catch (Throwable t) {
             Utilities.log(t.getMessage());
@@ -177,7 +177,7 @@ public class Repository
     
     public org.osid.shared.Type getStatus(org.osid.shared.Id assetId)
     throws org.osid.repository.RepositoryException {
-        return new Type("edu.mit","asset","valid");
+        return new Type("mit.edu","asset","valid");
     }
     
     public boolean validateAsset(org.osid.shared.Id assetId)

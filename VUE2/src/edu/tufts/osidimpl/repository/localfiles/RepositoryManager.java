@@ -62,8 +62,8 @@ implements org.osid.repository.RepositoryManager
 			} catch (org.osid.logging.LoggingException lex) {
 				log = loggingManager.createLog("LocalFilesRepository");
 			}
-			log.assignFormatType(new Type("edu.mit","logging","plain"));
-			log.assignPriorityType(new Type("edu.mit","logging","info"));
+			log.assignFormatType(new Type("mit.edu","logging","plain"));
+			log.assignPriorityType(new Type("mit.edu","logging","info"));
 			Utilities.setLog(log);			
 			
 			org.osid.id.IdManager idManager = (org.osid.id.IdManager)org.osid.OsidLoader.getManager("org.osid.id.IdManager",
@@ -77,8 +77,8 @@ implements org.osid.repository.RepositoryManager
 			 */
 			this.repositoryType = new Type("edu.tufts","repository","fileSystem");
 			this.repositoryId = Utilities.getIdManager().getId("945D0FC3-DB17-4F28-B6EB-21533790BF68-2037-000002CC089814B2");
-			this.searchTypeVector.addElement(new Type("edu.mit","search","title"));
-			this.searchTypeVector.addElement(new Type("edu.mit","search","keyword"));
+			this.searchTypeVector.addElement(new Type("mit.edu","search","title"));
+			this.searchTypeVector.addElement(new Type("mit.edu","search","keyword"));
 			this.repository = new Repository("My Computer",
 											 "Local File System",
 											 this.repositoryId,
