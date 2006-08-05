@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.20 $ / $Date: 2006-08-02 18:45:36 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2006-08-05 00:27:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1078,9 +1078,9 @@ public class Images
 
 
         //----------------------------------------------------------------------------------------
-        // TODO: IS CAUSING DEADLOCK:
+        // TODO: IS CAUSING DEADLOCK (maybe cause we have multiple search threads now?)
         //----------------------------------------------------------------------------------------
-        if (false && imageSRC.resource != null) {
+        if (imageSRC.resource != null) {
             if (DEBUG.IMAGE || DEBUG.THREAD || DEBUG.RESOURCE)
                 out("setting resource image.* meta-data for " + imageSRC.resource);
             
