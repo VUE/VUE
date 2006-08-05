@@ -60,7 +60,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.289 $ / $Date: 2006-07-27 17:53:42 $ / $Author: mike $ 
+ * @version $Revision: 1.290 $ / $Date: 2006-08-05 00:28:51 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -207,7 +207,7 @@ public class MapViewer extends javax.swing.JComponent
         addKeyListener(inputHandler);
         addMouseListener(inputHandler);
         addMouseMotionListener(inputHandler);
-        // addMouseWheelListener(inputHandler); // VUE-171: turn this off for now, maybe ZoomTool later
+
         if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
     }
 
@@ -229,7 +229,6 @@ public class MapViewer extends javax.swing.JComponent
         inScrollPane = (getParent() instanceof JViewport);
 
         if (inScrollPane) {
-            
             if (getParent() instanceof MapViewport == false)
                 throw new IllegalStateException("MapViewer will only work in ScrollPane if using MapViewport");
             
@@ -238,6 +237,11 @@ public class MapViewer extends javax.swing.JComponent
             mFocusIndicator = ((MapScrollPane) mViewport.getParent()).getFocusIndicator();
         } else {
             mViewport = null;
+
+            // Only do this if not in a scroll-pane.  If we are,
+            // it will add us, creating a relay so it can process
+            // normaly any events we don't consume.
+            addMouseWheelListener(getMouseWheelListener());
         }
         
         addFocusListener(this);
@@ -2825,9 +2829,10 @@ public class MapViewer extends javax.swing.JComponent
         }
     
 
-    MouseWheelListener getMouseWheelListener() {
+    public MouseWheelListener getMouseWheelListener() {
         return inputHandler;
     }
+
 
     // todo: if java ever supports moving an inner class to another file,
     // move the InputHandler out: this file has gotten too big.
@@ -3510,7 +3515,7 @@ public class MapViewer extends javax.swing.JComponent
 
         //private long lastRotationTime = 0;
         public void mouseWheelMoved(MouseWheelEvent e) {
-            if (DEBUG.MOUSE) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
+            //if (DEBUG.MOUSE) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
             /*
             long now = System.currentTimeMillis();
             if (now - lastRotationTime < 50) { // todo: preference
@@ -3518,6 +3523,16 @@ public class MapViewer extends javax.swing.JComponent
                 return;
             }
             */
+
+            if (inScrollPane && !(e.isMetaDown() || e.isAltDown())) {
+                // Do not consume, and let the event be passed
+                // on to the BasicScrollPaneUI via MouseWheelRelay
+                // in MapScrollPane.
+                return;
+            }
+
+            e.consume();
+            
             int rotation = e.getWheelRotation();
             if (rotation > 0)
                 tufts.vue.ZoomTool.setZoomSmaller(null);
