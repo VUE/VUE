@@ -30,7 +30,7 @@ import javax.swing.BorderFactory;
 /**
  * Scroll pane for MapViewer / MapViewport with a focus indicator.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-08-05 00:28:52 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2006-08-05 22:27:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -77,7 +77,8 @@ public class MapScrollPane extends javax.swing.JScrollPane
     public void addNotify() {
         super.addNotify();
         MouseWheelListener[] currentListeners = getMouseWheelListeners();
-        System.out.println("MapScrollPane: CurrentMouseWheelListeners: " + java.util.Arrays.asList(currentListeners));
+        if (tufts.vue.DEBUG.MOUSE)
+            System.out.println("MapScrollPane: CurrentMouseWheelListeners: " + java.util.Arrays.asList(currentListeners));
         if (currentListeners != null && currentListeners[0] != null) {
             removeMouseWheelListener(currentListeners[0]);
             addMouseWheelListener(new MouseWheelRelay(mViewer.getMouseWheelListener(), currentListeners[0]));
@@ -154,7 +155,7 @@ public class MapScrollPane extends javax.swing.JScrollPane
 
 
 class MouseWheelRelay implements MouseWheelListener {
-    private MouseWheelListener head, tail;
+    private final MouseWheelListener head, tail;
     public MouseWheelRelay(MouseWheelListener head, MouseWheelListener tail) {
         if (head == null || tail == null)
             throw new NullPointerException("MouseWheelRelay: neither head or tail can be null");
