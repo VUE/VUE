@@ -36,7 +36,7 @@ import java.util.ArrayList;
  * A field:value editor currently specialized for resource properties displayed on
  * the object inspector info tab.
  *
- * @version $Revision: 1.28 $ / $Date: 2006-07-21 20:42:02 $ / $Author: anoop $ 
+ * @version $Revision: 1.29 $ / $Date: 2006-08-06 23:42:59 $ / $Author: sfraize $ 
  * @author  akumar03
  */
 
@@ -119,7 +119,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         
         
         //disable buttons if not editable
-        System.out.println("Editable: "+tableModel.isEditable());
+        //System.out.println("Editable: "+tableModel.isEditable());
         if(tableModel.isEditable()) {
             addPropertyButton.setEnabled(true);
             deletePropertyButton.setEnabled(true);
