@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.41 $ / $Date: 2006-03-23 21:19:11 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2006-08-07 05:26:54 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -46,7 +46,7 @@ public class ZoomTool extends VueTool
     static private final double[] ZoomDefaults = {
         1.0/100, 1.0/64, 1.0/48, 1.0/32, 1.0/24, 1.0/16, 1.0/12, 1.0/8, 1.0/6, 1.0/5, 1.0/4, 1.0/3, 1.0/2, 2.0/3, 0.75,
         1.0,
-        1.25, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64
+        1.25, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 128
         //, 96, 128, 256, 384, 512
     };
     static private final int ZOOM_FIT_PAD = 20; // make this is > SelectionStrokeWidth & SelectionHandleSize
