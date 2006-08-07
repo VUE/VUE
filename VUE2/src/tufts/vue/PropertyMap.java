@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.12 $ / $Date: 2006-07-31 18:34:33 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2006-08-07 05:30:36 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap
@@ -34,9 +34,12 @@ public class PropertyMap extends java.util.HashMap
     }
 
     private SortedMapModel mTableModel;
+    private Object mTableModel_LOCK = new Object();
     private boolean mHoldingChanges = false;
     private int mChanges;
     private List listeners;
+
+
 
     public PropertyMap() {}
 
@@ -120,11 +123,29 @@ public class PropertyMap extends java.util.HashMap
         return props;
     }
 
-    public synchronized javax.swing.table.TableModel getTableModel() {
-        if (mTableModel == null)
-            mTableModel = new SortedMapModel();
-        return mTableModel;
 
+    /* Do NOT synchronize getTableModel with the rest of the methods: this is because
+     * when listeners get notified, one of the first things they're likely to do is ask
+     * for the table model, but if two different threads are active on the other end,
+     * we'll dead-lock.  (E.g., an ImageLoader thread and the AWT thread (via a user
+     * LWSelection change) have both changed the current resource selection, and so the
+     * meta-data pane is doing two synchronized updates (one from each thread) back to
+     * back, but during one of the updates, it has to call back into the PropertyMap
+     * here, which may already be locked on one of the threads, because it was from
+     * there that a propertyMapChange was called.
+     *
+     * Eventually, the table model will probably want to move to the GUI and we can
+     * avoid this special case.
+     */
+    
+    public javax.swing.table.TableModel getTableModel() {
+        if (mTableModel == null) {
+            synchronized (mTableModel_LOCK) {
+                if (mTableModel == null)
+                    mTableModel = new SortedMapModel();
+            }
+        }
+        return mTableModel;
     }
 
     public synchronized void addListener(Listener l) {
@@ -136,13 +157,38 @@ public class PropertyMap extends java.util.HashMap
         if (listeners != null)
             listeners.remove(l);
     }
+
+    private static int notifyCount = 0;
     public synchronized void notifyListeners() {
         if (listeners != null) {
+            notifyCount++;
+            if (DEBUG.RESOURCE || DEBUG.THREAD) out("notifyListeners " + listeners.size() + " of " + super.toString());
             Iterator i = listeners.iterator();
-            while (i.hasNext())
-                ((Listener)i.next()).propertyMapChanged(this);
+            while (i.hasNext()) {
+                Listener l = (Listener) i.next();
+                if (DEBUG.RESOURCE || DEBUG.THREAD) out("notifying: " + tufts.vue.gui.GUI.namex(l));
+                l.propertyMapChanged(this);
+            }
+            if (DEBUG.RESOURCE || DEBUG.THREAD) out("notifyListeners completed " + listeners.size());
         }
     }
+
+    private void out(Object o) {
+        String s = "PropertyMap@" + Integer.toHexString(hashCode()) + " (#" + notifyCount + ") "
+            + (""+System.currentTimeMillis()).substring(8)
+            + " [" + Thread.currentThread().getName() + "]";
+        System.err.println(s + " " + (o==null?"null":o.toString()));
+        //VUE.Log.debug("PropertyMap: " + (o==null?"null":o.toString()));
+    }
+
+    public String toString() {
+        return "PropertyMap@" + Integer.toHexString(hashCode()) + super.toString();
+    }
+
+    public int hashCode() {
+        return mTableModel == null ? 0 : mTableModel.hashCode(); // doesn't change depending on contents
+    }
+    
 
     private static class Entry implements Comparable {
         final String key;
@@ -172,11 +218,6 @@ public class PropertyMap extends java.util.HashMap
         }
     }
 
-    private void out(Object o) {
-        VUE.Log.debug("PropertyMap: " + (o==null?"null":o.toString()));
-    }
-    
-
     // TODO: move this out to viewer
     
     private class SortedMapModel extends javax.swing.table.AbstractTableModel {
@@ -190,7 +231,7 @@ public class PropertyMap extends java.util.HashMap
 
         // make sure there is a sync on the HashMap before this is called
         private void reload() {
-            mEntries = new Entry[size()];
+            mEntries = new Entry[PropertyMap.this.size()];
             if (DEBUG.RESOURCE) out("SortedMapModel: reload " + mEntries.length + " items");
             Iterator i = entrySet().iterator();
             int ei = 0;
@@ -220,6 +261,7 @@ public class PropertyMap extends java.util.HashMap
                 if (DEBUG.META)
                     out("model loaded " + Arrays.asList(mEntries));
             }
+            if (DEBUG.RESOURCE || DEBUG.THREAD) out("fireTableDataChanged...");
             fireTableDataChanged();
             notifyListeners();
         }
