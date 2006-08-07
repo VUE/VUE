@@ -28,7 +28,7 @@ import java.awt.geom.Point2D;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.40 $ / $Date: 2006-07-27 22:26:19 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2006-08-07 05:29:17 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -137,7 +137,7 @@ public class LWSelection extends java.util.ArrayList
         
             if (DEBUG.SELECTION) {
                 System.out.println("-----------------------------------------------------------------------------");
-                System.out.println(this + " NOTIFYING " + listeners.size() + " LISTENERS");
+                System.out.println(this + " NOTIFYING " + listeners.size() + " LISTENERS from " + Thread.currentThread());
             }
             Listener[] listener_iter = (Listener[]) listeners.toArray(listener_buf);
             int nlistener = listeners.size();
