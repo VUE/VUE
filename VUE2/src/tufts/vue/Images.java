@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.22 $ / $Date: 2006-08-05 22:34:57 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2006-08-07 05:28:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -277,7 +277,8 @@ public class Images
                     File file = new java.io.File(r.getSpec());
                     this.readable = file;
                 } else {
-                    if (DEBUG.IMAGE) tufts.Util.printStackTrace("converting Resource to IMAGE " + r);
+                    //if (DEBUG.IMAGE) tufts.Util.printStackTrace("converting Resource to IMAGE " + r);
+                    if (DEBUG.IMAGE) out("converting Resource to IMAGE " + r);
                     this.readable = r.getImageSource();
                 }
                 this.resource = r;
@@ -1077,10 +1078,7 @@ public class Images
         if (DEBUG.IMAGE) out("ImageReader got size " + w + "x" + h);
 
 
-        //----------------------------------------------------------------------------------------
-        // TODO: IS CAUSING DEADLOCK (maybe cause we have multiple search threads now?)
-        //----------------------------------------------------------------------------------------
-        if (false && imageSRC.resource != null) {
+        if (imageSRC.resource != null) {
             if (DEBUG.IMAGE || DEBUG.THREAD || DEBUG.RESOURCE)
                 out("setting resource image.* meta-data for " + imageSRC.resource);
             
@@ -1199,12 +1197,13 @@ public class Images
     }
     
     private static void out(Object o) {
+        VUE.Log.debug("Images " + (o==null?"null":o.toString()));
+
+        /*
         String s = "Images " + (""+System.currentTimeMillis()).substring(8);
         s += " [" + Thread.currentThread().getName() + "]";
-        if (false)
-            VUE.Log.debug(s + " " + (o==null?"null":o.toString()));
-        else
-            System.err.println(s + " " + (o==null?"null":o.toString()));
+        System.err.println(s + " " + (o==null?"null":o.toString()));
+        */
     }
 
     
