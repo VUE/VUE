@@ -53,7 +53,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.20 $ / $Date: 2006-08-03 05:33:36 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2006-08-07 05:31:52 $ / $Author: sfraize $
  */
 
 // TODO: this class currently a humongous mess...
@@ -1318,7 +1318,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
     }
     
     /* should deprecate: ResourceIcon could discover painter the first time it paints */
-    public Icon getIcon(java.awt.Component painter) {
+    public synchronized Icon getIcon(java.awt.Component painter) {
 
         //if (!isImage())
         //  return null;
