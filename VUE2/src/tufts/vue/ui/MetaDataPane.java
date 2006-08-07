@@ -201,14 +201,12 @@ public class MetaDataPane extends JPanel
    
    public synchronized void loadProperties(PropertyMap rsrcProps)
    {
-       // TODO: loops if we don't do this first: not safe!
-       // we should be loading directly from the props themselves,
-       // and by synchronized on them...  tho is nice that
-       // only a single sorted list exists for each resource,
-       // tho of course, then we have tons of  cached
-       // sorted lists laying about.
+       // TODO: loops if we don't do this first: not safe!  we should be loading
+       // directly from the props themselves, and by synchronized on them...  tho is
+       // nice that only a single sorted list exists for each resource, tho of course,
+       // then we have tons of cached sorted lists laying about.
 
-       if (DEBUG.RESOURCE) out("metaDataPane; loadProperties: pmap=" + rsrcProps);
+       if (DEBUG.RESOURCE) out("loadProperties: " + rsrcProps);
        
        if (DEBUG.SCROLL)
            VUE.Log.debug("scroll model listeners: "
@@ -221,7 +219,25 @@ public class MetaDataPane extends JPanel
        mGridBag.setPaintDisabled(true);
 
        try {
-       
+           // Description of a dead-lock that has been fixed by having
+           // PropertyMap.getTableModel() sync on it's own lock:
+           
+           // Example: VUE-ImageLoader49 holds changes on the props, then goes to notify
+           // us here in the MetaData pane.  But The AWT thread had already put is in
+           // here, right below, trying to call getTableModel(), but before we can call
+           // it, the above notification needs to be released.  If the props had CHANGED
+           // to entirely different set, from another resource, this wouldn't have been
+           // a problem, because the update would have been skipped above in
+           // propertyMapChanged.
+
+           // Put another way: the PropertyMap is trying to notify us, but is waiting
+           // for us to break out of this method for the lock to release, so
+           // propertyMapChanged can be called, but then we call getTableModel(), which
+           // is locked on that same PropertyMap that is waiting for us, and thus
+           // deadlock...
+
+           if (DEBUG.RESOURCE || DEBUG.THREAD) out("loadProperties: getTableModel() on " + tufts.Util.tag(rsrcProps));
+           
            TableModel model = rsrcProps.getTableModel();
 
            if (DEBUG.RESOURCE) out("metaDataPane; loadProperties: model=" + model
@@ -315,7 +331,7 @@ public class MetaDataPane extends JPanel
    }
 
    private void out(Object o) {
-       System.out.println("Inspector: " + (o==null?"null":o.toString()));
+        VUE.Log.debug("MetaDataPane: " + (o==null?"null":o.toString()));
    }
    
    //----------------------------------------------------------------------------------------
