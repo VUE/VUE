@@ -34,7 +34,7 @@ import javax.swing.*;
  * TODO: merge common code with PreviewPane, and perhaps put in a 3rd class
  * so can have multiple icons referencing the same underlying image.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-07-27 22:28:53 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2006-08-07 05:36:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -78,8 +78,7 @@ public class ResourceIcon
         //loadResource(r);
         mResource = r;
         mPainter = painter;
-        if (DEBUG.IMAGE) out("Constructed " + width + "x" + height + " " + r
-                             + " painter=" + GUI.name(painter) + "@" + Integer.toHexString((painter.hashCode())));
+        if (DEBUG.IMAGE) out("Constructed " + width + "x" + height + " " + r + " painter=" + GUI.namex(painter));
     }
         
     /** Act like a regular Icon */
@@ -126,7 +125,11 @@ public class ResourceIcon
     public Resource getResource() {
         return mResource;
     }
-    
+
+    /** If the image for the icon has been loaded, this will return it, otherwise, null. */
+    public Image getImage() {
+        return mImage;
+    }
 
     synchronized void loadResource(Resource r) {
 
