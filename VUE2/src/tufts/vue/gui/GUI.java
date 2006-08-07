@@ -47,7 +47,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.51 $ / $Date: 2006-07-28 00:09:02 $ / $Author: mike $
+ * @version $Revision: 1.52 $ / $Date: 2006-08-07 05:27:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1095,8 +1095,16 @@ public class GUI
 
     
 
-    /** @return a short name for given object, being smart about it if it's a java.awt.Component */
     public static String name(Object c) {
+        return name(c, false);
+    }
+    
+    public static String namex(Object c) {
+        return name(c, true);
+    }
+    
+    /** @return a short name for given object, being smart about it if it's a java.awt.Component */
+    public static String name(Object c, boolean unique) {
 
         if (c == null)
             return "null";
@@ -1138,7 +1146,7 @@ public class GUI
         
 
         name = baseObjectName(c);
-        if (title == null || title.startsWith("###"))
+        if (unique || title == null || title.startsWith("###"))
             name += "@" + Integer.toHexString(c.hashCode());
         if (title != null)
             name += "(" + title + ")";
