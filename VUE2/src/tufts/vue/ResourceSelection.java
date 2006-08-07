@@ -19,17 +19,22 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.GUI;
+
 /**
  * The currently selected resource.  Currently only supports a single selected
  * resource at a time.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-07-27 22:25:43 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2006-08-07 05:31:22 $ / $Author: sfraize $
  */
 public class ResourceSelection
 {
     private Resource selected = null;
     
     private java.util.List listeners = new java.util.ArrayList();
+
+    private int notifyCount = 0;
+    private boolean inNotify = false;
 
     public interface Listener extends java.util.EventListener {
         void resourceSelectionChanged(ResourceSelection.Event e);
@@ -43,61 +48,95 @@ public class ResourceSelection
         }
     }
 
-    public void addListener(Listener l)
+    public synchronized void addListener(Listener l)
     {
+        if (DEBUG.SELECTION) out("adding listener: " + GUI.namex(l));
         listeners.add(l);
     }
-    public void removeListener(Listener l)
+    public synchronized void removeListener(Listener l)
     {
+        if (DEBUG.SELECTION) out("removing listener: " + GUI.namex(l));
         listeners.remove(l);
     }
 
-    private void notifyListeners(Object source)
+    private synchronized void notifyListeners(Object source)
+    {
+        if (inNotify)
+            tufts.Util.printStackTrace("looped resource notification from " + GUI.namex(source));
+        inNotify = true;
+        try {
+            notifyCount++;
+            notifyListenersImpl(source);
+        } finally {
+            inNotify = false;
+        }
+    }
+    
+    private synchronized void notifyListenersImpl(Object source)
     {
         java.util.Iterator i = listeners.iterator();
         Event e = new Event(this.selected, source);
+        if (DEBUG.SELECTION) out("notification from source " + GUI.namex(source) + " of " + selected);
         while (i.hasNext()) {
             Listener l = (Listener) i.next();
-            if (DEBUG.SELECTION) System.out.println("ResourceSelection notifying: " + l);
+            if (l == source) {
+                if (DEBUG.SELECTION) out("skipping source: " + GUI.namex(l));
+                continue;
+            }
+            if (DEBUG.SELECTION) out("notifying: " + GUI.namex(l));
             l.resourceSelectionChanged(e);
         }
+        if (DEBUG.SELECTION) out("notifications complete from source " + GUI.namex(source) + " of " + selected);
+        
     }
        
-    public Resource get() {
+    public synchronized Resource get() {
         return selected;
     }
     
-    public void setTo(Resource r) {
+    /*
+    public synchronized void setTo(Resource r) {
         setTo(r, null);
     }
+    */
     
-    public void setTo(Resource r, Object src) {
+    public synchronized void setTo(Resource r, Object src) {
         if (selected != r) {
-            if (DEBUG.SELECTION) System.out.println("ResourceSelection: set to " + r.getClass() + " " + r);
+            if (DEBUG.SELECTION) out("set to " + tufts.Util.tag(r) + " " + r);
             selected = r;
             notifyListeners(src);
         }
     }
     
-    public void clearAndNotify() {
+    public synchronized void clearAndNotify() {
     	clear0();
     	notifyListeners(null);
     }
     
-    public void clear()
+    public synchronized void clear()
     {
         if (clear0())
             notifyListeners(null);
     }
 
-    private boolean clear0()
+    private synchronized boolean clear0()
     {
         if (selected == null)
             return false;
         
-        if (DEBUG.SELECTION) System.out.println("ResourceSelection: clear " + selected);
+        if (DEBUG.SELECTION) out("clear " + selected);
         selected = null;
         return true;
     }
+
+    private void out(Object o) {
+        String s = "ResourceSelection#" + notifyCount + " " + (""+System.currentTimeMillis()).substring(8);
+        s += " [" + Thread.currentThread().getName() + "]";
+        if (false)
+            VUE.Log.debug(s + " " + (o==null?"null":o.toString()));
+        else
+            System.err.println(s + " " + (o==null?"null":o.toString()));
+    }
+    
     
 }
