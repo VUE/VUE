@@ -39,7 +39,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-07-27 22:24:59 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2006-08-07 05:37:24 $ / $Author: sfraize $
  */
 public class ResourceList extends JList
     implements DragGestureListener, tufts.vue.ResourceSelection.Listener
@@ -57,7 +57,6 @@ public class ResourceList extends JList
     private static int RowHeight = IconSize + 5;
 
     private DefaultListModel mDataModel;
-    
 
     private boolean isMaskingModel = false; // are we using a masking model?
     private boolean isMasking = false; // if using a masking model, is it currently masking most entries?
@@ -157,7 +156,18 @@ public class ResourceList extends JList
 
         selectionModel.addListSelectionListener(new ListSelectionListener() {
                 public void valueChanged(ListSelectionEvent e) {
-                    if (DEBUG.RESOURCE) System.out.println(ResourceList.this + " valueChanged: " + e + " curSelectedValue=" + GUI.name(getSelectedValue()));
+                    if (DEBUG.RESOURCE || DEBUG.SELECTION) {
+                        System.out.println(ResourceList.this + " valueChanged: " + e
+                                           + " index=" + getSelectedIndex()
+                                           + " picked=" + getPicked());
+                        if (e.getValueIsAdjusting())
+                            System.out.println(ResourceList.this + " isAdjusting: ignoring");
+                    }
+
+                    if (e.getValueIsAdjusting())
+                        return;
+                    
+                    if (DEBUG.SELECTION) tufts.Util.printStackTrace("ResourceList valueChanged " + ResourceList.this);
                     if (isMaskingModel) {
                         if (isMasking && getSelectedIndex() >= PreviewItems)
                             ((MaskingModel)mDataModel).expand();
@@ -182,6 +192,8 @@ public class ResourceList extends JList
                 }
             });
 
+        setDragEnabled(false);
+
         // Set up double-click handler for displaying content
         
         addMouseListener(new tufts.vue.MouseAdapter("resourceList") {
@@ -197,9 +209,29 @@ public class ResourceList extends JList
                 }
             });
 
+        // attempt mouseDragged tracking ourselves...
+        addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {    
+                public void mouseDragged(java.awt.event.MouseEvent me) {
+                    Resource picked = getPicked();
+                    if (picked != null) {
+                        Image image = null;
+                        Object o = getSelectedValue();
+                        if (getSelectedValue() instanceof ResourceIcon)
+                            image = ((ResourceIcon)o).getImage(); // todo: more generic on Resource class
+                        // TODO: If Resource's were uniquely atomic via a Factory and real ID's,
+                        // we could maybe make the ResourceIcon simpler, and have the Resource itself
+                        // cache the thumbnail image (and we could thusly also request it here, instead of
+                        // from the ResourceIcon)
+                        GUI.startSystemDrag(ResourceList.this, me, image, new GUI.ResourceTransfer(picked));
+                    }
+                }
+            });
+        
         tufts.vue.VUE.getResourceSelection().addListener(this);
 
         // Set up the drag handler
+
+        /*
 
         DragSource dragSource = DragSource.getDefaultDragSource();
         dragSource.createDefaultDragGestureRecognizer(this, // Component
@@ -207,6 +239,12 @@ public class ResourceList extends JList
                                                       DnDConstants.ACTION_MOVE |
                                                       DnDConstants.ACTION_LINK,
                                                       this); // DragGestureListener
+        */
+    }
+
+    public void removeNotify() {
+        //tufts.Util.printStackTrace("removeNotify " + this);
+        tufts.vue.VUE.getResourceSelection().removeListener(this);
     }
 
     /** ResourceSelection.Listener */
@@ -236,7 +274,8 @@ public class ResourceList extends JList
     public void dragGestureRecognized(DragGestureEvent e)
     {
         if (getSelectedIndex() != -1) {
-            Resource r = getPicked(); 
+            Resource r = getPicked();
+            if (DEBUG.DND || DEBUG.SELECTION) System.out.println("ResourceList: startDrag: " + r);
             e.startDrag(DragSource.DefaultCopyDrop, // cursor
                         DragIcon.getImage(),
                         new Point(-10,-10), // drag image offset
@@ -248,11 +287,11 @@ public class ResourceList extends JList
     public String toString() {
         String tag;
         if (mName == null)
-            tag = "@" + Integer.toHexString(hashCode());
+            tag = "";
         else
             tag = "[" + mName + "]";
 
-        return "ResourceList" + tag + " ";
+        return "ResourceList@" + Integer.toHexString(hashCode()) + tag; 
     }
 
     private class RowRenderer extends DefaultListCellRenderer
@@ -282,10 +321,14 @@ public class ResourceList extends JList
             ResourceIcon icon;
             Resource r;
 
+            // The model starts as a list of Resources, but if asked to render
+            // we replace it with a ResourceIcon, with painter set to this JList.
+            // (We can still get the Resource later from the ResourceIcon)
+            
             if (value instanceof Resource) {
                 r = (Resource) value;
                 icon = new ResourceIcon(r, 32, 32, list);
-                mDataModel.set(index, icon); // don't want to trigger a model change tho...
+                mDataModel.set(index, icon); // ideally, wouldn't want to trigger a model change tho...
             } else {
                 icon = (ResourceIcon) value;
                 r = icon.getResource();
@@ -293,16 +336,6 @@ public class ResourceList extends JList
             
             setIcon(icon);
 
-            // TODO: need to change model to contain a list of ResourceIcon's
-            // (can pull resource itself from the icon for the title),
-            // which are created when we load the model, and then
-            // can tell each ResourceIcon what it's true and real
-            // and forever repainting parent is (this JList),
-            // for repaint updates.  Yes, that means allocating all those
-            // ResourceIcons...  or hey, we could stuff it with resources,
-            // and the first TIME we display it, we create the resource icon,
-            // then stuff it back in the list? Yeah...
-            
             if (false)
                 setText("<HTML>" + r.getTitle());
             else
