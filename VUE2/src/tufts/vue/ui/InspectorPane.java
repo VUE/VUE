@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.27 $ / $Date: 2006-07-28 00:07:21 $ / $Author: mike $
+ * @version $Revision: 1.28 $ / $Date: 2006-08-07 05:33:39 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -637,7 +637,7 @@ public class InspectorPane extends JPanel
             displayTestPane(rsrc);
         } else {
             InspectorPane ip = new InspectorPane();
-            VUE.getResourceSelection().setTo(r);
+            VUE.getResourceSelection().setTo(r, "main::test");
             Widget.setExpanded(ip.mResourceMetaData, true);
             GUI.createDockWindow("Test Properties", ip).setVisible(true);
         }
