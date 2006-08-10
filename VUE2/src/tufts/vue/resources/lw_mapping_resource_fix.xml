@@ -303,7 +303,7 @@
          </class>
 
         
-	<class name="tufts.vue.MapResource">
+	<class name="tufts.vue.URLResource">
 		
 		<field name="referenceCreated" type="long">
 			<bind-xml name="referenceCreated" node="attribute"/>
@@ -344,8 +344,9 @@
 		</field>
 	</class>
        
-        <class name="tufts.vue.URLResource" extends="tufts.vue.MapResource">
+        <class name="tufts.vue.MapResource" extends="tufts.vue.URLResource">
 	</class>
+        
         <class name="tufts.vue.CabinetResource" extends="tufts.vue.MapResource">
             <map-to xml="cabinetResource"/>
             <field name="extension" type="string">
