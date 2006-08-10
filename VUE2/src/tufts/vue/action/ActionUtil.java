@@ -52,7 +52,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.44 $ / $Date: 2006-08-10 21:33:03 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2006-08-10 21:41:02 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -517,7 +517,7 @@ public class ActionUtil {
                 int x = s.indexOf(')');
                 if (x > 0) {
                     versionID = s.substring(9,x);
-                    if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Found version ID[" + versionID + "]");
+                    if (DEBUG.CASTOR || DEBUG.IO) VUE.Log.debug(url + "; Found mapping version ID[" + versionID + "]");
                     if (versionID.equals(XML_MAPPING_CURRENT_VERSION_ID)) {
                         mapping = getDefaultMapping();
                     } else {
@@ -542,6 +542,8 @@ public class ActionUtil {
             if (DEBUG.IO) System.out.println("XML head [" + firstNonCommentLine + "]");
             
             if (firstNonCommentLine.indexOf("encoding=\"UTF-8\"") > 0) {
+
+                boolean localEncoding = false;
                 
                 // If encoding is UTF-8, this a 2nd generation save file (mapping is
                 // versioned, but not all US-ASCII encoding): the actual encoding is
@@ -553,21 +555,27 @@ public class ActionUtil {
                 // assume a default encoding for that platform.
                 
                 if (Util.isWindowsPlatform()) {
-                    if (savedOnWindowsPlatform)
-                        guessedEncoding = Util.getDefaultPlatformEncoding();
-                    else if (savedOnMacPlatform)
+                    if (savedOnWindowsPlatform) {
+                        localEncoding = true;
+                    } else if (savedOnMacPlatform)
                         guessedEncoding = DEFAULT_MAC_ENCODING;
                     else
                         guessedEncoding = DEFAULT_WINDOWS_ENCODING;
                 } else if (Util.isMacPlatform()) {
                     if (savedOnMacPlatform)
-                        guessedEncoding = Util.getDefaultPlatformEncoding();
+                        localEncoding = true;
                     else if (savedOnWindowsPlatform)
                         guessedEncoding = DEFAULT_WINDOWS_ENCODING;
                     else
                         guessedEncoding = DEFAULT_MAC_ENCODING;
                 }
-                VUE.Log.info(url + "; assuming " + guessedEncoding + " charset encoding");
+                
+                if (localEncoding)
+                    guessedEncoding = Util.getDefaultPlatformEncoding();
+                    
+                VUE.Log.info(url + "; assuming "
+                             + (localEncoding ? "LOCAL " : "PLATFORM DEFAULT ")
+                             + "\'" + guessedEncoding + "\' charset encoding");
                 // Note: doing this is a real tradeoff amongst bugs: any old save file that had
                 // fancy unicode characters in UTF, such as something in a japanese charset, will
                 // be screwed by this, so we optimizing for what we think is the most likely case.
