@@ -52,7 +52,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.45 $ / $Date: 2006-08-10 21:41:02 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2006-08-10 21:43:33 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -576,10 +576,15 @@ public class ActionUtil {
                 VUE.Log.info(url + "; assuming "
                              + (localEncoding ? "LOCAL " : "PLATFORM DEFAULT ")
                              + "\'" + guessedEncoding + "\' charset encoding");
-                // Note: doing this is a real tradeoff amongst bugs: any old save file that had
-                // fancy unicode characters in UTF, such as something in a japanese charset, will
-                // be screwed by this, so we optimizing for what we think is the most likely case.
-                // if this becomes a real problem, we could introduce a special convert dialog.
+
+                // Note: doing this is a real tradeoff amongst bugs: any old save file
+                // that had fancy unicode characters in UTF, such as something in a
+                // japanese charset, will be screwed by this, so we optimizing for what
+                // we think is the most likely case.  if this becomes a real problem, we
+                // could introduce a special convert dialog.  Also, pre US-ASCII save
+                // files could have different strings in them saved in many DIFFERENT
+                // charsets (e.g., japanese, UTF, etc), and it's complete luck as to
+                // when that charset would be properly handled.
                 
             }
         } else {
