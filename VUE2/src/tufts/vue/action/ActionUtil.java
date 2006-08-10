@@ -52,7 +52,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.46 $ / $Date: 2006-08-10 21:43:33 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2006-08-10 21:43:53 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -584,7 +584,7 @@ public class ActionUtil {
                 // could introduce a special convert dialog.  Also, pre US-ASCII save
                 // files could have different strings in them saved in many DIFFERENT
                 // charsets (e.g., japanese, UTF, etc), and it's complete luck as to
-                // when that charset would be properly handled.
+                // when those charsets would each be properly handled.
                 
             }
         } else {
