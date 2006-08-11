@@ -53,6 +53,8 @@ public class Util
     private static int MacMRJVersion = -1;
 
     private static boolean DEBUG = false;
+
+    private static String PlatformEncoding;
     
     static {
 
@@ -134,6 +136,13 @@ public class Util
     public static boolean isUnixPlatform(){
         return UnixPlatform;
     }
+
+    public static String getDefaultPlatformEncoding() {
+        if (PlatformEncoding == null)
+            PlatformEncoding = (new java.io.OutputStreamWriter(new java.io.ByteArrayOutputStream())).getEncoding();
+        return PlatformEncoding;
+    }
+    
 
     /** @return true if the current Look & Feel is Mac Aqua (not always true just because you're on a mac)
      * Note: do NOT call this from any static initializers the result may be changed by application startup
@@ -1312,8 +1321,8 @@ public class Util
         }
 
         //System.err.println("ServerSocket: " + new ServerSocket(0)); // not sensitive to network availability
-        
-        if (args.length > 0 && args[0].startsWith("-")) {
+      
+       if (false && args.length > 0 && args[0].startsWith("-")) {
             String host = args[0].substring(1);
             InetAddress[] ips = InetAddress.getAllByName(host);
             System.out.println(host + " IP's: " + Arrays.asList(ips));
