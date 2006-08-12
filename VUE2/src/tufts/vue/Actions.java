@@ -494,7 +494,7 @@ public class Actions implements VueConstants
         }
     };
     public static final Action Rename =
-    new LWCAction("Rename", keyStroke(KeyEvent.VK_F2)) {
+        new LWCAction("Rename", VueUtil.isMacPlatform() ? keyStroke(KeyEvent.VK_ENTER) : keyStroke(KeyEvent.VK_F2)) {
         boolean undoable() { return false; } // label editor handles the undo
         boolean enabledFor(LWSelection s) {
             return s.size() == 1 && s.first().supportsUserLabel();
