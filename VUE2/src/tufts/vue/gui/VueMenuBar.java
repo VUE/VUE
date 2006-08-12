@@ -21,7 +21,7 @@ import javax.swing.JCheckBoxMenuItem;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-07-18 20:43:06 $ / $Author: mike $
+ * @version $Revision: 1.8 $ / $Date: 2006-08-12 20:27:41 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -367,15 +367,25 @@ public class VueMenuBar extends javax.swing.JMenuBar
                 VueAction a = (VueAction) i.next();
                 KeyStroke k = (KeyStroke) a.getValue(Action.ACCELERATOR_KEY);
                 if (k != null) {
-                    String keyName = " "
-                        + KeyEvent.getKeyModifiersText(k.getModifiers())
-                        + " "
-                        + KeyEvent.getKeyText(k.getKeyCode());
-                    if (keyName.length() < 15)
-                        keyName += ": \t\t";
+                    String keyModifiers = KeyEvent.getKeyModifiersText(k.getModifiers());
+                    if (keyModifiers.length() > 0)
+                        keyModifiers += " ";
+
+                    String keyName = KeyEvent.getKeyText(k.getKeyCode());
+                    if (k.getKeyCode() == KeyEvent.VK_OPEN_BRACKET)
+                        keyName = "[";
+                    else if (k.getKeyCode() == KeyEvent.VK_CLOSE_BRACKET)
+                        keyName = "]";
                     else
-                        keyName += ": \t";
-                    text += keyName + a.getPermanentActionName();
+                        keyName = KeyEvent.getKeyText(k.getKeyCode());
+                    
+                    String strokeName = keyModifiers + keyName;
+
+                    if (strokeName.length() < 13)
+                        strokeName += ": \t\t";
+                    else
+                        strokeName += ": \t";
+                    text += " " + strokeName + a.getPermanentActionName();
                     text += "\n";
                 }
             }
