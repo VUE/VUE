@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.120 $ / $Date: 2006-08-04 19:35:47 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.120 2006-08-04 19:35:47 jeff Exp $ -->
+<!-- $Revision: 1.121 $ / $Date: 2006-08-14 16:29:25 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.121 2006-08-14 16:29:25 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -55,6 +55,7 @@
   <property name="test.home"   value="${top.dir}/test" />
   <property name="test.lib"   value="${test.home}/lib" />
   <property name="junit.jar"   value="${test.lib}/junit.jar" />
+  <property name="target.version" value="1.4"/>
 
   <!-- NarraVision.jar is just a copy of VUE.jar.  On the PC, It detects via
        the classpath if it's called anything with "NarraVision" in the
@@ -471,6 +472,8 @@
            optimize="${compile.optimize}"
            listfiles="yes"
            classpath="${lib.home}/VUE-MacOSX.jar"
+           source="${target.version}"
+           target="${target.version}"
            >
       <!--classpath refid="compile.cfedoraasspath.vue"/-->
       <include name="tufts/*.java"/>
@@ -486,6 +489,8 @@
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}"
            listfiles="yes"
+           source="${target.version}"
+           target="${target.version}"
            >
       <classpath refid="compile.classpath.oki1and2"/>
       <include name="tufts/vue/OsidAsset*.java"/>
@@ -498,7 +503,10 @@
            destdir="${build.class}"
               debug="${compile.debug}"
         deprecation="${compile.deprecation}"
-           optimize="${compile.optimize}">
+           optimize="${compile.optimize}"
+           source="${target.version}"
+           target="${target.version}"
+           >
       <classpath refid="compile.classpath.google"/>
       <include name="tufts/google/*.java"/>
       <exclude name="**/tmp/**"/>
@@ -512,6 +520,8 @@
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}"
            listfiles="yes"
+           source="${target.version}"
+           target="${target.version}"
            >
       <classpath refid="compile.classpath.oki"/>
       <include name="tufts/oki/**/*.java"/>
@@ -523,6 +533,8 @@
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}"
            listfiles="yes"
+           source="${target.version}"
+           target="${target.version}"
            >
       <classpath refid="compile.classpath.oki2"/>
       <include name="tufts/oki/repository/fedora/*.java"/>
@@ -538,6 +550,8 @@
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}"
            listfiles="yes"
+           source="${target.version}"
+           target="${target.version}"
            >
       <classpath refid="compile.classpath.vue"/>
       <include name="tufts/artifact/*.java"/>
@@ -556,6 +570,8 @@
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}"
            listfiles="yes"
+           source="${target.version}"
+           target="${target.version}"
            >
       <classpath refid="compile.classpath.vue"/>
       <include name="edu/**/*.java"/>
@@ -801,6 +817,8 @@
            optimize="${compile.optimize}"
            listfiles="yes"
            classpath="/System/Library/Java"
+           source="${target.version}"
+           target="${target.version}"
            >
       <include name="maclib/**/*.java"/>
     </javac>
