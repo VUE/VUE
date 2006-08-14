@@ -102,7 +102,7 @@ implements org.osid.repository.RepositoryManager
 		Object key = configuration.getProperty("GoogleGlobalLicenseKey");
 		if ((key != null) && (key instanceof String)) {
 			((Repository)this.repository).setGoogleKey((String)key);
-			Utilities.log("Google key set to " + key);
+			//Utilities.log("Google key set to " + key);
 		}		
 	}
 
