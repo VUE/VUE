@@ -38,7 +38,7 @@ import com.sun.tools.xjc.generator.unmarshaller.automaton.Alphabet.SuperClass;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.29 $ / $Date: 2006-07-28 20:55:31 $ / $Author: mike $
+ * @version $Revision: 1.30 $ / $Date: 2006-08-15 15:11:48 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -346,7 +346,7 @@ public class WidgetStack extends Widget
                                         16, // point-size
                                         Color.white,
                                         15, // fixed width
-                                        10); // fixed height
+                                        16); // fixed height
             //if (isMac)
                  mIcon.setBorder(new javax.swing.border.EmptyBorder(0,0,1,0)); // t,l,b,r
              

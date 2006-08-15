@@ -31,6 +31,7 @@ import java.util.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.GeneralPath;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 import java.awt.image.BufferedImage;
@@ -47,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.52 $ / $Date: 2006-08-07 05:27:50 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2006-08-15 15:11:48 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1389,7 +1390,6 @@ public class GUI
         
     }
 
-
     /**
      * A class for a providing a label of fixed size to display the given unicode character.
      * A font is selected per-platform for ensuring good results.
@@ -1402,9 +1402,10 @@ public class GUI
     public static class IconicLabel extends JLabel {
         
         private final Dimension mSize;
-        
+	private char icon;
         public IconicLabel(char iconChar, int pointSize, Color color, int width, int height) {
             super(new String(new char[] { iconChar }), JLabel.CENTER);
+	    icon = iconChar;
             if (Util.isWindowsPlatform())
                  setFont(new Font("Lucida Sans Unicode", Font.PLAIN, pointSize+4)); // this is included in default WinXP installations
               // setFont(new Font("Arial Unicode MS", Font.PLAIN, pointSize+4)); // this is not
@@ -1421,7 +1422,7 @@ public class GUI
             // crazy like get the bounding box of the character in the
             // available font, and keep scaling the point size until
             // the bounding box matches what we're looking for...
-            
+	    
             mSize = new Dimension(width, height);
             setPreferredSize(mSize);
             setMaximumSize(mSize);
@@ -1443,19 +1444,46 @@ public class GUI
         */
         
         public void paintComponent(Graphics g) {
+        	System.out.println("SIZE: " + this.getSize().toString());
             // for debug: fill box with color so can see size
             if (DEBUG.BOXES) {
                 g.setColor(Color.red);
                 g.fillRect(0, 0, 99, 99);
             }
-
             if (!Util.isMacPlatform())
                 ((java.awt.Graphics2D)g).setRenderingHint
                     (java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
                      java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            
-            super.paintComponent(g);
-        }
+           
+           /**
+            * On Linux, I couldn't find a single font in font.propeties that had the glyph
+            * for the arrows so am drawing them instead, and just not using the characters at all.
+            */
+           if ((!Util.isMacPlatform() && (!Util.isWindowsPlatform())))
+           {
+        	   Graphics2D g2d = (Graphics2D)g;
+               g2d.setColor(this.getForeground());
+               g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+        	   Shape shape = makeTriangle();
+        	   if (this.getText() == "\u25B8")		   
+        		   g2d.rotate(Math.PI+Math.PI/2,this.getWidth()/2.0,this.getHeight()/2.0);
+        	   g2d.fill(shape);
+           }
+           else
+           {
+        	   super.paintComponent(g);
+           }
+    }
+
+	private Shape makeTriangle() {
+	   GeneralPath p = new GeneralPath();
+           p.moveTo( 5f, 5f );
+           p.lineTo( 11f, 5f );
+           p.lineTo( 7.5f, 11f );
+           p.closePath();
+									                  return p;
+											 }        
+	  	 
         
         public void setBounds(int x, int y, int width, int height) {
             super.setBounds(x, y, mSize.width, mSize.height);
