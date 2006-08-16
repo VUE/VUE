@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.53 $ / $Date: 2006-08-15 15:11:48 $ / $Author: mike $
+ * @version $Revision: 1.54 $ / $Date: 2006-08-16 15:02:51 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1444,7 +1444,7 @@ public class GUI
         */
         
         public void paintComponent(Graphics g) {
-        	System.out.println("SIZE: " + this.getSize().toString());
+        	
             // for debug: fill box with color so can see size
             if (DEBUG.BOXES) {
                 g.setColor(Color.red);
