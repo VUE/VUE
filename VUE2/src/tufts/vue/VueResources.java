@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.43 $ / $Date: 2006-08-15 15:11:48 $ / $Author: mike $
+ * @version $Revision: 1.44 $ / $Date: 2006-08-23 17:29:31 $ / $Author: sfraize $
  *
  */
 public class VueResources
@@ -525,6 +525,10 @@ public class VueResources
 	return value;
     }
 
+    /** see getFont(key, defaultFont) */
+    static public Font getFont(String key) {
+        return getFont(key, VueConstants.FONT_MEDIUM);
+    }
 
     /**
      * This method gets a Font based on the Font string in the
@@ -534,14 +538,15 @@ public class VueResources
      *  myFont=Arial-BOLD-12
      *
      * @param key the string lookupkey in the properties file
+     * @param defaultFont -- font to use if none found for given key
      * @return Font the Font, or null if missing or malformed
      **/
-    static public Font getFont(String key) {
+    static public Font getFont(String key, Font defaultFont) {
         if (Cache.containsKey(key))
             return (Font) Cache.get(key);            
 		
         String spec = getString(key);
-        Font font = null;
+        Font font = defaultFont;
         
         if (spec != null) {
             try {
@@ -569,7 +574,7 @@ public class VueResources
                 alert("Missing or malformed font with key: " + key + " " + t);
             }
         }
-        
+
         Cache.put(key, font);
         return font;
     }
