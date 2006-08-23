@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.54 $ / $Date: 2006-08-16 15:02:51 $ / $Author: mike $
+ * @version $Revision: 1.55 $ / $Date: 2006-08-23 17:34:35 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -213,6 +213,10 @@ public class GUI
         // being used and would have no effect), but we still need to initialize the
         // theme, as it's still queried througout some of the older code.
         
+
+        if (false)
+            installUIDefaults();
+
         if (isMacAqua) {
 
             if (!SKIP_CUSTOM_LAF)
@@ -240,6 +244,7 @@ public class GUI
                     installMetalTheme();
             }
         }
+
 
         javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(false);
         
@@ -276,6 +281,37 @@ public class GUI
 
         initUnderway = false;
     }
+
+    private static void installUIDefaults()
+    {
+        // an experiment in overriding ScrollPane control keys
+        
+        if (DEBUG.Enabled) UIManager.put("ScrollBar.width", new Integer(64)); // just to know we've taken effect
+
+        // We override scroll-pane input map to turn off arrow keys, so
+        // the can be used for VUE actions (e.g., Nudge)
+        UIManager.put("ScrollPane.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+                       /*
+                           "RIGHT", "unitScrollRight",
+		        "KP_RIGHT", "unitScrollRight",
+                            "DOWN", "unitScrollDown",
+		         "KP_DOWN", "unitScrollDown",
+                            "LEFT", "unitScrollLeft",
+		         "KP_LEFT", "unitScrollLeft",
+                              "UP", "unitScrollUp",
+		           "KP_UP", "unitScrollUp",
+                       */
+		         "PAGE_UP", "scrollUp",
+		       "PAGE_DOWN", "scrollDown",
+		    "ctrl PAGE_UP", "scrollLeft",
+		  "ctrl PAGE_DOWN", "scrollRight",
+                            "HOME", "scrollHome",
+                             "END", "scrollEnd"
+                   }));
+    }
+
+    
 
     private static void installMetalTheme() {
         
@@ -407,6 +443,13 @@ public class GUI
     }
     
     public static double stringWidth(Font font, String s) {
+        if (font == null) {
+            String msg = "GUI.stringWidth: null font";
+            if (DEBUG.Enabled)
+                tufts.Util.printStackTrace(msg);
+            else
+                VUE.Log.error(msg);
+        }
         return font.getStringBounds(s, GUI.DefaultFontContext).getWidth();
     }
     
@@ -1156,6 +1199,9 @@ public class GUI
         String text = null;
         if (c instanceof javax.swing.text.JTextComponent) {
             text = ((javax.swing.text.JTextComponent)c).getText();
+            int ni = text.indexOf('\n');
+            if (ni > 1 && !DEBUG.META)
+                text = text.substring(0,ni) + "...";
         }
         
         if (text != null)
@@ -1308,6 +1354,11 @@ public class GUI
     }
 
     public static JMenu buildMenu(JMenu menu, Action[] actions) {
+        addToMenu(menu, actions);
+        return menu;
+    }
+
+    public static void addToMenu(JPopupMenu menu, Action[] actions) {
         for (int i = 0; i < actions.length; i++) {
             Action a = actions[i];
             if (a == null)
@@ -1316,8 +1367,18 @@ public class GUI
                 menu.add(a);
         }
         adjustMenuIcons(menu);
-        return menu;
     }
+    public static void addToMenu(JMenu menu, Action[] actions) {
+        for (int i = 0; i < actions.length; i++) {
+            Action a = actions[i];
+            if (a == null)
+                menu.addSeparator();
+            else
+                menu.add(a);
+        }
+        adjustMenuIcons(menu);
+    }
+    
 
     public static JMenu buildMenu(String name, Action[] actions) {
         return buildMenu(new JMenu(name), actions);
