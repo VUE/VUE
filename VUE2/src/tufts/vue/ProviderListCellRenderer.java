@@ -22,6 +22,8 @@ import tufts.vue.gui.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Vector;
+
 import javax.swing.*;
 import javax.swing.border.*;
 
@@ -50,7 +52,7 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
     private Border EmptyDividerBorder = new EmptyBorder(1,0,0,0);
 
     private Color AlternateRowColor = VueResources.getColor("gui.dataSourceList.alternateRowColor", 237,243,253);
-    private boolean[] checklist = new boolean[50];
+    private Vector checklist = new Vector(50);
     private int waitingMode = -1;
     
     public ProviderListCellRenderer()
@@ -94,10 +96,11 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
         
     }
+        
     
     public void setChecked(int index)
     {
-    	checklist[index] = true;
+    	checklist.set(index,new Boolean(true));    	
     }
     public Component getListCellRendererComponent(JList list,
                                                   Object value,
@@ -130,12 +133,15 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
         	mRow.add(blankArea,1);
         }
         
-        if (checklist[index] && mRow.getComponent(1) != waitLabel)
+        if (checklist.size() == 0 || checklist.size() <= index)
+        	checklist.add(index,new Boolean(false));
+        
+        if (((Boolean)checklist.get(index)).booleanValue() && mRow.getComponent(1) != waitLabel)
         {
         	mRow.remove(1);         	
          	mRow.add(checkedLabel,1);
         }
-        if (!checklist[index] && mRow.getComponent(1) != waitLabel)
+        if (!((Boolean)checklist.get(index)).booleanValue() && mRow.getComponent(1) != waitLabel)
         {
         	mRow.remove(1);         	
          	mRow.add(blankArea,1);
@@ -234,8 +240,8 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
     
     public void clearAllChecked()
     {
-    	for (int i =0; i < checklist.length; i++)
-    		checklist[i] = false;
+    	for (int i =0; i < checklist.size(); i++)
+    		checklist.set(i,new Boolean(false));
     }
     
 }
