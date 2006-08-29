@@ -129,6 +129,17 @@ public class SaveAction extends VueAction
             else if (name.endsWith(".imap"))
                 new ImageMap().createImageMap(file);
             
+			// save as IMS RLI
+			java.util.List descendents = map.getAllDescendents();
+			for (int i=0; i < descendents.size(); i++) {
+				LWComponent lwc = (LWComponent)descendents.get(i);
+				Resource r = lwc.getResource();
+				if (r != null) {
+					System.out.println("Saving a spec " + r.getSpec());
+					System.out.println("Saving a name " + r.getTitle());
+				}
+			}
+			
             // don't know this as not all the above stuff is passing
             // exceptions on to us!
             System.out.println("Save code completed for " + file);

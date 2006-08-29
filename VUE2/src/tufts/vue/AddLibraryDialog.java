@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.48 $ / $Date: 2006-07-31 20:37:25 $ / $Author: mike $
+ * @version $Revision: 1.49 $ / $Date: 2006-08-29 23:47:38 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -235,11 +235,12 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             listModel.removeAllElements();
 			System.out.println("In Add Library Dialog, asking Provider for list of Providers");
             org.osid.provider.ProviderIterator providerIterator = factory.getProviders();
+			int x = 0;
             while (providerIterator.hasNextProvider()) {
                 org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
                 // place all providers on list, whether installed or not, whether duplicates or not
-                listModel.addElement(nextProvider);
-                checkedVector.addElement(nextProvider);
+				listModel.addElement(nextProvider);
+				checkedVector.addElement(nextProvider);
             }
             // copy to an array
             int size = listModel.size();
@@ -374,7 +375,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     if (proceed) {
                         // add to data sources list
                         try {
-                            //System.out.println("creating data source");
+                            System.out.println("creating data source");
                             ds = new edu.tufts.vue.dsm.impl.VueDataSource(factory.getIdManagerInstance().createId(),
                                     provider.getId(),
                                     true);
@@ -382,7 +383,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             VueUtil.alert(this,"Loading Manager Failed","Error");
                             return;
                         }
-                        //System.out.println("created data source");
+                        System.out.println("created data source");
                         
                         // show configuration, if needed
                         if (ds.hasConfiguration()) {
@@ -390,7 +391,9 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                         } else {
                             //System.out.println("No configuration to show");
                         }
+						
                         this.newDataSource = ds;
+						System.out.println("new data source is " + this.newDataSource);
                     }
                 } catch (Throwable t) {
                     //System.out.println("configuration setup failed");
@@ -444,11 +447,13 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     } else {
                         try {
                             GUI.activateWaitCursor();
+							//System.out.println("setting config " + cui.getProperties());
                             this.newDataSource.setConfiguration(cui.getProperties());
                             GUI.invokeAfterAWT(new Runnable() { public void run() {
                                 try {
                                     synchronized (dataSourceManager) {
                                         dataSourceManager.save();
+										System.out.println("saved");
                                     }
                                 } catch (Throwable t) {
                                     System.out.println(t.getMessage());
