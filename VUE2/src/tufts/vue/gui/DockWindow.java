@@ -55,7 +55,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.82 $ / $Date: 2006-07-31 20:07:23 $ / $Author: mike $
+ * @version $Revision: 1.83 $ / $Date: 2006-08-30 19:37:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -95,7 +95,7 @@ public class DockWindow extends javax.swing.JWindow
     
     private final static int TitleHeight = VueResources.getInt("gui.dockWindow.title.height", 19);
     private final static int ResizeCornerSize = VueResources.getInt("gui.dockWindow.resizeCorner.size", 12);
-    private final static Font TitleFont = VueResources.getFont("gui.dockWindow.title.font");
+    private final static Font TitleFont = VueResources.getFont("gui.dockWindow.title.font", tufts.vue.VueConstants.FONT_MEDIUM);
     private final static int MacAquaMetalMinHeight = 37; // Mac Aqua Brushed Metal window size bug
     
     private final ContentPane mContentPane;
@@ -365,7 +365,8 @@ public class DockWindow extends javax.swing.JWindow
         } else {
             newTitle = mBaseTitle + " [" + suffix + "]";
         }
-        if (DEBUG.Enabled) System.out.println("setAuxTitle(" + newTitle + ")");
+        setTitle(newTitle);
+        //if (DEBUG.Enabled) System.out.println("setAuxTitle(" + newTitle + ")");
     }
 
 
