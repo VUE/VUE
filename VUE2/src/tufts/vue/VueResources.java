@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.44 $ / $Date: 2006-08-23 17:29:31 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2006-08-30 19:34:17 $ / $Author: sfraize $
  *
  */
 public class VueResources
@@ -527,7 +527,7 @@ public class VueResources
 
     /** see getFont(key, defaultFont) */
     static public Font getFont(String key) {
-        return getFont(key, VueConstants.FONT_MEDIUM);
+        return getFont(key, null);
     }
 
     /**
