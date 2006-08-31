@@ -73,7 +73,7 @@ implements org.osid.repository.AssetIterator
 		try {
 			hitList = artifactResult.getHitList();
 		} catch (Exception ex) {
-			throw new org.osid.repository.RepositoryException(org.osid.OsidException.PERMISSION_DENIED);
+                       throw new org.osid.repository.RepositoryException(org.osid.OsidException.PERMISSION_DENIED);
 		}
 		try {
 			if (hitList == null) {
@@ -117,7 +117,7 @@ implements org.osid.repository.AssetIterator
 			Unmarshaller unmarshaller = getUnmarshaller();
 			unmarshaller.setValidation(false);
 			URL url = new URL(query);
-			InputStream stream = url.openStream();
+                        InputStream stream = url.openStream();
 			ArtifactResult artifactResult = (ArtifactResult) unmarshaller.unmarshal(new InputSource(stream));
 			return artifactResult;			
 		} catch (Exception ex) {
@@ -135,8 +135,7 @@ implements org.osid.repository.AssetIterator
 				
 				// use Provider to find the mapping file
 				String url = Utilities.getResourcePath(CASTOR_MAPPING);
-				
-				mapping.loadMapping(new URL("file://" + url));
+				mapping.loadMapping(new URL("file:///" + url));
 				unmarshaller.setMapping(mapping);
 			}
 			return unmarshaller;
