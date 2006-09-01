@@ -114,7 +114,8 @@
    <target name="favorites" depends="favorites.jar">
         <copy file="${build.osid}/${favorites.jar}" todir="${osid.home}\favorites\"/>
     </target>
-    
+      <!--END Favorits related tasks-->
+ <!--Artifact related tasks --> 
     <target name="artifact.compile" >
         <javac srcdir="${src}"
             destdir="${build.class}"
@@ -126,5 +127,26 @@
             <include name="edu/tufts/osidimpl/repository/artifact/*.java"/>
         </javac>
     </target>
-  <!--END Favorits related tasks-->
+    <target name="artifact.jar" depends="artifact.compile" >
+      <mkdir dir="${build.osid}"/>
+     <jar zipfile="${build.osid}/TuftsArtifact-1.0.jar" update="true" compress="false" index="true">
+      <fileset dir="${build.class}" includes="edu/tufts/osidimpl/repository/artifact/**"/>
+    </jar>
+   </target>
+   <target name="artifact.zip" depends="artifact.jar" >
+       <zip destfile="${build.osid}/Archive.zip">
+           <fileset dir="${build.osid}" includes="TuftsArtifact-1.0.jar" />
+           <fileset dir="${src}/edu/tufts/osidimpl/repository/artifact/" includes="artifact_icon16x16.gif" />
+           <fileset dir="${src}/edu/tufts/osidimpl/repository/artifact/" includes="artifact.xml" />
+           <fileset dir="${lib.home}" includes="commons-discovery.jar"/>
+           <fileset dir="${lib.home}" includes="commons-logging.jar"/>
+           <fileset dir="${lib.home}" includes="dom2.jar"/>
+           <fileset dir="${lib.home}" includes="jaxrpc.jar"/>
+           <fileset dir="${lib.home}" includes="OSIDIdNoPersist-1.0.jar.jar"/>
+           <fileset dir="${lib.home}" includes="OSIDLoggingPlain-1.0.jar"/>
+            <fileset dir="${lib.home}" includes="saaj.jar"/>
+       </zip>
+   </target>
+<!-- END Artifact related tasks-->
+
 </project>
