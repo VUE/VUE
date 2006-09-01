@@ -142,7 +142,7 @@
            <fileset dir="${lib.home}" includes="commons-logging.jar"/>
            <fileset dir="${lib.home}" includes="dom2.jar"/>
            <fileset dir="${lib.home}" includes="jaxrpc.jar"/>
-           <fileset dir="${lib.home}" includes="OSIDIdNoPersist-1.0.jar.jar"/>
+           <fileset dir="${lib.home}" includes="OSIDIdNoPersist-1.0.jar"/>
            <fileset dir="${lib.home}" includes="OSIDLoggingPlain-1.0.jar"/>
             <fileset dir="${lib.home}" includes="saaj.jar"/>
        </zip>
