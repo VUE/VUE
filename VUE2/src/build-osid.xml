@@ -35,6 +35,8 @@
     <pathelement path="${lib.home}/okiOSID-2.0a.jar" />	
     <pathelement path="${lib.home}/okiSID.jar" />	
     <pathelement path="${lib.home}/okiSIDImpl.jar" />	
+    <pathelement path="${lib.home}/OsidProvider.jar" />
+    <pathelement path="${lib.home}/MIT-OTS.jar" />
     <pathelement path="${lib.home}/MITSearchTypes.jar" />
     <pathelement path="${lib.home}/MITRepositoryTypes.jar" />
   </path>
@@ -111,6 +113,18 @@
    </target>
    <target name="favorites" depends="favorites.jar">
         <copy file="${build.osid}/${favorites.jar}" todir="${osid.home}\favorites\"/>
+    </target>
+    
+    <target name="artifact.compile" >
+        <javac srcdir="${src}"
+            destdir="${build.class}"
+            debug="${compile.debug}"
+            deprecation="${compile.deprecation}"
+            optimize="${compile.optimize}"
+            listfiles="true">
+            <classpath refid="compile.classpath.common"/>
+            <include name="edu/tufts/osidimpl/repository/artifact/*.java"/>
+        </javac>
     </target>
   <!--END Favorits related tasks-->
 </project>
