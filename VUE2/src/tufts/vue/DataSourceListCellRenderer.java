@@ -44,7 +44,9 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
     private JLabel mIconLabel = new DefaultListCellRenderer();
     private CheckBoxRenderer mCheckBox = new CheckBoxRenderer();
 
-    private Border DividerBorder = new MatteBorder(1,0,0,0, Color.gray);
+    
+    private Border DividerBorder = new DashBorder(Color.LIGHT_GRAY,false,true,false,false);
+    
     private Border EmptyDividerBorder = new EmptyBorder(1,0,0,0);
 
     private Color AlternateRowColor = VueResources.getColor("gui.dataSourceList.alternateRowColor", 237,243,253);
