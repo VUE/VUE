@@ -68,6 +68,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         if (!fileOpen){
             System.out.println("Creating new favorites");
             MapResource favResource = new MapResource(displayName);
+            favResource.setType(FAVORITES);
             favoritesTree = new VueDandDTree(new FavoritesNode(favResource));
             favoritesTree.setRootVisible(false);
         }
@@ -265,6 +266,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         JScrollPane jsp = new JScrollPane();
         String searchString = keywords.getText();
         VueDragTree serResultTree = new VueDragTree("Search", "No Hits");
+        
         if (!searchString.equals("")){
             boolean foundit = false;
             // VueDragTree serResultTree = new VueDragTree("Search", "Search Results");
