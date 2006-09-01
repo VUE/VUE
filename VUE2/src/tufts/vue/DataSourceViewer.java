@@ -525,6 +525,7 @@ public class DataSourceViewer extends JPanel
                 SaveDataSourceViewer rViewer = unMarshallMap(f);
                 Vector rsources = rViewer.getSaveDataSources();
                 while (!(rsources.isEmpty())){
+                	
                     DataSource ds = (DataSource)rsources.remove(0);
                     ds.setResourceViewer();
                     try {
@@ -621,18 +622,38 @@ public class DataSourceViewer extends JPanel
     private static JLabel SearchingLabel;
     private static final boolean UseSingleScrollPane = true;
     
-    private static class StatusLabel extends JLabel {
+    private static class StatusLabel extends JPanel {
+    	private JLabel label = null;
+    	
         StatusLabel(String s, boolean center) {
-            super(s, center ? CENTER : LEFT);
+            super();
+            
             if (center)
+            {
+            	setLayout(new FlowLayout(FlowLayout.CENTER));
                 setBorder(new EmptyBorder(3,0,3,0));
+            }
             else
-                setBorder(new EmptyBorder(3,22,3,0));
-            setMinimumSize(new Dimension(getWidth(), WidgetStack.TitleHeight));
-            setPreferredSize(new Dimension(getWidth(), WidgetStack.TitleHeight));
+            {
+            	setLayout(new FlowLayout(FlowLayout.LEFT));
+                setBorder(new EmptyBorder(3,10,3,0));
+            }
+            
+            setBackground(VueResources.getColor("dsv.statuspanel.bgColor"));
+            JLabel waitIcon = new JLabel(VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
+            this.add(waitIcon);
+            label = new JLabel(s);
+            this.add(label);
+            
+            setMinimumSize(new Dimension(getWidth(), WidgetStack.TitleHeight+10));
+            setPreferredSize(new Dimension(getWidth(), WidgetStack.TitleHeight+10));
+        }
+        
+        public void setText(String s)    
+        {
+         label.setText(s);
         }
     }
-
     private static class Osid2AssetResourceFactory {
 
         // TODO: Resources want to be atomic, so we should cache
@@ -664,7 +685,7 @@ public class DataSourceViewer extends JPanel
         private org.osid.shared.Type mSearchType;
         private org.osid.shared.Properties mSearchProperties;
 
-        private final JLabel mStatusLabel;
+        private final StatusLabel mStatusLabel;
         private final String mRepositoryName;
 
         public SearchThread(org.osid.repository.Repository r,
@@ -686,7 +707,7 @@ public class DataSourceViewer extends JPanel
             mRepositoryName = r.getDisplayName();
 
             mResultPane = new Widget("Searching " + mRepositoryName);
-            mStatusLabel = new StatusLabel("Searching for " + mSearchString + " ...", true);
+            mStatusLabel = new StatusLabel("Searching for " + mSearchString + " ...", false);
             mResultPane.add(mStatusLabel);
 
             if (DEBUG.DR) out("created search thread for: " + mRepositoryName + " \t" + mRepository);
