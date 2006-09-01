@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.49 $ / $Date: 2006-08-29 23:47:38 $ / $Author: jeff $
+ * @version $Revision: 1.50 $ / $Date: 2006-09-01 15:18:05 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -50,8 +50,8 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     edu.tufts.vue.dsm.OsidFactory factory;
     org.osid.provider.Provider checked[];
     java.util.Vector checkedVector = new java.util.Vector();
-    JButton addButton = new JButton("Add");
-    JButton cancelButton = new JButton("Done");
+    JButton addButton = new JButton(VueResources.getString("addLibrary.ok.label"));
+    JButton cancelButton = new JButton(VueResources.getString("addLibrary.cancel.label"));
     JPanel buttonPanel = new JPanel();
     DataSourceList dataSourceList;
     DataSource oldDataSource = null;
@@ -350,6 +350,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                                 "Accept", "Decline"
                             },
                                     "Decline") != 0) {
+                            	cancelButton.requestFocus();
                                 return;
                             }
                         }
@@ -366,6 +367,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                         } catch (Throwable t1) {
                             //System.out.println("install failed " + provider.getId().getIdString());
                             VueUtil.alert(this,"Installation Failed","Error");
+                            cancelButton.requestFocus();
                             return;
                         } 
                     } else {
@@ -399,6 +401,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     //System.out.println("configuration setup failed");
                     VueUtil.alert(this,t.getMessage(),"OSID Installation Error");
                     t.printStackTrace();
+                    cancelButton.requestFocus();
                     return;
                 }
             }
@@ -486,7 +489,10 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             timer.stop();
             this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
+        
         DataSourceViewer.saveDataSourceViewer();
+        cancelButton.requestFocus();
+        return;
     }
 	
 	public DataSource getOldDataSource()
