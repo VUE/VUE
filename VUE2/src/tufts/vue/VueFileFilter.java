@@ -24,14 +24,14 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
     //private final String[] extensions = {".vue", ".xml"};
     //private String[] jpeg = {"jpeg"}, String[] svg = {"svg"}, String[] pdf = {"pdf"}, String[] html = {"html"};
     private String[]
-        jpeg = {".jpeg", ".jpg"},
-        svg = {".svg"},
-        pdf = {".pdf"},
-        html = {".html", ".htm"},
-        imap = {".imap"}, 
-        vue = {".vue", ".xml"},
-        rdf = {".rdf"},
-        zip = {".zip"};
+        jpeg = {"jpeg", "jpg"},
+        svg = {"svg"},
+        pdf = {"pdf"},
+        html = {"html","htm"},
+        imap = {"imap"}, 
+        vue = {"vue", "xml"},
+        rdf = {"rdf"},
+        zip = {"zip"};
     private String[] extensions;
     private String description;
     
@@ -56,7 +56,7 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         else if (description.equals("html"))
           extensions = html;
         
-        else if (description.equals("imap"))
+        else if (description.equals("Image Map"))
           extensions = imap;
         
         else if (description.equals("vue") || description.equals("xml")) {
@@ -82,6 +82,10 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
     public String getDescription()
     {
         return description;
+    }
+    
+    public String[] getExtensions() {
+        return extensions;
     }
 }
 

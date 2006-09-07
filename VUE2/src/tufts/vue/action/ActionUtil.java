@@ -52,7 +52,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.48 $ / $Date: 2006-08-10 22:08:14 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2006-09-07 19:23:20 $ / $Author: anoop $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -101,7 +101,7 @@ public class ActionUtil {
             chooser.addChoosableFileFilter(new VueFileFilter("svg"));
             //chooser.addChoosableFileFilter(new VueFileFilter("pdf"));
             //chooser.addChoosableFileFilter(new VueFileFilter("html"));
-            chooser.addChoosableFileFilter(new VueFileFilter("imap"));
+            chooser.addChoosableFileFilter(new VueFileFilter("Image Map"));
             
             chooser.setFileFilter(defaultFilter); 
         }
@@ -116,8 +116,8 @@ public class ActionUtil {
             picked = chooser.getSelectedFile();
             
             String fileName = picked.getAbsolutePath();
-            String extension = chooser.getFileFilter().getDescription();
-                
+            //String extension = chooser.getFileFilter().getDescription();
+              String extension = ((VueFileFilter)chooser.getFileFilter()).getExtensions()[0];  
             //if it isn't a file name with the right extention 
             if (!fileName.endsWith("." + extension)) {
                 fileName += "." + extension;
