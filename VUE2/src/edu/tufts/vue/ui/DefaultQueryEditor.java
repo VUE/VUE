@@ -106,8 +106,10 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			moreOptionsButtonPanel.add(moreOptionsButton,moreOptionsButtonPanelgbConstraints);
 
 			moreOptionsButtonPanelgbConstraints.gridx = 1;
-			moreOptionsButtonPanelgbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			moreOptionsButtonPanelgbConstraints.fill = java.awt.GridBagConstraints.NONE;
+			moreOptionsButtonPanelgbConstraints.anchor= java.awt.GridBagConstraints.EAST;
 			moreOptionsButtonPanelgbConstraints.weightx = 1;
+			moreOptionsButtonPanelgbConstraints.ipadx=20;
 			moreOptionsButtonPanel.add(searchButton1,moreOptionsButtonPanelgbConstraints);
 			
 			java.awt.GridBagLayout fewerOptionsButtonPanelgbLayout = new java.awt.GridBagLayout();
@@ -121,7 +123,9 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			fewerOptionsButtonPanel.add(fewerOptionsButton,fewerOptionsButtonPanelgbConstraints);
 			
 			fewerOptionsButtonPanelgbConstraints.gridx = 1;
-			fewerOptionsButtonPanelgbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			fewerOptionsButtonPanelgbConstraints.fill = java.awt.GridBagConstraints.NONE;
+			fewerOptionsButtonPanelgbConstraints.anchor= java.awt.GridBagConstraints.EAST;
+			fewerOptionsButtonPanelgbConstraints.ipadx=20;
 			fewerOptionsButtonPanelgbConstraints.weightx = 1;
 			fewerOptionsButtonPanel.add(this.searchButton2,fewerOptionsButtonPanelgbConstraints);
 			
@@ -206,6 +210,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.gridy = 0;
 		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 		gbConstraints.weightx = 0;
+		gbConstraints.anchor = java.awt.GridBagConstraints.EAST;
 		add(new javax.swing.JLabel("Keyword:"),gbConstraints);
 		
 		gbConstraints.gridx = 1;
@@ -219,6 +224,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.gridy = 1;
 		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 		gbConstraints.weightx = 0;
+		gbConstraints.ipadx = 10;
 		add(new javax.swing.JLabel("More options:"),gbConstraints);
 
 		gbConstraints.gridx = 1;
@@ -267,8 +273,8 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 			for (int i=0; i < size; i++) {
 				gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 				gbConstraints.weightx = 0;
-				String prompt = (String)typesVector.elementAt(i);
-				add(new javax.swing.JLabel(prompt),gbConstraints);
+				String prompt = (String)typesVector.elementAt(i);//+":";
+				add(new javax.swing.JLabel(prompt +":"),gbConstraints);
 				gbConstraints.gridx = 1;
 				gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
 				gbConstraints.weightx = 1;
