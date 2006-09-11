@@ -33,6 +33,8 @@ public interface DataSource
 	
 	public org.osid.shared.Id getId();
 
+	public boolean hasUpdate();
+	
 	public String getOsidName();
 	
 	public String getOsidVersion();

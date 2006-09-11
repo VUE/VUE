@@ -113,6 +113,14 @@ public class DataSourceViewer extends JPanel
         Widget.setExpanded(DRB.browsePane, false);
         edu.tufts.vue.dsm.DataSource dataSources[] = null;
         try {
+            // load old-style data sources
+            VUE.Log.info("DataSourceViewer; Loading old style data sources...");
+            loadDataSources();
+            VUE.Log.info("DataSourceViewer; Loaded old style data sources.");
+        } catch (Throwable t) {
+            VueUtil.alert("Error loading old data source","Error");
+        }
+        try {
             // load new data sources
             dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
             VUE.Log.info("DataSourceViewer; loading Installed data sources via Data Source Manager");
@@ -124,15 +132,8 @@ public class DataSourceViewer extends JPanel
                 dataSourceList.addOrdered(dataSources[i]);
             }
         } catch (Throwable t) {
+			t.printStackTrace();
             VueUtil.alert("Error loading data source","Error");
-        }
-        try {
-            // load old-style data sources
-            VUE.Log.info("DataSourceViewer; Loading old style data sources...");
-            loadDataSources();
-            VUE.Log.info("DataSourceViewer; Loaded old style data sources.");
-        } catch (Throwable t) {
-            VueUtil.alert("Error loading old data source","Error");
         }
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
         sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
@@ -460,10 +461,11 @@ public class DataSourceViewer extends JPanel
     
     private void refreshMenuActions() {
         Object o = dataSourceList.getSelectedValue();
+		edu.tufts.vue.dsm.DataSource ds = null;
         if (o != null) {
             // for the moment, we are doing double work to keep old data sources
             if (o instanceof edu.tufts.vue.dsm.DataSource) {
-                edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
+                ds = (edu.tufts.vue.dsm.DataSource)o;
                 removeLibraryAction.setEnabled(true);  
             } else if (o instanceof RemoteFileDataSource) {
                 // FTP
@@ -478,8 +480,7 @@ public class DataSourceViewer extends JPanel
             editLibraryAction.setEnabled(false);
         }
         
-        //TODO : This is temporary but they decided to disable update for 1.5 -mikek
-        checkForUpdatesAction.setEnabled(false);
+        checkForUpdatesAction.setEnabled(ds.hasUpdate());
         Widget.setMenuActions(DRB.librariesPanel,
                 new Action[] {
         			addLibraryAction,

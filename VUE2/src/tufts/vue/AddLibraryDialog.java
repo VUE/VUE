@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.50 $ / $Date: 2006-09-01 15:18:05 $ / $Author: mike $
+ * @version $Revision: 1.51 $ / $Date: 2006-09-11 18:22:37 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -234,14 +234,32 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             
             listModel.removeAllElements();
 			System.out.println("In Add Library Dialog, asking Provider for list of Providers");
+			// get what's available
+			java.util.Vector providerIdStringVector = new java.util.Vector();
             org.osid.provider.ProviderIterator providerIterator = factory.getProviders();
-			int x = 0;
             while (providerIterator.hasNextProvider()) {
                 org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
-                // place all providers on list, whether installed or not, whether duplicates or not
-				listModel.addElement(nextProvider);
-				checkedVector.addElement(nextProvider);
+				// only latest
+				if (nextProvider.getNextVersion() == null) {  
+					listModel.addElement(nextProvider);
+					checkedVector.addElement(nextProvider);
+					providerIdStringVector.addElement(nextProvider.getId().getIdString());
+				}
             }
+			
+			// get what's installed and not available
+			providerIterator = factory.getInstalledProviders();
+            while (providerIterator.hasNextProvider()) {
+                org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
+				// only latest and non-duplicate
+				if ( (nextProvider.getNextVersion() == null) &&
+					 (!providerIdStringVector.contains(nextProvider.getId().getIdString())) ) {
+					listModel.addElement(nextProvider);
+					checkedVector.addElement(nextProvider);
+					providerIdStringVector.addElement(nextProvider.getId().getIdString());				
+				}
+			}
+			
             // copy to an array
             int size = listModel.size();
             checked = new org.osid.provider.Provider[size];

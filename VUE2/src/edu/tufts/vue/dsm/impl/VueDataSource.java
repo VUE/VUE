@@ -88,6 +88,14 @@ public class VueDataSource
 		}
     }
     
+	public boolean hasUpdate()
+		throws org.osid.provider.ProviderException 
+	{
+		org.osid.provider.Provider provider = null;
+		provider = this.factory.getProvider(this.providerId);
+		return (provider.getNextVersion() != null);
+	}
+	
     private void setProviderValues()
     throws org.osid.provider.ProviderException {
         org.osid.provider.Provider provider = null;
@@ -379,7 +387,8 @@ public class VueDataSource
             setProviderValues(); // must come first
             setRepositoryManager();
         } catch (Throwable t) {
-            edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
+            edu.tufts.vue.util.Logger.log(t,"loading data sources from XML.  Cannot locate Provider with Id " + providerIdString);
+            System.out.println("Error loading data sources from XML.  Cannot locate Provider with Id " + providerIdString);
         }
     }
     
@@ -475,7 +484,7 @@ public class VueDataSource
             setRelatedValues();
         } catch (Throwable t) {
             edu.tufts.vue.util.Logger.log(t);
-			t.printStackTrace();
+			//t.printStackTrace();
         }
     }
     public String toString() {
