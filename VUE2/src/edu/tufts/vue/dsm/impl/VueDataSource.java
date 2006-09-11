@@ -89,11 +89,14 @@ public class VueDataSource
     }
     
 	public boolean hasUpdate()
-		throws org.osid.provider.ProviderException 
 	{
-		org.osid.provider.Provider provider = null;
-		provider = this.factory.getProvider(this.providerId);
-		return (provider.getNextVersion() != null);
+		try {
+			org.osid.provider.Provider provider = null;
+			provider = this.factory.getProvider(this.providerId);
+			return (provider.getNextVersion() != null);
+		} catch (Throwable t) {
+			return false;
+		}
 	}
 	
     private void setProviderValues()
