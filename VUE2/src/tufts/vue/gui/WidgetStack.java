@@ -38,7 +38,7 @@ import com.sun.tools.xjc.generator.unmarshaller.automaton.Alphabet.SuperClass;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.30 $ / $Date: 2006-08-15 15:11:48 $ / $Author: mike $
+ * @version $Revision: 1.31 $ / $Date: 2006-09-11 16:54:58 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -315,7 +315,16 @@ public class WidgetStack extends Widget
             String localName = widget.getName();
             if (localName == null)
                 localName = label;
+            
+            //All the results Panes have different names so to group the category
+            //I did this, maybe Widget should be rewritten so it has a type? instead of using
+            //name for this.
+            if (localName.startsWith("Searching "))
+            	localName = "resultsPane";
+            
             if (localName != null) {
+            	//if the name contains spaces use the type instead
+            	
                 String localKey = "gui.widget.title." + localName;
                 GUI.init(mTitle, localKey);
                 mTopColor = VueResources.getColor(localKey + ".background.top");

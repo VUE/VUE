@@ -705,8 +705,11 @@ public class DataSourceViewer extends JPanel
             mSearchProperties = searchProperties;
 
             mRepositoryName = r.getDisplayName();
-
+            
+            //If the naming convention of this were to change, note there would
+            //need to be a change in WidgetStack to properly color code the widget.
             mResultPane = new Widget("Searching " + mRepositoryName);
+            
             mStatusLabel = new StatusLabel("Searching for " + mSearchString + " ...", false);
             mResultPane.add(mStatusLabel);
 
