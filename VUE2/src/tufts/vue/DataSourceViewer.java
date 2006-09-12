@@ -44,6 +44,7 @@ import org.exolab.castor.xml.ValidationException;
 
 import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
+import org.osid.provider.ProviderException;
 import org.xml.sax.InputSource;
 
 import tufts.vue.gui.*;
@@ -374,8 +375,22 @@ public class DataSourceViewer extends JPanel
                     // for the moment, we are doing double work to keep old data sources
                     if (o instanceof edu.tufts.vue.dsm.DataSource) {
                         edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)o;
+                        String displayName = ds.getRepositoryDisplayName();
+                        
+                        //figure out which one of the results needs to be deleted
+                        DefaultListModel listComponents = dataSourceList.getContents();
+                        int index = dataSourceList.getContents().indexOf(ds);
+                        int instanceIndex = 0;
+                        for (int p=0; p< index; p++)
+                        {
+                        	edu.tufts.vue.dsm.impl.VueDataSource o2 = (edu.tufts.vue.dsm.impl.VueDataSource)listComponents.get(p);
+                        	
+                        	if (o2.getRepositoryDisplayName() == ds.getRepositoryDisplayName())
+                        		instanceIndex++;
+                        }                                                                      
+                        
                         if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
-                                "Do you really want to delete " + ds.getRepositoryDisplayName(),
+                                "Do you really want to delete " + displayName,
                                 "Delete Resource",
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
                             dataSourceManager.remove(ds.getId());
@@ -392,7 +407,26 @@ public class DataSourceViewer extends JPanel
 							}});
                             dataSourceList.getContents().removeElement(ds);
                             saveDataSourceViewer();
-                        }
+                                                       
+                            //delete it                            
+                            WidgetStack widgetStack = (WidgetStack)DRB.resultsPane.getComponent(0);
+                            if (widgetStack != null)
+                            {
+                            	Component[] comps = widgetStack.getComponents();
+                            	int found =0;
+                            	for (int i = 0; i < comps.length; i++)
+                            	{                            	
+                            		String compName = comps[i].getName();                            	
+                            		if ((compName != null) && (compName.indexOf(displayName)!= -1))
+                            		{                            		
+                            			if ((found == instanceIndex) || (found == instanceIndex+1))                            		
+                            				widgetStack.remove(comps[i]);
+
+                            			found++;
+                            		}                            	
+                            	}
+                            }
+                      }
                     } else if( o instanceof tufts.vue.DataSource) {
                         tufts.vue.DataSource ds = (tufts.vue.DataSource) o;
                         if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
@@ -480,7 +514,12 @@ public class DataSourceViewer extends JPanel
             editLibraryAction.setEnabled(false);
         }
         
-        checkForUpdatesAction.setEnabled(ds.hasUpdate());
+        try {
+			checkForUpdatesAction.setEnabled(ds.hasUpdate());
+		} catch (ProviderException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         Widget.setMenuActions(DRB.librariesPanel,
                 new Action[] {
         			addLibraryAction,
@@ -626,8 +665,9 @@ public class DataSourceViewer extends JPanel
     private static class StatusLabel extends JPanel {
     	private JLabel label = null;
     	
-        StatusLabel(String s, boolean center) {
-            super();
+    	StatusLabel(String s, boolean center, boolean useIcon)
+    	{
+    		super();
             
             if (center)
             {
@@ -641,13 +681,20 @@ public class DataSourceViewer extends JPanel
             }
             
             setBackground(VueResources.getColor("dsv.statuspanel.bgColor"));
-            JLabel waitIcon = new JLabel(VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
-            this.add(waitIcon);
+            if (useIcon)
+            {
+            	JLabel waitIcon = new JLabel(VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
+            	this.add(waitIcon);
+            }
             label = new JLabel(s);
             this.add(label);
             
             setMinimumSize(new Dimension(getWidth(), WidgetStack.TitleHeight+10));
             setPreferredSize(new Dimension(getWidth(), WidgetStack.TitleHeight+10));
+    	}
+        StatusLabel(String s, boolean center) 
+        {
+         this(s,center,true);    
         }
         
         public void setText(String s)    
@@ -771,7 +818,7 @@ public class DataSourceViewer extends JPanel
         private boolean stopped() {
             if (isInterrupted()) {
                 if (DEBUG.DR) out("ABORTED");
-                mResultPane.setTitle(mRepositoryName + " (Aborted)");
+                mResultPane.setTitle(mRepositoryName + " (Aborted)");                
                 mStatusLabel.setText("Search Aborted.");
                 return true;
             } else
@@ -837,8 +884,8 @@ public class DataSourceViewer extends JPanel
             mResultPane.setTitle(name);
             mResultPane.removeAll();
             
-            if (resourceList.size() == 0) {
-                mResultPane.add(new StatusLabel("No results for " + mSearchString, false));
+            if (resourceList.size() == 0) {            	
+                mResultPane.add(new StatusLabel("No results for " + mSearchString, false, false));
             } else {
                 mResultPane.add(new ResourceList(resourceList, name));
             }
