@@ -36,7 +36,7 @@ import javax.swing.border.*;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.28 $ / $Date: 2006-08-07 05:33:39 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2006-09-12 20:54:40 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -111,6 +111,7 @@ public class InspectorPane extends JPanel
             this.setEnabled(false);
             this.getParent().setEnabled(false);
             showNodePanes(false);
+            showResourcePanes(false);
         } else {
         	this.setEnabled(true);
         	this.getParent().setEnabled(true);
