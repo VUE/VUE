@@ -33,14 +33,17 @@ import javax.swing.table.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
 
+import edu.tufts.vue.fsm.event.SearchEvent;
+import edu.tufts.vue.fsm.event.SearchListener;
+
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.29 $ / $Date: 2006-09-12 20:54:40 $ / $Author: mike $
+ * @version $Revision: 1.30 $ / $Date: 2006-09-13 16:05:42 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
-    implements VueConstants, LWSelection.Listener, ResourceSelection.Listener
+    implements VueConstants, LWSelection.Listener, ResourceSelection.Listener, SearchListener
 {
     private final Image NoImage = VueResources.getImage("NoImage");
 
@@ -86,6 +89,7 @@ public class InspectorPane extends JPanel
 
         VUE.getSelection().addListener(this);
         VUE.getResourceSelection().addListener(this);
+        
         Widget.setHelpAction(mSummaryPane,VueResources.getString("dockWindow.Info.summaryPane.helpText"));;
         Widget.setHelpAction(mPreview,VueResources.getString("dockWindow.Info.previewPane.helpText"));;
         Widget.setHelpAction(mResourceMetaData,VueResources.getString("dockWindow.Info.resourcePane.helpText"));;
@@ -645,6 +649,32 @@ public class InspectorPane extends JPanel
 
         
     }
+
+	public void searchPerformed(SearchEvent evt) {
+		if ((VUE.getSelection().size() > 0) && (VUE.getResourceSelection().get() == null))
+			return;
+		else
+		{
+			showNodePanes(false);
+			showResourcePanes(false);
+			LWSelection selection = VUE.getSelection();
+			
+			LWComponent c = selection.first();
+			if (c != null)
+			{
+             if (c.hasResource()) {
+                loadResource(c.getResource());
+                showNodePanes(true);
+                showResourcePanes(true);                
+             }
+             else
+                showNodePanes(true);
+           
+			}
+		}
+        
+        
+	}
 
     
     

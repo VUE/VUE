@@ -22,6 +22,7 @@ import tufts.Util;
 
 import tufts.vue.action.*;
 import tufts.vue.gui.*;
+import tufts.vue.ui.InspectorPane;
 
 import java.util.*;
 import java.util.prefs.*;
@@ -57,7 +58,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.379 $ / $Date: 2006-07-28 20:28:56 $ / $Author: mike $ 
+ * @version $Revision: 1.380 $ / $Date: 2006-09-13 16:05:43 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -104,6 +105,9 @@ public class VUE
 
     private static java.util.List sActiveMapListeners = new java.util.ArrayList();
     private static java.util.List sActiveViewerListeners = new java.util.ArrayList();
+
+    private static InspectorPane inspectorPane = null;
+    
     public interface ActiveMapListener {
         public void activeMapChanged(LWMap map);
     }
@@ -186,11 +190,15 @@ public class VUE
         return url;
     }
     */
-    
+        
     public static LWSelection getSelection() {
         return ModelSelection;
     }
 
+    public static InspectorPane getInspectorPane() {
+    	 return inspectorPane;
+    }
+    
     public static boolean isStartupUnderway() {
         return isStartupUnderway;
     }
@@ -642,7 +650,8 @@ public class VUE
         //-----------------------------------------------------------------------------
 
         //final DockWindow resourceDock = GUI.createDockWindow("Resource Inspector", new ResourcePanel());
-        DockWindow ObjectInspector = GUI.createDockWindow("Info", new tufts.vue.ui.InspectorPane());
+        inspectorPane = new tufts.vue.ui.InspectorPane();
+        DockWindow ObjectInspector = GUI.createDockWindow("Info",inspectorPane);
         ObjectInspector.setMenuName("Info / Preview");
         ObjectInspector.setHeight(575);
         

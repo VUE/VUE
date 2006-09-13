@@ -151,7 +151,8 @@ public class DataSourceViewer extends JPanel
         DRB.searchPane.add((JPanel) queryEditor, DRBrowser.SEARCH_EDITOR);
         DRB.searchPane.revalidate();
         DRB.searchPane.repaint();
-        // WORKING: stop using this preview panel?
+        // WORKING: stop using this preview panel?        
+        queryEditor.addSearchListener(VUE.getInspectorPane());
         //this.previewPanel = previewDockWindow.getWidgetPanel();
         //resultSetDockWindow = DRB.searchDock;
         setPopup();
