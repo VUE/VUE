@@ -58,7 +58,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.380 $ / $Date: 2006-09-13 16:05:43 $ / $Author: mike $ 
+ * @version $Revision: 1.381 $ / $Date: 2006-09-13 18:21:27 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1351,9 +1351,10 @@ public class VUE
      * Returns true if either they save it or say go ahead and close w/out saving.
      */
     private static boolean askSaveIfModified(LWMap map) {
-        final Object[] defaultOrderButtons = { "Save", "Don't Save", "Cancel"};
+        //final Object[] defaultOrderButtons = { "Save", "Don't Save", "Cancel"};
+    	final Object[] defaultOrderButtons = { "Don't Save","Cancel","Save"};
         // oddly, mac aqua is reversing order of these buttons
-        final Object[] macAquaOrderButtons = { "Cancel", "Don't Save", "Save" };
+        //final Object[] macAquaOrderButtons = { "Cancel", "Don't Save", "Save" };
         
         if (!map.isModified())
             return true;
@@ -1373,17 +1374,29 @@ public class VUE
              JOptionPane.YES_NO_CANCEL_OPTION,
              JOptionPane.PLAIN_MESSAGE,
              null,
-             GUI.isMacAqua() ? macAquaOrderButtons : defaultOrderButtons,
+             //GUI.isMacAqua() ? macAquaOrderButtons : defaultOrderButtons,
+             defaultOrderButtons,
              "Save"
              );
         
-        if (GUI.isMacAqua())
-            response = (macAquaOrderButtons.length-1) - response;
+     //   if (GUI.isMacAqua())
+        switch (response)
+        {
+         case 0:
+        	 response = 1;
+        	 break;
+         case 1:
+        	 response = 2;
+        	 break;
+         case 2:
+        	 response = 0;
+        	 break;
+        }
         
         // If they change focus to another button, then hit "return"
         // (v.s. "space" for kbd button press), do action of button
         // that had focus instead of always save?
-
+        
         if (response == JOptionPane.YES_OPTION) { // Save
             return SaveAction.saveMap(map);
         } else if (response == JOptionPane.NO_OPTION) { // Don't Save
