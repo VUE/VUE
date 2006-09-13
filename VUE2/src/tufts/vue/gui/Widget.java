@@ -26,7 +26,7 @@ import tufts.vue.DEBUG;
 
 import javax.swing.JComponent;
 
-import com.sun.xml.rpc.processor.modeler.j2ee.xml.javaXmlTypeMappingType;
+//import com.sun.xml.rpc.processor.modeler.j2ee.xml.javaXmlTypeMappingType;
 
 
 /**
@@ -43,7 +43,7 @@ import com.sun.xml.rpc.processor.modeler.j2ee.xml.javaXmlTypeMappingType;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.10 $ / $Date: 2006-07-25 19:40:02 $ / $Author: mike $
+ * @version $Revision: 1.11 $ / $Date: 2006-09-13 16:15:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
