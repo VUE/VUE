@@ -307,7 +307,8 @@ public class DataSourceViewer extends JPanel
                     org.osid.provider.ProviderIterator providerIterator = factory.getProvidersNeedingUpdate();
                     if (providerIterator.hasNextProvider()) {
                         if (updateLibraryDialog == null) {
-                            updateLibraryDialog = new UpdateLibraryDialog(dataSourceList);
+                            updateLibraryDialog = new UpdateLibraryDialog(dataSourceList,
+																		  ((edu.tufts.vue.dsm.DataSource)dataSourceList.getSelectedValue()).getId());
                         } else {
                             updateLibraryDialog.refresh();
                             updateLibraryDialog.setVisible(true);

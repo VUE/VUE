@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.16 $ / $Date: 2006-08-02 14:43:41 $ / $Author: jeff $
+* @version $Revision: 1.17 $ / $Date: 2006-09-13 22:21:00 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -54,6 +54,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
     JPanel buttonPanel = new JPanel();
     DataSourceList dataSourceList;
     edu.tufts.vue.dsm.DataSource newDataSource = null;
+	org.osid.shared.Id dataSourceIdThatWasSelectedForUpdate = null;
     
     private static String TITLE = VueResources.getString("updateLibrary.dialogTitle");
     private static String AVAILABLE = "Resources available:";
@@ -61,9 +62,11 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
     private ProviderListCellRenderer providerListRenderer;
     private Timer timer;
     
-    public UpdateLibraryDialog(DataSourceList dataSourceList) {
+    public UpdateLibraryDialog(DataSourceList dataSourceList,
+							   org.osid.shared.Id dataSourceIdThatWasSelectedForUpdate) {
         super(VUE.getDialogParentAsFrame(),TITLE,true);
         this.dataSourceList = dataSourceList;
+		this.dataSourceIdThatWasSelectedForUpdate = dataSourceIdThatWasSelectedForUpdate;
         
         try {
             factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
@@ -370,6 +373,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 			if (proceed) {
 				dataSourceList.addOrdered(this.newDataSource);
 				dataSourceManager.add(this.newDataSource);
+				dataSourceManager.remove(dataSourceIdThatWasSelectedForUpdate);
 				providerListRenderer.setChecked(addLibraryList.getSelectedIndex());
 			}
 		} catch (Throwable t) {
