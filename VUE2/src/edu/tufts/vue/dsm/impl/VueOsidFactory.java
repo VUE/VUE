@@ -66,6 +66,7 @@ implements edu.tufts.vue.dsm.OsidFactory
 				providerLookupManager = providerControlManager.getProviderLookupManager();
 				providerInstallationManager = providerControlManager.getProviderInstallationManager();
 			} catch (OsidException e) {
+				e.printStackTrace();
 				edu.tufts.vue.util.Logger.log("Cannot load ProviderInvocationManager: " + e.getMessage());
 				throw new org.osid.provider.ProviderException(org.osid.OsidException.CONFIGURATION_ERROR);
 			}
