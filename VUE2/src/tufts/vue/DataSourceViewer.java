@@ -515,9 +515,9 @@ public class DataSourceViewer extends JPanel
             editLibraryAction.setEnabled(false);
         }
         
-        
-			checkForUpdatesAction.setEnabled(ds.hasUpdate());
-		
+		if ( (ds != null) && (checkForUpdatesAction != null) ) {
+			checkForUpdatesAction.setEnabled(ds.hasUpdate());		
+		}
         Widget.setMenuActions(DRB.librariesPanel,
                 new Action[] {
         			addLibraryAction,

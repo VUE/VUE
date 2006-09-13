@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.51 $ / $Date: 2006-09-11 18:22:37 $ / $Author: jeff $
+ * @version $Revision: 1.52 $ / $Date: 2006-09-13 21:35:19 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -240,7 +240,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             while (providerIterator.hasNextProvider()) {
                 org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
 				// only latest
-				if (nextProvider.getNextVersion() == null) {  
+				if (nextProvider.needsUpdate() == false) {  
 					listModel.addElement(nextProvider);
 					checkedVector.addElement(nextProvider);
 					providerIdStringVector.addElement(nextProvider.getId().getIdString());
@@ -252,7 +252,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             while (providerIterator.hasNextProvider()) {
                 org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
 				// only latest and non-duplicate
-				if ( (nextProvider.getNextVersion() == null) &&
+				if ( (nextProvider.needsUpdate() == false) &&
 					 (!providerIdStringVector.contains(nextProvider.getId().getIdString())) ) {
 					listModel.addElement(nextProvider);
 					checkedVector.addElement(nextProvider);
