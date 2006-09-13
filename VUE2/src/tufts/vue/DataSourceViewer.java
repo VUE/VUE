@@ -308,7 +308,7 @@ public class DataSourceViewer extends JPanel
                     if (providerIterator.hasNextProvider()) {
                         if (updateLibraryDialog == null) {
                             updateLibraryDialog = new UpdateLibraryDialog(dataSourceList,
-																		  ((edu.tufts.vue.dsm.DataSource)dataSourceList.getSelectedValue()).getId());
+																		  ((edu.tufts.vue.dsm.DataSource)dataSourceList.getSelectedValue()));
                         } else {
                             updateLibraryDialog.refresh();
                             updateLibraryDialog.setVisible(true);
