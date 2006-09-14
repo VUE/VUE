@@ -492,10 +492,26 @@ public class Util
         // browser), gnome version?  KDE/Gnome may have their own
         // services for getting a default browser.
         
-        // First, attempt to open the URL in a currently running session of Netscape
-        Process process = Runtime.getRuntime().exec(new String[] { "netscape",
-                                                                   "-remove",
-                                                                   "'openURL('" + url + "')" });
+    	/*    	 
+    	The problem I had with my 2 linux installations was that even though netscape wasn't 
+    	installed the distribution provided a symlink named netscape which pointed to firefox
+    	however firefox couldn't interpet the netscape parameters.  So below I've modified it
+    	to try to load firefox first and then if that fails load netscape, i suppose konqueror
+    	should be in the mix too maybe but this is better than it was and catches alot of cases.
+    	*/
+    	Process process = null;
+    	try
+    	{
+    		process = Runtime.getRuntime().exec(new String[] { "firefox", url});
+    	}
+    	catch(java.io.IOException ioe)
+    	{
+    		//firefox not available try netscape instead.
+    		process = Runtime.getRuntime().exec(new String[] { "netscape",
+                    "-remove",
+                    "'openURL('" + url + "')" });
+    	}
+        
         try {
             int exitCode = process.waitFor();
             if (exitCode != 0)	// if Netscape was not open
