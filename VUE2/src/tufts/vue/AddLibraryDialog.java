@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.52 $ / $Date: 2006-09-13 21:35:19 $ / $Author: jeff $
+ * @version $Revision: 1.53 $ / $Date: 2006-09-14 22:39:49 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -355,6 +355,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                         if (license != null) {
                             javax.swing.JTextArea area = new javax.swing.JTextArea();
                             area.setLineWrap(true);
+                            area.setWrapStyleWord(true);
                             area.setText(license);
                             area.setEditable(false);
                             area.setSize(new Dimension(500,300));
