@@ -60,7 +60,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.290 $ / $Date: 2006-08-05 00:28:51 $ / $Author: sfraize $ 
+ * @version $Revision: 1.291 $ / $Date: 2006-09-14 21:57:03 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2520,6 +2520,30 @@ public class MapViewer extends javax.swing.JComponent
         sPathAddItem = m.add(Actions.AddPathwayItem);
         sPathRemoveItem = m.add(Actions.RemovePathwayItem);
         sPathSeparator = m.add(new JPopupMenu.Separator());
+        
+        m.add(new VueAction(VueResources.getString("mapViewer.componentMenu.info.label")) {
+            public void act() { 
+            	VUE.getInspectorPane().showInfoView();
+            	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class); 
+            	}
+            //public void act() { VUE.ObjectInspector.setVisible(true); }
+        });
+        m.add(new VueAction(VueResources.getString("mapViewer.componentMenu.notes.label")) {
+            public void act() { 
+            	VUE.getInspectorPane().showNotesView();
+            	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class); 
+            	}
+            //public void act() { VUE.ObjectInspector.setVisible(true); }
+        });
+        m.add(new VueAction(VueResources.getString("mapViewer.componentMenu.keywords.label")) {
+            public void act() {
+            	VUE.getInspectorPane().showKeywordView();
+            	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class);
+            	
+            }
+            //public void act() { VUE.ObjectInspector.setVisible(true); }
+        });
+        m.addSeparator();
         m.add(Actions.HierarchyView);
         m.add(GUI.buildMenu("Nudge", Actions.ARRANGE_SINGLE_MENU_ACTIONS));
         sAssetMenu = new JMenu("Disseminators");
@@ -2527,10 +2551,7 @@ public class MapViewer extends javax.swing.JComponent
         // hitComponent to selection so have way other
         // than shift-click to add to selection (so you
         // can do it all with the mouse)
-        m.add(new VueAction(VueResources.getString("mapViewer.componentMenu.info.label")) {
-                public void act() { GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class); }
-                //public void act() { VUE.ObjectInspector.setVisible(true); }
-            });
+        
 
         GUI.adjustMenuIcons(m);
         m.setLightWeightPopupEnabled(false);

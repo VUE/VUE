@@ -39,7 +39,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.30 $ / $Date: 2006-09-13 16:05:42 $ / $Author: mike $
+ * @version $Revision: 1.31 $ / $Date: 2006-09-14 21:57:03 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -167,6 +167,36 @@ public class InspectorPane extends JPanel
     private void showResourcePanes(boolean visible) {
         Widget.setHidden(mResourceMetaData, !visible);
         Widget.setHidden(mPreview, !visible);
+    }
+    
+    public void showKeywordView()
+    {
+    	Widget.setExpanded(mSummaryPane, true);
+    	Widget.setExpanded(mNotePanel, false);
+    	Widget.setExpanded(mResourceMetaData, false);
+        Widget.setExpanded(mPreview, false);
+    	Widget.setExpanded(mUserMetaData, true);
+    	
+    }
+    
+    public void showNotesView()
+    {
+    	Widget.setExpanded(mSummaryPane, true);
+    	Widget.setExpanded(mNotePanel, true);
+    	Widget.setExpanded(mResourceMetaData, false);
+        Widget.setExpanded(mPreview, false);
+    	Widget.setExpanded(mUserMetaData, false);
+    	
+    }
+    
+    public void showInfoView()
+    {
+    	Widget.setExpanded(mSummaryPane, true);
+    	Widget.setExpanded(mNotePanel, true);
+    	Widget.setExpanded(mResourceMetaData, true);
+        Widget.setExpanded(mPreview, true);
+    	Widget.setExpanded(mUserMetaData, false);
+    	
     }
 
 
