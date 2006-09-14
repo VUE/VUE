@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.18 $ / $Date: 2006-09-13 22:35:51 $ / $Author: jeff $
+* @version $Revision: 1.19 $ / $Date: 2006-09-14 03:04:22 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -373,7 +373,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 			if (proceed) {
 				dataSourceList.addOrdered(this.newDataSource);
 				dataSourceManager.add(this.newDataSource);
-				dataSourceList.getContents().removeElement(ds);
+				dataSourceList.getContents().removeElement(dataSourceThatWasSelectedForUpdate);
 				dataSourceManager.remove(dataSourceThatWasSelectedForUpdate.getId());
 				providerListRenderer.setChecked(addLibraryList.getSelectedIndex());
 			}

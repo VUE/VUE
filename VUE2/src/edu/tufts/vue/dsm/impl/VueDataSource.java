@@ -93,7 +93,7 @@ public class VueDataSource
 		try {
 			org.osid.provider.Provider provider = null;
 			provider = this.factory.getProvider(this.providerId);
-			return (provider.getNextVersion() != null);
+			return (provider.needsUpdate());
 		} catch (Throwable t) {
 			return false;
 		}
