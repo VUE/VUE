@@ -19,7 +19,7 @@ import javax.swing.SwingUtilities;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.5 $ / $Date: 2006-06-04 20:45:53 $ / $Author: sfraize $ 
+ * @version $Revision: 1.6 $ / $Date: 2006-09-15 15:28:51 $ / $Author: mike $ 
  */
 public class VueFrame extends javax.swing.JFrame
 //public class VueFrame extends com.jidesoft.docking.DefaultDockableHolder
@@ -35,6 +35,7 @@ public class VueFrame extends javax.swing.JFrame
     
     public VueFrame(String title) {
         super(title);
+        this.setDefaultCloseOperation(this.DO_NOTHING_ON_CLOSE);
         setName("VueFrame" + sNameIndex++);
         GUI.setRootPaneNames(this, getName());
         if (GUI.isMacAqua()) {
