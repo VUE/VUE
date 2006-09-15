@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.53 $ / $Date: 2006-09-14 22:39:49 $ / $Author: mike $
+ * @version $Revision: 1.54 $ / $Date: 2006-09-15 15:38:59 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -35,6 +35,7 @@ import javax.swing.event.*;
 import java.awt.*;
 
 import tufts.vue.gui.*;
+import tufts.vue.gui.FocusManager;
 
 public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelectionListener, ActionListener {
     
@@ -369,7 +370,13 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                                 "Accept", "Decline"
                             },
                                     "Decline") != 0) {
-                            	cancelButton.requestFocus();
+                            	//cancelButton.requestFocus();
+                            	SwingUtilities.invokeLater(new Runnable() { 
+                                    public void run() { 
+                                        KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                                        cancelButton.requestFocusInWindow();
+                                    } 
+                            	} );
                                 return;
                             }
                         }
@@ -386,7 +393,13 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                         } catch (Throwable t1) {
                             //System.out.println("install failed " + provider.getId().getIdString());
                             VueUtil.alert(this,"Installation Failed","Error");
-                            cancelButton.requestFocus();
+                            //cancelButton.requestFocus();
+                            SwingUtilities.invokeLater(new Runnable() { 
+                                public void run() { 
+                                    KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                                    cancelButton.requestFocusInWindow();
+                                } 
+                            } );
                             return;
                         } 
                     } else {
@@ -420,7 +433,13 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     //System.out.println("configuration setup failed");
                     VueUtil.alert(this,t.getMessage(),"OSID Installation Error");
                     t.printStackTrace();
-                    cancelButton.requestFocus();
+                    //cancelButton.requestFocus();
+                    SwingUtilities.invokeLater(new Runnable() { 
+                        public void run() { 
+                            KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                            cancelButton.requestFocusInWindow();
+                        } 
+                    } );
                     return;
                 }
             }
@@ -510,7 +529,13 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
         }
         
         DataSourceViewer.saveDataSourceViewer();
-        cancelButton.requestFocus();
+        //cancelButton.requestFocus();
+        SwingUtilities.invokeLater(new Runnable() { 
+            public void run() { 
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                cancelButton.requestFocusInWindow();
+            } 
+        } );
         return;
     }
 	
