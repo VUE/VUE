@@ -36,6 +36,8 @@ import javax.swing.KeyStroke;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 
+import tufts.vue.gui.GUI;
+
 /**
  * VUE actions, all subclassed from VueAction, of generally these types:
  *      - application actions (e.g., new map)
@@ -85,6 +87,8 @@ public class Actions implements VueConstants
     new LWCAction("Add to Pathway") {
         public void act(Iterator i) {
             VUE.getActivePathway().add(i);
+            GUI.makeVisibleOnScreen(VUE.getActiveViewer(), PathwayPanel.class);
+            
         }
         boolean enabledFor(LWSelection s) {
             // items can be added to pathway as many times as you want
