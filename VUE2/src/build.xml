@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.122 $ / $Date: 2006-09-13 18:54:40 $ / $Author: tom $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.122 2006-09-13 18:54:40 tom Exp $ -->
+<!-- $Revision: 1.123 $ / $Date: 2006-09-19 00:50:13 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.123 2006-09-19 00:50:13 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -191,7 +191,6 @@
 				   MIT-OTS.jar
 				   MITRepositoryTypes.jar
                    MITSearchTypes.jar
-                   MRJAdapter.jar
                    okiSID_rc6_1.jar
                    okiSIDimpl.jar
 				   OsidProvider.jar
@@ -223,6 +222,10 @@
 <!-- removed jaxb-libs.jar from above (old?) SMF 8/8/05 -->
 <!-- removed jaxrpc.jar from above (old?) SMF 8/8/05 -->
 <!-- removed saaj.jar from above (redundant) SMF 8/8/05 -->
+<!-- removed MRJAdapter.jar SMF 2006-09-18 -->
+
+                   
+
 
      <!-- VUE will actually run with this minimal set of jar files, with the exception
      of adding new OSID-DR datasources (e.g., comet.osidimpl.iTunesDR, if you also
