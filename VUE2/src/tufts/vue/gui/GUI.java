@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.56 $ / $Date: 2006-08-29 20:52:16 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2006-09-19 01:18:25 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -81,6 +81,7 @@ public class GUI
     static Toolkit GToolkit;
     static GraphicsEnvironment GEnvironment;
     static GraphicsDevice GDevice;
+    static GraphicsDevice[] GScreenDevices;
     static GraphicsConfiguration GConfig;
     static Rectangle GBounds;
     static Rectangle GMaxWindowBounds;
@@ -389,6 +390,7 @@ public class GUI
         GToolkit = Toolkit.getDefaultToolkit();
         GEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GDevice = GEnvironment.getDefaultScreenDevice();
+        GScreenDevices = GEnvironment.getScreenDevices();
         GConfig = GDevice.getDefaultConfiguration(); // this changes when display mode changes
         GBounds = GConfig.getBounds();
         GInsets = GToolkit.getScreenInsets(GConfig); // this may change at any time
@@ -396,18 +398,81 @@ public class GUI
         GScreenHeight = GBounds.height;
         GMaxWindowBounds = GEnvironment.getMaximumWindowBounds();
 
-        if (DEBUG.INIT) {
-            System.out.println("GUI.initGraphicsInfo:"
-                               + "\n\t" + GToolkit
-                               + "\n\t" + GEnvironment
-                               + "\n\t" + GDevice + " " + GDevice.getIDstring()
-                               + "\n\t" + GConfig
-                               + "\n\tscreen bounds " + GBounds
-                               + "\n\tscreen insets " + GInsets
-                               );
-        }
-        
+        if (DEBUG.INIT) dumpGraphicsConfig();
     }
+
+    public static void dumpGraphicsConfig() {
+        System.out.println("GUI.initGraphicsInfo:"
+                           + "\n\t    toolkit: " + GToolkit
+                           + "\n\tenvironment: " + GEnvironment
+                           + "\n\t  envMaxWin: " + GEnvironment.getMaximumWindowBounds()
+                           );
+
+        dumpGraphicsDevice(GDevice, "DEFAULT");
+
+        for (int i = 0; i < GScreenDevices.length; i++) {
+            if (GScreenDevices[i] != GDevice)
+                dumpGraphicsDevice(GScreenDevices[i], "#"+i);
+        }
+    }
+
+    public static void dumpGraphicsDevice(GraphicsDevice d, String key) {
+        System.out.println("\tDevice " + key + ": " + d + " ID=" + d.getIDstring()
+                           + "\n\t\t        config: " + d.getDefaultConfiguration()
+                           + "\n\t\t config bounds: " + d.getDefaultConfiguration().getBounds()
+                           + "\n\t\t screen insets: " + GToolkit.getScreenInsets(d.getDefaultConfiguration())
+                           );
+    }
+    
+
+    public static Rectangle getMaximumWindowBounds() {
+        refreshGraphicsInfo();
+        if (ControlMaxWindow)
+            return VueMaxWindowBounds(GMaxWindowBounds);
+        else
+            return GMaxWindowBounds;
+    }
+
+    public static Rectangle getMaximumWindowBounds(Window w) {
+        refreshGraphicsInfo();
+        GraphicsDevice d = getDeviceForWindow(w);
+        Rectangle bounds = d.getDefaultConfiguration().getBounds();
+        Insets insets = GToolkit.getScreenInsets(d.getDefaultConfiguration());
+        //out("selected bounds " + bounds);
+        //out("selected insets " + insets);
+        bounds.x += insets.left;
+        bounds.y += insets.top;
+        bounds.width -= insets.left;
+        bounds.height -= insets.top;
+        bounds.width -= insets.right;
+        bounds.height -= insets.bottom;
+        //out("result bounds " + bounds);
+        return bounds;
+    }
+
+    /** Return the max window bounds for the given window, for screen device it's currently displayed on */
+    public static GraphicsDevice getDeviceForWindow(Window w) {
+        refreshGraphicsInfo();
+        Rectangle windowBounds = w.getBounds();
+        GraphicsDevice selected = null;
+        int maxArea = 0;
+        for (int i = 0; i < GScreenDevices.length; i++) {
+            GraphicsDevice device = GScreenDevices[i];
+            GraphicsConfiguration config = device.getDefaultConfiguration();
+            Rectangle overlap = config.getBounds().intersection(windowBounds);
+            int area = overlap.width * overlap.height;
+            if (area > maxArea) {
+                maxArea = area;
+                selected = device;
+            }
+        }
+        return selected == null ? GDevice : selected;
+    }
+
+    public static GraphicsConfiguration getDeviceConfigForWindow(Window w) {
+        return getDeviceForWindow(w).getDefaultConfiguration();
+    }
+    
 
     public static void refreshGraphicsInfo() {
         // GraphicsConfiguration changes on DisplayMode change -- update everything.
@@ -419,6 +484,7 @@ public class GUI
                 initGraphicsInfo();
             else
                 GInsets = GToolkit.getScreenInsets(GConfig); // this may change at any time
+            if (DEBUG.FOCUS) dumpGraphicsConfig();
         }
 
         if (!VUE.isStartupUnderway() && VUE.getApplicationFrame() != null) {
@@ -454,14 +520,6 @@ public class GUI
     }
     
 
-
-    public static Rectangle getMaximumWindowBounds() {
-        refreshGraphicsInfo();
-        if (ControlMaxWindow)
-            return VueMaxWindowBounds(GMaxWindowBounds);
-        else
-            return GMaxWindowBounds;
-    }
 
     public static int getMaxWindowHeight() {
         refreshGraphicsInfo();
@@ -827,7 +885,7 @@ public class GUI
             // the view as it's own case as it may have a tool active that has a different
             // cursor than the default currently active.
             
-            activateWaitCursor(ViewerWithWaitCursor = VUE.getActiveViewer());
+            //activateWaitCursor(ViewerWithWaitCursor = VUE.getActiveViewer());
             activateWaitCursor(VUE.ApplicationFrame);
             activateWaitCursor(getFullScreenWindow());
             Iterator i = DockWindow.sAllWindows.iterator();
@@ -864,7 +922,7 @@ public class GUI
                 if (DEBUG.THREAD) VUE.Log.info("\t(wait cursors already cleared)");
                 return;
             }
-            clearWaitCursor(ViewerWithWaitCursor);
+            //clearWaitCursor(ViewerWithWaitCursor);
             clearWaitCursor(VUE.ApplicationFrame);
             clearWaitCursor(getFullScreenWindow());
             Iterator i = DockWindow.sAllWindows.iterator();
