@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.49 $ / $Date: 2006-03-20 18:15:16 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2006-09-19 22:22:14 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -94,9 +94,9 @@ public class MapPanner extends javax.swing.JPanel
             && (e.getID() == MapViewerEvent.PAN ||
                 e.getID() == MapViewerEvent.ZOOM)) {
             repaint();
-            if (e.getID() == MapViewerEvent.ZOOM) {
-                putClientProperty("TITLE-INFO", ""+this.mapViewer.getZoomFactor());
-            }
+            //if (e.getID() == MapViewerEvent.ZOOM) {
+            //    putClientProperty("TITLE-INFO", ""+this.mapViewer.getZoomFactor());
+            //}
         }
     }
 
