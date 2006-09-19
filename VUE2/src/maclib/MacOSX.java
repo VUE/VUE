@@ -7,6 +7,9 @@ import apple.awt.CWindow;
 import com.apple.cocoa.foundation.*;
 import com.apple.cocoa.application.*;
 
+import com.apple.eawt.Application;
+import com.apple.eawt.ApplicationEvent;
+
 import java.awt.*;
 
 // NOTE: This will ONLY compile on Mac OS X (or, technically, anywhere
@@ -20,7 +23,7 @@ import java.awt.*;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-02-18 02:56:16 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2006-09-19 00:36:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX
@@ -32,6 +35,43 @@ public class MacOSX
         if (System.getProperty("tufts.macosx.debug") != null)
             DEBUG = true;
     }
+
+    public interface ApplicationListener {
+        public boolean handleOpenFile(String filename);
+        public boolean handleQuit();
+        public boolean handleAbout();
+    }
+
+    public static void registerApplicationListener(final ApplicationListener listener) {
+        final com.apple.eawt.Application application = com.apple.eawt.Application.getApplication();
+
+        application.addApplicationListener(new com.apple.eawt.ApplicationListener() {
+                public void handleOpenFile(ApplicationEvent e) {
+                    e.setHandled(listener.handleOpenFile(e.getFilename()));
+                }
+                public void handleQuit(ApplicationEvent e) {
+                    // Note: if handled is set to true, Apple code will quit the app when this returns.
+                    e.setHandled(listener.handleQuit());
+                }
+                public void handleAbout(ApplicationEvent e) {
+                    e.setHandled(listener.handleAbout());
+                }
+                
+                public void handleOpenApplication(ApplicationEvent e) {
+                    if (DEBUG) out("OSX APPLCATION OPEN " + e);
+                }
+                public void handleReOpenApplication(ApplicationEvent e) {
+                    out("OSX APPLICATION RE-OPEN " + e);
+                }
+                public void handlePrintFile(ApplicationEvent e) {
+                    out("OSX APPLICATION PRINT FILE " + e);
+                }
+                public void handlePreferences(ApplicationEvent e) {
+                    out("OSX APPLICATION PREFERENCES " + e);
+                }
+            });
+    }
+    
 
     public static void goBlack() {
         goBlack(getFullScreenWindow());
