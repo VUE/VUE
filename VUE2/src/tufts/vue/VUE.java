@@ -41,10 +41,6 @@ import java.beans.PropertyChangeListener;
 
 import java.applet.AppletContext;
 
-import net.roydesign.mac.MRJAdapter;
-import net.roydesign.event.ApplicationEvent;
-//import com.apple.mrj.*;
-
 import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.NDC;
@@ -58,7 +54,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.381 $ / $Date: 2006-09-13 18:21:27 $ / $Author: mike $ 
+ * @version $Revision: 1.382 $ / $Date: 2006-09-19 00:41:49 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -102,6 +98,7 @@ public class VUE
     public static boolean  dropIsLocal = false;
     
     private static boolean isStartupUnderway = false;
+    private static java.util.List FilesToOpen = Collections.synchronizedList(new java.util.ArrayList());
 
     private static java.util.List sActiveMapListeners = new java.util.ArrayList();
     private static java.util.List sActiveViewerListeners = new java.util.ArrayList();
@@ -295,15 +292,12 @@ public class VUE
         //set tooltips to psuedo-perm
         ToolTipManager.sharedInstance().setDismissDelay(240000);
         ToolTipManager.sharedInstance().setInitialDelay(500);
-        if (VueUtil.isMacPlatform())
-            installMacOSXApplicationEventHandlers();
+        //if (VueUtil.isMacPlatform())
+        //    installMacOSXApplicationEventHandlers();
     }
     
     public static void main(String[] args)
     {
-        //if (VueUtil.isMacPlatform())
-        //installMacOSXApplicationEventHandlers();
-
         Log.debug("VUE: main entered");
         
         VUE.isStartupUnderway = true;
@@ -322,10 +316,20 @@ public class VUE
         if (DEBUG.Enabled)
             Log.setLevel(Level.DEBUG);
 
+        if (VueUtil.isMacPlatform())
+            installMacOSXApplicationEventHandlers();
+            
+        for (int i = 0; i < args.length; i++) {
+            if (args[i] == null || args[i].length() < 1 || args[i].charAt(0) == '-')
+                continue;
+            if (DEBUG.INIT) out("command-line file to open " + args[i]);
+            VUE.FilesToOpen.add(args[i]);
+        }
+        
         try {
 
             initUI();
-            initApplication(args);
+            initApplication();
             
         } catch (Throwable t) {
             Util.printStackTrace(t, "VUE init failed");
@@ -339,6 +343,7 @@ public class VUE
             */
         }
 
+
         VUE.isStartupUnderway = false;
         
         Log.info("startup completed.");
@@ -349,7 +354,7 @@ public class VUE
         }
     }
 
-    private static void initApplication(String[] args)
+    private static void initApplication()
     {
         /*
         if (VUE.TUFTS)
@@ -371,27 +376,33 @@ public class VUE
         if (splashScreen != null)
             splashScreen.setVisible(false);
 
-        VUE.activateWaitCursor();
+        boolean openedUserMap = false;
 
-        boolean gotMapFromCommandLine = false;
+        Log.debug("loading disk cache...");
+        Images.loadDiskCache();
+        Log.debug("loading disk cache: done");
 
-        if (args.length > 0) {
+        if (FilesToOpen.size() > 0) {
             try {
-                for (int i = 0; i < args.length; i++) {
-                    if (args[i] == null || args[i].length() < 1 || args[i].charAt(0) == '-')
-                        continue;
-                    LWMap map = OpenAction.loadMap(args[i]);
+                Iterator i = FilesToOpen.iterator();
+                while (i.hasNext()) {
+                    String fileName = (String) i.next();
+                    VUE.activateWaitCursor();
+                    LWMap map = OpenAction.loadMap(fileName);
+                    if (DEBUG.INIT) out("opening map during startup " + map);
                     if (map != null) {
                         displayMap(map);
-                        gotMapFromCommandLine = true;
+                        openedUserMap = true;
                     }
                 }
             } finally {
-                //VUE.clearWaitCursor();                
+                VUE.clearWaitCursor();                
             }
         }
+
+        if (DEBUG.Enabled && !openedUserMap) {
         
-        if (SKIP_DR && gotMapFromCommandLine == false) {
+            //if (SKIP_DR && FilesToOpen.size() == 0) {
             //-------------------------------------------------------
             // create example map(s)
             //-------------------------------------------------------
@@ -408,7 +419,6 @@ public class VUE
             //toolPanel.add(new JLabel("Empty Label"), BorderLayout.CENTER);
         }
 
-        if (DEBUG.INIT) out("map loaded");
         /*
         if (drBrowser != null) {
             drBrowser.loadDataSourceViewer();
@@ -417,11 +427,7 @@ public class VUE
         }
         */
 
-        VUE.clearWaitCursor();
-        
-        Log.debug("loading disk cache...");
-        Images.loadDiskCache();
-        Log.debug("loading disk cache: done");
+        //VUE.clearWaitCursor();
 
         
         Log.debug("loading fonts...");
@@ -446,9 +452,6 @@ public class VUE
         
         //Preferences p = Preferences.userNodeForPackage(VUE.class);
         //p.put("DRBROWSER.RUN", "yes, it has");
-
-        //if (VueUtil.isMacPlatform())
-        //    installMacOSXApplicationEventHandlers();
 
         // MAC v.s. PC WINDOW PARENTAGE & FOCUS BEHAVIOUR:
         //
@@ -491,45 +494,33 @@ public class VUE
     {
         if (!VueUtil.isMacPlatform())
             throw new RuntimeException("can only install OSX event handlers on Mac OS X");
-        
-        MRJAdapter.addQuitApplicationListener(new ExitAction());
-        MRJAdapter.addAboutListener(new AboutAction());
-        MRJAdapter.addOpenApplicationListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    Log.info("OpenApplication " + e);
+
+        VUE.Log.debug("INSTALLING MAC OSX APPLICATION HANDLER");
+
+        tufts.macosx.MacOSX.registerApplicationListener(new tufts.macosx.MacOSX.ApplicationListener() {
+                public boolean handleOpenFile(String filename) {
+                    VUE.Log.info("OSX OPEN FILE " + filename);
+                    if (VUE.isStartupUnderway)
+                        VUE.FilesToOpen.add(filename);
+                    else
+                        VUE.displayMap(new File(filename));
+                    return true;
                 }
-            });
-        MRJAdapter.addReopenApplicationListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e){
-                    Log.info("REopenDocument " + e);
+                public boolean handleQuit() {
+                    VUE.Log.debug("OSX QUIT");
+                    ExitAction.exitVue();
+                    // Always return false.  If we claim this is "handled",
+                    // OSX  will do the quit for us, and even if the ExitAction
+                    // was aborted, we'd exit anyway...
+                    return false;
                 }
-            });
-        MRJAdapter.addOpenDocumentListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    Log.info("OpenDocument " + e);
-                    ApplicationEvent ae = (ApplicationEvent) e;
-                    VUE.displayMap(ae.getFile());
+                public boolean handleAbout() {
+                    VUE.Log.debug("OSX ABOUT");
+                    new AboutAction().act();
+                    return true;
                 }
+                
             });
-        
-        // this was working for double-click launch AND open of a .vue file --
-        // above MRJAdapater callbacks aren't getting the open call after launch...
-        // from com.apple.mrj.* -- deprecated old api.  Consider using an
-        // OSXAdapter styled impl instead of net.roydesign stuff, due to the above failure
-        // with opening the app on double-click.  (Create our own pass-thru class
-        // that get's compiled only the on the mac, and bundled as a lib for the main
-        // build for other platforms).
-        //
-        // Note that attempting to combine the below with the above forces one of them to always break.
-        
-        /*
-        MRJApplicationUtils.registerOpenDocumentHandler(new MRJOpenDocumentHandler() {
-                public void handleOpenFile(File file) {
-                    System.out.println("VUE: MRJOpenDocumentHandler: " + file);
-                    VUE.displayMap(file);
-                }
-            });
-        */
     }
 
     private static final boolean ToolbarAtTopScreen = false && VueUtil.isMacPlatform();
@@ -654,6 +645,45 @@ public class VUE
         DockWindow ObjectInspector = GUI.createDockWindow("Info",inspectorPane);
         ObjectInspector.setMenuName("Info / Preview");
         ObjectInspector.setHeight(575);
+
+        /*
+
+        final DockWindow slideDock = GUI.createDockWindow(new tufts.vue.ui.SlideViewer(null));
+        slideDock.setLocation(100,100);
+        VueAction defSize;
+        slideDock.setMenuActions(new Action[] {
+                Actions.ZoomFit,
+                Actions.ZoomActual,
+                defSize = new VueAction("1/8 Screen") {
+                    public void act() {
+                        GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock);
+                        Rectangle screen = gc.getBounds();
+                        slideDock.setSize(screen.width / 4, screen.height / 4);
+                        //GUI.refreshGraphicsInfo();
+                        //slideDock.setSize(GUI.GScreenWidth / 4, GUI.GScreenHeight / 4);
+                    }
+                },
+                new VueAction("1/4 Screen") {
+                    public void act() {
+                        GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock);
+                        Rectangle screen = gc.getBounds();
+                        slideDock.setSize(screen.width / 2, screen.height / 2);
+                        //GUI.refreshGraphicsInfo();
+                        //slideDock.setSize(GUI.GScreenWidth / 2, GUI.GScreenHeight / 2);
+                    }
+                },
+                new VueAction("Maximize") {
+                    public void act() {
+                        slideDock.setBounds(GUI.getMaximumWindowBounds(slideDock));
+                    }
+                },
+                
+            });
+        defSize.act();
+
+        */
+        
+        
         
         //-----------------------------------------------------------------------------
         // Object Inspector
@@ -729,6 +759,7 @@ public class VUE
             //fontDock,
             //linkDock,
             toolbarDock,
+            //slideDock,
             
         };
 
@@ -828,7 +859,8 @@ public class VUE
         }
         */
 
-        VUE.displayMap(new LWMap("New Map"));
+        if (FilesToOpen.size() == 0)
+            VUE.displayMap(new LWMap("New Map"));
 
         // Generally, we need to wait until java 1.5 JSplitPane's have been validated to
         // use the % set divider location.  Unfortunately there's a bug in at MacOS java
