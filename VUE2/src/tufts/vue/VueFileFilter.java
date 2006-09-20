@@ -31,7 +31,8 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         imap = {"imap"}, 
         vue = {"vue", "xml"},
         rdf = {"rdf"},
-        zip = {"zip"};
+        zip = {"zip"},
+		rli = {"rli.xml"};
     private String[] extensions;
     private String description;
     
@@ -58,6 +59,9 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         
         else if (description.equals("Image Map"))
           extensions = imap;
+        
+        else if (description.equals("IMS Resource List"))
+			extensions = rli;
         
         else if (description.equals("vue") || description.equals("xml")) {
             extensions = vue;
