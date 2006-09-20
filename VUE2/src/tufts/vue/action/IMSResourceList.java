@@ -41,9 +41,9 @@ import tufts.vue.*;
  </resourceList>
  */
 
-public class ResourceList
+public class IMSResourceList
 {
-	public ResourceList() 
+	public IMSResourceList() 
 	{		
 	}
 	

@@ -112,7 +112,7 @@ public class SaveAction extends VueAction
             String name = file.getName().toLowerCase();
 
             if (name.endsWith(".rli.xml")) {
-				new ResourceList().convert(map,file);
+				new IMSResourceList().convert(map,file);
 			}
             
 			else if (name.endsWith(".xml") || name.endsWith(".vue"))
