@@ -21,7 +21,7 @@ import javax.swing.JCheckBoxMenuItem;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-08-12 20:27:41 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-09-20 19:42:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -159,11 +159,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.addSeparator();
         editMenu.add(Actions.SelectAll);
         editMenu.add(Actions.DeselectAll);
-        editMenu.addSeparator();
+        //editMenu.addSeparator();
 //        editMenu.add(Actions.editDataSource);
 //        editMenu.addSeparator();
-        editMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
-        editMenu.add(Images.ClearCacheAction);
+        //editMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
+        //editMenu.add(Images.ClearCacheAction);
         
         viewMenu.add(Actions.ZoomIn);
         viewMenu.add(Actions.ZoomOut);
