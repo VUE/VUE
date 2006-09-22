@@ -39,7 +39,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.32 $ / $Date: 2006-09-21 14:05:39 $ / $Author: mike $
+ * @version $Revision: 1.33 $ / $Date: 2006-09-22 14:37:28 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -171,45 +171,45 @@ public class InspectorPane extends JPanel
     
     public void showKeywordView()
     {
-    	if (mSummaryPane.isVisible())
+    	if (!Widget.isHidden(mSummaryPane) && !Widget.isExpanded(mSummaryPane))
     		Widget.setExpanded(mSummaryPane, true);
-    	if (mNotePanel.isVisible())
+    	if (!Widget.isHidden(mNotePanel) && Widget.isExpanded(mNotePanel))
     		Widget.setExpanded(mNotePanel, false);
-    	if (mResourceMetaData.isVisible())
+    	if (!Widget.isHidden(mResourceMetaData) && Widget.isExpanded(mResourceMetaData))
     		Widget.setExpanded(mResourceMetaData, false);
-    	if (mPreview.isVisible())
+    	if (!Widget.isHidden(mPreview) && Widget.isExpanded(mPreview))
     		Widget.setExpanded(mPreview, false);
-    	if (mUserMetaData.isVisible())
+    	if (!Widget.isHidden(mUserMetaData) && !Widget.isExpanded(mUserMetaData))
     		Widget.setExpanded(mUserMetaData, true);
     	
     }
     
     public void showNotesView()
     {
-    	if (mSummaryPane.isVisible())
+    	if (!Widget.isHidden(mSummaryPane) && !Widget.isExpanded(mSummaryPane))    		
     		Widget.setExpanded(mSummaryPane, true);
-    	if (mNotePanel.isVisible())
+    	if (!Widget.isHidden(mNotePanel) && !Widget.isExpanded(mNotePanel))
     		Widget.setExpanded(mNotePanel, true);
-    	if (mResourceMetaData.isVisible())
+    	if (!Widget.isHidden(mResourceMetaData) && Widget.isExpanded(mResourceMetaData))
     		Widget.setExpanded(mResourceMetaData, false);
-    	if (mPreview.isVisible())
+    	if (!Widget.isHidden(mPreview) && Widget.isExpanded(mPreview))
     		Widget.setExpanded(mPreview, false);
-    	if (mUserMetaData.isVisible())
+    	if (!Widget.isHidden(mUserMetaData) && Widget.isExpanded(mUserMetaData))
     		Widget.setExpanded(mUserMetaData, false);
     	
     }
     
     public void showInfoView()
     {
-    	if (mSummaryPane.isVisible())
+    	if (!Widget.isHidden(mSummaryPane) && !Widget.isExpanded(mSummaryPane))
     		Widget.setExpanded(mSummaryPane, true);
-    	if (mNotePanel.isVisible())
+    	if (!Widget.isHidden(mNotePanel) && !Widget.isExpanded(mNotePanel))
     		Widget.setExpanded(mNotePanel, true);
-    	if (mResourceMetaData.isVisible())
+    	if (!Widget.isHidden(mResourceMetaData) && !Widget.isExpanded(mResourceMetaData))
     		Widget.setExpanded(mResourceMetaData, true);
-    	if (mPreview.isVisible())
+    	if (!Widget.isHidden(mPreview) && !Widget.isExpanded(mPreview))
     		Widget.setExpanded(mPreview, true);
-    	if (mUserMetaData.isVisible())
+    	if (!Widget.isHidden(mUserMetaData) && Widget.isExpanded(mUserMetaData))
     		Widget.setExpanded(mUserMetaData, false);
     	
     }

@@ -43,7 +43,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.11 $ / $Date: 2006-09-13 16:15:33 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2006-09-22 14:37:28 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -64,6 +64,12 @@ public class Widget extends javax.swing.JPanel
         setBoolean(c, TITLE_HIDDEN_KEY, hidden);
     }
     
+    public static boolean isHidden(JComponent c)
+    {
+    	Boolean currentProp = (Boolean)c.getClientProperty(HIDDEN_KEY);
+    	boolean current = currentProp == null ? false : currentProp.booleanValue();
+    	return current;
+    }
     /** Hide the entire widget, including it's title.  Do not affect expansion state. */
     public static void setHidden(JComponent c, boolean hidden) {
         // make sure instance method called in case it was overriden
@@ -93,6 +99,12 @@ public class Widget extends javax.swing.JPanel
             setExpandedImpl(c, expanded);
     }
     
+    public static boolean isExpanded(JComponent c)
+    {
+    	Boolean currentProp = (Boolean)c.getClientProperty(EXPANSION_KEY);
+    	boolean current = currentProp == null ? false : currentProp.booleanValue();
+    	return current;
+    }
     protected static void setExpandedImpl(JComponent c, boolean expanded) {
         if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setExpanded " + expanded);
         //c.putClientProperty(EXPANSION_KEY, expanded ? Boolean.TRUE : Boolean.FALSE);
