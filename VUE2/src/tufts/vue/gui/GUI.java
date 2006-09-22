@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.57 $ / $Date: 2006-09-19 01:18:25 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2006-09-22 13:39:02 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -654,7 +654,12 @@ public class GUI
         // always stay on top of their parent, but not on top of other windows,
         // including "grandparents".)
         
-        if (UseAlwaysOnTop && Util.getJavaVersion() >= 1.5f) {
+    	if (Util.isUnixPlatform() && Util.getJavaVersion() >= 1.5f)
+    	{
+    		//There are a bunch of focus problems on Unix, hopefully this clears it up.
+    		return new DockWindow(title,VUE.getRootWindow(),null,asToolbar);
+    	}
+    	else if (UseAlwaysOnTop && Util.getJavaVersion() >= 1.5f) {
             DockWindow dockWindow
                 = new DockWindow(title, DockWindow.getHiddenFrame(), null, asToolbar);
             dockWindow.setFocusableWindowState(false);
