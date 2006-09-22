@@ -39,7 +39,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.33 $ / $Date: 2006-09-22 14:37:28 $ / $Author: mike $
+ * @version $Revision: 1.34 $ / $Date: 2006-09-22 19:40:56 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -173,15 +173,8 @@ public class InspectorPane extends JPanel
     {
     	if (!Widget.isHidden(mSummaryPane) && !Widget.isExpanded(mSummaryPane))
     		Widget.setExpanded(mSummaryPane, true);
-    	if (!Widget.isHidden(mNotePanel) && Widget.isExpanded(mNotePanel))
-    		Widget.setExpanded(mNotePanel, false);
-    	if (!Widget.isHidden(mResourceMetaData) && Widget.isExpanded(mResourceMetaData))
-    		Widget.setExpanded(mResourceMetaData, false);
-    	if (!Widget.isHidden(mPreview) && Widget.isExpanded(mPreview))
-    		Widget.setExpanded(mPreview, false);
     	if (!Widget.isHidden(mUserMetaData) && !Widget.isExpanded(mUserMetaData))
-    		Widget.setExpanded(mUserMetaData, true);
-    	
+    		Widget.setExpanded(mUserMetaData, true);    	
     }
     
     public void showNotesView()
@@ -189,14 +182,7 @@ public class InspectorPane extends JPanel
     	if (!Widget.isHidden(mSummaryPane) && !Widget.isExpanded(mSummaryPane))    		
     		Widget.setExpanded(mSummaryPane, true);
     	if (!Widget.isHidden(mNotePanel) && !Widget.isExpanded(mNotePanel))
-    		Widget.setExpanded(mNotePanel, true);
-    	if (!Widget.isHidden(mResourceMetaData) && Widget.isExpanded(mResourceMetaData))
-    		Widget.setExpanded(mResourceMetaData, false);
-    	if (!Widget.isHidden(mPreview) && Widget.isExpanded(mPreview))
-    		Widget.setExpanded(mPreview, false);
-    	if (!Widget.isHidden(mUserMetaData) && Widget.isExpanded(mUserMetaData))
-    		Widget.setExpanded(mUserMetaData, false);
-    	
+    		Widget.setExpanded(mNotePanel, true);    	
     }
     
     public void showInfoView()
@@ -208,10 +194,7 @@ public class InspectorPane extends JPanel
     	if (!Widget.isHidden(mResourceMetaData) && !Widget.isExpanded(mResourceMetaData))
     		Widget.setExpanded(mResourceMetaData, true);
     	if (!Widget.isHidden(mPreview) && !Widget.isExpanded(mPreview))
-    		Widget.setExpanded(mPreview, true);
-    	if (!Widget.isHidden(mUserMetaData) && Widget.isExpanded(mUserMetaData))
-    		Widget.setExpanded(mUserMetaData, false);
-    	
+    		Widget.setExpanded(mPreview, true);    	    	
     }
 
 
