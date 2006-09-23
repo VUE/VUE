@@ -38,7 +38,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.24 $ / $Date: 2006-08-03 05:33:36 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2006-09-23 21:58:25 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends MapResource {
@@ -126,10 +126,17 @@ public class CabinetResource extends MapResource {
             URL url = null;
             try {
                 url = new URL (getSpec());      //  Get the URL of this cabinet.
+            } catch (java.net.MalformedURLException ex) {
+                //if (DEBUG.Enabled) ex.printStackTrace();
+                VUE.Log.warn("CabinetResource: Illegal URL on this platform: " + getSpec());
             }
-            catch (java.net.MalformedURLException ex) {
-                ex.printStackTrace();
+
+            if (url == null) {
+                // this can happen if a Windows file URL with a C: specifier
+                // in it is used on Mac, where "file://C:\foo\bar" is NOT a legal URL.
+                return this.extension = "???";
             }
+                
 
             File file =  new File(url.getFile());  //  Extract the file portion.
             if (file.isDirectory())
