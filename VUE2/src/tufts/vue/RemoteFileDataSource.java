@@ -63,16 +63,17 @@ public class RemoteFileDataSource extends VueDataSource{
  
     public RemoteFileDataSource(String DisplayName, String address, String username, String password) throws DataSourceException {
         this.setDisplayName(DisplayName);
+        this.setAddress(address);
         this.setUserName(username);
         this.setPassword(password);
-        this.setAddress(address);
+ 
     }
     
     
-    public void setAddress(String address) throws DataSourceException {
+    public void setAddress(String address) throws DataSourceException{
         
         super.setAddress(address);
-        this.setResourceViewer();
+       
         
     }
     
@@ -88,9 +89,10 @@ public class RemoteFileDataSource extends VueDataSource{
         
     }
     
-    public void setPassword(String password){
+    public void setPassword(String password) throws DataSourceException {
         
         this.password = password;
+         this.setResourceViewer();
         
     }
     public String getPassword(){
