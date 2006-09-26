@@ -147,8 +147,8 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 					RemoteFileDataSource ds = (RemoteFileDataSource)this.oldDataSource;
 					ds.setDisplayName(p.getProperty("name"));
 					ds.setUserName(p.getProperty("username"));
-					ds.setPassword(p.getProperty("password"));
 					ds.setAddress(p.getProperty("address")); // this must be set last
+                                        ds.setPassword(p.getProperty("password"));
 					this.dsv.setActiveDataSource(this.oldDataSource); // refresh
 				}
 			}

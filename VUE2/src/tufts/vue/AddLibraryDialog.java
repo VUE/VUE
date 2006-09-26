@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.54 $ / $Date: 2006-09-15 15:38:59 $ / $Author: mike $
+ * @version $Revision: 1.55 $ / $Date: 2006-09-26 20:10:14 $ / $Author: anoop $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -478,12 +478,14 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             RemoteFileDataSource ds = (RemoteFileDataSource)this.oldDataSource;
                             ds.setDisplayName(p.getProperty("name"));
                             ds.setUserName(p.getProperty("username"));
-                            ds.setPassword(p.getProperty("password"));
-                            try {
+                           try {
                                 ds.setAddress(p.getProperty("address")); // this must be set last
+                                ds.setPassword(p.getProperty("password"));
                             } catch (Exception ex) {
                                 // ignore any error for now
                             }
+                            
+                            
                         }
                     } else {
                         try {
