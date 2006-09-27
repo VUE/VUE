@@ -160,6 +160,12 @@ implements edu.tufts.vue.dsm.OsidFactory
 		return providerLookupManager.getProviders();
 	}
 	
+	public Provider getInstalledProvider(org.osid.shared.Id providerId)
+		throws org.osid.provider.ProviderException
+	{
+		return providerInstallationManager.getInstalledProvider(providerId);
+	}
+
 	public ProviderIterator getInstalledProviders()
 		throws org.osid.provider.ProviderException
 	{

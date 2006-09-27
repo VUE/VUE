@@ -44,6 +44,9 @@ public interface OsidFactory
 	public org.osid.provider.ProviderIterator getProviders()
 		throws org.osid.provider.ProviderException;
 
+	public org.osid.provider.Provider getInstalledProvider(org.osid.shared.Id providerId)
+		throws org.osid.provider.ProviderException;
+
 	public org.osid.provider.ProviderIterator getInstalledProviders()
 		throws org.osid.provider.ProviderException;
 	

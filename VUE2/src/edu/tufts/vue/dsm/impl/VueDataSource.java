@@ -92,7 +92,7 @@ public class VueDataSource
 	{
 		try {
 			org.osid.provider.Provider provider = null;
-			provider = this.factory.getProvider(this.providerId);
+			provider = this.factory.getInstalledProvider(this.providerId);
 			return (provider.needsUpdate());
 		} catch (Throwable t) {
 			return false;
@@ -102,7 +102,7 @@ public class VueDataSource
     private void setProviderValues()
     throws org.osid.provider.ProviderException {
         org.osid.provider.Provider provider = null;
-        provider = this.factory.getProvider(this.providerId);
+        provider = this.factory.getInstalledProvider(this.providerId);
         this.osidName = provider.getOsidName();
         this.osidBindingVersion = provider.getOsidBindingVersion();
         this.providerDisplayName = provider.getDisplayName();
