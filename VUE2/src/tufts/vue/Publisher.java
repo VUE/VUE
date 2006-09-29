@@ -47,7 +47,7 @@ import tufts.vue.action.*;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.37 $ / $Date: 2006-07-25 00:17:20 $ / $Author: peter $
+ * @version $Revision: 1.38 $ / $Date: 2006-09-29 15:14:28 $ / $Author: mike $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
     
@@ -95,7 +95,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     JButton finishButton;
     JRadioButton publishMapRButton;
     JRadioButton publishCMapRButton;
-    JRadioButton publishAllRButton;
+   // JRadioButton publishAllRButton;
     JTextArea informationArea;
     public static Vector resourceVector;
     File activeMapFile;
@@ -160,20 +160,20 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         buttonPanel.setLayout(buttonLayout);
         publishMapRButton = new JRadioButton("Export Map");
         publishCMapRButton = new JRadioButton("Export IMSCP Map");
-        publishAllRButton = new JRadioButton("Export All");
+ //       publishAllRButton = new JRadioButton("Export All");
         publishMapRButton.setToolTipText("Export map only without local resource files.");
         publishCMapRButton.setToolTipText("Export IMS content package that include local resource files.");
-        publishAllRButton.setToolTipText("Export map and local resources as separate files.");
+//        publishAllRButton.setToolTipText("Export map and local resources as separate files.");
         publishMapRButton.addActionListener(this);
         publishCMapRButton.addActionListener(this);
-        publishAllRButton.addActionListener(this);
+     //   publishAllRButton.addActionListener(this);
         modeSelectionGroup.add(publishMapRButton);
         modeSelectionGroup.add(publishCMapRButton);
-        modeSelectionGroup.add(publishAllRButton);
+      //  modeSelectionGroup.add(publishAllRButton);
         //buttonPanel.add(modeLabel);
         buttonPanel.add(publishMapRButton);
         buttonPanel.add(publishCMapRButton);
-        buttonPanel.add(publishAllRButton);
+     //   buttonPanel.add(publishAllRButton);
         JPanel bottomPanel = new JPanel();
         // bottomPanel.setBorder(new LineBorder(Color.BLACK));
         
@@ -394,8 +394,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             }else {
                 if(publishCMapRButton.isSelected())
                     publishCMap();
-                if(publishAllRButton.isSelected())
-                    publishAll();
+        //        if(publishAllRButton.isSelected())
+         //           publishAll();
             }
         }
         if(e.getSource() == nextButton) {
@@ -423,18 +423,18 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             publishMode = PUBLISH_MAP;
             updatePublishPanel();
         }
-        if(e.getSource() == publishCMapRButton || e.getSource() == publishAllRButton) {
+        if(e.getSource() == publishCMapRButton /*|| e.getSource() == publishAllRButton*/) {
             finishButton.setEnabled(false);
             nextButton.setEnabled(true);
             publishMode = PUBLISH_CMAP;
             updatePublishPanel();
         }
-        if(e.getSource() == publishAllRButton) {
+     /*   if(e.getSource() == publishAllRButton) {
             finishButton.setEnabled(false);
             nextButton.setEnabled(true);
             publishMode = PUBLISH_ALL;
             updatePublishPanel();
-        }
+        }*/
         if(e.getSource() == dataSourceComboBox) {
             Publishable p = (Publishable)dataSourceComboBox.getSelectedItem();
             if(p.supportsMode(Publishable.PUBLISH_MAP))
@@ -445,11 +445,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 publishCMapRButton.setEnabled(true);
             else 
                 publishCMapRButton.setEnabled(false);
-            if(p.supportsMode(Publishable.PUBLISH_ALL))
+           /* if(p.supportsMode(Publishable.PUBLISH_ALL))
                 publishAllRButton.setEnabled(true);
             else 
                 publishAllRButton.setEnabled(false);
-            
+            */
         }
         
     }
