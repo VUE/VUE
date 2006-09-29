@@ -55,7 +55,7 @@ public class RemoteCabinetEntry implements osid.filing.CabinetEntry {
     private java.util.Date accessed_time;
     private Vector modified_times;
     private osid.filing.Cabinet parent = null;
-    
+    protected RemoteClient rc;
     /**
      *  Creates a new instance of CabinetEntry.
      *  Requires that a display name, agent owner, and parent cabinet be passed.
@@ -63,8 +63,8 @@ public class RemoteCabinetEntry implements osid.filing.CabinetEntry {
      *  @author Mark Norton
      *
      */
-    public RemoteCabinetEntry(String displayName, osid.shared.Agent agentOwner, osid.filing.Cabinet parentCabinet) {
-
+    public RemoteCabinetEntry(String displayName, osid.shared.Agent agentOwner, osid.filing.Cabinet parentCabinet, RemoteClient rc) {
+        this.rc = rc;
         /*  Get a new unique ID for this CabinetEntry.  */
         try {
             id = new Id();
