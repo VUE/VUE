@@ -70,10 +70,10 @@ public class RemoteFilingManager extends tufts.oki.OsidManager implements osid.f
      */     
     public void createClient(String host, String username, String password) throws osid.filing.FilingException {
         try {
-            RemoteClient xx = new RemoteClient (host, username, password);
-            FTPClient client = RemoteClient.getClient();
+            RemoteClient rc = new RemoteClient (host, username, password);
+            FTPClient client = rc.getClient();
             tufts.oki.shared.Agent agent = new tufts.oki.shared.Agent(username, new tufts.oki.shared.AgentPersonType());
-            this.root = new RemoteCabinet("/", agent, null);
+            this.root = new RemoteCabinet("/", agent, null,rc);
             this.cwd = this.root;           //  Set the root as current working directory.
             cwd.entries();
         }
@@ -180,7 +180,11 @@ public class RemoteFilingManager extends tufts.oki.OsidManager implements osid.f
      *
      *  @author Mark Norton
      */
+  //These method's should be either in RemoteClient or RemoteClient should be passed to them
+  //Commented them, NEED TO REDESIGN- Anoop
     public void setWorkingDirectory (RemoteCabinet cabinet) throws osid.filing.FilingException {
+        throw new osid.filing.FilingException(osid.filing.FilingException.UNSUPPORTED_OPERATION );
+        /**
         cwd = cabinet;
         
         //  Do a remote Change Working Directory command.
@@ -192,6 +196,7 @@ public class RemoteFilingManager extends tufts.oki.OsidManager implements osid.f
         catch (java.io.IOException ex) {
             throw new osid.filing.FilingException (osid.filing.FilingException.IO_ERROR);
         }
+         */
     }
     
     /**
@@ -203,6 +208,8 @@ public class RemoteFilingManager extends tufts.oki.OsidManager implements osid.f
      *  @author Mark Norton
      */
     public void setWorkingDirectory (String cabName) throws osid.filing.FilingException {
+          throw new osid.filing.FilingException(osid.filing.FilingException.UNSUPPORTED_OPERATION );
+          /**
         osid.filing.CabinetEntry entry = cwd.getCabinetEntryByName(cabName);
         
         if (!(entry instanceof RemoteCabinet)) {
@@ -230,6 +237,7 @@ public class RemoteFilingManager extends tufts.oki.OsidManager implements osid.f
         
         cwd = (RemoteCabinet) entry;
         cwd.entries();      //  Make sure it is initialized
+           */
     }
     
     /**
