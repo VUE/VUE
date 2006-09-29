@@ -57,9 +57,8 @@ public class RemoteCabinet extends RemoteCabinetEntry implements osid.filing.Cab
      * @author Mark Norton
      *
      */
-    public RemoteCabinet(String displayName, osid.shared.Agent agentOwner, osid.filing.Cabinet parent) {
-        super(displayName, agentOwner, parent);
-        
+    public RemoteCabinet(String displayName, osid.shared.Agent agentOwner, osid.filing.Cabinet parent, RemoteClient rc) {
+        super(displayName, agentOwner, parent,rc);
         children = new Vector(100);
         //FilingCabinetType type = new FilingCabinetType();
         //properties = new osid_mjn.shared.Properties(type);
@@ -146,10 +145,9 @@ public class RemoteCabinet extends RemoteCabinetEntry implements osid.filing.Cab
         
         osid.filing.ByteStore bs = null;
         try {
-            bs = new RemoteByteStore(name, this);
+            bs = new RemoteByteStore(name, this,rc);
             this.add(bs);
-        }
-        catch (osid.OsidException ex) {
+        } catch (osid.OsidException ex) {
         }
         return bs;
     }
@@ -166,15 +164,14 @@ public class RemoteCabinet extends RemoteCabinetEntry implements osid.filing.Cab
         
         //  Create the new cabinet entry.
         osid.shared.Agent agentOwner = super.getCabinetEntryAgent();
-        RemoteCabinet entry = new RemoteCabinet(displayName, agentOwner, this);
+        RemoteCabinet entry = new RemoteCabinet(displayName, agentOwner, this,rc);
         
         //  Make a directory on the remote file system.
         try {
-            FTPClient client = RemoteClient.getClient();
+            FTPClient client = rc.getClient();
             if (!client.makeDirectory(entry.getFullName()))
                 throw new osid.filing.FilingException(osid.filing.FilingException.ITEM_ALREADY_EXISTS);
-        }
-        catch (java.io.IOException ex) {
+        } catch (java.io.IOException ex) {
             throw new osid.filing.FilingException(osid.filing.FilingException.IO_ERROR);
         }
         
@@ -199,10 +196,12 @@ public class RemoteCabinet extends RemoteCabinetEntry implements osid.filing.Cab
             //  Initialize the directory by getting all entries contained in it.
             FTPFile[] files = null;
             try {
-                String rootBase = RemoteClient.getRootBase();
+                String rootBase = rc.getRootBase();
                 RemotePath path = new RemotePath(rootBase, this);
                 String pathname = path.getPathString();
-                FTPClient client = RemoteClient.getClient();
+                //System.out.println("PATHNAME:"+pathname);
+                FTPClient client = rc.getClient();
+                
                 files = client.listFiles(pathname);    // Executes an FTP LIST command.
                 osid.shared.Agent agentOwner = super.getCabinetEntryAgent();
                 
@@ -210,21 +209,19 @@ public class RemoteCabinet extends RemoteCabinetEntry implements osid.filing.Cab
                 // Note that there is a lot of other information in the FTPFile objects which
                 // could be added to the entries being created here.  In particular, creation
                 // date.
-                for (int i = 0; i < files.length; i++) {
+                for (int i = 0;files != null && i < files.length; i++) {
                     if (files[i].isDirectory()) {
                         //System.out.println ("\tDir " + i + ": " + files[i].getName());
                         //RemoteCabinet cab = (RemoteCabinet) this.createCabinet (files[i].getName());
-                        add(new RemoteCabinet(files[i].getName(), agentOwner, this));
-                    }
-                    else if (files[i].isFile()) {
+                        add(new RemoteCabinet(files[i].getName(), agentOwner, this,rc));
+                    } else if (files[i].isFile()) {
                         //System.out.println ("\tFile " + i + ": " + files[i].getName());
                         //RemoteByteStore store = (RemoteByteStore) this.createByteStore (files[i].getName());
-                        add(new RemoteByteStore(files[i].getName(), this));
+                        add(new RemoteByteStore(files[i].getName(), this,rc));
                     }
                     //  Unknown cases are ignored.
                 }
-            }
-            catch (java.io.IOException ex1) {
+            } catch (java.io.IOException ex1) {
                 throw new osid.filing.FilingException(osid.filing.FilingException.IO_ERROR);
             }
             
@@ -268,8 +265,7 @@ public class RemoteCabinet extends RemoteCabinetEntry implements osid.filing.Cab
                 if (id.isEqual(entry.getId())) {
                     return (osid.filing.CabinetEntry) entry;
                 }
-            }
-            catch (osid.shared.SharedException ex) {
+            } catch (osid.shared.SharedException ex) {
                 /*  Not exactly sure what could go wrong with an Id comparison,
                  *  but the compiler insists on catching this exception.
                  *  This will fall through to ITEM_DOES_NOT_EXIST exception throw.
@@ -362,8 +358,7 @@ public class RemoteCabinet extends RemoteCabinetEntry implements osid.filing.Cab
                 if (entry_id.isEqual(ent.getId())) {
                     children.remove(entry);
                 }
-            }
-            catch (osid.shared.SharedException ex) {
+            } catch (osid.shared.SharedException ex) {
                 /*  Unlikely that isEqual() will throw a SharedException.  */
             }
         }
@@ -413,7 +408,8 @@ public class RemoteCabinet extends RemoteCabinetEntry implements osid.filing.Cab
      *  @author Mark Norton
      */
     public String getFullName() {
-        StringBuffer fn = new StringBuffer(RemoteClient.getRootBase());
+        StringBuffer fn = new StringBuffer(rc.getRootBase());
+        fn = new StringBuffer();
         ArrayList parts = new ArrayList(100);
         
         //  Walk path to root.
@@ -429,7 +425,7 @@ public class RemoteCabinet extends RemoteCabinetEntry implements osid.filing.Cab
         }
         
         //  Add the final file name.
-        fn.append("/" + getDisplayName());
+       // fn.append("/" + getDisplayName()); //:REMOVED not needed
         
         return fn.toString();
     }
@@ -443,13 +439,12 @@ public class RemoteCabinet extends RemoteCabinetEntry implements osid.filing.Cab
     public void rename(String newName) throws osid.filing.FilingException {
         //  Check the name of the directory on the remote file system.
         try {
-            FTPClient client = RemoteClient.getClient();
+            FTPClient client = rc.getClient();
             if (getParent() == null)
-                client.rename(getFullName(), RemoteClient.getRootBase() + "/" + newName);
+                client.rename(getFullName(), rc.getRootBase() + "/" + newName);
             else
                 client.rename(getFullName(), ((RemoteCabinet)getParent()).getFullName() + "/" + newName);
-        }
-        catch (java.io.IOException ex) {
+        } catch (java.io.IOException ex) {
             throw new osid.filing.FilingException(osid.filing.FilingException.IO_ERROR);
         }
         
@@ -457,6 +452,7 @@ public class RemoteCabinet extends RemoteCabinetEntry implements osid.filing.Cab
         updateDisplayName(newName);
     }
     public String getUrl() {
-        return "ftp://"+RemoteClient.getUserName()+":"+RemoteClient.getPassword()+"@"+ RemoteClient.getServerName() + this.getFullName();
-    }
+        String url = "ftp://"+rc.getUserName()+":"+rc.getPassword()+"@"+ rc.getServerName() + this.getFullName();
+        //System.out.println("CABINET URL:"+ url);
+        return url;    }
 }

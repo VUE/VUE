@@ -55,8 +55,9 @@ public class RemoteByteStore extends RemoteCabinetEntry implements osid.filing.B
      *  @author Mark Norton
      *
      */
-    public RemoteByteStore(String displayName, osid.filing.Cabinet parent) throws osid.filing.FilingException {
-        super(displayName, parent.getCabinetEntryAgent(), parent);
+    public RemoteByteStore(String displayName, osid.filing.Cabinet parent, RemoteClient rc) throws osid.filing.FilingException {
+        super(displayName, parent.getCabinetEntryAgent(), parent,rc);
+      
     }
     
     /**
@@ -317,11 +318,11 @@ public class RemoteByteStore extends RemoteCabinetEntry implements osid.filing.B
     public long length() throws osid.filing.FilingException {
         long length = 0;
         try {
-            FTPClient client = RemoteClient.getClient();
+            FTPClient client = rc.getClient();
             client.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
             //  The file to open consists of the root base plus, path to current directory plus name.
-            //String fn = RemoteClient.getRootBase() + ((RemoteCabinet)getParent()).separator() + getDisplayName();
-            //String fn = RemoteClient.getRootBase() + "/" + getDisplayName();
+            //String fn = rc.getRootBase() + ((RemoteCabinet)getParent()).separator() + getDisplayName();
+            //String fn = rc.getRootBase() + "/" + getDisplayName();
             String fn = getFullName();
             //System.out.println("length - file name to open: " + fn);
             FTPFile[] replies = client.listFiles(__fileListParser, fn);
@@ -369,7 +370,7 @@ public class RemoteByteStore extends RemoteCabinetEntry implements osid.filing.B
 
         //System.out.println ("getBytes - file name to retrieve: " + fn);
         try {
-            FTPClient client = RemoteClient.getClient();
+            FTPClient client = rc.getClient();
             stream = client.retrieveFileStream(fn);
         }
         catch (java.io.IOException ex1) {
@@ -421,7 +422,7 @@ public class RemoteByteStore extends RemoteCabinetEntry implements osid.filing.B
 
         String fn = getFullName();
         try {
-            FTPClient client = RemoteClient.getClient();
+            FTPClient client = rc.getClient();
             stream = client.storeFileStream(fn);
         }
         catch (java.io.IOException ex1) {
@@ -471,7 +472,7 @@ public class RemoteByteStore extends RemoteCabinetEntry implements osid.filing.B
      *  Get the full file name of this byte store, all the way from the absolute root.
      */
     public String getFullName() {
-        StringBuffer fn = new StringBuffer(RemoteClient.getRootBase());
+        StringBuffer fn = new StringBuffer("/");
         ArrayList parts = new ArrayList(100);
         
         //  Walk path to root.
@@ -479,6 +480,7 @@ public class RemoteByteStore extends RemoteCabinetEntry implements osid.filing.B
         while (ptr.getParent() != null) {
             parts.add(0, ptr.getDisplayName());
             ptr = (RemoteCabinet)ptr.getParent();
+            // System.out.println("GETTING FN: parent "+ptr.getDisplayName());
         }
         
         //  Add intermediate path to file name.
@@ -492,6 +494,8 @@ public class RemoteByteStore extends RemoteCabinetEntry implements osid.filing.B
         return fn.toString();
     }
      public String getUrl() {
-        return "ftp://"+RemoteClient.getUserName()+":"+RemoteClient.getPassword()+"@"+ RemoteClient.getServerName() + this.getFullName();
+       String url = "ftp://"+rc.getUserName()+":"+rc.getPassword()+"@"+ rc.getServerName() + this.getFullName();
+       //System.out.println("URL:"+ url);
+        return url;
     }
 }
