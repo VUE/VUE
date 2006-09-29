@@ -32,17 +32,17 @@ import java.util.*;
  *  and password is required to establish the connection.  checkClient() can be used
  *  to check to see if the connection is still present, and if not, re-establish it.
  *  <p>
- *  Since RemoteClient uses static variables and methods, only one FTP session can be
+ *  Since RemoteClient uses  variables and methods, only one FTP session can be
  *  active at a particular time.  Usually, this is not a limitation.
  *
  *  @author  Mark Norton
  */
 public class RemoteClient {
-    private static String server = null;        //  Cached remote server name.
-    private static String username = null;      //  Cached user name for remote server.
-    private static String password = null;      //  Cached password for remote server.
-    private static String rootBase = null;      //  Cached root base.
-    private static FTPClient client = null;     //  Current FTP client and session.
+    private  String server = null;        //  Cached remote server name.
+    private  String username = null;      //  Cached user name for remote server.
+    private  String password = null;      //  Cached password for remote server.
+    private  String rootBase = null;      //  Cached root base.
+    private  FTPClient client = null;     //  Current FTP client and session.
     
     /**
      *  Creates a new instance of RemoteClient.  Client is opened based on host, username,
@@ -69,7 +69,7 @@ public class RemoteClient {
     /**
      *  Close the client connection.
      */
-    public static void disconnect() throws osid.filing.FilingException {
+    public  void disconnect() throws osid.filing.FilingException {
         if (client != null) {
             try {
                 client.disconnect();
@@ -84,7 +84,7 @@ public class RemoteClient {
     /**
      *  Checks if the filing manager has an ftp client.
      */
-    public static boolean hasClient() {
+    public  boolean hasClient() {
         return (client != null);
     }
     
@@ -95,7 +95,7 @@ public class RemoteClient {
      *  Functions should be encapsulated in the FTPFilingManager.  This is a candidate for
      *  removal, but is left in place for testing purposes.
      */
-    public static FTPClient getClient() throws osid.filing.FilingException {
+    public  FTPClient getClient() throws osid.filing.FilingException {
         checkClient();  //  Check to make sure connection is still active.
         return client;
     }
@@ -105,7 +105,7 @@ public class RemoteClient {
      *
      *  author Mark Norton
      */
-    public static String getRootBase() {
+    public  String getRootBase() {
         return rootBase;
     }
     
@@ -117,7 +117,7 @@ public class RemoteClient {
      *  made to the initialization of root, or the current working directory.
      *
      */
-    private static void checkClient() throws osid.filing.FilingException {
+    private  void checkClient() throws osid.filing.FilingException {
         if (client == null)
             throw new osid.filing.FilingException(osid.filing.FilingException.ITEM_DOES_NOT_EXIST);
         
@@ -138,15 +138,15 @@ public class RemoteClient {
         //}
     }
     
-    public static String getServerName() {
+    public  String getServerName() {
         return server;
     }
     
-    public static String getUserName() {
+    public  String getUserName() {
         return username;
     }
     
-    public static String getPassword() {
+    public  String getPassword() {
         return password;
     }
     
