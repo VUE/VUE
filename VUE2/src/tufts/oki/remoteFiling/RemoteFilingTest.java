@@ -93,24 +93,24 @@ public class RemoteFilingTest {
 
         fm = new RemoteFilingManager();
         fm.createClient(server, username, password);
-        FTPClient client = RemoteClient.getClient();
+        //FTPClient client = rc.getClient();
         
         //  Print the root base to confirm connection.
-        System.out.println ("Root Base: " + RemoteClient.getRootBase());
+       // System.out.println ("Root Base: " + rc.getRootBase());
         
         //  Open the root directory and list it's contents.
         printFilesInCurrent ();
 
         //  Get the current working directory.
         RemoteCabinet cwd = fm.getWorkingDirectory();
-        System.out.println ("Current working directory: " + client.printWorkingDirectory());
+        //System.out.println ("Current working directory: " + client.printWorkingDirectory());
         
         //  Change the current working directory.
         fm.setWorkingDirectory ("www");
-        System.out.println ("Current working directory: " + client.printWorkingDirectory());
+        //System.out.println ("Current working directory: " + client.printWorkingDirectory());
         //printFilesInCurrent ();
         fm.setWorkingDirectory ("consult");
-        System.out.println ("Current working directory: " + client.printWorkingDirectory());
+       // System.out.println ("Current working directory: " + client.printWorkingDirectory());
         //printFilesInCurrent ();
 
         cwd = fm.getWorkingDirectory();
