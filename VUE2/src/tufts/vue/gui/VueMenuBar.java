@@ -21,7 +21,7 @@ import javax.swing.JCheckBoxMenuItem;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-09-20 19:42:27 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2006-09-29 15:07:54 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -218,10 +218,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         }
         
         //optionsMenu.add(new UserDataAction());
-        
-        helpMenu.add(new ShowURLAction("VUE Online", "http://vue.tccs.tufts.edu/"));
-        helpMenu.add(new ShowURLAction("User Guide", "http://vue.tccs.tufts.edu/userdoc/"));
 
+        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.vueWebsite.label"), VueResources.getString("helpMenu.vueWebsite.url")));
+        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.userGuide.label"), VueResources.getString("helpMenu.userGuide.url")));
+        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.feedback.label"), VueResources.getString("helpMenu.feedback.url"))); 
         if (tufts.Util.isMacPlatform() == false) {
             // already in standard MacOSX place
             helpMenu.add(new AboutAction());
