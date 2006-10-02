@@ -50,8 +50,7 @@ import org.xml.sax.InputSource;
 import tufts.vue.gui.*;
 
 public class DataSourceViewer extends JPanel
-    implements KeyListener, edu.tufts.vue.fsm.event.SearchListener
-{
+        implements KeyListener, edu.tufts.vue.fsm.event.SearchListener {
     private static final boolean UseFederatedSearchManager = false;
     
     private static DRBrowser DRB;
@@ -102,7 +101,7 @@ public class DataSourceViewer extends JPanel
     
     private org.osid.OsidContext context = new org.osid.OsidContext();
     org.osid.registry.Provider checked[];
-
+    
     private final ThreadGroup mSearchThreadGroup;
     
     public DataSourceViewer(DRBrowser drBrowser) {
@@ -133,7 +132,7 @@ public class DataSourceViewer extends JPanel
                 dataSourceList.addOrdered(dataSources[i]);
             }
         } catch (Throwable t) {
-			t.printStackTrace();
+            t.printStackTrace();
             VueUtil.alert("Error loading data source","Error");
         }
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
@@ -151,7 +150,7 @@ public class DataSourceViewer extends JPanel
         DRB.searchPane.add((JPanel) queryEditor, DRBrowser.SEARCH_EDITOR);
         DRB.searchPane.revalidate();
         DRB.searchPane.repaint();
-        // WORKING: stop using this preview panel?        
+        // WORKING: stop using this preview panel?
         queryEditor.addSearchListener(VUE.getInspectorPane());
         //this.previewPanel = previewDockWindow.getWidgetPanel();
         //resultSetDockWindow = DRB.searchDock;
@@ -262,13 +261,10 @@ public class DataSourceViewer extends JPanel
         DRB.browsePane.removeAll();
         DRB.browsePane.add(ds.getResourceViewer());
         
-        if (ds instanceof LocalFileDataSource)
-        {
-        	Widget.setRefreshAction(DRB.browsePane,(MouseListener)refreshDSMouseListener);
-        }
-        else
-        {
-        	Widget.setRefreshAction(DRB.browsePane,null);
+        if (ds instanceof LocalFileDataSource) {
+            Widget.setRefreshAction(DRB.browsePane,(MouseListener)refreshDSMouseListener);
+        } else {
+            Widget.setRefreshAction(DRB.browsePane,null);
         }
         
         DRB.browsePane.revalidate();
@@ -282,13 +278,10 @@ public class DataSourceViewer extends JPanel
         Widget.setExpanded(DRB.searchPane, true);
         queryEditor.refresh();
         
-        if (ds instanceof LocalFileDataSource)
-        {
-        	Widget.setRefreshAction(DRB.browsePane,(MouseListener)refreshDSMouseListener);
-        }
-        else
-        {
-        	Widget.setRefreshAction(DRB.browsePane,null);
+        if (ds instanceof LocalFileDataSource) {
+            Widget.setRefreshAction(DRB.browsePane,(MouseListener)refreshDSMouseListener);
+        } else {
+            Widget.setRefreshAction(DRB.browsePane,null);
         }
     }
     
@@ -308,7 +301,7 @@ public class DataSourceViewer extends JPanel
                     if (providerIterator.hasNextProvider()) {
                         if (updateLibraryDialog == null) {
                             updateLibraryDialog = new UpdateLibraryDialog(dataSourceList,
-																		  ((edu.tufts.vue.dsm.DataSource)dataSourceList.getSelectedValue()));
+                                    ((edu.tufts.vue.dsm.DataSource)dataSourceList.getSelectedValue()));
                         } else {
                             updateLibraryDialog.refresh();
                             updateLibraryDialog.setVisible(true);
@@ -366,7 +359,7 @@ public class DataSourceViewer extends JPanel
         
         refreshDSMouseListener = new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
-            	refreshDataSourceList();
+                refreshDataSourceList();
                 
             }
         };
@@ -383,61 +376,62 @@ public class DataSourceViewer extends JPanel
                         DefaultListModel listComponents = dataSourceList.getContents();
                         int index = dataSourceList.getContents().indexOf(ds);
                         int instanceIndex = 0;
-                        for (int p=0; p< index; p++)
-                        {
-                        	edu.tufts.vue.dsm.impl.VueDataSource o2 = (edu.tufts.vue.dsm.impl.VueDataSource)listComponents.get(p);
-                        	
-                        	if (o2.getRepositoryDisplayName() == ds.getRepositoryDisplayName())
-                        		instanceIndex++;
-                        }                                                                      
+                        for (int p=0; p< index; p++) {
+                            edu.tufts.vue.dsm.impl.VueDataSource o2 = (edu.tufts.vue.dsm.impl.VueDataSource)listComponents.get(p);
+                            
+                            if (o2.getRepositoryDisplayName() == ds.getRepositoryDisplayName())
+                                instanceIndex++;
+                        }
                         
                         if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
                                 "Do you really want to delete " + displayName,
                                 "Delete Resource",
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
                             dataSourceManager.remove(ds.getId());
-							GUI.invokeAfterAWT(new Runnable() { public void run() {
-								try {
-									synchronized (dataSourceManager) {
-										if (DEBUG.DR) out("DataSourceManager saving...");
-										dataSourceManager.save();
-										if (DEBUG.DR) out("DataSourceManager saved.");
-									}
-								} catch (Throwable t) {
-									tufts.Util.printStackTrace(t);
-								}
-							}});
+                            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                                try {
+                                    synchronized (dataSourceManager) {
+                                        if (DEBUG.DR) out("DataSourceManager saving...");
+                                        dataSourceManager.save();
+                                        if (DEBUG.DR) out("DataSourceManager saved.");
+                                    }
+                                } catch (Throwable t) {
+                                    tufts.Util.printStackTrace(t);
+                                }
+                            }});
                             dataSourceList.getContents().removeElement(ds);
                             saveDataSourceViewer();
-                                                       
-                            //delete it                            
+                            
+                            //delete it
                             WidgetStack widgetStack = (WidgetStack)DRB.resultsPane.getComponent(0);
-                            if (widgetStack != null)
-                            {
-                            	Component[] comps = widgetStack.getComponents();
-                            	int found =0;
-                            	for (int i = 0; i < comps.length; i++)
-                            	{                            	
-                            		String compName = comps[i].getName();                            	
-                            		if ((compName != null) && (compName.indexOf(displayName)!= -1))
-                            		{                            		
-                            			if ((found == instanceIndex) || (found == instanceIndex+1))                            		
-                            				widgetStack.remove(comps[i]);
-
-                            			found++;
-                            		}                            	
-                            	}
+                            if (widgetStack != null) {
+                                Component[] comps = widgetStack.getComponents();
+                                int found =0;
+                                for (int i = 0; i < comps.length; i++) {
+                                    String compName = comps[i].getName();
+                                    if ((compName != null) && (compName.indexOf(displayName)!= -1)) {
+                                        if ((found == instanceIndex) || (found == instanceIndex+1))
+                                            widgetStack.remove(comps[i]);
+                                        
+                                        found++;
+                                    }
+                                }
                             }
-                      }
+                        }
                     } else if( o instanceof tufts.vue.DataSource) {
                         tufts.vue.DataSource ds = (tufts.vue.DataSource) o;
+                        String displayName = ds.getDisplayName();
+                        
                         if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
-                                "Do you really want to delete " + ds.getDisplayName(),
+                                "Do you really want to delete " + displayName,
                                 "Delete Resource",
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
                             dataSourceList.getContents().removeElement(ds);
                             saveDataSourceViewer();
                         }
+                        DRB.browsePane.remove(ds.getResourceViewer());
+                        DRB.browsePane.revalidate();
+                        DRB.browsePane.repaint();
                     }
                 }
                 DataSourceViewer.this.popup.setVisible(false);
@@ -449,63 +443,54 @@ public class DataSourceViewer extends JPanel
     }
     
     public void refreshDataSourceList(){
-    	
-    	GUI.activateWaitCursor();
-    
-    	DataSource ds = null;
-    	DataSource oldDataSource = null;
-    	try
-    	{
-         oldDataSource = (DataSource) activeDataSource;
-    	}
-    	catch(ClassCastException cce)
-    	{
-    	 return;	
-    	}
-    	finally
-    	{
-    		GUI.clearWaitCursor();
-    	}
-    	
-    	if (oldDataSource instanceof LocalFileDataSource)
-    	{
-    		String address = ((LocalFileDataSource)oldDataSource).getAddress();
-    		String displayName = ((LocalFileDataSource)oldDataSource).getDisplayName();
-    		try
-    		{
-    			ds = new LocalFileDataSource(displayName,address);
-    		}
-    		catch(DataSourceException dse)
-    		{
-    			System.out.println("Error refreshing datasource");    			
-    			ds = oldDataSource;
-    		}
+        
+        GUI.activateWaitCursor();
+        
+        DataSource ds = null;
+        DataSource oldDataSource = null;
+        try {
+            oldDataSource = (DataSource) activeDataSource;
+        } catch(ClassCastException cce) {
+            return;
+        } finally {
+            GUI.clearWaitCursor();
+        }
+        
+        if (oldDataSource instanceof LocalFileDataSource) {
+            String address = ((LocalFileDataSource)oldDataSource).getAddress();
+            String displayName = ((LocalFileDataSource)oldDataSource).getDisplayName();
+            try {
+                ds = new LocalFileDataSource(displayName,address);
+            } catch(DataSourceException dse) {
+                System.out.println("Error refreshing datasource");
+                ds = oldDataSource;
+            }
             
-    	}
+        }
         dataSourceList.setSelectedValue(ds,true);
         Widget.setExpanded(DRB.searchPane, false);
         Widget.setExpanded(DRB.browsePane, true);
         Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
-       
+        
         DRB.browsePane.removeAll();
         DRB.browsePane.add(ds.getResourceViewer());
         DRB.browsePane.revalidate();
         DRB.browsePane.repaint();
-               
-        GUI.clearWaitCursor();        
+        
+        GUI.clearWaitCursor();
     }
     
     private void refreshMenuActions() {
         Object o = dataSourceList.getSelectedValue();
-		edu.tufts.vue.dsm.DataSource ds = null;
+        edu.tufts.vue.dsm.DataSource ds = null;
         if (o != null) {
             // for the moment, we are doing double work to keep old data sources
             if (o instanceof edu.tufts.vue.dsm.DataSource) {
                 ds = (edu.tufts.vue.dsm.DataSource)o;
-                removeLibraryAction.setEnabled(true);  
+                removeLibraryAction.setEnabled(true);
             } else if (o instanceof RemoteFileDataSource) {
                 // FTP
-                removeLibraryAction.setEnabled(true); 
+                removeLibraryAction.setEnabled(true);
             } else {
                 // My Computer and My Saved Content
                 removeLibraryAction.setEnabled(true);
@@ -516,16 +501,16 @@ public class DataSourceViewer extends JPanel
             editLibraryAction.setEnabled(false);
         }
         
-		checkForUpdatesAction.setEnabled(true);
+        checkForUpdatesAction.setEnabled(true);
         Widget.setMenuActions(DRB.librariesPanel,
                 new Action[] {
-        			addLibraryAction,
-        			checkForUpdatesAction,
-        			null,
-        			editLibraryAction,                    
-                    removeLibraryAction
+            addLibraryAction,
+            checkForUpdatesAction,
+            null,
+            editLibraryAction,
+            removeLibraryAction
         });
-                
+        
     }
     
     private boolean checkValidUser(String userName,String password,int type) {
@@ -562,7 +547,7 @@ public class DataSourceViewer extends JPanel
                 SaveDataSourceViewer rViewer = unMarshallMap(f);
                 Vector rsources = rViewer.getSaveDataSources();
                 while (!(rsources.isEmpty())){
-                	
+                    
                     DataSource ds = (DataSource)rsources.remove(0);
                     ds.setResourceViewer();
                     try {
@@ -633,7 +618,7 @@ public class DataSourceViewer extends JPanel
                 System.out.println(ds.getProviderDisplayName() + " \t" + ds);
             }
         }
-
+        
         if (UseFederatedSearchManager) {
             new Thread("VUE-Search") {
                 public void run() {
@@ -660,86 +645,76 @@ public class DataSourceViewer extends JPanel
     private static final boolean UseSingleScrollPane = true;
     
     private static class StatusLabel extends JPanel {
-    	private JLabel label = null;
-    	
-    	StatusLabel(String s, boolean center, boolean useIcon)
-    	{
-    		super();
+        private JLabel label = null;
+        
+        StatusLabel(String s, boolean center, boolean useIcon) {
+            super();
             
-            if (center)
-            {
-            	setLayout(new FlowLayout(FlowLayout.CENTER));
+            if (center) {
+                setLayout(new FlowLayout(FlowLayout.CENTER));
                 setBorder(new EmptyBorder(3,0,3,0));
-            }
-            else
-            {
-            	setLayout(new FlowLayout(FlowLayout.LEFT));
+            } else {
+                setLayout(new FlowLayout(FlowLayout.LEFT));
                 setBorder(new EmptyBorder(3,10,3,0));
             }
             
             setBackground(VueResources.getColor("dsv.statuspanel.bgColor"));
-            if (useIcon)
-            {
-            	JLabel waitIcon = new JLabel(VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
-            	this.add(waitIcon);
+            if (useIcon) {
+                JLabel waitIcon = new JLabel(VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
+                this.add(waitIcon);
             }
             label = new JLabel(s);
             this.add(label);
             
             setMinimumSize(new Dimension(getWidth(), WidgetStack.TitleHeight+10));
             setPreferredSize(new Dimension(getWidth(), WidgetStack.TitleHeight+10));
-    	}
-        StatusLabel(String s, boolean center) 
-        {
-         this(s,center,true);    
+        }
+        StatusLabel(String s, boolean center) {
+            this(s,center,true);
         }
         
-        public void setText(String s)    
-        {
-         label.setText(s);
+        public void setText(String s) {
+            label.setText(s);
         }
     }
     private static class Osid2AssetResourceFactory {
-
+        
         // TODO: Resources want to be atomic, so we should cache
         // the result of converting the Asset to a Resource, and
-        // store the resource in a hash based on the Asset to 
+        // store the resource in a hash based on the Asset to
         // return for future lookups.
         
         static Resource createResource(org.osid.repository.Asset asset,
-                                       org.osid.repository.Repository repository,
-                                       org.osid.OsidContext context)
-            throws org.osid.repository.RepositoryException
-        {
+                org.osid.repository.Repository repository,
+                org.osid.OsidContext context)
+                throws org.osid.repository.RepositoryException {
             Resource r = new Osid2AssetResource(asset, context);
             if (DEBUG.DR) r.addProperty("~Repository", repository.getDisplayName());
             return r;
         }
     }
-
+    
     private static int SearchCounter = 0;
     
-    private  class SearchThread extends Thread
-    {
+    private  class SearchThread extends Thread {
         public final Widget mResultPane;
-
+        
         private final org.osid.repository.Repository mRepository;
         private final String mSearchString;
         
         private java.io.Serializable mSearchCriteria;
         private org.osid.shared.Type mSearchType;
         private org.osid.shared.Properties mSearchProperties;
-
+        
         private final StatusLabel mStatusLabel;
         private final String mRepositoryName;
-
+        
         public SearchThread(org.osid.repository.Repository r,
-                            String searchString,
-                            Serializable searchCriteria,
-                            org.osid.shared.Type searchType,
-                            org.osid.shared.Properties searchProperties)
-            throws org.osid.repository.RepositoryException
-        {
+                String searchString,
+                Serializable searchCriteria,
+                org.osid.shared.Type searchType,
+                org.osid.shared.Properties searchProperties)
+                throws org.osid.repository.RepositoryException {
             super(mSearchThreadGroup, "VUE.Search" + (SearchCounter++) + " " + searchString + " in " + r.getDisplayName());
             setDaemon(true);
             
@@ -748,7 +723,7 @@ public class DataSourceViewer extends JPanel
             mSearchCriteria = searchCriteria;
             mSearchType = searchType;
             mSearchProperties = searchProperties;
-
+            
             mRepositoryName = r.getDisplayName();
             
             //If the naming convention of this were to change, note there would
@@ -757,22 +732,22 @@ public class DataSourceViewer extends JPanel
             
             mStatusLabel = new StatusLabel("Searching for " + mSearchString + " ...", false);
             mResultPane.add(mStatusLabel);
-
+            
             if (DEBUG.DR) out("created search thread for: " + mRepositoryName + " \t" + mRepository);
         }
-
+        
         public void run() {
-
+            
             if (stopped())
                 return;
-
+            
             if (DEBUG.DR) out("KICKED OFF");
             
             try {
                 adjustQuery();
                 if (stopped())
                     return;
-
+                
                 // TODO: ultimately, the repository will need some kind of callback
                 // architecture, so that a search can be aborted even while waiting for
                 // the server to come back, tho it'll probably need to use channel based
@@ -802,11 +777,11 @@ public class DataSourceViewer extends JPanel
                 textArea.setOpaque(false);
                 mResultPane.add(textArea);
             }
-
+            
             // must call revalidate because we're coming from another thread:
             mResultPane.revalidate();
         }
-
+        
         // As we create a new Widget for the output of every search, in terms of a new
         // search replacing a still running search, we're already safe UI wise even if
         // we never interrupted a search, but we might as well be careful about it / not
@@ -815,24 +790,23 @@ public class DataSourceViewer extends JPanel
         private boolean stopped() {
             if (isInterrupted()) {
                 if (DEBUG.DR) out("ABORTED");
-                mResultPane.setTitle(mRepositoryName + " (Aborted)");                
+                mResultPane.setTitle(mRepositoryName + " (Aborted)");
                 mStatusLabel.setText("Search Aborted.");
                 return true;
             } else
                 return false;
         }
-
+        
         private void adjustQuery()
-            throws org.osid.repository.RepositoryException
-        {
+        throws org.osid.repository.RepositoryException {
             //if (DEBUG.DR) out("checking for query adjustment");
             edu.tufts.vue.fsm.QueryAdjuster adjuster = federatedSearchManager
-                .getQueryAdjusterForRepository(mRepository.getId());
+                    .getQueryAdjusterForRepository(mRepository.getId());
             if (adjuster != null) {
                 edu.tufts.vue.fsm.Query q = adjuster.adjustQuery(mRepository,
-                                                                 mSearchCriteria,
-                                                                 mSearchType,
-                                                                 mSearchProperties);
+                        mSearchCriteria,
+                        mSearchType,
+                        mSearchProperties);
                 mSearchCriteria = q.getSearchCriteria();
                 mSearchType = q.getSearchType();
                 mSearchProperties = q.getSearchProperties();
@@ -840,17 +814,16 @@ public class DataSourceViewer extends JPanel
             }
             //if (DEBUG.DR) out("done checking for query adjustment");
         }
-
+        
         private void processResultsAndDisplay(org.osid.repository.AssetIterator assetIterator)
-            throws org.osid.repository.RepositoryException
-        {
+        throws org.osid.repository.RepositoryException {
             if (stopped())
                 return;
             
             if (DEBUG.DR) out("processing AssetIterator...");
-
+            
             final java.util.List resourceList = new java.util.ArrayList();
-
+            
             final int maxResult = 10000;
             int resultCount = 0;
             while (assetIterator.hasNextAsset()) {
@@ -858,14 +831,14 @@ public class DataSourceViewer extends JPanel
                 if (++resultCount > maxResult)
                     continue;
                 resourceList.add(Osid2AssetResourceFactory.createResource(asset,
-                                                                          mRepository,
-                                                                          DataSourceViewer.this.context));
+                        mRepository,
+                        DataSourceViewer.this.context));
             }
-
+            
             if (DEBUG.DR) out("done processing AssetIterator");
             
             String name = "Results: " + mRepositoryName;
-
+            
             if (DEBUG.DR) {
                 if (resultCount > maxResult)
                     out(name + "; returned a total of " + resultCount + " matches");
@@ -874,24 +847,23 @@ public class DataSourceViewer extends JPanel
             
             if (resourceList.size() > 0)
                 name += " (" + resourceList.size() + ")";
-
+            
             if (stopped())
                 return;
             
             mResultPane.setTitle(name);
             mResultPane.removeAll();
             
-            if (resourceList.size() == 0) {            	
+            if (resourceList.size() == 0) {
                 mResultPane.add(new StatusLabel("No results for " + mSearchString, false, false));
             } else {
                 mResultPane.add(new ResourceList(resourceList, name));
             }
         }
     }
-                                              
-
-    private synchronized void performParallelSearchesAndDisplayResults()
-    {
+    
+    
+    private synchronized void performParallelSearchesAndDisplayResults() {
         if (DEBUG.DR) {
             synchronized (System.out) {
                 System.out.println("Current search thread group:");
@@ -911,18 +883,18 @@ public class DataSourceViewer extends JPanel
         
         if (DEBUG.DR) {
             out("Searching criteria [" + searchString + "] in selected repositories."
-                + "\n\tsearchType=" + searchType
-                + "\n\tsearchProps=" + searchProperties);
+                    + "\n\tsearchType=" + searchType
+                    + "\n\tsearchProps=" + searchProperties);
         }
-    
-        for (int i = 0; i < repositories.length; i++) { 
+        
+        for (int i = 0; i < repositories.length; i++) {
             final org.osid.repository.Repository repository = repositories[i];
-
+            
             SearchThread searchThread = null;
             try {
-
+                
                 searchThread = new SearchThread(repository, searchString,
-                                                searchCriteria, searchType, searchProperties);
+                        searchCriteria, searchType, searchProperties);
             } catch (Throwable t) {
                 tufts.Util.printStackTrace(t, "Failed to create search in " + repository);
                 if (DEBUG.Enabled)
@@ -936,19 +908,18 @@ public class DataSourceViewer extends JPanel
         }
         
         DRB.searchPane.add(resultsStack, DRBrowser.SEARCH_RESULT);
-
+        
         //-----------------------------------------------------------------------------
         // KICK OFF THE SEARCH THREADS
         //-----------------------------------------------------------------------------
-
+        
         for (int i = 0; i < threads.length; i++)
             threads[i].start();
     }
     
     private synchronized void performFederatedSearchAndDisplayResults()
-        throws org.osid.repository.RepositoryException,
-               org.osid.shared.SharedException
-    {
+    throws org.osid.repository.RepositoryException,
+            org.osid.shared.SharedException {
         //final String dockTitle = "Search Results for \"" + queryEditor.getSearchDisplayName() + "\"";
         final String searchString = "\"" + queryEditor.getSearchDisplayName() + "\"";
         
@@ -1052,70 +1023,69 @@ public class DataSourceViewer extends JPanel
         editInfoDockWindow.setVisible(true);
     }
     
-    private PropertyMap buildPropertyMap(edu.tufts.vue.dsm.DataSource dataSource)
-    {
-    	PropertyMap map = new PropertyMap();    	
-    	
-    	try {
-			org.osid.repository.Repository repository = dataSource.getRepository();
-			
-		
-					
-			map.addProperty("Repository Id",(Object)repository.getId().getIdString());
-			map.addProperty("Name",(Object)repository.getDisplayName());
-			map.addProperty("Description",(Object)repository.getDescription());
-			map.addProperty("Type",(Object)edu.tufts.vue.util.Utilities.typeToString(repository.getType()));
-			map.addProperty("Creator",(Object)dataSource.getCreator());
-			map.addProperty("Publisher",(Object)dataSource.getPublisher());
-			map.addProperty("Release Date",(Object)edu.tufts.vue.util.Utilities.dateToString(dataSource.getReleaseDate()));
-			map.addProperty("Provider Id",(Object)dataSource.getProviderId().getIdString());
-			String osidName = dataSource.getOsidName() + " " + dataSource.getOsidVersion();
-			map.addProperty("Osid Service",(Object)osidName);
-			map.addProperty("Osid Load Key",(Object)dataSource.getOsidLoadKey());
-			map.addProperty("Provider Display Name",(Object)dataSource.getProviderDisplayName());
-			map.addProperty("Provider Description",(Object)dataSource.getProviderDescription());
-			String online = dataSource.isOnline() ? "Yes" : "No";
-			map.addProperty("Online?",(Object)online);
-			String supportsUpd = dataSource.supportsUpdate() ? "The Library Supports Updating" : "The Library Is Read Only";
-			map.addProperty("Supports Update?",(Object)supportsUpd);
-			
-			org.osid.shared.TypeIterator typeIterator = repository.getAssetTypes();
-			StringBuffer assetTypes = new StringBuffer();
-			while (typeIterator.hasNextType()) {
-				assetTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
-				assetTypes.append(", ");
-			}
-			
-			if (assetTypes.length() > 0)
-				assetTypes.delete(assetTypes.length()-2,assetTypes.length()-1);
-			
-			map.addProperty("Asset Types",(Object)assetTypes.toString());
-			
-			typeIterator = repository.getSearchTypes();
-			StringBuffer searchTypes = new StringBuffer();
-			while (typeIterator.hasNextType()) {
-				searchTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));				
-				searchTypes.append(", ");
-				
-			}
-			if (searchTypes.length() > 0)
-				searchTypes.delete(searchTypes.length()-2,searchTypes.length()-1);
-			
-			map.addProperty("Search Types",(Object)searchTypes.toString());
-	
-			
+    private PropertyMap buildPropertyMap(edu.tufts.vue.dsm.DataSource dataSource) {
+        PropertyMap map = new PropertyMap();
+        
+        try {
+            org.osid.repository.Repository repository = dataSource.getRepository();
+            
+            
+            
+            map.addProperty("Repository Id",(Object)repository.getId().getIdString());
+            map.addProperty("Name",(Object)repository.getDisplayName());
+            map.addProperty("Description",(Object)repository.getDescription());
+            map.addProperty("Type",(Object)edu.tufts.vue.util.Utilities.typeToString(repository.getType()));
+            map.addProperty("Creator",(Object)dataSource.getCreator());
+            map.addProperty("Publisher",(Object)dataSource.getPublisher());
+            map.addProperty("Release Date",(Object)edu.tufts.vue.util.Utilities.dateToString(dataSource.getReleaseDate()));
+            map.addProperty("Provider Id",(Object)dataSource.getProviderId().getIdString());
+            String osidName = dataSource.getOsidName() + " " + dataSource.getOsidVersion();
+            map.addProperty("Osid Service",(Object)osidName);
+            map.addProperty("Osid Load Key",(Object)dataSource.getOsidLoadKey());
+            map.addProperty("Provider Display Name",(Object)dataSource.getProviderDisplayName());
+            map.addProperty("Provider Description",(Object)dataSource.getProviderDescription());
+            String online = dataSource.isOnline() ? "Yes" : "No";
+            map.addProperty("Online?",(Object)online);
+            String supportsUpd = dataSource.supportsUpdate() ? "The Library Supports Updating" : "The Library Is Read Only";
+            map.addProperty("Supports Update?",(Object)supportsUpd);
+            
+            org.osid.shared.TypeIterator typeIterator = repository.getAssetTypes();
+            StringBuffer assetTypes = new StringBuffer();
+            while (typeIterator.hasNextType()) {
+                assetTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
+                assetTypes.append(", ");
+            }
+            
+            if (assetTypes.length() > 0)
+                assetTypes.delete(assetTypes.length()-2,assetTypes.length()-1);
+            
+            map.addProperty("Asset Types",(Object)assetTypes.toString());
+            
+            typeIterator = repository.getSearchTypes();
+            StringBuffer searchTypes = new StringBuffer();
+            while (typeIterator.hasNextType()) {
+                searchTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
+                searchTypes.append(", ");
+                
+            }
+            if (searchTypes.length() > 0)
+                searchTypes.delete(searchTypes.length()-2,searchTypes.length()-1);
+            
+            map.addProperty("Search Types",(Object)searchTypes.toString());
+            
+            
 /*			java.awt.Image image = null;
-			if ( (image = dataSource.getIcon16x16()) != null ) {		
-				gbConstraints.gridx = 0;
-				gbConstraints.gridy++;
-				add(new javax.swing.JLabel(new javax.swing.ImageIcon(image)),gbConstraints);
-			}*/
-		} catch (Throwable t) {
-			//t.printStackTrace();
-			System.out.println(t.getMessage());
-		}
-    	
-    	return map;
+                        if ( (image = dataSource.getIcon16x16()) != null ) {
+                                gbConstraints.gridx = 0;
+                                gbConstraints.gridy++;
+                                add(new javax.swing.JLabel(new javax.swing.ImageIcon(image)),gbConstraints);
+                        }*/
+        } catch (Throwable t) {
+            //t.printStackTrace();
+            System.out.println(t.getMessage());
+        }
+        
+        return map;
     }
     
     private void refreshEditInfo(edu.tufts.vue.dsm.DataSource ds) {
@@ -1289,11 +1259,10 @@ public class DataSourceViewer extends JPanel
     }
     
     public  SaveDataSourceViewer unMarshallMap(File file)
-        throws java.io.IOException,
-               org.exolab.castor.xml.MarshalException,
-               org.exolab.castor.mapping.MappingException,
-               org.exolab.castor.xml.ValidationException
-    {
+    throws java.io.IOException,
+            org.exolab.castor.xml.MarshalException,
+            org.exolab.castor.mapping.MappingException,
+            org.exolab.castor.xml.ValidationException {
         Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
         FileReader reader = new FileReader(file);
         SaveDataSourceViewer sviewer = (SaveDataSourceViewer) unmarshaller.unmarshal(new InputSource(reader));
