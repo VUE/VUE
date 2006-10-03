@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.72 $ / $Date: 2006-07-31 20:37:25 $ / $Author: mike $
+ * @version $Revision: 1.73 $ / $Date: 2006-10-03 18:32:17 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -44,6 +44,8 @@ public class VueUtil extends tufts.Util
     public static void openURL(String platformURL)
         throws java.io.IOException
     {
+        VUE.Log.info("openURL[" + platformURL + "]");
+
         if (VueExtension == null) {
             VueExtension = VueResources.getString("vue.extension");
             if (VueExtension == null)
@@ -54,17 +56,23 @@ public class VueUtil extends tufts.Util
 
         // todo: spawn this in another thread just in case it hangs
         
-        VUE.Log.info("openURL[" + platformURL + "]");
+        String lowCaseURL = platformURL.toLowerCase();
                      
-        if (platformURL.toLowerCase().endsWith(VueExtension)) {
-            if (platformURL.startsWith("resource:")) {
+        if (lowCaseURL.endsWith(VueExtension)
+            || lowCaseURL.endsWith(".zip")
+            || (DEBUG.Enabled && lowCaseURL.endsWith(".xml"))) {
+            
+            if (lowCaseURL.startsWith("resource:")) {
+                // Special case for startup.vue which can be embedded in the classpath
                 java.net.URL url = VueResources.getURL(platformURL.substring(9));
                 VUE.displayMap(tufts.vue.action.OpenAction.loadMap(url));
+                return;
             }
+            
             try {
                 tufts.vue.VUE.displayMap(new File(new java.net.URL(platformURL).getFile()));
             } catch (java.net.MalformedURLException e) {
-                System.out.println(e + " " + platformURL);
+                VUE.Log.error(e + " " + platformURL);
                 try {
                     tufts.vue.VUE.displayMap(new File(platformURL));
                 } catch (Exception ex) {
@@ -72,19 +80,22 @@ public class VueUtil extends tufts.Util
                     tufts.Util.openURL(platformURL);
                 }
             }
-        } else {
-            if (VUE.isApplet()) {
-                java.net.URL url = null;
-                try {
-                    url = new java.net.URL(platformURL);
-                    System.out.println("Applet URL display: " + url);
-                    VUE.getAppletContext().showDocument(url, "_blank");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            } else {
-                tufts.Util.openURL(platformURL);
+            return;
+        }
+
+        //if (lowCaseURL.endsWith(".zip")) {}
+        
+        if (VUE.isApplet()) {
+            java.net.URL url = null;
+            try {
+                url = new java.net.URL(platformURL);
+                System.out.println("Applet URL display: " + url);
+                VUE.getAppletContext().showDocument(url, "_blank");
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+        } else {
+            tufts.Util.openURL(platformURL);
         }
     }
     
@@ -128,6 +139,25 @@ public class VueUtil extends tufts.Util
              throw new RuntimeException(userFolder.getAbsolutePath()+":cannot be deleted");
     }
 
+    public static void copyURL(java.net.URL url, java.io.File file)
+        throws java.io.IOException
+    {
+        if (DEBUG.IO) out("VueUtil: copying " + url + " to " + file);
+        copyStream(url.openStream(), new java.io.FileOutputStream(file));
+    }
+        
+    public static void copyStream(java.io.InputStream in, java.io.OutputStream out)
+        throws java.io.IOException
+    {
+        int len = 0;
+        byte[] buf = new byte[8192];
+        while ((len = in.read(buf)) != -1) {
+            if (DEBUG.IO) out("VueUtil: copied " + len + " to " + out);
+            out.write(buf, 0, len);
+        }
+        in.close();
+        out.close();
+    }
 
 
 
