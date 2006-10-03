@@ -55,7 +55,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.83 $ / $Date: 2006-08-30 19:37:26 $ / $Author: sfraize $
+ * @version $Revision: 1.84 $ / $Date: 2006-10-03 19:04:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1857,14 +1857,22 @@ public class DockWindow extends javax.swing.JWindow
         StickyTopEdges.reset();
         StickyBottomEdges.reset();
         
-        if (GUI.GInsets.left <= 4)
+        if (GUI.GInsets.left <= 4) {
             StickyLeftEdges.add(0);
-        else
+        } else {
             StickyLeftEdges.add(GUI.GInsets.left);
+        }
 
         StickyRightEdges.add(GUI.GScreenWidth);
         StickyBottomEdges.add(GUI.GScreenHeight - GUI.GInsets.bottom);
 
+        StickyRightEdges.add(0); // in case multi-monitor
+        StickyLeftEdges.add(GUI.GScreenWidth); // in case multi-monitor
+
+        // todo: add bottom edge of other displays in case resolution
+        // is different: should really only take effect if on that
+        // screen tho, not across entire virtual desktop.
+        
         //if (GUI.GInsets.bottom > 0)
         //    StickyBottomEdges.add(GUI.GScreenHeight - GUI.GInsets.bottom);
 
