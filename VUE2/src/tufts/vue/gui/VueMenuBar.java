@@ -21,7 +21,7 @@ import javax.swing.JCheckBoxMenuItem;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.10 $ / $Date: 2006-09-29 15:07:54 $ / $Author: mike $
+ * @version $Revision: 1.11 $ / $Date: 2006-10-03 18:29:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -228,6 +228,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
         }
 
         helpMenu.add(new ShortcutsAction());
+
+
+        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.releaseNotes.label"),
+                                       VueResources.getURL("helpMenu.releaseNotes.file"),
+                                       new String("ReleaseNotes_" + VueResources.getString("vue.version") + ".htm").replace(' ', '_')
+                                       ));
+        
 
         add(fileMenu);
         add(editMenu);
