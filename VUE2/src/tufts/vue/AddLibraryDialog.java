@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.55 $ / $Date: 2006-09-26 20:10:14 $ / $Author: anoop $
+ * @version $Revision: 1.56 $ / $Date: 2006-10-04 00:07:34 $ / $Author: anoop $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -330,13 +330,13 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     this.oldDataSource = ds;
                 } else if (s.equals(FTP)) {
                     RemoteFileDataSource ds = new RemoteFileDataSource();
-                    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Dane for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>FTP Address</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>256</maxChars><ui>0</ui></field><field><key>username</key><title>Username</title><description>FTP site username</description><default>DEFAULT_USERNAME</default><mandatory>true</mandatory><maxChars>64</maxChars><ui>0</ui></field><field><key>password</key><title>Password</title><description>FTP site password for username</description><default>DEFAULT_PASSWORD</default><mandatory>true</mandatory><maxChars></maxChars><ui>1</ui></field></configuration>";
+                    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Dane for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>FTP Address</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>256</maxChars><ui>0</ui></field><field><key>username</key><title>Username</title><description>FTP site username</description><default>DEFAULT_USERNAME</default><mandatory>true</mandatory><maxChars>64</maxChars><ui>9</ui></field><field><key>password</key><title>Password</title><description>FTP site password for username</description><default>DEFAULT_PASSWORD</default><mandatory>true</mandatory><maxChars></maxChars><ui>1</ui></field></configuration>";
                     String name = ds.getDisplayName();
                     if (name == null) name = "";
                     String address = ds.getAddress();
                     if (address == null) address = "";
                     String username = ds.getUserName();
-                    if (username == null) username = "";
+                    if (username == null) username = RemoteFileDataSource.ANONYMOUS;
                     String password = ds.getPassword();
                     if (password == null) password = "";
                     xml = xml.replaceFirst("DEFAULT_NAME",name);
