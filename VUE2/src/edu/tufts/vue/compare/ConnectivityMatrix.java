@@ -37,14 +37,47 @@ package edu.tufts.vue.compare;
 
 import java.util.*;
 
+import tufts.vue.*;
+
+
 public class ConnectivityMatrix {
-    private String[] labels;
-    private int c[][];
+    public static final int SIZE = 1000;
+    private List labels = new  ArrayList();
+    private int c[][] = new int[SIZE][SIZE];
     private int size;
     /** Creates a new instance of ConnectivityMatrix */
     public ConnectivityMatrix() {
     }
-    public String[] getLabels() {
+    
+    public ConnectivityMatrix(LWMap map) {
+        size = 0;
+        Iterator i = map.getNodeIterator();
+        while(i.hasNext()){
+            LWNode node = (LWNode)i.next();
+            labels.add(node.getLabel());
+            size++;
+        }
+        Iterator links = map.getLinkIterator();
+        while(links.hasNext()) {
+            LWLink link = (LWLink)links.next();
+            LWComponent n1 = link.getComponent1();
+            LWComponent n2 = link.getComponent2();
+            int arrowState = link.getArrowState();
+            if(n1  instanceof LWNode && n2 instanceof LWNode) {
+                if(arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE) {
+                    c[labels.indexOf(n2.getLabel())][labels.indexOf(n1.getLabel())] = 1;
+                    c[labels.indexOf(n1.getLabel())][labels.indexOf(n2.getLabel())] =1;
+                } else if(arrowState == LWLink.ARROW_EP1) {
+                    c[labels.indexOf(n2.getLabel())][labels.indexOf(n1.getLabel())] = 1;
+                } else    if(arrowState == LWLink.ARROW_EP2) {
+                    c[labels.indexOf(n1.getLabel())][labels.indexOf(n2.getLabel())] =1;
+                }
+                
+            }
+        }
+        
+    }
+    public List getLabels() {
         return labels;
     }
     public int getConnection(int i, int j) {
@@ -59,12 +92,13 @@ public class ConnectivityMatrix {
     public String toString() { 
         String output = new String();
         output = "\t";   //leave the first cell empty;
-        for(int i=0;i<size;i++) {
-            output += labels[i]+"\t";
+        Iterator iterator = labels.iterator();
+        while(iterator.hasNext()){
+            output += (String)iterator.next()+"\t";
         }
         output +="\n";
         for(int i=0;i<size;i++){
-            output += labels[i]+"\t";
+            output += labels.get(i)+"\t";
             for(int j=0;j<size;j++) {
                 output  += c[i][j]+"\t";
             }
