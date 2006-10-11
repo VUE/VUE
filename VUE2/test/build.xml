@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.13 $ / $Date: 2006-08-02 14:43:42 $ -->
+<!-- $Revision: 1.14 $ / $Date: 2006-10-11 17:59:36 $ -->
 
 <!-- 
 This ant build file:
@@ -47,6 +47,7 @@ This ant build file:
   <property name="build.home"      value="${basedir}/build"/>
   <property name="build.class"     value="${build.home}/classes" />
   <property name="build.lib"       value="${basedir}/lib" />
+  <property name="vue.classes"     value="${basedir}/../src/build/classes" />
   <property name="lib.home"        value="../lib"/>
 
 <!--  ==================== Compilation Control Options ==================== -->
@@ -70,7 +71,8 @@ This ant build file:
 -->
   <path id="compile.classpath">
     <pathelement location="${basedir}" />	
-    <pathelement location="../src" />
+    <pathelement location="${basedir}/../src" />
+    <pathelement location="${vue.classes}" />
     <pathelement location="${lib.home}" />	
     <pathelement location="${build.class}"/>
     <pathelement location="../src/dist/lib/osid/Fedora20Repository-1.0.jar"/>
@@ -94,7 +96,7 @@ This ant build file:
     <pathelement location="${lib.home}/okiSID.jar" />	
 	<pathelement location="${lib.home}/log4j-1.2.12.jar" />
 	<pathelement location="${lib.home}/MRJAdapter.jar" />
-
+        <pathelement location="${lib.home}/apple-laf.jar" />
     <pathelement location="artifact.xml" />
     <pathelement location="../src/build/classes" />
     <pathelement location="../src/build/classes/edu/tufts/osidimpl/repository/artifact.ArtifactResult.class" />
@@ -257,6 +259,12 @@ This ant build file:
         <java classname="test.repository.fedora20.repositoryDump" failonerror="true" fork="true">
       <classpath refid="compile.classpath"/>
         </java>
+</target>
+<!-- =========================Connectivity Matrix and Map Comparison Tests =======-->
+<target name="comparetest" depends="compile" description="Tests for Map Comparison">
+    <java classname="edu.tufts.vue.compare.TestConnectivityMatrix"  failonerror="true" fork="true">
+        <classpath refid="compile.classpath"/>
+    </java>
 </target>
 </project>
 
