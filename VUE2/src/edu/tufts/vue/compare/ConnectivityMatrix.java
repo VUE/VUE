@@ -91,7 +91,11 @@ public class ConnectivityMatrix {
     }
     
     public void store(OutputStream out) {
+        try {
         out.write(this.toString().getBytes());
+        }catch(IOException ex) {
+            System.out.println("ConnectivityMatrix.store:"+ex);
+        }
     }
     
     
