@@ -36,7 +36,7 @@
 package edu.tufts.vue.compare;
 
 import java.util.*;
-
+import java.io.*;
 import tufts.vue.*;
 
 
@@ -89,6 +89,12 @@ public class ConnectivityMatrix {
     public int[][] getMatrix() {
         return c;
     }
+    
+    public void store(OutputStream out) {
+        out.write(this.toString().getBytes());
+    }
+    
+    
     public String toString() { 
         String output = new String();
         output = "\t";   //leave the first cell empty;
