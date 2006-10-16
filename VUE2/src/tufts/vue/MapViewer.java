@@ -37,7 +37,10 @@ import java.awt.datatransfer.*;
 import java.awt.geom.*;
 
 import java.util.Iterator;
+
 import javax.swing.*;
+
+import edu.tufts.vue.preferences.PreferencesManager;
 
 import tufts.oki.dr.fedora.*;
 import tufts.vue.shape.*;
@@ -60,7 +63,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.291 $ / $Date: 2006-09-14 21:57:03 $ / $Author: mike $ 
+ * @version $Revision: 1.292 $ / $Date: 2006-10-16 14:17:17 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -75,13 +78,14 @@ public class MapViewer extends javax.swing.JComponent
                , LWComponent.Listener
                , LWSelection.Listener
                , VueToolSelectionListener
-               , VUE.ActiveViewerListener
+               , VUE.ActiveViewerListener               
                //, DragGestureListener
                //, DragSourceListener
 {
-    static final int RolloverAutoZoomDelay = VueResources.getInt("mapViewer.rolloverAutoZoomDelay");
+    static int RolloverAutoZoomDelay = VueResources.getInt("mapViewer.rolloverAutoZoomDelay");
     static final int RolloverMinZoomDeltaTrigger_int = VueResources.getInt("mapViewer.rolloverMinZoomDeltaTrigger", 10);
     static final float RolloverMinZoomDeltaTrigger = RolloverMinZoomDeltaTrigger_int > 0 ? RolloverMinZoomDeltaTrigger_int / 100f : 0f;
+    private static boolean autoZoomEnabled = PreferencesManager.getBooleanPrefValue(edu.tufts.vue.preferences.PreferenceConstants.autoZoomPref);
     
     private Rectangle2D.Float RepaintRegion = null; // could handle in DrawContext
     private Rectangle paintedSelectionBounds = null;
@@ -202,12 +206,12 @@ public class MapViewer extends javax.swing.JComponent
         
         // TODO: need to remove us as listener for this & VUE selection this map is closed.
         // listen to tool selection events
-        VueToolbarController.getController().addToolSelectionListener(this);
-
+        VueToolbarController.getController().addToolSelectionListener(this);        
+        
         addKeyListener(inputHandler);
         addMouseListener(inputHandler);
         addMouseMotionListener(inputHandler);
-
+        //this.add
         if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
     }
 
@@ -3684,25 +3688,26 @@ public class MapViewer extends javax.swing.JComponent
             //}
             
             //if (VUE.Prefs.doRolloverZoom() && RolloverAutoZoomDelay >= 0) {
-            if (RolloverAutoZoomDelay >= 0) {
-                if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && !(activeTextEdit != null)) {
-                    if (RolloverAutoZoomDelay > 10) {
-                        if (rolloverTask != null)
-                            rolloverTask.cancel();
-                        rolloverTask = new RolloverTask();
-                        try {
-                            rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
-                        } catch (IllegalStateException ex) {
-                            // don't know why this happens somtimes...
-                            System.out.println(ex + " (fallback: creating new timer)");
-                            rolloverTimer = new Timer();
-                            rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
-                        }
-                    } else {
-                        runRolloverTask();
-                    }
-                }
-            }
+            if (getAutoZoomEnabled())
+            	if (RolloverAutoZoomDelay >= 0) {
+            		if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && !(activeTextEdit != null)) {
+            			if (RolloverAutoZoomDelay > 10) {
+            				if (rolloverTask != null)
+            					rolloverTask.cancel();
+            				rolloverTask = new RolloverTask();
+            				try {
+            					rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+            				} catch (IllegalStateException ex) {
+            					// don't know why this happens somtimes...
+            					System.out.println(ex + " (fallback: creating new timer)");
+            					rolloverTimer = new Timer();
+            					rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+            				}
+            			} else {
+            				runRolloverTask();
+            			}
+            		}
+            	}
         }
         
         public void mouseEntered(MouseEvent e) {
@@ -5139,11 +5144,16 @@ public class MapViewer extends javax.swing.JComponent
             pannerTool.setVisible(true);
         }
     }
-
-
-
     
-    
+    public static boolean getAutoZoomEnabled()
+    {
+    	return autoZoomEnabled;
+    }
+
+    public static void setAutoZoomEnabled(boolean enabled)
+    {
+    	autoZoomEnabled = enabled;
+    }        
 }
 
 
