@@ -80,6 +80,11 @@ public class ConnectivityMatrix {
     public List getLabels() {
         return labels;
     }
+    
+    public void setLabels(List labels){
+        this.labels = labels;
+    }
+       
     public int getConnection(int i, int j) {
         return c[i][j];
     }
@@ -88,6 +93,9 @@ public class ConnectivityMatrix {
     }
     public int[][] getMatrix() {
         return c;
+    }
+    public void setMatrix(int[][] c) {
+        this.c = c;
     }
     
     public void store(OutputStream out) {
