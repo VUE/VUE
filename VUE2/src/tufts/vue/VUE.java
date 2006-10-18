@@ -54,7 +54,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.382 $ / $Date: 2006-09-19 00:41:49 $ / $Author: sfraize $ 
+ * @version $Revision: 1.383 $ / $Date: 2006-10-18 17:42:44 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -646,8 +646,6 @@ public class VUE
         ObjectInspector.setMenuName("Info / Preview");
         ObjectInspector.setHeight(575);
 
-        /*
-
         final DockWindow slideDock = GUI.createDockWindow(new tufts.vue.ui.SlideViewer(null));
         slideDock.setLocation(100,100);
         VueAction defSize;
@@ -680,9 +678,6 @@ public class VUE
                 
             });
         defSize.act();
-
-        */
-        
         
         
         //-----------------------------------------------------------------------------
@@ -759,7 +754,7 @@ public class VUE
             //fontDock,
             //linkDock,
             toolbarDock,
-            //slideDock,
+            slideDock,
             
         };
 
@@ -802,7 +797,6 @@ public class VUE
             if (appWidth > maxWidth)
                 appWidth = maxWidth;
         }
-                              
 
         ApplicationFrame.setSize(appWidth, appHeight);
 
