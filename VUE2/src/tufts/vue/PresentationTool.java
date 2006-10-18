@@ -44,13 +44,22 @@ import javax.swing.*;
 public class PresentationTool extends VueTool
     implements VUE.ActiveViewerListener
 {
+    private static int FORWARD = 1;
+    private static int BACKWARD = -1;
+    
     private JButton mStartButton;
     private LWComponent mCurrentPage;
-    private LWComponent mNextPage;
+    private LWComponent mNextPage; // is this really "startPage"?
     private LWComponent mLastPage;
     private LWLink mLastFollowed;
+    private LWPathway mPathway;
+    private int mPathwayIndex = 0;
 
-    private JCheckBox mNavigate = new JCheckBox("Show All");
+    private boolean mScreenBlanked = false;
+
+    
+
+    private JCheckBox mShowContext = new JCheckBox("Show Context");
     private JCheckBox mToBlack = new JCheckBox("Black");
     private JCheckBox mZoomLock = new JCheckBox("Lock 100%");
     private boolean mShowNavigator = false;
@@ -74,9 +83,10 @@ public class PresentationTool extends VueTool
         //JPanel p = super.createToolPanel();
         JPanel p = new JPanel();
         mStartButton = new JButton("Start Presenting");
-        mToBlack.setSelected(true);
+        mToBlack.setSelected(false);
+        mShowContext.setSelected(true);
         add(p, mStartButton);
-        add(p, mNavigate);
+        add(p, mShowContext);
         add(p, mToBlack);
         //p.add(mZoomLock, 0);
         return p;
@@ -117,10 +127,17 @@ public class PresentationTool extends VueTool
         } else if (key == KeyEvent.VK_LEFT) {
             backPage();
         } else if (k == 'f')             { mFadeEffect = !mFadeEffect;
-        } else if (k == 's' || k == 'n') { mNavigate.doClick();
+        } else if (k == 'c' || k == 'n') { mShowContext.doClick();
         } else if (k == 'b')             { mToBlack.doClick();
         } else if (k == 'm')             {
             mShowNavigator = !mShowNavigator;
+            repaint();
+        } else if (k == '1') {
+            if (mPathway != null) {
+                mPathwayIndex = 0;
+                mNextPage = mPathway.getChild(0);
+                forwardPage();
+            }
             repaint();
         } else
             //        } else if (k == 'z')             { mZoomToPage = !mZoomToPage;
@@ -137,7 +154,7 @@ public class PresentationTool extends VueTool
     }
 
     private boolean isPresenting() {
-        return !mNavigate.isSelected();
+        return !mShowContext.isSelected();
     }
     
     public boolean handleMousePressed(MapMouseEvent e) {
@@ -191,8 +208,10 @@ public class PresentationTool extends VueTool
     private void startPresentation()
     {
         out(this + " start");
-        mNavigate.setSelected(false);
+        //mShowContext.setSelected(false);
         mBackList.clear();
+        mPathway = null;
+        mPathwayIndex = 0;
         if (VUE.getSelection().size() > 0)
             setPage(VUE.getSelection().first());
         else if (mCurrentPage != null)
@@ -219,7 +238,12 @@ public class PresentationTool extends VueTool
     }
 
     private void backPage() {
-        if (!mBackList.empty())
+
+        if (mPathway != null && mCurrentPage.inPathway(mPathway)) {
+            LWComponent prevPage = nextPathwayPage(BACKWARD);
+            if (prevPage != null)
+                setPage(prevPage);
+        } else if (!mBackList.empty())
             setPage(VUE.getActiveViewer(), (LWComponent) mBackList.pop(), true);
     }
         
@@ -234,6 +258,44 @@ public class PresentationTool extends VueTool
             }
         }
 
+        if (mPathway == null && mCurrentPage.inPathway(mCurrentPage.getMap().getPathwayList().getActivePathway())) {
+            mPathway = mCurrentPage.getMap().getPathwayList().getActivePathway();
+            mPathwayIndex = mPathway.indexOf(mCurrentPage);
+            out("Joined pathway " + mPathway + " at index " + mPathwayIndex);
+        }
+
+        LWComponent nextPage;
+
+        if (mPathway == null || !mCurrentPage.inPathway(mPathway))
+            nextPage = guessNextPage();
+        else
+            nextPage = nextPathwayPage(FORWARD);
+
+        out("Next page: " + nextPage);
+        
+        if (nextPage != null)
+            setPage(nextPage);
+    }
+
+    /** @param direction either 1 or -1 */
+    private LWComponent nextPathwayPage(int direction)
+    {
+        if (direction == BACKWARD && mPathwayIndex == 0)
+            return null;
+        
+        mPathwayIndex += direction;
+        LWComponent nextPage = mPathway.getChild(mPathwayIndex);
+
+        out("Next pathway index: #" + mPathwayIndex + " " + nextPage);
+        
+        if (nextPage == null)
+            mPathwayIndex -= direction;
+
+        return nextPage;
+    }
+    
+    private LWComponent guessNextPage()
+    {
         // todo: only bother with links that have component endpoints!
         List links = mCurrentPage.getLinks();
         LWLink toFollow = null;
@@ -266,22 +328,20 @@ public class PresentationTool extends VueTool
         // page if it's anything other than the map itself
         if (nextPage == null && !mBackList.empty() && mBackList.peek() != mCurrentPage)
             nextPage = (LWComponent) mBackList.peek();
-        if (nextPage != null)
-            setPage(nextPage);
+
+        return nextPage;
     }
 
     public LWComponent getCurrentPage() {
         return mCurrentPage;
     }
             
-    private boolean invisible = false;
-
     private void makeInvisible() {
         if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
             //out("makeInvisible");
             try {
                 MacOSX.makeMainInvisible();
-                invisible = true;
+                mScreenBlanked = true;
             } catch (Error e) {
                 System.err.println(e);
             }
@@ -294,7 +354,7 @@ public class PresentationTool extends VueTool
             try {
                 if (MacOSX.isMainInvisible())
                     MacOSX.fadeUpMainWindow();
-                invisible = false;
+                mScreenBlanked = false;
             } catch (Error e) {
                 System.err.println(e);
             }
@@ -325,32 +385,42 @@ public class PresentationTool extends VueTool
         mCurrentPage = page;
         mNextPage = null;
         viewer.clearTip();
-        // It case there was a tip visible, we need to make sure
-        // we wait for it to finish clearing before we move on,
-        // so we need to put the rest of this in the queue.
-        // (if we don't do this, the screen fades out & comes
-        // back before the map has panned)
-        VUE.invokeAfterAWT(new Runnable() {
-                public void run() {
-                    if (mFadeEffect)
-                        makeInvisible();
-                    zoomToPage(page);
-                    if (invisible)
-                        makeVisibleLater();
-                }
-            });
+
+        if (mFadeEffect) {
+        
+            // It case there was a tip visible, we need to make sure
+            // we wait for it to finish clearing before we move on, so
+            // we need to put the rest of this in the queue.  (if we
+            // don't do this, the screen fades out & comes back before
+            // the map has panned)
+            
+            VUE.invokeAfterAWT(new Runnable() {
+                    public void run() {
+                        if (mFadeEffect)
+                            makeInvisible();
+                        zoomToPage(page, !mFadeEffect);
+                        if (mScreenBlanked)
+                            makeVisibleLater();
+                    }
+                });
+            
+        } else {
+            zoomToPage(page, true);
+        }
+            
     }
 
-    private void zoomToPage(LWComponent page) {
+    private void zoomToPage(LWComponent page, boolean animate) {
         if (mZoomToPage == false)
             return;
 
         int margin = 0;
         if (page instanceof LWImage)
             margin = 0;
-        else margin = 32; // turn this off soon
+        else margin = 8; // turn this off soon
+        //else margin = 32; // turn this off soon
         if (page != null)
-            ZoomTool.setZoomFitRegion(page.getBounds(), margin);
+            ZoomTool.setZoomFitRegion(VUE.getActiveViewer(), page.getBounds(), margin, animate);
         
         //VUE.ZoomFitButton.doClick(1000); // works
         // below doesn't work because viewer.getVisibleSize() returning 0,0 before it's displayed!
@@ -366,6 +436,8 @@ public class PresentationTool extends VueTool
             dc.setBlackWhiteReversed(true);
         }
 
+        dc.setInteractive(false);
+        dc.setPresenting(isPresenting());
         dc.g.setColor(map.getFillColor());
         dc.g.fill(dc.g.getClipBounds());
 
@@ -374,19 +446,19 @@ public class PresentationTool extends VueTool
         Color savedColor = null;
         if (mCurrentPage instanceof LWNode && isPresenting()) {
             LWNode node = (LWNode) mCurrentPage;
-            // if had an in-group link from one region of image to another,
-            // would still want to present as a clipped: really need to
-            // check if it has any out-bound links, or REALLY, if we
-            // were just *sent* here via link, as opposed to clicking on us.
-            // Tho what if somebody DOES click on us?  We still want to be clipped,
-            // not follow the link: so any transparency wants to clip?  But
-            // what about "check out the mouth"  -- okay, that has a label:
-            // so if any transparency and NO label, then we're covered, right?
-            // NO!  The left ring in the ladies, we just wanted to be a click
-            // region.  So, there's no way to deterministically figure this out:
-            // user will have to specify somehow if we want to offer both options.
-            // COULD use a heursitc where we follow first if it's an out-of-group
-            // link (and has label), tho that's getting really hairy.
+            
+            // if had an in-group link from one region of image to another, would still
+            // want to present as a clipped: really need to check if it has any
+            // out-bound links, or REALLY, if we were just *sent* here via link, as
+            // opposed to clicking on us.  Tho what if somebody DOES click on us?  We
+            // still want to be clipped, not follow the link: so any transparency wants
+            // to clip?  But what about "check out the mouth" -- okay, that has a label:
+            // so if any transparency and NO label, then we're covered, right?  NO!  The
+            // left ring in the ladies, we just wanted to be a click region.  So,
+            // there's no way to deterministically figure this out: user will have to
+            // specify somehow if we want to offer both options.  COULD use a heursitc
+            // where we follow first if it's an out-of-group link (and has label), tho
+            // that's getting really hairy.
 
             // or, could get object-fancy and have LWRegion object, who's
             // label isn't displayed, but that's getting whack complex.
@@ -441,7 +513,7 @@ public class PresentationTool extends VueTool
     /** Draw a ghosted panner */
     private void drawNavigatorMap(DrawContext sourceDC) {
 
-        final Rectangle panner = new Rectangle(0,0, 150,150);
+        final Rectangle panner = new Rectangle(0,0, 192,128);
 
         sourceDC.setRawDrawing();
         DrawContext dc = sourceDC.create();
@@ -548,7 +620,7 @@ public class PresentationTool extends VueTool
         makeInvisible();
         if (getCurrentPage() != null) {
             out("zoomToPage " + getCurrentPage());
-            zoomToPage(getCurrentPage());
+            zoomToPage(getCurrentPage(), false);
         }
         makeVisibleLater();
     }
