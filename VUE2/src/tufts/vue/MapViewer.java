@@ -63,7 +63,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.292 $ / $Date: 2006-10-16 14:17:17 $ / $Author: mike $ 
+ * @version $Revision: 1.293 $ / $Date: 2006-10-18 17:38:40 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -81,6 +81,10 @@ public class MapViewer extends javax.swing.JComponent
                , VUE.ActiveViewerListener               
                //, DragGestureListener
                //, DragSourceListener
+               , java.awt.event.KeyListener
+               , java.awt.event.MouseListener
+               , java.awt.event.MouseMotionListener
+               , java.awt.event.MouseWheelListener               
 {
     static int RolloverAutoZoomDelay = VueResources.getInt("mapViewer.rolloverAutoZoomDelay");
     static final int RolloverMinZoomDeltaTrigger_int = VueResources.getInt("mapViewer.rolloverMinZoomDeltaTrigger", 10);
@@ -94,7 +98,8 @@ public class MapViewer extends javax.swing.JComponent
         public void mapViewerEventRaised(MapViewerEvent e);
     }
 
-    protected LWMap map;                   // the map we're displaying & interacting with
+    protected LWMap mMap;                   // the map we're displaying & interacting with
+    protected LWComponent mFocal;          // The component we're currently displaying: usually mFocal == map
     private TextBox activeTextEdit;          // Current on-map text edit
     
     // todo make a "ResizeControl" -- a control abstraction that's
@@ -162,14 +167,19 @@ public class MapViewer extends javax.swing.JComponent
     private MapViewport mViewport;
     private boolean isFirstReshape = true;
     private boolean didReshapeZoomFit = false;
+    private Component mFocusIndicator = new java.awt.Canvas(); // make sure is never null
 
+    //private InputHandler inputHandler = new InputHandler(this);
+    private final MapViewer inputHandler; // == this
+    private final MapViewer viewer;  // == this: for old InputHandler references
+    
     
     public MapViewer(LWMap map) {
         this(map, "");
     }
     
     private String instanceName;
-    MapViewer(LWMap map, String instanceName)
+    protected MapViewer(LWMap map, String instanceName)
     {
         this.instanceName = instanceName;
         this.activeTool = VueToolbarController.getActiveTool();
@@ -179,22 +189,26 @@ public class MapViewer extends javax.swing.JComponent
         this.setDropTarget(new java.awt.dnd.DropTarget(this,
                                                        MapDropTarget.ACCEPTABLE_DROP_TYPES,
                                                        mapDropTarget));
-    
+        this.inputHandler = this;
+        this.viewer = this;
         setName(instanceName);
         //setFocusable(false);
         setOpaque(true);
         setLayout(null);
-        if (map.getFillColor() != null)
-            setBackground(map.getFillColor());
-        loadMap(map);
+
+        if (map != null) {
+            if (map.getFillColor() != null)
+                setBackground(map.getFillColor());
+            loadMap(map);
         
-        //-------------------------------------------------------
-        // If this map was just restored, there might
-        // have been an existing userZoom or userOrigin
-        // set -- we honor that last user configuration here.
-        //-------------------------------------------------------
-        if (getMap().getUserZoom() != 1.0)
-            setZoomFactor(getMap().getUserZoom(), false, null, false);
+            //-------------------------------------------------------
+            // If this map was just restored, there might
+            // have been an existing userZoom or userOrigin
+            // set -- we honor that last user configuration here.
+            //-------------------------------------------------------
+            if (map.getUserZoom() != 1.0)
+                setZoomFactor(getMap().getUserZoom(), false, null, false);
+        }
 
         VUE.ModelSelection.addListener(this);
         VUE.addActiveViewerListener(this);
@@ -219,8 +233,6 @@ public class MapViewer extends javax.swing.JComponent
         return inScrollPane;
     }
 
-    private Component mFocusIndicator = new java.awt.Canvas(); // make sure is never null
-    private InputHandler inputHandler = new InputHandler(this);
 
     // TODO: rework this due to fact this get's added/removed again
     // during full-screen swaps: could the focus stuff have been
@@ -238,7 +250,14 @@ public class MapViewer extends javax.swing.JComponent
             
             mViewport = (MapViewport) getParent();
             setAutoscrolls(true);
-            mFocusIndicator = ((MapScrollPane) mViewport.getParent()).getFocusIndicator();
+
+            MapScrollPane mapScrollPane = (MapScrollPane) mViewport.getParent();
+            mFocusIndicator = mapScrollPane.getFocusIndicator();
+
+            // TODO: need to install the MouseWheelRelay here, as we get added/removed notify
+            // whenever we go to full-screen mode, and the MapScrollPane is losing the
+            // MouseWheelListener (do we want to use a different viewer for full screen?)
+            
         } else {
             mViewport = null;
 
@@ -250,8 +269,10 @@ public class MapViewer extends javax.swing.JComponent
         
         addFocusListener(this);
         
-        Point2D p = getMap().getUserOrigin();
-        setMapOriginOffset(p.getX(), p.getY());
+        if (mMap != null) {
+            Point2D p = mMap.getUserOrigin();
+            setMapOriginOffset(p.getX(), p.getY());
+        }
 
         requestFocus();
         //VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
@@ -336,7 +357,7 @@ public class MapViewer extends javax.swing.JComponent
     private void adjustCanvasSize(boolean expand, boolean trimNorthWest, boolean trimSouthEast)
     {
         if (inScrollPane) {
-            if (this.map.isEmpty())
+            if (mFocal.isEmpty())
                 mViewport.adjustSize(false, true, true);
             else
                 mViewport.adjustSize(expand, trimNorthWest, trimSouthEast);
@@ -364,7 +385,7 @@ public class MapViewer extends javax.swing.JComponent
 
         if (DEBUG.SCROLL) out("ZOOM: reset="+pReset + " Z="+pZoomFactor + " focus="+mapAnchor);
 
-        if (this.map.isEmpty()) {
+        if (mFocal.isEmpty()) {
             if (DEBUG.SCROLL) out("EMPTY OVERRIDE");
             //pReset = true;
             pZoomFactor = 1.0;
@@ -429,7 +450,7 @@ public class MapViewer extends javax.swing.JComponent
                 adjustCanvasSize(false, true, true);
             }
         } else {
-            if (mapAnchor != null)
+            if (mapAnchor != null && offset != null)
                 setMapOriginOffset(offset.x, offset.y);
         }
         
@@ -769,9 +790,13 @@ public class MapViewer extends javax.swing.JComponent
             // if active text is transparent, we'll need this to draw under blinking cursor
             repaint(); 
 
-        if (!ignore)
+        if (!ignore) {
             fireViewerEvent(MapViewerEvent.PAN);
+            reshapeImpl(x,y,w,h);
+        }
     }
+
+    protected void reshapeImpl(int x, int y, int w, int h) {}
 
     /** at startup make sure the contents of the map are visible in the viewport */
     private void ensureMapVisible()
@@ -832,27 +857,44 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     public LWMap getMap() {
-        return this.map;
+        return mMap;
+    }
+
+    void setFocal(LWComponent focal) {
+        if (focal == null) {
+            if (mFocal != null)
+                mFocal.removeLWCListener(this);
+            mFocal = mMap;
+            mMap.addLWCListener(this);
+        } else {
+            mFocal = focal;
+            mFocal.addLWCListener(this);
+            mMap.removeLWCListener(this);
+        }
     }
     
     private void unloadMap() {
-        this.map.removeLWCListener(this);
-        this.map = null;
+        mMap.removeLWCListener(this);
+        mMap = null;
+        mFocal = null;
     }
     
-    private void loadMap(LWMap map) {
+    protected void loadMap(LWMap map) {
         if (map == null)
             throw new IllegalArgumentException(this + " loadMap: null LWMap");
-        if (this.map != null)
+        if (mMap == map)
+            return;
+        if (mMap != null)
             unloadMap();
-        this.map = map;
-        this.map.addLWCListener(this);
-        if (this.map.getUndoManager() == null) {
-            if (map.isModified()) {
+        mMap = map;
+        mFocal = map;
+        mMap.addLWCListener(this);
+        if (mMap.getUndoManager() == null) {
+            if (mMap.isModified()) {
                 out("Note: this map has modifications undo will not see");
                 //VueUtil.alert(this, "This map has modifications undo will not see.", "Note");
             }
-            this.map.setUndoManager(new UndoManager(this.map));
+            mMap.setUndoManager(new UndoManager(mMap));
         }
         repaint();
     }
@@ -964,7 +1006,7 @@ public class MapViewer extends javax.swing.JComponent
     public void selectionChanged(LWSelection s) {
         //System.out.println("MapViewer: selectionChanged");
         activeTool.handleSelectionChange(s);
-        if (VUE.getActiveMap() != this.map) {
+        if (VUE.getActiveMap() != mMap) {
             if (DEBUG.FOCUS) out("NULLING SELECTION");
             VueSelection = null; // insurance: nothing should be happening here if we're not active
         } else {
@@ -1040,8 +1082,8 @@ public class MapViewer extends javax.swing.JComponent
         if (key == LWKey.Deleting) {
             if (rollover == e.getComponent())
                 clearRollover();
-        } else if (key == LWKey.FillColor && e.getComponent() == this.map) {
-            setBackground(this.map.getFillColor());
+        } else if (key == LWKey.FillColor && e.getComponent() == mMap) {
+            setBackground(mMap.getFillColor());
         }
         
         if (e.getKey() == LWKey.RepaintComponent) {
@@ -1592,7 +1634,7 @@ public class MapViewer extends javax.swing.JComponent
         }
 
 
-        if (this.map.isEmpty())
+        if (mFocal.isEmpty())
             paintEmptyMessage(g);
         
         paints++;
@@ -1605,7 +1647,7 @@ public class MapViewer extends javax.swing.JComponent
         g.setFont(font);
 
         final String msg;
-        if (this.map != null && this.map.isModified())
+        if (mMap != null && mMap.isModified())
             msg = "Empty Map";
         else
             msg = "New Map";
@@ -1674,8 +1716,8 @@ public class MapViewer extends javax.swing.JComponent
         // such as LWNode's & LWGroup's are responsible for painting
         // their children, etc down the line.
         //-------------------------------------------------------
-        
-        activeTool.handleDraw(dc, this.map);
+
+        drawMap(dc);
         
         dc.setMapDrawing();
         if (DEBUG_SHOW_ORIGIN) {
@@ -1720,7 +1762,7 @@ public class MapViewer extends javax.swing.JComponent
         // We currently prevent this by setting local VueSelection to null if we're
         // not the active map, but if we miss doing that for any reason...
         if (VueSelection != null && !VueSelection.isEmpty() && activeTool.supportsResizeControls())
-            drawSelection(dc);
+            drawSelection(dc, VueSelection);
         else
             resizeControl.active = false;
 
@@ -1843,6 +1885,17 @@ public class MapViewer extends javax.swing.JComponent
         if (activeTextEdit != null)     // This is a real Swing JComponent
             super.paintChildren(g2); // add to layered pane instead?
         //setOpaque(true);
+    }
+
+
+    protected void drawMap(DrawContext dc) {
+        if (mFocal != mMap) {
+            dc.g.setColor(mFocal.getFillColor());
+            dc.g.fill(dc.g.getClipBounds());
+            mFocal.draw(dc);
+        } else {
+            activeTool.handleDraw(dc, mMap);
+        }
     }
     
     /** This paintChildren is a no-op.  super.paint() will call this,
@@ -2049,7 +2102,7 @@ public class MapViewer extends javax.swing.JComponent
     
     // todo: move all this code to LWSelection?
     // todo perf: way too much calculation here for every draw: do some on selection change?
-    private void drawSelection(DrawContext dc) {
+    protected void drawSelection(DrawContext dc, LWSelection selection) {
         Graphics2D g2 = dc.g;
         g2.setColor(COLOR_SELECTION);
         //g2.setXORMode(Color.black);
@@ -2115,7 +2168,7 @@ public class MapViewer extends javax.swing.JComponent
         
         // todo opt?: don't recompute bounds here every paint ---
         // can cache in draggedSelectionGroup (but what if underlying objects resize?)
-        Rectangle2D selectionBounds = VueSelection.getBounds();
+        Rectangle2D selectionBounds = selection.getBounds();
         /*
           bounds cache hack
           if (VueSelection.size() == 1)
@@ -2133,23 +2186,23 @@ public class MapViewer extends javax.swing.JComponent
         if (//VueSelection.countTypes(LWNode.class) + VueSelection.countTypes(LWImage.class) <= 0
             //||
             //(VueSelection.size() == 1 && VueSelection.first() instanceof LWNode && ((LWNode)VueSelection.first()).isTextNode())
-            VueSelection.allOfType(LWLink.class)
+            selection.allOfType(LWLink.class)
             ) {
             // todo: also alow groups to resize (make selected group resize
             // re-usable for a group -- perhaps move to LWGroup itself &
             // also use draggedSelectionGroup for this?)
-            if (DEBUG.BOXES || VueSelection.size() > 1 /*|| !VueSelection.allOfType(LWLink.class)*/)
+            if (DEBUG.BOXES || selection.size() > 1 /*|| !VueSelection.allOfType(LWLink.class)*/)
                 g2.draw(mapSelectionBounds);
             // no resize handles if only links or groups
             resizeControl.active = false;
         } else {
-            if (VueSelection.size() > 1) {
+            if (selection.size() > 1) {
                 g2.draw(mapSelectionBounds);
             } else {
                 // Only one in selection:
                 // SPECIAL CASE to keep control handles out of way of node icons
                 // when node is scaled way down:
-                if (VueSelection.first().getScale() < 0.6) {
+                if (selection.first().getScale() < 0.6) {
                     final float grow = SelectionHandleSize/2;
                     mapSelectionBounds.x -= grow;
                     mapSelectionBounds.y -= grow;
@@ -2163,7 +2216,7 @@ public class MapViewer extends javax.swing.JComponent
             //if (!sDragUnderway)
             //drawSelectionBoxHandles(g2, mapSelectionBounds);
             
-            boolean groupies = VueSelection.allHaveSameParentOfType(LWGroup.class);
+            boolean groupies = selection.allHaveSameParentOfType(LWGroup.class);
             
             setSelectionBoxResizeHandles(mapSelectionBounds);
             resizeControl.active = true;
@@ -2181,7 +2234,7 @@ public class MapViewer extends javax.swing.JComponent
         //-------------------------------------------------------
         
         //if (activeTool != PathwayTool) {
-        it = VueSelection.getControlListeners().iterator();
+        it = selection.getControlListeners().iterator();
         while (it.hasNext()) {
             LWSelection.ControlListener cl = (LWSelection.ControlListener) it.next();
             LWSelection.ControlPoint[] ctrlPoints = cl.getControlPoints();
@@ -2200,7 +2253,7 @@ public class MapViewer extends javax.swing.JComponent
         if (DEBUG.VIEWER||DEBUG.LAYOUT) resizeControl.draw(dc); // debug
         
         /*
-        it = VueSelection.iterator();
+        it = selection.iterator();
         while (it.hasNext()) {
             LWComponent c = (LWComponent) it.next();
          
@@ -2684,8 +2737,7 @@ public class MapViewer extends javax.swing.JComponent
         if (sMapPopup == null) {
             sMapPopup = new JPopupMenu("Map Menu");
             sMapPopup.addSeparator();
-            sMapPopup.add(Actions.NewNode);
-            sMapPopup.add(Actions.NewText);
+            GUI.addToMenu(sMapPopup, Actions.NEW_OBJECT_ACTIONS);
             sMapPopup.addSeparator();
             sMapPopup.add(Actions.ZoomFit);
             sMapPopup.add(Actions.ZoomActual);
@@ -2862,9 +2914,10 @@ public class MapViewer extends javax.swing.JComponent
     // todo: if java ever supports moving an inner class to another file,
     // move the InputHandler out: this file has gotten too big.
     // or: just get rid of this and make it all MapViewer methods.
-    private class InputHandler extends tufts.vue.MouseAdapter
-        implements java.awt.event.KeyListener, java.awt.event.MouseWheelListener
-    {
+//     private class InputHandler extends tufts.vue.MouseAdapter
+//         implements java.awt.event.KeyListener, java.awt.event.MouseWheelListener
+//     {
+    
         LWComponent dragComponent;//todo: RENAME dragGroup -- make a ControlListener??
         LWSelection.ControlListener dragControl;
         //boolean isDraggingControlHandle = false;
@@ -2873,10 +2926,8 @@ public class MapViewer extends javax.swing.JComponent
         LWComponent justSelected;    // for between mouse press & click
         boolean hitOnSelectionHandle = false; // we moused-down on a selection handle
 
-        MapViewer viewer; // getting ready to move this to another file.
-        InputHandler(MapViewer viewer) {
-            this.viewer = viewer;
-        }
+    //MapViewer viewer; // getting ready to move this to another file.
+    //InputHandler(MapViewer viewer) { this.viewer = viewer; }
         
         /**
          * dragStart: screen location (within this java.awt.Container)
@@ -3237,6 +3288,13 @@ public class MapViewer extends javax.swing.JComponent
                 e.consume();
                 return;
             }
+
+            //out("BUTTON " + e.getButton() + " mods: " + e.getModifiers() + " modEx: " + e.getModifiersEx() + " b2dm=" + InputEvent.BUTTON2_DOWN_MASK);
+            if (e.getButton() == 0 && (e.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0) {
+                // sometimes pressing the mouse-wheel sends an event that looks like this
+                tufts.vue.ZoomTool.setZoomFit();
+                return;
+            }
             
             dragStart.setLocation(e.getX(), e.getY());
             if (DEBUG.MOUSE) System.out.println("dragStart set to " + dragStart);
@@ -3540,7 +3598,7 @@ public class MapViewer extends javax.swing.JComponent
 
         //private long lastRotationTime = 0;
         public void mouseWheelMoved(MouseWheelEvent e) {
-            //if (DEBUG.MOUSE) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
+            if (DEBUG.MOUSE) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
             /*
             long now = System.currentTimeMillis();
             if (now - lastRotationTime < 50) { // todo: preference
@@ -3848,6 +3906,9 @@ public class MapViewer extends javax.swing.JComponent
             clearRollover();
             //System.out.println("drag " + drags++);
             if (mouseWasDragged == false) {
+
+                // TODO: if the active tool claimed to have handled this event on mousePressed,
+                // do not allow following drags to do anything...
 
                 if (isSystemDragStart(e)) {
                     startSystemDrag(e);
@@ -4613,7 +4674,7 @@ public class MapViewer extends javax.swing.JComponent
                 return false;
             return true;
         }
-    }
+    //} old InputHandler close
     
     private Runnable focusIndicatorRepaint = new Runnable() { public void run() { mFocusIndicator.repaint(); }};
     
@@ -4670,8 +4731,8 @@ public class MapViewer extends javax.swing.JComponent
               }
             */
                 
-            if (oldActiveMap != this.map) {
-                if (DEBUG.FOCUS) out("GVAF: oldActive=" + oldActiveMap + " active=" + this.map + " CLEARING SELECTION");
+            if (oldActiveMap != mMap) {
+                if (DEBUG.FOCUS) out("GVAF: oldActive=" + oldActiveMap + " active=" + mMap + " CLEARING SELECTION");
                 resizeControl.active = false;
                 // clear and notify since the selected map changed.
                 VUE.ModelSelection.clear();
@@ -4901,7 +4962,7 @@ public class MapViewer extends javax.swing.JComponent
     
     public String toString() {
         return "MapViewer<" + instanceName + "> "
-            + "\'" + (map==null?"nil":map.getLabel()) + "\'";
+            + "\'" + (mFocal==null?"nil":mFocal.getLabel()) + "\'";
     }
     
     //-------------------------------------------------------
@@ -5038,7 +5099,7 @@ public class MapViewer extends javax.swing.JComponent
     private boolean DEBUG_ANTI_ALIAS = true;
     private boolean DEBUG_RENDER_QUALITY = false;
     private boolean DEBUG_FINDPARENT_OFF = false;
-    private boolean DEBUG_TIMER_ROLLOVER = true; // todo: preferences
+    protected boolean DEBUG_TIMER_ROLLOVER = false; // todo: preferences
     private boolean DEBUG_FONT_METRICS = false;// fractional metrics looks worse to me --SF
     private boolean OPTIMIZED_REPAINT = false;
     
