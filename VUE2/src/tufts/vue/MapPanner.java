@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.50 $ / $Date: 2006-09-19 22:22:14 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2006-10-18 17:35:58 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -51,10 +51,21 @@ public class MapPanner extends javax.swing.JPanel
 
     // Enable this to keep viewport always visible in panner: (it causes while-you-drag
     // zoom adjusting tho, which can be a bit disorienting)
-    private static final boolean ViewerAlwaysVisible = true;
-    private static final boolean ShowFullCanvas = true;
+    private static final boolean ViewerViewportAlwaysVisible = true;
+
+    // If false, map in panner will constantly resize to fit
+    // as large a visible area as possible, tho not fully supported yet,
+    // as dragging is funky if ViewerViewportAlwaysVisible is true,
+    // and the viewport is dragged outside the total LWMap bounds (onto empty canvas).
+    private static final boolean FullScrollCanvasAlwaysVisible = false;
+
+    // false not fully supported yet (dragging wierd once hit edges: not absolute based dragged)
+    // Also: at bottom and right, MapViewer jitters.  What really want is ability to allow
+    // this, but say, not leave the at least a corner on the existing LWMap bounds.
+    private static final boolean AutomaticallyGrowScrollRegions = true;
+    
     private static final int MapMargin = 0;
-    //private static final int MapMargin = ViewerAlwaysVisible ? 5 : 50;
+    //private static final int MapMargin = ViewerViewportAlwaysVisible ? 5 : 50;
     
     /**
      * Get's global (thru AWT hierarchy) MapViewerEvent's
@@ -94,10 +105,14 @@ public class MapPanner extends javax.swing.JPanel
             && (e.getID() == MapViewerEvent.PAN ||
                 e.getID() == MapViewerEvent.ZOOM)) {
             repaint();
-            //if (e.getID() == MapViewerEvent.ZOOM) {
-            //    putClientProperty("TITLE-INFO", ""+this.mapViewer.getZoomFactor());
-            //}
+            if (e.getID() == MapViewerEvent.ZOOM)
+                updateZoomTitle();
         }
+    }
+
+    private void updateZoomTitle() {
+        putClientProperty("TITLE-INFO",
+                          ZoomTool.prettyZoomPercent(this.mapViewer.getZoomFactor()));
     }
 
     public void activeViewerChanged(MapViewer viewer) {
@@ -112,6 +127,7 @@ public class MapPanner extends javax.swing.JPanel
             if (mapViewer != null)
                 setMap(mapViewer.getMap());
             repaint();
+            updateZoomTitle();
         }
     }
 
@@ -147,6 +163,30 @@ public class MapPanner extends javax.swing.JPanel
         dragStart = lastDrag = null;
     }
 
+    // TODO: What should remain constant is the absolute PANNING AMOUNT across the MAP:
+    // nothing to do with the panner viewport itself: then we can have constant mouse
+    // response on dragging, even if panner display is changing zoom...  You're really
+    // dragging the MAP, not the panner reticle...  Also, this could allow for making
+    // the map drag-unit much less chunky...  Shit, tho this may FEEL right, it would
+    // look funny, as the mouse would still drift from it's location relative to the
+    // reticle...  But at least it would REDUCE this drift, and get rid of the crazy
+    // accelleration experiences as you drag reticle further off map, creating huge
+    // canvas, which makes each mouse move look bigger...
+
+    // Also: best guess constraint to address Melanie's concern about creating more
+    // map canvas: the corners of the map can't go further out than the center
+    // of the reticle...
+
+    // Or if wanted to do SIMPLE: Panner uses it's own virtual canvas, which
+    // is min canvas size (so union with actual scroll-pane generated canvas),
+    // which is defined my map bounds plus 1/2 viewport dimensions, then
+    // we never have dynamic scaling, and mouse response can be perfect.
+    // Tho when zooming in/out, that means not only reticle changes, but
+    // the panner displayed map gets bigger/smaller...  So maybe something
+    // else we can bas it on: how about the MapViewer viewport itself:
+    // half of that?  Crap, same problem: maybe half a viewport at 100% zoom?
+    
+
     public void mouseDragged(MouseEvent e)
     {
         if (DEBUG.MOUSE) out(e);
@@ -167,7 +207,7 @@ public class MapPanner extends javax.swing.JPanel
         // change the panner zoom offset...  (And we still need to support being "off the grid"
         // in any case because the user can always manually drag the main view into outer-space)
         */
-        
+
         if (DEBUG.SCROLL) out("mouse " + e.getPoint());
         int x = e.getX();
         int y = e.getY();
@@ -179,6 +219,12 @@ public class MapPanner extends javax.swing.JPanel
                 return;
             }
             */
+            // TODO: panScrollRegion needs dx,dy to work, but then we give up absolute
+            // mouse delta tracking from drag start, which makes for poor correlation
+            // between mouse movements and panner movements if the scale starts changing
+            // (e.g., we go outside the LWMap bounds, and start auto-growing the
+            // canvas).
+            
             int dx = x - lastDrag.x;
             int dy = y - lastDrag.y;
             double factor = mapViewer.getZoomFactor() / this.zoomFactor;
@@ -188,12 +234,12 @@ public class MapPanner extends javax.swing.JPanel
             
             if (DEBUG.SCROLL) out("dx="+dx + " dy="+dy);
             
-            mapViewer.panScrollRegion(dx, dy, true);
+            mapViewer.panScrollRegion(dx, dy, AutomaticallyGrowScrollRegions);
             lastDrag = e.getPoint();
             
         } else {
             
-            if (ViewerAlwaysVisible) {
+            if (ViewerViewportAlwaysVisible) {
                 // hack till we disallow the maprect from going beyond edge
                 if (x < 0) x = 0;
                 else if (x > getWidth()-2) x = getWidth()-2;
@@ -217,8 +263,15 @@ public class MapPanner extends javax.swing.JPanel
     }
     
     public void mouseWheelMoved(MouseWheelEvent e) {
+        /*
         if (mapViewer != null)
             mapViewer.getMouseWheelListener().mouseWheelMoved(e);
+        */
+        int rotation = e.getWheelRotation();
+        if (rotation > 0)
+            tufts.vue.ZoomTool.setZoomSmaller(null);
+        else if (rotation < 0)
+            tufts.vue.ZoomTool.setZoomBigger(null);
     }
     
     public void paintComponent(Graphics g)
@@ -261,8 +314,8 @@ public class MapPanner extends javax.swing.JPanel
         final Rectangle2D viewerRect = viewer.getVisibleMapBounds();
         final Rectangle2D pannerRect;
 
-        if (ViewerAlwaysVisible && viewer.inScrollPane()) {
-            if (ShowFullCanvas)
+        if (ViewerViewportAlwaysVisible && viewer.inScrollPane()) {
+            if (FullScrollCanvasAlwaysVisible)
                 // the fudgey margins go away with show full canvas -- which indicates
                 // the problem w/out the canvas is obviously because we can *drag* to
                 // edge of full canvas, but if not computing zoom with it, we'll
@@ -307,13 +360,15 @@ public class MapPanner extends javax.swing.JPanel
          * the visible viewer canvas, which virtually "pan's" over the infinite
          * coordinate space the map lies in.
          */
-        
         // need to offset fill, so can't just use existing canvasRect
-        final Rectangle2D canvas = viewer.screenToMapRect(new Rectangle(1,1, viewer.getWidth(), viewer.getHeight()));
+        //final Rectangle2D fillCanvas = viewer.screenToMapRect(new Rectangle(1,1, viewer.getWidth(), viewer.getHeight()));
+
 
         dc.g.setColor(map.getFillColor());
         // round size of canvas down...
-        dc.g.fill(canvas);
+        //dc.g.fill(canvas);
+        // now we only fill visible on-screen area:
+        dc.g.fill(viewerRect);
         
         /*
          * Now tell the active LWMap to draw itself here on the panner.
