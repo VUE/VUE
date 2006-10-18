@@ -17,7 +17,7 @@
 	<key>CFBundleSignature</key>
 	<string>TVUE</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Tufts Visual Understanding Environment 1.0</string>
+	<string>Tufts Visual Understanding Environment</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleIconFile</key>
