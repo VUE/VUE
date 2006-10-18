@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.103 $ / $Date: 2006-08-02 18:46:08 $ / $Author: sfraize $
+ * @version $Revision: 1.104 $ / $Date: 2006-10-18 17:54:59 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -436,7 +436,7 @@ public class LWMap extends LWContainer
         
         super.draw(dc);
         
-        if (mPathways != null) {
+        if (mPathways != null && !dc.isPresenting()) {
             Iterator i = mPathways.iterator();
             int pathIndex = 0;
             while (i.hasNext()) {
