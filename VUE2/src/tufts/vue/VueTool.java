@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.39 $ / $Date: 2006-01-20 20:30:37 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2006-10-18 17:47:15 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -331,6 +331,23 @@ public abstract class VueTool extends AbstractAction
     public void handleDraw(DrawContext dc, LWMap map) {
         dc.g.setColor(map.getFillColor());
         dc.g.fill(dc.g.getClipBounds());
+
+        /*
+          // Experimental draw of all the open maps on top of each other (for eventual map compares)
+        MapTabbedPane mapPanes = VUE.getLeftTabbedPane();
+
+        dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+         
+        for (int i = 0; i < mapPanes.getTabCount(); i++) {
+            LWMap overlay = mapPanes.getMapAt(i);
+            if (overlay == map)
+                continue;
+            overlay.draw(dc);
+        }
+
+        dc.g.setComposite(AlphaComposite.Src);
+        */
+        
         map.draw(dc);
     }
     
@@ -370,25 +387,90 @@ public abstract class VueTool extends AbstractAction
         return false;
     }
 
+    private static class SlideProxyMap extends LWMap {
+        private LWMap srcMap;
+        SlideProxyMap(LWMap srcMap) {
+            super("SlideViewer");
+            this.srcMap = srcMap;
+        }
+
+        public LWPathwayList getPathwayList() {
+            return srcMap.getPathwayList();
+        }
+        
+    }
+
+    private static MapViewer SlideViewer = null;
+    private static LWMap SlideMap = null;
+    private static LWComponent CurSlide = null;
     //public void handleSelectionChange(LWSelection s) {}
     // temporary: give this to everyone
     public void handleSelectionChange(LWSelection s) {
 
-        //-----------------------------------------------------------------------------
-        // The right viewer tracks & zooms to whatever is selected
-        // in the left viewer if it's showing the same map as the left viewer.
-        //-----------------------------------------------------------------------------
-        
+        /*
+        if (s.size() == 1 && VUE.isActiveViewerOnLeft())
+            tufts.vue.ui.SlideViewer.setFocused(s.first());
+
+        if (s.size() == 1 && s.first().getSlide() != null
+            && VUE.multipleMapsVisible()
+            && VUE.isActiveViewerOnLeft())
+        {
+        */
+
+            /*
+              // Experimental creation of a slide in the right viewer
+              
+            if (SlideViewer == null) {
+                //SlideMap = new LWMap("SlideViewer");
+                SlideMap = new SlideProxyMap(s.first().getMap());
+                SlideViewer = new MapViewer(SlideMap);
+                VUE.getRightTabbedPane().addViewer(SlideViewer);
+            } else {
+                SlideMap.removeChild(CurSlide);
+            }
+                
+            CurSlide = s.first().getSlide();
+            SlideMap.addChild(CurSlide);
+
+            ZoomTool.setZoomFitRegion(SlideViewer, CurSlide.getBounds(), 16, false);
+            */
+
+            /* OLD
+            if (rightViewer.getMap() == VUE.getActiveMap()) {
+                tufts.Util.printStackTrace("CREATING NEW SLIDE VIEWER");
+                slideMap = new LWMap("SlideView");
+                slideMap.addChild(slide);
+                slideViewer = new MapViewer(slideMap);
+                VUE.getRightTabbedPane().addViewer(slideViewer);
+            } else if (rightViewer.getMap().getLabel().equals("SlideView")) {
+                tufts.Util.printStackTrace("USING EXISTING SLIDE VIEWER");
+                slideViewer = rightViewer;
+                slideMap = slideViewer.getMap();
+                slideMap.removeChildren(slideMap.getChildIterator());
+                slideMap.addChild(slide);
+            }
+            if (slideMap != null)
+                ZoomTool.setZoomFitRegion(slideViewer, slide.getBounds(), 16);
+            */
+        //}
+
+
+            //-----------------------------------------------------------------------------
+            // The right viewer tracks & zooms to whatever is selected
+            // in the left viewer if it's showing the same map as the left viewer.
+            // TEST ONLY FOR NOW.
+            //-----------------------------------------------------------------------------
+            
         if (DEBUG.Enabled &&
             !s.isEmpty() &&
             VUE.multipleMapsVisible() &&
             VUE.isActiveViewerOnLeft() &&
             VUE.getRightTabbedPane().getSelectedViewer().getMap() == VUE.getActiveMap()
             )
-        {
-            MapViewer viewer = VUE.getRightTabbedPane().getSelectedViewer();
-            ZoomTool.setZoomFitRegion(viewer, s.getBounds(), 16);
-        }
+            {
+                MapViewer viewer = VUE.getRightTabbedPane().getSelectedViewer();
+                ZoomTool.setZoomFitRegion(viewer, s.getBounds(), 16, false);
+            }
     }
 
     public LWComponent findComponentAt(LWMap map, float mapX, float mapY) {
