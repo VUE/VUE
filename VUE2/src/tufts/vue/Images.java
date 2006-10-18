@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.23 $ / $Date: 2006-08-07 05:28:46 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2006-10-18 17:30:41 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -546,6 +546,9 @@ public class Images
 
             if (listener != null) {
                 if (DEBUG.IMAGE) out("Adding us as listener to existing Loader");
+                // TODO CRITICAL: above is last message we're seeing before
+                // an apparent deadlock when rapidly dragging search result
+                // resources onto map: is this the same deadlock we already "fixed" ??
                 loader.addListener(listener);
                 return null;
             }
