@@ -21,7 +21,7 @@ import javax.swing.JCheckBoxMenuItem;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.11 $ / $Date: 2006-10-03 18:29:22 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2006-10-18 17:49:41 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -147,8 +147,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.Undo);
         editMenu.add(Actions.Redo);
         editMenu.addSeparator();
-        editMenu.add(Actions.NewNode);
-        editMenu.add(Actions.NewText);
+        GUI.addToMenu(editMenu, Actions.NEW_OBJECT_ACTIONS);
         editMenu.add(Actions.Rename);
         editMenu.add(Actions.Duplicate);
         editMenu.add(Actions.Delete);
@@ -160,15 +159,15 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.SelectAll);
         editMenu.add(Actions.DeselectAll);
         //editMenu.addSeparator();
-//        editMenu.add(Actions.editDataSource);
-//        editMenu.addSeparator();
         //editMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
-        //editMenu.add(Images.ClearCacheAction);
+        if (DEBUG.IMAGE)
+            editMenu.add(Images.ClearCacheAction);
         
         viewMenu.add(Actions.ZoomIn);
         viewMenu.add(Actions.ZoomOut);
         viewMenu.add(Actions.ZoomFit);
         viewMenu.add(Actions.ZoomActual);
+        viewMenu.add(Actions.ZoomToSelection);
 
         //if (tufts.Util.getJavaVersion() >= 1.5f)
             viewMenu.add(Actions.ToggleFullScreen);
@@ -221,7 +220,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.vueWebsite.label"), VueResources.getString("helpMenu.vueWebsite.url")));
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.userGuide.label"), VueResources.getString("helpMenu.userGuide.url")));
-        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.feedback.label"), VueResources.getString("helpMenu.feedback.url"))); 
+        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.feedback.label"), VueResources.getString("helpMenu.feedback.url")));
+        
+        
         if (tufts.Util.isMacPlatform() == false) {
             // already in standard MacOSX place
             helpMenu.add(new AboutAction());
@@ -229,13 +230,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
         helpMenu.add(new ShortcutsAction());
 
-
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.releaseNotes.label"),
                                        VueResources.getURL("helpMenu.releaseNotes.file"),
                                        new String("ReleaseNotes_" + VueResources.getString("vue.version") + ".htm").replace(' ', '_')
                                        ));
         
-
         add(fileMenu);
         add(editMenu);
         add(viewMenu);
