@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.40 $ / $Date: 2006-10-18 17:47:15 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2006-10-18 18:25:31 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -407,6 +407,11 @@ public abstract class VueTool extends AbstractAction
     // temporary: give this to everyone
     public void handleSelectionChange(LWSelection s) {
 
+        if (s.size() == 1) {
+            tufts.vue.ui.SlideViewer.setFocused(s.first());
+            return;
+        }
+        
         /*
         if (s.size() == 1 && VUE.isActiveViewerOnLeft())
             tufts.vue.ui.SlideViewer.setFocused(s.first());
