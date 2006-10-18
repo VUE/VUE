@@ -33,7 +33,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.125 $ / $Date: 2006-08-02 18:45:02 $ / $Author: sfraize $
+ * @version $Revision: 1.126 $ / $Date: 2006-10-18 17:56:15 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -212,8 +212,11 @@ public class LWNode extends LWContainer
     
     private boolean iconShowing()
     {
-        //return AlwaysShowIcon || hasResource() || hasNotes() || hasMetaData() || inPathway();
-        return AlwaysShowIcon || mIconBlock.isShowing(); // remember not current till after a layout
+        //if (getParent() instanceof LWSlide) // put in LWComponent so LWImage can use also (adjusting scale factor)
+        if (isPresentationContext())
+             return false;
+         else
+            return AlwaysShowIcon || mIconBlock.isShowing(); // remember not current till after a layout
     }
 
     // was text box hit?  coordinates are component local
@@ -243,8 +246,8 @@ public class LWNode extends LWContainer
     public void mouseOver(MapMouseEvent e)
     {
         //if (textBoxHit(cx, cy)) System.out.println("over label");
-
-        if (mIconBlock.isShowing())
+        //if (mIconBlock.isShowing())
+        if (iconShowing())
             mIconBlock.checkAndHandleMouseOver(e);
     }
 
@@ -957,7 +960,7 @@ public class LWNode extends LWContainer
                 rLabel.x += mIconBlock.width;
             }
             if (hasChildren()) {
-                Size children = layoutChildren(new Size(), true);
+                Size children = layoutChildren(new Size(), 0f, true);
                 //float childx = rLabel.x + ChildPadX;
                 float childx = rLabel.x;
                 float childy = rLabel.height + ChildPadY;
@@ -1157,15 +1160,33 @@ public class LWNode extends LWContainer
     //----------------------------------------------------------------------------------------
 
     /** will CHANGE min.width and min.height */ 
-    private void layoutBoxed_children(Size min, Size text) {
-        if (DEBUG.LAYOUT) out("*** layoutBoxed_children; min=" + min + " text=" + text);
+    private void layoutBoxed_children(Size min, Size labelText) {
+        if (DEBUG.LAYOUT) out("*** layoutBoxed_children; min=" + min + " text=" + labelText);
 
-        mBoxedLayoutChildY = EdgePadY + text.height; // must set before layoutChildren, as may be used in childOffsetY()
+        mBoxedLayoutChildY = EdgePadY + labelText.height; // must set before layoutChildren, as may be used in childOffsetY()
+
+        float minWidth;
+        if (false && isPresentationContext()) {
+            minWidth = Math.max(labelText.width, getWidth()-20);
+            // Prob will have to just let it compute max child width, then center
+            // the whole child box in the node (this isn't letting shrink node via drag-resize properly,
+            // even with a 20px margin of error...)
+        } else
+            minWidth = 0;
         
-        Size children = layoutChildren(new Size(), false);
+        final Size children = layoutChildren(new Size(), minWidth, false);
         final float childSpan = childOffsetX() + children.width + ChildPadX;
+
         if (min.width < childSpan)
             min.width = childSpan;
+        
+        /*
+        if (isPresentationContext()) {
+            if (min.width < text.width)
+                min.width = text.width;
+        }
+        */
+        
         min.height += children.height;
         min.height += ChildOffsetY + ChildrenPadBottom; // additional space below last child before bottom of node
     }
@@ -1449,16 +1470,16 @@ public class LWNode extends LWContainer
      */
     
     void layoutChildren() {
-        layoutChildren(null, false);
+        layoutChildren(null, 0f, false);
     }
     
     // for computing size only
     private Size layoutChildren(Size result) {
-        return layoutChildren(0, 0, result);
+        return layoutChildren(0f, 0f, 0f, result);
     }
 
     //private Rectangle2D child_box = new Rectangle2D.Float(); // for debug
-    private Size layoutChildren(Size result, boolean sizeOnly)
+    private Size layoutChildren(Size result, float minWidth, boolean sizeOnly)
     {
         if (DEBUG.LAYOUT) out("*** layoutChildren; sizeOnly=" + sizeOnly);
         
@@ -1478,22 +1499,22 @@ public class LWNode extends LWContainer
         // for relative-to-parent child layouts
         //baseX = baseY = 0;
 
-        return layoutChildren(baseX, baseY, result);
+        return layoutChildren(baseX, baseY, minWidth, result);
     }
         
     private void layoutChildren(float baseX, float baseY) {
-        layoutChildren(baseX, baseY, null);
+        layoutChildren(baseX, baseY, 0f, null);
     }
     
-    private Size layoutChildren(float baseX, float baseY, Size result)
+    private Size layoutChildren(float baseX, float baseY, float minWidth, Size result)
     {
         if (DEBUG.LAYOUT) out("*** layoutChildren at " + baseX + "," + baseY);
         if (DEBUG.LAYOUT) Util.printClassTrace("tufts.vue.LW", "*** layoutChildren");
         //if (baseX > 0) new Throwable("LAYOUT-CHILDREN").printStackTrace();
-        if (true)
-            layoutChildrenSingleColumn(baseX, baseY, result);
+        if (isPresentationContext())
+            layoutChildrenGrid(baseX, baseY, result, 1, minWidth);
         else
-            layoutChildrenGrid(baseX, baseY, result, 1);
+            layoutChildrenSingleColumn(baseX, baseY, result);
 
         if (result != null) {
             result.width /= getScale();
@@ -1542,6 +1563,10 @@ public class LWNode extends LWContainer
         float width;
         float height;
 
+        Column(float minWidth) {
+            width = minWidth;
+        }
+
         void layout(float baseX, float baseY, boolean center)
         {
             float y = baseY;
@@ -1571,7 +1596,8 @@ public class LWNode extends LWContainer
         }
     }
 
-    protected void layoutChildrenGrid(float baseX, float baseY, Size result, int nColumn)
+    // If nColumn == 1, it does center layout.  minWidth only meant for single column
+    protected void layoutChildrenGrid(float baseX, float baseY, Size result, int nColumn, float minWidth)
     {
         float y = baseY;
         float totalWidth = 0;
@@ -1583,7 +1609,7 @@ public class LWNode extends LWContainer
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (cols[curCol] == null)
-                cols[curCol] = new Column();
+                cols[curCol] = new Column(minWidth);
             cols[curCol].add(c);
             if (++curCol >= nColumn)
                 curCol = 0;
@@ -1733,6 +1759,8 @@ public class LWNode extends LWContainer
             // experimental
             //imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
             imageIcon.paintIcon(null, g, 0, 0);
+        } else if (dc.isPresenting() || isPresentationContext()) {
+            ; // do nothing: no fill
         } else {
             Color fillColor = getRenderFillColor();
             if (fillColor != null) { // transparent if null
@@ -1759,7 +1787,7 @@ public class LWNode extends LWContainer
         }
         else*/
         
-        if (getStrokeWidth() > 0) {
+        if (getStrokeWidth() > 0 && !isPresentationContext() && !dc.isPresenting()) {
             //if (LWSelection.DEBUG_SELECTION && isSelected())
             //if (isSelected())
             //g.setColor(COLOR_SELECTION);
@@ -1771,11 +1799,15 @@ public class LWNode extends LWContainer
 
 
         if (DEBUG.BOXES) {
-            dc.g.setColor(Color.darkGray);
             dc.setAbsoluteStroke(0.5);
             //if (hasChildren()) dc.g.draw(child_box);
-            if (_lastNodeContent != null && !mIsRectShape)
+            if (false && _lastNodeContent != null && !mIsRectShape) {
+                dc.g.setColor(Color.darkGray);
                 dc.g.draw(_lastNodeContent);
+            } else {
+                dc.g.setColor(Color.blue);
+                dc.g.draw(this.drawnShape);
+            }
         }
             
         //-------------------------------------------------------
@@ -1883,7 +1915,7 @@ public class LWNode extends LWContainer
         // paint the node icons
         //-------------------------------------------------------
 
-        if (iconShowing()) {
+        if (!dc.isPresenting() && iconShowing()) {
             mIconBlock.draw(dc);
             // draw divider if there's a label
             if (hasLabel()) {
