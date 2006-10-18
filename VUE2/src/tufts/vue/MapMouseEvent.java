@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import java.awt.Rectangle;
+import java.awt.event.InputEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.event.*;
@@ -29,7 +30,7 @@ import javax.swing.JScrollPane;
  * Extension of MouseEvent for events that happen on an instance of LWMap
  * in a MapViewer.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-01-20 19:33:56 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2006-10-18 17:35:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -42,6 +43,8 @@ import javax.swing.JScrollPane;
 
 public class MapMouseEvent extends MouseEvent
 {
+    private static final int COMMAND_MASK = VueUtil.isMacPlatform() ? InputEvent.META_MASK : InputEvent.ALT_MASK;
+    
     float mapX;
     float mapY;
     LWComponent hitComponent;
@@ -55,7 +58,7 @@ public class MapMouseEvent extends MouseEvent
         super(e.getComponent(),
               e.getID(),
               e.getWhen(),
-              e.getModifiers(),
+              e.getModifiers() | e.getModifiersEx(),
               e.getX(),
               e.getY(),
               e.getClickCount(),
@@ -85,6 +88,10 @@ public class MapMouseEvent extends MouseEvent
     {
         this(e);
         setSelectorBox(selectorBox);
+    }
+
+    public boolean isCommandDown() {
+        return (getModifiers() & COMMAND_MASK) != 0;
     }
 
     public void setMousePress(int pressX, int pressY)
