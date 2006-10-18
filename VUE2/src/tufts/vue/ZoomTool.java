@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.42 $ / $Date: 2006-08-07 05:26:54 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2006-10-18 17:47:39 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -194,7 +194,8 @@ public class ZoomTool extends VueTool
             viewer.setZoomFactor(newZoomFactor, reset, null, true);
     }
     
-    public static void setZoomFitRegion(MapViewer viewer, Rectangle2D mapRegion, int edgePadding)
+    /** @param currently only works if NOT in a scroll pane */
+    public static void setZoomFitRegion(MapViewer viewer, Rectangle2D mapRegion, int edgePadding, boolean animate)
     {
         if (mapRegion == null) {
             new Throwable("setZoomFitRegion: mapRegion is null for " + viewer).printStackTrace();
@@ -224,9 +225,10 @@ public class ZoomTool extends VueTool
                 //viewer.resetScrollRegion();
             } else {
 
-                if (false)
+                if (animate)
                     animatedZoomTo(viewer, newZoom, offset);
                 
+                //if (DEBUG.Enabled) System.out.println("zoomX " + newZoom);
                 setZoom(viewer, newZoom, false, DONT_FOCUS, true);
                 viewer.setMapOriginOffset(offset.getX(), offset.getY());
             }
@@ -235,7 +237,7 @@ public class ZoomTool extends VueTool
 
     private static void animatedZoomTo(MapViewer viewer, double newZoom, Point2D offset)
     {
-        final int frames = 10;
+        final int frames = 6;
 
         double cz = viewer.getZoomFactor();
         double cx = viewer.getOriginX();
@@ -254,15 +256,17 @@ public class ZoomTool extends VueTool
         // as the repaint does nothing to adjust the scrolling
         // viewport.
         for (int i = 1; i < frames; i++) {
-            setZoom(viewer, cz + iz*i, false, DONT_FOCUS, true);
+            double zoom = cz + iz*i;
+            setZoom(viewer, zoom, false, DONT_FOCUS, true);
             viewer.setMapOriginOffset(cx + ix*i, cy + iy*i);
             viewer.paintImmediately();
+            //if (DEBUG.Enabled) System.out.println("zoom+ " + zoom);
         }
     }
     
     public static void setZoomFitRegion(Rectangle2D mapRegion, int edgePadding)
     {
-        setZoomFitRegion(VUE.getActiveViewer(), mapRegion, edgePadding);
+        setZoomFitRegion(VUE.getActiveViewer(), mapRegion, edgePadding, false);
     }
     
     public static void setZoomFitRegion(Rectangle2D mapRegion)
@@ -276,7 +280,7 @@ public class ZoomTool extends VueTool
         // if don't want this to vertically center map in viewport, will need
         // to tell setZoomFitRegion above to compute center using mapRegion.getY()
         // instead of mapRegion.getCenterY()
-        setZoomFitRegion(viewer, viewer.getMap().getBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD);
+        setZoomFitRegion(viewer, viewer.getMap().getBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD, false);
         // while it would be nice to call getActiveViewer().getContentBounds()
         // as a way to get bounds with max selection edges, etc, it computes some
         // of it's size based on current zoom, which we're about to change, so
@@ -341,5 +345,18 @@ public class ZoomTool extends VueTool
             
         return newZoom;
     }
+
+
+    public static String prettyZoomPercent(double zoom) {
+        double zoomPct = zoom * 100;
+        if (zoomPct < 10) {
+            // if < 10% zoom, show with 1 digit of decimal value if it would be non-zero
+            return VueUtil.oneDigitDecimal(zoomPct) + "%";
+        } else {
+            //title += (int) Math.round(zoomPct);
+            return ((int)Math.floor(zoomPct + 0.49)) + "%";
+        }
+    }
+    
     
 }
