@@ -75,47 +75,79 @@ public class OpenAction extends VueAction {
             }
         }
     }
+
+    public static boolean isVueIMSCPArchive(File file) {
+        if (!file.getName().toLowerCase().endsWith(".zip"))
+            return false;
+        
+        try {
+            ZipFile zipFile = new ZipFile(file);
+            return zipFile.getEntry(IMSCP.MAP_FILE) != null && zipFile.getEntry(IMSCP.MANIFEST_FILE) != null;
+        } catch (Throwable t) {
+            VUE.Log.warn(t);
+            return false;
+        }
+    }
+    
     
     // todo: have only one root loadMap that hanldes files & urls -- actually, make it ALL url's
     public static LWMap loadMap(String filename) {
         try {
-            if (DEBUG.CASTOR) System.err.println("\nUnmarshalling from " + filename);
+            if (DEBUG.CASTOR || DEBUG.IO) System.err.println("\nloadMap " + filename);
             File file = new File(filename);
-            int dotIndex = file.getName().lastIndexOf('.');
-            String extension = "";
-            if (dotIndex >= 0 && file.getName().length() > 1)
-                extension = file.getName().substring(dotIndex + 1).toLowerCase();
+
+            //int dotIndex = file.getName().lastIndexOf('.');
+            //String extension = "";
+            //if (dotIndex >= 0 && file.getName().length() > 1)
+            //    extension = file.getName().substring(dotIndex + 1).toLowerCase();
             //System.out.println("Extension = "+extension);
-            Vector resourceVector = new Vector();
-            if (extension.equals("zip")) {
-                System.out.println("Unpacking Zip file " + file);
+
+            // TODO: the current method of saving VUE zip archives doesn't preserve the
+            // original resource reference.  We could easily do this by changing this to
+            // a system where the original resources are left alone, (and the archiving
+            // process can speedily pull the images from the disk image cache), and
+            // here, when restoring, simply pre-load the disk cache with images included
+            // in the archive.  Unless we want to provide other functionaly, such as the
+            // ability for the user to get at the content directly in a special folder,
+            // look at/edit it, etc.
+
+            // Also problem: opening a VUE .zip archive, then trying to save it normally
+            // won't produce something restorable.   Don't know if saving it as
+            // a zip archive again will work or not.
+
+            // TODO PREF: may want option for user to by default use the cached on-disk
+            // image version of something when double clicking, v.s., going back out
+            // online for the original resource.  (Would be nice also to do this by
+            // default if not online!)  E.g., opening an image from the cache on MacOSX
+            // would immediately open in, usually in Preview, instead of reloading it in
+            // Safari.
+
+            if (isVueIMSCPArchive(file)) {
+                VUE.Log.info("Unpacking VUE IMSCP zip archive: " + file);
                 ZipFile zipFile = new ZipFile(file);
-                if(zipFile.getEntry(IMSCP.MAP_FILE)!= null && zipFile.getEntry(IMSCP.MANIFEST_FILE) != null) {
-                    File resourceFolder = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+IMSCP.RESOURCE_FILES);
-                    if(resourceFolder.exists() || resourceFolder.mkdir()) {
-                        ZipInputStream zin = new ZipInputStream(new FileInputStream(file));
-                        ZipEntry e;
-                        while((e=zin.getNextEntry())!= null) {
-  
-                            unzip(zin, e.getName());
-                            System.out.println("Entry"+e.getName());  
-                            if(!e.getName().equalsIgnoreCase(IMSCP.MAP_FILE) && !e.getName().equalsIgnoreCase(IMSCP.MANIFEST_FILE)){
-                                Resource resource = new MapResource(e.getName());
-                                resourceVector.add(resource);
-                                  System.out.println("Resource"+resource.getSpec());      
-                               
-                            }
+                Vector resourceVector = new Vector();
+                File resourceFolder = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+IMSCP.RESOURCE_FILES);
+                if(resourceFolder.exists() || resourceFolder.mkdir()) {
+                    ZipInputStream zin = new ZipInputStream(new FileInputStream(file));
+                    ZipEntry e;
+                    while ((e=zin.getNextEntry()) != null) {
+                        unzip(zin, e.getName());
+                        //if (DEBUG.IO) System.out.println("ZipEntry: " + e.getName());  
+                        if(!e.getName().equalsIgnoreCase(IMSCP.MAP_FILE) && !e.getName().equalsIgnoreCase(IMSCP.MANIFEST_FILE)){
+                            Resource resource = new URLResource(e.getName());
+                            resourceVector.add(resource);
+                            //if (DEBUG.IO) System.out.println("Resource: " + resource);
                         }
-                        
-                        zin.close();
                     }
+                    zin.close();
                 }
+           
                 File mapFile  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+IMSCP.MAP_FILE);
                 LWMap map = ActionUtil.unmarshallMap(mapFile);
                 Iterator i = resourceVector.iterator();
                 while(i.hasNext()){
                     Resource r = (Resource)i.next();
-                    replaceResource(map,r,new MapResource(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+r.getSpec()));
+                    replaceResource(map,r,new URLResource(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+r.getSpec()));
                 }
                 
                 return map;
@@ -164,8 +196,9 @@ public class OpenAction extends VueAction {
     }
     
     public static void unzip(ZipInputStream zin, String s) throws IOException {
-        System.out.println("unzipping " + s);
-        FileOutputStream out = new FileOutputStream(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+s);
+        String fname = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+s;
+        if (DEBUG.IO) System.out.println("unzipping " + s + " to " + fname);
+        FileOutputStream out = new FileOutputStream(fname);
         byte [] b = new byte[512];
         int len = 0;
         while ( (len=zin.read(b))!= -1 ) {
