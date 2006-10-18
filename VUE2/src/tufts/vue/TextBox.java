@@ -87,7 +87,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.38 $ / $Date: 2006-04-13 03:50:10 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2006-10-18 17:42:19 $ / $Author: sfraize $
  *
  */
 
@@ -907,7 +907,7 @@ class TextBox extends JTextPane
 
         boolean inverted;
         if (dc.isBlackWhiteReversed() &&
-            (lwc.isTransparent() /*|| isBlack(lwc.getFillColor())*/) &&
+            (dc.isPresenting() || lwc.isTransparent() /*|| isBlack(lwc.getFillColor())*/) &&
             isBlack(lwc.getTextColor())) {
             //System.out.println("reversing color to white for " + this);
             setDocumentColor(Color.white);
