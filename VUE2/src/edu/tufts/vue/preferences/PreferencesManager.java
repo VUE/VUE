@@ -31,6 +31,7 @@ public class PreferencesManager {
 	  static
 	  {
 		PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.AutoZoomPreference.class);  
+		PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.ImageSizePreference.class);
 		//PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.WindowPropertysPreference.class);
 		
 		categories.add(PreferenceConstants.MAPDISPLAY_CATEGORY);
