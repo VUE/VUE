@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.194 $ / $Date: 2006-08-02 18:43:12 $ / $Author: sfraize $
+ * @version $Revision: 1.195 $ / $Date: 2006-10-18 17:31:16 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -118,6 +118,8 @@ public class LWComponent
     protected transient BufferedImage mCachedImage;
     protected transient double mCachedImageAlpha;
     protected transient Dimension mCachedImageMaxSize;
+
+    protected transient LWSlide mSlide;
 
     public static final java.util.Comparator XSorter = new java.util.Comparator() {        
             public int compare(Object o1, Object o2) {
@@ -327,6 +329,14 @@ public class LWComponent
 
     public LWComponent duplicate() {
         return duplicate(null);
+    }
+
+    protected boolean isPresentationContext() {
+        if (true) return false;// turned off for now
+        if (parent == null)
+            return false; // this means presentation nodes will report wrong sizes during restores...
+        else
+            return parent.isPresentationContext();
     }
 
 
@@ -1107,6 +1117,24 @@ public class LWComponent
         return false;
     }
 
+    public boolean isEmpty() {
+        return true;
+    }
+
+    public LWSlide getSlide() {
+        if (mSlide == null) {
+            synchronized (this) {
+                if (mSlide == null)
+                    mSlide = buildSlide();
+            }
+        }
+        return mSlide;
+    }
+
+    protected LWSlide buildSlide() {
+        return null;
+    }
+
     /* for tracking who's linked to us */
     void addLinkRef(LWLink link)
     {
@@ -1670,6 +1698,9 @@ public class LWComponent
     
     public void drawPathwayDecorations(DrawContext dc)
     {
+        if (dc.isPresenting()) // don't draw pathways if presenting
+            return;
+        
         if (pathwayRefs == null)
             return;
         
