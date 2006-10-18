@@ -37,7 +37,7 @@ import java.util.Iterator;
  * @see LWPathwayList
  * @see LWPathway
  *
- * @version $Revision: 1.22 $ / $Date: 2006-03-24 22:25:20 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2006-10-18 17:39:26 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 public class PathwayTool extends VueSimpleTool
@@ -51,6 +51,28 @@ public class PathwayTool extends VueSimpleTool
     public boolean handleKeyPressed(java.awt.event.KeyEvent e)  {
         return false;
     }
+    
+    public boolean handleMousePressed(MapMouseEvent e)
+    {
+        if (!e.isAltDown())
+            return false;
+        
+        final LWComponent hit = e.getMap().findChildAt(e.getMapX(), e.getMapY());
+        final LWPathway activePathway = VUE.getActivePathway();
+
+        out(this + " handleMousePressed " + e + " hit on " + hit + " activePathway=" + activePathway);
+
+        if (hit == null || activePathway == null)
+            return false;
+
+        if (hit.inPathway(activePathway))
+            activePathway.remove(hit);
+        else
+            activePathway.add(hit);
+        
+        return true;
+    }
+
     
     public void actionPerformed(ActionEvent e) {
         super.actionPerformed(e);
