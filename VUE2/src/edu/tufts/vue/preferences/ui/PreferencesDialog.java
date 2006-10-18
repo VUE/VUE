@@ -36,6 +36,7 @@ import edu.tufts.vue.preferences.tree.PrefCategoryTreeNode;
 import edu.tufts.vue.preferences.tree.PrefTreeNode;
 import edu.tufts.vue.preferences.tree.VuePrefRenderer;
 import edu.tufts.vue.preferences.tree.VueTreeUI;
+import tufts.Util;
 import tufts.vue.gui.GUI;
 import java.util.prefs.*;
 import java.util.List;
@@ -68,6 +69,7 @@ public class PreferencesDialog extends JDialog {
 		super(owner, title);
 		getContentPane().setLayout(new GridBagLayout());
 		setSize(640, 480);
+		Util.centerOnScreen(this);
 		setModal(true);
 		createTree();
 		// editTable = new JTable();
