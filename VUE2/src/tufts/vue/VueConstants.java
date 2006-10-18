@@ -29,7 +29,7 @@ import java.awt.font.FontRenderContext;
  *
  * Is an interface so can be "implemented" as virtual java 1.5 static import.
  *
- * @version $Revision: 1.45 $ / $Date: 2006-03-25 20:30:37 $ / $Author: sfraize $ 
+ * @version $Revision: 1.46 $ / $Date: 2006-10-18 17:56:33 $ / $Author: sfraize $ 
  */
 
 // todo: rename GUI constants & move to GUI
@@ -47,6 +47,13 @@ public interface VueConstants
     static Font FONT_DEFAULT = new Font("SansSerif", Font.PLAIN, 14);
     static Font FONT_MEDIUM = new Font("SansSerif", Font.PLAIN, 12);
     static Font FONT_MEDIUM_UNICODE = new Font("Arial Unicode MS", Font.PLAIN, 12);
+    // TODO: above font only avail on Win2K/WinXP if Office installed (I think),
+    // if this is NOT available, "Lucida Sans Unicode" is a better bet.
+    // Wait: actually, this font works just as well as Lucida Sans Unicode,
+    // it's just that the latter is a bolder font.  Tho this font
+    // does NOT appear in the font list on default WinXP systems, it
+    // appears to get mapped to something with decent unicode support,
+    // except for asian fonts (chinese/japanese/korean).
     static Font FONT_MEDIUM_BOLD = new Font("SansSerif", Font.BOLD,11);
     static Font FONT_SMALL = new Font("SansSerif", Font.PLAIN, 10);
     static Font FONT_SMALL_BOLD = new Font("SansSerif", Font.BOLD, 10);
