@@ -42,7 +42,7 @@ import java.awt.geom.Ellipse2D;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.116 $ / $Date: 2006-01-20 19:22:30 $ / $Author: sfraize $
+ * @version $Revision: 1.117 $ / $Date: 2006-10-18 17:33:46 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -311,9 +311,12 @@ public class LWPathway extends LWContainer
     public void add(LWComponent c) {
         addChild(c);
     }
+
+    /** remove only the  FIRST reference to the given compoent in the pathway */
     public void remove(LWComponent c) {
-        removeChild(c);
+        remove(indexOf(c), false);
     }
+    
     public void add(Iterator i) {
         addChildren(i);
     }
@@ -377,9 +380,9 @@ public class LWPathway extends LWContainer
     }
 
     private LWComponent removingComponent = null;
-    private synchronized void remove(int index, boolean deleting)
+    private synchronized void remove(int index, boolean isDeleting)
     {
-        if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " remove index " + index + " deleting=" + deleting);
+        if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " remove index " + index + " isDeleting=" + isDeleting);
 
         notify(LWKey.HierarchyChanging);
         LWComponent c = (LWComponent) children.remove(index);
@@ -391,7 +394,7 @@ public class LWPathway extends LWContainer
 
         if (!contains(c)) { // in case in multiple times
             c.removePathwayRef(this);
-            if (!deleting) {
+            if (!isDeleting) {
                 // If deleting, component will remove us as listener itself.
                 // If we remove it here while deleting, we'll get a concurrent
                 // modification exception from LWCompononent.notifyLWCListeners
@@ -583,7 +586,8 @@ public class LWPathway extends LWContainer
 
     /**
      * for persistance: override of LWContainer: pathways never save their children
-     * as they don't own them -- they only save ID references to them.
+     * as they don't own them -- they only save ID references to them.  Pathways
+     * are only "virtual" containers, not proper parents of their children.
      */
     public List getChildList() {
         return null;
