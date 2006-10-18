@@ -39,7 +39,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-08-07 05:37:24 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-10-18 17:50:52 $ / $Author: sfraize $
  */
 public class ResourceList extends JList
     implements DragGestureListener, tufts.vue.ResourceSelection.Listener
@@ -327,7 +327,7 @@ public class ResourceList extends JList
             
             if (value instanceof Resource) {
                 r = (Resource) value;
-                icon = new ResourceIcon(r, 32, 32, list);
+                icon = new ResourceIcon(r, IconSize, IconSize, list);
                 mDataModel.set(index, icon); // ideally, wouldn't want to trigger a model change tho...
             } else {
                 icon = (ResourceIcon) value;
