@@ -44,14 +44,14 @@ import java.awt.geom.Rectangle2D;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.37 $ / $Date: 2006-01-20 18:59:09 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2006-10-18 17:32:52 $ / $Author: sfraize $
  */
-public final class LWGroup extends LWContainer
+public class LWGroup extends LWContainer
 {
     public LWGroup() {}
 
     public boolean supportsUserResize() {
-        return false; // not till PRESENTATION FEATURES
+        return false;
     }
     
     /**
@@ -81,6 +81,13 @@ public final class LWGroup extends LWContainer
     {
         LWGroup group = new LWGroup();
 
+        group.importNodes(selection);
+
+        return group;
+    }
+
+    public void importNodes(java.util.List nodes)
+    {
         /*
         // Track what links are explicitly in the selection so we
         // don't "grab" them later even if both endpoints are in the
@@ -100,7 +107,7 @@ public final class LWGroup extends LWContainer
 
         HashSet linkSet = new HashSet();
         List moveList = new java.util.ArrayList();
-        Iterator i = selection.iterator();
+        Iterator i = nodes.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             //if (c instanceof LWLink) // the only links allowed are ones we grab
@@ -118,7 +125,7 @@ public final class LWGroup extends LWContainer
                 //if (linksInSelection.contains(l))
                 //continue;
                 if (!linkSet.add(l)) {
-                    if (DEBUG.PARENTING) System.out.println("["+group.getLabel() + "] GRABBING " + c + " (both ends in group)");
+                    if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] GRABBING " + c + " (both ends in group)");
                     moveList.add(l);
                 }
             }
@@ -127,10 +134,9 @@ public final class LWGroup extends LWContainer
         // these components the new group
         LWComponent[] comps = sort(moveList, ReverseOrder);
         for (int x = 0; x < comps.length; x++) {
-            group.addChildInternal(comps[x]);
+            addChildInternal(comps[x]);
         }
-        group.setSizeFromChildren();
-        return group;
+        setSizeFromChildren();
     }
     
     /*
@@ -163,7 +169,7 @@ public final class LWGroup extends LWContainer
     }
     */
     
-    private void setSizeFromChildren()
+    protected void setSizeFromChildren()
     {
         Rectangle2D bounds = LWMap.getBounds(getChildIterator());
         super.setSize((float)bounds.getWidth(),
@@ -266,13 +272,13 @@ public final class LWGroup extends LWContainer
         // so don't have to do all this
     }
     
-    // todo: Can't sanely support scaling of a group because
-    // we'd also have to scale the space between the
-    // the children -- to make this work we'll have
-    // to set the scale for the whole group, draw it
-    // (and tell the children NOT to set their scale values
-    // individually) and sort out the rest of a mess
-    // getting all that to work will imply.
+    // TODO: Can't sanely support scaling of a group because we'd also
+    // have to scale the space between the the children -- to make
+    // this work we'll have to set the scale for the whole group, draw
+    // it (and tell the children NOT to set their scale values
+    // individually) and sort out the rest of a mess getting all that
+    // to work will imply.
+    
     void setScale(float scale)
     {
         // intercept any attempt at scaling us and turn it off
@@ -317,9 +323,8 @@ public final class LWGroup extends LWContainer
         return false;
     }
     
-    /** @return the group itself */
-    protected LWComponent defaultHitComponent()
-    {
+    // @return null -- selects nothing: must select member object to select the group 
+    protected LWComponent defaultHitComponent() {
         return this;
     }
     
@@ -412,6 +417,7 @@ public final class LWGroup extends LWContainer
             System.err.println("hiding " + this);
             return;
         }
+        
 
         drawSelectionDecorations(dc);
         
@@ -419,6 +425,8 @@ public final class LWGroup extends LWContainer
             dc.g.setColor(getFillColor());
             dc.g.fill(getShape());
         }
+
+        
         /*
         if (isSelected()) {
             dc.g.setColor(COLOR_HIGHLIGHT);
@@ -427,15 +435,27 @@ public final class LWGroup extends LWContainer
         }
         */
 
-        // draw children, etc.
+        final float scale = getScale();
+
+        if (scale != 1F)
+            dc.g.scale(scale, scale);
+        // Only need to scale down for drawing children, as getShape for default
+        // rectangles includes the current scale factor when being computed...
+
+        // draw children, pathway decorations, etc.
         super.draw(dc);
         
+        if (scale != 1f)
+            dc.g.scale(1F/scale, 1F/scale);
+        
+
         if (getStrokeWidth() > 0) {
             dc.g.setStroke(this.stroke);
             dc.g.setColor(getStrokeColor());
             dc.g.draw(getShape());
             //dc.g.draw(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
         }
+
         
         /*
         if (isIndicated()) {
@@ -458,6 +478,7 @@ public final class LWGroup extends LWContainer
             dc.g.setStroke(STROKE_TWO);
             dc.g.draw(getBounds());
         }
+
     }
     
     
