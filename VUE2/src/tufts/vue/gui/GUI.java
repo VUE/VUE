@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.58 $ / $Date: 2006-09-22 13:39:02 $ / $Author: mike $
+ * @version $Revision: 1.59 $ / $Date: 2006-10-18 17:49:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -433,6 +433,7 @@ public class GUI
             return GMaxWindowBounds;
     }
 
+    /** Return the max window bounds for the given window, for screen device it's currently displayed on */
     public static Rectangle getMaximumWindowBounds(Window w) {
         refreshGraphicsInfo();
         GraphicsDevice d = getDeviceForWindow(w);
@@ -450,7 +451,13 @@ public class GUI
         return bounds;
     }
 
-    /** Return the max window bounds for the given window, for screen device it's currently displayed on */
+    /** @return the GraphicsDevice the given window is currently displayed on.
+     *
+     * In the case where the Window currently overlaps two physical devices, the device
+     * the window is "on" is determined by the device which is displaying the greatest
+     * portion of the total area of the Window
+     */
+    
     public static GraphicsDevice getDeviceForWindow(Window w) {
         refreshGraphicsInfo();
         Rectangle windowBounds = w.getBounds();
