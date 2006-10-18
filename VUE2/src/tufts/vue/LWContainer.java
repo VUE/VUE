@@ -34,7 +34,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.89 $ / $Date: 2006-04-08 05:11:41 $ / $Author: sfraize $
+ * @version $Revision: 1.90 $ / $Date: 2006-10-18 17:32:25 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -162,6 +162,15 @@ public abstract class LWContainer extends LWComponent
     {
         return this.children;
     }
+
+    /** return child at given index, or null if none at that index */
+    public LWComponent getChild(int index) {
+        if (children != null && children.size() > index)
+            return (LWComponent) children.get(index);
+        else
+            return null;
+    }
+
     public java.util.Iterator getChildIterator()
     {
         return this.children.iterator();
@@ -906,20 +915,20 @@ public abstract class LWContainer extends LWComponent
     {
         // todo opt: has to on avg scan half of list every time
         // (will slow down selection in checks to enable front/back actions)
-        return getIndex(c) == children.size()-1;
+        return indexOf(c) == children.size()-1;
     }
     public boolean isOnBottom(LWComponent c)
     {
         // todo opt: has to on avg scan half of list every time
         // (will slow down selection in checks to enable front/back actions)
-        return getIndex(c) == 0;
+        return indexOf(c) == 0;
     }
 
     public int getLayer(LWComponent c)
     {
-        return getIndex(c);
+        return indexOf(c);
     }
-    private int getIndex(Object c)
+    protected int indexOf(Object c)
     {
         if (isDeleted())
             throw new IllegalStateException("*** Attempting to get index of a child of a deleted component!"
@@ -942,13 +951,13 @@ public abstract class LWContainer extends LWComponent
             public int compare(Object o1, Object o2) {
                 LWComponent c1 = (LWComponent) o1;
                 LWComponent c2 = (LWComponent) o2;
-                return c2.getParent().getIndex(c2) - c1.getParent().getIndex(c1);
+                return c2.getParent().indexOf(c2) - c1.getParent().indexOf(c1);
             }};
     protected static final Comparator ReverseOrder = new Comparator() {
             public int compare(Object o1, Object o2) {
                 LWComponent c1 = (LWComponent) o1;
                 LWComponent c2 = (LWComponent) o2;
-                return c1.getParent().getIndex(c1) - c2.getParent().getIndex(c2);
+                return c1.getParent().indexOf(c1) - c2.getParent().indexOf(c2);
             }};
 
     protected static LWComponent[] sort(List selection, Comparator comparator)
@@ -1069,8 +1078,8 @@ public abstract class LWContainer extends LWComponent
             return;
             //throw new IllegalArgumentException(this + "ensurePaintSequence: both aren't children " + onBottom + " " + onTop);
         }
-        int bottomIndex = getIndex(onBottom);
-        int topIndex = getIndex(onTop);
+        int bottomIndex = indexOf(onBottom);
+        int topIndex = indexOf(onTop);
         if (bottomIndex < 0 || topIndex < 0)
             throw new IllegalStateException(this + "ensurePaintSequence: both aren't in list! " + bottomIndex + " " + topIndex);
         //if (DEBUG.PARENTING) System.out.println("ENSUREPAINTSEQUENCE: " + onBottom + " " + onTop);
@@ -1270,6 +1279,11 @@ public abstract class LWContainer extends LWComponent
             linkPatcher.reconnectLinks();
             
         return containerCopy;
+    }
+
+    protected LWSlide buildSlide() {
+        LWContainer dupe = (LWContainer) duplicate();
+        return LWSlide.createFromList(dupe.children);
     }
     
     
