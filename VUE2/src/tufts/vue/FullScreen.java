@@ -83,6 +83,15 @@ public class FullScreen {
 
     private static void enterFullScreenMode(boolean goNative)
     {
+        if (goNative) {
+            // Can't use heavy weights, as they're windows that can't be seen,
+            // and actually the screen goes blank on Mac OS X trying to handle this.
+            javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(true);
+            // also: appear to need to do this before anything else
+            // to have it property take effect?
+        }
+
+        
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice device = ge.getDefaultScreenDevice();
         final MapViewer viewer = VUE.getActiveViewer();
@@ -97,6 +106,7 @@ public class FullScreen {
         // show's up placed at a negative y.
 
         // todo: crap: if the screen resolution changes, we'll need to resize the full-screen window
+
 
         VUE.Log.debug("enterFullScreenMode: goingNative=" + goNative);
         if (false&&goNative) {
@@ -180,6 +190,7 @@ public class FullScreen {
             // the mac menu bar.
                     
             //tufts.macosx.Screen.goBlack();
+
             device.setFullScreenWindow(fullScreenWindow);
             /*
                 
@@ -227,6 +238,8 @@ public class FullScreen {
         final GraphicsDevice device = ge.getDefaultScreenDevice();
         
         VUE.Log.debug("Exiting full screen mode, inNative=" + VUE.inNativeFullScreen());
+
+        javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(false);
         
         if (device.getFullScreenWindow() != null) {
             // this will take us out of true full screen mode
