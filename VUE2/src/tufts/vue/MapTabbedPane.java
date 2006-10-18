@@ -30,7 +30,7 @@ import javax.swing.border.*;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.28 $ / $Date: 2006-05-30 21:09:54 $ / $Author: sfraize $ 
+ * @version $Revision: 1.29 $ / $Date: 2006-10-18 17:36:42 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -136,6 +136,10 @@ public class MapTabbedPane extends JTabbedPane
     }
 
     private String viewerToTabTitle(MapViewer viewer) {
+
+        return mapToTabTitle(viewer.getMap()) + " (" + ZoomTool.prettyZoomPercent(viewer.getZoomFactor()) + ")";
+        /*
+        
         String title = mapToTabTitle(viewer.getMap());
 
         // Present the zoom factor as a percentange
@@ -150,6 +154,7 @@ public class MapTabbedPane extends JTabbedPane
             title += (int) Math.floor(zoomPct + 0.49);
         }
         return title + "%)";
+        */
     }
 
     private void updateTitleTextAt(int i) {
@@ -161,7 +166,7 @@ public class MapTabbedPane extends JTabbedPane
             if (map.getFile() != null)
                 tooltip = map.getFile().toString();
             else
-                tooltip = "(Unsaved)";
+                tooltip = "<html>&nbsp;<i>Unsaved</i> &nbsp;";
             if (map.isCurrentlyFiltered())
                 tooltip += " (filtered)";
             setToolTipTextAt(i, tooltip);
@@ -287,6 +292,10 @@ public class MapTabbedPane extends JTabbedPane
             map = viewer.getMap();
         //System.out.println(this + " map at index " + index + " is " + map);
         return map;
+    }
+
+    public MapViewer getViewerWithMap(LWMap map) {
+        return getViewerAt(findTabWithMap(map));
     }
         
     private int findTabWithMap(LWMap map) {
