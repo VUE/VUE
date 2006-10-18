@@ -1268,6 +1268,13 @@ public class Util
             return o.getClass().getName() + "@" + Integer.toHexString(o.hashCode());
     }
     
+    public static String tags(Object o) {
+        if (o == null)
+            return tag(o);
+        else
+            return tag(o) + "[" + o + "]";
+    }
+    
     public static String objectTag(Object o) {
         return tag(o);
     }
