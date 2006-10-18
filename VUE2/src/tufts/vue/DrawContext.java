@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.19 $ / $Date: 2006-04-02 21:35:07 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2006-10-18 17:29:34 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -48,6 +48,7 @@ public class DrawContext
     private boolean isInteractive = false;
     private boolean isDraftQuality = false;
     private boolean isBlackWhiteReversed = false;
+    private boolean isPresenting = false;
     private Rectangle frame;
     //private float mAlpha = 1f;
 
@@ -126,6 +127,14 @@ public class DrawContext
 
     public void setBlackWhiteReversed(boolean t) {
         isBlackWhiteReversed = t;
+    }
+
+    public void setPresenting(boolean t) {
+        isPresenting = t;
+    }
+
+    public boolean isPresenting() {
+        return isPresenting;
     }
 
     public void setDraftQuality(boolean t) {
@@ -251,6 +260,7 @@ public class DrawContext
         this.isInteractive = dc.isInteractive;
         this.isDraftQuality = dc.isDraftQuality;
         this.isBlackWhiteReversed = dc.isBlackWhiteReversed;
+        this.isPresenting = dc.isPresenting;
         this.activeTool = dc.activeTool;
         this.inMapDraw = dc.inMapDraw;
         this.frame = dc.frame;
