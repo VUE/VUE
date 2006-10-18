@@ -51,8 +51,6 @@ import javax.imageio.ImageIO;
 //       just by selecting the object, in case the resource previewer
 //       didn't happen to be open.
 
-
-
 public class LWImage extends LWComponent
     implements LWSelection.ControlListener, Images.Listener
 {
@@ -102,14 +100,18 @@ public class LWImage extends LWComponent
 
 
     /** This currently makes LWImages invisible to deep selection (they're locked in their parent node */
+    /*
     public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded, boolean ignoreSelected) {
         return getParent();
     }
+    */
 
-    /** This currently makes LWImages invisible to selection (they're locked in their parent node */
+    /*
+    /** This currently makes LWImages invisible to selection (they're locked in their parent node *
     protected LWComponent findChildAt(float mapX, float mapY) {
         return getParent();
     }
+    */
     
     
     /** @return true -- image's support resize (which is currently just a crop) */
@@ -121,6 +123,8 @@ public class LWImage extends LWComponent
         super.setParent(parent);
         if (parent instanceof LWNode == false)
             isRawImage = true;
+        else
+            isRawImage = false;
     }
 
     /*
