@@ -52,6 +52,7 @@ import tufts.vue.gui.GUI;
 public class Actions implements VueConstants
 {
     public static final int COMMAND = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
+    public static final int LEFT_OF_SPACE = VueUtil.isMacPlatform() ? Event.META_MASK : Event.ALT_MASK;
     public static final int CTRL = Event.CTRL_MASK;
     public static final int SHIFT = Event.SHIFT_MASK;
     public static final int ALT = Event.ALT_MASK;
@@ -498,7 +499,7 @@ public class Actions implements VueConstants
         }
     };
     public static final Action Rename =
-        new LWCAction("Rename", VueUtil.isMacPlatform() ? keyStroke(KeyEvent.VK_ENTER) : keyStroke(KeyEvent.VK_F2)) {
+        new LWCAction("Rename", VueUtil.isWindowsPlatform() ? keyStroke(KeyEvent.VK_F2) : keyStroke(KeyEvent.VK_ENTER)) {
         boolean undoable() { return false; } // label editor handles the undo
         boolean enabledFor(LWSelection s) {
             return s.size() == 1 && s.first().supportsUserLabel();
@@ -508,6 +509,23 @@ public class Actions implements VueConstants
             VUE.getActiveViewer().activateLabelEdit(c);
         }
     };
+
+    /*
+      // doesn't help unless is actually in the VueMenuBar -- change this, so all keystrokes
+      // are processed if in menu bar or not (hack into VueMenuBar, or maybe FocusManger?)
+    public static final Action Rename2 =
+        new LWCAction("Rename", VueUtil.isWindowsPlatform() ? keyStroke(KeyEvent.VK_ENTER) : keyStroke(KeyEvent.VK_F2)) {
+        boolean undoable() { return false; } // label editor handles the undo
+        boolean enabledFor(LWSelection s) {
+            return s.size() == 1 && s.first().supportsUserLabel();
+        }
+        void act(LWComponent c) {
+            // todo: throw interal exception if c not in active map
+            VUE.getActiveViewer().activateLabelEdit(c);
+        }
+    };
+    */
+    
     
     //-------------------------------------------------------
     // Arrange actions
@@ -696,32 +714,36 @@ public class Actions implements VueConstants
         }
     };
     
-    // todo: java isn't allowing unmodifed arrow keys as actions! (they get ignored -- figure
-    // out how to turn off whoever's grabbing them)
+    // If JScrollPane has focus, it will grap unmodified arrow keys.  If, say, a random DockWindow
+    // has focus (e.g., not a field that would also grab arrow keys), they get through.
+    // So just need to turn them off in ScrollPane try editing action map via gui defaults)
+    //public static final Action NudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, SHIFT)) {
     public static final Action NudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, SHIFT)) {
-        void act(LWComponent c) {
-            float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
-            c.translate(0, -unit);
-        }
+        void act(LWComponent c) { nudgeOrReorder(c,  0, -1); }
     };
     public static final Action NudgeDown = new LWCAction("Nudge Down", keyStroke(KeyEvent.VK_DOWN, SHIFT)) {
-        void act(LWComponent c) {
-            float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
-            c.translate(0, unit);
-        }
+        void act(LWComponent c) { nudgeOrReorder(c,  0,  1); }
     };
     public static final Action NudgeLeft = new LWCAction("Nudge Left", keyStroke(KeyEvent.VK_LEFT, SHIFT)) {
-        void act(LWComponent c) {
-            float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
-            c.translate(-unit, 0);
-        }
+        void act(LWComponent c) { nudgeOrReorder(c, -1,  0); }
     };
     public static final Action NudgeRight = new LWCAction("Nudge Right", keyStroke(KeyEvent.VK_RIGHT, SHIFT)) {
-        void act(LWComponent c) {
-            float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
-            c.translate(unit, 0);
-        }
+        void act(LWComponent c) { nudgeOrReorder(c,  1,  0); }
     };
+
+    private static void nudgeOrReorder(LWComponent c, int x, int y) {
+        if (c.getParent() instanceof LWNode) { // TODO: a more abstract test... inVisuallyOrderedContainer?
+            if (x < 0 || y < 0)
+                c.getParent().sendBackward(c);
+            else
+                c.getParent().bringForward(c);
+        } else {
+            float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
+            float dx = x * unit;
+            float dy = y * unit;
+            c.translate(dx, dy);
+        }
+    }
     
     public static final Action AlignLeftEdges = new ArrangeAction("Align Left Edges", KeyEvent.VK_LEFT) {
         void arrange(LWComponent c) { c.setLocation(minX, c.getY()); }
@@ -874,6 +896,17 @@ public class Actions implements VueConstants
         }
     };
     
+    public static final VueAction NewSlide =
+    new NewItemAction("New Slide", keyStroke(KeyEvent.VK_S, LEFT_OF_SPACE+CTRL)) {
+        LWComponent createNewItem(Point2D newLocation) {
+            LWComponent slide = LWSlide.createFromList(VUE.getSelection());
+            slide.setLocation(newLocation);
+            VUE.getActiveMap().addLWC(slide);
+            return slide;
+        }
+    };
+
+    
     public static final VueAction NewText =
     new NewItemAction("New Text", keyStroke(KeyEvent.VK_T, COMMAND)) {
         LWComponent createNewItem(Point2D newLocation) {
@@ -891,6 +924,14 @@ public class Actions implements VueConstants
             return node;
         }
     };
+
+    public static final Action[] NEW_OBJECT_ACTIONS = {
+        NewNode,
+        NewText,
+        NewSlide
+    };
+    
+    
     
     
     //-------------------------------------------------------
@@ -927,6 +968,16 @@ public class Actions implements VueConstants
             ZoomTool.setZoom(1.0);
         }
     };
+    
+    public static final Action ZoomToSelection =
+    new LWCAction("Zoom Selection", keyStroke(KeyEvent.VK_2, COMMAND+SHIFT)) {
+        public void act(LWSelection s) {
+            MapViewer viewer = VUE.getActiveViewer();
+            ZoomTool.setZoomFitRegion(viewer, s.getBounds(), 16, false);
+        }
+    };
+
+    
     public static final Action ToggleFullScreen =
         new VueAction("Full Screen", VueUtil.isMacPlatform() ?
                       keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND) :
