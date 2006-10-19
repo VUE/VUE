@@ -33,36 +33,37 @@ import javax.swing.*;
 import javax.swing.event.ChangeListener;
 
 import edu.tufts.vue.preferences.PreferenceConstants;
+import edu.tufts.vue.preferences.interfaces.VueIntegerPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
 
-public abstract class GenericSliderPreference implements VuePreference, ItemListener, ChangeListener
+/**
+ * @author Mike Korcynski
+ *
+ */
+public abstract class GenericSliderPreference implements VueIntegerPreference, ChangeListener
 {
 	
 	private String message;
-	private JSlider value = new JSlider();
+	private JSlider slider = new JSlider();
 	
 	public GenericSliderPreference()
 	{
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		getSlider().setValue(getDefaultValue());		
-		getSlider().addChangeListener(this);
+		slider.setBackground(Color.WHITE);
+        slider.setOrientation(JSlider.VERTICAL);        
+        slider.setMajorTickSpacing(83);
+        slider.setPaintTicks(true);        
+        slider.setSnapToTicks(true);
+        slider.setMinimum(0);
+        slider.setMaximum(500);
 	}
-	
-	public int getDefaultValue()
-	{
-		return 125;
-	}
-	
-	public void itemStateChanged(ItemEvent e) {
-		JCheckBox box = (JCheckBox)e.getSource();
-		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		p.putBoolean(getPrefName(), box.isSelected());				
-	}
+			
 
 	public JSlider getSlider()
 	{
-		return value;
+		return slider;
 	}
+	
 	public abstract String getTitle();
 	public abstract String getDescription();
 	
@@ -102,10 +103,8 @@ public abstract class GenericSliderPreference implements VuePreference, ItemList
         booleanPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
         booleanPanel.setBackground(Color.WHITE);
         
-        value.setBackground(Color.WHITE);
-        value.setOrientation(JSlider.VERTICAL);        
         
-        booleanPanel.add(value);
+        booleanPanel.add(slider);
         booleanPanel.add(new JLabel(getMessage()));
         panel.add(booleanPanel, gbConstraints);
 	return panel;
@@ -121,7 +120,7 @@ public abstract class GenericSliderPreference implements VuePreference, ItemList
 	}
 
 	public int getValue(){
-		return value.getValue();
+		return slider.getValue();
 	}
 	
 	public void setMessage(String s){
@@ -130,7 +129,7 @@ public abstract class GenericSliderPreference implements VuePreference, ItemList
 	
 	public void setValue(int b)
 	{
-		value.setValue(b);
+		
 	}
 	
 }

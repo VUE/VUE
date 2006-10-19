@@ -31,9 +31,14 @@ import java.util.prefs.Preferences;
 import javax.swing.*;
 
 import edu.tufts.vue.preferences.PreferenceConstants;
+import edu.tufts.vue.preferences.interfaces.VueBooleanPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
 
-public abstract class GenericBooleanPreference implements VuePreference, ItemListener
+/**
+ * @author Mike Korcynski
+ *
+ */
+public abstract class GenericBooleanPreference implements VueBooleanPreference, ItemListener
 {
 	
 	private String message;
