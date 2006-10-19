@@ -32,10 +32,10 @@ import javax.swing.tree.*;
 import edu.tufts.vue.preferences.PreferenceConstants;
 import edu.tufts.vue.preferences.PreferencesManager;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
-import edu.tufts.vue.preferences.tree.PrefCategoryTreeNode;
-import edu.tufts.vue.preferences.tree.PrefTreeNode;
-import edu.tufts.vue.preferences.tree.VuePrefRenderer;
-import edu.tufts.vue.preferences.tree.VueTreeUI;
+import edu.tufts.vue.preferences.ui.tree.PrefCategoryTreeNode;
+import edu.tufts.vue.preferences.ui.tree.PrefTreeNode;
+import edu.tufts.vue.preferences.ui.tree.VuePrefRenderer;
+import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
 import tufts.Util;
 import tufts.vue.gui.GUI;
 import java.util.prefs.*;
@@ -49,9 +49,15 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLDecoder;
 
+/**
+ * @author Mike Korcynski
+ *
+ */
 public class PreferencesDialog extends JDialog {
 
 	private static final long serialVersionUID = 1L;
@@ -130,20 +136,53 @@ public class PreferencesDialog extends JDialog {
             expandAll( tree, path.pathByAddingChild( model.getChild( node, i ) ) );                          
     }                   
     
-  
+    private VuePreference getPreferenceObject(Class a)
+    {
+		Method m = null;
+		VuePreference vp = null;
+		
+    	try {
+			m = a.getMethod("getInstance", null);
+		} catch (SecurityException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (NoSuchMethodException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		 
+		
+		try {
+			vp = (VuePreference)m.invoke(null, null);
+		} catch (IllegalArgumentException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (InvocationTargetException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return vp;			
+    }
+    
 	private void addPrefsToCats(DefaultMutableTreeNode node) {
 		String pckgname = "edu.tufts.vue.preferences.implementations";
 		List classes =PreferencesManager.getPreferences();
-	
+		VuePreference vp = null;
 		Object[] classesA = classes.toArray();
+	
 		Preferences p = Preferences
 				.userNodeForPackage(edu.tufts.vue.preferences.PreferencesManager.class);
 
-		for (int i = 0; i < classesA.length; i++) {
+		for (int i = 0; i < classesA.length; i++) 
+		{
 			Enumeration nodes = node.breadthFirstEnumeration();
-			try {
-				VuePreference vp = (VuePreference) ((Class)classesA[i]).newInstance();
-
+			
+				 
+				vp = getPreferenceObject((Class)classesA[i]);
 				while (nodes.hasMoreElements()) {
 					DefaultMutableTreeNode n = (DefaultMutableTreeNode) nodes
 							.nextElement();
@@ -157,15 +196,7 @@ public class PreferencesDialog extends JDialog {
 							e.printStackTrace();
 						}
 					}
-				}
-
-			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				}		
 		}
 	}
 
