@@ -72,4 +72,7 @@ public class WeightAggregate extends ConnectivityMatrix {
             }
         }
     }
+    public int getCount() {
+        return count;
+    }
 }
