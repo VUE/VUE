@@ -23,13 +23,13 @@
  * @author akumar03
  * The class creates a connectivity Matrix using a VUe Map.  Further information
  * on connectivity matrix can be found at
- * http://w3.antd.nist.gov/wctg/netanal/netanal_netmodels.html 
+ * http://w3.antd.nist.gov/wctg/netanal/netanal_netmodels.html
  * The matrix can be used to assess the connetiving among give set of nodes.
  * A value of connetion is 1 if there is a connection between nodes
  * connection(a,b) = 1 implies there is a link from a to b
  * connection(b,a) = 1 implies there is a link from b to a
  * connection(b,a) may not be equal to connection(a,b)
- * connection(a,b) = connection(b,a) implies the link between a and b is not 
+ * connection(a,b) = connection(b,a) implies the link between a and b is not
  * directed.
  */
 
@@ -42,21 +42,30 @@ import tufts.vue.*;
 
 public class ConnectivityMatrix {
     public static final int SIZE = 1000;
-    private List labels = new  ArrayList();
-    private int c[][] = new int[SIZE][SIZE];
-    private int size;
+    protected List labels = new  ArrayList();
+    protected int c[][] = new int[SIZE][SIZE];
+    protected int size;
+    private LWMap map; 
     /** Creates a new instance of ConnectivityMatrix */
     public ConnectivityMatrix() {
     }
     
     public ConnectivityMatrix(LWMap map) {
         size = 0;
+        this.map = map;
+        addLabels();
+        generateMatrix();
+    }
+    
+    private void addLabels(){
         Iterator i = map.getNodeIterator();
         while(i.hasNext()){
             LWNode node = (LWNode)i.next();
             labels.add(node.getLabel());
             size++;
         }
+    }
+    private void generateMatrix() {
         Iterator links = map.getLinkIterator();
         while(links.hasNext()) {
             LWLink link = (LWLink)links.next();
@@ -75,7 +84,6 @@ public class ConnectivityMatrix {
                 
             }
         }
-        
     }
     public List getLabels() {
         return labels;
@@ -84,9 +92,27 @@ public class ConnectivityMatrix {
     public void setLabels(List labels){
         this.labels = labels;
     }
-       
+    
     public int getConnection(int i, int j) {
         return c[i][j];
+    }
+    
+    public int getConnection(String label1,String label2) {
+        int index1 = labels.indexOf(label1);
+        int index2 = labels.indexOf(label2);
+        if(index1 > 0 && index2 >0 ){
+            return c[index1][index2];
+        } else {
+            return 0;
+        }
+    }
+    
+    public void setConnection(String label1, String label2, int value) {
+        int index1 = labels.indexOf(label1);
+        int index2 = labels.indexOf(label2);
+        if(index1 > 0 && index2 >0 ){
+            c[index1][index2] = value;
+        }
     }
     public int getSize(){
         return size;
@@ -98,16 +124,19 @@ public class ConnectivityMatrix {
         this.c = c;
     }
     
+    public LWMap getMap() {
+        return this.map;
+    }
     public void store(OutputStream out) {
         try {
-        out.write(this.toString().getBytes());
+            out.write(this.toString().getBytes());
         }catch(IOException ex) {
             System.out.println("ConnectivityMatrix.store:"+ex);
         }
     }
     
     
-    public String toString() { 
+    public String toString() {
         String output = new String();
         output = "\t";   //leave the first cell empty;
         Iterator iterator = labels.iterator();
