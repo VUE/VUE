@@ -22,11 +22,13 @@ import java.util.Vector;
 
 import tufts.vue.VueResources;
 
+/**
+ * @author Mike Korcynski
+ *
+ */
 public class PreferenceConstants 
 {
 		public static final String MAPDISPLAY_CATEGORY=VueResources.getString("preferences.catoregory.mapdisplay");
-		public static final String WINDOW_CATEGORY=VueResources.getString("preferences.catoregory.windows");	
-		public static final String autoZoomPref = "mapDisplay.AutoZoom";		
-		public static final String imageSizePref = "mapDisplay.imageSize";
+		public static final String WINDOW_CATEGORY=VueResources.getString("preferences.catoregory.windows");
 		
 }
