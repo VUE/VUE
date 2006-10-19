@@ -15,22 +15,18 @@
  *
  * -----------------------------------------------------------------------------
  */
-
 package edu.tufts.vue.preferences.interfaces;
-
-import javax.swing.JComponent;
 
 /**
  * @author mkorcy01
  *
  */
-public interface VuePreference {
-
-	public String getPreferenceCategory();
-	public String getCategoryKey();
-	public JComponent getPreferenceUI();
-	public String getTitle();
-	public String getDescription();
-	public String getPrefName();
-	public void preferenceChanged();
+public interface VueBooleanPreference extends VuePreference
+{
+	public boolean getDefaultValue();
+	
+	public boolean getValue();
+	
+	public void setValue(boolean b);
+	
 }
