@@ -36,6 +36,8 @@ import javax.swing.KeyStroke;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 
+import edu.tufts.vue.preferences.ui.PreferencesDialog;
+
 import tufts.vue.gui.GUI;
 
 /**
@@ -70,6 +72,14 @@ public class Actions implements VueConstants
     // Selection actions
     //-------------------------------------------------------
     
+    public static final Action Preferences = 
+    	new VueAction("Preferences",keyStroke(KeyEvent.VK_P,COMMAND)) {
+    		public void act() {
+    			PreferencesDialog dialog = new PreferencesDialog(null, "Vue Preferences",
+    				      edu.tufts.vue.preferences.PreferencesManager.class, true, null, false);
+    			dialog.setVisible(true);
+    		}
+    };
     public static final Action SelectAll =
     new VueAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
         public void act() {
