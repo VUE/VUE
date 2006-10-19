@@ -30,13 +30,27 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.prefs.*;
 
+/**
+ * @author Mike Korcynski
+ *
+ */
 public class AutoZoomPreference extends GenericBooleanPreference {
 
+	private static AutoZoomPreference _instance; 
 	
-	public AutoZoomPreference()
+	private AutoZoomPreference()
 	{
 		super();
 	}	
+	
+	 // For lazy initialization
+	 public static synchronized AutoZoomPreference getInstance() {
+	  if (_instance==null) {
+	   _instance = new AutoZoomPreference();
+	  }
+	  return _instance;
+	 }	
+	 
 	
 	public String getPreferenceCategory() {
 		return PreferenceConstants.MAPDISPLAY_CATEGORY;
@@ -67,7 +81,7 @@ public class AutoZoomPreference extends GenericBooleanPreference {
 	
 	public String getPrefName()
 	{
-		return PreferenceConstants.autoZoomPref;
+		return "mapDisplay.AutoZoom";
 	}
 
 	public String getCategoryKey() {

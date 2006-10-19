@@ -23,6 +23,10 @@ import javax.swing.JComponent;
 import edu.tufts.vue.preferences.PreferenceConstants;
 import edu.tufts.vue.preferences.generics.GenericBooleanPreference;
 
+/**
+ * @author Mike Korcynski
+ *
+ */
 public class WindowPropertysPreference extends GenericBooleanPreference{
 
 	public String getPreferenceCategory() {
