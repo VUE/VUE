@@ -32,6 +32,8 @@ import java.net.URL;
 import javax.swing.ImageIcon;
 import javax.imageio.ImageIO;
 
+import edu.tufts.vue.preferences.PreferencesManager;
+
 /**
  * Handle the presentation of an image resource, allowing cropping.
  *
@@ -56,7 +58,7 @@ public class LWImage extends LWComponent
 {
     /** scale of images when a child of other nodes */
     static final float ChildImageScale = 0.2f;
-    static final int MaxRenderSize = VueResources.getInt("image.maxRenderSize", 64); // max display pixels width or height at 100% map scale
+    static int MaxRenderSize = PreferencesManager.getIntegerPrefValue(edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance());
     static final boolean RawImageSizes = false;
 
     private final static int MinWidth = 32;
@@ -285,7 +287,7 @@ public class LWImage extends LWComponent
     }
 
     void setImageSize(int w, int h)
-    {
+    {    	
         if (isRawImage) {
             if (DEBUG.IMAGE) out("setImageSize RAW " + w + "x" + h);
             mImageWidth = w;
@@ -478,7 +480,7 @@ public class LWImage extends LWComponent
     private static final Color ErrorColor = Color.red;
 
     protected void drawImage(DrawContext dc)
-    {
+    {    	    	
         if (mImage == null) {
             int w = (int) getAbsoluteWidth();
             int h = (int) getAbsoluteHeight();
@@ -1005,6 +1007,16 @@ public class LWImage extends LWComponent
         */
         
     }
-    
-
+  
+    /*
+     * These 2 methods are used by the Preferences to set and check MaxRenderSize
+     */
+    public static int getMaxRenderSize()
+    {
+    	return MaxRenderSize;
+    }
+    public static void setMaxRenderSize(int size)
+    {
+    	MaxRenderSize = size;
+    }
 }

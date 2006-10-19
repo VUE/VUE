@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.60 $ / $Date: 2006-07-31 18:33:01 $ / $Author: sfraize $  
+ * @version $Revision: 1.61 $ / $Date: 2006-10-19 20:45:47 $ / $Author: mike $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -722,7 +722,11 @@ class MapDropTarget
         }
         */
         
-        if (resource.isImage()) {
+        /*
+         * To accomodate for the MapDisplay->Image Size preference, I needed to do this so that
+         * when Image Size is set to Off Images aren't added to the node. MK
+         */
+        if (resource.isImage() && LWImage.getMaxRenderSize() > 0) {
             if (DEBUG.DND || DEBUG.IMAGE) out("IMAGE DROP " + resource + " " + properties);
             //node = new LWImage(resource, viewer.getMap().getUndoManager());
             lwImage = new LWImage();
