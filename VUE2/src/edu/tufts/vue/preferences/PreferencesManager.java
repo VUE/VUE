@@ -18,11 +18,20 @@
 
 package edu.tufts.vue.preferences;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.prefs.*;
 
+import edu.tufts.vue.preferences.interfaces.VueBooleanPreference;
+import edu.tufts.vue.preferences.interfaces.VueIntegerPreference;
+import edu.tufts.vue.preferences.interfaces.VuePreference;
+
+/**
+ * @author Mike Korcynski
+ *
+ */
 public class PreferencesManager {
 
 	  private static PreferencesManager ref;
@@ -61,12 +70,20 @@ public class PreferencesManager {
 	    return ref;
 	  }
 
-	  public static boolean getBooleanPrefValue(String s)
+	  public static int getIntegerPrefValue(Object s)
 	  {
-		//  return java.util.prefs.Preferences.userNodeForPackage(PreferencesManager.class).getBoolean(s, PreferenceConstants.defaultAutoZoomPref);
-		  return true;
+		  VueIntegerPreference p = (VueIntegerPreference)s;
+
+		  return java.util.prefs.Preferences.userNodeForPackage(PreferencesManager.class).getInt(p.getPrefName(), p.getDefaultValue());		  
 	  }
-	  
+
+	  public static boolean getBooleanPrefValue(Object s)
+	  {		
+		  VueBooleanPreference p = (VueBooleanPreference)s;
+		  
+		  return java.util.prefs.Preferences.userNodeForPackage(PreferencesManager.class).getBoolean(p.getPrefName(), p.getDefaultValue());		  
+	  }
+
 	  public Object clone()
 		throws CloneNotSupportedException
 	  {
