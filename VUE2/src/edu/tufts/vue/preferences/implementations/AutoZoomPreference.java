@@ -58,7 +58,7 @@ public class AutoZoomPreference extends GenericBooleanPreference {
 	
 	public boolean getDefaultValue()
 	{
-		return true;
+		return false;
 	}
 	public boolean getValue()
 	{
