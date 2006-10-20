@@ -54,7 +54,7 @@ import org.apache.log4j.PatternLayout;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.383 $ / $Date: 2006-10-18 17:42:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.384 $ / $Date: 2006-10-20 12:16:33 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -519,6 +519,11 @@ public class VUE
                     new AboutAction().act();
                     return true;
                 }
+                public boolean handlePreferences() {
+                    VUE.Log.debug("OSX PREFERENCES");
+                    Actions.Preferences.act();
+                    return true;
+                }
                 
             });
     }
@@ -797,6 +802,11 @@ public class VUE
             if (appWidth > maxWidth)
                 appWidth = maxWidth;
         }
+
+        if (appWidth > 1600)
+            appWidth = 1600;
+        if (appHeight > 1024)
+            appHeight = 1024;
 
         ApplicationFrame.setSize(appWidth, appHeight);
 
@@ -1808,6 +1818,10 @@ public class VUE
         map.addLink(k1);
         map.addLink(k2);
         map.addLink(k3);
+
+        LWSlide slide = new LWSlide();
+        slide.setLocation(300,100);
+        map.addLWC(slide);
 
         // create test pathways
         if (false) {
