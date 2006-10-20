@@ -23,7 +23,7 @@ import java.awt.*;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-09-19 00:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2006-10-20 12:13:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX
@@ -40,10 +40,14 @@ public class MacOSX
         public boolean handleOpenFile(String filename);
         public boolean handleQuit();
         public boolean handleAbout();
+        public boolean handlePreferences();
     }
 
     public static void registerApplicationListener(final ApplicationListener listener) {
         final com.apple.eawt.Application application = com.apple.eawt.Application.getApplication();
+
+        application.addPreferencesMenuItem();
+        application.setEnabledPreferencesMenu(true);
 
         application.addApplicationListener(new com.apple.eawt.ApplicationListener() {
                 public void handleOpenFile(ApplicationEvent e) {
@@ -56,6 +60,9 @@ public class MacOSX
                 public void handleAbout(ApplicationEvent e) {
                     e.setHandled(listener.handleAbout());
                 }
+                public void handlePreferences(ApplicationEvent e) {
+                    e.setHandled(listener.handlePreferences());
+                }
                 
                 public void handleOpenApplication(ApplicationEvent e) {
                     if (DEBUG) out("OSX APPLCATION OPEN " + e);
@@ -65,9 +72,6 @@ public class MacOSX
                 }
                 public void handlePrintFile(ApplicationEvent e) {
                     out("OSX APPLICATION PRINT FILE " + e);
-                }
-                public void handlePreferences(ApplicationEvent e) {
-                    out("OSX APPLICATION PREFERENCES " + e);
                 }
             });
     }
