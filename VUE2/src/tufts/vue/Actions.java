@@ -72,7 +72,7 @@ public class Actions implements VueConstants
     // Selection actions
     //-------------------------------------------------------
     
-    public static final Action Preferences = 
+    public static final VueAction Preferences = 
     	new VueAction("Preferences",keyStroke(KeyEvent.VK_P,COMMAND)) {
     		public void act() {
     			PreferencesDialog dialog = new PreferencesDialog(null, "Vue Preferences",
