@@ -25,8 +25,12 @@
 package edu.tufts.vue.compare;
 
 import tufts.vue.*;
+import  java.util.*;
 public class Util {
     // returns a map for concept map comparison
+    public static final String[] CITIES = {"Boston","Miami", "Denver","London","Mumbai","Tokyo"};
+    public static final String MAP_NAME= "Cities";
+    public static final int MAP_SIZE = 200; // creates a map in a square of 200*200 approx
     public static LWMap getMap() {
         LWMap map = new LWMap("Cities");
         LWNode n1 = new LWNode("Boston");
@@ -45,5 +49,19 @@ public class Util {
         map.addLink(k2);
         //map.addLink(k3);
         return map;
+    }
+    // TODO: a method that generated a random map from five nodes with approximately nLinks number  of links
+    public static LWMap getRandomMap(int nNodes, int nLinks) {
+        int maxNodes = CITIES.length;
+        if(nNodes > maxNodes) {
+            nNodes = maxNodes;
+        }
+        double maxLinks = Math.floor((float)nNodes*(nNodes-1)/2);
+        if(nLinks > maxLinks) {
+            nLinks = (int)maxLinks;
+        }  
+        double angle = 2*Math.PI/nNodes;
+        
+        return null;
     }
 }
