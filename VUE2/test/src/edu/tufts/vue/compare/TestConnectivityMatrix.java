@@ -37,9 +37,4 @@ public class TestConnectivityMatrix extends TestCase {
      
      System.out.println(matrix.toString());
  }
-  public static void main(String[] args) {
-        // TODO code application logic here
-      TestConnectivityMatrix m = new TestConnectivityMatrix();
-      m.testManager();
-    }
 }
