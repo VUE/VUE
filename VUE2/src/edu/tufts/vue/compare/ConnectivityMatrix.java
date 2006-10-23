@@ -136,6 +136,20 @@ public class ConnectivityMatrix {
     }
     
     
+    public boolean compare(ConnectivityMatrix c2) {
+        if(c2.getSize() != size) {
+            return false;
+        }
+        for(int i=0;i<size;i++) {
+            for(int j=0;j<size;j++) {
+                if(c[i][j] != c2.getMatrix()[i][j]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
     public String toString() {
         String output = new String();
         output = "\t";   //leave the first cell empty;
