@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.14 $ / $Date: 2006-10-11 17:59:36 $ -->
+<!-- $Revision: 1.15 $ / $Date: 2006-10-23 20:19:21 $ -->
 
 <!-- 
 This ant build file:
@@ -262,9 +262,19 @@ This ant build file:
 </target>
 <!-- =========================Connectivity Matrix and Map Comparison Tests =======-->
 <target name="comparetest" depends="compile" description="Tests for Map Comparison">
-    <java classname="edu.tufts.vue.compare.TestConnectivityMatrix"  failonerror="true" fork="true">
-        <classpath refid="compile.classpath"/>
-    </java>
+    <junit printsummary="yes" haltonerror="true" haltonfailure="true" fork="true">
+        <formatter type="plain" usefile="false" />
+        <test name="edu.tufts.vue.compare.TestConnectivityMatrix" />
+        <classpath refid="compile.classpath" />
+    </junit>
+</target>
+
+<target name="test" depends="compile" description="Tests for Map Comparison">
+    <junit printsummary="yes" haltonerror="true" haltonfailure="true" fork="true">
+        <formatter type="plain" usefile="false" />
+        <test name="edu.tufts.vue.VUETest" />
+        <classpath refid="compile.classpath" />
+    </junit>
 </target>
 </project>
 
