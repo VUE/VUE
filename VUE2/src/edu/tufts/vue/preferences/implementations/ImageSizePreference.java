@@ -38,18 +38,29 @@ import tufts.vue.LWImage;
  */
 public class ImageSizePreference extends GenericSliderPreference {
 
+	private final int TICK_SPACING=85;
 	private final int HASHMARK_0=0;
-	private final int HASHMARK_1=83;
-	private final int HASHMARK_2=166;
-	private final int HASHMARK_3=249;
-	private final int HASHMARK_4=332;
-	private final int HASHMARK_5=415;
-	private final int HASHMARK_6=498;
+	private final int HASHMARK_1=TICK_SPACING;
+	private final int HASHMARK_2=TICK_SPACING*2;
+	private final int HASHMARK_3=TICK_SPACING*3;
+	private final int HASHMARK_4=TICK_SPACING*4;
+	private final int HASHMARK_5=TICK_SPACING*5;
+	private final int HASHMARK_6=TICK_SPACING*6;
+	
+	
 	private static ImageSizePreference _instance;	
 	
 	private ImageSizePreference()
 	{
 		super();
+		JSlider slider = getSlider();
+		slider.setOrientation(JSlider.VERTICAL);        
+        slider.setMajorTickSpacing(TICK_SPACING);
+        slider.setPaintTicks(true);        
+        slider.setSnapToTicks(true);
+        slider.setMinimum(0);
+        slider.setMaximum(510);
+        
 		configureSlider();
 	}	
 		
@@ -75,11 +86,11 @@ public class ImageSizePreference extends GenericSliderPreference {
         Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
         labelTable.put( new Integer( HASHMARK_0 ), new JLabel("Off") );
         labelTable.put( new Integer( HASHMARK_1 ), new JLabel("16x16") );
-        labelTable.put( new Integer( HASHMARK_2 ), new JLabel("75x75") );
-        labelTable.put( new Integer( HASHMARK_3 ), new JLabel("125x125") );
-        labelTable.put( new Integer( HASHMARK_4 ), new JLabel("250x250") );
-        labelTable.put( new Integer( HASHMARK_5 ), new JLabel("400x400") );
-        labelTable.put( new Integer( HASHMARK_6 ), new JLabel("500x500") );
+        labelTable.put( new Integer( HASHMARK_2 ), new JLabel("32x32") );
+        labelTable.put( new Integer( HASHMARK_3 ), new JLabel("64x64") );
+        labelTable.put( new Integer( HASHMARK_4 ), new JLabel("128x128") );
+        labelTable.put( new Integer( HASHMARK_5 ), new JLabel("256x256") );
+        labelTable.put( new Integer( HASHMARK_6 ), new JLabel("512x512") );        
         slider.setLabelTable( labelTable );
         
         slider.setPaintLabels(true);
@@ -106,24 +117,21 @@ public class ImageSizePreference extends GenericSliderPreference {
 			case 16:
 				slider.setValue(HASHMARK_1);
 				break;
-			case 75:
+			case 32:
 				slider.setValue(HASHMARK_2);
 				break;
-			case 125:
+			case 64:
 				slider.setValue(HASHMARK_3);
 				break;
-			case 250:
+			case 128:
 				slider.setValue(HASHMARK_4);
 				break;
-			case 400:
+			case 256:
 				slider.setValue(HASHMARK_5);
 				break;
-			case 500:
+			case 512:
 				slider.setValue(HASHMARK_6);
-				break;
-			default:
-				slider.setValue(HASHMARK_2);
-				break;
+				break;			
 		}
 		
 		return;
@@ -147,15 +155,15 @@ public class ImageSizePreference extends GenericSliderPreference {
 			case HASHMARK_1:
 				return 16;
 			case HASHMARK_2:
-				return 75;
+				return 32;
 			case HASHMARK_3:
-				return 125;
+				return 64;
 			case HASHMARK_4:
-				return 250;
+				return 128;
 			case HASHMARK_5:
-				return 400;	
+				return 256;	
 			case HASHMARK_6:
-				return 500;
+				return 512;
 		}
 		
 		return getDefaultValue();
@@ -204,8 +212,10 @@ public class ImageSizePreference extends GenericSliderPreference {
 
 	public void stateChanged(ChangeEvent e) 
 	{
-		// TODO Auto-generated method stub
-		preferenceChanged();
+		JSlider source = (JSlider)e.getSource();
+	    if (!source.getValueIsAdjusting()) {
+	    	preferenceChanged();
+	    }
 	}
 	
 }

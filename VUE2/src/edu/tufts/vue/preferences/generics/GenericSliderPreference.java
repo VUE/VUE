@@ -50,12 +50,7 @@ public abstract class GenericSliderPreference implements VueIntegerPreference, C
 	{
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
 		slider.setBackground(Color.WHITE);
-        slider.setOrientation(JSlider.VERTICAL);        
-        slider.setMajorTickSpacing(83);
-        slider.setPaintTicks(true);        
-        slider.setSnapToTicks(true);
-        slider.setMinimum(0);
-        slider.setMaximum(500);
+        
 	}
 			
 
