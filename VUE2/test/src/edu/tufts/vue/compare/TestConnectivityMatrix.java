@@ -35,6 +35,5 @@ public class TestConnectivityMatrix extends TestCase {
      LWMap map = edu.tufts.vue.compare.Util.getMap();
      ConnectivityMatrix matrix = new ConnectivityMatrix(map);
      
-     System.out.println(matrix.toString());
  }
 }
