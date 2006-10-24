@@ -904,6 +904,7 @@ public class Actions implements VueConstants
             
             return node;
         }
+        public boolean overrideIgnoreAllActions() { return true; }
     };
     
     public static final VueAction NewSlide =
