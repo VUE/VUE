@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.15 $ / $Date: 2006-10-23 20:19:21 $ -->
+<!-- $Revision: 1.16 $ / $Date: 2006-10-24 16:09:41 $ -->
 
 <!-- 
 This ant build file:
@@ -271,8 +271,8 @@ This ant build file:
 
 <target name="test" depends="compile" description="Tests for Map Comparison">
     <junit printsummary="yes" haltonerror="true" haltonfailure="true" fork="true">
-        <formatter type="plain" usefile="false" />
-        <test name="edu.tufts.vue.VUETest" />
+        <formatter type="plain" />
+        <test name="edu.tufts.vue.VUETest" outfile="VUETest" todir="${basedir}"/>
         <classpath refid="compile.classpath" />
     </junit>
 </target>
