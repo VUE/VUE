@@ -11,6 +11,7 @@ import com.apple.eawt.Application;
 import com.apple.eawt.ApplicationEvent;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 // NOTE: This will ONLY compile on Mac OS X (or, technically, anywhere
 // you have the com.apple.cocoa.* class files available).  It is for
@@ -23,7 +24,7 @@ import java.awt.*;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-10-20 12:13:30 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2006-10-27 15:57:22 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class MacOSX
@@ -76,7 +77,42 @@ public class MacOSX
             });
     }
     
-
+    public static Image getIconForExtension(String ext)
+    {
+    	
+    	NSImage nsimage = null;
+    	if (ext.equals("dir"))
+    	  nsimage = NSWorkspace.sharedWorkspace().iconForFile("/bin");
+    	else    		
+    	  nsimage = NSWorkspace.sharedWorkspace().iconForFileType(ext);
+    	NSData tiffData = nsimage.TIFFRepresentation();
+        byte []data = tiffData.bytes(0,tiffData.length());
+        BufferedImage bim = null;
+        java.io.ByteArrayInputStream bis = null;
+        
+        if (data.length == 0)
+        	return null;
+        
+        try{        	        
+          bis = new java.io.ByteArrayInputStream(data);
+          bim = javax.imageio.ImageIO.read(bis);
+          
+          
+        }
+        catch (Exception e)
+        {
+        	tufts.vue.VUE.Log.debug("Could not generate Icon for filetype : " + ext);
+        }
+        finally{
+        	try
+        	{
+        		bis.close();
+        	}catch(Exception e){}
+        }
+        
+        return bim;                
+    }
+    
     public static void goBlack() {
         goBlack(getFullScreenWindow());
     }

@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.60 $ / $Date: 2006-10-20 15:21:03 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2006-10-27 15:57:22 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -610,7 +610,35 @@ public class GUI
         
     }
 
-
+    public static Image getSystemIconForExtension(String ext)
+    {
+    	if (Util.isMacPlatform())
+    		return tufts.macosx.MacOSX.getIconForExtension(ext);
+    	else
+    	{
+    		java.io.File file = null;    		
+    		Image image = null;
+    		try
+    		{
+    		     //Create a temporary file with the specified extension
+    		     file = java.io.File.createTempFile("icon", "." + ext);
+    		 
+    		     sun.awt.shell.ShellFolder shellFolder = sun.awt.shell.ShellFolder.getShellFolder(file);
+    		     image = shellFolder.getIcon(true);    		         		     
+    		}
+    		catch (Exception e)
+    		{
+    			tufts.vue.VUE.Log.debug("Could not generate Icon for filetype : " + ext);
+    		}
+    		finally
+    		{
+    			file.delete();
+    		}
+    		
+    		return image;
+    	}
+    		
+    }
     /** these may change at any time, so we must fetch them newly each time */
     public static Insets getScreenInsets() {
         refreshGraphicsInfo();

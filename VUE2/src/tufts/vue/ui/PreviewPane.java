@@ -34,7 +34,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.11 $ / $Date: 2006-07-26 18:50:06 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2006-10-27 15:57:22 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -115,17 +115,17 @@ public class PreviewPane extends JPanel
         mResource = r;
         if (r != null)
             mPreviewData = r.getPreview();
-        else
+        else                	        
             mPreviewData = null;
+        
         mImage = null;
 
 //        if (mPreviewData == null && mResource.isImage())
 //            mPreviewData = mResource;
-
+                    
         if (DEBUG.RESOURCE) out("GOT PREVIEW DATA " + mPreviewData);
 
-        if (isShowing()) {
-
+        if (isShowing()) {        	
             loadPreview(mPreviewData);
             FirstPreview = false;
 
@@ -150,12 +150,19 @@ public class PreviewPane extends JPanel
     private void loadPreview(Object previewData)
     {
         // todo: handle if preview is a Component, 
-        // todo: handle a String as preview data.
+        // todo: handle a String as preview data.    	
+    	 
+         		
 
         if (false /*&& r.getIcon() != null*/) { // these not currently valid from Osid2AssetResource (size=-1x-1)
             //displayIcon(r.getIcon());
         } else if (previewData == null) {
-            displayImage(NoImage);
+        	Image image = GUI.getSystemIconForExtension(mResource.getExtension());
+        	if (image != null)
+        		displayImage(image);
+        	else
+        		displayImage(NoImage);
+            //displayImage(NoImage);        	
         } else if (previewData instanceof java.awt.Component) {
             out("TODO: handle Component preview " + previewData);
             displayImage(NoImage);
@@ -238,7 +245,8 @@ public class PreviewPane extends JPanel
     }
 
     public void run() {
-        loadPreview(mPreviewData);
+    	
+    	loadPreview(mPreviewData);
     }
 
     private void out(String s) {
@@ -257,6 +265,7 @@ public class PreviewPane extends JPanel
             if (!isLoading && mPreviewData != null) {
                 synchronized (this) {
                     if (!isLoading && mPreviewData != null)
+                    	System.out.println("INVOKE AFTER");
                         VUE.invokeAfterAWT(PreviewPane.this); // load the preview
                 }
             }
