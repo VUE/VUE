@@ -34,7 +34,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.12 $ / $Date: 2006-10-27 15:57:22 $ / $Author: mike $
+ * @version $Revision: 1.13 $ / $Date: 2006-10-27 16:05:45 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -265,7 +265,6 @@ public class PreviewPane extends JPanel
             if (!isLoading && mPreviewData != null) {
                 synchronized (this) {
                     if (!isLoading && mPreviewData != null)
-                    	System.out.println("INVOKE AFTER");
                         VUE.invokeAfterAWT(PreviewPane.this); // load the preview
                 }
             }
