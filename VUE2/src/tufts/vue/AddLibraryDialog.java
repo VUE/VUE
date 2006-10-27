@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.56 $ / $Date: 2006-10-04 00:07:34 $ / $Author: anoop $
+ * @version $Revision: 1.57 $ / $Date: 2006-10-27 19:08:25 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -45,8 +45,9 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     DefaultListModel listModel = new DefaultListModel();
     JScrollPane listJsp;
     JScrollPane descriptionJsp;
-    JPanel progressBarPanel = new JPanel();
-    JProgressBar progressBar = new JProgressBar();
+    
+    JLabel progressBarLabel = new JLabel("Loading Data Sources...");
+    
     edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
     edu.tufts.vue.dsm.OsidFactory factory;
     org.osid.provider.Provider checked[];
@@ -103,12 +104,8 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             descriptionTextArea = new JTextArea();
             descriptionTextArea.setMargin(new Insets(4,4,4,4));
             descriptionTextArea.setLineWrap(true);
-            descriptionTextArea.setWrapStyleWord(true);
-       
-            
-            progressBar.setIndeterminate(true);
-            
-            
+            descriptionTextArea.setWrapStyleWord(true);                              
+                        
             listJsp = new JScrollPane(addLibraryList);
             listJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
             listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -173,16 +170,13 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             gbConstraints.gridy = 3;
             gbConstraints.weighty=0;            
             gbConstraints.anchor=GridBagConstraints.EAST;
-            addLibraryPanel.add(buttonPanel,gbConstraints);
- 
-            gbConstraints.gridx=0;
-            gbConstraints.gridy=0;
-            gbConstraints.fill=GridBagConstraints.BOTH;
-            gbConstraints.weighty=0;
-            progressBarPanel.setLayout(new GridBagLayout());
-            progressBarPanel.add(progressBar,gbConstraints);
-            JLabel progressBarLabel = new JLabel(VueResources.getString("addLibrary.retrievingDataLabel"));
+            addLibraryPanel.add(buttonPanel,gbConstraints);           
             
+            buttonPanel.add(progressBarLabel,gbConstraints,0);
+            //progressBarPanel.setLayout(new GridBagLayout());
+            //progressBarPanel.add(progressBar,gbConstraints);
+            //JLabel progressBarLabel = new JLabel(VueResources.getString("addLibrary.retrievingDataLabel"));
+            /*
             gbConstraints.gridx=0;
             gbConstraints.gridy=1;
             gbConstraints.fill=GridBagConstraints.BOTH;
@@ -195,8 +189,9 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             gbConstraints.gridy=0;
             gbConstraints.fill=GridBagConstraints.BOTH;
             gbConstraints.weighty=0;
-            getContentPane().add(progressBarPanel,gbConstraints);//,BorderLayout.CENTER);
-        //    getContentPane().add(addLibraryPanel,gbConstraints);//,BorderLayout.CENTER);
+            */
+         //   getContentPane().add(progressBarPanel,gbConstraints);//,BorderLayout.CENTER);
+            getContentPane().add(addLibraryPanel,gbConstraints);//,BorderLayout.CENTER);
             pack();
             setLocation(300,300);
         } catch (Throwable t) {
@@ -211,20 +206,18 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
         setVisible(true);
     }
     
-    public void refresh() {
-    	getContentPane().remove(addLibraryPanel);
-    	java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
-    	gbConstraints.gridx=0;
-        gbConstraints.gridy=0;
-        gbConstraints.fill=GridBagConstraints.BOTH;
-        gbConstraints.weighty=0;
-        getContentPane().add(progressBarPanel,gbConstraints);//,BorderLayout.CENTER);
+    public void refresh() 
+    {    
+        buttonPanel.add(progressBarLabel,0);
     	PopulateThread t = new PopulateThread();
-        t.start();
+        t.start();           
     }
     
     private void populate() {
         listModel.removeAllElements();
+        
+       
+        
 		this.oldDataSource = null;
 		this.newDataSource = null;
         try {
@@ -233,8 +226,14 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                 dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
             }
             
-            listModel.removeAllElements();
-			System.out.println("In Add Library Dialog, asking Provider for list of Providers");
+            //listModel.removeAllElements();
+            
+            //add all data sources we include with VUE
+            listModel.addElement(MY_COMPUTER);            
+            listModel.addElement(MY_SAVED_CONTENT);            
+            listModel.addElement(FTP);            
+            
+			//System.out.println("In Add Library Dialog, asking Provider for list of Providers");
 			// get what's available
 			java.util.Vector providerIdStringVector = new java.util.Vector();
             org.osid.provider.ProviderIterator providerIterator = factory.getProviders();
@@ -262,7 +261,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
 			}
 			
             // copy to an array
-            int size = listModel.size();
+            int size = listModel.size()-3;
             checked = new org.osid.provider.Provider[size];
             for (int i=0; i < size; i++) {
                 checked[i] = (org.osid.provider.Provider)checkedVector.elementAt(i);
@@ -273,11 +272,10 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             VueUtil.alert(this,t.getMessage(),"Error");
         } finally {
   //          GUI.clearWaitCursor();
-        }
-        // add all data sources we include with VUE
-        listModel.addElement(MY_COMPUTER);
-        listModel.addElement(MY_SAVED_CONTENT);
-        listModel.addElement(FTP);
+        	  buttonPanel.remove(progressBarLabel);
+          	  buttonPanel.validate();
+          	  buttonPanel.repaint();
+        }        
     }
     
     public void valueChanged(ListSelectionEvent lse) {
@@ -596,24 +594,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
         	catch(Exception e)
         	{
         		e.printStackTrace();        		
-        	}
-            finally
-            {
-            	java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();            
-            	gbConstraints.insets = new Insets(4,15,4,15);
-            	gbConstraints.gridwidth = 1;
-            	gbConstraints.fill=GridBagConstraints.BOTH;
-            	gbConstraints.weightx=1;            
-            	getContentPane().remove(progressBarPanel);
-            	gbConstraints.gridx=0;
-            	gbConstraints.gridy=0;
-            	gbConstraints.fill=GridBagConstraints.BOTH;
-            	gbConstraints.weighty=1;
-            	getContentPane().add(addLibraryPanel,gbConstraints);//,BorderLayout.CENTER);
-            	validate();
-            	repaint();
-            }
-            
+        	}            
         }
     }
 }
