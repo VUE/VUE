@@ -34,7 +34,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.13 $ / $Date: 2006-10-27 16:05:45 $ / $Author: mike $
+ * @version $Revision: 1.14 $ / $Date: 2006-10-27 17:09:56 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -115,17 +115,17 @@ public class PreviewPane extends JPanel
         mResource = r;
         if (r != null)
             mPreviewData = r.getPreview();
-        else                	        
+        else
             mPreviewData = null;
-        
         mImage = null;
 
 //        if (mPreviewData == null && mResource.isImage())
 //            mPreviewData = mResource;
-                    
+
         if (DEBUG.RESOURCE) out("GOT PREVIEW DATA " + mPreviewData);
 
-        if (isShowing()) {        	
+        if (isShowing()) {
+
             loadPreview(mPreviewData);
             FirstPreview = false;
 
@@ -150,24 +150,20 @@ public class PreviewPane extends JPanel
     private void loadPreview(Object previewData)
     {
         // todo: handle if preview is a Component, 
-        // todo: handle a String as preview data.    	
-    	 
-         		
+        // todo: handle a String as preview data.
 
         if (false /*&& r.getIcon() != null*/) { // these not currently valid from Osid2AssetResource (size=-1x-1)
             //displayIcon(r.getIcon());
         } else if (previewData == null) {
-        	Image image = GUI.getSystemIconForExtension(mResource.getExtension());
-        	if (image != null)
-        		displayImage(image);
-        	else
-        		displayImage(NoImage);
-            //displayImage(NoImage);        	
+            displayImage(NoImage);
         } else if (previewData instanceof java.awt.Component) {
             out("TODO: handle Component preview " + previewData);
             displayImage(NoImage);
         } else if (previewData != null) { // todo: check an Images.isImageableSource
-            loadImage(previewData);
+        	if (previewData instanceof Image)
+        		displayImage((Image)previewData);
+        	else
+        		loadImage(previewData);
         } else {
             displayImage(NoImage);
         }
@@ -245,8 +241,7 @@ public class PreviewPane extends JPanel
     }
 
     public void run() {
-    	
-    	loadPreview(mPreviewData);
+        loadPreview(mPreviewData);
     }
 
     private void out(String s) {
