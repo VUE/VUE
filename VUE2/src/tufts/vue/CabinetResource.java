@@ -30,6 +30,7 @@ import java.io.*;
 import java.net.*;
 import tufts.oki.remoteFiling.*;
 import tufts.oki.localFiling.*;
+import tufts.vue.gui.GUI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,7 +39,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.25 $ / $Date: 2006-09-23 21:58:25 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2006-10-27 17:10:23 $ / $Author: mike $
  * @author  Mark Norton
  */
 public class CabinetResource extends MapResource {
@@ -380,20 +381,10 @@ public class CabinetResource extends MapResource {
         
     }
     
-    /*
-    public Object getPreview() {
-        JComponent panel = new JPanel();
-        javax.swing.filechooser.FileSystemView view = javax.swing.filechooser.FileSystemView.getFileSystemView();
-        try{
-                 panel = new JLabel(view.getSystemIcon(new File((new URL(getSpec()).getFile()))));
-
-        } catch(Exception ex) {
-            System.out.println(ex+getSpec());
-            super.getPreview();
-        }
-        panel.setPreferredSize(new Dimension(75,75));
-        return panel;
+    
+    public Object getPreview() {    	
+       return GUI.getSystemIconForExtension(getExtension());
     }
-    */
+    //*/
     
 }
