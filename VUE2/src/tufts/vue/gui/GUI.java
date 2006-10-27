@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.61 $ / $Date: 2006-10-27 15:57:22 $ / $Author: mike $
+ * @version $Revision: 1.62 $ / $Date: 2006-10-27 16:14:04 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -616,15 +616,25 @@ public class GUI
     		return tufts.macosx.MacOSX.getIconForExtension(ext);
     	else
     	{
-    		java.io.File file = null;    		
+    		java.io.File file = null;
+    		java.io.File root = null;
     		Image image = null;
     		try
     		{
+    			if (ext.equals("dir"))
+    			{
+    			   root = new java.io.File(VUE.getSystemProperty("java.home"));
+    			   sun.awt.shell.ShellFolder shellFolder = sun.awt.shell.ShellFolder.getShellFolder(root);
+       		       image = shellFolder.getIcon(true);
+    			}
+    			else
+    			{
     		     //Create a temporary file with the specified extension
     		     file = java.io.File.createTempFile("icon", "." + ext);
     		 
     		     sun.awt.shell.ShellFolder shellFolder = sun.awt.shell.ShellFolder.getShellFolder(file);
-    		     image = shellFolder.getIcon(true);    		         		     
+    		     image = shellFolder.getIcon(true);
+    			}
     		}
     		catch (Exception e)
     		{
@@ -632,7 +642,8 @@ public class GUI
     		}
     		finally
     		{
-    			file.delete();
+    			if (!ext.equals("dir"))
+    				file.delete();
     		}
     		
     		return image;
