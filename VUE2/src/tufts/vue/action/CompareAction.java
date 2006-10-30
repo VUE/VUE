@@ -51,7 +51,7 @@ public class CompareAction  extends VueAction {
                 return;
             }
             String fileName = file.getAbsolutePath();
-            if(!fileName.esndsWith(".txt")) fileName += ".txt";
+            if(!fileName.endsWith(".txt")) fileName += ".txt";
             PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
             writer.write(c);
             writer.close();
