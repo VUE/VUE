@@ -31,6 +31,7 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         imap = {"imap"}, 
         vue = {"vue", "xml"},
         rdf = {"rdf"},
+        txt = {"txt"},
         zip = {"zip"},
 		rli = {"rli.xml"};
     private String[] extensions;
@@ -68,6 +69,8 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
             description = "VUE Files";
         } else if (description.equals("zip")) {
             this.extensions = zip;
+        } else if( description.equals("txt")) {
+            this.extensions = txt;
         }
     }
     
