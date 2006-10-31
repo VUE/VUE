@@ -1,7 +1,7 @@
 package tufts.oki.dr.fedora;
 
     /**
-    DigitalRepositoryIterator returns a set, one at a time.  The purpose of all Iterators is to to offer a way for SID methods to return multiple values of a common type and not use an array.  Returning an array may not be appropriate if the number of values returned is large or is fetched remotely.  Iterators do not allow access to values by index, rather you must access values in sequence. Similarly, there is no way to go backwards through the sequence unless you place the values in a data structure, such as an array, that allows for access by index. <p>Licensed under the {@link osid.SidLicense MIT O.K.I SID Definition License}.<p>@version $Revision: 1.2 $ / $Date: 2005-01-26 21:41:07 $
+    DigitalRepositoryIterator returns a set, one at a time.  The purpose of all Iterators is to to offer a way for SID methods to return multiple values of a common type and not use an array.  Returning an array may not be appropriate if the number of values returned is large or is fetched remotely.  Iterators do not allow access to values by index, rather you must access values in sequence. Similarly, there is no way to go backwards through the sequence unless you place the values in a data structure, such as an array, that allows for access by index. <p>Licensed under the {@link osid.SidLicense MIT O.K.I SID Definition License}.<p>@version $Revision: 1.3 $ / $Date: 2006-10-31 01:09:24 $
     */
 public class DigitalRepositoryIterator
 implements osid.dr.DigitalRepositoryIterator
@@ -49,7 +49,7 @@ implements osid.dr.DigitalRepositoryIterator
 	subject to the terms of the O.K.I&#46; SID Implementation
 	License. By obtaining, using and/or copying this Work,
 	you agree that you have read, understand, and will comply
-	with the O.K.I&#46; SID Implementation License. 
+	with the O.K.I&#46; SID Implementation License.
   </p>  <p>	THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
 	KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
 	THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A

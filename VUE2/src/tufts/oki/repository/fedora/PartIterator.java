@@ -36,7 +36,7 @@ implements org.osid.repository.PartIterator
 	subject to the terms of the O.K.I&#46; SID Implementation
 	License. By obtaining, using and/or copying this Work,
 	you agree that you have read, understand, and will comply
-	with the O.K.I&#46; SID Implementation License. 
+	with the O.K.I&#46; SID Implementation License.
   </p>  <p>	THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
 	KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
 	THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A

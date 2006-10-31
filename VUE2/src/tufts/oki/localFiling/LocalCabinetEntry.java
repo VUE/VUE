@@ -21,7 +21,7 @@
  *
  * Created on September 16, 2003, 9:54 AM
  *
- *  The software contained in this file is ©2003 by Mark J. Norton, all rights reserved.
+ *  The software contained in this file is copyright 2003 by Mark J. Norton, all rights reserved.
  */
 package tufts.oki.localFiling;
 import java.util.*;
