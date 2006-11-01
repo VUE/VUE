@@ -769,7 +769,15 @@ public class DataSourceViewer extends JPanel
                 if (DEBUG.Enabled)
                     textArea = new JTextArea(mRepositoryName + ": Search Error: " + t);
                 else
-                    textArea = new JTextArea(mRepositoryName + ": Search Error: Please check the resource configuration.");
+                {
+                	String msg;
+                	
+                	msg = translateRepositoryException(t.getLocalizedMessage());
+                	
+                	textArea = new JTextArea(mRepositoryName + ": Search Error: " + msg);
+                }
+                	
+                
                 textArea.setBorder(new EmptyBorder(4,22,6,0));
                 textArea.setLineWrap(true);
                 textArea.setWrapStyleWord(true);
@@ -782,6 +790,28 @@ public class DataSourceViewer extends JPanel
             mResultPane.revalidate();
         }
         
+        private String translateRepositoryException(String msg)
+        {
+        	String s;
+        	if (msg.equals(org.osid.repository.RepositoryException.OPERATION_FAILED))
+        	{
+        		s = VueResources.getString("repositoryexception.operationfailed"); 
+        	}
+        	else if (msg.equals(org.osid.repository.RepositoryException.PERMISSION_DENIED))
+        	{
+        		s = VueResources.getString("repositoryexception.permissiondenied");
+        	}
+        	else if (msg.equals(org.osid.repository.RepositoryException.CONFIGURATION_ERROR))
+        	{
+        		s = VueResources.getString("repositoryexception.configurationerror");
+        	}
+        	else
+        	{
+        		s = VueResources.getString("repositoryexception.genericmsg");
+        	}
+        	
+        	return s;
+        }
         // As we create a new Widget for the output of every search, in terms of a new
         // search replacing a still running search, we're already safe UI wise even if
         // we never interrupted a search, but we might as well be careful about it / not
