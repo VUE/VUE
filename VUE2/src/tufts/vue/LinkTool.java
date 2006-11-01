@@ -272,8 +272,9 @@ public class LinkTool extends VueTool
         LWLink existingLink = null;
         if (pLinkDest != null)
             existingLink = pLinkDest.getLinkTo(pLinkSource);
-        if (existingLink != null) {
+        if (false && existingLink != null) {
             // There's already a link tween these two -- increment the weight
+            // [ WE NOW ALLOW MULTIPLE LINKS BETWEEN NODES ]
             existingLink.incrementWeight();
         } else {
             LWContainer commonParent = e.getMap();
