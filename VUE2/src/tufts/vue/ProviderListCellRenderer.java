@@ -36,6 +36,7 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
     private final Icon checkedIcon = VueResources.getImageIcon("addLibrary.checkMarkIcon");
     private final ImageIcon waitIcon = VueResources.getImageIcon("waitIcon");
 	private static String MY_COMPUTER = VueResources.getString("addLibrary.mycomputer.label");
+	private static String LOADING = VueResources.getString("addLibrary.loading.label");
 	private static String MY_SAVED_CONTENT = "My Saved Content";
 	private static String FTP = "FTP";
 	
@@ -210,7 +211,12 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
 				mRow.setBorder(DividerBorder);
 				displayName = FTP;            
 				mIconLabel.setIcon(remoteIcon);
+			} else if (s.equals(LOADING)) {
+				mRow.setBorder(DividerBorder);
+				displayName = LOADING;
+				mIconLabel.setIcon(null);
 			}
+			
         } else {
             mRow.setBorder(DividerBorder);
 		}

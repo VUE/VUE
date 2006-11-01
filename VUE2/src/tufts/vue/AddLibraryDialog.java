@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.57 $ / $Date: 2006-10-27 19:08:25 $ / $Author: mike $
+ * @version $Revision: 1.58 $ / $Date: 2006-11-01 18:37:40 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -32,6 +32,7 @@ import javax.swing.*;
 import java.awt.event.*;
 
 import javax.swing.event.*;
+
 import java.awt.*;
 
 import tufts.vue.gui.*;
@@ -46,7 +47,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     JScrollPane listJsp;
     JScrollPane descriptionJsp;
     
-    JLabel progressBarLabel = new JLabel("Loading Data Sources...");
+//    JLabel progressBarLabel = new JLabel("Loading Data Sources...");
     
     edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
     edu.tufts.vue.dsm.OsidFactory factory;
@@ -65,6 +66,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     private static String MY_SAVED_CONTENT_DESCRIPTION = "Add a browse control for your saved content.  You can configure a name for this source.";
     private static String FTP = "FTP";
     private static String FTP_DESCRIPTION = "Add a browse control for an FTP site.  You must configure this.";
+    private static String LOADING = VueResources.getString("addLibrary.loading.label");
     private static String TITLE = "Add a Resource";
     private static String AVAILABLE = "Resources available:";
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
@@ -97,7 +99,25 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             addLibraryList.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
             addLibraryList.addListSelectionListener(this);
             addLibraryList.setFixedCellHeight(25);
-            
+            addLibraryList.addListSelectionListener(new ListSelectionListener(){
+
+				public void valueChanged(ListSelectionEvent arg0) {
+					Object o = ((JList)arg0.getSource()).getSelectedValue();
+					
+					
+					if (o instanceof String)
+					{
+						String s =(String)o;
+						if (s.equals(LOADING))
+						{
+							addLibraryList.setSelectedIndex(0);
+							addLibraryList.repaint();
+						}
+					}
+					
+				}
+            	
+            });
             providerListRenderer = new ProviderListCellRenderer();
             addLibraryList.setCellRenderer(providerListRenderer);
             
@@ -172,25 +192,8 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             gbConstraints.anchor=GridBagConstraints.EAST;
             addLibraryPanel.add(buttonPanel,gbConstraints);           
             
-            buttonPanel.add(progressBarLabel,gbConstraints,0);
-            //progressBarPanel.setLayout(new GridBagLayout());
-            //progressBarPanel.add(progressBar,gbConstraints);
-            //JLabel progressBarLabel = new JLabel(VueResources.getString("addLibrary.retrievingDataLabel"));
-            /*
-            gbConstraints.gridx=0;
-            gbConstraints.gridy=1;
-            gbConstraints.fill=GridBagConstraints.BOTH;
-            gbConstraints.weighty=0;
-            progressBarPanel.add(progressBarLabel,gbConstraints);
-            
-            
-            progressBarPanel.setPreferredSize(new Dimension(368,472));            
-            gbConstraints.gridx=0;
-            gbConstraints.gridy=0;
-            gbConstraints.fill=GridBagConstraints.BOTH;
-            gbConstraints.weighty=0;
-            */
-         //   getContentPane().add(progressBarPanel,gbConstraints);//,BorderLayout.CENTER);
+            //buttonPanel.add(progressBarLabel,gbConstraints,0);
+  
             getContentPane().add(addLibraryPanel,gbConstraints);//,BorderLayout.CENTER);
             pack();
             setLocation(300,300);
@@ -208,7 +211,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     
     public void refresh() 
     {    
-        buttonPanel.add(progressBarLabel,0);
+        //buttonPanel.add(progressBarLabel,0);
     	PopulateThread t = new PopulateThread();
         t.start();           
     }
@@ -232,11 +235,22 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             listModel.addElement(MY_COMPUTER);            
             listModel.addElement(MY_SAVED_CONTENT);            
             listModel.addElement(FTP);            
+            listModel.addElement(LOADING);
             
+            int ONE_TNTH_SECOND = 100;
+            providerListRenderer.invokeWaitingMode(3);
+            timer = new Timer(ONE_TNTH_SECOND, new ActionListener() {
+                public void actionPerformed(ActionEvent evt) {
+                    repaint();
+                }});
+                timer.start();
+                
 			//System.out.println("In Add Library Dialog, asking Provider for list of Providers");
 			// get what's available
 			java.util.Vector providerIdStringVector = new java.util.Vector();
             org.osid.provider.ProviderIterator providerIterator = factory.getProviders();
+            providerListRenderer.endWaitingMode();
+            listModel.remove(3);
             while (providerIterator.hasNextProvider()) {
                 org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
 				// only latest
@@ -246,9 +260,10 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
 					providerIdStringVector.addElement(nextProvider.getId().getIdString());
 				}
             }
-			
+            
 			// get what's installed and not available
 			providerIterator = factory.getInstalledProviders();
+			
             while (providerIterator.hasNextProvider()) {
                 org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
 				// only latest and non-duplicate
@@ -260,7 +275,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
 				}
 			}
 			
-            // copy to an array
+            // copy to an array            
             int size = listModel.size()-3;
             checked = new org.osid.provider.Provider[size];
             for (int i=0; i < size; i++) {
@@ -272,7 +287,8 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             VueUtil.alert(this,t.getMessage(),"Error");
         } finally {
   //          GUI.clearWaitCursor();
-        	  buttonPanel.remove(progressBarLabel);
+        	 timer.stop();
+        //	  buttonPanel.remove(progressBarLabel);
           	  buttonPanel.validate();
           	  buttonPanel.repaint();
         }        
