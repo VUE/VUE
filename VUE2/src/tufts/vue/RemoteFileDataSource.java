@@ -48,7 +48,7 @@ import tufts.oki.shared.*;
 
 public class RemoteFileDataSource extends VueDataSource{
     public static final String ANONYMOUS = "anonymous";
-    private JComponent resourceViewer;
+    private JComponent resourceViewer  = new JPanel();
     
     private String UserName;
     private String password;
