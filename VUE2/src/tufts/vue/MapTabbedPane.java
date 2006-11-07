@@ -26,11 +26,14 @@ import javax.swing.JTabbedPane;
 import javax.swing.JScrollPane;
 import javax.swing.border.*;
 
+import java.util.Iterator;
+import java.util.ArrayList;
+
 /**
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.29 $ / $Date: 2006-10-18 17:36:42 $ / $Author: sfraize $ 
+ * @version $Revision: 1.30 $ / $Date: 2006-11-07 21:51:18 $ / $Author: anoop $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -292,6 +295,16 @@ public class MapTabbedPane extends JTabbedPane
             map = viewer.getMap();
         //System.out.println(this + " map at index " + index + " is " + map);
         return map;
+    }
+    
+    public Iterator<LWMap> getAllMaps() {
+        int tabs = getTabCount();
+        ArrayList<LWMap> list = new ArrayList();
+        for(int i= 0;i< tabs;i++){
+            LWMap m = getMapAt(i);
+            list.add(m);
+        }
+        return list.iterator();
     }
 
     public MapViewer getViewerWithMap(LWMap map) {
