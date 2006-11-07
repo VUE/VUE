@@ -37,7 +37,7 @@ public class VoteAggregate extends WeightAggregate {
     
     private void computeVotes() {
         int count = getCount();
-        float threshold = count/2;
+        float threshold = (float)count/2;
         for(int i=0; i<size;i++){
             for(int j=0;j<size;j++) {
                 if(c[i][j] >= threshold) {
