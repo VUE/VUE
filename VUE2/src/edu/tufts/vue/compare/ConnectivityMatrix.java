@@ -100,7 +100,7 @@ public class ConnectivityMatrix {
     public int getConnection(String label1,String label2) {
         int index1 = labels.indexOf(label1);
         int index2 = labels.indexOf(label2);
-        if(index1 > 0 && index2 >0 ){
+        if(index1 >= 0 && index2 >=0 ){
             return c[index1][index2];
         } else {
             return 0;
@@ -110,7 +110,7 @@ public class ConnectivityMatrix {
     public void setConnection(String label1, String label2, int value) {
         int index1 = labels.indexOf(label1);
         int index2 = labels.indexOf(label2);
-        if(index1 > 0 && index2 >0 ){
+        if(index1 >= 0 && index2 >=0 ){
             c[index1][index2] = value;
         }
     }
