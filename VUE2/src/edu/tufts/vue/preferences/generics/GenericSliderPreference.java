@@ -33,18 +33,18 @@ import javax.swing.*;
 import javax.swing.event.ChangeListener;
 
 import edu.tufts.vue.preferences.PreferenceConstants;
-import edu.tufts.vue.preferences.interfaces.VueIntegerPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 /**
  * @author Mike Korcynski
  *
  */
-public abstract class GenericSliderPreference implements VueIntegerPreference, ChangeListener
+public abstract class GenericSliderPreference extends BasePref implements ChangeListener
 {
 	
 	private String message;
 	private JSlider slider = new JSlider();
+	private Object previousValue = null;
 	
 	public GenericSliderPreference()
 	{
@@ -105,26 +105,39 @@ public abstract class GenericSliderPreference implements VueIntegerPreference, C
 	return panel;
 	}
 	
-	public Class getPrefRoot()
-	{
-		return edu.tufts.vue.preferences.PreferencesManager.class;
-	}
-	
 	public String getMessage(){
 		return message;
 	}
 
-	public int getValue(){
-		return slider.getValue();
+	public Object getPreviousValue()
+	{
+		if (previousValue == null)
+			return getDefaultValue();
+		else
+			return previousValue;
 	}
+	
+	public int getSliderValueMappedToPref()
+	{
+		return 0;
+	}
+	
+	public Object getValue()
+	{
+		 Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+		 return p.getInt(getPrefName(), ((Integer)getDefaultValue()).intValue());
+	}		
 	
 	public void setMessage(String s){
 		this.message = s;
 	}
 	
-	public void setValue(int b)
-	{
-		
+	public void setValue(Object i)
+	{	
+		previousValue = getValue();
+		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+		p.putInt(getPrefName(), getSliderValueMappedToPref());					
+		_fireVuePrefEvent();
 	}
 	
 }

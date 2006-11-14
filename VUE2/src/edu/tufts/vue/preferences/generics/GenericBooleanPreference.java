@@ -31,35 +31,49 @@ import java.util.prefs.Preferences;
 import javax.swing.*;
 
 import edu.tufts.vue.preferences.PreferenceConstants;
-import edu.tufts.vue.preferences.interfaces.VueBooleanPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 /**
  * @author Mike Korcynski
  *
  */
-public abstract class GenericBooleanPreference implements VueBooleanPreference, ItemListener
+public abstract class GenericBooleanPreference extends BasePref implements ItemListener 
 {
 	
 	private String message;
 	private JCheckBox value = new JCheckBox();
+	private Object previousValue = null;
 	
 	public GenericBooleanPreference()
 	{
-		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		getCheckBox().setSelected(p.getBoolean(getPrefName(),getDefaultValue()));		
-		getCheckBox().addItemListener(this);
+		
 	}
 	
-	public boolean getDefaultValue()
+	public GenericBooleanPreference(String prefName, Object defaultVal)
 	{
-		return true;
+		this();
+		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+		getCheckBox().setSelected(p.getBoolean(prefName,((Boolean)defaultVal).booleanValue()));				
+	}
+	
+	public Object getPreviousValue()
+	{
+		if (previousValue == null)
+			return getDefaultValue();
+		else
+			return previousValue;
+	}
+	
+	public Object getDefaultValue()
+	{
+		return Boolean.TRUE;
 	}
 	
 	public void itemStateChanged(ItemEvent e) {
 		JCheckBox box = (JCheckBox)e.getSource();
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		p.putBoolean(getPrefName(), box.isSelected());				
+		//p.putBoolean(getPrefName(), box.isSelected());
+		setValue(Boolean.valueOf(box.isSelected()));
 	}
 	
 	public JCheckBox getCheckBox()
@@ -109,30 +123,33 @@ public abstract class GenericBooleanPreference implements VueBooleanPreference, 
         
         booleanPanel.add(value);
         booleanPanel.add(new JLabel(getMessage()));
+        getCheckBox().addItemListener(this);
+        getCheckBox().setSelected(((Boolean)getValue()).booleanValue());
         panel.add(booleanPanel, gbConstraints);
 	return panel;
-	}
-	
-	public Class getPrefRoot()
-	{
-		return edu.tufts.vue.preferences.PreferencesManager.class;
 	}
 	
 	public String getMessage(){
 		return message;
 	}
 
-	public boolean getValue(){
-		return value.isSelected();
+	public Object getValue(){
+		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+		Boolean b = Boolean.valueOf(p.getBoolean(getPrefName(), ((Boolean)getDefaultValue()).booleanValue()));
+		return b;
+	
 	}
 	
 	public void setMessage(String s){
 		this.message = s;
 	}
 	
-	public void setValue(boolean b)
+	public void setValue(Object b)
 	{
-		value.setSelected(b);
+		previousValue = Boolean.valueOf(value.isSelected()); 
+		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+		p.putBoolean(getPrefName(), ((Boolean)b).booleanValue());
+		_fireVuePrefEvent();
 	}
 	
 }
