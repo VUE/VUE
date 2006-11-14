@@ -33,7 +33,7 @@ import javax.swing.ImageIcon;
 import javax.imageio.ImageIO;
 
 import edu.tufts.vue.preferences.PreferencesManager;
-import edu.tufts.vue.preferences.interfaces.VueIntegerPreference;
+import edu.tufts.vue.preferences.VuePrefEvent;
 import edu.tufts.vue.preferences.implementations.ImageSizePreference;
 
 /**
@@ -56,7 +56,7 @@ import edu.tufts.vue.preferences.implementations.ImageSizePreference;
 //       didn't happen to be open.
 
 public class LWImage extends LWComponent
-    implements LWSelection.ControlListener, Images.Listener, java.util.prefs.PreferenceChangeListener
+    implements LWSelection.ControlListener, Images.Listener, edu.tufts.vue.preferences.VuePrefListener
 {
     static int MaxRenderSize = PreferencesManager.getIntegerPrefValue(ImageSizePreference.getInstance());
     //private static VueIntegerPreference PrefImageSize = ImageSizePreference.getInstance(); // is failing for some reason
@@ -90,22 +90,18 @@ public class LWImage extends LWComponent
 
 
     public LWImage() {
-        PreferencesManager.addPreferenceListener(this);
+    	edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
     }
     
     // todo: not so great to have every single LWImage instance be a listener
-    public void preferenceChange(java.util.prefs.PreferenceChangeEvent e) {
-        VUE.Log.debug("PrefChangeEvent: " + e + " key=" + e.getKey() + " value=" + e.getNewValue() + " node=" + e.getNode());
-        final String newValue = e.getNewValue();
-        if (ImageSizePreference.getInstance().getPrefName().equals(e.getKey())) {
-        //if (PrefImageSize.getPrefName().equals(e.getKey())) { // is failing for some reason
-            // int newImageMax = e.getNode().get
-            //out("new pref value is " + PrefImageSize.getValue());
-            if (DEBUG.IMAGE) out("new pref value is " + ImageSizePreference.getInstance().getValue());
-            MaxRenderSize = ImageSizePreference.getInstance().getValue();
+    public void preferenceChanged(VuePrefEvent prefEvent) {        
+        
+            if (DEBUG.IMAGE) out("new pref value is " + ((Integer)ImageSizePreference.getInstance().getValue()).intValue());
+            MaxRenderSize = ((Integer)prefEvent.getNewValue()).intValue();
+            System.out.println("MaxRenderSize : " + MaxRenderSize);
             //setImageSize(mImageWidth, mImageHeight);
-            setImageSize(mImage.getWidth(null), mImage.getHeight(null));
-        }
+            if (mImage != null)
+            	setImageSize(mImage.getWidth(null), mImage.getHeight(null));        
         
     }
 

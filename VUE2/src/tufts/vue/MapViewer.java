@@ -41,6 +41,8 @@ import java.util.Iterator;
 import javax.swing.*;
 
 import edu.tufts.vue.preferences.PreferencesManager;
+import edu.tufts.vue.preferences.VuePrefEvent;
+import edu.tufts.vue.preferences.VuePrefListener;
 
 import tufts.oki.dr.fedora.*;
 import tufts.vue.shape.*;
@@ -63,7 +65,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.295 $ / $Date: 2006-10-20 15:04:09 $ / $Author: sfraize $ 
+ * @version $Revision: 1.296 $ / $Date: 2006-11-14 19:33:48 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -176,6 +178,8 @@ public class MapViewer extends javax.swing.JComponent
     
     public MapViewer(LWMap map) {
         this(map, "");
+        
+     
     }
     
     private String instanceName;
@@ -226,6 +230,15 @@ public class MapViewer extends javax.swing.JComponent
         addMouseListener(inputHandler);
         addMouseMotionListener(inputHandler);
         //this.add
+        edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance().addVuePrefListener(new VuePrefListener(){
+
+    		public void preferenceChanged(VuePrefEvent prefEvent) {
+    						
+    			autoZoomEnabled = ((Boolean)prefEvent.getNewValue()).booleanValue();    			
+    		}
+        	   
+           });
+        
         if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
     }
 

@@ -26,6 +26,12 @@ import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.ImageIcon;
 
+import edu.tufts.vue.preferences.PreferencesManager;
+import edu.tufts.vue.preferences.VuePrefEvent;
+import edu.tufts.vue.preferences.VuePrefListener;
+import edu.tufts.vue.preferences.implementations.BooleanPreference;
+import edu.tufts.vue.preferences.interfaces.VuePreference;
+
 /**
  *
  * This is the core graphical object in VUE.  It maintains a {@link java.awt.geom.RectangularShape}
@@ -33,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.126 $ / $Date: 2006-10-18 17:56:15 $ / $Author: sfraize $
+ * @version $Revision: 1.127 $ / $Date: 2006-11-14 19:33:48 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -86,7 +92,16 @@ public class LWNode extends LWContainer
     /** how much smaller children are than their immediately enclosing parent (is cumulative) */
     static final float ChildScale = VueResources.getInt("node.child.scale", 75) / 100f;
 
-    
+    //------------------------------------------------------------------
+    // Preferences
+    //------------------------------------------------------------------
+    private static VuePreference iconPref = BooleanPreference.create(
+			edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
+			"showNodeIcons", 
+			"Show Icons", 
+			"Display rollover icons in map nodes",
+			true);
+
     //------------------------------------------------------------------
     // Instance info
     //------------------------------------------------------------------
@@ -123,11 +138,13 @@ public class LWNode extends LWContainer
     public LWNode(String label)
     {
         this(label, 0, 0);
+       // PreferencesManager.addPreferenceListener(this);
     }
 
     public LWNode(String label, RectangularShape shape)
     {
         this(label, 0, 0, shape);
+       // PreferencesManager.addPreferenceListener(this);
     }
 
     /** internal convenience */
@@ -151,6 +168,13 @@ public class LWNode extends LWContainer
         setFont(DEFAULT_NODE_FONT); // shouldn't need to do this, but label not getting created in setLabel?
         //getLabelBox(); // shoudn't need to do this either: first attempt at labelbox should get it! (not working either!)
         setLabel(label);
+        
+        iconPref.addVuePrefListener(new VuePrefListener(){
+
+			public void preferenceChanged(VuePrefEvent prefEvent) {
+				 LWNode.this.notify(LWKey.Repaint);				
+			}        	
+        });
     }
     
     /** internal convenience */
@@ -212,6 +236,10 @@ public class LWNode extends LWContainer
     
     private boolean iconShowing()
     {
+    	
+    	if (!edu.tufts.vue.preferences.PreferencesManager.getBooleanPrefValue(iconPref))
+    		return false;
+    	
         //if (getParent() instanceof LWSlide) // put in LWComponent so LWImage can use also (adjusting scale factor)
         if (isPresentationContext())
              return false;

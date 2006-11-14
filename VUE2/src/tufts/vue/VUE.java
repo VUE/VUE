@@ -25,6 +25,7 @@ import tufts.vue.gui.*;
 import tufts.vue.ui.InspectorPane;
 
 import java.util.*;
+import java.util.List;
 import java.util.prefs.*;
 import java.io.*;
 import java.net.URL;
@@ -48,13 +49,15 @@ import org.apache.log4j.Level;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.PatternLayout;
 
+import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
+
 
 /**
  * Vue application class.
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.384 $ / $Date: 2006-10-20 12:16:33 $ / $Author: sfraize $ 
+ * @version $Revision: 1.385 $ / $Date: 2006-11-14 19:33:48 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -280,6 +283,13 @@ public class VUE
 	
     private static DRBrowser DR_BROWSER;
     private static DockWindow DR_BROWSER_DOCK;
+    private static DockWindow pathwayDock;
+    private static DockWindow formatDock;
+    private static DockWindow slideDock;
+    private static DockWindow pannerDock;
+    private static DockWindow MapInspector;
+    private static DockWindow ObjectInspector;
+    private static DockWindow outlineDock;
     
     static {
         Logger.getRootLogger().removeAllAppenders(); // need to do this or we get everything twice
@@ -592,14 +602,14 @@ public class VUE
         // Pathways panel
         //-----------------------------------------------------------------------------
         
-        final DockWindow pathwayDock = GUI.createDockWindow("Pathways",
+        pathwayDock = GUI.createDockWindow("Pathways",
                                                             new PathwayPanel(VUE.getDialogParentAsFrame()));
 
         //-----------------------------------------------------------------------------
         // Formatting
         //-----------------------------------------------------------------------------
 
-        final DockWindow formatDock = null;
+        formatDock = null;
         //final DockWindow formatDock = GUI.createDockWindow("Format", new FormatPanel());
 
         
@@ -607,7 +617,7 @@ public class VUE
         // Panner
         //-----------------------------------------------------------------------------
 
-        final DockWindow pannerDock = GUI.createDockWindow("Panner", new MapPanner());
+        pannerDock = GUI.createDockWindow("Panner", new MapPanner());
         //pannerDock.getWidgetPanel().setBorder(new javax.swing.border.MatteBorder(5,5,5,5, Color.green));
         //pannerDock.getContentPanel().setBorder(new EmptyBorder(1,2,2,2));
         //pannerDock.setSize(120,120);
@@ -638,7 +648,7 @@ public class VUE
         // Map Inspector
         //-----------------------------------------------------------------------------
 
-        DockWindow MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"));
+        MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"));
         MapInspector.setContent(new MapInspectorPanel());
         
         //-----------------------------------------------------------------------------
@@ -647,11 +657,11 @@ public class VUE
 
         //final DockWindow resourceDock = GUI.createDockWindow("Resource Inspector", new ResourcePanel());
         inspectorPane = new tufts.vue.ui.InspectorPane();
-        DockWindow ObjectInspector = GUI.createDockWindow("Info",inspectorPane);
+        ObjectInspector = GUI.createDockWindow("Info",inspectorPane);
         ObjectInspector.setMenuName("Info / Preview");
         ObjectInspector.setHeight(575);
 
-        final DockWindow slideDock = GUI.createDockWindow(new tufts.vue.ui.SlideViewer(null));
+        slideDock = GUI.createDockWindow(new tufts.vue.ui.SlideViewer(null));
         slideDock.setLocation(100,100);
         VueAction defSize;
         slideDock.setMenuActions(new Action[] {
@@ -713,7 +723,7 @@ public class VUE
         VUE.addActiveMapListener(outlineTree);
         outlineScroller.setPreferredSize(new Dimension(500, 300));
         //outlineScroller.setBorder(null); // so DockWindow will add 1 pixel to bottom
-        DockWindow outlineDock =  GUI.createDockWindow("Outline", outlineScroller);
+        outlineDock =  GUI.createDockWindow("Outline", outlineScroller);
         
         //-----------------------------------------------------------------------------
 
@@ -808,12 +818,27 @@ public class VUE
         if (appHeight > 1024)
             appHeight = 1024;
 
-        ApplicationFrame.setSize(appWidth, appHeight);
+        WindowPropertiesPreference wpframe = ApplicationFrame.getWindowProperties();
+        
+        Dimension sz = wpframe.getWindowSize();
+    	Point pos = wpframe.getWindowLocationOnScreen();
+    	
+        if (wpframe.isEnabled() &&
+        	ApplicationFrame.isPointFullyOnScreen(pos,sz))
+        {
+        	
+        	ApplicationFrame.setSize((int)sz.getWidth(), (int)sz.getHeight());
 
-        ApplicationFrame.setLocation(GUI.GInsets.left,
+        	ApplicationFrame.setLocation((int)pos.getX(),(int)pos.getY());        	
+        }
+        else
+        {        	        
+        	ApplicationFrame.setSize(appWidth, appHeight);
+
+        	ApplicationFrame.setLocation(GUI.GInsets.left,
                                      GUI.GInsets.top
                                      + (ToolbarAtTopScreen ? DockWindow.ToolbarHeight : 0));
-
+        }
         // MAC NOTE WITH MAXIMIZING: if Frame's current location y value
         // is less than whatever's it's maximized value is set to, maximizing
         // it will use the y value, not the max value.  True even if set
@@ -937,7 +962,8 @@ public class VUE
 
 
         // order the windows left to right for the top dock
-        final DockWindow[] acrossTop = new DockWindow[] {
+        List<DockWindow> acrossTopList = new ArrayList<DockWindow>();
+        /*{
             MapInspector,
             //GUI.isSmallScreen() ? null : fontDock,
             pathwayDock,
@@ -946,19 +972,35 @@ public class VUE
             ObjectInspector,
             //resourceDock,
         };
-            
+          */
+        if (!MapInspector.getWindowProperties().isEnabled() || !MapInspector.getWindowProperties().isWindowVisible())
+        	acrossTopList.add(MapInspector);
+          
+        if (!pathwayDock.getWindowProperties().isEnabled() || !pathwayDock.getWindowProperties().isWindowVisible())
+        	acrossTopList.add(pathwayDock);
+        
+        if (!DR_BROWSER_DOCK.getWindowProperties().isEnabled() || !DR_BROWSER_DOCK.getWindowProperties().isWindowVisible())
+        	acrossTopList.add(DR_BROWSER_DOCK);
+        
+        if (!ObjectInspector.getWindowProperties().isEnabled() || !ObjectInspector.getWindowProperties().isWindowVisible())
+        	acrossTopList.add(ObjectInspector);
+        
+        final DockWindow[] acrossTop = acrossTopList.toArray(new DockWindow[acrossTopList.size()]);
+        
         outlineDock.setLowerLeftCorner(0,
                                        GUI.GScreenHeight - GUI.GInsets.bottom);
         pannerDock.setLowerRightCorner(GUI.GScreenWidth - GUI.GInsets.right,
                                        GUI.GScreenHeight - GUI.GInsets.bottom);
         if (DockWindow.getTopDock() != null)
             prepareForTopDockDisplay(acrossTop);
+        if (acrossTop.length > 0)
+        {
         
-        // Run after AWT to ensure all peers to have been created & shown
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
-            positionForDocking(acrossTop);
-        }});
-        
+        // Run after AWT to ensure all peers to have been created & shown                
+        	GUI.invokeAfterAWT(new Runnable() { public void run() {
+        		positionForDocking(acrossTop);
+        	}});
+       }
         
         if (false) {
             // old positioning code
@@ -968,7 +1010,18 @@ public class VUE
             pannerDock.suggestLocation(ApplicationFrame.getX() - pannerDock.getWidth(), ApplicationFrame.getY());
         }
         
-        if (!SKIP_DR)
+        //restore window
+        DR_BROWSER_DOCK.positionWindowFromProperties();
+        pathwayDock.positionWindowFromProperties();
+        if (formatDock != null)
+        	formatDock.positionWindowFromProperties();
+        slideDock.positionWindowFromProperties();
+        pannerDock.positionWindowFromProperties();
+        MapInspector.positionWindowFromProperties();
+        ObjectInspector.positionWindowFromProperties();
+        outlineDock.positionWindowFromProperties();
+
+        if (!SKIP_DR && !DR_BROWSER_DOCK.getWindowProperties().isEnabled())
             DR_BROWSER_DOCK.setVisible(true);
 
 
@@ -1058,6 +1111,7 @@ public class VUE
             
         DockWindow.assignAllDockRegions();
     }
+    
     
 
     
@@ -1365,6 +1419,18 @@ public class VUE
      */
     public static boolean isOkayToExit() {
 
+    	//update the windows properties
+        DR_BROWSER_DOCK.saveWindowProperties();
+        pathwayDock.saveWindowProperties();
+        if (formatDock != null)
+        	formatDock.saveWindowProperties();
+        slideDock.saveWindowProperties();
+        pannerDock.saveWindowProperties();
+        MapInspector.saveWindowProperties();
+        ObjectInspector.saveWindowProperties();
+        outlineDock.saveWindowProperties();
+        ApplicationFrame.saveWindowProperties();
+        
         if (mMapTabsLeft == null) // so debug harnesses can quit (no maps displayed)
             return true;
         
