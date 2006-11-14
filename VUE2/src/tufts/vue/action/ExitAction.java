@@ -66,6 +66,7 @@ public class ExitAction extends VueAction {
     }
     
     public static void exitVue() {
+    	
         if (!VUE.isOkayToExit())
             return;
         

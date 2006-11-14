@@ -141,6 +141,11 @@ public class SaveAction extends VueAction
             String title = VUE.getName() + ": " + name;                      
             frame.setTitle(title);
             
+            if (name.endsWith(".vue"))
+            {
+             RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
+             rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
+            }
             return true;
 
         } catch (Throwable t) {
