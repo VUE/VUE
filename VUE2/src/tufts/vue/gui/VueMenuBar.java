@@ -8,6 +8,9 @@ import java.awt.Event;
 import java.awt.Color;
 import java.awt.Window;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.AbstractButton;
@@ -18,10 +21,13 @@ import javax.swing.JMenuItem;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 
+import edu.tufts.vue.preferences.VuePrefEvent;
+import edu.tufts.vue.preferences.VuePrefListener;
+
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.16 $ / $Date: 2006-11-07 15:54:57 $ / $Author: anoop $
+ * @version $Revision: 1.17 $ / $Date: 2006-11-14 19:30:07 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -63,10 +69,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
     public VueMenuBar(Object[] toolWindows)
     {
         //addFocusListener(this);
-
+    	
         final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
         
-        JMenu fileMenu = new VueMenu("File");
+        final JMenu fileMenu = new VueMenu("File");
+        final JMenu recentlyOpenedMenu = new VueMenu("Open recent");
         JMenu editMenu = new VueMenu("Edit");
         JMenu viewMenu = new VueMenu("View");
         JMenu formatMenu = new VueMenu("Format");
@@ -130,6 +137,16 @@ public class VueMenuBar extends javax.swing.JMenuBar
             exportMenu.add(imageMap);
         }
         
+        final RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
+
+        rofm.getPreference().addVuePrefListener(new VuePrefListener()
+        {
+			public void preferenceChanged(VuePrefEvent prefEvent) {
+				rebuildRecentlyOpenedItems(fileMenu, recentlyOpenedMenu, rofm);
+				
+			}
+        	
+        });
         fileMenu.add(Actions.NewMap);
         fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
@@ -139,6 +156,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.add(printAction).setText("Print Visible...");
         fileMenu.add(publishAction);
         fileMenu.add(compareAction);
+        
+        rebuildRecentlyOpenedItems(fileMenu, recentlyOpenedMenu, rofm);
       
         // GET RECENT FILES FROM PREFS!
         //fileMenu.add(exportMenu);
@@ -258,7 +277,32 @@ public class VueMenuBar extends javax.swing.JMenuBar
             RootMenuBar = this;
     }
 
-    private KeyEvent alreadyProcessed;
+    
+    protected void rebuildRecentlyOpenedItems(JMenu fileMenu, JMenu recentlyOpenedMenu, RecentlyOpenedFilesManager rofm) {
+    	if (rofm.getFileListSize() > 0)
+        {
+        	List files = rofm.getRecentlyOpenedFiles();
+        	Iterator i = files.iterator();
+
+        	recentlyOpenedMenu.removeAll();
+        	
+        	while (i.hasNext())
+        	{
+        		
+        		File f = new File((String)i.next());
+        		if (f.exists())
+        			recentlyOpenedMenu.add(new RecentOpenAction(f));
+        		else 
+        			f=null;
+        	}
+        	fileMenu.remove(recentlyOpenedMenu);
+        	fileMenu.add(recentlyOpenedMenu,2);
+        }
+		
+	}
+
+
+	private KeyEvent alreadyProcessed;
 
     /*
     public boolean doProcessKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
@@ -348,7 +392,23 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
 
 
-
+    private class RecentOpenAction extends VueAction {
+    	
+    	private File file;
+    	public RecentOpenAction(File f)
+    	{
+    		
+    		super(f.getName());
+    		file = f;
+    	}
+    	
+    	public void act()
+    	{
+    		//File f = new File(fileString);
+    		OpenAction.displayMap(file);
+    	}
+    	
+    }
     private static class ShortcutsAction extends VueAction {
         private static DockWindow window;
         ShortcutsAction() {
