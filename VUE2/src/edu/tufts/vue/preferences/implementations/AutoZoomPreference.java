@@ -24,6 +24,7 @@ import javax.swing.JComponent;
 import tufts.vue.MapViewer;
 
 import edu.tufts.vue.preferences.PreferenceConstants;
+import edu.tufts.vue.preferences.VuePrefListener;
 import edu.tufts.vue.preferences.generics.GenericBooleanPreference;
 
 import java.awt.event.ItemEvent;
@@ -50,21 +51,12 @@ public class AutoZoomPreference extends GenericBooleanPreference {
 	  }
 	  return _instance;
 	 }	
-	 
-	
-	public String getPreferenceCategory() {
-		return PreferenceConstants.MAPDISPLAY_CATEGORY;
-	}
-	
-	public boolean getDefaultValue()
+	 	
+	public Object getDefaultValue()
 	{
-		return false;
+		return Boolean.FALSE;
 	}
-	public boolean getValue()
-	{
-		return false;
-		
-	}
+	
 	public String getMessage()
 	{
 		return "enable auto-zoom";
@@ -85,12 +77,6 @@ public class AutoZoomPreference extends GenericBooleanPreference {
 	}
 
 	public String getCategoryKey() {
-		return "mapDisplay";
-	}
-	
-	public void preferenceChanged()
-	{	
-		MapViewer.setAutoZoomEnabled(getValue());			
-	}
-	
+		return PreferenceConstants.MAPDISPLAY_CATEGORY;
+	}			
 }

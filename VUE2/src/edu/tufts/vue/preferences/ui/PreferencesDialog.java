@@ -37,6 +37,7 @@ import edu.tufts.vue.preferences.ui.tree.PrefTreeNode;
 import edu.tufts.vue.preferences.ui.tree.VuePrefRenderer;
 import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
 import tufts.Util;
+import tufts.vue.VueResources;
 import tufts.vue.gui.GUI;
 import java.util.prefs.*;
 import java.util.List;
@@ -91,7 +92,9 @@ public class PreferencesDialog extends JDialog {
 		Iterator i = PreferencesManager.getCategories().iterator();
 		// Build Category List.
 		while (i.hasNext()) {
-			String category = (String) i.next();
+			String prefKey = (String)i.next();
+			String category = VueResources.getString("preferences.category." + prefKey);
+			System.out.println(category);
 			//System.out.println(category);
 			PrefCategoryTreeNode categoryNode = new PrefCategoryTreeNode(
 					category);
@@ -181,14 +184,16 @@ public class PreferencesDialog extends JDialog {
 		{
 			Enumeration nodes = node.breadthFirstEnumeration();
 			
-				 
-				vp = getPreferenceObject((Class)classesA[i]);
+				if (classesA[i] instanceof VuePreference)
+					vp = (VuePreference)classesA[i];
+				else 	
+					vp = getPreferenceObject((Class)classesA[i]);
 				while (nodes.hasMoreElements()) {
 					DefaultMutableTreeNode n = (DefaultMutableTreeNode) nodes
 							.nextElement();
 					if ((n instanceof PrefCategoryTreeNode)
-							&& (((PrefCategoryTreeNode) n).toString().equals(vp
-									.getPreferenceCategory()))) {
+							&& (((PrefCategoryTreeNode) n).toString().equals(PreferencesManager.mapCategoryKeyToName(vp
+									.getCategoryKey())))) {
 						try {
 							n.add(new PrefTreeNode(vp));
 						} catch (BackingStoreException e) {

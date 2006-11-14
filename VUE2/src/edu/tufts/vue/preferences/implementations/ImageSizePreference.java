@@ -72,9 +72,9 @@ public class ImageSizePreference extends GenericSliderPreference {
 	  return _instance;
 	 }
 	 
-	 public int getDefaultValue()
+	 public Object getDefaultValue()
 	 {
-		 return 75;
+		 return new Integer(75);
 	
 	 }
 	 
@@ -107,7 +107,7 @@ public class ImageSizePreference extends GenericSliderPreference {
 		JSlider slider = getSlider();
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
 		
-		int i = p.getInt(getPrefName(), getDefaultValue());
+		int i = p.getInt(getPrefName(), ((Integer)getDefaultValue()).intValue());
 	//	System.out.println("DEFAULT VALUE : " + i);
 		switch (i)
 		{
@@ -135,14 +135,7 @@ public class ImageSizePreference extends GenericSliderPreference {
 		}
 		
 		return;
-	}
-	
-	public void setValue(int i)
-	{	
-		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		p.putInt(getPrefName(), getSliderValueMappedToPref());					
-	//	System.out.println("SET VALUE : " + getSliderValueMappedToPref());
-	}
+	}	
 	
 	public int getSliderValueMappedToPref()
 	{
@@ -166,19 +159,10 @@ public class ImageSizePreference extends GenericSliderPreference {
 				return 512;
 		}
 		
-		return getDefaultValue();
+		return ((Integer)getDefaultValue()).intValue();
 	}
 	
-	 
-	public int getValue()
-	{
-		 Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		 return p.getInt(getPrefName(), getDefaultValue());
-	}
-	public String getPreferenceCategory() {
-		return PreferenceConstants.MAPDISPLAY_CATEGORY;
-	}
-
+	 	
 	public String getTitle()
 	{
 		return new String("Images");
@@ -195,26 +179,14 @@ public class ImageSizePreference extends GenericSliderPreference {
 	}
 
 	public String getCategoryKey() {
-		return "mapDisplay";
-	}
-	
-	/**
-	 * I'm already thinking this needs to change, I'd guess I'll need to readjust this at some point
-	 * this is working fine for simple preferences but as things get more complex I think I may need 
-	 * to push the changes that need to be made onto a queue and just make them when you click the OK 
-	 * button, disregarding them if you cancel out maybe... 
-	 */
-	public void preferenceChanged()
-	{	
-		setValue(getSliderValueMappedToPref());
-		LWImage.setMaxRenderSize(getSliderValueMappedToPref());
-	}
+		return PreferenceConstants.MAPDISPLAY_CATEGORY;
+	}	
 
 	public void stateChanged(ChangeEvent e) 
 	{
 		JSlider source = (JSlider)e.getSource();
 	    if (!source.getValueIsAdjusting()) {
-	    	preferenceChanged();
+	    	setValue(Integer.valueOf(getSliderValueMappedToPref()));
 	    }
 	}
 	

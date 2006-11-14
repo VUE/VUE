@@ -20,17 +20,22 @@ package edu.tufts.vue.preferences.interfaces;
 
 import javax.swing.JComponent;
 
+import edu.tufts.vue.preferences.VuePrefListener;
+
 /**
  * @author mkorcy01
  *
  */
 public interface VuePreference {
-
-	public String getPreferenceCategory();
+	
 	public String getCategoryKey();
 	public JComponent getPreferenceUI();
 	public String getTitle();
 	public String getDescription();
-	public String getPrefName();
-	public void preferenceChanged();
+	public String getPrefName();	
+	public void addVuePrefListener(VuePrefListener p);
+	public Object getDefaultValue();	
+	public Object getValue();
+	public Object getPreviousValue();
+	public void setValue(Object i);
 }

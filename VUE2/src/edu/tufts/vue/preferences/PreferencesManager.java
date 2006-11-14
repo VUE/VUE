@@ -18,14 +18,10 @@
 
 package edu.tufts.vue.preferences;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.prefs.*;
-
-import edu.tufts.vue.preferences.interfaces.VueBooleanPreference;
-import edu.tufts.vue.preferences.interfaces.VueIntegerPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 /**
@@ -37,14 +33,20 @@ public class PreferencesManager {
 	  private static PreferencesManager ref;
 	  private static List preferences = new ArrayList();
 	  private static Vector categories = new Vector();
+	
 	  static
 	  {
 		PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.AutoZoomPreference.class);  
 		PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.ImageSizePreference.class);
-		//PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.WindowPropertysPreference.class);
+		//PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.WindowPropertiesPreference.class);
 		
 		categories.add(PreferenceConstants.MAPDISPLAY_CATEGORY);
-		//categories.add(PreferenceConstants.WINDOW_CATEGORY);
+		categories.add(PreferenceConstants.WINDOW_CATEGORY);
+	  }
+	  
+	  public static void registerPreference(Object o)
+	  {
+		  preferences.add(o);
 	  }
 
 	  public static void registerPreference(Class pref)
@@ -72,16 +74,21 @@ public class PreferencesManager {
 
 	  public static int getIntegerPrefValue(Object s)
 	  {
-		  VueIntegerPreference p = (VueIntegerPreference)s;
+		  VuePreference p = (VuePreference)s;
 
-		  return java.util.prefs.Preferences.userNodeForPackage(PreferencesManager.class).getInt(p.getPrefName(), p.getDefaultValue());		  
+		  return java.util.prefs.Preferences.userNodeForPackage(PreferencesManager.class).getInt(p.getPrefName(), ((Integer)p.getDefaultValue()).intValue());		  
+	  }
+	  
+	  public static String mapCategoryKeyToName(String key)
+	  {
+		  return tufts.vue.VueResources.getString("preferences.category." + key);
 	  }
 
 	  public static boolean getBooleanPrefValue(Object s)
 	  {		
-		  VueBooleanPreference p = (VueBooleanPreference)s;
+		  VuePreference p = (VuePreference)s;
 		  
-		  return java.util.prefs.Preferences.userNodeForPackage(PreferencesManager.class).getBoolean(p.getPrefName(), p.getDefaultValue());		  
+		  return java.util.prefs.Preferences.userNodeForPackage(PreferencesManager.class).getBoolean(p.getPrefName(), ((Boolean)p.getDefaultValue()).booleanValue());		  
 	  }
 
 	  public Object clone()

@@ -28,7 +28,13 @@ import tufts.vue.VueResources;
  */
 public class PreferenceConstants 
 {
-		public static final String MAPDISPLAY_CATEGORY=VueResources.getString("preferences.catoregory.mapdisplay");
-		public static final String WINDOW_CATEGORY=VueResources.getString("preferences.catoregory.windows");
+		/**
+		 * If you add a category here it's expected you add a corresponding full
+		 * category name in VueResources.properties, see preferences.category.*
+		 * for examples.
+		 */
+		public static final String MAPDISPLAY_CATEGORY="mapdisplay";
+		public static final String WINDOW_CATEGORY="windows";
+		public static final String FILES_CATEGORY="files";
 		
 }
