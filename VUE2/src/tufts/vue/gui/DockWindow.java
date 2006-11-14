@@ -36,6 +36,8 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
 
+import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
+
 // Just to confirm: even in 1.5, Window's that are children of
 // a Frame still make that Frame go inactive if they get focus.
 
@@ -55,7 +57,7 @@ import javax.swing.border.*;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.84 $ / $Date: 2006-10-03 19:04:57 $ / $Author: sfraize $
+ * @version $Revision: 1.85 $ / $Date: 2006-11-14 19:31:35 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -159,6 +161,7 @@ public class DockWindow extends javax.swing.JWindow
 
     private static JFrame HiddenParentFrame;
 
+    private WindowPropertiesPreference wpp = null;
     /**
      * Create a new DockWindow.  You should use GUI.createDockWindow for creating
      * instances of DockWindow for VUE.
@@ -180,7 +183,13 @@ public class DockWindow extends javax.swing.JWindow
         }
         */
 
-
+        wpp = WindowPropertiesPreference.create(
+        		"windows",
+        		"window" + title.replace(" ", ""),
+        		title, 
+        		"Remember size and position of window",
+        		false);
+                
         if (asToolbar)
             setFocusableWindowState(false);
         mBaseTitle = title;
@@ -201,7 +210,8 @@ public class DockWindow extends javax.swing.JWindow
 
         if (!isToolbar) {
             // set a default size
-            setSize(DefaultWidth,150);
+   
+        		setSize(DefaultWidth,150);
             //setMinimumSize(new Dimension(180,100)); // java 1.5 only
             //setPreferredSize(new Dimension(300,150)); // interferes with height
         }
@@ -979,9 +989,82 @@ public class DockWindow extends javax.swing.JWindow
         if (DEBUG.DOCK) out("DISMISS");
         //setShapeAnimated(getX(), getY(), getWidth(), 0);
         // oops: this never handled showing us again anyway :)
+       
         setVisible(false);
     }
+    
+    public void saveWindowProperties()
+    {   
+     	Dimension size = null;
+     	
+     	if (isRolledUp)
+     		size = new Dimension((int)mSavedShape.getWidth(),(int)mSavedShape.getHeight());
+     	else
+     		size = getSize();
+     	Point p;
+     	
+     	if (isShowing())
+     		p = getLocationOnScreen();
+     	else
+     		p = new Point(-1,-1);
+     	
+     	wpp.updateWindowProperties(isShowing(), (int)size.getWidth(), (int)size.getHeight(), (int)p.getX(), (int)p.getY(),isRolledUp);
+    }
 
+    public void positionWindowFromProperties()
+    {
+    	if (wpp.isEnabled() && (wpp.isWindowVisible() || wpp.isRolledUp()))
+    	{
+    		Point p = wpp.getWindowLocationOnScreen();
+    		Dimension size = wpp.getWindowSize();
+    		Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+    		if (((int)p.getX()) > -1 && 
+    				isPointFullyOnScreen(p,size,screenSize))
+    		{
+    			setBounds((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
+    		
+    			if (wpp.isRolledUp())
+    			{
+    				mSavedShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
+    				showRolledUp();
+    			}
+    			else
+    				setVisible(wpp.isWindowVisible());    		
+    		}    	
+    		else
+    		{
+    			if (wpp.isWindowVisible())
+    			{
+    				System.out.println("OTHER");
+    				suggestLocation((int)p.getX(),(int)p.getY());
+
+    				if (wpp.isRolledUp())
+        			{        			
+    					mSavedShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
+    					showRolledUp();
+        			}
+    				else
+    					setVisible(wpp.isWindowVisible());
+    			}    	
+    			
+    		}
+    	}    	
+    }
+    
+    private boolean isPointFullyOnScreen(Point p, Dimension size, Dimension screenSize)
+    {
+    	int rightCorner =  (int)p.getX() + (int)size.getWidth();
+    	int bottomCorner = (int)p.getY() + (int)size.getHeight();
+    	
+    	if ((rightCorner <= screenSize.getWidth()) && (bottomCorner <= screenSize.getHeight()))
+    		return true;
+    	else 
+    		return false;
+    }
+    public WindowPropertiesPreference getWindowProperties()
+    {
+    	return wpp;
+    }
 
     /** look for a tabbed pane within us with the given title, and select it */
     public void showTab(final String name) {

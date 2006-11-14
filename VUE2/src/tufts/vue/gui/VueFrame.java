@@ -6,6 +6,7 @@ import tufts.vue.MapViewerEvent;
 import tufts.vue.VueResources;
 import tufts.vue.DEBUG;
 
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.WindowEvent;
@@ -13,13 +14,15 @@ import java.awt.event.ComponentEvent;
 
 import javax.swing.SwingUtilities;
 
+import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
+
 
 /**
  * The top-level VUE application Frame.
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-09-15 15:28:51 $ / $Author: mike $ 
+ * @version $Revision: 1.7 $ / $Date: 2006-11-14 19:31:35 $ / $Author: mike $ 
  */
 public class VueFrame extends javax.swing.JFrame
 //public class VueFrame extends com.jidesoft.docking.DefaultDockableHolder
@@ -28,13 +31,22 @@ public class VueFrame extends javax.swing.JFrame
     implements VUE.ActiveViewerListener
 {
     private static int sNameIndex = 0;
-        
+    private WindowPropertiesPreference wpp = null;
+    
     public VueFrame() {
         this(VueResources.getString("application.title"));
     }
     
     public VueFrame(String title) {
         super(title);
+        
+        wpp = WindowPropertiesPreference.create(
+        		"windows",
+        		"window" + title.replace(" ", ""),
+        		"Save Window States", 
+        		"Remember size and position of windows",
+        		true);
+        
         this.setDefaultCloseOperation(this.DO_NOTHING_ON_CLOSE);
         setName("VueFrame" + sNameIndex++);
         GUI.setRootPaneNames(this, getName());
@@ -109,7 +121,48 @@ public class VueFrame extends javax.swing.JFrame
     }
     */
     
+    public boolean isPointFullyOnScreen(Point p, Dimension size)
+    {
+    	Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+    	int rightCorner =  (int)p.getX() + (int)size.getWidth();
+    	int bottomCorner = (int)p.getY() + (int)size.getHeight();
+    	
+    	if ((rightCorner <= screenSize.getWidth()) && (bottomCorner <= screenSize.getHeight()))
+    		return true;
+    	else 
+    		return false;
+    }
+    
+    public void saveWindowProperties()
+    {   
+     	Dimension size = getSize();
+     	Point p;     	
 
+   		p = getLocationOnScreen();
+
+     	wpp.updateWindowProperties(true, (int)size.getWidth(), (int)size.getHeight(), (int)p.getX(), (int)p.getY(),false);
+    }
+
+    public void positionWindowFromProperties()
+    {
+    	if (wpp.isEnabled())
+    	{
+    		Point p = wpp.getWindowLocationOnScreen();
+    		Dimension size = wpp.getWindowSize();
+    		
+    		if (((int)p.getX()) > -1)
+    			setBounds((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());	
+    		else
+    			setSize(size);
+    		
+    		setVisible(wpp.isWindowVisible());
+    	}    	
+    }
+    public WindowPropertiesPreference getWindowProperties()
+    {
+    	return wpp;
+    }
+    
     public void setMaximizedBounds(Rectangle r) {
         if (DEBUG.INIT) out("SETMAX " + r);
         super.setMaximizedBounds(r);
