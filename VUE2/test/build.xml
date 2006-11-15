@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.16 $ / $Date: 2006-10-24 16:09:41 $ -->
+<!-- $Revision: 1.17 $ / $Date: 2006-11-15 16:30:12 $ -->
 
 <!-- 
 This ant build file:
@@ -118,6 +118,8 @@ This ant build file:
 	<pathelement path="${lib.home}/jnet.jar" />
 	<pathelement path="${lib.home}/jsse.jar" />
 
+   <!-- RDF support -->
+   <pathelement path="${lib.home}/jena.jar" />
     <pathelement location="${java.class.path}" />
   </path>
 
@@ -205,7 +207,14 @@ This ant build file:
     </javac>
 
   </target>
+<!-- ============= Jena and Performance Tests ================================ -->
 
+<target name="jenatest" depends="compile" description="Runs Jena and Performance Tests">
+    <java classname="edu.tufts.vue.JenaTest" failonerror="true" fork="true">
+        <classpath refid="compile.classpath" />
+    </java>
+    
+</target>
 <!-- ==================== Artifact Smoke Test ================================ -->
     <target name="artifacttest" depends="compile" description="Dumps Some Artifact Repository Data" >
         <java classname="test.repository.artifact.repositoryDump" failonerror="true" fork="true">
