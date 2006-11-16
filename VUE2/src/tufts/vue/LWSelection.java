@@ -28,7 +28,7 @@ import java.awt.geom.Point2D;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.42 $ / $Date: 2006-10-18 17:34:41 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2006-11-16 15:09:09 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -40,7 +40,24 @@ public class LWSelection extends java.util.ArrayList
 
     private boolean isClone = false;
 
+    private int mWidth = -1, mHeight = -1;  // only used for manually created selections
+
     public LWSelection() {}
+
+    // currently only used for special case manually created selections
+    public int getWidth() {
+        return mWidth;
+    }
+
+    // currently only used for special case manually created selections
+    public int getHeight() {
+        return mHeight;
+    }
+
+    public void setSize(int w, int h) {
+        mWidth = w;
+        mHeight = h;
+    }
 
     /** create a temporary selection that contains just the given component */
     public LWSelection(LWComponent c) {
