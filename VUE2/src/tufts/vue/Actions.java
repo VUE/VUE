@@ -785,7 +785,12 @@ public class Actions implements VueConstants
     public static final ArrangeAction MakeColumn = new ArrangeAction("Make Column", keyStroke(KeyEvent.VK_C, ALT)) {
         void arrange(LWSelection selection) {
             AlignCentersColumn.arrange(selection);
-            maxY = minY + totalHeight;
+            float height;
+            if (selection.getHeight() > 0)
+                height = selection.getHeight();
+            else
+                height = totalHeight;
+            maxY = minY + height;
             DistributeVertically.arrange(selection);
         }
     };
@@ -952,14 +957,14 @@ public class Actions implements VueConstants
     // Something about this feels kludgy.
     //-------------------------------------------------------
     
-    public static final Action ZoomIn =
+    public static final VueAction ZoomIn =
     //new VueAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, COMMAND)) {
     new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, COMMAND+SHIFT), ":general/ZoomIn") {
         public void act() {
             ZoomTool.setZoomBigger(null);
         }
     };
-    public static final Action ZoomOut =
+    public static final VueAction ZoomOut =
     new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, COMMAND+SHIFT), ":general/ZoomOut") {
         public void act() {
             ZoomTool.setZoomSmaller(null);
@@ -971,7 +976,7 @@ public class Actions implements VueConstants
             ZoomTool.setZoomFit();
         }
     };
-    public static final Action ZoomActual =
+    public static final VueAction ZoomActual =
     new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
         // no way to listen for zoom change events to keep this current
         //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
