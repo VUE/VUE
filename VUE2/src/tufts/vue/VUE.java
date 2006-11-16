@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.385 $ / $Date: 2006-11-14 19:33:48 $ / $Author: mike $ 
+ * @version $Revision: 1.386 $ / $Date: 2006-11-16 14:21:02 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -671,18 +671,14 @@ public class VUE
                     public void act() {
                         GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock);
                         Rectangle screen = gc.getBounds();
-                        slideDock.setSize(screen.width / 4, screen.height / 4);
-                        //GUI.refreshGraphicsInfo();
-                        //slideDock.setSize(GUI.GScreenWidth / 4, GUI.GScreenHeight / 4);
+                        slideDock.setContentSize(screen.width / 4, screen.height / 4);
                     }
                 },
                 new VueAction("1/4 Screen") {
                     public void act() {
                         GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock);
                         Rectangle screen = gc.getBounds();
-                        slideDock.setSize(screen.width / 2, screen.height / 2);
-                        //GUI.refreshGraphicsInfo();
-                        //slideDock.setSize(GUI.GScreenWidth / 2, GUI.GScreenHeight / 2);
+                        slideDock.setContentSize(screen.width / 2, screen.height / 2);
                     }
                 },
                 new VueAction("Maximize") {
