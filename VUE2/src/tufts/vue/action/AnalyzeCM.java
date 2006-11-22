@@ -43,23 +43,28 @@ public class AnalyzeCM extends VueAction {
                 if(referenceMap == null)
                     referenceMap = map;
                 list.add(new ConnectivityMatrix(map));
-                System.out.println("Map:"+map.getLabel());
+//                System.out.println("Map:"+map.getLabel());
             }
             VoteAggregate voteAggregate = new VoteAggregate(list);
-            System.out.println(voteAggregate);
+//            System.out.println(voteAggregate);
             LWMap aggregate = new LWMap("Vote Aggreate");
             Iterator children = referenceMap.getNodeIterator();
             while(children.hasNext()) {
                 LWNode node = (LWNode)((LWComponent)children.next()).duplicate();
                 aggregate.addNode(node);
-                Iterator children2 = referenceMap.getNodeIterator();
+            }
+            Iterator children1 = aggregate.getNodeIterator();
+            while(children1.hasNext()) {
+                LWNode node1 = (LWNode)children1.next();
+//                System.out.println("Processing node: "+node1.getLabel());
+                Iterator children2 = aggregate.getNodeIterator();
                 while(children2.hasNext()) {
                     LWNode node2 = (LWNode)children2.next();
-                    if(node2 != node) {
-                        int c = voteAggregate.getConnection(node.getLabel(),node2.getLabel());
+                    if(node2 != node1) {
+                        int c = voteAggregate.getConnection(node1.getLabel(),node2.getLabel());
                         if(c >0) {
-                            aggregate.addLink(new LWLink(node,node2));
-                            
+                            aggregate.addLink(new LWLink(node1,node2));
+//                            System.out.println("Adding Link between: "+node1.getLabel()+ " and "+ node2.getLabel());
                         }
                     }
                 }
