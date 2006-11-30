@@ -21,16 +21,16 @@ package tufts.vue;
 import tufts.Util;
 import tufts.vue.shape.RectangularPoly2D;
                        
-import java.util.Iterator;
-import java.awt.*;
-import java.awt.geom.*;
-import javax.swing.ImageIcon;
-
 import edu.tufts.vue.preferences.PreferencesManager;
 import edu.tufts.vue.preferences.VuePrefEvent;
 import edu.tufts.vue.preferences.VuePrefListener;
 import edu.tufts.vue.preferences.implementations.BooleanPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
+    
+import java.util.Iterator;
+import java.awt.*;
+import java.awt.geom.*;
+import javax.swing.ImageIcon;
 
 /**
  *
@@ -39,7 +39,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.127 $ / $Date: 2006-11-14 19:33:48 $ / $Author: mike $
+ * @version $Revision: 1.128 $ / $Date: 2006-11-30 16:41:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -95,13 +95,13 @@ public class LWNode extends LWContainer
     //------------------------------------------------------------------
     // Preferences
     //------------------------------------------------------------------
-    private static VuePreference iconPref = BooleanPreference.create(
+    private static VuePreference IconPref = BooleanPreference.create(
 			edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
 			"showNodeIcons", 
 			"Show Icons", 
 			"Display rollover icons in map nodes",
 			true);
-
+    
     //------------------------------------------------------------------
     // Instance info
     //------------------------------------------------------------------
@@ -138,13 +138,11 @@ public class LWNode extends LWContainer
     public LWNode(String label)
     {
         this(label, 0, 0);
-       // PreferencesManager.addPreferenceListener(this);
     }
 
     public LWNode(String label, RectangularShape shape)
     {
         this(label, 0, 0, shape);
-       // PreferencesManager.addPreferenceListener(this);
     }
 
     /** internal convenience */
@@ -168,13 +166,16 @@ public class LWNode extends LWContainer
         setFont(DEFAULT_NODE_FONT); // shouldn't need to do this, but label not getting created in setLabel?
         //getLabelBox(); // shoudn't need to do this either: first attempt at labelbox should get it! (not working either!)
         setLabel(label);
-        
-        iconPref.addVuePrefListener(new VuePrefListener(){
 
-			public void preferenceChanged(VuePrefEvent prefEvent) {
-				 LWNode.this.notify(LWKey.Repaint);				
-			}        	
+        // todo perf: a bit heavy weight to have every node made a listener
+        // for this preference -- better to handle at the map level.
+        IconPref.addVuePrefListener(new VuePrefListener() {
+                public void preferenceChanged(VuePrefEvent prefEvent) {
+                    LWNode.this.layout();
+                    LWNode.this.notify(LWKey.Repaint);				
+                }        	
         });
+        
     }
     
     /** internal convenience */
@@ -234,12 +235,17 @@ public class LWNode extends LWContainer
         return true;
     }
     
+    /**
+     * This is consulted during LAYOUT, which can effect the size of the node.
+     * So if anything happens that changes what this returns, the node has
+     * to be laid out again.  (E.g., if we turn them all of with a pref,
+     * all nodes need to be re-laid out / resized
+     */
     private boolean iconShowing()
     {
-    	
-    	if (!edu.tufts.vue.preferences.PreferencesManager.getBooleanPrefValue(iconPref))
+    	if (!PreferencesManager.getBooleanPrefValue(IconPref))
     		return false;
-    	
+
         //if (getParent() instanceof LWSlide) // put in LWComponent so LWImage can use also (adjusting scale factor)
         if (isPresentationContext())
              return false;
@@ -1685,12 +1691,18 @@ public class LWNode extends LWContainer
     {
         if (DEBUG.LAYOUT) if (!isAutoSized()) return Color.green; // LAYOUT-NEW
 
-        Color c = getFillColor();
+        Color fillColor = getFillColor();
         if (getParent() instanceof LWNode) {
-            if (c != null && c.equals(getParent().getRenderFillColor()))
-                c = VueUtil.darkerColor(c);
+            if (fillColor != null) {
+                Color parentFill = getParent().getRenderFillColor();
+                if (parentFill != null && !parentFill.equals(Color.black) && parentFill.getAlpha() != 0 && fillColor.equals(parentFill)) {
+                    // If our fill is the same as our parents, we darken it, unless our parent is already entirely black,
+                    // or entirely transparent.
+                    fillColor = VueUtil.darkerColor(fillColor);
+                }
+            }
         }
-        return c;
+        return fillColor;
     }
     
     /*
@@ -2073,6 +2085,11 @@ public class LWNode extends LWContainer
         setShape(new Rectangle2D.Float());
         setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
     }
+    
+    protected LWSlide buildSlide() {
+        return isTextNode() ? null : super.buildSlide();
+    }
+    
 
     //------------------------------------------------------------------
     // Constants for layout of the visible objects in a node.
@@ -2082,7 +2099,7 @@ public class LWNode extends LWContainer
 
     private static final boolean AlwaysShowIcon = false;
         
-    private static final int EdgePadY = 3;
+    private static final int EdgePadY = 4; // Was 3 in VUE 1.5
     private static final int PadTop = EdgePadY;
 
     private static final int IconGutterWidth = 26;
@@ -2101,8 +2118,8 @@ public class LWNode extends LWContainer
     private static final int IconPadBottom = (int) IconAscent;
     private static final int IconMinY = IconPadLeft;
 
-    private static final int LabelPadLeft = 6; // fixed distance to right of iconMargin dividerLine
-    private static final int LabelPadRight = 6; // minimum gap to right of text before right edge of node
+    private static final int LabelPadLeft = 8; // Was 6 in VUE 1.5; fixed distance to right of iconMargin dividerLine
+    private static final int LabelPadRight = 8; // Was 6 in VUE 1.5; minimum gap to right of text before right edge of node
     private static final int LabelPadX = LabelPadLeft;
     private static final int LabelPadY = EdgePadY;
     private static final int LabelPositionXWhenIconShowing = IconMargin + LabelPadLeft;
@@ -2127,8 +2144,8 @@ public class LWNode extends LWContainer
     // for the error in the worst case, which we're guessing at here
     // based on a small set of random test cases.
     //private static final float TextWidthFudgeFactor = 1 + 0.1f; // 10% fudge
-    private static final float TextWidthFudgeFactor = 1 + 0.05f; // 5% fudge
-    //private static final float TextWidthFudgeFactor = 1; // off for debugging (Almost uneeded in new Mac JVM's)
+    //private static final float TextWidthFudgeFactor = 1 + 0.05f; // 5% fudge
+    private static final float TextWidthFudgeFactor = 1; // off for debugging (Almost uneeded in new Mac JVM's)
     // put back to constant??  Also TODO: Text nodes left-aligned, not centered, and for real disallow BG color.
     //private static final float TextWidthFudgeFactor = 1;
     //private static final int DividerStubPadX = TextWidthFudgeAmount;
