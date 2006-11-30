@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.43 $ / $Date: 2006-10-18 17:47:39 $ / $Author: sfraize $
+ * @version $Revision: 1.44 $ / $Date: 2006-11-30 16:47:12 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -280,7 +280,8 @@ public class ZoomTool extends VueTool
         // if don't want this to vertically center map in viewport, will need
         // to tell setZoomFitRegion above to compute center using mapRegion.getY()
         // instead of mapRegion.getCenterY()
-        setZoomFitRegion(viewer, viewer.getMap().getBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD, false);
+        setZoomFitRegion(viewer, viewer.getDisplayableMapBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD, false);
+        //setZoomFitRegion(viewer, viewer.getMap().getBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD, false);
         // while it would be nice to call getActiveViewer().getContentBounds()
         // as a way to get bounds with max selection edges, etc, it computes some
         // of it's size based on current zoom, which we're about to change, so
