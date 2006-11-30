@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.20 $ / $Date: 2006-10-18 17:29:34 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2006-11-30 16:35:07 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -44,6 +44,7 @@ public class DrawContext
     private final float offsetY;
     
     private int index;
+    private int maxLayer = Short.MAX_VALUE; // don't draw layers above this level
     private boolean disableAntiAlias = false;
     private boolean isInteractive = false;
     private boolean isDraftQuality = false;
@@ -77,6 +78,14 @@ public class DrawContext
     public DrawContext(Graphics g)
     {
         this(g, 1.0);
+    }
+
+    public void setMaxLayer(int layer) {
+        maxLayer = layer;
+    }
+    public int getMaxLayer() {
+        return maxLayer;
+        //return 99;
     }
 
     /*
@@ -265,6 +274,7 @@ public class DrawContext
         this.inMapDraw = dc.inMapDraw;
         this.frame = dc.frame;
         this.drawAbsoluteLinks = dc.drawAbsoluteLinks;
+        this.maxLayer = dc.maxLayer;
         //this.mAlpha = dc.mAlpha;
     }
 
