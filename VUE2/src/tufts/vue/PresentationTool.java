@@ -149,20 +149,28 @@ public class PresentationTool extends VueTool
         return false;
     }
     
+    /*
     public LWComponent X_findComponentAt(LWMap map, float mapX, float mapY) {
         return map.findDeepestChildAt(mapX, mapY);
     }
+    */
 
     private boolean isPresenting() {
         return !mShowContext.isSelected();
     }
     
     public boolean handleMousePressed(MapMouseEvent e) {
+
+        /*
         final LWComponent hit;
         if (mCurrentPage == null)
             hit = e.getMap().findChildAt(e.getMapX(), e.getMapY());
         else
             hit = e.getMap().findDeepestChildAt(e.getMapX(), e.getMapY());
+        */
+        
+        final LWComponent hit = e.getPicked();
+        
         out(this + " handleMousePressed " + e + " hit on " + hit);
         if (hit != null && mCurrentPage != hit) {
             List linked = hit.getLinkedComponents();
@@ -428,7 +436,16 @@ public class PresentationTool extends VueTool
         //ZoomTool.setZoomFit();
     }
 
-    public void handleDraw(DrawContext dc, LWMap map) {
+    public void XhandleDraw(DrawContext dc, LWComponent focal) {
+        if (focal instanceof LWMap)
+            handleDraw(dc, (LWMap) focal);
+        else
+            throw new UnsupportedOperationException("PresntationTool: can't draw non-map focals");
+    }
+    
+    public void handleDraw(DrawContext dc, LWComponent focal) {
+        LWMap map = focal.getMap();
+        
         Color oldColor = null;
         if (mToBlack.isSelected()) {
             oldColor = map.getFillColor();
