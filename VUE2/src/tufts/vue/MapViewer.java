@@ -65,7 +65,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.296 $ / $Date: 2006-11-14 19:33:48 $ / $Author: mike $ 
+ * @version $Revision: 1.297 $ / $Date: 2006-11-30 16:44:56 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -102,7 +102,7 @@ public class MapViewer extends javax.swing.JComponent
 
     protected LWMap mMap;                   // the map we're displaying & interacting with
     protected LWComponent mFocal;          // The component we're currently displaying: usually mFocal == map
-    private TextBox activeTextEdit;          // Current on-map text edit
+    protected TextBox activeTextEdit;          // Current on-map text edit
     
     // todo make a "ResizeControl" -- a control abstraction that's
     // less than a whole VueTool -- it depends on the current selection,
@@ -178,8 +178,6 @@ public class MapViewer extends javax.swing.JComponent
     
     public MapViewer(LWMap map) {
         this(map, "");
-        
-     
     }
     
     private String instanceName;
@@ -203,7 +201,7 @@ public class MapViewer extends javax.swing.JComponent
         if (map != null) {
             if (map.getFillColor() != null)
                 setBackground(map.getFillColor());
-            loadMap(map);
+            loadFocal(map);
         
             //-------------------------------------------------------
             // If this map was just restored, there might
@@ -246,6 +244,10 @@ public class MapViewer extends javax.swing.JComponent
         return inScrollPane;
     }
 
+    protected int getMaxLayer() {
+        return 0;
+    }
+
 
     // TODO: rework this due to fact this get's added/removed again
     // during full-screen swaps: could the focus stuff have been
@@ -282,7 +284,7 @@ public class MapViewer extends javax.swing.JComponent
         
         addFocusListener(this);
         
-        if (mMap != null) {
+        if (mMap != null && mMap == mFocal) {
             Point2D p = mMap.getUserOrigin();
             setMapOriginOffset(p.getX(), p.getY());
         }
@@ -291,7 +293,6 @@ public class MapViewer extends javax.swing.JComponent
         //VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
     }
 
-    
     MapDropTarget getMapDropTarget() {
         return mapDropTarget;
     }
@@ -452,7 +453,8 @@ public class MapViewer extends javax.swing.JComponent
         if (DEBUG.SCROLL) out("ZOOM FACTOR set to " + mZoomFactor);
         
         // record zoom factor in map for saving
-        getMap().setUserZoom(mZoomFactor);
+        if (mFocal == mMap)
+            mMap.setUserZoom(mZoomFactor);
         
         //------------------------------------------------------------------
         
@@ -477,6 +479,10 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     void panScrollRegion(int dx, int dy, boolean allowGrowth) {
+        panScrollRegionImpl(dx, dy, allowGrowth);
+    }
+    
+    protected void panScrollRegionImpl(int dx, int dy, boolean allowGrowth) {
         if (inScrollPane) {
             mViewport.pan(dx, dy, allowGrowth);
         } else {
@@ -514,6 +520,10 @@ public class MapViewer extends javax.swing.JComponent
      */
     
     void setMapOriginOffset(float panelX, float panelY, boolean update) {
+        setMapOriginOffsetImpl(panelX, panelY, update);
+    }
+    
+    protected void setMapOriginOffsetImpl(float panelX, float panelY, boolean update) {
         if (DEBUG.SCROLL) out("setMapOriginOffset old:" + out(mOffset));
         if (DEBUG.SCROLL) out("setMapOriginOffset new:" + panelX + ", " + panelY);
         mOffset.x = panelX;
@@ -521,11 +531,13 @@ public class MapViewer extends javax.swing.JComponent
         // todo: when in scroll region, user origin being offset 12 or so pixels
         // (probably width of scroll bar) -- would be nice to keep normalized to 0
         // so doesn't always offset it (will it do that cumulative every time we start??)
-        if (VUE.getActiveViewer() == this)
-            getMap().setUserOrigin(panelX, panelY);
-        if (!inScrollPane && update) {
-            repaint();
-            fireViewerEvent(MapViewerEvent.PAN);
+        if (mMap == mFocal) {
+            if (VUE.getActiveViewer() == this)
+                mMap.setUserOrigin(panelX, panelY);
+            if (!inScrollPane && update) {
+                repaint();
+                fireViewerEvent(MapViewerEvent.PAN);
+            }
         }
     }
     
@@ -730,6 +742,16 @@ public class MapViewer extends javax.swing.JComponent
     public Rectangle2D getCanvasMapBounds() {
         return screenToMapRect(new Rectangle(0,0, getWidth(), getHeight()));
     }
+    
+    /** @return the bounds of all the objects in the map this viewer is currently
+     * configured to be able to display (takes into account layers)
+     */
+    public Rectangle2D getDisplayableMapBounds() {
+        if (mFocal == mMap)
+            return mMap.getBounds(getMaxLayer());
+        else
+            return mFocal.getBounds();
+    }
 
     /**
      * Return, in Map coords, a bounding box for all the LWComponents in the
@@ -740,7 +762,7 @@ public class MapViewer extends javax.swing.JComponent
     
     private final static float SelectionStrokeMargin = SelectionStrokeWidth/2;
     public Rectangle2D.Float getContentBounds() {
-        Rectangle2D.Float r = (Rectangle2D.Float) getMap().getBounds().clone();
+        Rectangle2D.Float r = (Rectangle2D.Float) mFocal.getBounds().clone();
         // because the selection stroke is rendered at scale (gets bigger
         // as we zoom in) we account for it here in the total bounds
         // needed to see everything on the map.
@@ -814,7 +836,7 @@ public class MapViewer extends javax.swing.JComponent
     /** at startup make sure the contents of the map are visible in the viewport */
     private void ensureMapVisible()
     {
-        if (getMap().hasChildren()) {
+        if (mMap == mFocal && mMap.hasChildren()) {
             int count = computeSelection(getVisibleMapBounds(), null).size();
             if (DEBUG.INIT || DEBUG.VIEWER) out("i see " + count + " components in visible map bounds " + getVisibleMapBounds());
             if (count == 0)
@@ -872,7 +894,39 @@ public class MapViewer extends javax.swing.JComponent
     public LWMap getMap() {
         return mMap;
     }
+    public LWComponent getFocal() {
+        return mFocal;
+    }
 
+    private void unloadFocal() {
+        mFocal.removeLWCListener(this);
+        mMap = null;
+        mFocal = null;
+        mOffset.x = mOffset.y = 0;
+    }
+    
+    public void loadFocal(LWComponent focal) {
+        if (focal == null)
+            throw new IllegalArgumentException(this + " loadFocal: focal is null");
+        if (mFocal == focal)
+            return;
+        if (mFocal != null)
+            unloadFocal();
+        mOffset.x = mOffset.y = 0;
+        mFocal = focal;
+        mMap = focal.getMap();
+        mFocal.addLWCListener(this);
+        if (mMap.getUndoManager() == null) {
+            if (mMap.isModified()) {
+                out("Note: this map has modifications undo will not see");
+                //VueUtil.alert(this, "This map has modifications undo will not see.", "Note");
+            }
+            mMap.setUndoManager(new UndoManager(mMap));
+        }
+        repaint();
+    }
+    
+    /*
     void setFocal(LWComponent focal) {
         if (focal == null) {
             if (mFocal != null)
@@ -911,6 +965,7 @@ public class MapViewer extends javax.swing.JComponent
         }
         repaint();
     }
+    */
 
     void paintImmediately() {
         paintImmediately(getVisibleBounds());
@@ -1067,7 +1122,13 @@ public class MapViewer extends javax.swing.JComponent
         
         final Object key = e.getKey();
 
-        if (DEBUG.DYNAMIC_UPDATE == false) {
+        // If mFocal isn't a map, we must always update,
+        // as we'll never see the user-action-completed
+        // off the map, as we're not listening to it.
+        // (Actually, that would be easy to fix: also
+        // listen to the focal's map, but this updating
+        // is better anyway...)
+        if (mFocal == mMap && DEBUG.DYNAMIC_UPDATE == false) {
             if (key == LWKey.RepaintAsync) {
                 repaint();
                 return;
@@ -1095,7 +1156,7 @@ public class MapViewer extends javax.swing.JComponent
         if (key == LWKey.Deleting) {
             if (rollover == e.getComponent())
                 clearRollover();
-        } else if (key == LWKey.FillColor && e.getComponent() == mMap) {
+        } else if (key == LWKey.FillColor && e.getComponent() == mMap && mFocal == mMap) {
             setBackground(mMap.getFillColor());
         }
         
@@ -1173,15 +1234,22 @@ public class MapViewer extends javax.swing.JComponent
     // duty enough even the filter code could use it (tho performance may be an issue at
     // that point).  (So, we might have a "Traversal" object that does the search).
 
+    // also, e.g.: if want nested children to get seleced, will need a descending iterator
     // ALSO: move this to VueTool  code
+
+    /*
     
-    private java.util.List computeSelection(Rectangle2D mapRect, Class selectionType) {
-        java.util.List hits = new java.util.ArrayList();
-        java.util.Iterator i = getMap().getChildIterator();
-        // todo: if want nested children to get seleced, will need a descending iterator
+    private java.util.List<LWComponent> computeSelection(Rectangle2D mapRect, Class selectionType) {
+        java.util.List<LWComponent> hits = new java.util.ArrayList();
+        java.util.Iterator<LWComponent> i = mFocal.getChildIterator();
+
+        // TODO: no good for picking a link that somehow gets to be child of some map object,
+        // but expands across regular map region -- can't just check top-level!
+
+        // ALSO: this isn't ignoring hidden layers!
         
         while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+            LWComponent c = i.next();
             
             if (!c.isDrawn())
                 continue;
@@ -1194,12 +1262,24 @@ public class MapViewer extends javax.swing.JComponent
         }
         return hits;
     }
+    */
+
+    private java.util.List computeSelection(final Rectangle2D mapRect, final Class selectionType)
+    {
+        PickContext pc = getPickContext();
+
+        pc.pickType = selectionType;
+        pc.maxDepth = 1;
+
+        return LWTraversal.RegionPick.pick(pc, mapRect);
+    }
+
     
-    
+    /*
     public LWComponent findClosestEdge(java.util.List hits, float x, float y) {
         return findClosest(hits, x, y, true);
     }
-    
+    */
     /*
     public LWComponent findClosestCenter(java.util.List hits, float x, float y)
     {
@@ -1210,7 +1290,7 @@ public class MapViewer extends javax.swing.JComponent
     // and just go for the cleaner, more traditional layer approach (uppermost
     // layer is always hit first).
     // also, architecturally, does this belong somewhere else?
-    protected LWComponent findClosest(java.util.List hits, float x, float y, boolean toEdge) {
+    protected LWComponent X_findClosest(java.util.List hits, float x, float y, boolean toEdge) {
         if (hits.size() == 1)
             return (LWComponent) hits.get(0);
         else if (hits.size() == 0)
@@ -1286,6 +1366,40 @@ public class MapViewer extends javax.swing.JComponent
         }
     }
     LWComponent getIndication() { return indication; }
+
+    protected PickContext getPickContext() {
+        PickContext pc = new PickContext();
+        pc.root = mFocal;
+        pc.maxLayer = getMaxLayer();
+        return pc;
+    }
+        
+    public LWComponent pickNode(float mapX, float mapY) {
+        return pickNode(mapX, mapY, false);
+    }
+    
+    public LWComponent pickNode(Point2D.Float p) {
+        return pickNode(p.x, p.y);
+    }
+    
+    protected LWComponent pickNode(float mapX, float mapY, boolean ignoreSelected)
+    {
+        
+        PickContext pc = getPickContext();
+        pc.ignoreSelected = ignoreSelected;
+        return LWTraversal.PointPick.pick(pc, mapX, mapY);
+            
+        /*
+        if (mFocal instanceof LWContainer) {
+            // we use deepest to penetrate into groups
+            //return ((LWContainer)mFocal).findDeepestChildAt(mapX, mapY, ignoreSelected);
+            PickContext pc = getPickContext();
+            pc.ignoreSelected = ignoreSelected;
+            return LWTraversal.PointPick.pick(pc, mapX, mapY);
+        } else
+            return mFocal;
+        */
+    }
     
     private Timer rolloverTimer = new Timer();
     private TimerTask rolloverTask = null;
@@ -1293,9 +1407,7 @@ public class MapViewer extends javax.swing.JComponent
         //System.out.println("task run " + this);
         float mapX = screenToMapX(lastMouseX);
         float mapY = screenToMapY(lastMouseY);
-        // use deepest to penetrate into groups
-        LWComponent hit = getMap().findDeepestChildAt(mapX, mapY);
-        //LWComponent hit = getMap().findChildAt(mapX, mapY);
+        LWComponent hit = pickNode(mapX, mapY);
         if (DEBUG.ROLLOVER) System.out.println("RolloverTask: hit=" + hit);
         //if (hit != null && VueSelection.size() <= 1)
         if (hit != null)
@@ -1670,12 +1782,24 @@ public class MapViewer extends javax.swing.JComponent
         g.drawString(msg, w, getHeight() / 2);
     }
     
+    protected DrawContext getDrawContext(Graphics2D g) {
+        DrawContext dc = new DrawContext(g, getZoomFactor(), -getOriginX(), -getOriginY(), getVisibleBounds(), true);
+        
+        dc.setInteractive(true);
+        dc.setAntiAlias(DEBUG_ANTI_ALIAS);
+        dc.setPrioritizeQuality(DEBUG_RENDER_QUALITY);
+        dc.setFractionalFontMetrics(DEBUG_FONT_METRICS);
+        dc.disableAntiAlias(DEBUG_ANTI_ALIAS == false);
+        dc.setActiveTool(getCurrentTool());
+        dc.setMaxLayer(getMaxLayer());
+        
+        return dc;
+    }
+    
+    private static final Color rrColor = Color.yellow;
     /**
      * Java Swing JComponent.paintComponent -- paint the map on the map viewer canvas
      */
-    //private static final Color rrColor = new Color(208,208,208);
-    private static final Color rrColor = Color.yellow;
-    
     public void paintComponent(Graphics g)
     {
         //isScaleDraw = false;
@@ -1702,13 +1826,7 @@ public class MapViewer extends javax.swing.JComponent
             }
         }
         
-        DrawContext dc = new DrawContext(g2, getZoomFactor(), -getOriginX(), -getOriginY(), getVisibleBounds(), true);
-        dc.setInteractive(true);
-        dc.setAntiAlias(DEBUG_ANTI_ALIAS);
-        dc.setPrioritizeQuality(DEBUG_RENDER_QUALITY);
-        dc.setFractionalFontMetrics(DEBUG_FONT_METRICS);
-        dc.disableAntiAlias(DEBUG_ANTI_ALIAS == false);
-        dc.setActiveTool(getCurrentTool());
+        DrawContext dc = getDrawContext(g2);
         
         //-------------------------------------------------------
         // adjust GC for pan & zoom
@@ -1849,6 +1967,8 @@ public class MapViewer extends javax.swing.JComponent
             g2.drawString("fractionalMetrics " + DEBUG_FONT_METRICS, x, y+=15);
             //g2.drawString("findParent " + !DEBUG_FINDPARENT_OFF, x, y+=15);
             g2.drawString("optimizedRepaint " + OPTIMIZED_REPAINT, x, y+=15);
+            g2.drawString("Focal " + this.mFocal, x, y+=15);
+            g2.drawString("  MAP " + this.mMap, x, y+=15);
 
             Point2D center = getVisibleCenter();
             dc.setAbsoluteStroke(1);
@@ -1902,6 +2022,9 @@ public class MapViewer extends javax.swing.JComponent
 
 
     protected void drawMap(DrawContext dc) {
+        activeTool.handleDraw(dc, mFocal);
+        
+        /*
         if (mFocal != mMap) {
             dc.g.setColor(mFocal.getFillColor());
             dc.g.fill(dc.g.getClipBounds());
@@ -1909,6 +2032,7 @@ public class MapViewer extends javax.swing.JComponent
         } else {
             activeTool.handleDraw(dc, mMap);
         }
+        */
     }
     
     /** This paintChildren is a no-op.  super.paint() will call this,
@@ -2115,12 +2239,12 @@ public class MapViewer extends javax.swing.JComponent
     
     // todo: move all this code to LWSelection?
     // todo perf: way too much calculation here for every draw: do some on selection change?
+    // TODO: don't draw unless all components are within mFocal...
     protected void drawSelection(DrawContext dc, LWSelection selection) {
         Graphics2D g2 = dc.g;
         g2.setColor(COLOR_SELECTION);
         //g2.setXORMode(Color.black);
         g2.setStroke(STROKE_SELECTION);
-        java.util.Iterator it;
         
         // draw bounding boxes -- still want to bother with this?
         /*
@@ -2132,19 +2256,50 @@ public class MapViewer extends javax.swing.JComponent
         }
          */
         
-        //-------------------------------------------------------
-        // draw ghost shapes
-        //-------------------------------------------------------
 
-        //setScaleDraw(g2);
+
+        LWContainer mFocalParent = null;
+        boolean drawSelectorBoxInThisViewer = true;
+        
+        if (mFocal != mMap) {
+            if (mFocal.hasChildren()) {
+                mFocalParent = (LWContainer) mFocal;
+            } else {
+                // if the focal has no children, we already know nothing in selection
+                // could be a child of it.
+                resizeControl.active = false;
+                return;
+            }
+            
+        }
+
+        // Check selection and/or draw ghost outlines for selected objects
+        
         dc.setMapDrawing();
-
-        it = VueSelection.iterator();
-        //g2.setStroke(new BasicStroke((float) (STROKE_HALF.getLineWidth() * mZoomInverse)));
-        //g2.setStroke(STROKE_ONE);
         dc.setAbsoluteStroke(0.5);
-        while (it.hasNext()) {
-            LWComponent c = (LWComponent) it.next();
+
+        java.util.Iterator si = selection.iterator();
+        while (si.hasNext()) {
+            LWComponent c = (LWComponent) si.next();
+
+            if (mFocalParent != null) {
+                if (!c.hasAncestor(mFocalParent)) {
+                    // Something in selection is not in the current focal for this viewer,
+                    // so don't draw the selection box here.
+                    drawSelectorBoxInThisViewer = false;
+                    break;
+                }
+            } else if (c.getLayer() > getMaxLayer()) {
+                // Something in selection is not from a layer visible in this viewer,
+                // so don't draw the selection box here.
+                out("layer " + c.getLayer() + " for " + c + " >maxLayer=" + getMaxLayer());
+                drawSelectorBoxInThisViewer = false;
+                break;
+            }
+            
+            //-------------------------------------------------------
+            // draw ghost shapes
+            //-------------------------------------------------------
             if (sDragUnderway || c.getStrokeWidth() == 0 || c instanceof LWLink) {
                 // todo: the ideal is to always draw the ghost (not just when
                 // dragging) but figure out a way not to uglify the border if
@@ -2171,7 +2326,12 @@ public class MapViewer extends javax.swing.JComponent
         }
         
         dc.setRawDrawing();
-        //setRawDraw(g2);
+
+        if (!drawSelectorBoxInThisViewer) {
+            resizeControl.active = false;
+            out("selection contents not for this viewer");
+            return;
+        }
         
         g2.setStroke(STROKE_SELECTION);
         //g2.setComposite(AlphaComposite.Src);
@@ -2182,6 +2342,7 @@ public class MapViewer extends javax.swing.JComponent
         // todo opt?: don't recompute bounds here every paint ---
         // can cache in draggedSelectionGroup (but what if underlying objects resize?)
         Rectangle2D selectionBounds = selection.getBounds();
+        if (DEBUG.SELECTION) out("selectionBounds " + selectionBounds);
         /*
           bounds cache hack
           if (VueSelection.size() == 1)
@@ -2193,14 +2354,17 @@ public class MapViewer extends javax.swing.JComponent
         Rectangle2D.Float mapSelectionBounds = mapToScreenRect2D(selectionBounds);
         paintedSelectionBounds = mapToScreenRect(selectionBounds);
         growForSelection(paintedSelectionBounds);
+        if (DEBUG.SELECTION) out("paintedSelectionBounds " + paintedSelectionBounds);
+        
         //System.out.println("screenSelectionBounds="+mapSelectionBounds);
         
-        // todo: this check is a hack: need to check if any in selection return true for supportsUserResize
+
         if (//VueSelection.countTypes(LWNode.class) + VueSelection.countTypes(LWImage.class) <= 0
             //||
             //(VueSelection.size() == 1 && VueSelection.first() instanceof LWNode && ((LWNode)VueSelection.first()).isTextNode())
             selection.allOfType(LWLink.class)
             ) {
+            // todo: this check is a hack: need to check if any in selection return true for supportsUserResize
             // todo: also alow groups to resize (make selected group resize
             // re-usable for a group -- perhaps move to LWGroup itself &
             // also use draggedSelectionGroup for this?)
@@ -2229,6 +2393,7 @@ public class MapViewer extends javax.swing.JComponent
             //if (!sDragUnderway)
             //drawSelectionBoxHandles(g2, mapSelectionBounds);
             
+            // TODO: this a hack: see if can handle via PickContext/DrawContext
             boolean groupies = selection.allHaveSameParentOfType(LWGroup.class);
             
             setSelectionBoxResizeHandles(mapSelectionBounds);
@@ -2247,9 +2412,9 @@ public class MapViewer extends javax.swing.JComponent
         //-------------------------------------------------------
         
         //if (activeTool != PathwayTool) {
-        it = selection.getControlListeners().iterator();
-        while (it.hasNext()) {
-            LWSelection.ControlListener cl = (LWSelection.ControlListener) it.next();
+        java.util.Iterator ci = selection.getControlListeners().iterator();
+        while (ci.hasNext()) {
+            LWSelection.ControlListener cl = (LWSelection.ControlListener) ci.next();
             LWSelection.ControlPoint[] ctrlPoints = cl.getControlPoints();
             for (int i = 0; i < ctrlPoints.length; i++) {
                 LWSelection.ControlPoint cp = ctrlPoints[i];
@@ -2451,33 +2616,42 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     protected void selectionAdd(LWComponent c) {
+        VueSelection.setSource(this);
         VueSelection.add(c);
     }
     protected void selectionAdd(java.util.Iterator i) {
+        VueSelection.setSource(this);
         VueSelection.add(i);
     }
     protected void selectionRemove(LWComponent c) {
+        VueSelection.setSource(this);
         VueSelection.remove(c);
     }
     protected void selectionSet(LWComponent c) {
+        VueSelection.setSource(this);
         VueSelection.setTo(c);
     }
     protected void selectionSet(java.util.Collection bag) {
+        VueSelection.setSource(this);
         VueSelection.setTo(bag);
     }
     protected void selectionSet(java.util.Iterator i) {
+        VueSelection.setSource(this);
         VueSelection.setTo(i);
     }
     protected void selectionClear() {
+        VueSelection.setSource(this);
         VueSelection.clear();
     }
     protected void selectionToggle(LWComponent c) {
+        VueSelection.setSource(this);
         if (c.isSelected())
             selectionRemove(c);
         else
             selectionAdd(c);
     }
     protected void selectionToggle(java.util.Iterator i) {
+        VueSelection.setSource(this);
         VueSelection.toggle(i);
     }
     
@@ -2890,10 +3064,10 @@ public class MapViewer extends javax.swing.JComponent
                     
                     java.util.Collection duplicates;
                     if (LWC == draggedSelectionGroup) {
-                        duplicates = Actions.duplicatePreservingLinks(((LWContainer)LWC).getChildIterator());
+                        duplicates = Actions.duplicatePreservingLinks(LWC.getChildIterator());
                     } else if (LWC instanceof LWMap) {
                         // don't send the actual map just yet...
-                        duplicates = Actions.duplicatePreservingLinks(((LWContainer)LWC).getChildIterator());
+                        duplicates = Actions.duplicatePreservingLinks(LWC.getChildIterator());
                     } else {
                         duplicates = java.util.Collections.singletonList(LWC.duplicate());
                     }
@@ -2921,6 +3095,13 @@ public class MapViewer extends javax.swing.JComponent
 
     public MouseWheelListener getMouseWheelListener() {
         return inputHandler;
+    }
+
+
+    protected void setDragger(LWComponent c) {
+        //out("\n***DRAG SET TO " + c);
+        dragComponent = c;
+        //if (c instanceof LWGroup) tufts.Util.printStackTrace("DRAGGERSET");
     }
 
 
@@ -2995,7 +3176,7 @@ public class MapViewer extends javax.swing.JComponent
                     double oldY = viewer.screenToMapY(dragStart.y) + dragOffset.y;
                     dragComponent.setLocation(oldX, oldY);
                     //dragPosition.setLocation(oldX, oldY);
-                    dragComponent = null;
+                    setDragger(null);
                     activeTool.handleDragAbort();
                     mouseWasDragged = false;
                     clearIndicated(); // incase dragging new link
@@ -3267,7 +3448,7 @@ public class MapViewer extends javax.swing.JComponent
             }
             return false;
         }
-        
+
         
         
         private LWComponent hitComponent = null;
@@ -3323,7 +3504,7 @@ public class MapViewer extends javax.swing.JComponent
             
             setLastMousePressPoint(e.getX(), e.getY());
             
-            dragComponent = null;
+            setDragger(null);
             
             //-------------------------------------------------------
             // Check for hits on selection control points
@@ -3351,11 +3532,11 @@ public class MapViewer extends javax.swing.JComponent
             //if (activeTool.supportsSelection() || activeTool.supportsClick()) {
             // Change to supportsComponentSelection?
             if (activeTool.supportsSelection()) {
-                hitComponent = activeTool.findComponentAt(getMap(), mapX, mapY);
+                hitComponent = activeTool.pickNodeAt(getPickContext(), mapX, mapY);
                 if (DEBUG.MOUSE && hitComponent != null)
                     System.out.println("\t    on " + hitComponent + "\n" +
                     "\tparent " + hitComponent.getParent());
-                mme.setHitComponent(hitComponent);
+                mme.setPicked(hitComponent);
             } else {
                 hitComponent = null;
             }
@@ -3394,7 +3575,7 @@ public class MapViewer extends javax.swing.JComponent
                 activeTool.handleComponentPressed(mme);
                 
                 if (mme.getDragRequest() != null) {
-                    dragComponent = mme.getDragRequest(); // TODO: okay, at least HERE, dragComponent CAN be a real component...
+                    setDragger(mme.getDragRequest()); // TODO: okay, at least HERE, dragComponent CAN be a real component...
                     //dragOffset.setLocation(0,0); // todo: want this? control poins also need dragOffset
                 }
                 else if (e.isShiftDown()) {
@@ -3426,7 +3607,7 @@ public class MapViewer extends javax.swing.JComponent
                     //if (VueSelection.size() > 1) {
                     // pick up a group selection for dragging
                     draggedSelectionGroup.useSelection(VueSelection);
-                    dragComponent = draggedSelectionGroup;
+                    setDragger(draggedSelectionGroup);
                     //} else {
                     // [ We never drag just single components anymore --
                     // just the entire selection ]
@@ -3454,7 +3635,7 @@ public class MapViewer extends javax.swing.JComponent
                     // up for dragging.
                     //-------------------------------------------------------
                     draggedSelectionGroup.useSelection(VueSelection);
-                    dragComponent = draggedSelectionGroup;
+                    setDragger(draggedSelectionGroup);
                 } else if (!e.isShiftDown() && activeTool.supportsSelection()) {
                     //-------------------------------------------------------
                     // CLEAR CURRENT SELECTION & START DRAGGING FOR A NEW ONE
@@ -3695,9 +3876,7 @@ public class MapViewer extends javax.swing.JComponent
             
             float mapX = screenToMapX(e.getX());
             float mapY = screenToMapY(e.getY());
-            // use deepest to penetrate into groups
-            LWComponent hit = getMap().findDeepestChildAt(mapX, mapY);
-            //LWComponent hit = getMap().findChildAt(mapX, mapY);
+            LWComponent hit = pickNode(mapX, mapY);
             if (DEBUG.ROLLOVER) System.out.println("  mouseMoved: hit="+hit);
             
             if (hit != sLastMouseOver) {
@@ -3761,23 +3940,23 @@ public class MapViewer extends javax.swing.JComponent
             //if (VUE.Prefs.doRolloverZoom() && RolloverAutoZoomDelay >= 0) {
             if (getAutoZoomEnabled())
             	if (RolloverAutoZoomDelay >= 0) {
-            		if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && !(activeTextEdit != null)) {
-            			if (RolloverAutoZoomDelay > 10) {
-            				if (rolloverTask != null)
-            					rolloverTask.cancel();
-            				rolloverTask = new RolloverTask();
-            				try {
-            					rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
-            				} catch (IllegalStateException ex) {
-            					// don't know why this happens somtimes...
-            					System.out.println(ex + " (fallback: creating new timer)");
-            					rolloverTimer = new Timer();
-            					rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
-            				}
-            			} else {
-            				runRolloverTask();
-            			}
-            		}
+                    if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && !(activeTextEdit != null)) {
+                        if (RolloverAutoZoomDelay > 10) {
+                            if (rolloverTask != null)
+                                rolloverTask.cancel();
+                            rolloverTask = new RolloverTask();
+                            try {
+                                rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+                            } catch (IllegalStateException ex) {
+                                // don't know why this happens somtimes...
+                                System.out.println(ex + " (fallback: creating new timer)");
+                                rolloverTimer = new Timer();
+                                rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+                            }
+                        } else {
+                            runRolloverTask();
+                        }
+                    }
             	}
         }
         
@@ -3889,7 +4068,7 @@ public class MapViewer extends javax.swing.JComponent
                 // VueSelection could be null if the user
                 // moves fast and starts a drag before the
                 // viewer has had a chance to become the active one.
-                toDrag = getMap();
+                toDrag = mFocal;
             } else if (VueSelection.size() == 1) {
                 toDrag = VueSelection.first();
             } else {
@@ -4109,7 +4288,7 @@ public class MapViewer extends javax.swing.JComponent
                 */
                 // is ignoreSelected good enough because possible children of
                 // a dragged object are not selected?
-                over = getMap().findDeepestChildAt(mapX, mapY, true);
+                over = pickNode(mapX, mapY, true);
                 
                 if (indication != null && indication != over) {
                     //repaintRegion.add(indication.getBounds());
@@ -4358,7 +4537,7 @@ public class MapViewer extends javax.swing.JComponent
             // (make sure we bump up against edge of scroll region -- why need so big?)
             
             dragControl = null;
-            dragComponent = null;
+            setDragger(null);
             isDraggingSelectorBox = false;
             mouseWasDragged = false;
             
@@ -4384,9 +4563,14 @@ public class MapViewer extends javax.swing.JComponent
             //-------------------------------------------------------
             
             LWContainer parentTarget;
-            if (indication == null)
-                parentTarget = getMap();
-            else
+            if (indication == null) {
+                if (mFocal instanceof LWContainer) {
+                    parentTarget = (LWContainer) mFocal;
+                } else {
+                    VUE.Log.debug("MapViewer: drag check of non-container focal " + mFocal);
+                    return;
+                }
+            } else
                 parentTarget = (LWContainer) indication;
             
             java.util.List moveList = new java.util.ArrayList();
@@ -4730,7 +4914,7 @@ public class MapViewer extends javax.swing.JComponent
                 oldActiveMap = activeViewer.getMap();
             VUE.setActiveViewer(this);
                 
-            getMap().getChangeSupport().setPriorityListener(this);
+            mFocal.getChangeSupport().setPriorityListener(this);
             // TODO: VUE.getSelection().setPriorityListener(this);
                 
             // hierarchy view switching: TODO: make an active map listener instead of this(?)
@@ -4754,7 +4938,7 @@ public class MapViewer extends javax.swing.JComponent
         }
     }
     
-    void grabVueApplicationFocus(String from, ComponentEvent event) {
+    public void grabVueApplicationFocus(String from, ComponentEvent event) {
         if (DEBUG.FOCUS) {
             // Util.printStackTrace();
             out("-------------------------------------------------------");
@@ -5093,7 +5277,7 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     
-    private void out(Object o) {
+    protected void out(Object o) {
         System.out.println(this + " " + (o==null?"null":o.toString()));
     }
 
