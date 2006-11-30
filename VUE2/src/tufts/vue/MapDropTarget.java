@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.61 $ / $Date: 2006-10-19 20:45:47 $ / $Author: mike $  
+ * @version $Revision: 1.62 $ / $Date: 2006-11-30 16:42:11 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -112,7 +112,7 @@ class MapDropTarget
     {
         if (DEBUG.DND && DEBUG.META) out("dragOver " + GUI.dragName(e));
 
-        LWComponent over = mViewer.getMap().findChildAt(dropToMapLocation(e.getLocation()));
+        LWComponent over = mViewer.pickNode(dropToMapLocation(e.getLocation()));
         if (over instanceof LWNode || over instanceof LWLink) {
             // todo: if over resource icon and we can set THAT indicated, do
             // so and also use that to indicate we'd like to set the resource
@@ -278,7 +278,7 @@ class MapDropTarget
         LWComponent hitComponent = null;
 
         if (dropLocation != null) {
-            hitComponent = mViewer.getMap().findChildAt(mapLocation);
+            hitComponent = mViewer.pickNode(mapLocation);
             if (hitComponent instanceof LWImage) { // todo: does LWComponent accept drop events...
                 if (DEBUG.DND) out("hitComponent=" + hitComponent + " (ignored)");
                 hitComponent = null;

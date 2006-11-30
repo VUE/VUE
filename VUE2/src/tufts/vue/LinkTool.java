@@ -110,9 +110,10 @@ public class LinkTool extends VueTool
     public boolean handleComponentPressed(MapMouseEvent e)
     {
         //System.out.println(this + " handleMousePressed " + e);
-        LWComponent hit = e.getHitComponent();
-        if (hit instanceof LWGroup)
-            hit = ((LWGroup)hit).findDeepestChildAt(e.getMapPoint());
+        LWComponent hit = e.getPicked();
+        // TODO: handle LWGroup picking
+        //if (hit instanceof LWGroup)
+        //hit = ((LWGroup)hit).findDeepestChildAt(e.getMapPoint());
 
         if (hit != null) {
             linkSource = hit;
@@ -194,8 +195,8 @@ public class LinkTool extends VueTool
         this.linkSource = null;
     }
 
-    public void handleDraw(DrawContext dc, LWMap map) {
-        super.handleDraw(dc, map);
+    public void handleDraw(DrawContext dc, LWComponent focal) {
+        super.handleDraw(dc, focal);
         if (linkSource != null)
             creationLink.draw(dc);
     }
@@ -204,10 +205,22 @@ public class LinkTool extends VueTool
     {
         float mapX = e.getMapX();
         float mapY = e.getMapY();
-        LWComponent directHit = e.getMap().findDeepestChildAt(mapX, mapY, link);
-        //if (DEBUG.CONTAINMENT) System.out.println("findLWLinkTargetAt: directHit=" + directHit);
+
+        PickContext pc = e.getViewer().getPickContext();
+        pc.excluded = link;
+        LWComponent directHit = LWTraversal.PointPick.pick(pc, mapX, mapY);
+
         if (directHit != null && isValidLinkTarget(linkSource, directHit))
             return directHit;
+
+        // TODO: need a new PickTraversal type that handles target contains
+
+        return null;
+
+        /*
+
+          // This was the old code that let you link to something even when you just
+          // got near it.
         
         java.util.List targets = new java.util.ArrayList();
         java.util.Iterator i = e.getMap().getChildIterator();
@@ -217,7 +230,31 @@ public class LinkTool extends VueTool
                 targets.add(c);
         }
         return e.getViewer().findClosestEdge(targets, mapX, mapY);
+        */
     }
+
+    /*
+    private static LWComponent findLWLinkTargetAt(LWComponent linkSource, LWLink link, MapMouseEvent e)
+    {
+        float mapX = e.getMapX();
+        float mapY = e.getMapY();
+        LWComponent directHit = e.getMap().findDeepestChildAt(mapX, mapY, link);
+        //if (DEBUG.CONTAINMENT) System.out.println("findLWLinkTargetAt: directHit=" + directHit);
+        if (directHit != null && isValidLinkTarget(linkSource, directHit))
+            return directHit;
+        
+        // TODO: good to hack this up: it never handled filtered / invisible objects anyway...
+
+        java.util.List targets = new java.util.ArrayList();
+        java.util.Iterator i = e.getMap().getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c.targetContains(mapX, mapY) && isValidLinkTarget(linkSource, c))
+                targets.add(c);
+        }
+        return e.getViewer().findClosestEdge(targets, mapX, mapY);
+    }
+    */
     
     /**
      * Make sure we don't create any links back on themselves.
@@ -233,6 +270,7 @@ public class LinkTool extends VueTool
     {
         if (linkTarget == linkSource && linkSource != null)
             return false;
+        // TODO: allow loop-back link if it's a CURVED link...
         
         // don't allow links between parents & children
         if (linkSource != null) {
