@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.41 $ / $Date: 2006-10-18 18:25:31 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2006-11-30 16:46:58 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -328,8 +328,9 @@ public abstract class VueTool extends AbstractAction
     /** what to do, if anything, when the tool is selected */
     public void handleToolSelection() {}
 
-    public void handleDraw(DrawContext dc, LWMap map) {
-        dc.g.setColor(map.getFillColor());
+    public void handleDraw(DrawContext dc, LWComponent focal) {
+
+        dc.g.setColor(focal.getMap().getFillColor());
         dc.g.fill(dc.g.getClipBounds());
 
         /*
@@ -348,7 +349,7 @@ public abstract class VueTool extends AbstractAction
         dc.g.setComposite(AlphaComposite.Src);
         */
         
-        map.draw(dc);
+        focal.draw(dc);
     }
     
     public void handleFullScreen(boolean fullScreen) {}
@@ -407,8 +408,15 @@ public abstract class VueTool extends AbstractAction
     // temporary: give this to everyone
     public void handleSelectionChange(LWSelection s) {
 
-        if (s.size() == 1) {
-            tufts.vue.ui.SlideViewer.setFocused(s.first());
+        if (s.size() == 1
+            && !(s.getSource() instanceof tufts.vue.ui.SlideViewer)
+            && !(s.first().getParent() instanceof LWSlide)
+            ) {
+            // don't display in slide viewer if is a child of an existing
+            // slide: either we actually just selected in the slide viewer
+            // itself, or we selected a child of a LWSlide, which for now
+            // is just going to show that slide.
+            tufts.vue.ui.SlideViewer.getInstance().loadFocal(s.first());
             return;
         }
         
@@ -478,8 +486,8 @@ public abstract class VueTool extends AbstractAction
             }
     }
 
-    public LWComponent findComponentAt(LWMap map, float mapX, float mapY) {
-        return map.findChildAt(mapX, mapY);
+    public LWComponent pickNodeAt(PickContext pc, float mapX, float mapY) {
+        return LWTraversal.PointPick.pick(pc, mapX, mapY);
     }
 
 	
