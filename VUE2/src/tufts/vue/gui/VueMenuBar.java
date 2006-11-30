@@ -27,7 +27,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.17 $ / $Date: 2006-11-14 19:30:07 $ / $Author: mike $
+ * @version $Revision: 1.18 $ / $Date: 2006-11-30 16:47:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -182,6 +182,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.Cut);
         editMenu.add(Actions.Copy);
         editMenu.add(Actions.Paste);
+        editMenu.add(Actions.CopyStyle);
+        editMenu.add(Actions.PasteStyle);
         editMenu.addSeparator();
         editMenu.add(Actions.SelectAll);
         editMenu.add(Actions.DeselectAll);
