@@ -115,7 +115,8 @@
                 
 		<field name="autoSized" type="boolean"><bind-xml name="autoSized" node="attribute"/></field>
                 
-                <field name="nodeFilter">      <bind-xml name="nodeFilter" node="element"/></field> 
+                <field name="nodeFilter" get-method="XMLnodeFilter">      <bind-xml name="nodeFilter" node="element"/></field>
+                
                 <!-- We can save a shape interface, but it won't restore properly -->
 		<!-- field name="shape" type="java.awt.Shape">
 			<bind-xml name="shape" node="element"/>
@@ -149,6 +150,7 @@
 	</class>
 	<class name="tufts.vue.LWSlide" extends="tufts.vue.LWGroup">
 		<map-to xml="slide"/>
+		<field name="layer"><bind-xml name="layer" node="element"/></field>
 	</class>
 	
 	
