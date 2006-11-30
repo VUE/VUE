@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.Util;
+
 import java.awt.*;
 import java.awt.font.*;
 import java.awt.geom.Area;
@@ -42,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.104 $ / $Date: 2006-01-20 19:17:02 $ / $Author: sfraize $
+ * @version $Revision: 1.105 $ / $Date: 2006-11-30 16:39:20 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -62,6 +64,7 @@ public class LWLink extends LWComponent
     private Shape curve = null;
     private float mCurveCenterX;
     private float mCurveCenterY;
+    private java.util.List<Point2D.Float> mPoints; // point on a flattened-into-segments version of the curve
 
     private int curveControls = 0; // 0=straight, 1=quad curved, 2=cubic curved
     
@@ -71,6 +74,7 @@ public class LWLink extends LWComponent
     private float startY;
     private float endX;
     private float endY;
+    private double mLength;
     private String endPoint1_ID; // used only during restore
     private String endPoint2_ID; // used only during restore
     
@@ -249,20 +253,24 @@ public class LWLink extends LWComponent
     {
         //System.out.println("LWLink: control point " + index + " moved");
         
-        if (index == 0) {
+        if (index == CEndPoint1) {
             // endpoint 1 (start)
             setComponent1(null); // disconnect from node
             setStartPoint(e.getMapPoint());
             LinkTool.setMapIndicationIfOverValidTarget(ep2, this, e);
-        } else if (index == 1) {
+        } else if (index == CEndPoint2) {
             // endpoint 2 (end)
             setComponent2(null);  // disconnect from node
             setEndPoint(e.getMapPoint());
             LinkTool.setMapIndicationIfOverValidTarget(ep1, this, e);
-        } else if (index == 2) {
+        } else if (index == CPrune1) {
+            out("CP2");
+        } else if (index == CPrune2) {
+            out("CP3");
+        } else if (index == CCurve1) {
             // optional control 0 for curve
             setCtrlPoint0(e.getMapPoint());
-        } else if (index == 3) {
+        } else if (index == CCurve2) {
             // optional control 1 for curve
             setCtrlPoint1(e.getMapPoint());
         } else
@@ -277,18 +285,24 @@ public class LWLink extends LWComponent
         // TODO BUG: above doesn't work if everything is selected
         if (DEBUG.MOUSE) System.out.println("LWLink: control point " + index + " dropped on " + dropTarget);
         if (dropTarget != null && !e.isShiftDown()) {
-            if (index == 0 && ep1 == null && ep2 != dropTarget)
+            if (index == CEndPoint1 && ep1 == null && ep2 != dropTarget)
                 setComponent1(dropTarget);
-            else if (index == 1 && ep2 == null && ep1 != dropTarget)
+            else if (index == CEndPoint2 && ep2 == null && ep1 != dropTarget)
                 setComponent2(dropTarget);
             // todo: ensure paint sequence same as LinkTool.makeLink
         }
     }
 
-
-    //private Point2D.Float[] controlPoints = new Point2D.Float[2];
-    //public Point2D.Float[] getControlPoints()
-    private LWSelection.ControlPoint[] controlPoints = new LWSelection.ControlPoint[2];
+    private static final int CEndPoint1 = 0;
+    private static final int CEndPoint2 = 1;
+    private static final int CPrune1 = 2;
+    private static final int CPrune2 = 3;
+    private static final int MIN_CONTROL = CPrune2 + 1;
+    private static final int CCurve1 = 4;
+    private static final int CCurve2 = 5;
+    
+    private LWSelection.ControlPoint[] controlPoints = new LWSelection.ControlPoint[MIN_CONTROL];
+    //private LWSelection.ControlPoint[] controlPoints;
     /** interface ControlListener */
     private final Color freeEndpointColor = new Color(128,0,0);
     public LWSelection.ControlPoint[] getControlPoints()
@@ -301,20 +315,25 @@ public class LWLink extends LWComponent
         // can show a connection as green and a hanging endpoint as red
         //controlPoints[0] = new Point2D.Float(startX, startY);
         //controlPoints[1] = new Point2D.Float(endX, endY);
-        controlPoints[0] = new LWSelection.ControlPoint(startX, startY, COLOR_SELECTION);
-        controlPoints[1] = new LWSelection.ControlPoint(endX, endY, COLOR_SELECTION);
-        controlPoints[0].setColor(null); // no fill (transparent)
-        controlPoints[1].setColor(null);
-        if (this.ep1 == null) controlPoints[0].setColor(COLOR_SELECTION_HANDLE);
-        if (this.ep2 == null) controlPoints[1].setColor(COLOR_SELECTION_HANDLE);
+        controlPoints[CEndPoint1] = new LWSelection.ControlPoint(startX, startY, COLOR_SELECTION);
+        controlPoints[CEndPoint2] = new LWSelection.ControlPoint(endX, endY, COLOR_SELECTION);
+        //controlPoints[2] = new LWSelection.ControlPoint(centerX, centerY, COLOR_SELECTION);
+        controlPoints[CEndPoint1].setColor(null); // no fill (transparent)
+        controlPoints[CEndPoint2].setColor(null);
+
+        controlPoints[CPrune1] = new LWSelection.ControlPoint(centerX-10, centerY, COLOR_SELECTION);
+        controlPoints[CPrune2] = new LWSelection.ControlPoint(centerX+10, centerY, COLOR_SELECTION);
+            
+        if (this.ep1 == null) controlPoints[CEndPoint1].setColor(COLOR_SELECTION_HANDLE);
+        if (this.ep2 == null) controlPoints[CEndPoint2].setColor(COLOR_SELECTION_HANDLE);
         if (curveControls == 1) {
             //controlPoints[2] = (Point2D.Float) quadCurve.getCtrlPt();
-            controlPoints[2] = new LWSelection.ControlPoint(quadCurve.getCtrlPt(), COLOR_SELECTION_CONTROL);
+            controlPoints[CCurve1] = new LWSelection.ControlPoint(quadCurve.getCtrlPt(), COLOR_SELECTION_CONTROL);
         } else if (curveControls == 2) {
             //controlPoints[2] = (Point2D.Float) cubicCurve.getCtrlP1();
             //controlPoints[3] = (Point2D.Float) cubicCurve.getCtrlP2();
-            controlPoints[2] = new LWSelection.ControlPoint(cubicCurve.getCtrlP1(), COLOR_SELECTION_CONTROL);
-            controlPoints[3] = new LWSelection.ControlPoint(cubicCurve.getCtrlP2(), COLOR_SELECTION_CONTROL);
+            controlPoints[CCurve1] = new LWSelection.ControlPoint(cubicCurve.getCtrlP1(), COLOR_SELECTION_CONTROL);
+            controlPoints[CCurve2] = new LWSelection.ControlPoint(cubicCurve.getCtrlP2(), COLOR_SELECTION_CONTROL);
         }
 
         return controlPoints;
@@ -402,7 +421,7 @@ public class LWLink extends LWComponent
         
         Object old = new Integer(curveControls);
         curveControls = newControlCount;
-        this.controlPoints = new LWSelection.ControlPoint[2 + curveControls];
+        this.controlPoints = new LWSelection.ControlPoint[MIN_CONTROL + curveControls];
         endpointMoved = true;
         notify(LWKey.LinkCurves, old);
     }
@@ -552,10 +571,50 @@ public class LWLink extends LWComponent
         if (mIconBlock.isShowing())
             mIconBlock.checkAndHandleMouseOver(e);
     }
-    
+
+    /*
+    private class SegIterator implements Iterator {
+        int idx = 0;
+        public SegIterator() {}
+        public boolean hasNext() {}
+        public Line2D.Float next() {}
+        public void remove() { throw UnsupportedOperationException(); }
+    }
+    */
+
+    public boolean intersects(Rectangle2D rect)
+    {
+        if (endpointMoved)
+            computeLinkEndpoints();
+
+        if (curve != null) {
+            
+            Point2D.Float last = null;
+            Line2D seg = new Line2D.Float();
+            for (Point2D.Float curPoint : mPoints) {
+                if (last != null) {
+                    seg.setLine(last, curPoint);
+                    if (seg.intersects(rect))
+                        return true;
+                }
+                last = curPoint;
+            }
+        } else {
+            if (rect.intersectsLine(this.line))
+                return true;
+        }
+        
+        if (mIconBlock.intersects(rect))
+            return true;
+        else if (hasLabel())
+            return labelBox.intersectsMapRect(rect);
+        else
+            return false;
+    }
+
     private final static int MaxZoom = 1; //todo: get from Zoom code
     private final static float SmallestScaleableStrokeWidth = 1 / MaxZoom;
-    public boolean intersects(Rectangle2D rect)
+    public boolean roughCurves_intersects(Rectangle2D rect)
     {
         if (endpointMoved)
             computeLinkEndpoints();
@@ -566,6 +625,7 @@ public class LWLink extends LWComponent
                 if (curve.intersects(rect)) // checks entire INTERIOR (concave region) of the curve
                 //if (curve.getBounds2D().intersects(rect)) // todo perf: cache bounds -- why THIS not working???
                     return true;
+                
             } else {
                 if (rect.intersectsLine(this.line))
                     return true;
@@ -600,33 +660,78 @@ public class LWLink extends LWComponent
             */
         }
     }
+    
+    /** compute shortest distance from the link to the given point (the nearest segment of the line) */
+    public float distanceToEdgeSq(float x, float y) {
+
+        double minDistSq = Float.MAX_VALUE;
+        
+        if (curve != null) {
+            Point2D.Float last = null;
+            Line2D seg = new Line2D.Float();
+            double segDistSq;
+            for (Point2D.Float curPoint : mPoints) {
+                if (last != null) {
+                    seg.setLine(last, curPoint);
+                    segDistSq = seg.ptSegDistSq(x, y);
+                    if (segDistSq < minDistSq)
+                        minDistSq = segDistSq;
+                }
+                last = curPoint;
+            }
+            
+        } else {
+            minDistSq = line.ptSegDistSq(x, y);
+        }
+
+        return (float) minDistSq;
+        
+    }
 
     public boolean contains(float x, float y)
     {
         if (endpointMoved)
             computeLinkEndpoints();
+
+        float maxDist = getStrokeWidth() / 2;
+        final int slop = 4; // near miss on line still hits it
+        
+        if (maxDist < slop)
+            maxDist = slop;
+
+        float maxDistSq = maxDist * maxDist + 1;
+
+        // TODO: can make slop bigger if implement a two-pass
+        // hit detection process that does absolute on first pass,
+        // and slop hits on second pass (otherwise, if this too big,
+        // clicking in a node near a link to it that's on top of it
+        // will select the link, and not the node).
+
+        // TODO: would be better if slop increased when zoomed way out,
+        // as effective slop becomes zero in that case.
+        
         if (curve != null) {
-            // Java curve shapes check the entire concave region for containment.
-            // todo perf: would be more accurate to coursely flatten the curve
-            // and check the segments using stroke width and distance
-            // from each segment as we do below when link is line,
-            // tho this would be much slower.  Could cache flattening
-            // iterator or it's resultant segments to make faster.
-            if (curve.contains(x, y))
-                return true;
+
+            // todo: fast reject: false if outside bounding box of end points and control points
+
+            // Check the distance from all the segments in the flattened curve
+
+            Point2D.Float last = null;
+            Line2D seg = new Line2D.Float();
+            for (Point2D.Float curPoint : mPoints) {
+                if (last != null) {
+                    seg.setLine(last, curPoint);
+                    if (seg.ptSegDistSq(x, y) <= maxDistSq)
+                        return true;
+                }
+                last = curPoint;
+            }
+            
         } else {
-            float maxDist = getStrokeWidth() / 2;
-            final int slop = 2; // near miss on line still hits it
-            // todo: can make slop bigger if implement a two-pass
-            // hit detection process that does absolute on first pass,
-            // and slop hits on second pass (otherwise, if this too big,
-            // clicking in a node near a link to it that's on top of it
-            // will select the link, and not the node).
-            if (maxDist < slop)
-                maxDist = slop;
-            if (line.ptSegDistSq(x, y) <= (maxDist * maxDist) + 1)
+            if (line.ptSegDistSq(x, y) <= maxDistSq)
                 return true;
         }
+        
         if (!isNestedLink()) {
             if (mIconBlock.contains(x, y))
                 return true;
@@ -635,6 +740,21 @@ public class LWLink extends LWComponent
         }
         return false;
     }
+    
+    public boolean looseContains(float x, float y)
+    {
+        if (endpointMoved)
+            computeLinkEndpoints();
+        
+        if (curve != null && curve.contains(x, y)) {
+            // Java curve shapes check the entire concave region for containment.
+            // This is a quick way to check for loose-picks on curves.
+            // (Could also use distanceToEdgeSq, but this hits more area).
+            return true;
+        }  else
+            return line.ptSegDistSq(x, y) < 15*15;
+    }
+    
     
     /**
      * Does x,y fall within the selection target for this component.
@@ -1054,45 +1174,36 @@ public class LWLink extends LWComponent
     }
 
     /**
-     * Compute the angle of rotation of the line defined by the two given points
+     * Compute the rotation needed to normalize this line segment to vertical orientation, making it
+     * parrallel to the Y axis.  So vertical lines will return either 0 or Math.PI (180 degrees), horizontal lines
+     * will return +/- PI/2.  (+/- 90 degrees).  In the rotated space, +y values move down, +x values move right.
      */
-    private double computeAngle(double x1, double y1, double x2, double y2)
+
+    //private static final double HalfPI = Math.PI / 2;
+    
+    private double computeVerticalRotation(double x1, double y1, double x2, double y2)
     {
-        double xdiff = x1 - x2;
-        double ydiff = y1 - y2;
-        double slope = xdiff / ydiff;
-        double slopeInv = 1 / slope;
-        double r0 = -Math.atan(slope);
-        double deg = Math.toDegrees(r0);
+        final double xdiff = x1 - x2;
+        final double ydiff = y1 - y2;
+        final double slope = xdiff / ydiff;
+        double radians = -Math.atan(slope);
+
         if (xdiff >= 0 && ydiff >= 0)
-            deg += 180;
+            radians += Math.PI;
         else if (xdiff <= 0 && ydiff >= 0)
-            deg = -90 - (90-deg);
-
-        if (false&&VueUtil.isMacPlatform()) {
-            // Mac MRJ 69.1 / Java 1.4.1 java bug: approaching 45/-45 & 225/-135 degrees,
-            // rotations seriously fuck up (most shapes are translated to infinity and
-            // back, except at EXACTLY 45 degrees, where it works fine).
-            // (FYI: fixed at least as of MRJ 117.1 (probably in java 1.4.2 release)
-            final int ew = 10; // error-window: # of degrees around 45 that do broken rotations
-            if (deg > 45-ew && deg < 45+ew)
-                deg = 45;
-            if (deg > -135-ew && deg < -135+ew)
-                deg = -135;
-        }
-        return  Math.toRadians(deg);
-
+            radians -= Math.PI;
 
         // diagnostics
-        /*
-        this.label =
-            ((float)xdiff) + "/" + ((float)ydiff) + "=" + (float) slope
-            + " atan=" + (float) r
-            + " deg=[ " + (float) Math.toDegrees(r)
-            + " ]";
-        getLabelBox().setText(this.label);
-        */
-        
+        if (DEBUG.BOXES && DEBUG.META) {
+            this.label =
+                Util.oneDigitDecimal(xdiff) + "/" + Util.oneDigitDecimal(ydiff) + "=" + (float) slope
+                + " atan=" + (float) radians
+                + " deg=[" + Util.oneDigitDecimal(Math.toDegrees(radians))
+                + "]";
+            getLabelBox().setText(this.label);
+        }
+
+        return radians;
     }
 
     public void setArrowState(int arrowState)
@@ -1134,44 +1245,84 @@ public class LWLink extends LWComponent
         double rotation2 = 0;
 
         if (curveControls == 1) {
-            rotation1 = computeAngle(startX, startY, quadCurve.ctrlx, quadCurve.ctrly);
-            rotation2 = computeAngle(endX, endY, quadCurve.ctrlx, quadCurve.ctrly);
+            rotation1 = computeVerticalRotation(startX, startY, quadCurve.ctrlx, quadCurve.ctrly);
+            rotation2 = computeVerticalRotation(endX, endY, quadCurve.ctrlx, quadCurve.ctrly);
         } else if (curveControls == 2) {
-            rotation1 = computeAngle(startX, startY, cubicCurve.ctrlx1, cubicCurve.ctrly1);
-            rotation2 = computeAngle(endX, endY, cubicCurve.ctrlx2, cubicCurve.ctrly2);
+            rotation1 = computeVerticalRotation(startX, startY, cubicCurve.ctrlx1, cubicCurve.ctrly1);
+            rotation2 = computeVerticalRotation(endX, endY, cubicCurve.ctrlx2, cubicCurve.ctrly2);
         } else {
-            rotation1 = computeAngle(line.getX1(), line.getY1(), line.getX2(), line.getY2());
+            rotation1 = computeVerticalRotation(line.getX1(), line.getY1(), line.getX2(), line.getY2());
             rotation2 = rotation1 + Math.PI;  // flip: add 180 degrees
         }
 
         
         AffineTransform savedTransform = dc.g.getTransform();
         
-        dc.g.setStroke(this.stroke);
-        dc.g.setColor(getStrokeColor());
 
         // draw the first arrow
         // todo: adjust the arrow shape with the stroke width
         // do the adjustment in setStrokeWidth, actually.
         //dc.g.translate(line.getX1(), line.getY1());
 
+        //double controlOffset = mLength / 10;
+        //double controlOffset = mLength / 10 + ep1Shape.getHeight();
+        double controlOffset = ep1Shape.getHeight() * 2;
+        double room = mLength - controlOffset * 2;
+        final int controlSize = 6;
+
+        if (room <= controlSize*2)
+            controlOffset = mLength/2 - controlSize;
+
+        out("LEN " + mLength + " CO " + controlOffset + " ROOM=" + room);
+
         if ((mArrowState & ARROW_EP1) != 0) {
+            dc.g.setStroke(this.stroke);
+            dc.g.setColor(getStrokeColor());
             dc.g.translate(startX, startY);
             dc.g.rotate(rotation1);
-            dc.g.translate(-ep1Shape.getWidth() / 2, 0); // center shape on point (makes some assumption)
+
+            // Now we're operating in a coordinate space where the line is vertical.
+            // Adjust the y value moves us up and down the line, whereas adjusting
+            // the x value moves us horizontally off the line.  Positive y values
+            // move down the screen, negative up.
+            
+            // Move back to the left half the width of the arrow, so
+            // that when drawn it will be centered on the line.
+            dc.g.translate(-ep1Shape.getWidth() / 2, 0);
             dc.g.fill(ep1Shape);
             dc.g.draw(ep1Shape);
+
+            // test: move down line to draw "control"
+            dc.g.translate(ep1Shape.getWidth() / 2, 0); // return to line
+            dc.g.translate(-controlSize/2, controlOffset); // move half width of circle to left to center, and down 20 px
+            dc.g.setColor(Color.green);
+            //dc.g.setStroke(STROKE_EIGHTH);
+            dc.g.drawOval(0,0, controlSize,controlSize);
+            
             dc.g.setTransform(savedTransform);
         }
         
         if ((mArrowState & ARROW_EP2) != 0) {
+            dc.g.setStroke(this.stroke);
+            dc.g.setColor(getStrokeColor());
             // draw the second arrow
             //dc.g.translate(line.getX2(), line.getY2());
             dc.g.translate(endX, endY);
             dc.g.rotate(rotation2);
-            dc.g.translate(-ep2Shape.getWidth()/2, 0); // center shape on point 
+            dc.g.translate(-ep2Shape.getWidth() / 2, 0); // center shape on point 
             dc.g.fill(ep2Shape);
             dc.g.draw(ep2Shape);
+
+            
+            dc.g.translate(ep1Shape.getWidth() / 2, 0);
+            dc.g.translate(-controlSize/2, controlOffset);
+            dc.g.setColor(Color.red);
+            //dc.g.setStroke(STROKE_EIGHTH);
+            dc.g.drawOval(0,0, controlSize,controlSize);
+            
+
+
+            
             dc.g.setTransform(savedTransform);
         }
     }
@@ -1261,25 +1412,35 @@ public class LWLink extends LWComponent
             dc.setAbsoluteStroke(stroke.getLineWidth());
         else
             g.setStroke(stroke);
-        
+
         if (this.curve != null) {
             //-------------------------------------------------------
             // draw the curve
             //-------------------------------------------------------
 
-            g.draw(this.curve);
-
+            if (DEBUG.BOXES) {
+                Point2D.Float last = null;
+                Line2D seg = new Line2D.Float();
+                for (Point2D.Float curPoint : mPoints) {
+                    if (last != null) {
+                        seg.setLine(last, curPoint);
+                        dc.g.draw(seg);
+                    }
+                    last = curPoint;
+                }
+            } else {
+                g.draw(this.curve);
+            }
+                    
             if (dc.isInteractive() && (isSelected() || DEBUG.BOXES)) {
                 //-------------------------------------------------------
-                // draw faint lines to control points if selected
-                // TODO: need to do this at time we paint the selection,
-                // so these are always on top -- perhaps have a
-                // LWComponent drawSkeleton, who's default is to
-                // just draw an outline shape, which can replace
-                // the manual code in MapViewer, and in the case of
-                // LWLink, can also draw the control lines.
+                // draw faint lines to control points if selected TODO: need to do this
+                // at time we paint the selection, so these are always on top -- perhaps
+                // have a LWComponent drawSkeleton, who's default is to just draw an
+                // outline shape, which can replace the manual code in MapViewer, and in
+                // the case of LWLink, can also draw the control lines.
                 //-------------------------------------------------------
-                g.setColor(COLOR_SELECTION);
+                g.setColor(COLOR_SELECTION); // todo: move these to DrawContext
                 //g.setColor(Color.red);
                 dc.setAbsoluteStroke(0.5);
                 if (curveControls == 2) {
@@ -1469,9 +1630,13 @@ public class LWLink extends LWComponent
         */
     }
 
+    private double lineLength(float x1, float y1, float x2, float y2) {
+        final float dx = x1 - x2;
+        final float dy = y1 - y2;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
 
-    //private Point2D.Float[] mPoints = null;
-    //private int mPointCount;
+
     public void layout()
     {
         float cx;
@@ -1490,26 +1655,68 @@ public class LWLink extends LWComponent
          * code and then walk the segments computing actual
          * length of curve, then walk again searching for
          * segment at middle of that distance...
+         */
+
+        mLength = 0;
          
         if (curveControls > 0) {
+
+            // TODO perf: don't need to do this every time: only if a link endpoint or control point has moved
+            
+            // Flatten the curve into a bunch of segments for hit detection.
+            
+            // todo: could do this lazily when we first attempt hit-detection after
+            // a layout, instead of every layout -- flattened curve not actually needed to draw,
+            // except for debug.
+
+            // todo: faster to use flat float array, every 2 indicies is one pair
+            
             if (mPoints == null)
-                mPoints = new Point2D.Float[128];
+                mPoints = new java.util.ArrayList<Point2D.Float>();
+            else
+                mPoints.clear();
             // If curved, guess at center of curve via middle segment
-            PathIterator i = new java.awt.geom.FlatteningPathIterator(getShape().getPathIterator(null), 0.1);
+            PathIterator i = new java.awt.geom.FlatteningPathIterator(getShape().getPathIterator(null), 1f);
             float[] point = new float[2];
-            int pcnt = 0;
-            while (!i.isDone()) {
+            float lastx = 0, lasty = 0;
+
+            if (!i.isDone()) {
+                // Add this first point outside of loop
                 i.currentSegment(point);
-                if (mPoints[pcnt] == null)
-                    mPoints[pcnt] = new Point2D.Float();
-                mPoints[pcnt].x = point[0];
-                mPoints[pcnt].y = point[1];
-                //System.out.println(point[0] + "," + point[1]);
-                pcnt++;
+                lastx = point[0];
+                lasty = point[1];
+                mPoints.add(new Point2D.Float(lastx, lasty));
                 i.next();
             }
-            mPointCount = pcnt;
-            if (pcnt == 2) {
+            
+            while (!i.isDone()) {
+                i.currentSegment(point);
+                mPoints.add(new Point2D.Float(point[0], point[1]));
+                mLength += lineLength(lastx, lasty, point[0], point[1]);
+                
+                lastx = point[0];
+                lasty = point[1];
+                
+                i.next();
+                
+                //System.out.println(point[0] + "," + point[1]);
+                /*
+                  // todo: could make a bit more efficient by re-using existing Point2D.Float pairs,
+                  // but need to clear out any extras leftover from before at end.
+                Point2D.Float pair = mPoints.get(pidx);
+                if (pair == null) {
+                    pair = new Point2D.Float(point[0], point[1]);
+                    mPoints.add(pair);
+                } else {
+                    pair.x = point[0];
+                    pair.y = point[1];
+                }
+                */
+            }
+            
+            /*
+            mPointCount = pidx;
+            if (pidx == 2) {
                 cx = getCenterX();
                 cy = getCenterY();
             } else {
@@ -1517,12 +1724,15 @@ public class LWLink extends LWComponent
                 cx = mPoints[centerp].x;
                 cy = mPoints[centerp].y;
             }
-            System.out.println("CURVE POINTS: " + pcnt);
+            */
+
+            if (DEBUG.BOXES) out("POINTS ON FLATTENED CURVE: " + mPoints.size() + " total length estimate=" + mLength);
+            
         } else {
-            cx = getCenterX();
-            cy = getCenterY();
+            mLength = lineLength(startX, startY, endX, endY);
+            if (DEBUG.BOXES) out("length=" + mLength);
         }
-        */            
+
 
 
         float totalHeight = 0;
