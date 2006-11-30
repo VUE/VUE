@@ -248,6 +248,7 @@ public class Actions implements VueConstants
     
     private static List ScratchBuffer = new ArrayList();
     private static LWContainer ScratchMap;
+    private static LWComponent StyleHolder;
     
     private static LWComponent.LinkPatcher sLinkPatcher = new LWComponent.LinkPatcher();
     private static List DupeList = new ArrayList(); // cache for dupe'd items
@@ -344,11 +345,45 @@ public class Actions implements VueConstants
             
         }
     };
+
+    public static final LWCAction CopyStyle =
+    new LWCAction("Copy Style", keyStroke(KeyEvent.VK_C, CTRL+LEFT_OF_SPACE)) {
+        boolean enabledFor(LWSelection s) { return s.size() == 1; }
+        void act(LWComponent c) {
+            StyleHolder = c;
+        }
+    };
+    
+    public static final LWCAction PasteStyle =
+    new LWCAction("Paste Style", keyStroke(KeyEvent.VK_V, CTRL+LEFT_OF_SPACE)) {
+        boolean enabledFor(LWSelection s) { return s.size() > 0 && StyleHolder != null; }
+        void act(LWComponent c) {
+            // TODO: when we re-do styles, we can keep a style bag which
+            // will also be better in case the style of the object changes
+            // after we "copy" it!
+            //System.out.println("Pasting style from " + StyleHolder);
+            if (c == StyleHolder)
+                return;
+            c.setFont(StyleHolder.getFont());
+            c.setFillColor(StyleHolder.getFillColor());
+            c.setStrokeWidth(StyleHolder.getStrokeWidth());
+            c.setStrokeColor(StyleHolder.getStrokeColor());
+            c.setTextColor(StyleHolder.getTextColor());
+            if (c instanceof LWNode && StyleHolder instanceof LWNode)
+                ((LWNode)c).setShape((java.awt.geom.RectangularShape) ((LWNode)StyleHolder).getShape());
+        }
+    };
+    
     public static final Action Paste =
     new VueAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
         //public boolean isEnabled() //would need to listen for scratch buffer fills
         
         public void act() {
+            // if (StyleHolder != null) {
+//                 super.act(); // will call act(LWComponent)
+//                 return;
+            //}
+            
             LWContainer parent = VUE.getActiveMap();
             if (parent == ScratchMap) {
 
@@ -371,6 +406,7 @@ public class Actions implements VueConstants
             parent.addChildren(pasted.iterator());
             VUE.getSelection().setTo(pasted.iterator());
         }
+
         
         // stub code for if we want to start using the system clipboard for cut/paste
         void act_system() {
