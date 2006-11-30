@@ -55,6 +55,10 @@ import edu.tufts.vue.preferences.implementations.ImageSizePreference;
 //       just by selecting the object, in case the resource previewer
 //       didn't happen to be open.
 
+// TODO: Allow node image selection w/out resize borders, and
+//       drags do an implicit system drag to create a standalone
+//       version of the image.
+
 public class LWImage extends LWComponent
     implements LWSelection.ControlListener, Images.Listener, edu.tufts.vue.preferences.VuePrefListener
 {
@@ -73,7 +77,7 @@ public class LWImage extends LWComponent
     private Image mImage;
     private int mImageWidth = -1;
     private int  mImageHeight = -1;
-    private double mImageScale = 1; // scale to the fixed size
+    //private double mImageScale = 1; // scale to the fixed size
     private double mRotation = 0;
     private Point2D.Float mOffset = new Point2D.Float(); // x & y always <= 0
     private Object mUndoMarkForThread;
@@ -123,15 +127,10 @@ public class LWImage extends LWComponent
     public boolean isAutoSized() { return false; }
 
 
-    /** This currently makes LWImages invisible to deep selection (they're locked in their parent node */
-
-    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded, boolean ignoreSelected) {
-        return getParent();
-    }
-
     /** This currently makes LWImages invisible to selection (they're locked in their parent node */
-    protected LWComponent findChildAt(float mapX, float mapY) {
-        return getParent();
+    //@Override
+    protected LWComponent defaultPick(PickContext pc) {
+        return pc.pickDepth > 0 ? this : getParent();
     }
 
     
@@ -141,7 +140,7 @@ public class LWImage extends LWComponent
         return true;
     }
 
-    public void setParent(LWContainer parent) {
+    public void X_setParent(LWContainer parent) {
         super.setParent(parent);
         if (parent instanceof LWNode == false)
             isRawImage = true;
@@ -425,6 +424,15 @@ public class LWImage extends LWComponent
     }
     public int getImageHeight() {
         return mImageHeight;
+    }
+
+    public LWSlide getSlide() {
+        return null;
+    }
+
+    /** an image always "has content", even if no children */
+    public boolean isEmpty() {
+        return false;
     }
 
     /*

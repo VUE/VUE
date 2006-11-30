@@ -44,7 +44,7 @@ import java.awt.geom.Rectangle2D;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.38 $ / $Date: 2006-10-18 17:32:52 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2006-11-30 16:37:24 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -82,10 +82,13 @@ public class LWGroup extends LWContainer
         LWGroup group = new LWGroup();
 
         group.importNodes(selection);
+        group.setSizeFromChildren();
 
         return group;
     }
 
+    /** Make the given nodes members of this group, importing also any links that are been two members of the set.
+     * This also makes sure the relative z-order of the imported nodes */
     public void importNodes(java.util.List nodes)
     {
         /*
@@ -132,11 +135,10 @@ public class LWGroup extends LWContainer
         }
         // Be sure to preserve the current relative ordering of all
         // these components the new group
-        LWComponent[] comps = sort(moveList, ReverseOrder);
+        LWComponent[] comps = sort(moveList, LWContainer.ReverseOrder);
         for (int x = 0; x < comps.length; x++) {
             addChildInternal(comps[x]);
         }
-        setSizeFromChildren();
     }
     
     /*
@@ -323,15 +325,26 @@ public class LWGroup extends LWContainer
         return false;
     }
     
-    // @return null -- selects nothing: must select member object to select the group 
-    protected LWComponent defaultHitComponent() {
-        return this;
+    /** If it paints a background or draws a border, it's empty space can be picked, otherwise, only pick via children */
+    protected LWComponent defaultPick(PickContext pc) {
+        if (getFillColor() == null && getStrokeWidth() == 0)
+            return null;
+        else 
+            return this;
     }
     
     /**
      * A hit on any component in the group finds the whole group,
-     * not that component. 
+     * not that component.
      */
+    protected LWComponent pickChild(PickContext pc, LWComponent c) {
+        if (pc.pickDepth > 0)
+            return c;
+        else
+            return this;
+    }
+
+    /*
     public LWComponent findChildAt(float mapX, float mapY)
     {
         if (DEBUG.CONTAINMENT) System.out.println("LWGroup.findChildAt " + getLabel());
@@ -348,6 +361,7 @@ public class LWGroup extends LWContainer
         }
         return defaultHitComponent();
     }
+    */
     
     /*
     public LWComponent findLWSubTargetAt(float mapX, float mapY)
