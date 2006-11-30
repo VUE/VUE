@@ -30,7 +30,7 @@ import javax.swing.JScrollPane;
  * Extension of MouseEvent for events that happen on an instance of LWMap
  * in a MapViewer.
  *
- * @version $Revision: 1.10 $ / $Date: 2006-10-18 17:35:21 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2006-11-30 16:42:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -47,13 +47,14 @@ public class MapMouseEvent extends MouseEvent
     
     float mapX;
     float mapY;
-    LWComponent hitComponent;
+    LWComponent picked;
+    boolean pickedSet = false;
     LWComponent dragRequest;
     Rectangle selectorBox;
     int pressX;
     int pressY;
     
-    public MapMouseEvent(MouseEvent e, float mapX, float mapY, LWComponent hitComponent, Rectangle selectorBox)
+    public MapMouseEvent(MouseEvent e, float mapX, float mapY, LWComponent picked, Rectangle selectorBox)
     {
         super(e.getComponent(),
               e.getID(),
@@ -67,7 +68,7 @@ public class MapMouseEvent extends MouseEvent
 
         this.mapX = mapX;
         this.mapY = mapY;
-        this.hitComponent = hitComponent;
+        setPicked(picked);
         this.selectorBox = selectorBox;
     }
 
@@ -81,7 +82,7 @@ public class MapMouseEvent extends MouseEvent
     public MapMouseEvent(MouseEvent e, LWComponent c)
     {
         this(e);
-        setHitComponent(c);
+        setPicked(c);
     }
     
     public MapMouseEvent(MouseEvent e, Rectangle selectorBox)
@@ -143,27 +144,34 @@ public class MapMouseEvent extends MouseEvent
     }
 
     public float getComponentX() {
-        return hitComponent == null ? Float.NaN : (mapX - hitComponent.getX()) / hitComponent.getScale();
+        getPicked();
+        return picked == null ? Float.NaN : (mapX - picked.getX()) / picked.getScale();
     }
     public float getComponentY() {
-        return hitComponent == null ? Float.NaN : (mapY - hitComponent.getY()) / hitComponent.getScale();
+        getPicked();
+        return picked == null ? Float.NaN : (mapY - picked.getY()) / picked.getScale();
     }
     public Point2D.Float getComponentPoint() {
         return new Point2D.Float(getComponentX(), getComponentY());
     }
 
-    public LWComponent getHitComponent() {
-        return hitComponent;
+    public LWComponent getPicked() {
+        if (!pickedSet)
+            setPicked(getViewer().pickNode(mapX, mapY));
+        return picked;
     }
-    void setHitComponent(LWComponent c) {
-        this.hitComponent = c;
+
+    void setPicked(LWComponent c) {
+        this.picked = c;
+        this.pickedSet = true;
     }
+
 
     public String paramString() {
         return super.paramString()
             + ",cx=" + getComponentX()
             + ",cy=" + getComponentY()
-            + ",hit=" + hitComponent;
+            + ",hit=" + (pickedSet ? "<unset>" : picked);
     }
 
 }
