@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.104 $ / $Date: 2006-10-18 17:54:59 $ / $Author: sfraize $
+ * @version $Revision: 1.105 $ / $Date: 2006-11-30 16:40:05 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -515,10 +515,14 @@ public class LWMap extends LWContainer
         return this;
     }
     
+    public int getLayer() {
+        return 0;
+    }
+    
     /** override of LWContainer: default hit component on the map
      * is nothing -- we just @return null.
      */
-    protected LWComponent defaultHitComponent() {
+    protected LWComponent defaultPick(PickContext pc) {
         return null;
     }
     
@@ -621,8 +625,12 @@ public class LWMap extends LWContainer
     }
     
     public java.awt.geom.Rectangle2D getBounds() {
+        return getBounds(Short.MAX_VALUE);
+    }
+    
+    public java.awt.geom.Rectangle2D getBounds(int maxLayer) {
         if (true||mCachedBounds == null) {
-            mCachedBounds = getBounds(getChildIterator());
+            mCachedBounds = getBounds(getChildIterator(), maxLayer);
             takeSize(mCachedBounds.width, mCachedBounds.height);
             takeLocation(mCachedBounds.x, mCachedBounds.y);
             /*
@@ -650,15 +658,21 @@ public class LWMap extends LWContainer
     }
      */
     
+    public static Rectangle2D.Float getBounds(java.util.Iterator<LWComponent> i) {
+        return getBounds(i, Short.MAX_VALUE);
+    }
+    
     /**
      * return the bounds for all LWComponents in the iterator
      * (includes shape stroke widhts)
      */
-    public static Rectangle2D.Float getBounds(java.util.Iterator i) {
+    public static Rectangle2D.Float getBounds(java.util.Iterator<LWComponent> i, int maxLayer) {
         Rectangle2D.Float rect = null;
         
         while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+            LWComponent c = i.next();
+            if (c.getLayer() > maxLayer)
+                continue;
             if (c.isDrawn()) {
                 if (rect == null) {
                     rect = new Rectangle2D.Float();
@@ -675,7 +689,7 @@ public class LWMap extends LWContainer
      * (does NOT include stroke widths) -- btw -- would make
      * more sense to put these in the LWContainer class.
      */
-    public static Rectangle2D getShapeBounds(java.util.Iterator i) {
+    public static Rectangle2D getShapeBounds(java.util.Iterator<LWComponent> i) {
         Rectangle2D rect = new Rectangle2D.Float();
         
         if (i.hasNext()) {
