@@ -27,37 +27,119 @@ import java.awt.geom.*;
  * Sublcass (for now) of LWGroup for slide features.
  *
  * @author Scott Fraize
- * @version $Revision: 1.1 $ / $Date: 2006-10-18 17:59:43 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-11-30 16:41:33 $ / $Author: sfraize $
  */
 public class LWSlide extends LWGroup
 {
+    int mLayer = 0;
+    
     public LWSlide() {
         setFillColor(new Color(0,0,0,64));
         setStrokeWidth(1);
         setStrokeColor(Color.black);
-        //setAspect(((float)GUI.GScreenWidth) / ((float)GUI.GScreenHeight));
+        setAspect(((float)GUI.GScreenWidth) / ((float)GUI.GScreenHeight));
         setSize(320,240);
     }
 
-    static LWSlide createFromList(java.util.List nodes)
+    public void setLayer(int layer) {
+        mLayer = layer;
+    }
+    
+    public int getLayer() {
+        //out("returning layer " + mLayer);
+        return mLayer;
+    }
+
+    public LWSlide getSlide() {
+        return null;
+    }
+
+    // This will prevent the object from ever being drawn on the map.
+    // But this bit isn't checked at the top level if this is the top
+    // level object requested to draw, so it will still work on the slide viewer.
+    //public boolean isDrawn() { return false; }
+    //public boolean isFiltered() { return true; }
+    //public boolean isHidden() { return true; }
+
+    static LWSlide createFromList(java.util.List<LWComponent> nodes)
     {
         LWSlide slide = new LWSlide();
 
-        if (nodes != null && nodes.size() > 0) {
-            LWSelection selection = new LWSelection(nodes);
-            //tufts.Util.printStackTrace("SLIDE CONTENT BOUNDS " + selection.getBounds());
-            // Must import before MakeRow, as arrange actions will remove all nodes
-            // parented to other nodes (auto-laid-out) before doing an arrange
-            slide.importNodes(nodes);
-            // prob need to layout all the children once, so they pickup layout
-            // based on the fact their now in a presentation context...
-            // (make row sizes are sometimes being off...)
-            Actions.MakeRow.act(selection);
-            slide.setSizeFromChildren();            
-        }
-
+        if (nodes != null && nodes.size() > 0)
+            slide.importAndLayout(nodes);
 
         return slide;
+    }
+    
+    private static final int SlideWidth = 800;
+    private static final int SlideHeight = 600;
+    private static final int SlideMargin = 30;
+
+    private void importAndLayout(java.util.List<LWComponent> nodes)
+    {
+        //java.util.Collections.reverse(nodes);
+        LWSelection selection = new LWSelection(nodes);
+
+        //tufts.Util.printStackTrace("SLIDE CONTENT BOUNDS " + selection.getBounds());
+        // Must import before MakeRow, as arrange actions will remove all nodes
+        // parented to other nodes (auto-laid-out) before doing an arrange
+        super.importNodes(nodes);
+        // prob need to layout all the children once, so they pickup layout
+        // based on the fact their now in a presentation context...
+        // (make row sizes are sometimes being off...)
+        //Actions.MakeRow.act(selection);
+
+        //             int x = 1, y = 1;
+        //             for (LWComponent c : slide.getChildList())
+        //                 c.takeLocation(x += 5, y += 5);
+        int x = SlideMargin;
+        int y = SlideMargin;
+        // Give them crude positioning so that arrange action can figure out
+        // the crude ordering based on x/y values.
+        for (LWComponent c : getChildList())
+            c.takeLocation(x++,y++);
+
+        selection.setSize(SlideWidth - SlideMargin*2,
+                          SlideHeight - SlideMargin*2);
+        Actions.MakeColumn.act(selection);
+
+        /*
+        Rectangle2D bounds = LWMap.getBounds(getChildIterator());
+        out("slide content bounds: " + bounds);
+        setSize((float)bounds.getWidth(),
+                (float)bounds.getHeight());
+        */
+
+        setSize(SlideWidth, SlideHeight);
+
+        // 640/480 == 1024/768 == 1.333...
+        // Keynote uses 800/600 (1.3)
+        // PowerPoint defaut 720/540  (1.3)  Based on 72dpi?  (it has a DPI option)
+            
+        // need to set child coords relative to the 0,0 location in virtual map space of the slide
+        // but hey, when we want to show the slide on the map, it's going to have to have it's
+        // map coords set to be displayed, and then all it's CHILDREN would need to get updated...
+        // Sigh, maybe we need to move to relative coordinates... (if do so, need to handle old
+        // save files w/absolute coords)
+
+        // In any case, seems like it would be convenient to have the slide track the
+        // location of it's parent node... actually, who cares: when go into slide mode,
+        // can translate and draw the slide instead of drawing the node.
+            
+        //slide.setSizeFromChildren();
+        
+    }
+
+
+    void createForNode(LWComponent node) {
+        LWComponent dupeChildren = node.duplicate(); // just for children: rest of node thrown away
+        java.util.List toLayout = new java.util.ArrayList();
+        LWNode title = NodeTool.createTextNode(node.getLabel()); // need to "sync" this...=
+        title.setFont(node.getFont());
+        title.setFontSize(24);
+        toLayout.add(title);
+        toLayout.addAll(dupeChildren.getChildList());
+        importAndLayout(toLayout);
     }
 
     public boolean isPresentationContext() {
@@ -88,7 +170,7 @@ public class LWSlide extends LWGroup
     }
 
     /** @return the slide */
-    protected LWComponent defaultHitComponent() {
+    protected LWComponent defaultPick(PickContext pc) {
         return this;
     }
 }
