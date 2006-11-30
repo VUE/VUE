@@ -34,7 +34,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.90 $ / $Date: 2006-10-18 17:32:25 $ / $Author: sfraize $
+ * @version $Revision: 1.91 $ / $Date: 2006-11-30 16:36:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -158,7 +158,7 @@ public abstract class LWContainer extends LWComponent
     public boolean isEmpty() {
         return children == null || children.size() < 1;
     }
-    public List getChildList()
+    public List<LWComponent> getChildList()
     {
         return this.children;
     }
@@ -171,7 +171,7 @@ public abstract class LWContainer extends LWComponent
             return null;
     }
 
-    public java.util.Iterator getChildIterator()
+    public java.util.Iterator<LWComponent> getChildIterator()
     {
         return this.children.iterator();
     }
@@ -676,15 +676,27 @@ public abstract class LWContainer extends LWComponent
         this.focusComponent = c;
     }
     
-    public LWComponent findChildAt(Point2D p)
-    {
-        return findChildAt((float)p.getX(), (float)p.getY());
+    protected LWSlide buildSlide() {
+        //LWContainer dupe = (LWContainer) duplicate();
+        //return LWSlide.createFromList(dupe.children);
+        LWSlide slide = new LWSlide();
+        slide.setStrokeWidth(0f);
+        slide.createForNode(this);
+        //slide.setLocation(getX(), getY() + getHeight() + 20);
+        //slide.setScale(0.125f);
+        //slide.setLocation(Short.MAX_VALUE, Short.MAX_VALUE);
+        //slide.setLocked(true);
+        slide.setLayer(1); // effective make invisible on the map map
+        getMap().addChild(slide);
+        return slide;
     }
+    
+    
 
 
     /*
      * Find child at mapX, mapY -- may actually return this component also.
-     */
+
     private static ArrayList curvedLinks = new ArrayList();
     public LWComponent findChildAt(float mapX, float mapY)
     {
@@ -718,7 +730,7 @@ public abstract class LWContainer extends LWComponent
                     return ((LWContainer)c).findChildAt(mapX, mapY);
                 else 
                     return c.isFiltered() ? null : c;
-                */
+                *
             }
         }
         // we check curved links last because they can take up so much
@@ -732,10 +744,10 @@ public abstract class LWContainer extends LWComponent
         return defaultHitComponent();
     }
 
-    /** Code is mostly duplicated from above here, but subclasses (e.g.,
+    /* Code is mostly duplicated from above here, but subclasses (e.g.,
      * LWGroup) handle this differently, and we can't reuse
      * above code due to recursive usage.
-     */
+
 
     public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded) {
         return findDeepestChildAt(mapX, mapY, excluded, false);
@@ -746,7 +758,7 @@ public abstract class LWContainer extends LWComponent
     
     /**
      * Find deepest child at mapX, mapY.  May return this component.
-     */
+
 
     public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded, boolean ignoreSelected)
     {
@@ -772,6 +784,8 @@ public abstract class LWContainer extends LWComponent
         return found;
     }
     
+    // TODO: better to replace with a traversal/visit mechanism
+    // and completely remove the focusComponent crap: handle that another way (e.g., like pop-up rollover)
     private LWComponent pickDeepestChildAt(float mapX, float mapY, LWComponent excluded, boolean ignoreSelected)
     {
         // TODO: change this gross focusComponent hack to a cleaner special case:
@@ -822,50 +836,6 @@ public abstract class LWContainer extends LWComponent
         return defaultHitComponent();
     }
 
-    /*
-    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded)
-    {
-        if (DEBUG.CONTAINMENT) System.out.println("LWContainer.findDeepestChildAt[" + getLabel() + "]");
-        if (DEBUG.CONTAINMENT && focusComponent != null) System.out.println("\tfocusComponent=" + focusComponent);
-        if (focusComponent != null && focusComponent.contains(mapX, mapY)) {
-            if (focusComponent instanceof LWContainer)
-                return ((LWContainer)focusComponent).findDeepestChildAt(mapX, mapY, excluded);
-            else
-                return focusComponent;
-        }
-        // hit detection must traverse list in reverse as top-most
-        // components are at end
-        java.util.ListIterator i = children.listIterator(children.size());
-        while (i.hasPrevious()) {
-            LWComponent c = (LWComponent) i.previous();
-            if (c == excluded)
-                continue;
-            boolean childHasFocusComponent = false;
-            if (c instanceof LWContainer) {
-                LWContainer container = (LWContainer) c;
-                // focus component may temporarily extend outside the bounds
-                // of it's parent, so we have to check them manually
-                //childHasFocusComponent = (container.focusComponent != null);
-                if (container.focusComponent != null && container.focusComponent.contains(mapX, mapY))
-                    return container.focusComponent.findDeepestChildAt(mapX, mapY, excluded);
-            }
-            //if (childHasFocusComponent || c.contains(mapX, mapY)) {
-            if (c.contains(mapX, mapY)) {
-                //return c.findDeepestChildAt(mapX, mapY, excluded);
-                if (c.hasChildren())
-                    return ((LWContainer)c).findDeepestChildAt(mapX, mapY, excluded);
-                else
-                    return c;
-            }
-        }
-        return defaultHitComponent();
-    }
-    */
-
-    protected LWComponent defaultHitComponent()
-    {
-        return isDrawn() ? this : null;
-    }
 
     public LWComponent findDeepestChildAt(float mapX, float mapY)
     {
@@ -877,8 +847,29 @@ public abstract class LWContainer extends LWComponent
         return findDeepestChildAt((float)p.getX(), (float)p.getY(), null);
     }
 
+    public LWComponent findChildAt(Point2D p)
+    {
+        return findChildAt((float)p.getX(), (float)p.getY());
+    }
+
+    
+    */
+
+    protected LWComponent defaultPick(PickContext pc)
+    {
+        //return isDrawn() ? this : null; // should already be handled now in the PointPick traversal
+        return this;
+    }
+    
+    /** subclasses can override this to change the picking results of children */
+    protected LWComponent pickChild(PickContext pc, LWComponent c) {
+        return c;
+    }
+    
+
     
     //    public LWNode findLWNodeAt(float mapX, float mapY, LWComponent excluded)
+    /*
     public LWNode findLWNodeAt(float mapX, float mapY)
     {
         // hit detection must traverse list in reverse as top-most
@@ -910,6 +901,7 @@ public abstract class LWContainer extends LWComponent
         else
             return null;
     }
+    */
 
     public boolean isOnTop(LWComponent c)
     {
@@ -928,6 +920,7 @@ public abstract class LWContainer extends LWComponent
     {
         return indexOf(c);
     }
+    
     protected int indexOf(Object c)
     {
         if (isDeleted())
@@ -957,6 +950,12 @@ public abstract class LWContainer extends LWComponent
             public int compare(Object o1, Object o2) {
                 LWComponent c1 = (LWComponent) o1;
                 LWComponent c2 = (LWComponent) o2;
+                LWContainer parent1 = c1.getParent();
+                LWContainer parent2 = c2.getParent();
+                if (parent1 == null)
+                    return Short.MIN_VALUE;
+                else if (parent2 == null)
+                    return Short.MAX_VALUE;
                 return c1.getParent().indexOf(c1) - c2.getParent().indexOf(c2);
             }};
 
@@ -1181,7 +1180,9 @@ public abstract class LWContainer extends LWComponent
                 // we need to draw just in case any of the children are NOT filtered.
                 if (c.isVisible()
                     && (!c.isFiltered() || c.hasChildren())
-                    && (clipBounds == null || c.intersects(clipBounds)))
+                    && c.getLayer() <= dc.getMaxLayer()
+                    && (clipBounds == null || c.intersects(clipBounds))
+                    )
                 {
                     drawChildSafely(dc, c);
                     if (DEBUG.PAINT) {
@@ -1280,13 +1281,6 @@ public abstract class LWContainer extends LWComponent
             
         return containerCopy;
     }
-
-    protected LWSlide buildSlide() {
-        LWContainer dupe = (LWContainer) duplicate();
-        return LWSlide.createFromList(dupe.children);
-    }
-    
-    
 
     public String paramString()
     {
