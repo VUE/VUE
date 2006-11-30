@@ -61,6 +61,8 @@ public class DEBUG
     public static boolean WIDGET = false; // Widget's
     public static boolean DATA = false; // data production / meta-data
     public static boolean RESOURCE = false; // Resources
+    public static boolean PRESENT = false;
+    public static boolean PICK = false;
     
     public static boolean WORK = true; // work-in-progress
 
@@ -72,7 +74,7 @@ public class DEBUG
         Enabled=CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
             PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
-            CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=WIDGET=DATA=t;
+            CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=WIDGET=DATA=PRESENT=PICK=t;
 
         // only turn META & WORK off, not on
         if (t == false)
@@ -124,6 +126,7 @@ public class DEBUG
             else if (a.equals("selection"))  DEBUG.SELECTION = true;
             else if (a.equals("resource"))   DEBUG.RESOURCE = true;
             else if (a.equals("scroll"))     DEBUG.SCROLL = true;
+            else if (a.equals("pick"))       DEBUG.PICK = true;
             else if (a.startsWith("edge"))   DEBUG.EDGE = true;
             else if (a.startsWith("event"))  DEBUG.EVENTS = true;
             else if (a.startsWith("thread")) DEBUG.THREAD = true;
@@ -131,6 +134,7 @@ public class DEBUG
             else if (a.startsWith("box"))    DEBUG.BOXES = true;
             else if (a.startsWith("dock"))   DEBUG.DOCK = true;
             else if (a.startsWith("widget")) DEBUG.WIDGET = true;
+            else if (a.startsWith("pres"))   DEBUG.PRESENT = true;
         }
     }
 
