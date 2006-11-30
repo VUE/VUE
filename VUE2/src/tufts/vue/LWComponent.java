@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.195 $ / $Date: 2006-10-18 17:31:16 $ / $Author: sfraize $
+ * @version $Revision: 1.196 $ / $Date: 2006-11-30 16:36:16 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -65,6 +65,19 @@ public class LWComponent
         public void LWCChanged(LWCEvent e);
     }
 
+    // Immutable (set via style) could have refs as pointers to StyleColor, StyleFont, etc (but strokeWidth?)
+    // yet if set locally, would just be ref to regular object.  Need to know difference when the "parent style"
+    // change, it has to update all it's children's values, EXCEPT those that were overriden (unless told to do so).
+    // If the style value is NOT overriden, when saving, can just return null, writing nothing into the XML.
+    public class Style {
+        protected Color fillColor;
+        protected Color textColor;
+        protected Color strokeColor;
+        protected float strokeWidth;
+        protected Font font; // eventually may want to split out into family/style/size so can more easily change size, but keep family
+        protected boolean showIcons; // turned off for LWSlide's by default?
+    }
+
     /*
      * Persistent information
      */
@@ -75,8 +88,6 @@ public class LWComponent
     private Resource resource = null;
     private float x;
     private float y;
-    private UserMapType mUserMapType = null; // I think this is totally vestigal -- remove
-    //private java.util.Map mUserPropertyValues = new java.util.HashMap();
     private boolean isFiltered = false;
     private NodeFilter nodeFilter = null;
     
@@ -98,6 +109,7 @@ public class LWComponent
     protected transient TextBox labelBox = null;
     protected transient BasicStroke stroke = STROKE_ZERO;
     protected transient boolean hidden = false;
+    //protected transient boolean locked = false;
     protected transient boolean selected = false;
     //protected transient boolean indicated = false;
     protected transient boolean rollover = false;
@@ -357,55 +369,6 @@ public class LWComponent
             return this.parent.getMap();
     }
     
-
-    // Below is last minute hacked in code by Scott Bresnahan
-    // that needs to be re-implemented if we're going to use it.
-    /*
-     * getUserMapType
-     * @return UserMapType the user map type id
-    public UserMapType getUserMapType() {
-    	return mUserMapType;
-    }
-    
-    /**
-     * setUserMapType
-     * @param UserMapTYpe the user map type id for this LWC
-    public void setUserMapType( UserMapType pMapType) {
-    	mUserMapType = pMapType;
-    }
-    
-    public void setUSerPropertyValue( String pKey, Object pValue ) {
-    	mUserPropertyValues.put( pKey, pValue);
-    }
-    
-    public Object getUserProeprtyValue( String pKey) {
-    	Object retValue = mUserPropertyValues.get( pKey);
-    	return retValue;
-    }
-    
-    /**
-     * hasMeteData
-     * This returns true if there is user metadata for this component
-     * @return true if meta data values exist; false if not
-   public boolean hasMetaData() {
-   	boolean hasData = false;
-   	if( mUserPropertyValues != null) {
-   		hasData = (getUserMapType() != null) && ( !mUserPropertyValues.isEmpty() ); 
-   		}
-   	return hasData;
-   }
-    */
-   /*
-    * getMetaDataAsHTML()
-   public String getMetaDataAsHTML() {
-   	String str = "";
-   	if( hasMetaData() ) {
-   		str = getUserMapType().getAsHTML( mUserPropertyValues);
-   		}
-   	return str;
-   }
-   */
-
     public UserMapType getUserMapType() { throw new UnsupportedOperationException("deprecated"); }
     public boolean hasMetaData() { return false; }
     public String getMetaDataAsHTML() { return null; }
@@ -626,6 +589,14 @@ public class LWComponent
         return nodeFilter;
     }
 
+    /** return null if the node filter is empty, so we don't bother with entry in the save file */
+    public NodeFilter XMLnodeFilter() {
+        if (nodeFilter != null && nodeFilter.size() < 1)
+            return null;
+        else
+            return nodeFilter;
+    }
+
     /** does this support a user editable label? */
     public boolean supportsUserLabel() {
         return false;
@@ -724,10 +695,14 @@ public class LWComponent
 
     /** @deprecated - not really deprecated, but intended for persistance only */
     public java.awt.Dimension getXMLtextBox() {
+        return null;
+        // NOT CURRENTLY USED
+        /*
         if (this.labelBox == null)
             return null;
         else
             return this.labelBox.getSize();
+        */
     }
     
     /** @deprecated - not really deprecated, intended for persistance only */
@@ -967,7 +942,8 @@ public class LWComponent
     static String ColorToString(Color c)
     {
         // if null, or no hue and no alpha, return null
-        if (c == null || ((c.getRGB() & 0xFFFFFF) == 0 && c.getAlpha() == 255))
+        //if (c == null || ((c.getRGB() & 0xFFFFFF) == 0 && c.getAlpha() == 255))
+        if (c == null)
             return null;
         
         // todo: I still think this can put out non zero-filled strings
@@ -1048,6 +1024,11 @@ public class LWComponent
         notify(LWKey.Font, old);
     }
     
+    public void setFontSize(int pointSize)
+    {
+        Font newFont = getFont().deriveFont((float)pointSize);
+        setFont(newFont);
+    }
     /** to support XML persistance */
     public String getXMLfont()
     {
@@ -1109,6 +1090,24 @@ public class LWComponent
         return this.parent;
     }
 
+    // TODO: implement layers -- this a stop-gap for hiding LWSlides
+    public int getLayer() {
+        if (this.parent == null) {
+            //out("parent null, layer 0");
+            return 0;
+        } else {
+            return this.parent.getLayer();
+            //int l = this.parent.getLayer();
+            //out("parent " + parent + " layer is " + l);
+            //return l;
+        }
+    }
+
+    /** return the component to be picked if we're picked: e.g., may return null if you only want children picked, and not the parent */
+    protected LWComponent defaultPick(PickContext pc) {
+        return this;
+    }
+    
     public boolean isOrphan() {
         return this.parent == null;
     }
@@ -1117,11 +1116,24 @@ public class LWComponent
         return false;
     }
 
+    public java.util.List<LWComponent> getChildList()
+    {
+        return java.util.Collections.EMPTY_LIST;
+    }
+    
+    public java.util.Iterator<LWComponent> getChildIterator() {
+        return tufts.Util.EmptyIterator;
+    }
+    
     public boolean isEmpty() {
         return true;
     }
 
+    
     public LWSlide getSlide() {
+
+        //if (true) return buildSlide();
+        
         if (mSlide == null) {
             synchronized (this) {
                 if (mSlide == null)
@@ -1306,6 +1318,16 @@ public class LWComponent
         return getParent().getParentWithParent(parent);
     }
 
+    public boolean hasAncestor(LWContainer c) {
+        LWContainer parent = getParent();
+        if (parent == null)
+            return false;
+        else if (c == parent)
+            return true;
+        else
+            return parent.hasAncestor(c);
+    }
+
     void setScale(float scale)
     {
         if (this.scale == scale)
@@ -1383,7 +1405,7 @@ public class LWComponent
     protected void takeLocation(float x, float y) {
         if (DEBUG.LAYOUT) {
             out("takeLocation " + x + "," + y);
-            if (DEBUG.META) tufts.Util.printStackTrace("takeLocation");
+            //if (DEBUG.META) tufts.Util.printStackTrace("takeLocation");
         }
         this.x = x;
         this.y = y;
@@ -1459,20 +1481,53 @@ public class LWComponent
     {
         if (this.width == w && this.height == h)
             return;
-        if (DEBUG.LAYOUT) out("*** setSize  (LWC)  " + w + "x" + h);
+        if (DEBUG.LAYOUT||DEBUG.PRESENT) out("*** setSize  (LWC)  " + w + "x" + h);
         Size old = new Size(width, height);
+
         if (mAspect > 0) {
+
+            // Given width & height are MINIMUM size: expand to keep aspect
+            
             if (w <= 0) w = 1;
             if (h <= 0) h = 1;
-            double newAspect = w / h;
+            double tmpAspect = w / h; // aspect we would have if we did not constrain it
             // a = w / h
             // w = a*h
             // h = w/a
-            //System.out.println("aspect=" + mAspect);
-            if (newAspect < mAspect)
+            if (DEBUG.PRESENT) {
+                out("keepAspect=" + mAspect);
+                out(" tmpAspect=" + tmpAspect);
+            }
+//             if (h == this.height) {
+//                 out("case0");
+//                 h = (float) (w / mAspect);
+//             } else if (w == this.width) {
+//                 out("case1");
+//                 w = (float) (h * mAspect); 
+//             } else
+            if (tmpAspect > mAspect) {
+                out("case2: expand height");
                 h = (float) (w / mAspect);
-            else if (newAspect > mAspect)
+            } else if (tmpAspect < mAspect) {
+                out("case3: expand width");
                 w = (float) (h * mAspect);
+            }
+            else
+                if (DEBUG.PRESENT) out("NO ASPECT CHANGE");
+
+            /*
+            if (false) {
+                if (h == this.height || tmpAspect < mAspect)
+                    h = (float) (w / mAspect);
+                else if (w == this.width || tmpAspect > mAspect)
+                    w = (float) (h * mAspect);
+            } else {
+                if (tmpAspect < mAspect)
+                    h = (float) (w / mAspect);
+                else if (tmpAspect > mAspect)
+                    w = (float) (h * mAspect);
+            }
+            */
                 
         }
         if (w < MIN_SIZE) w = MIN_SIZE;
@@ -1586,6 +1641,15 @@ public class LWComponent
     {
         return x >= this.x && x <= (this.x+getWidth())
             && y >= this.y && y <= (this.y+getHeight());
+    }
+    
+    /**
+     * Default implementation: returns false;
+     * For "do-what-I-mean" hit detection, when all the more strict contains calls failed.
+     */
+    public boolean looseContains(float x, float y)
+    {
+        return false;
     }
     
     /**
@@ -1909,10 +1973,23 @@ public class LWComponent
      * are also hidden, but not all children of a filtered component
      * are filtered.
      */
+    // TODO: can create a bit-set for hidden reasons: e.g.,
+    // FILTERED, PRUNED, NOT_ON_PATHWAY, etc, so if field
+    // is non-zero, it's hidden.
     public boolean isHidden()
     {
         return this.hidden;
     }
+    /*
+    public boolean isLocked()
+    {
+        return this.locked;
+    }
+    public void setLocked(boolean locked)
+    {
+        this.locked = locked;
+    }
+    */
     public void setVisible(boolean visible)
     {
         setHidden(!visible);
@@ -1922,7 +1999,8 @@ public class LWComponent
         return !isHidden();
     }
     public boolean isDrawn() {
-        return !hidden && !isFiltered;
+        //return !hidden && !isFiltered;
+        return !isHidden() && !isFiltered();
     }
     public void setRollover(boolean tv)
     {
@@ -1960,6 +2038,7 @@ public class LWComponent
         return this.rollover;
     }
 
+    /*
     public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded, boolean ignoreSelected)
     {
         if (ignoreSelected && isSelected())
@@ -1969,11 +2048,12 @@ public class LWComponent
     }
 
 
-    /** This only to be called once we  already know mapX / mapY are within this component */
+    /** This only to be called once we  already know mapX / mapY are within this component 
     protected LWComponent findChildAt(float mapX, float mapY)
     {
         return isFiltered() ? null : this;
     }
+    */
 
 
     public void mouseEntered(MapMouseEvent e)
