@@ -25,19 +25,17 @@ import java.awt.geom.Point2D;
 import javax.swing.Action;
 
 /**
- * UndoManager
- *
  * Records all changes that take place in a LWMap (as seen from
  * LWCEvent delivery off the LWMap) and provides for arbitrarily
  * marking named points of rollback.
  *
  * For robustness, if the application fails to mark any changes,
- * they'll either have been rolled undo another undo action, or
+ * they'll either have been rolled into another undo action, or
  * stuffed into an un-named Undo action if they attempt an undo while
  * there are unmarked changes.
  *
  * @author Scott Fraize
- * @version July 2004
+ * @version $Revision:  $ / $Date:  $ / $Author: sfraize $
  */
 
 public class UndoManager
