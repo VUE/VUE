@@ -34,8 +34,8 @@ import javax.swing.Action;
  * stuffed into an un-named Undo action if they attempt an undo while
  * there are unmarked changes.
  *
+ * @version $Revision: 1.86 $ / $Date: 2006/11/16 14:20:48 $ / $Author: sfraize $
  * @author Scott Fraize
- * @version $Revision:  $ / $Date:  $ / $Author: sfraize $
  */
 
 public class UndoManager
