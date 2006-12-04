@@ -47,7 +47,7 @@ public class DEBUG
     public static boolean FOCUS = false; // AWT focus events, VUE MapViewer application focus
     public static boolean EVENTS = false; // VUE LWCEvents & Action Events (not tool events)
     public static boolean MARGINS = false; // turn off bounds margin adjustments for testing
-    public static boolean DYNAMIC_UPDATE = false; // components process all LWCEvent's immediately
+    public static boolean DYNAMIC_UPDATE = true; // components process all LWCEvent's immediately
     public static boolean KEYS = false; // keyboard input
     public static boolean TOOL = false; // toolbars & tool events
     public static boolean EDGE = false; // window edges & sticking

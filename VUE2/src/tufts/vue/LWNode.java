@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.128 $ / $Date: 2006-11-30 16:41:03 $ / $Author: sfraize $
+ * @version $Revision: 1.129 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2086,8 +2086,8 @@ public class LWNode extends LWContainer
         setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
     }
     
-    protected LWSlide buildSlide() {
-        return isTextNode() ? null : super.buildSlide();
+    protected LWSlide buildSlide(LWPathway p) {
+        return isTextNode() ? null : super.buildSlide(p);
     }
     
 

@@ -65,7 +65,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.297 $ / $Date: 2006-11-30 16:44:56 $ / $Author: sfraize $ 
+ * @version $Revision: 1.298 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -836,7 +836,7 @@ public class MapViewer extends javax.swing.JComponent
     /** at startup make sure the contents of the map are visible in the viewport */
     private void ensureMapVisible()
     {
-        if (mMap == mFocal && mMap.hasChildren()) {
+        if (mMap == mFocal && mMap != null && mMap.hasChildren()) {
             int count = computeSelection(getVisibleMapBounds(), null).size();
             if (DEBUG.INIT || DEBUG.VIEWER) out("i see " + count + " components in visible map bounds " + getVisibleMapBounds());
             if (count == 0)
@@ -906,17 +906,20 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     public void loadFocal(LWComponent focal) {
-        if (focal == null)
-            throw new IllegalArgumentException(this + " loadFocal: focal is null");
+        //if (focal == null) throw new IllegalArgumentException(this + " loadFocal: focal is null");
         if (mFocal == focal)
             return;
         if (mFocal != null)
             unloadFocal();
         mOffset.x = mOffset.y = 0;
         mFocal = focal;
-        mMap = focal.getMap();
-        mFocal.addLWCListener(this);
-        if (mMap.getUndoManager() == null) {
+        if (mFocal != null) {
+            mMap = mFocal.getMap();
+            mFocal.addLWCListener(this);
+        } else
+            mMap = null;
+        
+        if (mMap != null && mMap.getUndoManager() == null) {
             if (mMap.isModified()) {
                 out("Note: this map has modifications undo will not see");
                 //VueUtil.alert(this, "This map has modifications undo will not see.", "Note");
@@ -1074,6 +1077,7 @@ public class MapViewer extends javax.swing.JComponent
     public void selectionChanged(LWSelection s) {
         //System.out.println("MapViewer: selectionChanged");
         activeTool.handleSelectionChange(s);
+
         if (VUE.getActiveMap() != mMap) {
             if (DEBUG.FOCUS) out("NULLING SELECTION");
             VueSelection = null; // insurance: nothing should be happening here if we're not active
@@ -1374,17 +1378,33 @@ public class MapViewer extends javax.swing.JComponent
         return pc;
     }
         
-    public LWComponent pickNode(float mapX, float mapY) {
-        return pickNode(mapX, mapY, false);
-    }
-    
     public LWComponent pickNode(Point2D.Float p) {
         return pickNode(p.x, p.y);
     }
+    public LWComponent pickDropTarget(Point2D.Float p, Object dropping) {
+        return pickDropTarget(p.x, p.y, dropping);
+    }
+
     
-    protected LWComponent pickNode(float mapX, float mapY, boolean ignoreSelected)
+    public LWComponent pickNode(float mapX, float mapY) {
+        return pick(mapX, mapY, false);
+    }
+    
+    private static final LWComponent POSSIBLE_NODE = new LWComponent();
+    private static final Object POSSIBLE_RESOURCE = new Object();
+    
+    public LWComponent pickDropTarget(float mapX, float mapY, Object dropping) {
+        PickContext pc = getPickContext();
+        if (dropping == null)
+            pc.dropping = POSSIBLE_RESOURCE; // most lenient targeting if unknown
+        else
+            pc.dropping = dropping;
+        return LWTraversal.PointPick.pick(pc, mapX, mapY);
+    }
+
+    
+    protected LWComponent pick(float mapX, float mapY, boolean ignoreSelected)
     {
-        
         PickContext pc = getPickContext();
         pc.ignoreSelected = ignoreSelected;
         return LWTraversal.PointPick.pick(pc, mapX, mapY);
@@ -1739,11 +1759,13 @@ public class MapViewer extends javax.swing.JComponent
             } else
                 super.paint(g);
         } catch (Exception e) {
-            e.printStackTrace();
             System.err.println("*paint* Exception painting in: " + this);
-            System.err.println("*paint* VueSelection: " + VueSelection + ", first=" + VueSelection.first());
+            System.err.println("*paint* VueSelection: " + VueSelection);
+            if (VueSelection != null)
+                System.err.println("*paint* VueSelection.first: " + VueSelection.first());
             System.err.println("*paint* Graphics: " + g);
             System.err.println("*paint* Graphics transform: " + ((Graphics2D)g).getTransform());
+            e.printStackTrace();
         }
         if (paints == 0) {
             if (inScrollPane)
@@ -1759,28 +1781,32 @@ public class MapViewer extends javax.swing.JComponent
         }
 
 
-        if (mFocal.isEmpty())
+        if (mFocal == null || mFocal.isEmpty())
             paintEmptyMessage(g);
         
         paints++;
         RepaintRegion = null;
     }
 
-    private void paintEmptyMessage(Graphics g) {
+    protected void paintEmptyMessage(Graphics g) {
         g.setColor(Color.lightGray);
         Font font = new Font("Verdana", Font.BOLD, 36);
         g.setFont(font);
 
-        final String msg;
-        if (mMap != null && mMap.isModified())
-            msg = "Empty Map";
-        else
-            msg = "New Map";
+        final String msg = getEmptyMessage();
 
         int w = getWidth() / 2;
         w -= GUI.stringLength(font, msg) / 2;
         g.drawString(msg, w, getHeight() / 2);
     }
+
+    protected String getEmptyMessage() {
+        if (mMap != null && mMap.isModified())
+            return "Empty Map";
+        else
+            return "New Map";
+    }
+    
     
     protected DrawContext getDrawContext(Graphics2D g) {
         DrawContext dc = new DrawContext(g, getZoomFactor(), -getOriginX(), -getOriginY(), getVisibleBounds(), true);
@@ -1892,10 +1918,19 @@ public class MapViewer extends javax.swing.JComponent
         // a per-map selection (there is a selection bit in LWComponents after all)
         // We currently prevent this by setting local VueSelection to null if we're
         // not the active map, but if we miss doing that for any reason...
-        if (VueSelection != null && !VueSelection.isEmpty() && activeTool.supportsResizeControls())
-            drawSelection(dc, VueSelection);
-        else
+
+        final LWSelection s = VueSelection;
+
+        if (s == null || s.isEmpty() || !activeTool.supportsResizeControls()) {
             resizeControl.active = false;
+        } else  {
+            final LWComponent remoteFocal = s.getFocal();
+            if (getFocal() != remoteFocal && remoteFocal.isMapVirtual()) {
+                resizeControl.active = false;
+            } else {
+                drawSelection(dc, VueSelection);
+            }
+        }
 
         //-------------------------------------------------------
         // DRAW THE CURRENT INDICATION, if any (for targeting during drags)
@@ -1936,8 +1971,8 @@ public class MapViewer extends javax.swing.JComponent
                                                      
             
             g2.setFont(VueConstants.FixedFont);
-            int x = -getX() + 10;
-            int y = -getY() + 10;
+            int x = -getX() + 40;
+            int y = -getY() + 40;
             //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
             if (true) {
                 g2.drawString("     origin at: " + out(getOriginLocation()), x, y+=15);
@@ -2022,17 +2057,10 @@ public class MapViewer extends javax.swing.JComponent
 
 
     protected void drawMap(DrawContext dc) {
+        if (mFocal == null)
+            return;
+
         activeTool.handleDraw(dc, mFocal);
-        
-        /*
-        if (mFocal != mMap) {
-            dc.g.setColor(mFocal.getFillColor());
-            dc.g.fill(dc.g.getClipBounds());
-            mFocal.draw(dc);
-        } else {
-            activeTool.handleDraw(dc, mMap);
-        }
-        */
     }
     
     /** This paintChildren is a no-op.  super.paint() will call this,
@@ -2261,7 +2289,11 @@ public class MapViewer extends javax.swing.JComponent
         LWContainer mFocalParent = null;
         boolean drawSelectorBoxInThisViewer = true;
         
-        if (mFocal != mMap) {
+        if (mFocal == null) {
+            // If we're "empty", can't possibly need to draw a selection
+            resizeControl.active = false;
+            return;
+        } else if (mFocal != mMap) {
             if (mFocal.hasChildren()) {
                 mFocalParent = (LWContainer) mFocal;
             } else {
@@ -2617,34 +2649,42 @@ public class MapViewer extends javax.swing.JComponent
     
     protected void selectionAdd(LWComponent c) {
         VueSelection.setSource(this);
+        VueSelection.setFocal(getFocal());
         VueSelection.add(c);
     }
     protected void selectionAdd(java.util.Iterator i) {
         VueSelection.setSource(this);
+        VueSelection.setFocal(getFocal());
         VueSelection.add(i);
     }
     protected void selectionRemove(LWComponent c) {
         VueSelection.setSource(this);
+        VueSelection.setFocal(getFocal());
         VueSelection.remove(c);
     }
     protected void selectionSet(LWComponent c) {
         VueSelection.setSource(this);
+        VueSelection.setFocal(getFocal());
         VueSelection.setTo(c);
     }
     protected void selectionSet(java.util.Collection bag) {
         VueSelection.setSource(this);
+        VueSelection.setFocal(getFocal());
         VueSelection.setTo(bag);
     }
     protected void selectionSet(java.util.Iterator i) {
         VueSelection.setSource(this);
+        VueSelection.setFocal(getFocal());
         VueSelection.setTo(i);
     }
     protected void selectionClear() {
         VueSelection.setSource(this);
+        VueSelection.setFocal(getFocal());
         VueSelection.clear();
     }
     protected void selectionToggle(LWComponent c) {
         VueSelection.setSource(this);
+        VueSelection.setFocal(getFocal());
         if (c.isSelected())
             selectionRemove(c);
         else
@@ -2652,6 +2692,7 @@ public class MapViewer extends javax.swing.JComponent
     }
     protected void selectionToggle(java.util.Iterator i) {
         VueSelection.setSource(this);
+        VueSelection.setFocal(getFocal());
         VueSelection.toggle(i);
     }
     
@@ -4288,7 +4329,13 @@ public class MapViewer extends javax.swing.JComponent
                 */
                 // is ignoreSelected good enough because possible children of
                 // a dragged object are not selected?
-                over = pickNode(mapX, mapY, true);
+                //over = pickDropTarget(mapX, mapY, true);
+
+                PickContext pc = getPickContext();
+                pc.ignoreSelected = true;
+                pc.dropping = dragComponent; // TODO: should be first in selection if just one item, as this is always a temporary group!
+                over = LWTraversal.PointPick.pick(pc, mapX, mapY);
+                
                 
                 if (indication != null && indication != over) {
                     //repaintRegion.add(indication.getBounds());

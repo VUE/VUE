@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.BasicStroke;
@@ -42,7 +43,7 @@ import java.awt.geom.Ellipse2D;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.117 $ / $Date: 2006-10-18 17:33:46 $ / $Author: sfraize $
+ * @version $Revision: 1.118 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -584,6 +585,44 @@ public class LWPathway extends LWContainer
         this.ordered = ordered;
     }
 
+    private LWSlide mMasterSlide;
+    public LWSlide getMasterSlide() {
+        if (mMasterSlide == null)
+            mMasterSlide = buildMasterSlide();
+        return mMasterSlide;
+    }
+    
+    protected LWSlide buildMasterSlide() {
+        LWSlide master = new LWSlide() {
+                {
+                    setStrokeWidth(0);
+                    setFillColor(Color.darkGray);
+
+                    LWComponent titleText = NodeTool.createTextNode("Title Text");
+                    LWComponent itemText = NodeTool.createTextNode("Item Text");
+
+                    itemText.setLocation(40,100);
+
+                    titleText.setFont(new Font("SansSerif", Font.BOLD, 72));
+                    itemText.setFont(new Font("SansSerif", Font.PLAIN, 48));
+            
+                    //addChild(titleText);
+                    //addChild(itemText);
+                    setParent(LWPathway.this);
+                }
+                public String getLabel() {
+                    return "Master Slide: " + LWPathway.this.getLabel();
+                }
+                public String getComponentTypeLabel() { return "Slide<Master>"; }
+            };
+            //master.setLabel("Master Slide: " + getLabel());
+//         master.setParent(this);
+//         master.addChild(new LWNode("Title Text"));
+//         master.addChild(new LWNode("Item Text"));
+        ensureID(master);
+        return master;
+    }
+
     /**
      * for persistance: override of LWContainer: pathways never save their children
      * as they don't own them -- they only save ID references to them.  Pathways
@@ -746,6 +785,8 @@ public class LWPathway extends LWContainer
         int strokeWidth = PathwayStrokeWidth;
         boolean selected = (getCurrent() == c && VUE.getActivePathway() == this);
 
+        //dc = new DrawContext(dc);
+
         // because we're drawing under the object, only half of the
         // amount we add to to the stroke width is visible outside the
         // edge of the object, except for links, which are
@@ -775,7 +816,7 @@ public class LWPathway extends LWContainer
                                            , dash_phase));
         }
         dc.g.draw(c.getShape());
-        dc.g.setComposite(AlphaComposite.Src);//todo: restore old composite
+        dc.g.setComposite(AlphaComposite.Src);//TODO: restore old composite
     }
     
     public void drawPathway(DrawContext dc)
@@ -788,6 +829,7 @@ public class LWPathway extends LWContainer
             dash_phase = 0.5f;
         }
         */
+        //dc = new DrawContext(dc);
         
         if (DEBUG.PATHWAY&&DEBUG.BOXES) System.out.println("Drawing " + this + " index=" + dc.getIndex() + " phase=" + dash_phase);
         Line2D.Float connector = new Line2D.Float();

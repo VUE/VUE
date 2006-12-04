@@ -34,7 +34,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.91 $ / $Date: 2006-11-30 16:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.92 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -155,9 +155,17 @@ public abstract class LWContainer extends LWComponent
     public int numChildren() {
         return children == null ? 0 : children.size();
     }
+
+    public boolean hasChild(LWComponent c) {
+        return children.contains(c);
+    }
+
+    /*
     public boolean isEmpty() {
         return children == null || children.size() < 1;
     }
+    */
+    
     public List<LWComponent> getChildList()
     {
         return this.children;
@@ -264,7 +272,7 @@ public abstract class LWContainer extends LWComponent
      * Make sure this LWComponent has an ID -- will have an effect on
      * on any brand new LWComponent exactly once per VM instance.
      */
-    private void ensureID(LWComponent c)
+    protected  void ensureID(LWComponent c)
     {
         if (c.getID() == null) {
             String id = getNextUniqueID();
@@ -676,18 +684,31 @@ public abstract class LWContainer extends LWComponent
         this.focusComponent = c;
     }
     
-    protected LWSlide buildSlide() {
+    protected LWSlide buildSlide(LWPathway p) {
         //LWContainer dupe = (LWContainer) duplicate();
         //return LWSlide.createFromList(dupe.children);
         LWSlide slide = new LWSlide();
         slide.setStrokeWidth(0f);
+        slide.setFillColor(null);
         slide.createForNode(this);
+
+        // This makes the slide a virtual child only: the slide
+        // at least can know it's part of the map, but the map
+        // doesn't know it contains the slide (so it won't
+        // be seen as part of the map for saving, picking,
+        // or drawing, so all those must be done directly
+        // on the slide).
+        slide.setParent(this);
+
+        // make sure it has an ID -- will need for persistance
+        ensureID(slide);
+        
         //slide.setLocation(getX(), getY() + getHeight() + 20);
         //slide.setScale(0.125f);
         //slide.setLocation(Short.MAX_VALUE, Short.MAX_VALUE);
         //slide.setLocked(true);
-        slide.setLayer(1); // effective make invisible on the map map
-        getMap().addChild(slide);
+        //slide.setLayer(1); // effective make invisible on the map map
+        //getMap().addChild(slide);
         return slide;
     }
     
@@ -860,6 +881,11 @@ public abstract class LWContainer extends LWComponent
         //return isDrawn() ? this : null; // should already be handled now in the PointPick traversal
         return this;
     }
+
+    protected LWComponent defaultDropTarget(PickContext pc) {
+        return this;
+    }
+    
     
     /** subclasses can override this to change the picking results of children */
     protected LWComponent pickChild(PickContext pc, LWComponent c) {

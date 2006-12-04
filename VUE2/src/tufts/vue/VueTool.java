@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.42 $ / $Date: 2006-11-30 16:46:58 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -388,6 +388,7 @@ public abstract class VueTool extends AbstractAction
         return false;
     }
 
+    /*
     private static class SlideProxyMap extends LWMap {
         private LWMap srcMap;
         SlideProxyMap(LWMap srcMap) {
@@ -404,10 +405,12 @@ public abstract class VueTool extends AbstractAction
     private static MapViewer SlideViewer = null;
     private static LWMap SlideMap = null;
     private static LWComponent CurSlide = null;
-    //public void handleSelectionChange(LWSelection s) {}
-    // temporary: give this to everyone
+    */
+
     public void handleSelectionChange(LWSelection s) {
 
+        /*
+        
         if (s.size() == 1
             && !(s.getSource() instanceof tufts.vue.ui.SlideViewer)
             && !(s.first().getParent() instanceof LWSlide)
@@ -419,6 +422,7 @@ public abstract class VueTool extends AbstractAction
             tufts.vue.ui.SlideViewer.getInstance().loadFocal(s.first());
             return;
         }
+        */
         
         /*
         if (s.size() == 1 && VUE.isActiveViewerOnLeft())

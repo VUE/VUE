@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.105 $ / $Date: 2006-11-30 16:39:20 $ / $Author: sfraize $
+ * @version $Revision: 1.106 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -193,7 +193,7 @@ public class LWLink extends LWComponent
         else
             super.setProperty(key, val);
     }
-    
+
 
     static LWLink setDefaults(LWLink l)
     {

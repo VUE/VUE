@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.105 $ / $Date: 2006-11-30 16:40:05 $ / $Author: sfraize $
+ * @version $Revision: 1.106 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -393,8 +393,18 @@ public class LWMap extends LWContainer
         setChildParentReferences();
         if (mPathways == null)
             mPathways = new LWPathwayList(this);
-        mPathways.completeXMLRestore(this);
+
         this.nextID = findGreatestChildID() + 1;
+        Iterator<LWPathway> pi = mPathways.iterator();
+        while (pi.hasNext()) {
+            LWPathway p = pi.next();
+            // 2006-11-30 14:33.32 SMF: LWPathways now have ID's,
+            // but they didn't used to, so make sure they
+            // have an ID on restore in case it was an old one.
+            ensureID(p);
+        }
+        
+        mPathways.completeXMLRestore(this);
 
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
             System.out.println(getLabel() + ": restore completed (nextID=" + nextID + ")");
@@ -555,14 +565,27 @@ public class LWMap extends LWContainer
     }
     
     public LWPathway addPathway(LWPathway p) {
+        ensureID(p);
         getPathwayList().add(p);
         return p;
+    }
+
+    public LWPathway getActivePathway()
+    {
+        if (getPathwayList() != null)
+            return getPathwayList().getActivePathway();
+        else
+            return null;
     }
     
     protected void addChildInternal(LWComponent c) {
         if (c instanceof LWPathway)
             throw new IllegalArgumentException("LWPathways not added as direct children of map: use addPathway " + c);
         super.addChildInternal(c);
+    }
+
+    public boolean isEmpty() {
+        return children == null || children.size() < 1;
     }
     
     LWComponent addLWC(LWComponent c) {

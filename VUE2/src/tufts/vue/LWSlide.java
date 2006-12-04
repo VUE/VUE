@@ -27,18 +27,23 @@ import java.awt.geom.*;
  * Sublcass (for now) of LWGroup for slide features.
  *
  * @author Scott Fraize
- * @version $Revision: 1.2 $ / $Date: 2006-11-30 16:41:33 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  */
 public class LWSlide extends LWGroup
 {
+    private static final int SlideWidth = 800;
+    private static final int SlideHeight = 600;
+    private static final int SlideMargin = 30;
+
     int mLayer = 0;
     
     public LWSlide() {
         setFillColor(new Color(0,0,0,64));
         setStrokeWidth(1);
         setStrokeColor(Color.black);
-        setAspect(((float)GUI.GScreenWidth) / ((float)GUI.GScreenHeight));
-        setSize(320,240);
+        setSize(SlideWidth,SlideHeight);
+        //setAspect(((float)GUI.GScreenWidth) / ((float)GUI.GScreenHeight));
+        setAspect(getWidth() / getHeight());
     }
 
     public void setLayer(int layer) {
@@ -71,10 +76,6 @@ public class LWSlide extends LWGroup
         return slide;
     }
     
-    private static final int SlideWidth = 800;
-    private static final int SlideHeight = 600;
-    private static final int SlideMargin = 30;
-
     private void importAndLayout(java.util.List<LWComponent> nodes)
     {
         //java.util.Collections.reverse(nodes);

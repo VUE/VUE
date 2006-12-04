@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.62 $ / $Date: 2006-11-30 16:42:11 $ / $Author: sfraize $  
+ * @version $Revision: 1.63 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -112,7 +112,16 @@ class MapDropTarget
     {
         if (DEBUG.DND && DEBUG.META) out("dragOver " + GUI.dragName(e));
 
-        LWComponent over = mViewer.pickNode(dropToMapLocation(e.getLocation()));
+        final LWComponent over = mViewer.pickDropTarget(dropToMapLocation(e.getLocation()), null);
+
+        if (over != null)
+            mViewer.setIndicated(over);
+        else
+            mViewer.clearIndicated();
+
+        /*
+          // HANDLE IN TRAVERSAL!
+          
         if (over instanceof LWNode || over instanceof LWLink) {
             // todo: if over resource icon and we can set THAT indicated, do
             // so and also use that to indicate we'd like to set the resource
@@ -120,6 +129,8 @@ class MapDropTarget
             mViewer.setIndicated(over);
         } else
             mViewer.clearIndicated();
+
+        */
 
         trackDrag(e);
     }
@@ -157,7 +168,8 @@ class MapDropTarget
         final List list;                // convience reference to items if it is a List
         final String text;              // only one of items+list or text
         final LWComponent hit;          // we dropped into this component
-        final LWNode hitNode;           // we dropped into this component, and it was a node
+        //final LWNode hitNode;           // we dropped into this component, and it was a node
+        final LWContainer hitNode;      // we dropped into this component, and it can take children
         final boolean isLinkAction;     // user kbd modifiers down produced LINK drop action
 
         private float nextX;
@@ -183,8 +195,14 @@ class MapDropTarget
             else
                 list = null;
             
+            /*
             if (hit instanceof LWNode)
                 hitNode = (LWNode) hit;
+            else
+                hitNode = null;
+            */
+            if (hit instanceof LWContainer)
+                hitNode = (LWContainer) hit;
             else
                 hitNode = null;
 
@@ -275,15 +293,18 @@ class MapDropTarget
             if (DEBUG.DND) out("processTransferable: " + GUI.dropName(e));
         }
 
-        LWComponent hitComponent = null;
+        LWComponent dropTarget = null;
 
         if (dropLocation != null) {
-            hitComponent = mViewer.pickNode(mapLocation);
-            if (hitComponent instanceof LWImage) { // todo: does LWComponent accept drop events...
-                if (DEBUG.DND) out("hitComponent=" + hitComponent + " (ignored)");
-                hitComponent = null;
+            dropTarget = mViewer.pickDropTarget(mapLocation, null);
+            /*
+              // handle via traversal picking code:
+            if (dropTarget instanceof LWImage) { // todo: does LWComponent accept drop events...
+                if (DEBUG.DND) out("dropHit=" + dropTarget + " (ignored)");
+                dropTarget = null;
             } else 
-                if (DEBUG.DND) out("hitComponent=" + hitComponent);
+                if (DEBUG.DND) out("dropHit=" + dropTarget);
+            */
         } else {
             // if no drop location (e.g., we did a "Paste") then assume where
             // they last clicked.
@@ -392,7 +413,7 @@ class MapDropTarget
                             mapLocation,
                             dropItems,
                             dropText,
-                            hitComponent,
+                            dropTarget,
                             isLinkAction);
 
         boolean success = false;

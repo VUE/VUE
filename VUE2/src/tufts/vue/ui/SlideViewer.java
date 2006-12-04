@@ -19,6 +19,8 @@
 package tufts.vue.ui;
 
 import tufts.Util;
+import tufts.vue.VUE;
+import tufts.vue.LWPathway;
 import tufts.vue.LWComponent;
 import tufts.vue.LWMap;
 import tufts.vue.LWSelection;
@@ -34,8 +36,9 @@ import tufts.vue.PickContext;
 import tufts.vue.gui.GUI;
 import tufts.vue.DEBUG;
 
-import java.awt.Color;
+import java.awt.*;
 import java.awt.event.*;
+import javax.swing.*;
 
 // TWO CASES TO HANDLE:
 
@@ -65,40 +68,87 @@ import java.awt.event.*;
 // Okay, so they can be owned by the map, but could just have bit for now that says "invisible",
 // if we can handle the direct viewing, drawing & selecting of a container with clever traversals.
 
-public class SlideViewer extends tufts.vue.MapViewer
+public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwayListener
 {
-    private static SlideViewer singleton;
-
     private final VueTool PresentationTool = VueToolbarController.getController().getTool("viewTool");
 
     private boolean mBlackout = false;
-    private LWComponent mZoomTo;
-    private boolean inFocal = false;
-    private boolean inSlideLayer;
-        
-    /*
-    private static class SingletonMap extends LWMap {
-        private final LWMap srcMap;
-        SingletonMap(LWMap srcMap, LWComponent singleChild) {
-            super("SingletonMap");
-            this.srcMap = srcMap;
-            super.children = java.util.Collections.singletonList(singleChild);
-        }
-
-        public tufts.vue.LWPathwayList getPathwayList() {
-            return srcMap == null ? null : srcMap.getPathwayList();
-        }
-    }
-    */
     
+    private boolean mZoomBorder;
+    private boolean inFocal;
+    private LWComponent mZoomContent; // what we zoom-to
+    private boolean viewingPathwaySlide;
+    private LWComponent mLastLoad;
+
+    private final AbstractButton btnLocked;
+    private final AbstractButton btnZoom;
+    private final AbstractButton btnFocus;
+    private final AbstractButton btnSlide;
+    private final AbstractButton btnMaster;
+
+    private class Toolbar extends JPanel implements ActionListener {
+        Toolbar() {
+            //btnLocked.setFont(VueConstants.FONT_SMALL);
+            add(btnLocked);
+            add(Box.createHorizontalGlue());
+            add(btnZoom);
+            add(btnFocus);
+            add(btnSlide);
+            add(btnMaster);
+
+            ButtonGroup exclusive = new ButtonGroup();
+            exclusive.add(btnZoom);
+            exclusive.add(btnFocus);
+            exclusive.add(btnSlide);
+            exclusive.add(btnMaster);
+        }
+
+        private void add(AbstractButton b) {
+            b.addActionListener(this);
+            super.add(b);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            //out(e);
+            reload();
+        }
+
+    }
+        
     public SlideViewer(LWMap map) {
-        super(map == null ? new LWMap("empty") : map, "SlideViewer");
-        singleton = this;
+        super(null, "Viewer");
+        //super(map == null ? new LWMap("empty") : map, "SlideViewer");
+
+        btnLocked = new JCheckBox("Lock");
+        //btnLocked = makeButton("Lock");
+        btnZoom = makeButton("Zoom");
+        btnFocus = makeButton("Focus");
+        btnSlide = makeButton("Slide");
+        btnMaster = makeButton("Master Slide");
+
+        btnSlide.setSelected(true);
+
         DEBUG_TIMER_ROLLOVER = false;
+        VUE.addActivePathwayListener(this);
     }
 
-    public static SlideViewer getInstance() {
-        return singleton;
+    protected AbstractButton makeButton(String name) {
+        AbstractButton b = new JToggleButton(name);
+        b.setFocusable(false);
+        //b.setBorderPainted(false);
+        return b;
+    }
+
+    protected String getEmptyMessage() {
+        if (mLastLoad != null && btnSlide.isSelected())
+            return "Not on Pathway";
+        else
+            return "Empty";
+    }
+    
+    public void addNotify() {
+        super.addNotify();
+        getParent().add(new Toolbar(), BorderLayout.NORTH);
     }
 
     public void XfocusGained(FocusEvent e) {
@@ -117,21 +167,22 @@ public class SlideViewer extends tufts.vue.MapViewer
             super.grabVueApplicationFocus(from, event);
     }
     
-    public void XselectionChanged(LWSelection s) {
-        out("selectionChanged ignored");
-    }
 
-    /*
     public void LWCChanged(LWCEvent e) {
         out("SLIDEVIEWER LWCChanged " + e);
         super.LWCChanged(e);
         //if (e.getComponent() == mFocused)
             zoomToContents();
     }
-    */
 
-    protected int getMaxLayer() {
-        return inSlideLayer ? 1 : 0;
+    // no longer relevant: maxLayer hack currently not in use
+    //protected int getMaxLayer() { return viewingPathwaySlide ? 1 : 0; }
+
+    protected DrawContext getDrawContext(Graphics2D g) {
+        DrawContext dc = super.getDrawContext(g);
+        if (inFocal)
+            dc.isFocused = true;
+        return dc;
     }
 
     protected PickContext getPickContext() {
@@ -141,7 +192,7 @@ public class SlideViewer extends tufts.vue.MapViewer
         // and we can initiate the drag selector box on
         // children.
         
-        if (inFocal)
+        if (inFocal && !btnMaster.isSelected())
             pc.excluded = mFocal;
 
         // So we automatically pick inside groups
@@ -149,37 +200,136 @@ public class SlideViewer extends tufts.vue.MapViewer
 
         return pc;
     }
-    
-    public void loadFocal(LWComponent c) {
 
-        inSlideLayer = false;
-        
-        LWComponent slide;
-        if (c instanceof LWSlide)
-            slide = (LWSlide) c;
-        else {
-            slide = c.getSlide();
-            if (slide != null)
-                inSlideLayer = true;
+    public void activePathwayChanged(LWPathway p) {
+        if (viewingPathwaySlide) {
+            reload();
         }
+    }
+
+    private void reload() {
+        // TODO: load nothing if active pathway from a different map
+        //if (mLastLoad != null)
+        load(mLastLoad);
+    }
         
-        if (slide != null) {
-            super.loadFocal(slide);
-            inFocal = true;
-            mZoomTo = null;
-        } else if (c instanceof tufts.vue.LWImage) {
-            super.loadFocal(c);
-            inFocal = true;
-            mZoomTo = null;
-        } else {
-            super.loadFocal(c.getMap());
+    public void selectionChanged(LWSelection s) {
+        super.selectionChanged(s);
+
+        if (btnLocked.isSelected())
+            return;
+            
+        if (s.getSource() != this && s.size() == 1) {
+            if (btnMaster.isSelected())
+                mLastLoad = s.first();
+            else
+                load(s.first());
+        }
+    }
+
+    protected void load(LWComponent c)
+    {
+        mLastLoad = c;
+        //btnSlide.setEnabled(true);
+
+        LWComponent focal;
+
+        // If no slide available, disable slide button, even if don't want it!
+
+        if (c == null) {
+            mZoomBorder = false;
+            mZoomContent = null;
             inFocal = false;
-            mZoomTo = c;
+            focal = null;
+        } else {
+            focal = getFocalAndConfigure(c);
         }
-
+        
+        super.loadFocal(focal);
         reshapeImpl(0,0,0,0);
         out("\nSlideViewer: focused is now " + mFocal + " from map " + mMap);
     }
+
+    private LWSlide getActiveMasterSlide() {
+        if (VUE.getActiveMap() != null)
+            return VUE.getActiveMap().getActivePathway().getMasterSlide();
+        else
+            return null;
+    }
+    
+
+    private LWComponent getFocalAndConfigure(LWComponent c)
+    {
+        final LWComponent focal;
+        
+        viewingPathwaySlide = false;
+            
+        if (btnZoom.isSelected()) {
+            inFocal = false;
+            mZoomContent = c;
+            mZoomBorder = true;
+            focal = c.getMap();
+        } else if (btnFocus.isSelected()) {
+            inFocal = true;
+            mZoomBorder = false;
+            mZoomContent = c;
+            focal = c;
+        } else if (btnSlide.isSelected()) {
+
+            focal = c.getSlideForPathway(c.getMap().getActivePathway());
+            // todo: if only on ONE pathway, and thus could only have
+            // one slide, could still allow the slide selection
+            // even if not current active pathway
+            
+            mZoomBorder = false;
+            
+            if (focal != null) {
+                viewingPathwaySlide = true;
+                btnSlide.setEnabled(true);
+                mZoomContent = focal;
+            } else {
+                mZoomContent = null;
+            }
+            
+        } else if (btnMaster.isSelected()) {
+            inFocal = true;
+            viewingPathwaySlide = true;
+            mZoomBorder = false;
+            mZoomContent = VUE.getActiveMap().getActivePathway().getMasterSlide();
+            focal = mZoomContent;
+        } else {
+            focal = null;
+            throw new InternalError();
+        }
+        
+        return focal;
+    }
+
+    protected void reshapeImpl(int x, int y, int w, int h) {
+        zoomToContents();
+    }
+    
+    protected void zoomToContents() {
+        if (mZoomContent == null)
+            return;
+
+        final java.awt.geom.Rectangle2D zoomBounds;
+
+        if (inFocal) {
+            // don't include any bounds due to current
+            // state decorations, such as being no a pathway
+            zoomBounds = mZoomContent.getShapeBounds();
+        } else
+            zoomBounds = mZoomContent.getBounds();
+
+        tufts.vue.ZoomTool.setZoomFitRegion(this,
+                                            zoomBounds,
+                                            20,
+                                            //mZoomBorder ? 20 : 0,
+                                            false);
+    }
+    
+    
 
     /*
       // not relevant: we'lre not in a scroll pane
@@ -213,78 +363,6 @@ public class SlideViewer extends tufts.vue.MapViewer
     }
     
         
-    protected void reshapeImpl(int x, int y, int w, int h) {
-        zoomToContents();
-    }
-    
-    protected void zoomToContents() {
-        if (mZoomTo != null) {
-            tufts.vue.ZoomTool.setZoomFitRegion(this,
-                                                mZoomTo.getBounds(),
-                                                DEBUG.MARGINS ? 0 : 20,
-                                                false);
-        } else if (mFocal != mMap) {
-            tufts.vue.ZoomTool.setZoomFitRegion(this,
-                                                mFocal.getBounds(),
-                                                0,
-                                                false);
-        }
-        /*
-        LWComponent focus = (mFocused == null ? mMap : mFocused);
-            //if (mFocused != null)
-        tufts.vue.ZoomTool.setZoomFitRegion(this,
-                                            focus.getBounds(),
-                                            DEBUG.MARGINS ? 0 : 20,
-                                            false);
-        */
-
-        //tufts.vue.ZoomTool.setZoomFit(this);
-    }
-    
-    /*
-    public void setFocused(LWComponent c) {
-
-        out("setFocused " + c);
-        
-        LWComponent slide = c.getSlide();
-        if (slide != null) {
-            mSelected = slide;
-        } else {
-            mSelected = c;
-        }
-        
-        if (mSelected == c) // we've already loaded this up
-            return;
-
-
-//         LWComponent toFocus = c.getSlide();
-//         LWMap owningMap;
-//         // TODO: NO SINGLETON MAP: ANOTHER MAP LAYEr
-//         if (toFocus == null) {
-//             toFocus = mSelected;
-//             owningMap = mSelected.getMap();
-//         } else {
-//             owningMap = new SingletonMap(mSelected.getMap(), toFocus);
-//             toFocus = null; // nothing within the map to focus on: just use the singletonMap
-//         }
-//         mFocused = toFocus;
-
-
-        LWComponent toFocus = mSelected;
-        LWMap owningMap = mSelected.getMap();
-
-        mFocused = toFocus;
-        loadFocal(owningMap);
-
-        //singleton.loadMap(c.getMap()); // CAN ONLY DO THIS IF DOING ZOOM-TO on current map, not for a slide, which needs a virtual map
-        //singleton.mFocused = c.getSlide();
-        
-        reshapeImpl(0,0,0,0);
-        out("\nSlideViewer: focused is now " + toFocus + " from map " + c.getMap());
-        //if (DEBUG.Enabled) tufts.Util.printStackTrace("SLIDE-VIEWER-SET-FOCUSED");
-    }
-*/
-
     public void keyPressed(java.awt.event.KeyEvent e) {
         super.keyPressed(e);
         if (e.isConsumed())
@@ -303,14 +381,33 @@ public class SlideViewer extends tufts.vue.MapViewer
         super.drawSelection(dc, s);
     }
 
-    /*
-    protected PickContext getPickContext(float x, float y) {
-        return new PickContext(mFocal, x, y, 1);
+
+    protected void drawMap(DrawContext dc) {
+
+        if (mFocal == null)
+            return;
+
+        if (viewingPathwaySlide) {
+            final LWSlide master = VUE.getActiveMap().getActivePathway().getMasterSlide();
+            if (btnMaster.isSelected()) {
+                // When editing the master, allow us to see stuff outside of it
+                master.draw(dc);
+            } else {
+                // When just filling the background with the master, only draw
+                // what's in the containment box
+                final Shape curClip = dc.g.getClip();
+                dc.g.setClip(master.getBounds());
+                master.draw(dc);
+                dc.g.setClip(curClip);
+            }
+        } else {
+            dc.g.setColor(mFocal.getMap().getFillColor());
+            dc.g.fill(dc.g.getClipBounds());
+        }
+        mFocal.draw(dc);
     }
-
-    */
     
-
+    
     /*
     protected void drawMap(DrawContext dc) {
         if (mBlackout) {
@@ -378,6 +475,23 @@ public class SlideViewer extends tufts.vue.MapViewer
         Widget.setMenuActions(this, mMenuActions);
     }
     */
+
+    /*
+    private static class SingletonMap extends LWMap {
+        private final LWMap srcMap;
+        SingletonMap(LWMap srcMap, LWComponent singleChild) {
+            super("SingletonMap");
+            this.srcMap = srcMap;
+            super.children = java.util.Collections.singletonList(singleChild);
+        }
+
+        public tufts.vue.LWPathwayList getPathwayList() {
+            return srcMap == null ? null : srcMap.getPathwayList();
+        }
+    }
+    */
+    
+    
 
     
 }

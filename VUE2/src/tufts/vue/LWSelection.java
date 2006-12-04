@@ -28,7 +28,7 @@ import java.awt.geom.Point2D;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.44 $ / $Date: 2006-11-30 16:41:13 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -43,6 +43,7 @@ public class LWSelection extends java.util.ArrayList
     private int mWidth = -1, mHeight = -1;  // only used for manually created selections
 
     private Object source;
+    private LWComponent focal; // root of selection tree
 
     public LWSelection() {}
 
@@ -53,6 +54,13 @@ public class LWSelection extends java.util.ArrayList
     public void setSource(Object src) {
         this.source = src;
     }
+    public void setFocal(LWComponent focal) {
+        this.focal = focal;
+    }
+    public LWComponent getFocal() {
+        return focal;
+    }
+
 
 
     // currently only used for special case manually created selections

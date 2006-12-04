@@ -32,7 +32,7 @@ package tufts.vue;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.1 $ / $Date: 2006-11-30 16:48:40 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -55,6 +55,9 @@ public class LWTraversal {
     }
 
     public void traverse(LWComponent c) {
+
+        if (c == null)
+            return;
 
         if (preOrder && accept(c)) {
             visit(c);
@@ -187,6 +190,7 @@ public class LWTraversal {
         public static LWComponent pick(PickContext pc, float mapX, float mapY) {
             return new PointPick(pc, mapX, mapY).traverseAndPick(pc.root);
         }
+        
         public static LWComponent pick(MapMouseEvent e) {
             PointPick pick = new PointPick(e);
             pick.traverse(pick.pc.root);
@@ -206,12 +210,17 @@ public class LWTraversal {
                 LWContainer parent = hit.getParent();
                 if (parent != null)
                     picked = parent.pickChild(pc, hit);
+
                 if (picked == hit) {
                     // only make use of defaultPick if pickChild didn't
                     // already redirect us to something else
                     if (picked != null)
                         picked = picked.defaultPick(pc);
                 }
+
+                if (picked != null && pc.dropping != null)
+                    picked = picked.defaultDropTarget(pc);
+            
             }
 
             if (picked == null) {

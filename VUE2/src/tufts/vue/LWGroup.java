@@ -44,7 +44,7 @@ import java.awt.geom.Rectangle2D;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.39 $ / $Date: 2006-11-30 16:37:24 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -297,47 +297,63 @@ public class LWGroup extends LWContainer
         setSizeFromChildren();
     }
 
-    /* enable this to make groups ghost components, that are never found
-       except by their child components */
-    public boolean X_contains(float x, float y)
+    public boolean contains(final float x, final float y)
     {
-        // TODO PERF: track and check group bounds here instead of every component!
-        // Right now we're calling contains twice on everything in a group
-        // when use findDeepestComponent
-        java.util.Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.contains(x, y))
-                return true;
-        }
-        return false;
+        if (isTransparent()) {
+            for (LWComponent c : getChildList())
+                if (c.contains(x, y))
+                    return true;
+            return false;
+        } else
+            return super.contains(x, y);
     }
     
-    public boolean intersects(Rectangle2D rect)
+    public boolean intersects(final Rectangle2D rect)
     {
-        // todo opt: use our cached bounds already computed
-        java.util.Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        if (hasVisibleFeatures())
+            return super.intersects(rect);
+        
+        for (LWComponent c : getChildList())
             if (c.intersects(rect))
                 return true;
-        }
+        
         return false;
     }
+
+    private boolean hasVisibleFeatures() 
+    {
+        return getStrokeWidth() > 0 || !isTransparent();
+    }
+    
     
     /** If it paints a background or draws a border, it's empty space can be picked, otherwise, only pick via children */
     protected LWComponent defaultPick(PickContext pc) {
-        if (getFillColor() == null && getStrokeWidth() == 0)
-            return null;
-        else 
+        if (hasVisibleFeatures())
             return this;
+        else 
+            return null;
     }
+
     
     /**
      * A hit on any component in the group finds the whole group,
      * not that component.
      */
     protected LWComponent pickChild(PickContext pc, LWComponent c) {
+
+        //if (pc.pickDepth > 0 || pc.dropping != null)
+
+        // If we're dropping, we can/should allow a drop into the
+        // child of a group -- but if it's the group that's being
+        // dragged, and it was selected by selecting a child,
+        // we could drop the group into itself, creating an
+        // infinite loop...  Well either need to always enfore
+        // all members of a group selected together (which would
+        // work cause we ignore selected when looking for pick
+        // targets), or more robust, always excude the entire list
+        // of everything in the selection and all decendents from
+        // picks... (very heavy duty tho)
+
         if (pc.pickDepth > 0)
             return c;
         else

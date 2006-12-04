@@ -430,11 +430,6 @@ public class LWImage extends LWComponent
         return null;
     }
 
-    /** an image always "has content", even if no children */
-    public boolean isEmpty() {
-        return false;
-    }
-
     /*
     static LWImage testImage() {
         LWImage i = new LWImage();

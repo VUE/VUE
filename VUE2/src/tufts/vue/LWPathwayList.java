@@ -27,14 +27,14 @@ import java.util.*;
  * their contents, and rebroadcasting them to interested parties, such
  * as the PathwayTableModel.
  *
- * @version $Revision: 1.21 $ / $Date: 2006-01-20 19:23:20 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
 
 public class LWPathwayList implements LWComponent.Listener
 {
-    private List mPathways = new java.util.ArrayList();
+    private List<LWPathway> mPathways = new java.util.ArrayList();
     private LWMap mMap = null;
     private LWPathway mActive = null;
     private LWPathway mRevealer = null; // currently active "revealer" pathway, if any
@@ -146,7 +146,7 @@ public class LWPathwayList implements LWComponent.Listener
 
     private Object get(int i) { return mPathways.get(i); }
     public int size() { return mPathways.size(); }
-    public Iterator iterator() { return mPathways.iterator(); }
+    public Iterator<LWPathway> iterator() { return mPathways.iterator(); }
     public int indexOf(Object o) { return mPathways.indexOf(o); }
    
     public LWPathway getFirst(){

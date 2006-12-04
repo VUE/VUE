@@ -37,7 +37,7 @@ import java.util.Iterator;
  * @see LWPathwayList
  * @see LWPathway
  *
- * @version $Revision: 1.24 $ / $Date: 2006-11-30 16:45:09 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 public class PathwayTool extends VueSimpleTool
@@ -95,7 +95,7 @@ public class PathwayTool extends VueSimpleTool
     }
 
     private static class PathwayComboBoxModel extends DefaultComboBoxModel
-        implements VUE.ActiveMapListener, LWComponent.Listener
+        implements VUE.ActiveMapListener, LWComponent.Listener, VUE.ActivePathwayListener
     {
         LWPathwayList mPathwayList;
 
@@ -110,6 +110,31 @@ public class PathwayTool extends VueSimpleTool
         public void activeMapChanged(LWMap map) {
             if (DEBUG.PATHWAY) System.out.println(this + " map changed to " + map);
             setPathwayList(map);
+        }
+        
+        public void activePathwayChanged(LWPathway p) {
+            //if (DEBUG.PATHWAY) System.out.println(this + " pathway changed to " + p);
+            //setSelectedItem(p.getDisplayLabel());
+            // TODO: move LWCChanged code below to VUE for general pathway change
+            // handling, and then handle just changing the selected item
+            // here, tho we'll need to add source to this as an event
+            // to make sure it's not coming from us, or hack-catch against
+            // the loop manually in here.
+        }        
+
+        public void LWCChanged(LWCEvent e) {
+            if (DEBUG.PATHWAY) System.out.println(this + ": " + e);
+            if (e.getComponent() instanceof LWPathway) {
+                if (e.getWhat() == LWKey.Label)
+                    rebuildModel();
+                else if (e.getWhat().startsWith("pathway.")) {
+                    if (e.getWhat().equals("pathway.create") || e.getWhat().equals("pathway.delete")) {
+                        rebuildModel();
+                    } else if (e.getWhat().equals("pathway.list.active")) {
+                        setSelectedItem(e.getComponent().getDisplayLabel());
+                    }
+                }
+            }
         }
 
         private void setPathwayList(LWMap map) {
@@ -127,21 +152,6 @@ public class PathwayTool extends VueSimpleTool
                     mPathwayList.addListener(this);
             }
             rebuildModel();
-        }
-
-        public void LWCChanged(LWCEvent e) {
-            if (DEBUG.PATHWAY) System.out.println(this + ": " + e);
-            if (e.getComponent() instanceof LWPathway) {
-                if (e.getWhat() == LWKey.Label)
-                    rebuildModel();
-                else if (e.getWhat().startsWith("pathway.")) {
-                    if (e.getWhat().equals("pathway.create") || e.getWhat().equals("pathway.delete")) {
-                        rebuildModel();
-                    } else if (e.getWhat().equals("pathway.list.active")) {
-                        setSelectedItem(e.getComponent().getDisplayLabel());
-                    }
-                }
-            }
         }
 
         public void setSelectedItem(Object o) {

@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.196 $ / $Date: 2006-11-30 16:36:16 $ / $Author: sfraize $
+ * @version $Revision: 1.197 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -131,8 +131,8 @@ public class LWComponent
     protected transient double mCachedImageAlpha;
     protected transient Dimension mCachedImageMaxSize;
 
-    protected transient LWSlide mSlide;
-
+    protected java.util.Map<String,LWSlide> mSlides = new java.util.HashMap();
+    
     public static final java.util.Comparator XSorter = new java.util.Comparator() {        
             public int compare(Object o1, Object o2) {
                 return (int) (128f * (((LWComponent)o1).x - ((LWComponent)o2).x));
@@ -1105,7 +1105,27 @@ public class LWComponent
 
     /** return the component to be picked if we're picked: e.g., may return null if you only want children picked, and not the parent */
     protected LWComponent defaultPick(PickContext pc) {
-        return this;
+        // If we're dropping something, never allow us to be picked
+        // if we're a descendent of what's being dropped! (would be a parent/child loop)
+        if (pc.dropping instanceof LWContainer && hasAncestor((LWContainer)pc.dropping))
+            return null;
+        else
+            return this;
+    }
+
+    /** If PickContext.dropping is a LWComponent, return parent (as we can't take children),
+     * otherwise return self
+     */
+    protected LWComponent defaultDropTarget(PickContext pc) {
+        // TODO: if this is a system drag, dropping is null,
+        // and we don't know if this is a localDrop of a node,
+        // or a drop of a resource, so, for example, links
+        // will incorrectly get targeted for local node system drops.
+        // (tho when dropped, it'll still just get added to the parent).
+        if (pc.dropping instanceof LWComponent)
+            return getParent();
+        else
+            return this;
     }
     
     public boolean isOrphan() {
@@ -1116,6 +1136,19 @@ public class LWComponent
         return false;
     }
 
+    public boolean hasChild(LWComponent c) {
+        return false;
+    }
+
+    /** return true if this component is only a "virutal" member of the map:
+     * It may report that it's parent is in the map, but that parent doesn't
+     * list the component as a child (so it will never be drawn or traversed
+     * when handling the entire map).
+     */
+    public boolean isMapVirtual() {
+        return getParent() == null || !getParent().hasChild(this);
+    }
+    
     public java.util.List<LWComponent> getChildList()
     {
         return java.util.Collections.EMPTY_LIST;
@@ -1125,25 +1158,28 @@ public class LWComponent
         return tufts.Util.EmptyIterator;
     }
     
-    public boolean isEmpty() {
-        return true;
-    }
+    // TODO: clear up semantics on this for MapViewer "empty maps", maybe rename to hasContent,
+    // do sane impl for LWContainer
+    public boolean isEmpty() { return false; }
 
-    
-    public LWSlide getSlide() {
+    public LWSlide getSlideForPathway(LWPathway p)
+    {
+        if (p == null || !inPathway(p))
+            return null;
 
-        //if (true) return buildSlide();
-        
-        if (mSlide == null) {
-            synchronized (this) {
-                if (mSlide == null)
-                    mSlide = buildSlide();
-            }
+        LWSlide slide = mSlides.get(p.getID());
+
+        if (slide == null) {
+            slide = buildSlide(p);
+            mSlides.put(p.getID(), slide);
         }
-        return mSlide;
+
+        out("pathway key " + p.getID() + " for " + p + " gets slide " + slide);
+
+        return slide;
     }
 
-    protected LWSlide buildSlide() {
+    protected LWSlide buildSlide(LWPathway p) {
         return null;
     }
 
@@ -1762,7 +1798,7 @@ public class LWComponent
     
     public void drawPathwayDecorations(DrawContext dc)
     {
-        if (dc.isPresenting()) // don't draw pathways if presenting
+        if (dc.isPresenting() || dc.isFocused) // don't draw pathways if presenting or focused
             return;
         
         if (pathwayRefs == null)

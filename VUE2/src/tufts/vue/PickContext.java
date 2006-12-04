@@ -23,7 +23,7 @@ package tufts.vue;
  *
  * This class essentially just a parameter block for picking LWTraversals.
  *
- * @version $Revision: 1.1 $ / $Date: 2006-11-30 16:48:40 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -41,6 +41,9 @@ public class PickContext
     /** If true, don't pick anything that's already selected */
     public boolean ignoreSelected = false;
 
+    /** If non-null, we're picking for a valid drop target for this object */
+    public Object dropping;
+
     /** Don't ever pick this one particular node */
     public LWComponent excluded = null;
 
@@ -56,6 +59,7 @@ public class PickContext
         return "PickContext["
             + "root=" + root
             + " exclued=" + excluded
+            + " dropping=" + dropping
             + " ignoreSelected=" + ignoreSelected
             + " pickDepth=" + pickDepth
             + " maxLayer=" + maxLayer

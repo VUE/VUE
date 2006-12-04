@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.21 $ / $Date: 2006-11-30 16:35:07 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -51,6 +51,10 @@ public class DrawContext
     private boolean isBlackWhiteReversed = false;
     private boolean isPresenting = false;
     private Rectangle frame;
+
+    public boolean isFocused = false;
+
+    
     //private float mAlpha = 1f;
 
     private VueTool activeTool;
@@ -275,6 +279,7 @@ public class DrawContext
         this.frame = dc.frame;
         this.drawAbsoluteLinks = dc.drawAbsoluteLinks;
         this.maxLayer = dc.maxLayer;
+        this.isFocused = dc.isFocused;
         //this.mAlpha = dc.mAlpha;
     }
 
