@@ -47,7 +47,7 @@ import tufts.vue.action.*;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.38 $ / $Date: 2006-09-29 15:14:28 $ / $Author: mike $
+ * @version $Revision: 1.39 $ / $Date: 2006-12-05 19:34:11 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
     
@@ -310,7 +310,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 //   if(resource.getType() == Resource.URL) {
                 try {
                     // File file = new File(new URL(resource.getSpec()).getFile());
-                    File file = new File(new URL(resource.getSpec()).getFile());
+                   // System.out.println("LWComponent:"+component.getLabel() + "Resource: "+resource.getSpec());
+                    
+                    File file = new File(resource.getSpec());
                     if(file.isFile()) {
                         Vector row = new Vector();
                         row.add(new Boolean(true));
@@ -321,6 +323,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                     }
                 }catch (Exception ex) {
                     System.out.println("Publisher.setLocalResourceVector: Resource "+resource.getSpec()+ ex);
+                    ex.printStackTrace();
                 }
                 // }
             }
