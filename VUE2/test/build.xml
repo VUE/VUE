@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.17 $ / $Date: 2006-11-15 16:30:12 $ -->
+<!-- $Revision: 1.18 $ / $Date: 2006-12-08 18:00:25 $ -->
 
 <!-- 
 This ant build file:
@@ -121,6 +121,10 @@ This ant build file:
    <!-- RDF support -->
    <pathelement path="${lib.home}/jena.jar" />
     <pathelement location="${java.class.path}" />
+    
+    <!-- castor -->
+    <pathelement path="${lib.home}/castor-0.9.7-xml.jar" />
+    
   </path>
 
 
