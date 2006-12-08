@@ -403,7 +403,11 @@ public class DataSourceViewer extends JPanel
                             saveDataSourceViewer();
                             
                             //delete it
-                            WidgetStack widgetStack = (WidgetStack)DRB.resultsPane.getComponent(0);
+                            WidgetStack widgetStack = null;
+                            
+                            if (DRB.resultsPane != null)
+                            	widgetStack = (WidgetStack)DRB.resultsPane.getComponent(0);
+                            
                             if (widgetStack != null) {
                                 Component[] comps = widgetStack.getComponents();
                                 int found =0;
