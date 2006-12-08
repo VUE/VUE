@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.62 $ / $Date: 2006-10-27 16:14:04 $ / $Author: mike $
+ * @version $Revision: 1.63 $ / $Date: 2006-12-08 21:17:25 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -218,20 +218,19 @@ public class GUI
         if (false)
             installUIDefaults();
 
-        if (isMacAqua) {
+        if (Util.isMacPlatform()) {
 
-            if (!SKIP_CUSTOM_LAF)
-                installAquaLAFforVUE();
-
-        } else if (Util.isMacPlatform()) {
-
-            // We're forcing Swing Metal Look & Feel on the mac (our current Windows L&F)
-            // (Not to be confused with Mac Aqua Brushed Metal).
-            
-            if (!SKIP_CUSTOM_LAF)
-                installMetalTheme();
-            setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-
+            try
+            {
+            	UIManager.setLookAndFeel(
+                    "ch.randelshofer.quaqua.QuaquaLookAndFeel");
+            	System.setProperty("Quaqua.design", "panther");
+            }
+            catch(Exception e)
+            {
+            	VUE.Log.error("Couldn't load quaqua look and feel");
+            }
+     
         } else {
 
             // We're leaving the default look and feel alone (e.g. Windows)
