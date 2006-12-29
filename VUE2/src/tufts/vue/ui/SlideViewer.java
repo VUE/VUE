@@ -169,7 +169,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     
 
     public void LWCChanged(LWCEvent e) {
-        out("SLIDEVIEWER LWCChanged " + e);
+        if (DEBUG.Enabled) out("SLIDEVIEWER LWCChanged " + e);
         super.LWCChanged(e);
         if (true||e.getComponent() == mFocal) {
             zoomToContents();
@@ -306,7 +306,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     }
 
     public void fireViewerEvent(int id) {
-        out("fireViewerEvent <" + id + "> skipped");
+        if (DEBUG.Enabled) out("fireViewerEvent <" + id + "> skipped");
     }
 
     protected void reshapeImpl(int x, int y, int w, int h) {
@@ -324,10 +324,10 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             // don't include any bounds due to current
             // state decorations, such as being no a pathway
             zoomBounds = mZoomContent.getShapeBounds();
-            out("zoomToContents: shapeBounds=" + zoomBounds);
+            //out("zoomToContents: shapeBounds=" + zoomBounds);
         } else {
             zoomBounds = mZoomContent.getBounds();
-            out("zoomToContents: bounds=" + zoomBounds);
+            //out("zoomToContents: bounds=" + zoomBounds);
         }
 
 
@@ -406,7 +406,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
 
     protected void drawFocal(DrawContext dc)
     {
-        out("drawing focal " + mFocal);
+        //out("drawing focal " + mFocal);
 
         if (btnFocus.isSelected()) {
             dc.isFocused = true;
@@ -420,7 +420,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         
         if (mFocal.isTranslucent() && mFocal != underlyingMap) {
 
-            out("drawing underlying map " + underlyingMap);
+            //out("drawing underlying map " + underlyingMap);
 
             // If our fill is in any way translucent, the underlying
             // map can show thru, thus we have to draw the whole map

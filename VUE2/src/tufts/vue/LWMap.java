@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.107 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
+ * @version $Revision: 1.108 $ / $Date: 2006-12-29 23:33:53 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -408,6 +408,7 @@ public class LWMap extends LWContainer
             // means to make sure everything happens properly and at the right time,
             // using a setScaleOnChild call.
             // E.g., LWNode overrides setScaleOnChild to apply proper scaling to all generations of children
+            // TODO: this should probably be done depth-first...
             if (c instanceof LWContainer)
                 c.setScale(c.getScale());
         }
@@ -451,7 +452,7 @@ public class LWMap extends LWContainer
         */
         
         for (LWComponent c : allRestored) {
-            System.out.println("LAYOUT: " + c + " parent=" + c.getParent());
+            if (DEBUG.LAYOUT) System.out.println("LAYOUT: " + c + " parent=" + c.getParent());
             // ideally, this should be done depth-first, but it appears to be
             // working for the moment...
             c.layout("completeXMLRestore");
