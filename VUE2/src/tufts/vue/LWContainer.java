@@ -34,26 +34,14 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.92 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.93 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
 {
-    protected List children = new java.util.ArrayList();
+    protected java.util.List<LWComponent> children = new java.util.ArrayList<LWComponent>();
     protected LWComponent focusComponent;
     
-    /** for use during restore */
-    private int idStringToInt(String idStr)
-    {
-        int id = -1;
-        try {
-            id = Integer.parseInt(idStr);
-        } catch (Exception e) {
-            System.err.println(e + " invalid ID: '" + idStr + "'");
-            e.printStackTrace();
-        }
-        return id;
-    }
     /** for use during restore */
     protected LWComponent findChildByID(String ID)
     {
@@ -71,10 +59,35 @@ public abstract class LWContainer extends LWComponent
         return null;
     }
 
-    /**
+    /*
      * For restore: To be called once after a persisted map
      * is restored.
-     */
+    
+
+    // moved to non-recursive code in LWMap
+    protected int findGreatestChildID()
+    {
+        int maxID = -1;
+        Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c.getID() == null) {
+                System.err.println("*** FOUND LWC WITH NULL ID " + c + " (reparent to fix)");
+                continue;
+            }
+            int curID = idStringToInt(c.getID());
+            if (curID > maxID)
+                maxID = curID;
+            if (c instanceof LWContainer) {
+                curID = ((LWContainer)c).findGreatestChildID();
+                if (curID > maxID)
+                    maxID = curID;
+            }
+        }
+        return maxID;
+    }
+    */
+        
     protected void resolvePersistedLinks(LWContainer topLevelContainer)
     {
         java.util.Iterator i = getChildIterator();
@@ -101,30 +114,15 @@ public abstract class LWContainer extends LWComponent
         }
     }
     
-    /** for use during restore */
-    protected int findGreatestChildID()
-    {
-        int maxID = -1;
-        Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.getID() == null) {
-                System.err.println("*** FOUND LWC WITH NULL ID " + c + " (reparent to fix)");
-                continue;
-            }
-            int curID = idStringToInt(c.getID());
-            if (curID > maxID)
-                maxID = curID;
-            if (c instanceof LWContainer) {
-                curID = ((LWContainer)c).findGreatestChildID();
-                if (curID > maxID)
-                    maxID = curID;
-            }
+    public void XML_fieldAdded(String name, Object child) {
+        super.XML_fieldAdded(name, child);
+        if (child instanceof LWComponent) {
+            ((LWComponent)child).setParent(this);
         }
-        return maxID;
     }
-        
-    /** for use during restore */
+    
+    /* for use during restore
+       // now handled in LWComponent.XML_addNotify...
     protected void setChildParentReferences()
     {
         Iterator i = getChildIterator();
@@ -135,16 +133,7 @@ public abstract class LWContainer extends LWComponent
                 ((LWContainer)c).setChildParentReferences();
         }
     }
-
-    /** for use during restore */
-    protected void setChildScaleValues()
-    {
-        Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.setScale(c.getScale());
-        }
-    }
+    */
     
     /*
      * Child handling code
@@ -166,7 +155,7 @@ public abstract class LWContainer extends LWComponent
     }
     */
     
-    public List<LWComponent> getChildList()
+    public java.util.List<LWComponent> getChildList()
     {
         return this.children;
     }
@@ -272,7 +261,7 @@ public abstract class LWContainer extends LWComponent
      * Make sure this LWComponent has an ID -- will have an effect on
      * on any brand new LWComponent exactly once per VM instance.
      */
-    protected  void ensureID(LWComponent c)
+    protected void ensureID(LWComponent c)
     {
         if (c.getID() == null) {
             String id = getNextUniqueID();
@@ -282,11 +271,17 @@ public abstract class LWContainer extends LWComponent
                 c.setID(id);
         }
 
+        for (LWComponent child : c.getChildList())
+            ensureID(child);
+
+
+        /*
         if (c instanceof LWContainer) {
             Iterator i = ((LWContainer)c).getChildIterator();
             while (i.hasNext())
                 ensureID((LWComponent) i.next());
         }
+        */
     }
 
     /** called by LWChangeSupport, available here for override by parent classes that want to
@@ -631,20 +626,30 @@ public abstract class LWContainer extends LWComponent
     }
     
 
-    public java.util.List getAllDescendents()
+
+    public java.util.List<LWComponent> getAllDescendents() {
+        return getAllDescendents(ChildKind.PROPER);
+    }
+    
+    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind) {
+        return getAllDescendents(kind, new java.util.ArrayList());
+    }    
+
+    /** @param list -- if provided, must be non-null: results will go there, and this object also returned */
+    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind, final java.util.List list)
     {
-        List list = new ArrayList();
-        list.addAll(children);
-        java.util.Iterator i = children.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.hasChildren())
-                list.addAll(((LWContainer)c).getAllDescendents());
+        for (LWComponent c : this.children) {
+            list.add(c);
+            c.getAllDescendents(kind, list);
         }
+
+        super.getAllDescendents(kind, list);
+        
         return list;
     }
 
     /**
+     * @deprecated -- use getAllDescendents variants
      * Lighter weight than getAllDescendents, but must be sure not to modify
      * map hierarchy (do any reparentings) while iterating or may get concurrent
      * modification exceptions.
@@ -687,10 +692,7 @@ public abstract class LWContainer extends LWComponent
     protected LWSlide buildSlide(LWPathway p) {
         //LWContainer dupe = (LWContainer) duplicate();
         //return LWSlide.createFromList(dupe.children);
-        LWSlide slide = new LWSlide();
-        slide.setStrokeWidth(0f);
-        slide.setFillColor(null);
-        slide.createForNode(this);
+        final LWSlide slide = LWSlide.create();
 
         // This makes the slide a virtual child only: the slide
         // at least can know it's part of the map, but the map
@@ -702,6 +704,10 @@ public abstract class LWContainer extends LWComponent
 
         // make sure it has an ID -- will need for persistance
         ensureID(slide);
+        
+        slide.setStrokeWidth(0f);
+        slide.setFillColor(null);
+        slide.createForNode(this);
         
         //slide.setLocation(getX(), getY() + getHeight() + 20);
         //slide.setScale(0.125f);
@@ -1131,19 +1137,27 @@ public abstract class LWContainer extends LWComponent
     }
     
    
-
+    /* for use during restore
+       // now handled in LWMap.completeXMLRestore
+    protected void setChildScaleValues()
+    {
+        Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.setScale(c.getScale());
+        }
+    }
+    */
+    
     void setScale(float scale)
     {
         //System.out.println("Scale set to " + scale + " in " + this);
+        
         super.setScale(scale);
-        java.util.Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+
+        for (LWComponent c : this.children) 
             setScaleOnChild(scale, c);
-        }
-        //layout(); // okay, we were calling this here as a side effect for
-        // everyone to compute their proper sizes as this gets called after a restore --
-        // now handled properly in LWMap
+
         layoutChildren(); // we do this for our rollover zoom hack so children are repositioned
     }
 
@@ -1176,16 +1190,14 @@ public abstract class LWContainer extends LWComponent
             if (clipBounds != null)
                 clipBounds.grow(1,1);
             
-            /*if (false) {
-                System.out.println("DRAWING " + this);
-                System.out.println("clipBounds="+clipBounds);
-                System.out.println("      mvrr="+MapViewer.RepaintRegion);
-                }*/
+            if (DEBUG.PAINT) {
+                //System.out.println("DRAWING " + this);
+                out("drawChildren: clipBounds="+clipBounds);
+                //System.out.println("      mvrr="+MapViewer.RepaintRegion);
+            }
                 
             LWComponent focused = null;
-            java.util.Iterator i = getChildIterator();
-            while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
+            for (LWComponent c : getChildList()) {
 
                 // make sure the rollover is painted on top
                 // a bit of a hack to do this here -- better MapViewer
@@ -1268,6 +1280,17 @@ public abstract class LWContainer extends LWComponent
 
     public void drawChild(LWComponent child, DrawContext dc)
     {
+        /*
+          // this works to draw w/all children & coords scaled
+        if (child.getScale() != 1f) {
+            final float scaleX, scaleY;
+            scaleX = scaleY = child.getScale();
+            //dc = new DrawContext(dc);
+            child.out("scaled to: " + scaleX);
+            dc.g.scale(scaleX, scaleY);
+        }
+        */
+        
         child.draw(dc);
     }
 

@@ -44,14 +44,14 @@ import java.awt.geom.Rectangle2D;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.40 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
     public LWGroup() {}
 
     public boolean supportsUserResize() {
-        return false;
+        return !isTransparent();
     }
     
     /**
@@ -173,7 +173,7 @@ public class LWGroup extends LWContainer
     
     protected void setSizeFromChildren()
     {
-        Rectangle2D bounds = LWMap.getBounds(getChildIterator());
+        final Rectangle2D bounds = getChildBounds();
         super.setSize((float)bounds.getWidth(),
                       (float)bounds.getHeight());
         super.setLocation((float)bounds.getX(),
@@ -181,6 +181,57 @@ public class LWGroup extends LWContainer
 
     }
     
+    protected Rectangle2D getChildBounds()
+    {
+        return LWMap.getBounds(getChildIterator());
+    }
+
+    public void setSize(float w, float h) {
+        final Rectangle2D bounds = getChildBounds();
+
+        bounds.add(getX(), getY());
+
+        if (bounds.getWidth() > w)
+            w = (float) bounds.getWidth();
+        if (bounds.getHeight() > h)
+            h = (float) bounds.getHeight();
+        super.setSize(w, h);
+    }
+
+    private static final Rectangle2D EmptyBounds = new Rectangle2D.Float();
+
+    // TODO: do we really need different methods for computing bounds: here and setSizeFromChildren?
+    public Rectangle2D getBounds()
+    {
+        if (supportsUserResize())
+            return super.getBounds();
+
+        // Without user-resize, always report size as bounds of what we contain
+        
+        Rectangle2D.Float bounds = null;
+        Iterator i = getChildIterator();
+        if (i.hasNext()) {
+            bounds = new Rectangle2D.Float();
+            bounds.setRect(((LWComponent)i.next()).getBounds());
+        } else {
+            // this happens normally on group dispersal
+            //System.out.println(this + " getBounds: EMPTY!");
+            return EmptyBounds;
+        }
+
+        while (i.hasNext())
+            bounds.add(((LWComponent)i.next()).getBounds());
+        //System.out.println(this + " getBounds: " + bounds);
+
+        // how safe is this?
+        // [ todo: not entirely: setLocation needs special updateConnectedLinks call because of this ]
+        setX(bounds.x);
+        setY(bounds.y);
+        setAbsoluteWidth(bounds.width);
+        setAbsoluteHeight(bounds.height);
+        return bounds;
+    }
+
     public void setZoomedFocus(boolean tv)
     {
         // the group object never takes zoomed focus
@@ -399,39 +450,6 @@ public class LWGroup extends LWContainer
         super.broadcastChildEvent(e);
     }
     
-    private static final Rectangle2D EmptyBounds = new Rectangle2D.Float();
-
-    public Rectangle2D getBounds()
-    {
-        if (supportsUserResize())
-            return super.getBounds();
-
-        // Without user-resize, always report size as bounds of what we contain
-        
-        Rectangle2D.Float bounds = null;
-        Iterator i = getChildIterator();
-        if (i.hasNext()) {
-            bounds = new Rectangle2D.Float();
-            bounds.setRect(((LWComponent)i.next()).getBounds());
-        } else {
-            // this happens normally on group dispersal
-            //System.out.println(this + " getBounds: EMPTY!");
-            return EmptyBounds;
-        }
-
-        while (i.hasNext())
-            bounds.add(((LWComponent)i.next()).getBounds());
-        //System.out.println(this + " getBounds: " + bounds);
-
-        // how safe is this?
-        // [ todo: not entirely: setLocation needs special updateConnectedLinks call because of this ]
-        setX(bounds.x);
-        setY(bounds.y);
-        setAbsoluteWidth(bounds.width);
-        setAbsoluteHeight(bounds.height);
-        return bounds;
-    }
-
     /*
     public void layout()
     {
@@ -447,9 +465,14 @@ public class LWGroup extends LWContainer
             System.err.println("hiding " + this);
             return;
         }
-        
 
         drawSelectionDecorations(dc);
+
+        //out("transform at draw: " + dc.g.getTransform());        
+        //out("    shape to fill: " + getShape());
+        //final float scale = getScale();
+        //if (scale != 1f) dc.g.scale(scale, scale);
+        //out("transform at fill: " + dc.g.getTransform());        
         
         if (getFillColor() != null) {
             dc.g.setColor(getFillColor());
@@ -465,19 +488,13 @@ public class LWGroup extends LWContainer
         }
         */
 
-        final float scale = getScale();
 
-        if (scale != 1F)
-            dc.g.scale(scale, scale);
+        //if (scale != 1F) dc.g.scale(scale, scale);
         // Only need to scale down for drawing children, as getShape for default
         // rectangles includes the current scale factor when being computed...
 
         // draw children, pathway decorations, etc.
         super.draw(dc);
-        
-        if (scale != 1f)
-            dc.g.scale(1F/scale, 1F/scale);
-        
 
         if (getStrokeWidth() > 0) {
             dc.g.setStroke(this.stroke);

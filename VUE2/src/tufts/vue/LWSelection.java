@@ -28,10 +28,15 @@ import java.awt.geom.Point2D;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.45 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
+
+// TODO: have this listen to everyone in it, and then
+// folks who want to monitor the selected object
+// can only once regiester as a selectedEventListener,
+// instead of always adding and removing from the individual objects.
 public class LWSelection extends java.util.ArrayList
 {
     private List listeners = new java.util.ArrayList();

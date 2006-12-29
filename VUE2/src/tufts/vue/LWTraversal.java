@@ -32,7 +32,7 @@ package tufts.vue;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.2 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -122,7 +122,9 @@ public class LWTraversal {
         
         /** If we reject traversal, we are also rejecting all children of this object */
         public boolean acceptTraversal(LWComponent c) {
-            if (c.isHidden())
+            if (c == pc.dropping)
+                return false;
+            else if (c.isHidden())
                 return false;
             else if (depth > pc.maxDepth)
                 return false;
@@ -159,25 +161,45 @@ public class LWTraversal {
     {
         final float mapX, mapY;
 
+        private float scaleX, scaleY;
+
         private LWComponent hit;
-        //private LWComponent loosePicked;
 
         public PointPick(PickContext pc, float x, float y) {
             super(pc);
             mapX = x;
             mapY = y;
+            scaleX = scaleY = 1f;
         }
 
         public PointPick(MapMouseEvent e) {
             this(e.getViewer().getPickContext(), e.getMapX(), e.getMapY());
         }
         
+        public boolean acceptTraversal(LWComponent c) {
+            if (super.acceptTraversal(c)) {
+                /*
+                if (c.getScale() != 1f) {// will need to concat as we descend...
+                    scaleX = scaleY = 1 / c.getScale();
+                } else {
+                    //scaleX = scaleY = 1f;
+                }
+                System.out.println("SCALEX=" + scaleX);
+                */
+                return true;
+            } else {
+                return false;
+            }
+        }
 
         public void visit(LWComponent c) {
 
             if (DEBUG.PICK) c.out("PointPick VISITED");
+
+            final float x = mapX * scaleX;
+            final float y = mapY * scaleY;
             
-            if (c.contains(mapX, mapY)) {
+            if (c.contains(x, y)) {
                 // If we expand impl to handle the contained children optimization (non-strayChildren):
                 //      Since we're POST_ORDER, if strayChildren is false, we already know this
                 //      object contains the point, because acceptTraversal had to accept it.
@@ -186,6 +208,11 @@ public class LWTraversal {
                 return;
             }
         }
+
+
+        /*protected boolean validPick(LWComponent c) {
+            if (c.hasAncestor
+            }*/
 
         public static LWComponent pick(PickContext pc, float mapX, float mapY) {
             return new PointPick(pc, mapX, mapY).traverseAndPick(pc.root);
@@ -196,7 +223,6 @@ public class LWTraversal {
             pick.traverse(pick.pc.root);
             return pick.getPicked();
         }
-        
 
         public LWComponent traverseAndPick(LWComponent root) {
             traverse(root);

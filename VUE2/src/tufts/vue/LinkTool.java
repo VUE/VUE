@@ -315,6 +315,12 @@ public class LinkTool extends VueTool
             // [ WE NOW ALLOW MULTIPLE LINKS BETWEEN NODES ]
             existingLink.incrementWeight();
         } else {
+
+            // TODO: don't create new node at end of new link inside
+            // parent of source node (e.g., content view/traditional node)
+            // unless mouse is over that node!  (E.g., should be able to
+            // drag link out from a node that is a child)
+            
             LWContainer commonParent = e.getMap();
             if (pLinkDest == null)
                 commonParent = pLinkSource.getParent();

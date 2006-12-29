@@ -27,7 +27,7 @@ import java.awt.geom.*;
  * Sublcass (for now) of LWGroup for slide features.
  *
  * @author Scott Fraize
- * @version $Revision: 1.3 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
  */
 public class LWSlide extends LWGroup
 {
@@ -37,13 +37,30 @@ public class LWSlide extends LWGroup
 
     int mLayer = 0;
     
-    public LWSlide() {
-        setFillColor(new Color(0,0,0,64));
-        setStrokeWidth(1);
-        setStrokeColor(Color.black);
-        setSize(SlideWidth,SlideHeight);
+    /** for persistance */
+    public LWSlide() {}
+
+    /** create a default LWSlide */
+    public static LWSlide create()
+    {
+        final LWSlide s = new LWSlide();
+        s.setFillColor(new Color(0,0,0,64));
+        s.setStrokeWidth(1);
+        s.setStrokeColor(Color.black);
+        s.setSize(SlideWidth, SlideHeight);
         //setAspect(((float)GUI.GScreenWidth) / ((float)GUI.GScreenHeight));
-        setAspect(getWidth() / getHeight());
+        s.setAspect(s.getWidth() / s.getHeight());
+        return s;
+    }
+
+    public String getLabel() {
+        final LWContainer parent = getParent();
+        if (parent instanceof LWPathway)
+            return super.getLabel();
+        else if (parent != null)
+            return "Slide for " + getParent().getLabel();
+        else
+            return "<LWSlide w/null parent>"; // true during persist restore
     }
 
     public void setLayer(int layer) {
@@ -68,7 +85,7 @@ public class LWSlide extends LWGroup
 
     static LWSlide createFromList(java.util.List<LWComponent> nodes)
     {
-        LWSlide slide = new LWSlide();
+        final LWSlide slide = create();
 
         if (nodes != null && nodes.size() > 0)
             slide.importAndLayout(nodes);

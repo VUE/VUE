@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.197 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.198 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -54,6 +54,18 @@ import tufts.vue.filter.*;
 public class LWComponent
     implements VueConstants, XMLUnmarshalListener
 {
+    enum ChildKind {
+        /** the default, conceptually significant chilren */
+        PROPER,
+
+        /** Above, plus include ANY children, such as slides and their children -- the only
+         * way to make sure you hit every LWComponent in the system.
+         */
+        ANY,
+
+       // VIRTUAL -- would be *just* what ANY currently adds, and exclude PROPER -- currently unsupported
+    }
+    
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(LWComponent.class);
     
@@ -119,7 +131,7 @@ public class LWComponent
 
     // list of LWLinks that contain us as an endpoint
     private transient java.util.List links = new java.util.ArrayList();
-    protected transient List pathwayRefs;
+    protected transient java.util.List<LWPathway> pathwayRefs;
 
     // Scale currently exists ONLY to support the auto-managed child-node feature of nodes
     protected transient float scale = 1.0f;
@@ -152,6 +164,25 @@ public class LWComponent
         // TODO: shouldn't have to create a node filter for every one of these constructed...
         nodeFilter = new NodeFilter();
     }
+
+    /*
+    public Collection<LWSlide> getSlideList()
+    {
+        if (mXMLRestoreUnderway)
+            return mSlideArray;
+        else
+            return mSlides.values();
+    }
+    */
+
+    public Map<String,LWSlide> getSlideViews()
+    {
+        out("RETURNING SLIDES " + mSlides);
+        return mSlides;
+        //return null;
+    }
+    
+    
 
     public static abstract class Key {
         public final String name;
@@ -292,6 +323,7 @@ public class LWComponent
         }
     }
     
+    
     /**
      * Create a component with duplicate content & style.  Does not
      * duplicate any links to this component, and leaves it an
@@ -304,12 +336,12 @@ public class LWComponent
 
     public LWComponent duplicate(LinkPatcher patcher)
     {
-        LWComponent c = null;
+        final LWComponent c;
 
         try {
             c = (LWComponent) getClass().newInstance();
         } catch (Exception e) {
-            System.err.println(e);
+            tufts.Util.printStackTrace("duplicate " + getClass());
             return null;
         }
         c.x = this.x;
@@ -356,7 +388,7 @@ public class LWComponent
     {
         if (getParent() == null) {
             //throw new IllegalStateException("LWComponent has null parent; needs a parent instance subclassed from LWContainer that implements getNextUniqueID: " + this);
-            if (DEBUG.Enabled) out("getNextUniqueID: returning null for presumed orphan");
+            if (DEBUG.Enabled) tufts.Util.printStackTrace("getNextUniqueID: returning null for presumed orphan " + this);
             return null;
         } else
             return getParent().getNextUniqueID();
@@ -645,6 +677,7 @@ public class LWComponent
     {
         if (pathwayRefs == null || path == null)
             return false;
+
         Iterator i = pathwayRefs.iterator();
         while (i.hasNext()) {
             if (i.next() == path)
@@ -661,12 +694,11 @@ public class LWComponent
     {
         if (pathwayRefs == null)
             return false;
-        Iterator i = pathwayRefs.iterator();
-        while (i.hasNext()) {
-            LWPathway p = (LWPathway) i.next();
+
+        for (LWPathway p : pathwayRefs)
             if (p.isVisible() && !p.isRevealer())
                 return true;
-        }
+
         return false;
     }
     
@@ -858,7 +890,7 @@ public class LWComponent
     
     public boolean isTranslucent()
     {
-        return fillColor == null || fillColor.getAlpha() != 1;
+        return fillColor == null || fillColor.getAlpha() != 0xFF;
     }
     
     /** Color to use at draw time.
@@ -1140,6 +1172,11 @@ public class LWComponent
         return false;
     }
 
+    void addChild(LWComponent c) {
+        throw new UnsupportedOperationException(this + ": can't take children. ignored=" + c);
+    }
+
+
     /** return true if this component is only a "virutal" member of the map:
      * It may report that it's parent is in the map, but that parent doesn't
      * list the component as a child (so it will never be drawn or traversed
@@ -1157,10 +1194,57 @@ public class LWComponent
     public java.util.Iterator<LWComponent> getChildIterator() {
         return tufts.Util.EmptyIterator;
     }
+
+    /** The default is to get all ChildKind.PROPER children (backward compatability)
+     * This impl always returns an empty list.  Subclasses that can have proper
+     * children provide the impl for that
+     */
+    public java.util.List<LWComponent> getAllDescendents() {
+        // Default is only CHILD_PROPER, and by definition,
+        // LWComponents have no proper children.
+        // return getAllDescendents(CHILD_PROPER);
+        return java.util.Collections.EMPTY_LIST;
+    }    
+
+    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind) {
+        if (kind == ChildKind.PROPER)
+            return java.util.Collections.EMPTY_LIST;
+        else
+            return getAllDescendents(kind, new java.util.ArrayList());
+    }
+    
+    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind, final java.util.List list)
+    {
+        if (kind == ChildKind.ANY && !mSlides.isEmpty()) {
+            for (LWSlide slide : mSlides.values()) {
+                list.add(slide);
+                slide.getAllDescendents(kind, list);
+            }
+        }
+        
+        return list;
+    }
+    
     
     // TODO: clear up semantics on this for MapViewer "empty maps", maybe rename to hasContent,
     // do sane impl for LWContainer
     public boolean isEmpty() { return false; }
+
+    /*
+    public LWPathway getPathwayForSlide(final LWSlide slide) {
+        if (slide == null)
+            return null;
+
+        java.util.Set<Map.Entry<String,LWSlide>> entrySet = mSlides.entrySet();
+
+        for (Map.Entry<String,LWSlide> entry : entrySet) {
+            if (entry.getValue().equals(slide.getID()))
+                return // need to convert the ID to the Pathway, tho findChildByID doesn't include them at moment...
+        }
+
+        return null;
+    }
+    */
 
     public LWSlide getSlideForPathway(LWPathway p)
     {
@@ -1599,6 +1683,10 @@ public class LWComponent
     public void setY(float y) { this.y = y; }
     public float getWidth() { return this.width * getScale(); }
     public float getHeight() { return this.height * getScale(); }
+    //public float getWidth() { return this.width; }
+    //public float getHeight() { return this.height; }
+    //public float getBoundsWidth() { return (this.width + this.strokeWidth);  }
+    //public float getBoundsHeight() { return (this.height + this.strokeWidth); }
     public float getBoundsWidth() { return (this.width + this.strokeWidth) * getScale(); }
     public float getBoundsHeight() { return (this.height + this.strokeWidth) * getScale(); }
     public float getCenterX() { return this.x + getWidth() / 2; }
@@ -1798,17 +1886,13 @@ public class LWComponent
     
     public void drawPathwayDecorations(DrawContext dc)
     {
-        if (dc.isPresenting() || dc.isFocused) // don't draw pathways if presenting or focused
-            return;
-        
         if (pathwayRefs == null)
             return;
         
-        Iterator i = pathwayRefs.iterator();
-        while (i.hasNext()) {
-            LWPathway path = (LWPathway) i.next();
-            if (path.isDrawn())
-                path.drawComponentDecorations(dc, this);
+        for (LWPathway path : pathwayRefs) {
+            if (!dc.isFocused && path.isDrawn()) {
+                path.drawComponentDecorations(new DrawContext(dc), this);
+            }
         }
         
     }
@@ -1835,7 +1919,8 @@ public class LWComponent
 
     public void draw(DrawContext dc)
     {
-        drawPathwayDecorations(dc);
+        if (dc.drawPathways())
+            drawPathwayDecorations(dc);
     }
 
     protected LWChangeSupport getChangeSupport() {
@@ -2177,6 +2262,10 @@ public class LWComponent
     public void XML_initialized() {
         mXMLRestoreUnderway = true;
     }
+    
+    public void XML_fieldAdded(String name, Object child) {
+        if (DEBUG.XML) out("XML_fieldAdded <" + name + "> = " + child);
+    }
 
     /** interface {@link XMLUnmarshalListener} */
     public void XML_addNotify(String name, Object parent) {
@@ -2184,11 +2273,30 @@ public class LWComponent
                                                   + "\n\tparent: " + parent
                                                   + "\n\t child: " + this
                                                   + "\n");
+
+        // TODO: moving this layout from old position at end of LWMap.completeXMLRestore
+        // to here may have unpredictable results... watch of bad states after restores.
+        // The advantage of doing it here is that virtual children are handled,
+        // and "off map" children, such as slide children are properly handled.
+        //layout("XML_addNotify"); 
     }
 
     /** interface {@link XMLUnmarshalListener} -- call's layout */
     public void XML_completed() {
         mXMLRestoreUnderway = false;
+
+        // TODO: TEMPORARY DEBUG: never restore slides as format changes at moment
+        //mSlides.clear();
+
+        for (LWSlide slide : mSlides.values()) {
+            // slides are virtual children of the node: we're their
+            // parent, tho they're not formal children of ours.
+            slide.setParent((LWContainer)this);
+            // TODO: currently, this means non-container objects, such as LWImages,
+            // can't have slides -- prob good to remove that restriction.
+            // What would break if the parent ref were just a LWComponent?
+        }
+        
         if (DEBUG.XML) System.out.println("XML_completed " + this);
         //layout(); need to wait till scale values are all set: so the LWMap needs to trigger this
     }

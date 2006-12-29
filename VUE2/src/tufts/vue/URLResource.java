@@ -53,7 +53,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.21 $ / $Date: 2006-08-07 05:31:52 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
  */
 
 // TODO: this class currently a humongous mess...
@@ -1064,6 +1064,10 @@ public class URLResource implements Resource, XMLUnmarshalListener
         if (DEBUG.CASTOR) System.out.println(getClass() + " XML INIT");
         mXMLrestoreUnderway = true;
         mXMLpropertyList = new ArrayList();
+    }
+
+    public void XML_fieldAdded(String name, Object child) {
+        if (DEBUG.XML) out("XML_fieldAdded <" + name + "> = " + child);
     }
     
     public void XML_completed()

@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!-- @version $Revision: 1. $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $ -->
 <!-- This is version 1.1 of the mapping file. -->
+
+<!-- The purpose of this file is to map save files for the given version of a VUE save
+     file to the current version running version of VUE.  When the structure of the save
+     file changes sufficiently that can't alter the existing mapping to support backward
+     compatability, we create a new version of this file, which the new save files will
+     use for mapping into VUE.
+
+     While creating new versions of this file is good way to handle major changes,
+     it has a high maintainance cost, as sometimes we make changes to the VUE saved data that
+     require minor changes to the save format, but then we have to update
+     all versions of the mapping file for it.
+
+-->
+
 <!-- Change log:
      1.1: MapResource spec changed from element to attribute to handle long paths with spaces (newlines were being added)
           and MapResource type changed from element to attribute while we were at it.
@@ -88,10 +102,12 @@
     </field>
   </class>
   -->
-  <class name="tufts.vue.LWComponent">
+  <class name="tufts.vue.LWComponent" identity="ID">
     <!-- castor can figure out types, we leave string as defaulted.
       -->
-        <field name="ID"><bind-xml node="attribute"/></field>
+                <map-to xml="LWC"/>
+                
+                <field name="ID"><bind-xml node="attribute"/></field>
 		<field name="XMLlabel"><bind-xml name="label" node="attribute"/></field>
 		<field name="XMLnotes"><bind-xml name="notes" node="element"/></field>
 		<!-- field name="metaData"><bind-xml node="element"/></field -->
@@ -116,6 +132,35 @@
 		<field name="autoSized" type="boolean"><bind-xml name="autoSized" node="attribute"/></field>
                 
                 <field name="nodeFilter" get-method="XMLnodeFilter">      <bind-xml name="nodeFilter" node="element"/></field>
+
+                <field name="slideViews" type="tufts.vue.LWSlide" collection="map">
+		  <bind-xml name="pathwaySlide"/>
+		</field>
+                
+                <!-- clarifying the key/value names has no effect below on the XML, so we don't bother... -->
+                <!-- field name="slideViews" type="tufts.vue.LWSlide" collection="map">
+		  <bind-xml name="pathwaySlide">
+
+                    <class name="org.exolab.castor.mapping.MapItem">
+
+                      <field name="key" type="java.lang.String">
+                        <bind-xml name="slideId" node="attribute"/>
+                      </field>
+                      
+                      <field name="value" type="tufts.vue.LWSlide">
+                        <bind-xml name="theSlide"/>
+                      </field>
+                      
+                    </class>
+                    
+                  </bind-xml>
+                  
+		</field -->
+                
+                <!--field name="slideViews" collection="map">
+		  <bind-xml name="slide"/>
+		</field-->
+                
                 
                 <!-- We can save a shape interface, but it won't restore properly -->
 		<!-- field name="shape" type="java.awt.Shape">
@@ -150,7 +195,7 @@
 	</class>
 	<class name="tufts.vue.LWSlide" extends="tufts.vue.LWGroup">
 		<map-to xml="slide"/>
-		<field name="layer"><bind-xml name="layer" node="element"/></field>
+		<!-- field name="layer"><bind-xml name="layer" node="element"/></field> -->
 	</class>
 	
 	
@@ -251,16 +296,21 @@
 	<class name="tufts.vue.LWPathway" extends="tufts.vue.LWContainer">
 		<map-to xml="pathway"/>
 		<field name="currentIndex" type="integer">
-			<bind-xml name="currentIndex" node="attribute"/>
+		  <bind-xml name="currentIndex" node="attribute"/>
 		</field>
 		<field name="locked" type="boolean">
-			<bind-xml name="locked" node="attribute"/>
+		  <bind-xml name="locked" node="attribute"/>
 		</field>
 		<field name="open" type="boolean">
-			<bind-xml name="open" node="attribute"/>
+		  <bind-xml name="open" node="attribute"/>
 		</field>
+                
+		<field name="masterSlide" type="tufts.vue.LWSlide">
+		  <bind-xml name="masterSlide" node="element"/>
+                </field>
+                
 		<field name="elementIDList" type="string" collection="collection">
-			<bind-xml name="id" />
+		  <bind-xml name="id" />
 		</field>
                 <field name="elementPropertyList" type="tufts.vue.LWPathwayElementProperty" collection="collection">
                         <bind-xml name="ElementPropertyList" />

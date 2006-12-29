@@ -162,10 +162,11 @@ public class NodeTool extends VueTool
         LWNode node = createNode("New Node", true);
         node.setAutoSized(false);
         node.setFrame(e.getMapSelectorBox());
-        e.getMap().addNode(node);
+        MapViewer viewer = e.getViewer();
+        viewer.getFocal().addChild(node);
         VUE.getUndoManager().mark("New Node");
         VUE.getSelection().setTo(node);
-        e.getViewer().activateLabelEdit(node);
+        viewer.activateLabelEdit(node);
         return true;
     }
     /*

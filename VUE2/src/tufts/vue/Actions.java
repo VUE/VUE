@@ -933,15 +933,15 @@ public class Actions implements VueConstants
     
     public static final VueAction NewNode =
     new NewItemAction("New Node", keyStroke(KeyEvent.VK_N, COMMAND)) {
-        LWComponent createNewItem(Point2D newLocation) {
-            LWNode node = NodeTool.createNewNode();
+        LWComponent createNewItem(MapViewer viewer, Point2D newLocation) {
+            final LWNode node = NodeTool.createNewNode();
             node.setLocation(newLocation);
             //node.setCenterAt(newLocation); // better but screws up NewItemAction's serial item creation positioning
-            VUE.getActiveMap().addNode(node);
+            viewer.getFocal().addChild(node);
             
-            //better: run a timer and do this if no activity (e.g., node creation)
+            // maybe: run a timer and do this if no activity (e.g., node creation)
             // for 250ms or something
-            VUE.getActiveViewer().activateLabelEdit(node);
+            viewer.activateLabelEdit(node);
             
             return node;
         }
@@ -950,10 +950,10 @@ public class Actions implements VueConstants
     
     public static final VueAction NewSlide =
     new NewItemAction("New Slide", keyStroke(KeyEvent.VK_S, LEFT_OF_SPACE+CTRL)) {
-        LWComponent createNewItem(Point2D newLocation) {
-            LWComponent slide = LWSlide.createFromList(VUE.getSelection());
+        LWComponent createNewItem(MapViewer viewer, Point2D newLocation) {
+            final LWComponent slide = LWSlide.createFromList(VUE.getSelection());
             slide.setLocation(newLocation);
-            VUE.getActiveMap().addLWC(slide);
+            viewer.getFocal().addChild(slide);
             return slide;
         }
     };
@@ -961,16 +961,15 @@ public class Actions implements VueConstants
     
     public static final VueAction NewText =
     new NewItemAction("New Text", keyStroke(KeyEvent.VK_T, COMMAND)) {
-        LWComponent createNewItem(Point2D newLocation) {
-            LWNode node = NodeTool.createTextNode("new text");
+        LWComponent createNewItem(MapViewer viewer, Point2D newLocation) {
+            final LWNode node = NodeTool.createTextNode("new text");
             node.setLocation(newLocation);
             //node.setCenterAt(newLocation);
             // todo: using setCenter, here and in NewNode action, will have to
             // redo NewItemAction if want to be able to change the creation location
             // automatically of they keep clicking in the same spot
-            VUE.getActiveMap().addNode(node);
+            viewer.getFocal().addChild(node);
             //VUE.getSelection().setTo(node); // also important so will be repainted (repaint optimziation only)
-            MapViewer viewer = VUE.getActiveViewer();
             //viewer.paintImmediately(viewer.getBounds());//todo opt: could do this off screen?
             viewer.activateLabelEdit(node);
             return node;
@@ -1059,12 +1058,12 @@ public class Actions implements VueConstants
                 lastLocation.getY() + lastItem.getBoundsHeight());
             }
             
-            lastItem = createNewItem(newLocation);
+            lastItem = createNewItem(viewer, newLocation);
             lastLocation = newLocation;
             lastMousePress = mousePress;
         }
         
-        LWComponent createNewItem(Point2D p) {
+        LWComponent createNewItem(MapViewer viewer, Point2D p) {
             throw new UnsupportedOperationException("NewItemAction: unimplemented create");
         }
         

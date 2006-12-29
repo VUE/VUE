@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.106 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.107 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -376,6 +376,17 @@ public class LWMap extends LWContainer
         mPathways = l;
         mPathways.setMap(this);
     }
+
+    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind, final java.util.List list) {
+        super.getAllDescendents(kind, list);
+        if (kind == ChildKind.ANY) {
+            for (LWPathway pathway : mPathways.getElementList()) {
+                list.add(pathway);
+                pathway.getAllDescendents(kind, list);
+            }
+        }
+        return list;
+    }
     
     private int nextID = 1;
     protected String getNextUniqueID() {
@@ -388,41 +399,100 @@ public class LWMap extends LWContainer
             System.out.println(getLabel() + ": completing restore...");
 
         resolvePersistedLinks(this);
-        setChildScaleValues();
+        
+        final java.util.List<LWComponent> allRestored = getAllDescendents(ChildKind.ANY);
+
+        for (LWComponent c : allRestored) {
+            if (DEBUG.XML) System.out.println("RESTORED: " + c);
+            // LWContainers handle recursively setting scale on children via special
+            // means to make sure everything happens properly and at the right time,
+            // using a setScaleOnChild call.
+            // E.g., LWNode overrides setScaleOnChild to apply proper scaling to all generations of children
+            if (c instanceof LWContainer)
+                c.setScale(c.getScale());
+        }
+        //setChildScaleValues();
+        
         //setScale(getScale());
-        setChildParentReferences();
+        //setChildParentReferences();
+        
         if (mPathways == null)
             mPathways = new LWPathwayList(this);
 
-        this.nextID = findGreatestChildID() + 1;
+        this.nextID = findGreatestChildID(allRestored) + 1;
         Iterator<LWPathway> pi = mPathways.iterator();
         while (pi.hasNext()) {
             LWPathway p = pi.next();
             // 2006-11-30 14:33.32 SMF: LWPathways now have ID's,
             // but they didn't used to, so make sure they
-            // have an ID on restore in case it was an old one.
+            // have an ID on restore in case it was a save file prior
+            // to 11/30/06.
             ensureID(p);
         }
         
         mPathways.completeXMLRestore(this);
 
-        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
-            System.out.println(getLabel() + ": restore completed (nextID=" + nextID + ")");
-        
         /*
-          Now lay everything out.  We must wait till now to do this:
-          after all child scales have been updated.  TODO: There may
-          be an issue with the fact that we're not enforcing that this
-          be done depth-first..
+          
+          Now lay everything out.  We must wait till now to do this: after all child
+          scales have been updated.  TODO: There may be an issue with the fact that
+          we're not enforcing that this be done depth-first..
+          
+          If we don't do this after the child scales have been set, auto-sized parents
+          that contain scaled children (the default node) will be too big, because they
+          didn't know how big their children were when they computed total size of all
+          children...
+
+          Can we change this hack-o-rama method of doing things into something more
+          reliable, where the child stores it's scaled value?  Tho that wouldn't jibe
+          with being able to change that in one fell swoop via a preference very
+          easily...
+          
         */
         
-        Iterator i = getAllDescendentsIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        for (LWComponent c : allRestored) {
+            System.out.println("LAYOUT: " + c + " parent=" + c.getParent());
+            // ideally, this should be done depth-first, but it appears to be
+            // working for the moment...
             c.layout("completeXMLRestore");
         }
+        
+        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) out("RESTORE COMPLETED; nextID=" + nextID + "\n");
+        
         //setEventsResumed();
         markAsSaved();
+    }
+
+    /** for use during restore */
+    private int findGreatestChildID(final java.util.List<LWComponent> allRestored)
+    {
+        int maxID = -1;
+
+        for (LWComponent c : allRestored) {
+            if (c.getID() == null) {
+                System.err.println("*** FOUND LWC WITH NULL ID " + c + " (reparent to fix)");
+                continue;
+            }
+            int curID = idStringToInt(c.getID());
+            if (curID > maxID)
+                maxID = curID;
+            
+        }
+
+        return maxID;
+    }
+    
+    /** for use during restore */
+    private int idStringToInt(String idStr)
+    {
+        int id = -1;
+        try {
+            id = Integer.parseInt(idStr);
+        } catch (Exception e) {
+            System.err.println(e + " invalid ID: '" + idStr + "'");
+            e.printStackTrace();
+        }
+        return id;
     }
     
     // do nothing
@@ -446,7 +516,7 @@ public class LWMap extends LWContainer
         
         super.draw(dc);
         
-        if (mPathways != null && !dc.isPresenting()) {
+        if (mPathways != null && dc.drawPathways()) {
             Iterator i = mPathways.iterator();
             int pathIndex = 0;
             while (i.hasNext()) {
@@ -555,10 +625,12 @@ public class LWMap extends LWContainer
         return false;
     }
     
+    /** deprecated */
     public LWNode addNode(LWNode c) {
         addChild(c);
         return c;
     }
+    /** deprecated */
     public LWLink addLink(LWLink c) {
         addChild(c);
         return c;

@@ -52,7 +52,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.50 $ / $Date: 2006-09-20 15:52:54 $ / $Author: jeff $
+ * @version $Revision: 1.51 $ / $Date: 2006-12-29 23:22:32 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -407,6 +407,8 @@ public class ActionUtil {
             if (DEBUG.XML) System.out.println("VUL fieldAdded: parent: " + parent.getClass().getName() + "\t[" + parent + "]\n"
                              + "             new child: " +  child.getClass().getName() + " \"" + name + "\" [" + child + "]\n"
                                );
+            if (parent instanceof XMLUnmarshalListener)
+                ((XMLUnmarshalListener)parent).XML_fieldAdded(name, child);
             if (child instanceof XMLUnmarshalListener)
                 ((XMLUnmarshalListener)child).XML_addNotify(name, parent);
         }

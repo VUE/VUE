@@ -87,7 +87,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.39 $ / $Date: 2006-10-18 17:42:19 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
  *
  */
 
@@ -276,10 +276,28 @@ class TextBox extends JTextPane
         wasOpaque = isOpaque();
         Color c = lwc.getRenderFillColor();
         //if (c == null && lwc.getParent() != null && lwc.getParent() instanceof LWNode)
-        if (c == null && lwc.getParent() != null)
-            c = lwc.getParent().getRenderFillColor(); // todo: only handles 1 level transparent embed!
+        final LWContainer nodeParent = lwc.getParent();
+        if (c == null && nodeParent != null)
+            c = nodeParent.getRenderFillColor(); // todo: only handles 1 level transparent embed!
         // todo: could also consider using map background if the node itself
         // is transpatent (has no fill color)
+
+        // This is a complete hack:
+        if (c == null && nodeParent instanceof LWSlide) {
+            try {
+                c = VUE.getActivePathway().getMasterSlide().getFillColor();
+            } catch (Throwable t) { if (DEBUG.Enabled) t.printStackTrace(); }
+        }
+
+        // TODO: this workaround until we can recursively find a real fill color
+        // node that for SLIDES, we'd have to get awfully fancy and
+        // usually pull the color of the master slide (unless the slide
+        // happened to have it's own special color).  Only super clean
+        // way to do this would be to have established some kind of
+        // rendering pipeline record... (yeah, right)
+        if (c == null)
+            c = Color.gray;
+        
         if (c != null) {
             // note that if we set opaque to false, interaction speed is
             // noticably slowed down in edit mode because it has to consider

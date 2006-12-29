@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.129 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.130 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -483,8 +483,11 @@ public class LWNode extends LWContainer
     }
     */
 
-    public boolean intersects(Rectangle2D rect)
+    public boolean intersects(final Rectangle2D rect)
     {
+        final Rectangle2D hitRect;
+        final boolean overlaps;
+        
         final float strokeWidth = getStrokeWidth();
         if (strokeWidth > 0 || isSelected()) {
             // todo opt: cache this
@@ -504,11 +507,15 @@ public class LWNode extends LWContainer
             r.y -= adj;
             r.width += totalStroke;
             r.height += totalStroke;
-            return boundsShape.intersects(r);
+            hitRect = r;
         } else
-            return boundsShape.intersects(rect);
-        
-        //return getBounds().intersects(rect);
+            hitRect = rect;
+
+        overlaps = boundsShape.intersects(hitRect);
+            
+        if (DEBUG.PAINT) System.out.println("INTERSECTS " + hitRect + " is " + overlaps + " for " + boundsShape + " " + this);
+
+        return overlaps;
     }
 
     public boolean contains(float x, float y)

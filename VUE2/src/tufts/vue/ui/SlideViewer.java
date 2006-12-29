@@ -77,7 +77,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     private boolean mZoomBorder;
     private boolean inFocal;
     private LWComponent mZoomContent; // what we zoom-to
-    private boolean viewingPathwaySlide;
+    private boolean inPathwaySlide;
     private LWComponent mLastLoad;
 
     private final AbstractButton btnLocked;
@@ -171,19 +171,13 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     public void LWCChanged(LWCEvent e) {
         out("SLIDEVIEWER LWCChanged " + e);
         super.LWCChanged(e);
-        //if (e.getComponent() == mFocused)
+        if (true||e.getComponent() == mFocal) {
             zoomToContents();
+        }
     }
 
     // no longer relevant: maxLayer hack currently not in use
-    //protected int getMaxLayer() { return viewingPathwaySlide ? 1 : 0; }
-
-    protected DrawContext getDrawContext(Graphics2D g) {
-        DrawContext dc = super.getDrawContext(g);
-        if (inFocal)
-            dc.isFocused = true;
-        return dc;
-    }
+    //protected int getMaxLayer() { return inPathwaySlide ? 1 : 0; }
 
     protected PickContext getPickContext() {
         PickContext pc = super.getPickContext();
@@ -202,7 +196,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     }
 
     public void activePathwayChanged(LWPathway p) {
-        if (viewingPathwaySlide) {
+        if (inPathwaySlide) {
             reload();
         }
     }
@@ -220,10 +214,16 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             return;
             
         if (s.getSource() != this && s.size() == 1) {
+            final LWComponent c = s.first();
             if (btnMaster.isSelected())
-                mLastLoad = s.first();
-            else
-                load(s.first());
+                mLastLoad = c;
+            else if (btnSlide.isSelected()) {
+                if (c.getSlideForPathway(c.getMap().getActivePathway()) != null)
+                    load(c);
+                else
+                    ; // do nothing for now: allows us to select non-slideworthy on map to drag into slide
+            } else
+                load(c);
         }
     }
 
@@ -262,7 +262,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     {
         final LWComponent focal;
         
-        viewingPathwaySlide = false;
+        inPathwaySlide = false;
             
         if (btnZoom.isSelected()) {
             inFocal = false;
@@ -284,7 +284,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             mZoomBorder = false;
             
             if (focal != null) {
-                viewingPathwaySlide = true;
+                inPathwaySlide = true;
                 btnSlide.setEnabled(true);
                 mZoomContent = focal;
             } else {
@@ -293,7 +293,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             
         } else if (btnMaster.isSelected()) {
             inFocal = true;
-            viewingPathwaySlide = true;
+            inPathwaySlide = true;
             mZoomBorder = false;
             mZoomContent = VUE.getActiveMap().getActivePathway().getMasterSlide();
             focal = mZoomContent;
@@ -305,7 +305,12 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         return focal;
     }
 
+    public void fireViewerEvent(int id) {
+        out("fireViewerEvent <" + id + "> skipped");
+    }
+
     protected void reshapeImpl(int x, int y, int w, int h) {
+        out("reshapeImpl");
         zoomToContents();
     }
     
@@ -319,8 +324,12 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             // don't include any bounds due to current
             // state decorations, such as being no a pathway
             zoomBounds = mZoomContent.getShapeBounds();
-        } else
+            out("zoomToContents: shapeBounds=" + zoomBounds);
+        } else {
             zoomBounds = mZoomContent.getBounds();
+            out("zoomToContents: bounds=" + zoomBounds);
+        }
+
 
         tufts.vue.ZoomTool.setZoomFitRegion(this,
                                             zoomBounds,
@@ -328,6 +337,106 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
                                             //mZoomBorder ? 20 : 0,
                                             false);
     }
+    
+    
+    protected void drawSelection(DrawContext dc, LWSelection s) {
+        // Don't draw selection if its the focused component
+        if (s.size() == 1 && s.first() == mFocal)
+            return;
+        super.drawSelection(dc, s);
+    }
+
+    /*
+    protected DrawContext getDrawContext(Graphics2D g) {
+        DrawContext dc = super.getDrawContext(g);
+        //if (inFocal)
+        if (btnFocus.isSelected()) {
+            dc.isFocused = true;
+            dc.setInteractive(false);
+        }
+            dc.isFocused = true;
+        return dc;
+    }
+    */
+
+    protected void drawMap(DrawContext dc) {
+
+        if (mFocal == null)
+            return;
+
+        if (inPathwaySlide) {
+
+            drawSlide(dc);
+            
+        } else {
+
+            drawFocal(dc);
+        }
+
+    }
+
+    protected void drawSlide(DrawContext dc) {
+        
+        final LWSlide master = VUE.getActiveMap().getActivePathway().getMasterSlide();
+
+        if (btnMaster.isSelected()) {
+            // When editing the master, allow us to see stuff outside of it
+            // (no need to clip);
+            master.draw(dc);
+            return;
+        }
+        
+        final Shape curClip = dc.g.getClip();
+
+        // When just filling the background with the master, only draw
+        // what's in the containment box
+        dc.g.setClip(master.getBounds());
+        master.draw(dc);
+        dc.g.setClip(curClip);
+
+        //for (LWComponent c : mFocal.getChildList()) out("child to draw: " + c);
+        
+        // Now draw the actual slide
+        mFocal.draw(dc);
+    }
+    
+    /** either draws the entire map (previously zoomed to to something to focus on),
+     * or a fully focused part of of it, where we only draw that item.
+     */
+
+    protected void drawFocal(DrawContext dc)
+    {
+        out("drawing focal " + mFocal);
+
+        if (btnFocus.isSelected()) {
+            dc.isFocused = true;
+            dc.setInteractive(false);
+        }
+        
+        dc.g.setColor(mFocal.getMap().getFillColor());
+        dc.g.fill(dc.g.getClipBounds());
+        
+        final LWMap underlyingMap = mFocal.getMap();
+        
+        if (mFocal.isTranslucent() && mFocal != underlyingMap) {
+
+            out("drawing underlying map " + underlyingMap);
+
+            // If our fill is in any way translucent, the underlying
+            // map can show thru, thus we have to draw the whole map
+            // to see the real result -- we just set the clip to
+            // the shape of the focal.
+            
+            final Shape curClip = dc.g.getClip();
+            dc.g.setClip(mFocal.getShape());
+            underlyingMap.draw(dc);
+            dc.g.setClip(curClip);
+            
+        } else {
+            mFocal.draw(dc);
+        }
+    }
+    
     
     
 
@@ -341,6 +450,19 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     }
     */
     
+    /*
+    public void keyPressed(java.awt.event.KeyEvent e) {
+        super.keyPressed(e);
+        if (e.isConsumed())
+            return;
+        char c = e.getKeyChar();
+        if (c == 'b') {
+            mBlackout = !mBlackout;
+            repaint();
+        }
+    }
+    */
+
     protected void XsetMapOriginOffsetImpl(float panelX, float panelY, boolean update) {
         if (inFocal) {
             super.setMapOriginOffsetImpl(mFocal.getX(), mFocal.getY(), update);
@@ -363,51 +485,6 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     }
     
         
-    public void keyPressed(java.awt.event.KeyEvent e) {
-        super.keyPressed(e);
-        if (e.isConsumed())
-            return;
-        char c = e.getKeyChar();
-        if (c == 'b') {
-            mBlackout = !mBlackout;
-            repaint();
-        }
-    }
-
-    protected void drawSelection(DrawContext dc, LWSelection s) {
-        // Don't draw selection if its the focused component
-        if (s.size() == 1 && s.first() == mFocal)
-            return;
-        super.drawSelection(dc, s);
-    }
-
-
-    protected void drawMap(DrawContext dc) {
-
-        if (mFocal == null)
-            return;
-
-        if (viewingPathwaySlide) {
-            final LWSlide master = VUE.getActiveMap().getActivePathway().getMasterSlide();
-            if (btnMaster.isSelected()) {
-                // When editing the master, allow us to see stuff outside of it
-                master.draw(dc);
-            } else {
-                // When just filling the background with the master, only draw
-                // what's in the containment box
-                final Shape curClip = dc.g.getClip();
-                dc.g.setClip(master.getBounds());
-                master.draw(dc);
-                dc.g.setClip(curClip);
-            }
-        } else {
-            dc.g.setColor(mFocal.getMap().getFillColor());
-            dc.g.fill(dc.g.getClipBounds());
-        }
-        mFocal.draw(dc);
-    }
-    
-    
     /*
     protected void drawMap(DrawContext dc) {
         if (mBlackout) {

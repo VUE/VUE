@@ -43,7 +43,7 @@ import java.awt.geom.Ellipse2D;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.118 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.119 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -56,6 +56,9 @@ public class LWPathway extends LWContainer
     private ArrayList elementPropertyList = new ArrayList();
 
     private transient boolean open = true;
+
+    /** for use during restore -- the ordered list */
+    private java.util.List<String> memberIDs = new java.util.ArrayList();
 
     private static Color[] ColorTable = {
         new Color(153, 51, 51),
@@ -105,11 +108,8 @@ public class LWPathway extends LWContainer
                 updateMemberVisibility();
             } else {
                 if (DEBUG.PATHWAY) System.out.println(this + " setVisible: showing all items");
-                Iterator i = children.iterator();
-                while (i.hasNext()) {
-                    LWComponent c = (LWComponent) i.next();
+                for (LWComponent c : super.children)
                     c.setVisible(true);
-                }
             }
         }
     }
@@ -119,9 +119,7 @@ public class LWPathway extends LWContainer
     {
         if (DEBUG.PATHWAY) System.out.println(this + " setVisible: hiding post-index items, showing all others");
         int index = 0;
-        Iterator i = children.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        for (LWComponent c : super.children) {
             if (isRevealer()) {
                 if (index > mCurrentIndex)
                     c.setVisible(false);
@@ -465,6 +463,7 @@ public class LWPathway extends LWContainer
     }
     public void setMap(LWMap map) {
         setParent(map);
+        ensureID(this);
     }
 
     public void setLocked(boolean t) {
@@ -587,13 +586,70 @@ public class LWPathway extends LWContainer
 
     private LWSlide mMasterSlide;
     public LWSlide getMasterSlide() {
+        //if (mXMLRestoreUnderway) return null;
+
         if (mMasterSlide == null)
             mMasterSlide = buildMasterSlide();
         return mMasterSlide;
     }
+
+    /** for persistance only */
+    public void setMasterSlide(LWSlide slide) {
+        mMasterSlide = slide;
+        // Slide is virtual child of us (so it knows what map it's ultimately part of)
+        //slide.setParent(this); // should be handled by LWComponent.XML_addNotify
+    }
+
+    /** pathways never have slide views of their own -- only for the components on the pathway */
+    public java.util.Map<String,LWSlide> getSlideViews() {
+        return null;
+    }
+
+    /*
+    public void XML_childAdded(String name, Object child) {
+        super.XML_childAdded(name, child);
+        if ("masterSlide".equals(name)) {
+            //out("GOT MASTER SLIDE " + child);
+            if (child instanceof LWSlide)
+                setMasterSlide((LWSlide) child);
+            else
+                tufts.Util.printStackTrace("XML masterSlide is not a slide! " + child);
+        }
+    }
+    public void XML_completed() {
+        super.XML_completed();
+        //mMasterSlide = null;    // temporary hack to never restore the master slide
+        if (DEBUG.XML) {
+            for (LWComponent c : super.children)
+                out("CHILD: " + c);
+        }
+    }
+    */
+
     
     protected LWSlide buildMasterSlide() {
-        LWSlide master = new LWSlide() {
+        final LWSlide m = LWSlide.create();
+
+        m.setStrokeWidth(0);
+        m.setFillColor(Color.darkGray);
+        m.setLabel("Master Slide on Pathway: " + getLabel());
+        m.setNotes("This is the Master Slide for Pathway \"" + getLabel() + "\"");
+
+        LWComponent titleText = NodeTool.createTextNode("Title Text");
+        LWComponent itemText = NodeTool.createTextNode("Item Text");
+
+        itemText.setLocation(40,100);
+
+        titleText.setFont(new Font("SansSerif", Font.BOLD, 72));
+        itemText.setFont(new Font("SansSerif", Font.PLAIN, 48));
+            
+        m.setParent(LWPathway.this); // must set parent before ensureID will work
+        ensureID(m);
+        
+        m.addChild(titleText);
+        m.addChild(itemText);
+        
+        /*
                 {
                     setStrokeWidth(0);
                     setFillColor(Color.darkGray);
@@ -615,12 +671,12 @@ public class LWPathway extends LWContainer
                 }
                 public String getComponentTypeLabel() { return "Slide<Master>"; }
             };
+        */
             //master.setLabel("Master Slide: " + getLabel());
 //         master.setParent(this);
 //         master.addChild(new LWNode("Title Text"));
 //         master.addChild(new LWNode("Item Text"));
-        ensureID(master);
-        return master;
+        return m;
     }
 
     /**
@@ -628,11 +684,13 @@ public class LWPathway extends LWContainer
      * as they don't own them -- they only save ID references to them.  Pathways
      * are only "virtual" containers, not proper parents of their children.
      */
-    public List getChildList() {
-        return null;
+    public java.util.List<LWComponent> getChildList() {
+        if (DEBUG.XML || DEBUG.PATHWAY) out("getChildList returning EMPTY, as always");
+        return java.util.Collections.EMPTY_LIST;
     }
+    
     /** hide children from hierarchy as per getChildList */
-    public Iterator getChildIterator() {
+    public Iterator<LWComponent> getChildIterator() {
         return VueUtil.EmptyIterator;
     }
     
@@ -641,7 +699,7 @@ public class LWPathway extends LWContainer
         return super.children.iterator();
     }
 
-    public java.util.List getElementList() {
+    public java.util.List<LWComponent> getElementList() {
         //System.out.println(this + " getElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
         return super.children;
     }
@@ -657,15 +715,27 @@ public class LWPathway extends LWContainer
         System.err.println(this + " couldn't find ID [" + ID + "] in " + children);
         return null;
     }
+
+
+    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind, final java.util.List list) {
+        // out members are always virtual (owned elsewhere), so we don't add them
+        // even if kind is ANY
+        if (kind == ChildKind.ANY && mMasterSlide != null) {
+            list.add(mMasterSlide);
+            mMasterSlide.getAllDescendents(kind, list);
+        }
+        return list;
+    }
+    
     
     void completeXMLRestore(LWMap map)
     {
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) System.out.println(this + " completeXMLRestore, map=" + map);
         setParent(map);
-        for (Iterator i = this.idList.iterator(); i.hasNext();) {
-            String id = (String) i.next();
-            LWComponent c = getMap().findChildByID(id);
-            if (DEBUG.PATHWAY) System.out.println("\tpath adding " + c);
+        for (String id : memberIDs) {
+            //LWComponent c = getMap().findChildByID(id);
+            LWComponent c = map.findChildByID(id);
+            if (DEBUG.XML || DEBUG.PATHWAY) System.out.println("\tpath adding " + c);
             add(c);
         }
         for (Iterator i = this.elementPropertyList.iterator(); i.hasNext();) {
@@ -676,26 +746,26 @@ public class LWPathway extends LWContainer
             else
                 pep.setComponent(c);
         }
-        if (DEBUG.PATHWAY) System.out.println(this + " restored. elementPropertyList= " + elementPropertyList);
+        if (DEBUG.XML || DEBUG.PATHWAY) out("RESTORED. elementPropertyList= " + elementPropertyList);
         mXMLRestoreUnderway = false;
     }
 
     
-    private List idList = new ArrayList();
     /** for persistance: XML save/restore only */
-    public List getElementIDList() {
+    public java.util.List<String> getElementIDList() {
+        if (DEBUG.XML || DEBUG.PATHWAY) out("getElementIDList0: " + memberIDs);
         if (mXMLRestoreUnderway) {
-            return idList;
+            return memberIDs;
         } else {
-            idList.clear();
+            memberIDs.clear();
             Iterator i = getElementIterator();
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
-                idList.add(c.getID());
+                memberIDs.add(c.getID());
             }
         }
-        System.out.println(this + " getElementIDList: " + idList);
-        return idList;
+        if (DEBUG.XML || DEBUG.PATHWAY) out("getElementIDList1: " + memberIDs);
+        return memberIDs;
     }
 
 
@@ -830,7 +900,7 @@ public class LWPathway extends LWContainer
         }
         */
         //dc = new DrawContext(dc);
-        
+
         if (DEBUG.PATHWAY&&DEBUG.BOXES) System.out.println("Drawing " + this + " index=" + dc.getIndex() + " phase=" + dash_phase);
         Line2D.Float connector = new Line2D.Float();
 
@@ -878,7 +948,8 @@ public class LWPathway extends LWContainer
     
     public String toString()
     {
-        return "LWPathway[" + label
+        return "LWPathway[" + getID()
+            + " " + label
             + " n="
             + (children==null?-1:children.size())
             + " i="+mCurrentIndex
@@ -889,7 +960,6 @@ public class LWPathway extends LWContainer
     
     /** @deprecated - default constructor used for marshalling ONLY */
     public LWPathway() {
-        //mXMLRestoreUnderway = true; // now handled my LWComponent
     }
 
 

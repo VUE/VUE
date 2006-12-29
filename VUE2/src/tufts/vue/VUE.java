@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.387 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.388 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1333,11 +1333,15 @@ public class VUE
                     oldActiveMap = ActiveViewer.getMap();
                 ActiveViewer = viewer;
                 if (DEBUG.FOCUS) out("ActiveViewer set to " + viewer);
+
                 if (ActiveViewer != null) {
 
-                    for (ActiveViewerListener avl : ActiveViewerListeners) {
-                        if (DEBUG.EVENTS) out("activeViewerChanged -> " + avl);
-                        avl.activeViewerChanged(viewer);
+                    if (!(viewer instanceof tufts.vue.ui.SlideViewer)) {
+                        // SlideViewer not treated as application-level viewer: ignore when gets selected
+                        for (ActiveViewerListener avl : ActiveViewerListeners) {
+                            if (DEBUG.EVENTS) out("activeViewerChanged -> " + avl);
+                            avl.activeViewerChanged(viewer);
+                        }
                     }
                              
                     if (oldActiveMap != ActiveViewer.getMap()) {
@@ -1902,7 +1906,7 @@ public class VUE
         map.addLink(k2);
         map.addLink(k3);
 
-        LWSlide slide = new LWSlide();
+        LWSlide slide = LWSlide.create();
         slide.setLocation(300,100);
         map.addLWC(slide);
 

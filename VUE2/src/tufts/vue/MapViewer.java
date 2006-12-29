@@ -65,7 +65,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.298 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.299 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -354,7 +354,7 @@ public class MapViewer extends javax.swing.JComponent
         return mZoomFactor;
     }
     
-    void fireViewerEvent(int id) {
+    public void fireViewerEvent(int id) {
         if (/*!sDragUnderway &&*/ (id == MapViewerEvent.HIDDEN || VUE.getActiveViewer() == this)
             || (id == MapViewerEvent.ZOOM && VUE.multipleMapsVisible())) // todo: good enough for presentation mode viewer
             new MapViewerEvent(this, id).raise();
@@ -892,7 +892,7 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     public LWMap getMap() {
-        return mMap;
+        return mMap == null ? mFocal.getMap() : mMap;
     }
     public LWComponent getFocal() {
         return mFocal;
@@ -1736,8 +1736,10 @@ public class MapViewer extends javax.swing.JComponent
      */
     // java bug: Do NOT create try and create an axis using Integer.MIN_VALUE or Integer.MAX_VALUE
     // -- this triggers line rendering bugs in PC Java 1.4.1 (W2K) -- same for floats.
-    private static final int MinCoord = -10240;
-    private static final int MaxCoord = 10240;
+    //private static final int MinCoord = -10240;
+    //private static final int MaxCoord = 10240;
+    private static final int MinCoord = Short.MIN_VALUE;
+    private static final int MaxCoord = Short.MAX_VALUE;
     private static final Line2D Xaxis = new Line2D.Float(MinCoord, 0, MaxCoord, 0);
     private static final Line2D Yaxis = new Line2D.Float(0, MinCoord, 0, MaxCoord);
     
@@ -1748,7 +1750,7 @@ public class MapViewer extends javax.swing.JComponent
     public void paint(Graphics g) {
         long start = 0;
         if (DEBUG.PAINT) {
-            System.out.print("paint " + paints + " " + g.getClipBounds()+" "); System.out.flush();
+            System.out.print("paint " + paints + " clipBounds=" + g.getClipBounds()+" "); System.out.flush();
             start = System.currentTimeMillis();
         }
         try {
@@ -1882,11 +1884,13 @@ public class MapViewer extends javax.swing.JComponent
             // why isn't this working anymore?  was just after fill, but
             // now that tool does fill, we have to do on top, but can't
             // see it...
-            g2.setStroke(STROKE_ONE);
-            g2.setColor(Color.lightGray);
+            //g2.setStroke(STROKE_ONE);
+            //g2.setColor(Color.lightGray);
+            dc.setAbsoluteStroke(1);
+            g2.setColor(Color.black);
             g2.draw(Xaxis);
             g2.draw(Yaxis);
-            if (mZoomFactor >= 6.0) {
+            if (false && mZoomFactor >= 6.0) {
                 dc.setAbsoluteStroke(1);
                 g2.setColor(Color.black);
                 g2.draw(Xaxis);
@@ -1975,17 +1979,17 @@ public class MapViewer extends javax.swing.JComponent
             int y = -getY() + 40;
             //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
             if (true) {
-                g2.drawString("     origin at: " + out(getOriginLocation()), x, y+=15);
+                g2.drawString(" origin offset: " + out(getOriginLocation()), x, y+=15);
                 g2.drawString("     map mouse: " + out(mapCoords), x, y+=15);
                 g2.drawString("  canvas mouse: " + out(_mouse), x, y+=15);
                 g2.drawString(" ~screen mouse: " + out(screen), x, y+=15);
+                g2.drawString("     canvas at: " + out(canvas), x, y+= 15);
                 /*if (inScrollPane){
                 Point extent = viewportToCanvasPoint(mouse);
                 Point2D map = extentToMapPoint(extent);
                 g2.drawString("  extent point: " + out(extent), x, y+=15);
                 g2.drawString("     map point: " + out(map), x, y+=15);
                 }*/
-                g2.drawString("canvas-location " + out(canvas), x, y+= 15);
                 if (inScrollPane){
                 g2.drawString("viewport----pos " + out(mViewport.getViewPosition()), x, y+=15);
                 }
@@ -4333,7 +4337,15 @@ public class MapViewer extends javax.swing.JComponent
 
                 PickContext pc = getPickContext();
                 pc.ignoreSelected = true;
-                pc.dropping = dragComponent; // TODO: should be first in selection if just one item, as this is always a temporary group!
+
+                // TODO: stop using group if just one item in selection, use
+                // real component, and just go ahead and have different code
+                // for handling resize of single objects and of selections
+                if (VueSelection.size() == 1)
+                    pc.dropping = VueSelection.first();
+                else
+                    pc.dropping = dragComponent;
+
                 over = LWTraversal.PointPick.pick(pc, mapX, mapY);
                 
                 

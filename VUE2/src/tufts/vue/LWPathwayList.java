@@ -27,7 +27,7 @@ import java.util.*;
  * their contents, and rebroadcasting them to interested parties, such
  * as the PathwayTableModel.
  *
- * @version $Revision: 1.22 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -125,7 +125,7 @@ public class LWPathwayList implements LWComponent.Listener
         mChangeSupport.dispatchEvent(e);
     }
 
-    public Collection getElementList() {
+    public Collection<LWPathway> getElementList() {
         return mPathways;
     }
     
@@ -147,6 +147,7 @@ public class LWPathwayList implements LWComponent.Listener
     private Object get(int i) { return mPathways.get(i); }
     public int size() { return mPathways.size(); }
     public Iterator<LWPathway> iterator() { return mPathways.iterator(); }
+    //public List<LWPathway> getList() { return mPathways; } // todo: should be unmodifiable
     public int indexOf(Object o) { return mPathways.indexOf(o); }
    
     public LWPathway getFirst(){

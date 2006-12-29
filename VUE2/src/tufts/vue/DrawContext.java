@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.22 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -52,7 +52,7 @@ public class DrawContext
     private boolean isPresenting = false;
     private Rectangle frame;
 
-    public boolean isFocused = false;
+    public boolean isFocused;
 
     
     //private float mAlpha = 1f;
@@ -148,6 +148,10 @@ public class DrawContext
 
     public boolean isPresenting() {
         return isPresenting;
+    }
+
+    public boolean drawPathways() {
+        return !isFocused && !isPresenting();
     }
 
     public void setDraftQuality(boolean t) {
@@ -264,7 +268,9 @@ public class DrawContext
     
     public DrawContext(DrawContext dc)
     {
+        //System.out.println("transform before dupe: " + dc.g.getTransform());
         this.g = (Graphics2D) dc.g.create();
+        //System.out.println("transform after  dupe: " + g.getTransform());
         this.zoom = dc.zoom;
         this.offsetX = dc.offsetX;
         this.offsetY = dc.offsetY;
