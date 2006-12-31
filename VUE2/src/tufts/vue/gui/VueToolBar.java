@@ -12,7 +12,7 @@ import tufts.vue.action.*;
 /**
  * Main VUE application toolbar.
  *
- * @version $Revision: 1.1 $ / $Date: 2005-11-27 16:15:35 $ / $Author: sfraize $ 
+ * @version $Revision: 1.2 $ / $Date: 2006-12-31 22:40:11 $ / $Author: sfraize $ 
  */
 public class VueToolBar extends javax.swing.JToolBar
 // public static class VueToolBar extends com.jidesoft.action.CommandBar // JIDE ENABLE
@@ -62,8 +62,11 @@ public class VueToolBar extends javax.swing.JToolBar
     }
 
     public JButton add(Action a) {
-        JButton b = makeButton(a);
-        if (false&&VUE.JIDE_TEST) {
+        final JButton b = makeButton(a);
+        super.add(b);
+        return b;
+        /*
+        if (VUE.JIDE_TEST) {
             // toolbars can go only go vertical in JIDE if we do this...
             b = (JButton) super.add(a);
             System.out.println("added " + b.getClass() + " " + b);
@@ -72,6 +75,7 @@ public class VueToolBar extends javax.swing.JToolBar
             super.add(b);
         }
         return b;
+        */
     }
 
     private static JButton makeButton(Action a) {
