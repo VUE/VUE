@@ -37,7 +37,7 @@ import java.util.Iterator;
  * @see LWPathwayList
  * @see LWPathway
  *
- * @version $Revision: 1.25 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2006-12-31 22:42:40 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 public class PathwayTool extends VueSimpleTool
@@ -95,44 +95,38 @@ public class PathwayTool extends VueSimpleTool
     }
 
     private static class PathwayComboBoxModel extends DefaultComboBoxModel
-        implements VUE.ActiveMapListener, LWComponent.Listener, VUE.ActivePathwayListener
+        implements VUE.ActiveMapListener, LWComponent.Listener
     {
         LWPathwayList mPathwayList;
 
         PathwayComboBoxModel() {
             VUE.addActiveMapListener(this);
-            activeMapChanged(VUE.getActiveMap());
+            //activeMapChanged(VUE.getActiveMap());
+            setPathwayList(VUE.getActiveMap());
+            LWPathway current = VUE.getActivePathway();
+            if (DEBUG.TOOL) System.out.println(this + ": CURRENT PATHWAY AT INIT: " + current);
+            if (current != null)
+                setSelectedItem(current.getDisplayLabel());
         }
 
         // TODO FIX: Active map not changing on tab select if the active mapviewer
         // doesn't have focus, cause then it's not knowing it's LOSING focus --
         // the tab switch is going to have to change the active map itself.
         public void activeMapChanged(LWMap map) {
-            if (DEBUG.PATHWAY) System.out.println(this + " map changed to " + map);
+            if (DEBUG.PATHWAY) System.out.println(this + ": map changed to " + map);
             setPathwayList(map);
         }
         
-        public void activePathwayChanged(LWPathway p) {
-            //if (DEBUG.PATHWAY) System.out.println(this + " pathway changed to " + p);
-            //setSelectedItem(p.getDisplayLabel());
-            // TODO: move LWCChanged code below to VUE for general pathway change
-            // handling, and then handle just changing the selected item
-            // here, tho we'll need to add source to this as an event
-            // to make sure it's not coming from us, or hack-catch against
-            // the loop manually in here.
-        }        
-
         public void LWCChanged(LWCEvent e) {
             if (DEBUG.PATHWAY) System.out.println(this + ": " + e);
             if (e.getComponent() instanceof LWPathway) {
-                if (e.getWhat() == LWKey.Label)
+                final String what = e.getWhat();
+                if (e.key == LWKey.Label
+                    || "pathway.deleted".equals(what)
+                    || "pathway.created".equals(what)) {
                     rebuildModel();
-                else if (e.getWhat().startsWith("pathway.")) {
-                    if (e.getWhat().equals("pathway.create") || e.getWhat().equals("pathway.delete")) {
-                        rebuildModel();
-                    } else if (e.getWhat().equals("pathway.list.active")) {
-                        setSelectedItem(e.getComponent().getDisplayLabel());
-                    }
+                } else if ("pathway.list.active".equals(what)) {
+                    setSelectedItem(e.getComponent().getDisplayLabel());
                 }
             }
         }
@@ -154,8 +148,16 @@ public class PathwayTool extends VueSimpleTool
             rebuildModel();
         }
 
+        private boolean rebuilding = false;
+        
+        /** override */
         public void setSelectedItem(Object o) {
-            if (DEBUG.PATHWAY) System.out.println(this + " setSelectedItem " + o);
+            if (rebuilding) {
+                if (DEBUG.PATHWAY) System.out.println(this + " setSelectedItem IGNORED " + o);
+                return;
+            } else {
+                if (DEBUG.PATHWAY) System.out.println(this + " setSelectedItem " + o);
+            }
             super.setSelectedItem(o);
             if (mPathwayList != null)
                 mPathwayList.setCurrentIndex(getIndexOf(o));
@@ -163,19 +165,23 @@ public class PathwayTool extends VueSimpleTool
 
         private void rebuildModel() {
             removeAllElements();
-            if (mPathwayList != null) {
-                Iterator i = mPathwayList.iterator();
-                while (i.hasNext()) {
-                    addElement(((LWPathway)i.next()).getDisplayLabel());
+            rebuilding = true;
+            try {
+                if (mPathwayList != null) {
+                    Iterator i = mPathwayList.iterator();
+                    while (i.hasNext()) {
+                        addElement(((LWPathway)i.next()).getDisplayLabel());
+                    }
                 }
+            } finally {
+                rebuilding = false;
             }
         }
 
         
     }
-    private static class  PathwayToolPanel extends JPanel {
-        
-        
+    private static class  PathwayToolPanel extends JPanel
+    {
         public PathwayToolPanel() {
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             setOpaque(false);
