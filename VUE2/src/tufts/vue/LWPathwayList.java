@@ -27,7 +27,7 @@ import java.util.*;
  * their contents, and rebroadcasting them to interested parties, such
  * as the PathwayTableModel.
  *
- * @version $Revision: 1.23 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2006-12-31 22:41:38 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -108,12 +108,10 @@ public class LWPathwayList implements LWComponent.Listener
      * from it's LWPathways.
      */
     public void addListener(LWComponent.Listener l) {
-        //mListeners.add(l);
         mChangeSupport.addListener(l);
     }
     public void removeListener(LWComponent.Listener l) {
         mChangeSupport.removeListener(l);
-        //mListeners.remove(l);
     }
 
     private void notify(LWPathway changingPathway, String propertyKeyName, Object oldValue) {
@@ -167,10 +165,10 @@ public class LWPathwayList implements LWComponent.Listener
     public void add(LWPathway p) {
         p.setMap(getMap());
         mPathways.add(p);
-        setActivePathway(p);
         // we don't need to worry about calling removeFromModel on remove, as a created pathway will always
         // be empty by the time we get to undo it's create (because we'll have undone any child add's first).
-        notify(p, "pathway.create", new Undoable(p) { void undo() { remove((LWPathway)old); }});
+        notify(p, "pathway.created", new Undoable(p) { void undo() { remove((LWPathway)old); }});
+        setActivePathway(p);
         p.addLWCListener(this);
     }
     
@@ -183,12 +181,8 @@ public class LWPathwayList implements LWComponent.Listener
         p.removeFromModel();
         if (!mPathways.remove(p))
             throw new IllegalStateException(this + " didn't contain " + p + " for removal");
-        if (mActive == p)
-            setActivePathway(getFirst());
-        if (mRevealer == p)
-            setRevealer(null);
 
-        notify(p, "pathway.delete",
+        notify(p, "pathway.deleted",
                new Undoable(p) {
                    void undo() {
                        LWPathway p = (LWPathway) old;
@@ -196,6 +190,12 @@ public class LWPathwayList implements LWComponent.Listener
                        add(p);
                    }
                });
+
+        if (mActive == p)
+            setActivePathway(getFirst());
+        if (mRevealer == p)
+            setRevealer(null);
+        
     }
 
     public void LWCChanged(LWCEvent e) {
