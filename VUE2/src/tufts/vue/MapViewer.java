@@ -65,7 +65,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.299 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $ 
+ * @version $Revision: 1.300 $ / $Date: 2006-12-31 22:42:07 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -892,7 +892,7 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     public LWMap getMap() {
-        return mMap == null ? mFocal.getMap() : mMap;
+        return mMap == null ? (mFocal == null ? null : mFocal.getMap()) : mMap;
     }
     public LWComponent getFocal() {
         return mFocal;
