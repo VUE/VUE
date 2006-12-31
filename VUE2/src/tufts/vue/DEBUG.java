@@ -127,6 +127,7 @@ public class DEBUG
             else if (a.equals("resource"))   DEBUG.RESOURCE = true;
             else if (a.equals("scroll"))     DEBUG.SCROLL = true;
             else if (a.equals("pick"))       DEBUG.PICK = true;
+            else if (a.startsWith("path"))   DEBUG.PATHWAY = true;
             else if (a.startsWith("edge"))   DEBUG.EDGE = true;
             else if (a.startsWith("event"))  DEBUG.EVENTS = true;
             else if (a.startsWith("thread")) DEBUG.THREAD = true;
