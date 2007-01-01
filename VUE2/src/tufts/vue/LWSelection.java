@@ -28,7 +28,7 @@ import java.awt.geom.Point2D;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.46 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2007-01-01 17:20:54 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -37,7 +37,7 @@ import java.awt.geom.Point2D;
 // folks who want to monitor the selected object
 // can only once regiester as a selectedEventListener,
 // instead of always adding and removing from the individual objects.
-public class LWSelection extends java.util.ArrayList
+public class LWSelection extends java.util.ArrayList<LWComponent>
 {
     private List listeners = new java.util.ArrayList();
     private List controlListeners = new java.util.LinkedList();
@@ -258,21 +258,24 @@ public class LWSelection extends java.util.ArrayList
         add(i);
     }
      
-    synchronized void add(LWComponent c)
+    synchronized public boolean add(LWComponent c)
     {
         if (notifyUnderway())
-            return;
+            return false;
         if (!c.isSelected()) {
             add0(c);
-            notifyListeners();
-        } else
+            if (!isClone) notifyListeners();
+        } else {
             if (DEBUG.SELECTION) System.out.println(this + " addToSelection(already): " + c);
+            return false;
+        }
+        return true;
+        
     }
     
-    public boolean add(Object o)
-    {
-        throw new RuntimeException(this + " can't add " + o.getClass() + ": " + o);
-    }
+    //public boolean add(Object o) {
+    //throw new RuntimeException(this + " can't add " + o.getClass() + ": " + o);
+    //}
     
     /** Make sure all in Collection are in selection & do a single change notify at the end */
     public void add(Collection c) {
