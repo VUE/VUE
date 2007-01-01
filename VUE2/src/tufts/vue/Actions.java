@@ -694,9 +694,16 @@ public class Actions implements VueConstants
             super(name);
         }
         boolean mayModifySelection() { return true; }
-        boolean enabledFor(LWSelection s) { return s.size() >= 2; }
+
+        boolean enabledFor(LWSelection s) {
+            return s.size() >= 2
+                || (s.size() == 1 && s.first().getParent() instanceof LWSlide); // TODO: hack -- have capability check
+        }
+        
         void act(LWSelection selection) {
-            if (!selection.allOfType(LWLink.class)) {
+            if (selection.size() == 1 && selection.first().getParent() instanceof LWSlide) {
+                selection.add(selection.first().getParent());
+            } else if (!selection.allOfType(LWLink.class)) {
                 Iterator i = selection.iterator();
                 while (i.hasNext()) {
                     LWComponent c = (LWComponent) i.next();
@@ -809,27 +816,31 @@ public class Actions implements VueConstants
     public static final ArrangeAction AlignCentersColumn = new ArrangeAction("Align Centers in Column", KeyEvent.VK_C) {
         void arrange(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
     };
+    
     public static final ArrangeAction MakeRow = new ArrangeAction("Make Row", keyStroke(KeyEvent.VK_R, ALT)) {
-        // todo bug: an already made row is shifting everything to the left
-        // (probably always, actually)
-        void arrange(LWSelection selection) {
-            AlignCentersRow.arrange(selection);
-            maxX = minX + totalWidth;
-            DistributeHorizontally.arrange(selection);
-        }
+            boolean enabledFor(LWSelection s) { return s.size() >= 2; }
+            // todo bug: an already made row is shifting everything to the left
+            // (probably always, actually)
+            void arrange(LWSelection selection) {
+                AlignCentersRow.arrange(selection);
+                maxX = minX + totalWidth;
+                DistributeHorizontally.arrange(selection);
+            }
     };
     public static final ArrangeAction MakeColumn = new ArrangeAction("Make Column", keyStroke(KeyEvent.VK_C, ALT)) {
-        void arrange(LWSelection selection) {
-            AlignCentersColumn.arrange(selection);
-            float height;
-            if (selection.getHeight() > 0)
-                height = selection.getHeight();
-            else
-                height = totalHeight;
-            maxY = minY + height;
-            DistributeVertically.arrange(selection);
-        }
-    };
+            boolean enabledFor(LWSelection s) { return s.size() >= 2; }
+            void arrange(LWSelection selection) {
+                AlignCentersColumn.arrange(selection);
+                float height;
+                if (selection.getHeight() > 0)
+                    height = selection.getHeight();
+                else
+                    height = totalHeight;
+                maxY = minY + height;
+                DistributeVertically.arrange(selection);
+            }
+        };
+    
     public static final ArrangeAction DistributeVertically = new ArrangeAction("Distribute Vertically", KeyEvent.VK_V) {
         boolean enabledFor(LWSelection s) { return s.size() >= 3; }
         // use only *2* in selection if use our minimum layout region setting
