@@ -43,7 +43,7 @@ import java.awt.geom.Ellipse2D;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.119 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
+ * @version $Revision: 1.120 $ / $Date: 2007-01-01 17:20:12 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -634,6 +634,7 @@ public class LWPathway extends LWContainer
         m.setFillColor(Color.darkGray);
         m.setLabel("Master Slide on Pathway: " + getLabel());
         m.setNotes("This is the Master Slide for Pathway \"" + getLabel() + "\"");
+        m.setFillColor(getStrokeColor());
 
         LWComponent titleText = NodeTool.createTextNode("Title Text");
         LWComponent itemText = NodeTool.createTextNode("Item Text");
