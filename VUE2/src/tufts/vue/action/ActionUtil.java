@@ -33,7 +33,6 @@ import org.exolab.castor.xml.Unmarshaller;
 import org.exolab.castor.xml.UnmarshalListener;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
-import org.exolab.castor.util.Logger;
 
 import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
@@ -52,7 +51,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.51 $ / $Date: 2006-12-29 23:22:32 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2007-01-02 04:42:27 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -236,15 +235,15 @@ public class ActionUtil {
         unmarshaller.setValidation(false);
         //unmarshaller.setWhitespacePreserve(true); // doesn't affect elements!  (e.g. <notes> foo bar </notes>)
         // HOWEVER: castor 0.9.7 now automatically encodes/decodes white space for attributes...
-        //unmarshaller.setLogWriter(new PrintWriter(System.out));
+        /*
         Logger logger = new Logger(System.err);
         if (sourceName != null)
             logger.setPrefix("Castor " + sourceName);
         else
             logger.setPrefix("Castor");
         unmarshaller.setLogWriter(logger);
-        //unmarshaller.setLogWriter(new Logger.getSystemLogger());
-        // not a good sign: above getSystemLogger is decl public in castor code, but not public in doc, and non-existent in jar
+        */
+        unmarshaller.setLogWriter(new PrintWriter(System.err));
 
         if (DEBUG.XML) unmarshaller.setDebug(true);
         
@@ -338,7 +337,6 @@ public class ActionUtil {
             if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote VUE header to " + writer);
             marshaller = new Marshaller(writer);
             //marshaller.setDebug(DEBUG.CASTOR);
-            marshaller.setDebug(true); // doesn't appear to do anything yet...
             marshaller.setEncoding(OUTPUT_ENCODING);
             // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
             marshaller.setMarshalAsDocument(true);
@@ -363,9 +361,12 @@ public class ActionUtil {
             //marshaller.setRootElement("FOOBIE"); // overrides name of root element
             
             marshaller.setMapping(getDefaultMapping());
+            /*
             Logger logger = new Logger(System.err);
             logger.setPrefix("Castor ");
             marshaller.setLogWriter(logger);
+            */
+            marshaller.setLogWriter(new PrintWriter(System.err));
             
             if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Marshalling " + map + " ...");
             marshaller.marshal(map);
