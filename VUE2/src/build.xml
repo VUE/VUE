@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.128 $ / $Date: 2006-12-08 21:56:39 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.128 2006-12-08 21:56:39 mike Exp $ -->
+<!-- $Revision: 1.129 $ / $Date: 2007-01-02 04:25:42 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.129 2007-01-02 04:25:42 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -125,6 +125,7 @@
        sub-libraries will get the latest version (as when jar'd togeter, first found is what's used).  SMF 8/29/05  -->
   <!-- aclibico-1.0.jar: SMF 2006-03-29; removed for now: is claiming to handle all images types (no just .ico)
        and completely blowing out the java VM when it tries (out of memory)-->
+  <!-- 2007-01-01 updated castor to version castor-1.0.5-xml.jar -- SMF -->
   
   <property name="thirdparty.jarfiles.names"
             value="MERLOTOsid-1.0.jar
@@ -136,7 +137,7 @@
 				   OSIDLoggingPlain-1.0.jar
                    xercesImpl-2.7.1.jar
                    xerces-2.7.1-xml-apis.jar
-                   castor-0.9.7-xml.jar
+                   castor-1.0.5-xml.jar
                    jaxb-api-unsigned.jar
                    jaxb-impl-unsigned.jar
                    jax-qname-unsigned.jar
@@ -260,7 +261,7 @@
                    batik-ext.jar
                    batik-svggen.jar
                    batik-util.jar
-                   castor-0.9.7-xml.jar
+                   castor-1.0.5-xml.jar
                    commons-discovery.jar
                    commons-logging.jar
                    dom2.jar
@@ -293,7 +294,7 @@
     <pathelement path="../"/>                
     <pathelement location="${junit.jar}"/>
     <pathelement path="${lib.home}/VUE-MacOSX.jar"/>
-    <pathelement path="${lib.home}/castor-0.9.7-xml.jar"/>
+    <pathelement path="${lib.home}/castor-1.0.5-xml.jar"/>
     <pathelement path="${lib.home}/batik-svggen.jar"/>
     <pathelement path="${lib.home}/batik-awt-util.jar"/>
     <pathelement path="${lib.home}/batik-util.jar"/>
