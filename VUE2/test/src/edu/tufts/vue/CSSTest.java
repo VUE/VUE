@@ -53,7 +53,7 @@ public class CSSTest extends TestCase implements DocumentHandler {
     
     public void endSelector(SelectorList patterns) throws CSSException {
         if (!inMedia) {
-            System.out.println( "Found " + propertyCounter + " properties.");
+  //          System.out.println( "Found " + propertyCounter + " properties.");
         }
         inStyleRule = false;
         
@@ -63,7 +63,7 @@ public class CSSTest extends TestCase implements DocumentHandler {
     throws CSSException {
         if (inStyleRule) {
             propertyCounter++;
-            System.out.println("Name: "+ name);
+  //          System.out.println("Name: "+ name);
         }
     }
     public void endFontFace()
