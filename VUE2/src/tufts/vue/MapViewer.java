@@ -65,7 +65,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.300 $ / $Date: 2006-12-31 22:42:07 $ / $Author: sfraize $ 
+ * @version $Revision: 1.301 $ / $Date: 2007-01-03 05:25:16 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -566,10 +566,10 @@ public class MapViewer extends javax.swing.JComponent
     // The core conversion routines: todo: rename "screen" to "canvas",
     // as "screen" no longer accurate if we're in a scroll-pane.
     //------------------------------------------------------------------
-    float screenToMapX(float x) {
+    protected float screenToMapX(float x) {
         return (float) ((x + getOriginX()) * mZoomInverse);
     }
-    float screenToMapY(float y) {
+    protected float screenToMapY(float y) {
         return (float) ((y + getOriginY()) * mZoomInverse);
     }
     float screenToMapX(double x) {
@@ -891,9 +891,10 @@ public class MapViewer extends javax.swing.JComponent
         return new Point(lastMouseX, lastMouseY);
     }
     
-    public LWMap getMap() {
+    public LWMap getMap() {// TODO: make PRIVATE and then clean up to use focals instead as needed (e.g., for drops)
         return mMap == null ? (mFocal == null ? null : mFocal.getMap()) : mMap;
     }
+    
     public LWComponent getFocal() {
         return mFocal;
     }
@@ -1929,7 +1930,9 @@ public class MapViewer extends javax.swing.JComponent
             resizeControl.active = false;
         } else  {
             final LWComponent remoteFocal = s.getFocal();
-            if (getFocal() != remoteFocal && remoteFocal.isMapVirtual()) {
+            if (remoteFocal == null) {
+                out("null remote focal");
+            } else if (getFocal() != remoteFocal && remoteFocal.isMapVirtual()) {
                 resizeControl.active = false;
             } else {
                 drawSelection(dc, VueSelection);
@@ -3500,6 +3503,9 @@ public class MapViewer extends javax.swing.JComponent
         private Point2D originAtDragStart;
         private Point viewportAtDragStart;
         private boolean mLabelEditWasActiveAtMousePress;
+    // TODO: if APPLE (Command) down when drag starts, do NOT select the object,
+    // so can drag copies off map into slide viewer more easily (if it selects
+    // on the map, it will swap out the slide displayed!)
         public void mousePressed(MouseEvent e) {
             //boolean wasFocusOwner = isFocusOwner();
             // Due to a bug in the focus system, sometimes we really should have been
