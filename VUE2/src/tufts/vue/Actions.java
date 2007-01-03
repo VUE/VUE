@@ -699,9 +699,13 @@ public class Actions implements VueConstants
             return s.size() >= 2
                 || (s.size() == 1 && s.first().getParent() instanceof LWSlide); // TODO: hack -- have capability check
         }
+
+        boolean supportsSingleMover() { return true; }
         
         void act(LWSelection selection) {
-            if (selection.size() == 1 && selection.first().getParent() instanceof LWSlide) {
+            LWComponent singleMover = null;
+            if (supportsSingleMover() && selection.size() == 1 && selection.first().getParent() instanceof LWSlide) {
+                singleMover = selection.first();
                 selection.add(selection.first().getParent());
             } else if (!selection.allOfType(LWLink.class)) {
                 Iterator i = selection.iterator();
@@ -734,7 +738,15 @@ public class Actions implements VueConstants
                 totalWidth += c.getWidth();
                 totalHeight += c.getHeight();
             }
-            arrange(selection);
+            if (singleMover != null) {
+                // If we're a single selected object laying out in a parent,
+                // only bother to arrange that one object -- make sure
+                // we can never touch the parent, as it was added to
+                // the selection above only to compute our total bounds.
+                arrange(singleMover);
+            } else {
+                arrange(selection);
+            }
         }
         void arrange(LWSelection selection) {
             Iterator i = selection.iterator();
@@ -798,16 +810,16 @@ public class Actions implements VueConstants
         }
     }
     
-    public static final Action AlignLeftEdges = new ArrangeAction("Align Left Edges", KeyEvent.VK_LEFT) {
+    public static final ArrangeAction AlignLeftEdges = new ArrangeAction("Align Left Edges", KeyEvent.VK_LEFT) {
         void arrange(LWComponent c) { c.setLocation(minX, c.getY()); }
     };
-    public static final Action AlignRightEdges = new ArrangeAction("Align Right Edges", KeyEvent.VK_RIGHT) {
+    public static final ArrangeAction AlignRightEdges = new ArrangeAction("Align Right Edges", KeyEvent.VK_RIGHT) {
         void arrange(LWComponent c) { c.setLocation(maxX - c.getWidth(), c.getY()); }
     };
-    public static final Action AlignTopEdges = new ArrangeAction("Align Top Edges", KeyEvent.VK_UP) {
+    public static final ArrangeAction AlignTopEdges = new ArrangeAction("Align Top Edges", KeyEvent.VK_UP) {
         void arrange(LWComponent c) { c.setLocation(c.getX(), minY); }
     };
-    public static final Action AlignBottomEdges = new ArrangeAction("Align Bottom Edges", KeyEvent.VK_DOWN) {
+    public static final ArrangeAction AlignBottomEdges = new ArrangeAction("Align Bottom Edges", KeyEvent.VK_DOWN) {
         void arrange(LWComponent c) { c.setLocation(c.getX(), maxY - c.getHeight()); }
     };
     public static final ArrangeAction AlignCentersRow = new ArrangeAction("Align Centers in Row", KeyEvent.VK_R) {
@@ -818,6 +830,7 @@ public class Actions implements VueConstants
     };
     
     public static final ArrangeAction MakeRow = new ArrangeAction("Make Row", keyStroke(KeyEvent.VK_R, ALT)) {
+            boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 2; }
             // todo bug: an already made row is shifting everything to the left
             // (probably always, actually)
@@ -828,6 +841,7 @@ public class Actions implements VueConstants
             }
     };
     public static final ArrangeAction MakeColumn = new ArrangeAction("Make Column", keyStroke(KeyEvent.VK_C, ALT)) {
+            boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 2; }
             void arrange(LWSelection selection) {
                 AlignCentersColumn.arrange(selection);
@@ -842,6 +856,7 @@ public class Actions implements VueConstants
         };
     
     public static final ArrangeAction DistributeVertically = new ArrangeAction("Distribute Vertically", KeyEvent.VK_V) {
+            boolean supportsSingleMover() { return false; }
         boolean enabledFor(LWSelection s) { return s.size() >= 3; }
         // use only *2* in selection if use our minimum layout region setting
         void arrange(LWSelection selection) {
@@ -860,6 +875,7 @@ public class Actions implements VueConstants
     };
     
     public static final ArrangeAction DistributeHorizontally = new ArrangeAction("Distribute Horizontally", KeyEvent.VK_H) {
+            boolean supportsSingleMover() { return false; }
         boolean enabledFor(LWSelection s) { return s.size() >= 3; }
         void arrange(LWSelection selection) {
             LWComponent[] comps = sortByX(sortByY(selection.asArray()));
