@@ -43,7 +43,7 @@ import java.awt.geom.Ellipse2D;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.120 $ / $Date: 2007-01-01 17:20:12 $ / $Author: sfraize $
+ * @version $Revision: 1.121 $ / $Date: 2007-01-03 05:23:31 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -627,6 +627,9 @@ public class LWPathway extends LWContainer
     */
 
     
+    // TODO: add master slide subclass to lw_mapping which needn't add anything over
+    // it's superclass, but it will let us save/restore instances of this that
+    // can do stuff like always return 0,0 x/y values.
     protected LWSlide buildMasterSlide() {
         final LWSlide m = LWSlide.create();
 
@@ -638,17 +641,27 @@ public class LWPathway extends LWContainer
 
         LWComponent titleText = NodeTool.createTextNode("Title Text");
         LWComponent itemText = NodeTool.createTextNode("Item Text");
+        LWComponent footer = NodeTool.createTextNode(getLabel());
 
+        footer.setFont(new Font("SansSerif", Font.ITALIC+Font.BOLD, 48));
+        footer.setTextColor(new Color(255,255,255,64));
         itemText.setLocation(40,100);
 
-        titleText.setFont(new Font("SansSerif", Font.BOLD, 72));
+        titleText.setFont(new Font("SansSerif", Font.BOLD, 68));
         itemText.setFont(new Font("SansSerif", Font.PLAIN, 48));
             
         m.setParent(LWPathway.this); // must set parent before ensureID will work
         ensureID(m);
         
-        m.addChild(titleText);
-        m.addChild(itemText);
+        m.addChild(footer);
+
+        // Move the footer to lower right
+        LWSelection s = new LWSelection(footer);
+        Actions.AlignRightEdges.act(s);
+        Actions.AlignBottomEdges.act(s);
+        
+        //m.addChild(titleText);
+        //m.addChild(itemText);
         
         /*
                 {
