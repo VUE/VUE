@@ -30,7 +30,7 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
-import com.sun.tools.xjc.generator.unmarshaller.automaton.Alphabet.SuperClass;
+//import com.sun.tools.xjc.generator.unmarshaller.automaton.Alphabet.SuperClass;
 
 /**
  * A vertical stack of collapsable/expandable regions containing arbitrary JComponent's.
@@ -38,7 +38,7 @@ import com.sun.tools.xjc.generator.unmarshaller.automaton.Alphabet.SuperClass;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.31 $ / $Date: 2006-09-11 16:54:58 $ / $Author: mike $
+ * @version $Revision: 1.32 $ / $Date: 2007-01-03 05:26:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
