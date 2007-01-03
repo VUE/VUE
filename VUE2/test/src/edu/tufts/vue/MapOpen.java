@@ -36,7 +36,7 @@ import java.util.*;
 public class MapOpen  extends TestCase {
     public static final int ACTUAL_FILE_COUNT = 0;
     public static final String FILE_COUNT_ERROR = "Error: Number of files in start up map don't match the default value";
-    public void testManager() {
+    public void testMapOpen() {
         try{
             URL  startUp = VueResources.getURL("resource.startmap");
             LWMap map = OpenAction.loadMap(startUp);

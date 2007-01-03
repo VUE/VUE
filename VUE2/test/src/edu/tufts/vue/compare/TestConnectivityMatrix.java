@@ -31,7 +31,7 @@ import tufts.vue.*;
 
 public class TestConnectivityMatrix extends TestCase {
     
- public void testManager() {
+ public void testConnectivityMatixCreation() {
      LWMap map = edu.tufts.vue.compare.Util.getMap();
      ConnectivityMatrix matrix = new ConnectivityMatrix(map);
      

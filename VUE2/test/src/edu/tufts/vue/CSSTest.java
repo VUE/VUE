@@ -125,7 +125,7 @@ public class CSSTest extends TestCase implements DocumentHandler {
     public CSSTest() {
     }
     
-    public void testManager() {
+    public void testCSSTest() {
 //        System.setProperty("org.w3c.css.sac.parser","org.apache.batik.css.parser.Parser");
         try {
         InputSource source = new InputSource();
