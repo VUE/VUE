@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.198 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
+ * @version $Revision: 1.199 $ / $Date: 2007-01-03 05:21:55 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -388,7 +388,8 @@ public class LWComponent
     {
         if (getParent() == null) {
             //throw new IllegalStateException("LWComponent has null parent; needs a parent instance subclassed from LWContainer that implements getNextUniqueID: " + this);
-            if (DEBUG.Enabled) tufts.Util.printStackTrace("getNextUniqueID: returning null for presumed orphan " + this);
+            if (DEBUG.PARENTING) tufts.Util.printStackTrace("getNextUniqueID: returning null for current orphan " + this);
+            if (DEBUG.Enabled) out("getNextUniqueID: returning null for current orphan");
             return null;
         } else
             return getParent().getNextUniqueID();
@@ -1175,6 +1176,11 @@ public class LWComponent
     void addChild(LWComponent c) {
         throw new UnsupportedOperationException(this + ": can't take children. ignored=" + c);
     }
+
+    void addChildren(java.util.List children) {
+        throw new UnsupportedOperationException(this + ": can't take children. ignored=" + children);
+    }
+    
 
 
     /** return true if this component is only a "virutal" member of the map:
