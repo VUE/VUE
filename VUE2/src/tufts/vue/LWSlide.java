@@ -27,7 +27,7 @@ import java.awt.geom.*;
  * Sublcass (for now) of LWGroup for slide features.
  *
  * @author Scott Fraize
- * @version $Revision: 1.4 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2007-01-03 05:24:03 $ / $Author: sfraize $
  */
 public class LWSlide extends LWGroup
 {
@@ -96,7 +96,7 @@ public class LWSlide extends LWGroup
     private void importAndLayout(java.util.List<LWComponent> nodes)
     {
         //java.util.Collections.reverse(nodes);
-        LWSelection selection = new LWSelection(nodes);
+        final LWSelection selection = new LWSelection(nodes);
 
         //tufts.Util.printStackTrace("SLIDE CONTENT BOUNDS " + selection.getBounds());
         // Must import before MakeRow, as arrange actions will remove all nodes
@@ -153,8 +153,8 @@ public class LWSlide extends LWGroup
         LWComponent dupeChildren = node.duplicate(); // just for children: rest of node thrown away
         java.util.List toLayout = new java.util.ArrayList();
         LWNode title = NodeTool.createTextNode(node.getLabel()); // need to "sync" this...=
-        title.setFont(node.getFont());
-        title.setFontSize(24);
+        title.setFont(node.getFont().deriveFont(java.awt.Font.BOLD));
+        title.setFontSize(48);
         toLayout.add(title);
         toLayout.addAll(dupeChildren.getChildList());
         importAndLayout(toLayout);
