@@ -34,6 +34,7 @@ public class VUETest {
         TestSuite suite = new TestSuite("All tests that will be performed automatically");
         suite.addTestSuite(edu.tufts.vue.compare.TestConnectivityMatrix.class);
         suite.addTestSuite(edu.tufts.vue.MapOpen.class);
+        suite.addTestSuite(edu.tufts.vue.CSSTest.class);
 //        suite.addTestSuite(edu.tufts.osidimpl.repository.fedora_2_0.TestRepository.class);
         return suite;
     }
