@@ -28,7 +28,7 @@ import java.awt.geom.Point2D;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.47 $ / $Date: 2007-01-01 17:20:54 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2007-01-03 05:23:49 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -85,7 +85,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     /** create a temporary selection that contains just the given component */
     public LWSelection(LWComponent c) {
-        if (DEBUG.Enabled) tufts.Util.printStackTrace("selection singleton for " + c);
+        //if (DEBUG.Enabled) tufts.Util.printStackTrace("selection singleton for " + c);
         isClone = true;
         super.add(c);
     }
