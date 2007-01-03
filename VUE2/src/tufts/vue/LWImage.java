@@ -126,6 +126,15 @@ public class LWImage extends LWComponent
 
     public boolean isAutoSized() { return false; }
 
+    public boolean isTransparent() {
+        return false;
+    }
+    
+    public boolean isTranslucent() {
+        // Technically, if there are any transparent pixels in the image,
+        // we'd want to return true.
+        return false;
+    }
 
     /** This currently makes LWImages invisible to selection (they're locked in their parent node */
     //@Override
