@@ -30,7 +30,7 @@ import javax.swing.JScrollPane;
  * Extension of MouseEvent for events that happen on an instance of LWMap
  * in a MapViewer.
  *
- * @version $Revision: 1.11 $ / $Date: 2006-11-30 16:42:36 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2007-01-03 05:24:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -129,8 +129,13 @@ public class MapMouseEvent extends MouseEvent
         else
             return (MapViewer) src;
     }
+
     public LWMap getMap() {
         return getViewer().getMap();
+    }
+
+    public LWComponent getFocal() {
+        return getViewer().getFocal();
     }
 
     public float getMapX() {
