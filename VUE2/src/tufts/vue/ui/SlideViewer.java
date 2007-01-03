@@ -109,7 +109,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         }
 
         public void actionPerformed(ActionEvent e) {
-            //out(e);
+            if (DEBUG.PRESENT) out(e);
             reload();
         }
 
@@ -170,11 +170,33 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
 
     public void LWCChanged(LWCEvent e) {
         if (DEBUG.Enabled) out("SLIDEVIEWER LWCChanged " + e);
-        super.LWCChanged(e);
-        if (true||e.getComponent() == mFocal) {
-            zoomToContents();
+
+        if (e.getComponent() instanceof LWPathway) {
+            // If we're displaying a slide for a node, and
+            // the pathway has changed, it may be that the
+            // node was just added to the pathway and we
+            // need to load it's new slide (or it was
+            // removed, and we also need to display that)
+            reload();
+        } else {
+            super.LWCChanged(e);
+            if (true||e.getComponent() == mFocal) {
+                zoomToContents();
+            }
         }
     }
+
+    /*
+    public LWComponent pickDropTarget(float mapX, float mapY, Object dropping) {
+        PickContext pc = getPickContext();
+        if (dropping == null)
+            pc.dropping = POSSIBLE_RESOURCE; // most lenient targeting if unknown
+        else
+            pc.dropping = dropping;
+        return LWTraversal.PointPick.pick(pc, mapX, mapY);
+    }
+    */
+    
 
     // no longer relevant: maxLayer hack currently not in use
     //protected int getMaxLayer() { return inPathwaySlide ? 1 : 0; }
@@ -190,15 +212,19 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             pc.excluded = mFocal;
 
         // So we automatically pick inside groups
+        // (same as auto-turning on the direct selection tool)
         pc.pickDepth = 1;
 
         return pc;
     }
 
-    public void activePathwayChanged(LWPathway p) {
-        if (inPathwaySlide) {
-            reload();
-        }
+    private LWPathway mCurrentPath;
+    public void activePathwayChanged(LWPathway path) {
+        if (mCurrentPath != null)
+            mCurrentPath.removeLWCListener(this);
+        mCurrentPath = path;
+        mCurrentPath.addLWCListener(this);
+        reload();
     }
 
     private void reload() {
@@ -218,7 +244,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             if (btnMaster.isSelected())
                 mLastLoad = c;
             else if (btnSlide.isSelected()) {
-                if (c.getSlideForPathway(c.getMap().getActivePathway()) != null)
+                if (true || c.getSlideForPathway(c.getMap().getActivePathway()) != null)
                     load(c);
                 else
                     ; // do nothing for now: allows us to select non-slideworthy on map to drag into slide
@@ -227,8 +253,19 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         }
     }
 
+    protected void XsetDragger(LWComponent c) {
+        // need to cleanup MapViewer such that overriding this actually works
+        if (btnMaster.isSelected() && c instanceof LWSlide)
+            return;
+        else {
+            out("setting dragger to: " + c);
+            super.setDragger(c);
+        }
+    }
+
     protected void load(LWComponent c)
     {
+        if (DEBUG.Enabled) out("\nSlideViewer: loading " + c);
         mLastLoad = c;
         //btnSlide.setEnabled(true);
 
@@ -236,7 +273,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
 
         // If no slide available, disable slide button, even if don't want it!
 
-        if (c == null) {
+        if (c == null && !btnMaster.isSelected()) {
             mZoomBorder = false;
             mZoomContent = null;
             inFocal = false;
@@ -247,7 +284,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         
         super.loadFocal(focal);
         reshapeImpl(0,0,0,0);
-        out("\nSlideViewer: focused is now " + mFocal + " from map " + mMap);
+        if (DEBUG.Enabled) out("SlideViewer: focused is now " + mFocal + " from map " + mMap);
     }
 
     private LWSlide getActiveMasterSlide() {
@@ -382,6 +419,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         if (btnMaster.isSelected()) {
             // When editing the master, allow us to see stuff outside of it
             // (no need to clip);
+            master.setLocation(0,0);// TODO: hack till we can lock these properties
             master.draw(dc);
             return;
         }
@@ -390,6 +428,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
 
         // When just filling the background with the master, only draw
         // what's in the containment box
+        master.setLocation(0,0);// TODO: hack till we can lock these properties
         dc.g.setClip(master.getBounds());
         master.draw(dc);
         dc.g.setClip(curClip);
@@ -469,6 +508,12 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         } else {
             super.setMapOriginOffsetImpl(panelX, panelY, update);
         }
+    }
+
+    protected float XscreenToMapX(float x) {
+        float nx = super.screenToMapX(x);
+        out("SCREEN-X " + x + " MAP-X " + nx);
+        return nx;
     }
 
     public float XgetOriginX() {
