@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.63 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $  
+ * @version $Revision: 1.64 $ / $Date: 2007-01-03 05:24:40 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -161,6 +161,16 @@ class MapDropTarget
         mViewer.clearIndicated();        
     }
 
+    // TODO: to cleanup the dropping onto hit/hitParent v.s. dropping into the focal in
+    // all the below code, have a single drop.hit that is allowed to take on the value
+    // of the focal (e.g., the LWMap, or a master slide, or any slide in the slide
+    // viewer).  Always assume you may need to set the coords on new children, and do
+    // that, and if whatever the new children are added to wants to re-lay them out,
+    // fine.  Then all you need to do is be able to distinguish between something you're
+    // allowed to set a resource on...  I supposed a boolean LWComponent.takesResource()
+    // could tell us this (off for LWSlide, LWMap, LWGroup, LWText?), tho before doing
+    // that, if we manage a fully dynamic property system, that might handle it for us.
+    
     private static class DropContext {
         final Transferable transfer;
         final Point2D.Float location;   // map location of the drop
@@ -168,8 +178,7 @@ class MapDropTarget
         final List list;                // convience reference to items if it is a List
         final String text;              // only one of items+list or text
         final LWComponent hit;          // we dropped into this component
-        //final LWNode hitNode;           // we dropped into this component, and it was a node
-        final LWContainer hitNode;      // we dropped into this component, and it can take children
+        final LWContainer hitParent;    // we dropped into this component, and it can take children
         final boolean isLinkAction;     // user kbd modifiers down produced LINK drop action
 
         private float nextX;
@@ -195,21 +204,21 @@ class MapDropTarget
             else
                 list = null;
             
-            /*
-            if (hit instanceof LWNode)
-                hitNode = (LWNode) hit;
-            else
-                hitNode = null;
-            */
             if (hit instanceof LWContainer)
-                hitNode = (LWContainer) hit;
+                hitParent = (LWContainer) hit;
             else
-                hitNode = null;
+                hitParent = null;
 
             this.isLinkAction = isLinkAction;
 
             nextX = mapLocation.x;
             nextY = mapLocation.y;
+
+            if (DEBUG.DND) System.out.println("DropContext:"
+                                              + "\n\t   mapLoc: " + mapLocation
+                                              + "\n\t      hit: " + hit
+                                              + "\n\thitParent: " + hitParent
+                                              );
         }
 
         Point2D nextDropLocation() {
@@ -290,13 +299,19 @@ class MapDropTarget
             dropLocation = e.getLocation();
             dropAction = e.getDropAction();
             mapLocation = dropToMapLocation(dropLocation);
-            if (DEBUG.DND) out("processTransferable: " + GUI.dropName(e));
+            if (DEBUG.DND) out("processTransferable: " + GUI.dropName(e)
+                               + "\n\tdropScreenLoc: " + dropLocation
+                               + "\n\t   dropMapLoc: " + mapLocation
+                               );
+        } else {
+            if (DEBUG.DND) out("processTransferable: (no drop event) transfer=" + transfer);
         }
 
         LWComponent dropTarget = null;
 
         if (dropLocation != null) {
             dropTarget = mViewer.pickDropTarget(mapLocation, null);
+            if (DEBUG.DND) out("dropTarget=" + dropTarget);
             /*
               // handle via traversal picking code:
             if (dropTarget instanceof LWImage) { // todo: does LWComponent accept drop events...
@@ -448,6 +463,7 @@ class MapDropTarget
 
                 // Must make sure the selection is owned
                 // by this map before we try and change it.
+                // TODO: SlideViewer currently not handling this properly...
                 mViewer.grabVueApplicationFocus("drop", null);
                 
                 // todo: would be cleaner to have viewer.getSelection(),
@@ -505,11 +521,12 @@ class MapDropTarget
             
             if (drop.hit != null) {
                 if (overwriteResource) {
+                    // TODO: master slides in slide-viewer are "hit", thus we can set a resource on them this way!
                     drop.hit.setResource(foundURL.toString());
                     // TODO: clean this up:  resource should load meta-data on CREATION.
                     ((URLResource)drop.hit.getResource()).scanForMetaDataAsync(drop.hit);
-                } else if (drop.hitNode != null) {
-                    drop.hitNode.addChild(createNodeAndResource(drop, foundURL.toString(), properties, drop.location));
+                } else if (drop.hitParent != null) {
+                    drop.hitParent.addChild(createNodeAndResource(drop, foundURL.toString(), properties, drop.location));
                 } else {
                     processed = false;
                 }
@@ -533,11 +550,14 @@ class MapDropTarget
         
         // now add them to the map
 
-        if (drop.hitNode != null) {
-            drop.hitNode.addChildren(drop.list);
+        // Always to the set center, in case hitParent isn't something
+        // that is going to auto-layout the new children
+        setCenterAt(drop.list, drop.location);
+
+        if (drop.hitParent != null) {
+            drop.hitParent.addChildren(drop.list);
         } else {
-            setCenterAt(drop.list, drop.location);
-            mViewer.getMap().addChildren(drop.list);
+            mViewer.getFocal().addChildren(drop.list);
         }
         drop.added.addAll(drop.list);
             
@@ -560,10 +580,11 @@ class MapDropTarget
             while (i.hasNext()) {
                 Resource resource = (Resource) i.next();
 
-                if (drop.hitNode != null && !drop.isLinkAction) {
+                if (drop.hitParent != null && !drop.isLinkAction) {
 
                     // create new node children of the hit node
-                    drop.hitNode.addChild(createNode(drop, resource, null));
+                    //drop.hitParent.addChild(createNode(drop, resource, null));
+                    drop.hitParent.addChild(createNode(drop, resource, drop.nextDropLocation()));
                 
                 } else {
                     
@@ -661,8 +682,10 @@ class MapDropTarget
             // TODO: CONSOLODATE THE SET-RESOURCE CODE FROM ALL THE PROCESSING SUB-ROUTINES
             if (drop.isLinkAction || drop.hit instanceof LWLink) { // hack for now: if a link, just always set resource...
                 drop.hit.setResource(resourceSpec);
-            } else if (drop.hitNode != null) {
-                drop.hitNode.addChild(createNodeAndResource(drop, resourceSpec, props, null));
+            } else if (drop.hitParent != null) {
+                drop.hitParent.addChild(createNodeAndResource(drop, resourceSpec, props, drop.nextDropLocation()));
+                // Why were we leaving out the location here?  Oh: when hitParent could only be a node (auto-layout), that made sense
+                //drop.hitNode.addChild(createNodeAndResource(drop, resourceSpec, props, null));
             }
         } else {
             createNodeAndResource(drop, resourceSpec, props, drop.nextDropLocation());
@@ -674,7 +697,7 @@ class MapDropTarget
     {
         URLResource resource = new URLResource(resourceSpec);
 
-        if (DEBUG.DND) out("createNodeAndResource " + resourceSpec + " " + properties + " " + where);
+        if (DEBUG.DND) out("createNodeAndResource " + resourceSpec + " " + properties + " where=" + where);
 
         LWComponent c = createNode(drop, resource, properties, where, true);
 
@@ -715,7 +738,7 @@ class MapDropTarget
                                    Point2D where,
                                    boolean newResource)
     {
-        if (DEBUG.DND) out("createNode " + resource + " " + properties + " " + where);
+        if (DEBUG.DND) out("createNode " + resource + " " + properties + " where=" + where);
 
         if (properties == null)
             properties = Collections.EMPTY_MAP;
@@ -786,6 +809,12 @@ class MapDropTarget
 
         // if "where" is null, the caller is adding this to another
         // existing node, so we don't add it to the map here
+        // TODO: this is a confusing side-effect!
+        // TODO: merge all hitParent v.s. not swtiches above into a unified hanlder case
+        // FYI, this is now overdone!  We always provide the location now,
+        // so on the slideviewer for master slide, where the slide is "hittable",
+        // and looks like the parent, it's added to map first needlessly, then
+        // reparented to where it needs to go.
 
         if (where != null)
             addNodeToMap(node, where);
@@ -814,7 +843,7 @@ class MapDropTarget
             node.setCenterAt(where);
         else
             node.setLocation(where);
-        mViewer.getMap().addLWC(node);
+        mViewer.getFocal().addChild(node);
         return node;
     }
 
@@ -1037,7 +1066,9 @@ class MapDropTarget
 
     private Point2D.Float dropToMapLocation(int x, int y)
     {
-        return  mViewer.screenToMapPoint(x, y);
+        final Point2D.Float mapLoc = mViewer.screenToMapPoint(x, y);
+        //if (DEBUG.DND) out("dropToMapLocation " + x + "," + y + " = " + mapLoc);
+        return mapLoc;
     }
 
     
@@ -1124,8 +1155,8 @@ class MapDropTarget
 
     private void out(String s) {
         final String name;
-        if (mViewer.getMap() != null)
-            name = mViewer.getMap().getLabel();
+        if (mViewer.getFocal() != null)
+            name = mViewer.getFocal().getLabel();
         else
             name = mViewer.toString();
         System.out.println("MapDropTarget(" + name + ") " + s);
