@@ -47,7 +47,7 @@ public class AnalyzeCM extends VueAction {
             }
             VoteAggregate voteAggregate = new VoteAggregate(list);
 //            System.out.println(voteAggregate);
-            LWMap aggregate = new LWMap("Vote Aggreate");
+            LWMap aggregate = new LWMap("Vote Aggregate");
             Iterator children = referenceMap.getNodeIterator();
             while(children.hasNext()) {
                 LWNode node = (LWNode)((LWComponent)children.next()).duplicate();
