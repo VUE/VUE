@@ -37,15 +37,48 @@ import java.awt.event.*;
 
 public class CreateCM  extends VueAction{
     
+    private String label;
+    private LWMap map = null;
+    
     /** Creates a new instance of CreateCM */
     public CreateCM(String label) {
         super(label);
+        this.label = label;
     }
     
     
     public void actionPerformed(ActionEvent e) {
         try {
-            ConnectivityMatrix matrix = new ConnectivityMatrix(tufts.vue.VUE.getActiveMap());
+            
+            java.awt.Frame dialogParent = VUE.getDialogParentAsFrame();
+            MapChooser mapChooser = new MapChooser(dialogParent,label);
+            setMap(mapChooser.getSelectedMap());
+            if(mapChooser.getSelectedMap()!=null)
+            {    
+              save();
+            }
+
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        
+    }
+    
+    public void setMap(LWMap map)
+    {
+        this.map = map;
+    }
+    
+    public LWMap getMap()
+    {
+        return map;   
+    }
+    
+    public void save()
+    {
+          try
+          {
+            ConnectivityMatrix matrix = new ConnectivityMatrix(getMap());
             String c = matrix.toString();
             File file = ActionUtil.selectFile("Save as Connectivity Matrix","txt");
             if(file == null) {
@@ -56,9 +89,10 @@ public class CreateCM  extends VueAction{
             PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
             writer.write(c);
             writer.close();
-        } catch(Exception ex) {
-            ex.printStackTrace();
-        }
-        
+          }
+          catch(Exception ex) {
+             ex.printStackTrace();   
+          }
     }
+    
 }
