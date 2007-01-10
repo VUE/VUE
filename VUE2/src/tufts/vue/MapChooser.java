@@ -45,6 +45,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -104,13 +105,14 @@ public class MapChooser extends JDialog implements ActionListener{
         choice.addActionListener(this);
         
         addWindowListener(new WindowAdapter(){
-           public void windowClosed(WindowEvent e)
+           public void windowClosing(WindowEvent e)
            {
              setSelectedMap(null);   
            }
         });
         
         setSelectedMap(VUE.getActiveMap());
+        selectedFile = new File(VueUtil.getCurrentDirectoryPath() + getSelectedMap().toString() + ".txt");
         setResizable(false);
         setVisible(true);
     }
@@ -122,9 +124,11 @@ public class MapChooser extends JDialog implements ActionListener{
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         locationPanel.setLayout(gridBag);
+        JLabel info = new JLabel(VueResources.getIcon("smallInfo"));
+        info.setToolTipText("Create Connectivity Matrix Help Here - TBD");
         JLabel chooseLabel = new JLabel(generateMessage);
         browseLabel = new JLabel(browseMessage);
-        String[] choices = {"active map","map in a local folder"};
+        String[] choices = {"selected map","map in a local folder"};
         choice = new JComboBox(choices);
         file = new JTextField(20);
         PolygonIcon lineIcon = new PolygonIcon(Color.DARK_GRAY);
@@ -145,13 +149,19 @@ public class MapChooser extends JDialog implements ActionListener{
         buttonPanel.add(cancelButton);
         buttonPanel.add(generateButton);
         
+        c.anchor = GridBagConstraints.EAST;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        gridBag.setConstraints(info,c);
+        locationPanel.add(info);
+        
         c.insets = new Insets(20,5,5,2);
-        c.gridwidth = GridBagConstraints.RELATIVE;
         c.anchor = GridBagConstraints.WEST;
+        c.gridwidth = GridBagConstraints.RELATIVE;
         gridBag.setConstraints(chooseLabel,c);
         locationPanel.add(chooseLabel);
         
         c.gridwidth = GridBagConstraints.REMAINDER;
+        c.anchor=GridBagConstraints.EAST;
         gridBag.setConstraints(choice,c);
         locationPanel.add(choice);
         
@@ -160,8 +170,7 @@ public class MapChooser extends JDialog implements ActionListener{
         
         gridBag.setConstraints(lineLabel,c);
         locationPanel.add(lineLabel);
-        
-        c.anchor = GridBagConstraints.EAST;
+
         gridBag.setConstraints(buttonPanel,c);
         locationPanel.add(buttonPanel);        
     }
@@ -170,6 +179,11 @@ public class MapChooser extends JDialog implements ActionListener{
     public LWMap getSelectedMap()
     {
         return selectedMap;
+    }
+    
+    public File getSelectedFile()
+    {
+        return selectedFile;
     }
     
     public void setSelectedMap(LWMap map)
@@ -197,6 +211,7 @@ public class MapChooser extends JDialog implements ActionListener{
               generateButton.setEnabled(true);
               file.setText("");
               setSelectedMap(VUE.getActiveMap());
+              selectedFile = new File(VueUtil.getCurrentDirectoryPath() + getSelectedMap().toString() + ".txt");
               locationPanel.validate();
             }
             if(choice.getSelectedIndex()==1)
@@ -213,7 +228,10 @@ public class MapChooser extends JDialog implements ActionListener{
             {
               file.setText("");
               generateButton.setEnabled(false);
-              selectedFile = ActionUtil.openFile("Choose map file","vue");
+              //selectedFile = ActionUtil.openFile("Choose map file","vue");
+              JFileChooser chooseFile = new JFileChooser();
+              chooseFile.showDialog(this,"Choose map file");
+              selectedFile = chooseFile.getSelectedFile();
               file.setText(selectedFile.getName());
               browseButton.setEnabled(false);
               attachButton.setEnabled(true);
