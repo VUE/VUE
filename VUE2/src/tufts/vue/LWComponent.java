@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.199 $ / $Date: 2007-01-03 05:21:55 $ / $Author: sfraize $
+ * @version $Revision: 1.200 $ / $Date: 2007-01-10 17:29:34 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -144,6 +144,7 @@ public class LWComponent
     protected transient Dimension mCachedImageMaxSize;
 
     protected java.util.Map<String,LWSlide> mSlides = new java.util.HashMap();
+    protected java.util.Map<LWPathway,Boolean> mSlideIsNode = new java.util.HashMap();
     
     public static final java.util.Comparator XSorter = new java.util.Comparator() {        
             public int compare(Object o1, Object o2) {
@@ -1264,10 +1265,37 @@ public class LWComponent
             mSlides.put(p.getID(), slide);
         }
 
-        out("pathway key " + p.getID() + " for " + p + " gets slide " + slide);
+        if (DEBUG.PRESENT) out("getSlideForPathway " + p + " gets slide " + slide);
 
         return slide;
     }
+
+
+    public void setSlideIsNodeForPathway(LWPathway p, boolean slideIsNode) {
+        mSlideIsNode.put(p, slideIsNode ? Boolean.TRUE : Boolean.FALSE);
+        if (DEBUG.PRESENT) out("slideIsNode for " + p + " is " + slideIsNode);
+    }
+
+    public boolean getSlideIsNodeForPathway(LWPathway p) {
+        final Boolean slideIsNode = mSlideIsNode.get(p);
+        return slideIsNode == null ? Boolean.FALSE : slideIsNode.booleanValue();
+    }
+
+    public LWComponent getFocalForPathway(LWPathway p)
+    {
+        final Boolean slideIsNode = mSlideIsNode.get(p);
+        final LWComponent focal;
+
+        if (slideIsNode == null || slideIsNode.booleanValue() == false)
+            focal = getSlideForPathway(p);
+        else
+            focal = this;
+
+        if (DEBUG.PRESENT) out("focalForPathway " + p + " gets focal " + focal);
+
+        return focal;
+    }
+    
 
     protected LWSlide buildSlide(LWPathway p) {
         return null;
