@@ -53,9 +53,10 @@ public class CreateCM  extends VueAction{
             java.awt.Frame dialogParent = VUE.getDialogParentAsFrame();
             MapChooser mapChooser = new MapChooser(dialogParent,label);
             setMap(mapChooser.getSelectedMap());
+            File cmFile = new File(mapChooser.getSelectedFile().getAbsolutePath());
             if(mapChooser.getSelectedMap()!=null)
             {    
-              save();
+              save(cmFile);
             }
 
         } catch(Exception ex) {
@@ -74,13 +75,13 @@ public class CreateCM  extends VueAction{
         return map;   
     }
     
-    public void save()
+    public void save(File file)
     {
           try
           {
             ConnectivityMatrix matrix = new ConnectivityMatrix(getMap());
             String c = matrix.toString();
-            File file = ActionUtil.selectFile("Save as Connectivity Matrix","txt");
+            //File file = ActionUtil.selectFile("Save as Connectivity Matrix","txt");
             if(file == null) {
                 return;
             }
@@ -89,6 +90,7 @@ public class CreateCM  extends VueAction{
             PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
             writer.write(c);
             writer.close();
+            VueUtil.openURL("file:" + file.toString());
           }
           catch(Exception ex) {
              ex.printStackTrace();   
