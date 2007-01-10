@@ -2,12 +2,17 @@
  * AnalyzeCM.java
  *
  * Created on November 6, 2006, 11:53 AM
+ *(<p><b>License and Copyright: </b>The contents of this file are subject to the
+ * Mozilla Public License Version 1.1 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License
+ * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
-/**
+ * <p>Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+ * the specific language governing rights and limitations under the License.</p>
+ *
+ * <p>The entire file consists of original code.  Copyright &copy; 2003-2007 
+ * Tufts University. All rights reserved.</p>
  *
  * @author akumar03
  */
@@ -50,8 +55,12 @@ public class AnalyzeCM extends VueAction {
             LWMap aggregate = new LWMap("Vote Aggregate");
             Iterator children = referenceMap.getNodeIterator();
             while(children.hasNext()) {
-                LWNode node = (LWNode)((LWComponent)children.next()).duplicate();
-                aggregate.addNode(node);
+                LWComponent comp = (LWComponent)children.next();
+              //  System.out.print("Label: "+comp.getLabel()+" vote:"+voteAggregate.isNodeVoteAboveThreshold(comp.getLabel()));
+                if(voteAggregate.isNodeVoteAboveThreshold(comp.getLabel())) {
+                    LWNode node = (LWNode)comp.duplicate();
+                   aggregate.addNode(node);
+               }
             }
             Iterator children1 = aggregate.getNodeIterator();
             while(children1.hasNext()) {
