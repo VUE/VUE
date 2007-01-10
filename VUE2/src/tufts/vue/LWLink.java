@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.106 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.107 $ / $Date: 2007-01-10 17:34:21 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -741,18 +741,23 @@ public class LWLink extends LWComponent
         return false;
     }
     
+    private static final int LooseSlopSq = 15*15;
     public boolean looseContains(float x, float y)
     {
+        // return true; // let the picker sort out who's closest -- not good enough: will always pick *some* link!
+        
         if (endpointMoved)
             computeLinkEndpoints();
         
-        if (curve != null && curve.contains(x, y)) {
+        if (curve != null) {
             // Java curve shapes check the entire concave region for containment.
             // This is a quick way to check for loose-picks on curves.
             // (Could also use distanceToEdgeSq, but this hits more area).
-            return true;
-        }  else
-            return line.ptSegDistSq(x, y) < 15*15;
+            return curve.contains(x, y);
+        }  else {
+            // for straight links:
+            return line.ptSegDistSq(x, y) < LooseSlopSq;
+        }
     }
     
     

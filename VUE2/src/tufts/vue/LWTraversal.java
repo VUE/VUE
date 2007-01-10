@@ -32,7 +32,7 @@ package tufts.vue;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.3 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2007-01-10 17:34:11 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -65,7 +65,7 @@ public class LWTraversal {
         }
             
         if (acceptTraversal(c)) {
-            if (DEBUG.PICK) c.out("ACCEPTED TRAVERSAL");
+            if (DEBUG.PICK) eoutln("Accepted traversal: " + c);
             depth++;
             traverseChildren(c.getChildList());
             depth--;
@@ -100,8 +100,17 @@ public class LWTraversal {
         
     /** Visit the node: it's been accepted, now analyize and/or do something with it */
     public void visit(LWComponent c) {
-        System.out.println("Visited " + c);
+        eoutln("VISITED: " + c);
     }
+
+    protected void eout(String s) {
+        for (int x = 0; x < depth; x++) System.out.print("    ");
+        System.out.print(s);
+    }
+    protected void eoutln(String s) {
+        eout(s + "\n");
+    }
+    
 
 
     /**
@@ -194,7 +203,7 @@ public class LWTraversal {
 
         public void visit(LWComponent c) {
 
-            if (DEBUG.PICK) c.out("PointPick VISITED");
+            if (DEBUG.PICK && DEBUG.META) eoutln("PointPick VISITED: " + c);
 
             final float x = mapX * scaleX;
             final float y = mapY * scaleY;
@@ -249,38 +258,75 @@ public class LWTraversal {
             
             }
 
+            // The old loose picking of links had some very confusing cases: if there
+            // were two curved links, one concave inside the other, and we get a loose
+            // hit on the outer link because of the links special hit on it's concave
+            // region, we may actually have been closer to the inside link, but we
+            // missed it just because we weren't inside the smaller concave region.
+            // Also, a straight link moving through a concave region, even if it was on
+            // the other side of the straight link from the curve (much further from the
+            // curve), we'd ignore the straight link, and loose-hit the curve.
+
+            // To fix this, if there were ANY curve-interior hits, we need to then
+            // compute the distance to every single link on the map, and pick the
+            // closest.
+
+            // Tho better, this does have ultimate odd effect of basically saying that
+            // when clicking within the curved region of ANY link, selection slop for
+            // links becomes infinite (as long as it's within the region).
+
+            // Anyway, for better or worse, we are now implemented this way.  It's also
+            // not ideal in that specifically dealing with LWLinks specially in the pick
+            // code is a bit messy -- would be cleaner if handled via pure calls to some
+            // set of containment & distance methods on LWComponent, tho this is faster.
+
+            // It might just be cleaner to ignore the concave region containment hack
+            // completely, and just compute link containment by distance to the curve,
+            // and as long as there are no other direct hits on nodes, etc (so a link,
+            // except for the text box, would never be a direct hit), any hit within a
+            // certain max distance of a link is considered loose-successful.  A good
+            // solution, tho a bit of a performance hog, as we have to traverse the
+            // segments of every curve, and compute a distance^2 for *each* segment.
+
+            
             if (picked == null) {
+                if (DEBUG.PICK) eoutln("PointPick: NO DEFINITIVE HITS; looking for loose hits");
 
                 // First past didn't turn anything up: try a second pass, looking for loose hits.
                 // (E.g., the concave region of curved links, or just near-link hits)
                 
+                final java.util.List<LWComponent> otherLinks = new java.util.ArrayList();
                 final java.util.List<LWComponent> looseHits = new java.util.ArrayList();
                 Picker loosePick = 
                     new Picker(pc) {
                         public void visit(LWComponent c) {
-                            if (c.looseContains(mapX, mapY))
+                            if (c.looseContains(mapX, mapY)) {
+                                if (DEBUG.PICK) eoutln("         LOOSE-HIT: " + c);
                                 looseHits.add(c);
+                            } else if (c instanceof LWLink) // TODO: c.hasLooseContainment or some such
+                                otherLinks.add(c);
                         }
                     };
                 loosePick.traverse(pc.root);
 
                 if (DEBUG.PICK) System.out.println("PointPick: loose hits: " + looseHits.size());
-                if (looseHits.size() > 1) {
-                    // More than one loose hit: find the closest
+                if (looseHits.size() > 0) {
+                    // We had a loose hit, find the closest...
                     float minDist = Float.MAX_VALUE;
+                    looseHits.addAll(otherLinks); // hack: depends on knowing how looseHits works for LWLinks
                     for (LWComponent c : looseHits) {
                         float dist = c.distanceToEdgeSq(mapX, mapY);
-                        if (DEBUG.PICK) c.out("distance: " + Math.sqrt(dist));
+                        if (DEBUG.PICK) eoutln("DISTANCE: " + ((float)Math.sqrt(dist)) + " " + c);
                         if (dist < minDist) {
                             minDist = dist;
                             picked = c;
                         }
                     }
-                } else if (looseHits.size() == 1)
-                    picked = looseHits.get(0);
+                }// else if (looseHits.size() == 1)
+                //picked = looseHits.get(0);
             }
             
-            if (DEBUG.PICK) System.out.println("PointPick: hit: " + hit + " picked " + picked + "\n");
+            if (DEBUG.PICK) eoutln("PointPick: HIT: " + hit + " PICKED: " + picked + "\n");
             
             return picked;
             
