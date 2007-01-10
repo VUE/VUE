@@ -29,15 +29,22 @@ import java.util.*;
 public class VoteAggregate extends WeightAggregate {
     public static final int POSITIVE_VOTE = 1;
     public static final int NEGATIVE_VOTE = 0;
+    public static final double DEFAULT_THRESHOLD =  .5;
+    private double nodeThreshold = DEFAULT_THRESHOLD;
+    private double linkThreshold = DEFAULT_THRESHOLD;
     /** Creates a new instance of VotingAggregate */
      public VoteAggregate(List<ConnectivityMatrix> matrices ){
          super(matrices);
          computeVotes();
     }
+     
+    public VoteAggregate(List<ConnectivityMatrix> matrices,boolean nodeMerge) {
+        super(matrices);
+    } 
     
     private void computeVotes() {
         int count = getCount();
-        float threshold = (float)count/2;
+        double threshold = (double)count*linkThreshold;
         for(int i=0; i<size;i++){
             for(int j=0;j<size;j++) {
                 if(c[i][j] >= threshold) {
@@ -47,5 +54,15 @@ public class VoteAggregate extends WeightAggregate {
                 }
             }
         }
+    }
+    
+    public boolean isNodeVoteAboveThreshold(String label) {
+        int nodeCount = getNodeCount(label);
+        int count = getCount();
+        double threshold = (double)count*nodeThreshold;
+        if(nodeCount>=threshold) {
+            return true;
+        }else 
+            return false;
     }
 }
