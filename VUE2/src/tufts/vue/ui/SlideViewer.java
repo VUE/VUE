@@ -72,6 +72,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
 {
     private final VueTool PresentationTool = VueToolbarController.getController().getTool("viewTool");
 
+    private boolean isMapSlide = false;
     private boolean mBlackout = false;
     
     private boolean mZoomBorder;
@@ -85,6 +86,8 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     private final AbstractButton btnFocus;
     private final AbstractButton btnSlide;
     private final AbstractButton btnMaster;
+    private final AbstractButton btnMapSlide;
+    //private final AbstractButton btnPresent;
 
     private class Toolbar extends JPanel implements ActionListener {
         Toolbar() {
@@ -92,15 +95,18 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             add(btnLocked);
             add(Box.createHorizontalGlue());
             add(btnZoom);
-            add(btnFocus);
+            //add(btnFocus);
             add(btnSlide);
             add(btnMaster);
+            add(btnMapSlide);
+            //add(btnPresent);
 
             ButtonGroup exclusive = new ButtonGroup();
             exclusive.add(btnZoom);
-            exclusive.add(btnFocus);
+            //exclusive.add(btnFocus);
             exclusive.add(btnSlide);
             exclusive.add(btnMaster);
+            //exclusive.add(btnPresent);
         }
 
         private void add(AbstractButton b) {
@@ -110,6 +116,10 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
 
         public void actionPerformed(ActionEvent e) {
             if (DEBUG.PRESENT) out(e);
+            if (e.getSource() == btnMapSlide) {
+                mLastLoad.setSlideIsNodeForPathway(mLastLoad.getMap().getActivePathway(),
+                                                   btnMapSlide.isSelected());
+            }
             reload();
         }
 
@@ -125,6 +135,8 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         btnFocus = makeButton("Focus");
         btnSlide = makeButton("Slide");
         btnMaster = makeButton("Master Slide");
+        btnMapSlide = new JCheckBox("Map Slide");
+        //btnPresent = makeButton("Present");
 
         btnSlide.setSelected(true);
 
@@ -271,6 +283,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
 
         LWComponent focal;
 
+
         // If no slide available, disable slide button, even if don't want it!
 
         if (c == null && !btnMaster.isSelected()) {
@@ -278,7 +291,14 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             mZoomContent = null;
             inFocal = false;
             focal = null;
+            btnMapSlide.setEnabled(false);
         } else {
+            if (btnMaster.isSelected()) {
+                isMapSlide = false;
+            } else {
+                btnMapSlide.setSelected(c.getSlideIsNodeForPathway(c.getMap().getActivePathway()));
+                isMapSlide = btnFocus.isSelected() || btnMapSlide.isSelected();
+            }
             focal = getFocalAndConfigure(c);
         }
         
@@ -293,27 +313,39 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         else
             return null;
     }
-    
 
-    private LWComponent getFocalAndConfigure(LWComponent c)
+
+    /**
+     * Given the selected on-map node, and the current viewer config, return the proper focal:
+     * Either the node itself, or it's slide for the current pathway, or the master slide for
+     * the current pathway (if the master slide button is selected).
+     */
+    private LWComponent getFocalAndConfigure(final LWComponent mapNode)
     {
         final LWComponent focal;
-        
+
         inPathwaySlide = false;
             
         if (btnZoom.isSelected()) {
             inFocal = false;
-            mZoomContent = c;
+            mZoomContent = mapNode;
             mZoomBorder = true;
-            focal = c.getMap();
-        } else if (btnFocus.isSelected()) {
+            focal = mapNode.getMap();
+            btnMapSlide.setEnabled(false);
+        } else if (isMapSlide) {
             inFocal = true;
             mZoomBorder = false;
-            mZoomContent = c;
-            focal = c;
+            mZoomContent = mapNode;
+            focal = mapNode;
+            btnMapSlide.setEnabled(true);
         } else if (btnSlide.isSelected()) {
 
-            focal = c.getSlideForPathway(c.getMap().getActivePathway());
+            focal = mapNode.getFocalForPathway(mapNode.getMap().getActivePathway());
+            //focal = mapNode.getSlideForPathway(mapNode.getMap().getActivePathway());
+
+            final boolean focalIsPathwaySlide = (mapNode != focal);
+            
+            
             // todo: if only on ONE pathway, and thus could only have
             // one slide, could still allow the slide selection
             // even if not current active pathway
@@ -321,12 +353,17 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             mZoomBorder = false;
             
             if (focal != null) {
-                inPathwaySlide = true;
-                btnSlide.setEnabled(true);
+                if (focalIsPathwaySlide)
+                    inPathwaySlide = true;
+                else
+                    inPathwaySlide = false;
                 mZoomContent = focal;
+                btnMapSlide.setEnabled(true);
             } else {
                 mZoomContent = null;
+                btnMapSlide.setEnabled(false);
             }
+
             
         } else if (btnMaster.isSelected()) {
             inFocal = true;
@@ -334,6 +371,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             mZoomBorder = false;
             mZoomContent = VUE.getActiveMap().getActivePathway().getMasterSlide();
             focal = mZoomContent;
+            btnMapSlide.setEnabled(false);
         } else {
             focal = null;
             throw new InternalError();
@@ -447,7 +485,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     {
         //out("drawing focal " + mFocal);
 
-        if (btnFocus.isSelected()) {
+        if (isMapSlide) {
             dc.isFocused = true;
             dc.setInteractive(false);
         }
