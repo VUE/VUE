@@ -28,13 +28,16 @@ import java.util.*;
 import tufts.vue.*;
 
 public class WeightAggregate extends ConnectivityMatrix {
+    public static final int COUNT_ERROR = -1;
     private List<ConnectivityMatrix> matrices = new ArrayList();
+    private int mergeNodeCount[] = new int[SIZE];
     private int count;
     public WeightAggregate(List<ConnectivityMatrix> matrices ){
-        this.matrices  = matrices;
-        count= matrices.size();
-        mergeMatrices();
+      this.matrices  = matrices;
+      count= matrices.size();
+       mergeMatrices();
     }
+    
     
     private void mergeMatrices() {
         Iterator<ConnectivityMatrix> i = matrices.iterator();
@@ -59,7 +62,7 @@ public class WeightAggregate extends ConnectivityMatrix {
             }
         }
     }
-    
+
     public ConnectivityMatrix getAggregate(){
         return this;
     }
@@ -74,8 +77,17 @@ public class WeightAggregate extends ConnectivityMatrix {
             String mLabel = i.next();
             if(!labels.contains(mLabel)){
                 labels.add(mLabel);
+                mergeNodeCount[labels.indexOf(mLabel)] = 1;
+            }else{
+                mergeNodeCount[labels.indexOf(mLabel)]++;
             }
         }
+    }
+    
+    public int getNodeCount(String label) {
+        if(labels.indexOf(label)>=0)
+            return mergeNodeCount[labels.indexOf(label)];
+        else return COUNT_ERROR;
     }
     public int getCount() {
         return count;
