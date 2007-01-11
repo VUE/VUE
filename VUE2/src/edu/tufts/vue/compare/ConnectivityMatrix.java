@@ -42,7 +42,7 @@ import tufts.vue.*;
 
 public class ConnectivityMatrix {
     public static final int SIZE = 1000;
-    protected List labels = new  ArrayList();
+    protected List labels = new  ArrayList(); // these labels need not be node labels
     protected int c[][] = new int[SIZE][SIZE];
     protected int size;
     private LWMap map; 
@@ -61,7 +61,7 @@ public class ConnectivityMatrix {
         Iterator i = map.getNodeIterator();
         while(i.hasNext()){
             LWNode node = (LWNode)i.next();
-            labels.add(node.getLabel());
+            labels.add(getMergeProperty(node));
             size++;
         }
     }
@@ -74,12 +74,12 @@ public class ConnectivityMatrix {
             int arrowState = link.getArrowState();
             if(n1  instanceof LWNode && n2 instanceof LWNode) {
                 if(arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE) {
-                    c[labels.indexOf(n2.getLabel())][labels.indexOf(n1.getLabel())] = 1;
-                    c[labels.indexOf(n1.getLabel())][labels.indexOf(n2.getLabel())] =1;
+                    c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
+                    c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
                 } else if(arrowState == LWLink.ARROW_EP1) {
-                    c[labels.indexOf(n2.getLabel())][labels.indexOf(n1.getLabel())] = 1;
+                    c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
                 } else    if(arrowState == LWLink.ARROW_EP2) {
-                    c[labels.indexOf(n1.getLabel())][labels.indexOf(n2.getLabel())] =1;
+                    c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
                 }
                 
             }
@@ -166,5 +166,9 @@ public class ConnectivityMatrix {
             output +="\n";
         }
         return output;
+    }
+    
+    private String getMergeProperty(LWComponent node) {
+        return  node.getLabel();
     }
 }
