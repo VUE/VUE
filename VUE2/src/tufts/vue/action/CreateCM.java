@@ -86,11 +86,12 @@ public class CreateCM  extends VueAction{
                 return;
             }
             String fileName = file.getAbsolutePath();
-            if(!fileName.endsWith(".txt")) fileName += ".txt";
+            fileName = fileName.substring(0,fileName.lastIndexOf('.'));
+            /*if(!fileName.endsWith(".txt"))*/ fileName += ".txt";
             PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
             writer.write(c);
             writer.close();
-            VueUtil.openURL("file:" + file.toString());
+            VueUtil.openURL("file:" + fileName);
           }
           catch(Exception ex) {
              ex.printStackTrace();   

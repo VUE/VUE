@@ -1,7 +1,4 @@
 /*
- * MapChooser.java
- *
- * Created on January 4, 2007, 5:31 PM
  *
  * * <p><b>License and Copyright: </b>The contents of this file are subject to the
  * Mozilla Public License Version 1.1 (the "License"); you may not use this file
@@ -12,7 +9,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003-2006
+ * <p>The entire file consists of original code.  Copyright &copy; 2003-2007
  * Tufts University. All rights reserved.</p>
  *
  *
@@ -20,6 +17,8 @@
 
 /*
  * * MapChooser.java
+ *
+ * Author: dhelle01
  *
  * Created on January 4, 2007, 5:31 PM
  *
@@ -50,13 +49,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-/**
- *
- * Map Chooser
- *
- *
- * @author dhelle01
- */
 public class MapChooser extends JDialog implements ActionListener{
     
     public static final int CMPUB_WIDTH = 500;
@@ -80,6 +72,7 @@ public class MapChooser extends JDialog implements ActionListener{
     private JButton browseButton = null;
     private JButton attachButton = null;
     private File selectedFile = null;
+    private File currentMapDir = null;
     
     private LWMap selectedMap = null;
    
@@ -112,9 +105,22 @@ public class MapChooser extends JDialog implements ActionListener{
         });
         
         setSelectedMap(VUE.getActiveMap());
-        selectedFile = new File(VueUtil.getCurrentDirectoryPath() + getSelectedMap().toString() + ".txt");
+        selectedFile = getDefaultFile();
         setResizable(false);
         setVisible(true);
+    }
+    
+    public File getDefaultFile()
+    {
+        if(getSelectedMap()!=null)
+        {
+           return new File(VueUtil.getCurrentDirectoryPath() + getSelectedMap().getLabel() + ".txt");
+        }
+        else
+        {
+           return new File(VueUtil.getCurrentDirectoryPath() + "New Map" + ".txt");
+        }
+            
     }
     
     public void setUpLocationPanel()
@@ -211,7 +217,7 @@ public class MapChooser extends JDialog implements ActionListener{
               generateButton.setEnabled(true);
               file.setText("");
               setSelectedMap(VUE.getActiveMap());
-              selectedFile = new File(VueUtil.getCurrentDirectoryPath() + getSelectedMap().toString() + ".txt");
+              selectedFile = getDefaultFile();
               locationPanel.validate();
             }
             if(choice.getSelectedIndex()==1)
@@ -246,6 +252,7 @@ public class MapChooser extends JDialog implements ActionListener{
             try
             {
                 setSelectedMap(ActionUtil.unmarshallMap(selectedFile));
+                currentMapDir = new File(selectedFile.getParent());
                 browseButton.setEnabled(true);
                 attachButton.setEnabled(false);
                 generateButton.setEnabled(true);
