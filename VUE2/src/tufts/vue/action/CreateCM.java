@@ -53,7 +53,8 @@ public class CreateCM  extends VueAction{
             java.awt.Frame dialogParent = VUE.getDialogParentAsFrame();
             MapChooser mapChooser = new MapChooser(dialogParent,label);
             setMap(mapChooser.getSelectedMap());
-            File cmFile = new File(mapChooser.getSelectedFile().getAbsolutePath());
+            //File cmFile = new File(mapChooser.getSelectedFile().getAbsolutePath());
+            File cmFile = File.createTempFile("ConnectivityMatrixTemp","txt");
             if(mapChooser.getSelectedMap()!=null)
             {    
               save(cmFile);
@@ -86,8 +87,8 @@ public class CreateCM  extends VueAction{
                 return;
             }
             String fileName = file.getAbsolutePath();
-            fileName = fileName.substring(0,fileName.lastIndexOf('.'));
-            /*if(!fileName.endsWith(".txt"))*/ fileName += ".txt";
+            //fileName = fileName.substring(0,fileName.lastIndexOf('.'));
+            /*if(!fileName.endsWith(".txt"))*/ //fileName += ".txt";
             PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
             writer.write(c);
             writer.close();
