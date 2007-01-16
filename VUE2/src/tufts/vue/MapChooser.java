@@ -29,6 +29,9 @@ package tufts.vue;
 import junit.extensions.ActiveTestSuite;
 import tufts.vue.action.ActionUtil;
 
+
+import edu.tufts.vue.compare.ConnectivityMatrix;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -40,8 +43,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.BufferedWriter;
 import java.io.File;
-//import javax.swing.BoxLayout;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -53,11 +59,11 @@ import javax.swing.JTextField;
 public class MapChooser extends JDialog implements ActionListener{
     
     public static final int CMPUB_WIDTH = 500;
-    public static final int CMPUB_HEIGHT = 250;
+    public static final int CMPUB_HEIGHT = 350;
     public static final int CMPUB_X_LOCATION = 300;
     public static final int CMPUB_Y_LOCATION = 300;
     public static final String generateMessage = "Generate a connectivity matrix from:";
-    public static final String browseMessage =   "Browse to map:                      ";
+    public static final String browseMessage =   "Browse to map:";
     
     private JPanel locationPanel = null;
     private JButton cancelButton = null;
@@ -67,11 +73,9 @@ public class MapChooser extends JDialog implements ActionListener{
     private JLabel lineLabel = null;
     private JPanel browsePanel = null;
     private JLabel browseLabel = null;
-    //private JPanel leftBrowsePanel = null;
     private JPanel innerBrowsePanel = null;
     private JTextField file = null;
     private JButton browseButton = null;
-    //private JButton attachButton = null;
     private File selectedFile = null;
     private File currentMapDir = null;
     
@@ -86,15 +90,12 @@ public class MapChooser extends JDialog implements ActionListener{
         cancelButton = new JButton("Cancel");
         generateButton = new JButton("Generate");
         browseButton = new JButton("browse");
-        //attachButton = new JButton("attach");
         cancelButton.addActionListener(this);
         generateButton.addActionListener(this);
         browseButton.addActionListener(this);
-        //attachButton.setEnabled(false);
-        //attachButton.addActionListener(this);
         
         setUpLocationPanel();
-        getContentPane().setLayout(new BorderLayout());
+        getContentPane().setLayout(new FlowLayout());
         getContentPane().add(locationPanel);
         choice.addActionListener(this);
         
@@ -106,33 +107,12 @@ public class MapChooser extends JDialog implements ActionListener{
         });
         
         setSelectedMap(VUE.getActiveMap());
-        //selectedFile = getDefaultFile();
-        //pack();
+        
+        locationPanel.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
+        pack();
         setResizable(false);
         setVisible(true);
     }
-    
-    /*public File getDefaultSaveFile()
-    {
-        if(getSelectedMap()!=null)
-        {
-           return new File(currentMapDir + getSelectedMap().getLabel() + ".txt");
-        }
-        else
-        {
-           try
-           {
-              return  File.createTempFile("New Map","txt");
-                   //new File(VueUtil.getCurrentDirectoryPath() + "New Map" + ".txt");
-           }
-           catch(Exception ex)
-           {
-               ex.printStackTrace();
-               return null;
-           }
-        }
-            
-    }*/
     
     public void setUpLocationPanel()
     {
@@ -144,48 +124,54 @@ public class MapChooser extends JDialog implements ActionListener{
         JLabel info = new JLabel(VueResources.getIcon("smallInfo"));
         info.setToolTipText("Create Connectivity Matrix Help Here - TBD");
         JLabel chooseLabel = new JLabel(generateMessage,JLabel.RIGHT);
-        browseLabel = new JLabel(browseMessage,JLabel.RIGHT);
+        browseLabel = new JLabel(browseMessage,JLabel.CENTER);
         String[] choices = {"selected map","map in a local folder"};
         choice = new JComboBox(choices);
-        file = new JTextField(10);
+        file = new JTextField(2);
         PolygonIcon lineIcon = new PolygonIcon(Color.DARK_GRAY);
         lineIcon.setIconWidth(CMPUB_WIDTH-40);
         lineIcon.setIconHeight(1);
         browsePanel = new JPanel();
-        //rightBrowsePanel = new JPanel();
+        //browsePanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+        browsePanel.setLayout(new BorderLayout());
         innerBrowsePanel = new JPanel();
-        //for label above file text box
-        //leftBrowsePanel.setLayout(new BoxLayout(leftBrowsePanel,BoxLayout.Y_AXIS));
-        //leftBrowsePanel.setLayout(new BoxLayout(leftBrowsePanel,BoxLayout.X_AXIS));
-        //innerBrowsePanel.setLayout(new BoxLayout(innerBrowsePanel,BoxLayout.X_AXIS));
-        innerBrowsePanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        innerBrowsePanel.add(browseLabel);
-        innerBrowsePanel.add(file);
-        innerBrowsePanel.add(browseButton);
-        //rightBrowsePanel.add(attachButton);
-        //browsePanel.setLayout(new BoxLayout(browsePanel,BoxLayout.X_AXIS));
         lineLabel = new JLabel(lineIcon);
-        buttonPanel = new JPanel();
+        buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(cancelButton);
         buttonPanel.add(generateButton);
+        
+        // innerBrowsePanel gets added and removed in action for choice
+        // but do layout here so as to not have to redo the layout
+        // each time
+        GridBagLayout innerGridBag = new GridBagLayout();
+        GridBagConstraints c2 = new GridBagConstraints();
+        innerBrowsePanel.setLayout(innerGridBag);
+        c2.weightx= 0.0;
+        c2.fill = GridBagConstraints.HORIZONTAL;
+        innerGridBag.setConstraints(browseLabel,c2);
+        innerBrowsePanel.add(browseLabel);
+        c2.weightx = 1.0;
+        innerGridBag.setConstraints(file,c2);        
+        innerBrowsePanel.add(file);
+        c2.weightx = 0.0;
+        innerGridBag.setConstraints(browseButton,c2);
+        innerBrowsePanel.add(browseButton);
         
         c.anchor = GridBagConstraints.EAST;
         c.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(info,c);
         locationPanel.add(info);
         
-        //c.insets = new Insets(20,5,5,2);
-        //c.anchor = GridBagConstraints.EAST;
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridwidth = GridBagConstraints.RELATIVE;
         gridBag.setConstraints(chooseLabel,c);
         locationPanel.add(chooseLabel);
         
         c.gridwidth = GridBagConstraints.REMAINDER;
-        //c.anchor=GridBagConstraints.EAST;
         gridBag.setConstraints(choice,c);
         locationPanel.add(choice);
         
+        c.weightx = 1.0;
         c.insets = new Insets(10,0,0,0);
         gridBag.setConstraints(browsePanel,c);
         locationPanel.add(browsePanel);
@@ -193,7 +179,6 @@ public class MapChooser extends JDialog implements ActionListener{
         gridBag.setConstraints(lineLabel,c);
         locationPanel.add(lineLabel);
         
-        c.fill = GridBagConstraints.NONE;
         gridBag.setConstraints(buttonPanel,c);
         locationPanel.add(buttonPanel);        
     }
@@ -223,6 +208,24 @@ public class MapChooser extends JDialog implements ActionListener{
         }
         if(e.getSource() == generateButton)
         {
+            try
+            {
+                if(getSelectedMap()!=null)
+                {
+                    ConnectivityMatrix matrix = new ConnectivityMatrix(getSelectedMap());
+                    String sMatrix = matrix.toString();
+                    File temp = File.createTempFile("ConnectivityMatrixTemp","txt");
+                    String fileName = temp.getAbsolutePath();
+                    PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
+                    writer.write(sMatrix);
+                    writer.close();
+                    VueUtil.openURL("file:" + fileName);
+                }
+            }
+            catch(Exception ex)
+            {
+                ex.printStackTrace();
+            }
             this.dispose();
         }
         if(e.getSource() == choice)
@@ -230,21 +233,16 @@ public class MapChooser extends JDialog implements ActionListener{
             if(choice.getSelectedIndex()==0)
             {
               browsePanel.remove(innerBrowsePanel);
-              //browsePanel.remove(rightBrowsePanel);
               generateButton.setEnabled(true);
               file.setText("");
               setSelectedMap(VUE.getActiveMap());
-              //selectedFile = getDefaultFile();
-              locationPanel.validate();
-              //pack();
+              pack();
             }
             if(choice.getSelectedIndex()==1)
             {
               browsePanel.add(innerBrowsePanel);
-              //browsePanel.add(rightBrowsePanel);
               generateButton.setEnabled(false);
-              locationPanel.validate();
-              //pack();
+              pack();
             }
         }
         if(e.getSource() == browseButton)
@@ -253,37 +251,22 @@ public class MapChooser extends JDialog implements ActionListener{
             {
               file.setText("");
               generateButton.setEnabled(false);
-              //selectedFile = ActionUtil.openFile("Choose map file","vue");
               JFileChooser chooseFile = new JFileChooser();
+              chooseFile.setFileFilter(new VueFileFilter("vue"));
               chooseFile.showDialog(this,"Choose map file");
               selectedFile = chooseFile.getSelectedFile();
-              setSelectedMap(ActionUtil.unmarshallMap(selectedFile));
-              file.setText(selectedFile.getName());
-              //browseButton.setEnabled(false);
-              //attachButton.setEnabled(true);
-              generateButton.setEnabled(true);
+              if(selectedFile!=null)
+              {    
+                setSelectedMap(ActionUtil.unmarshallMap(selectedFile));
+                file.setText(selectedFile.getName());
+                generateButton.setEnabled(true);
+              }
             }
             catch(Exception ex)
             {
               ex.printStackTrace();   
             }
         }
-        /*if(e.getSource() == attachButton)
-        {
-            try
-            {
-                setSelectedMap(ActionUtil.unmarshallMap(selectedFile));
-                currentMapDir = new File(selectedFile.getParent());
-                browseButton.setEnabled(true);
-                attachButton.setEnabled(false);
-                generateButton.setEnabled(true);
-            }
-            catch(Exception ex)
-            {
-                ex.printStackTrace();   
-            }
-    
-        }*/
         
     }   
     

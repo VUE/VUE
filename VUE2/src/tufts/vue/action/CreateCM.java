@@ -38,65 +38,23 @@ import java.awt.event.*;
 public class CreateCM  extends VueAction{
     
     private String label;
-    private LWMap map = null;
     
     /** Creates a new instance of CreateCM */
     public CreateCM(String label) {
         super(label);
         this.label = label;
     }
-    
-    
+   
     public void actionPerformed(ActionEvent e) {
         try {
             
             java.awt.Frame dialogParent = VUE.getDialogParentAsFrame();
             MapChooser mapChooser = new MapChooser(dialogParent,label);
-            setMap(mapChooser.getSelectedMap());
-            //File cmFile = new File(mapChooser.getSelectedFile().getAbsolutePath());
-            File cmFile = File.createTempFile("ConnectivityMatrixTemp","txt");
-            if(mapChooser.getSelectedMap()!=null)
-            {    
-              save(cmFile);
-            }
 
         } catch(Exception ex) {
             ex.printStackTrace();
         }
         
-    }
-    
-    public void setMap(LWMap map)
-    {
-        this.map = map;
-    }
-    
-    public LWMap getMap()
-    {
-        return map;   
-    }
-    
-    public void save(File file)
-    {
-          try
-          {
-            ConnectivityMatrix matrix = new ConnectivityMatrix(getMap());
-            String c = matrix.toString();
-            //File file = ActionUtil.selectFile("Save as Connectivity Matrix","txt");
-            if(file == null) {
-                return;
-            }
-            String fileName = file.getAbsolutePath();
-            //fileName = fileName.substring(0,fileName.lastIndexOf('.'));
-            /*if(!fileName.endsWith(".txt"))*/ //fileName += ".txt";
-            PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
-            writer.write(c);
-            writer.close();
-            VueUtil.openURL("file:" + fileName);
-          }
-          catch(Exception ex) {
-             ex.printStackTrace();   
-          }
-    }
+    }    
     
 }
