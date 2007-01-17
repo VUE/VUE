@@ -133,96 +133,98 @@ public class Osid2AssetResource extends MapResource
             while (partIterator.hasNextPart()) {
                 org.osid.repository.Part part = partIterator.nextPart();
                 org.osid.repository.PartStructure partStructure = part.getPartStructure();
-                org.osid.shared.Type partStructureType = partStructure.getType();
-                java.io.Serializable value = part.getValue();
-
-                final String description = partStructureType.getDescription();
-
-                if (DEBUG.DR) {
-                    recordDesc += "\nPART" + partIndex++ + "="
+				if ( (part != null) && (partStructure != null) ) {
+					org.osid.shared.Type partStructureType = partStructure.getType();
+					java.io.Serializable value = part.getValue();
+					
+					final String description = partStructureType.getDescription();
+					
+					if (DEBUG.DR) {
+						recordDesc += "\nPART" + partIndex++ + "="
                         +  "pstype(" + out(partStructureType) +  ")   "
                         + quoteF(part.getDisplayName()) + "  " + part
                         + (DEBUG.META ? (" partStructure name/desc=" + quoteF(partStructure.getDisplayName()) + quoteF(partStructure.getDescription())) : "")
                         ;
-                }
-                
-                // metadata discovery, allow for Type descriptions
-
-                String key;
-
-                if (description != null && description.trim().length() > 0) {
-                    key = description;
-                    //if (DEBUG.DR) key += "|d";
-                } else {
-                    key = partStructureType.getKeyword();
-                    //if (DEBUG.DR) key += "|k";
-                    /*
-                    if (DEBUG.DR) {
-                        String idName = record.getId().getIdString();
-                        if (idName == null || idName.trim().length() == 0 || idName.indexOf(':') >= 0)
-                            key += "|k";
-                        else
-                            key += "." + idName;
-                    }
-                    */
-                }                
+					}
 					
-                if (key == null) {
-                    VUE.Log.warn(this + " Asset Part [" + part + "] has null key.");
-                    continue;
-                }
-                
-                if (value == null) {
-                    VUE.Log.warn(this + " Asset Part [" + key + "] has null value.");
-                    continue;
-                }
-
-                if (value instanceof String) {
-                    String s = ((String)value).trim();
-                
-                    // Don't add field if it's empty
-                    if (s.length() <= 0)
-                        continue;
-                    
-                    if (s.startsWith("<p>") && s.endsWith("</p>")) {
-                        // Ignore empty HTML paragraphs
-                        String body = s.substring(3, s.length()-4);
-                        if (body.trim().length() == 0) {
-                            if (DEBUG.DR)
-                                value = "[empty <p></p> ignored]";
-                            else
-                                continue;
-                        }
-                    }
-                }
-                
-                addProperty(key, value);
-
-                // TODO: Fedora OSID impl is a bit of a mess: most every part is a URL part type,
-                // and it's only by virtue of the fact that the last one
-                // we process HAPPENS to be the fullView, that this even works at all!
-                
-                if (BrowsePartType.isEqual(partStructureType)) {
-                    setURL_Browse(value.toString());
-                    //setSpec(s);
-                    ////setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL(s))));
-                    //this.icon = s;
-                } else if (ThumbnailPartType.isEqual(partStructureType)) {
-                    setURL_Thumb(value.toString());
-
-                    /*
-                    if (value instanceof String) {
-                        //setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL((String)ser))));
-                        this.icon = (String) value;
-                    } else {
-                        //setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)ser)));
-                        //this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
-                    }
-                    */
-                } else if (LargeImagePartType.isEqual(partStructureType) || FedoraImagePartType.isEqual(partStructureType)) {
-                    setURL_Image(value.toString());
-                    // handle large image
-                }
+					// metadata discovery, allow for Type descriptions
+					
+					String key;
+					
+					if (description != null && description.trim().length() > 0) {
+						key = description;
+						//if (DEBUG.DR) key += "|d";
+					} else {
+						key = partStructureType.getKeyword();
+						//if (DEBUG.DR) key += "|k";
+						/*
+						 if (DEBUG.DR) {
+							 String idName = record.getId().getIdString();
+							 if (idName == null || idName.trim().length() == 0 || idName.indexOf(':') >= 0)
+								 key += "|k";
+							 else
+								 key += "." + idName;
+						 }
+						 */
+					}                
+					
+					if (key == null) {
+						VUE.Log.warn(this + " Asset Part [" + part + "] has null key.");
+						continue;
+					}
+					
+					if (value == null) {
+						VUE.Log.warn(this + " Asset Part [" + key + "] has null value.");
+						continue;
+					}
+					
+					if (value instanceof String) {
+						String s = ((String)value).trim();
+						
+						// Don't add field if it's empty
+						if (s.length() <= 0)
+							continue;
+						
+						if (s.startsWith("<p>") && s.endsWith("</p>")) {
+							// Ignore empty HTML paragraphs
+							String body = s.substring(3, s.length()-4);
+							if (body.trim().length() == 0) {
+								if (DEBUG.DR)
+									value = "[empty <p></p> ignored]";
+								else
+									continue;
+							}
+						}
+					}
+					
+					addProperty(key, value);
+					
+					// TODO: Fedora OSID impl is a bit of a mess: most every part is a URL part type,
+					// and it's only by virtue of the fact that the last one
+					// we process HAPPENS to be the fullView, that this even works at all!
+					
+					if (BrowsePartType.isEqual(partStructureType)) {
+						setURL_Browse(value.toString());
+						//setSpec(s);
+						////setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL(s))));
+						//this.icon = s;
+					} else if (ThumbnailPartType.isEqual(partStructureType)) {
+						setURL_Thumb(value.toString());
+						
+						/*
+						 if (value instanceof String) {
+							 //setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL((String)ser))));
+							 this.icon = (String) value;
+						 } else {
+							 //setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)ser)));
+							 //this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
+						 }
+						 */
+					} else if (LargeImagePartType.isEqual(partStructureType) || FedoraImagePartType.isEqual(partStructureType)) {
+						setURL_Image(value.toString());
+						// handle large image
+					}
+				}
             }
             
             if (DEBUG.DR) addProperty("~Record", recordDesc);
