@@ -1,0 +1,4 @@
+	Boston	Miami	Denver	
+Boston	0	1	0	
+Miami	1	0	1	
+Denver	0	1	0	
