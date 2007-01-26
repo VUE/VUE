@@ -274,6 +274,10 @@
                 </field>
         
 	</class>
+        
+        <class name="tufts.vue.LWMergeMap" extends="tufts.vue.LWMap">
+            <map-to xml="LW-MERGE-MAP" />
+        </class>
 
 	<class name="tufts.vue.LWPathwayList">
 		<map-to xml="PathwayList"/>
