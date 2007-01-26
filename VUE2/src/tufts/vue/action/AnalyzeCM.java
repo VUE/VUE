@@ -39,7 +39,8 @@ public class AnalyzeCM extends VueAction {
     }
     
     public void actionPerformed(ActionEvent e) {
-        try {
+// Functionality moved to MergeMapsChooser Dialog and LWMergeMap 1/26/2007
+/*        try {
             ArrayList<ConnectivityMatrix> list = new ArrayList();
             LWMap referenceMap = null;
             Iterator<LWMap> i =   VUE.getLeftTabbedPane().getAllMaps();
@@ -52,7 +53,7 @@ public class AnalyzeCM extends VueAction {
             }
             VoteAggregate voteAggregate = new VoteAggregate(list);
 //            System.out.println(voteAggregate);
-            LWMap aggregate = new LWMap("Vote Aggregate");
+            LWMap aggregate = new LWMergeMap("Vote Aggregate");
             Iterator children = referenceMap.getNodeIterator();
             while(children.hasNext()) {
                 LWComponent comp = (LWComponent)children.next();
@@ -82,8 +83,15 @@ public class AnalyzeCM extends VueAction {
             
         } catch(Exception ex) {
             ex.printStackTrace();
-        }
+        }*/
         
+        MergeMapsChooser mmc = new MergeMapsChooser();
+        tufts.vue.gui.DockWindow w = tufts.vue.gui.GUI.createDockWindow("Merge Maps",mmc);
+        mmc.setDockWindow(w);
+        w.setLocation(200,200);
+        w.pack();
+        w.setVisible(true);
+                
     }
     
     
