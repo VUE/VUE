@@ -63,7 +63,10 @@ public class DEBUG
     public static boolean RESOURCE = false; // Resources
     public static boolean PRESENT = false;
     public static boolean PICK = false;
-    
+    public static boolean LISTS = false; //for debugging UL and OL in HTML textbox code
+    //If you set LISTS to true you'll get the HTML code for the node in the Info Label
+    //instead of the rendered HTML this should be useful for debugging, at least I hope so.
+    //see my note in InspectorPane for more info. -MK
     public static boolean WORK = true; // work-in-progress
 
     public static boolean DR = false; // digital repository & data sources
