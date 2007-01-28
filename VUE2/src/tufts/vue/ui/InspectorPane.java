@@ -39,7 +39,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.34 $ / $Date: 2006-09-22 19:40:56 $ / $Author: mike $
+ * @version $Revision: 1.35 $ / $Date: 2007-01-28 20:07:38 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -413,6 +413,12 @@ public class InspectorPane extends JPanel
             setName("nodeSummary");
             
             labelValue.setBorder(null);
+            //If you're trying to debug lists, you'll want to see the HTML code somewhere,
+            //and here is as good as any place right now.  It may be a TODO to put this label
+            //on a tabbed pane with an editable version of the HTML code so you can tweak it
+            //in case of an error.
+            if (!DEBUG.LISTS)
+            	labelValue.setContentType("text/html");
             contentValue.setEditable(false);
 
             JScrollPane labelScroller = new JScrollPane(labelValue,
