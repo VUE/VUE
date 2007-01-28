@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.390 $ / $Date: 2007-01-03 05:25:32 $ / $Author: sfraize $ 
+ * @version $Revision: 1.391 $ / $Date: 2007-01-28 20:10:36 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -104,6 +104,7 @@ public class VUE
     private static java.util.List<ActivePathwayListener> ActivePathwayListeners = new java.util.ArrayList();
 
     private static InspectorPane inspectorPane = null;
+    private static FormatPanel formattingPanel; 
     
     public interface ActiveMapListener {
         public void activeMapChanged(LWMap map);
@@ -601,9 +602,10 @@ public class VUE
         // Formatting
         //-----------------------------------------------------------------------------
 
-        formatDock = null;
-        //final DockWindow formatDock = GUI.createDockWindow("Format", new FormatPanel());
-
+        //formatDock = null;
+        formattingPanel = new FormatPanel();
+        formatDock = GUI.createDockWindow("Format", formattingPanel);
+        formatDock.setFocusable(false);
         
         //-----------------------------------------------------------------------------
         // Panner
@@ -1024,6 +1026,10 @@ public class VUE
 
     }
 
+    public static FormatPanel getFormattingPanel()
+    {
+    	return formattingPanel;
+    }
 
     /**
      * Get the given windows displayed, but off screen, ready to be moved
