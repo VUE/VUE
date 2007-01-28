@@ -65,7 +65,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.301 $ / $Date: 2007-01-03 05:25:16 $ / $Author: sfraize $ 
+ * @version $Revision: 1.302 $ / $Date: 2007-01-28 20:09:13 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2161,6 +2161,7 @@ public class MapViewer extends javax.swing.JComponent
         
         activeTextEdit.selectAll();
         add(activeTextEdit);
+        VUE.getFormattingPanel().getTextPropsPane().setActiveTextControl(activeTextEdit);
         if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from addNotify");
         activeTextEdit.requestFocus();
         if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from requestFocus");
@@ -5408,7 +5409,7 @@ public class MapViewer extends javax.swing.JComponent
         if (test_map)
             VUE.installExampleMap(map);
         else
-            map.addLWC(new LWNode("New Node", new Rectangle2D.Float()));
+            map.addLWC(new LWNode(VueResources.getString("newnode.html"), new Rectangle2D.Float()));
         
         /*
         LWNode tn = new LWNode("one two three", new Rectangle2D.Float());
@@ -5478,5 +5479,4 @@ public class MapViewer extends javax.swing.JComponent
     	autoZoomEnabled = enabled;
     }        
 }
-
 
