@@ -159,7 +159,7 @@ public class NodeTool extends VueTool
     
     public boolean handleSelectorRelease(MapMouseEvent e)
     {
-        LWNode node = createNode("New Node", true);
+    	LWNode node = createNode(VueResources.getString("newnode.html"), true);
         node.setAutoSized(false);
         node.setFrame(e.getMapSelectorBox());
         MapViewer viewer = e.getViewer();
@@ -219,7 +219,7 @@ public class NodeTool extends VueTool
     }
     /** @return a new default node with the default new node label */
     public static LWNode createNewNode() {
-        return createNode("New Node");
+        return createNode(VueResources.getString("newnode.html"));
     }
         
     
