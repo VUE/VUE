@@ -1,0 +1,51 @@
+/* 
+    Document   : defaultWeightStyle
+    Created on : January 16, 2007, 1:21 PM
+    Author     : akumar03
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root { 
+    display: block;
+}
+
+node.w1 { 
+    background: #FFFFFF; shape: round-rect; icon: url{'http://vue.uit.tufts.edu/w1.gif'};
+    font-family: Arial; font-size: normal;  font-color: #000000; font-style: italic; font-weight: bold;
+    text-align: justify; text-decoration: underline; text-transform: capitalize; text-indent: 5px;
+
+}
+node.w2 {
+ background: #AAAAAA; font-size: normal;  
+}
+node.w3 { 
+    background: #999999; font-size: normal;  
+}
+node.w4 {
+
+ background: #666666; font-size: normal;  
+}
+node.w5 { 
+    background: #333333; font-size: normal;  
+}
+link.w1 { 
+   weight: 1px; arrow-end: 1; curved: true; 
+}
+link.w2 {
+ weight: 2pt;
+}
+link.w3 { 
+   weight: 3pt;
+}
+link.w4 {
+ weight: 4pt;
+}
+link.w5 { 
+   weight: 5pt;
+}
