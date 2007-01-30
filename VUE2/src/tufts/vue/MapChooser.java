@@ -64,7 +64,7 @@ public class MapChooser extends JDialog implements ActionListener{
     public static final int CMPUB_Y_LOCATION = 300;
     public static final String generateMessage = "Generate a connectivity matrix from:";
     public static final String browseMessage =   "Browse to map:";
-    
+    public static final String FILE_URL = "file://";
     private JPanel locationPanel = null;
     private JButton cancelButton = null;
     private JButton generateButton = null;
@@ -214,12 +214,12 @@ public class MapChooser extends JDialog implements ActionListener{
                 {
                     ConnectivityMatrix matrix = new ConnectivityMatrix(getSelectedMap());
                     String sMatrix = matrix.toString();
-                    File temp = File.createTempFile("ConnectivityMatrixTemp","txt");
+                    File temp = File.createTempFile("ConnectivityMatrixTemp",".txt");
                     String fileName = temp.getAbsolutePath();
                     PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
                     writer.write(sMatrix);
                     writer.close();
-                    VueUtil.openURL("file:" + fileName);
+                    VueUtil.openURL(FILE_URL + fileName);
                 }
             }
             catch(Exception ex)
