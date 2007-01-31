@@ -89,7 +89,7 @@ public class MapChooser extends JDialog implements ActionListener{
         
         cancelButton = new JButton("Cancel");
         generateButton = new JButton("Generate");
-        browseButton = new JButton("browse");
+        browseButton = new JButton("Browse");
         cancelButton.addActionListener(this);
         generateButton.addActionListener(this);
         browseButton.addActionListener(this);
@@ -109,6 +109,7 @@ public class MapChooser extends JDialog implements ActionListener{
         setSelectedMap(VUE.getActiveMap());
         
         locationPanel.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
+        getRootPane().setDefaultButton(generateButton);
         pack();
         setResizable(false);
         setVisible(true);
@@ -121,14 +122,14 @@ public class MapChooser extends JDialog implements ActionListener{
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         locationPanel.setLayout(gridBag);
-        JLabel info = new JLabel(VueResources.getIcon("smallInfo"));
+        JLabel info = new JLabel(VueResources.getIcon("helpIcon.raw"));
         info.setToolTipText("Create Connectivity Matrix Help Here - TBD");
         JLabel chooseLabel = new JLabel(generateMessage,JLabel.RIGHT);
         browseLabel = new JLabel(browseMessage,JLabel.CENTER);
         String[] choices = {"selected map","map in a local folder"};
         choice = new JComboBox(choices);
         file = new JTextField(2);
-        PolygonIcon lineIcon = new PolygonIcon(Color.DARK_GRAY);
+        PolygonIcon lineIcon = new PolygonIcon(new Color(153,153,153));
         lineIcon.setIconWidth(CMPUB_WIDTH-40);
         lineIcon.setIconHeight(1);
         browsePanel = new JPanel();
@@ -147,6 +148,7 @@ public class MapChooser extends JDialog implements ActionListener{
         GridBagConstraints c2 = new GridBagConstraints();
         innerBrowsePanel.setLayout(innerGridBag);
         c2.weightx= 0.0;
+        c2.insets = new Insets(0,0,0,10);
         c2.fill = GridBagConstraints.HORIZONTAL;
         innerGridBag.setConstraints(browseLabel,c2);
         innerBrowsePanel.add(browseLabel);
@@ -162,6 +164,7 @@ public class MapChooser extends JDialog implements ActionListener{
         gridBag.setConstraints(info,c);
         locationPanel.add(info);
         
+        c.insets = new Insets(0,0,15,10);
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridwidth = GridBagConstraints.RELATIVE;
         gridBag.setConstraints(chooseLabel,c);
@@ -172,10 +175,11 @@ public class MapChooser extends JDialog implements ActionListener{
         locationPanel.add(choice);
         
         c.weightx = 1.0;
-        c.insets = new Insets(10,0,0,0);
+        //c.insets = new Insets(0,0,0,10);
         gridBag.setConstraints(browsePanel,c);
         locationPanel.add(browsePanel);
         
+        c.insets = new Insets(0,0,0,10);
         gridBag.setConstraints(lineLabel,c);
         locationPanel.add(lineLabel);
         
@@ -242,6 +246,7 @@ public class MapChooser extends JDialog implements ActionListener{
             {
               browsePanel.add(innerBrowsePanel);
               generateButton.setEnabled(false);
+              getRootPane().setDefaultButton(browseButton);
               pack();
             }
         }
@@ -253,12 +258,13 @@ public class MapChooser extends JDialog implements ActionListener{
               generateButton.setEnabled(false);
               JFileChooser chooseFile = new JFileChooser();
               chooseFile.setFileFilter(new VueFileFilter("vue"));
-              chooseFile.showDialog(this,"Choose map file");
+              chooseFile.showDialog(this,"Select");
               selectedFile = chooseFile.getSelectedFile();
               if(selectedFile!=null)
               {    
                 setSelectedMap(ActionUtil.unmarshallMap(selectedFile));
                 file.setText(selectedFile.getName());
+                getRootPane().setDefaultButton(generateButton);
                 generateButton.setEnabled(true);
               }
             }
