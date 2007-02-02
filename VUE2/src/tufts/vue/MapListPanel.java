@@ -27,12 +27,17 @@
 package tufts.vue;
 
 import java.awt.*;
+import java.io.File;
+import java.util.Iterator;
 import javax.swing.*;
+
+import tufts.vue.action.ActionUtil;
 
 public class MapListPanel extends JPanel implements Scrollable {
     
     /** Creates a new instance of MapListPanel */
     public MapListPanel() {
+        setLayout(new GridLayout(0,1));
     }
     
     public Dimension getPreferredScrollableViewportSize()
@@ -67,6 +72,39 @@ public class MapListPanel extends JPanel implements Scrollable {
             ((MapListElementPanel)getComponent(i)).adjustColor(i);
         }
     }
-
+    
+    public void clearMaps()
+    {
+        for(int i=0;i<getComponentCount();i++)
+        {
+            remove(getComponent(i));
+        }
+    }
+    
+    public void loadMaps(final java.util.List<File> maps)
+    {
+        /*javax.swing.SwingUtilities.invokeLater(new Runnable(){
+        public void run()
+        {
+          clearMaps();
+          Iterator<File> fileList = maps.iterator();
+          while(fileList.hasNext())
+          { 
+            File mapFile = fileList.next();
+            LWMap map = null;
+            try
+            {        
+              map = ActionUtil.unmarshallMap(mapFile);
+            }
+            catch(Exception ex)
+            {
+              ex.printStackTrace();
+            }
+            MapListElementPanel mlep = new MapListElementPanel(map);
+            mlep.adjustColor(getComponentCount());
+            add(mlep);
+          }
+        }});*/
+    }
     
 }

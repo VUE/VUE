@@ -27,22 +27,23 @@
 
 package tufts.vue;
 
-import edu.tufts.vue.compare.ConnectivityMatrix;
-import edu.tufts.vue.compare.VoteAggregate;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.io.File;
 import java.util.List;
 
 public class LWMergeMap extends LWMap {
     
     private static int maps = 0;
-    List<LWMap> mapList = new ArrayList();
     private String selectionText;
     private LWMap referenceMap;
+    private String selectChoice;
+    private int nodeThresholdSliderValue;
+    private int linkThresholdSliderValue;
+    private List<File> fileList;
+    private List<Boolean> activeFiles;
     
     public static String getTitle()
     {
-        return "Merge Map #" + (++maps);
+        return "Merge Map" + (++maps) + "*";
     }
     
     public LWMergeMap()
@@ -55,22 +56,24 @@ public class LWMergeMap extends LWMap {
         super(label);
     }
     
-    public void addMap(LWMap map)
+    public void setMapFileList(List<File> mapList)
     {
-        mapList.add(map);
+        fileList = mapList;
     }
     
-    public void addMaps(Iterator<LWMap> i)
+    public List<File> getMapFileList()
     {
-        while(i.hasNext())
-        {    
-          mapList.add((LWMap)i.next());
-        }
+        return fileList;
     }
     
-    public void clearMaps()
+    public void setActiveMapList(List<Boolean> activeMapList)
     {
-        mapList.clear();
+        activeFiles = activeMapList;
+    }
+    
+    public List<Boolean> getActiveFileList()
+    {
+        return activeFiles;
     }
     
     public String getSelectionText()
@@ -83,6 +86,36 @@ public class LWMergeMap extends LWMap {
         selectionText = text;
     }
     
+    public String getSelectChoice()
+    {
+        return selectChoice;
+    }
+    
+    public void setSelectChoice(String choice)
+    {
+        selectChoice = choice;
+    }
+    
+    public void setNodeThresholdSliderValue(int value)
+    {
+        nodeThresholdSliderValue = value;
+    }
+    
+    public int getNodeThresholdSliderValue()
+    {
+        return nodeThresholdSliderValue;
+    }
+    
+    public void setLinkThresholdSliderValue(int value)
+    {
+        linkThresholdSliderValue = value;
+    }
+    
+    public int getLinkThresholdSliderValue()
+    {
+        return linkThresholdSliderValue;
+    }
+    
     public LWMap getBaseMap()
     {
         return referenceMap;
@@ -93,41 +126,4 @@ public class LWMergeMap extends LWMap {
         referenceMap = baseMap;
     }
     
-    public void mergeMaps()
-    {
-        ArrayList<ConnectivityMatrix> cms = new ArrayList();
-        Iterator<LWMap> i = mapList.iterator();
-        while(i.hasNext())
-        {
-          cms.add(new ConnectivityMatrix(i.next()));
-        }
-        VoteAggregate voteAggregate= new VoteAggregate(cms);
-        
-        //compute and create nodes in Merge Map
-        Iterator children = getBaseMap().getNodeIterator();
-        while(children.hasNext()) {
-           LWComponent comp = (LWComponent)children.next();
-           if(voteAggregate.isNodeVoteAboveThreshold(comp.getLabel())) {
-                   LWNode node = (LWNode)comp.duplicate();
-                   this.addNode(node);
-           }
-        }
-        
-        //compute and create links in Merge Map
-        Iterator children1 = this.getNodeIterator();
-        while(children1.hasNext()) {
-           LWNode node1 = (LWNode)children1.next();
-           Iterator children2 = this.getNodeIterator();
-           while(children2.hasNext()) {
-               LWNode node2 = (LWNode)children2.next();
-               if(node2 != node1) {
-                  int c = voteAggregate.getConnection(node1.getLabel(),node2.getLabel());
-                  if(c >0) {
-                     this.addLink(new LWLink(node1,node2));
-                  }
-               }
-           }
-        }
-        
-    }
 }

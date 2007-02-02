@@ -85,12 +85,21 @@ public class AnalyzeCM extends VueAction {
             ex.printStackTrace();
         }*/
         
-        MergeMapsChooser mmc = new MergeMapsChooser();
-        tufts.vue.gui.DockWindow w = tufts.vue.gui.GUI.createDockWindow("Merge Maps",mmc);
-        mmc.setDockWindow(w);
-        w.setLocation(200,200);
-        w.pack();
-        w.setVisible(true);
+        tufts.vue.gui.DockWindow w = MergeMapsChooser.getDockWindow();
+        
+        if(w==null)
+        {
+           MergeMapsChooser mmc = new MergeMapsChooser();
+           w = tufts.vue.gui.GUI.createDockWindow("Merge Maps",mmc);
+           MergeMapsChooser.setDockWindow(w);  
+        }
+        
+        if(!w.isVisible())
+        {
+          w.setLocation(200,200);
+          w.pack();
+          w.setVisible(true);
+        }
                 
     }
     

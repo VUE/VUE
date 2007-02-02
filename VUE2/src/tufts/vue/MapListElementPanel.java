@@ -39,8 +39,14 @@ public class MapListElementPanel extends JPanel implements ActionListener {
     public final static Color lightBlue = new Color(220,220,255);
     public final static Color lightGray = new Color(220,220,220);
     
+    public final static int MAP = 0;
+    public final static int FILE = 1;
+    
+    private int type = 0;
+    
     public MapListElementPanel(LWMap map) {
         
+        type = MAP;
         setMap(map);
         String text = getMap().getLabel();
         check = new JCheckBox();
@@ -97,8 +103,10 @@ public class MapListElementPanel extends JPanel implements ActionListener {
     {
        if(!check.isSelected())
        {
-         setBackground(lightGray);
-         check.setBackground(lightGray);
+        // disable until also setting VueButton correctly
+        // as well resolving issue of interior of checkbox
+        // setBackground(lightGray);
+        // check.setBackground(lightGray);
        }
        else
        {

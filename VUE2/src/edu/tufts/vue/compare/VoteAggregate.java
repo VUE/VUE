@@ -65,4 +65,14 @@ public class VoteAggregate extends WeightAggregate {
         }else 
             return false;
     }
+    
+    public void setLinkThreshold(double percentage)
+    {
+        linkThreshold = percentage;
+    }
+    
+    public void setNodeThreshold(double percentage)
+    {
+        nodeThreshold = percentage;
+    }
 }
