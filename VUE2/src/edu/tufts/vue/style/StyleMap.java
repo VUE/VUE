@@ -42,6 +42,9 @@ public class StyleMap {
     public static final void remove(String key) {
         m.remove(key);
     }
+    public static final void removeAll() {
+        m.clear();
+    }
     public static final boolean containsKey(String key) {
         return m.containsKey(key);
     }
