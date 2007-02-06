@@ -17,7 +17,7 @@ root {
 
 node.w1 { 
     background: #FFFFFF; shape: round-rect; icon: url{'http://vue.uit.tufts.edu/w1.gif'};
-    font-family: Arial; font-size: normal;  font-color: #000000; font-style: italic; font-weight: bold;
+    font-family: Arial; font-size: 10pt;  font-color: #000000; font-style: italic; font-weight: bold;
     text-align: justify; text-decoration: underline; text-transform: capitalize; text-indent: 5px;
 
 }
