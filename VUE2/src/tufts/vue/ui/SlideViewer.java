@@ -280,7 +280,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
 
     protected void load(LWComponent c)
     {
-        if (DEBUG.Enabled) out("\nSlideViewer: loading " + c);
+        if (DEBUG.WORK) out("\nSlideViewer: loading " + c);
         mLastLoad = c;
         //btnSlide.setEnabled(true);
 
@@ -307,7 +307,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         
         super.loadFocal(focal);
         reshapeImpl(0,0,0,0);
-        if (DEBUG.Enabled) out("SlideViewer: focused is now " + mFocal + " from map " + mMap);
+        if (DEBUG.WORK) out("SlideViewer: focused is now " + mFocal + " from map " + mMap);
     }
 
     private LWSlide getActiveMasterSlide() {
