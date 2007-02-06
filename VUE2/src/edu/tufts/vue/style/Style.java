@@ -37,7 +37,7 @@ public abstract class Style {
         return name;
     }
     
-    public  Color getBackgroudColor() {
+    public  Color getBackgroundColor() {
         return backgroundColor;
     }
     
