@@ -36,8 +36,12 @@ public class StyleMap {
         return m.get(key);
     }
     
-    public static final void addStyle(String key,Style style) {
+    private  static final void addStyle(String key,Style style) {
         m.put(key,style);
+    }
+    
+    public static final void addStyle(Style style) {
+        m.put(style.getName(),style);
     }
     public static final void remove(String key) {
         m.remove(key);
@@ -57,6 +61,14 @@ public class StyleMap {
     public static final Set keySet() {
         return m.keySet();
     }
-    
+    public static String printStyles() {
+        String s  = new String();
+        Collection<Style> c = m.values();
+        Iterator<Style> i = c.iterator();
+        while(i.hasNext()){
+            s += i.next().toString();
+        }
+        return s;
+    }
 }
 
