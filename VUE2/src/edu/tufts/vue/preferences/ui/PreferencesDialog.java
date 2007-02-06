@@ -145,7 +145,8 @@ public class PreferencesDialog extends JDialog {
 		VuePreference vp = null;
 		
     	try {
-			m = a.getMethod("getInstance", null);
+			m = a.getMethod("getInstance");
+			//m = a.getMethod("getInstance", null);
 		} catch (SecurityException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -156,7 +157,8 @@ public class PreferencesDialog extends JDialog {
 		 
 		
 		try {
-			vp = (VuePreference)m.invoke(null, null);
+                    vp = (VuePreference)m.invoke(null);
+                    //vp = (VuePreference)m.invoke(null, null);
 		} catch (IllegalArgumentException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
