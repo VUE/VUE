@@ -33,6 +33,9 @@ import tufts.vue.gui.DockWindow;
 
 import edu.tufts.vue.compare.ConnectivityMatrix;
 import edu.tufts.vue.compare.VoteAggregate;
+import edu.tufts.vue.compare.WeightAggregate;
+
+import edu.tufts.vue.style.*;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -95,12 +98,15 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
     private JTextField baseFileField;
     private JComboBox baseChoice;
     private LWMap baseMap;
+    private JPanel buttonPane;
+    private JButton generate;
     
     private JPanel vizPanel;
     private JSlider nodeThresholdSlider;
     private JLabel percentageDisplay;
     private JSlider linkThresholdSlider;
     private JLabel linkPercentageDisplay;
+    private List<Double> intervalBoundaries;
     
     List<LWMap> mapList = new ArrayList<LWMap>();
     
@@ -112,9 +118,17 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
    
     public MergeMapsChooser() 
     {
+        StyleReader.readStyles("compare.weight.css"); 
         VUE.addActiveMapListener(this);
         setLayout(new BorderLayout());
+        //JPanel chooser = new JPanel();
+        //chooser.setLayout(new BorderLayout());
+        buttonPane = new JPanel();
+        generate = new JButton("Generate Weighted Merge Demo");
+        buttonPane.add(generate);
         JTabbedPane mTabbedPane = new JTabbedPane();
+        //chooser.add(BorderLayout.CENTER,mTabbedPane);
+        //chooser.add(BorderLayout.SOUTH,buttonPane);
         VueResources.initComponent(mTabbedPane,"tabPane");
         
         //setUpSelectPanel();
@@ -128,11 +142,16 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         mTabbedPane.addTab("Select Maps",selectPanelHolder);
         setUpBasePanel();
         mTabbedPane.addTab("Base Map",basePanel);
+        setIntervalBoundaries();
         setUpVizPanel();
         mTabbedPane.addTab("Visualization Settings",vizPanel);
         
         add(BorderLayout.CENTER,mTabbedPane);
+        add(BorderLayout.SOUTH,buttonPane);
         setActiveMap(VUE.getActiveMap());
+        
+        generate.addActionListener(this);
+        
         validate();
         setVisible(true);
     }
@@ -342,6 +361,16 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             baseChoice.setSelectedIndex(0);
         }*/
         
+    }
+    
+    public void setIntervalBoundaries()
+    {
+        intervalBoundaries = new ArrayList<Double>();
+        for(int vai = 0;vai<6;vai++)
+        {
+            double va =  20*vai + 0.5;
+            intervalBoundaries.add(new Double(va));
+        } 
     }
     
     public void setUpVizPanel()
@@ -568,8 +597,119 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             map.setNodeThresholdSliderValue(nodeThresholdSlider.getValue());
             map.setLinkThresholdSliderValue(linkThresholdSlider.getValue());
             mergeMaps(map);
-            VUE.displayMap(map);
+            VUE.displayMap(map); 
         } */
+        if(e.getSource() == generate)
+        {      
+                LWMergeMap map = new LWMergeMap(LWMergeMap.getTitle());
+               //fail safe default value for base map is active map
+               if(baseMap == null)
+               {
+                 baseMap = VUE.getActiveMap();
+               }
+               Object baseMapObject = baseChoice.getSelectedItem();
+               if(baseMapObject instanceof LWMap)
+                 baseMap = (LWMap)baseMapObject;
+               //if(choice.getSelectedItem().equals(ALL_TEXT))
+               //{
+                 Iterator <LWMap> i = VUE.getLeftTabbedPane().getAllMaps();
+                 while(i.hasNext())
+                 {
+                   mapList.add(i.next());
+                 }
+                 map.setSelectChoice("all");
+               //}
+               //else if(choice.getSelectedItem().equals(LIST_TEXT))
+               //{
+                 /*ArrayList<LWMap> listPanelMaps = new ArrayList<LWMap> ();
+                 ArrayList<File> mapFileList = new ArrayList<File> ();
+                 ArrayList<Boolean> activeFileList = new ArrayList<Boolean> ();
+                 for(int i=0;i<listPanel.getComponentCount();i++)
+                 {
+                   MapListElementPanel mlep = (MapListElementPanel)listPanel.getComponent(i);
+                   if(mlep.isActive())
+                   {
+                     listPanelMaps.add(mlep.getMap());
+                   }
+                   mapFileList.add(mlep.getMap().getFile());
+                   activeFileList.add(new Boolean(mlep.isActive())); 
+                 }
+                 mapList.addAll(listPanelMaps);
+                 map.setMapFileList(mapFileList);
+                 map.setActiveMapList(activeFileList);
+                 map.setSelectChoice("list");
+               */
+           
+           
+           createWeightedMerge(map);
+           VUE.displayMap(map);
+        }
+    }
+    
+    public int getInterval(double score)
+    {
+        Iterator<Double> i = intervalBoundaries.iterator();
+        int count = 0;
+        while(i.hasNext())
+        {
+            if(score < i.next().doubleValue())
+                return count;
+            count ++;
+        }
+        return 0;
+    }
+    
+    public void createWeightedMerge(LWMergeMap map)
+    {
+        
+        ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
+        Iterator<LWMap> i = mapList.iterator();
+        while(i.hasNext())
+        {
+          cms.add(new ConnectivityMatrix(i.next()));
+        }
+        
+        ArrayList<Style> styles = new ArrayList();
+        
+        for(int si=0;si<5;si++)
+        {
+            styles.add(StyleMap.getStyle("node.w" + (si +1)));
+        }
+        
+        WeightAggregate weightAggregate = new WeightAggregate(cms);
+        
+        //VoteAggregate voteAggregate= new VoteAggregate(cms);
+        //voteAggregate.setNodeThreshold((double)(nodeThresholdSlider.getValue()/100.0));
+        //voteAggregate.setLinkThreshold((double)(linkThresholdSlider.getValue()/100.0));
+        
+        //compute and create nodes in Merge Map, apply just background style for now
+        Iterator children = baseMap.getNodeIterator();
+        while(children.hasNext()) {
+           LWNode comp = (LWNode)children.next();
+           LWNode node = (LWNode)comp.duplicate();
+           System.out.println("Weighted Merge Demo: counts : " + node.getRawLabel() + ":" + weightAggregate.getNodeCount(node.getRawLabel()) + " " + weightAggregate.getCount());
+           double score = 100*weightAggregate.getNodeCount(node.getRawLabel())/weightAggregate.getCount();
+           Style currStyle = styles.get(getInterval(score)-1);
+           System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
+           node.setFillColor(currStyle.getBackgroundColor());
+           map.addNode(node);
+        }
+        
+        //compute and create links in Merge Map
+        /*Iterator children1 = map.getNodeIterator();
+        while(children1.hasNext()) {
+           LWNode node1 = (LWNode)children1.next();
+           Iterator children2 = map.getNodeIterator();
+           while(children2.hasNext()) {
+               LWNode node2 = (LWNode)children2.next();
+               if(node2 != node1) {
+                  //int c = voteAggregate.getConnection(node1.getLabel(),node2.getLabel());
+                  //if(c >0) {
+                     map.addLink(new LWLink(node1,node2));
+                  //}
+               }
+           }
+        }*/
     }
     
     public void mergeMaps(LWMergeMap map)
@@ -588,7 +728,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         Iterator children = baseMap.getNodeIterator();
         while(children.hasNext()) {
            LWComponent comp = (LWComponent)children.next();
-           if(voteAggregate.isNodeVoteAboveThreshold(comp.getLabel())) {
+           if(voteAggregate.isNodeVoteAboveThreshold(comp.getRawLabel())) {
                    LWNode node = (LWNode)comp.duplicate();
                    map.addNode(node);
            }
@@ -602,7 +742,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
            while(children2.hasNext()) {
                LWNode node2 = (LWNode)children2.next();
                if(node2 != node1) {
-                  int c = voteAggregate.getConnection(node1.getLabel(),node2.getLabel());
+                  int c = voteAggregate.getConnection(node1.getRawLabel(),node2.getRawLabel());
                   if(c >0) {
                      map.addLink(new LWLink(node1,node2));
                   }
@@ -686,8 +826,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
           p.pack();
         }
         
-        System.out.println("Merge Maps Chooser: " + selectPanels.get(activeMap));
-        System.out.println("Merge Maps Chooser: " + selectPanels.size());
+        //System.out.println("Merge Maps Chooser: " + selectPanels.get(activeMap));
+        //System.out.println("Merge Maps Chooser: " + selectPanels.size());
     }
     
     public LWMap getActiveMap()
@@ -894,6 +1034,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                 p.pack();
             }
         }
+        
         
     }
     
