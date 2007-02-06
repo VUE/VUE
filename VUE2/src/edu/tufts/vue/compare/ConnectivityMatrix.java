@@ -169,6 +169,6 @@ public class ConnectivityMatrix {
     }
     
     private String getMergeProperty(LWComponent node) {
-        return  node.getLabel();
+        return  node.getRawLabel();
     }
 }

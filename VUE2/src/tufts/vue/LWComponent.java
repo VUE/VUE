@@ -41,7 +41,7 @@ import tufts.vue.filter.*;
  * Light-weight component base class for creating components to be
  * rendered by the MapViewer class.
  *
- * @version $Revision: 1.200 $ / $Date: 2007-01-10 17:29:34 $ / $Author: sfraize $
+ * @version $Revision: 1.201 $ / $Date: 2007-02-06 02:28:02 $ / $Author: mike $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -569,6 +569,17 @@ public class LWComponent
     }
     public String getID() {
         return this.ID;
+    }
+    
+    public String getRawLabel()
+    {
+    	String noHTMLString = this.label.replaceAll("\\<.*?\\>","");
+    	noHTMLString = noHTMLString.replaceAll("\\&.*?\\;","");
+    	noHTMLString = noHTMLString.replaceAll("\n","");
+    	noHTMLString = noHTMLString.replaceAll("\\<!--.*?--\\>","");
+    	noHTMLString = noHTMLString.replaceAll(" {2,}", " ").trim();
+
+    	return noHTMLString;
     }
     public String getLabel() {
         return this.label;
