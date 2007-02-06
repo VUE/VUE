@@ -372,7 +372,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
     /**A method for handling a LWC event*/
     public void LWCChanged(LWCEvent e)
     {
-        String message = e.getWhat();
+        Object message = e.key;
         try
         {
             if (message == LWKey.LinkAdded)
