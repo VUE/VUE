@@ -43,7 +43,14 @@ public abstract class Style {
     
     public  Color getForegroundColor() {
         return foregroundColor;
-        
     }
+    public void setBackgroundColor(Color color) {
+        this.backgroundColor  = color;
+    }
+    public void setForegroundColor(Color color) {
+        this.foregroundColor  = color;
+    }
+    
+  
 }
 

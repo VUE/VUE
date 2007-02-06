@@ -31,5 +31,11 @@ public class LinkStyle extends Style {
     public LinkStyle(String name) {
         this.name = name;
     }
-    
+     public String toString() {
+        String s = new String();
+        s += "Link Style - Name: "+name;
+        s += " Background: +"+backgroundColor;
+        s +="\n";
+        return s;
+    }
 }
