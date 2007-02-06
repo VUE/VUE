@@ -87,7 +87,7 @@ public class PresentationTool extends VueTool
         mShowContext.setSelected(true);
         add(p, mStartButton);
         add(p, mShowContext);
-        add(p, mToBlack);
+        //add(p, mToBlack);
         //p.add(mZoomLock, 0);
         return p;
     }
@@ -215,17 +215,25 @@ public class PresentationTool extends VueTool
 
     private void startPresentation()
     {
-        out(this + " start");
+        out(this + " startPresentation");
         //mShowContext.setSelected(false);
         mBackList.clear();
-        mPathway = null;
-        mPathwayIndex = 0;
-        if (VUE.getSelection().size() > 0)
-            setPage(VUE.getSelection().first());
-        else if (mCurrentPage != null)
-            setPage(mCurrentPage);
-        else
-            setPage(mNextPage);
+
+        if (VUE.getActivePathway() != null) {
+            mPathway = VUE.getActivePathway();
+            mPathwayIndex = -1;
+            forwardPage();
+        } else {
+            mPathway = null;
+            mPathwayIndex = 0;
+            if (VUE.getSelection().size() > 0)
+                setPage(VUE.getSelection().first());
+            else if (mCurrentPage != null)
+                setPage(mCurrentPage);
+            else
+                setPage(mNextPage);
+        }
+
         //setPage((LWComponent) VUE.getActiveMap().getChildList().get(0));
         
         /*
@@ -259,6 +267,7 @@ public class PresentationTool extends VueTool
     private void forwardPage()
     {
         if (mNextPage != null) {
+            out("NextPage is already " + mNextPage);
             if (mNextPage != mCurrentPage) {
                 setPage(mNextPage);
                 mNextPage = null;
@@ -266,15 +275,17 @@ public class PresentationTool extends VueTool
             }
         }
 
-        if (mPathway == null && mCurrentPage.inPathway(mCurrentPage.getMap().getPathwayList().getActivePathway())) {
-            mPathway = mCurrentPage.getMap().getPathwayList().getActivePathway();
+        //if (mPathway == null && mCurrentPage.inPathway(mCurrentPage.getMap().getPathwayList().getActivePathway())) {
+        if (mPathway == null && mCurrentPage.inPathway(VUE.getActivePathway())) {
+            //mPathway = mCurrentPage.getMap().getPathwayList().getActivePathway();
+            mPathway = VUE.getActivePathway();
             mPathwayIndex = mPathway.indexOf(mCurrentPage);
             out("Joined pathway " + mPathway + " at index " + mPathwayIndex);
         }
 
-        LWComponent nextPage;
+        final LWComponent nextPage;
 
-        if (mPathway == null || !mCurrentPage.inPathway(mPathway))
+        if (mPathway == null || (mCurrentPage != null && !mCurrentPage.inPathway(mPathway)))
             nextPage = guessNextPage();
         else
             nextPage = nextPathwayPage(FORWARD);
@@ -292,9 +303,20 @@ public class PresentationTool extends VueTool
             return null;
         
         mPathwayIndex += direction;
-        LWComponent nextPage = mPathway.getChild(mPathwayIndex);
+        final LWComponent nextPathwayNode = mPathway.getChild(mPathwayIndex);
+        out("Next pathway index: #" + mPathwayIndex + " " + nextPathwayNode);
 
-        out("Next pathway index: #" + mPathwayIndex + " " + nextPage);
+
+        final LWComponent nextPage;
+
+        if (nextPathwayNode != null)
+            nextPage = nextPathwayNode.getFocalForPathway(mPathway);
+        else
+            nextPage = null;
+        //LWComponent nextPage = nextPathwayNode.getSlideForPathway(mPathway);
+        out("Next pathway slide/focal: " + nextPage);
+        
+        //if (nextPage == null) nextPage = nextPathwayNode;
         
         if (nextPage == null)
             mPathwayIndex -= direction;
@@ -436,14 +458,96 @@ public class PresentationTool extends VueTool
         //ZoomTool.setZoomFit();
     }
 
-    public void XhandleDraw(DrawContext dc, LWComponent focal) {
-        if (focal instanceof LWMap)
-            handleDraw(dc, (LWMap) focal);
+    public void handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {
+        //LWMap map = focal.getMap();
+
+        // TODO TODO TODO: This is a disaster.  Either need to make a PresentationViewer
+        // ala the SlideViewer, or move SlideViewer functionality up into MapViewer
+        // (most powerful, as then we could do all that stuff in the regular viewer).
+        // Tho after doing that, we may still want a PresentationViewer to subclass
+        // the MapViewer to turn off all the stuff we're not going to want to be
+        // active when in presentation mode.
+
+        dc.setInteractive(false);
+        dc.isFocused = true;
+        
+        if (focal instanceof LWSlide)
+            drawSlide(dc, viewer, (LWSlide) focal);
         else
-            throw new UnsupportedOperationException("PresntationTool: can't draw non-map focals");
+            drawFocal(dc, viewer, focal);
+            
+
+        if (VUE.inFullScreen() && mShowNavigator)
+            drawNavigatorMap(dc);
+        
+    }
+
+
+    protected void drawSlide(final DrawContext dc, MapViewer viewer, final LWSlide slide)
+    {
+        out("drawing slide " + slide);
+        
+        final LWSlide master = VUE.getActiveMap().getActivePathway().getMasterSlide();
+
+        final Shape curClip = dc.g.getClip();
+
+        dc.setRawDrawing();
+
+        out("drawing master " + master);
+        
+        // When just filling the background with the master, only draw
+        // what's in the containment box
+        master.setLocation(0,0);// TODO: hack till we can lock these properties
+        //dc.g.setClip(master.getBounds());
+        master.draw(dc);
+        //dc.g.setClip(curClip);
+
+        //for (LWComponent c : mFocal.getChildList()) out("child to draw: " + c);
+
+        // this hack-up just not getting us there:
+        zoomToPage(slide, false);
+        
+        // Now draw the actual slide
+        slide.draw(dc);
     }
     
-    public void handleDraw(DrawContext dc, LWComponent focal) {
+    /** either draws the entire map (previously zoomed to to something to focus on),
+     * or a fully focused part of of it, where we only draw that item.
+     */
+
+    protected void drawFocal(final DrawContext dc, MapViewer viewer, final LWComponent focal)
+    {
+        out("drawing focal " + focal);
+        /*
+
+        dc.g.setColor(mFocal.getMap().getFillColor());
+        dc.g.fill(dc.g.getClipBounds());
+        
+        final LWMap underlyingMap = mFocal.getMap();
+        
+        if (mFocal.isTranslucent() && mFocal != underlyingMap) {
+
+            //out("drawing underlying map " + underlyingMap);
+
+            // If our fill is in any way translucent, the underlying
+            // map can show thru, thus we have to draw the whole map
+            // to see the real result -- we just set the clip to
+            // the shape of the focal.
+            
+            final Shape curClip = dc.g.getClip();
+            dc.g.setClip(mFocal.getShape());
+            underlyingMap.draw(dc);
+            dc.g.setClip(curClip);
+            
+        } else {
+            mFocal.draw(dc);
+        }
+        */
+    }
+    
+    
+
+    public void hacked_pres_mode_handleDraw(DrawContext dc, LWComponent focal) {
         LWMap map = focal.getMap();
         
         Color oldColor = null;
@@ -524,9 +628,8 @@ public class PresentationTool extends VueTool
         
         //if (DEBUG.Enabled&&mCurrentPage != null)
         //drawNavNodes(dc);
-
     }
-
+    
     /** Draw a ghosted panner */
     private void drawNavigatorMap(DrawContext sourceDC) {
 

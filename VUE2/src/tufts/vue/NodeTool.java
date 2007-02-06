@@ -35,7 +35,7 @@ import tufts.vue.beans.VueBeanState;
  */
 
 public class NodeTool extends VueTool
-    implements VueConstants, LWPropertyProducer
+    implements VueConstants, LWEditor
 {
     private static NodeTool singleton = null;
     
@@ -52,19 +52,15 @@ public class NodeTool extends VueTool
         singleton = this;
     }
 
-    /** LWPropertyProducer impl:
-        @return LWKey.Shape */
     final public Object getPropertyKey() { return LWKey.Shape; }
     
-    /** LWPropertyProducer impl:
-        @return currently selected shape value */
-    public Object getPropertyValue() {
+    public Object produceValue() {
         // this not actually used right now.
         return getActiveSubTool().getShapeInstance();
     }
     
     /** LWPropertyProducer impl: load the currently selected tool to the one with given shape */
-    public void setPropertyValue(Object shape) {
+    public void displayValue(Object shape) {
         // Find the sub-tool with the matching shape, then load it's button icon images
         // into the displayed selection icon
         if (shape == null)
@@ -182,28 +178,6 @@ public class NodeTool extends VueTool
     */
 
     /**
-     * Create a new node with the current default properties.
-     * @param name the name for the new node, can be null
-     * @param useToolShape if true, shape of node is shape of node tool, otherwise, shape in contextual toolbar
-     * @return the newly constructed node
-     */
-    public static LWNode createNode(String name, boolean useToolShape)
-    {
-        LWNode node = new LWNode(name, getActiveSubTool().getShapeInstance());
-        VueBeanState state = getNodeToolPanel().getCurrentState();
-        if (state != null) {
-            if (useToolShape) {
-                // clear out shape if there is one as node already had it's
-                // shape set based on state of the node tool
-                state.removeProperty(LWKey.Shape);
-            }
-            state.applyState(node);
-        }
-        node.setAutoSized(true);
-        return node;
-    }
-    
-    /**
      * Create a new node with the current default properties
      * @param name the name for the new node, can be null
      * @return the newly constructed node
@@ -223,7 +197,7 @@ public class NodeTool extends VueTool
     }
         
     
-    static LWNode initTextNode(LWNode node)
+    public static LWNode initAsTextNode(LWNode node)
     {
         node.setIsTextNode(true);
         node.setAutoSized(true);
@@ -234,15 +208,49 @@ public class NodeTool extends VueTool
         
         return node;
     }
+
+    public static LWNode buildTextNode(String text) {
+        LWNode node = new LWNode();
+        initAsTextNode(node);
+        node.setLabel(text);
+        return node;
+    }
+
     
+    
+    /**
+     * Create a new node with the current default properties.
+     * @param name the name for the new node, can be null
+     * @param useToolShape if true, shape of node is shape of node tool, otherwise, shape in contextual toolbar
+     * @return the newly constructed node
+     */
+    public static LWNode createNode(String name, boolean useToolShape)
+    {
+        LWNode node = new LWNode(name, getActiveSubTool().getShapeInstance());
+        /*
+        VueBeanState state = getNodeToolPanel().getCurrentState();
+        if (state != null) {
+            if (useToolShape) {
+                // clear out shape if there is one as node already had it's
+                // shape set based on state of the node tool
+                state.removeProperty(LWKey.Shape.name);
+            }
+            state.applyState(node);
+        }
+        node.setAutoSized(true);
+        */
+        return node;
+    }
+    
+    /** For creating text nodes through the tools and on the map: will adjust text size for current zoom level */
     public static LWNode createTextNode(String text)
     {
-        LWNode node = new LWNode();
-        initTextNode(node);
-        node.setLabel(text);
-        VueBeanState state = TextTool.getTextToolPanel().getCurrentState();
+        LWNode node = buildTextNode(text);
+        /*
+        VueBeanState state = TextTool.getTextToolPanel().getCreationStyle();
         if (state != null)
             state.applyState(node);
+        */
         if (VUE.getActiveViewer() != null) {
             // Okay, for now this completely overrides the font size from the text toolbar...
             final Font font = node.getFont();

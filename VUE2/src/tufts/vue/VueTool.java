@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.43 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.44 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -328,7 +328,7 @@ public abstract class VueTool extends AbstractAction
     /** what to do, if anything, when the tool is selected */
     public void handleToolSelection() {}
 
-    public void handleDraw(DrawContext dc, LWComponent focal) {
+    public void handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {
 
         dc.g.setColor(focal.getMap().getFillColor());
         dc.g.fill(dc.g.getClipBounds());

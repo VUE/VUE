@@ -260,7 +260,8 @@ public class UndoManager
             } else if (oldValue instanceof Undoable) {
                 ((Undoable)oldValue).undo();
             } else {
-                if (DEBUG.Enabled && DEBUG.META) {
+                if (false && DEBUG.Enabled && DEBUG.META) {
+                    // ANIMATED UNDO CODE:
                     try {
                         Object curValue = component.getPropertyValue(propKey);
                         if (curValue != null)
@@ -570,7 +571,7 @@ public class UndoManager
             java.awt.Toolkit.getDefaultToolkit().beep();
             boolean olddb = DEBUG.UNDO;
             DEBUG.UNDO = true;
-            markChangesAsUndo("Unnamed Actions [last=" + mLastEvent.getKeyName() + "]"); // collect whatever's there
+            markChangesAsUndo("Unnamed Actions [last=" + mLastEvent.getName() + "]"); // collect whatever's there
             DEBUG.UNDO = olddb;
             return true;
         }
@@ -642,7 +643,7 @@ public class UndoManager
     public void mark(String aggregateName) {
         String name = null;
         if (mCurrentUndo.size() == 1 && mLastEvent != null) // going to need to put last event into UndoAction..
-            name = mLastEvent.getKeyName();
+            name = mLastEvent.getName();
         else
             name = aggregateName;
         markChangesAsUndo(name);
@@ -655,7 +656,7 @@ public class UndoManager
         if (name == null) {
             if (mLastEvent == null)
                 return;
-            name = mLastEvent.getKeyName();
+            name = mLastEvent.getName();
         }
         UndoList.add(collectChangesAsUndoAction(name));
         RedoList.clear();
@@ -849,7 +850,7 @@ public class UndoManager
 
     private void processEvent(LWCEvent e)
     {
-        if (e.getKey() == LWKey.HierarchyChanging || e.getKeyName().startsWith("hier.")) {
+        if (e.key == LWKey.HierarchyChanging || e.getName().startsWith("hier.")) {
             recordEvent(e, true);
         } else if (e.hasOldValue()) {
             recordEvent(e, false);
@@ -926,9 +927,9 @@ public class UndoManager
         else
             recordUndoableChangeEvent(relevantUndoAction,
                                       perComponentChanges,
-                                      e.getKey(),
+                                      e.key,
                                       e.getComponent(),
-                                      e.getOldValue());
+                                      e.oldValue);
 
         mLastEvent = e;
 
@@ -950,7 +951,7 @@ public class UndoManager
     {
         // e.getComponent can really be list... todo: warn us if list (should only be for hier events)
         //recordUndoableChangeEvent(mPropertyChanges, e.getKey(), e.getComponent(), e.getOldValue());
-        recordUndoableChangeEvent(undoAction, perComponentChanges, e.getKey(), e.getComponent(), e.getOldValue());
+        recordUndoableChangeEvent(undoAction, perComponentChanges, e.key, e.getComponent(), e.getOldValue());
         mLastEvent = e;
     }
 

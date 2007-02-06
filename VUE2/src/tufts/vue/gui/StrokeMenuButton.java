@@ -29,7 +29,7 @@ import javax.swing.Icon;
  * @author Scott Fraize
  * @version March 2004
  **/
-public class StrokeMenuButton extends MenuButton
+public class StrokeMenuButton extends MenuButton<Float>
 {
     static private int sIconWidth = 24;
     static private int sIconHeight = 16;
@@ -68,11 +68,14 @@ public class StrokeMenuButton extends MenuButton
     public float getStroke() {
         return mStroke;
     }
-    public void setPropertyValue(Object o) {
-        setStroke(o == null ? 0f : ((Float)o).floatValue());
+    
+    public void displayValue(Float f) {
+        setStroke(f); // what does auto-box do if it's null???
+        //setStroke(f == null ? 0f : f);
+        //setStroke(o == null ? 0f : ((Float)o).floatValue());
     }
-    public Object getPropertyValue() {
-        return new Float(getStroke());
+    public Float produceValue() {
+        return getStroke();
     }
 
     /** factory for superclass buildMenu */

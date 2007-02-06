@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.391 $ / $Date: 2007-01-28 20:10:36 $ / $Author: mike $ 
+ * @version $Revision: 1.392 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -374,6 +374,16 @@ public class VUE
         } else
             splashScreen = new SplashScreen();
         
+        // Make sure these classes are all fully loaded to establish
+        // their Keys.  todo: can get all subclasses of LWComponent
+        // and newInstance them just to be sure.  In any case, this
+        // probably isn't even required, but it's helping debugging
+        // while implementing the new Key & Property LWComponent
+        // code. -- SMF
+        new LWLink();
+        new LWImage();
+        new LWNode();
+
         buildApplicationInterface();
 
         if (splashScreen != null)
@@ -432,7 +442,6 @@ public class VUE
 
         //VUE.clearWaitCursor();
 
-        
         Log.debug("loading fonts...");
         FontEditorPanel.getFontNames();
         
@@ -1350,12 +1359,17 @@ public class VUE
     private static final LWComponent.Listener PathwayListListener =
         new LWComponent.Listener() {
             public void LWCChanged(LWCEvent e) {
-                if (e.getWhat().equals("pathway.list.active")) {
+                if ("pathway.list.active".equals(e.getName())) {
                     setActivePathway((LWPathway) e.getComponent());
                 }
             }
         };
-
+    /*
+        new LWComponent.Watcher("pathway.list.active") {
+            public void onChange() {
+                setActivePathway((LWPathway) e.getComponent());
+            }
+    */
 
     private static void setActiveMap(final LWMap map)
     {

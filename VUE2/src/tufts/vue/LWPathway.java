@@ -43,7 +43,7 @@ import java.awt.geom.Ellipse2D;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.121 $ / $Date: 2007-01-03 05:23:31 $ / $Author: sfraize $
+ * @version $Revision: 1.122 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -54,11 +54,12 @@ public class LWPathway extends LWContainer
     private boolean locked = false;
     private boolean reveal = false;
     private ArrayList elementPropertyList = new ArrayList();
+    private MasterSlide mMasterSlide;
 
     private transient boolean open = true;
 
     /** for use during restore -- the ordered list */
-    private java.util.List<String> memberIDs = new java.util.ArrayList();
+    private transient java.util.List<String> memberIDs = new java.util.ArrayList();
 
     private static Color[] ColorTable = {
         new Color(153, 51, 51),
@@ -434,7 +435,7 @@ public class LWPathway extends LWContainer
         }
         */
         
-        if (e.getWhat() == LWKey.Deleting) {
+        if (e.key == LWKey.Deleting) {
             removeAll(e.getComponent());
         } else {
             // rebroadcast our child events so that the LWPathwayList which is
@@ -584,8 +585,7 @@ public class LWPathway extends LWContainer
         this.ordered = ordered;
     }
 
-    private LWSlide mMasterSlide;
-    public LWSlide getMasterSlide() {
+    public MasterSlide getMasterSlide() {
         //if (mXMLRestoreUnderway) return null;
 
         if (mMasterSlide == null)
@@ -594,7 +594,7 @@ public class LWPathway extends LWContainer
     }
 
     /** for persistance only */
-    public void setMasterSlide(LWSlide slide) {
+    public void setMasterSlide(MasterSlide slide) {
         mMasterSlide = slide;
         // Slide is virtual child of us (so it knows what map it's ultimately part of)
         //slide.setParent(this); // should be handled by LWComponent.XML_addNotify
@@ -626,71 +626,193 @@ public class LWPathway extends LWContainer
     }
     */
 
+    /**
+     * A bit of a hack, but works well: any LWComponent can serveLW
+     * as a style holder, and with special notification code, will
+     * updating those who point back to us when it changes.
+     * Also, making a LWNode allows it to also be an editable
+     * node for full node styling, or a "text" node for text styling.
+     */
+
+    // Will not persist yet...
+    // TODO: consider: do NOT have a separate style object: any LWComponent can
+    // be tagged as being a "masterStyle", and if so, it will invoke
+    // the below broadcasting code...
+    public static class NodeStyle extends LWNode {
+        NodeStyle() {}
+        NodeStyle(String label) {
+            super(label);
+        }
+
+        // Note that would could also do this in MasterSlide.broadcastChildEvent,
+        // by checking if e.source is an LWStyle object.  We might want
+        // to do this if we end up with a bunch of different LWStyle
+        // classes (e.g. TextStyle, LinkStyle, etc)
+        protected synchronized void notifyLWCListeners(LWCEvent e) {
+            super.notifyLWCListeners(e);
+
+            if ((e.key instanceof Key) == false || getParent() == null) {
+                // This only works with real Key's, and if parent is null,
+                // we're still initializing.
+                return;
+            }
+
+            final Key key = (Key) e.key;
+
+            if (key.isStyleProperty) {
+
+                // Now we know a styled property is changing.  Since they Key itself
+                // knows how to get/set/copy values, we can now just find all the
+                // components "listening" to this style (pointing to it), and copy over
+                // the value that just changed on the style object.
+                
+                out("STYLE OBJECT UPDATING STYLED CHILDREN with " + key);
+                //final LWPathway path = ((MasterSlide)getParent()).mOwner;
+                
+                // We can traverse all objects in the system, looking for folks who
+                // point to us.  But once slides are owned by the pathway, we'll have a
+                // list of all slides here from the pathway, and we can just traverse
+                // those and check for updates amongst the children, as we happen
+                // to know that this style object only applies to slides
+                // (as opposed to ontology style objects)
+
+                // todo: this not a fast way to traverse & find what we need to change...
+                for (LWComponent c : getMap().getAllDescendents(ChildKind.ANY)) {
+                    if (c.mParentStyle == this && c != this) { // we should never be point back to ourself, but just in case
+                        // Only copy over the style value if was previously set to our existing style value
+                        try {
+                            if (key.valueEquals(c, e.getOldValue()))
+                                key.copyValue(this, c);
+                        } catch (Throwable t) {
+                            tufts.Util.printStackTrace(t, "Failed to copy value from " + e + " old=" + e.oldValue);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // if we want to use a LWSlide subclass for the master slide, we'll need
+    // a lw_mapping entry that subclasses LWSlide so it will know what
+    // fields to save, instead of just dumping all of them.
+    public static class MasterSlide extends LWSlide
+    {
+        // need to figure out how to make these non-deletable
+        final NodeStyle titleStyle = new NodeStyle("Title Text");
+        final NodeStyle textStyle = new NodeStyle("Item Text");
+
+        /** Will normally be the LWPathway */
+        final LWPathway mOwner;
+
+        MasterSlide(final LWPathway owner) {
+            mOwner = owner;
+            setStrokeWidth(0);
+            setFillColor(owner.getStrokeColor()); // TODO: debugging for now: use the pathway stroke as slide color
+            setSize(SlideWidth, SlideHeight);
+
+            // Create the default items for the master slide:
+            
+            NodeTool.initAsTextNode(titleStyle);
+            NodeTool.initAsTextNode(textStyle);
+            
+            titleStyle.setFont(new Font("SansSerif", Font.BOLD, 68));
+            textStyle.setFont(new Font("SansSerif", Font.PLAIN, 48));
+            
+            //titleStyle.setLocation(40,30);
+            //textStyle.setLocation(45,140);
+            
+            
+            LWComponent footer = NodeTool.buildTextNode(getLabel());
+            footer.setFont(new Font("SansSerif", Font.ITALIC+Font.BOLD, 48));
+            footer.setTextColor(new Color(255,255,255,64));
+
+            setParent(owner);
+            ensureID(this);
+            
+            addChild(footer);
+            addChild(titleStyle);
+            addChild(textStyle);
+            
+            // Now that the footer is parented, move it to lower right in it's parent
+            LWSelection s = new LWSelection(footer);
+            Actions.AlignRightEdges.act(s);
+            Actions.AlignBottomEdges.act(s);
+
+            s.setTo(titleStyle);
+            Actions.AlignCentersRow.act(s);
+            Actions.AlignCentersColumn.act(s);
+
+            s.setTo(textStyle);
+            Actions.AlignCentersRow.act(s);
+            Actions.AlignCentersColumn.act(s);
+
+            titleStyle.translate(0, -100);
+            //textStyle.translate(0, +50);
+        }
+
+        // we could not have a special master slide object if we could handle
+        // this draw-skipping in some other way (and arbitrary nodes can be style master's)
+        // Tho having a special master-slide object isn't really that big a deal.
+        public void drawChild(LWComponent child, DrawContext dc) {
+            if (!dc.isEditMode() && (child == titleStyle || child == textStyle))
+                return;
+            else
+                super.drawChild(child, dc);
+        }
+
+        /*
+        void broadcastChildEvent(LWCEvent e) {
+            super.broadcastChildEvent(e);
+            // could handle style broadcasts here, tho
+            // that would mean that styles could only be style master's
+            // when on master slides.
+        }
+        */
+        
+        
+        public String getLabel() {
+            return "Master Slide: " + mOwner.getLabel();
+        }
+        
+        public String getComponentTypeLabel() { return "Slide<Master>"; }
+    }
+
     
     // TODO: add master slide subclass to lw_mapping which needn't add anything over
     // it's superclass, but it will let us save/restore instances of this that
     // can do stuff like always return 0,0 x/y values.
-    protected LWSlide buildMasterSlide() {
-        final LWSlide m = LWSlide.create();
+    protected MasterSlide buildMasterSlide() {
 
-        m.setStrokeWidth(0);
-        m.setFillColor(Color.darkGray);
-        m.setLabel("Master Slide on Pathway: " + getLabel());
-        m.setNotes("This is the Master Slide for Pathway \"" + getLabel() + "\"");
-        m.setFillColor(getStrokeColor());
+        out("BUILDING MASTER SLIDE:\n");
 
-        LWComponent titleText = NodeTool.createTextNode("Title Text");
-        LWComponent itemText = NodeTool.createTextNode("Item Text");
-        LWComponent footer = NodeTool.createTextNode(getLabel());
-
-        footer.setFont(new Font("SansSerif", Font.ITALIC+Font.BOLD, 48));
-        footer.setTextColor(new Color(255,255,255,64));
-        itemText.setLocation(40,100);
-
-        titleText.setFont(new Font("SansSerif", Font.BOLD, 68));
-        itemText.setFont(new Font("SansSerif", Font.PLAIN, 48));
-            
-        m.setParent(LWPathway.this); // must set parent before ensureID will work
-        ensureID(m);
+        return new MasterSlide(this);
         
-        m.addChild(footer);
+        //final LWSlide m = LWSlide.create();
+
+        //m.setStrokeWidth(0);
+        //m.setFillColor(Color.darkGray);
+        //m.setLabel("Master Slide on Pathway: " + getLabel());
+        //m.setNotes("This is the Master Slide for Pathway \"" + getLabel() + "\"");
+        //m.setFillColor(getStrokeColor());
+
+        //LWComponent titleText = NodeTool.createTextNode("Title Text");
+        //LWComponent itemText = NodeTool.createTextNode("Item Text");
+        //LWComponent footer = NodeTool.createTextNode(getLabel());
+
+        //m.setParent(LWPathway.this); // must set parent before ensureID will work
+        //ensureID(m);
+        
+        //m.addChild(footer);
 
         // Move the footer to lower right
-        LWSelection s = new LWSelection(footer);
-        Actions.AlignRightEdges.act(s);
-        Actions.AlignBottomEdges.act(s);
+        //LWSelection s = new LWSelection(footer);
+        //Actions.AlignRightEdges.act(s);
+        //Actions.AlignBottomEdges.act(s);
         
         //m.addChild(titleText);
         //m.addChild(itemText);
-        
-        /*
-                {
-                    setStrokeWidth(0);
-                    setFillColor(Color.darkGray);
 
-                    LWComponent titleText = NodeTool.createTextNode("Title Text");
-                    LWComponent itemText = NodeTool.createTextNode("Item Text");
-
-                    itemText.setLocation(40,100);
-
-                    titleText.setFont(new Font("SansSerif", Font.BOLD, 72));
-                    itemText.setFont(new Font("SansSerif", Font.PLAIN, 48));
-            
-                    //addChild(titleText);
-                    //addChild(itemText);
-                    setParent(LWPathway.this);
-                }
-                public String getLabel() {
-                    return "Master Slide: " + LWPathway.this.getLabel();
-                }
-                public String getComponentTypeLabel() { return "Slide<Master>"; }
-            };
-        */
-            //master.setLabel("Master Slide: " + getLabel());
-//         master.setParent(this);
-//         master.addChild(new LWNode("Title Text"));
-//         master.addChild(new LWNode("Item Text"));
-        return m;
+        //return m;
     }
 
     /**

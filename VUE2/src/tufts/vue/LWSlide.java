@@ -27,13 +27,13 @@ import java.awt.geom.*;
  * Sublcass (for now) of LWGroup for slide features.
  *
  * @author Scott Fraize
- * @version $Revision: 1.5 $ / $Date: 2007-01-03 05:24:03 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  */
 public class LWSlide extends LWGroup
 {
-    private static final int SlideWidth = 800;
-    private static final int SlideHeight = 600;
-    private static final int SlideMargin = 30;
+    protected static final int SlideWidth = 800;
+    protected static final int SlideHeight = 600;
+    protected static final int SlideMargin = 30;
 
     int mLayer = 0;
     
@@ -93,7 +93,7 @@ public class LWSlide extends LWGroup
         return slide;
     }
     
-    private void importAndLayout(java.util.List<LWComponent> nodes)
+    void importAndLayout(java.util.List<LWComponent> nodes)
     {
         //java.util.Collections.reverse(nodes);
         final LWSelection selection = new LWSelection(nodes);
@@ -116,6 +116,10 @@ public class LWSlide extends LWGroup
         // the crude ordering based on x/y values.
         for (LWComponent c : getChildList())
             c.takeLocation(x++,y++);
+
+        // TODO: need to know master slide at this point, or at least
+        // the master slide styles...
+        if (DEBUG.Enabled) out("LAYING OUT CHILDREN, parent=" + getParent());
 
         selection.setSize(SlideWidth - SlideMargin*2,
                           SlideHeight - SlideMargin*2);
@@ -149,16 +153,18 @@ public class LWSlide extends LWGroup
     }
 
 
+    /*
     void createForNode(LWComponent node) {
         LWComponent dupeChildren = node.duplicate(); // just for children: rest of node thrown away
         java.util.List toLayout = new java.util.ArrayList();
-        LWNode title = NodeTool.createTextNode(node.getLabel()); // need to "sync" this...=
+        LWNode title = NodeTool.buildTextNode(node.getLabel()); // need to "sync" this...=
         title.setFont(node.getFont().deriveFont(java.awt.Font.BOLD));
         title.setFontSize(48);
         toLayout.add(title);
         toLayout.addAll(dupeChildren.getChildList());
         importAndLayout(toLayout);
     }
+    */
 
     public boolean isPresentationContext() {
         return true;
@@ -179,13 +185,15 @@ public class LWSlide extends LWGroup
         return true;
     }
     
-    /** groups are transparent -- defer to parent for background fill color */
+    /* groups were transparent -- restore use of fill color: undo group override */
+    /*
     public java.awt.Color getFillColor()
     {
         //return getParent() == null ? null : getParent().getFillColor();
         //return LWComponent.this.getFillColor();
         return super.fillColor;
     }
+    */
 
     /** @return the slide */
     protected LWComponent defaultPick(PickContext pc) {

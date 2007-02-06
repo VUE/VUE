@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.23 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -50,6 +50,7 @@ public class DrawContext
     private boolean isDraftQuality = false;
     private boolean isBlackWhiteReversed = false;
     private boolean isPresenting = false;
+    private boolean isEditMode = false;
     private Rectangle frame;
 
     public boolean isFocused;
@@ -148,6 +149,15 @@ public class DrawContext
 
     public boolean isPresenting() {
         return isPresenting;
+    }
+
+    /** an extra flag to specify a special kind of "editing" mode, that may draw extra items */
+    public void setEditMode(boolean t) {
+        isEditMode = t;
+    }
+
+    public boolean isEditMode() {
+        return isEditMode;
     }
 
     public boolean drawPathways() {
@@ -286,6 +296,7 @@ public class DrawContext
         this.drawAbsoluteLinks = dc.drawAbsoluteLinks;
         this.maxLayer = dc.maxLayer;
         this.isFocused = dc.isFocused;
+        this.isEditMode = dc.isEditMode;
         //this.mAlpha = dc.mAlpha;
     }
 

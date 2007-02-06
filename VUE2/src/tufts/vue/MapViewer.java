@@ -65,7 +65,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.302 $ / $Date: 2007-01-28 20:09:13 $ / $Author: mike $ 
+ * @version $Revision: 1.303 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1102,6 +1102,7 @@ public class MapViewer extends javax.swing.JComponent
         }
     }
     
+    /*
     private boolean isBoundsEvent(String k) {
         return k == LWKey.Size
             || k == LWKey.Location
@@ -1116,6 +1117,7 @@ public class MapViewer extends javax.swing.JComponent
             //|| k == LWKey.Filtered // no such event yet
             ;
     }
+    */
     
     /**
      * Handle events coming off the LWMap we're displaying.
@@ -1125,7 +1127,7 @@ public class MapViewer extends javax.swing.JComponent
     public void LWCChanged(LWCEvent e) {
         if (DEBUG.EVENTS && DEBUG.META) out("LWCChanged: " + e);
         
-        final Object key = e.getKey();
+        final Object key = e.key;
 
         // If mFocal isn't a map, we must always update,
         // as we'll never see the user-action-completed
@@ -1165,7 +1167,7 @@ public class MapViewer extends javax.swing.JComponent
             setBackground(mMap.getFillColor());
         }
         
-        if (e.getKey() == LWKey.RepaintComponent) {
+        if (key == LWKey.RepaintComponent) {
             Rectangle r = mapToScreenRect(e.getComponent().getBounds());
             super.paintImmediately(r);
             //super.repaint(0,r.x,r.y,r.width,r.height);            
@@ -1388,6 +1390,7 @@ public class MapViewer extends javax.swing.JComponent
 
     
     public LWComponent pickNode(float mapX, float mapY) {
+        if (DEBUG.PICK) out("pickNode " + mapX + "," + mapY);
         return pick(mapX, mapY, false);
     }
     
@@ -2067,7 +2070,7 @@ public class MapViewer extends javax.swing.JComponent
         if (mFocal == null)
             return;
 
-        activeTool.handleDraw(dc, mFocal);
+        activeTool.handleDraw(dc, this, mFocal);
     }
     
     /** This paintChildren is a no-op.  super.paint() will call this,
@@ -3386,7 +3389,7 @@ public class MapViewer extends javax.swing.JComponent
                     VUE.toggleFullScreen(true); // native full screen mode
                 }
                 else if (c == '!') {
-                    if (debugInspector == null)
+                    if (true||debugInspector == null)
                         debugInspector = new DockWindow("Inspector",
                                                         SwingUtilities.getWindowAncestor(MapViewer.this),
                                                         new LWCInspector(),

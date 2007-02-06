@@ -52,7 +52,7 @@ import java.awt.Frame;
  *
  * Does not currently traverse into children of popup menus.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-03-24 22:24:26 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -194,7 +194,7 @@ public abstract class EventRaiser
         depth++;
         
         for (int i = 0; i < children.length; i++) {
-            if (DEBUG.EVENTS && DEBUG.META) eoutln(getType(children[i]) + i + " " + GUI.name(children[i]));
+            if (DEBUG.EVENTS && DEBUG.META && DEBUG.FOCUS) eoutln(getType(children[i]) + i + " " + GUI.name(children[i]));
             if (children[i] instanceof Container)
                 traverseContainer((Container)children[i]);
             else

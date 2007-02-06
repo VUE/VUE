@@ -44,12 +44,12 @@ public class LWChangeSupport
     }
     private static class LWCListenerProxy implements LWComponent.Listener
     {
-        LWComponent.Listener listener;
-        private Object eventMask;
+        private final LWComponent.Listener listener;
+        private final Object eventMask;
 
-        public LWCListenerProxy(LWComponent.Listener listener, Object eventMask) {
+        public LWCListenerProxy(LWComponent.Listener listener, Object eventsDesired) {
             this.listener = listener;
-            this.eventMask = eventMask;
+            this.eventMask = eventsDesired;
         }
 
         /** this should never actually get used, as we pluck the real listener
@@ -61,13 +61,14 @@ public class LWChangeSupport
         public boolean isListeningFor(LWCEvent e)
         {
             if (eventMask instanceof Object[]) {
-                final Object[] eventKeys = (Object[]) eventMask;
-                for (int i = 0; i < eventKeys.length; i++)
-                    if (eventKeys[i] == e.getWhat())
+                for (Object desiredKey : (Object[]) eventMask) {
+                    if (e.key == desiredKey)
                         return true;
+                }
                 return false;
-            } else
-                return eventMask == e.getWhat();
+            } else {
+                return eventMask == e.key;
+            }
         }
         
 
@@ -143,8 +144,6 @@ public class LWChangeSupport
         addListener(listener, null);
     }
 
-    // TODO: eventMask should be of an LWKey enumeration type (java 1.5) or an
-    // array of such enums.
     public synchronized void addListener(LWComponent.Listener listener, Object eventMask)
     {
         if (listeners == null)
@@ -161,9 +160,9 @@ public class LWChangeSupport
         } else {
             if (DEBUG.EVENTS && DEBUG.META)
                 outln("*** LISTENER " + listener + "\t+++ADDS " + mClient + (eventMask==null?"":(" eventMask=" + eventMask)));
-            if (eventMask == null)
+            if (eventMask == null) {
                 listeners.add(listener);
-            else
+            } else
                 listeners.add(new LWCListenerProxy(listener, eventMask));
         }
     }

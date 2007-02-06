@@ -87,6 +87,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     private final AbstractButton btnSlide;
     private final AbstractButton btnMaster;
     private final AbstractButton btnMapSlide;
+    private final AbstractButton btnFill;
     //private final AbstractButton btnPresent;
 
     private class Toolbar extends JPanel implements ActionListener {
@@ -95,15 +96,16 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             add(btnLocked);
             add(Box.createHorizontalGlue());
             add(btnZoom);
-            //add(btnFocus);
+            if (DEBUG.Enabled) add(btnFocus);
             add(btnSlide);
             add(btnMaster);
             add(btnMapSlide);
+            add(btnFill);
             //add(btnPresent);
 
             ButtonGroup exclusive = new ButtonGroup();
             exclusive.add(btnZoom);
-            //exclusive.add(btnFocus);
+            if (DEBUG.Enabled) exclusive.add(btnFocus);
             exclusive.add(btnSlide);
             exclusive.add(btnMaster);
             //exclusive.add(btnPresent);
@@ -136,6 +138,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         btnSlide = makeButton("Slide");
         btnMaster = makeButton("Master Slide");
         btnMapSlide = new JCheckBox("Map Slide");
+        btnFill = new JCheckBox("Fill");
         //btnPresent = makeButton("Present");
 
         btnSlide.setSelected(true);
@@ -181,7 +184,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     
 
     public void LWCChanged(LWCEvent e) {
-        if (DEBUG.Enabled) out("SLIDEVIEWER LWCChanged " + e);
+        if (DEBUG.PRESENT) out("SLIDEVIEWER LWCChanged " + e);
 
         if (e.getComponent() instanceof LWPathway) {
             // If we're displaying a slide for a node, and
@@ -381,11 +384,11 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     }
 
     public void fireViewerEvent(int id) {
-        if (DEBUG.Enabled) out("fireViewerEvent <" + id + "> skipped");
+        if (DEBUG.PRESENT) out("fireViewerEvent <" + id + "> skipped");
     }
 
     protected void reshapeImpl(int x, int y, int w, int h) {
-        out("reshapeImpl");
+        if (DEBUG.WORK) out("reshapeImpl");
         zoomToContents();
     }
     
@@ -408,7 +411,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
 
         tufts.vue.ZoomTool.setZoomFitRegion(this,
                                             zoomBounds,
-                                            20,
+                                            btnFill.isSelected() ? 0 : 20,
                                             //mZoomBorder ? 20 : 0,
                                             false);
     }
@@ -454,10 +457,16 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         
         final LWSlide master = VUE.getActiveMap().getActivePathway().getMasterSlide();
 
+        if (btnFill.isSelected()) {
+            dc.g.setColor(master.getFillColor());
+            dc.g.fill(dc.g.getClipBounds());
+        }
+
         if (btnMaster.isSelected()) {
             // When editing the master, allow us to see stuff outside of it
             // (no need to clip);
             master.setLocation(0,0);// TODO: hack till we can lock these properties
+            dc.setEditMode(true);
             master.draw(dc);
             return;
         }
@@ -490,7 +499,10 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             dc.setInteractive(false);
         }
         
-        dc.g.setColor(mFocal.getMap().getFillColor());
+        if (btnFocus.isSelected())
+            dc.g.setColor(Color.black);
+        else
+            dc.g.setColor(mFocal.getMap().getFillColor());
         dc.g.fill(dc.g.getClipBounds());
         
         final LWMap underlyingMap = mFocal.getMap();

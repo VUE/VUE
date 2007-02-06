@@ -33,12 +33,14 @@ import javax.swing.*;
 
 /**
  * A property editor panel for LWLink's.
+ * Unused new code...
  */
 public class LinkPropertyPanel extends Box
 {
     public LinkPropertyPanel()
     {
 	super(BoxLayout.X_AXIS);
+        /*
 
         final AbstractButton mArrowStartButton = new VueButton.Toggle("link.button.arrow.start");
         final AbstractButton mArrowEndButton = new VueButton.Toggle("link.button.arrow.end");
@@ -60,7 +62,7 @@ public class LinkPropertyPanel extends Box
         add(mArrowEndButton);
         add(Box.createHorizontalStrut(5));
 
-        final LWPropertyHandler arrowPropertyHandler =
+        final ActionListener arrowPropertyHandler =
             new LWPropertyHandler(LWKey.LinkArrows, GUI.getPropertyChangeHandler()) {
                 public Object getPropertyValue() {
                     int arrowState = LWLink.ARROW_NONE;
@@ -80,6 +82,7 @@ public class LinkPropertyPanel extends Box
         //addPropertyProducer(arrowPropertyHandler);
         mArrowStartButton.addActionListener(arrowPropertyHandler);
         mArrowEndButton.addActionListener(arrowPropertyHandler);
+        */
     }
      
     public static void main(String[] args) {

@@ -67,7 +67,7 @@ public class DEBUG
     //If you set LISTS to true you'll get the HTML code for the node in the Info Label
     //instead of the rendered HTML this should be useful for debugging, at least I hope so.
     //see my note in InspectorPane for more info. -MK
-    public static boolean WORK = true; // work-in-progress
+    public static boolean WORK = false; // work-in-progress
 
     public static boolean DR = false; // digital repository & data sources
     

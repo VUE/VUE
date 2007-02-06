@@ -29,7 +29,7 @@ import javax.swing.Icon;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-01-20 17:18:52 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
  * @author csb
  * @author Scott Fraize
  */
@@ -83,11 +83,11 @@ public class ColorMenuButton extends MenuButton
         return mCurColor;
     }
 
-    public void setPropertyValue(Object o) {
+    public void displayValue(Object o) {
         setColor((Color)o);
     }
 	 
-    public Object getPropertyValue() {
+    public Object produceValue() {
         return getColor();
     }
 	

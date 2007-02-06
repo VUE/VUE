@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.108 $ / $Date: 2006-12-29 23:33:53 $ / $Author: sfraize $
+ * @version $Revision: 1.109 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -689,7 +689,7 @@ public class LWMap extends LWContainer
         // todo pref: should be safe to only do this if a size, location or scale, hide or filter event.
         // TODO: make the key itself know if it's not a modification key!
         // TODO: the UndoManager already knows if there's been a real change: ask that...
-        String key = e.getWhat();
+        final Object key = e.key;
         if (key == LWKey.Repaint || key == LWKey.Scale || key == LWKey.RepaintAsync || key == LWKey.RepaintComponent) {
             // nop
             ;

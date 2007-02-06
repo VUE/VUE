@@ -30,7 +30,7 @@ import javax.swing.JScrollPane;
  * Extension of MouseEvent for events that happen on an instance of LWMap
  * in a MapViewer.
  *
- * @version $Revision: 1.12 $ / $Date: 2007-01-03 05:24:50 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -68,7 +68,10 @@ public class MapMouseEvent extends MouseEvent
 
         this.mapX = mapX;
         this.mapY = mapY;
-        setPicked(picked);
+        if (DEBUG.PICK) out("created: picked=" + picked);
+        //if (picked==null) tufts.Util.printStackTrace("NULL PICKED");
+        if (picked != null)
+            setPicked(picked);
         this.selectorBox = selectorBox;
     }
 
@@ -161,14 +164,27 @@ public class MapMouseEvent extends MouseEvent
     }
 
     public LWComponent getPicked() {
-        if (!pickedSet)
+        if (!pickedSet) {
+            if (DEBUG.PICK) out("computing picked...");
             setPicked(getViewer().pickNode(mapX, mapY));
+        } else
+            if (DEBUG.PICK) out("picked is already: " + picked);
         return picked;
     }
 
     void setPicked(LWComponent c) {
+        if (DEBUG.PICK) out("setting picked to " + c);
         this.picked = c;
         this.pickedSet = true;
+    }
+
+    private void out(String s) {
+        System.out.println("MapMouseEvent@"
+                           + Integer.toHexString(hashCode())
+                           + "[" +
+                           getViewer()
+                           + "]: " + s
+                           );
     }
 
 

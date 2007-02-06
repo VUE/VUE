@@ -1,4 +1,4 @@
-/*
+ /*
  * -----------------------------------------------------------------------------
  *
  * <p><b>License and Copyright: </b>The contents of this file are subject to the
@@ -22,7 +22,7 @@ import java.lang.*;
 import java.util.*;
 import javax.swing.*;
 import java.awt.geom.Point2D;
-import tufts.vue.beans.VueBeanState;
+//import tufts.vue.beans.VueBeanState;
 
 /**
  * VueTool for creating links.  Provides methods for creating default new links
@@ -31,7 +31,7 @@ import tufts.vue.beans.VueBeanState;
  */
 
 public class LinkTool extends VueTool
-    implements VueConstants, LWPropertyProducer
+    implements VueConstants, LWEditor
 {
     /** link tool contextual tool panel **/
     private static LinkToolPanel sLinkContextualPanel;
@@ -64,16 +64,12 @@ public class LinkTool extends VueTool
 
     public Class getSelectionType() { return LWLink.class; }
 
-    /** LWPropertyProducer impl:
-        @return LWKey.LinkCurves */
     final public Object getPropertyKey() { return LWKey.LinkCurves; }
-    /** LWPropertyProducer impl:
-        @return currently selected link tool curve count */
-    public Object getPropertyValue() {
+    public Object produceValue() {
         return new Integer(getActiveSubTool().getCurveCount());
     }
     /** LWPropertyProducer impl: load the currently selected link tool to the one with given curve count */
-    public void setPropertyValue(Object curveValue) {
+    public void displayValue(Object curveValue) {
         // Find the sub-tool with the matching curve-count, then load it's button icon images
         // into the displayed selection icon
         if (curveValue == null)
@@ -120,10 +116,12 @@ public class LinkTool extends VueTool
             // todo: pick up current default stroke color & stroke width
             // and apply to creationLink
             creationLink.setTemporaryEndPoint1(linkSource);
+            /*
             VueBeanState state = getLinkToolPanel().getCurrentState();
             if (state != null) {
             	state.applyState(creationLink);
             }
+            */
             // never let drawn creator link get less than 1 pixel wide on-screen
             float minStrokeWidth = (float) (1 / e.getViewer().getZoomFactor());
             if (creationLink.getStrokeWidth() < minStrokeWidth)
@@ -195,8 +193,8 @@ public class LinkTool extends VueTool
         this.linkSource = null;
     }
 
-    public void handleDraw(DrawContext dc, LWComponent focal) {
-        super.handleDraw(dc, focal);
+    public void handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {
+        super.handleDraw(dc, viewer, focal);
         if (linkSource != null)
             creationLink.draw(dc);
     }
@@ -346,6 +344,7 @@ public class LinkTool extends VueTool
             }
 
             // init link based on user defined state
+            /*
             VueBeanState state = getLinkToolPanel().getCurrentState();
             if (state != null) {
                 // override the curve count from the contextual tool state with
@@ -357,8 +356,8 @@ public class LinkTool extends VueTool
                 // new ctrl points are on-center of curve: set ctrl pt off center a bit so can see curve
                 //if (subTool.getCurveCount() > 0)
                 //link.setCtrlPoint0(new Point2D.Float(link.getCenterX()-20, link.getCenterY()-10));
-                
             }
+            */
             
             commonParent.addChild(link);
             // We ensure a paint sequence here because a link to a link

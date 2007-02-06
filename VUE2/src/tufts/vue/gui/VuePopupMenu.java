@@ -19,7 +19,6 @@
 package tufts.vue.gui;
 
 import tufts.vue.DEBUG;
-import tufts.vue.LWPropertyProducer;
 
 import javax.swing.Icon;
 import javax.swing.Action;
@@ -42,7 +41,7 @@ public class VuePopupMenu extends MenuButton
     {
         setPropertyKey(propertyKey);
         buildMenu(valuesOrActions);
-        setPropertyValue(getMenuValueAt(0));
+        displayValue(getMenuValueAt(0));
         setName(propertyKey.toString());
     }
 
@@ -51,7 +50,7 @@ public class VuePopupMenu extends MenuButton
         return c.getClientProperty(ValueKey);
     }
 
-    public void setPropertyValue(Object newValue) {
+    public void displayValue(Object newValue) {
         if (DEBUG.TOOL) System.out.println(this + " setPropertyValue " + newValue);
         if (mSelectedPropertyValue == null || !mSelectedPropertyValue.equals(newValue)) {
             mSelectedPropertyValue = newValue;
@@ -74,7 +73,7 @@ public class VuePopupMenu extends MenuButton
         return null;
     }
     
-    public Object getPropertyValue() {
+    public Object produceValue() {
         if (DEBUG.TOOL) System.out.println(this + " getPropertyValue " + mSelectedPropertyValue);
         return mSelectedPropertyValue;
     }

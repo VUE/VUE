@@ -248,7 +248,7 @@ public class Actions implements VueConstants
     
     private static List ScratchBuffer = new ArrayList();
     private static LWContainer ScratchMap;
-    private static LWComponent StyleHolder;
+    private static LWComponent StyleBuffer; // this holds the style copied by "Copy Style"
     
     private static LWComponent.LinkPatcher sLinkPatcher = new LWComponent.LinkPatcher();
     private static List DupeList = new ArrayList(); // cache for dupe'd items
@@ -350,13 +350,23 @@ public class Actions implements VueConstants
     new LWCAction("Copy Style", keyStroke(KeyEvent.VK_C, CTRL+LEFT_OF_SPACE)) {
         boolean enabledFor(LWSelection s) { return s.size() == 1; }
         void act(LWComponent c) {
-            StyleHolder = c;
+            try {
+                StyleBuffer = c.getClass().newInstance();
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t);
+            }
+            StyleBuffer.setLabel("styleHolder");
+            StyleBuffer.copyStyle(c);
         }
     };
     
     public static final LWCAction PasteStyle =
     new LWCAction("Paste Style", keyStroke(KeyEvent.VK_V, CTRL+LEFT_OF_SPACE)) {
-        boolean enabledFor(LWSelection s) { return s.size() > 0 && StyleHolder != null; }
+        boolean enabledFor(LWSelection s) { return s.size() > 0 && StyleBuffer != null; }
+        void act(LWComponent c) {
+            c.copyStyle(StyleBuffer);
+        }
+        /*
         void act(LWComponent c) {
             // TODO: when we re-do styles, we can keep a style bag which
             // will also be better in case the style of the object changes
@@ -372,6 +382,7 @@ public class Actions implements VueConstants
             if (c instanceof LWNode && StyleHolder instanceof LWNode)
                 ((LWNode)c).setShape((java.awt.geom.RectangularShape) ((LWNode)StyleHolder).getShape());
         }
+        */
     };
     
     public static final Action Paste =
@@ -627,44 +638,37 @@ public class Actions implements VueConstants
     public static final LWCAction FontSmaller =
     new LWCAction("Font Smaller", keyStroke(KeyEvent.VK_MINUS, COMMAND)) {
         void act(LWComponent c) {
-            Font f = c.getFont();
-            int size = f.getSize();
+            int size = c.mFontSize.get();
             if (size > 1) {
                 if (size >= 14 && size % 2 == 0)
                     size -= 2;
                 else
                     size--;
-                c.setFont(new Font(f.getName(), f.getStyle(), size));
+                c.mFontSize.set(size);
             }
         }
     };
     public static final LWCAction FontBigger =
     new LWCAction("Font Bigger", keyStroke(KeyEvent.VK_EQUALS, COMMAND)) {
         void act(LWComponent c) {
-            Font f = c.getFont();
-            int size = f.getSize();
+            int size = c.mFontSize.get();
             if (size >= 12 && size % 2 == 0)
                 size += 2;
             else
                 size++;
-            c.setFont(new Font(f.getName(), f.getStyle(), size));
+            c.mFontSize.set(size);
         }
     };
     public static final LWCAction FontBold =
     new LWCAction("Font Bold", keyStroke(KeyEvent.VK_B, COMMAND)) {
         void act(LWComponent c) {
-            //System.out.println("BOLDING " + c);
-            Font f = c.getFont();
-            int newStyle = f.getStyle() ^ Font.BOLD;
-            c.setFont(new Font(f.getName(), newStyle, f.getSize()));
+            c.mFontStyle.set(c.mFontStyle.get() ^ Font.BOLD);
         }
     };
     public static final LWCAction FontItalic =
     new LWCAction("Font Italic", keyStroke(KeyEvent.VK_I, COMMAND)) {
         void act(LWComponent c) {
-            Font f = c.getFont();
-            int newStyle = f.getStyle() ^ Font.ITALIC;
-            c.setFont(new Font(f.getName(), newStyle, f.getSize()));
+            c.mFontStyle.set(c.mFontStyle.get() ^ Font.ITALIC);
         }
     };
     

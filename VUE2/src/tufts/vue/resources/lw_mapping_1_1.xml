@@ -309,9 +309,9 @@
 		  <bind-xml name="open" node="attribute"/>
 		</field>
                 
-		<field name="masterSlide" type="tufts.vue.LWSlide">
+		<!-- field name="masterSlide" type="tufts.vue.LWSlide">
 		  <bind-xml name="masterSlide" node="element"/>
-                </field>
+                </field -->
                 
 		<field name="elementIDList" type="string" collection="collection">
 		  <bind-xml name="id" />

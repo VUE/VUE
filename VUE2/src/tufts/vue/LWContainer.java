@@ -34,7 +34,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.93 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
+ * @version $Revision: 1.94 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -707,7 +707,23 @@ public abstract class LWContainer extends LWComponent
         
         slide.setStrokeWidth(0f);
         slide.setFillColor(null);
-        slide.createForNode(this);
+
+        //slide.createForNode(this);
+
+        LWComponent dupeChildren = duplicate(); // just for children: rest of node thrown away
+        java.util.List toLayout = new java.util.ArrayList();
+        LWNode title = NodeTool.buildTextNode(getLabel()); // need to "sync" this...=
+
+        //title.setFont(p.getMasterSlide().titleStyle.getFont());
+        title.setParentStyle(p.getMasterSlide().titleStyle);
+
+        //title.setFont(getFont().deriveFont(java.awt.Font.BOLD));
+        //title.setFontSize(48);
+        
+        toLayout.add(title);
+        toLayout.addAll(dupeChildren.getChildList());
+        slide.importAndLayout(toLayout);
+        
         
         //slide.setLocation(getX(), getY() + getHeight() + 20);
         //slide.setScale(0.125f);
@@ -1197,7 +1213,9 @@ public abstract class LWContainer extends LWComponent
             }
                 
             LWComponent focused = null;
-            for (LWComponent c : getChildList()) {
+            for (LWComponent child : getChildList()) {
+
+                final LWComponent c = child.getView();
 
                 // make sure the rollover is painted on top
                 // a bit of a hack to do this here -- better MapViewer
@@ -1206,6 +1224,8 @@ public abstract class LWContainer extends LWComponent
                     focused = c;
                     continue;
                 }
+
+                if (c != child) c.setLocation(child.getX(), child.getY());
                 
                 //-------------------------------------------------------
                 // This is a huge speed optimzation.  Eliminating all

@@ -18,7 +18,7 @@
 
 package tufts.vue;
 
-import java.util.Iterator;
+import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -42,11 +42,6 @@ class LWCInspector extends javax.swing.JPanel
     private JTextField xField = new JTextField();
     private JTextField yField = new JTextField();
     private JTextField zoomField = new JTextField();
-    private JTextField fontField = new JTextField();
-    private JTextField strokeField = new JTextField();
-    private JTextField fillColorField = new JTextField();
-    private JTextField textColorField = new JTextField();
-    private JTextField strokeColorField = new JTextField();
     private JTextField categoryField = new JTextField();
     private JTextField resourceField = new JTextField();
     private JTextField notesField = new JTextField();
@@ -70,16 +65,13 @@ class LWCInspector extends javax.swing.JPanel
         "X",         xField,
         "Y",         yField,
         "Zoom",    zoomField,
-        "Font",     fontField,
-        "Stroke",   strokeField,
-        "Fill Color",fillColorField,
-        "Text Color",textColorField,
-        "Stroke Color",strokeColorField,
         "Resource", resourceField,
         //"Category", categoryField,
         //"-Notes",    notesField,
         //"Extra",    extraPanel,
     };
+
+    private java.util.Map<JTextField,LWComponent.Key> fieldKeys = new java.util.HashMap();
     
     public LWCInspector()
     {
@@ -101,8 +93,14 @@ class LWCInspector extends javax.swing.JPanel
 
         if (!(notesField instanceof JTextField))
             notesField.setBorder(LineBorder.createGrayLineBorder());
+
+        java.util.List pairsAndKeys = new java.util.ArrayList();
+
+        pairsAndKeys.addAll(Arrays.asList(labelTextPairs));
+        pairsAndKeys.addAll(LWComponent.Key.AllKeys);
         
-        addLabelTextRows(labelTextPairs, gridBag, fieldPane);
+        addLabelTextRows(pairsAndKeys, gridBag, fieldPane);
+        //addLabelTextRows(labelTextPairs, gridBag, fieldPane);
         // settting metadata
         //setUpMetadataPane();
 
@@ -118,8 +116,11 @@ class LWCInspector extends javax.swing.JPanel
         metadataPane.setLayout(layout);
         metadataPane.add(resourceMetadataPanel);
     }
+
+    private static final String KEY_KEY = "LWKEY";
     
-    private void addLabelTextRows(Object[] labelTextPairs,
+    //private void addLabelTextRows(Object[] labelTextPairs,
+    private void addLabelTextRows(java.util.List pairsAndKeys,
                                   GridBagLayout gridbag,
                                   Container container)
     {
@@ -127,12 +128,34 @@ class LWCInspector extends javax.swing.JPanel
         c.anchor = GridBagConstraints.EAST;
         int num = labelTextPairs.length;
 
-        for (int i = 0; i < num; i += 2) {
+        //for (int i = 0; i < num; i += 2) {
+        Iterator i = pairsAndKeys.iterator();
+        while (i.hasNext()) {
+            Object item = i.next();
+                
             c.gridwidth = GridBagConstraints.RELATIVE; //next-to-last
             c.fill = GridBagConstraints.NONE;      //reset to default
             c.weightx = 0.0;                       //reset to default
             c.anchor = GridBagConstraints.EAST;
-            String txt = (String) labelTextPairs[i];
+
+            
+            String txt;
+            final JComponent field;
+
+            if (item instanceof String) {
+                txt = (String) item;
+                field = (JComponent) i.next();
+            } else {
+                LWComponent.Key key = (LWComponent.Key) item;
+                txt = key.name;
+                final JTextField textField = new JTextField();
+                fieldKeys.put(textField, key);
+                field = textField;
+            }
+            
+            //String txt = (String) labelTextPairs[i];
+            //JComponent field = (JComponent) labelTextPairs[i+1];
+            
             boolean readOnly = false;
             if (txt.startsWith("-")) {
                 txt = txt.substring(1);
@@ -150,7 +173,6 @@ class LWCInspector extends javax.swing.JPanel
           
             c.weightx = 1.0;
 
-            JComponent field = (JComponent) labelTextPairs[i+1];
             field.setFont(VueConstants.SmallFont);
             if (field instanceof JTextField)
                 ((JTextField)field).addActionListener(this);
@@ -187,7 +209,7 @@ class LWCInspector extends javax.swing.JPanel
         //System.out.println(this + " " + e);
         if (this.lwc != e.getSource())
             return;
-        if (e.getWhat() == LWKey.Deleting) {
+        if (e.key == LWKey.Deleting) {
             this.lwc = null;
             //loadItem(null);
             setAllEnabled(false);
@@ -269,12 +291,6 @@ class LWCInspector extends javax.swing.JPanel
         disable(resourceField);
         disable(locationField);
         disable(sizeField);
-        
-        fontField.setText("");
-        fillColorField.setText(c.getXMLfillColor());
-        textColorField.setText(c.getXMLtextColor());
-        strokeColorField.setText(c.getXMLstrokeColor());
-        strokeField.setText(""+c.getStrokeWidth());
     }
 
     
@@ -336,19 +352,13 @@ class LWCInspector extends javax.swing.JPanel
         xField.setText(""+c.getX());
         yField.setText(""+c.getY());
         zoomField.setText(""+c.getScale());
-        //Font f = c.getFont();
-        //if (c.getScale() != 1)
-        //  fontString += " (" + (f.getSize()*c.getScale()) + ")";
-        fontField.setText(c.getXMLfont());
-        // todo: font.getSize2D()?
-        //fontField.setText(f.getName() + "-" + fontSize);
-        //sizeField.setText(c.getWidth() + "x" + c.getHeight());
-        
-        fillColorField.setText(c.getXMLfillColor());
-        textColorField.setText(c.getXMLtextColor());
-        strokeColorField.setText(c.getXMLstrokeColor());
-        strokeField.setText(""+c.getStrokeWidth());
-        
+
+        for (Map.Entry<JTextField,LWComponent.Key> e : fieldKeys.entrySet()) {
+            final JTextField field = e.getKey();
+            final LWComponent.Key key = e.getValue();
+            field.setText(key.getStringValue(c));
+        }
+
         //loading the metadata if it exists
         /*
         if(c.getResource() != null && c.getResource().getProperties() != null) {
@@ -386,46 +396,12 @@ class LWCInspector extends javax.swing.JPanel
             return VUE.getSelection();
     }
 
-    private void setFillColors(String text) {
-        Iterator i = getSelection().iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.setXMLfillColor(text);
-        }
-    }
-    private void setTextColors(String text) {
-        Iterator i = getSelection().iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.setXMLtextColor(text);
-        }
-    }
-    private void setStrokeColors(String text) {
-        Iterator i = getSelection().iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.setXMLstrokeColor(text);
-        }
-    }
-    private void setStrokeWidths(String text)
-        throws NumberFormatException
-    {
-        float w = Float.parseFloat(text);
-        Iterator i = getSelection().iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.setStrokeWidth(w);
-        }
-    }
     private void setWidths(String text)
         throws NumberFormatException
     {
         float w = Float.parseFloat(text);
-        Iterator i = getSelection().iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        for (LWComponent c : getSelection())
             c.setAbsoluteSize(w, c.getAbsoluteHeight());
-        }
     }
     private void setHeights(String text)
         throws NumberFormatException
@@ -467,26 +443,17 @@ class LWCInspector extends javax.swing.JPanel
             c.setScale(s);
         }
     }
-    private void setFonts(String text)
-        throws NumberFormatException
-    {
-        Iterator i = getSelection().iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.setXMLfont(text);
-        }
-    }
-
 
     public void actionPerformed(ActionEvent e)
     {
         //tufts.macosx.Screen.dumpMainMenu();
         if (this.lwc == null)
             return;
-        String text = e.getActionCommand();
-        Object src = (JTextComponent) e.getSource();
-        LWComponent c = this.lwc;
+        final String text = e.getActionCommand(); // text is in the action command??
+        final JComponent src = (JTextComponent) e.getSource();
+        final LWComponent c = this.lwc;
         //System.out.println("Inspector " + e);
+        LWComponent.Key key;
         try {
             boolean set = true;
             if (src == labelField)          c.setLabel(text);
@@ -496,18 +463,16 @@ class LWCInspector extends javax.swing.JPanel
             else if (src == heightField)        setHeights(text);
             else if (src == zoomField)          setScales(text);
             else if (src == resourceField)      c.setResource(text);
-            else if (src == fontField)          setFonts(text);
-            else if (src == fillColorField)     setFillColors(text);
-            else if (src == textColorField)     setTextColors(text);
-            else if (src == strokeColorField)   setStrokeColors(text);
-            else if (src == strokeField)        setStrokeWidths(text);
             else if (src == xField)             setXs(text);
             else if (src == yField)             setYs(text);
             //            else if (src == strokeField) {
             //                float w = Float.parseFloat(text);
             //                c.setStrokeWidth(w);
             //            }
-            else
+            //else if ((key = (LWComponent.Key) src.getClientProperty(KEY_KEY)) != null) {
+            else if ((key = fieldKeys.get(src)) != null) {
+                key.setValue(c, text);
+            } else
                 set = false;
             if (set)
                 VUE.getUndoManager().mark();

@@ -19,8 +19,6 @@
 
 package tufts.vue;
 
-import tufts.vue.beans.*;
-
 /**
  * TextToolPanel
  * This creates an editor panel for text LWNode's (isTextNode() == true)
@@ -39,7 +37,9 @@ public class TextToolPanel extends LWCToolPanel
         addComponent(mTextColorButton);
     }
      
+    /*
     protected VueBeanState getDefaultState() {
-        return VueBeans.getState(NodeTool.initTextNode(new LWNode()));
+        return VueBeans.getState(NodeTool.initAsTextNode(new LWNode()));
     }
+    */
 }

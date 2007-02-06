@@ -21,7 +21,6 @@ package tufts.vue.gui;
 import tufts.vue.DEBUG;
 import tufts.vue.VueAction;
 import tufts.vue.LWComponent;
-import tufts.vue.LWPropertyProducer;
 import tufts.vue.LWPropertyChangeEvent;
 
 import java.io.*;
@@ -39,7 +38,9 @@ import javax.swing.border.*;
  * Property change events or action events (depending on the initialization type)
  * are fired when the menu selection changes.
  *
- * @version $Revision: 1.18 $ / $Date: 2006-01-20 17:17:29 $ / $Author: sfraize $
+ * Subclasses must implement LWEditor produce/display
+ *
+ * @version $Revision: 1.19 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -49,8 +50,8 @@ import javax.swing.border.*;
 // that does the LWPropertyHandler impl, and move that to the
 // forthcoming tool package.
 
-public abstract class MenuButton extends JButton
-    implements ActionListener, LWPropertyProducer
+public abstract class MenuButton<T> extends JButton
+    implements ActionListener, tufts.vue.LWEditor<T>
 // todo: cleaner to get this to subclass from JMenu, and then cross-menu drag-rollover
 // menu-popups would automatically work also.
 {
@@ -241,31 +242,11 @@ public abstract class MenuButton extends JButton
         mPropertyKey = key;
         //mPropertyName = key;
     }
-
+ 	
     public Object getPropertyKey() {
         return mPropertyKey;
-        //return mPropertyName;
     }
 
-    /** Load the property value, AND change the displayed menu icon to approriate selection for that value */
-    public abstract void setPropertyValue(Object propertyValue);
-    /** @return the current property value as represented by this menu */
-    public abstract Object getPropertyValue();
-
-    /*
-    public void loadPropertyValue(tufts.vue.beans.VueBeanState state) {
-        if (DEBUG.TOOL) System.out.println(this + " loading " + getPropertyName() + " from " + state);
-        setPropertyValue(state.getPropertyValue(getPropertyName()));
-    }
-    */
-
-    /*
-    public void loadPropertyValue(Object propertyKey, LWComponent src) {
-        if (DEBUG.TOOL) System.out.println(this + " loading " + propertyKey + " from lwc " + src);
-        setPropertyValue(src.getPropertyValue(propertyKey));
-    }
-    */
-	
     /** factory method for subclasses -- build's an icon for menu items */
     protected Icon makeIcon(Object value) {
         return null;
@@ -381,12 +362,14 @@ public abstract class MenuButton extends JButton
         if (newPropertyValue instanceof Action) {
             System.out.println("Skipping setPropertyValue & firePropertyChanged for Action " + newPropertyValue);
         } else {
-            Object oldValue = getPropertyValue();
-            setPropertyValue(newPropertyValue);
+            Object oldValue = produceValue();
+            displayValue((T)newPropertyValue);
             firePropertyChanged(oldValue, newPropertyValue);
         }
         repaint();
     }
+
+    //public void displayValue(T value) {}
 	
     /** fire a property change event even if old & new values are the same */
     // COULD USE Component.firePropertyChange!  all this is getting us is diagnostics!
@@ -404,7 +387,7 @@ public abstract class MenuButton extends JButton
         }
     }
     protected void firePropertySetter() {
-        Object o = getPropertyValue();
+        Object o = produceValue();
         if (DEBUG.TOOL) System.out.println(this + " firePropertySetter " + o);
         if (o instanceof Action) {
             if (o instanceof VueAction)

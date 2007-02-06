@@ -83,6 +83,9 @@ public class FullScreen {
 
     private static void enterFullScreenMode(boolean goNative)
     {
+
+goNative = false; // TODO: TEMP DEBUG
+
         if (goNative) {
             // Can't use heavy weights, as they're windows that can't be seen,
             // and actually the screen goes blank on Mac OS X trying to handle this.

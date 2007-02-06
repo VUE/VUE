@@ -32,7 +32,7 @@ package tufts.vue;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.4 $ / $Date: 2007-01-10 17:34:11 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -81,7 +81,7 @@ public class LWTraversal {
         // that top-most components are seen first
             
         for (java.util.ListIterator<LWComponent> i = children.listIterator(children.size()); i.hasPrevious();) {
-            traverse(i.previous());
+            traverse(i.previous().getView());
             if (done) return;
         }
     }
@@ -238,6 +238,8 @@ public class LWTraversal {
             return getPicked();
         }
 
+        private static final java.util.List<LWComponent> otherLinks = new java.util.ArrayList();
+        private static final java.util.List<LWComponent> looseHits = new java.util.ArrayList();
         public LWComponent getPicked() {
             LWComponent picked = null;
 
@@ -295,8 +297,8 @@ public class LWTraversal {
                 // First past didn't turn anything up: try a second pass, looking for loose hits.
                 // (E.g., the concave region of curved links, or just near-link hits)
                 
-                final java.util.List<LWComponent> otherLinks = new java.util.ArrayList();
-                final java.util.List<LWComponent> looseHits = new java.util.ArrayList();
+                otherLinks.clear();
+                looseHits.clear();
                 Picker loosePick = 
                     new Picker(pc) {
                         public void visit(LWComponent c) {

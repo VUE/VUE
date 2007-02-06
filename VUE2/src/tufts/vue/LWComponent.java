@@ -38,10 +38,9 @@ import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
 
 /**
- * Light-weight component base class for creating components to be
- * rendered by the MapViewer class.
+ * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.201 $ / $Date: 2007-02-06 02:28:02 $ / $Author: mike $
+ * @version $Revision: 1.202 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -65,7 +64,11 @@ public class LWComponent
 
        // VIRTUAL -- would be *just* what ANY currently adds, and exclude PROPER -- currently unsupported
     }
-    
+
+    public static final int HIDE_USER = 0x1;
+    public static final int HIDE_FILTER = 0x2;
+    public static final int HIDE_PRUNE = 0x4;
+
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(LWComponent.class);
     
@@ -77,43 +80,34 @@ public class LWComponent
         public void LWCChanged(LWCEvent e);
     }
 
-    // Immutable (set via style) could have refs as pointers to StyleColor, StyleFont, etc (but strokeWidth?)
-    // yet if set locally, would just be ref to regular object.  Need to know difference when the "parent style"
-    // change, it has to update all it's children's values, EXCEPT those that were overriden (unless told to do so).
-    // If the style value is NOT overriden, when saving, can just return null, writing nothing into the XML.
-    public class Style {
-        protected Color fillColor;
-        protected Color textColor;
-        protected Color strokeColor;
-        protected float strokeWidth;
-        protected Font font; // eventually may want to split out into family/style/size so can more easily change size, but keep family
-        protected boolean showIcons; // turned off for LWSlide's by default?
-    }
-
+    /*
+     * Meta-data persistant information
+     */
+    protected String label = null; // protected for debugging purposes
+    private String notes = null;
+    private Resource resource = null;
+    
     /*
      * Persistent information
      */
 
     private String ID = null;
-    protected String label = null; // protected for debugging purposes
-    private String notes = null;
-    private Resource resource = null;
+
     private float x;
     private float y;
-    private boolean isFiltered = false;
-    private NodeFilter nodeFilter = null;
+    // TODO: if we want to support some kind of keep-relative alignment for an object
+    // (in it's parent), we couldn't just use a special object on a generic x/y value
+    // ptr -- we still need ACTUAL x/y values to render, but we could have an
+    // xAnchor/yAnchor, which could even be a list of actions to perform every time the
+    // object is laid out, or it's parent resizes.
+    
+    private boolean isFiltered = false; // replace with hidebits
+    private NodeFilter nodeFilter = null; // don't know why we need this
     
     protected float width = NEEDS_DEFAULT;
     protected float height = NEEDS_DEFAULT;
-    protected java.awt.Dimension textSize = null;
+    protected java.awt.Dimension textSize = null; // only for use with wrapped text
 
-    protected Color fillColor = null;           //style
-    protected Color textColor = COLOR_TEXT;     //style
-    protected Color strokeColor = COLOR_STROKE; //style
-    protected float strokeWidth = 0f;            //style
-    protected Font font = FONT_DEFAULT;
-    //protected Font font = null;                 //style -- if we leave null won't bother to persist this value
-    
 
     /*
      * Runtime only information
@@ -128,10 +122,12 @@ public class LWComponent
     protected transient boolean isZoomedFocus = false;
 
     protected transient LWContainer parent = null;
+    protected transient LWComponent mParentStyle;
 
     // list of LWLinks that contain us as an endpoint
-    private transient java.util.List links = new java.util.ArrayList();
+    private transient java.util.List<LWLink> links = new java.util.ArrayList<LWLink>();
     protected transient java.util.List<LWPathway> pathwayRefs;
+    private transient long mSupportedPropertyKeys;
 
     // Scale currently exists ONLY to support the auto-managed child-node feature of nodes
     protected transient float scale = 1.0f;
@@ -146,14 +142,15 @@ public class LWComponent
     protected java.util.Map<String,LWSlide> mSlides = new java.util.HashMap();
     protected java.util.Map<LWPathway,Boolean> mSlideIsNode = new java.util.HashMap();
     
-    public static final java.util.Comparator XSorter = new java.util.Comparator() {        
-            public int compare(Object o1, Object o2) {
-                return (int) (128f * (((LWComponent)o1).x - ((LWComponent)o2).x));
+    public static final java.util.Comparator XSorter = new java.util.Comparator<LWComponent>() {
+            public int compare(LWComponent c1, LWComponent c2) {
+                // we multiply up the result so as not to loose differential precision in the integer result
+                return (int) (128f * (c1.x - c2.x));
             }
         };
-    public static final java.util.Comparator YSorter = new java.util.Comparator() {        
-            public int compare(Object o1, Object o2) {
-                return (int) (128f * (((LWComponent)o1).y - ((LWComponent)o2).y));
+    public static final java.util.Comparator YSorter = new java.util.Comparator<LWComponent>() {
+            public int compare(LWComponent c1, LWComponent c2) {
+                return (int) (128f * (c1.y - c2.y));
             }
         };
 
@@ -164,44 +161,569 @@ public class LWComponent
             System.out.println("LWComponent construct of " + getClass().getName() + Integer.toHexString(hashCode()));
         // TODO: shouldn't have to create a node filter for every one of these constructed...
         nodeFilter = new NodeFilter();
+        mSupportedPropertyKeys = Key.PropertyMaskForClass(getClass());
     }
 
-    /*
-    public Collection<LWSlide> getSlideList()
+    public boolean supportsProperty(Key key)
     {
-        if (mXMLRestoreUnderway)
-            return mSlideArray;
-        else
-            return mSlides.values();
+        return (mSupportedPropertyKeys & key.bit) != 0;
+        /*
+        final boolean supported = (mSupportedPropertyKeys & key.bit) != 0;
+        if (DEBUG.Enabled && !supported) out("Doesn't support key: " + key);
+        return supported;
+        */
+    }
+
+    protected void disableProperty(Key key) {
+        mSupportedPropertyKeys &= ~key.bit;
+    }
+
+    /**
+     * Describes a property on a VUE LWComponent, and provides an info string for creating Undo names,
+     * and for diagnostic output.  Implies the ability to set/get the value on an LWComponent by some means.
+     */
+    // todo: consdier moving all the Key/Property code to some kind of superclass to LWComponent -- LWStyle? Vnode? LWKey? LWState?
+    // We'd move it elsewhere, but we'd have to export all sorts of stuff to make all thats needed available,
+    // as they get everything currently being inner classes.
+
+    // The generic type TSubclass allows the inner-class impl's of getValue & setValue, in subclasses
+    // of LWComponent, to use their own type in the first argument to set/getValue, omitting
+    // the need for casts in the method.
+
+
+    // todo: TValue may be overkill -- may want to revert to using just Object
+    public static class Key<TSubclass extends LWComponent,TValue> {
+        /** A name for this key (used for undo labels & debugging) */
+        public final String name;
+        /** The unique bit for this property key.
+            (Implies a max of 64 keys that can uniquely known as active to our tools -- use a BitSet if need more) */
+        public final long bit;
+        /** True if this key for a style property -- a property that moves from style holders to LWCopmonents
+         * pointing to it via mParentStyle */
+        public final boolean isStyleProperty;
+
+        /** True this property is a sub-part of some other property */
+        public final boolean isSubProperty;
+
+        public static final java.util.List<Key> AllKeys = new java.util.ArrayList<Key>();
+
+        private static int InstanceCount; // increment for each key instance, to establish the appropriate bit
+        private static final java.util.Map<Class,Long> ClassProperties = new java.util.HashMap<Class,Long>();
+        
+        public Key(String name) {
+            this(name, false, false);
+        }
+
+        /** Get the supported property bit mask for the given class in the LWComponent inheritance tree
+         * This will only return accurate results after all Key's in the codebase have been initialized. */
+        static long PropertyMaskForClass(Class<? extends LWComponent> clazz) {
+            final Long bitsForClass = ClassProperties.get(clazz); // property bits for this class
+            if (bitsForClass == null) {
+                // If we found nothing, this must be the first instance of a new object
+                // for some subclass of LWComponent that doesn't declare any of it's
+                // own keys.  Merge the bits for all superclasses and put it in the
+                // map for future reference.
+                long propMaskForClass = 0L;
+                for (Class c = clazz; c != null; c = c.getSuperclass())
+                    propMaskForClass |= PartialPropertyMaskForClass(c);
+
+                if (DEBUG.Enabled) System.out.format("CACHED PROPERTY BITS for %s: %d\n", clazz, Long.bitCount(propMaskForClass));
+                ClassProperties.put(clazz, propMaskForClass);
+
+                return propMaskForClass;
+            } else
+                return bitsForClass;
+        }
+
+        /** @return the currently stored property mask for the given class: only used during initialization
+         * Will return 0L (no bit set) if the given class is not in the map (e.g., java.lang.Object)
+         * This is used to disambiguate between properties that apply only to a particular
+         * LWComponent subclass while we produce the ultimate merged results for all classes in
+         * the hierarchy.
+         */
+        private static long PartialPropertyMaskForClass(Class clazz) {
+            final Long bitsForClass = ClassProperties.get(clazz); // property bits for this class
+            if (bitsForClass == null)
+                return 0L;
+            else
+                return bitsForClass;
+        }
+        
+        
+        protected Key(String name, boolean partOfStyle, boolean isSubProperty) {
+            this.name = name;
+            this.isStyleProperty = partOfStyle;
+            this.isSubProperty = isSubProperty;
+            if (InstanceCount >= Long.SIZE) {
+                this.bit = 0;
+                tufts.Util.printStackTrace(Key.class + ": " + InstanceCount + "th key created -- need to re-implement");
+            } else
+                this.bit = 1 << InstanceCount;
+            AllKeys.add(this);
+
+            // Note: this only works if the key is in fact declared in the enclosing class to
+            // which it applies.  If we want to declare keys elsewhere, we'll need to add
+            // a Class argument to the constructor.
+            final Class clazz = getClass().getEnclosingClass(); // the class that own's the Key
+            long propMaskForClass = (PartialPropertyMaskForClass(clazz) | bit); // add the new bit
+
+            // Now be sure to mix in all properties found in all super-classes:
+            for (Class c = clazz; c != null; c = c.getSuperclass())
+                propMaskForClass |= PartialPropertyMaskForClass(c);
+            
+            ClassProperties.put(clazz, propMaskForClass);
+
+            System.out.printf("CONSTRUCTED KEY %-20s bit#%2d; %25s now has %2d properties\n", 
+                              name, InstanceCount, clazz.getName(), Long.bitCount(propMaskForClass));
+            InstanceCount++;
+
+            // Just referencing a class object won't load it's statics: must do a new instance.
+            // This will be easy enough to ensure at startup.
+            //new LWImage();
+            //System.out.println("BITS FOR " + LWImage.class + " " + PropertyMaskForClass(LWImage.class));
+            
+            // Could build list of all key (and thus slot) values here for each subclass,
+            // but where would we attach it?  Would need to pass in the class variable
+            // in the constructor, and hash it to a list for the class.  Then the
+            // problem would be that each list would only contain the subclass items,
+            // not the super -- tho could we just iterate up through the supers getting
+            // their lists to build the full list for each class?  (e.g., for duplicate,
+            // persistance, or runtime diagnostic property editors)
+
+            // OH: we also need to build the bitfield for the enclosing class:
+            // the runtime-constant bit-mask representing all the properties
+            // handled by this class / subclass of LWComponent
+
+        }
+
+        private static final LWComponent EmptyStyle = new LWComponent();
+        private static final Property NO_SLOT_PROVIDED = EmptyStyle.mFillColor; // any slot will do
+        //private static final Property BAD_SLOT = EmptyStyle.mStrokeColor; // any (different) slot will do
+        /** If this isn't overriden to return non-null, getValue & setValue must be overriden to provide the setter/getter impl  */
+        Property getSlot(TSubclass c) { return NO_SLOT_PROVIDED; }
+
+        // If we wanted to get rid of the slot decl's in the key's (for those that use
+        // slots), we could, in our defult slot-using set/getValue, search all property
+        // objects in the LWComponent, and if any of them match our key, we know that's
+        // that slot, and if none of them do, then we have in internal error: coder
+        // should have impl'd set/getValue themselves.
+
+        /** non slot-based property keys can override this */
+        TValue getValue(TSubclass c) {
+            final Property propertySlot = getSlotSafely(c);
+            try {
+                if (propertySlot == NO_SLOT_PROVIDED) {
+                    tufts.Util.printStackTrace(this + ": no slot, and getValue not overriden");
+                    return null;
+                } else
+                    return (TValue) propertySlot.get();
+            } catch (Throwable t) {
+                //tufts.Util.printStackTrace(t, this + ": property slot get() failed " + propertySlot);
+                VUE.Log.warn(this + ": property slot get() failed " + propertySlot + " " + t);
+                return DEBUG.Enabled ? (TValue) "<unsupported for this object>" : null;
+                //return null;
+            }
+        }
+
+        /** non slot-based property keys can override this */
+        void setValue(TSubclass c, TValue value) {
+            final Property slot = getSlotSafely(c);
+            if (slot == null || slot == NO_SLOT_PROVIDED)
+                return;
+            if (value instanceof String) {
+                // If a String value comes in, this allows us to auto-parse it
+                slot.setFromString((String)value);
+            } else {
+                slot.set(value);
+            }
+                /*
+            try {
+                if (value instanceof String) {
+                    // If a String value comes in, this allows us to auto-parse it
+                    getSlot(c).setFromString((String)value);
+                } else {
+                    getSlot(c).set(value);
+                }
+            } catch (ClassCastException e) {
+                tufts.Util.printStackTrace(e, "Bad setValue type for " + getSlot(c) + ": " + (value == null ? "null" : value.getClass()));
+            }
+                */
+        }
+        
+        private Property getSlotSafely(TSubclass c) {
+            try {
+                return getSlot(c);
+            } catch (ClassCastException e) {
+                String msg = "Property not supported: " + this + " on\t" + c + " (getSlot failed; returned null)";
+                //tufts.Util.printStackTrace(e, msg);
+                VUE.Log.warn(msg + "; " + e);
+                return null;
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t, this + ": bad slot? unimplemented get/setValue?");
+                return null;
+            }
+        }
+        
+
+        /** non slot-based property keys can override this */
+        String getStringValue(TSubclass c) {
+            final Property slot = getSlotSafely(c);
+            if (slot == NO_SLOT_PROVIDED || slot == null) {
+                // If there is no slot provided, we must get the value from the overridden
+                // getter, getValue.
+                Object typedValue = null;
+                try {
+                    // Call the overriden getValue:
+                    typedValue = getValue(c);
+                } catch (ClassCastException e) {
+                    final String msg = "Property not supported(getStringValue): " + this + " on\t" + c;
+                    VUE.Log.warn(msg + "; " + e);
+                    //tufts.Util.printStackTrace(e, msg);
+                    return DEBUG.Enabled ? "<unsupported for this object>" : null;
+                }
+                return typedValue == null ? null : typedValue.toString(); // produce something
+//              } else if (slot == null) {
+//                 // If a slot was provided, but it failed, no sense in trying
+//                 // the default getValue, which presumably wasn't overriden if
+//                 // a slot was provided.
+//                 //tufts.Util.printStackTrace(this + ": bad slot");
+//                 return DEBUG.Enabled ? "<unsupported for this object>" : null;
+            } else
+                return slot.asString();
+        }
+        
+        void setValue(TSubclass c, String stringValue) {
+            getSlotSafely(c).setFromString(stringValue);
+        }
+
+        /** @return true if the value for this Key in LWComponent is equivalent to otherValue
+         * Override to provide non-standard equivalence (Object.equals) */
+        boolean valueEquals(TSubclass c, Object otherValue) 
+        {
+            final Object value = getValue(c);
+            return value == otherValue || (otherValue != null && otherValue.equals(value));
+        }
+
+        void copyValue(TSubclass source, TSubclass target)
+        {
+            if (!source.supportsProperty(this)) {
+                // TODO: Some supported bits apparently not being fully updated... need to fix that!  (Happening to LWStyle in LWPathway)
+                if (DEBUG.Enabled) System.err.println(" COPY-VALUE: " + this + "; source doesn't support this property; " + source);
+            } else if (!target.supportsProperty(this)) {
+                if (DEBUG.Enabled) System.err.println(" COPY-VALUE: " + this + "; target doesn't support this property; " + target);
+            } else {
+                if (DEBUG.Enabled) System.err.print(" COPY-VALUE: " + this + "(");
+                final TValue copyValue = getValue(source);
+                if (DEBUG.Enabled) System.err.println(copyValue + ") -> " + target);
+                setValue(target, copyValue);
+            }
+        }
+
+        
+        
+        public String toString() { return name; } // must == name for now until tool panels handle new key objects
+    }
+
+    /** A marker class for Key's that are considered user interested "data" (e.g., a label) */
+    public static class DataKey<TSubclass extends LWComponent,TValue> extends Key<TSubclass,TValue> {
+        public DataKey(String name) {
+            super(name, false, false);
+        }
+    }
+    /** A marker class for Key's that are for style properties */
+    public static class StyleKey<TSubclass extends LWComponent> extends Key<TSubclass,Object> {
+        public StyleKey(String name) {
+            super(name, true, false);
+        }
+    }
+    /*
+    public static class TypedStyleKey<TSubclass extends LWComponent,TValue> extends Key<TSubclass,TValue> {
+        public TypedStyleKey(String name) {
+            super(name, true, false);
+        }
     }
     */
-
-    public Map<String,LWSlide> getSlideViews()
-    {
-        out("RETURNING SLIDES " + mSlides);
-        return mSlides;
-        //return null;
-    }
     
-    
-
-    public static abstract class Key {
-        public final String name;
-        public Key(String name) {
-            this.name = name;
+    /** A marker class for Key's that are for sub-style properties (properties that make up some other total style value) */
+    public static class SubStyleKey<TSubclass extends LWComponent,TValue> extends Key<TSubclass,TValue> {
+        public SubStyleKey(String name) {
+            super(name, true, true);
         }
-        // could provide group of setters for all the basic types (int, float, String, Font, etc)
-        // to skip casts
-        //public void setValue(LWComponent c, Color color) {}
-        public abstract void setValue(LWComponent c, Object v);
-        public abstract Object getValue(LWComponent c);
-        public String toString() { return name; } // must == name for now until tool panels handle new key objects
-        //public String toString() { return ">" + name; }
     }
-    public static final Key KEY_FillColor = new Key("fill.color") {
-            public final void setValue(LWComponent c, Color color) { c.setFillColor(color); }
-            public final void setValue(LWComponent c, Object val) { c.setFillColor((Color)val); }
-            public final Object getValue(LWComponent c) { return c.getFillColor(); }
+    
+    // this is a bit obscene given that it just recaptulations introspection, but it's obviously faster.
+    // Tho it would also make handling the duplicate code alot more automatic.
+    //private java.util.ArrayList<Property> allProps = new java.util.ArrayList();
+
+    /**
+     * This class allows us to define an arbitrary property for a LWComponent, and
+     * define a default set of setters and getters that automatically handle stuff like
+     * undo and positing change notifications.  It is also essential in allowin us to
+     * easily attach meta-data to the property itself: e.g., it's locked, it's
+     * overriding a parent style value, it's caching some related computed value, etc.
+     */
+    public abstract class Property<T> {
+        
+        final Key key;
+        protected T value;
+
+        boolean locked; // could handle instead as above bitfield
+        
+        Property(Key key) {
+            this.key = key;
+            //mSupportedPropertyKeys |= key.bit;
+            //LWComponent.this.allProps.add(this);
+        }
+
+        T get() { return value; }
+
+        void set(T newValue) {
+            //final Object old = get(); // if "get" actually does anything tho, this is a BAD idea; if needbe, create a "curValue"
+            if (this.value == newValue || (newValue != null && newValue.equals(this.value)))
+                return;
+            final Object oldValue = this.value;
+            take(newValue);
+            onChange();
+            LWComponent.this.notify(this.key, oldValue);
+        }
+
+        /** This JUST changes the stored value: no notifications of any kind will be triggered, no undo recorded. */
+        void take(T o) {
+            this.value = o;
+            if (DEBUG.WORK) System.out.printf("     TAKING: %-30s -> %s\n", vtag(key, o, this), LWComponent.this);
+        }
+
+        /** impl's can override this to do something after the value has changed (after take() has been called),
+         * and before listeners have been notified */
+        void onChange() {}
+
+        void setFromString(String s) {
+            try {
+                setBy(s);
+            } catch (Throwable t) {
+                VUE.Log.error("bad value for " + this + ": [" + s + "] " + t);
+            }
+        }
+
+        void setBy(String fromValue) {
+            // Could get rid all of the setBy's (and then mayve even all the StyleProp subclasses!!)
+            // If we just had mapper class that took a type, a value, and returned a string (e.g., Font.class, Object value)
+            VUE.Log.error("unimplememnted: " + this + " setBy " + fromValue.getClass() + " " + fromValue);
+        }
+
+        /** override to provide an impl other than value.toString() */
+        String asString() {
+            return value == null ? null : value.toString();
+        }
+
+        /*
+        void setByUser(Object newValue) { // for tools.  Actually, tools using generic setProperty right now...
+            out("SetByUser: " + key + " " + newValue);
+            set(newValue);
+        }
+        */
+
+        /** used for debugging */
+        public String toString() {
+            return key + "(" + value.toString() + ")";
+        }
+        
+    }
+
+    private static final String _DefaultString = "";
+    public class StringProperty extends Property<java.lang.String> {
+        StringProperty(Key key) {
+            super(key);
+            value = _DefaultString;
+        }
+        final void setBy(String s) { set(s); }
+    }
+
+    private static final Integer _DefaultInteger = new Integer(0);
+    public class IntProperty extends Property<java.lang.Integer> {
+        IntProperty(Key key) {
+            super(key);
+            value = _DefaultInteger;
+        }
+        final void setBy(String s) { set(new Integer(s)); }
+    }
+    
+    private static final Float _DefaultFloat = new Float(0f);
+    public class FloatProperty extends Property<java.lang.Float> {
+        FloatProperty(Key key) {
+            super(key);
+            value = _DefaultFloat;
+        }
+        final void setBy(String s) { set(new Float(s)); }
+    }
+
+    public class FontProperty extends Property<java.awt.Font> {
+        FontProperty(Key key) {
+            super(key);
+            value = VueConstants.FONT_DEFAULT;
+        }
+        final void setBy(String s) { set(Font.decode(s)); }
+        final String asString() {
+            //if (this.font == null || this.font == getParent().getFont())
+            //return null;
+
+            final Font font = get();
+            final String strStyle;
+            
+            if (font.isBold()) {
+                strStyle = font.isItalic() ? "bolditalic" : "bold";
+            } else {
+                strStyle = font.isItalic() ? "italic" : "plain";
+            }
+            return font.getName() + "-" + strStyle + "-" + font.getSize();
+        }
+    }
+    
+    
+    public class ColorProperty extends Property<java.awt.Color> {
+        ColorProperty(Key key) { super(key); }
+        ColorProperty(Key key, Color defaultValue) {
+            this(key);
+            this.value = defaultValue;
+        }
+
+        public boolean isTransparent() {
+            return value == null || value.getAlpha() == 0;
+        }
+    
+        public boolean isTranslucent() {
+            return value == null || value.getAlpha() != 0xFF;
+        }
+
+        void setBy(String s) {
+            set(StringToColor(s));
+        }
+
+        String asString() {
+            return ColorToString(get());
+        }
+    }
+    
+    public static Color StringToColor(final String s)
+    {
+        if (s.trim().length() < 1)
+            return null;
+        
+        Color c = null;
+        try {
+            c = VueResources.makeColor(s);
+        } catch (NumberFormatException e) {
+            System.err.println("LWComponent.StringToColor[" + s + "] " + e);
+        }
+        return c;
+    }
+    public static String ColorToString(final Color c)
+    {
+        // if null, or no hue and no alpha, return null
+        //if (c == null || ((c.getRGB() & 0xFFFFFF) == 0 && c.getAlpha() == 255))
+        if (c == null)
+            return null;
+        
+        // todo: I still think this can put out non zero-filled strings
+        if (c.getAlpha() == 255) // opaque: only bother to save hue info
+            return "#" + Integer.toHexString(c.getRGB() & 0xFFFFFF);
+        else if (c.getAlpha() == 0) // totally transparent, be sure alpha still indicated!
+            return "#00" + Integer.toHexString(c.getRGB());
+        else
+            return "#" + Integer.toHexString(c.getRGB());
+    }
+        
+
+    
+    public static final Key KEY_FillColor = new StyleKey("fill.color")       { final Property getSlot(LWComponent c) { return c.mFillColor; } };
+    public static final Key KEY_TextColor = new StyleKey("text.color")       { final Property getSlot(LWComponent c) { return c.mTextColor; } };
+    public static final Key KEY_StrokeColor = new StyleKey("stroke.color")   { final Property getSlot(LWComponent c) { return c.mStrokeColor; } };
+    public static final Key KEY_StrokeWidth = new StyleKey("stroke.width")   { final Property getSlot(LWComponent c) { return c.mStrokeWidth; } };
+
+
+    /** point size for font */
+    public static final Key KEY_FontSize = new SubStyleKey("font.size")         { final Property getSlot(LWComponent c) { return c.mFontSize; } };
+    /** @See java.awt.Font 0x0=Plain, 0x1=Bold On, 0x2=Italic On */
+    public static final Key KEY_FontStyle = new SubStyleKey("font.style")       { final Property getSlot(LWComponent c) { return c.mFontStyle; } };
+    /** name of the font */
+    public static final Key KEY_FontName = new SubStyleKey("font.name")         { final Property getSlot(LWComponent c) { return c.mFontName; } };
+    /** Aggregate font key, which represents the combination of it's three sub-properties */
+    public static final Key KEY_Font = new StyleKey("font")             { final Property getSlot(LWComponent c) { return c.mFont; } };
+    
+    public final ColorProperty mFillColor = new ColorProperty(KEY_FillColor);
+    public final ColorProperty mTextColor = new ColorProperty(KEY_TextColor, java.awt.Color.black) {
+            //{ color = java.awt.Color.black; } // default value
+            void onChange() {
+                if (labelBox != null)
+                    labelBox.copyStyle(LWComponent.this); // todo better: handle thru style.textColor notification?
+            }
+        };
+    public final ColorProperty mStrokeColor = new ColorProperty(KEY_StrokeColor, java.awt.Color.darkGray);
+    public final FloatProperty mStrokeWidth = new FloatProperty(KEY_StrokeWidth) {
+            void onChange() {
+                final float width = get();
+                // TODO: caching the stroke here is kind of overkill, and if we really want to do it,
+                // keep a list of the common stroke widths (1-6)...
+                // Also, assuming we keep the cached stroke around, this cached data would ideally go
+                // right in the the property, as another piece of meta-data related to it.
+                if (width > 0)
+                    LWComponent.this.stroke = new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+                else
+                    LWComponent.this.stroke = STROKE_ZERO;
+
+                // below code was broken in previous code.  Node child layout does NOT
+                // appear to be taking into account total bounds with at the moment anyway...
+                // (Or was that just for Groups?  No, those appear to be handling the full bounds change.)
+                // Also, want to make generic with a flag in Key if layout needed when
+                // the given property changes.
+                /*
+                if (getParent() != null) {
+                    // because stroke affects bounds-width, may need to re-layout parent
+                    getParent().layout();
+                }
+                layout();
+                */
+            }
+        };
+
+
+    public final IntProperty mFontStyle = new IntProperty(KEY_FontStyle)        { void onChange() { rebuildFont(); } };
+    public final IntProperty mFontSize = new IntProperty(KEY_FontSize)          { void onChange() { rebuildFont(); } };
+    public final StringProperty mFontName = new StringProperty(KEY_FontName)    { void onChange() { rebuildFont(); } };
+
+    private boolean fontIsRebuilding; // hack till we cleanup the old font code in gui tools (it's only all-at-once)
+    private void rebuildFont() {
+        // This so at least for now we have backward compat with the old font property (esp. for tools & persistance)
+        fontIsRebuilding = true;
+        try  {
+            mFont.set(new Font(mFontName.get(), mFontStyle.get(), mFontSize.get()));
+        } finally {
+            fontIsRebuilding = false;
+        }
+    }
+    
+    public final FontProperty mFont = new FontProperty(KEY_Font) {
+            void onChange() {
+                // TODO: as "take" won't send notifications, tools listenting to just
+                // these properties won't get updated...  Tho we don't want notifications
+                // for now, as we'd loop...
+                if (!fontIsRebuilding) {
+                    final Font f = get();
+                    mFontStyle.take(f.getStyle());
+                    mFontSize.take(f.getSize());
+                    mFontName.take(f.getName());
+                }
+
+                if (labelBox != null)
+                    labelBox.copyStyle(LWComponent.this);
+                layout(this.key); // could make this generic: add a key bit that says "layout needed on-change";
+            }
+        };
+
+
+    public static final Key KEY_Label = new DataKey("label") {
+            public void setValue(LWComponent c, Object val) { c.setLabel((String)val); }
+            public Object getValue(LWComponent c) { return c.getLabel(); }
         };
     
 
@@ -214,14 +736,23 @@ public class LWComponent
     public Object getPropertyValue(final Object key)
     {
         if (key instanceof Key) {
-            return ((Key)key).getValue(this);
+            // If getValue on the key was overriden, we may still need to trap an exception here
+            try {
+                return ((Key)key).getValue(this);
+            } catch (ClassCastException e) {
+                String msg = "Property not supported(getPropertyValue): " + key + " on " + this + " (returned null)";
+                //tufts.Util.printStackTrace(e, msg);
+                VUE.Log.warn(msg + "; " + e);
+                return null;
+            }
         }
-        //if (key == LWKey.FillColor)     return getFillColor();
-        if (key == LWKey.TextColor)     return getTextColor();
-        if (key == LWKey.StrokeColor)   return getStrokeColor();
-        if (key == LWKey.StrokeWidth)   return new Float(getStrokeWidth());
-        if (key == LWKey.Font)          return getFont();
-        if (key == LWKey.Label)         return getLabel();
+
+        //if (key == LWKey.FillColor.name)     return getFillColor();
+        //if (key == LWKey.TextColor.name)     return getTextColor();
+        //if (key == LWKey.StrokeColor.name)   return getStrokeColor();
+        //if (key == LWKey.StrokeWidth.name)   return new Float(getStrokeWidth());
+        //if (key == LWKey.Font.name)          return getFont();
+        //if (key == LWKey.Label)         return getLabel();
         if (key == LWKey.Notes)         return getNotes();
         if (key == LWKey.Resource)      return getResource();
         if (key == LWKey.Location)      return getLocation();
@@ -234,22 +765,46 @@ public class LWComponent
         //throw new RuntimeException("Unknown property key[" + key + "]");
     }
 
+    // for debug
+    private static String vtag(Object key, Object val, Property p) 
+    {
+        if (val == null) {
+            return key + "(null)";
+        } else if (val.getClass() == String.class) {
+            return key + "(\"" + val + "\")";
+        }
+        
+        String typeName = val.getClass().getName();
+        String valType = typeName.substring(typeName.lastIndexOf('.') + 1);
+        String valRep = (p == null ? val.toString() : p.asString());
+
+        String extra = "";
+        
+        //if (p != null) extra = val.toString();
+        //valType += "@" + Integer.toHexString(val.hashCode());
+        
+        return key + " " + valType + "(" + valRep + ")" + extra + "";
+    }
+    
     public void setProperty(final Object key, Object val)
     {
-        if (DEBUG.UNDO&&DEBUG.META) out("setProperty [" + key + "] to " + val);
+        if (DEBUG.Enabled||DEBUG.UNDO) System.out.println("setProperty: " + vtag(key, val, null) + " on " + LWComponent.this);
 
         if (key instanceof Key) {
             ((Key)key).setValue(this, val);
         }
-        // still need this hack for fill color name till toolbars handle the new key objects
-        else if (key == LWKey.FillColor.name)   setFillColor( (Color) val);
+        
+        // "Still need this hack for fill color name till toolbars handle the new key objects"
+        // This is coming from the damn VueBeans code, which is presumably what
+        // the above comment ultimately refers to.  All this ".name" cases are that crap.
+        //else if (key == LWKey.FillColor.name)   setFillColor( (Color) val);
         //if (val == UnsupportedPropertyValue) return;
                                            
-        else if (key == LWKey.TextColor)        setTextColor( (Color) val);
-        else if (key == LWKey.StrokeColor)      setStrokeColor( (Color) val);
-        else if (key == LWKey.StrokeWidth)      setStrokeWidth( ((Float) val).floatValue());
-        else if (key == LWKey.Font)             setFont( (Font) val);
-        else if (key == LWKey.Label)            setLabel( (String) val);
+        //else if (key == LWKey.TextColor.name)        setTextColor( (Color) val);
+        //else if (key == LWKey.StrokeColor.name)      setStrokeColor( (Color) val);
+        //else if (key == LWKey.StrokeWidth.name)      setStrokeWidth( ((Float) val).floatValue());
+        //else if (key == LWKey.Font.name)             setFont( (Font) val);
+        //else if (key == LWKey.Label)            setLabel( (String) val);
         else if (key == LWKey.Notes)            setNotes( (String) val);
         else if (key == LWKey.Resource)         setResource( (Resource) val);
         else if (key == LWKey.Location)         setLocation( (Point2D) val);
@@ -261,8 +816,8 @@ public class LWComponent
             Rectangle2D.Float r = (Rectangle2D.Float) val;
             setFrame(r.x, r.y, r.width, r.height);
         } else {
-            out("setProperty: unknown key [" + key + "] with value [" + val + "]");
-            new Throwable("FYI: Unhandled Property").printStackTrace();
+            //out("setProperty: unknown key [" + key + "] with value [" + val + "]");
+            tufts.Util.printStackTrace("FYI: Unhandled Property key: " + key.getClass() + "[" + key + "] with value [" + val + "]");
         }
     }
 
@@ -273,8 +828,8 @@ public class LWComponent
      * to reconnect links within the group after duplication.
      */
     public static class LinkPatcher {
-        private Map mCopies = new java.util.HashMap();
-        private Map mOriginals = new java.util.HashMap();
+        private java.util.Map<LWComponent,LWComponent> mCopies = new java.util.HashMap();
+        private java.util.Map<LWComponent,LWComponent> mOriginals = new java.util.HashMap();
 
         public LinkPatcher() {
             if (DEBUG.DND) System.out.println("LinkPatcher: created");
@@ -295,31 +850,29 @@ public class LWComponent
         //public Collection getCopies() { return mCopies.values(); }
         
         public void reconnectLinks() {
-            Iterator ic = mCopies.values().iterator();
             
             // Find all LWLink instances in the set of copied
             // objects, and fix their endpoint pointers to
             // point to the right object within the copied set.
             
-            while (ic.hasNext()) {
-                LWComponent c = (LWComponent) ic.next();
+            for (LWComponent c : mCopies.values()) {
                 if (!(c instanceof LWLink))
                     continue;
 
-                LWLink copied_link = (LWLink) c;
-                LWLink original_link = (LWLink) mOriginals.get(copied_link);
+                final LWLink linkCopy = (LWLink) c;
+                final LWLink linkOriginal = (LWLink) mOriginals.get(linkCopy);
                 
-                LWComponent endPoint1 = (LWComponent) mCopies.get(original_link.getComponent1());
-                LWComponent endPoint2 = (LWComponent) mCopies.get(original_link.getComponent2());
+                final LWComponent endPoint1Copy = mCopies.get(linkOriginal.getComponent1());
+                final LWComponent endPoint2Copy = mCopies.get(linkOriginal.getComponent2());
                 
                 if (DEBUG.DND)
-                    System.out.println("LinkPatcher: reconnecting " + copied_link + " endpoints:"
-                                       + "\n\t" + endPoint1
-                                       + "\n\t" + endPoint2
+                    System.out.println("LinkPatcher: reconnecting " + linkCopy + " endpoints:"
+                                       + "\n\t" + endPoint1Copy
+                                       + "\n\t" + endPoint2Copy
                                        );
                 
-                copied_link.setComponent1(endPoint1);
-                copied_link.setComponent2(endPoint2);
+                linkCopy.setComponent1(endPoint1Copy);
+                linkCopy.setComponent2(endPoint2Copy);
             }
         }
     }
@@ -340,26 +893,31 @@ public class LWComponent
         final LWComponent c;
 
         try {
-            c = (LWComponent) getClass().newInstance();
-        } catch (Exception e) {
-            tufts.Util.printStackTrace("duplicate " + getClass());
+            c = getClass().newInstance();
+        } catch (Throwable t) {
+            tufts.Util.printStackTrace(t, "duplicate " + getClass());
             return null;
         }
+
+        c.mSupportedPropertyKeys = this.mSupportedPropertyKeys;
+        c.mParentStyle = this.mParentStyle;
+        
         c.x = this.x;
         c.y = this.y;
         c.width = this.width;
         c.height = this.height;
-        c.font = this.font;
         c.scale = this.scale;
-        c.strokeWidth = this.strokeWidth;
         c.stroke = this.stroke; // cached info only
 
+        c.copyStyle(this);
+
         c.setAutoSized(isAutoSized());
-        c.setFillColor(getFillColor());
-        c.setTextColor(getTextColor());
-        c.setStrokeColor(getStrokeColor());
+        //c.setFillColor(getFillColor());
+        //c.setTextColor(getTextColor());
+        //c.setStrokeColor(getStrokeColor());
         c.setLabel(this.label); // use setLabel so new TextBox will be created [!no longer an effect]
         c.getLabelBox().setSize(getLabelBox().getSize());
+
         
         if (hasResource())
             c.setResource(getResource());
@@ -455,6 +1013,7 @@ public class LWComponent
         setLabel0(label, true);
     }
 
+
     /**
      * Called directly by TextBox after document edit with setDocument=false,
      * so we don't attempt to re-update the TextBox, which has just been
@@ -498,7 +1057,7 @@ public class LWComponent
         }
         return this.labelBox;
     }
-    
+
     public void setNotes(String pNotes)
     {
         Object old = this.notes;
@@ -887,35 +1446,64 @@ public class LWComponent
     /** do nothing: default is always autoSized */
     public void setAutoSized(boolean t) {}
     
-    private boolean eq(Object a, Object b) {
+    private static boolean eq(Object a, Object b) {
         return a == b || (a != null && a.equals(b));
     }
     
+    public boolean isTransparent() {
+        return mFillColor.isTransparent();
+        //return fillColor == null || fillColor.getAlpha() == 0;
+    }
+    
+    public boolean isTranslucent() {
+        return mFillColor.isTranslucent();
+        //return fillColor == null || fillColor.getAlpha() != 0xFF;
+    }
+    
+    /** Color to use at draw time. LWNode overrides to provide darkening of children. */
+    public Color getRenderFillColor() {
+        return getFillColor();
+    }
+    void takeFillColor(Color color) {
+        mFillColor.take(color);
+        //this.fillColor = color;
+    }
+
+    // We still need these standard style setters & getters for backward compat
+    // with all sorts of old code, and espcially for persistance (the castor
+    // mapping, which refers to these methods)
+
+    public float        getStrokeWidth()                { return mStrokeWidth.get(); }
+    public void         setStrokeWidth(float w)         { mStrokeWidth.set(w); }
+    
+    public Color        getFillColor()                  { return mFillColor.get(); }
+    public void         setFillColor(Color c)           { mFillColor.set(c); }
+    public String       getXMLfillColor()               { return mFillColor.asString(); }
+    public void         setXMLfillColor(String xml)     { mFillColor.setFromString(xml); }
+    
+    public Color        getTextColor()                  { return mTextColor.get(); }
+    public void         setTextColor(Color c)           { mTextColor.set(c); }
+    public String       getXMLtextColor()               { return mTextColor.asString(); }
+    public void         setXMLtextColor(String xml)     { mTextColor.setFromString(xml); }
+    
+    public Color        getStrokeColor()                { return mStrokeColor.get(); }
+    public void         setStrokeColor(Color c)         { mStrokeColor.set(c); }
+    public String       getXMLstrokeColor()             { return mStrokeColor.asString(); }
+    public void         setXMLstrokeColor(String xml)   { mStrokeColor.setFromString(xml); }
+        
+    public Font         getFont()               { return mFont.get(); }
+    public void         setFont(Font font)      { mFont.set(font); }
+    public String       getXMLfont()            { return mFont.asString(); }
+    public void         setXMLfont(String xml)  { mFont.setFromString(xml); }
+
+
+
+    /*========================================================================================
     public Color getFillColor()
     {
         return this.fillColor;
     }
     
-    public boolean isTransparent()
-    {
-        return fillColor == null || fillColor.getAlpha() == 0;
-    }
-    
-    public boolean isTranslucent()
-    {
-        return fillColor == null || fillColor.getAlpha() != 0xFF;
-    }
-    
-    /** Color to use at draw time.
-        LWNode overrides to provide darkening of children. */
-    public Color getRenderFillColor()
-    {
-        return getFillColor();
-    }
-    void takeFillColor(Color color)
-    {
-        this.fillColor = color;
-    }
     public void setFillColor(Color color)
     {
         if (eq(color, fillColor))
@@ -923,15 +1511,12 @@ public class LWComponent
         Object old = this.fillColor;
         takeFillColor(color);
         notify(KEY_FillColor, old);
-        //notify(LWKey.FillColor, old);
     }
 
-    /** for persistance */
     public String getXMLfillColor()
     {
         return ColorToString(getFillColor());
     }
-    /** for persistance */
     public void setXMLfillColor(String xml)
     {
         setFillColor(StringToColor(xml));
@@ -951,17 +1536,14 @@ public class LWComponent
             labelBox.copyStyle(this); // todo better: handle thru style.textColor notification?
         notify(LWKey.TextColor, old);
     }
-    /** for persistance */
     public String getXMLtextColor()
     {
         return ColorToString(getTextColor());
     }
-    /** for persistance */
     public void setXMLtextColor(String xml)
     {
         setTextColor(StringToColor(xml));
     }
-    
     public Color getStrokeColor()
     {
         return this.strokeColor;
@@ -974,31 +1556,16 @@ public class LWComponent
         this.strokeColor = color;
         notify(LWKey.StrokeColor, old);
     }
-    /** for persistance */
     public String getXMLstrokeColor()
     {
         return ColorToString(getStrokeColor());
     }
-    /** for persistance */
     public void setXMLstrokeColor(String xml)
     {
         setStrokeColor(StringToColor(xml));
     }
-    static String ColorToString(Color c)
-    {
-        // if null, or no hue and no alpha, return null
-        //if (c == null || ((c.getRGB() & 0xFFFFFF) == 0 && c.getAlpha() == 255))
-        if (c == null)
-            return null;
-        
-        // todo: I still think this can put out non zero-filled strings
-        if (c.getAlpha() == 255) // opaque: only bother to save hue info
-            return "#" + Integer.toHexString(c.getRGB() & 0xFFFFFF);
-        else if (c.getAlpha() == 0) // totally transparent, be sure alpha still indicated!
-            return "#00" + Integer.toHexString(c.getRGB());
-        else
-            return "#" + Integer.toHexString(c.getRGB());
-    }
+    //========================================================================================*/
+    
     /*
     static String ColorToString(Color c)
     {
@@ -1008,7 +1575,6 @@ public class LWComponent
         //return "#" + Long.toHexString(c.getRGB() & 0xFFFFFFFF);
         return "#" + Integer.toHexString(c.getRGB() & 0xFFFFFF);
     }
-    */
     static Color StringToColor(String xml)
     {
         if (xml.trim().length() < 1)
@@ -1026,15 +1592,15 @@ public class LWComponent
         }
         return c;
     }
-
-    public float getStrokeWidth()
-    {
+    */
+     	
+    /*
+    public float getStrokeWidth() {
         return this.strokeWidth;
     }
     void takeStrokeWidth(float w) {
         this.strokeWidth = w;
     }
-    
     public void setStrokeWidth(float w)
     {
         if (this.strokeWidth != w) {
@@ -1053,28 +1619,41 @@ public class LWComponent
             notify(LWKey.StrokeWidth, new Float(oldStrokeWidth));
         }
     }
-    public Font getFont()
-    {
-        return this.font;
-    }
+    */
+    /*    
     public void setFont(Font font)
     {
         if (eq(font, this.font))
             return;
         Object old = this.font;
         this.font = font;
+
+        if (!fontIsRebuilding) {
+            mFontSize.set(font.getSize());
+            mFontStyle.set(font.getStyle());
+            mFontName.set(font.getName());
+        }
+        
         if (labelBox != null)
             labelBox.copyStyle(this);
         layout(LWKey.Font);
         notify(LWKey.Font, old);
     }
-    
-    public void setFontSize(int pointSize)
-    {
+    private boolean fontIsRebuilding; // hack till we cleanup the old font code
+    private void rebuildFont() {
+        // This so at least for now we have backward compat with the old font property (esp. for tools & persistance)
+        fontIsRebuilding = true;
+        try  {
+            setFont(new Font(mFontName.get(), mFontStyle.get(), mFontSize.get()));
+        } finally {
+            fontIsRebuilding = false;
+        }
+    }
+    public void setFontSize(int pointSize) {
         Font newFont = getFont().deriveFont((float)pointSize);
         setFont(newFont);
     }
-    /** to support XML persistance */
+    // to support XML persistance 
     public String getXMLfont()
     {
         //if (this.font == null || this.font == getParent().getFont())
@@ -1089,11 +1668,14 @@ public class LWComponent
         return font.getName() + "-" + strStyle + "-" + font.getSize();
       
     }
-    /** to support XML persistance */
+    // to support XML persistance
     public void setXMLfont(String xml)
     {
         setFont(Font.decode(xml));
     }
+    */
+    
+    
     
     /** default label X position impl: center the label in the bounding box */
     public float getLabelX()
@@ -1130,7 +1712,34 @@ public class LWComponent
         this.parent = c;
         //if (this.parent != null) notify("set-parent", new Undoable(old) { void undo() { setParent((LWContainer)old); }} );
     }
-    
+
+    void setParentStyle(LWComponent parentStyle)
+    {
+        mParentStyle = parentStyle;
+        copyStyle(parentStyle);
+    }
+
+    /** Apply all style properties from styleSource to this component */
+    public void copyStyle(LWComponent styleSource) {
+        for (Key key : Key.AllKeys) {
+            if (key.isStyleProperty && !key.isSubProperty && supportsProperty(key) && styleSource.supportsProperty(key)) {
+                key.copyValue(styleSource, this);
+                //final Object styleValue = key.getValue(styleSource);
+                //out("ADOPTING STYLE PROPERTY: " + key + " " + styleValue);
+                //key.setValue(this, styleValue);
+            }
+        }
+    }
+
+    /* Apply style properties from styleSource that haven't been changed 
+    public void applyStyle(LWComponent styleSource) {
+        for (Key key : Key.AllKeys) {
+            if (key.isStyleProperty && !key.isSubProperty) {
+                key.copyValue(styleSource, this);
+            }
+        }
+    }
+*/
     public LWContainer getParent() {
         return this.parent;
     }
@@ -1192,7 +1801,18 @@ public class LWComponent
     void addChildren(java.util.List children) {
         throw new UnsupportedOperationException(this + ": can't take children. ignored=" + children);
     }
-    
+
+    /** return the currently active view */
+    public LWComponent getView() {
+        return this;
+        /*
+        if (mSlides.size() > 0) {
+            LWComponent otherView = mSlides.values().iterator().next();
+            return otherView;
+        } else
+            return this;
+        */
+    }
 
 
     /** return true if this component is only a "virutal" member of the map:
@@ -1231,10 +1851,14 @@ public class LWComponent
             return getAllDescendents(kind, new java.util.ArrayList());
     }
     
-    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind, final java.util.List list)
+    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind, final java.util.List<LWComponent> list)
     {
         if (kind == ChildKind.ANY && !mSlides.isEmpty()) {
             for (LWSlide slide : mSlides.values()) {
+                if (slide == null) {
+                    tufts.Util.printStackTrace("null slide in mSlides: " + mSlides);
+                    continue;
+                }
                 list.add(slide);
                 slide.getAllDescendents(kind, list);
             }
@@ -1264,7 +1888,25 @@ public class LWComponent
     }
     */
 
-    public LWSlide getSlideForPathway(LWPathway p)
+    /*
+    public Collection<LWSlide> getSlideList()
+    {
+        if (mXMLRestoreUnderway)
+            return mSlideArray;
+        else
+            return mSlides.values();
+    }
+    */
+
+    public Map<String,LWSlide> getSlideViews()
+    {
+        out("RETURNING SLIDES " + mSlides);
+        return mSlides;
+        //return null;
+    }
+    
+    
+    public LWSlide getSlideForPathway(final LWPathway p)
     {
         if (p == null || !inPathway(p))
             return null;
@@ -1272,8 +1914,14 @@ public class LWComponent
         LWSlide slide = mSlides.get(p.getID());
 
         if (slide == null) {
+
+            // TODO: Currently, adding a node to a pathway, then undoing it, has bizarre
+            // effect on SlideViewer if was looking at the slide (things go inverted).
+            
             slide = buildSlide(p);
             mSlides.put(p.getID(), slide);
+
+            notify("slide.built", new Undoable() { void undo() { mSlides.remove(p.getID()); }} );
         }
 
         if (DEBUG.PRESENT) out("getSlideForPathway " + p + " gets slide " + slide);
@@ -1331,8 +1979,7 @@ public class LWComponent
     }
     
     /* tell us all the links who have us as one of their endpoints */
-    java.util.List getLinkRefs()
-    {
+    java.util.List<LWLink> getLinkRefs() {
         return this.links;
     }
     
@@ -1523,13 +2170,8 @@ public class LWComponent
      */
     protected void updateConnectedLinks()
     {
-        if (getLinkRefs().size() == 0)
-            return;
-        java.util.Iterator i = getLinkRefs().iterator();
-        while (i.hasNext()) {
-            LWLink l = (LWLink) i.next();
+        for (LWLink l : getLinkRefs()) 
             l.setEndpointMoved(true);
-        }
     }
     
     public void setFrame(Rectangle2D r)
@@ -1732,8 +2374,10 @@ public class LWComponent
     //public float getHeight() { return this.height; }
     //public float getBoundsWidth() { return (this.width + this.strokeWidth);  }
     //public float getBoundsHeight() { return (this.height + this.strokeWidth); }
-    public float getBoundsWidth() { return (this.width + this.strokeWidth) * getScale(); }
-    public float getBoundsHeight() { return (this.height + this.strokeWidth) * getScale(); }
+    //public float getBoundsWidth() { return (this.width + this.strokeWidth) * getScale(); }
+    //public float getBoundsHeight() { return (this.height + this.strokeWidth) * getScale(); }
+    public float getBoundsWidth() { return (this.width + mStrokeWidth.get()) * getScale(); }
+    public float getBoundsHeight() { return (this.height + mStrokeWidth.get()) * getScale(); }
     public float getCenterX() { return this.x + getWidth() / 2; }
     public float getCenterY() { return this.y + getHeight() / 2; }
 
@@ -1972,12 +2616,16 @@ public class LWComponent
         return mChangeSupport;
     }
     public synchronized void addLWCListener(Listener listener) {
-        addLWCListener(listener, null);
+        mChangeSupport.addListener(listener, null);
+    }
+
+    public synchronized void addLWCListener(Listener listener, LWComponent.Key singleEventKey) {
+        mChangeSupport.addListener(listener, singleEventKey);
     }
     /** @param eventMask is a string constant (from LWKey) or an array of such. If one
      of these non-null values, only events matching those keys will be delievered */
-    public synchronized void addLWCListener(Listener listener, Object eventMask) {
-        mChangeSupport.addListener(listener, eventMask);
+    public synchronized void addLWCListener(Listener listener, Object... eventsDesired) {
+        mChangeSupport.addListener(listener, eventsDesired);
     }
     public synchronized void removeLWCListener(Listener listener) {
         mChangeSupport.removeListener(listener);
@@ -2278,10 +2926,10 @@ public class LWComponent
      (return super.paramString() + new info) */
     public String paramString()
     {
-        return
-            //" " + getX()+","+getY() + " " +
-            " " + VueUtil.oneDigitDecimal(getX())+","+VueUtil.oneDigitDecimal(getY()) + " " +
-            VueUtil.oneDigitDecimal(width) + "x" + VueUtil.oneDigitDecimal(height);
+        return String.format(" %.0f,%.0f %.0fx%.0f", getX(), getY(), width, height);
+        //return
+            //" " + VueUtil.oneDigitDecimal(getX())+","+VueUtil.oneDigitDecimal(getY()) + " " +
+            //VueUtil.oneDigitDecimal(width) + "x" + VueUtil.oneDigitDecimal(height);
     }
 
     protected void out(String s) {
@@ -2292,6 +2940,11 @@ public class LWComponent
             System.err.println(this + " " + s);
         }
     }
+
+    protected void outf(String format, Object ... args) {
+	System.err.format(format + "\n", args);
+    }
+    
     /*
     static protected void out(Object o) {
         System.out.println((o==null?"null":o.toString()));
@@ -2539,4 +3192,86 @@ public class LWComponent
         s += "]";
         return s;
     }
+
+
+
+    public static void main(String args[]) throws Exception {
+
+        for (java.lang.reflect.Field f : LWComponent.class.getDeclaredFields()) {
+            Class type = f.getType();
+            if (type == Key.class)
+                System.out.println("KEY: " + f);
+            else
+                System.out.println("Field: " + f + " (" + type + ")");
+        }
+    }
+    
+
+    
 }
+
+
+
+        /*
+        private final java.lang.reflect.Field field;
+        public Key(String name, String fieldName) {
+            this(name);
+
+            // this successfully auto-generates the slot reference, tho not really worth
+            // it, as requiring the extra code snippet for grabbing the slot (Property)
+            // object at least eliminates any typo's.  If we were to bother with this,
+            // we'd want to generate a Field ref to an actual member field that had the
+            // real value, and wasn't a slot.  Then the renderers, etc, could get
+            // directly at the real value without using the slot -- a tad faster.  Then
+            // stuff like the auto-notify code would all need to happen in the key, tho
+            // then all our "traditional" setters (for hand-coding convenience, and at
+            // least for save file backward compat) would need to use the Key to do the
+            // setting for the appropriate triggers (except for "take" usage)
+            
+            java.lang.reflect.Field f = null;
+            if (fieldName != null) {
+                try {
+                    f = LWComponent.class.getField(fieldName);
+                    System.out.println("Found field: " + f);
+                } catch (Throwable t) {
+                    tufts.Util.printStackTrace(t);
+                }
+            }
+            field = f;
+        }
+        Property getSlot(LWComponent c) {
+            try {
+                return (Property) field.get(c);
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t);
+            }
+            return null;
+        }
+        */
+        /*
+        Object getValue(LWComponent c) {
+            if (field == null)
+                return getSlot(c).get();
+
+            try {
+                return field.get(c);
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t);
+            }
+            return null;
+        }
+        void setValue(LWComponent c, Object value) {
+            if (field == null)
+                getSlot(c).set(value);
+            
+            try {
+                field.set(c, value);
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t);
+            }
+        }
+        */
+        
+
+
+

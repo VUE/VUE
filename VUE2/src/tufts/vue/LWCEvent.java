@@ -59,7 +59,7 @@ import java.util.ArrayList;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.22 $ / $Date: 2006-01-20 18:49:16 $ / $Author: sfraize $  
+ * @version $Revision: 1.23 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $  
  
  */
 
@@ -70,18 +70,18 @@ import java.util.ArrayList;
 
 public class LWCEvent
 {
-    /** for null masking */
-    public static final String NO_OLD_VALUE = "no_old_value";
-    
-    public final Object source;
-    
-    //a LWCevent can either hold a single component or an array of components
-    //one of them is always null
-    private LWComponent component = null;
-    private ArrayList components = null;
-    private Object oldValue = null;
-    
+    /** This is either a proper LWComponent Key object, or a String */
     public final Object key;
+    
+    /** This is either an actual old value, or an Undoable that is capable of restoring the old value */
+    final Object oldValue;
+
+    /** What initiated this event -- usually the same as component */
+    final Object source;
+    
+    /** a LWCevent can either hold a single component or an array of components: one of them is always null */
+    private ArrayList components = null;
+    private final LWComponent component;
     
     // todo: we still using both src & component?
     public LWCEvent(Object source, LWComponent c, Object key, Object oldValue)
@@ -100,6 +100,7 @@ public class LWCEvent
     {
         this.source = source;
         this.components = components;
+        this.component = null;
         this.key = key;
         this.oldValue = NO_OLD_VALUE;
     }
@@ -125,16 +126,8 @@ public class LWCEvent
         return this.components;
     }
 
-    public String getWhat() {
-        if (this.key instanceof LWComponent.Key)
-            return ((LWComponent.Key)key).name;
-        else
-            return (String) this.key;
-    }
-    public Object getKey() {
-        return this.key;
-    }
-    public String getKeyName() {
+    /** @return the name of the key for this LWCEvent */
+    public String getName() {
         if (this.key instanceof LWComponent.Key)
             return ((LWComponent.Key)key).name;
         else
@@ -146,9 +139,14 @@ public class LWCEvent
      * old value, it's distinguished from having no old value set
      * by the the value LWCEvent.NO_OLD_VALUE.  Or you can
      * check for the presence of an old value by calling hasOldValue().
+     * If our stored oldValue is actually an Undoable, this will unpack
+     * the old value from the Undoable and return it (if one was provided).
      */
     public Object getOldValue() {
-        return this.oldValue;
+        if (oldValue instanceof Undoable)
+            return ((Undoable)oldValue).old;
+        else
+            return this.oldValue;
     }
     /** @return true if there is an old value to this event */
     public boolean hasOldValue() {
@@ -169,5 +167,9 @@ public class LWCEvent
               
         return s + "]";
     }
+
+
+    /** for null masking */
+    public static final String NO_OLD_VALUE = "no_old_value";
 }
 

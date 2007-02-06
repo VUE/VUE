@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.107 $ / $Date: 2007-01-10 17:34:21 $ / $Author: sfraize $
+ * @version $Revision: 1.108 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -98,7 +98,7 @@ public class LWLink extends LWComponent
     /** both endpoints have arrows */
     public static final int ARROW_BOTH = ARROW_EP1+ARROW_EP2;
     
-    private int mArrowState = ARROW_NONE;
+    //private int mArrowState = ARROW_NONE;
     
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -110,39 +110,39 @@ public class LWLink extends LWComponent
     /**
      * Used only for restore -- must be public
      */
-    public LWLink() {}
+    public LWLink() {
+        initLink();
+    }
 
     /**
      * Create a new link between two LWC's
      */
     public LWLink(LWComponent ep1, LWComponent ep2)
     {
+        initLink();
         //if (ep1 == null || ep2 == null) throw new IllegalArgumentException("LWLink: ep1=" + ep1 + " ep2=" + ep2);
-        setDefaults(this);
+        SetDefaults(this);
         setComponent1(ep1);
         setComponent2(ep2);
         computeLinkEndpoints();
     }
 
-    // actually will probably NOT want to subclass Key this way: needless layers
-    static abstract class LinkKey extends Key {
-        public LinkKey(String name) {
-            super(name);
-        }
-        public void setValue(LWComponent c, Object v) { setValue((LWLink)c, v); }
-        public Object getValue(LWComponent c) { return getValue((LWLink)c); }
-        public abstract void setValue(LWLink l, Object v);
-        public abstract Object getValue(LWLink l);
+    private void initLink() {
+        disableProperty(KEY_FillColor);
     }
 
-    public static final LinkKey Key_LinkStartPoint = new LinkKey("link.start.location") {
-            public void setValue(LWLink l, Object val) {
-                l.setStartPoint((Point2D)val);
-            }
-            public Object getValue(LWLink l) {
-                return l.getPoint1();
-            }
-        };
+
+    // FYI: javac (mac java version "1.5.0_07") complains about an incompatible return
+    // type in getSlot here if we don't compile this file at the same time as
+    // LWCopmonent.java... (this is a javac bug)
+    public static final Key KEY_LinkArrows = new StyleKey<LWLink>("link.arrows") { final Property getSlot(LWLink l) { return l.mArrowState; } };
+    public final IntProperty mArrowState = new IntProperty(KEY_LinkArrows) { void onChange() { layout(); } };
+    
+    
+    public static final Key KEY_LinkStartPoint = new Key<LWLink,Point2D>("link.start.location") {
+        @Override public void setValue(LWLink l, Point2D val) { l.setStartPoint(val); }
+        @Override public Point2D getValue(LWLink l) { return l.getPoint1(); }
+    };
 
     //private final String Key_LinkStartPoint = "link.start.location";
     private final static String Key_LinkEndPoint = "link.end.location";
@@ -172,8 +172,8 @@ public class LWLink extends LWComponent
         // Altho, it would be handly for the Key superclass to have a bunch of built-in
         // type interpolaters that anyone could use.
         
-             if (key == LWKey.LinkArrows)       return new Integer(getArrowState());
-        else if (key == LWKey.LinkCurves)       return new Integer(getControlCount());
+        //if (key == LWKey.LinkArrows)       return new Integer(getArrowState()); else
+        if (key == LWKey.LinkCurves)       return new Integer(getControlCount());
              //else if (key == Key_LinkStartPoint)     return getPoint1();
         else if (key == Key_LinkEndPoint)       return getPoint2();
         else if (key == Key_Control_0)          return getCtrlPoint0();
@@ -184,8 +184,8 @@ public class LWLink extends LWComponent
 
     public void setProperty(final Object key, Object val)
     {
-             if (key == LWKey.LinkArrows)       setArrowState(((Integer) val).intValue());
-        else if (key == LWKey.LinkCurves)       setControlCount(((Integer) val).intValue());
+        //if (key == LWKey.LinkArrows)       setArrowState(((Integer) val).intValue()); else
+        if (key == LWKey.LinkCurves)       setControlCount(((Integer) val).intValue());
              //else if (key == Key_LinkStartPoint)     setStartPoint((Point2D)val);
         else if (key == Key_LinkEndPoint)       setEndPoint((Point2D)val);
         else if (key == Key_Control_0)          setCtrlPoint0((Point2D)val);
@@ -194,8 +194,7 @@ public class LWLink extends LWComponent
             super.setProperty(key, val);
     }
 
-
-    static LWLink setDefaults(LWLink l)
+    static LWLink SetDefaults(LWLink l)
     {
         l.setFont(DEFAULT_FONT);
         l.setTextColor(DEFAULT_LABEL_COLOR);
@@ -229,7 +228,7 @@ public class LWLink extends LWComponent
         startX = x;
         startY = y;
         endpointMoved = true;
-        notify(Key_LinkStartPoint, old);
+        notify(KEY_LinkStartPoint, old);
     }
     public void setEndPoint(Point2D p) {
         setEndPoint((float)p.getX(), (float)p.getY());
@@ -799,12 +798,14 @@ public class LWLink extends LWComponent
             return;
         if (ep1 != null)
             ep1.removeLinkRef(this);            
+        //final LWComponent oldEP = this.ep1;
         Object old = this.ep1;
         this.ep1 = c;
         if (c != null)
             c.addLinkRef(this);
         endPoint1_ID = null;
         endpointMoved = true;
+        //notify("link.ep1.connect", new Undoable() { void undo() { setComponent1(oldEP); }} );
         notify("link.ep1.connect", new Undoable(old) { void undo() { setComponent1((LWComponent)old); }} );
     }
     void setComponent2(LWComponent c)
@@ -1211,6 +1212,16 @@ public class LWLink extends LWComponent
         return radians;
     }
 
+    public void setArrowState(int arrowState) { mArrowState.set(arrowState); }
+    public int getArrowState() { return mArrowState.get(); }
+    public void rotateArrowState() {
+        int newState = getArrowState() + 1;
+        if (newState > ARROW_BOTH)
+            newState = ARROW_NONE;
+        setArrowState(newState);
+    }
+    
+    /*
     public void setArrowState(int arrowState)
     {
         if (mArrowState == arrowState)
@@ -1222,12 +1233,10 @@ public class LWLink extends LWComponent
         layout();
         notify(LWKey.LinkArrows, old);
     }
-
     public int getArrowState()
     {
         return mArrowState;
     }
-
     public void rotateArrowState()
     {
         int newState = mArrowState + 1;
@@ -1235,6 +1244,8 @@ public class LWLink extends LWComponent
             newState = ARROW_NONE;
         setArrowState(newState);
     }
+    */
+
 
     private void drawArrows(DrawContext dc)
     {
@@ -1278,9 +1289,9 @@ public class LWLink extends LWComponent
         if (room <= controlSize*2)
             controlOffset = mLength/2 - controlSize;
 
-        out("LEN " + mLength + " CO " + controlOffset + " ROOM=" + room);
+        if (DEBUG.WORK) out("LEN " + mLength + " CO " + controlOffset + " ROOM=" + room);
 
-        if ((mArrowState & ARROW_EP1) != 0) {
+        if ((mArrowState.get() & ARROW_EP1) != 0) {
             dc.g.setStroke(this.stroke);
             dc.g.setColor(getStrokeColor());
             dc.g.translate(startX, startY);
@@ -1307,7 +1318,7 @@ public class LWLink extends LWComponent
             dc.g.setTransform(savedTransform);
         }
         
-        if ((mArrowState & ARROW_EP2) != 0) {
+        if ((mArrowState.get() & ARROW_EP2) != 0) {
             dc.g.setStroke(this.stroke);
             dc.g.setColor(getStrokeColor());
             // draw the second arrow
@@ -1383,7 +1394,7 @@ public class LWLink extends LWComponent
                 QuadCurve2D right = new QuadCurve2D.Float();
                 quadCurve.subdivide(left,right);
                 g.setColor(Color.green);
-                g.setStroke(new BasicStroke(strokeWidth+4));
+                g.setStroke(new BasicStroke(mStrokeWidth.get()+4));
                 g.draw(left);
                 g.setColor(Color.red);
                 g.draw(right);
@@ -1392,7 +1403,7 @@ public class LWLink extends LWComponent
                 CubicCurve2D right = new CubicCurve2D.Float();
                 cubicCurve.subdivide(left,right);
                 g.setColor(Color.green);
-                g.setStroke(new BasicStroke(strokeWidth+4));
+                g.setStroke(new BasicStroke(mStrokeWidth.get()+4));
                 g.draw(left);
                 g.setColor(Color.red);
                 g.draw(right);
@@ -1471,7 +1482,7 @@ public class LWLink extends LWComponent
             g.draw(this.line);
         }
 
-        if (mArrowState > 0)
+        if (mArrowState.get() > 0)
             drawArrows(dc);
 
         if (!isNestedLink())
@@ -1870,7 +1881,7 @@ public class LWLink extends LWComponent
         link.centerX = centerX;
         link.centerY = centerY;
         link.ordered = ordered;
-        link.mArrowState = mArrowState;
+        //link.mArrowState = mArrowState;
         if (curveControls > 0) {
             link.setCtrlPoint0(getCtrlPoint0());
             if (curveControls > 1)
@@ -1924,6 +1935,7 @@ public class LWLink extends LWComponent
     // clip-regions to draw the links
     LWLink(LWComponent ep2)
     {
+        initLink();
         //viewerCreationLink = true;
         this.ep2 = ep2;
         setStrokeWidth(2f); //todo config: default link width

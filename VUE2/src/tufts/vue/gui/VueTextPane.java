@@ -14,7 +14,7 @@ import javax.swing.text.*;
  * and enters an undo entry.
  *
  * @author Scott Fraize
- * @version $Revision: 1.9 $ / $Date: 2006-04-18 20:46:44 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
  */
 
 // todo: create an abstract class for handling property & undo code, and subclass this and VueTextField from it.
@@ -22,6 +22,7 @@ import javax.swing.text.*;
 
 // todo: consume all key events
 // todo: rename LWTextPane, as is specific to to LWComponent text properties
+// todo: should just be an LWEditor (might create a fancier global mechanism for updating them)
 
 public class VueTextPane extends JTextPane
     implements LWComponent.Listener
@@ -94,7 +95,7 @@ public class VueTextPane extends JTextPane
         lwc = c;
         propertyKey = key;
         loadPropertyValue();
-        lwc.addLWCListener(this, new Object[] { propertyKey, LWKey.Deleting } );
+        lwc.addLWCListener(this, propertyKey, LWKey.Deleting);
         keyWasPressed = false;
     }
 
@@ -170,7 +171,7 @@ public class VueTextPane extends JTextPane
     public void LWCChanged(LWCEvent e)
     {
         if (e.getComponent() == lwc) {
-            if (e.getWhat() == LWKey.Deleting) {
+            if (e.key == LWKey.Deleting) {
                 lwc.removeLWCListener(this);
                 lwc = null;
                 propertyKey = null;

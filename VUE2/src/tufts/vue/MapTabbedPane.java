@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.30 $ / $Date: 2006-11-07 21:51:18 $ / $Author: anoop $ 
+ * @version $Revision: 1.31 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -223,7 +223,7 @@ public class MapTabbedPane extends JTabbedPane
         }
         
         LWMap map = viewer.getMap();
-        map.addLWCListener(this, new Object[] { LWKey.MapFilter, LWKey.Label } );
+        map.addLWCListener(this, LWKey.MapFilter, LWKey.Label);
         // todo perf: we should be able to ask to listen only
         // for events from this object directly (that we don't
         // care to hear from it's children)

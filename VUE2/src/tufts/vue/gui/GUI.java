@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.63 $ / $Date: 2006-12-08 21:17:25 $ / $Author: mike $
+ * @version $Revision: 1.64 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2294,48 +2294,19 @@ public class GUI
 
     // static { Toolkit.getDefaultToolkit().addPropertyChangeListener(new GUI()); }
 
-    //private static boolean sIgnoreEvents = false;
-    // todo: move to a PropertyDispatch handler or something
-    private static boolean sIgnoreLWCEvents = false;
-    
-    static void propertyProducerChanged(tufts.vue.LWPropertyProducer producer)
-    {
-        final Object key = producer.getPropertyKey().toString();
-
-        if (sIgnoreLWCEvents) {
-            if (DEBUG.TOOL) out("propertyProducerChanged: skipping " + key + "  for " + producer);
-            return;
-        }
-            
-        if (DEBUG.TOOL) out("propertyProducerChanged: [" + key + "] on " + producer);
-	  		
-        sIgnoreLWCEvents = true;
-        
-        tufts.vue.beans.VueBeans
-            .applyPropertyValueToSelection(VUE.getSelection(),
-                                           key.toString(),
-                                           producer.getPropertyValue());
-        sIgnoreLWCEvents = false;
-        
-        if (VUE.getUndoManager() != null)
-            VUE.getUndoManager().markChangesAsUndo(key.toString());
-
-    }
-
     private static void out(String s) {
         System.out.println("GUI: " + s);
     }
 
+    /*
     private static PropertyChangeHandler PropertyChangeHandler = new PropertyChangeHandler();
     static java.beans.PropertyChangeListener getPropertyChangeHandler() {
         if (PropertyChangeHandler == null)
             PropertyChangeHandler = new PropertyChangeHandler();
         return PropertyChangeHandler;
     }
-        
     static class PropertyChangeHandler implements java.beans.PropertyChangeListener
     {
-        
         private PropertyChangeHandler() {}
 
         private boolean mIgnoreActionEvents = false;
@@ -2352,8 +2323,8 @@ public class GUI
                 //fireFontChanged(null, makeFont());
             }
         }
-        
     }
+    */
 
 
     private GUI() {}

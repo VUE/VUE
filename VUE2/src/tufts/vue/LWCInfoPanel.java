@@ -29,7 +29,7 @@ import tufts.vue.gui.*;
 // TODO FIX: the text input fields should save value on focus loss
 
 /**
- * @version $Revision: 1.27 $ / $Date: 2006-04-08 23:59:29 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  */
 
 class LWCInfoPanel extends javax.swing.JPanel
@@ -225,7 +225,7 @@ class LWCInfoPanel extends javax.swing.JPanel
         if (this.lwc != e.getSource())
             return;
         
-        if (e.getWhat() == LWKey.Deleting) {
+        if (e.key == LWKey.Deleting) {
             this.lwc = null;
             setAllEnabled(false);
         } else if (e.getSource() != this)
@@ -275,7 +275,7 @@ class LWCInfoPanel extends javax.swing.JPanel
                 this.lwc.removeLWCListener(this);
             this.lwc = lwc;
             if (this.lwc != null) {
-                this.lwc.addLWCListener(this, new Object[] { LWKey.Label, LWKey.Resource, LWKey.Deleting });
+                this.lwc.addLWCListener(this, LWKey.Label, LWKey.Resource, LWKey.Deleting);
                 setAllEnabled(true);
             } else
                 setAllEnabled(false);

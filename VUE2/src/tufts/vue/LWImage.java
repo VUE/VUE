@@ -83,7 +83,10 @@ public class LWImage extends LWComponent
     private Object mUndoMarkForThread;
     private boolean mImageError = false;
     
-    private boolean isRawImage = false; // temporary for supporting old save files
+
+    // for current save files with images inside nodes to work, this has to be false for now,
+    // tho it completely breaks the image tool stuff (cropping)
+    private boolean isRawImage = false;
     
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -139,7 +142,8 @@ public class LWImage extends LWComponent
     /** This currently makes LWImages invisible to selection (they're locked in their parent node */
     //@Override
     protected LWComponent defaultPick(PickContext pc) {
-        return pc.pickDepth > 0 ? this : getParent();
+        return (pc.pickDepth > 0 || getParent() instanceof LWMap) ? this : getParent();
+        // todo: checking the map is a hack -- PickContext should tell us all we need
     }
 
     
@@ -448,6 +452,12 @@ public class LWImage extends LWComponent
     }
     */
 
+    private Shape getClipShape() {
+        //return super.drawnShape;
+        // todo: cache & handle knowing if we need to update
+        return new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight());
+    }
+
     private static final AlphaComposite HudTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f);
     public void draw(DrawContext dc)
     {
@@ -460,15 +470,36 @@ public class LWImage extends LWComponent
         dc.g.translate(getX(), getY());
         float _scale = getScale();
         if (_scale != 1f) dc.g.scale(_scale, _scale);
-        
+
+        Shape shape = null;
+
+        if (getFillColor() != null) {
+            if (shape == null)
+                shape = getClipShape();
+            dc.g.setColor(getFillColor());
+            dc.g.fill(shape);
+        }
+
         drawImage(dc);
+
+        if (getStrokeWidth() > 0) {
+            if (shape == null)
+                shape = getClipShape();
+            dc.g.setStroke(this.stroke);
+            dc.g.setColor(getStrokeColor());
+            dc.g.draw(shape);
+        }
 
         if (_scale != 1f) dc.g.scale(1/_scale, 1/_scale);
         dc.g.translate(-getX(), -getY());
+
+        //super.drawChildren(dc);
+        super.draw(dc); // need this for label
     }
 
     /** For interactive images as separate objects, which are currently disabled */
-    public void drawInteractive(DrawContext dc)
+    /*
+    private void drawInteractive(DrawContext dc)
     {
         drawPathwayDecorations(dc);
         drawSelectionDecorations(dc);
@@ -477,14 +508,12 @@ public class LWImage extends LWComponent
         float _scale = getScale();
 
         if (_scale != 1f) dc.g.scale(_scale, _scale);
-
-        /*
-        if (getStrokeWidth() > 0) {
-            dc.g.setStroke(new BasicStroke(getStrokeWidth() * 2));
-            dc.g.setColor(getStrokeColor());
-            dc.g.draw(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
-        }
-        */
+        
+//         if (getStrokeWidth() > 0) {
+//             dc.g.setStroke(new BasicStroke(getStrokeWidth() * 2));
+//             dc.g.setColor(getStrokeColor());
+//             dc.g.draw(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
+//         }
 
         drawImage(dc);
 
@@ -506,8 +535,8 @@ public class LWImage extends LWComponent
 
         if (_scale != 1f) dc.g.scale(1/_scale, 1/_scale);
         dc.g.translate(-getX(), -getY());
-
     }
+*/
 
     private static final AlphaComposite MatteTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
     //private static final Color ErrorColor = new Color(255,128,128, 64);
@@ -539,9 +568,7 @@ public class LWImage extends LWComponent
         }
         if (isRawImage) {
             Shape oldClip = dc.g.getClip();
-            dc.g.clip(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
-            //dc.g.clip(new Ellipse2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight())); // works nicely
-            //dc.g.drawImage(mImage, 0, 0, this); // no help in drawing partial images
+            dc.g.clip(getClipShape());
             dc.g.drawImage(mImage, transform, null);
             dc.g.setClip(oldClip);
         } else {
@@ -554,7 +581,13 @@ public class LWImage extends LWComponent
         mIconBlock.checkAndHandleMouseOver(e);
     }
 
+    // Holy shit: if we somehow defined all this control-point stuff as a property editor,
+    // could we then just attach the property editor to any component that
+    // supported that property?  E.g. -- could help enormously with having
+    // a merged LWNode and LWImage.  Not sure we REALLY want this tho.
+    // Still need to figure out what to do with shape on the LWImage....
 
+    
     private transient Point2D.Float dragStart;
     private transient Point2D.Float offsetStart;
     private transient Point2D.Float imageStart; // absolute map location of 0,0 in the image

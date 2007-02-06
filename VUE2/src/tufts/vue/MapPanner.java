@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.51 $ / $Date: 2006-10-18 17:35:58 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -145,8 +145,7 @@ public class MapPanner extends javax.swing.JPanel
     }
 
     public void LWCChanged(LWCEvent e) {
-        final Object key = e.getWhat();
-        if (DEBUG.DYNAMIC_UPDATE || key == LWKey.UserActionCompleted || key == LWKey.RepaintAsync)
+        if (DEBUG.DYNAMIC_UPDATE || e.key == LWKey.UserActionCompleted || e.key == LWKey.RepaintAsync)
             repaint();
     }
 

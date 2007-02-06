@@ -65,10 +65,17 @@ public class ExitAction extends VueAction {
         exitVue();
     }
     
-    public static void exitVue() {
-    	
-        if (!VUE.isOkayToExit())
-            return;
+    public static void exitVue()
+    {
+        try {
+            if (!VUE.isOkayToExit())
+                return;
+        } catch (Throwable t) {
+            // any exception at this point and we've a serious problem: immediately force quit
+            java.awt.Toolkit.getDefaultToolkit().beep();
+            System.err.println("VUE exit exception; aborting.");
+            System.exit(-1);
+        }
         
         try {
             if (VUE.getRootWindow() != null)

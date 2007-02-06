@@ -24,14 +24,23 @@ package tufts.vue;
  * we make use of the property change support built into java.awt.Component.
  */
 
+// rename LWEditorChangeEvent?
 public class LWPropertyChangeEvent extends java.beans.PropertyChangeEvent
 {
-    public LWPropertyChangeEvent(Object source, Object propertyKey, Object oldValue, Object newValue)
-    {
+    public final Object key;
+    
+    //    public LWPropertyChangeEvent(Object source, Object propertyKey, Object oldValue, Object newValue) {
+    //    super(source, propertyKey.toString(), oldValue, newValue);
+    //}
+    public LWPropertyChangeEvent(Object source, Object propertyKey, Object newValue) {
+        this(source, propertyKey, null, newValue);
+    }
+    public LWPropertyChangeEvent(Object source, Object propertyKey, Object oldValue, Object newValue) {
         super(source, propertyKey.toString(), oldValue, newValue);
+        this.key = propertyKey;
     }
 
     public String toString() {
-        return "LWPropertyChangeEvent[" + getPropertyName() + " src=" + source + "]";
+        return "LWPropertyChangeEvent[" + key + " src=" + source + "]";
     }
 }

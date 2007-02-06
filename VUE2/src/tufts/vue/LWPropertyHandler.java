@@ -26,29 +26,40 @@ import java.awt.event.ActionListener;
  * Helper class for creating an LWPropertyProducer.
  * Handles an action-event, & firing a property change event with
  * after producing the new property value (via getPropertyValue()).
+ *
+ * Subclass implementors must provide produceValue/displayValue from LWEditor.
  */
 
-public abstract class LWPropertyHandler
-    implements LWPropertyProducer, ActionListener
+// rename LWEditorChangeHandler
+public abstract class LWPropertyHandler<T>
+    implements LWEditor<T>, java.awt.event.ActionListener
 {
-    private final Object mPropertyKey;
-    private final PropertyChangeListener mChangeListener;
+    private final Object key;
+    private final PropertyChangeListener changeListener;
     
     public LWPropertyHandler(Object propertyKey, PropertyChangeListener listener) {
-        mPropertyKey = propertyKey;
-        mChangeListener = listener;
+        key = propertyKey;
+        changeListener = listener;
     }
-    public Object getPropertyKey() { return mPropertyKey; }
-    public abstract Object getPropertyValue();
-    /** load the property value into the property producer */
-    public abstract void setPropertyValue(Object value);
+    public LWPropertyHandler(Object propertyKey) {
+        this(propertyKey, null);
+    }
     
-    public void actionPerformed(ActionEvent ae) {
-        Object newValue = getPropertyValue();
-        mChangeListener.propertyChange
-            (new LWPropertyChangeEvent(ae.getSource(),
-                                       mPropertyKey,
-                                       null, // no old value for now
-                                       newValue));
+    public Object getPropertyKey() { return key; }
+
+    //public void itemStateChanged(java.awt.event.ItemEvent e) {
+    public void actionPerformed(java.awt.event.ActionEvent e) {
+        // TODO: we want to skip doing this if we're in the middle of LWEditor.displayValue...
+        // this is prob why we don't want this class being the action listener...  so we can
+        // handle that all in once place.
+        if (DEBUG.TOOL) System.out.println(this + ": " + e);
+        if (changeListener == null)
+            LWCToolPanel.ApplyPropertyChangeToSelection(VUE.getSelection(), key, produceValue(), e.getSource());
+        else
+            changeListener.propertyChange(new LWPropertyChangeEvent(e.getSource(), key, produceValue()));
+    }
+
+    public String toString() {
+        return getClass().getName() + ":LWPropertyHandler[" + getPropertyKey() + "]";
     }
 }

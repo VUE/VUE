@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.130 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
+ * @version $Revision: 1.131 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -191,24 +191,96 @@ public class LWNode extends LWContainer
         setResource(resource);
     }
     
-    /**
-     * Get the named property value from this component.
-     * @param key property key (see LWKey)
-     * @return object representing appropriate value
-     */
-    public Object getPropertyValue(Object key)
-    {
-        if (key == LWKey.Shape)
-            return getShape();
-        else
-            return super.getPropertyValue(key);
+    public static final Key KEY_Shape = new StyleKey<LWNode>("node.shape") {
+        //@Override
+        public void setValue(LWNode c, Object val) { c._applyShape(val); }
+        //@Override
+        public Object getValue(LWNode c) { return c.getShape(); }
+        //@Override
+        boolean valueEquals(LWNode c, Object otherValue) {
+            return IsSameShape((Shape) getValue(c), (Shape) otherValue);
+        }
+    };
+    
+    /*
+    public static final Key KEY_Shape = new StyleKey("node.shape") { Property getSlot(LWComponent c) { return ((LWNode)c).mShape; }};
+    public class ShapeProperty extends StyleProperty {
+        ShapeProperty(Key key) {
+            super(key);
+            // leave as null?
+            //value = new Rectangle2D.Float();
+        }
+        
+        final RectangularShape get() { return (RectangularShape) value; }
     }
-    public void setProperty(final Object key, Object val)
+    private final ShapeProperty mShape = new ShapeProperty(KEY_Shape) {
+            void set(Object newValue) {
+                final RectangularShape newShape = (RectangularShape) newValue;
+                if (isSameShape(boundsShape, newShape))
+                    return;
+                
+                this.value = newShape;
+                final RectangularShape oldShape = boundsShape;
+                //final Object old = oldShape;
+                mIsRectShape = (newShape instanceof Rectangle2D || newShape instanceof RoundRectangle2D);
+                boundsShape = newShape;
+                drawnShape = cloneShape(newShape);
+                adjustDrawnShape();
+                layout();
+                //LWNode.this.notify(KEY_Shape, oldShape);
+                // Any reason we're using an undable when it could just use the standard handler?
+                // YES: the old setProperty used _applyShape, not setShape -- what's the diff?
+                LWNode.this.notify(KEY_Shape, new Undoable(oldShape) { void undo() { setShape(oldShape); }} );
+                //notify(LWKey.Shape, new Undoable(old) { void undo() { setShape((RectangularShape)old); }} );
+            }
+            
+        };
+    public void setShape(RectangularShape shape) {
+        mShape.set(shape);
+    }
+    */
+        
+    
+    
+    /** Clone the given shape and call setShape.
+     * @param shape - an instance of RectangularShape */
+    private void _applyShape(Object shape) {
+        setShape(cloneShape(shape));
+    }
+    private static RectangularShape cloneShape(Object shape) {
+        return (RectangularShape) ((RectangularShape)shape).clone();
+    }
+
+    /**
+     * @param shape a new instance of a shape for us to use: should be a clone and not an original
+     */
+    // todo: should probably just force a clone of this shape every time for safety
+    // and just eat the wasted shape objects built when doing castor XML restores.
+
+    public void setShape(RectangularShape shape)
     {
-        if (key == LWKey.Shape)
-            _applyShape(val);
-        else
-            super.setProperty(key, val);
+        if (DEBUG.CASTOR) System.out.println("SETSHAPE " + shape.getClass() + " in " + this + " " + shape);
+        //System.out.println("SETSHAPE bounds " + shape.getBounds());
+        //if (shape instanceof RoundRectangle2D.Float) {
+        //RoundRectangle2D.Float rr = (RoundRectangle2D.Float) shape;
+        //    System.out.println("RR arcs " + rr.getArcWidth() +"," + rr.getArcHeight());
+        //}
+
+        if (IsSameShape(this.boundsShape, shape))
+            return;
+
+        Object old = this.boundsShape;
+        this.mIsRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
+        this.boundsShape = shape;
+        this.drawnShape = cloneShape(shape);
+        adjustDrawnShape();
+        layout();
+        notify(LWKey.Shape, new Undoable(old) { void undo() { setShape((RectangularShape)old); }} );
+    }
+
+    /** @return shape object with map coordinates -- can be used for hit testing, drawing, etc */
+    public Shape getShape() {
+        return this.boundsShape;
     }
 
     /** Duplicate this node.
@@ -228,6 +300,30 @@ public class LWNode extends LWContainer
         return newNode;
     }
     
+    /**
+     * Get the named property value from this component.
+     * @param key property key (see LWKey)
+     * @return object representing appropriate value
+     */
+    /*
+
+    public Object getPropertyValue(Object key)
+    {
+        if (key == LWKey.Shape.name) // TODO: shouldn't need this (old beans crap)
+            return getShape();
+        else
+            return super.getPropertyValue(key);
+    }
+    */
+    public void setProperty(final Object key, Object val)
+    {
+        if (key == LWKey.Shape.name) // TODO: shouldn't need this (old beans crap)
+            //mShape.set(val);
+            _applyShape(val);
+        else
+            super.setProperty(key, val);
+    }
+
     public boolean supportsUserLabel() {
         return true;
     }
@@ -413,7 +509,7 @@ public class LWNode extends LWContainer
     }
     
 
-    private boolean isSameShape(Shape s1, Shape s2) {
+    private static boolean IsSameShape(Shape s1, Shape s2) {
         if (s1 == null || s2 == null)
             return false;
         if (s1.getClass() == s2.getClass()) {
@@ -427,46 +523,6 @@ public class LWNode extends LWContainer
                 return true;
         } else
             return false;
-    }
-
-    /** Clone the given shape and call setShape.
-     * @param shape - an instance of RectangularShape */
-    private void _applyShape(Object shape) {
-        setShape(cloneShape(shape));
-    }
-    private static RectangularShape cloneShape(Object shape) {
-        return (RectangularShape) ((RectangularShape)shape).clone();
-    }
-
-    /**
-     * @param shape a new instance of a shape for us to use: should be a clone and not an original
-     */
-    // todo: should probably just force a clone of this shape every time for safety
-    // and just eat the wasted shape objects built when doing castor XML restores.
-    public void setShape(RectangularShape shape)
-    {
-        if (DEBUG.CASTOR) System.out.println("SETSHAPE " + shape.getClass() + " in " + this + " " + shape);
-        //System.out.println("SETSHAPE bounds " + shape.getBounds());
-        //if (shape instanceof RoundRectangle2D.Float) {
-        //RoundRectangle2D.Float rr = (RoundRectangle2D.Float) shape;
-        //    System.out.println("RR arcs " + rr.getArcWidth() +"," + rr.getArcHeight());
-        //}
-
-        if (isSameShape(this.boundsShape, shape))
-            return;
-
-        Object old = this.boundsShape;
-        this.mIsRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
-        this.boundsShape = shape;
-        this.drawnShape = cloneShape(shape);
-        adjustDrawnShape();
-        layout();
-        notify(LWKey.Shape, new Undoable(old) { void undo() { setShape((RectangularShape)old); }} );
-    }
-
-    /** @return shape object with map coordinates -- can be used for hit testing, drawing, etc */
-    public Shape getShape() {
-        return this.boundsShape;
     }
 
     /*
@@ -1599,7 +1655,7 @@ public class LWNode extends LWContainer
         }
     }
 
-    class Column extends java.util.ArrayList
+    class Column extends java.util.ArrayList<LWComponent>
     {
         float width;
         float height;
@@ -1628,7 +1684,7 @@ public class LWNode extends LWContainer
             height = y - baseY;
         }
 
-        void add(LWComponent c)
+        void addChild(LWComponent c)
         {
             super.add(c);
             float w = c.getBoundsWidth();
@@ -1651,7 +1707,7 @@ public class LWNode extends LWContainer
             LWComponent c = (LWComponent) i.next();
             if (cols[curCol] == null)
                 cols[curCol] = new Column(minWidth);
-            cols[curCol].add(c);
+            cols[curCol].addChild(c);
             if (++curCol >= nColumn)
                 curCol = 0;
         }
@@ -1997,7 +2053,7 @@ public class LWNode extends LWContainer
         //return mLabelPos.x;
         if (isCenterLayout) { // non-rectangular shapes
             return mLabelPos.x;
-        } else if (isTextNode() && strokeWidth == 0) {
+        } else if (isTextNode() && mStrokeWidth.get() == 0) {
             return 1;
             //return 1 + (strokeWidth == 0 ? 0 : strokeWidth / 2);
         } else if (iconShowing()) {

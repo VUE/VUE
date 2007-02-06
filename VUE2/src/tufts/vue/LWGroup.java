@@ -44,7 +44,7 @@ import java.awt.geom.Rectangle2D;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.41 $ / $Date: 2006-12-29 23:22:31 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -445,7 +445,7 @@ public class LWGroup extends LWContainer
     }
 
     void broadcastChildEvent(LWCEvent e) {
-        if (e.getKey() == LWKey.Location || e.getKey() == LWKey.Size)
+        if (e.key == LWKey.Location || e.key == LWKey.Size)
             updateConnectedLinks();
         super.broadcastChildEvent(e);
     }

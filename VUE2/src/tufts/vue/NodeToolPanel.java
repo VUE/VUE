@@ -35,7 +35,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.33 $ / $Date: 2006-01-20 19:56:53 $ / $Author: sfraize $
+ * @version $Revision: 1.34 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends LWCToolPanel
@@ -48,7 +48,7 @@ public class NodeToolPanel extends LWCToolPanel
         //label.setFont(VueConstants.FONT_SMALL);
         getBox().add(mShapeButton = new ShapeMenuButton(), 0);
         mShapeButton.addPropertyChangeListener(this);
-        addPropertyProducer(mShapeButton);
+        addEditor(mShapeButton);
         //getBox().add(label, 0);
     }
     
@@ -69,7 +69,8 @@ public class NodeToolPanel extends LWCToolPanel
         }
 
         /** @param o an instance of RectangularShape */
-        public void setPropertyValue(Object value) {
+        @Override
+        public void displayValue(Object value) {
             if (DEBUG.TOOL) System.out.println(this + " setPropertyValue " + value.getClass() + " [" + value + "]");
 
             if (mShape == null || !mShape.getClass().equals(value.getClass())) {
@@ -91,7 +92,8 @@ public class NodeToolPanel extends LWCToolPanel
         }
 
         /** @return  an instanceof RectangularShape, suitable for cloning & installing as a new node shape via setShape */
-        public Object getPropertyValue() {
+        @Override
+        public Object produceValue() {
             return mShape;
         }
         

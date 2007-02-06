@@ -37,7 +37,7 @@ import java.util.Iterator;
  * @see LWPathwayList
  * @see LWPathway
  *
- * @version $Revision: 1.26 $ / $Date: 2006-12-31 22:42:40 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 public class PathwayTool extends VueSimpleTool
@@ -120,12 +120,12 @@ public class PathwayTool extends VueSimpleTool
         public void LWCChanged(LWCEvent e) {
             if (DEBUG.PATHWAY) System.out.println(this + ": " + e);
             if (e.getComponent() instanceof LWPathway) {
-                final String what = e.getWhat();
+                final String keyName = e.getName();
                 if (e.key == LWKey.Label
-                    || "pathway.deleted".equals(what)
-                    || "pathway.created".equals(what)) {
+                    || "pathway.deleted".equals(keyName)
+                    || "pathway.created".equals(keyName)) {
                     rebuildModel();
-                } else if ("pathway.list.active".equals(what)) {
+                } else if ("pathway.list.active".equals(keyName)) {
                     setSelectedItem(e.getComponent().getDisplayLabel());
                 }
             }

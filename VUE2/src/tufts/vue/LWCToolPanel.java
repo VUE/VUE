@@ -18,7 +18,7 @@
 
 package tufts.vue;
 
-import tufts.vue.beans.*;
+//import tufts.vue.beans.*;
 import tufts.vue.gui.*;
 
 import java.awt.*;
@@ -34,7 +34,7 @@ import javax.swing.border.*;
 /**
    
 A property editor panel for LWComponents.  General usage: a series of small
-JComponents that are also LWPropertyProducers
+JComponents that are also LWEditors
 
  There are to major pieces to how these work:
      1 - change state of a gui component, and at least one property
@@ -85,8 +85,9 @@ public class LWCToolPanel extends JPanel
     /** the Font selection combo box **/
     protected FontEditorPanel mFontPanel;
  	
-    protected VueBeanState mDefaultState = null;
-    protected VueBeanState mState = null;
+    //protected VueBeanState mDefaultState = null;
+    //protected VueBeanState mState = null;
+    protected final LWComponent mDefaultState;
 	
     protected static boolean debug = false;
      
@@ -95,7 +96,8 @@ public class LWCToolPanel extends JPanel
 
     private Box mBox;
 
-    private ArrayList mPropertyProducers = new ArrayList(); // hash-map by property??
+    //private Collection<LWEditor> mEditors = new ArrayList<LWEditor>();
+    private final Collection<LWEditor> mEditors = new HashSet<LWEditor>();
 
     public LWCToolPanel()
     {
@@ -180,13 +182,12 @@ public class LWCToolPanel extends JPanel
          //-------------------------------------------------------
 
          if (true) {
-             mFontPanel = new FontEditorPanel();
+             mFontPanel = new FontEditorPanel(LWKey.Font);
              if (debug)
                  mFontPanel.setBackground(Color.green);
              else
                  GUI.applyToolbarColor(mFontPanel);
              
-             mFontPanel.setPropertyKey(LWKey.Font);
              mFontPanel.addPropertyChangeListener(this);
          }
 
@@ -232,7 +233,8 @@ public class LWCToolPanel extends JPanel
 
          buildBox();
          add(mBox);
-         initDefaultState();
+         //initDefaultState();
+         mDefaultState = createDefaultStyle();
          if (DEBUG.INIT) out("CONSTRUCTED.");
     }
 
@@ -260,37 +262,322 @@ public class LWCToolPanel extends JPanel
         if (c == null)
             return;
         mBox.add(c);
-        if (c instanceof LWPropertyProducer)
-            addPropertyProducer((LWPropertyProducer) c);
+        if (c instanceof LWEditor) {
+            if (DEBUG.TOOL) System.out.println("*** FOUND AS EDITOR " + c);
+            addEditor((LWEditor) c);
+        }
+        if (c instanceof java.awt.Container) {
+            // check for any editors in the children
+            new EventRaiser(this, JComponent.class) {
+                public void dispatch(Component c) {
+                    ActionListener[] al = c.getListeners(ActionListener.class);
+                    if (al == null || al.length == 0)
+                        return;
+                    //System.out.println("*** FOUND ACTIONLISTENERS " + al.length + " " + c);
+                    //System.out.println("*** FOUND ACTIONLISTENERS " + al.length + " " + c);
+                    for (ActionListener l : al) {
+                        if (l instanceof LWEditor) {
+                            if (DEBUG.TOOL) System.out.println("*** FOUND EDITOR " + l + " on " + c);
+                            mEditors.add((LWEditor)l);
+                            //if (!mEditors.add((LWEditor)l)) out("would have duplicated edtior: " + l);
+                        }
+                    }
+                }
+            }.raiseStartingAt((Container)c);
+        }
     }
 
     // todo: would be even sweeter to on addNotify (first time only!)
     // search our entire component hierarchy for property handlers
     // and automatically add them
-    protected void addPropertyProducer(LWPropertyProducer p) {
-        mPropertyProducers.add(p);
+    protected void addEditor(LWEditor editor) {
+        mEditors.add(editor);
     }
 
     protected JComponent getBox() {
         return mBox;
     }
 
-    protected VueBeanState getDefaultState() {
-        return VueBeans.getState(new LWNode("LWCToolPanel.initializer"));
+    /** Return the state (style) that represents what values the tools will hold
+     * when nothing is selected, and which is used for creating new objects */
+    protected LWComponent createDefaultStyle() {
+        //return VueBeans.getState(new LWNode("LWCToolPanel.initializer"));
+        return new LWNode("defaultNodeStyle");
     }
     
+    /** return the style to be used for creating new objects */
+    public LWComponent getCreationStyle() {
+        return mDefaultState;
+    }
+
+    private static boolean IgnoreEditorChangeEvents = false;
+    private void loadAllEditors(final LWComponent source)
+    {
+        if (DEBUG.TOOL) out("loadValues (LWCToolPanel) " + source);
+
+        // While the editors are loading, we want to ignore the
+        // any change events that loading may produce.
+        IgnoreEditorChangeEvents = true;
+        try {
+            for (LWEditor editor : mEditors) {
+                loadEditor(source, editor);
+            }
+        } finally {
+            IgnoreEditorChangeEvents = false;
+        }
+    }
+    
+    private void loadEditor(LWComponent source, LWEditor editor) {
+        if (DEBUG.TOOL&&DEBUG.META) out("loadEditor0 " + editor + " loading " + editor.getPropertyKey() + " from " + source);
+
+        final Object value = source.getPropertyValue(editor.getPropertyKey());
+
+        if (value != null) {
+            if (DEBUG.TOOL) out("loadEditor1 [" + value + "] -> " + editor);
+            editor.displayValue(value);
+        } else if (DEBUG.TOOL) out("loadEditor1 " + source + " -> " + editor + " skipped; was null");
+    }
+
+    private void loadEditorsMatchingKey(final Object key, final LWComponent source) {
+        boolean loaded = false;
+        for (LWEditor editor : mEditors) {
+            //if (DEBUG.TOOL&&DEBUG.META) System.out.println(this + " checking key [" + propertyKey + "] against " + propertyProducer);
+            if (editor.getPropertyKey() == key) {
+                if (DEBUG.TOOL) out("loadEditorsMatchingKey: found producer for key [" + key + "]: " + editor.getClass());
+                final Object value = source.getPropertyValue(key);
+                editor.displayValue(value);
+                //mState.setPropertyValue(propertyKey.toString(), value); // only load default state if nothing is selected...
+                loaded = true;
+            }
+        }
+        if (DEBUG.TOOL && DEBUG.META) {
+            if (!loaded) System.out.println(this + " loadEditorsMatchingKey: FYI, no LWEditor for '" + key + "' in " + source);
+        }
+    }
+    
+    // generic full version of property picker-uppers:
+    // When selection changes, pick up properties of new selected item (or multi-prop state when handle multi-selections)
+    // When a PROPERTY changes IN the selection, pick that up.
+    // Can we combine these two to something generic? (either as one loop, or at least as one helper class)
+    private LWComponent singleSelection = null;
+    // currenly only called from VueToolbarController
+    void loadSelection(LWSelection s) {
+        if (DEBUG.TOOL) out("loadSelection " + s);
+        if (s.size() == 1) {
+            if (singleSelection != null)
+                singleSelection.removeLWCListener(this);
+            loadAllEditors(singleSelection = s.first());
+            singleSelection.addLWCListener(this);
+
+            // do array of keys supported by this tool panel... Otherwise, we'll
+            // be doing constant load-values while, say, dragging the node!
+            //singleSelection.addLWCListener(this, LWKey.Font);
+
+        } else if (s.size() > 1) {
+            // todo: if we are to populate the tool bar properties when
+            // there's a multiple selection, what do we use?
+            loadAllEditors(s.first());
+        }
+
+        if (s.size() != 1 && singleSelection != null) {
+            singleSelection.removeLWCListener(this);
+            singleSelection = null;
+        }
+    }
+
+
+    // need to add functionaltiyh for rapidly changing values (e.g., slider's
+    // active color chooser, etc) -- in which case we'd ignore change events
+    // coming from the component until the end -- can we have the component
+    // issue events marked as rapid changers?  Or should subclasses of
+    // LWCToolPanel just handle it?
+    
+    private boolean mIgnoreLWCEvents = false;
+    public void LWCChanged(LWCEvent e) {
+        // if we don't handle this property, loadToolValue will ignore this event
+        if (mIgnoreLWCEvents) {
+            if (DEBUG.TOOL) out("ignoring during propertyChange: " + e);
+        } else {
+            loadEditorsMatchingKey(e.key, e.getComponent());
+        }
+    }
+ 	
+    
+    /** This is called when some gui sub-component of the LWCToolPanel
+     * has changed state, indicating a different property value.  We
+     * get this as a PropertyChangeEvent here, apply it as we can to
+     * everything in the LWSelection, and apply the property value to
+     * the current default state reprsented by this tool panel, used
+     * for initializing new LWComponents.
+     */
+    // What's handy about this is simply that JComponents already have
+    // a list of listeners we can use, and addListener methods.
+    // So maybe try subclassing PropertyChangeEvent with LWPropertyChangeEvent
+    // or something, and only pay attention to THOSE property changes.
+    // Still make sure we don't have a looping issue, tho I think that's handled.
+
+    // TODO TODO TODO: each tool panel will have a style object associated
+    // (LWNode, LWLink, LWNode(text version), that can be styled when
+    // NOTHING ELSE IS SELECTED, and is used for creating new objects
+    // only, and is loaded up when the selection goes empty.
+    
+    public void propertyChange(PropertyChangeEvent e)
+    {
+
+        if (e instanceof LWPropertyChangeEvent == false) {
+            // We're not interested in "ancestor" events, icon change events, etc.
+            if (DEBUG.TOOL && DEBUG.META) out("ignored AWT/Swing: [" + e.getPropertyName() + "] from " + e.getSource().getClass());
+            return;
+        } else {
+            if (DEBUG.TOOL) out("propertyChange: " + e);
+        }
+            
+        ApplyPropertyChangeToSelection(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
+    }
+
+    /** Will either modifiy the active selection, or if it's empty, modify the default state (creation state) for this tool panel */
+    public static void ApplyPropertyChangeToSelection(final LWSelection selection, final Object key, final Object newValue, Object source)
+    {
+        if (IgnoreEditorChangeEvents) {
+            if (DEBUG.TOOL) System.out.println("APCTS: " + key + " " + newValue + " (skipping)");
+            return;
+        }
+        
+        if (DEBUG.TOOL) System.out.println("APCTS: " + key + " " + newValue);
+        
+        if (selection.isEmpty()) {
+            /*
+            if (mDefaultState != null)
+                mDefaultState.setProperty(key, newValue);
+            else
+                System.out.println("mDefaultState is null");
+            */
+            //if (DEBUG.TOOL && DEBUG.META) out("new state " + mDefaultState); // need a style dumper
+        } else {
+            
+            // As setting these properties in the model will trigger notify events from the selected objects
+            // back up to the tools, we want to ignore those events while this is underway -- the tools
+            // already have their state set to this.
+            //mIgnoreLWCEvents = true;
+            try {
+                for (tufts.vue.LWComponent c : selection) {
+                    // TODO: first check to see if it supports the value...
+                    c.setProperty(key, newValue);
+                }
+            } finally {
+                // mIgnoreLWCEvents = false;
+            }
+            
+            if (VUE.getUndoManager() != null)
+                VUE.getUndoManager().markChangesAsUndo(key.toString());
+        }
+    }
+    
+
+    /** if we get a state changed, check to see if the source is one of our LWPropertyProducers,
+     * and if so, simulate a propertyChange event
+     * (e.g., a JSlider doesn't issue PropertyChangeEvents, only ChangeEvents, although
+     * we don't want to invoke the undo-manager for the real-time update of the slider) */
+
+    public void stateChanged(ChangeEvent e) {
+        tufts.Util.printStackTrace("LWCToolPanel: stateChanged: " + e);
+        final Object source = e.getSource();
+        for (LWEditor editor : mEditors) {
+            if (source == editor) {
+                if (true||DEBUG.TOOL) out("matched ChangeEvent source to editor " + editor.getClass());
+                propertyChange(new LWPropertyChangeEvent(editor, editor.getPropertyKey(), editor.produceValue()));
+                // LWPropertyChangeEvent could detect that source is instanceof a editor, and pull key & value from that
+            }
+        }
+    }
+    
+ 	
+    public void actionPerformed(ActionEvent pEvent) {
+        out("UNHANDLED: " + pEvent);
+    }
+
+    protected void out(Object o) {
+        System.out.println(this + ": " + (o==null?"null":o.toString()));
+    }
+    public String toString() {
+        return getClass().getName();
+    }
+
+
+
+    /*
+
+    //private static boolean sIgnoreEvents = false;
+    // todo: move to a PropertyDispatch handler or something
+    private static boolean sIgnoreLWCEvents = false;
+    
+    // todo: move this stuff to tool code somewhere
+    public static void PropertyProducerChanged(tufts.vue.LWPropertyProducer producer)
+    {
+        //final Object key = producer.getPropertyKey().toString();
+        final Object key = producer.getPropertyKey();
+
+        if (sIgnoreLWCEvents) {
+            if (DEBUG.TOOL) out("PropertyProducerChanged: skipping " + key + "  for " + producer);
+            return;
+        }
+            
+        if (DEBUG.TOOL) out("PropertyProducerChanged: [" + key + "] on " + producer);
+
+        sIgnoreLWCEvents = true;
+        try {
+            //tufts.vue.beans.VueBeans.applyPropertyValueToSelection(VUE.getSelection(), key.toString(), producer.getPropertyValue());
+            ApplyPropertyChangeToSelection(VUE.getSelection(), key, producer.getPropertyValue());
+        } finally {
+            sIgnoreLWCEvents = false;
+        }
+        
+        if (VUE.getUndoManager() != null)
+            VUE.getUndoManager().markChangesAsUndo(key.toString());
+
+    }
+
+*/
+    
+
+    
+    
+ 	
+    public static void main(String[] args) {
+        System.out.println("LWCToolPanel:main");
+        VUE.init(args);
+        DEBUG.Enabled = true;
+        //DEBUG.INIT = true;
+        DEBUG.TOOL = DEBUG.EVENTS = true;
+        //DEBUG.BOXES = true;
+        FontEditorPanel.sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts
+        VueUtil.displayComponent(new LWCToolPanel());
+        /*
+        JComboBox b = new JComboBox();
+        b.addItem(new JMenuItem("one")); // nope: combo box dumb
+        b.addItem("two");
+        VueUtil.displayComponent(b);
+        */
+        
+    }
+ 	
+}
+
+
+
+ 	
+    /*
     protected void initDefaultState() {
         //System.out.println("NodeToolPanel.initDefaultState");
         mDefaultState = getDefaultState();
         if (DEBUG.INIT) out("default state initialized to " + mDefaultState);
         loadValues(mDefaultState);
     }
-
     public boolean isPreferredType(Object o) {
         return o instanceof LWComponent;
     }
-        
-    /** load values from either a LWComponent, or a VueBeanState */
+    */
+    /* load values from either a LWComponent, or a VueBeanState 
     private void loadValues(Object source) {
         if (DEBUG.TOOL) out("loadValues0 (LWCToolPanel) " + source);
         VueBeanState state = null;
@@ -315,14 +602,13 @@ public class LWCToolPanel extends JPanel
         
         setIgnorePropertyChangeEvents(true);
 
-        Iterator i = mPropertyProducers.iterator();
+        Iterator i = mEditors.iterator();
         while (i.hasNext()) {
             LWPropertyProducer dest = (LWPropertyProducer) i.next();
             loadProperty(source, dest);
         }
         setIgnorePropertyChangeEvents(false);
     }
-
     private void loadProperty(Object source, LWPropertyProducer dest) {
         if (DEBUG.TOOL) System.out.println(dest + " loading [" + dest.getPropertyKey() + "] from " + source);
         Object value = null;
@@ -336,13 +622,6 @@ public class LWCToolPanel extends JPanel
             dest.setPropertyValue(value);
         }
     }
-
-    // generic full version of property picker-uppers:
-    // When selection changes, pick up properties of new selected item (or multi-prop state when handle multi-selections)
-    // When a PROPERTY changes IN the selection, pick that up.
-    // Can we combine these two to something generic? (either as one loop, or at least as one helper class)
-
-
     private LWComponent singleSelection = null;
     // currenly only called from VueToolbarController
     void loadSelection(LWSelection s) {
@@ -368,64 +647,6 @@ public class LWCToolPanel extends JPanel
             singleSelection = null;
         }
     }
-
-    private void loadToolValue(Object propertyKey, LWComponent src) {
-        boolean success = false;
-        Iterator i = mPropertyProducers.iterator();
-        while (i.hasNext()) {
-            LWPropertyProducer propertyProducer = (LWPropertyProducer) i.next();
-            //if (DEBUG.TOOL&&DEBUG.META) System.out.println(this + " checking key [" + propertyKey + "] against " + propertyProducer);
-            if (propertyProducer.getPropertyKey() == propertyKey) {
-                if (DEBUG.TOOL) out("loadToolValue: found producer for key [" + propertyKey + "]: " + propertyProducer.getClass());
-                Object value = src.getPropertyValue(propertyKey);
-                propertyProducer.setPropertyValue(value);
-                mState.setPropertyValue(propertyKey.toString(), value);
-                success = true;
-            }
-        }
-        if (!success) {
-            if (DEBUG.TOOL) System.out.println(this + " loadToolValue: FYI, no LWPropertyProducer for '" + propertyKey + "' in " + src);
-        }
-    }
-    
-    public VueBeanState getCurrentState() {
-        return mState;
-    }
- 	
-    private boolean mIgnoreEvents = false;
-    protected void setIgnorePropertyChangeEvents(boolean t) {
-        mIgnoreEvents = t;
-    }
-
-    // need to add functionaltiyh for rapidly changing values (e.g., slider's
-    // active color chooser, etc) -- in which case we'd ignore change events
-    // coming from the component until the end -- can we have the component
-    // issue events marked as rapid changers?  Or should subclasses of
-    // LWCToolPanel just handle it?
-    
-    private boolean mIgnoreLWCEvents = false;
-    public void LWCChanged(LWCEvent e) {
-        // if we don't handle this property, loadToolValue will ignore this event
-        if (mIgnoreLWCEvents) {
-            if (DEBUG.TOOL) out("ignoring during propertyChange: " + e);
-        } else {
-            loadToolValue(e.getKey(), e.getComponent());
-        }
-    }
- 	
-    
-    /** This is called when some gui sub-component of the LWCToolPanel
-     * has changed state, indicating a different property value.  We
-     * get this as a PropertyChangeEvent here, apply it as we can to
-     * everything in the LWSelection, and apply the property value to
-     * the current default state reprsented by this tool panel, used
-     * for initializing new LWComponents.
-     */
-    // What's handy about this is simply that JComponents already have
-    // a list of listeners we can use, and addListener methods.
-    // So maybe try subclassing PropertyChangeEvent with LWPropertyChangeEvent
-    // or something, and only pay attention to THOSE property changes.
-    // Still make sure we don't have a looping issue, tho I think that's handled.
     public void propertyChange(PropertyChangeEvent e)
     {
         if (e instanceof LWPropertyChangeEvent) {
@@ -460,58 +681,9 @@ public class LWCToolPanel extends JPanel
 
         } else {
             // We're not interested in "ancestor" events, icon change events, etc.
-            if (DEBUG.TOOL && DEBUG.META) out("ignored AWT/Swing: [" + e.getPropertyName() + "] from " + e.getSource().getClass());
+            //if (DEBUG.TOOL && DEBUG.META) out("ignored AWT/Swing: [" + e.getPropertyName() + "] from " + e.getSource().getClass());
+            if (DEBUG.TOOL) out("ignored AWT/Swing: [" + e.getPropertyName() + "] from " + e.getSource().getClass());
         }
 
     }
-
-    /** if we get a state changed, check to see if the source is one of our LWPropertyProducers,
-     * and if so, simulate a propertyChange event
-     * (e.g., a JSlider doesn't issue PropertyChangeEvents, only ChangeEvents, although
-     * we don't want to invoke the undo-manager for the real-time update of the slider) */
-
-    public void stateChanged(ChangeEvent e) {
-        Object source = e.getSource();
-        Iterator i = mPropertyProducers.iterator();
-        while (i.hasNext()) {
-            LWPropertyProducer producer = (LWPropertyProducer) i.next();
-            if (source == producer) {
-                if (DEBUG.TOOL) out("matched ChangeEvent source to propertyProducer " + producer.getClass());
-                propertyChange(new LWPropertyChangeEvent(producer, producer.getPropertyKey().toString(), null, producer.getPropertyValue()));
-                // propertyChange could detect that source is instanceof a producer, and pull value from that.
-            }
-        }
-    }
-    
- 	
-    public void actionPerformed(ActionEvent pEvent) {
-        out("UNHANDLED: " + pEvent);
-    }
-
-    protected void out(Object o) {
-        System.out.println(this + ": " + (o==null?"null":o.toString()));
-    }
-    public String toString() {
-        return getClass().getName();
-    }
-    
- 	
-    public static void main(String[] args) {
-        System.out.println("LWCToolPanel:main");
-        VUE.init(args);
-        DEBUG.Enabled = true;
-        //DEBUG.INIT = true;
-        DEBUG.TOOL = DEBUG.EVENTS = true;
-        //DEBUG.BOXES = true;
-        FontEditorPanel.sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts
-        VueUtil.displayComponent(new LWCToolPanel());
-        /*
-        JComboBox b = new JComboBox();
-        b.addItem(new JMenuItem("one")); // nope: combo box dumb
-        b.addItem("two");
-        VueUtil.displayComponent(b);
-        */
-        
-    }
- 	
-}
+    */    

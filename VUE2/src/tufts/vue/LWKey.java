@@ -38,24 +38,41 @@ public interface LWKey {
 
     public String UserActionCompleted = "user.action.completed";
     
+    public LWComponent.Key FillColor = LWComponent.KEY_FillColor; 
+    public LWComponent.Key TextColor = LWComponent.KEY_TextColor; 
+    public LWComponent.Key StrokeColor = LWComponent.KEY_StrokeColor; 
+    public LWComponent.Key StrokeWidth = LWComponent.KEY_StrokeWidth;
+    public LWComponent.Key Font =  LWComponent.KEY_Font;
+    public LWComponent.Key FontSize =  LWComponent.KEY_FontSize;
+    public LWComponent.Key FontName =  LWComponent.KEY_FontName;
+    public LWComponent.Key FontStyle =  LWComponent.KEY_FontStyle;
+    public LWComponent.Key Shape = LWNode.KEY_Shape;
+
+    public LWComponent.Key Label = LWComponent.KEY_Label;
+    
+    
+    //public String FillColor = "fill.color"; 
+    //public String TextColor = "text.color"; 
+    //public String StrokeColor = "stroke.color"; 
+    //public String StrokeWidth = "stroke.width"; 
+    //public String Font = "font";
+    //public String Shape = "node.shape"; 
+    
+    // a handy hack: if we want a "key" type more specific than object, but
+    // can also refer to a String (which is a final class), String implements
+    // CharSequence, so we could use that as a narrower generic for both
+    // our LWComonent.Key object, and Strings.
+    
     public String Location = "location"; 
     public String Size = "size";
     public String Frame = "frame"; // location & size
     
-    public String Label = "label"; 
+    //public String Label = "label"; 
     public String Notes = "notes"; 
     public String Scale = "scale"; 
     public String Resource = "resource"; 
-    public LWComponent.Key FillColor = LWComponent.KEY_FillColor; 
-    //public String FillColor = "fill.color"; 
-    public String TextColor = "text.color"; 
-    public String StrokeColor = "stroke.color"; 
-    public String StrokeWidth = "stroke.width"; 
-    public String Font = "font";
     public String Hidden = "hidden";
 
-    /** an instance of a RectangularShape */
-    public String Shape = "node.shape"; 
 
     public String Created = "new.component"; // any LWComponets creation event
     //public String Added = "added"; // a child components add-notify
@@ -77,7 +94,8 @@ public interface LWKey {
     public String RepaintAsync = "repaint.async"; // a repaint from an auxillary thread: all visual listeners need immediate repaint
 
     /** link arrow state: 0=none, 1=start arrow, 2=end arrow, 3=both arrows */
-    public String LinkArrows = "link.arrows";
+    //public String LinkArrows = "link.arrows";
+    public LWComponent.Key LinkArrows = LWLink.KEY_LinkArrows;
     /** link curve state: 0=straight, 1=1 control point (Quadric), 2=2 control points (Cubic) */
     public String LinkCurves = "link.curves";
 

@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.49 $ / $Date: 2006-02-18 02:07:33 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -456,7 +456,7 @@ public class VueToolbarController
     }
 
     public void LWCChanged(LWCEvent e) {
-        loadToolValue(e.getWhat(), e.getComponent());
+        loadToolValue(e.key, e.getComponent());
     }
 
     /**
@@ -467,17 +467,17 @@ public class VueToolbarController
     // todo: cache the property producers
     private void loadToolValue(Object propertyKey, LWComponent src)
     {
-        for (int i = 0; i < mVueTools.length; i++) {
-            if (mVueTools[i] instanceof LWPropertyProducer) {
-                LWPropertyProducer p = (LWPropertyProducer) mVueTools[i];
-                if (propertyKey == null || propertyKey == p.getPropertyKey()) {
-                    Object value = src.getPropertyValue(p.getPropertyKey());
+        for (VueTool tool : mVueTools) {
+            if (tool instanceof LWEditor) {
+                LWEditor editor = (LWEditor) tool;
+                if (propertyKey == null || propertyKey == editor.getPropertyKey()) {
+                    Object value = src.getPropertyValue(editor.getPropertyKey());
                     if (DEBUG.TOOL) out("loadToolValue: loading producer "
-                                        + p
-                                        + " key=" + p.getPropertyKey()
+                                        + editor
+                                        + " key=" + editor.getPropertyKey()
                                         + " with val=" + value
                                         + " from " + src);
-                    p.setPropertyValue(value);
+                    editor.displayValue(value);
                 }
             }
         }

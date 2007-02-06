@@ -33,28 +33,30 @@ import java.awt.geom.Rectangle2D;
 *
 * This is still original S.B. code and could use reworking & better integration.
 *
+* Is this code still needed?
+*
 **/
 
 public class VueLWCPropertyMapper
     implements VuePropertyMapper
 {
     static final String [] sNodeProperties = {  LWKey.FillColor.name,
-                                                LWKey.StrokeColor,
-                                                LWKey.StrokeWidth,
-                                                LWKey.TextColor,
-                                                LWKey.Shape,
-                                                LWKey.Font
+                                                LWKey.StrokeColor.name,
+                                                LWKey.StrokeWidth.name,
+                                                LWKey.TextColor.name,
+                                                LWKey.Shape.name,
+                                                LWKey.Font.name
     };
 												
-    static final String  []  sLinkProperties = {  LWKey.StrokeColor,
-                                                  LWKey.StrokeWidth,
-                                                  LWKey.TextColor,
-                                                  LWKey.Font,
-                                                  LWKey.LinkArrows,
+    static final String  []  sLinkProperties = {  LWKey.StrokeColor.name,
+                                                  LWKey.StrokeWidth.name,
+                                                  LWKey.TextColor.name,
+                                                  LWKey.Font.name,
+                                                  LWKey.LinkArrows.name,
                                                   LWKey.LinkCurves
     };
 												
-    static final String [] sTextProperties = {  LWKey.TextColor, LWKey.Font };
+    static final String [] sTextProperties = {  LWKey.TextColor.name, LWKey.Font.name };
 												
 	
     //VueBeanInfo mLWCInfo = null;
@@ -240,9 +242,9 @@ public class VueLWCPropertyMapper
             Color color = new Color(0,0,0);;
             Class theClass = null;
 			
-            if( pName.equals(LWKey.FillColor) ||
-                pName.equals(LWKey.StrokeColor) ||
-                pName.equals(LWKey.TextColor) ) {
+            if( pName.equals(LWKey.FillColor.name) ||
+                pName.equals(LWKey.StrokeColor.name) ||
+                pName.equals(LWKey.TextColor.name) ) {
                 theClass = color.getClass();
             }
             else

@@ -82,7 +82,7 @@ public class PathwayTableModel extends DefaultTableModel
             // although if anything in the pathway changes, fire a change event just in case.
             if (DEBUG.PATHWAY) System.out.println(this + " pathway event " + e);
             fireTableDataChanged();
-        } else if (e.getKey() == LWKey.Label || e.getKeyName().startsWith("pathway.")) {
+        } else if (e.key == LWKey.Label || e.getName().startsWith("pathway.")) {
             if (DEBUG.PATHWAY) System.out.println(this + " pathway child event " + e);
             // This means one of the LWComponents in the pathway has changed.
             // We only care about label changes as that's all that's displayed
@@ -90,7 +90,7 @@ public class PathwayTableModel extends DefaultTableModel
             // the note icon.
             // We only really need the PathwayTable to repaint if a label
             // has changed, but this will do it.
-            if (e.getWhat().equals("pathway.list.active"))
+            if (e.getName().equals("pathway.list.active"))
                 setCurrentPathway((LWPathway) e.getComponent());
             else
                 fireTableDataChanged();
