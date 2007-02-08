@@ -96,6 +96,7 @@ public class AnalyzeCM extends VueAction {
         
         if(!w.isVisible())
         {
+          MergeMapsChooser.loadDefaultStyle();
           w.setLocation(200,200);
           w.pack();
           w.setVisible(true);

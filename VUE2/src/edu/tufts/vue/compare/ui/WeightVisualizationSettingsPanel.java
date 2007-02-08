@@ -79,6 +79,7 @@ public class WeightVisualizationSettingsPanel extends JPanel {
         intervalList.setDefaultRenderer(PercentageInterval.class,new PercentageIntervalRenderer());
         intervalList.setDefaultEditor(PercentageInterval.class,new PercentageIntervalEditor());
         intervalList.setDefaultRenderer(IntervalStylePreview.class,new IntervalStylePreviewRenderer());
+        intervalList.setDefaultEditor(IntervalStylePreview.class,new IntervalStylePreviewEditor());
 
         //$
            intervalList.setRowHeight(30);
@@ -222,8 +223,8 @@ public class WeightVisualizationSettingsPanel extends JPanel {
     
     class PercentageIntervalRenderer extends JPanel implements TableCellRenderer
     {
-        private JTextField startField = new JTextField();
-        private JTextField endField = new JTextField();
+        private JTextField startField = new JTextField(3);
+        private JTextField endField = new JTextField(3);
         
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row, int col)
         {
@@ -259,11 +260,20 @@ public class WeightVisualizationSettingsPanel extends JPanel {
         }
     }
     
-    class PercentageIntervalEditor extends JPanel implements TableCellEditor
+    class PercentageIntervalEditor extends javax.swing.AbstractCellEditor implements TableCellEditor
     {
         
-        private JTextField startField = new JTextField();
-        private JTextField endField = new JTextField();
+        private JTextField startField = new JTextField(3);
+        private JTextField endField = new JTextField(3);
+        private JPanel panel = new JPanel();
+        
+        public PercentageIntervalEditor()
+        {
+            startField.setHorizontalAlignment(JTextField.LEFT);
+            endField.setHorizontalAlignment(JTextField.LEFT);
+            panel.add(startField);
+            panel.add(endField);
+        }
         
         public java.awt.Component getTableCellEditorComponent(JTable table,Object value,boolean isSelected,int row,int col)
         {
@@ -282,12 +292,12 @@ public class WeightVisualizationSettingsPanel extends JPanel {
                 startField.setText("0");
                 endField.setText("0");
             }
-            add(startField);
-            add(endField);
+            //add(startField);
+            //add(endField);
             
             //$
-              setOpaque(true);
-              setBackground(Color.BLUE);
+              panel.setOpaque(true);
+              panel.setBackground(Color.BLUE);
             //$
             
             /*p.addMouseListener(new java.awt.event.MouseAdapter(){
@@ -297,7 +307,7 @@ public class WeightVisualizationSettingsPanel extends JPanel {
                }
             });*/
             
-            return this;
+            return panel;
         }
         
         public Object getCellEditorValue()
@@ -305,19 +315,19 @@ public class WeightVisualizationSettingsPanel extends JPanel {
             return new PercentageInterval(Integer.parseInt(startField.getText()),Integer.parseInt(endField.getText()));
         }
         
-        public void addCellEditorListener(CellEditorListener listener)
+        /*public void addCellEditorListener(CellEditorListener listener)
         {
-            
+            System.out.println("WVSP: add listener: " + listener);
         }
         
         public void removeCellEditorListener(CellEditorListener listener)
         {
-            
+            System.out.println("WVSP: remove listener: " + listener);
         }
         
         public void cancelCellEditing()
         {
-
+            System.out.println("WVSP: Cancel cell editing");
         }
 
         public boolean isCellEditable(java.util.EventObject e)
@@ -332,8 +342,45 @@ public class WeightVisualizationSettingsPanel extends JPanel {
         
         public boolean stopCellEditing()
         {
+            System.out.println("WVSP: stop cell editing - returning true");
             return true;
-        }
+        }*/
+        
+        /*public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row, int col)
+        {
+            // these intial values are not likely to be seen (unless wrong class used for value)
+            // just a fail safe as this point
+            int start = 0;
+            int end = 100;
+            
+            if(value instanceof PercentageInterval)
+            {
+                PercentageInterval pi = (PercentageInterval)value;
+                start = pi.getStart();
+                end = pi.getEnd();
+            }
+            
+            //JPanel renderer = new JPanel();
+            
+            //&
+              System.out.println("PercentageIntervalRenderComponent: getComponent");
+              setOpaque(true);
+              setBackground(Color.red);
+            //&
+            
+            // todo: add rounded border for button image effect
+            // perhaps use icon in future for node/link contrast at this spot in GUI?
+            //JTextField startField = new JTextField(start+"");
+            //JTextField endField = new JTextField(end+"");
+            startField.setText(start+"");
+            endField.setText(end+"");
+            startField.setHorizontalAlignment(JTextField.LEFT);
+            endField.setHorizontalAlignment(JTextField.LEFT);
+            //add(startField);
+            //add(endField);
+            return this;
+        }*/
+
         
     }
     
@@ -356,6 +403,12 @@ public class WeightVisualizationSettingsPanel extends JPanel {
             JPanel renderer = new JPanel();
             // todo: add rounded border for button image effect
             // perhaps use icon in future for node/link contrast at this spot in GUI?
+            
+            //$
+               renderer.setOpaque(true);
+               renderer.setBackground(Color.YELLOW);
+            //$
+            
             JLabel buttonImage = new JLabel("Label");
             buttonImage.setOpaque(true);
             buttonImage.setForeground(textColor);
@@ -366,6 +419,68 @@ public class WeightVisualizationSettingsPanel extends JPanel {
             return renderer;
         }
     }
+   
+    class IntervalStylePreviewEditor extends javax.swing.AbstractCellEditor implements TableCellEditor
+    {
+        
+        // not likely to be seen (unless wrong class assigned to Table Cell value)
+        // just a fail safe as this point
+        Color textColor = Color.BLACK;
+        Color backColor = Color.WHITE;
+
+        private JLabel buttonImage;
+        private JLabel hotSpot;
+        private JPanel panel = new JPanel();
+        
+        public IntervalStylePreviewEditor()
+        {
+            buttonImage = new JLabel("Label");
+            buttonImage.setOpaque(true);
+            buttonImage.setForeground(textColor);
+            buttonImage.setBackground(backColor);
+            hotSpot = new JLabel("[edit style]");
+            panel.add(buttonImage);
+            panel.add(hotSpot);
+        }
+        
+        public java.awt.Component getTableCellEditorComponent(JTable table,Object value,boolean isSelected,int row,int col)
+        {
+            //$
+            System.out.println("getTableCellEditorComponent: ");
+            //$
+            //JPanel p = new JPanel();
+            if(value instanceof IntervalStylePreview)
+            {
+                IntervalStylePreview isp = (IntervalStylePreview)value;
+                textColor = isp.getForeground();
+                backColor = isp.getBackground();
+            }
+            
+            buttonImage.setForeground(textColor);
+            buttonImage.setBackground(backColor);
+            
+            //$
+              panel.setOpaque(true);
+              panel.setBackground(Color.GREEN);
+            //$
+            
+            /*p.addMouseListener(new java.awt.event.MouseAdapter(){
+               public void mouseClicked(java.awt.event.MouseEvent e)
+               {
+                   System.out.println("Mouse clicked on PI cell editor: " + e);
+               }
+            });*/
+            
+            return panel;
+        }
+        
+        public Object getCellEditorValue()
+        {
+            return new IntervalStylePreview(textColor,backColor);
+        }
+       
+    }
+    
         
     class IntervalListModel implements TableModel
     {
@@ -442,10 +557,10 @@ public class WeightVisualizationSettingsPanel extends JPanel {
            //$
            System.out.println("setValueAt: " + value);
            //$
-           /* if(col == 0 && (value instanceof PercentageInterval))
-            {
+           if(col == 0 && (value instanceof PercentageInterval))
+           {
                 piList.set(row,(PercentageInterval)value);
-            }*/
+           }
         }
         
     }

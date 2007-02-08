@@ -32,12 +32,14 @@ import java.util.List;
 
 public class LWMergeMap extends LWMap {
     
+    public static final int THRESHOLD_DEFAULT = 50;
+    
     private static int maps = 0;
     private String selectionText;
     private LWMap referenceMap;
     private String selectChoice;
-    private int nodeThresholdSliderValue;
-    private int linkThresholdSliderValue;
+    private int nodeThresholdSliderValue = THRESHOLD_DEFAULT;
+    private int linkThresholdSliderValue = THRESHOLD_DEFAULT;
     private List<File> fileList;
     private List<Boolean> activeFiles;
     
