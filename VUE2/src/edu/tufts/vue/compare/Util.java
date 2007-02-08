@@ -64,4 +64,8 @@ public class Util {
         
         return null;
     }
+    
+    public static String getMergeProperty(LWComponent node) {
+        return  node.getRawLabel();
+    }
 }
