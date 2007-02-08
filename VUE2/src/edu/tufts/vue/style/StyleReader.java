@@ -29,6 +29,7 @@ package edu.tufts.vue.style;
 import javax.swing.text.*;
 import javax.swing.text.html.*;
 import java.util.*;
+import java.net.*;
 
 public class StyleReader {
     
@@ -38,6 +39,21 @@ public class StyleReader {
     public static void readStyles(String lookupKey) {
         StyleSheet styles = new StyleSheet();
         styles.importStyleSheet(tufts.vue.VueResources.getURL(lookupKey));
+        getStyleNames(styles);
+    }
+    
+    private static void readCSS(URL url) {
+        try {
+            StyleSheet styles = new StyleSheet();
+            styles.importStyleSheet(url);
+            getStyleNames(styles);
+        }catch(Exception ex) {
+            System.out.println("StyleReader.readCSS"+ex);
+        }
+        
+    }
+    
+    private static void getStyleNames(StyleSheet styles) {
         Enumeration rules = styles.getStyleNames();
         while (rules.hasMoreElements()) {
             String name = (String) rules.nextElement();
@@ -46,7 +62,6 @@ public class StyleReader {
             
         }
     }
-    
     private static void createStyle(javax.swing.text.Style rule) {
         if(rule.getName().startsWith(NODE_PREFIX)) {
             String name = rule.getName();
