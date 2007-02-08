@@ -38,4 +38,10 @@ public class NodeStyle extends Style {
         return s;
     }
     
+    String styleToCSS() {
+        String s = new String();
+        s  = "background:"+backgroundColor;
+        return s;
+    }
+    
 }
