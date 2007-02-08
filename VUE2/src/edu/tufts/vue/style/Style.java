@@ -28,7 +28,10 @@ package edu.tufts.vue.style;
 import java.awt.*;
 
 public abstract class Style {
-    
+    public static final String OPEN="{";
+    public static final String CLOSE="}";
+    public static final String SEMI=";";
+    public static final String COLON=":";
     Color foregroundColor = Color.BLACK;
     Color backgroundColor = Color.WHITE;
     String name;
@@ -50,7 +53,14 @@ public abstract class Style {
     public void setForegroundColor(Color color) {
         this.foregroundColor  = color;
     }
-    
-  
+    public  String toCSS() {
+        String s = new String();
+        s += name+OPEN+"\n";
+        s+=styleToCSS();
+        s +="\n"+CLOSE+"\n";
+        return s;
+    }
+    abstract String styleToCSS();
+     
 }
 
