@@ -106,7 +106,7 @@ import javax.swing.text.html.StyleSheet;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.41 $ / $Date: 2007-01-28 20:09:47 $ / $Author: mike $
+ * @version $Revision: 1.42 $ / $Date: 2007-02-09 16:51:01 $ / $Author: mike $
  *
  */
 
@@ -1275,8 +1275,8 @@ public class TextBox extends JTextPane
         // when setting the translation before painting us.
         
         if (DEBUG.BOXES && DEBUG.META) {
-            if (lwc.getLabel().indexOf('\n') < 0) {
-                TextRow r = new TextRow(lwc.getLabel(), lwc.getFont(), dc.g.getFontRenderContext());
+            if (lwc.getStyledLabel().indexOf('\n') < 0) {
+                TextRow r = new TextRow(lwc.getStyledLabel(), lwc.getFont(), dc.g.getFontRenderContext());
                 dc.g.setColor(Color.lightGray);
                 r.draw(dc.g, 0, 0);
             }
