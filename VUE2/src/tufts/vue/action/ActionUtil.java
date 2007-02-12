@@ -40,18 +40,28 @@ import org.exolab.castor.mapping.MappingException;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JFileChooser;
+import javax.swing.JPanel;
+import javax.swing.ListCellRenderer;
+
 import java.net.URL;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Locale;
+import java.awt.Component;
 import java.io.*;
 
 /**
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.52 $ / $Date: 2007-01-02 04:42:27 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2007-02-12 21:17:06 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -87,25 +97,37 @@ public class ActionUtil {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle(title);
         chooser.setAcceptAllFileFilterUsed(false);
+        int compCount = chooser.getComponentCount();
+        Component jc = chooser.getComponent(2);
+        
+        
+        
         
         if (fileType != null)
          chooser.setFileFilter(new VueFileFilter(fileType)); 
         
         else
         {
-            VueFileFilter defaultFilter = new VueFileFilter("vue");
+            VueFileFilter defaultFilter = new VueFileFilter(VueFileFilter.VUE_DESCRIPTION);
             
             chooser.addChoosableFileFilter(defaultFilter);  
-            chooser.addChoosableFileFilter(new VueFileFilter("jpeg"));  
-            chooser.addChoosableFileFilter(new VueFileFilter("svg"));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));  
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));
             //chooser.addChoosableFileFilter(new VueFileFilter("pdf"));
             //chooser.addChoosableFileFilter(new VueFileFilter("html"));
-            chooser.addChoosableFileFilter(new VueFileFilter("Image Map"));
-            chooser.addChoosableFileFilter(new VueFileFilter("IMS Resource List"));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
             
             chooser.setFileFilter(defaultFilter); 
         }
-            
+         
+        JPanel p1 = (JPanel)chooser.getComponent(2);
+        JPanel p2 = (JPanel)p1.getComponent(2);
+        JPanel p3 = (JPanel)p2.getComponent(2);
+        JComboBox box = (JComboBox)p3.getComponent(3);
+        //box.g
+        box.setRenderer(new PaddedCellRenderer());
+        
         if(VueUtil.isCurrentDirectoryPathSet()) 
           chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
         
@@ -125,8 +147,8 @@ public class ActionUtil {
             }
             
             if (picked.exists()) {
-                int n = JOptionPane.showConfirmDialog(null, "Would you Like to Replace the File \'" + picked.getName() + "\'", 
-                        "Replacing File", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                int n = JOptionPane.showConfirmDialog(null, VueResources.getString("replaceFile.text") + " \'" + picked.getName() + "\'", 
+                        VueResources.getString("replaceFile.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                   
                 if (n == JOptionPane.NO_OPTION)
                     picked = null;
@@ -139,6 +161,7 @@ public class ActionUtil {
         return picked;
     }
     
+   
     /**A static method which displays a file chooser for the user to choose which file to open.
        It returns the selected file or null if the process didn't complete
     TODO BUG: do not allow more than one dialog open at a time -- two "Ctrl-O" in quick succession
@@ -678,4 +701,25 @@ public class ActionUtil {
         return map;
     }
 
+}
+
+class PaddedCellRenderer extends DefaultListCellRenderer
+{	  
+	   public Component  getListCellRendererComponent(JList list,
+	         Object value, // value to display
+	         int index,    // cell index
+	         boolean iss,  // is selected
+	         boolean chf)  // cell has focus?
+	   {
+		   super.getListCellRendererComponent(list, 
+                   value, 
+                   index, 
+                   iss, 
+                   chf);
+		   
+		    setText(((VueFileFilter)value).getDescription());
+		   this.setBorder(BorderFactory.createEmptyBorder(1, 5, 1, 1));
+		   
+		  return this;
+	   }			        	
 }

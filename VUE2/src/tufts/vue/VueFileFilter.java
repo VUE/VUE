@@ -23,7 +23,15 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
 {
     //private final String[] extensions = {".vue", ".xml"};
     //private String[] jpeg = {"jpeg"}, String[] svg = {"svg"}, String[] pdf = {"pdf"}, String[] html = {"html"};
-    private String[]
+	
+	public static final String JPEG_DESCRIPTION=VueResources.getString("vueFileFilter.jpeg.text");
+	public static final String SVG_DESCRIPTION=VueResources.getString("vueFileFilter.svg.text");
+	public static final String IMAGEMAP_DESCRIPTION=VueResources.getString("vueFileFilter.imagemap.text");
+	public static final String IMS_DESCRIPTION=VueResources.getString("vueFileFilter.ims.text");
+	public static final String VUE_DESCRIPTION=VueResources.getString("vueFileFilter.vue.text");
+	public static final String XML_DESCRIPTION=VueResources.getString("vueFileFilter.vue.text");
+
+	private String[]
         jpeg = {"jpeg", "jpg"},
         svg = {"svg"},
         pdf = {"pdf"},
@@ -46,25 +54,25 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         super();
         this.description = description;
         
-        if (description.equals("jpeg"))
+        if (description.equals(JPEG_DESCRIPTION))
           extensions = jpeg;
         
-        else if (description.equals("svg"))
+        else if (description.equals(SVG_DESCRIPTION))
           extensions = svg;
         
-        else if (description.equals("pdf"))
-          extensions = pdf;
+        //else if (description.equals("pdf"))
+         // extensions = pdf;
         
-        else if (description.equals("html"))
-          extensions = html;
+        //else if (description.equals("html"))
+        //  extensions = html;
         
-        else if (description.equals("Image Map"))
+        else if (description.equals(IMAGEMAP_DESCRIPTION))
           extensions = imap;
         
-        else if (description.equals("IMS Resource List"))
+        else if (description.equals(IMS_DESCRIPTION))
 			extensions = rli;
         
-        else if (description.equals("vue") || description.equals("xml")) {
+        else if (description.equals(VUE_DESCRIPTION) || description.equals(XML_DESCRIPTION)) {
             extensions = vue;
             description = "VUE Files";
         } else if (description.equals("zip")) {
