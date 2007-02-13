@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.53 $ / $Date: 2007-02-12 21:17:06 $ / $Author: mike $
+ * @version $Revision: 1.54 $ / $Date: 2007-02-13 14:11:13 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -121,12 +121,12 @@ public class ActionUtil {
             chooser.setFileFilter(defaultFilter); 
         }
          
-        JPanel p1 = (JPanel)chooser.getComponent(2);
-        JPanel p2 = (JPanel)p1.getComponent(2);
-        JPanel p3 = (JPanel)p2.getComponent(2);
-        JComboBox box = (JComboBox)p3.getComponent(3);
+    //    JPanel p1 = (JPanel)chooser.getComponent(2);
+      //  JPanel p2 = (JPanel)p1.getComponent(2);
+       // JPanel p3 = (JPanel)p2.getComponent(2);
+       // JComboBox box = (JComboBox)p3.getComponent(3);
         //box.g
-        box.setRenderer(new PaddedCellRenderer());
+       // box.setRenderer(new PaddedCellRenderer());
         
         if(VueUtil.isCurrentDirectoryPathSet()) 
           chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
