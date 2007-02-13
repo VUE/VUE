@@ -35,6 +35,7 @@ import edu.tufts.vue.compare.ConnectivityMatrix;
 import edu.tufts.vue.compare.VoteAggregate;
 import edu.tufts.vue.compare.Util;
 import edu.tufts.vue.compare.WeightAggregate;
+import edu.tufts.vue.compare.ui.WeightVisualizationSettingsPanel;
 
 import edu.tufts.vue.style.*;
 
@@ -107,6 +108,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
     private JPanel vizPanel;
     private JComboBox vizChoice;
     private JPanel votePanel;
+    private WeightVisualizationSettingsPanel weightPanel;
     private JSlider nodeThresholdSlider;
     private JLabel percentageDisplay;
     private JSlider linkThresholdSlider;
@@ -186,105 +188,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
     public static DockWindow getDockWindow()
     {
         return p;
-    }
-    
-    /*public void setUpSelectPanel()
-    {
-        selectPanel = new JPanel();
-        selectPanel.setLayout(new BoxLayout(selectPanel,BoxLayout.Y_AXIS));
-        GridBagLayout gridBag = new GridBagLayout();
-        GridBagConstraints c = new GridBagConstraints();
-        
-        String selectMessage = "Select Maps to merge:";
-        final JLabel selectLabel = new JLabel(selectMessage);
-        String [] choices = {ALL_TEXT,LIST_TEXT};
-        choice = new JComboBox(choices);
-        JLabel helpLabel = new JLabel(VueResources.getIcon("helpIcon.raw"));
-        
-        JPanel innerPanel = new JPanel()
-        {
-            public Dimension getMaximumSize()
-            {
-                if(p!=null && selectLabel.getHeight() > 0)
-                 return new Dimension(p.getWidth(),selectLabel.getHeight());
-                else
-                 return new Dimension(400,30);
-            }
-        };
-        innerPanel.setLayout(gridBag);
-        
-        choice.addActionListener(this);        
-        
-        JLabel leftPadding = new JLabel()
-        {
-            public Dimension getPreferredSize()
-            {
-               return new Dimension(30,30); 
-            }
-        };
-        JLabel rightPadding = new JLabel()
-        {
-            public Dimension getPreferredSize()
-            {
-               return new Dimension(30,30); 
-            }
-        };
-        c.weightx = 0.0;
-        c.weighty = 1.0;
-        gridBag.setConstraints(leftPadding,c);
-        c.anchor = GridBagConstraints.WEST;
-        gridBag.setConstraints(selectLabel,c);
-        innerPanel.add(leftPadding);
-        innerPanel.add(selectLabel);
-        c.insets = new Insets(0,5,0,0);
-        c.anchor = GridBagConstraints.SOUTH;
-        gridBag.setConstraints(choice,c);
-        innerPanel.add(choice);
-        c.anchor = GridBagConstraints.WEST;
-        c.insets = new Insets(0,5,0,0);
-        gridBag.setConstraints(helpLabel,c);
-        innerPanel.add(helpLabel);
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        gridBag.setConstraints(rightPadding,c);
-        innerPanel.add(rightPadding);
-        
-        selectPanel.add(innerPanel);
-        
-        setUpSelectPanelBrowse();
-        
-        buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        generateButton = new JButton("Generate Map");
-        buttonPanel.add(generateButton);
-        selectPanel.add(buttonPanel);
-        
-        browseButton.addActionListener(this);
-        addButton.addActionListener(this);
-        generateButton.addActionListener(this);
-        
-    }*/
-    
-    /*public void setUpSelectPanelBrowse()
-    {
-        String mapMessage = "Maps:";
-        JLabel mapLabel = new JLabel(mapMessage);
-        file = new JTextField(15);
-        browseButton = new JButton("Browse");
-        addButton = new JButton("Add");
-        addButton.setEnabled(false);
-        
-        mapPanel = new JPanel();
-                
-        mapPanel.add(mapLabel);
-        mapPanel.add(file);
-        mapPanel.add(browseButton);
-        mapPanel.add(addButton);
-        
-        //may be interfereing with listPanel load and deletes with call from event thread
-        listPanel = new MapListPanel();
-        //listPanel.setLayout(new javax.swing.BoxLayout(listPanel,javax.swing.BoxLayout.Y_AXIS));
-        listPanel.setLayout(new java.awt.GridLayout(0,1));
-        listScroll = new JScrollPane(listPanel);    
-    }*/
+    }   
     
     public void setUpBasePanel()
     {
@@ -407,6 +311,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         vizPanel.add(vizChoice);
         
         votePanel = new JPanel();
+        weightPanel = new WeightVisualizationSettingsPanel();
         GridBagLayout voteLayout = new GridBagLayout();
         GridBagConstraints voteConstraints = new GridBagConstraints();
         votePanel.setLayout(voteLayout);
@@ -675,12 +580,22 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             if(vizChoice.getSelectedItem().equals("Weight"))
             {
                 vizPane.remove(votePanel);
+                vizPane.add(weightPanel);
                 validate();
+                if(p!=null)
+                {
+                    p.pack();
+                }
             }
             else
             {
+                vizPane.remove(weightPanel);
                 vizPane.add(votePanel);
                 validate();
+                if(p!=null)
+                {
+                    p.pack();
+                }
             }
         }
         if(e.getSource() == generate)

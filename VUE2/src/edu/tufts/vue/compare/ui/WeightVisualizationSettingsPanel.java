@@ -26,6 +26,8 @@
 
 package edu.tufts.vue.compare.ui;
 
+import edu.tufts.vue.style.*;
+
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -49,6 +51,8 @@ import tufts.vue.VueResources;
 
 public class WeightVisualizationSettingsPanel extends JPanel {
    
+    public static final int DEFAULT_STYLE_CHOICES = 5;
+    
     public static final String parameterChoiceMessageString = "Set parameters for:";
     public static final String intervalChoiceMessageString = "Set number of intervals:";
     public static final String paletteChoiceMessageString = "Select a color Palette";
@@ -62,9 +66,15 @@ public class WeightVisualizationSettingsPanel extends JPanel {
     
     private LWMap map = null;
     
+    private ArrayList<Style> nodeStyles = new ArrayList();
+    private ArrayList<Style> linkStyles = new ArrayList();
+    
     /** Creates a new instance of WeightVisualizationSettingsPanel */
     public WeightVisualizationSettingsPanel() 
     {
+        // too soon for all settings, so just load default styles here
+        loadDefaultStyles();
+        
         String[] parameterChoices = {"Nodes","Links"};
         JLabel parameterChoiceMessage = new JLabel(parameterChoiceMessageString,JLabel.RIGHT);
         parameterChoice = new JComboBox(parameterChoices);
@@ -135,13 +145,35 @@ public class WeightVisualizationSettingsPanel extends JPanel {
         return map;
     }
     
+    public void loadDefaultStyles()
+    {
+        // reading default number of styles from default style file
+        // should default number be stored in css file or in VueResources?
+        for(int si=0;si<DEFAULT_STYLE_CHOICES;si++)
+        {
+           Style currNodeStyle = StyleMap.getStyle("node.w" + (si +1)); 
+           nodeStyles.add(currNodeStyle);
+           linkStyles.add(StyleMap.getStyle("link.w" + (si +1))); 
+        }
+    }
+    
     public void loadDefaultSettings()
     {
-        // these should be read from the resource file in future
-        //(waiting for style loading code)
-        nodeModel.addRow(0,20,new java.awt.Color(230,230,255),Color.BLACK);
-        nodeModel.addRow(21,40,new java.awt.Color(180,180,255),Color.BLACK);
-        nodeModel.addRow(41,60,new java.awt.Color(100,100,255),Color.BLACK);
+        // reading default number of styles from default style file
+        // should default number be stored in css file or in VueResources?
+        for(int si=0;si<DEFAULT_STYLE_CHOICES;si++)
+        {
+           Style currNodeStyle = StyleMap.getStyle("node.w" + (si+1));
+           nodeModel.addRow((int)(si*(100.0/DEFAULT_STYLE_CHOICES)),
+                            (int)((si+1)*(100.0/DEFAULT_STYLE_CHOICES)),
+                            currNodeStyle.getBackgroundColor(),
+                            currNodeStyle.getForegroundColor());
+        }
+        
+            
+        //nodeModel.addRow(0,20,new java.awt.Color(230,230,255),Color.BLACK);
+        //nodeModel.addRow(21,40,new java.awt.Color(180,180,255),Color.BLACK);
+        //nodeModel.addRow(41,60,new java.awt.Color(100,100,255),Color.BLACK);
     }
     
     public void loadSettings()
@@ -219,6 +251,16 @@ public class WeightVisualizationSettingsPanel extends JPanel {
             return foreground;
         }
         
+        public void setBackground(Color bg)
+        {
+            background = bg;
+        }
+        
+        public void setForeground(Color fg)
+        {
+            foreground = fg;
+        }
+        
     }
     
     class PercentageIntervalRenderer extends JPanel implements TableCellRenderer
@@ -240,18 +282,6 @@ public class WeightVisualizationSettingsPanel extends JPanel {
                 end = pi.getEnd();
             }
             
-            //JPanel renderer = new JPanel();
-            
-            //&
-              System.out.println("PercentageIntervalRenderComponent: getComponent");
-              setOpaque(true);
-              setBackground(Color.red);
-            //&
-            
-            // todo: add rounded border for button image effect
-            // perhaps use icon in future for node/link contrast at this spot in GUI?
-            //JTextField startField = new JTextField(start+"");
-            //JTextField endField = new JTextField(end+"");
             startField.setText(start+"");
             endField.setText(end+"");
             add(startField);
@@ -277,10 +307,6 @@ public class WeightVisualizationSettingsPanel extends JPanel {
         
         public java.awt.Component getTableCellEditorComponent(JTable table,Object value,boolean isSelected,int row,int col)
         {
-            //$
-            System.out.println("getTableCellEditorComponent: ");
-            //$
-            //JPanel p = new JPanel();
             if(value instanceof PercentageInterval)
             {    
                PercentageInterval pi = (PercentageInterval)value;
@@ -292,13 +318,6 @@ public class WeightVisualizationSettingsPanel extends JPanel {
                 startField.setText("0");
                 endField.setText("0");
             }
-            //add(startField);
-            //add(endField);
-            
-            //$
-              panel.setOpaque(true);
-              panel.setBackground(Color.BLUE);
-            //$
             
             /*p.addMouseListener(new java.awt.event.MouseAdapter(){
                public void mouseClicked(java.awt.event.MouseEvent e)
@@ -314,81 +333,14 @@ public class WeightVisualizationSettingsPanel extends JPanel {
         {
             return new PercentageInterval(Integer.parseInt(startField.getText()),Integer.parseInt(endField.getText()));
         }
-        
-        /*public void addCellEditorListener(CellEditorListener listener)
-        {
-            System.out.println("WVSP: add listener: " + listener);
-        }
-        
-        public void removeCellEditorListener(CellEditorListener listener)
-        {
-            System.out.println("WVSP: remove listener: " + listener);
-        }
-        
-        public void cancelCellEditing()
-        {
-            System.out.println("WVSP: Cancel cell editing");
-        }
-
-        public boolean isCellEditable(java.util.EventObject e)
-        {
-            return true;
-        }
-        
-        public boolean shouldSelectCell(java.util.EventObject e)
-        {
-            return true;
-        }
-        
-        public boolean stopCellEditing()
-        {
-            System.out.println("WVSP: stop cell editing - returning true");
-            return true;
-        }*/
-        
-        /*public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row, int col)
-        {
-            // these intial values are not likely to be seen (unless wrong class used for value)
-            // just a fail safe as this point
-            int start = 0;
-            int end = 100;
-            
-            if(value instanceof PercentageInterval)
-            {
-                PercentageInterval pi = (PercentageInterval)value;
-                start = pi.getStart();
-                end = pi.getEnd();
-            }
-            
-            //JPanel renderer = new JPanel();
-            
-            //&
-              System.out.println("PercentageIntervalRenderComponent: getComponent");
-              setOpaque(true);
-              setBackground(Color.red);
-            //&
-            
-            // todo: add rounded border for button image effect
-            // perhaps use icon in future for node/link contrast at this spot in GUI?
-            //JTextField startField = new JTextField(start+"");
-            //JTextField endField = new JTextField(end+"");
-            startField.setText(start+"");
-            endField.setText(end+"");
-            startField.setHorizontalAlignment(JTextField.LEFT);
-            endField.setHorizontalAlignment(JTextField.LEFT);
-            //add(startField);
-            //add(endField);
-            return this;
-        }*/
-
-        
+         
     }
     
     class IntervalStylePreviewRenderer implements TableCellRenderer
-    {
+    {   
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row, int col)
         {
-            // not likely to be seen (unless wrong class used for value)
+            // these default colors are not likely to be seen (unless wrong class used for value)
             // just a fail safe as this point
             Color textColor = Color.BLACK;
             Color backColor = Color.WHITE;
@@ -400,20 +352,21 @@ public class WeightVisualizationSettingsPanel extends JPanel {
                 backColor = isp.getBackground();
             }
             
-            JPanel renderer = new JPanel();
-            // todo: add rounded border for button image effect
-            // perhaps use icon in future for node/link contrast at this spot in GUI?
-            
-            //$
-               renderer.setOpaque(true);
-               renderer.setBackground(Color.YELLOW);
-            //$
-            
-            JLabel buttonImage = new JLabel("Label");
+            JPanel renderer = new JPanel(); 
+            javax.swing.BoxLayout boxLayout = new javax.swing.BoxLayout(renderer,javax.swing.BoxLayout.X_AXIS);
+            renderer.setLayout(boxLayout);
+            final JLabel buttonImage = new JLabel("Label");
             buttonImage.setOpaque(true);
             buttonImage.setForeground(textColor);
             buttonImage.setBackground(backColor);
-            JLabel hotSpot = new JLabel("[edit style]");
+            //JLabel hotSpot = new JLabel("[edit style]");
+            javax.swing.JButton hotSpot = new javax.swing.JButton("[edit style]")
+            {
+                public void paintComponent(java.awt.Graphics g)
+                {
+                    g.drawString("  [Edit Style]",0,buttonImage.getY()+ 12);
+                }
+            };
             renderer.add(buttonImage);
             renderer.add(hotSpot);
             return renderer;
@@ -421,34 +374,66 @@ public class WeightVisualizationSettingsPanel extends JPanel {
     }
    
     class IntervalStylePreviewEditor extends javax.swing.AbstractCellEditor implements TableCellEditor
-    {
-        
-        // not likely to be seen (unless wrong class assigned to Table Cell value)
+    {   
+        // these default colors are not likely to be seen (unless wrong class assigned to Table Cell value)
         // just a fail safe as this point
         Color textColor = Color.BLACK;
         Color backColor = Color.WHITE;
 
         private JLabel buttonImage;
-        private JLabel hotSpot;
+       // private JLabel hotSpot;
+        private javax.swing.JButton hotSpot;
         private JPanel panel = new JPanel();
-        
+          
         public IntervalStylePreviewEditor()
-        {
+        {            
+            javax.swing.BoxLayout boxLayout = new javax.swing.BoxLayout(panel,javax.swing.BoxLayout.X_AXIS);
+            panel.setLayout(boxLayout);
             buttonImage = new JLabel("Label");
             buttonImage.setOpaque(true);
             buttonImage.setForeground(textColor);
             buttonImage.setBackground(backColor);
-            hotSpot = new JLabel("[edit style]");
+            //hotSpot = new JLabel("[edit style]");
+            hotSpot = new javax.swing.JButton()
+            {
+                public void paintComponent(java.awt.Graphics g)
+                {
+                    g.drawString("  [Edit Style]",0,buttonImage.getY()+ 12);
+                }
+            };
             panel.add(buttonImage);
             panel.add(hotSpot);
+            //$
+              final javax.swing.JColorChooser chooser = new javax.swing.JColorChooser();
+              final java.awt.event.ActionListener okListener = new java.awt.event.ActionListener()
+              {
+                public void actionPerformed(java.awt.event.ActionEvent e)
+                {
+                    buttonImage.setBackground(chooser.getColor());
+                }
+              };
+              hotSpot.addMouseListener(new java.awt.event.MouseAdapter(){
+                 public void mouseReleased(java.awt.event.MouseEvent e)
+                 {
+                     //System.out.println("wvsp: " + e);
+                     chooser.setColor(backColor);
+                     try
+                     {        
+                       javax.swing.JColorChooser.createDialog(panel,"Color",true,chooser,okListener,null).setVisible(true);;
+                     }
+                     catch(Exception ex)
+                     {
+                         ex.printStackTrace();
+                     }
+                     backColor = chooser.getColor();
+                 }
+              });
+            //$
         }
         
-        public java.awt.Component getTableCellEditorComponent(JTable table,Object value,boolean isSelected,int row,int col)
+        public java.awt.Component getTableCellEditorComponent(JTable table,final Object value,boolean isSelected,int row,int col)
         {
-            //$
-            System.out.println("getTableCellEditorComponent: ");
-            //$
-            //JPanel p = new JPanel();
+            
             if(value instanceof IntervalStylePreview)
             {
                 IntervalStylePreview isp = (IntervalStylePreview)value;
@@ -458,25 +443,12 @@ public class WeightVisualizationSettingsPanel extends JPanel {
             
             buttonImage.setForeground(textColor);
             buttonImage.setBackground(backColor);
-            
-            //$
-              panel.setOpaque(true);
-              panel.setBackground(Color.GREEN);
-            //$
-            
-            /*p.addMouseListener(new java.awt.event.MouseAdapter(){
-               public void mouseClicked(java.awt.event.MouseEvent e)
-               {
-                   System.out.println("Mouse clicked on PI cell editor: " + e);
-               }
-            });*/
-            
             return panel;
         }
         
         public Object getCellEditorValue()
         {
-            return new IntervalStylePreview(textColor,backColor);
+            return new IntervalStylePreview(backColor,textColor);
         }
        
     }
@@ -554,12 +526,13 @@ public class WeightVisualizationSettingsPanel extends JPanel {
         
         public void setValueAt(Object value,int row,int col)
         {
-           //$
-           System.out.println("setValueAt: " + value);
-           //$
            if(col == 0 && (value instanceof PercentageInterval))
            {
                 piList.set(row,(PercentageInterval)value);
+           }
+           if(col == 1 && (value instanceof IntervalStylePreview))
+           {
+               ispList.set(row,(IntervalStylePreview)value);
            }
         }
         
