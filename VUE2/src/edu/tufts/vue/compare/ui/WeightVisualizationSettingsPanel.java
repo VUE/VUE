@@ -384,6 +384,7 @@ public class WeightVisualizationSettingsPanel extends JPanel {
        // private JLabel hotSpot;
         private javax.swing.JButton hotSpot;
         private JPanel panel = new JPanel();
+        private IntervalStylePreview current;
           
         public IntervalStylePreviewEditor()
         {            
@@ -410,6 +411,12 @@ public class WeightVisualizationSettingsPanel extends JPanel {
                 public void actionPerformed(java.awt.event.ActionEvent e)
                 {
                     buttonImage.setBackground(chooser.getColor());
+                    if(current!=null)
+                    {
+                      Style currStyle = StyleMap.getStyle("node.w"+nodeModel.getIndex(current));
+                      if(currStyle!=null)
+                        currStyle.setBackgroundColor(chooser.getColor());
+                    }
                 }
               };
               hotSpot.addMouseListener(new java.awt.event.MouseAdapter(){
@@ -437,6 +444,7 @@ public class WeightVisualizationSettingsPanel extends JPanel {
             if(value instanceof IntervalStylePreview)
             {
                 IntervalStylePreview isp = (IntervalStylePreview)value;
+                current = isp;
                 textColor = isp.getForeground();
                 backColor = isp.getBackground();
             }
@@ -534,6 +542,11 @@ public class WeightVisualizationSettingsPanel extends JPanel {
            {
                ispList.set(row,(IntervalStylePreview)value);
            }
+        }
+        
+        public int getIndex(IntervalStylePreview isp)
+        {
+            return ispList.indexOf(isp);
         }
         
     }
