@@ -70,5 +70,15 @@ public class StyleMap {
         }
         return s;
     }
+    
+    public static String styleToCSS() {
+        String s = new String();
+        Collection<Style> c = m.values();
+        for(Style style: c) {
+            s +=  style.toCSS();
+        }
+        return s;
+        
+    }
 }
 
