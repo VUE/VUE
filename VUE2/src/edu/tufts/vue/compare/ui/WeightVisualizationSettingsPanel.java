@@ -31,6 +31,9 @@ import edu.tufts.vue.style.*;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,7 +52,7 @@ import javax.swing.table.TableModel;
 import tufts.vue.LWMap;
 import tufts.vue.VueResources;
 
-public class WeightVisualizationSettingsPanel extends JPanel {
+public class WeightVisualizationSettingsPanel extends JPanel implements ActionListener{
    
     public static final int DEFAULT_STYLE_CHOICES = 5;
     
@@ -136,6 +139,9 @@ public class WeightVisualizationSettingsPanel extends JPanel {
         gridBag.setConstraints(scroll,c);
         add(scroll);
         
+        //set up event handling within this panel
+        parameterChoice.addActionListener(this);
+        
     }
     
     //Likely will do more than just return map later, Probably will be initialized as needed in the constructor
@@ -151,8 +157,8 @@ public class WeightVisualizationSettingsPanel extends JPanel {
         // should default number be stored in css file or in VueResources?
         for(int si=0;si<DEFAULT_STYLE_CHOICES;si++)
         {
-           Style currNodeStyle = StyleMap.getStyle("node.w" + (si +1)); 
-           nodeStyles.add(currNodeStyle);
+           //Style currNodeStyle = StyleMap.getStyle("node.w" + (si +1)); 
+           nodeStyles.add(StyleMap.getStyle("node.w" + (si +1)));
            linkStyles.add(StyleMap.getStyle("link.w" + (si +1))); 
         }
     }
@@ -164,10 +170,23 @@ public class WeightVisualizationSettingsPanel extends JPanel {
         for(int si=0;si<DEFAULT_STYLE_CHOICES;si++)
         {
            Style currNodeStyle = StyleMap.getStyle("node.w" + (si+1));
-           nodeModel.addRow((int)(si*(100.0/DEFAULT_STYLE_CHOICES)),
-                            (int)((si+1)*(100.0/DEFAULT_STYLE_CHOICES)),
-                            currNodeStyle.getBackgroundColor(),
-                            currNodeStyle.getForegroundColor());
+           if(currNodeStyle !=null)
+           {
+             nodeModel.addRow((int)(si*(100.0/DEFAULT_STYLE_CHOICES)),
+                              (int)((si+1)*(100.0/DEFAULT_STYLE_CHOICES)),
+                              currNodeStyle.getBackgroundColor(),
+                              currNodeStyle.getForegroundColor());
+           }
+           
+           Style currLinkStyle = StyleMap.getStyle("link.w" + (si+1));
+           if(currLinkStyle !=null)
+           {
+             linkModel.addRow((int)(si*(100.0/DEFAULT_STYLE_CHOICES)),
+                              (int)((si+1)*(100.0/DEFAULT_STYLE_CHOICES)),
+                              currLinkStyle.getBackgroundColor(),
+                              currLinkStyle.getForegroundColor());
+           }
+           
         }
         
             
@@ -195,6 +214,15 @@ public class WeightVisualizationSettingsPanel extends JPanel {
         else
         {
             intervalList.setModel(linkModel);
+        }
+    }
+    
+    public void actionPerformed(ActionEvent e)
+    {
+        if(e.getSource() == parameterChoice)
+        {
+            setModel();
+            validate();
         }
     }
     
@@ -384,7 +412,8 @@ public class WeightVisualizationSettingsPanel extends JPanel {
        // private JLabel hotSpot;
         private javax.swing.JButton hotSpot;
         private JPanel panel = new JPanel();
-        private IntervalStylePreview current;
+        //private IntervalStylePreview current;
+        private int currentRow = 0;
           
         public IntervalStylePreviewEditor()
         {            
@@ -411,9 +440,15 @@ public class WeightVisualizationSettingsPanel extends JPanel {
                 public void actionPerformed(java.awt.event.ActionEvent e)
                 {
                     buttonImage.setBackground(chooser.getColor());
-                    if(current!=null)
+                    if(/*current!=null &&*/ (parameterChoice.getSelectedIndex() == 0))
                     {
-                      Style currStyle = StyleMap.getStyle("node.w"+nodeModel.getIndex(current));
+                      Style currStyle = StyleMap.getStyle("node.w"+(currentRow+1));
+                      if(currStyle!=null)
+                        currStyle.setBackgroundColor(chooser.getColor());
+                    }
+                    if(/*current!=null && */(parameterChoice.getSelectedIndex() == 1))
+                    {
+                      Style currStyle = StyleMap.getStyle("link.w"+(currentRow+1));
                       if(currStyle!=null)
                         currStyle.setBackgroundColor(chooser.getColor());
                     }
@@ -433,6 +468,7 @@ public class WeightVisualizationSettingsPanel extends JPanel {
                          ex.printStackTrace();
                      }
                      backColor = chooser.getColor();
+                     stopCellEditing();
                  }
               });
             //$
@@ -444,10 +480,12 @@ public class WeightVisualizationSettingsPanel extends JPanel {
             if(value instanceof IntervalStylePreview)
             {
                 IntervalStylePreview isp = (IntervalStylePreview)value;
-                current = isp;
+                //current = isp;
                 textColor = isp.getForeground();
                 backColor = isp.getBackground();
             }
+            
+            currentRow = row;
             
             buttonImage.setForeground(textColor);
             buttonImage.setBackground(backColor);
@@ -457,6 +495,7 @@ public class WeightVisualizationSettingsPanel extends JPanel {
         public Object getCellEditorValue()
         {
             return new IntervalStylePreview(backColor,textColor);
+            //return current;
         }
        
     }

@@ -134,7 +134,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         generate = new JButton("Generate");
         generateDemo = new JButton("Generate Weighted Merge Demo");
-        buttonPane.add(generateDemo);
+        //buttonPane.add(generateDemo);
         buttonPane.add(generate);
         JTabbedPane mTabbedPane = new JTabbedPane();
         //chooser.add(BorderLayout.CENTER,mTabbedPane);
@@ -600,7 +600,35 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         }
         if(e.getSource() == generate)
         {
-            sp.generate();
+            if(vizChoice.getSelectedIndex() == 0)
+              sp.generate();
+            else
+            {
+             
+               LWMergeMap map = new LWMergeMap(LWMergeMap.getTitle());
+               //fail safe default value for base map is active map
+               if(baseMap == null)
+               {
+                 baseMap = VUE.getActiveMap();
+               }
+               Object baseMapObject = baseChoice.getSelectedItem();
+               if(baseMapObject instanceof LWMap)
+                 baseMap = (LWMap)baseMapObject;
+               //if(choice.getSelectedItem().equals(ALL_TEXT))
+               //{
+               Iterator <LWMap> i = VUE.getLeftTabbedPane().getAllMaps();
+               while(i.hasNext())
+               {
+                mapList.add(i.next());
+               }
+               map.setSelectChoice("all");
+               
+           
+           
+               createWeightedMerge(map);
+               VUE.displayMap(map);
+                
+            }
         }
     }
     
@@ -1019,6 +1047,11 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             {
                 p.pack();
             }
+        }
+        
+        public List<LWMap> generateMapList()
+        {
+            return mapList;
         }
         
         public void generate()
