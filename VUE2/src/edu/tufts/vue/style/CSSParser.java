@@ -124,7 +124,6 @@ public class CSSParser {
                 if (tokenBufferLength > 0) {
                     if (tokenBuffer[0] == '@') {
                         parseAtRule();
-                        System.out.println("in token buffer:"+token);
                     } else {
                         encounteredRuleSet = true;
                         parseRuleSet();
@@ -135,7 +134,6 @@ public class CSSParser {
             case BRACE_OPEN:
             case PAREN_OPEN:
                 parseTillClosed(token);
-                System.out.println("paren open:"+token);
                 return true;
                 
             case BRACKET_CLOSE:
@@ -231,7 +229,6 @@ public class CSSParser {
         int       nextToken;
         if (tokenBufferLength > 0) {
             String selector = new String(tokenBuffer,0,tokenBufferLength);
-            System.out.println("selector: "+selector);
             if(selector.startsWith(NODE_PREFIX)) {
                 currentStyle = new NodeStyle(selector);
             }else if(selector.startsWith(LINK_PREFIX)){
@@ -248,12 +245,12 @@ public class CSSParser {
                 if (tokenBufferLength > 0) {
                     String att = new String(tokenBuffer,0,tokenBufferLength);
                     
-                    System.out.println("att:"+att);
+                    //System.out.println("att:"+att);
                     // callback.handleSelector(new String(tokenBuffer, 0,
                     //     tokenBufferLength));
                 }
             }
-            System.out.println("END: parsing2:"+charToString(tokenBuffer)+ " token:"+nextToken);
+            //System.out.println("END: parsing2:"+charToString(tokenBuffer)+ " token:"+nextToken);
             
             switch (nextToken) {
                 case BRACE_OPEN:
@@ -282,7 +279,6 @@ public class CSSParser {
     private void parseTillClosed(int openToken) throws IOException {
         int       nextToken;
         boolean   done = false;
-        System.out.println("Parse till closed:"+done);
         startBlock(openToken);
         while (!done) {
             nextToken = nextToken((char)0);
@@ -605,11 +601,9 @@ public class CSSParser {
      * Called when a block start is encountered ({[.
      */
     private void startBlock(int startToken) {
-        System.out.println("START TOKEN: "+startToken+" stackCount:"+stackCount+ " unitStack.length:"+unitStack.length);
         
         if (stackCount == unitStack.length) {
             int[]     newUS = new int[stackCount * 2];
-            System.out.println("START TOKEN: "+startToken+" stackCount:"+stackCount+" - "+newUS);
             System.arraycopy(unitStack, 0, newUS, 0, stackCount);
             unitStack = newUS;
         }
@@ -710,7 +704,6 @@ public class CSSParser {
             String tokens[] = keyValues[i].split(":");
             if(tokens.length ==  2) {
                 map.put(tokens[0],tokens[1]);
-                System.out.println("key: "+tokens[0]+" values:"+tokens[1]);
             }
             
         }
