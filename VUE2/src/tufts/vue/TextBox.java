@@ -18,18 +18,11 @@
 
 package tufts.vue;
 
-import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.TextRow;
-import tufts.vue.gui.formattingpalette.TextPropsPane;
-import tufts.vue.gui.formattingpalette.ekit.ExtendedHTMLDocument;
-import tufts.vue.gui.formattingpalette.ekit.ExtendedHTMLEditorKit;
-import tufts.vue.gui.formattingpalette.ekit.HTMLUtilities;
-import tufts.vue.gui.formattingpalette.ekit.ListAutomationAction;
 
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Font;
@@ -37,28 +30,16 @@ import java.awt.Color;
 import java.awt.BasicStroke;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
-import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.Enumeration;
 
 import javax.swing.JTextPane;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.*;
-import javax.swing.text.StyledEditorKit.FontFamilyAction;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.StyleSheet;
 
 //import java.awt.font.LineBreakMeasurer;
 //import java.awt.font.TextAttribute;
@@ -106,7 +87,7 @@ import javax.swing.text.html.StyleSheet;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.44 $ / $Date: 2007-02-16 03:31:30 $ / $Author: mike $
+ * @version $Revision: 1.45 $ / $Date: 2007-02-16 04:03:07 $ / $Author: mike $
  *
  */
 
@@ -114,7 +95,7 @@ public class TextBox extends JTextPane
     implements VueConstants
                , FocusListener
                , KeyListener
-               , DocumentListener              
+               , DocumentListener
 {
 // todo: duplicate not working[? for wrap only? ]
 
@@ -135,61 +116,18 @@ public class TextBox extends JTextPane
     private float mMaxWordWidth;
     
     private boolean mKeepHeight = false;
-    public final static int LEFT_JUSTIFY = 0;
-    public final static int RIGHT_JUSTIFY = 2;
-    public final static int CENTER_JUSTIFY = 1;
-
-    public StyledEditorKit.BoldAction boldAction = new StyledEditorKit.BoldAction();
-    public StyledEditorKit.UnderlineAction underlineAction = new StyledEditorKit.UnderlineAction();
-    public StyledEditorKit.ItalicAction italicAction = new StyledEditorKit.ItalicAction();
-    public StyledEditorKit.AlignmentAction leftAlignmentAction = new StyledEditorKit.AlignmentAction("Align Left",StyleConstants.ALIGN_LEFT);
-    public StyledEditorKit.AlignmentAction rightAlignmentAction = new StyledEditorKit.AlignmentAction("Align Right",StyleConstants.ALIGN_RIGHT);
-    public StyledEditorKit.AlignmentAction centerAlignmentAction = new StyledEditorKit.AlignmentAction("Align Center",StyleConstants.ALIGN_CENTER);
-    public ListAutomationAction actionListUnordered   = new ListAutomationAction(this,"List Unordered", HTML.Tag.UL);
-    public ListAutomationAction actionListOrdered   = new ListAutomationAction(this,"List Ordered", HTML.Tag.OL);
-    public StyledEditorKit.ForegroundAction foregroundAction = null;
-    public StyledEditorKit.FontSizeAction fontSizeAction = null;
-    public FontFamilyAction fontFaceAction = null;
-	private ExtendedHTMLEditorKit htmlKit;
-	private ExtendedHTMLDocument htmlDoc;
-	private StyleSheet styleSheet;
-	private HTMLUtilities htmlUtilities = new HTMLUtilities(this);
     
     TextBox(LWComponent lwc)
     {
         this(lwc, null);
     }
 
- 
     TextBox(LWComponent lwc, String text)
     {
         if (DEBUG.TEXT && DEBUG.LAYOUT) tufts.Util.printClassTrace("tufts.vue.", "NEW TextBox, txt=" + text);
         if (TestDebug||DEBUG.TEXT) out("NEW [" + text + "] " + lwc);
         
         this.lwc = lwc;
-        
-        setContentType("text/html");// for attributes + unicode, but will need lots of work
-        htmlKit = new ExtendedHTMLEditorKit();
-		htmlDoc = (ExtendedHTMLDocument)(htmlKit.createDefaultDocument());
-		styleSheet = htmlDoc.getStyleSheet();
-		URL ref = VueResources.getURL("lists.css");
-		InputStream is;
-		try {
-			is = ref.openStream();
-			BufferedReader br = new BufferedReader(new InputStreamReader(is));			
-			styleSheet.loadRules(br, ref);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		
-
-		/* Set up the text pane */
-		setEditorKit(htmlKit);
-		setDocument(htmlDoc);
-		
         //setBorder(javax.swing.border.LineBorder.createGrayLineBorder());
         // don't set border -- adds small margin that screws us up, especially
         // at high scales
@@ -200,16 +138,14 @@ public class TextBox extends JTextPane
         setMargin(null);
         setOpaque(false); // don't bother to paint background
         setVisible(true);
-        
         //setFont(SmallFont);
         // PC text pane will pick this font up up as style for
         // document, but mac ignores.
             
         //setAlignmentX(1f);//nobody's paying attention to this
 
-        
-        
-        
+        //setContentType("text/rtf"); for attributes + unicode, but will need lots of work
+
         addKeyListener(this);
         addFocusListener(this);
         getDocument().addDocumentListener(this);
@@ -239,14 +175,6 @@ public class TextBox extends JTextPane
     }
     */
 
-	/** Convenience method for refreshing and displaying changes
-	  */
-	public void refreshOnUpdate()
-	{
-		
-	//	setText(getText());
-		//repaint();
-	}
     public float getMaxCharWidth() {
         return mMaxCharWidth;
     }
@@ -258,28 +186,8 @@ public class TextBox extends JTextPane
     LWComponent getLWC() {
         return this.lwc;
     }
-    
-    public void setForegroundAction(Color c)
-    {
-    	foregroundAction = new StyledEditorKit.ForegroundAction("Foreground Action", c);
-    	foregroundAction.actionPerformed(null);
-    	foregroundAction = null;
-    }
 
-    public void setFontSizeAction(int size)
-    {
-    	fontSizeAction = new StyledEditorKit.FontSizeAction("FontSoze Action", size);
-    	fontSizeAction.actionPerformed(null);
-    	fontSizeAction = null;
-    }
-    
-    public void setFontFaceAction(String face)
-    {
-    	fontFaceAction = new StyledEditorKit.FontFamilyAction("FontFamily Action", face);
-    	fontFaceAction.actionPerformed(null);
-    	fontFaceAction = null;
-    }
-    
+
     /*
      * When activated for editing, draw an appropriate background color
      * for the node -- the we need to do because if it's a small on-screen
@@ -461,30 +369,8 @@ public class TextBox extends JTextPane
         setCaretPosition(getCaretPosition());
     }
 
-    public void setCaretPosition(int newPositon)
-	{
-		boolean end = true;
-		do
-		{
-			end = true;
-			try
-			{
-				super.setCaretPosition(newPositon);
-			}
-			catch (IllegalArgumentException iae)
-			{
-				end = false;
-				newPositon--;
-			}
-		} while(!end && newPositon >= 0);
-	}
-    
-    public void setText(final String text)
-    {    	
-
-    	
-                               
-         
+    public void setText(String text)
+    {
         if (getDocument() == null) {
             out("creating new document");
             setStyledDocument(new DefaultStyledDocument());
@@ -495,14 +381,13 @@ public class TextBox extends JTextPane
             System.err.println(e);
             }*/ 
         if (TestDebug||DEBUG.TEXT) out("setText[" + text + "]");
-        TextBox.super.setText(text);
-        copyStyle(TextBox.this.lwc);
+        super.setText(text);
+        copyStyle(this.lwc);
         if (WrapText) {
             ;
         } else {
             setSize(getPreferredSize());
         }
-    	
     }
 
     public boolean keepHeight() {
@@ -541,53 +426,7 @@ public class TextBox extends JTextPane
         StyleConstants.setBold(a, f.isBold());
     }
 
-    public boolean isBoldEnabled()
-    {
-    	AttributeSet charAtts = this.getCharacterAttributes();
-    	Boolean b= (Boolean)charAtts.getAttribute(StyleConstants.Bold);
-    	return b.booleanValue();
-    }
     
-    public void toggleBoldMode(boolean enabled)
-    {
-    	//If its already correct do nothing otherwise toggle it.
-    	if (enabled == isBoldEnabled())
-    		return;
-    	else
-    		boldAction.actionPerformed(null);
-    }
-    
-    public boolean isItalicEnabled()
-    {
-    	AttributeSet charAtts = this.getCharacterAttributes();
-    	Boolean b= (Boolean)charAtts.getAttribute(StyleConstants.Italic);
-    	return b.booleanValue();
-    }
-    
-    public void toggleItalicMode(boolean enabled)
-    {
-    	//If its already correct do nothing otherwise toggle it.
-    	if (enabled == isItalicEnabled())
-    		return;
-    	else
-    		italicAction.actionPerformed(null);
-    }
-    
-    public boolean isUnderlineEnabled()
-    {
-    	AttributeSet charAtts = this.getCharacterAttributes();
-    	Boolean b= (Boolean)charAtts.getAttribute(StyleConstants.Underline);
-    	return b.booleanValue();
-    }
-    
-    public void toggleUnderlineMode(boolean enabled)
-    {
-    	//If its already correct do nothing otherwise toggle it.
-    	if (enabled == isUnderlineEnabled())
-    		return;
-    	else
-    		boldAction.actionPerformed(null);
-    }
     // this called every time setText is called to ensure we get
     // the font style encoded in our owning LWComponent
     void copyStyle(LWComponent c)
@@ -781,7 +620,7 @@ public class TextBox extends JTextPane
     }
     
     public void keyReleased(KeyEvent e) { e.consume(); }
-    //public void keyTyped(KeyEvent e) {
+    public void keyTyped(KeyEvent e) {
         // todo: would be nice if centered labels stayed center as you typed them
         //setLocation((int)lwc.getLabelX(), (int)lwc.getLabelY());
         // needs something else, plus can't work at zoom because
@@ -790,198 +629,7 @@ public class TextBox extends JTextPane
         // Man, it would be REALLY nice if we could paint the
         // real component in a scaled GC w/out the font tweaking --
         // problems like this would go away.
-    /* KeyListener methods */
-	public void keyTyped(KeyEvent ke)
-	{
-		Element elem;
-		String selectedText;
-		int pos = this.getCaretPosition();
-		int repos = -1;
-		if(ke.getKeyChar() == KeyEvent.VK_BACK_SPACE)
-		{
-			try
-			{
-				if(pos > 0)
-				{
-					if((selectedText = getSelectedText()) != null)
-					{
-						htmlUtilities.delete();
-						return;
-					}
-					else
-					{
-						int sOffset = htmlDoc.getParagraphElement(pos).getStartOffset();
-						if(sOffset == getSelectionStart())
-						{
-							boolean content = true;
-							if(htmlUtilities.checkParentsTag(HTML.Tag.LI))
-							{
-								elem = htmlUtilities.getListItemParent();
-								content = false;
-								int so = elem.getStartOffset();
-								int eo = elem.getEndOffset();
-								if(so + 1 < eo)
-								{
-									char[] temp = getText(so, eo - so).toCharArray();
-									for(int i=0; i < temp.length; i++)
-									{
-										if(!(new Character(temp[i])).isWhitespace(temp[i]))
-										{
-											content = true;
-										}
-									}
-								}
-								if(!content)
-								{
-									Element listElement = elem.getParentElement();
-									htmlUtilities.removeTag(elem, true);
-									this.setCaretPosition(sOffset - 1);
-									return;
-								}
-								else
-								{
-									setCaretPosition(getCaretPosition() - 1);
-									moveCaretPosition(getCaretPosition() - 2);
-									replaceSelection("");
-									return;
-								}
-							}
-							else if(htmlUtilities.checkParentsTag(HTML.Tag.TABLE))
-							{
-								setCaretPosition(getCaretPosition() - 1);
-								ke.consume();
-								return;
-							}
-						}
-						replaceSelection("");
-						return;
-					}
-				}
-			}
-			catch (BadLocationException ble)
-			{
-	//			logException("BadLocationException in keyTyped method", ble);
-		//		SimpleInfoDialog sidAbout = new SimpleInfoDialog(this.getFrame(), Translatrix.getTranslationString("Error"), true, Translatrix.getTranslationString("ErrorBadLocationException"), SimpleInfoDialog.ERROR);
-			}
-			catch (IOException ioe)
-			{
-			//	logException("IOException in keyTyped method", ioe);
-				//SimpleInfoDialog sidAbout = new SimpleInfoDialog(this.getFrame(), Translatrix.getTranslationString("Error"), true, Translatrix.getTranslationString("ErrorIOException"), SimpleInfoDialog.ERROR);
-			}
-		}
-		else if(ke.getKeyChar() == KeyEvent.VK_ENTER)
-		{			
-			try
-			{
-				if(htmlUtilities.checkParentsTag(HTML.Tag.UL) == true | htmlUtilities.checkParentsTag(HTML.Tag.OL) == true)
-				{
-					elem = htmlUtilities.getListItemParent();
-					int so = elem.getStartOffset();
-					int eo = elem.getEndOffset();
-					char[] temp = getText(so,eo-so).toCharArray();
-					boolean content = false;
-					for(int i=0;i<temp.length;i++)
-					{
-						if(!(new Character(temp[i])).isWhitespace(temp[i]))
-						{
-							content = true;
-						}
-					}
-					if(content)
-					{
-						int end = -1;
-						int j = temp.length;
-						do
-						{
-							j--;
-							if(new Character(temp[j]).isLetterOrDigit(temp[j]))
-							{
-								end = j;
-							}
-						} while (end == -1 && j >= 0);
-						j = end;
-						do
-						{
-							j++;
-							if(!new Character(temp[j]).isSpaceChar(temp[j]))
-							{
-								repos = j - end -1;
-							}
-						} while (repos == -1 && j < temp.length);
-						if(repos == -1)
-						{
-							repos = 0;
-						}
-					}
-					if(elem.getStartOffset() == elem.getEndOffset() || !content)
-					{
-						manageListElement(elem);
-					}
-					else
-					{
-						if(this.getCaretPosition() + 1 == elem.getEndOffset())
-						{
-							insertListStyle(elem);
-							this.setCaretPosition(pos - repos);
-						}
-						else
-						{
-							int caret = this.getCaretPosition();
-							String tempString = getText(caret, eo - caret);
-							select(caret, eo - 1);
-							replaceSelection("");
-							htmlUtilities.insertListElement(tempString);
-							Element newLi = htmlUtilities.getListItemParent();
-							this.setCaretPosition(newLi.getEndOffset() - 1);
-						}
-					}
-				}				
-			}
-			catch (BadLocationException ble)
-			{
-				//logException("BadLocationException in keyTyped method", ble);
-				//SimpleInfoDialog sidAbout = new SimpleInfoDialog(this.getFrame(), Translatrix.getTranslationString("Error"), true, Translatrix.getTranslationString("ErrorBadLocationException"), SimpleInfoDialog.ERROR);
-				ble.printStackTrace();
-			}
-			catch (IOException ioe)
-			{
-				ioe.printStackTrace();
-				//logException("IOException in keyTyped method", ioe);
-				//SimpleInfoDialog sidAbout = new SimpleInfoDialog(this.getFrame(), Translatrix.getTranslationString("Error"), true, Translatrix.getTranslationString("ErrorIOException"), SimpleInfoDialog.ERROR);
-			}
-		}
-	}
-	
-	/** Method for inserting list elements
-	  */
-	public void insertListStyle(Element element)
-	throws BadLocationException,IOException
-	{	
-		if(element.getParentElement().getName() == "ol")
-		{
-  			actionListOrdered.actionPerformed(new ActionEvent(new Object(), 0, "newListPoint"));
-		}
-		else
-		{
-			actionListUnordered.actionPerformed(new ActionEvent(new Object(), 0, "newListPoint"));
-		}
-	}
-	/** Method that handles initial list insertion and deletion
-	  */
-	public void manageListElement(Element element)
-	{
-		if (DEBUG.LISTS)
-			out("manage list element");
-		Element h = htmlUtilities.getListItemParent();
-		System.out.println("H : " + h.toString());
-		Element listElement = h.getParentElement();
-		System.out.println("listelement : " + listElement.toString());
-		if(h != null)
-		{
-			System.out.println("REMOVE");
-			htmlUtilities.removeTag(h, true);
-		}
-	}
+    }
     private static boolean isFinishEditKeyPress(KeyEvent e) {
         // if we hit return key either on numpad ("enter" key), or
         // with any modifier down except a shift alone (in case of
@@ -1041,15 +689,8 @@ public class TextBox extends JTextPane
     public void focusLost(FocusEvent e)
     {
         if (TestDebug||DEBUG.FOCUS) outc("focusLost to " + e.getOppositeComponent());
-        
-        if ((TestHarness == false && getParent() != null) && 
-        		((e.getOppositeComponent() != null) && !(e.getOppositeComponent().getName().equals("Format"))))
-        {
+        if (TestHarness == false && getParent() != null)
             getParent().remove(this);
-            VUE.getFormattingPanel().getTextPropsPane().setActiveTextControl(null);
-        }
-        else
-        	return;
         if (keyWasPressed) { // TODO: as per VueTextField, need to handle drag & drop detect
             // only do this if they typed something (so we don't wind up with "label"
             // for the label on an accidental edit activation)
@@ -1275,8 +916,8 @@ public class TextBox extends JTextPane
         // when setting the translation before painting us.
         
         if (DEBUG.BOXES && DEBUG.META) {
-            if (lwc.getStyledLabel().indexOf('\n') < 0) {
-                TextRow r = new TextRow(lwc.getStyledLabel(), lwc.getFont(), dc.g.getFontRenderContext());
+            if (lwc.getLabel().indexOf('\n') < 0) {
+                TextRow r = new TextRow(lwc.getLabel(), lwc.getFont(), dc.g.getFontRenderContext());
                 dc.g.setColor(Color.lightGray);
                 r.draw(dc.g, 0, 0);
             }
@@ -1407,30 +1048,11 @@ public class TextBox extends JTextPane
         TestHarness = true;
         DEBUG.BOXES = true;
         LWComponent node = new LWNode("Foo");
-        TextBox box = new TextBox(node, VueResources.getString("newnode.html"));        
+        TextBox box = new TextBox(node, "One Two Three Four Five Six Seven");
         java.awt.Window w = GUI.createDockWindow("TextBox Resize Test", new TestPanel(box));
         w.setVisible(true);
         //tufts.Util.displayComponent(panel);
     }
+    
 
-	/*public void setAlignmentMode(int mode) {
-			if (mode == LEFT_JUSTIFY)
-				this.leftAlignmentAction.actionPerformed(null);
-			else if (mode == CENTER_JUSTIFY)
-				this.centerAlignmentAction.actionPerformed(null);
-			else if (mode == RIGHT_JUSTIFY)
-				this.rightAlignmentAction.actionPerformed(null);
-		
-	}
-	
-	public int getAlignmentMode()
-	{
-		SimpleAttributeSet a = new SimpleAttributeSet();
-		//StyleConstants.getAlignment(arg0)
-		AttributeSet attSet = this.getParagraphAttributes();
-		Object val = attSet.getAttribute(StyleConstants.Alignment);
-		System.out.println(val.toString());
-		//this.get
-		return 1;
-	}*/
 }

@@ -35,6 +35,7 @@ import tufts.vue.VUE;
 
 public class HTMLUtilities
 {
+
 	TextBox parent;
 	Hashtable tags = new Hashtable();
 
@@ -96,7 +97,7 @@ public class HTMLUtilities
 		SimpleAttributeSet sa = new SimpleAttributeSet(element.getAttributes());
 		sa.addAttribute("id", idString);
 		((ExtendedHTMLDocument)parent.getDocument()).replaceAttributes(element, sa, HTML.Tag.LI);
-		parent.refreshOnUpdate();
+//		parent.refreshOnUpdate();
 	
 		source = parent.getText();
 		StringBuffer newHtmlString = new StringBuffer();
@@ -108,7 +109,7 @@ public class HTMLUtilities
 		newHtmlString.append(source.substring(positions[3] + 1, source.length()));
 		VUE.getFormattingPanel().getTextPropsPane().disableCaretListener();
 		parent.setText(newHtmlString.toString());
-		parent.refreshOnUpdate();
+		//parent.refreshOnUpdate();
 		VUE.getFormattingPanel().getTextPropsPane().enableCaretListener();
 		parent.setCaretPosition(pos - 1);
 		element = getListItemParent();
@@ -154,7 +155,7 @@ public class HTMLUtilities
 		SimpleAttributeSet sa = new SimpleAttributeSet(element.getAttributes());
 		sa.addAttribute("id", idString);
 		((ExtendedHTMLDocument)parent.getDocument()).replaceAttributes(element, sa, tag);
-		parent.refreshOnUpdate();
+		//parent.refreshOnUpdate();
 		source = parent.getText();
 		StringBuffer newHtmlString = new StringBuffer();
 		int[] position = getPositions(element, source, closingTag, idString);
@@ -188,7 +189,7 @@ public class HTMLUtilities
 		//System.out.println("ABOUT TO REMOVE TAG: " +newHtmlString.toString());
 		VUE.getFormattingPanel().getTextPropsPane().disableCaretListener();
 		parent.setText(newHtmlString.toString());
-		parent.refreshOnUpdate();
+		//parent.refreshOnUpdate();
 		VUE.getFormattingPanel().getTextPropsPane().enableCaretListener();
 	}
 
@@ -406,7 +407,7 @@ public class HTMLUtilities
 
 	public String[] getUniString(int strings)
 	{
-		parent.refreshOnUpdate();
+		//parent.refreshOnUpdate();
 		String[] result = new String[strings];
 		String source = parent.getText();
 		for(int i=0; i<strings; i++)
@@ -449,7 +450,7 @@ public class HTMLUtilities
 		}
 		htmlDoc.insertString(selStart,posStrings[0],null);
 		htmlDoc.insertString(selEnd+posStrings[0].length(),posStrings[1],null);
-		parent.refreshOnUpdate();
+		//parent.refreshOnUpdate();
 /*		int start = jtpSource.getText().indexOf(posStrings[0]);
 		int end = jtpSource.getText().indexOf(posStrings[1]);
 		if(start == -1 || end == -1)

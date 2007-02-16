@@ -172,7 +172,7 @@ public class TextPropsPane extends JPanel implements CaretListener// ,
 		textBox.addCaretListener(this);
 	}
 	private void addListeners() {
-		
+	/*	
 		colorButton.addMouseListener(new MouseAdapter(){
 			public void mouseClicked(MouseEvent e)
 			{
@@ -262,7 +262,7 @@ public class TextPropsPane extends JPanel implements CaretListener// ,
 			}
 
 		});
-
+*/
 	}
 	
 	private void addComponents() {

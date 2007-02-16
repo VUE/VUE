@@ -65,7 +65,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.303 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $ 
+ * @version $Revision: 1.304 $ / $Date: 2007-02-16 04:03:07 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2164,7 +2164,7 @@ public class MapViewer extends javax.swing.JComponent
         
         activeTextEdit.selectAll();
         add(activeTextEdit);
-        VUE.getFormattingPanel().getTextPropsPane().setActiveTextControl(activeTextEdit);
+      //  VUE.getFormattingPanel().getTextPropsPane().setActiveTextControl(activeTextEdit);
         if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from addNotify");
         activeTextEdit.requestFocus();
         if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from requestFocus");
