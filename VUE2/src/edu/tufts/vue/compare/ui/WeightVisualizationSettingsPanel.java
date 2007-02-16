@@ -200,7 +200,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
            Style currLinkStyle = StyleMap.getStyle("link.w" + (si+1));
            if(currLinkStyle !=null)
            {
-             System.out.println("wvsp: default styles: " + currLinkStyle.getAttribute("background"));
+             //System.out.println("wvsp: default styles: " + currLinkStyle.getAttribute("background"));
              linkModel.addRow((int)(si*(100.0/DEFAULT_STYLE_CHOICES)),
                               (int)((si+1)*(100.0/DEFAULT_STYLE_CHOICES)),
                               Style.hexToColor(currLinkStyle.getAttribute("background")),Color.BLACK);

@@ -512,6 +512,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                // mapList.add(i.next());
                //}
                
+               sp.fillMapList();
                mapList = sp.getMapList();
                //need to get from sp
                //map.setSelectChoice("all");
@@ -890,17 +891,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             return mapList;
         }
         
-        public void generate()
+        public void fillMapList()
         {
-            LWMergeMap map = new LWMergeMap(LWMergeMap.getTitle());
-               //fail safe default value for base map is active map
-               if(baseMap == null)
-               {
-                 baseMap = VUE.getActiveMap();
-               }
-               Object baseMapObject = baseChoice.getSelectedItem();
-               if(baseMapObject instanceof LWMap)
-                 baseMap = (LWMap)baseMapObject;
                if(choice.getSelectedItem().equals(ALL_TEXT))
                {
                  Iterator <LWMap> i = VUE.getLeftTabbedPane().getAllMaps();
@@ -908,7 +900,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                  {
                    mapList.add(i.next());
                  }
-                 map.setSelectChoice("all");
+                 //map.setSelectChoice("all");
                }
                else if(choice.getSelectedItem().equals(LIST_TEXT))
                {
@@ -926,8 +918,53 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                    activeFileList.add(new Boolean(mlep.isActive())); 
                  }
                  mapList.addAll(listPanelMaps);
-                 map.setMapFileList(mapFileList);
-                 map.setActiveMapList(activeFileList);
+                 //map.setMapFileList(mapFileList);
+                 //map.setActiveMapList(activeFileList);
+                 //map.setSelectChoice("list");
+               }
+        }
+        
+        public void generate()
+        {
+            LWMergeMap map = new LWMergeMap(LWMergeMap.getTitle());
+               //fail safe default value for base map is active map
+               if(baseMap == null)
+               {
+                 baseMap = VUE.getActiveMap();
+               }
+               Object baseMapObject = baseChoice.getSelectedItem();
+               if(baseMapObject instanceof LWMap)
+                 baseMap = (LWMap)baseMapObject;
+               
+               fillMapList();
+               
+               if(choice.getSelectedItem().equals(ALL_TEXT))
+               {
+                 /*Iterator <LWMap> i = VUE.getLeftTabbedPane().getAllMaps();
+                 while(i.hasNext())
+                 {
+                   mapList.add(i.next());
+                 }*/
+                 map.setSelectChoice("all");
+               }
+               else if(choice.getSelectedItem().equals(LIST_TEXT))
+               {
+                 /*ArrayList<LWMap> listPanelMaps = new ArrayList<LWMap> ();
+                 ArrayList<File> mapFileList = new ArrayList<File> ();
+                 ArrayList<Boolean> activeFileList = new ArrayList<Boolean> ();
+                 for(int i=0;i<listPanel.getComponentCount();i++)
+                 {
+                   MapListElementPanel mlep = (MapListElementPanel)listPanel.getComponent(i);
+                   if(mlep.isActive())
+                   {
+                     listPanelMaps.add(mlep.getMap());
+                   }
+                   mapFileList.add(mlep.getMap().getFile());
+                   activeFileList.add(new Boolean(mlep.isActive())); 
+                 }
+                 mapList.addAll(listPanelMaps); */
+                 //map.setMapFileList(getMapFileList());
+                 //map.setActiveMapList(activeFileList);
                  map.setSelectChoice("list");
                }
 
