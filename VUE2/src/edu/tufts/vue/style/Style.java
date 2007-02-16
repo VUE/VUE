@@ -79,12 +79,9 @@ public abstract class Style {
         for(String key: keys) {
             s += key+":"+attributes.get(key)+";";
         }
-        s+=styleToCSS();
         s +="\n"+CLOSE+"\n";
         return s;
     }
-    abstract String styleToCSS();
-    
     
     public static String colorToHex(Color color) {
         
@@ -200,7 +197,7 @@ public abstract class Style {
      * with a % after indicating a percentage value of 255. Values are
      * constrained to fit with 0-255. The resulting Color is returned.
      */
-   private static Color parseRGB(String string) {
+    private static Color parseRGB(String string) {
         // Find the next numeric char
         int[] index = new int[1];
         

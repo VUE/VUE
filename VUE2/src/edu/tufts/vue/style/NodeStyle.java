@@ -30,18 +30,4 @@ public class NodeStyle extends Style {
         this.name = name;
     }
     
-    public String toString() {
-        String s = new String();
-        s += "Node Style - Name: "+name;
-        s += " Background: +"+backgroundColor;
-        s +="\n";
-        return s;
-    }
-    
-    String styleToCSS() {
-        String s = new String();
-        s  = "background:"+backgroundColor;
-        return s;
-    }
-    
 }
