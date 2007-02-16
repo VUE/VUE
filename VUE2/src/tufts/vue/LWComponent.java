@@ -40,7 +40,7 @@ import tufts.vue.filter.*;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.203 $ / $Date: 2007-02-09 16:51:01 $ / $Author: mike $
+ * @version $Revision: 1.204 $ / $Date: 2007-02-16 02:34:43 $ / $Author: mike $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -723,7 +723,7 @@ public class LWComponent
 
     public static final Key KEY_Label = new DataKey("label") {
             public void setValue(LWComponent c, Object val) { c.setLabel((String)val); }
-            public Object getValue(LWComponent c) { return c.getStyledLabel(); }
+            public Object getValue(LWComponent c) { return c.getLabel(); }
         };
     
 

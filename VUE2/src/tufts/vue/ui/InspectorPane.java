@@ -39,7 +39,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.35 $ / $Date: 2007-01-28 20:07:38 $ / $Author: mike $
+ * @version $Revision: 1.36 $ / $Date: 2007-02-16 02:34:43 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -417,8 +417,8 @@ public class InspectorPane extends JPanel
             //and here is as good as any place right now.  It may be a TODO to put this label
             //on a tabbed pane with an editable version of the HTML code so you can tweak it
             //in case of an error.
-            if (!DEBUG.LISTS)
-            	labelValue.setContentType("text/html");
+          //  if (!DEBUG.LISTS)
+          //  	labelValue.setContentType("text/html");
             contentValue.setEditable(false);
 
             JScrollPane labelScroller = new JScrollPane(labelValue,
