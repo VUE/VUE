@@ -26,12 +26,13 @@ import edu.tufts.vue.compare.*;
 import java.io.*;
 import java.util.*;
 
-
 import javax.swing.*;
 import java.awt.event.*;
 
 
 public class AnalyzeCM extends VueAction {
+    
+    private MergeMapsChooser mmc = null;
     
     /** Creates a new instance of AnalyzeCM */
     public AnalyzeCM(String label) {
@@ -89,7 +90,7 @@ public class AnalyzeCM extends VueAction {
         
         if(w==null)
         {
-           MergeMapsChooser mmc = new MergeMapsChooser();
+           mmc = new MergeMapsChooser();
            w = tufts.vue.gui.GUI.createDockWindow("Merge Maps",mmc);
            MergeMapsChooser.setDockWindow(w);  
         }
@@ -97,6 +98,7 @@ public class AnalyzeCM extends VueAction {
         if(!w.isVisible())
         {
           MergeMapsChooser.loadDefaultStyle();
+          mmc.refreshSettings();
           w.setLocation(200,200);
           w.pack();
           w.setVisible(true);
