@@ -244,12 +244,12 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         GridBagLayout baseBrowseGridBag = new GridBagLayout();
         baseBrowsePanel.setLayout(baseBrowseGridBag);
         GridBagConstraints baseBrowseConstraints = new GridBagConstraints();
-        //JLabel basePanelMapLabel = new JLabel("Map:"); 
-        JLabel basePanelMapLabel = new JLabel("Select base map:"); 
+        JLabel basePanelMapLabel = new JLabel("Map:"); 
+        //JLabel basePanelMapLabel = new JLabel("Select base map:"); 
         //baseBrowseConstraints.fill = GridBagConstraints.HORIZONTAL;
         baseBrowseGridBag.setConstraints(basePanelMapLabel,baseBrowseConstraints);
         baseBrowsePanel.add(basePanelMapLabel);
-        baseFileField = new JTextField();
+        baseFileField = new JTextField(10);
         //$
            //baseFileField.setText("New Map");
         //$
