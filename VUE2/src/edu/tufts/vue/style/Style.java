@@ -26,6 +26,7 @@
 package edu.tufts.vue.style;
 
 import java.awt.*;
+import java.util.*;
 
 public abstract class Style {
     public static final String OPEN="{";
@@ -35,6 +36,7 @@ public abstract class Style {
     Color foregroundColor = Color.BLACK;
     Color backgroundColor = Color.WHITE;
     String name;
+    private Map<String,String>  attributes =  new HashMap();
     
     public String  getName() {
         return name;
@@ -52,6 +54,14 @@ public abstract class Style {
     }
     public void setForegroundColor(Color color) {
         this.foregroundColor  = color;
+    }
+    
+    public void setAttributes(Map<String,String> attributes) {
+        this.attributes = attributes;
+    }
+    
+    public Map<String,String> getAttributes() {
+        return this.attributes;
     }
     public  String toCSS() {
         String s = new String();
