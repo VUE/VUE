@@ -33,7 +33,7 @@ node.w5 {
     background: #333333; font-size: normal;  
 }
 link.w1 { 
-  foreground: #FFFFFF; weight: 1px; arrow-end: start; curved: true; 
+  background: #FFFFFF; weight: 1px; arrow-end: start; curved: true; 
 }
 link.w2 {
  background: #FFFF00; weight: 2pt;
