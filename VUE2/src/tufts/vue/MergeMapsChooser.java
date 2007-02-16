@@ -89,7 +89,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
     //private JPanel mapPanel;
     //private JScrollPane listScroll;
     //private JTextField file;
-    private File selectedFile;
+    //private File selectedFile;
+    private File selectedBaseFile;
     //private MapListPanel listPanel;
     //private JPanel buttonPanel;
     //private JButton generateButton;
@@ -125,20 +126,14 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
    
     public MergeMapsChooser() 
     {
-        //StyleReader.readStyles("compare.weight.css"); 
         loadDefaultStyle();
         VUE.addActiveMapListener(this);
         setLayout(new BorderLayout());
-        //JPanel chooser = new JPanel();
-        //chooser.setLayout(new BorderLayout());
         buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         generate = new JButton("Generate");
         generateDemo = new JButton("Generate Weighted Merge Demo");
-        //buttonPane.add(generateDemo);
         buttonPane.add(generate);
         JTabbedPane mTabbedPane = new JTabbedPane();
-        //chooser.add(BorderLayout.CENTER,mTabbedPane);
-        //chooser.add(BorderLayout.SOUTH,buttonPane);
         VueResources.initComponent(mTabbedPane,"tabPane");
         
         //setUpSelectPanel();
@@ -167,11 +162,17 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         
         vizChoice.addActionListener(this);
         
-        generateDemo.addActionListener(this);
+        //generateDemo.addActionListener(this);
         generate.addActionListener(this);
         
         validate();
         setVisible(true);
+    }
+    
+    public void refreshSettings()
+    {
+        weightPanel.loadDefaultStyles();
+        weightPanel.loadDefaultSettings();  
     }
     
     public static void loadDefaultStyle()
@@ -203,9 +204,17 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                  return new Dimension(400,30);
             }
         };
+        //$
+          //baseInnerPanel.setOpaque(true);
+          //baseInnerPanel.setBackground(Color.BLUE);
+        //$
         baseInnerPanel.setLayout(baseGridBag);
         String baseMessage = "Select base map:";
         JLabel baseLabel = new JLabel(baseMessage);
+        //$
+           //baseLabel.setOpaque(true);
+           //baseLabel.setBackground(Color.RED);
+        //$
         String[] choices = {VUE.getActiveMap().getLabel(),"other"};
         baseChoice = new JComboBox(choices);
         baseChoice.setRenderer(new MapChoiceCellRenderer());
@@ -225,20 +234,30 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
     
     public void setUpBasePanelBrowse()
     {
-        baseBrowsePanel = new JPanel();
+        baseBrowsePanel = new JPanel()
+        {
+            public Dimension getMaximumSize()
+            {
+                 return new Dimension(400,30);
+            }
+        };
         GridBagLayout baseBrowseGridBag = new GridBagLayout();
         baseBrowsePanel.setLayout(baseBrowseGridBag);
         GridBagConstraints baseBrowseConstraints = new GridBagConstraints();
-        JLabel basePanelMapLabel = new JLabel("Map:"); 
-        baseBrowseConstraints.fill = GridBagConstraints.HORIZONTAL;
+        //JLabel basePanelMapLabel = new JLabel("Map:"); 
+        JLabel basePanelMapLabel = new JLabel("Select base map:"); 
+        //baseBrowseConstraints.fill = GridBagConstraints.HORIZONTAL;
         baseBrowseGridBag.setConstraints(basePanelMapLabel,baseBrowseConstraints);
         baseBrowsePanel.add(basePanelMapLabel);
         baseFileField = new JTextField();
-        baseBrowseConstraints.weightx = 1.0;
+        //$
+           //baseFileField.setText("New Map");
+        //$
+        //baseBrowseConstraints.weightx = 1.0;
         baseBrowseGridBag.setConstraints(baseFileField,baseBrowseConstraints);
         baseBrowsePanel.add(baseFileField);
         baseBrowseButton = new JButton("Browse");
-        baseBrowseConstraints.weightx = 0.0;
+        //baseBrowseConstraints.weightx = 0.0;
         baseBrowseGridBag.setConstraints(baseBrowseButton,baseBrowseConstraints);
         baseBrowsePanel.add(baseBrowseButton);
     }
@@ -304,8 +323,20 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         GridBagLayout vizLayout = new GridBagLayout();
         GridBagConstraints vizConstraints = new GridBagConstraints();
         vizPanel.setLayout(vizLayout);
+        JLabel vizLabel = new JLabel("Select a vizualization mode:");
         String[] vizChoices = {"Vote","Weight"};
         vizChoice = new JComboBox(vizChoices);
+        //$
+          vizConstraints.fill = GridBagConstraints.BOTH;
+          vizConstraints.anchor = GridBagConstraints.EAST;
+          //vizConstraints.weightx = 0.0;
+        //$
+        vizLayout.setConstraints(vizLabel,vizConstraints);
+        vizPanel.add(vizLabel);
+        //$
+           vizConstraints.anchor = GridBagConstraints.WEST;
+           vizConstraints.weightx = 1.0;
+        //$
         vizConstraints.gridwidth = GridBagConstraints.REMAINDER;
         vizLayout.setConstraints(vizChoice,vizConstraints);
         vizPanel.add(vizChoice);
@@ -384,196 +415,55 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
     {
         if(p==null)
             return;
-        /*if(e.getSource()==choice)
-        {
-            if(choice.getSelectedIndex()==0)
-            {
-                selectPanel.remove(mapPanel);
-                selectPanel.remove(listScroll);
-                p.pack();
-            }
-            if(choice.getSelectedIndex()==1)
-            {
-                if(mapPanel==null)
-                {
-                    setUpSelectPanelBrowse();
-                }
-                else
-                {
-                    selectPanel.remove(buttonPanel);
-                    selectPanel.add(mapPanel);
-                    selectPanel.add(listScroll);
-                    selectPanel.add(buttonPanel);
-                }
-                p.pack();
-            }
-        }*/
-        /*if(e.getSource() == browseButton)
-        {
-            JFileChooser choose = new JFileChooser();
-            choose.showDialog(this,"Add Map");
-            selectedFile = choose.getSelectedFile();
-            if(selectedFile != null)
-            {    
-              file.setText(selectedFile.getName());
-              addButton.setEnabled(true);
-            }
-        }*/
-        /*if(e.getSource() == addButton)
-        {
-            LWMap map = null;
-            try
-            {        
-              map = ActionUtil.unmarshallMap(selectedFile);
-            }
-            catch(Exception ex)
-            {
-                ex.printStackTrace();
-            }
-            MapListElementPanel mlep = new MapListElementPanel(map);
-            mlep.adjustColor(listPanel.getComponentCount());
-            listPanel.add(mlep);
-            addButton.setEnabled(false);
-            file.setText("");
-            validate();
-        }*/
         if(e.getSource()==baseChoice)
         {
-          // comment back in to see focus error (and to enable browse to base map)  
-          /*  if(baseChoice.getSelectedItem().equals("other"));
+          // comment back in to see focus error (and to enable browse to base map) 
+          if(baseChoice.getItemCount() == 0)
+              return;
+          if(baseChoice.getSelectedItem().equals("other"));
             {    
               if(baseBrowsePanel==null)
               {
                   setUpBasePanelBrowse();
               }
-              //basePanel.add(baseBrowsePanel);
+              basePanel.add(baseBrowsePanel);
               //basePanel.revalidate();
               //basePanel.repaint();
-              if(p!=null)
+              repaint();
+              /*if(p!=null)
               {
                 p.pack();
-              }
+              }*/
             }
             if(!baseChoice.getSelectedItem().equals("other"))
             {
-              //basePanel.remove(baseBrowsePanel);
+              basePanel.remove(baseBrowsePanel);
               //basePanel.revalidate();
               //basePanel.repaint();
-              if(p!=null)
+              repaint();
+              /*if(p!=null)
               {
                 p.pack();
-              }
-            }*/
+              }*/
+            }
         }
         if(e.getSource() == baseBrowseButton)
         {
             JFileChooser choose = new JFileChooser();
             choose.showDialog(this,"SetBase Map");
-            File selectedBaseFile = choose.getSelectedFile();
+            selectedBaseFile = choose.getSelectedFile();
             if(selectedBaseFile != null)
             {    
               baseFileField.setText(selectedBaseFile.getName());
               try
               {        
-                baseMap = ActionUtil.unmarshallMap(selectedFile);
+                baseMap = ActionUtil.unmarshallMap(selectedBaseFile);
               }
               catch(Exception ex)
               {
                 ex.printStackTrace();
               } 
             }
-        }
-        /*if(e.getSource() == generateButton)
-        {
-            //mapList.clear();
-            LWMergeMap map = new LWMergeMap(LWMergeMap.getTitle());
-            //fail safe default value for base map is active map
-            if(baseMap == null)
-            {
-              baseMap = VUE.getActiveMap();
-            }
-            Object baseMapObject = baseChoice.getSelectedItem();
-            if(baseMapObject instanceof LWMap)
-                baseMap = (LWMap)baseMapObject;
-            if(choice.getSelectedItem().equals(ALL_TEXT))
-            {
-               Iterator <LWMap> i = VUE.getLeftTabbedPane().getAllMaps();
-               while(i.hasNext())
-               {
-                   mapList.add(i.next());
-               }
-               map.setSelectChoice("all");
-            }
-            else if(choice.getSelectedItem().equals(LIST_TEXT))
-            {
-               ArrayList<LWMap> listPanelMaps = new ArrayList<LWMap> ();
-               ArrayList<File> mapFileList = new ArrayList<File> ();
-               ArrayList<Boolean> activeFileList = new ArrayList<Boolean> ();
-               for(int i=0;i<listPanel.getComponentCount();i++)
-               {
-                   MapListElementPanel mlep = (MapListElementPanel)listPanel.getComponent(i);
-                   if(mlep.isActive())
-                   {
-                     listPanelMaps.add(mlep.getMap());
-                   }
-                   mapFileList.add(mlep.getMap().getFile());
-                   activeFileList.add(new Boolean(mlep.isActive())); 
-               }
-               mapList.addAll(listPanelMaps);
-               map.setMapFileList(mapFileList);
-               map.setActiveMapList(activeFileList);
-               map.setSelectChoice("list");
-            }
-
-            map.setNodeThresholdSliderValue(nodeThresholdSlider.getValue());
-            map.setLinkThresholdSliderValue(linkThresholdSlider.getValue());
-            mergeMaps(map);
-            VUE.displayMap(map); 
-        } */
-        if(e.getSource() == generateDemo)
-        {      
-                LWMergeMap map = new LWMergeMap(LWMergeMap.getTitle());
-               //fail safe default value for base map is active map
-               if(baseMap == null)
-               {
-                 baseMap = VUE.getActiveMap();
-               }
-               Object baseMapObject = baseChoice.getSelectedItem();
-               if(baseMapObject instanceof LWMap)
-                 baseMap = (LWMap)baseMapObject;
-               //if(choice.getSelectedItem().equals(ALL_TEXT))
-               //{
-                 Iterator <LWMap> i = VUE.getLeftTabbedPane().getAllMaps();
-                 while(i.hasNext())
-                 {
-                   mapList.add(i.next());
-                 }
-                 map.setSelectChoice("all");
-               //}
-               //else if(choice.getSelectedItem().equals(LIST_TEXT))
-               //{
-                 /*ArrayList<LWMap> listPanelMaps = new ArrayList<LWMap> ();
-                 ArrayList<File> mapFileList = new ArrayList<File> ();
-                 ArrayList<Boolean> activeFileList = new ArrayList<Boolean> ();
-                 for(int i=0;i<listPanel.getComponentCount();i++)
-                 {
-                   MapListElementPanel mlep = (MapListElementPanel)listPanel.getComponent(i);
-                   if(mlep.isActive())
-                   {
-                     listPanelMaps.add(mlep.getMap());
-                   }
-                   mapFileList.add(mlep.getMap().getFile());
-                   activeFileList.add(new Boolean(mlep.isActive())); 
-                 }
-                 mapList.addAll(listPanelMaps);
-                 map.setMapFileList(mapFileList);
-                 map.setActiveMapList(activeFileList);
-                 map.setSelectChoice("list");
-               */
-           
-           
-           createWeightedMerge(map);
-           VUE.displayMap(map);
         }
         if(e.getSource() == vizChoice)
         {
@@ -616,15 +506,16 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                  baseMap = (LWMap)baseMapObject;
                //if(choice.getSelectedItem().equals(ALL_TEXT))
                //{
-               Iterator <LWMap> i = VUE.getLeftTabbedPane().getAllMaps();
-               while(i.hasNext())
-               {
-                mapList.add(i.next());
-               }
-               map.setSelectChoice("all");
+               //Iterator <LWMap> i = VUE.getLeftTabbedPane().getAllMaps();
+               //while(i.hasNext())
+               //{
+               // mapList.add(i.next());
+               //}
                
-           
-           
+               mapList = sp.getMapList();
+               //need to get from sp
+               //map.setSelectChoice("all");
+               
                createWeightedMerge(map);
                VUE.displayMap(map);
                 
@@ -670,10 +561,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         
         WeightAggregate weightAggregate = new WeightAggregate(cms);
         
-        //VoteAggregate voteAggregate= new VoteAggregate(cms);
-        //voteAggregate.setNodeThreshold((double)(nodeThresholdSlider.getValue()/100.0));
-        //voteAggregate.setLinkThreshold((double)(linkThresholdSlider.getValue()/100.0));
-        
         //compute and create nodes in Merge Map, apply just background style for now
         Iterator children = baseMap.getNodeIterator();
         while(children.hasNext()) {
@@ -683,7 +570,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
            double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(node))/weightAggregate.getCount();
            Style currStyle = styles.get(getInterval(score)-1);
            //System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
-           node.setFillColor(currStyle.getBackgroundColor());
+           node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
            map.addNode(node);
         }
         
@@ -701,7 +588,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                     Style currLinkStyle = linkStyles.get(getInterval(score)-1);
                     //System.out.println("Weighted Merge Demo: " + currLinkStyle + " score: " + score);
                     LWLink link = new LWLink(node1,node2);
-                    link.setStrokeColor(currLinkStyle.getBackgroundColor());
+                    link.setStrokeColor(Style.hexToColor(currLinkStyle.getAttribute("background")));
                     //also add label to link if present? (will be nonunique perhaps.. might make sense for voting?)
                     map.addLink(link);
                   }
@@ -710,7 +597,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         }
     }
     
-    public void mergeMaps(LWMergeMap map)
+    public void createVoteMerge(LWMergeMap map)
     {
         ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
         Iterator<LWMap> i = mapList.iterator();
@@ -800,12 +687,12 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         
         if(map instanceof LWMergeMap)
         {
-            generateDemo.setEnabled(false);
+            //generateDemo.setEnabled(false);
             generate.setEnabled(false);
         }
         else
         {
-            generateDemo.setEnabled(true);
+            //generateDemo.setEnabled(true);
             generate.setEnabled(true);
         }
 
@@ -827,8 +714,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         }
         else
         {
-            //selectPanel = new JPanel();
-            //setUpSelectPanel();
             sp = new SelectPanel();
         }
         selectPanelHolder.add(sp);
@@ -838,9 +723,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         {    
           p.pack();
         }
-        
-        //System.out.println("Merge Maps Chooser: " + selectPanels.get(activeMap));
-        //System.out.println("Merge Maps Chooser: " + selectPanels.size());
+
     }
     
     public LWMap getActiveMap()
@@ -867,7 +750,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         private JPanel bottomPanel;
         
         private File selectedFile;
-        
+              
         public SelectPanel()
         {
             
@@ -936,9 +819,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         public void setUpBottomPanel()
         {
             bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            generateButton = new JButton("Generate");
-            //bottomPanel.add(generateButton);
-            //generateButton.addActionListener(this);
         }
         
         public void actionPerformed(ActionEvent e)
@@ -965,7 +845,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                     }
                     add(bottomPanel);
                 }
-                //toggleBackgroundColor();
             }
             if(e.getSource() == browseButton)
             {
@@ -997,49 +876,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             }
             if(e.getSource() == generateButton)
             {
-               /*LWMergeMap map = new LWMergeMap(LWMergeMap.getTitle());
-               //fail safe default value for base map is active map
-               if(baseMap == null)
-               {
-                 baseMap = VUE.getActiveMap();
-               }
-               Object baseMapObject = baseChoice.getSelectedItem();
-               if(baseMapObject instanceof LWMap)
-                 baseMap = (LWMap)baseMapObject;
-               if(choice.getSelectedItem().equals(ALL_TEXT))
-               {
-                 Iterator <LWMap> i = VUE.getLeftTabbedPane().getAllMaps();
-                 while(i.hasNext())
-                 {
-                   mapList.add(i.next());
-                 }
-                 map.setSelectChoice("all");
-               }
-               else if(choice.getSelectedItem().equals(LIST_TEXT))
-               {
-                 ArrayList<LWMap> listPanelMaps = new ArrayList<LWMap> ();
-                 ArrayList<File> mapFileList = new ArrayList<File> ();
-                 ArrayList<Boolean> activeFileList = new ArrayList<Boolean> ();
-                 for(int i=0;i<listPanel.getComponentCount();i++)
-                 {
-                   MapListElementPanel mlep = (MapListElementPanel)listPanel.getComponent(i);
-                   if(mlep.isActive())
-                   {
-                     listPanelMaps.add(mlep.getMap());
-                   }
-                   mapFileList.add(mlep.getMap().getFile());
-                   activeFileList.add(new Boolean(mlep.isActive())); 
-                 }
-                 mapList.addAll(listPanelMaps);
-                 map.setMapFileList(mapFileList);
-                 map.setActiveMapList(activeFileList);
-                 map.setSelectChoice("list");
-               }
-
-               map.setNodeThresholdSliderValue(nodeThresholdSlider.getValue());
-               map.setLinkThresholdSliderValue(linkThresholdSlider.getValue());
-               mergeMaps(map);
-               VUE.displayMap(map); */
                generate();
             }
             validate();
@@ -1049,7 +885,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             }
         }
         
-        public List<LWMap> generateMapList()
+        public List<LWMap> getMapList()
         {
             return mapList;
         }
@@ -1097,11 +933,11 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
 
                map.setNodeThresholdSliderValue(nodeThresholdSlider.getValue());
                map.setLinkThresholdSliderValue(linkThresholdSlider.getValue());
-               mergeMaps(map);
+               createVoteMerge(map);
                VUE.displayMap(map);
         }
         
-    }
+    } 
     
     /*private class BaseMapPanel extends JPanel implements ActionListener
     {
@@ -1109,13 +945,57 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         private JComboBox choice;
         private JTextField fileField;
         private JButton browseButton;
-        private JButton generateButton;
+        //private JPanel basePanel;
+        private JPanel baseBrowsePanel;
+        private JButton baseBrowseButton;
+        private JTextField baseFileField;
+        private JComboBox baseChoice;
+        private LWMap baseMap;
         
+        public BaseMapPanel()
+        {
+           setUpPanel();
+        }
         
         public void actionPerformed(ActionEvent e)
         {
             
         }
+     
+        public void setUpPanel()
+        {
+          GridBagLayout baseGridBag = new GridBagLayout();
+          GridBagConstraints baseConstraints = new GridBagConstraints();
+          basePanel = new JPanel();
+          basePanel.setLayout(new BoxLayout(basePanel,BoxLayout.Y_AXIS));
+          JPanel baseInnerPanel = new JPanel()
+          {
+            public Dimension getMaximumSize()
+            {
+                 return new Dimension(400,30);
+            }
+          };
+          baseInnerPanel.setLayout(baseGridBag);
+          String baseMessage = "Select base map:";
+          JLabel baseLabel = new JLabel(baseMessage);
+          String[] choices = {VUE.getActiveMap().getLabel(),"other"};
+          baseChoice = new JComboBox(choices);
+          baseChoice.setRenderer(new MapChoiceCellRenderer());
+          JLabel helpLabel = new JLabel(VueResources.getIcon("helpIcon.raw"));
+          baseGridBag.setConstraints(baseLabel,baseConstraints);
+          baseInnerPanel.add(baseLabel);
+          baseGridBag.setConstraints(baseChoice,baseConstraints);
+          baseInnerPanel.add(baseChoice);
+          baseConstraints.gridwidth = GridBagConstraints.REMAINDER;
+          baseGridBag.setConstraints(helpLabel,baseConstraints);
+          baseInnerPanel.add(helpLabel);
+          basePanel.add(baseInnerPanel);
+          setUpBasePanelBrowse();
+          baseChoice.addActionListener(this);
+          baseBrowseButton.addActionListener(this);
+      }
+
+        
     }*/
     
 }

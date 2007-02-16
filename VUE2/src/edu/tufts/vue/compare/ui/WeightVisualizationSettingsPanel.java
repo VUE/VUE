@@ -57,6 +57,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     public static final int DEFAULT_STYLE_CHOICES = 5;
     
     public static final String parameterChoiceMessageString = "Set parameters for:";
+    //public static final String parameterChoiceMessageString = "Select a vizualization mode:";
     public static final String intervalChoiceMessageString = "Set number of intervals:";
     public static final String paletteChoiceMessageString = "Select a color Palette";
     
@@ -82,9 +83,15 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         JLabel parameterChoiceMessage = new JLabel(parameterChoiceMessageString,JLabel.RIGHT);
         parameterChoice = new JComboBox(parameterChoices);
         JLabel helpLabel = new JLabel(VueResources.getIcon("helpIcon.raw"),JLabel.LEFT);
-        JLabel intervalNumberChoiceMessage = new JLabel(intervalChoiceMessageString);
+        JLabel intervalNumberChoiceMessage = new JLabel(intervalChoiceMessageString,JLabel.RIGHT);
         Integer[] intervalNumberChoices = {3,4,5,6,7,8,9,10};
-        intervalNumberChoice = new JComboBox(intervalNumberChoices);
+        intervalNumberChoice = new JComboBox(intervalNumberChoices)
+        {
+            public java.awt.Dimension getPreferredSize()
+            {
+                return new java.awt.Dimension(30,30);
+            }
+        };
         intervalNumberChoice.setSelectedItem(5);
         nodeModel = new IntervalListModel();
         linkModel = new IntervalListModel();
@@ -126,7 +133,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         c.anchor = GridBagConstraints.EAST;
         gridBag.setConstraints(intervalNumberChoiceMessage,c);
         add(intervalNumberChoiceMessage);
-        c.gridwidth = GridBagConstraints.REMAINDER;
+        //c.gridwidth = GridBagConstraints.REMAINDER;
         c.anchor = GridBagConstraints.WEST;
         gridBag.setConstraints(intervalNumberChoice,c);
         add(intervalNumberChoice);
@@ -136,6 +143,9 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         //table
         //c.fill = GridBagConstraints.NONE;
         JScrollPane scroll = new JScrollPane(intervalList);
+        c.gridx = 0;
+        c.gridy = 2;
+        c.gridwidth = 3;
         gridBag.setConstraints(scroll,c);
         add(scroll);
         
@@ -165,6 +175,15 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     
     public void loadDefaultSettings()
     {
+        if(nodeModel!=null)
+        {
+            nodeModel.clear();
+        }
+        if(linkModel!=null)
+        {
+            linkModel.clear();
+        }
+        
         // reading default number of styles from default style file
         // should default number be stored in css file or in VueResources?
         for(int si=0;si<DEFAULT_STYLE_CHOICES;si++)
@@ -174,17 +193,18 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
            {
              nodeModel.addRow((int)(si*(100.0/DEFAULT_STYLE_CHOICES)),
                               (int)((si+1)*(100.0/DEFAULT_STYLE_CHOICES)),
-                              currNodeStyle.getBackgroundColor(),
-                              currNodeStyle.getForegroundColor());
+                              Style.hexToColor(currNodeStyle.getAttribute("background")),Color.BLACK);
+                              //,Style.hexToColor(currNodeStyle.getAttribute("foreground")));
            }
            
            Style currLinkStyle = StyleMap.getStyle("link.w" + (si+1));
            if(currLinkStyle !=null)
            {
+             System.out.println("wvsp: default styles: " + currLinkStyle.getAttribute("background"));
              linkModel.addRow((int)(si*(100.0/DEFAULT_STYLE_CHOICES)),
                               (int)((si+1)*(100.0/DEFAULT_STYLE_CHOICES)),
-                              currLinkStyle.getBackgroundColor(),
-                              currLinkStyle.getForegroundColor());
+                              Style.hexToColor(currLinkStyle.getAttribute("background")),Color.BLACK);
+                             //,Style.hexToColor(currLinkStyle.getAttribute("foreground")));
            }
            
         }
@@ -444,13 +464,19 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                     {
                       Style currStyle = StyleMap.getStyle("node.w"+(currentRow+1));
                       if(currStyle!=null)
-                        currStyle.setBackgroundColor(chooser.getColor());
+                      {
+                        //currStyle.setBackgroundColor(chooser.getColor());
+                        currStyle.setAttribute("background",Style.colorToHex(chooser.getColor()));
+                      }
                     }
                     if(/*current!=null && */(parameterChoice.getSelectedIndex() == 1))
                     {
                       Style currStyle = StyleMap.getStyle("link.w"+(currentRow+1));
                       if(currStyle!=null)
-                        currStyle.setBackgroundColor(chooser.getColor());
+                      {
+                        //currStyle.setBackgroundColor(chooser.getColor());
+                        currStyle.setAttribute("background",Style.colorToHex(chooser.getColor()));
+                      }
                     }
                 }
               };
@@ -586,6 +612,12 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         public int getIndex(IntervalStylePreview isp)
         {
             return ispList.indexOf(isp);
+        }
+        
+        public void clear()
+        {
+            piList.clear();
+            ispList.clear();
         }
         
     }
