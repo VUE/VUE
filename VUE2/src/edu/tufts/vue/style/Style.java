@@ -33,29 +33,13 @@ public abstract class Style {
     public static final String CLOSE="}";
     public static final String SEMI=";";
     public static final String COLON=":";
-    Color foregroundColor = Color.BLACK;
-    Color backgroundColor = Color.WHITE;
     String name;
     private Map<String,String>  attributes =  new HashMap();
     
     public String  getName() {
         return name;
     }
-    
-    public  Color getBackgroundColor() {
-        return backgroundColor;
-    }
-    
-    public  Color getForegroundColor() {
-        return foregroundColor;
-    }
-    public void setBackgroundColor(Color color) {
-        this.backgroundColor  = color;
-    }
-    public void setForegroundColor(Color color) {
-        this.foregroundColor  = color;
-    }
-    
+        
     public void setAttributes(Map<String,String> attributes) {
         this.attributes = attributes;
     }

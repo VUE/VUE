@@ -46,47 +46,12 @@ public class StyleReader {
     
     private static void readCSS(URL url) {
         try {
-            StyleSheet styles = new StyleSheet();
-            styles.importStyleSheet(url);
-            getStyleNames(styles);
+          CSSParser parser = new CSSParser();
+          parser.parse(url);
         }catch(Exception ex) {
             System.out.println("StyleReader.readCSS"+ex);
         }
         
-    }
-    
-    private static void getStyleNames(StyleSheet styles) {
-        Enumeration rules = styles.getStyleNames();
-        while (rules.hasMoreElements()) {
-            String name = (String) rules.nextElement();
-            javax.swing.text.Style rule = styles.getStyle(name);
-            AttributeSet as = rule.copyAttributes();
-            System.out.println("PRINTING ATTRIBUTES FOR: "+rule.getName()+" class:"+rule.getClass());
-            System.out.println("AttributeSet: "+as+" class:"+as.getClass()+" count:"+as.getAttributeCount());
-            Enumeration e = rule.getAttributeNames();
-            while(e.hasMoreElements()){
-                Object o = e.nextElement();
-                System.out.println("Attribute: "+o+" O Class:"+o.getClass());
-                
-               
-            }
-            System.out.println("END OF PRINTING ATTRIBS");
-            createStyle(rule);
-            
-        }
-    }
-    private static void createStyle(javax.swing.text.Style rule) {
-        if(rule.getName().startsWith(NODE_PREFIX)) {
-            String name = rule.getName();
-            Style s = new NodeStyle(name);
-            s.setBackgroundColor(StyleConstants.getBackground(rule));
-            StyleMap.addStyle(s);
-        } else if(rule.getName().startsWith(LINK_PREFIX)) {
-            String name = rule.getName();
-            Style s = new LinkStyle(name);
-            s.setBackgroundColor(StyleConstants.getBackground(rule));
-            StyleMap.addStyle(s);
-        }
     }
     
 }
