@@ -106,7 +106,7 @@ import javax.swing.text.html.StyleSheet;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.43 $ / $Date: 2007-02-16 02:34:43 $ / $Author: mike $
+ * @version $Revision: 1.44 $ / $Date: 2007-02-16 03:31:30 $ / $Author: mike $
  *
  */
 
@@ -168,12 +168,12 @@ public class TextBox extends JTextPane
         
         this.lwc = lwc;
         
-       // setContentType("text/html");// for attributes + unicode, but will need lots of work
-       // htmlKit = new ExtendedHTMLEditorKit();
-	//	htmlDoc = (ExtendedHTMLDocument)(htmlKit.createDefaultDocument());
-	//	styleSheet = htmlDoc.getStyleSheet();
-	//	URL ref = VueResources.getURL("lists.css");
-	/*	InputStream is;
+        setContentType("text/html");// for attributes + unicode, but will need lots of work
+        htmlKit = new ExtendedHTMLEditorKit();
+		htmlDoc = (ExtendedHTMLDocument)(htmlKit.createDefaultDocument());
+		styleSheet = htmlDoc.getStyleSheet();
+		URL ref = VueResources.getURL("lists.css");
+		InputStream is;
 		try {
 			is = ref.openStream();
 			BufferedReader br = new BufferedReader(new InputStreamReader(is));			
@@ -185,10 +185,10 @@ public class TextBox extends JTextPane
 		
 		
 		
-*/
+
 		/* Set up the text pane */
-	//	setEditorKit(htmlKit);
-//		setDocument(htmlDoc);
+		setEditorKit(htmlKit);
+		setDocument(htmlDoc);
 		
         //setBorder(javax.swing.border.LineBorder.createGrayLineBorder());
         // don't set border -- adds small margin that screws us up, especially
@@ -1275,8 +1275,8 @@ public class TextBox extends JTextPane
         // when setting the translation before painting us.
         
         if (DEBUG.BOXES && DEBUG.META) {
-            if (lwc.getLabel().indexOf('\n') < 0) {
-                TextRow r = new TextRow(lwc.getLabel(), lwc.getFont(), dc.g.getFontRenderContext());
+            if (lwc.getStyledLabel().indexOf('\n') < 0) {
+                TextRow r = new TextRow(lwc.getStyledLabel(), lwc.getFont(), dc.g.getFontRenderContext());
                 dc.g.setColor(Color.lightGray);
                 r.draw(dc.g, 0, 0);
             }
