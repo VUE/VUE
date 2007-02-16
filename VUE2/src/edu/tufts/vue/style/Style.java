@@ -68,9 +68,17 @@ public abstract class Style {
         return this.attributes.get(key);
     }
     
+    public void setAttribute(String key,String value) {
+        this.attributes.put(key,value);
+    }
+    
     public  String toCSS() {
         String s = new String();
         s += name+OPEN+"\n";
+        Set<String> keys= attributes.keySet();
+        for(String key: keys) {
+            s += key+":"+attributes.get(key)+";";
+        }
         s+=styleToCSS();
         s +="\n"+CLOSE+"\n";
         return s;
@@ -120,6 +128,7 @@ public abstract class Style {
     public  static final Color hexToColor(String value) {
         String digits;
         int n = value.length();
+        value = value.replaceAll(" ","");
         if (value.startsWith("#")) {
             digits = value.substring(1, Math.min(value.length(), 7));
         } else {
