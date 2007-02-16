@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.45 $ / $Date: 2006-08-30 19:34:17 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2007-02-16 16:55:44 $ / $Author: dan $
  *
  */
 public class VueResources
@@ -582,7 +582,7 @@ public class VueResources
 
     /**
      * This method gets a color based on the color string in the
-     * the properties file.  Use format: myColor=R,B,G or
+     * the properties file.  Use format: myColor=R,G,B or
      * myColor=4F4F4F.  E.g.,
      *
      *   myRed=FF0000
