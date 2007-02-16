@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.392 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $ 
+ * @version $Revision: 1.393 $ / $Date: 2007-02-16 02:25:11 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1968,9 +1968,9 @@ public class VUE
         map.addLink(k2);
         map.addLink(k3);
 
-        LWSlide slide = LWSlide.create();
-        slide.setLocation(300,100);
-        map.addLWC(slide);
+//         LWSlide slide = LWSlide.create();
+//         slide.setLocation(300,100);
+//         map.addLWC(slide);
 
         // create test pathways
         if (false) {
