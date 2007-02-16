@@ -37,9 +37,11 @@ public class StyleReader {
     public static final String LINK_PREFIX = "link";
     
     public static void readStyles(String lookupKey) {
-        StyleSheet styles = new StyleSheet();
-        styles.importStyleSheet(tufts.vue.VueResources.getURL(lookupKey));
-        getStyleNames(styles);
+        //StyleSheet styles = new StyleSheet();
+        //styles.importStyleSheet(tufts.vue.VueResources.getURL(lookupKey));
+        //getStyleNames(styles);
+        CSSParser parser = new CSSParser();
+        parser.parse(tufts.vue.VueResources.getURL(lookupKey));
     }
     
     private static void readCSS(URL url) {
@@ -58,6 +60,17 @@ public class StyleReader {
         while (rules.hasMoreElements()) {
             String name = (String) rules.nextElement();
             javax.swing.text.Style rule = styles.getStyle(name);
+            AttributeSet as = rule.copyAttributes();
+            System.out.println("PRINTING ATTRIBUTES FOR: "+rule.getName()+" class:"+rule.getClass());
+            System.out.println("AttributeSet: "+as+" class:"+as.getClass()+" count:"+as.getAttributeCount());
+            Enumeration e = rule.getAttributeNames();
+            while(e.hasMoreElements()){
+                Object o = e.nextElement();
+                System.out.println("Attribute: "+o+" O Class:"+o.getClass());
+                
+               
+            }
+            System.out.println("END OF PRINTING ATTRIBS");
             createStyle(rule);
             
         }
