@@ -11,12 +11,9 @@
    Syntax recommendation http://www.w3.org/TR/REC-CSS2/
 */
 
-root { 
-    display: block;
-}
 
 node.w1 { 
-    background: #FFFFFF; shape: round-rect; icon: url{'http://vue.uit.tufts.edu/w1.gif'};
+    background: #FFFFFF; shape: round-rect;
     stroke-width: 10px; stroke-style:dotted;  
     font-family: Arial; font-size: 10pt;  font-color: #000000; font-style: italic; font-weight: bold;
     text-align: justify; text-indent: 5px;
