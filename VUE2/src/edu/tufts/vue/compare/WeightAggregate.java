@@ -48,6 +48,12 @@ public class WeightAggregate extends ConnectivityMatrix {
             if(matrixSize > size) {
                 size = matrixSize;
             }
+            for(int index1 = 0;index1 < matrix.getLabels().size();index1++) {
+                for(int index2= index1+1; index2<matrix.getLabels().size();index2++) {
+                    c[index1][index2] += matrix.getConnection((String)matrix.getLabels().get(index1),(String)matrix.getLabels().get(index2));
+                }
+            }
+            /**
             Iterator i1 = matrix.getLabels().iterator();
             while(i1.hasNext()){
                 String label1 = (String)i1.next();
@@ -60,6 +66,7 @@ public class WeightAggregate extends ConnectivityMatrix {
 //                    System.out.println("C:labe11:"+label1+" label2:"+label2+" c:"+c[index1][index2]);
                 }
             }
+             */
         }
     }
 
