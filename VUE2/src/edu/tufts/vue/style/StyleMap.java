@@ -87,6 +87,7 @@ public class StyleMap {
         String fileName = edu.tufts.vue.util.GUID.generate()+CSS_EXTENSION;
         Writer fileWriter = new BufferedWriter(new FileWriter(tufts.vue.VueUtil.getDefaultUserFolder()+File.pathSeparator+fileName));
         fileWriter.write(styleToCSS());
+        fileWriter.close();
         return fileName;
     }
     
