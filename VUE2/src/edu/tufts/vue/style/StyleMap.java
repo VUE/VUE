@@ -89,7 +89,7 @@ public class StyleMap {
         return fileName;
     }
     
-    public static void readFromUniqueUserFile(String fileName) {
+    public static void readFromUniqueUserFile(String fileName) thows IOException{
         
     }
 }
