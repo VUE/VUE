@@ -27,6 +27,7 @@ package edu.tufts.vue.style;
 
 import java.util.*;
 import java.io.*;
+import java.net.*;
 /* This class only has static methods and contains a HashMap of all styles used in VUE.
  */
 
@@ -79,7 +80,7 @@ public class StyleMap {
         for(Style style: c) {
             s +=  style.toCSS();
         }
-        return s;      
+        return s;
     }
     
     public static String saveToUniqueUserFile()  throws IOException {
@@ -90,7 +91,9 @@ public class StyleMap {
     }
     
     public static void readFromUniqueUserFile(String fileName) throws IOException{
-        
+        URL url = (new File(tufts.vue.VueUtil.getDefaultUserFolder()+fileName)).toURL();
+        CSSParser parser = new CSSParser();
+        parser.parse(url);
     }
 }
 
