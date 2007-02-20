@@ -51,6 +51,8 @@ public class LWMergeMap extends LWMap {
     
     private File baseMapFile;
     
+    private String styleFile;
+    
     public static String getTitle()
     {
         return "Merge Map" + (++maps) + "*";
@@ -176,4 +178,13 @@ public class LWMergeMap extends LWMap {
         baseMapFile = file;
     }
     
+    public void setStyleMapFile(String file)
+    {
+        styleFile = file;
+    }
+    
+    public String getStyleMapFile()
+    {
+        return styleFile;
+    }
 }

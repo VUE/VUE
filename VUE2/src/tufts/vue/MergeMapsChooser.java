@@ -132,6 +132,11 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
    
     public MergeMapsChooser() 
     {
+        
+        //$
+          System.out.println(tufts.vue.VueUtil.getDefaultUserFolder());
+        //$
+        
         vueTabbedPane.addChangeListener(this);
         loadDefaultStyle();
         VUE.addActiveMapListener(this);
@@ -519,6 +524,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                   setUpBasePanelBrowse();
               }
               basePanel.add(baseBrowsePanel);
+              
               //basePanel.revalidate();
               //basePanel.repaint();
               repaint();
@@ -595,6 +601,16 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             
             //set visualization settings
             map.setVisualizationSelectionType(vizChoice.getSelectedIndex());
+            try
+            {        
+              map.setStyleMapFile(StyleMap.saveToUniqueUserFile());
+              System.out.println("mmc: " + map.getStyleMapFile());
+              //System.out.prinltn("userfolder: ");
+            }
+            catch(Exception ex)
+            {
+              ex.printStackTrace();  
+            }
             //map.setVoteThresholds();
             //map.setWeightStyle();
             
@@ -666,8 +682,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
           cms.add(new ConnectivityMatrix(i.next()));
         }
         
-        ArrayList<Style> styles = new ArrayList();
-        ArrayList<Style> linkStyles = new ArrayList();
+        ArrayList<Style> styles = new ArrayList<Style>();
+        ArrayList<Style> linkStyles = new ArrayList<Style>();
         
         for(int si=0;si<5;si++)
         {
@@ -781,6 +797,16 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         
         nodeThresholdSlider.setValue(map.getNodeThresholdSliderValue());
         linkThresholdSlider.setValue(map.getLinkThresholdSliderValue());
+        try
+        {
+          StyleMap.readFromUniqueUserFile(map.getStyleMapFile());
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        weightPanel.loadDefaultStyles();
+        weightPanel.loadDefaultSettings();
     }
     
     public void setActiveMap(LWMap map)

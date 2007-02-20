@@ -63,6 +63,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     
     private JComboBox parameterChoice;
     private JComboBox intervalNumberChoice;
+    private JComboBox paletteChoice;
     
     private IntervalListModel nodeModel;
     private IntervalListModel linkModel;
@@ -70,8 +71,8 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     
     private LWMap map = null;
     
-    private ArrayList<Style> nodeStyles = new ArrayList();
-    private ArrayList<Style> linkStyles = new ArrayList();
+    private ArrayList<Style> nodeStyles = new ArrayList<Style>();
+    private ArrayList<Style> linkStyles = new ArrayList<Style>();
     
     /** Creates a new instance of WeightVisualizationSettingsPanel */
     public WeightVisualizationSettingsPanel(final tufts.vue.MergeMapsChooser mmc) 
@@ -102,6 +103,9 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             }
         };
         intervalNumberChoice.setSelectedItem(5);
+        paletteChoice = new JComboBox();
+        //paletteChoice.setRenderer(paletteRenderer)
+        //paletteChoice.setModel(... need way to express both style loaded and color brewer choices?
         nodeModel = new IntervalListModel();
         linkModel = new IntervalListModel();
         intervalList = new JTable();
@@ -631,6 +635,5 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         }
         
     }
-    
     
 }

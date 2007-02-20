@@ -286,6 +286,9 @@
             <field name="visualizationSelectionType">
                 <bind-xml name="visualizationSelectionType" node="element"/>
             </field>
+            <field name="styleMapFile">
+                <bind-xml name="styleMapFile" node="element"/>
+            </field>
         </class>
 
 	<class name="tufts.vue.LWPathwayList">
