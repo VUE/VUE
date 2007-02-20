@@ -26,10 +26,12 @@
 package edu.tufts.vue.style;
 
 import java.util.*;
+import java.io.*;
 /* This class only has static methods and contains a HashMap of all styles used in VUE.
  */
 
 public class StyleMap {
+    public static final String CSS_EXTENSION =".css";
     static  Map<String,Style> m = Collections.synchronizedMap(new HashMap());
     
     public static final Style getStyle(String key) {
@@ -77,7 +79,17 @@ public class StyleMap {
         for(Style style: c) {
             s +=  style.toCSS();
         }
-        return s;
+        return s;      
+    }
+    
+    public static String saveToUniqueUserFile()  throws IOException {
+        String fileName = edu.tufts.vue.util.GUID.generate()+CSS_EXTENSION;
+        Writer fileWriter = new BufferedWriter(new FileWriter(tufts.vue.VueUtil.getDefaultUserFolder()+fileName));
+        fileWriter.write(styleToCSS());
+        return fileName;
+    }
+    
+    public static void readFromUniqueUserFile(String fileName) {
         
     }
 }
