@@ -85,14 +85,14 @@ public class StyleMap {
     
     public static String saveToUniqueUserFile()  throws IOException {
         String fileName = edu.tufts.vue.util.GUID.generate()+CSS_EXTENSION;
-        Writer fileWriter = new BufferedWriter(new FileWriter(tufts.vue.VueUtil.getDefaultUserFolder()+File.pathSeparator+fileName));
+        Writer fileWriter = new BufferedWriter(new FileWriter(tufts.vue.VueUtil.getDefaultUserFolder()+File.separator+fileName));
         fileWriter.write(styleToCSS());
         fileWriter.close();
         return fileName;
     }
     
     public static void readFromUniqueUserFile(String fileName) throws IOException{
-        URL url = (new File(tufts.vue.VueUtil.getDefaultUserFolder()+File.pathSeparator+fileName)).toURL();
+        URL url = (new File(tufts.vue.VueUtil.getDefaultUserFolder()+File.separator+fileName)).toURL();
         CSSParser parser = new CSSParser();
         parser.parse(url);
     }
