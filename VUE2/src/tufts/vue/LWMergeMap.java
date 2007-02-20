@@ -35,6 +35,12 @@ public class LWMergeMap extends LWMap {
     public static final int THRESHOLD_DEFAULT = 50;
     
     private static int maps = 0;
+    
+    
+    private int mapListSelectionType;
+    private int baseMapSelectionType;
+    private int visualizationSelectionType;
+    
     private String selectionText;
     private LWMap referenceMap;
     private String selectChoice;
@@ -42,6 +48,8 @@ public class LWMergeMap extends LWMap {
     private int linkThresholdSliderValue = THRESHOLD_DEFAULT;
     private List<File> fileList;
     private List<Boolean> activeFiles;
+    
+    private File baseMapFile;
     
     public static String getTitle()
     {
@@ -66,6 +74,16 @@ public class LWMergeMap extends LWMap {
     public List<File> getMapFileList()
     {
         return fileList;
+    }
+    
+    public void setMapListSelectionType(int choice)
+    {
+        mapListSelectionType = choice;
+    }
+    
+    public int getMapListSelectionType()
+    {
+        return mapListSelectionType;
     }
     
     public void setActiveMapList(List<Boolean> activeMapList)
@@ -98,6 +116,16 @@ public class LWMergeMap extends LWMap {
         selectChoice = choice;
     }
     
+    public void setVisualizationSelectionType(int choice)
+    {
+        visualizationSelectionType = choice;
+    }
+    
+    public int getVisualizationSelectionType()
+    {
+        return visualizationSelectionType;
+    }
+    
     public void setNodeThresholdSliderValue(int value)
     {
         nodeThresholdSliderValue = value;
@@ -118,6 +146,16 @@ public class LWMergeMap extends LWMap {
         return linkThresholdSliderValue;
     }
     
+    public void setBaseMapSelectionType(int choice)
+    {
+        baseMapSelectionType = choice;
+    }
+    
+    public int getBaseMapSelectionType()
+    {
+        return baseMapSelectionType;
+    }
+    
     public LWMap getBaseMap()
     {
         return referenceMap;
@@ -126,6 +164,16 @@ public class LWMergeMap extends LWMap {
     public void setBaseMap(LWMap baseMap)
     {
         referenceMap = baseMap;
+    }
+    
+    public File getBaseMapFile()
+    {
+        return baseMapFile;
+    }
+    
+    public void setBaseMapFile(File file)
+    {
+        baseMapFile = file;
     }
     
 }

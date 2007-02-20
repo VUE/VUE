@@ -277,6 +277,15 @@
         
         <class name="tufts.vue.LWMergeMap" extends="tufts.vue.LWMap">
             <map-to xml="LW-MERGE-MAP" />
+            <field name="mapListSelectionType">
+                <bind-xml name="mapListSelectionType" node="element"/>
+            </field>
+            <field name="baseMapSelectionType">
+                <bind-xml name="baseMapSelectionType" node="element"/>
+            </field>
+            <field name="visualizationSelectionType">
+                <bind-xml name="visualizationSelectionType" node="element"/>
+            </field>
         </class>
 
 	<class name="tufts.vue.LWPathwayList">

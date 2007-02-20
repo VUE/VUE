@@ -74,13 +74,22 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     private ArrayList<Style> linkStyles = new ArrayList();
     
     /** Creates a new instance of WeightVisualizationSettingsPanel */
-    public WeightVisualizationSettingsPanel() 
+    public WeightVisualizationSettingsPanel(final tufts.vue.MergeMapsChooser mmc) 
     {
         // too soon for all settings, so just load default styles here
         loadDefaultStyles();
         
         String[] parameterChoices = {"Nodes","Links"};
-        JLabel parameterChoiceMessage = new JLabel(parameterChoiceMessageString,JLabel.RIGHT);
+        JLabel parameterChoiceMessage = new JLabel(parameterChoiceMessageString,JLabel.RIGHT)
+        {
+            public java.awt.Dimension getPreferredSize()
+            {
+              if(mmc!=null)
+                return mmc.getVizLabelPreferredSize();    
+              else
+                return new java.awt.Dimension(100,30);
+            }
+        };
         parameterChoice = new JComboBox(parameterChoices);
         JLabel helpLabel = new JLabel(VueResources.getIcon("helpIcon.raw"),JLabel.LEFT);
         JLabel intervalNumberChoiceMessage = new JLabel(intervalChoiceMessageString,JLabel.RIGHT);
@@ -142,6 +151,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         
         //table
         //c.fill = GridBagConstraints.NONE;
+        intervalList.setPreferredScrollableViewportSize(new java.awt.Dimension(200,150));
         JScrollPane scroll = new JScrollPane(intervalList);
         c.gridx = 0;
         c.gridy = 2;
@@ -251,7 +261,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         javax.swing.JFrame f = new javax.swing.JFrame("test");
         f.setBounds(100,100,300,400);
         f.setLayout(new java.awt.GridLayout(1,1));
-        f.getContentPane().add(new WeightVisualizationSettingsPanel());
+        f.getContentPane().add(new WeightVisualizationSettingsPanel(null));
         f.pack();
         f.setVisible(true);
     }
