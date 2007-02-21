@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.50 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2007-02-21 22:04:00 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -470,7 +470,12 @@ public class VueToolbarController
         for (VueTool tool : mVueTools) {
             if (tool instanceof LWEditor) {
                 LWEditor editor = (LWEditor) tool;
-                if (propertyKey == null || propertyKey == editor.getPropertyKey()) {
+                if (propertyKey == null)
+                    propertyKey = editor.getPropertyKey();
+                else if (propertyKey != editor.getPropertyKey())
+                    continue;
+                
+                if (src.supportsProperty(propertyKey)) {
                     Object value = src.getPropertyValue(editor.getPropertyKey());
                     if (DEBUG.TOOL) out("loadToolValue: loading producer "
                                         + editor
