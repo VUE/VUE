@@ -55,7 +55,7 @@ public class OpenAction extends VueAction {
             openUnderway = true;
         }
         try {
-            File file = ActionUtil.openFile("Open Map", "vue");
+            File file = ActionUtil.openFile("Open Map", VueFileFilter.VUE_DESCRIPTION);
             displayMap(file);
             System.out.println("Action["+e.getActionCommand()+"] completed.");
         } finally {
