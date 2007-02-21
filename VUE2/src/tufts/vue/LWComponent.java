@@ -40,7 +40,7 @@ import tufts.vue.filter.*;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.206 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
+ * @version $Revision: 1.207 $ / $Date: 2007-02-21 22:03:21 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -165,6 +165,15 @@ public class LWComponent
         mSupportedPropertyKeys = Key.PropertyMaskForClass(getClass());
     }
 
+    /** Convenience: If key not a real Key (a String), always return true */
+    public boolean supportsProperty(Object key) {
+        if (key instanceof Key)
+            return supportsProperty((Key)key);
+        else
+            return true;
+    }
+    
+    /** @return true if the given property is currently supported on this component */
     public boolean supportsProperty(Key key) {
         return (mSupportedPropertyKeys & key.bit) != 0;
     }
