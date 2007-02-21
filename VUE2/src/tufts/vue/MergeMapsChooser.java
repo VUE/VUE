@@ -134,7 +134,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
     {
         
         //$
-          System.out.println(tufts.vue.VueUtil.getDefaultUserFolder());
+          //System.out.println(tufts.vue.VueUtil.getDefaultUserFolder());
         //$
         
         vueTabbedPane.addChangeListener(this);
@@ -143,18 +143,16 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         setLayout(new BorderLayout());
         buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         generate = new JButton("Generate");
-        //generateDemo = new JButton("Generate Weighted Merge Demo");
         buttonPane.add(generate);
         JTabbedPane mTabbedPane = new JTabbedPane();
         VueResources.initComponent(mTabbedPane,"tabPane");
         
-        //setUpSelectPanel();
         selectPanelHolder = new JPanel();
         sp = new SelectPanel();
-        if(activeMap != null)
+        /*if(activeMap != null)
         {    
           selectPanels.put(getActiveMap(),sp);
-        }
+        }*/
         selectPanelHolder.add(sp);
         mTabbedPane.addTab("Select Maps",selectPanelHolder);
         setUpBasePanel();
@@ -176,6 +174,17 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         
         //generateDemo.addActionListener(this);
         generate.addActionListener(this);
+        
+        //actually weight panel settings .. populates the weight visualization panel gui
+        if(VUE.getActiveMap() instanceof LWMergeMap)
+        {
+          System.out.println("mmc: active map is instanceof LWMergeMap");
+          refreshSettings((LWMergeMap)VUE.getActiveMap());
+        }
+        else
+        {
+            refreshSettings();
+        }
         
         validate();
         setVisible(true);
@@ -245,6 +254,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         setUpBasePanelBrowse();
         baseChoice.addActionListener(this);
         baseBrowseButton.addActionListener(this);
+        
     }
     
     public void setUpBasePanelBrowse()
@@ -805,8 +815,39 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         {
             ex.printStackTrace();
         }
+ 
+                   // from actionPerformed to fix bug -- need to either call actionPerformed, plug
+            // method into drop down box change event somehow or make a delegate method
+            // and call in both places
+            if(vizChoice.getSelectedItem().equals("Weight"))
+            {
+                vizPane.remove(votePanel);
+                vizPane.add(weightPanel);
+                validate();
+                if(p!=null)
+                {
+                    p.pack();
+                }
+            }
+            else
+            {
+                vizPane.remove(weightPanel);
+                vizPane.add(votePanel);
+                validate();
+                if(p!=null)
+                {
+                    p.pack();
+                }
+            }
+        
+        
+        //actually loads current styles and settings -- *fix names* -- probably only should load
+        //defaults (using StyleReader) if there is no style loaded at all
+        // *however, doesn't yet provide proper style load unless weight panel already open...*
         weightPanel.loadDefaultStyles();
         weightPanel.loadDefaultSettings();
+            
+ 
     }
     
     public void setActiveMap(LWMap map)
@@ -853,7 +894,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             generate.setEnabled(true);
         }
 
-        selectPanelHolder.remove(sp);
+        //selectPanelHolder.remove(sp);
         if(selectPanels.containsKey(activeMap))
         {
            // maintains run-time settings even if not merge map
@@ -877,9 +918,9 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             //sp = new SelectPanel();
         }
         
-        selectPanelHolder.add(sp);
-        selectPanels.put(activeMap,sp);
-        selectPanelHolder.repaint();
+        //selectPanelHolder.add(sp);
+        //selectPanels.put(activeMap,sp);
+        //selectPanelHolder.repaint();
         if(p!=null)
         {    
           p.pack();
@@ -1066,7 +1107,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                  Iterator <LWMap> i = VUE.getLeftTabbedPane().getAllMaps();
                  while(i.hasNext())
                  {
-                   mapList.add(i.next());
+                   if(!(i instanceof LWMergeMap))
+                   {
+                     mapList.add(i.next());
+                   }
                  }
                  //map.setSelectChoice("all");
                }
