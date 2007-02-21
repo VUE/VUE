@@ -319,10 +319,6 @@
                        get-method="iterateEntries" set-method="castorAddEntry">
                 </field -->
                 
-		<!--field name="firstEntry" type="tufts.vue.LWPathway$Entry">
-		  <bind-xml name="firstEntry" node="element"/>
-                </field -->
-                
 		<field name="elementIDList" type="string" collection="collection">
 		  <bind-xml name="id" />
 		</field>
