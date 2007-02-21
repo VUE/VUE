@@ -142,32 +142,6 @@
                 
                 <field name="nodeFilter" get-method="XMLnodeFilter">      <bind-xml name="nodeFilter" node="element"/></field>
 
-                
-                <!-- clarifying the key/value names has no effect below on the XML, so we don't bother... -->
-                <!-- field name="slideViews" type="tufts.vue.LWSlide" collection="map">
-		  <bind-xml name="pathwaySlide">
-
-                    <class name="org.exolab.castor.mapping.MapItem">
-
-                      <field name="key" type="java.lang.String">
-                        <bind-xml name="slideId" node="attribute"/>
-                      </field>
-                      
-                      <field name="value" type="tufts.vue.LWSlide">
-                        <bind-xml name="theSlide"/>
-                      </field>
-                      
-                    </class>
-                    
-                  </bind-xml>
-                  
-		</field -->
-                
-                <!--field name="slideViews" collection="map">
-		  <bind-xml name="slide"/>
-		</field-->
-                
-                
                 <!-- We can save a shape interface, but it won't restore properly -->
 		<!-- field name="shape" type="java.awt.Shape">
 			<bind-xml name="shape" node="element"/>
