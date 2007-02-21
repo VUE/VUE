@@ -439,9 +439,6 @@ public class LWImage extends LWComponent
         return mImageHeight;
     }
 
-    public LWSlide getSlide() {
-        return null;
-    }
 
     /*
     static LWImage testImage() {

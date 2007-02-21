@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.108 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
+ * @version $Revision: 1.109 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -56,6 +56,7 @@ public class LWLink extends LWComponent
     //private static final Color ContrastFillColor = new Color(255,255,255);
     // transparency fill is actually just distracting
     
+    // todo: change all the naming conventions to use "head" and "tail" for the two endpoints
     private LWComponent ep1;
     private LWComponent ep2;
     private Line2D.Float line = new Line2D.Float();

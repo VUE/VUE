@@ -426,12 +426,11 @@ public class UndoManager
             parent.children = (List) oldValue;
             // now make sure all the children are properly parented,
             // and none of them are marked as deleted.
-            Iterator ci = parent.children.iterator();
-            while (ci.hasNext()) {
-                LWComponent child = (LWComponent) ci.next();
+            for (LWComponent child : parent.children) {
                 if (parent instanceof LWPathway) {
                     // Special case for pathways. todo: something cleaner (pathways don't "own" their children)
-                    ((LWPathway)parent).addChildRefs(child);
+                    //((LWPathway)parent).addChildRefs(child);
+                    throw new UnsupportedOperationException("LWPathway's don't have real children");
                 } else {
                     if (child.isDeleted())
                         child.restoreToModel();

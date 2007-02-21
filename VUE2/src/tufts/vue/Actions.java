@@ -982,7 +982,7 @@ public class Actions implements VueConstants
     public static final VueAction NewSlide =
     new NewItemAction("New Slide", keyStroke(KeyEvent.VK_S, LEFT_OF_SPACE+CTRL)) {
         LWComponent createNewItem(MapViewer viewer, Point2D newLocation) {
-            final LWComponent slide = LWSlide.createFromList(VUE.getSelection());
+            final LWComponent slide = LWSlide.CreateFromList(VUE.getSelection());
             slide.setLocation(newLocation);
             viewer.getFocal().addChild(slide);
             return slide;

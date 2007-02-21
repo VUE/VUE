@@ -40,7 +40,7 @@ import tufts.vue.filter.*;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.205 $ / $Date: 2007-02-16 04:03:07 $ / $Author: mike $
+ * @version $Revision: 1.206 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -58,7 +58,8 @@ public class LWComponent
         PROPER,
 
         /** Above, plus include ANY children, such as slides and their children -- the only
-         * way to make sure you hit every LWComponent in the system.
+         * way to make sure you hit every active LWComponent in the runtime related
+         * to a particular LWMap (not including the Undo queue)
          */
         ANY,
 
@@ -68,6 +69,8 @@ public class LWComponent
     public static final int HIDE_USER = 0x1;
     public static final int HIDE_FILTER = 0x2;
     public static final int HIDE_PRUNE = 0x4;
+    public static final int HIDE_PATHWAY_UNREVEALED = 0x8;
+    public static final int HIDE_PATHWAY_EXCLUDE_OTHERS = 0x16;
 
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(LWComponent.class);
@@ -123,6 +126,7 @@ public class LWComponent
 
     protected transient LWContainer parent = null;
     protected transient LWComponent mParentStyle;
+    protected transient boolean isStyleParent;
 
     // list of LWLinks that contain us as an endpoint
     private transient java.util.List<LWLink> links = new java.util.ArrayList<LWLink>();
@@ -139,9 +143,6 @@ public class LWComponent
     protected transient double mCachedImageAlpha;
     protected transient Dimension mCachedImageMaxSize;
 
-    protected java.util.Map<String,LWSlide> mSlides = new java.util.HashMap();
-    protected java.util.Map<LWPathway,Boolean> mSlideIsNode = new java.util.HashMap();
-    
     public static final java.util.Comparator XSorter = new java.util.Comparator<LWComponent>() {
             public int compare(LWComponent c1, LWComponent c2) {
                 // we multiply up the result so as not to loose differential precision in the integer result
@@ -164,14 +165,8 @@ public class LWComponent
         mSupportedPropertyKeys = Key.PropertyMaskForClass(getClass());
     }
 
-    public boolean supportsProperty(Key key)
-    {
+    public boolean supportsProperty(Key key) {
         return (mSupportedPropertyKeys & key.bit) != 0;
-        /*
-        final boolean supported = (mSupportedPropertyKeys & key.bit) != 0;
-        if (DEBUG.Enabled && !supported) out("Doesn't support key: " + key);
-        return supported;
-        */
     }
 
     protected void disableProperty(Key key) {
@@ -256,7 +251,7 @@ public class LWComponent
             this.isSubProperty = isSubProperty;
             if (InstanceCount >= Long.SIZE) {
                 this.bit = 0;
-                tufts.Util.printStackTrace(Key.class + ": " + InstanceCount + "th key created -- need to re-implement");
+                tufts.Util.printStackTrace(Key.class + ": " + InstanceCount + "th key created -- need to re-implement (try BitSet)");
             } else
                 this.bit = 1 << InstanceCount;
             AllKeys.add(this);
@@ -318,8 +313,10 @@ public class LWComponent
                 } else
                     return (TValue) propertySlot.get();
             } catch (Throwable t) {
-                //tufts.Util.printStackTrace(t, this + ": property slot get() failed " + propertySlot);
-                VUE.Log.warn(this + ": property slot get() failed " + propertySlot + " " + t);
+                if (DEBUG.META)
+                    tufts.Util.printStackTrace(t, this + ": property slot get() failed " + propertySlot);
+                else
+                    VUE.Log.warn(this + ": property slot get() failed " + propertySlot + " " + t);
                 return DEBUG.Enabled ? (TValue) "<unsupported for this object>" : null;
                 //return null;
             }
@@ -377,8 +374,10 @@ public class LWComponent
                     typedValue = getValue(c);
                 } catch (ClassCastException e) {
                     final String msg = "Property not supported(getStringValue): " + this + " on\t" + c;
-                    VUE.Log.warn(msg + "; " + e);
-                    //tufts.Util.printStackTrace(e, msg);
+                    if (DEBUG.META)
+                        tufts.Util.printStackTrace(e, msg);
+                    else
+                        VUE.Log.warn(msg + "; " + e);
                     return DEBUG.Enabled ? "<unsupported for this object>" : null;
                 }
                 return typedValue == null ? null : typedValue.toString(); // produce something
@@ -741,8 +740,10 @@ public class LWComponent
                 return ((Key)key).getValue(this);
             } catch (ClassCastException e) {
                 String msg = "Property not supported(getPropertyValue): " + key + " on " + this + " (returned null)";
-                //tufts.Util.printStackTrace(e, msg);
-                VUE.Log.warn(msg + "; " + e);
+                if (DEBUG.META)
+                    tufts.Util.printStackTrace(e, msg);
+                else
+                    VUE.Log.warn(msg + "; " + e);
                 return null;
             }
         }
@@ -942,6 +943,24 @@ public class LWComponent
             return parent.isPresentationContext();
     }
 
+
+    /**
+     * Make sure this LWComponent has an ID -- will have an effect on
+     * on any brand new LWComponent exactly once per VM instance.
+     */
+    protected void ensureID(LWComponent c)
+    {
+        if (c.getID() == null) {
+            String id = getNextUniqueID();
+            // no ID may be available if we're an orphan: it will be
+            // patched up when we eventually get added to to a map
+            if (id != null)
+                c.setID(id);
+        }
+
+        for (LWComponent child : c.getChildList())
+            ensureID(child);
+    }
 
     protected String getNextUniqueID()
     {
@@ -1284,14 +1303,16 @@ public class LWComponent
     {
         if (pathwayRefs == null)
             pathwayRefs = new ArrayList();
-        pathwayRefs.add(p);
-        layout();
+        if (!pathwayRefs.contains(p)) {
+            pathwayRefs.add(p);
+            layout();
+        }
         //notify("pathway.add");
     }
     void removePathwayRef(LWPathway p)
     {
         if (pathwayRefs == null) {
-            new Throwable("attempt to remove non-existent pathwayRef to " + p + " in " + this).printStackTrace();
+            if (DEBUG.META) tufts.Util.printStackTrace("attempt to remove non-existent pathwayRef to " + p + " in " + this);
             return;
         }
         pathwayRefs.remove(p);
@@ -1719,10 +1740,27 @@ public class LWComponent
         //if (this.parent != null) notify("set-parent", new Undoable(old) { void undo() { setParent((LWContainer)old); }} );
     }
 
-    void setParentStyle(LWComponent parentStyle)
+    public void setParentStyle(LWComponent parentStyle)
     {
         mParentStyle = parentStyle;
-        copyStyle(parentStyle);
+        parentStyle.isStyleParent = true;
+        if (!mXMLRestoreUnderway)       // we can skip the copy during restore
+            copyStyle(parentStyle);
+    }
+
+    /** for castor persist */
+    public LWComponent getParentStyle() {
+        return mParentStyle;
+    }
+
+    public boolean isStyleParent() {
+        return isStyleParent;
+    }
+    public Boolean getPersistIsStyleParent() {
+        return isStyleParent ? Boolean.TRUE : null;
+    }
+    public void setPersistIsStyleParent(Boolean b) {
+        isStyleParent = b.booleanValue();
     }
 
     /** Apply all style properties from styleSource to this component */
@@ -1730,22 +1768,10 @@ public class LWComponent
         for (Key key : Key.AllKeys) {
             if (key.isStyleProperty && !key.isSubProperty && supportsProperty(key) && styleSource.supportsProperty(key)) {
                 key.copyValue(styleSource, this);
-                //final Object styleValue = key.getValue(styleSource);
-                //out("ADOPTING STYLE PROPERTY: " + key + " " + styleValue);
-                //key.setValue(this, styleValue);
             }
         }
     }
 
-    /* Apply style properties from styleSource that haven't been changed 
-    public void applyStyle(LWComponent styleSource) {
-        for (Key key : Key.AllKeys) {
-            if (key.isStyleProperty && !key.isSubProperty) {
-                key.copyValue(styleSource, this);
-            }
-        }
-    }
-*/
     public LWContainer getParent() {
         return this.parent;
     }
@@ -1800,6 +1826,11 @@ public class LWComponent
         return false;
     }
 
+    /** @return true - A single component always "has content" -- subclasses override to provide varying semantics */
+    public boolean hasContent() {
+        return true;
+    }
+
     void addChild(LWComponent c) {
         throw new UnsupportedOperationException(this + ": can't take children. ignored=" + c);
     }
@@ -1811,13 +1842,6 @@ public class LWComponent
     /** return the currently active view */
     public LWComponent getView() {
         return this;
-        /*
-        if (mSlides.size() > 0) {
-            LWComponent otherView = mSlides.values().iterator().next();
-            return otherView;
-        } else
-            return this;
-        */
     }
 
 
@@ -1857,116 +1881,12 @@ public class LWComponent
             return getAllDescendents(kind, new java.util.ArrayList());
     }
     
-    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind, final java.util.List<LWComponent> list)
-    {
-        if (kind == ChildKind.ANY && !mSlides.isEmpty()) {
-            for (LWSlide slide : mSlides.values()) {
-                if (slide == null) {
-                    tufts.Util.printStackTrace("null slide in mSlides: " + mSlides);
-                    continue;
-                }
-                list.add(slide);
-                slide.getAllDescendents(kind, list);
-            }
-        }
-        
+    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind, final java.util.List<LWComponent> list) {
         return list;
     }
     
-    
-    // TODO: clear up semantics on this for MapViewer "empty maps", maybe rename to hasContent,
-    // do sane impl for LWContainer
-    public boolean isEmpty() { return false; }
 
-    /*
-    public LWPathway getPathwayForSlide(final LWSlide slide) {
-        if (slide == null)
-            return null;
-
-        java.util.Set<Map.Entry<String,LWSlide>> entrySet = mSlides.entrySet();
-
-        for (Map.Entry<String,LWSlide> entry : entrySet) {
-            if (entry.getValue().equals(slide.getID()))
-                return // need to convert the ID to the Pathway, tho findChildByID doesn't include them at moment...
-        }
-
-        return null;
-    }
-    */
-
-    /*
-    public Collection<LWSlide> getSlideList()
-    {
-        if (mXMLRestoreUnderway)
-            return mSlideArray;
-        else
-            return mSlides.values();
-    }
-    */
-
-    public Map<String,LWSlide> getSlideViews()
-    {
-        out("RETURNING SLIDES " + mSlides);
-        return mSlides;
-        //return null;
-    }
-    
-    
-    public LWSlide getSlideForPathway(final LWPathway p)
-    {
-        if (p == null || !inPathway(p))
-            return null;
-
-        LWSlide slide = mSlides.get(p.getID());
-
-        if (slide == null) {
-
-            // TODO: Currently, adding a node to a pathway, then undoing it, has bizarre
-            // effect on SlideViewer if was looking at the slide (things go inverted).
-            
-            slide = buildSlide(p);
-            mSlides.put(p.getID(), slide);
-
-            notify("slide.built", new Undoable() { void undo() { mSlides.remove(p.getID()); }} );
-        }
-
-        if (DEBUG.PRESENT) out("getSlideForPathway " + p + " gets slide " + slide);
-
-        return slide;
-    }
-
-
-    public void setSlideIsNodeForPathway(LWPathway p, boolean slideIsNode) {
-        mSlideIsNode.put(p, slideIsNode ? Boolean.TRUE : Boolean.FALSE);
-        if (DEBUG.PRESENT) out("slideIsNode for " + p + " is " + slideIsNode);
-    }
-
-    public boolean getSlideIsNodeForPathway(LWPathway p) {
-        final Boolean slideIsNode = mSlideIsNode.get(p);
-        return slideIsNode == null ? Boolean.FALSE : slideIsNode.booleanValue();
-    }
-
-    public LWComponent getFocalForPathway(LWPathway p)
-    {
-        final Boolean slideIsNode = mSlideIsNode.get(p);
-        final LWComponent focal;
-
-        if (slideIsNode == null || slideIsNode.booleanValue() == false)
-            focal = getSlideForPathway(p);
-        else
-            focal = this;
-
-        if (DEBUG.PRESENT) out("focalForPathway " + p + " gets focal " + focal);
-
-        return focal;
-    }
-    
-
-    protected LWSlide buildSlide(LWPathway p) {
-        return null;
-    }
-
-    /* for tracking who's linked to us */
+    /** for tracking who's linked to us */
     void addLinkRef(LWLink link)
     {
         if (DEBUG.EVENTS||DEBUG.UNDO) out(this + " adding link ref to " + link);
@@ -1975,7 +1895,7 @@ public class LWComponent
         this.links.add(link);
         notify(LWKey.LinkAdded, link); // informational only event
     }
-    /* for tracking who's linked to us */
+    /** for tracking who's linked to us */
     void removeLinkRef(LWLink link)
     {
         if (DEBUG.EVENTS||DEBUG.UNDO) out(this + " removing link ref to " + link);
@@ -2006,12 +1926,12 @@ public class LWComponent
                     LWLink l = (LWLink) i.next();
                     LWComponent c1 = l.getComponent1();
                     LWComponent c2 = l.getComponent2();
-                    // Every link, as it's connected to us, should
-                    // have us as one of it's endpoints -- so return
-                    // the opposite endpoint.
-                    // todo: now that links can have null endpoints,
-                    // this iterator can return null -- hasNext
-                    // will have to get awfully fancy to handle this.
+                    
+                    // Every link, as it's connected to us, should have us as one of
+                    // it's endpoints -- so return the opposite endpoint.  TODO: now
+                    // that links can have null endpoints, this iterator can return null
+                    // -- hasNext will have to get awfully fancy to handle this.
+                    
                     if (c1 == LWComponent.this)
                         return c2;
                     else
@@ -2137,7 +2057,7 @@ public class LWComponent
     }
 
     public boolean hasAncestor(LWContainer c) {
-        LWContainer parent = getParent();
+        LWComponent parent = getParent();
         if (parent == null)
             return false;
         else if (c == parent)
@@ -2598,7 +2518,7 @@ public class LWComponent
     protected void drawSelectionDecorations(DrawContext dc) {
         if (isSelected() && dc.isInteractive()) {
             LWPathway p = VUE.getActivePathway();
-            if (p != null && p.isVisible() && p.getCurrent() == this) {
+            if (p != null && p.isVisible() && p.getCurrentNode() == this) {
                 // SPECIAL CASE:
                 // as the current element on the current pathway draws a huge
                 // semi-transparent stroke around it, skip drawing our fat 
@@ -2654,7 +2574,58 @@ public class LWComponent
             mCachedImage = null;
         }
         mChangeSupport.notifyListeners(this, e);
+
+        if (isStyleParent)
+            updateStyleWatchers(e);
+        
     }
+
+    /** If the event is a change for a style property, apply the change to all
+        LWComponents that refer to us as their style parent */
+    protected void updateStyleWatchers(LWCEvent e)
+    {
+        if ((e.key instanceof Key) == false || getParent() == null) {
+            // This only works with real Key's, and if parent is null,
+            // we're still initializing.
+            return;
+        }
+
+        final Key key = (Key) e.key;
+
+        if (!key.isStyleProperty) {
+            // nothing to do if this isn't a style property that's changing
+            return;
+        }
+
+        // Now we know a styled property is changing.  Since they Key itself
+        // knows how to get/set/copy values, we can now just find all the
+        // components "listening" to this style (pointing to it), and copy over
+        // the value that just changed on the style object.
+        
+        out("STYLE OBJECT UPDATING STYLED CHILDREN with " + key);
+        //final LWPathway path = ((MasterSlide)getParent()).mOwner;
+        
+        // We can traverse all objects in the system, looking for folks who
+        // point to us.  But once slides are owned by the pathway, we'll have a
+        // list of all slides here from the pathway, and we can just traverse
+        // those and check for updates amongst the children, as we happen
+        // to know that this style object only applies to slides
+        // (as opposed to ontology style objects)
+        
+        // todo: this not a fast way to traverse & find what we need to change...
+        for (LWComponent c : getMap().getAllDescendents(ChildKind.ANY)) {
+            if (c.mParentStyle == this && c != this) { // we should never be point back to ourself, but just in case
+                // Only copy over the style value if was previously set to our existing style value
+                try {
+                    if (key.valueEquals(c, e.getOldValue()))
+                        key.copyValue(this, c);
+                } catch (Throwable t) {
+                    tufts.Util.printStackTrace(t, "Failed to copy value from " + e + " old=" + e.oldValue);
+                }
+            }
+        }
+    }
+    
     
     /**
      * A third party can ask this object to raise an event
@@ -2828,14 +2799,18 @@ public class LWComponent
             this.rollover = tv;
         }
     }
+
     public void setZoomedFocus(boolean tv)
     {
+        throw new UnsupportedOperationException();
+        /*
         if (this.isZoomedFocus != tv) {
             this.isZoomedFocus = tv;
         }
         if (getParent() != null) {
             getParent().setFocusComponent(tv ? this : null);
         }
+        */
     }
 
     public boolean isZoomedFocus()
@@ -2989,9 +2964,9 @@ public class LWComponent
     public void XML_completed() {
         mXMLRestoreUnderway = false;
 
+        /*
         // TODO: TEMPORARY DEBUG: never restore slides as format changes at moment
         //mSlides.clear();
-
         for (LWSlide slide : mSlides.values()) {
             // slides are virtual children of the node: we're their
             // parent, tho they're not formal children of ours.
@@ -3000,6 +2975,7 @@ public class LWComponent
             // can't have slides -- prob good to remove that restriction.
             // What would break if the parent ref were just a LWComponent?
         }
+        */
         
         if (DEBUG.XML) System.out.println("XML_completed " + this);
         //layout(); need to wait till scale values are all set: so the LWMap needs to trigger this

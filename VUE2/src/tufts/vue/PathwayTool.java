@@ -37,7 +37,7 @@ import java.util.Iterator;
  * @see LWPathwayList
  * @see LWPathway
  *
- * @version $Revision: 1.27 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 public class PathwayTool extends VueSimpleTool
@@ -66,7 +66,7 @@ public class PathwayTool extends VueSimpleTool
             return false;
 
         if (hit.inPathway(activePathway))
-            activePathway.remove(hit);
+            activePathway.removeFirst(hit);
         else
             activePathway.add(hit);
         

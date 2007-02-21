@@ -44,7 +44,7 @@ import java.awt.geom.Rectangle2D;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.42 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -137,7 +137,7 @@ public class LWGroup extends LWContainer
         // these components the new group
         LWComponent[] comps = sort(moveList, LWContainer.ReverseOrder);
         for (int x = 0; x < comps.length; x++) {
-            addChildInternal(comps[x]);
+            addChildImpl(comps[x]);
         }
     }
     

@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.131 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
+ * @version $Revision: 1.132 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1844,7 +1844,7 @@ public class LWNode extends LWContainer
         
         if (isSelected() && dc.isInteractive()) {
             LWPathway p = VUE.getActivePathway();
-            if (p != null && p.isVisible() && p.getCurrent() == this) {
+            if (p != null && p.isVisible() && p.getCurrentNode() == this) {
                 // SPECIAL CASE:
                 // as the current element on the current pathway draws a huge
                 // semi-transparent stroke around it, skip drawing our fat 
@@ -2147,10 +2147,6 @@ public class LWNode extends LWContainer
         setAutoSized(false);
         setShape(new Rectangle2D.Float());
         setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
-    }
-    
-    protected LWSlide buildSlide(LWPathway p) {
-        return isTextNode() ? null : super.buildSlide(p);
     }
     
 

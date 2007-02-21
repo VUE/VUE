@@ -68,7 +68,8 @@ import javax.swing.*;
 // Okay, so they can be owned by the map, but could just have bit for now that says "invisible",
 // if we can handle the direct viewing, drawing & selecting of a container with clever traversals.
 
-public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwayListener
+public class SlideViewer extends tufts.vue.MapViewer
+    implements VUE.ActivePathwayEntryListener
 {
     private final VueTool PresentationTool = VueToolbarController.getController().getTool("viewTool");
 
@@ -79,7 +80,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     private boolean inFocal;
     private LWComponent mZoomContent; // what we zoom-to
     private boolean inPathwaySlide;
-    private LWComponent mLastLoad;
+    private LWPathway.Entry mLastLoad;
 
     private final AbstractButton btnLocked;
     private final AbstractButton btnZoom;
@@ -89,6 +90,9 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     private final AbstractButton btnMapSlide;
     private final AbstractButton btnFill;
     //private final AbstractButton btnPresent;
+
+    private boolean masterJustPressed;
+    private boolean slideJustPressed;
 
     private class Toolbar extends JPanel implements ActionListener {
         Toolbar() {
@@ -119,8 +123,12 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         public void actionPerformed(ActionEvent e) {
             if (DEBUG.PRESENT) out(e);
             if (e.getSource() == btnMapSlide) {
-                mLastLoad.setSlideIsNodeForPathway(mLastLoad.getMap().getActivePathway(),
-                                                   btnMapSlide.isSelected());
+                if (mLastLoad != null && !mLastLoad.isPathway())
+                    mLastLoad.setMapView(btnMapSlide.isSelected());
+            } else if (e.getSource() == btnMaster) {
+                masterJustPressed = true;
+            } else if (e.getSource() == btnSlide) {
+                slideJustPressed = true;
             }
             reload();
         }
@@ -144,7 +152,7 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         btnSlide.setSelected(true);
 
         DEBUG_TIMER_ROLLOVER = false;
-        VUE.addActivePathwayListener(this);
+        VUE.addActivePathwayEntryListener(this);
     }
 
     protected AbstractButton makeButton(String name) {
@@ -234,39 +242,52 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     }
 
     private LWPathway mCurrentPath;
-    public void activePathwayChanged(LWPathway path) {
-        if (mCurrentPath != null)
+    public void activePathwayEntryChanged(LWPathway.Entry entry) {
+        load(entry);
+        /*
+        if (mCurrentPath != null)p
             mCurrentPath.removeLWCListener(this);
         mCurrentPath = path;
         mCurrentPath.addLWCListener(this);
         reload();
+        */
     }
 
     private void reload() {
         // TODO: load nothing if active pathway from a different map
         //if (mLastLoad != null)
-        load(mLastLoad);
+        if (mLastLoad == null) {
+            if (VUE.getActivePathway() != null)
+                load(VUE.getActivePathway().asEntry());
+        } else
+            load(mLastLoad);
     }
         
+    /*
     public void selectionChanged(LWSelection s) {
         super.selectionChanged(s);
+
+if (true) return;
 
         if (btnLocked.isSelected())
             return;
             
         if (s.getSource() != this && s.size() == 1) {
-            final LWComponent c = s.first();
+            final LWComponent picked = s.first();
             if (btnMaster.isSelected())
-                mLastLoad = c;
+                mLastLoad = picked;
             else if (btnSlide.isSelected()) {
-                if (true || c.getSlideForPathway(c.getMap().getActivePathway()) != null)
-                    load(c);
+                final LWPathway activePathway = picked.getMap().getActivePathway();
+                //if (true || c.getSlideForPathway(c.getMap().getActivePathway()) != null)
+                if (activePathway != null && activePathway.contains(picked))
+                    load(picked);
                 else
                     ; // do nothing for now: allows us to select non-slideworthy on map to drag into slide
             } else
-                load(c);
+                load(picked);
         }
     }
+    */
 
     protected void XsetDragger(LWComponent c) {
         // need to cleanup MapViewer such that overriding this actually works
@@ -278,9 +299,53 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         }
     }
 
+    protected void load(LWPathway.Entry entry)
+    {
+        if (DEBUG.PRESENT) out("SlideViewer: loading " + entry);
+        mLastLoad = entry;
+
+        LWComponent focal;
+
+        // If no slide available, disable slide button, even if don't want it!
+
+        if (entry == null) {
+            mZoomBorder = false;
+            mZoomContent = null;
+            inFocal = false;
+            focal = null;
+            btnMapSlide.setEnabled(false);
+            //} else if (btnMaster.isSelected() || entry.isPathway()) {
+        } else if (masterJustPressed || (entry.isPathway() && !slideJustPressed)) {
+            btnMaster.setSelected(true);
+            isMapSlide = false;
+            focal = entry.pathway.getMasterSlide();
+        } else {
+            btnSlide.setSelected(true);
+            
+            if (entry.isPathway())
+                entry = entry.pathway.getCurrentEntry();
+                
+            isMapSlide = entry.isMapView();
+            btnMapSlide.setSelected(isMapSlide);
+            focal = entry.getFocal();
+            //focal = getFocalAndConfigure(c);
+        }
+
+        inPathwaySlide = !isMapSlide;
+        mZoomContent = focal;
+
+        masterJustPressed = slideJustPressed = false;
+        
+        
+        super.loadFocal(focal);
+        reshapeImpl(0,0,0,0);
+        if (DEBUG.PRESENT) out("SlideViewer: focused is now " + mFocal + " from map " + mMap);
+    }
+
+    /*
     protected void load(LWComponent c)
     {
-        if (DEBUG.WORK) out("\nSlideViewer: loading " + c);
+        if (DEBUG.PRESENT) out("\nSlideViewer: loading " + c);
         mLastLoad = c;
         //btnSlide.setEnabled(true);
 
@@ -299,7 +364,13 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             if (btnMaster.isSelected()) {
                 isMapSlide = false;
             } else {
-                btnMapSlide.setSelected(c.getSlideIsNodeForPathway(c.getMap().getActivePathway()));
+                //btnMapSlide.setSelected(c.getSlideIsNodeForPathway(c.getMap().getActivePathway()));
+                final LWPathway activePathway = c.getMap().getActivePathway();
+                if (activePathway != null && c.inPathway(activePathway)) {
+                    btnMapSlide.setSelected(activePathway.getFirstEntry(c).isMapSlide());
+                } else {
+                    btnMapSlide.setSelected(false);
+                }
                 isMapSlide = btnFocus.isSelected() || btnMapSlide.isSelected();
             }
             focal = getFocalAndConfigure(c);
@@ -307,8 +378,9 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         
         super.loadFocal(focal);
         reshapeImpl(0,0,0,0);
-        if (DEBUG.WORK) out("SlideViewer: focused is now " + mFocal + " from map " + mMap);
+        if (DEBUG.PRESENT) out("SlideViewer: focused is now " + mFocal + " from map " + mMap);
     }
+    */
 
     private LWSlide getActiveMasterSlide() {
         if (VUE.getActiveMap() != null)
@@ -318,12 +390,12 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
     }
 
 
-    /**
+    /*
      * Given the selected on-map node, and the current viewer config, return the proper focal:
      * Either the node itself, or it's slide for the current pathway, or the master slide for
      * the current pathway (if the master slide button is selected).
-     */
-    private LWComponent getFocalAndConfigure(final LWComponent mapNode)
+
+    private LWComponent XgetFocalAndConfigure(final LWComponent mapNode)
     {
         final LWComponent focal;
 
@@ -343,7 +415,11 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
             btnMapSlide.setEnabled(true);
         } else if (btnSlide.isSelected()) {
 
-            focal = mapNode.getFocalForPathway(mapNode.getMap().getActivePathway());
+            final LWPathway activePathway = mapNode.getMap().getActivePathway();
+
+            focal = activePathway.getFirstEntry(mapNode).getFocal();
+            
+            //focal = mapNode.getFocalForPathway(mapNode.getMap().getActivePathway());
             //focal = mapNode.getSlideForPathway(mapNode.getMap().getActivePathway());
 
             final boolean focalIsPathwaySlide = (mapNode != focal);
@@ -382,13 +458,13 @@ public class SlideViewer extends tufts.vue.MapViewer implements VUE.ActivePathwa
         
         return focal;
     }
-
+     */
     public void fireViewerEvent(int id) {
         if (DEBUG.PRESENT) out("fireViewerEvent <" + id + "> skipped");
     }
 
     protected void reshapeImpl(int x, int y, int w, int h) {
-        if (DEBUG.WORK) out("reshapeImpl");
+        if (DEBUG.PRESENT) out("reshapeImpl");
         zoomToContents();
     }
     

@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.109 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
+ * @version $Revision: 1.110 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -216,33 +216,31 @@ public class LWMap extends LWContainer
         notify(LWKey.MapFilter);
     }
     
-    public  void applyFilter() {
-      
-            if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT)
-                VUE.getSelection().clear();
+    public  void applyFilter()
+    {
+        if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT)
+            VUE.getSelection().clear();
+
+        for (LWComponent c : getAllDescendents()) {
+            if (!(c instanceof LWNode) && !(c instanceof LWLink)) // why are we only doing nodes & links?
+                continue;
             
-            Iterator it = getAllDescendentsIterator();
-            while (it.hasNext()) {
-                LWComponent c = (LWComponent) it.next();
-                if( (c instanceof LWNode) || (c instanceof LWLink) ) {
-                    boolean state = mLWCFilter.isMatch( c);
-                    if( mLWCFilter.isLogicalNot() ) {
-                        state = !state;
-                    }
-                    if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_HIDE)
-                        c.setFiltered(state);
-                    else if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SHOW)
-                        c.setFiltered(!state);
-                    else if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT) {
-                        if (state)
-                            VUE.getSelection().add(c);
-                    }
-                }
+            boolean state = mLWCFilter.isMatch(c);
+            if (mLWCFilter.isLogicalNot())
+                state = !state;
+
+            if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_HIDE)
+                c.setFiltered(state);
+            else if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SHOW)
+                c.setFiltered(!state);
+            else if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT) {
+                if (state)
+                    VUE.getSelection().add(c);
             }
-            filterWasOn = true;
-            mLWCFilter.setFilterOn(true);
-     
-        notify(LWKey.MapFilter);
+        }
+        filterWasOn = true;
+        mLWCFilter.setFilterOn(true);
+        notify(LWKey.MapFilter); // only MapTabbedPane wants to know this, to display a filtered icon...
     }
     
     /**
@@ -398,10 +396,12 @@ public class LWMap extends LWContainer
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
             System.out.println(getLabel() + ": completing restore...");
 
-        resolvePersistedLinks(this);
-        
+        mPathways.completeXMLRestore(this);
+
         final java.util.List<LWComponent> allRestored = getAllDescendents(ChildKind.ANY);
 
+        resolvePersistedLinks(allRestored);
+        
         for (LWComponent c : allRestored) {
             if (DEBUG.XML) System.out.println("RESTORED: " + c);
             // LWContainers handle recursively setting scale on children via special
@@ -412,27 +412,24 @@ public class LWMap extends LWContainer
             if (c instanceof LWContainer)
                 c.setScale(c.getScale());
         }
-        //setChildScaleValues();
         
+        //setChildScaleValues();
         //setScale(getScale());
         //setChildParentReferences();
         
         if (mPathways == null)
             mPathways = new LWPathwayList(this);
 
-        this.nextID = findGreatestChildID(allRestored) + 1;
+        this.nextID = findGreatestID(allRestored) + 1;
         Iterator<LWPathway> pi = mPathways.iterator();
         while (pi.hasNext()) {
-            LWPathway p = pi.next();
             // 2006-11-30 14:33.32 SMF: LWPathways now have ID's,
             // but they didn't used to, so make sure they
             // have an ID on restore in case it was a save file prior
             // to 11/30/06.
-            ensureID(p);
+            ensureID(pi.next());
         }
         
-        mPathways.completeXMLRestore(this);
-
         /*
           
           Now lay everything out.  We must wait till now to do this: after all child
@@ -464,8 +461,34 @@ public class LWMap extends LWContainer
         markAsSaved();
     }
 
+    private void resolvePersistedLinks(java.util.List<LWComponent> allRestored)
+    {
+        for (LWComponent c : allRestored) {
+            if (!(c instanceof LWLink))
+                continue;
+            LWLink l = (LWLink) c;
+            try {
+                final String ep1ID = l.getEndPoint1_ID();
+                final String ep2ID = l.getEndPoint2_ID();
+                if (ep1ID != null && l.getComponent1() == null) l.setComponent1(findByID(allRestored, ep1ID));
+                if (ep2ID != null && l.getComponent2() == null) l.setComponent2(findByID(allRestored, ep2ID));
+            } catch (Throwable e) {
+                tufts.Util.printStackTrace(e, "bad link? + l");
+            }
+        }
+    }
+
+    LWComponent findByID(java.util.List<LWComponent> allRestored, String id) {
+        for (LWComponent c : allRestored)
+            if (id.equals(c.getID()))
+                return c;
+        tufts.Util.printStackTrace("Failed to child child with id [" + id + "]");
+        return null;
+    }
+    
+
     /** for use during restore */
-    private int findGreatestChildID(final java.util.List<LWComponent> allRestored)
+    private int findGreatestID(final java.util.List<LWComponent> allRestored)
     {
         int maxID = -1;
 
@@ -522,7 +545,7 @@ public class LWMap extends LWContainer
             int pathIndex = 0;
             while (i.hasNext()) {
                 LWPathway path = (LWPathway) i.next();
-                if (path.isDrawn() && path.hasChildren()) {
+                if (path.isDrawn()) {
                     dc.setIndex(pathIndex++);
                     path.drawPathway(dc.create());
                 }
@@ -534,15 +557,6 @@ public class LWMap extends LWContainer
         return createImage(alpha, maxSize, getFillColor());
     }
     
-    
-    protected LWComponent findChildByID(String ID) {
-        LWComponent c = super.findChildByID(ID);
-        if (c == null) {
-            System.err.println(this + " failed to locate a LWComponent with id [" + ID + "]");
-            return null;
-        } else
-            return c;
-    }
     
     /** for viewer to report user origin sets via pan drags */
     void setUserOrigin(float x, float y) {
@@ -651,10 +665,10 @@ public class LWMap extends LWContainer
             return null;
     }
     
-    protected void addChildInternal(LWComponent c) {
+    protected void addChildImpl(LWComponent c) {
         if (c instanceof LWPathway)
             throw new IllegalArgumentException("LWPathways not added as direct children of map: use addPathway " + c);
-        super.addChildInternal(c);
+        super.addChildImpl(c);
     }
 
     public boolean isEmpty() {

@@ -42,10 +42,11 @@ import javax.swing.border.*;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.66 $ / $Date: 2006-04-07 22:14:53 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
  */
 
-public class PathwayPanel extends JPanel implements ActionListener
+public class PathwayPanel extends JPanel
+    implements ActionListener, VUE.ActivePathwayEntryListener
 {    
     private Frame mParentFrame;
     
@@ -59,12 +60,10 @@ public class PathwayPanel extends JPanel implements ActionListener
     private JLabel pathElementLabel;    // updated for current PathwayTable selection
     private JTextArea notesArea;        // updated for current PathwayTable selection
     
-    private LWComponent mDisplayedComponent;
-    private LWPathway mDisplayedComponentPathway;
+    private LWPathway.Entry mSelectedEntry;
     private boolean mNoteKeyWasPressed = false;
 
-    private final Color bgColor = new Color(241, 243, 246);
-    //private final Color altbgColor = new Color(186, 196, 222);
+    private final Color BGColor = new Color(241, 243, 246);
     
     private static final Action path_rewind = new PlayerAction("pathway.control.rewind");
     private static final Action path_backward = new PlayerAction("pathway.control.backward");
@@ -89,7 +88,7 @@ public class PathwayPanel extends JPanel implements ActionListener
 
         mTableModel = new PathwayTableModel();
         mPathwayTable = new PathwayTable(mTableModel);
-        mPathwayTable.setBackground(bgColor);
+        mPathwayTable.setBackground(BGColor);
         
         //-------------------------------------------------------
         // Setup selected pathway VCR style controls for current
@@ -289,6 +288,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         // Set up the listeners
         //-------------------------------------------------------
         
+        /*
         mTableModel.addTableModelListener(new TableModelListener() {
                 public void tableChanged(TableModelEvent e) {
                     if (DEBUG.PATHWAY) System.out.println(this + " " + e);
@@ -296,11 +296,15 @@ public class PathwayPanel extends JPanel implements ActionListener
                     updateEnabledStates();
                 }
             });
+        */
+
+        VUE.addActivePathwayEntryListener(this);
         
-        VUE.ModelSelection.addListener(new LWSelection.Listener() {
+        VUE.getSelection().addListener(new LWSelection.Listener() {
                 public void selectionChanged(LWSelection s) {
-                    if (s.size() == 1 && s.first().inPathway(getSelectedPathway())) {
-                        getSelectedPathway().setCurrentElement(s.first());
+                    final LWPathway curPath = getSelectedPathway();
+                    if (s.size() == 1 && s.first().inPathway(curPath)) {
+                        curPath.setIndex(curPath.firstIndexOf(s.first()));
                     } else
                         updateEnabledStates();
                 }
@@ -310,21 +314,18 @@ public class PathwayPanel extends JPanel implements ActionListener
         
     }
 
+    public void activePathwayEntryChanged(LWPathway.Entry entry) {
+        updateTextAreas(entry);
+        updateEnabledStates();
+    }
+    
+
     private void ensureNotesSaved() {
-        if (mNoteKeyWasPressed && mDisplayedComponent != null) {
+        if (mNoteKeyWasPressed && mSelectedEntry != null) {
             mNoteKeyWasPressed = false; // do this first or callback in updateTextAreas will cause 2 different setter calls
-            String text = notesArea.getText();
-            if (mDisplayedComponent instanceof LWPathway) {
-                if (DEBUG.PATHWAY) System.out.println(this + " setPathNotes["+text+"]");
-                mDisplayedComponent.setNotes(text);
-            } else {
-                if (DEBUG.PATHWAY) System.out.println(this + " setElementNotes["+text+"] for " + mDisplayedComponent);
-                mDisplayedComponentPathway.setElementNotes(mDisplayedComponent, text);                        
-            }
+            mSelectedEntry.setNotes(notesArea.getText());
             VUE.getUndoManager().mark();
         }
-        //else if (DEBUG.PATHWAY) System.out.println(this + " ensureNotesSaved: nothing to save: c=" + mDisplayedComponent
-        //                                         + " keyPressed=" + mNoteKeyWasPressed);
     }
 
     /** Returns the currently selected pathway.  As currently
@@ -368,7 +369,7 @@ public class PathwayPanel extends JPanel implements ActionListener
             else
                 throw new IllegalArgumentException(this + " " + e);
                  
-            VUE.getUndoManager().mark();
+                 //VUE.getUndoManager().mark(); // the above stuff not worth having undoable
         }
 
         private static void setAllEnabled(boolean t) {
@@ -389,29 +390,26 @@ public class PathwayPanel extends JPanel implements ActionListener
         
         if (btn == btnElementRemove) {
             
-            // This is a heuristic to try and best guess what the user
-            // might want to actually remove.  If nothing in
-            // selection, and we have a current pathway
-            // index/element, remove that current pathway element.  If
-            // one item in selection, also remove whatever the current
-            // element is (which ideally is usually also the
-            // selection, but if it's different, we want to prioritize
-            // the current element hilighted in the PathwayTable).  If
-            // there's MORE than one item in selection, do a removeAll
-            // of everything in the selection.  This removes ALL instances
-            // of everything in selection, so that, for instance,
-            // a SelectAll followed by pathway delete is guaranteed to
-            // empty the pathway entirely.
+            // This is a heuristic to try and best guess what the user might want to
+            // actually remove.  If nothing in selection, and we have a current pathway
+            // index/element, remove that current pathway element.  If one item in
+            // selection, also remove whatever the current element is (which ideally is
+            // usually also the selection, but if it's different, we want to prioritize
+            // the current element hilighted in the PathwayTable).  If there's MORE than
+            // one item in selection, do a removeAll of everything in the selection.
+            // This removes ALL instances of everything in selection, so that, for
+            // instance, a SelectAll followed by pathway delete is guaranteed to empty
+            // the pathway entirely.
 
             if (pathway.getCurrentIndex() >= 0 && VUE.ModelSelection.size() < 2) {
                 pathway.remove(pathway.getCurrentIndex());
             } else {
-                pathway.remove(VUE.ModelSelection.iterator());
+                pathway.remove(VUE.getSelection().iterator());
             }
         }
-        else if (btn == btnElementAdd)  { pathway.add(VUE.ModelSelection.iterator()); }
-        else if (btn == btnElementUp)   { pathway.sendBackward(pathway.getCurrent()); }
-        else if (btn == btnElementDown) { pathway.bringForward(pathway.getCurrent()); }
+        else if (btn == btnElementAdd)  { pathway.add(VUE.getSelection().iterator()); }
+        else if (btn == btnElementUp)   { pathway.moveCurrentUp(); }
+        else if (btn == btnElementDown) { pathway.moveCurrentDown(); }
 
         else if (btn == btnPathwayDelete)   { deletePathway(pathway); }
         else if (btn == btnPathwayCreate)   { new PathwayDialog(mParentFrame, mTableModel, getLocationOnScreen()).setVisible(true); }
@@ -436,10 +434,8 @@ public class PathwayPanel extends JPanel implements ActionListener
         // to be exclusively shown, or toggles it if it already is.
 
         // To make this simple, first we de-filter (show) everything on the map.
-        Iterator i = map.getAllDescendentsIterator();
-        while (i.hasNext())
-            ((LWComponent)i.next()).setFiltered(false);
-
+        for (LWComponent c : map.getAllDescendents())
+            c.setFiltered(false);
         
         if (exclusiveDisplay == pathway) {
             // We're toggling: just leave everything visible in the map
@@ -457,9 +453,9 @@ public class PathwayPanel extends JPanel implements ActionListener
         // Now we make sure the Pathway objects themselves
         // have their filter flag properly set.
 
-        i = map.getPathwayList().iterator();
+        Iterator<LWPathway> i = map.getPathwayList().iterator();
         while (i.hasNext()) {
-            LWPathway p = (LWPathway) i.next();
+            LWPathway p = i.next();
             if (exclusiveDisplay == null)
                 p.setFiltered(false);
             else
@@ -485,7 +481,7 @@ public class PathwayPanel extends JPanel implements ActionListener
    
     private void updateAddRemoveActions()
     {
-        if (DEBUG.PATHWAY) System.out.println(this + " updateAddRemoveActions");
+        if (DEBUG.PATHWAY&&DEBUG.META) System.out.println(this + " updateAddRemoveActions");
         
         LWPathway path = getSelectedPathway();
         
@@ -537,7 +533,7 @@ public class PathwayPanel extends JPanel implements ActionListener
 
     private void updateEnabledStates()
     {
-        if (DEBUG.PATHWAY) System.out.println(this + " updateEnabledStates");
+        if (DEBUG.PATHWAY&&DEBUG.META) System.out.println(this + " updateEnabledStates");
         
         updateAddRemoveActions();
 
@@ -574,29 +570,34 @@ public class PathwayPanel extends JPanel implements ActionListener
             toggleHideEverythingButCurrentPathway();
         VUE.getActiveMap().getPathwayList().remove(p);
     }
+
+    private void setSelectedEntry(LWPathway.Entry entry) {
+        mSelectedEntry = entry;
+    }
+
     
     private boolean mTrailingNoteSave;
-    private void updateTextAreas()
+    private void updateTextAreas(LWPathway.Entry entry)
     {
-        if (DEBUG.PATHWAY) System.out.println(this + " updateTextAreas, skipping="+mTrailingNoteSave);
+        if (DEBUG.PATHWAY||DEBUG.META)
+            System.out.println(this + " updateTextAreas: " + entry + ", skipping="+mTrailingNoteSave);
+        
         if (mTrailingNoteSave)
             return;
+        
         try {
 
-            // Save any unsaved changes before re-setting the labels.
-            // This is backup lazy-save as workaround for java focusLost
-            // limitation.
-            //
-            // We also wrap this in a loop spoiler because if notes do
-            // get saved at this point, we'll come back here with an
-            // update event, and we want to ignore it as we're
-            // switching to a new note anyway.  Ideally, focusLost on
-            // the notesArea would have already handled this, but
-            // unfortunately java delivers that event LAST, after the
-            // new focus component has gotten and handled all it's
-            // events, and if it was the PathwayTable selecting
-            // another curent node to display, this code is needed
-            // to be sure the note gets saved.
+            // Save any unsaved changes before re-setting the labels.  This is backup
+            // lazy-save as workaround for java focusLost limitation.
+
+            // We also wrap this in a loop spoiler because if notes do get saved at this
+            // point, we'll come back here with an update event, and we want to ignore
+            // it as we're switching to a new note anyway.  Ideally, focusLost on the
+            // notesArea would have already handled this, but unfortunately java
+            // delivers that event LAST, after the new focus component has gotten and
+            // handled all it's events, and if it was the PathwayTable selecting another
+            // curent node to display, this code is needed to be sure the note gets
+            // saved.
             
             mTrailingNoteSave = true;
             ensureNotesSaved(); 
@@ -604,48 +605,31 @@ public class PathwayPanel extends JPanel implements ActionListener
             mTrailingNoteSave = false;
         }
     
-        
-        LWPathway pathway = getSelectedPathway();
-        if (pathway == null) {
-            mDisplayedComponent = null;
-            mDisplayedComponentPathway = null;
+        if (entry == null) {
             pathLabel.setText("");
             pathElementLabel.setText("");
             notesArea.setText("");
+            setSelectedEntry(null);
             return;
         }
-        
-        LWComponent c;
 
-        // this is bit hackish: if the PathwayTable has initiated this
-        // update from a selection change, we need to query it for
-        // the last selected component as opposed to getting it
-        // from the current pathway, because it may BE the current
-        // pathway.  We might detect this by allowing getCurrent()
-        // to return null, thus indicating a pathway selection, but
-        // we really always want a current element in the pathway also
-        // so something is always highlighted in the pathway table.
-        
-        if (mPathwayTable.inTableSelection())
-            c = mPathwayTable.getLastSelectedComponent();
-        else
-            c = pathway.getCurrent();
+        String pathText = entry.pathway.getLabel();
+        String entryText;
 
-        if (c == mDisplayedComponent && pathway == mDisplayedComponentPathway)
-            return;
-        
-        if (c instanceof LWPathway) {
-            pathLabel.setText(pathway.getLabel());
-            pathElementLabel.setText("");
-            notesArea.setText(c.getNotes());
-        } else if (c != null) {
-            pathLabel.setText(pathway.getLabel() + " : ");
-            pathElementLabel.setText(c.getDisplayLabel());
-            notesArea.setText(pathway.getElementNotes(c));
+        if (entry.isPathway()) {
+            entryText = "";
+        } else {
+            pathText += ": ";
+            if (DEBUG.PATHWAY) pathText += "(" + (entry.index()+1) + ") ";
+            entryText = entry.getLabel();
         }
+
+        pathLabel.setText(pathText);
+        pathElementLabel.setText(entryText);
+        notesArea.setText(entry.getNotes());
+        
         mNoteKeyWasPressed = false;
-        mDisplayedComponent = c;
-        mDisplayedComponentPathway = pathway;
+        setSelectedEntry(entry);
     }
 
     public static void main(String[] args) {

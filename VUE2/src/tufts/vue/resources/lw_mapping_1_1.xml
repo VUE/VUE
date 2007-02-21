@@ -131,11 +131,17 @@
                 
 		<field name="autoSized" type="boolean"><bind-xml name="autoSized" node="attribute"/></field>
                 
+		<field name="parentStyle" type="tufts.vue.LWComponent">
+                  <bind-xml name="parentStyleID" node="attribute" reference="true"/>
+                </field>
+
+                
+		<field name="persistIsStyleParent" type="boolean">
+                  <bind-xml name="isStyleParent" node="attribute"/>
+                </field>
+                
                 <field name="nodeFilter" get-method="XMLnodeFilter">      <bind-xml name="nodeFilter" node="element"/></field>
 
-                <field name="slideViews" type="tufts.vue.LWSlide" collection="map">
-		  <bind-xml name="pathwaySlide"/>
-		</field>
                 
                 <!-- clarifying the key/value names has no effect below on the XML, so we don't bother... -->
                 <!-- field name="slideViews" type="tufts.vue.LWSlide" collection="map">
@@ -197,6 +203,11 @@
 		<map-to xml="slide"/>
 		<!-- field name="layer"><bind-xml name="layer" node="element"/></field> -->
 	</class>
+
+	<class name="tufts.vue.LWPathway$MasterSlide" extends="tufts.vue.LWSlide">
+		<map-to xml="masterSlide"/>
+	</class>
+        
 	
 	
 	<class name="tufts.vue.LWNode" extends="tufts.vue.LWContainer">
@@ -291,6 +302,7 @@
             </field>
         </class>
 
+
 	<class name="tufts.vue.LWPathwayList">
 		<map-to xml="PathwayList"/>
 		<field name="currentIndex" type="integer">
@@ -321,8 +333,20 @@
 		  <bind-xml name="open" node="attribute"/>
 		</field>
                 
-		<!-- field name="masterSlide" type="tufts.vue.LWSlide">
+		<field name="masterSlide" type="tufts.vue.LWPathway$MasterSlide">
 		  <bind-xml name="masterSlide" node="element"/>
+                </field>
+
+                <field name="persistEntries" type="tufts.vue.LWPathway$Entry" collection="arraylist">
+                  <bind-xml name="pathEntry"/>
+                </field>
+                
+                <!-- field name="entries" type="tufts.vue.LWPathway$Entry" collection="arraylist"
+                       get-method="iterateEntries" set-method="castorAddEntry">
+                </field -->
+                
+		<!--field name="firstEntry" type="tufts.vue.LWPathway$Entry">
+		  <bind-xml name="firstEntry" node="element"/>
                 </field -->
                 
 		<field name="elementIDList" type="string" collection="collection">
@@ -332,6 +356,17 @@
                         <bind-xml name="ElementPropertyList" />
                 </field>
 	</class>
+        
+        <class name="tufts.vue.LWPathway$Entry">
+          <map-to xml="pathEntry"/>
+          <field name="mapView" get-method="isMapView"><bind-xml name="isMapView" node="attribute"/></field>
+          <field name="node" direct="true"><bind-xml name="nodeID" node="attribute" reference="true"/></field>
+          <field name="notes"><bind-xml node="element"/></field>
+	  <field name="persistSlide" type="tufts.vue.LWSlide">
+	    <bind-xml name="slide" node="element"/>
+          </field>
+          
+        </class>
         
         <class name="tufts.vue.LWPathwayElementProperty">
                 <field name="elementID" type="string">

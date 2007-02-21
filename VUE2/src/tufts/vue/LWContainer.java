@@ -34,7 +34,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.94 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
+ * @version $Revision: 1.95 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -42,98 +42,12 @@ public abstract class LWContainer extends LWComponent
     protected java.util.List<LWComponent> children = new java.util.ArrayList<LWComponent>();
     protected LWComponent focusComponent;
     
-    /** for use during restore */
-    protected LWComponent findChildByID(String ID)
-    {
-        java.util.Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.getID().equals(ID))
-                return c;
-            if (c instanceof LWContainer) {
-                c = ((LWContainer)c).findChildByID(ID);
-                if (c != null)
-                    return c;
-            }
-        }
-        return null;
-    }
-
-    /*
-     * For restore: To be called once after a persisted map
-     * is restored.
-    
-
-    // moved to non-recursive code in LWMap
-    protected int findGreatestChildID()
-    {
-        int maxID = -1;
-        Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.getID() == null) {
-                System.err.println("*** FOUND LWC WITH NULL ID " + c + " (reparent to fix)");
-                continue;
-            }
-            int curID = idStringToInt(c.getID());
-            if (curID > maxID)
-                maxID = curID;
-            if (c instanceof LWContainer) {
-                curID = ((LWContainer)c).findGreatestChildID();
-                if (curID > maxID)
-                    maxID = curID;
-            }
-        }
-        return maxID;
-    }
-    */
-        
-    protected void resolvePersistedLinks(LWContainer topLevelContainer)
-    {
-        java.util.Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c instanceof LWContainer) {
-                ((LWContainer)c).resolvePersistedLinks(topLevelContainer);
-                continue;
-            }
-            if (!(c instanceof LWLink))
-                continue;
-            LWLink l = (LWLink) c;
-            try {
-                String ep1ID = l.getEndPoint1_ID();
-                String ep2ID = l.getEndPoint2_ID();
-                if (ep1ID != null) l.setComponent1(topLevelContainer.findChildByID(ep1ID));
-                if (ep2ID != null) l.setComponent2(topLevelContainer.findChildByID(ep2ID));
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.err.println("*** bad link? " + l);
-                // we can now have links without endpoints
-                //i.remove();
-            }
-        }
-    }
-    
     public void XML_fieldAdded(String name, Object child) {
         super.XML_fieldAdded(name, child);
         if (child instanceof LWComponent) {
             ((LWComponent)child).setParent(this);
         }
     }
-    
-    /* for use during restore
-       // now handled in LWComponent.XML_addNotify...
-    protected void setChildParentReferences()
-    {
-        Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.setParent(this);
-            if (c instanceof LWContainer)
-                ((LWContainer)c).setChildParentReferences();
-        }
-    }
-    */
     
     /*
      * Child handling code
@@ -149,11 +63,10 @@ public abstract class LWContainer extends LWComponent
         return children.contains(c);
     }
 
-    /*
-    public boolean isEmpty() {
+    /** @return true if we have any children */
+    public boolean hasContent() {
         return children == null || children.size() < 1;
     }
-    */
     
     public java.util.List<LWComponent> getChildList()
     {
@@ -173,14 +86,6 @@ public abstract class LWContainer extends LWComponent
         return this.children.iterator();
     }
 
-    public Iterator getNodeIterator()
-    {
-        return getNodeList().iterator();
-    }
-    public Iterator getLinkIterator()
-    {
-        return getLinkList().iterator();
-    }
 
     /**
      * return first ancestor of type clazz, or if no matching ancestor
@@ -204,7 +109,9 @@ public abstract class LWContainer extends LWComponent
         return getPathwayList().iterator();
     }*/
     
-    // todo: temporary for html? 
+
+    public Iterator getNodeIterator()    { return getNodeList().iterator(); }
+    // todo: temporary for html?
     private List getNodeList()
     {
         ArrayList list = new ArrayList();
@@ -216,6 +123,7 @@ public abstract class LWContainer extends LWComponent
         }
         return list;
     }
+    public Iterator getLinkIterator()    { return getLinkList().iterator(); }
     // todo: temporary for html?
     private List getLinkList()
     {
@@ -228,18 +136,6 @@ public abstract class LWContainer extends LWComponent
         }
         return list;
     }
-    /* -- pathways are no longer added as children to the map --
-    private List getPathwayList()
-    {
-        ArrayList list = new ArrayList();
-        java.util.Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c instanceof LWPathway)
-                list.add(c);
-        }
-        return list;
-    }*/
 
     /*
     protected String getNextUniqueID()
@@ -256,33 +152,6 @@ public abstract class LWContainer extends LWComponent
      */
     void layoutChildren() { }
 
-
-    /**
-     * Make sure this LWComponent has an ID -- will have an effect on
-     * on any brand new LWComponent exactly once per VM instance.
-     */
-    protected void ensureID(LWComponent c)
-    {
-        if (c.getID() == null) {
-            String id = getNextUniqueID();
-            // no ID may be available if we're an orphan: it will be
-            // patched up when we eventually get added to to a map
-            if (id != null)
-                c.setID(id);
-        }
-
-        for (LWComponent child : c.getChildList())
-            ensureID(child);
-
-
-        /*
-        if (c instanceof LWContainer) {
-            Iterator i = ((LWContainer)c).getChildIterator();
-            while (i.hasNext())
-                ensureID((LWComponent) i.next());
-        }
-        */
-    }
 
     /** called by LWChangeSupport, available here for override by parent classes that want to
      * monitor what's going on with their children */
@@ -362,14 +231,14 @@ public abstract class LWContainer extends LWComponent
             }
         };
     
-    public void addChildren(Iterator i)
+    public void addChildren(Iterator<LWComponent> i)
     {
         notify(LWKey.HierarchyChanging);
         
         ArrayList addedChildren = new ArrayList();
         while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            addChildInternal(c);
+            LWComponent c = i.next();
+            addChildImpl(c);
             addedChildren.add(c);
         }
 
@@ -399,7 +268,7 @@ public abstract class LWContainer extends LWComponent
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (c.getParent() == this) {
-                removeChildInternal(c);
+                removeChildImpl(c);
                 removedChildren.add(c);
             } else
                 throw new IllegalArgumentException(this + " asked to remove child it doesn't own: " + c);
@@ -410,7 +279,7 @@ public abstract class LWContainer extends LWComponent
         }
     }
     
-    protected void addChildInternal(LWComponent c)
+    protected void addChildImpl(LWComponent c)
     {
         if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
         if (c.getParent() != null && c.getParent().getChildList().contains(c)) {
@@ -432,7 +301,7 @@ public abstract class LWContainer extends LWComponent
         ensureID(c);
     }
 
-    protected void removeChildInternal(LWComponent c)
+    protected void removeChildImpl(LWComponent c)
     {
         if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
         if (this.children == null) {
@@ -689,6 +558,7 @@ public abstract class LWContainer extends LWComponent
         this.focusComponent = c;
     }
     
+    /*
     protected LWSlide buildSlide(LWPathway p) {
         //LWContainer dupe = (LWContainer) duplicate();
         //return LWSlide.createFromList(dupe.children);
@@ -714,12 +584,8 @@ public abstract class LWContainer extends LWComponent
         java.util.List toLayout = new java.util.ArrayList();
         LWNode title = NodeTool.buildTextNode(getLabel()); // need to "sync" this...=
 
-        //title.setFont(p.getMasterSlide().titleStyle.getFont());
-        title.setParentStyle(p.getMasterSlide().titleStyle);
+        title.setParentStyle(p.getMasterSlide().textStyle);
 
-        //title.setFont(getFont().deriveFont(java.awt.Font.BOLD));
-        //title.setFontSize(48);
-        
         toLayout.add(title);
         toLayout.addAll(dupeChildren.getChildList());
         slide.importAndLayout(toLayout);
@@ -733,6 +599,7 @@ public abstract class LWContainer extends LWComponent
         //getMap().addChild(slide);
         return slide;
     }
+    */
     
     
 

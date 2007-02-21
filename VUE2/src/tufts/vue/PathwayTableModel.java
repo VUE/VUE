@@ -107,7 +107,7 @@ public class PathwayTableModel extends DefaultTableModel
     LWPathwayList getPathwayList() {
         return mMap == null ? null : mMap.getPathwayList();
     }
-    Iterator getPathwayIterator() {
+    Iterator<LWPathway> getPathwayIterator() {
         return mMap == null ? VueUtil.EmptyIterator : mMap.getPathwayList().iterator();
     }
     
@@ -122,17 +122,17 @@ public class PathwayTableModel extends DefaultTableModel
         }
     }
 
-    /** for PathwayPanel */
+    /* for PathwayPanel 
     int getCurrentPathwayIndex(){
         return getList().indexOf(VUE.getActivePathway());
     }
-
-    /**
+*/
+    /*
      * for PathwayTable
      * Given @param pRow in the displayed table model,
      * return the pathway that contains it.  If element
      * at that row is a pathway, return that pathway.
-     */
+
     LWPathway getPathwayForElementAt(int pRow)
     {
         Iterator i = getPathwayIterator();
@@ -150,13 +150,14 @@ public class PathwayTableModel extends DefaultTableModel
         }
         throw new IllegalArgumentException("Couldn't find any element at row " + pRow);
     }
-    /**
+     */
+    
+    /*
      * for PathwayTable
      * Returns index of element within given pathway.  We need
      * this because an element can appear in the pathway more
      * than once, and this is how we differentiate them (by index).
      * If the element at @param pRow is a pathway, return -1.
-     */
     int getPathwayIndexForElementAt(int pRow)
     {
         Iterator i = getPathwayIterator();
@@ -173,53 +174,84 @@ public class PathwayTableModel extends DefaultTableModel
         }
         throw new IllegalArgumentException("Couldn't find any element at row " + pRow);
     }
+     */
 
     // get the model list
+    /*
     private List getList() {
         List list = new ArrayList();
-        Iterator i = getPathwayIterator();
+        Iterator<LWPathway> i = getPathwayIterator();
         while (i.hasNext()) {
-            LWPathway p = (LWPathway) i.next();
+            LWPathway p = i.next();
             list.add(p);
-            if (p.isOpen())
-                list.addAll(p.getElementList());
+            if (p.isOpen()) {
+                for (LWPathway.Entry e : p.getEntries())
+                    list.add(e.node);
+            }
         }
         return list;
     }
+    */
 
-    /** for PathwayTable
-     * Returns the element at @param pRow, which will
-     * be an LWComponent -- either a LWPathway or an LWComponent
-     * memeber of a pathway.
+    /** for PathwayTable Returns the element at @param pRow, which
+     * will be either a LWPathway or an LWPathway.Entry memeber of a
+     * pathway.
      */
-    LWComponent getElement(int pRow) {
+    
+    LWPathway.Entry getEntry(int pRow) {
         if (pRow < 0)
             return null;
-        Iterator i = getPathwayIterator();
+        Iterator<LWPathway> i = getPathwayIterator();
         int row = 0;
         while (i.hasNext()) {
-            LWPathway p = (LWPathway) i.next();
+            LWPathway p = i.next();
             if (row++ == pRow)
-                return p;
+                return p.asEntry();
             if (p.isOpen()) {
-                Iterator ci = p.getElementIterator();
-                while (ci.hasNext()) {
-                    LWComponent c = (LWComponent) ci.next();
+                for (LWPathway.Entry e : p.getEntries()) {
                     if (row++ == pRow)
-                        return c;
+                        return e;
                 }
             }
         }
         return null;
-        //throw new IllegalStateException(this + " failed to find any element at row " + pRow);
-        
-        /* The simple but slow version of getElement:
-        return (LWComponent) getList().get(pRow);
-        */
     }
+    /*
+    Object getElement(int pRow) {
+        if (pRow < 0)
+            return null;
+        Iterator<LWPathway> i = getPathwayIterator();
+        int row = 0;
+        while (i.hasNext()) {
+            LWPathway p = i.next();
+            if (row++ == pRow)
+                return p;
+            if (p.isOpen()) {
+                for (LWPathway.Entry e : p.getEntries()) {
+                    if (row++ == pRow)
+                        return e;
+                }
+            }
+        }
+        return null;
+    }
+    */
 
-    public synchronized int getRowCount(){
-        return getList().size();
+    public synchronized int getRowCount()
+    {
+        int rows = 0;
+        Iterator<LWPathway> i = getPathwayIterator();
+        while (i.hasNext()) {
+            LWPathway p = i.next();
+            rows++;
+            if (p.isOpen())
+                rows += p.length();
+        }
+        return rows;
+        
+        ///final int rowCount = getList().size();
+        //if (DEBUG.PATHWAY) System.out.println("getRowCount=" + rowCount);
+        //return rowCount;
     }
 
     public int getColumnCount() {
@@ -246,8 +278,12 @@ public class PathwayTableModel extends DefaultTableModel
     
     public boolean isCellEditable(int row, int col){
         if (getPathwayList() != null) {
-            LWPathway p = getPathwayForElementAt(row);
-            if (p.isLocked())
+            final LWPathway.Entry entry = getEntry(row);
+
+            if (entry == null)
+                return false;
+            
+            if (entry.pathway.isLocked())
                 return false;
 
             //if (col == 3) // label always editable
@@ -256,7 +292,7 @@ public class PathwayTableModel extends DefaultTableModel
             // marker, and as single-line edit will blow
             // away any newlines in the label.
 
-            if (getElement(row) instanceof LWPathway)
+            if (entry.isPathway())
                 return col == COL_COLOR || col == COL_LABEL || col == COL_REVEALER;
         }
         return false;
@@ -274,10 +310,13 @@ public class PathwayTableModel extends DefaultTableModel
     
     public synchronized Object getValueAt(int row, int col)
     {
-        LWComponent c = getElement(row);
-        if (c instanceof LWPathway) {
-            LWPathway p = (LWPathway) c;
-            try{
+        final LWPathway.Entry entry = getEntry(row);
+        if (entry == null)
+            return null;
+        
+        if (entry.isPathway()) {
+            LWPathway p = entry.pathway;
+            try {
                 switch (col) {
                 case COL_VISIBLE: return new Boolean(p.isVisible());
                 case COL_COLOR: return p.getStrokeColor();
@@ -294,7 +333,7 @@ public class PathwayTableModel extends DefaultTableModel
             } 
         } else {
             try {
-                if (col == 3) return c.getDisplayLabel();
+                if (col == COL_LABEL) return entry.getLabel();
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("exception in the table model, setting pathway element cell:" + e);
@@ -305,9 +344,12 @@ public class PathwayTableModel extends DefaultTableModel
 
     public void setValueAt(Object aValue, int row, int col){
         if (DEBUG.PATHWAY) System.out.println(this + " setValutAt " + row + "," + col + " " + aValue);
-        LWComponent c = getElement(row);
-        if (c instanceof LWPathway) {
-            LWPathway p = (LWPathway) c;
+        LWPathway.Entry entry = getEntry(row);
+        if (entry == null)
+            return;
+        
+        if (entry.isPathway()) {
+            LWPathway p = entry.pathway;
             boolean bool = false;
             if (aValue instanceof Boolean)
                 bool = ((Boolean)aValue).booleanValue();
@@ -315,7 +357,7 @@ public class PathwayTableModel extends DefaultTableModel
                  if (col == COL_VISIBLE) { p.setVisible(!p.isVisible()); }        // not proper (must use aValue to be proper)
             else if (col == COL_COLOR)   { p.setStrokeColor((Color)aValue); }     // proper
             else if (col == COL_OPEN)    { p.setOpen(!p.isOpen()); }              // not proper
-            else if (col == COL_LABEL)   { p.setLabel((String)aValue); }          // proper
+            else if (col == COL_LABEL)   { entry.setLabel((String)aValue); }      // proper
             else if (col == COL_LOCKED)  { p.setLocked(!p.isLocked()); }          // not proper
             else if (col == COL_REVEALER) {
                 if (bool)
@@ -323,18 +365,8 @@ public class PathwayTableModel extends DefaultTableModel
                 else
                     getPathwayList().setRevealer(null);
             }
-
-            /*
-            if (col == COL_VISIBLE) { p.setVisible(!bool); }
-            else if (col == COL_COLOR)   { p.setStrokeColor((Color)aValue); }
-            else if (col == COL_OPEN)    { p.setOpen(!bool); }
-            else if (col == COL_LABEL)   { p.setLabel((String)aValue); }
-            else if (col == COL_LOCKED)  { p.setLocked(!bool); }
-            else if (col == COL_REVEALER){ p.setRevealer(bool); }
-            */
-                 
-        } else if (c != null) {
-            if (col == COL_LABEL) c.setLabel((String)aValue);
+        } else {
+            if (col == COL_LABEL) entry.setLabel((String)aValue);
         }
         VUE.getUndoManager().mark();
         // all the above sets will trigger LWCEvents, listeneted to by the

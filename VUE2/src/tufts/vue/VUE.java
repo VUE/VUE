@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.393 $ / $Date: 2007-02-16 02:25:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.394 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -73,6 +73,7 @@ public class VUE
     private static MapViewer ActiveViewer = null;
     private static LWMap ActiveMap = null;
     private static LWPathway ActivePathway = null;
+    private static LWPathway.Entry ActivePathwayEntry = null;
     /** The currently active selection.
      * elements in ModelSelection should always be from the ActiveModel */
     static final LWSelection ModelSelection = new LWSelection();
@@ -102,6 +103,7 @@ public class VUE
     private static java.util.List<ActiveMapListener> ActiveMapListeners = new java.util.ArrayList();
     private static java.util.List<ActiveViewerListener> ActiveViewerListeners = new java.util.ArrayList();
     private static java.util.List<ActivePathwayListener> ActivePathwayListeners = new java.util.ArrayList();
+    private static java.util.List<ActivePathwayEntryListener> ActivePathwayEntryListeners = new java.util.ArrayList();
 
     private static InspectorPane inspectorPane = null;
     private static FormatPanel formattingPanel; 
@@ -114,6 +116,9 @@ public class VUE
     }
     public interface ActivePathwayListener {
         public void activePathwayChanged(LWPathway p);
+    }
+    public interface ActivePathwayEntryListener {
+        public void activePathwayEntryChanged(LWPathway.Entry e);
     }
 
     public static void setAppletContext(AppletContext ac) {
@@ -1322,6 +1327,11 @@ public class VUE
             ActivePathwayListeners.remove(l);
         }
     }
+    public static void addActivePathwayEntryListener(ActivePathwayEntryListener l) {
+        synchronized (LOCK) {
+            ActivePathwayEntryListeners.add(l);
+        }
+    }
     
     /**
      * Viewer can be null, which happens when we close the active viewer
@@ -1411,6 +1421,22 @@ public class VUE
         }
         
     }
+
+    static void setActivePathwayEntry(final LWPathway.Entry entry)
+    {
+        if (ActivePathwayEntry == entry)
+            return;
+
+        ActivePathwayEntry = entry;
+        
+        if (DEBUG.FOCUS || DEBUG.EVENTS) out("ActivePathwayEntry set to " + entry);
+        for (ActivePathwayEntryListener l : ActivePathwayEntryListeners) {
+            if (DEBUG.FOCUS || DEBUG.EVENTS) out("activePathwayEntryChanged -> " + l);
+            l.activePathwayEntryChanged(entry);
+        }
+        
+    }
+    
 
     public static MapViewer getActiveViewer() {
         return ActiveViewer;

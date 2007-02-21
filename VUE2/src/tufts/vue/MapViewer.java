@@ -65,7 +65,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.304 $ / $Date: 2007-02-16 04:03:07 $ / $Author: mike $ 
+ * @version $Revision: 1.305 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -371,10 +371,10 @@ public class MapViewer extends javax.swing.JComponent
     private void adjustCanvasSize(boolean expand, boolean trimNorthWest, boolean trimSouthEast)
     {
         if (inScrollPane) {
-            if (mFocal.isEmpty())
-                mViewport.adjustSize(false, true, true);
-            else
+            if (mFocal.hasContent())
                 mViewport.adjustSize(expand, trimNorthWest, trimSouthEast);
+            else
+                mViewport.adjustSize(false, true, true);
         }
     }
     
@@ -399,7 +399,7 @@ public class MapViewer extends javax.swing.JComponent
 
         if (DEBUG.SCROLL) out("ZOOM: reset="+pReset + " Z="+pZoomFactor + " focus="+mapAnchor);
 
-        if (mFocal.isEmpty()) {
+        if (!mFocal.hasContent()) {
             if (DEBUG.SCROLL) out("EMPTY OVERRIDE");
             //pReset = true;
             pZoomFactor = 1.0;
@@ -916,6 +916,8 @@ public class MapViewer extends javax.swing.JComponent
         mFocal = focal;
         if (mFocal != null) {
             mMap = mFocal.getMap();
+            if (mMap == null)
+                tufts.Util.printStackTrace("no map in focal! " + mFocal);
             mFocal.addLWCListener(this);
         } else
             mMap = null;
@@ -1787,7 +1789,7 @@ public class MapViewer extends javax.swing.JComponent
         }
 
 
-        if (mFocal == null || mFocal.isEmpty())
+        if (mFocal == null || !mFocal.hasContent())
             paintEmptyMessage(g);
         
         paints++;
@@ -3661,7 +3663,8 @@ public class MapViewer extends javax.swing.JComponent
                     // Okay, ONLY drag even a single object via the selection
                     //if (VueSelection.size() > 1) {
                     // pick up a group selection for dragging
-                    draggedSelectionGroup.useSelection(VueSelection);
+                    draggedSelectionGroup.useSelection(VUE.getSelection());
+                    //draggedSelectionGroup.useSelection(VueSelection);
                     setDragger(draggedSelectionGroup);
                     //} else {
                     // [ We never drag just single components anymore --

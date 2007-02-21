@@ -310,7 +310,8 @@ public class PresentationTool extends VueTool
         final LWComponent nextPage;
 
         if (nextPathwayNode != null)
-            nextPage = nextPathwayNode.getFocalForPathway(mPathway);
+            nextPage = mPathway.getFirstEntry(nextPathwayNode).getFocal();
+        //nextPage = nextPathwayNode.getFocalForPathway(mPathway);
         else
             nextPage = null;
         //LWComponent nextPage = nextPathwayNode.getSlideForPathway(mPathway);

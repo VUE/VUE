@@ -27,7 +27,7 @@ import java.awt.geom.*;
  * Sublcass (for now) of LWGroup for slide features.
  *
  * @author Scott Fraize
- * @version $Revision: 1.6 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
  */
 public class LWSlide extends LWGroup
 {
@@ -41,7 +41,7 @@ public class LWSlide extends LWGroup
     public LWSlide() {}
 
     /** create a default LWSlide */
-    public static LWSlide create()
+    public static LWSlide Create()
     {
         final LWSlide s = new LWSlide();
         s.setFillColor(new Color(0,0,0,64));
@@ -53,6 +53,24 @@ public class LWSlide extends LWGroup
         return s;
     }
 
+    public static LWSlide CreatePathwaySlide()
+    {
+        final LWSlide s = Create();
+        s.setStrokeWidth(0f);
+        s.setFillColor(null);
+        return s;
+    }
+    
+
+    /*
+    protected LWComponent pickChild(PickContext pc, LWComponent c) {
+        if (pc.pickDepth > 0)
+            return c;
+        else
+            return this;
+    }
+    */
+    
     public String getLabel() {
         final LWContainer parent = getParent();
         if (parent instanceof LWPathway)
@@ -76,6 +94,34 @@ public class LWSlide extends LWGroup
         return null;
     }
 
+    public static LWSlide CreateForPathway(LWPathway pathway, LWComponent node)
+    {
+        final LWSlide slide = CreatePathwaySlide();
+
+        java.util.List<LWComponent> toLayout = new java.util.ArrayList();
+        LWNode title = NodeTool.buildTextNode(node.getDisplayLabel()); // need to "sync" this...=
+
+        
+        LWComponent dupeChildren = node.duplicate(); // just for children: rest of node thrown away
+        toLayout.add(title);
+        toLayout.addAll(dupeChildren.getChildList());
+
+        for (LWComponent c : toLayout)
+            c.setParentStyle(pathway.getMasterSlide().textStyle);
+
+        slide.importAndLayout(toLayout);
+        slide.setParent(pathway);
+        
+        //slide.setLocation(getX(), getY() + getHeight() + 20);
+        //slide.setScale(0.125f);
+        //slide.setLocation(Short.MAX_VALUE, Short.MAX_VALUE);
+        //slide.setLocked(true);
+        //slide.setLayer(1); // effective make invisible on the map map
+        //getMap().addChild(slide);
+        return slide;
+    }
+
+    
     // This will prevent the object from ever being drawn on the map.
     // But this bit isn't checked at the top level if this is the top
     // level object requested to draw, so it will still work on the slide viewer.
@@ -83,9 +129,9 @@ public class LWSlide extends LWGroup
     //public boolean isFiltered() { return true; }
     //public boolean isHidden() { return true; }
 
-    static LWSlide createFromList(java.util.List<LWComponent> nodes)
+    static LWSlide CreateFromList(java.util.List<LWComponent> nodes)
     {
-        final LWSlide slide = create();
+        final LWSlide slide = Create();
 
         if (nodes != null && nodes.size() > 0)
             slide.importAndLayout(nodes);
@@ -101,11 +147,15 @@ public class LWSlide extends LWGroup
         //tufts.Util.printStackTrace("SLIDE CONTENT BOUNDS " + selection.getBounds());
         // Must import before MakeRow, as arrange actions will remove all nodes
         // parented to other nodes (auto-laid-out) before doing an arrange
-        super.importNodes(nodes);
+        //super.importNodes(nodes);
         // prob need to layout all the children once, so they pickup layout
         // based on the fact their now in a presentation context...
         // (make row sizes are sometimes being off...)
         //Actions.MakeRow.act(selection);
+
+        for (LWComponent c : nodes) {
+            addChildImpl(c);
+        }
 
         //             int x = 1, y = 1;
         //             for (LWComponent c : slide.getChildList())

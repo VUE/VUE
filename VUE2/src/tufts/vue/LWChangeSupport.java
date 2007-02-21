@@ -123,6 +123,12 @@ public class LWChangeSupport
      * map & viewer listeners, etc, can all use.
      */
     public synchronized void setPriorityListener(LWComponent.Listener listener) {
+
+        if (listeners == null) {
+            VUE.Log.error("Attempting to set priorty listener with no listeners at all for client " + mClient);
+            return;
+        }
+        
         int i = listeners.indexOf(listener);
         
         if (i > 0) {
@@ -151,8 +157,8 @@ public class LWChangeSupport
         if (listeners.contains(listener)) {
             // do nothing (they're already listening to us)
             if (DEBUG.EVENTS) {
-                System.out.println("already listening to us: " + listener + " " + mClient);
-                if (DEBUG.META) new Throwable("already listening to us:" + listener + " " + mClient).printStackTrace();
+                if (DEBUG.META) System.out.println("already listening to us: " + listener + " " + mClient);
+                //if (DEBUG.META) new Throwable("already listening to us:" + listener + " " + mClient).printStackTrace();
             }
         } else if (listener == mClient) {
             // This is likely to produce event loops, and the exception is here as a safety measure.
@@ -170,7 +176,7 @@ public class LWChangeSupport
     {
         if (listeners == null)
             return;
-        if (DEBUG.EVENTS) System.out.println("*** LISTENER " + listener + "\tREMOVES " + mClient);
+        if (DEBUG.EVENTS && DEBUG.META) System.out.println("*** LISTENER " + listener + "\tREMOVES " + mClient);
         listeners.remove(listener);
     }
     public synchronized void removeAllListeners()
