@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.110 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
+ * @version $Revision: 1.111 $ / $Date: 2007-02-21 00:44:32 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -671,10 +671,6 @@ public class LWMap extends LWContainer
         super.addChildImpl(c);
     }
 
-    public boolean isEmpty() {
-        return children == null || children.size() < 1;
-    }
-    
     LWComponent addLWC(LWComponent c) {
         addChild(c);
         return c;
