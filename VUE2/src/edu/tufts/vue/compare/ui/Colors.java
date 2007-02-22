@@ -89,6 +89,20 @@ public class Colors {
                                                 new Color(222,45,38),
                                                 new Color(165,15,21));
     
+    public static final Colors five = new Colors("YlOrRd #9",
+                                                new Color(255,255,178),
+                                                new Color(254,204,92),
+                                                new Color(253,141,60),
+                                                new Color(240,59,32),
+                                                new Color(189,0,38));
+    
+    public static final Colors six = new Colors("BuPu #8",
+                                                new Color(237,248,251),
+                                                new Color(179,205,227),
+                                                new Color(140,150,198),
+                                                new Color(136,86,167),
+                                                new Color(129,15,124));
+    
     public Colors(String name,List<Color> colors)
     {
        this.colors = colors;

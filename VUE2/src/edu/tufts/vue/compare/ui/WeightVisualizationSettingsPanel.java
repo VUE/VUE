@@ -104,7 +104,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         };
         intervalNumberChoice.setSelectedItem(5);
         JLabel paletteChoiceMessage = new JLabel(paletteChoiceMessageString,JLabel.RIGHT);
-        Colors[] colors = {Colors.one,Colors.two,Colors.three,Colors.four};
+        Colors[] colors = {Colors.one,Colors.two,Colors.three,Colors.four,Colors.five,Colors.six};
         paletteChoice = new JComboBox(colors);
         paletteChoice.setRenderer(new ColorsComboBoxRenderer());
         //paletteChoice.setModel(... need way to express both style loaded and color brewer choices?
@@ -270,7 +270,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             setModel();
             validate();
         }
-        if(e.getSourece() == colorPalette)
+        if(e.getSource() == paletteChoice)
         {
             
         }
