@@ -558,7 +558,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         if(e.getSource() == baseBrowseButton)
         {
             JFileChooser choose = new JFileChooser();
-            choose.showDialog(this,"SetBase Map");
+            choose.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
+            choose.showDialog(this,"Set Base Map");
             selectedBaseFile = choose.getSelectedFile();
             if(selectedBaseFile != null)
             {    
@@ -1054,6 +1055,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             if(e.getSource() == browseButton)
             {
                 JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
                 fileChooser.showDialog(this,"Add Map");
                 selectedFile = fileChooser.getSelectedFile();       
                 if(selectedFile != null)
