@@ -59,7 +59,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     public static final String parameterChoiceMessageString = "Set parameters for:";
     //public static final String parameterChoiceMessageString = "Select a vizualization mode:";
     public static final String intervalChoiceMessageString = "Set number of intervals:";
-    public static final String paletteChoiceMessageString = "Select a color Palette";
+    public static final String paletteChoiceMessageString = "Select a color Palette:";
     
     private JComboBox parameterChoice;
     private JComboBox intervalNumberChoice;
@@ -103,8 +103,10 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             }
         };
         intervalNumberChoice.setSelectedItem(5);
-        paletteChoice = new JComboBox();
-        //paletteChoice.setRenderer(paletteRenderer)
+        JLabel paletteChoiceMessage = new JLabel(paletteChoiceMessageString,JLabel.RIGHT);
+        Colors[] colors = {Colors.one,Colors.two,Colors.three,Colors.four};
+        paletteChoice = new JComboBox(colors);
+        paletteChoice.setRenderer(new ColorsComboBoxRenderer());
         //paletteChoice.setModel(... need way to express both style loaded and color brewer choices?
         nodeModel = new IntervalListModel();
         linkModel = new IntervalListModel();
@@ -141,17 +143,26 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         
         
         //second row
+        //c.weightx = 0.0;
+        //c.gridwidth = 1;
+        //c.anchor = GridBagConstraints.EAST;
+        //gridBag.setConstraints(intervalNumberChoiceMessage,c);
+        //add(intervalNumberChoiceMessage);
+        //c.gridwidth = GridBagConstraints.REMAINDER;
+        //c.anchor = GridBagConstraints.WEST;
+        //gridBag.setConstraints(intervalNumberChoice,c);
+        //add(intervalNumberChoice);
+        
+        //third row
         c.weightx = 0.0;
         c.gridwidth = 1;
         c.anchor = GridBagConstraints.EAST;
-        gridBag.setConstraints(intervalNumberChoiceMessage,c);
-        add(intervalNumberChoiceMessage);
-        //c.gridwidth = GridBagConstraints.REMAINDER;
+        gridBag.setConstraints(paletteChoiceMessage,c);
+        add(paletteChoiceMessage);
+        c.gridwidth = GridBagConstraints.REMAINDER;
         c.anchor = GridBagConstraints.WEST;
-        gridBag.setConstraints(intervalNumberChoice,c);
-        add(intervalNumberChoice);
-        
-        //third row
+        gridBag.setConstraints(paletteChoice,c);
+        add(paletteChoice);
         
         //table
         //c.fill = GridBagConstraints.NONE;
@@ -165,6 +176,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         
         //set up event handling within this panel
         parameterChoice.addActionListener(this);
+        paletteChoice.addActionListener(this);
         
     }
     
@@ -257,6 +269,10 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         {
             setModel();
             validate();
+        }
+        if(e.getSourece() == colorPalette)
+        {
+            
         }
     }
     

@@ -581,6 +581,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                 vizPane.remove(votePanel);
                 vizPane.add(weightPanel);
                 validate();
+                repaint();
                 if(p!=null)
                 {
                     p.pack();
