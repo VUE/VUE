@@ -102,7 +102,7 @@ public class DataSourceViewer extends JPanel
     private org.osid.OsidContext context = new org.osid.OsidContext();
     org.osid.registry.Provider checked[];
     
-    private final ThreadGroup mSearchThreadGroup;
+    private final java.util.List<SearchThread> mSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<SearchThread>());
     
     public DataSourceViewer(DRBrowser drBrowser) {
         GUI.activateWaitCursor();
@@ -139,8 +139,6 @@ public class DataSourceViewer extends JPanel
         sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
         queryEditor = federatedSearchManager.getQueryEditorForType(searchType);
         queryEditor.addSearchListener(this);
-        
-        mSearchThreadGroup = new ThreadGroup("VUE-SearchParent");
         
         // select the first new data source, if any
         if ((dataSources != null) && (dataSources.length > 0)) {
@@ -604,8 +602,28 @@ public class DataSourceViewer extends JPanel
         }
         return noImageIcon;
     }
+
+    private synchronized void stopAllSearches() {
+        if (UseFederatedSearchManager) {
+            tufts.Util.printStackTrace("stopAllSearches unimplemented for FSM");
+            return;
+        }
+        synchronized (mSearchThreads) {
+            if (DEBUG.DR) out("STOPPING ALL ACTIVE SEARCHES; count=" + mSearchThreads.size());
+            for (Thread t : mSearchThreads)
+                t.interrupt();
+        }
+
+    }
     
     public void searchPerformed(edu.tufts.vue.fsm.event.SearchEvent se) {
+
+        if (se == null) {
+            // null SearchEvent means abort last search
+            stopAllSearches();
+            return;
+        }
+        
         Widget.setExpanded(DRB.browsePane, false);
         if (DEBUG.DR) {
             System.out.println("\n");
@@ -650,6 +668,7 @@ public class DataSourceViewer extends JPanel
     
     private static class StatusLabel extends JPanel {
         private JLabel label = null;
+        JLabel waitIcon = null;
         
         StatusLabel(String s, boolean center, boolean useIcon) {
             super();
@@ -664,7 +683,7 @@ public class DataSourceViewer extends JPanel
             
             setBackground(VueResources.getColor("dsv.statuspanel.bgColor"));
             if (useIcon) {
-                JLabel waitIcon = new JLabel(VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
+                waitIcon = new JLabel(VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
                 this.add(waitIcon);
             }
             label = new JLabel(s);
@@ -675,6 +694,11 @@ public class DataSourceViewer extends JPanel
         }
         StatusLabel(String s, boolean center) {
             this(s,center,true);
+        }
+
+        public void removeIcon() {
+            if (waitIcon != null)
+                remove(waitIcon);
         }
         
         public void setText(String s) {
@@ -700,7 +724,7 @@ public class DataSourceViewer extends JPanel
     
     private static int SearchCounter = 0;
     
-    private  class SearchThread extends Thread {
+    private class SearchThread extends Thread {
         public final Widget mResultPane;
         
         private final org.osid.repository.Repository mRepository;
@@ -719,7 +743,7 @@ public class DataSourceViewer extends JPanel
                 org.osid.shared.Type searchType,
                 org.osid.shared.Properties searchProperties)
                 throws org.osid.repository.RepositoryException {
-            super(mSearchThreadGroup, "VUE.Search" + (SearchCounter++) + " " + searchString + " in " + r.getDisplayName());
+            super("VUE.Search" + (SearchCounter++) + " " + searchString + " in " + r.getDisplayName());
             setDaemon(true);
             
             mRepository = r;
@@ -745,7 +769,7 @@ public class DataSourceViewer extends JPanel
             if (stopped())
                 return;
             
-            if (DEBUG.DR) out("KICKED OFF");
+            if (DEBUG.DR) out("RUN KICKED OFF");
             
             try {
                 adjustQuery();
@@ -789,9 +813,25 @@ public class DataSourceViewer extends JPanel
                 textArea.setOpaque(false);
                 mResultPane.add(textArea);
             }
+
+            if (stopped()) {
+                if (DEBUG.DR) out("DELAYED STOP; server returned, run completed.");
+                return;
+            }
+            
+            mSearchThreads.remove(this);
+            if (DEBUG.DR) out("RUN COMPLETED, stillActive=" + mSearchThreads.size());
             
             // must call revalidate because we're coming from another thread:
             mResultPane.revalidate();
+
+            if (mSearchThreads.size() == 0) {
+                // If we were stopped, the DefaultQueryEditor will have handled
+                // calling completeSearch to restore the state of the "Search" button.
+                if (DEBUG.DR) out("ALL SEARCHES COMPLETED for \"" + mSearchCriteria + "\"");
+                if (queryEditor instanceof edu.tufts.vue.ui.DefaultQueryEditor)
+                    ((edu.tufts.vue.ui.DefaultQueryEditor)queryEditor).completeSearch();
+            }
         }
         
         private String translateRepositoryException(String msg)
@@ -823,12 +863,18 @@ public class DataSourceViewer extends JPanel
         
         private boolean stopped() {
             if (isInterrupted()) {
-                if (DEBUG.DR) out("ABORTED");
-                mResultPane.setTitle(mRepositoryName + " (Aborted)");
-                mStatusLabel.setText("Search Aborted.");
+                if (DEBUG.DR) out("STOPPING");
                 return true;
             } else
                 return false;
+        }
+
+        public void interrupt() {
+            if (DEBUG.DR) out("INTERRUPTED " + this);
+            super.interrupt();
+            mResultPane.setTitle(mRepositoryName + " (Stopped)");
+            mStatusLabel.removeIcon();
+            mStatusLabel.setText("Search stopped.");
         }
         
         private void adjustQuery()
@@ -897,15 +943,17 @@ public class DataSourceViewer extends JPanel
     }
     
     
-    private synchronized void performParallelSearchesAndDisplayResults() {
-        if (DEBUG.DR) {
-            synchronized (System.out) {
-                System.out.println("Current search thread group:");
-                mSearchThreadGroup.list();
-            }
-        }
-        
-        mSearchThreadGroup.interrupt();
+    private synchronized void performParallelSearchesAndDisplayResults()
+    {
+//         if (DEBUG.DR) {
+//             synchronized (System.out) {
+//                 System.out.println("Current search threads:");
+//                 for (Thread t : mSearchThreads)
+//                     System.out.println("\t" + t);
+//                 //mSearchThreadGroup.list();
+//             }
+//         }
+//         //mSearchThreadGroup.interrupt(); 
         
         final String searchString = "\"" + queryEditor.getSearchDisplayName() + "\"";
         final WidgetStack resultsStack = new WidgetStack("searchResults " + searchString);
@@ -913,7 +961,8 @@ public class DataSourceViewer extends JPanel
         final java.io.Serializable searchCriteria = queryEditor.getCriteria();
         final org.osid.shared.Type searchType = queryEditor.getSearchType();
         final org.osid.shared.Properties searchProperties = queryEditor.getProperties();
-        final Thread[] threads = new Thread[repositories.length];
+
+        mSearchThreads.clear();
         
         if (DEBUG.DR) {
             out("Searching criteria [" + searchString + "] in selected repositories."
@@ -937,7 +986,7 @@ public class DataSourceViewer extends JPanel
                     VueUtil.alert(t.getMessage(), "Search Error");
             }
             
-            threads[i] = searchThread;
+            mSearchThreads.add(searchThread);
             resultsStack.addPane(searchThread.mResultPane, 0f);
         }
         
@@ -946,9 +995,10 @@ public class DataSourceViewer extends JPanel
         //-----------------------------------------------------------------------------
         // KICK OFF THE SEARCH THREADS
         //-----------------------------------------------------------------------------
-        
-        for (int i = 0; i < threads.length; i++)
-            threads[i].start();
+        synchronized (mSearchThreads) {
+            for (Thread t : mSearchThreads)
+                t.start();
+        }
     }
     
     private synchronized void performFederatedSearchAndDisplayResults()
