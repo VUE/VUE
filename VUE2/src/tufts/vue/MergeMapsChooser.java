@@ -633,7 +633,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             //merge maps map object
             
             if(vizChoice.getSelectedIndex() == 0)
+            {
               sp.generate();
+              mapList.clear();
+            }
             else
             {
              
@@ -661,6 +664,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                
                createWeightedMerge(map);
                VUE.displayMap(map);
+               mapList.clear();
                 
             } // */ to top of if/else
         }
@@ -707,6 +711,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             linkStyles.add(StyleMap.getStyle("link.w" + (lsi +1)));
         }
         
+        System.out.println("mmc: create weight aggregate");
         WeightAggregate weightAggregate = new WeightAggregate(cms);
         
         //compute and create nodes in Merge Map, apply just background style for now
@@ -731,6 +736,12 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                LWNode node2 = (LWNode)children2.next();
                if(node2 != node1) {
                   int c = weightAggregate.getConnection(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
+                  
+                  //$
+                    // don't know if link already drawn.. need to keep track or explicitly check for link..
+                    //int c2 = weightAggregate.getConnection(Util.getMergeProperty(node2),Util.getMergeProperty(node2));
+                  //$
+                  
                   if(c >0) {
                     double score = 100*c/weightAggregate.getCount();
                     Style currLinkStyle = linkStyles.get(getInterval(score)-1);
@@ -1105,6 +1116,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         
         public void fillMapList()
         {
+               mapList.clear();
+               
                if(choice.getSelectedItem().equals(ALL_TEXT))
                {
                  Iterator <LWMap> i = VUE.getLeftTabbedPane().getAllMaps();

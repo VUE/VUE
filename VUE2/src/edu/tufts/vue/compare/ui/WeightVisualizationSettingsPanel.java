@@ -35,6 +35,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JLabel;
@@ -272,7 +273,21 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         }
         if(e.getSource() == paletteChoice)
         {
-            
+            String nodeOrLink = "node";
+            if(parameterChoice.getSelectedIndex()==1)
+            {
+                nodeOrLink = "link";
+            }
+            int i = 1;
+            Iterator<Color> colors = ((Colors)(paletteChoice.getSelectedItem())).getColors().iterator();
+            while(colors.hasNext())
+            {
+                Style s = StyleMap.getStyle(nodeOrLink+".w" + (i++));
+                s.setAttribute("background",Style.colorToHex(colors.next()).toString());
+            }
+            loadDefaultStyles();
+            loadDefaultSettings();
+            repaint();
         }
     }
     
