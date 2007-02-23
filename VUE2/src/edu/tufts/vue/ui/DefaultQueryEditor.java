@@ -42,9 +42,12 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	protected javax.swing.event.EventListenerList listenerList = new javax.swing.event.EventListenerList();
 	
 	private org.osid.repository.Repository[] repositories;
+
+        private final static String SearchLabel = "Search";
+        private final static String StopLabel = "Stop Search";
 	
-	private javax.swing.JButton searchButton1 = new javax.swing.JButton("Search");
-	private javax.swing.JButton searchButton2 = new javax.swing.JButton("Search");
+	private javax.swing.JButton searchButton1 = new javax.swing.JButton(SearchLabel);
+	private javax.swing.JButton searchButton2 = new javax.swing.JButton(SearchLabel);
 	private static final String SELECT_A_LIBRARY = "    Please select a searchable resource.";
 	private static final String NO_MESSAGE = "";
 	private javax.swing.JLabel selectMessage = new javax.swing.JLabel(SELECT_A_LIBRARY);
@@ -388,17 +391,33 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		listenerList.remove(edu.tufts.vue.fsm.event.SearchListener.class, listener);
 	}
     
-	private void fireSearch(edu.tufts.vue.fsm.event.SearchEvent evt) 
-	{
-//		this.searchButton1.setEnabled(false);
-//		this.searchButton2.setEnabled(false);
-		Object[] listeners = listenerList.getListenerList();
-		for (int i=0; i<listeners.length; i+=2) {
-			if (listeners[i] == edu.tufts.vue.fsm.event.SearchListener.class) {
-				((edu.tufts.vue.fsm.event.SearchListener)listeners[i+1]).searchPerformed(evt);
-			}
-		}
-	}
+    private void fireSearch(edu.tufts.vue.fsm.event.SearchEvent evt) 
+    {
+        if (searchButton1.getText() == StopLabel) {
+            // If we already have the StopLabel, this means abort the search.
+            // null event currently means abort search
+            evt = null;
+        } else {
+            searchButton1.setText(StopLabel);
+            searchButton2.setText(StopLabel);
+        }
+        field.setEnabled(false);
+        Object[] listeners = listenerList.getListenerList();
+        for (int i=0; i<listeners.length; i+=2) {
+            if (listeners[i] == edu.tufts.vue.fsm.event.SearchListener.class) {
+                ((edu.tufts.vue.fsm.event.SearchListener)listeners[i+1]).searchPerformed(evt);
+            }
+        }
+
+        if (evt == null)
+            completeSearch();
+    }
+
+    public void completeSearch() {
+        searchButton1.setText(SearchLabel);
+        searchButton2.setText(SearchLabel);
+        field.setEnabled(true);
+    }
 	
 	public java.io.Serializable getCriteria() {
 		if (this.searchType.isEqual(this.keywordSearchType)) {
