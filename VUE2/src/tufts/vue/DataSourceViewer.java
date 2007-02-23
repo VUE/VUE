@@ -668,7 +668,7 @@ public class DataSourceViewer extends JPanel
     
     private static class StatusLabel extends JPanel {
         private JLabel label = null;
-        JLabel waitIcon = null;
+        private JLabel waitIcon = null;
         
         StatusLabel(String s, boolean center, boolean useIcon) {
             super();
@@ -689,8 +689,8 @@ public class DataSourceViewer extends JPanel
             label = new JLabel(s);
             this.add(label);
             
-            setMinimumSize(new Dimension(getWidth(), WidgetStack.TitleHeight+10));
-            setPreferredSize(new Dimension(getWidth(), WidgetStack.TitleHeight+10));
+            //setMinimumSize(new Dimension(getWidth(), WidgetStack.TitleHeight+14));
+            //setPreferredSize(new Dimension(getWidth(), WidgetStack.TitleHeight+14));
         }
         StatusLabel(String s, boolean center) {
             this(s,center,true);
