@@ -42,7 +42,7 @@ public class LWMergeMap extends LWMap {
     private int visualizationSelectionType;
     
     private String selectionText;
-    private LWMap referenceMap;
+    private LWMap baseMap;
     private String selectChoice;
     private int nodeThresholdSliderValue = THRESHOLD_DEFAULT;
     private int linkThresholdSliderValue = THRESHOLD_DEFAULT;
@@ -160,12 +160,12 @@ public class LWMergeMap extends LWMap {
     
     public LWMap getBaseMap()
     {
-        return referenceMap;
+        return baseMap;
     }
     
     public void setBaseMap(LWMap baseMap)
     {
-        referenceMap = baseMap;
+        this.baseMap = baseMap;
     }
     
     public File getBaseMapFile()

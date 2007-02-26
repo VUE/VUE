@@ -178,7 +178,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         //actually weight panel settings .. populates the weight visualization panel gui
         if(VUE.getActiveMap() instanceof LWMergeMap)
         {
-          System.out.println("mmc: active map is instanceof LWMergeMap");
+          //System.out.println("mmc: active map is instanceof LWMergeMap");
           refreshSettings((LWMergeMap)VUE.getActiveMap());
         }
         else
@@ -345,8 +345,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         {
             return BASE_FROM_LIST;
         }
-        //else
-        return BASE_FROM_BROWSE;
+        else
+        {
+            return BASE_FROM_BROWSE;
+        }
     }
     
     public File getBaseMapFile()
@@ -358,6 +360,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             {
                 baseMap = (LWMap)baseChoice.getSelectedItem();
                 // really should be checking if base map is saved at this point?
+                // not as big an issue once baseMap is saved in LWMergeMap file
                 return baseMap.getFile();
             }
         }
@@ -514,6 +517,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
               }
               baseChoice.removeItem(selectString);
             }
+            //creates class cast exceptions and deadlock...
+            //VUE.setActiveViewer((MapViewer)VUE.getTabbedPane().getSelectedComponent());
             
         }
     }
@@ -611,12 +616,18 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             map.setBaseMapSelectionType(getBaseMapSelectionType());
             map.setBaseMapFile(getBaseMapFile());
             
+            //loadBaseMap here? currently baseMap is either open and will
+            //be saved with the merge map or has already been loaded through
+            //GUI
+            //map.setBaseMap(baseMap);
+            //actually set base map below...
+            
             //set visualization settings
             map.setVisualizationSelectionType(vizChoice.getSelectedIndex());
             try
             {        
               map.setStyleMapFile(StyleMap.saveToUniqueUserFile());
-              System.out.println("mmc: " + map.getStyleMapFile());
+              //System.out.println("mmc: " + map.getStyleMapFile());
               //System.out.prinltn("userfolder: ");
             }
             catch(Exception ex)
@@ -662,8 +673,14 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                //need to get from sp
                //map.setSelectChoice("all");
                
+               map.setBaseMap(baseMap);
+               
                createWeightedMerge(map);
                VUE.displayMap(map);
+               // creates class cast exception? (should be MapScrollPane apparently, really need
+               // an awkward run-time check..) Also, doesn't seem neccesary... (real problem
+               // is base map showing incorrectly until mouse over map)
+               //VUE.setActiveViewer((MapViewer)(VUE.getTabbedPane().getSelectedComponent()));
                mapList.clear();
                 
             } // */ to top of if/else
@@ -711,7 +728,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             linkStyles.add(StyleMap.getStyle("link.w" + (lsi +1)));
         }
         
-        System.out.println("mmc: create weight aggregate");
+        //System.out.println("mmc: create weight aggregate");
         WeightAggregate weightAggregate = new WeightAggregate(cms);
         
         //compute and create nodes in Merge Map, apply just background style for now
@@ -721,6 +738,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
            LWNode node = (LWNode)comp.duplicate();
            //System.out.println("Weighted Merge Demo: counts : " + node.getRawLabel() + ":" + weightAggregate.getNodeCount(node.getRawLabel()) + " " + weightAggregate.getCount());
            double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(node))/weightAggregate.getCount();
+           System.out.println("mmc: score: " + score);
+           System.out.println("mmc: getInterval(score): " + getInterval(score));
            Style currStyle = styles.get(getInterval(score)-1);
            //System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
            node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
@@ -802,10 +821,18 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         
         // base map settings
         selectedBaseFile = map.getBaseMapFile();
+        baseMap = map.getBaseMap();
         if(map.getBaseMapSelectionType() == BASE_FROM_LIST)
         {
-            // actually needs to be index of map-- if open.
-            baseChoice.setSelectedIndex(0);
+            // assume base map not open, add to base map list
+            //System.out.println("mmc: about to add baseMap: " + baseMap);
+            //System.out.println("mmc: for map: " + map.getTitle());
+            
+            if(baseMap != null)
+            {
+              baseChoice.addItem(baseMap);
+              baseChoice.setSelectedItem(baseMap);
+            }
         }
         else // BASE_FROM_BROWSE
         {
@@ -898,12 +925,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         
         if(map instanceof LWMergeMap)
         {
-            //generateDemo.setEnabled(false);
             generate.setEnabled(false);
         }
         else
         {
-            //generateDemo.setEnabled(true);
             generate.setEnabled(true);
         }
 
@@ -1164,6 +1189,9 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                if(baseMapObject instanceof LWMap)
                  baseMap = (LWMap)baseMapObject;
                
+               map.setBaseMap(baseMap);
+               map.setBaseMapFile(baseMap.getFile());
+               
                fillMapList();
                
                if(choice.getSelectedItem().equals(ALL_TEXT))
@@ -1200,6 +1228,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                map.setLinkThresholdSliderValue(linkThresholdSlider.getValue());
                createVoteMerge(map);
                VUE.displayMap(map);
+               
+               // creates class cast exception? Also, doesn't seem neccesary... (real problem
+               // is base map showing incorrectly until mouse over map)
+               //VUE.setActiveViewer((MapViewer)VUE.getTabbedPane().getSelectedComponent());
         }
         
         

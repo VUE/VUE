@@ -236,15 +236,11 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
            
         }
         
-            
-        //nodeModel.addRow(0,20,new java.awt.Color(230,230,255),Color.BLACK);
-        //nodeModel.addRow(21,40,new java.awt.Color(180,180,255),Color.BLACK);
-        //nodeModel.addRow(41,60,new java.awt.Color(100,100,255),Color.BLACK);
     }
     
     public void loadSettings()
     {
-        // really need to check further if have LWMergeMap here?
+        // don't load default settings if have LWMergeMap, only load those from the Map file.
         if(getMap() == null)
         {
             loadDefaultSettings();
