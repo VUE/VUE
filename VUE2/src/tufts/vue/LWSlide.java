@@ -27,7 +27,7 @@ import java.awt.geom.*;
  * Sublcass (for now) of LWGroup for slide features.
  *
  * @author Scott Fraize
- * @version $Revision: 1.7 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2007-02-26 21:58:18 $ / $Author: sfraize $
  */
 public class LWSlide extends LWGroup
 {
@@ -61,39 +61,6 @@ public class LWSlide extends LWGroup
         return s;
     }
     
-
-    /*
-    protected LWComponent pickChild(PickContext pc, LWComponent c) {
-        if (pc.pickDepth > 0)
-            return c;
-        else
-            return this;
-    }
-    */
-    
-    public String getLabel() {
-        final LWContainer parent = getParent();
-        if (parent instanceof LWPathway)
-            return super.getLabel();
-        else if (parent != null)
-            return "Slide for " + getParent().getLabel();
-        else
-            return "<LWSlide w/null parent>"; // true during persist restore
-    }
-
-    public void setLayer(int layer) {
-        mLayer = layer;
-    }
-    
-    public int getLayer() {
-        //out("returning layer " + mLayer);
-        return mLayer;
-    }
-
-    public LWSlide getSlide() {
-        return null;
-    }
-
     public static LWSlide CreateForPathway(LWPathway pathway, LWComponent node)
     {
         final LWSlide slide = CreatePathwaySlide();
@@ -111,6 +78,7 @@ public class LWSlide extends LWGroup
 
         slide.importAndLayout(toLayout);
         slide.setParent(pathway);
+        pathway.ensureID(slide);
         
         //slide.setLocation(getX(), getY() + getHeight() + 20);
         //slide.setScale(0.125f);
@@ -215,6 +183,34 @@ public class LWSlide extends LWGroup
         importAndLayout(toLayout);
     }
     */
+
+    /*
+    protected LWComponent pickChild(PickContext pc, LWComponent c) {
+        if (pc.pickDepth > 0)
+            return c;
+        else
+            return this;
+    }
+    */
+    
+    public String getLabel() {
+        final LWContainer parent = getParent();
+        if (parent instanceof LWPathway)
+            return super.getLabel();
+        else if (parent != null)
+            return "Slide for " + getParent().getLabel();
+        else
+            return "<LWSlide w/null parent>"; // true during persist restore
+    }
+
+    public void setLayer(int layer) {
+        mLayer = layer;
+    }
+    
+    public int getLayer() {
+        //out("returning layer " + mLayer);
+        return mLayer;
+    }
 
     public boolean isPresentationContext() {
         return true;
