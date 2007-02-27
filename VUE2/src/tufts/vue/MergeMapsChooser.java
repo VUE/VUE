@@ -519,7 +519,15 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             {
                 if(!nodeThresholdSlider.getValueIsAdjusting())
                 {
-                    generateMergeMap();
+                    //generateMergeMap();
+                    //need to fill map list as well...
+                    
+                   LWMergeMap am = (LWMergeMap)getActiveMap();
+                   am.setNodeThresholdSliderValue(nodeThresholdSlider.getValue());
+                   
+                   System.out.println("mmc: state changed: active map list size: " + am.getMapList().size());
+                    
+                   ((LWMergeMap)getActiveMap()).recreateVoteMerge();
                 }
             }
         }
@@ -667,6 +675,11 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             //set selection settings
             map.setMapListSelectionType(sp.getMapListSelectionType());
             map.setMapFileList(sp.getMapFileList());
+            //todo: send all maps not just the active ones.
+            sp.fillMapList();
+            System.out.println("mmc: " + sp.getMapList().size());
+            map.setMapList(sp.getMapList());
+            System.out.println("mmc: map list size: " + map.getMapList().size());
             
             //set base map settings
             map.setBaseMapSelectionType(getBaseMapSelectionType());
@@ -681,8 +694,9 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             //set visualization settings
             map.setVisualizationSelectionType(vizChoice.getSelectedIndex());
             try
-            {        
-              map.setStyleMapFile(StyleMap.saveToUniqueUserFile());
+            { 
+              if(vizChoice.getSelectedIndex()==1)
+                map.setStyleMapFile(StyleMap.saveToUniqueUserFile());
               //System.out.println("mmc: " + map.getStyleMapFile());
               //System.out.prinltn("userfolder: ");
             }
@@ -701,8 +715,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             
             if(vizChoice.getSelectedIndex() == 0)
             {
-              sp.generate();
-              mapList.clear();
+              sp.generate(map);
+              //mapList.clear();
             }
             else
             {
@@ -724,8 +738,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                // mapList.add(i.next());
                //}
                
-               sp.fillMapList();
-               mapList = sp.getMapList();
+               //sp.fillMapList();
+               mapList = map.getMapList();//= sp.getMapList();
                //need to get from sp
                //map.setSelectChoice("all");
                
@@ -849,7 +863,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
     public void createVoteMerge(LWMergeMap map)
     {
         ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
-        Iterator<LWMap> i = mapList.iterator();
+        Iterator<LWMap> i = map.getMapList().iterator();
         while(i.hasNext())
         {
           cms.add(new ConnectivityMatrix(i.next()));
@@ -890,6 +904,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
     {
         sp.setMapListSelectionType(map.getMapListSelectionType());
         
+        mapList = map.getMapList();
+        
         // base map settings
         selectedBaseFile = map.getBaseMapFile();
         baseMap = map.getBaseMap();
@@ -920,7 +936,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         linkThresholdSlider.setValue(map.getLinkThresholdSliderValue());
         try
         {
-          StyleMap.readFromUniqueUserFile(map.getStyleMapFile());
+          if(vizChoice.getSelectedIndex()==1)
+          {
+            StyleMap.readFromUniqueUserFile(map.getStyleMapFile());
+          }
         }
         catch(Exception ex)
         {
@@ -1248,9 +1267,9 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                }
         }
         
-        public void generate()
+        public void generate(LWMergeMap map)
         {
-            LWMergeMap map = new LWMergeMap(LWMergeMap.getTitle());
+            //LWMergeMap map = new LWMergeMap(LWMergeMap.getTitle());
                //fail safe default value for base map is active map
                if(baseMap == null)
                {
@@ -1263,7 +1282,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                map.setBaseMap(baseMap);
                map.setBaseMapFile(baseMap.getFile());
                
-               fillMapList();
+               //fillMapList();
                
                if(choice.getSelectedItem().equals(ALL_TEXT))
                {

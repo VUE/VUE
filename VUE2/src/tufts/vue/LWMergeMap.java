@@ -27,7 +27,11 @@
 
 package tufts.vue;
 
+import edu.tufts.vue.compare.*;
+
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class LWMergeMap extends LWMap {
@@ -48,6 +52,7 @@ public class LWMergeMap extends LWMap {
     private int linkThresholdSliderValue = THRESHOLD_DEFAULT;
     private List<File> fileList;
     private List<Boolean> activeFiles;
+    private List<LWMap> mapList;
     
     private File baseMapFile;
     
@@ -96,6 +101,17 @@ public class LWMergeMap extends LWMap {
     public List<Boolean> getActiveFileList()
     {
         return activeFiles;
+    }
+    
+    public void setMapList(List<LWMap> mapList)
+    {
+        System.out.println("LWMergeMap: set map list: " + mapList.size());
+        this.mapList = mapList; 
+    }
+    
+    public List<LWMap> getMapList()
+    {
+        return mapList;
     }
     
     public String getSelectionText()
@@ -187,4 +203,49 @@ public class LWMergeMap extends LWMap {
     {
         return styleFile;
     }
+    
+    public void recreateVoteMerge(/*List<LWMap> mapList*/)
+    {
+        
+        //removeChildren(getChildIterator());
+        
+        ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
+        Iterator<LWMap> i = getMapList().iterator();
+        System.out.println("LWMergeMap: " + getMapList().size());
+        while(i.hasNext())
+        {
+          cms.add(new ConnectivityMatrix(i.next()));
+        }
+        VoteAggregate voteAggregate= new VoteAggregate(cms);
+        voteAggregate.setNodeThreshold((double)(getNodeThresholdSliderValue()/100.0));
+        voteAggregate.setLinkThreshold((double)(getLinkThresholdSliderValue()/100.0));
+        
+        //compute and create nodes in Merge Map
+        Iterator children = getBaseMap().getNodeIterator();
+        while(children.hasNext()) {
+           LWComponent comp = (LWComponent)children.next();
+           if(voteAggregate.isNodeVoteAboveThreshold(Util.getMergeProperty(comp)) ){
+                   LWNode node = (LWNode)comp.duplicate();
+                   addNode(node);
+           }
+        }
+        
+        //compute and create links in Merge Map
+        Iterator children1 = getNodeIterator();
+        while(children1.hasNext()) {
+           LWNode node1 = (LWNode)children1.next();
+           Iterator children2 = getNodeIterator();
+           while(children2.hasNext()) {
+               LWNode node2 = (LWNode)children2.next();
+               if(node2 != node1) {
+                  int c = voteAggregate.getConnection(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
+                  if(c >0) {
+                     addLink(new LWLink(node1,node2));
+                  }
+               }
+           }
+        }
+        
+    }
+    
 }
