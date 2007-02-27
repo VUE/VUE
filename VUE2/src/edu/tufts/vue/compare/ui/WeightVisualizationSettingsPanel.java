@@ -375,6 +375,8 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             endField.setText(end+"");
             add(startField);
             add(endField);
+            startField.setEnabled(false);
+            endField.setEnabled(false);
             return this;
         }
     }
@@ -407,6 +409,9 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                 startField.setText("0");
                 endField.setText("0");
             }
+            
+            startField.setEnabled(false);
+            endField.setEnabled(false);
             
             /*p.addMouseListener(new java.awt.event.MouseAdapter(){
                public void mouseClicked(java.awt.event.MouseEvent e)

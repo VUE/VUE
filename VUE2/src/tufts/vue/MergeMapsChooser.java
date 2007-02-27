@@ -122,6 +122,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
     public final static String LIST_TEXT = "Browse to maps";
     public final static String SELECT_MESSAGE = "Select Maps to merge:";
     
+    public final static String defineThresholdMessage = "Define threshold for nodes and links:";
+    
     public final int ALL_OPEN_CHOICE = 0;
     public final int FILE_LIST_CHOICE = 1;
     
@@ -413,10 +415,23 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         vizPanel.add(vizChoice);
         
         votePanel = new JPanel();
+        
+        //$
+          //votePanel.setOpaque(true);
+          //votePanel.setBackground(Color.RED);
+        //$
+        
         weightPanel = new WeightVisualizationSettingsPanel(this);
         GridBagLayout voteLayout = new GridBagLayout();
         GridBagConstraints voteConstraints = new GridBagConstraints();
         votePanel.setLayout(voteLayout);
+        JLabel defineThresholdMessageLabel = new JLabel(defineThresholdMessage);
+        
+        //$
+           //defineThresholdMessageLabel.setOpaque(true);
+           //defineThresholdMessageLabel.setBackground(Color.BLUE);
+        //$
+        
         nodeThresholdSlider = new JSlider(0,100,50);
         nodeThresholdSlider.setPaintTicks(true);
         nodeThresholdSlider.setMajorTickSpacing(10);
@@ -432,14 +447,34 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             }
         }
         JLabel nodeLabel = new JLabel("Nodes:");
-        voteConstraints.gridwidth = GridBagConstraints.RELATIVE;
+        
+        voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        voteConstraints.anchor = GridBagConstraints.NORTHWEST;
+        //voteConstraints.weightx = 1.0;
+        voteLayout.setConstraints(defineThresholdMessageLabel,voteConstraints);
+        votePanel.add(defineThresholdMessageLabel);
+        voteConstraints.anchor = GridBagConstraints.WEST;
+        voteConstraints.weightx = 1.0;
+        voteConstraints.insets= new java.awt.Insets(0,40,0,0);
+        //voteConstraints.gridwidth = GridBagConstraints.RELATIVE;
+        voteConstraints.gridwidth = 1;
+        //$
+           //nodeLabel.setOpaque(true);
+           //nodeLabel.setBackground(Color.YELLOW);
+        //$
         voteLayout.setConstraints(nodeLabel,voteConstraints);
         votePanel.add(nodeLabel);
+        voteConstraints.insets = new java.awt.Insets(0,0,0,0);
         voteLayout.setConstraints(nodeThresholdSlider,voteConstraints);
+        //$
+          //nodeThresholdSlider.setOpaque(true);
+          //nodeThresholdSlider.setBackground(Color.GREEN);
+        //$
         votePanel.add(nodeThresholdSlider);
         percentageDisplay = new JLabel(nodeThresholdSlider.getValue()+ "%");
         nodeThresholdSlider.addChangeListener(this);
         voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        voteConstraints.insets = new java.awt.Insets(0,0,0,40);
         voteLayout.setConstraints(percentageDisplay,voteConstraints);
         votePanel.add(percentageDisplay);
         
@@ -458,13 +493,16 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             }
         }
         JLabel linkPanel = new JLabel("Links:");
-        voteConstraints.gridwidth = GridBagConstraints.RELATIVE;
+        voteConstraints.gridwidth = 1;
+        voteConstraints.insets= new java.awt.Insets(0,40,0,0);
         voteLayout.setConstraints(linkPanel,voteConstraints);
         votePanel.add(linkPanel);
+        voteConstraints.insets= new java.awt.Insets(0,0,0,0);
         voteLayout.setConstraints(linkThresholdSlider,voteConstraints);
         votePanel.add(linkThresholdSlider);
         linkPercentageDisplay = new JLabel(linkThresholdSlider.getValue()+"%");
         linkThresholdSlider.addChangeListener(this);
+        voteConstraints.insets = new java.awt.Insets(0,0,0,40);
         voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
         voteLayout.setConstraints(linkPercentageDisplay,voteConstraints);
         votePanel.add(linkPercentageDisplay);
@@ -738,6 +776,14 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
            LWNode node = (LWNode)comp.duplicate();
            //System.out.println("Weighted Merge Demo: counts : " + node.getRawLabel() + ":" + weightAggregate.getNodeCount(node.getRawLabel()) + " " + weightAggregate.getCount());
            double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(node))/weightAggregate.getCount();
+           if(score>100)
+           {
+               score = 100;
+           }
+           if(score<0)
+           {
+               score = 0;
+           }
            System.out.println("mmc: score: " + score);
            System.out.println("mmc: getInterval(score): " + getInterval(score));
            Style currStyle = styles.get(getInterval(score)-1);
@@ -763,6 +809,14 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                   
                   if(c >0) {
                     double score = 100*c/weightAggregate.getCount();
+                    if(score > 100)
+                    {
+                        score = 100;
+                    }
+                    if(score < 0)
+                    {
+                        score = 0;
+                    }
                     Style currLinkStyle = linkStyles.get(getInterval(score)-1);
                     //System.out.println("Weighted Merge Demo: " + currLinkStyle + " score: " + score);
                     LWLink link = new LWLink(node1,node2);
