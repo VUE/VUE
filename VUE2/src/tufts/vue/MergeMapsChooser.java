@@ -513,6 +513,15 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         if(e.getSource()==nodeThresholdSlider)
         {
             percentageDisplay.setText(nodeThresholdSlider.getValue() + "%");
+            // todo: make LWMergeMap a changelistener in future -- waiting on 
+            // focus problems with activeMap
+            if(getActiveMap() instanceof LWMergeMap)
+            {
+                if(!nodeThresholdSlider.getValueIsAdjusting())
+                {
+                    generateMergeMap();
+                }
+            }
         }
         if(e.getSource()==linkThresholdSlider)
         {
@@ -643,6 +652,15 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         }
         if(e.getSource() == generate)
         {
+            
+            generateMergeMap();
+            
+            
+        }
+    }
+    
+    public void generateMergeMap()
+    {
             // create new map
             LWMergeMap map = new LWMergeMap(LWMergeMap.getTitle());
             
@@ -722,7 +740,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                mapList.clear();
                 
             } // */ to top of if/else
-        }
     }
     
     public Dimension getVizLabelPreferredSize()
