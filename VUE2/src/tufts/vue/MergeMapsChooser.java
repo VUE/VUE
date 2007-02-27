@@ -118,6 +118,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
       
     private JTabbedPane vueTabbedPane = VUE.getTabbedPane();
     
+    //$
+      JButton undoButton = new JButton("Undo");
+    //$
+    
     public final static String ALL_TEXT = "All maps currently opened";
     public final static String LIST_TEXT = "Browse to maps";
     public final static String SELECT_MESSAGE = "Select Maps to merge:";
@@ -137,6 +141,14 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         
         //$
           //System.out.println(tufts.vue.VueUtil.getDefaultUserFolder());
+          undoButton.addActionListener(new ActionListener()
+          {
+            public void actionPerformed(ActionEvent e)
+            {
+                VUE.getUndoManager().undo();
+            }
+          });
+          //add(undoButton);
         //$
         
         vueTabbedPane.addChangeListener(this);
@@ -146,6 +158,9 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         generate = new JButton("Generate");
         buttonPane.add(generate);
+        //$
+           buttonPane.add(undoButton);
+        //$
         JTabbedPane mTabbedPane = new JTabbedPane();
         VueResources.initComponent(mTabbedPane,"tabPane");
         
@@ -528,6 +543,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                    System.out.println("mmc: state changed: active map list size: " + am.getMapList().size());
                     
                    ((LWMergeMap)getActiveMap()).recreateVoteMerge();
+                   VUE.getUndoManager().mark();
                 }
             }
         }
