@@ -447,6 +447,20 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
            //defineThresholdMessageLabel.setBackground(Color.BLUE);
         //$
         
+        JPanel moreLessLabel = new JPanel();
+        /*{
+          public Dimension getPreferredSize()
+          {
+              return nodeThresholdSlider.getSize();
+          }
+        };*/
+        JLabel moreLabel = new JLabel("<< more",JLabel.LEFT);
+        JLabel lessLabel = new JLabel("less >>",JLabel.RIGHT);
+
+        moreLessLabel.setLayout(new BorderLayout());
+        moreLessLabel.add(BorderLayout.WEST,moreLabel);
+        moreLessLabel.add(BorderLayout.EAST,lessLabel);
+        
         nodeThresholdSlider = new JSlider(0,100,50);
         nodeThresholdSlider.setPaintTicks(true);
         nodeThresholdSlider.setMajorTickSpacing(10);
@@ -463,23 +477,53 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         }
         JLabel nodeLabel = new JLabel("Nodes:");
         
-        voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        //voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        //$
+          voteConstraints.gridwidth = 2;
+          voteConstraints.gridx = 0;
+          voteConstraints.gridy = 0;
+        //$
+        voteConstraints.insets = new Insets(0,0,20,0);
         voteConstraints.anchor = GridBagConstraints.NORTHWEST;
         //voteConstraints.weightx = 1.0;
         voteLayout.setConstraints(defineThresholdMessageLabel,voteConstraints);
         votePanel.add(defineThresholdMessageLabel);
+        
+        //voteConstraints.weightx =1.0;
+        voteConstraints.anchor = GridBagConstraints.CENTER;
+        voteConstraints.fill = GridBagConstraints.HORIZONTAL;
+        voteConstraints.insets = new Insets(0,0,0,0);
+        //$
+          voteConstraints.gridwidth = 1;
+          voteConstraints.gridx = 1;
+          voteConstraints.gridy = 1;
+        //$
+        voteLayout.setConstraints(moreLessLabel,voteConstraints);
+        votePanel.add(moreLessLabel);
+        
+        //$
+          voteConstraints.gridx = 0;
+          voteConstraints.gridy = 2;
+        //$
+        voteConstraints.fill = GridBagConstraints.NONE;
         voteConstraints.anchor = GridBagConstraints.WEST;
-        voteConstraints.weightx = 1.0;
+        //voteConstraints.weightx = 1.0;
         voteConstraints.insets= new java.awt.Insets(0,40,0,0);
         //voteConstraints.gridwidth = GridBagConstraints.RELATIVE;
         voteConstraints.gridwidth = 1;
         //$
            //nodeLabel.setOpaque(true);
            //nodeLabel.setBackground(Color.YELLOW);
+           voteConstraints.gridx = 0;
+           voteConstraints.gridy = 2;
         //$
         voteLayout.setConstraints(nodeLabel,voteConstraints);
         votePanel.add(nodeLabel);
         voteConstraints.insets = new java.awt.Insets(0,0,0,0);
+        //$
+          voteConstraints.gridx = 1;
+          voteConstraints.gridy = 2;
+        //$
         voteLayout.setConstraints(nodeThresholdSlider,voteConstraints);
         //$
           //nodeThresholdSlider.setOpaque(true);
@@ -488,7 +532,11 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         votePanel.add(nodeThresholdSlider);
         percentageDisplay = new JLabel(nodeThresholdSlider.getValue()+ "%");
         nodeThresholdSlider.addChangeListener(this);
-        voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        //voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        //$
+          voteConstraints.gridx = 2;
+          voteConstraints.gridy = 2;
+        //$
         voteConstraints.insets = new java.awt.Insets(0,0,0,40);
         voteLayout.setConstraints(percentageDisplay,voteConstraints);
         votePanel.add(percentageDisplay);
@@ -510,15 +558,27 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         JLabel linkPanel = new JLabel("Links:");
         voteConstraints.gridwidth = 1;
         voteConstraints.insets= new java.awt.Insets(0,40,0,0);
+        //$
+           voteConstraints.gridx = 0;
+           voteConstraints.gridy = 3;
+        //$
         voteLayout.setConstraints(linkPanel,voteConstraints);
         votePanel.add(linkPanel);
         voteConstraints.insets= new java.awt.Insets(0,0,0,0);
+        //$
+           voteConstraints.gridx = 1;
+           voteConstraints.gridy = 3;
+        //$
         voteLayout.setConstraints(linkThresholdSlider,voteConstraints);
         votePanel.add(linkThresholdSlider);
         linkPercentageDisplay = new JLabel(linkThresholdSlider.getValue()+"%");
         linkThresholdSlider.addChangeListener(this);
         voteConstraints.insets = new java.awt.Insets(0,0,0,40);
-        voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        //voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        //$
+           voteConstraints.gridx = 2;
+           voteConstraints.gridy = 3;
+        //$
         voteLayout.setConstraints(linkPercentageDisplay,voteConstraints);
         votePanel.add(linkPercentageDisplay);
     }
@@ -1039,28 +1099,28 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         }
 
         //selectPanelHolder.remove(sp);
-        if(selectPanels.containsKey(activeMap))
-        {
+        //if(selectPanels.containsKey(activeMap))
+        //{
            // maintains run-time settings even if not merge map
            // sp = (SelectPanel)selectPanels.get(activeMap);
-        }
-        else if(activeMap instanceof LWMergeMap)
-        {
-            if(previousMap!=null)
-            {
+        //}
+        //else if(activeMap instanceof LWMergeMap)
+        //{
+        //    if(previousMap!=null)
+        //    {
               //sp = (SelectPanel)selectPanels.get(previousMap);
-            }
-            else
-            {
+        //    }
+        //    else
+        //    {
                 
                 //sp = new SelectPanel();
-            }
-        }
-        else
-        {
+        //    }
+        //}
+        //else
+        //{
             // retains run-time settings even for non merge maps
             //sp = new SelectPanel();
-        }
+        //}
         
         //selectPanelHolder.add(sp);
         //selectPanels.put(activeMap,sp);

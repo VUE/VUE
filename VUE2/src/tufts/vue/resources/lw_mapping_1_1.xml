@@ -265,6 +265,9 @@
             <field name="mapListSelectionType">
                 <bind-xml name="mapListSelectionType" node="element"/>
             </field>
+            <field name="mapList" type="tufts.vue.LWMap" collection="arraylist">
+                <bind-xml name="mapList"/>
+            </field>
             <field name="baseMapSelectionType">
                 <bind-xml name="baseMapSelectionType" node="element"/>
             </field>
@@ -273,6 +276,9 @@
             </field>
             <field name="visualizationSelectionType">
                 <bind-xml name="visualizationSelectionType" node="element"/>
+            </field>
+            <field name="nodeThresholdSliderValue">
+                <bind-xml name="nodeSliderValue"/>
             </field>
             <field name="styleMapFile">
                 <bind-xml name="styleMapFile" node="element"/>
