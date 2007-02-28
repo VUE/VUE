@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -135,6 +136,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
     public final int BASE_FROM_BROWSE = 1;
     
     public final String otherString = "other";
+    
+    public final int TAB_BORDER_SIZE = 20;
    
     public MergeMapsChooser() 
     {
@@ -146,6 +149,29 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             public void actionPerformed(ActionEvent e)
             {
                 VUE.getUndoManager().undo();
+                // is active map always the correct map?
+                if(VUE.getActiveMap() instanceof LWMergeMap)
+                {
+                    Integer nodeThresholdSliderValue = null;
+                    LWMergeMap am = (LWMergeMap)VUE.getActiveMap();
+                    if(!am.getNodeThresholdValueStack().empty())
+                    {    
+                      am.getNodeThresholdValueStack().pop();
+                      if(!am.getNodeThresholdValueStack().empty())
+                      {
+                        nodeThresholdSliderValue = am.getNodeThresholdValueStack().pop();
+                      }
+                    }
+                    if(nodeThresholdSliderValue !=null)
+                    {    
+                      nodeThresholdSlider.setValue(nodeThresholdSliderValue.intValue());
+                    }
+                    if(am.getNodeThresholdValueStack().empty())
+                    {
+                        undoButton.setEnabled(false);
+                        am.getNodeThresholdValueStack().push(am.getNodeThresholdSliderValue());
+                    }
+                }
             }
           });
           //add(undoButton);
@@ -160,6 +186,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         buttonPane.add(generate);
         //$
            buttonPane.add(undoButton);
+           undoButton.setEnabled(false);
         //$
         JTabbedPane mTabbedPane = new JTabbedPane();
         VueResources.initComponent(mTabbedPane,"tabPane");
@@ -234,6 +261,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         /*GridBagLayout*/ baseGridBag = new GridBagLayout();
         GridBagConstraints baseConstraints = new GridBagConstraints();
         basePanel = new JPanel();
+        int b = TAB_BORDER_SIZE;
+        basePanel.setBorder(BorderFactory.createEmptyBorder(b,b,b,b));
         basePanel.setLayout(new BoxLayout(basePanel,BoxLayout.Y_AXIS));
         JPanel baseInnerPanel = new JPanel()
         {
@@ -428,6 +457,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
         vizConstraints.gridwidth = GridBagConstraints.REMAINDER;
         vizLayout.setConstraints(vizChoice,vizConstraints);
         vizPanel.add(vizChoice);
+        int b = TAB_BORDER_SIZE;
+        vizPanel.setBorder(BorderFactory.createEmptyBorder(b,b,b,b));
         
         votePanel = new JPanel();
         
@@ -590,6 +621,20 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             percentageDisplay.setText(nodeThresholdSlider.getValue() + "%");
             // todo: make LWMergeMap a changelistener in future -- waiting on 
             // focus problems with activeMap
+            
+            //(looks like the Dialog needs its own undo manager for this...) though actually:
+            // really need to do this in LWMergeMap -- currently will pick up change from non merge
+            // map that is unrelated if tab off the merge map before undo
+            // so todo: handle undo completely within LWMergeMap...
+            /*if(!nodeThresholdSlider.getValueIsAdjusting())
+            {
+                //VUE.getUndoManager().mark();
+                
+                // or.. whoops really need undo manager here? how find merge map at this point? 
+                // run this line in create vote merge instead now.. that probably can replace this
+                // whole if statement permanently.
+                //am.getNodeThresholdValueStack().push(am.getNodeThresholdSliderValue());
+            }*/
             if(getActiveMap() instanceof LWMergeMap)
             {
                 if(!nodeThresholdSlider.getValueIsAdjusting())
@@ -604,6 +649,11 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
                     
                    ((LWMergeMap)getActiveMap()).recreateVoteMerge();
                    VUE.getUndoManager().mark();
+                   undoButton.setEnabled(true);
+                   // really only doing one undo at this point for slider... (map should get multiple undos)
+                   // above comment was for next line commented out, try two pops() at undo button press below...
+                   am.getNodeThresholdValueStack().push(am.getNodeThresholdSliderValue());
+                   //System.out.println("mmc:am.getNodeThresholdSliderValue() " + am.getNodeThresholdSliderValue());
                 }
             }
         }
@@ -974,6 +1024,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
            }
         }
         
+        map.getNodeThresholdValueStack().push(map.getNodeThresholdSliderValue());
+        
     }
     
     public void refreshSettings(final LWMergeMap map)
@@ -1172,8 +1224,11 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener
             //choice combobox will display browsePanel (see below)
             add(bottomPanel);
             
-            setOpaque(true);
-            setBackground(new Color(100,100,255));
+            //setOpaque(true);
+            //setBackground(new Color(100,100,255));
+            
+            int b = TAB_BORDER_SIZE;
+            setBorder(BorderFactory.createEmptyBorder(b,b,b,b));
         }
         
         public void setUpTopPanel()

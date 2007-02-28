@@ -33,6 +33,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 
 public class LWMergeMap extends LWMap {
     
@@ -54,6 +55,8 @@ public class LWMergeMap extends LWMap {
     private List<Boolean> activeFiles;
     private List<LWMap> mapList;
     
+    private Stack<Integer> nodeThresholdValueStack;
+    
     private File baseMapFile;
     
     private String styleFile;
@@ -65,12 +68,16 @@ public class LWMergeMap extends LWMap {
     
     public LWMergeMap()
     {
-        super();
+        super(); 
+        //todo: call next constructor instead when data starts to pile up in this class
+        //most things are currently created outside... (or read from xml)
+        nodeThresholdValueStack = new Stack();
     }
     
     public LWMergeMap(String label)
     {
         super(label);
+        nodeThresholdValueStack = new Stack();
     }
     
     public void setMapFileList(List<File> mapList)
@@ -204,9 +211,15 @@ public class LWMergeMap extends LWMap {
         return styleFile;
     }
     
+    public Stack<Integer> getNodeThresholdValueStack()
+    {
+        return nodeThresholdValueStack;
+    }
+    
     public void recreateVoteMerge(/*List<LWMap> mapList*/)
     {
         
+        //produces deadlock...
         //removeChildren(getChildIterator());
         
         ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();

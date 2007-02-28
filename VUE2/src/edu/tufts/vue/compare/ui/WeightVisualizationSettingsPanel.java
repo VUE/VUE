@@ -31,6 +31,7 @@ import edu.tufts.vue.style.*;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -132,8 +133,10 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         //first row
         c.fill = GridBagConstraints.BOTH;
         c.anchor = GridBagConstraints.EAST;
+        c.insets = new Insets(0,0,0,5);
         gridBag.setConstraints(parameterChoiceMessage,c);
         add(parameterChoiceMessage);
+        c.insets = new Insets(0,0,0,0);
         c.anchor = GridBagConstraints.WEST;
         gridBag.setConstraints(parameterChoice,c);
         add(parameterChoice);
@@ -158,8 +161,10 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         c.weightx = 0.0;
         c.gridwidth = 1;
         c.anchor = GridBagConstraints.EAST;
+        c.insets = new Insets(0,0,0,5);
         gridBag.setConstraints(paletteChoiceMessage,c);
         add(paletteChoiceMessage);
+        c.insets = new Insets(0,0,0,0);
         c.gridwidth = GridBagConstraints.REMAINDER;
         c.anchor = GridBagConstraints.WEST;
         gridBag.setConstraints(paletteChoice,c);
