@@ -152,14 +152,15 @@ public class ConnectivityMatrix {
     
     public String toString() {
         String output = new String();
-        output = "\t";   //leave the first cell empty;
+ // removed the first label from the output. to add it uncomment the commented lines in this function
+ //       output = "\t";   //leave the first cell empty;
         Iterator iterator = labels.iterator();
         while(iterator.hasNext()){
             output += (String)iterator.next()+"\t";
         }
         output +="\n";
         for(int i=0;i<size;i++){
-            output += labels.get(i)+"\t";
+//            output += labels.get(i)+"\t";
             for(int j=0;j<size;j++) {
                 output  += c[i][j]+"\t";
             }
