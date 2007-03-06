@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import java.util.List;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.96 $ / $Date: 2007-02-21 00:44:43 $ / $Author: sfraize $
+ * @version $Revision: 1.97 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -76,7 +77,7 @@ public abstract class LWContainer extends LWComponent
     /** return child at given index, or null if none at that index */
     public LWComponent getChild(int index) {
         if (children != null && children.size() > index)
-            return (LWComponent) children.get(index);
+            return children.get(index);
         else
             return null;
     }
@@ -285,8 +286,10 @@ public abstract class LWContainer extends LWComponent
         if (c.getParent() != null && c.getParent().getChildList().contains(c)) {
             //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent());
             if (DEBUG.PARENTING)
-                new Throwable("["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent()).printStackTrace();
-                //out(this + " auto-deparenting " + c + " from " + c.getParent()).printStackTrace();
+                if (DEBUG.META)
+                    tufts.Util.printStackTrace("FYI["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent());
+                else
+                    out("auto-deparenting " + c + " from " + c.getParent());
             if (c.getParent() == this) {
                 if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADD-BACK " + c + " (already our child)");
                 // this okay -- in fact useful for child node re-drop on existing parent to trigger
@@ -496,25 +499,25 @@ public abstract class LWContainer extends LWComponent
     
 
 
-    public java.util.List<LWComponent> getAllDescendents() {
+    public Collection<LWComponent> getAllDescendents() {
         return getAllDescendents(ChildKind.PROPER);
     }
     
-    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind) {
+    public Collection<LWComponent> getAllDescendents(final ChildKind kind) {
         return getAllDescendents(kind, new java.util.ArrayList());
     }    
 
     /** @param list -- if provided, must be non-null: results will go there, and this object also returned */
-    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind, final java.util.List list)
+    public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag)
     {
         for (LWComponent c : this.children) {
-            list.add(c);
-            c.getAllDescendents(kind, list);
+            bag.add(c);
+            c.getAllDescendents(kind, bag);
         }
 
-        super.getAllDescendents(kind, list);
+        super.getAllDescendents(kind, bag);
         
-        return list;
+        return bag;
     }
 
     /**
@@ -855,24 +858,23 @@ public abstract class LWContainer extends LWComponent
      * other.
      */
 
-    protected static final Comparator ForwardOrder = new Comparator() {
-            public int compare(Object o1, Object o2) {
-                LWComponent c1 = (LWComponent) o1;
-                LWComponent c2 = (LWComponent) o2;
-                return c2.getParent().indexOf(c2) - c1.getParent().indexOf(c1);
-            }};
-    protected static final Comparator ReverseOrder = new Comparator() {
-            public int compare(Object o1, Object o2) {
-                LWComponent c1 = (LWComponent) o1;
-                LWComponent c2 = (LWComponent) o2;
-                LWContainer parent1 = c1.getParent();
-                LWContainer parent2 = c2.getParent();
-                if (parent1 == null)
-                    return Short.MIN_VALUE;
-                else if (parent2 == null)
-                    return Short.MAX_VALUE;
-                return c1.getParent().indexOf(c1) - c2.getParent().indexOf(c2);
-            }};
+    protected static final Comparator ForwardOrder = new Comparator<LWComponent>() {
+        public int compare(LWComponent c1, LWComponent c2) {
+            return c2.getParent().indexOf(c2) - c1.getParent().indexOf(c1);
+        }};
+    protected static final Comparator ReverseOrder = new Comparator<LWComponent>() {
+        public int compare(LWComponent c1, LWComponent c2) {
+            LWContainer parent1 = c1.getParent();
+            LWContainer parent2 = c2.getParent();
+            if (parent1 == null)
+                return Short.MIN_VALUE;
+            else if (parent2 == null)
+                return Short.MAX_VALUE;
+            if (parent1 == parent2)
+                return parent1.indexOf(c1) - parent1.indexOf(c2);
+            else
+                return parent1.getDepth() - parent2.getDepth();
+        }};
 
     protected static LWComponent[] sort(List selection, Comparator comparator)
     {

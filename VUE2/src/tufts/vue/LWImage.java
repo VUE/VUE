@@ -400,7 +400,7 @@ public class LWImage extends LWComponent
         setLocation(x, y);
     }
 
-    public static final Key KEY_Rotation = new Key("image.rotation") { // rotation in radians
+    public static final Key KEY_Rotation = new Key("image.rotation", KeyType.STYLE) { // rotation in radians
             public void setValue(LWComponent c, Object val) { ((LWImage)c).setRotation(((Double)val).doubleValue()); }
             public Object getValue(LWComponent c) { return new Double(((LWImage)c).getRotation()); }
         };
@@ -414,7 +414,7 @@ public class LWImage extends LWComponent
         return mRotation;
     }
 
-    public static final Key Key_ImageOffset = new Key("image.pan") {
+    public static final Key Key_ImageOffset = new Key("image.pan", KeyType.STYLE) {
             public void setValue(LWComponent c, Object val) { ((LWImage)c).setOffset((Point2D)val); }
             public Object getValue(LWComponent c) { return ((LWImage)c).getOffset(); }
         };

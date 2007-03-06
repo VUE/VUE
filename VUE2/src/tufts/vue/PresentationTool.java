@@ -42,10 +42,11 @@ import javax.swing.*;
  *
  */
 public class PresentationTool extends VueTool
-    implements VUE.ActiveViewerListener
+//    implements VUE.ActiveViewerListener
 {
-    private static int FORWARD = 1;
-    private static int BACKWARD = -1;
+    enum Direction { FORWARD, BACKWARD };
+    //private static int FORWARD = 1;
+    //private static int BACKWARD = -1;
     
     private JButton mStartButton;
     private LWComponent mCurrentPage;
@@ -54,6 +55,8 @@ public class PresentationTool extends VueTool
     private LWLink mLastFollowed;
     private LWPathway mPathway;
     private int mPathwayIndex = 0;
+    private LWPathway.Entry mEntry;
+    //private LWSlide mMasterSlide;
 
     private boolean mScreenBlanked = false;
 
@@ -71,13 +74,13 @@ public class PresentationTool extends VueTool
 
     public PresentationTool() {
         super();
-        VUE.addActiveViewerListener(this);
+        //VUE.addActiveViewerListener(this);
     }
     
-    public void activeViewerChanged(MapViewer viewer) {
-        mCurrentPage = mNextPage = null;
-        mBackList.clear();
-    }
+//     public void activeViewerChanged(MapViewer viewer) {
+//         mCurrentPage = mNextPage = null;
+//         mBackList.clear();
+//     }
     
     public JPanel createToolPanel() {
         //JPanel p = super.createToolPanel();
@@ -86,7 +89,7 @@ public class PresentationTool extends VueTool
         mToBlack.setSelected(false);
         mShowContext.setSelected(true);
         add(p, mStartButton);
-        add(p, mShowContext);
+        //add(p, mShowContext);
         //add(p, mToBlack);
         //p.add(mZoomLock, 0);
         return p;
@@ -112,11 +115,12 @@ public class PresentationTool extends VueTool
     }
 
     private void repaint() {
-        VUE.getActiveViewer().repaint();            
+        out("repaint");
+        VUE.getActiveViewer().repaint();
     }
 
     public boolean handleKeyPressed(java.awt.event.KeyEvent e) {
-        //out(this + " handleKeyPressed " + e);
+        out("handleKeyPressed " + e);
         int key = e.getKeyCode();
         char k = e.getKeyChar();
         if (key == KeyEvent.VK_SPACE || key == KeyEvent.VK_RIGHT) {
@@ -135,13 +139,14 @@ public class PresentationTool extends VueTool
         } else if (k == '1') {
             if (mPathway != null) {
                 mPathwayIndex = 0;
-                mNextPage = mPathway.getChild(0);
+                mNextPage = mPathway.getNodeEntry(0);
                 forwardPage();
             }
             repaint();
         } else
             //        } else if (k == 'z')             { mZoomToPage = !mZoomToPage;
             return false;
+        //repaint();
         return true;
     }
 
@@ -149,29 +154,13 @@ public class PresentationTool extends VueTool
         return false;
     }
     
-    /*
-    public LWComponent X_findComponentAt(LWMap map, float mapX, float mapY) {
-        return map.findDeepestChildAt(mapX, mapY);
-    }
-    */
-
-    private boolean isPresenting() {
-        return !mShowContext.isSelected();
-    }
+    //private boolean isPresenting() { return !mShowContext.isSelected(); }
     
-    public boolean handleMousePressed(MapMouseEvent e) {
-
-        /*
-        final LWComponent hit;
-        if (mCurrentPage == null)
-            hit = e.getMap().findChildAt(e.getMapX(), e.getMapY());
-        else
-            hit = e.getMap().findDeepestChildAt(e.getMapX(), e.getMapY());
-        */
-        
+    public boolean handleMousePressed(MapMouseEvent e)
+    {
         final LWComponent hit = e.getPicked();
         
-        out(this + " handleMousePressed " + e + " hit on " + hit);
+        out("handleMousePressed " + e + " hit on " + hit);
         if (hit != null && mCurrentPage != hit) {
             List linked = hit.getLinkedComponents();
             if (mCurrentPage == null) {
@@ -208,21 +197,17 @@ public class PresentationTool extends VueTool
         setPage(linkingTo);
     }
 
-    // need to handle this and have MapViewer allow interrupt, so clicks on
-    // something selected don't pop a label edit!
-    //public boolean handleMouseReleased(MapMouseEvent e)
-    
-
     private void startPresentation()
     {
         out(this + " startPresentation");
         //mShowContext.setSelected(false);
         mBackList.clear();
 
-        if (VUE.getActivePathway() != null) {
+        if (VUE.getActivePathway() != null && VUE.getActivePathway().length() > 0) {
             mPathway = VUE.getActivePathway();
-            mPathwayIndex = -1;
-            forwardPage();
+            mPathwayIndex = 0;
+            mEntry = mPathway.getEntry(mPathwayIndex);
+            setEntry(mEntry);
         } else {
             mPathway = null;
             mPathwayIndex = 0;
@@ -233,32 +218,16 @@ public class PresentationTool extends VueTool
             else
                 setPage(mNextPage);
         }
-
-        //setPage((LWComponent) VUE.getActiveMap().getChildList().get(0));
-        
-        /*
-        LWMap map = new LWMap(mCurrent) {
-                // don't allow content to change (drops to add/remove, etc)
-                // this doesn't totally cover it: the existing parent
-                // (the good map) is asked to reparent it's children
-                // to US, which it does happily...
-                protected void addChildInternal(LWComponent c) {}
-                protected void removeChildren(Iterator i) {}
-                protected void removeChildInternal(LWComponent c) {}
-                public void reparentTo(LWContainer newParent, Iterator possibleChildren) {}
-            };
-        MapViewer viewer = VUE.displayMap(map);
-        //VUE.setActiveViewer(viewer);
-        setPage(viewer, mCurrent);
-        */
     }
 
     private void backPage() {
 
-        if (mPathway != null && mCurrentPage.inPathway(mPathway)) {
-            LWComponent prevPage = nextPathwayPage(BACKWARD);
-            if (prevPage != null)
-                setPage(prevPage);
+        if (mPathway != null && inCurrentPathway(mCurrentPage)) {
+            setEntry(nextPathwayEntry(Direction.BACKWARD));
+            //LWComponent prevPage = nextPathwayPage(Direction.BACKWARD);
+            //LWComponent prevPage = null;
+            //if (prevPage != null)
+            //    setPage(prevPage);
         } else if (!mBackList.empty())
             setPage(VUE.getActiveViewer(), (LWComponent) mBackList.pop(), true);
     }
@@ -266,6 +235,8 @@ public class PresentationTool extends VueTool
 
     private void forwardPage()
     {
+        out("forwardPage");
+        
         if (mNextPage != null) {
             out("NextPage is already " + mNextPage);
             if (mNextPage != mCurrentPage) {
@@ -283,46 +254,56 @@ public class PresentationTool extends VueTool
             out("Joined pathway " + mPathway + " at index " + mPathwayIndex);
         }
 
+
+        if (mPathway == null || !inCurrentPathway(mCurrentPage))
+            setPage(guessNextPage());
+        else
+            setEntry(nextPathwayEntry(Direction.FORWARD));
+
+        /*
         final LWComponent nextPage;
 
-        if (mPathway == null || (mCurrentPage != null && !mCurrentPage.inPathway(mPathway)))
+        if (mPathway == null || !inCurrentPathway(mCurrentPage))
             nextPage = guessNextPage();
         else
-            nextPage = nextPathwayPage(FORWARD);
+            nextPage = nextPathwayPage(Direction.FORWARD);
 
         out("Next page: " + nextPage);
         
         if (nextPage != null)
             setPage(nextPage);
+        */
+    }
+
+    private boolean inCurrentPathway(LWComponent c) {
+        if (c == null)
+            return false;
+        else
+            return c.inPathway(mPathway) || c.getParent() == mPathway;
+        // slides in a pathway have their parent set to the pathway
     }
 
     /** @param direction either 1 or -1 */
-    private LWComponent nextPathwayPage(int direction)
+    private LWPathway.Entry nextPathwayEntry(Direction direction)
     {
-        if (direction == BACKWARD && mPathwayIndex == 0)
+        out("nextPathwayEntry " + direction);
+        if (direction == Direction.BACKWARD && mPathwayIndex == 0)
             return null;
         
-        mPathwayIndex += direction;
-        final LWComponent nextPathwayNode = mPathway.getChild(mPathwayIndex);
-        out("Next pathway index: #" + mPathwayIndex + " " + nextPathwayNode);
-
-
-        final LWComponent nextPage;
-
-        if (nextPathwayNode != null)
-            nextPage = mPathway.getFirstEntry(nextPathwayNode).getFocal();
-        //nextPage = nextPathwayNode.getFocalForPathway(mPathway);
+        if (direction == Direction.FORWARD)
+            mPathwayIndex++;
         else
-            nextPage = null;
-        //LWComponent nextPage = nextPathwayNode.getSlideForPathway(mPathway);
-        out("Next pathway slide/focal: " + nextPage);
-        
-        //if (nextPage == null) nextPage = nextPathwayNode;
-        
-        if (nextPage == null)
-            mPathwayIndex -= direction;
+            mPathwayIndex--;
 
-        return nextPage;
+        final LWPathway.Entry nextEntry = mPathway.getEntry(mPathwayIndex);
+        out("Next pathway index: #" + mPathwayIndex + " = " + nextEntry);
+
+        if (nextEntry == null) {
+            //nextEntry = mPathway.getFirstEntry(nextPathwayNode);
+            mPathwayIndex -= (direction == Direction.FORWARD ? 1 : -1);
+        }
+        //out("Next pathway slide/focal: " + nextEntry);
+        return nextEntry;
     }
     
     private LWComponent guessNextPage()
@@ -404,10 +385,23 @@ public class PresentationTool extends VueTool
         }
     }
 
+    private void setEntry(LWPathway.Entry e)
+    {
+        out("setEntry " + e);
+        if (e == null)
+            return;
+        mEntry = e;
+        mPathway = e.pathway;
+        setPage(VUE.getActiveViewer(), mEntry.getFocal(), false);
+        VUE.setActivePathwayEntry(mEntry);
+    }
     private void setPage(LWComponent page) {
         setPage(VUE.getActiveViewer(), page, false);
     }
-    private void setPage(final MapViewer viewer, final LWComponent page, boolean backup) {
+    
+    private void setPage(final MapViewer viewer, final LWComponent page, boolean backup)
+    {
+        out("setPage " + page);
         if (!backup && mCurrentPage != null) {
             if (mBackList.empty() || mBackList.peek() != page)
                 mBackList.push(mCurrentPage);
@@ -441,15 +435,25 @@ public class PresentationTool extends VueTool
             
     }
 
-    private void zoomToPage(LWComponent page, boolean animate) {
+    private void zoomToPage(LWComponent page, boolean animate)
+    {
+        animate = false; // TODO: is forced off for now: currently meaningless to animate between slides
+
         if (mZoomToPage == false)
             return;
 
+        out("zoomToPage " + page);
+        //tufts.Util.printStackTrace("zoomToPage");
+        
         int margin = 0;
-        if (page instanceof LWImage)
-            margin = 0;
-        else margin = 8; // turn this off soon
+//         if (page instanceof LWImage)
+//             margin = 0;
+//         else margin = 8; // turn this off soon
         //else margin = 32; // turn this off soon
+
+        if (page instanceof LWGroup && !(page instanceof LWSlide))
+            margin = 32;
+        
         if (page != null)
             ZoomTool.setZoomFitRegion(VUE.getActiveViewer(), page.getBounds(), margin, animate);
         
@@ -469,14 +473,28 @@ public class PresentationTool extends VueTool
         // the MapViewer to turn off all the stuff we're not going to want to be
         // active when in presentation mode.
 
+        // TODO ACTION: okay, we can move the focal code up to the MapViewer for
+        // the current slide (and thus also will get us reshapeImpl handling),
+        // and we could JUST do the master slide handling here, tho it would
+        // still be nice to see the master stuff for working full-screen edit mode.
+        // What that really means is exposes the MapViewer to the LWPathway.Entry
+        // concept -- oh well, I suppose we can live with that, tho would
+        // be nice to find a way around it.
+
         dc.setInteractive(false);
         dc.isFocused = true;
+
+        if (mEntry != null && !mEntry.isPathway())
+            drawPathwayEntry(dc, viewer, mEntry);
+        else
+            drawFocal(dc, viewer, focal);
         
+        /*
         if (focal instanceof LWSlide)
             drawSlide(dc, viewer, (LWSlide) focal);
         else
             drawFocal(dc, viewer, focal);
-            
+        */
 
         if (VUE.inFullScreen() && mShowNavigator)
             drawNavigatorMap(dc);
@@ -484,32 +502,28 @@ public class PresentationTool extends VueTool
     }
 
 
-    protected void drawSlide(final DrawContext dc, MapViewer viewer, final LWSlide slide)
+    protected void drawPathwayEntry(final DrawContext dc, MapViewer viewer, final LWPathway.Entry entry)
     {
-        out("drawing slide " + slide);
+        out("drawing entry " + entry);
         
-        final LWSlide master = VUE.getActiveMap().getActivePathway().getMasterSlide();
-
+        final LWSlide master = entry.pathway.getMasterSlide();
         final Shape curClip = dc.g.getClip();
-
-        dc.setRawDrawing();
+        final LWComponent focal = entry.getFocal();
 
         out("drawing master " + master);
-        
-        // When just filling the background with the master, only draw
-        // what's in the containment box
-        master.setLocation(0,0);// TODO: hack till we can lock these properties
-        //dc.g.setClip(master.getBounds());
+
+        //zoomToPage(master, false); // can't do here: causes loop: need to handle via reshapeImpl
+
+        dc.g.setColor(master.getFillColor());
+        dc.g.fill(dc.g.getClipBounds());
+        dc.g.setClip(master.getBounds());
         master.draw(dc);
-        //dc.g.setClip(curClip);
+        dc.g.setClip(curClip);
 
-        //for (LWComponent c : mFocal.getChildList()) out("child to draw: " + c);
-
-        // this hack-up just not getting us there:
-        zoomToPage(slide, false);
+        out("drawing focal " + focal);
         
-        // Now draw the actual slide
-        slide.draw(dc);
+        focal.draw(dc); // will not work if is map-view
+        out("-------------------------------------------------------");
     }
     
     /** either draws the entire map (previously zoomed to to something to focus on),
@@ -544,91 +558,6 @@ public class PresentationTool extends VueTool
             mFocal.draw(dc);
         }
         */
-    }
-    
-    
-
-    public void hacked_pres_mode_handleDraw(DrawContext dc, LWComponent focal) {
-        LWMap map = focal.getMap();
-        
-        Color oldColor = null;
-        if (mToBlack.isSelected()) {
-            oldColor = map.getFillColor();
-            map.takeFillColor(Color.black);
-            dc.setBlackWhiteReversed(true);
-        }
-
-        dc.setInteractive(false);
-        dc.setPresenting(isPresenting());
-        dc.g.setColor(map.getFillColor());
-        dc.g.fill(dc.g.getClipBounds());
-
-        boolean clipped = false;
-        Shape savedClip = null;
-        Color savedColor = null;
-        if (mCurrentPage instanceof LWNode && isPresenting()) {
-            LWNode node = (LWNode) mCurrentPage;
-            
-            // if had an in-group link from one region of image to another, would still
-            // want to present as a clipped: really need to check if it has any
-            // out-bound links, or REALLY, if we were just *sent* here via link, as
-            // opposed to clicking on us.  Tho what if somebody DOES click on us?  We
-            // still want to be clipped, not follow the link: so any transparency wants
-            // to clip?  But what about "check out the mouth" -- okay, that has a label:
-            // so if any transparency and NO label, then we're covered, right?  NO!  The
-            // left ring in the ladies, we just wanted to be a click region.  So,
-            // there's no way to deterministically figure this out: user will have to
-            // specify somehow if we want to offer both options.  COULD use a heursitc
-            // where we follow first if it's an out-of-group link (and has label), tho
-            // that's getting really hairy.
-
-            // or, could get object-fancy and have LWRegion object, who's
-            // label isn't displayed, but that's getting whack complex.
-
-            // BTW: really only want to check if there are no *outbound* links,
-            // to non-null locations.
-            if (node.isTranslucent() && !node.hasLabel() && node.getLinks().size() == 0) {
-                savedClip = dc.g.getClip();
-                savedColor = mCurrentPage.getFillColor();
-                mCurrentPage.takeFillColor(null);
-                dc.g.clip(node.getShape());
-                clipped = true;
-                // FYI: drawing the whole map when clipped is noticably slower
-                // than just drawing the current page (esp. non-rectangular shapes)
-            }
-        }
-        
-        // draw the map or our current component, or it's parent
-        if (mCurrentPage == null || !isPresenting()) {
-            map.draw(dc);
-        } else if (clipped /*|| (mCurrentPage instanceof LWNode && mCurrentPage.isTranslucent() && !mCurrentPage.hasLabel())*/ ) {
-            mCurrentPage.getParent().draw(dc);
-        } else {
-            if (false&&mCurrentPage instanceof LWGroup) {
-                LWGroup group = (LWGroup) mCurrentPage;
-                group.drawChildren(dc);
-            } else {
-                mCurrentPage.draw(dc);
-            }
-        }
-
-        if (oldColor != null)
-            map.takeFillColor(oldColor);
-
-        //-------------------------------------------------------
-        // draw connected goto's (maybe do only if presenting?)
-        //-------------------------------------------------------
-        
-        if (clipped) {
-            mCurrentPage.takeFillColor(savedColor);
-            dc.g.setClip(savedClip);
-        }
-
-        if (VUE.inFullScreen() && mShowNavigator)
-            drawNavigatorMap(dc);
-        
-        //if (DEBUG.Enabled&&mCurrentPage != null)
-        //drawNavNodes(dc);
     }
     
     /** Draw a ghosted panner */
@@ -740,7 +669,6 @@ public class PresentationTool extends VueTool
         // to current page.
         makeInvisible();
         if (getCurrentPage() != null) {
-            out("zoomToPage " + getCurrentPage());
             zoomToPage(getCurrentPage(), false);
         }
         makeVisibleLater();

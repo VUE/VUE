@@ -68,10 +68,11 @@ public class IMSResourceList
 			resourceListMetadataElement.appendChild(titleElement);
 			resourceListElement.appendChild(resourceListMetadataElement);
 			
-			java.util.List descendents = map.getAllDescendents();
+			//java.util.List descendents = map.getAllDescendents();
 			//System.out.println("size: " + descendents.size());
-			for (int i=0; i < descendents.size(); i++) {
-				LWComponent lwc = (LWComponent)descendents.get(i);
+			//for (int i=0; i < descendents.size(); i++) {
+			//	LWComponent lwc = (LWComponent)descendents.get(i);
+			for (LWComponent lwc : map.getAllDescendents()) {
 				if (!(lwc instanceof LWImage)) {
 					Resource r = lwc.getResource();
 					if (r != null) {

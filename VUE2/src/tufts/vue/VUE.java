@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.394 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $ 
+ * @version $Revision: 1.395 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -735,9 +735,10 @@ public class VUE
         // GUI.createDockWindow("Font").add(new FontEditorPanel()); // just add automatically?
 
         //final DockWindow fontDock = GUI.createToolbar("Font", new FontPropertyPanel());
+        final DockWindow fontDock = GUI.createToolbar("Font", new FontEditorPanel(LWKey.Font));
         //final DockWindow linkDock = GUI.createToolbar("Link", new LinkPropertyPanel());
         //final DockWindow actionDock = GUI.createToolbar("Actions", new VueActionBar());
-        final DockWindow fontDock = null;
+        //final DockWindow fontDock = null;
         final DockWindow linkDock = null;
         final DockWindow actionDock = null;
 
@@ -770,7 +771,7 @@ public class VUE
             pathwayDock,
             outlineDock,
             actionDock,
-            //fontDock,
+            fontDock,
             //linkDock,
             toolbarDock,
             slideDock,
@@ -1915,7 +1916,7 @@ public class VUE
         return FullScreen.inNativeFullScreen();
     }
 
-    static void toggleFullScreen() {
+    public static void toggleFullScreen() {
         toggleFullScreen(false);
     }
     

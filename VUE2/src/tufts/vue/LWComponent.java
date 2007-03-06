@@ -36,11 +36,13 @@ import java.util.ArrayList;
 
 import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
+import edu.tufts.vue.style.Style;
+import edu.tufts.vue.style.StyleMap;
 
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.207 $ / $Date: 2007-02-21 22:03:21 $ / $Author: sfraize $
+ * @version $Revision: 1.208 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -182,6 +184,26 @@ public class LWComponent
         mSupportedPropertyKeys &= ~key.bit;
     }
 
+    /** Apply all style properties from styleSource to this component */
+    public void copyStyle(LWComponent styleSource) {
+        for (Key key : Key.AllKeys) {
+            if (key.isStyleProperty && supportsProperty(key) && styleSource.supportsProperty(key)) {
+                key.copyValue(styleSource, this);
+            }
+        }
+    }
+    /*
+    public void applyCSS(StyleMap styleMap) {
+        for (Map.Entry<String,Style> se : styleMap.entrySet()) {
+            final String cssName = se.getKey();
+            for (Key key : Key.AllKeys) {
+                if (key.cssName != null && supportsProperty(key))
+                }
+            }
+        }
+    }
+    */
+
     /**
      * Describes a property on a VUE LWComponent, and provides an info string for creating Undo names,
      * and for diagnostic output.  Implies the ability to set/get the value on an LWComponent by some means.
@@ -194,11 +216,14 @@ public class LWComponent
     // of LWComponent, to use their own type in the first argument to set/getValue, omitting
     // the need for casts in the method.
 
-
+    public enum KeyType { Default, STYLE, SUB_STYLE, DATA };
+            
     // todo: TValue may be overkill -- may want to revert to using just Object
     public static class Key<TSubclass extends LWComponent,TValue> {
         /** A name for this key (used for undo labels & debugging) */
         public final String name;
+        /** A name for a CSS property that can be used to initialize the value for this key */
+        public final String cssName;
         /** The unique bit for this property key.
             (Implies a max of 64 keys that can uniquely known as active to our tools -- use a BitSet if need more) */
         public final long bit;
@@ -206,18 +231,16 @@ public class LWComponent
          * pointing to it via mParentStyle */
         public final boolean isStyleProperty;
 
-        /** True this property is a sub-part of some other property */
-        public final boolean isSubProperty;
+        public final KeyType keyType;
+
+        /* True this property is a sub-part of some other property */
+        //public final boolean isSubProperty;
 
         public static final java.util.List<Key> AllKeys = new java.util.ArrayList<Key>();
 
         private static int InstanceCount; // increment for each key instance, to establish the appropriate bit
         private static final java.util.Map<Class,Long> ClassProperties = new java.util.HashMap<Class,Long>();
         
-        public Key(String name) {
-            this(name, false, false);
-        }
-
         /** Get the supported property bit mask for the given class in the LWComponent inheritance tree
          * This will only return accurate results after all Key's in the codebase have been initialized. */
         static long PropertyMaskForClass(Class<? extends LWComponent> clazz) {
@@ -253,11 +276,24 @@ public class LWComponent
                 return bitsForClass;
         }
         
-        
-        protected Key(String name, boolean partOfStyle, boolean isSubProperty) {
+        public Key(String name) {
+            this(name, KeyType.Default);
+        }
+        public Key(String name, KeyType keyType) {
+            this(name, null, keyType);
+        }
+        public Key(String name, String cssName) {
+            this(name, cssName, KeyType.STYLE);
+        }
+
+        //protected Key(String name, String cssName, boolean partOfStyle, boolean isSubProperty) {
+        protected Key(String name, String cssName, KeyType keyType) {
             this.name = name;
-            this.isStyleProperty = partOfStyle;
-            this.isSubProperty = isSubProperty;
+            this.cssName = cssName;
+            this.keyType = keyType;
+            this.isStyleProperty = (keyType == KeyType.STYLE);
+            //this.isStyleProperty = partOfStyle;
+            //this.isSubProperty = isSubProperty;
             if (InstanceCount >= Long.SIZE) {
                 this.bit = 0;
                 tufts.Util.printStackTrace(Key.class + ": " + InstanceCount + "th key created -- need to re-implement (try BitSet)");
@@ -277,8 +313,15 @@ public class LWComponent
             
             ClassProperties.put(clazz, propMaskForClass);
 
-            System.out.printf("CONSTRUCTED KEY %-20s bit#%2d; %25s now has %2d properties\n", 
-                              name, InstanceCount, clazz.getName(), Long.bitCount(propMaskForClass));
+            System.out.printf("KEY %-20s %-11s %-25s bit#%2d; %25s now has %2d properties\n", 
+                              name,
+                              //isStyleProperty ? "STYLE;" : "",
+                              keyType,
+                              cssName == null ? "" : cssName,
+                              InstanceCount,
+                              clazz.getName(),
+                              Long.bitCount(propMaskForClass)
+                              );
             InstanceCount++;
 
             // Just referencing a class object won't load it's statics: must do a new instance.
@@ -406,9 +449,9 @@ public class LWComponent
 
         /** @return true if the value for this Key in LWComponent is equivalent to otherValue
          * Override to provide non-standard equivalence (Object.equals) */
-        boolean valueEquals(TSubclass c, Object otherValue) 
+        boolean valueEquals(TSubclass c, TValue otherValue) 
         {
-            final Object value = getValue(c);
+            final TValue value = getValue(c);
             return value == otherValue || (otherValue != null && otherValue.equals(value));
         }
 
@@ -432,19 +475,20 @@ public class LWComponent
         public String toString() { return name; } // must == name for now until tool panels handle new key objects
     }
 
-    /** A marker class for Key's that are considered user interested "data" (e.g., a label) */
+    /* A marker class for Key's that are considered user interested "data" (e.g., a label) 
     public static class DataKey<TSubclass extends LWComponent,TValue> extends Key<TSubclass,TValue> {
         public DataKey(String name) {
             super(name, false, false);
         }
     }
-    /** A marker class for Key's that are for style properties */
+*/    
+    /* A marker class for Key's that are for style properties 
     public static class StyleKey<TSubclass extends LWComponent> extends Key<TSubclass,Object> {
         public StyleKey(String name) {
             super(name, true, false);
         }
     }
-    /*
+*/    /*
     public static class TypedStyleKey<TSubclass extends LWComponent,TValue> extends Key<TSubclass,TValue> {
         public TypedStyleKey(String name) {
             super(name, true, false);
@@ -452,13 +496,14 @@ public class LWComponent
     }
     */
     
-    /** A marker class for Key's that are for sub-style properties (properties that make up some other total style value) */
+    /* A marker class for Key's that are for sub-style properties (properties that make up some other total style value) 
     public static class SubStyleKey<TSubclass extends LWComponent,TValue> extends Key<TSubclass,TValue> {
         public SubStyleKey(String name) {
             super(name, true, true);
         }
     }
     
+*/
     // this is a bit obscene given that it just recaptulations introspection, but it's obviously faster.
     // Tho it would also make handling the duplicate code alot more automatic.
     //private java.util.ArrayList<Property> allProps = new java.util.ArrayList();
@@ -632,31 +677,37 @@ public class LWComponent
         if (c == null)
             return null;
         
-        // todo: I still think this can put out non zero-filled strings
         if (c.getAlpha() == 255) // opaque: only bother to save hue info
-            return "#" + Integer.toHexString(c.getRGB() & 0xFFFFFF);
+            return String.format("#%06X", c.getRGB() & 0xFFFFFF);
+        //return String.format("#%06X (%s)", c.getRGB() & 0xFFFFFF, Integer.toHexString(c.getRGB() & 0xFFFFFF));
+        // this puts out non zero-filled strings
+        //return "#" + Integer.toHexString(c.getRGB() & 0xFFFFFF);
         else if (c.getAlpha() == 0) // totally transparent, be sure alpha still indicated!
             return "#00" + Integer.toHexString(c.getRGB());
         else
             return "#" + Integer.toHexString(c.getRGB());
     }
-        
 
     
-    public static final Key KEY_FillColor = new StyleKey("fill.color")       { final Property getSlot(LWComponent c) { return c.mFillColor; } };
-    public static final Key KEY_TextColor = new StyleKey("text.color")       { final Property getSlot(LWComponent c) { return c.mTextColor; } };
-    public static final Key KEY_StrokeColor = new StyleKey("stroke.color")   { final Property getSlot(LWComponent c) { return c.mStrokeColor; } };
-    public static final Key KEY_StrokeWidth = new StyleKey("stroke.width")   { final Property getSlot(LWComponent c) { return c.mStrokeWidth; } };
+    public static final Key KEY_FillColor   = new Key("fill.color", "background")       { final Property getSlot(LWComponent c) { return c.mFillColor; } };
+    public static final Key KEY_TextColor   = new Key("text.color", "font-color")       { final Property getSlot(LWComponent c) { return c.mTextColor; } };
+    public static final Key KEY_StrokeColor = new Key("stroke.color", "border-color")   { final Property getSlot(LWComponent c) { return c.mStrokeColor; } };
+    public static final Key KEY_StrokeStyle = new Key("stroke.style", "border-style")   { final Property getSlot(LWComponent c) { return null; } };
+    public static final Key KEY_StrokeWidth = new Key("stroke.width", "border-width")   { final Property getSlot(LWComponent c) { return c.mStrokeWidth; } };
 
 
-    /** point size for font */
-    public static final Key KEY_FontSize = new SubStyleKey("font.size")         { final Property getSlot(LWComponent c) { return c.mFontSize; } };
-    /** @See java.awt.Font 0x0=Plain, 0x1=Bold On, 0x2=Italic On */
-    public static final Key KEY_FontStyle = new SubStyleKey("font.style")       { final Property getSlot(LWComponent c) { return c.mFontStyle; } };
-    /** name of the font */
-    public static final Key KEY_FontName = new SubStyleKey("font.name")         { final Property getSlot(LWComponent c) { return c.mFontName; } };
     /** Aggregate font key, which represents the combination of it's three sub-properties */
-    public static final Key KEY_Font = new StyleKey("font")             { final Property getSlot(LWComponent c) { return c.mFont; } };
+    public static final Key KEY_Font = new Key("font", KeyType.STYLE)
+        { final Property getSlot(LWComponent c) { return c.mFont; } };
+    /** point size for font */
+    public static final Key KEY_FontSize  = new Key("font.size", "font-size", KeyType.SUB_STYLE)
+        { final Property getSlot(LWComponent c) { return c.mFontSize; } };
+    /** @See java.awt.Font 0x0=Plain, 0x1=Bold On, 0x2=Italic On */
+    public static final Key KEY_FontStyle = new Key("font.style", "font-style", KeyType.SUB_STYLE)
+        { final Property getSlot(LWComponent c) { return c.mFontStyle; } };
+    /** name of the font */
+    public static final Key KEY_FontName  = new Key("font.name", "font-family", KeyType.SUB_STYLE)
+        { final Property getSlot(LWComponent c) { return c.mFontName; } };
     
     public final ColorProperty mFillColor = new ColorProperty(KEY_FillColor);
     public final ColorProperty mTextColor = new ColorProperty(KEY_TextColor, java.awt.Color.black) {
@@ -729,7 +780,7 @@ public class LWComponent
         };
 
 
-    public static final Key KEY_Label = new DataKey("label") {
+    public static final Key KEY_Label = new Key("label", KeyType.DATA) {
             public void setValue(LWComponent c, Object val) { c.setLabel((String)val); }
             public Object getValue(LWComponent c) { return c.getLabel(); }
         };
@@ -1772,14 +1823,6 @@ public class LWComponent
         isStyleParent = b.booleanValue();
     }
 
-    /** Apply all style properties from styleSource to this component */
-    public void copyStyle(LWComponent styleSource) {
-        for (Key key : Key.AllKeys) {
-            if (key.isStyleProperty && !key.isSubProperty && supportsProperty(key) && styleSource.supportsProperty(key)) {
-                key.copyValue(styleSource, this);
-            }
-        }
-    }
 
     public LWContainer getParent() {
         return this.parent;
@@ -1797,6 +1840,14 @@ public class LWComponent
             //return l;
         }
     }
+
+    public int getDepth() {
+        if (parent == null)
+            return 0;
+        else
+            return parent.getDepth() + 1;
+    }
+    
 
     /** return the component to be picked if we're picked: e.g., may return null if you only want children picked, and not the parent */
     protected LWComponent defaultPick(PickContext pc) {
@@ -1876,22 +1927,22 @@ public class LWComponent
      * This impl always returns an empty list.  Subclasses that can have proper
      * children provide the impl for that
      */
-    public java.util.List<LWComponent> getAllDescendents() {
+    public Collection<LWComponent> getAllDescendents() {
         // Default is only CHILD_PROPER, and by definition,
         // LWComponents have no proper children.
         // return getAllDescendents(CHILD_PROPER);
         return java.util.Collections.EMPTY_LIST;
     }    
 
-    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind) {
+    public Collection<LWComponent> getAllDescendents(final ChildKind kind) {
         if (kind == ChildKind.PROPER)
             return java.util.Collections.EMPTY_LIST;
         else
             return getAllDescendents(kind, new java.util.ArrayList());
     }
     
-    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind, final java.util.List<LWComponent> list) {
-        return list;
+    public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection<LWComponent> bag) {
+        return bag;
     }
     
 
@@ -2622,14 +2673,15 @@ public class LWComponent
         // (as opposed to ontology style objects)
         
         // todo: this not a fast way to traverse & find what we need to change...
-        for (LWComponent c : getMap().getAllDescendents(ChildKind.ANY)) {
-            if (c.mParentStyle == this && c != this) { // we should never be point back to ourself, but just in case
+        for (LWComponent dest : getMap().getAllDescendents(ChildKind.ANY)) {
+            // we should never be point back to ourself, but we check just in case
+            if (dest.mParentStyle == this && dest.supportsProperty(key) && dest != this) {
                 // Only copy over the style value if was previously set to our existing style value
                 try {
-                    if (key.valueEquals(c, e.getOldValue()))
-                        key.copyValue(this, c);
+                    if (key.valueEquals(dest, e.getOldValue()))
+                        key.copyValue(this, dest);
                 } catch (Throwable t) {
-                    tufts.Util.printStackTrace(t, "Failed to copy value from " + e + " old=" + e.oldValue);
+                    tufts.Util.printStackTrace(t, "Failed to copy value from " + e + " old=" + e.getOldValue());
                 }
             }
         }

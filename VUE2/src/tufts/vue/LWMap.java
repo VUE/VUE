@@ -18,7 +18,7 @@
 
 package tufts.vue;
 
-import java.util.Vector;
+import java.util.Collection;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.111 $ / $Date: 2007-02-21 00:44:32 $ / $Author: sfraize $
+ * @version $Revision: 1.112 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -375,15 +375,15 @@ public class LWMap extends LWContainer
         mPathways.setMap(this);
     }
 
-    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind, final java.util.List list) {
-        super.getAllDescendents(kind, list);
+    public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag) {
+        super.getAllDescendents(kind, bag);
         if (kind == ChildKind.ANY) {
             for (LWPathway pathway : mPathways.getElementList()) {
-                list.add(pathway);
-                pathway.getAllDescendents(kind, list);
+                bag.add(pathway);
+                pathway.getAllDescendents(kind, bag);
             }
         }
-        return list;
+        return bag;
     }
     
     private int nextID = 1;
@@ -398,7 +398,7 @@ public class LWMap extends LWContainer
 
         mPathways.completeXMLRestore(this);
 
-        final java.util.List<LWComponent> allRestored = getAllDescendents(ChildKind.ANY);
+        final Collection<LWComponent> allRestored = getAllDescendents(ChildKind.ANY);
 
         resolvePersistedLinks(allRestored);
         
@@ -461,7 +461,7 @@ public class LWMap extends LWContainer
         markAsSaved();
     }
 
-    private void resolvePersistedLinks(java.util.List<LWComponent> allRestored)
+    private void resolvePersistedLinks(Collection<LWComponent> allRestored)
     {
         for (LWComponent c : allRestored) {
             if (!(c instanceof LWLink))
@@ -478,7 +478,7 @@ public class LWMap extends LWContainer
         }
     }
 
-    LWComponent findByID(java.util.List<LWComponent> allRestored, String id) {
+    LWComponent findByID(Collection<LWComponent> allRestored, String id) {
         for (LWComponent c : allRestored)
             if (id.equals(c.getID()))
                 return c;
@@ -488,7 +488,7 @@ public class LWMap extends LWContainer
     
 
     /** for use during restore */
-    private int findGreatestID(final java.util.List<LWComponent> allRestored)
+    private int findGreatestID(final Collection<LWComponent> allRestored)
     {
         int maxID = -1;
 

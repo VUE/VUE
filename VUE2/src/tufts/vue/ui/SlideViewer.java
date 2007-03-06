@@ -73,13 +73,12 @@ public class SlideViewer extends tufts.vue.MapViewer
 {
     private final VueTool PresentationTool = VueToolbarController.getController().getTool("viewTool");
 
-    private boolean isMapSlide = false;
+    private boolean isMapView = false;
     private boolean mBlackout = false;
     
     private boolean mZoomBorder;
     private boolean inFocal;
     private LWComponent mZoomContent; // what we zoom-to
-    private boolean inPathwaySlide;
     private LWPathway.Entry mLastLoad;
 
     private final AbstractButton btnLocked;
@@ -100,7 +99,7 @@ public class SlideViewer extends tufts.vue.MapViewer
             add(btnLocked);
             add(Box.createHorizontalGlue());
             add(btnZoom);
-            if (DEBUG.Enabled) add(btnFocus);
+            //if (DEBUG.Enabled) add(btnFocus);
             add(btnSlide);
             add(btnMaster);
             add(btnMapSlide);
@@ -317,21 +316,25 @@ if (true) return;
             //} else if (btnMaster.isSelected() || entry.isPathway()) {
         } else if (masterJustPressed || (entry.isPathway() && !slideJustPressed)) {
             btnMaster.setSelected(true);
-            isMapSlide = false;
+            isMapView = false;
             focal = entry.pathway.getMasterSlide();
         } else {
             btnSlide.setSelected(true);
             
-            if (entry.isPathway())
+            if (entry.isPathway()) {
                 entry = entry.pathway.getCurrentEntry();
+                if (entry == null) {
+                    // pathway is empty -- TODO: handle cleanly
+                    return;
+                }
+            }
+
                 
-            isMapSlide = entry.isMapView();
-            btnMapSlide.setSelected(isMapSlide);
+            isMapView = entry.isMapView();
+            btnMapSlide.setSelected(isMapView);
             focal = entry.getFocal();
-            //focal = getFocalAndConfigure(c);
         }
 
-        inPathwaySlide = !isMapSlide;
         mZoomContent = focal;
 
         masterJustPressed = slideJustPressed = false;
@@ -342,46 +345,6 @@ if (true) return;
         if (DEBUG.PRESENT) out("SlideViewer: focused is now " + mFocal + " from map " + mMap);
     }
 
-    /*
-    protected void load(LWComponent c)
-    {
-        if (DEBUG.PRESENT) out("\nSlideViewer: loading " + c);
-        mLastLoad = c;
-        //btnSlide.setEnabled(true);
-
-        LWComponent focal;
-
-
-        // If no slide available, disable slide button, even if don't want it!
-
-        if (c == null && !btnMaster.isSelected()) {
-            mZoomBorder = false;
-            mZoomContent = null;
-            inFocal = false;
-            focal = null;
-            btnMapSlide.setEnabled(false);
-        } else {
-            if (btnMaster.isSelected()) {
-                isMapSlide = false;
-            } else {
-                //btnMapSlide.setSelected(c.getSlideIsNodeForPathway(c.getMap().getActivePathway()));
-                final LWPathway activePathway = c.getMap().getActivePathway();
-                if (activePathway != null && c.inPathway(activePathway)) {
-                    btnMapSlide.setSelected(activePathway.getFirstEntry(c).isMapSlide());
-                } else {
-                    btnMapSlide.setSelected(false);
-                }
-                isMapSlide = btnFocus.isSelected() || btnMapSlide.isSelected();
-            }
-            focal = getFocalAndConfigure(c);
-        }
-        
-        super.loadFocal(focal);
-        reshapeImpl(0,0,0,0);
-        if (DEBUG.PRESENT) out("SlideViewer: focused is now " + mFocal + " from map " + mMap);
-    }
-    */
-
     private LWSlide getActiveMasterSlide() {
         if (VUE.getActiveMap() != null)
             return VUE.getActiveMap().getActivePathway().getMasterSlide();
@@ -390,75 +353,6 @@ if (true) return;
     }
 
 
-    /*
-     * Given the selected on-map node, and the current viewer config, return the proper focal:
-     * Either the node itself, or it's slide for the current pathway, or the master slide for
-     * the current pathway (if the master slide button is selected).
-
-    private LWComponent XgetFocalAndConfigure(final LWComponent mapNode)
-    {
-        final LWComponent focal;
-
-        inPathwaySlide = false;
-            
-        if (btnZoom.isSelected()) {
-            inFocal = false;
-            mZoomContent = mapNode;
-            mZoomBorder = true;
-            focal = mapNode.getMap();
-            btnMapSlide.setEnabled(false);
-        } else if (isMapSlide) {
-            inFocal = true;
-            mZoomBorder = false;
-            mZoomContent = mapNode;
-            focal = mapNode;
-            btnMapSlide.setEnabled(true);
-        } else if (btnSlide.isSelected()) {
-
-            final LWPathway activePathway = mapNode.getMap().getActivePathway();
-
-            focal = activePathway.getFirstEntry(mapNode).getFocal();
-            
-            //focal = mapNode.getFocalForPathway(mapNode.getMap().getActivePathway());
-            //focal = mapNode.getSlideForPathway(mapNode.getMap().getActivePathway());
-
-            final boolean focalIsPathwaySlide = (mapNode != focal);
-            
-            
-            // todo: if only on ONE pathway, and thus could only have
-            // one slide, could still allow the slide selection
-            // even if not current active pathway
-            
-            mZoomBorder = false;
-            
-            if (focal != null) {
-                if (focalIsPathwaySlide)
-                    inPathwaySlide = true;
-                else
-                    inPathwaySlide = false;
-                mZoomContent = focal;
-                btnMapSlide.setEnabled(true);
-            } else {
-                mZoomContent = null;
-                btnMapSlide.setEnabled(false);
-            }
-
-            
-        } else if (btnMaster.isSelected()) {
-            inFocal = true;
-            inPathwaySlide = true;
-            mZoomBorder = false;
-            mZoomContent = VUE.getActiveMap().getActivePathway().getMasterSlide();
-            focal = mZoomContent;
-            btnMapSlide.setEnabled(false);
-        } else {
-            focal = null;
-            throw new InternalError();
-        }
-        
-        return focal;
-    }
-     */
     public void fireViewerEvent(int id) {
         if (DEBUG.PRESENT) out("fireViewerEvent <" + id + "> skipped");
     }
@@ -484,12 +378,13 @@ if (true) return;
             //out("zoomToContents: bounds=" + zoomBounds);
         }
 
-
         tufts.vue.ZoomTool.setZoomFitRegion(this,
                                             zoomBounds,
                                             btnFill.isSelected() ? 0 : 20,
                                             //mZoomBorder ? 20 : 0,
                                             false);
+        out("zoomed to " + zoomBounds + " @ " + tufts.vue.ZoomTool.prettyZoomPercent(getZoomFactor()));
+
     }
     
     
@@ -518,48 +413,72 @@ if (true) return;
         if (mFocal == null)
             return;
 
-        if (inPathwaySlide) {
+        if (isMapView) {
 
-            drawSlide(dc);
+            drawFocal(dc);
             
         } else {
 
-            drawFocal(dc);
-        }
+            drawSlide(dc);
 
+        }
+        
     }
 
-    protected void drawSlide(DrawContext dc) {
+    protected void drawSlide(DrawContext dc)
+    {
+        // just drawing the master slide here only happens to work because it's exactly
+        // the same size as the slide itself (mFocal is a slide of we're in here), and
+        // both exist in the "ether", (not on the map), so they both happen to have the
+        // same location (0,0), so we don't have to worry about panning around the map
+        // to get them both to draw (like we will have to with map-based focals) -- this
+        // really highlights that it would be nice to better DrawContext controls for
+        // moving back and forth between "immediate"(?)  mode v.s. map-mode, and perhaps
+        // change the drawing model to always be zero based -- the translating could
+        // happen during a draw traversal, which could be shared code with similar
+        // translation we'd need to do via pick traversals.
         
-        final LWSlide master = VUE.getActiveMap().getActivePathway().getMasterSlide();
+        drawMasterSlide(dc); 
+        
+        // Now draw the actual slide
+        mFocal.draw(dc);
+    }
 
-        if (btnFill.isSelected()) {
+    private void drawMasterSlide(DrawContext dc)
+    {
+        drawMasterSlide(dc, mLastLoad.pathway.getMasterSlide(), btnFill.isSelected(), btnMaster.isSelected());
+    }
+    
+    public static void drawMasterSlide(DrawContext dc, LWSlide master, boolean fillMode, boolean editMode)
+    {
+        if (fillMode) {
             dc.g.setColor(master.getFillColor());
             dc.g.fill(dc.g.getClipBounds());
         }
 
-        if (btnMaster.isSelected()) {
+        //out("drawMasterSlide: offsetX/Y: " + dc.offsetX + "," + dc.offsetY);
+        //dc.setRawDrawing();
+        master.setLocation(0,0);// TODO: hack till we can lock these properties
+        //master.setLocation(-dc.offsetX,-dc.offsetY);
+
+        if (editMode) {
             // When editing the master, allow us to see stuff outside of it
             // (no need to clip);
-            master.setLocation(0,0);// TODO: hack till we can lock these properties
             dc.setEditMode(true);
             master.draw(dc);
-            return;
+        } else {
+
+            final Shape curClip = dc.g.getClip();
+            //out("curClip: " + curClip);
+            
+            // When just filling the background with the master, only draw
+            // what's in the containment box
+            dc.g.setClip(master.getBounds());
+            master.draw(dc);
+            dc.g.setClip(curClip);
         }
-        
-        final Shape curClip = dc.g.getClip();
 
-        // When just filling the background with the master, only draw
-        // what's in the containment box
-        master.setLocation(0,0);// TODO: hack till we can lock these properties
-        dc.g.setClip(master.getBounds());
-        master.draw(dc);
-        dc.g.setClip(curClip);
-
-        //for (LWComponent c : mFocal.getChildList()) out("child to draw: " + c);
-        
-        // Now draw the actual slide
-        mFocal.draw(dc);
+        //dc.setMapDrawing();
     }
     
     /** either draws the entire map (previously zoomed to to something to focus on),
@@ -568,20 +487,27 @@ if (true) return;
 
     protected void drawFocal(DrawContext dc)
     {
-        //out("drawing focal " + mFocal);
 
-        if (isMapSlide) {
+        // TODO: need to get this working to wherever we've been "zoom fitted" to, and/or
+        // fundamentally change all object drawing to be zero based.
+        //drawMasterSlide(dc); 
+        
+        out("drawing focal " + mFocal);
+
+        if (isMapView) {
             dc.isFocused = true;
             dc.setInteractive(false);
         }
         
-        if (btnFocus.isSelected())
-            dc.g.setColor(Color.black);
-        else
-            dc.g.setColor(mFocal.getMap().getFillColor());
-        dc.g.fill(dc.g.getClipBounds());
+//         if (btnFocus.isSelected())
+//             dc.g.setColor(Color.black);
+//         else
+//             dc.g.setColor(mFocal.getMap().getFillColor());
+//         dc.g.fill(dc.g.getClipBounds());
         
         final LWMap underlyingMap = mFocal.getMap();
+
+        //zoomToContents();
         
         if (mFocal.isTranslucent() && mFocal != underlyingMap) {
 

@@ -84,7 +84,7 @@ public class FullScreen {
     private static void enterFullScreenMode(boolean goNative)
     {
 
-goNative = false; // TODO: TEMP DEBUG
+        //goNative = false; // TODO: TEMP DEBUG
 
         if (goNative) {
             // Can't use heavy weights, as they're windows that can't be seen,

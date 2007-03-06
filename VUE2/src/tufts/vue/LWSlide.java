@@ -27,7 +27,7 @@ import java.awt.geom.*;
  * Sublcass (for now) of LWGroup for slide features.
  *
  * @author Scott Fraize
- * @version $Revision: 1.8 $ / $Date: 2007-02-26 21:58:18 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
  */
 public class LWSlide extends LWGroup
 {
@@ -121,9 +121,7 @@ public class LWSlide extends LWGroup
         // (make row sizes are sometimes being off...)
         //Actions.MakeRow.act(selection);
 
-        for (LWComponent c : nodes) {
-            addChildImpl(c);
-        }
+        for (LWComponent c : nodes) addChildImpl(c);
 
         //             int x = 1, y = 1;
         //             for (LWComponent c : slide.getChildList())

@@ -21,6 +21,7 @@ package tufts.vue;
 import tufts.vue.DEBUG;
 
 import java.util.List;
+import java.util.Collection;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.awt.Color;
@@ -44,7 +45,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.123 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
+ * @version $Revision: 1.124 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -318,16 +319,20 @@ public class LWPathway extends LWContainer
         setIndex(mEntries.indexOf(e));
     }
 
-    private Entry getEntry(int index) {
-        return mEntries.get(index);
+    public Entry getEntry(int index) {
+        if (index >= length())
+            return null;
+        else
+            return mEntries.get(index);
     }
 
     public Entry getCurrentEntry() {
-        return mCurrentIndex >= 0 ? mEntries.get(mCurrentIndex) : null;
+        return mCurrentIndex >= 0 ? getEntry(mCurrentIndex) : null;
     }
 
-    private LWComponent getNodeEntry(int index) {
-        return getEntry(index).node;
+    public LWComponent getNodeEntry(int index) {
+        Entry e = getEntry(index);
+        return e == null ? null : e.node;
     }
 
     
@@ -381,7 +386,7 @@ public class LWPathway extends LWContainer
      */
     public int setIndex(int i)
     {
-        if (DEBUG.PATHWAY) System.out.println(this + " setIndex " + i);
+        if (DEBUG.PATHWAY) out("setIndex " + i);
         if (mCurrentIndex == i)
             return i;
 
@@ -393,8 +398,13 @@ public class LWPathway extends LWContainer
             if (i < 0) {
                 VUE.setActivePathwayEntry(this.asEntry());
             } else {
-                VUE.setActivePathwayEntry(mEntries.get(i));
-                VUE.getSelection().setTo(getNodeEntry(i));
+                VUE.setActivePathwayEntry(getEntry(i));
+                // TODO: if this node is in pathway more than once,
+                // this set-selection is re-triggering a pathway
+                // table selection of the FIRST instance of this node,
+                // preventing us from ever kbd-arrow navigating
+                // down the the second instance of the node in the pathway.
+                //VUE.getSelection().setTo(getNodeEntry(i));
             }
         }
         
@@ -809,16 +819,17 @@ public class LWPathway extends LWContainer
     public Iterator<LWComponent> getChildIterator() {
         return VueUtil.EmptyIterator;
     }
-
     
     /** return a read-only list of our Entries */
     public java.util.List<Entry> getEntries() {
         return mSecureEntries;
     }
-
     /** for castor only -- it needs to modify (build up) the list during restore */
     public java.util.List<Entry> getPersistEntries() {
         return mEntries;
+    }
+    public LWComponent getChild(int index) {
+        throw new UnsupportedOperationException("pathways don't have proper children");
     }
 
     /* for castor only -- apparently castor's claim to implement this type of access to collections is bogus
@@ -830,20 +841,20 @@ public class LWPathway extends LWContainer
     }
     */
         
-    public java.util.List<LWComponent> getAllDescendents(final ChildKind kind, final java.util.List list) {
+    public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag) {
         if (kind == ChildKind.ANY) {
             if (mMasterSlide != null)
-                list.add(mMasterSlide);
+                bag.add(mMasterSlide);
             if (mMasterSlide != null)
-                mMasterSlide.getAllDescendents(kind, list);
+                mMasterSlide.getAllDescendents(kind, bag);
             for (Entry e : mEntries) {
                 if (e.slide != null) {
-                    list.add(e.slide);
-                    e.slide.getAllDescendents(kind, list);
+                    bag.add(e.slide);
+                    e.slide.getAllDescendents(kind, bag);
                 }
             }
         }
-        return list;
+        return bag;
     }
     
     
@@ -866,7 +877,7 @@ public class LWPathway extends LWContainer
         // This is for backward compat with older save files where
         // Pathway elements were stored only by ID
         if (mOldStyleMemberIDList.size() > 0) {
-            final java.util.List<LWComponent> allRestored = map.getAllDescendents(ChildKind.ANY);
+            final Collection<LWComponent> allRestored = map.getAllDescendents(ChildKind.ANY);
             for (String id : mOldStyleMemberIDList) {
                 LWComponent c = map.findByID(allRestored, id);
                 if (DEBUG.XML || DEBUG.PATHWAY) out("RESTORING old-style path element " + c);

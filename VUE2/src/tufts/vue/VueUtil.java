@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.73 $ / $Date: 2006-10-03 18:32:17 $ / $Author: sfraize $
+ * @version $Revision: 1.74 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -45,6 +45,9 @@ public class VueUtil extends tufts.Util
         throws java.io.IOException
     {
         VUE.Log.info("openURL[" + platformURL + "]");
+
+        if (VUE.inFullScreen())
+            VUE.toggleFullScreen();
 
         if (VueExtension == null) {
             VueExtension = VueResources.getString("vue.extension");

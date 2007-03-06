@@ -338,7 +338,7 @@
         
         <class name="tufts.vue.LWPathway$Entry">
           <map-to xml="pathEntry"/>
-          <field name="mapView" get-method="isMapView"><bind-xml name="isMapView" node="attribute"/></field>
+          <field name="mapView" get-method="isMapView" set-method="setMapView"><bind-xml name="isMapView" node="attribute"/></field>
           <field name="node" direct="true"><bind-xml name="nodeID" node="attribute" reference="true"/></field>
           <field name="notes"><bind-xml node="element"/></field>
 	  <field name="persistSlide" type="tufts.vue.LWSlide">

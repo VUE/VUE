@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import java.util.List;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,7 +45,7 @@ import java.awt.geom.Rectangle2D;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.43 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
+ * @version $Revision: 1.44 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -88,57 +89,50 @@ public class LWGroup extends LWContainer
     }
 
     /** Make the given nodes members of this group, importing also any links that are been two members of the set.
-     * This also makes sure the relative z-order of the imported nodes */
-    public void importNodes(java.util.List nodes)
+     * This also makes sure to maintain the relative z-order of the imported nodes */
+    public void importNodes(java.util.List<LWComponent> nodes)
     {
-        /*
-        // Track what links are explicitly in the selection so we
-        // don't "grab" them later even if both endpoints are in the
-        // selection.
-        HashSet linksInSelection = new HashSet();
-        Iterator i = selection.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c instanceof LWLink)
-                linksInSelection.add(c);
-        }
-        */
-
-        // "Grab" links -- automatically add links
-        // to this group who's endpoints are BOTH
-        // also being added to the group.
-
-        HashSet linkSet = new HashSet();
-        List moveList = new java.util.ArrayList();
-        Iterator i = nodes.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        final List<LWComponent> reparentList = new java.util.ArrayList();
+        final Collection<LWComponent> allUniqueDescendents = new java.util.HashSet(); // enforce unique w/HashSet
+        
+        for (LWComponent c : nodes) {
             //if (c instanceof LWLink) // the only links allowed are ones we grab
             //  continue; // enabled in order to support reveal's with links in them
-            moveList.add(c);
-            //-------------------------------------------------------
-            // If both ends of any link are in the selection,
-            // also add those links as children of the group.
-            //-------------------------------------------------------
-            // todo: need to check all descendents: LWContainer.getAllDescedents
-            Iterator li = c.getLinkRefs().iterator();
-            //todo: need to recursively check children for link refs also
-            while (li.hasNext()) {
-                LWLink l = (LWLink) li.next();
-                //if (linksInSelection.contains(l))
-                //continue;
-                if (!linkSet.add(l)) {
-                    if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] GRABBING " + c + " (both ends in group)");
-                    moveList.add(l);
+            reparentList.add(c);
+            allUniqueDescendents.add(c);
+            c.getAllDescendents(ChildKind.PROPER, allUniqueDescendents);
+        }
+
+        //final LWContainer defaultLinkParent = getMap();
+
+        //----------------------------------------------------------------------------------------
+        // If both ends of any link are in the selection of what's being added to the
+        // group, or are descendents of what's be added to the group, and that link's
+        // parent is not already something other than the default link parent, scoop it
+        // up as a proper child of the new group.
+        //----------------------------------------------------------------------------------------
+
+        final HashSet uniqueLinks = new HashSet();
+
+        for (LWComponent c : allUniqueDescendents) {
+            if (DEBUG.PARENTING) out("ALL UNIQUE " + c);
+            for (LWLink l : c.getLinkRefs()) {
+                boolean bothEndsInPlay = !uniqueLinks.add(l);
+                if (DEBUG.PARENTING) out("SEEING LINK " + l + " IN-PLAY=" + bothEndsInPlay);
+                if (bothEndsInPlay && l.getParent() instanceof LWMap) {
+                    if (DEBUG.PARENTING) out("GRABBING " + c + " (both ends in group)");
+                    reparentList.add(l);
                 }
             }
         }
         // Be sure to preserve the current relative ordering of all
-        // these components the new group
-        LWComponent[] comps = sort(moveList, LWContainer.ReverseOrder);
-        for (int x = 0; x < comps.length; x++) {
-            addChildImpl(comps[x]);
-        }
+        // these components the new group.
+        for (LWComponent c : sort(reparentList, LWContainer.ReverseOrder))
+            addChildImpl(c);
+
+        // we can use addChildImpl instead of addChildren as this only
+        // happens during creation, and we don't need to optimize
+        // events (we're not in the model yet)
     }
     
     /*
