@@ -64,6 +64,11 @@ public class StyleMap {
     public static final Set keySet() {
         return m.keySet();
     }
+
+    public static final Set<Map.Entry<String,Style>> entrySet() {
+        return m.entrySet();
+    }
+    
     public static String printStyles() {
         String s  = new String();
         Collection<Style> c = m.values();
