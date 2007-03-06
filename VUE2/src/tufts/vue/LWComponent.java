@@ -37,12 +37,11 @@ import java.util.ArrayList;
 import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
 import edu.tufts.vue.style.Style;
-import edu.tufts.vue.style.StyleMap;
 
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.208 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
+ * @version $Revision: 1.209 $ / $Date: 2007-03-06 16:54:17 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -192,17 +191,16 @@ public class LWComponent
             }
         }
     }
-    /*
-    public void applyCSS(StyleMap styleMap) {
-        for (Map.Entry<String,Style> se : styleMap.entrySet()) {
+
+    public void applyCSS(edu.tufts.vue.style.Style cssStyle) {
+        for (Map.Entry<String,String> se : cssStyle.getAttributes().entrySet()) {
             final String cssName = se.getKey();
             for (Key key : Key.AllKeys) {
-                if (key.cssName != null && supportsProperty(key))
+                if (key.cssName != null && supportsProperty(key)) {
                 }
             }
         }
     }
-    */
 
     /**
      * Describes a property on a VUE LWComponent, and provides an info string for creating Undo names,

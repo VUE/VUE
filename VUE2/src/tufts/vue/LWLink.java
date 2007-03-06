@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.110 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
+ * @version $Revision: 1.111 $ / $Date: 2007-03-06 16:54:30 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -137,7 +137,7 @@ public class LWLink extends LWComponent
     // type in getSlot here if we don't compile this file at the same time as
     // LWCopmonent.java... (this is a javac bug)
     public static final Key KEY_LinkArrows
-        = new Key<LWLink,Object>("link.arrows", "arrow-head;arrow-tail") { final Property getSlot(LWLink l) { return l.mArrowState; } };
+        = new Key<LWLink,Object>("link.arrows", "vue-head;vue-tail") { final Property getSlot(LWLink l) { return l.mArrowState; } };
     public final IntProperty mArrowState = new IntProperty(KEY_LinkArrows) { void onChange() { layout(); } };
     
     
