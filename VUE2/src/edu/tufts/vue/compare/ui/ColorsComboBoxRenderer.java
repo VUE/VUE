@@ -58,18 +58,19 @@ public class ColorsComboBoxRenderer extends javax.swing.DefaultListCellRenderer 
       Iterator<Color> i = colors.iterator();
       while(i.hasNext())
       {
-          JPanel cp = new JPanel();
-          /*{
-              public java.awt.Dimension getMinimumSize()
+          JPanel cp = new JPanel()//;
+          {
+              public java.awt.Dimension getPreferredSize()
               {
-                  return new java.awt.Dimension(70,70);
+                  return new java.awt.Dimension(10,20);
               }
-          };*/
+          };
           //make square based on height determined by layout manager? for now use hard coded values from above...
           cp.setSize(cp.getHeight(),cp.getHeight());
           //cp.setSize(30,30);
           cp.setOpaque(true);
           cp.setBackground(i.next());
+          panel.setBorder(javax.swing.BorderFactory.createLineBorder(Color.GRAY));
           panel.add(cp);
       }
       

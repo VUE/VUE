@@ -53,7 +53,8 @@ public class LWMergeMap extends LWMap {
     private int linkThresholdSliderValue = THRESHOLD_DEFAULT;
     private List<File> fileList;
     private List<Boolean> activeFiles;
-    private List<LWMap> mapList;
+    // without this next line it seems that Castor only reads back one element..
+    private List<LWMap> mapList = new ArrayList();
     
     private Stack<Integer> nodeThresholdValueStack;
     
@@ -110,9 +111,35 @@ public class LWMergeMap extends LWMap {
         return activeFiles;
     }
     
+    /*public java.util.Collection getMapListCollection()
+    {
+        return mapList;
+    }*/
+    
+    /*public void setMapListCollection(java.util.Collection c)
+    {
+        System.out.println("set map list collection: ");
+        Iterator i = c.iterator();
+        while(i.hasNext())
+        {
+            System.out.println(i.next());
+        }
+        System.out.println("--");
+        mapList = (List<LWMap>)c;
+    }*/
+    
     public void setMapList(List<LWMap> mapList)
     {
-        System.out.println("LWMergeMap: set map list: " + mapList.size());
+        //System.out.println("LWMergeMap: set map list: " + mapList.size());
+        Iterator<LWMap> i = mapList.iterator();
+        int c = 0;
+        while(i.hasNext())
+        {
+            //System.out.println(c++);
+            //System.out.println(i.next().getLabel());
+            //System.out.println("--");
+        }
+        //Thread.dumpStack();
         this.mapList = mapList; 
     }
     
@@ -218,16 +245,162 @@ public class LWMergeMap extends LWMap {
     
     public void recreateVoteMerge(/*List<LWMap> mapList*/)
     {
+        //System.out.println("recreate vote merge starting dump stack: ");
+        //Thread.dumpStack();
+        //System.out.println("end recreate vote merge stack dump");
         
-        //produces deadlock...
+        //produces ConcurrentModificationException
         //removeChildren(getChildIterator());
         
+        //copied from Actions:
+        
+        //create own selection, not vueselection, actions.delete(selection)
+
+
+        Iterator li = getAllDescendents().iterator();
+        
+
+        //Iterator li = getAllLinks().iterator();
+        // concurrentModificationException unless do nodes and links seperately...
+        //Iterator si = VUE.getActiveMap().getChildIterator();
+        
+        
+        while(li.hasNext())
+        {
+            LWComponent c = (LWComponent)li.next();
+            
+            
+            LWContainer parent = c.getParent();
+            if (parent == null) {
+                //System.out.println("DELETE: " + c + " skipping: null parent (already deleted)");
+            } else if (c.isDeleted()) {
+                //System.out.println("DELETE: " + c + " skipping (already deleted)");
+            } else if (parent.isDeleted()) { // after prior check, this case should be impossible now
+                //System.out.println("DELETE: " + c + " skipping (parent already deleted)"); // parent will call deleteChildPermanently
+            } else if (parent.isSelected()) { // if parent selected, it will delete it's children
+                //System.out.println("DELETE: " + c + " skipping - parent selected & will be deleting");
+            } else {
+                parent.deleteChildPermanently(c);
+            }
+        }
+                  
+       // getUndoManager().mark("Map Cleared");
+        
+        /*Iterator si = getNodeIterator();
+        while(si.hasNext())
+        {
+            LWComponent c = (LWComponent)si.next();
+            
+            
+            LWContainer parent = c.getParent();
+            if (parent == null) {
+                System.out.println("DELETE: " + c + " skipping: null parent (already deleted)");
+            } else if (c.isDeleted()) {
+                System.out.println("DELETE: " + c + " skipping (already deleted)");
+            } else if (parent.isDeleted()) { // after prior check, this case should be impossible now
+                System.out.println("DELETE: " + c + " skipping (parent already deleted)"); // parent will call deleteChildPermanently
+            } else if (parent.isSelected()) { // if parent selected, it will delete it's children
+                System.out.println("DELETE: " + c + " skipping - parent selected & will be deleting");
+            } else {
+                parent.deleteChildPermanently(c);
+            }
+        }*/
+        
         ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
+        //System.out.println("recreate merge: getMapList.size() " + getMapList().size());
         Iterator<LWMap> i = getMapList().iterator();
-        System.out.println("LWMergeMap: " + getMapList().size());
+        //System.out.println("LWMergeMap: " + getMapList().size());
         while(i.hasNext())
         {
-          cms.add(new ConnectivityMatrix(i.next()));
+          LWMap m = i.next();
+          //Iterator mi = m.getAllLinks().iterator();
+          /*while(mi.hasNext())
+          {
+              System.out.println(mi);
+          }*/
+          
+          
+          // moving this to seperate method to be called from SelectPanel
+          /*System.out.println(m.getChildList().size());
+          
+          List<LWComponent> chs = m.getChildList();
+          
+          
+          // adapted from private method in LWMap -- resolvePersistedLinks..
+          for (LWComponent currc : chs) {
+            if (!(currc instanceof LWLink))
+                continue;
+            LWLink l = (LWLink) currc;
+            try {
+                // was: final ep1ID
+                String ep1ID = l.getEndPoint1_ID();
+                System.out.println("before setting components");
+                System.out.println("l.getEndPoint1_ID(): " + l.getEndPoint1_ID());
+                System.out.println("l.getComponent1(): " + l.getComponent1());
+                // was: final ep2ID
+                String ep2ID = l.getEndPoint2_ID();
+                System.out.println("l.getEndPoint2_ID(): " + l.getEndPoint2_ID());
+                System.out.println("l.getComponent2(): " + l.getComponent2());
+
+                if (ep1ID != null && l.getComponent1() == null) l.setComponent1(findByID(chs, ep1ID));
+                if (ep2ID != null && l.getComponent2() == null) l.setComponent2(findByID(chs, ep2ID));
+                if(l.getComponent1() != null && l.getComponent2() != null)
+                {
+                    //markAsSaved();
+                    //getUndoManager().mark("links recalculated");
+                    //getUndoManager().flush();
+                }
+                
+                ep1ID = l.getEndPoint1_ID();
+                System.out.println("after setting components");
+                System.out.println("l.getEndPoint1_ID(): " + l.getEndPoint1_ID());
+                System.out.println("l.getComponent1(): " + l.getComponent1());
+                ep2ID = l.getEndPoint2_ID();
+                System.out.println("l.getEndPoint2_ID(): " + l.getEndPoint2_ID());
+                System.out.println("l.getComponent2(): " + l.getComponent2());
+                
+            } catch (Throwable e) {
+                tufts.Util.printStackTrace(e, "bad link? + l");
+            }
+          } */
+          
+          
+          
+          
+          
+          Iterator cl = m.getChildList().iterator();
+          int clc = 0;
+          while(cl.hasNext())
+          {
+              LWComponent com = (LWComponent)cl.next();
+              //System.out.println("class: " + m.getLabel() + ":" + (clc++) + ":" + com.getClass());
+              //System.out.println("label: " + m.getLabel() + ":" + (clc++) + ":" + com.getLabel());
+              //System.out.println("ID: " + m.getLabel() + ":" + (clc++) + ":" + com.getID());;
+              
+              if(com instanceof LWLink)
+              {
+                  LWLink comlink = (LWLink)com;
+                  //System.out.println("component1: " + comlink.getComponent1());
+                  //System.out.println("comlink.getEndPoint1_ID(): " + comlink.getEndPoint1_ID());
+                  //System.out.println("component1 label: " + comlink.getComponent1().getLabel());
+                  //System.out.println("component2: " + comlink.getComponent2());
+                  //System.out.println("comlink.getEndPoint2_ID(): " + comlink.getEndPoint2_ID());
+                  //System.out.println("component2 label: " + comlink.getComponent2().getLabel());
+                  
+                  //System.out.println("arrow state: " + ((LWLink)(com)).getArrowState());
+              }
+          }
+          
+          Iterator ni = m.getNodeIterator();
+          //System.out.println("node iterator: " + ni.hasNext());
+          
+          Iterator linki = m.getLinkIterator();
+          //System.out.println("link iterator: " + linki.hasNext());
+          
+          //System.out.println(m.getLabel());
+          ConnectivityMatrix cm = new ConnectivityMatrix(m);
+          //System.out.println(cm);
+          cms.add(cm);
         }
         VoteAggregate voteAggregate= new VoteAggregate(cms);
         voteAggregate.setNodeThreshold((double)(getNodeThresholdSliderValue()/100.0));
@@ -252,6 +425,9 @@ public class LWMergeMap extends LWMap {
                LWNode node2 = (LWNode)children2.next();
                if(node2 != node1) {
                   int c = voteAggregate.getConnection(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
+                  //System.out.println("---");
+                  //System.out.println("lwmm: mp n1, mp n2 " + Util.getMergeProperty(node1) + "," + Util.getMergeProperty(node2) );
+                  //System.out.println("lwmm: getc " + voteAggregate.getConnection(Util.getMergeProperty(node1),Util.getMergeProperty(node2)));
                   if(c >0) {
                      addLink(new LWLink(node1,node2));
                   }
@@ -261,4 +437,62 @@ public class LWMergeMap extends LWMap {
         
     }
     
+    public void recalculateLinks()
+    {
+          
+        Iterator<LWMap> i = getMapList().iterator();
+        //System.out.println("LWMergeMap: " + getMapList().size());
+        while(i.hasNext())
+        {
+          LWMap m = i.next();
+        
+          System.out.println(m.getChildList().size());
+          
+          List<LWComponent> chs = m.getChildList();
+          
+          
+          // adapted from private method in LWMap -- resolvePersistedLinks..
+          for (LWComponent currc : chs) {
+            if (!(currc instanceof LWLink))
+                continue;
+            LWLink l = (LWLink) currc;
+            try {
+                // was: final ep1ID
+                String ep1ID = l.getEndPoint1_ID();
+                //System.out.println("before setting components");
+                //System.out.println("l.getEndPoint1_ID(): " + l.getEndPoint1_ID());
+                //System.out.println("l.getComponent1(): " + l.getComponent1());
+                // was: final ep2ID
+                String ep2ID = l.getEndPoint2_ID();
+                //System.out.println("l.getEndPoint2_ID(): " + l.getEndPoint2_ID());
+                //System.out.println("l.getComponent2(): " + l.getComponent2());
+
+                if (ep1ID != null && l.getComponent1() == null) l.setComponent1(findByID(chs, ep1ID));
+                if (ep2ID != null && l.getComponent2() == null) l.setComponent2(findByID(chs, ep2ID));
+                if(l.getComponent1() != null && l.getComponent2() != null)
+                {
+                    //markAsSaved();
+                    //getUndoManager().mark("links recalculated");
+                    //getUndoManager().flush();
+                }
+                
+                ep1ID = l.getEndPoint1_ID();
+                //System.out.println("after setting components");
+                //System.out.println("l.getEndPoint1_ID(): " + l.getEndPoint1_ID());
+                //System.out.println("l.getComponent1(): " + l.getComponent1());
+                ep2ID = l.getEndPoint2_ID();
+                //System.out.println("l.getEndPoint2_ID(): " + l.getEndPoint2_ID());
+                //System.out.println("l.getComponent2(): " + l.getComponent2());
+                
+            } catch (Throwable e) {
+                tufts.Util.printStackTrace(e, "bad link? + l");
+            }
+          } // end for 
+        } // end while
+        
+        getUndoManager().mark("recalculate links");
+        getUndoManager().flush();
+
+    }
+        
 }
