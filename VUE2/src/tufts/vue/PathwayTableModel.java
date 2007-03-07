@@ -21,9 +21,12 @@ package tufts.vue;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Vector;
 import java.awt.Color;
 import javax.swing.ImageIcon;
 import javax.swing.table.*;
+
+import tufts.vue.LWPathway.Entry;
 
 /**
  * PathwayTableModel.java
@@ -46,15 +49,15 @@ public class PathwayTableModel extends DefaultTableModel
 {
     private LWMap mMap;
 
-    final static String[] ColumnNames = {"A", "B", "C", "D", "E", "F", "G"};
+    final static String[] ColumnNames = {"A", "B", "C", "D", "E", "F", /*"G"*/};
 
     public static final int COL_VISIBLE = 0;
-    public static final int COL_COLOR = 1;
-    public static final int COL_OPEN = 2;
-    public static final int COL_LABEL = 3; // Applies to pathway's and pathway members
-    public static final int COL_NOTES = 4; // Applies to pathway's and pathway members
-    public static final int COL_LOCKED = 5;
-    public static final int COL_REVEALER = 6;
+    public static final int COL_COLOR = 5;
+    public static final int COL_OPEN = 1;
+    public static final int COL_LABEL = 2; // Applies to pathway's and pathway members
+    public static final int COL_NOTES = 3; // Applies to pathway's and pathway members
+    public static final int COL_LOCKED = 4;
+   // public static final int COL_REVEALER = 1;
     
     public PathwayTableModel()
     {
@@ -110,7 +113,16 @@ public class PathwayTableModel extends DefaultTableModel
     Iterator<LWPathway> getPathwayIterator() {
         return mMap == null ? VueUtil.EmptyIterator : mMap.getPathwayList().iterator();
     }
+    public void moveRow(int start,int end, int to, LWPathway pathway)
+    {
+    	System.out.println("MOVE : " + start + " to: " + to);
+    	//final LWPathway activePathway = VUE.getActivePathway();    	
+        pathway.moveEntry(start, to);
+        fireTableDataChanged();
+    	 return;
     
+    	
+    }
     void fireChanged(Object invoker) {
         fireTableChanged(new DataEvent(invoker));
     }
@@ -132,7 +144,7 @@ public class PathwayTableModel extends DefaultTableModel
      * Given @param pRow in the displayed table model,
      * return the pathway that contains it.  If element
      * at that row is a pathway, return that pathway.
-
+	*/
     LWPathway getPathwayForElementAt(int pRow)
     {
         Iterator i = getPathwayIterator();
@@ -150,14 +162,14 @@ public class PathwayTableModel extends DefaultTableModel
         }
         throw new IllegalArgumentException("Couldn't find any element at row " + pRow);
     }
-     */
+     
     
     /*
      * for PathwayTable
      * Returns index of element within given pathway.  We need
      * this because an element can appear in the pathway more
      * than once, and this is how we differentiate them (by index).
-     * If the element at @param pRow is a pathway, return -1.
+     * If the element at @param pRow is a pathway, return -1.*/
     int getPathwayIndexForElementAt(int pRow)
     {
         Iterator i = getPathwayIterator();
@@ -174,7 +186,7 @@ public class PathwayTableModel extends DefaultTableModel
         }
         throw new IllegalArgumentException("Couldn't find any element at row " + pRow);
     }
-     */
+     
 
     // get the model list
     /*
@@ -265,12 +277,12 @@ public class PathwayTableModel extends DefaultTableModel
     public Class getColumnClass(int col){
         if (col == COL_COLOR)
             return Color.class;
-        else if (col == COL_VISIBLE || col == COL_OPEN || col == COL_NOTES || col == COL_LOCKED)
+        else if (col == COL_VISIBLE || col == COL_NOTES || col == COL_LOCKED)
             return ImageIcon.class;
-        else if (col == COL_LABEL)
+        else if (col == COL_LABEL || col == COL_OPEN)
             return Object.class;
-        else if (col == COL_REVEALER)
-            return Boolean.class;
+       // else if (col == COL_REVEALER)
+       //     return Boolean.class;
         //return javax.swing.JLabel.class;
         else
             return null;
@@ -293,7 +305,7 @@ public class PathwayTableModel extends DefaultTableModel
             // away any newlines in the label.
 
             if (entry.isPathway())
-                return col == COL_COLOR || col == COL_LABEL || col == COL_REVEALER;
+                return col == COL_COLOR || col == COL_LABEL;// || col == COL_REVEALER;
         }
         return false;
     }
@@ -324,7 +336,7 @@ public class PathwayTableModel extends DefaultTableModel
                 case COL_LABEL: return p.getDisplayLabel();
                 case COL_NOTES: return new Boolean(p.hasNotes());
                 case COL_LOCKED: return new Boolean(p.isLocked());
-                case COL_REVEALER: return new Boolean(getPathwayList().getRevealer() == p);
+              //  case COL_REVEALER: return new Boolean(getPathwayList().getRevealer() == p);
                 //case COL_REVEALER: return new Boolean(p.isRevealer());
                 }
             } catch (Exception e) {
@@ -333,7 +345,8 @@ public class PathwayTableModel extends DefaultTableModel
             } 
         } else {
             try {
-                if (col == COL_LABEL) return entry.getLabel();
+                if (col == COL_LABEL)                               	
+                		return entry.getLabel();                
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("exception in the table model, setting pathway element cell:" + e);
@@ -359,12 +372,12 @@ public class PathwayTableModel extends DefaultTableModel
             else if (col == COL_OPEN)    { p.setOpen(!p.isOpen()); }              // not proper
             else if (col == COL_LABEL)   { entry.setLabel((String)aValue); }      // proper
             else if (col == COL_LOCKED)  { p.setLocked(!p.isLocked()); }          // not proper
-            else if (col == COL_REVEALER) {
+           /* else if (col == COL_REVEALER) {
                 if (bool)
                     getPathwayList().setRevealer(p);
                 else
                     getPathwayList().setRevealer(null);
-            }
+            }*/
         } else {
             if (col == COL_LABEL) entry.setLabel((String)aValue);
         }

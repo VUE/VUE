@@ -18,15 +18,41 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
 
 import java.util.ArrayList;
+import java.util.Vector;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DragSourceDragEvent;
+import java.awt.dnd.DragSourceDropEvent;
+import java.awt.dnd.DragSourceEvent;
+import java.awt.dnd.DragSourceListener;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetContext;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.awt.dnd.InvalidDnDOperationException;
 import java.awt.event.*;
+import java.io.IOException;
+
 import javax.swing.*;
+import javax.swing.plaf.TableUI;
 import javax.swing.table.*;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.border.*;
 import javax.swing.event.*;
+
+import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
 
 /**
  * A JTable that displays all of the pathways that exists in a given map,
@@ -41,17 +67,23 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.60 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2007-03-07 18:01:09 $ / $Author: mike $
  */
 
-public class PathwayTable extends JTable
+public class PathwayTable extends JTable implements DropTargetListener, DragSourceListener, DragGestureListener 
 {
-    private final ImageIcon closeIcon;
-    private final ImageIcon openIcon;
+	
+	private DropTarget dropTarget = null;
+	private DragSource dragSource = null;
+	private int dropIndex = -1;
+	private int dropRow = -1;
     private final ImageIcon notesIcon;
     private final ImageIcon lockIcon;
     private final ImageIcon eyeOpen;
     private final ImageIcon eyeClosed;
+    
+    final static char RightArrowChar = 0x25B8; // unicode
+    final static char DownArrowChar = 0x25BE; // unicode
     
     // default of "SansSerif" on mac appears be same as default system font: "Lucida Grande"
 
@@ -59,27 +91,29 @@ public class PathwayTable extends JTable
     private final Font EntryFont = new Font("SansSerif", Font.PLAIN, 10);
     private final Font SelectedEntryFont = new Font("SansSerif", Font.BOLD, 10);
     
-    private final Color BGColor = new Color(241, 243, 246);;
-    private final Color SelectedBGColor = Color.white;
-    private final Color CurrentNodeColor = Color.red;
+    private final Color BGColor = Color.white;//new Color(241, 243, 246);;
+    //private final Color SelectedBGColor = Color.white;
+    //private final Color CurrentNodeColor = Color.red;
     
     private final LineBorder DefaultBorder = null;//new LineBorder(regular, 2);
     
     private int lastSelectedRow = -1;
-    private LWPathway.Entry lastSelectedEntry;
+   // private LWPathway.Entry lastSelectedEntry;
 
     private static final boolean showHeaders = true; // sets whether or not table column headers are shown
-    private final int[] colWidths = {20,20,13,100,20,20,20};
+    private final int[] colWidths = {20,20,13,120,20,20};
 
     private static Color selectedColor;
 
+    public void setUI(TableUI ui)
+    {
+    	super.setUI(ui);
+    }
     public PathwayTable(PathwayTableModel model) {
         super(model);
-
+        initComponents();
         selectedColor = GUI.getTextHighlightColor();
 
-        this.closeIcon = VueResources.getImageIcon("pathwayClose");
-        this.openIcon = VueResources.getImageIcon("pathwayOpen");
         this.notesIcon = VueResources.getImageIcon("notes");
         this.lockIcon = VueResources.getImageIcon("lock");
         this.eyeOpen = VueResources.getImageIcon("pathwayOn");
@@ -88,16 +122,17 @@ public class PathwayTable extends JTable
         this.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         this.setRowHeight(20);
         this.setRowSelectionAllowed(true);
-        this.setShowVerticalLines(false);
+        this.setShowVerticalLines(false);        
         this.setShowHorizontalLines(true);
         this.setGridColor(Color.lightGray);
         this.setIntercellSpacing(new Dimension(0,1));
         this.setBackground(BGColor);
         //this.setSelectionBackground(SelectedBGColor);
-        this.setDragEnabled(false);
-        
+     //   this.setDragEnabled(true);
+
         this.getTableHeader().setReorderingAllowed(false);
         this.getTableHeader().setResizingAllowed(false);
+        
         
         if (showHeaders) {
             this.getTableHeader().setVisible(false);
@@ -108,7 +143,7 @@ public class PathwayTable extends JTable
         this.setDefaultRenderer(Color.class, new ColorRenderer());
         this.setDefaultRenderer(ImageIcon.class, new ImageRenderer());
         this.setDefaultRenderer(Object.class, new LabelRenderer());
-        this.setDefaultRenderer(Boolean.class, new BooleanRenderer());
+      //  this.setDefaultRenderer(Boolean.class, new BooleanRenderer());
         this.setDefaultEditor(Color.class, new ColorEditor());
         this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
@@ -150,7 +185,7 @@ public class PathwayTable extends JTable
                     final LWPathway.Entry entry = tableModel.getEntry(row);
                     if (DEBUG.PATHWAY) System.out.println("PathwayTable: valueChanged: object at row: " + entry);
 
-                    lastSelectedEntry = entry;
+                  //  lastSelectedEntry = entry;
                     tableModel.setCurrentPathway(entry.pathway);
                     
                     if (entry.isPathway()) {
@@ -162,7 +197,7 @@ public class PathwayTable extends JTable
                             setValueAt(entry.pathway, row, col);
                         }
                         //pathway.setCurrentIndex(-1);
-                    } else {
+                    } else {                    	
                         entry.pathway.setCurrentEntry(entry);
                     }
 
@@ -205,6 +240,12 @@ public class PathwayTable extends JTable
     }
     */
 
+    private void initComponents() {
+        dropTarget = new DropTarget(this, this);
+        dragSource = new DragSource();
+        dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, this);
+    }
+    
     private PathwayTableModel getTableModel() {
         return (PathwayTableModel) getModel();
     }
@@ -265,16 +306,40 @@ public class PathwayTable extends JTable
                                     int row, int col)
         {
             final LWPathway.Entry entry = getTableModel().getEntry(row);
+            
             if (entry == null) {
-                return null;
+            	{
+            		setBackground((Color) color);
+                    setForeground((Color) color);
+                return this;
+            	}
             } else if (entry.isPathway()) {
                 setBackground((Color) color);
+                setForeground((Color) color);
                 return this;
             } else
-                return null;
+            {
+            	JLabel p = new DefaultTableCellRenderer();
+            	p.setOpaque(true);
+            	final LWPathway activePathway = VUE.getActivePathway();
+            	if (entry.pathway == activePathway && entry.pathway.getCurrentEntry() == entry) 
+        		{
+            		
+            		p.setBackground(selectedColor);
+            		p.setForeground(selectedColor);
+        		}
+            	else
+            	{
+            		p.setBackground(BGColor);
+            		p.setForeground(BGColor);
+            	}
+                
+            	return p;
+            }
+             //   return null;
         }  
     }
-    private class BooleanRenderer extends JCheckBox implements TableCellRenderer {
+  /*  private class BooleanRenderer extends JCheckBox implements TableCellRenderer {
         public BooleanRenderer() {
             setFocusable(false);
             setToolTipText("Set as the Revealer");
@@ -299,7 +364,7 @@ public class PathwayTable extends JTable
                 return null;
         }  
     }
-    
+    */
     private class LabelRenderer extends DefaultTableCellRenderer {
         
         public java.awt.Component getTableCellRendererComponent(
@@ -313,47 +378,126 @@ public class PathwayTable extends JTable
             final LWPathway.Entry entry = getTableModel().getEntry(row);
             if (entry == null)
                 return null;
-            
-            setBorder(DefaultBorder);
+         
+           // setBorder(DefaultBorder);
 
             String debug = "";
 
             if (DEBUG.PATHWAY) debug = "(row"+row+")";
+            GradientLabel gl = new GradientLabel();
             
-            if (entry.isPathway()){
-                final LWPathway p = entry.pathway;
-                if (p == VUE.getActivePathway())
-                    setBackground(selectedColor);
-                else
-                    setBackground(BGColor);
-                setFont(PathwayFont);
-                setForeground(Color.black);
-                setText(debug+"  " + entry.getLabel());
+            setMinimumSize(new Dimension(10, 20));
+            setPreferredSize(new Dimension(500, 20));      
+            setOpaque(true);
+            
+            if (entry.isPathway())
+            {
+            	  if (col == PathwayTableModel.COL_OPEN) 
+            	  {
+                  	boolean bool = false;
+                    if (value instanceof Boolean)
+                        bool = ((Boolean)value).booleanValue();
+                  
+                  	setFont(new Font("Lucida Sans Unicode", Font.PLAIN, 20));
+                  	setForeground(Color.white);
+                  	setText(bool ? ""+DownArrowChar : ""+RightArrowChar);                  
+                  }
+            	  else
+            	  {
+            		  final LWPathway p = entry.pathway;
+            		  /*if (p == VUE.getActivePathway())
+                    	setBackground(Color.red);
+                	else*/
+            		  //Background is always going to be gradient now.
                 
-            } else {
-                setBackground(BGColor);
-
-                final LWPathway activePathway = VUE.getActivePathway();
-                
+            		 setBackground(BGColor);
+            		 setFont(PathwayFont);
+            		 setForeground(Color.white);
+            		 setText(debug+"   " + entry.getLabel());
+            	  }
+            }
+            else {
+            	//entry is not a pathway if you're in the wrong column go null;
+            	
+            	//only return the label for the proper column...
+            	
+            	final LWPathway activePathway = VUE.getActivePathway();
+            	
+            	if (col != 2)
+            	{
+            		if (entry.pathway == activePathway && entry.pathway.getCurrentEntry() == entry) 
+            		{
+            			setBackground(selectedColor);
+            			setForeground(selectedColor);
+            			
+            		}
+            		else
+            		{
+            			setBackground(BGColor);
+            			setForeground(BGColor);
+            		}
+            		return this;
+            	}
+            	
+                setFont(SelectedEntryFont);
+            	setForeground(Color.black);
                 if (entry.pathway == activePathway && entry.pathway.getCurrentEntry() == entry) {
                     // This is the current item on the current path
-                    setFont(SelectedEntryFont);
-                    setForeground(CurrentNodeColor);
-                    setText(debug+"    "+entry.getLabel());
+                                        
+                	setBackground(selectedColor); 
+                    
+                    	setText(debug+"   "+entry.getLabel());
                     //setText(debug+"  * "+getText());
                 } else {
-                    setFont(EntryFont);
-                    setText(debug+"    "+entry.getLabel());
+                   // setFont(EntryFont);
+                    
+                    
+                	setText(debug+"   "+entry.getLabel());
                     if (entry.node.isFiltered() || entry.node.isHidden())
-                        setForeground(Color.lightGray);
-                    else
-                        setForeground(Color.black);
+                    	setForeground(Color.lightGray);
+                    
+                        
                 }
             }
-            return this;
+            
+            if (entry.isPathway())
+            {
+            	this.setOpaque(false);
+            	gl.setLayout(new BorderLayout());
+            	gl.add(this,BorderLayout.CENTER);            	
+            	return gl;
+            }
+            else                  	
+            	return this;
         }  
     }
  
+    private class GradientLabel extends JPanel
+    {
+    	 //Gradient painting necessities
+        public final Color
+        TopGradient1 = new Color(179,166,121),
+        BottomGradient1 = new Color(142,129,82);
+
+        public GradientLabel()
+        {
+        	setOpaque(false);
+        }
+        private final GradientPaint Gradient
+        = new GradientPaint(0,           0, TopGradient1,
+                            0, 20, BottomGradient1);
+        
+    	 public void paintComponent(Graphics g) {
+             paintGradient((Graphics2D)g);
+             super.paintComponent(g);
+         }
+
+         private void paintGradient(Graphics2D g)
+         {       
+             g.setPaint(Gradient);
+             g.fillRect(0, 0, getWidth(),20);
+         }
+    }
     private Border iconBorder = new EmptyBorder(0,3,0,0);
     private class ImageRenderer extends DefaultTableCellRenderer {
         
@@ -369,9 +513,9 @@ public class PathwayTable extends JTable
             if (entry == null)
                 return null;
             
+            GradientLabel gl = new GradientLabel();
+            
             this.setBorder(DefaultBorder);
-            this.setBackground(BGColor);
-            //this.setHorizontalAlignment(SwingConstants.CENTER); // too far to right for open/close icon(why??)
             
             if (entry.isPathway()) {
                 boolean bool = false;
@@ -382,27 +526,28 @@ public class PathwayTable extends JTable
                     setIcon(bool ? eyeOpen : eyeClosed);
                     setBorder(iconBorder);
                     setToolTipText("Show/hide pathway");
-                }
-                else if (col == PathwayTableModel.COL_OPEN) {
-                    setIcon(bool ? openIcon : closeIcon);
-                    if (bool)
-                        setToolTipText("Collapse member list");
-                    else
-                        setToolTipText("Expand member list");
-                }
+                }              
                 else if (col == PathwayTableModel.COL_NOTES) {
-                    if (entry.node == VUE.getActivePathway())
+                    if (entry.node == VUE.getActivePathway()  && entry.pathway.getCurrentEntry() == entry)
                         setBackground(selectedColor);
                     else
                         setBackground(BGColor);
                 }
                 else if (col == PathwayTableModel.COL_LOCKED) {
                     setIcon(bool ? lockIcon : null);
-                    if (entry.node == VUE.getActivePathway())
+                    if (entry.node == VUE.getActivePathway() && entry.pathway.getCurrentEntry() == entry)
                         setBackground(selectedColor);
                     else
                         setBackground(BGColor);
                     setToolTipText("Is locked");
+                }
+                else
+                {
+                    if (entry.node == VUE.getActivePathway()  && entry.pathway.getCurrentEntry() == entry)
+                        setBackground(selectedColor);
+                    else
+                        setBackground(BGColor);
+
                 }
             }
 
@@ -416,17 +561,188 @@ public class PathwayTable extends JTable
                     setIcon(null);
                 }
             } else if (!entry.isPathway())
-                return null;
-
-            return this;
+            {
+            	final LWPathway activePathway = VUE.getActivePathway();
+            	//System.out.println("return null");
+            	if (entry.pathway == activePathway && entry.pathway.getCurrentEntry() == entry) 
+        		{
+        			setBackground(selectedColor);
+        			setForeground(selectedColor);
+            		setOpaque(true);
+        			setIcon(null);
+        			
+        		}
+        		else
+        		{
+        			setBackground(BGColor);
+        			setOpaque(true);        			
+        			setForeground(BGColor);
+        			setIcon(null);
+        		}
+        		return this;             
+            }
             
+           if (entry.isPathway())
+           {
+        	   this.setOpaque(false);
+        	   gl.add(this);
+        	   return gl;
+           }
+           else        	   
+            return this;            
         }  
     }
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
     public String toString()
     {
         return "PathwayTable[" + VUE.getActivePathway() + "]";
     }
     
+	public void dragEnter(DropTargetDragEvent arg0) {
+	/*	PathwayTableModel model = (PathwayTableModel)this.getModel();
+		System.out.println(arg0.getLocation());
+		int index = model.getPathwayIndexForElementAt(rowAtPoint(arg0.getLocation()));
+	    if (index < 0)  
+	    {
+	    	arg0.rejectDrag();	    	
+	    	System.out.println("DRAG REJECTED" +index);
+	    }
+	    else
+	    {
+	    	arg0.acceptDrag(DnDConstants.ACTION_MOVE);
+	    	System.out.println("DRAG ACCEPTED" + index);
+	    }
+		*/
+		arg0.acceptDrag(DnDConstants.ACTION_MOVE);
+		
+	}
+	
+	public void dragOver(DropTargetDragEvent arg0) {
+		arg0.acceptDrag(DnDConstants.ACTION_MOVE);
+		/*PathwayTableModel model = (PathwayTableModel)this.getModel();
+		System.out.println(arg0.getLocation());
+		int index = model.getPathwayIndexForElementAt(rowAtPoint(arg0.getLocation()));
+	    if (index < 0)  
+	    {
+	    	arg0.rejectDrag();	    		    	
+	    	
+	    }
+	    else
+	    {
+	    	
+	    arg0.acceptDrag(DnDConstants.ACTION_MOVE);	
+	    }
+	    */
+			
+	}
+	
+	public void drop(DropTargetDropEvent arg0) {
+		 Transferable transferable = arg0.getTransferable();				
+	      LWPathway.Entry entry =null;
+	      
+			try {
+				entry = (LWPathway.Entry)transferable.getTransferData(DataFlavor.plainTextFlavor);
+			} catch (UnsupportedFlavorException e) {
+				e.printStackTrace();	
+				arg0.rejectDrop();
+				arg0.dropComplete(false);
+			} catch (IOException e) {
+				e.printStackTrace();
+				arg0.rejectDrop();
+				arg0.dropComplete(false);
+			}
+
+			if( entry != null ) {
+				
+                // See where in the list we dropped the element.
+            	PathwayTableModel model = (PathwayTableModel)this.getModel();
+
+            	//System.out.println("START" + model.getPathwayForElementAt(dropRow));
+            	//System.out.println("END" + model.getPathwayForElementAt(rowAtPoint(arg0.getLocation())));
+            	if (!model.getPathwayForElementAt(dropRow).equals(model.getPathwayForElementAt(rowAtPoint(arg0.getLocation()))))
+            	{            		            		 
+            		 JOptionPane.showMessageDialog(this,
+            				 VueResources.getString("presentationDialog.dropError.text"),
+            				 VueResources.getString("presentationDialog.dropError.title"),
+            				    JOptionPane.ERROR_MESSAGE);
+            		             
+            		 arg0.rejectDrop();
+            		 arg0.dropComplete(false);
+            	}
+            	else
+            	{
+            		if (dropIndex < 0 || model.getPathwayIndexForElementAt(rowAtPoint(arg0.getLocation())) < 0)
+            		{	
+            			arg0.dropComplete(false);
+            			arg0.rejectDrop();
+            		}
+            		else
+            		{
+            			model.moveRow(dropIndex, dropIndex, model.getPathwayIndexForElementAt(rowAtPoint(arg0.getLocation())),model.getPathwayForElementAt(dropRow));            		
+            			arg0.dropComplete(true);
+            			arg0.acceptDrop(DnDConstants.ACTION_MOVE);
+            		}
+            	}	            					
+            }   // end if: we got the object
+            // Else there was a problem getting the object
+            else 
+            {
+				arg0.dropComplete(false);
+				arg0.rejectDrop();
+            }
+               // end else: can't get the object
+           
+			return;
+	}
+	public void dropActionChanged(DropTargetDragEvent arg0) {
+	}
+	
+    public void dragGestureRecognized(DragGestureEvent event) {
+    		PathwayTableModel model = (PathwayTableModel)this.getModel();
+    		//System.out.println("SELROW : " + this.getSelectedRow());
+    		dropIndex = model.getPathwayIndexForElementAt(this.getSelectedRow());
+    		dropRow = this.getSelectedRow();
+                            
+			try {
+				//TODO: FIGURE OUT WHAT TO TRANSFER				
+				LWPathway.Entry entry = model.getEntry(this.getSelectedRow());
+				
+				if(entry.isPathway())
+					return;
+				else
+					dragSource.startDrag(event, DragSource.DefaultMoveDrop, entry, this);
+				
+			} catch (InvalidDnDOperationException e) {
+				System.err.println(e.getMessage());
+				e.printStackTrace();
+			}
+        
+    }
+
+	public void dragExit(DropTargetEvent arg0) {
+		// not implemented			
+//		System.out.println("dragexittarget");
+	}
+	public void dragDropEnd(DragSourceDropEvent arg0) {
+		// not implemented		
+		//System.out.println("dragendsource");
+	}
+	public void dragEnter(DragSourceDragEvent arg0) {
+		// not implemented		
+		//System.out.println("dragentersource");
+	}
+	public void dragExit(DragSourceEvent arg0) {
+	//	System.out.println("dragexitsource");
+		//not implemented		
+	}
+	public void dragOver(DragSourceDragEvent arg0) {
+		//Not implemented
+		//System.out.println("dragoversource");
+		
+	}
+	public void dropActionChanged(DragSourceDragEvent arg0) {
+		// not implemented'
+	//	System.out.println("dropactionchanged");
+	}	    
 }
     

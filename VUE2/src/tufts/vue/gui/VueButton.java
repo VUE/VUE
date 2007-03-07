@@ -35,7 +35,7 @@ import javax.swing.border.*;
  * VueResources in format buttonName.Up, buttonName.down,
  * buttonName.disabled, or .raw for generated buttons.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-01-30 05:47:43 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2007-03-07 18:01:10 $ / $Author: mike $
  * @author  akumar03
  * @author  Scott Fraize
  */
@@ -196,13 +196,19 @@ public class VueButton extends JButton
     public static final String kDOWN = ".down";
     public static final String kDISABLED = ".disabled";
     public static final String kSIZE = ".size";
+    public static final String kSELECTED = ".selected";
 
     public static void installResourceConfiguration(AbstractButton b, String key)
-    {
+    {    	
         Icon i = null;
+        Icon i2 = null;
         if ((i = VueResources.getImageIcon(key + kRAW)) != null) {
-            VueButtonIcon.installGenerated(b, i, VueResources.getSize(key + kSIZE));
+        	if ((i2 = VueResources.getImageIcon(key + kSELECTED)) != null)
+        		VueButtonIcon.installGenerated(b, i,i2, VueResources.getSize(key + kSIZE));
+        	else
+        		VueButtonIcon.installGenerated(b, i, VueResources.getSize(key + kSIZE));
         } else {
+        	if ((i = VueResources.getImageIcon(key+kSELECTED)) != null){ b.setSelectedIcon(i);System.out.println("MIKEK");}
             if ((i = VueResources.getImageIcon(key + kUP)) != null)       b.setIcon(i);
             if ((i = VueResources.getImageIcon(key + kDOWN)) != null)     b.setPressedIcon(i);
             if ((i = VueResources.getImageIcon(key + kDISABLED)) != null) b.setDisabledIcon(i);

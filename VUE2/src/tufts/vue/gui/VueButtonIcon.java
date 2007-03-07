@@ -42,7 +42,7 @@ import javax.swing.border.*;
  * transparency, etc, based on button state.  Can also handle a null raw icon for just drawing borders.
  * Can install, via installGenerated, a set of icons into any AbstractButton using our default VUE GUI scheme.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-06-23 13:35:29 $ / $Author: mike $
+ * @version $Revision: 1.10 $ / $Date: 2007-03-07 18:01:10 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -68,6 +68,23 @@ public class VueButtonIcon implements Icon
             b.setIcon(new VueButtonIcon(raw, UP, s));
             b.setPressedIcon(new VueButtonIcon(raw, PRESSED, s));
             b.setSelectedIcon(new VueButtonIcon(raw, SELECTED, s));
+            b.setDisabledIcon(new VueButtonIcon(raw, DISABLED, s));
+            b.setRolloverIcon(new VueButtonIcon(raw, ROLLOVER, s));
+        }
+    }
+    
+    public static void installGenerated(AbstractButton b, Icon raw, Icon selected,Dimension s) {
+        if (DEBUG.INIT||DEBUG.TOOL) System.out.println(b + " generating button states from " + raw);
+        if (s == null)
+            s = new Dimension(0,0);
+
+        if (GUI.isMacAqua() && b instanceof MenuButton) {
+            b.setIcon(raw);
+        } else {
+
+            b.setIcon(new VueButtonIcon(raw, UP, s));
+            b.setPressedIcon(new VueButtonIcon(raw, PRESSED, s));
+            b.setSelectedIcon(new VueButtonIcon(selected, SELECTED, s));
             b.setDisabledIcon(new VueButtonIcon(raw, DISABLED, s));
             b.setRolloverIcon(new VueButtonIcon(raw, ROLLOVER, s));
         }

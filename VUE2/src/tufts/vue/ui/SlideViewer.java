@@ -34,6 +34,7 @@ import tufts.vue.LWCEvent;
 import tufts.vue.VueAction;
 import tufts.vue.PickContext;
 import tufts.vue.gui.GUI;
+import tufts.vue.gui.Widget;
 import tufts.vue.DEBUG;
 
 import java.awt.*;
@@ -133,7 +134,8 @@ public class SlideViewer extends tufts.vue.MapViewer
         }
 
     }
-        
+     
+    
     public SlideViewer(LWMap map) {
         super(null, "Viewer");
         //super(map == null ? new LWMap("empty") : map, "SlideViewer");
@@ -153,7 +155,15 @@ public class SlideViewer extends tufts.vue.MapViewer
         DEBUG_TIMER_ROLLOVER = false;
         VUE.addActivePathwayEntryListener(this);
     }
-
+    
+    
+    public void showSlideViewer()
+    {
+    		if (Widget.isHidden(this) || !Widget.isExpanded(this))
+        		Widget.setExpanded(this, true);
+         	
+        
+    }
     protected AbstractButton makeButton(String name) {
         AbstractButton b = new JToggleButton(name);
         b.setFocusable(false);
@@ -208,6 +218,17 @@ public class SlideViewer extends tufts.vue.MapViewer
         }
     }
 
+    public void showMasterSlideMode()
+    {
+    	masterJustPressed = true;
+    	reload();
+    }
+    
+    public void showSlideMode()
+    {
+    	slideJustPressed = true;
+    	reload();
+    }
     /*
     public LWComponent pickDropTarget(float mapX, float mapY, Object dropping) {
         PickContext pc = getPickContext();

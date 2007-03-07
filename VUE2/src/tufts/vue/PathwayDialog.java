@@ -41,7 +41,7 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
     
     public PathwayDialog(Frame parentFrame, PathwayTableModel model, Point location)
     {
-        super(parentFrame, "New Pathway Name", true);
+        super(parentFrame, VueResources.getString("presentationDialog.title"), true);
         this.tableModel = model;
         setSize(250, 100);
         setLocation(location);
@@ -59,7 +59,7 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
         cancelButton.addActionListener(this);
         cancelButton.addKeyListener(this);
 
-        textField = new JTextField("New Pathway " + newcnt++, 18);
+        textField = new JTextField(VueResources.getString("presentationDiaaog.presentationName.text")+" " + newcnt++, 18);
         textField.addKeyListener(this);
         textField.setPreferredSize(new Dimension(40, 20));
 
@@ -87,9 +87,9 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
             String pathLabel = textField.getText();
             if (tableModel.containsPathwayNamed(pathLabel)) {
                 JOptionPane option = new JOptionPane(
-                    "Please rename this pathway.",
+                    VueResources.getString("presentationDialog.renamePresentation.text"),
                     JOptionPane.INFORMATION_MESSAGE);
-                JDialog dialog = option.createDialog(okButton, "Pathway Name Exists");
+                JDialog dialog = option.createDialog(okButton,VueResources.getString("presentationDialog.renamePresentation.title"));
                 dialog.setVisible(true);
             } else {
                 VUE.getActiveMap().addPathway(new LWPathway(pathLabel));

@@ -20,6 +20,7 @@ package tufts.vue;
 
 import tufts.vue.DEBUG;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Collection;
 import java.util.ArrayList;
@@ -30,6 +31,9 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.BasicStroke;
 import java.awt.AlphaComposite;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Ellipse2D;
@@ -45,7 +49,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.124 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
+ * @version $Revision: 1.125 $ / $Date: 2007-03-07 18:01:09 $ / $Author: mike $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -79,7 +83,7 @@ public class LWPathway extends LWContainer
      * pathways themselves).  This special version of the entry represents the pathway
      * itself.
      */
-    public static class Entry {
+    public static class Entry implements Transferable{
         /** the pathway this entry is in */
         public final LWPathway pathway;
         /** can be null if slide is "pathway only" combination of other nodes
@@ -177,6 +181,32 @@ public class LWPathway extends LWContainer
         public String toString() {
             return "Entry[" + node + " isMapView=" + isMapView + "]";
         }
+
+		public Object getTransferData(java.awt.datatransfer.DataFlavor arg0) throws UnsupportedFlavorException, IOException {
+			// TODO Auto-generated method stub
+			return this;
+		}
+
+		public java.awt.datatransfer.DataFlavor[] getTransferDataFlavors() {
+			// TODO Auto-generated method stub
+			DataFlavor[] list = new DataFlavor[1];
+			try
+			{
+				list[0] = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType);
+			}
+			catch(ClassNotFoundException cnf)
+			{
+				cnf.printStackTrace();
+			}
+			return list;
+		}
+
+		public boolean isDataFlavorSupported(java.awt.datatransfer.DataFlavor arg0) {
+			if (arg0.isFlavorRemoteObjectType())
+				return true;
+			else
+				return false;
+		}
     }
 
     /** This is a very handy hack that allows the PathwayTable / PathwayTableModel only deal with Entry objects */
@@ -348,6 +378,18 @@ public class LWPathway extends LWContainer
         return (List<Entry>) ((ArrayList<Entry>)mEntries).clone();
     }
 
+    public boolean moveEntry(int start, int end)
+    {
+    //	if (mCurrentIndex <=0)
+    //		return false;
+    	
+    	final List<Entry> newEntries = cloneEntries();
+    	Entry moveStart = getEntry(start);
+    	newEntries.remove(moveStart);
+    	newEntries.add(end,moveStart);
+    	setEntries("pathway.reorder",newEntries,newEntries.size()-1);
+    	return true;
+    }
     public boolean moveCurrentUp()
     {
         if (mCurrentIndex <= 0)
@@ -1167,4 +1209,3 @@ public class LWPathway extends LWContainer
         }
     }
     */
-

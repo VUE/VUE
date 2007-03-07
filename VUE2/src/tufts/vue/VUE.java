@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.395 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $ 
+ * @version $Revision: 1.396 $ / $Date: 2007-03-07 18:01:09 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -93,6 +93,7 @@ public class VUE
     public static JSplitPane mViewerSplit;
     
     static ObjectInspectorPanel ObjectInspectorPanel;
+    private static tufts.vue.ui.SlideViewer slideViewer;
     
     // TODO: get rid of this
     public static boolean  dropIsLocal = false;
@@ -201,6 +202,16 @@ public class VUE
         return ModelSelection;
     }
 
+    public static DockWindow getSlideDock()
+    {
+    	return slideDock;
+    }
+    
+    public static tufts.vue.ui.SlideViewer getSlideViewer()
+    {
+    	return slideViewer;
+    }
+    
     public static InspectorPane getInspectorPane() {
     	 return inspectorPane;
     }
@@ -609,7 +620,7 @@ public class VUE
         // Pathways panel
         //-----------------------------------------------------------------------------
         
-        pathwayDock = GUI.createDockWindow("Pathways",
+        pathwayDock = GUI.createDockWindow(VueResources.getString("dockWindow.presentation.title"),
                                                             new PathwayPanel(VUE.getDialogParentAsFrame()));
 
         //-----------------------------------------------------------------------------
@@ -668,8 +679,8 @@ public class VUE
         ObjectInspector = GUI.createDockWindow("Info",inspectorPane);
         ObjectInspector.setMenuName("Info / Preview");
         ObjectInspector.setHeight(575);
-
-        slideDock = GUI.createDockWindow(new tufts.vue.ui.SlideViewer(null));
+        slideViewer = new tufts.vue.ui.SlideViewer(null);
+        slideDock = GUI.createDockWindow(slideViewer);
         slideDock.setLocation(100,100);
         VueAction defSize;
         slideDock.setMenuActions(new Action[] {

@@ -27,7 +27,7 @@ import java.util.*;
  * their contents, and rebroadcasting them to interested parties, such
  * as the PathwayTableModel.
  *
- * @version $Revision: 1.24 $ / $Date: 2006-12-31 22:41:38 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2007-03-07 18:01:10 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -43,7 +43,7 @@ public class LWPathwayList implements LWComponent.Listener
     public LWPathwayList(LWMap map) {
         setMap(map);
         // Always include an untitled example pathway for new maps
-        LWPathway defaultPath = new LWPathway(map, "Untitled Pathway");
+        LWPathway defaultPath = new LWPathway(map, "Untitled Presentation");
         defaultPath.setVisible(false);
         add(defaultPath);
     }

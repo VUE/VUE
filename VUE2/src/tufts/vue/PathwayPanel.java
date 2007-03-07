@@ -25,8 +25,11 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.plaf.TreeUI;
 import javax.swing.table.*;
 import javax.swing.border.*;
+
+import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
 
 /**
  * Provides a panel that displays the PathwayTable with note panel
@@ -42,19 +45,38 @@ import javax.swing.border.*;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.67 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2007-03-07 18:01:10 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
     implements ActionListener, VUE.ActivePathwayEntryListener
 {    
     private Frame mParentFrame;
+    private VueButton btnPresentationCreate = new VueButton("presentationDialog.button.add",this);        
+    private VueButton btnPresentationDelete = new VueButton("presentationDialog.button.delete",this);        
+    private VueButton btnLockPresentation = new VueButton("presentationDialog.button.lock",this);
+    private VueButton btnAddSlide = new VueButton("presentationDialog.button.makeSlides",this);
+    private VueButton btnDeleteSlide = new VueButton("presentationDialog.button.delete",this);
+    private AbstractButton btnPathwayOnly = new VueButton.Toggle("presentationDialog.button.viewAll",this);    
+    private VueButton btnPreview = new VueButton("presentationDialog.button.preview", this);
+    private VueButton btnMasterSlide = new VueButton("presentationDialog.button.masterSlide",this);
+    
+    ///NOT YET IMPLEMENTED
+    private VueButton btnAnnotatePresentation = new VueButton("presentationDialog.button.annotate");        
+    private VueButton btnAnnotateSlide = new VueButton("presentationDialog.button.annotate");                
+    private VueButton btnPlayMaps = new VueButton("presentationDialog.button.playMap");
+    private VueButton btnPlaySlides = new VueButton("presentationDialog.button.playSlides");    
+    private VueButton btnMergeInto = new VueButton("presentationDialog.button.mergeInto");
+    private VueButton btnDisplayAsText = new VueButton("presentationDialog.button.displayAsText");
+    private VueButton btnDisplayAsMap = new VueButton("presentationDialog.button.displayAsMap");
+    
+    
     
     private PathwayTable mPathwayTable;
     private PathwayTableModel mTableModel;
     
-    private AbstractButton btnPathwayDelete, btnPathwayCreate, btnPathwayLock, btnPathwayShowOnly;
-    private AbstractButton btnElementRemove, btnElementAdd, btnElementUp, btnElementDown;
+    //private AbstractButton btnPathwayShowOnly;
+    //private AbstractButton btnElementUp, btnElementDown;
     
     private JLabel pathLabel;           // updated for current PathwayTable selection
     private JLabel pathElementLabel;    // updated for current PathwayTable selection
@@ -64,14 +86,28 @@ public class PathwayPanel extends JPanel
     private boolean mNoteKeyWasPressed = false;
 
     private final Color BGColor = new Color(241, 243, 246);
-    
+ 
+    //MK - Despite these not being used on the presentation window anymore they are still
+    //referenced by the pathway tool so they're sticking around for now.
     private static final Action path_rewind = new PlayerAction("pathway.control.rewind");
     private static final Action path_backward = new PlayerAction("pathway.control.backward");
     private static final Action path_forward = new PlayerAction("pathway.control.forward");
     private static final Action path_last = new PlayerAction("pathway.control.last");
 
+    private final JTabbedPane tabbedPane = new JTabbedPane();
+    
     public PathwayPanel(Frame parent) 
     {   
+    	//DISABLE THE NOTES BUTTONS FOR NOW UNTIL WE FIGURE OUT WHAT THEY DO -MK
+    	btnAnnotateSlide.setEnabled(false);
+    	btnAnnotatePresentation.setEnabled(false);
+    	btnMergeInto.setEnabled(false);
+    	btnPlayMaps.setEnabled(false);
+    	btnPlaySlides.setEnabled(false);
+    	btnDisplayAsMap.setEnabled(false);
+    	btnDisplayAsText.setEnabled(false);
+    	//END
+    	
         //Font defaultFont = new Font("Helvetica", Font.PLAIN, 12);
         //Font highlightFont = new Font("Helvetica", Font.BOLD, 12);
         final Font defaultFont = getFont();
@@ -88,6 +124,7 @@ public class PathwayPanel extends JPanel
 
         mTableModel = new PathwayTableModel();
         mPathwayTable = new PathwayTable(mTableModel);
+        
         mPathwayTable.setBackground(BGColor);
         
         //-------------------------------------------------------
@@ -95,30 +132,30 @@ public class PathwayPanel extends JPanel
         // element
         //-------------------------------------------------------
 
-        JPanel playbackPanel = new VueUtil.JPanelAA(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        JLabel playbackLabel = new JLabel("Playback on selected path:  ");
+        //JPanel playbackPanel = new VueUtil.JPanelAA(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        //JLabel playbackLabel = new JLabel("Playback on selected path:  ");
         //playbackLabel.setFont(defaultFont);
-        playbackPanel.setBorder(new EmptyBorder(7,0,0,0));
-        playbackPanel.add(playbackLabel);
-        playbackPanel.add(new PlaybackToolPanel());
+      //  playbackPanel.setBorder(new EmptyBorder(7,0,0,0));
+     //   playbackPanel.add(playbackLabel);
+    //    playbackPanel.add(new PlaybackToolPanel());
         
         //-------------------------------------------------------
         // Setup pathway master add/remove/lock control
         //-------------------------------------------------------
          
-        btnPathwayCreate   = new VueButton("pathways.add", this);
-        btnPathwayDelete   = new VueButton("pathways.delete", this);
-        btnPathwayLock     = new VueButton("pathways.lock", this);
-        btnPathwayShowOnly = new VueButton("pathways.showOnly", this);
+        
+        
+        
+    //    btnPathwayShowOnly = new VueButton("pathways.showOnly", this);
         //btnPathwayShowOnly = new VueButton.Toggle("pathways.showOnly", this);
         
-        JPanel pathwayMasterPanel = new VueUtil.JPanelAA() {
+     /*   JPanel pathwayMasterPanel = new VueUtil.JPanelAA() {
                 public void addNotify() {
                     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
                     setBackground(new Color(66,76,105));
                     setBorder(new EmptyBorder(2,2,2,4));
 
-                    add(btnPathwayShowOnly);
+      //              add(btnPathwayShowOnly);
                     add(Box.createHorizontalGlue());
                         
                     JLabel label = new JLabel("Create Pathways");
@@ -129,11 +166,11 @@ public class PathwayPanel extends JPanel
                     add(label);
         
                     add(Box.createHorizontalStrut(2));
-                    add(btnPathwayCreate);
+        
                     add(Box.createHorizontalStrut(2));
-                    add(btnPathwayDelete);
+        
                     add(Box.createHorizontalStrut(2));
-                    add(btnPathwayLock);
+                    
                     
                     super.addNotify();
                     //JLabel help = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
@@ -143,21 +180,21 @@ public class PathwayPanel extends JPanel
                     //add(questionLabel, BorderLayout.WEST);
                 }
             };
-        
+       */ 
         
         //-------------------------------------------------------
         // Selected pathway add/remove element buttons
         //-------------------------------------------------------
         
-        btnElementAdd = new VueButton("add-white", this);
-        btnElementRemove = new VueButton("delete-white", this);
+        
+        
         //btnElementAdd.setToolTipText("Add items to pathway");
         //btnElementRemove.setToolTipText("Remove items from pathway");
 
-        btnElementUp = new VueButton("move-up", this);
-        btnElementDown = new VueButton("move-down", this);
+       // btnElementUp = new VueButton("move-up", this);
+   //     btnElementDown = new VueButton("move-down", this);
 
-        JPanel elementControlPanel = new VueUtil.JPanelAA(new FlowLayout(FlowLayout.RIGHT, 1, 1)) {
+        /*JPanel elementControlPanel = new VueUtil.JPanelAA(new FlowLayout(FlowLayout.RIGHT, 1, 1)) {
                 public void addNotify() {
                     setBackground(new Color(98,115,161));
                     setBorder(new EmptyBorder(1,2,1,5));
@@ -169,15 +206,15 @@ public class PathwayPanel extends JPanel
                     label.setBorder(new EmptyBorder(0,0,1,2)); //tlbr
                     
                     add(label);
-                    add(btnElementAdd);
-                    add(btnElementRemove);
-                    add(btnElementUp);
-                    add(btnElementDown);
+        
+        
+            ///        add(btnElementUp);
+              ///      add(btnElementDown);
                     
                     super.addNotify();
                 }
             };
-                
+        */        
         
         notesArea = new JTextArea("");
         notesArea.setColumns(5);
@@ -236,8 +273,24 @@ public class PathwayPanel extends JPanel
         //-------------------------------------------------------
 
         c.fill = GridBagConstraints.HORIZONTAL;
-        bag.setConstraints(pathwayMasterPanel, c);
-        add(pathwayMasterPanel);
+        //bag.setConstraints(pathwayMasterPanel, c);
+        //add(pathwayMasterPanel);        
+        JPanel presentationPanel = new JPanel();
+        JPanel slidePanel = new JPanel();
+        JPanel masterSlidePanel = new JPanel();
+        
+        
+        
+        buildPresentationPanel(presentationPanel);
+        buildSlidePanel(slidePanel);
+        buildMasterSlidePanel(masterSlidePanel);
+        tabbedPane.add(VueResources.getString("presentationDialog.presentationTab.title"), presentationPanel);
+        tabbedPane.add(VueResources.getString("presentationDialog.slideTab.title"), slidePanel);
+        tabbedPane.add(VueResources.getString("presentationDialog.masterSlideTab.title"), masterSlidePanel);
+        
+    //    setLayout(new BorderLayout());
+        add(tabbedPane,c);
+        
         
         //-------------------------------------------------------
         // add the PathwayTable
@@ -248,17 +301,17 @@ public class PathwayPanel extends JPanel
         JScrollPane tablePane = new JScrollPane(mPathwayTable);
         tablePane.setPreferredSize(new Dimension(getWidth(), 180));
         bag.setConstraints(tablePane, c);
-        add(tablePane);
+        add(tablePane,c);
         
         //-------------------------------------------------------
         // add pathway element add/remove control panel
         //-------------------------------------------------------
 
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.weighty = 0;
-        c.insets = new Insets(3,0,1,1);
-        bag.setConstraints(elementControlPanel, c);
-        add(elementControlPanel);
+        //c.fill = GridBagConstraints.HORIZONTAL;
+       // c.weighty = 0;
+       // c.insets = new Insets(3,0,1,1);
+       // bag.setConstraints(elementControlPanel, c);
+        //add(elementControlPanel);
         
         //-------------------------------------------------------
         // Add the notes panel
@@ -276,7 +329,7 @@ public class PathwayPanel extends JPanel
         //-------------------------------------------------------
 
         // (no constraints needed)
-        add(playbackPanel);
+        //add(playbackPanel);
         
         //-------------------------------------------------------
         // Disable all that need to be
@@ -313,7 +366,77 @@ public class PathwayPanel extends JPanel
         
         
     }
-
+    
+    private void buildSlidePanel(JPanel slidePanel)
+    {
+    	slidePanel.setLayout(new BoxLayout(slidePanel,BoxLayout.X_AXIS));
+    	DividerPanel p = new DividerPanel(20);
+        DividerPanel p1 = new DividerPanel(20);
+        DividerPanel p2 = new DividerPanel(20);
+    
+        slidePanel.add(Box.createHorizontalStrut(6));
+        slidePanel.add(btnAddSlide);
+        slidePanel.add(Box.createHorizontalStrut(3));
+        slidePanel.add(btnMergeInto);
+        slidePanel.add(Box.createHorizontalStrut(3));
+        slidePanel.add(btnDeleteSlide);
+        slidePanel.add(Box.createHorizontalStrut(6));
+        slidePanel.add(p);      
+        slidePanel.add(Box.createHorizontalStrut(6));        
+        slidePanel.add(btnDisplayAsText);
+        slidePanel.add(Box.createHorizontalStrut(6));
+        slidePanel.add(btnDisplayAsMap);
+        slidePanel.add(Box.createHorizontalStrut(6));
+        slidePanel.add(p1);
+        slidePanel.add(btnAnnotateSlide);        
+        slidePanel.add(Box.createHorizontalStrut(6));
+        slidePanel.add(p2);
+        slidePanel.add(btnPreview);
+        slidePanel.add(Box.createHorizontalStrut(6));                        
+        
+        return;
+    }
+    
+    private void buildMasterSlidePanel(JPanel masterSlidePanel)
+    {
+    	masterSlidePanel.setLayout(new BoxLayout(masterSlidePanel,BoxLayout.X_AXIS));
+        masterSlidePanel.add(Box.createHorizontalStrut(16));
+        masterSlidePanel.add(btnMasterSlide);
+        masterSlidePanel.add(Box.createHorizontalStrut(6));
+        
+        return;
+    }
+    
+    private void buildPresentationPanel(JPanel presentationPanel)
+    {
+    	DividerPanel p = new DividerPanel(20);
+        DividerPanel p1 = new DividerPanel(20);
+        DividerPanel p2 = new DividerPanel(20);
+    
+    	presentationPanel.setLayout(new BoxLayout(presentationPanel,BoxLayout.X_AXIS));        
+        presentationPanel.add(Box.createHorizontalStrut(16));
+        presentationPanel.add(btnPresentationCreate);
+        presentationPanel.add(Box.createHorizontalStrut(6));
+        presentationPanel.add(btnPresentationDelete);
+        presentationPanel.add(Box.createHorizontalStrut(6));
+        presentationPanel.add(p);
+        presentationPanel.add(Box.createHorizontalStrut(6));
+        presentationPanel.add(btnAnnotatePresentation);
+        presentationPanel.add(Box.createHorizontalStrut(6));
+        presentationPanel.add(btnLockPresentation);
+        presentationPanel.add(Box.createHorizontalStrut(6));
+        presentationPanel.add(p1);
+        presentationPanel.add(Box.createHorizontalStrut(6));
+        presentationPanel.add(btnPathwayOnly);
+        presentationPanel.add(Box.createHorizontalStrut(6));
+        presentationPanel.add(p2);
+        presentationPanel.add(Box.createHorizontalStrut(6));
+        presentationPanel.add(btnPlayMaps);
+        presentationPanel.add(Box.createHorizontalStrut(6));
+        presentationPanel.add(btnPlaySlides);
+        
+        return;
+    }
     public void activePathwayEntryChanged(LWPathway.Entry entry) {
         updateTextAreas(entry);
         updateEnabledStates();
@@ -385,10 +508,19 @@ public class PathwayPanel extends JPanel
         Object btn = e.getSource();
         LWPathway pathway = getSelectedPathway();
 
-        if (pathway == null && btn != btnPathwayCreate)
+        if (pathway == null && btn != btnPresentationCreate)
             return;
-        
-        if (btn == btnElementRemove) {
+        if (btn == btnPreview)
+        {
+        	VUE.getSlideDock().setVisible(true);
+        	VUE.getSlideViewer().showSlideMode();
+        }    
+        else if (btn == btnMasterSlide)
+        {
+        	VUE.getSlideDock().setVisible(true);
+        	VUE.getSlideViewer().showMasterSlideMode();
+        }
+        else if (btn == btnDeleteSlide) {
             
             // This is a heuristic to try and best guess what the user might want to
             // actually remove.  If nothing in selection, and we have a current pathway
@@ -407,14 +539,14 @@ public class PathwayPanel extends JPanel
                 pathway.remove(VUE.getSelection().iterator());
             }
         }
-        else if (btn == btnElementAdd)  { pathway.add(VUE.getSelection().iterator()); }
-        else if (btn == btnElementUp)   { pathway.moveCurrentUp(); }
-        else if (btn == btnElementDown) { pathway.moveCurrentDown(); }
+        else if (btn == btnAddSlide)  { pathway.add(VUE.getSelection().iterator()); }
+      //  else if (btn == btnElementUp)   { pathway.moveCurrentUp(); }
+      //  else if (btn == btnElementDown) { pathway.moveCurrentDown(); }
 
-        else if (btn == btnPathwayDelete)   { deletePathway(pathway); }
-        else if (btn == btnPathwayCreate)   { new PathwayDialog(mParentFrame, mTableModel, getLocationOnScreen()).setVisible(true); }
-        else if (btn == btnPathwayLock)     { pathway.setLocked(!pathway.isLocked()); }
-        else if (btn == btnPathwayShowOnly) {
+        else if (btn == btnPresentationDelete)   { deletePathway(pathway); }
+        else if (btn == btnPresentationCreate)   { new PathwayDialog(mParentFrame, mTableModel, getLocationOnScreen()).setVisible(true); }
+        else if (btn == btnLockPresentation)     { pathway.setLocked(!pathway.isLocked()); }
+        else if (btn == btnPathwayOnly) {
             toggleHideEverythingButCurrentPathway();
         }
 
@@ -486,15 +618,15 @@ public class PathwayPanel extends JPanel
         LWPathway path = getSelectedPathway();
         
         if (path == null || path.isLocked()) {
-            btnElementAdd.setEnabled(false);
-            btnElementRemove.setEnabled(false);
-            btnPathwayDelete.setEnabled(false);
+            btnAddSlide.setEnabled(false);
+            btnDeleteSlide.setEnabled(false);
+            btnPresentationDelete.setEnabled(false);
             notesArea.setEnabled(false);
             return;
         }
 
         notesArea.setEnabled(true);
-        btnPathwayDelete.setEnabled(true);
+        btnPresentationDelete.setEnabled(true);
         
         boolean removeDone = false;
         LWSelection selection = VUE.ModelSelection;
@@ -502,12 +634,12 @@ public class PathwayPanel extends JPanel
         // if any viable index, AND path is open so you can see
         // it selected, enable the remove button.
         if (path.getCurrentIndex() >= 0 && path.isOpen()) {
-            btnElementRemove.setEnabled(true);
+            btnDeleteSlide.setEnabled(true);
             removeDone = true;
         }
             
         if (selection.size() > 0) {
-            btnElementAdd.setEnabled(true);
+            btnAddSlide.setEnabled(true);
             if (!removeDone) {
                 // if at least one element in selection is on current path,
                 // enable remove.  Theoretically should only get here if
@@ -522,12 +654,12 @@ public class PathwayPanel extends JPanel
                         break;
                     }
                 }
-                btnElementRemove.setEnabled(enabled);
+                btnDeleteSlide.setEnabled(enabled);
             }
         } else {
-            btnElementAdd.setEnabled(false);
+            btnAddSlide.setEnabled(false);
             if (!removeDone)
-                btnElementRemove.setEnabled(false);
+                btnDeleteSlide.setEnabled(false);
         }
     }
 
@@ -541,24 +673,24 @@ public class PathwayPanel extends JPanel
         if (pathway != null && pathway.length() > 1) {
             boolean atFirst = pathway.atFirst();
             boolean atLast = pathway.atLast();
-            path_rewind.setEnabled(!atFirst);
-            path_backward.setEnabled(!atFirst);
-            path_forward.setEnabled(!atLast);
-            path_last.setEnabled(!atLast);
-            if (pathway.isLocked()) {
-                btnElementUp.setEnabled(false);
-                btnElementDown.setEnabled(false);
-            } else {
-                btnElementUp.setEnabled(!atFirst);
-                btnElementDown.setEnabled(!atLast);
-            }
+              path_rewind.setEnabled(!atFirst);
+              path_backward.setEnabled(!atFirst);
+             path_forward.setEnabled(!atLast);
+             path_last.setEnabled(!atLast);
+//            if (pathway.isLocked()) {
+  //              btnElementUp.setEnabled(false);
+    //            btnElementDown.setEnabled(false);
+      //      } else {
+    //            btnElementUp.setEnabled(!atFirst);
+    //            btnElementDown.setEnabled(!atLast);
+           // }
         } else {
             PlayerAction.setAllEnabled(false);
-            btnElementUp.setEnabled(false);
-            btnElementDown.setEnabled(false);
+    //        btnElementUp.setEnabled(false);
+    //        btnElementDown.setEnabled(false);
         }
-        btnPathwayShowOnly.setEnabled(pathway != null && pathway.length() > 0);
-        btnPathwayLock.setEnabled(pathway != null);
+        btnPathwayOnly.setEnabled(pathway != null && pathway.length() > 0);
+        btnLockPresentation.setEnabled(pathway != null);
     }
     
     /** Delete's a pathway and all it's contents */
@@ -636,7 +768,7 @@ public class PathwayPanel extends JPanel
         System.out.println("PathwayPanel:main");
         DEBUG.Enabled = DEBUG.INIT = true;
         VUE.init(args);
-        VueUtil.displayComponent(new PlaybackToolPanel());
+        //VueUtil.displayComponent(new PlaybackToolPanel());
     }
     
 
