@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.44 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2007-03-07 20:20:46 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -52,7 +52,7 @@ public abstract class VueTool extends AbstractAction
     protected VueTool mSelectedSubTool = null;
 	
     /** the sub tool map with toolname as key **/
-    protected Map mSubToolMap = new HashMap();    
+    protected Map<String,VueTool> mSubToolMap = new HashMap();    
     
     /** tool display order by keyname **/
     protected Vector mSubToolIDs = new Vector();

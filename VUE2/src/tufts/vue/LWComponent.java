@@ -41,7 +41,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.210 $ / $Date: 2007-03-07 03:20:34 $ / $Author: sfraize $
+ * @version $Revision: 1.211 $ / $Date: 2007-03-07 20:20:46 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -207,9 +207,15 @@ public class LWComponent
                               );
             
             for (Key key : Key.AllKeys) {
+                if (key.cssName == null)
+                    continue;
                 //out("Checking key [" + cssName + "] against [" + key.cssName + "]");
                 if (supportsProperty(key) && cssName.equals(key.cssName)) {
                     //out("Matched supported property key " + key.cssName);
+
+                    applied = key.setValueFromCSS(this, cssName, cssValue);
+
+                    /*
                     final Property slot = key.getSlot(this);
                     if (slot == Key.NO_SLOT_PROVIDED) {
                         out("Can't apply CSS Style property to non-slotted key: " + cssName + " -> " + key);
@@ -224,6 +230,7 @@ public class LWComponent
                             tufts.Util.printStackTrace(new Throwable(t), "failed to apply CSS key/value " + cssName + "=" + cssValue);
                         }
                     }
+                    */
                 }
             }
             if (!applied)
@@ -476,6 +483,25 @@ public class LWComponent
         void setValue(TSubclass c, String stringValue) {
             getSlotSafely(c).setFromString(stringValue);
         }
+
+        /** @return true if was successful */
+        boolean setValueFromCSS(TSubclass c, String cssKey, String cssValue) {
+            final Property slot = getSlot(c);
+            if (slot == Key.NO_SLOT_PROVIDED) {
+                c.out("Can't apply CSS Style property to non-slotted key: " + cssName + " -> " + this);
+                return false;
+            }
+            try {
+                slot.setFromCSS(cssName, cssValue);
+                System.err.println("applied value: " + slot);
+                return true;
+            } catch (Throwable t) {
+                System.err.println();
+                tufts.Util.printStackTrace(new Throwable(t), "failed to apply CSS key/value " + cssName + "=" + cssValue);
+            }
+            return false;
+        }
+        
 
         /** @return true if the value for this Key in LWComponent is equivalent to otherValue
          * Override to provide non-standard equivalence (Object.equals) */
@@ -3330,7 +3356,9 @@ public class LWComponent
 
 
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String args[]) throws Exception
+    {
+        VUE.init(args);
 
         /*
         for (java.lang.reflect.Field f : LWComponent.class.getDeclaredFields()) {
@@ -3343,10 +3371,19 @@ public class LWComponent
         */
 
         // for debug: ensure basic LW types created first
+        /*
+        
+        new NodeTool(); // make sure this is loaded
+        
         new LWNode();
         new LWLink();
         new LWImage();
+        */
 
+        //NodeTool.getTool();
+
+        VueToolbarController.getController(); // make sure the tools are initialized
+        
         edu.tufts.vue.style.StyleReader.readStyles("compare.weight.css");
 
         java.util.Set<String> sortedKeys = new java.util.TreeSet<String>(edu.tufts.vue.style.StyleMap.keySet());

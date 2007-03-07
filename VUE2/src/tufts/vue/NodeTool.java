@@ -290,6 +290,23 @@ public class NodeTool extends VueTool
         return values;
     }
 
+    public Shape getNamedShape(String name)
+    {
+        if (mSubToolMap.isEmpty())
+            throw new Error("uninitialized sub-tools");
+        
+        for (VueTool t : mSubToolMap.values()) {
+            //out("SUBTOOL " + t + " cssName=" + t.getAttribute("cssName"));
+            if (name.equalsIgnoreCase(t.getAttribute("cssName"))) {
+                return ((SubTool)t).getShape();
+                //final SubTool shapeTool = (SubTool) t;
+                //out("GOT SHAPE " + shapeTool.getShape());
+                //return shapeTool.getShape();
+            }
+        }
+        return null;
+    }
+
     /**
      * VueTool class for each of the specifc node shapes.  Knows how to generate
      * an action for shape setting, and creates a dynamic icon based on the node shape.

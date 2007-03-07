@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.134 $ / $Date: 2007-03-06 16:54:41 $ / $Author: sfraize $
+ * @version $Revision: 1.135 $ / $Date: 2007-03-07 20:20:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -191,7 +191,17 @@ public class LWNode extends LWContainer
         setResource(resource);
     }
     
-    public static final Key KEY_Shape = new Key<LWNode,Shape>("node.shape", "vue-shape") {
+    public static final Key KEY_Shape = new Key<LWNode,Shape>("node.shape", "shape") {
+        @Override public boolean setValueFromCSS(LWNode c, String cssKey, String cssValue) {
+            Shape shape = NodeTool.getTool().getNamedShape(cssValue);
+            if (shape == null) {
+                return false;
+            } else {
+                setValue(c, shape);
+                System.err.println("applied shape: " + this + "=" + getValue(c));
+                return true;
+            }
+        }
         @Override public void setValue(LWNode c, Shape val) {
             c._applyShape(val);
         }
