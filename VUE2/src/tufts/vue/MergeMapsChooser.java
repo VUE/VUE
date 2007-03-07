@@ -21,7 +21,7 @@
  *
  * Created on January 10, 2007, 11:14 AM
  *
- * @author dhelle01
+ * @author Daniel J. Heller
  */
 
 package tufts.vue;
@@ -82,7 +82,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     private LWMap activeMap;
     
     private JPanel selectPanelHolder;
-    //private JPanel selectPanel;
     private SelectPanel sp;
     private File selectedBaseFile;
     
@@ -93,7 +92,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     private JComboBox baseChoice;
     private LWMap baseMap;
     private JPanel buttonPane;
-    //private JButton generateDemo;
     private JButton generate;
     
     private JPanel vizPane;
@@ -114,17 +112,13 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     
     private HashMap <LWMap,SelectPanel> selectPanels = new HashMap<LWMap,SelectPanel>();
     
-    //$
-      private GridBagLayout baseGridBag;
-      private JLabel baseLabel;
-    //$
+    private GridBagLayout baseGridBag;
+    private JLabel baseLabel;
       
     private JTabbedPane vueTabbedPane = VUE.getTabbedPane();
     
-    //$
-      JButton undoButton = new JButton("Undo");
-      private int undoCount;
-    //$
+    JButton undoButton = new JButton("Undo");
+    private int undoCount;
     
     public final static String ALL_TEXT = "All maps currently opened";
     public final static String LIST_TEXT = "Browse to maps";
@@ -144,88 +138,32 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     
     
     public static final MMCKey KEY_NODE_CHANGE   = new MMCKey("nodeThresholdSliderValue", "integer");
-    
-    public static class MMCKey extends LWComponent.Key
-    {
-            private MergeMapsChooser mmc;
-            
-            public MMCKey(String keyString,String propString)
-            {
-                super(keyString,propString);
-            }
-            
-            public void setMMC(MergeMapsChooser m)
-            {
-                mmc = m;
-            }
-        
-            public void setValue(LWComponent c, Object val) {
-                System.out.println("KEY_NODE_CHANGE setValue: " + val); 
-                mmc.programmaticNodeMove(((Integer)val).intValue());
-            }
-            public Object getValue(LWComponent c) { System.out.println("KEY_NODE_CHANGE getValue"); return 0; }
-    };
-    
-    public void programmaticNodeMove(int newValue)
-    {
-        System.out.println("programmatic node change..");
-        //nodeChangeProgrammatic = true;
-        nodeThresholdSlider.setValue(newValue);
-    }
    
     public MergeMapsChooser() 
     {
-        
-        //$
-          //System.out.println(tufts.vue.VueUtil.getDefaultUserFolder());
-          undoButton.addActionListener(new ActionListener()
+        undoButton.addActionListener(new ActionListener()
+        {
+          public void actionPerformed(ActionEvent e)
           {
-            public void actionPerformed(ActionEvent e)
-            {
-                //VUE.getUndoManager().undo();
-                VUE.getActiveMap().getUndoManager().undo();
-                if(VUE.getActiveMap() instanceof LWMergeMap)
-                {
-                    LWMergeMap am = (LWMergeMap)VUE.getActiveMap();
-                    am.setNodeThresholdSliderValue(nodeThresholdSlider.getValue());
-                }
-                if(undoCount == 1)
-                {
-                    VUE.getActiveMap().getUndoManager().flush();
-                    undoButton.setEnabled(false);
-                    undoCount = 0;
-                }
-                else
-                {
-                    undoCount--;
-                }
-                // is active map always the correct map to use below?
-                // rollback slider undo manager for now (also rolled back in stateChanged...
-                /* if(VUE.getActiveMap() instanceof LWMergeMap)
-                {
-                    Integer nodeThresholdSliderValue = null;
-                    LWMergeMap am = (LWMergeMap)VUE.getActiveMap();
-                    if(!am.getNodeThresholdValueStack().empty())
-                    {   
-                        //nodeThresholdSliderValue = am.getNodeThresholdValueStack().pop();
-                        //nodeChangeProgrammatic = true;
-                    }
-                    if(nodeThresholdSliderValue !=null)
-                    {    
-                      //nodeThresholdSlider.setValue(nodeThresholdSliderValue.intValue());
-                      //nodeChangeProgrammatic = true; // could this be the bug? this was missing before rollback
-                    }
-                    if(am.getNodeThresholdValueStack().empty())
-                    {
-                        undoButton.setEnabled(false);
-                        // was for bug mentioned above
-                        //am.getNodeThresholdValueStack().push(am.getNodeThresholdSliderValue());
-                    }
-                } */
-            }
-          });
-          //add(undoButton);
-        //$
+             //VUE.getUndoManager().undo();
+             VUE.getActiveMap().getUndoManager().undo();
+             if(VUE.getActiveMap() instanceof LWMergeMap)
+             {
+                LWMergeMap am = (LWMergeMap)VUE.getActiveMap();
+                am.setNodeThresholdSliderValue(nodeThresholdSlider.getValue());
+             }
+             if(undoCount == 1)
+             {
+                VUE.getActiveMap().getUndoManager().flush();
+                undoButton.setEnabled(false);
+                undoCount = 0;
+             }
+             else
+             {
+                undoCount--;
+             }
+          }
+        });
         
         vueTabbedPane.addChangeListener(this);
         loadDefaultStyle();
@@ -234,15 +172,18 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         generate = new JButton("Generate");
         buttonPane.add(generate);
-        //$
-           buttonPane.add(undoButton);
-           undoButton.setEnabled(false);
-        //$
+        buttonPane.add(undoButton);
+        undoButton.setEnabled(false);
+        
         JTabbedPane mTabbedPane = new JTabbedPane();
         VueResources.initComponent(mTabbedPane,"tabPane");
         
         selectPanelHolder = new JPanel();
         sp = new SelectPanel();
+        //provides a fast means for reloading LWMergeMap settings
+        //if re-enabled should be done only for LWMergeMap
+        //default behavior is to keep settings loaded when plain
+        //LWMap is selected so as to be able to resuse these settings
         /*if(activeMap != null)
         {    
           selectPanels.put(getActiveMap(),sp);
@@ -265,14 +206,12 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         setActiveMap(VUE.getActiveMap());
         
         vizChoice.addActionListener(this);
-        
-        //generateDemo.addActionListener(this);
+
         generate.addActionListener(this);
         
         //actually weight panel settings .. populates the weight visualization panel gui
         if(VUE.getActiveMap() instanceof LWMergeMap)
         {
-          //System.out.println("mmc: active map is instanceof LWMergeMap");
           refreshSettings((LWMergeMap)VUE.getActiveMap());
         }
         else
@@ -281,10 +220,13 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         }
         
         validate();
-        //$
+        
+        //todo: would like window to adjust size based on needs of current
+        // panel, likely would have to place stub for larger panels and
+        // swap the real panel instance back in on tab select.
         //if(p!=null)
             //p.pack();
-        //$
+        
         setVisible(true);
     }
     
@@ -312,7 +254,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     
     public void setUpBasePanel()
     {
-        /*GridBagLayout*/ baseGridBag = new GridBagLayout();
+        baseGridBag = new GridBagLayout();
         GridBagConstraints baseConstraints = new GridBagConstraints();
         basePanel = new JPanel();
         int b = TAB_BORDER_SIZE;
@@ -325,17 +267,11 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                  return new Dimension(400,30);
             }
         };
-        //$
-          //baseInnerPanel.setOpaque(true);
-          //baseInnerPanel.setBackground(Color.BLUE);
-        //$
+
         baseInnerPanel.setLayout(baseGridBag);
         String baseMessage = "Select base map:";
         baseLabel = new JLabel(baseMessage);
-        //$
-           //baseLabel.setOpaque(true);
-           //baseLabel.setBackground(Color.RED);
-        //$
+
         String[] choices = {VUE.getActiveMap().getLabel(),"other"};
         baseChoice = new JComboBox(choices);
         baseChoice.setRenderer(new MapChoiceCellRenderer());
@@ -343,7 +279,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         baseConstraints.fill = GridBagConstraints.HORIZONTAL;
         baseGridBag.setConstraints(baseLabel,baseConstraints);
         baseInnerPanel.add(baseLabel);
-        //baseConstraints.weightx = 1.0;
         baseGridBag.setConstraints(baseChoice,baseConstraints);
         baseInnerPanel.add(baseChoice);
         baseConstraints.weightx = 1.0;
@@ -367,7 +302,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             }
         };
         GridBagLayout baseBrowseGridBag = new GridBagLayout();
-        //baseBrowsePanel.setLayout(baseBrowseGridBag);
         baseBrowsePanel.setLayout(baseGridBag);
         GridBagConstraints baseBrowseConstraints = new GridBagConstraints();
         JLabel basePanelMapLabel = new JLabel("Map:",JLabel.RIGHT)
@@ -382,9 +316,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         baseGridBag.setConstraints(basePanelMapLabel,baseBrowseConstraints);
         baseBrowsePanel.add(basePanelMapLabel);
         baseFileField = new JTextField(10);
-        //$
-           //baseFileField.setText("New Map");
-        //$
         baseBrowseConstraints.weightx = 1.0;
         baseGridBag.setConstraints(baseFileField,baseBrowseConstraints);
         baseBrowsePanel.add(baseFileField);
@@ -396,7 +327,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     
     public void refreshBaseChoices()
     {
-       // String otherString = "other";
         boolean otherSelected = false;
         if( baseChoice.getSelectedItem() != null && baseChoice.getSelectedItem().equals(otherString) )
         {
@@ -460,7 +390,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             {
                 baseMap = (LWMap)baseChoice.getSelectedItem();
                 // really should be checking if base map is saved at this point?
-                // not as big an issue once baseMap is saved in LWMergeMap file
+                // possibly not as much of an issue once baseMap is saved in LWMergeMap file
                 return baseMap.getFile();
             }
         }
@@ -522,10 +452,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
           }
         };*/
         
-        //$
-          //votePanel.setOpaque(true);
-          //votePanel.setBackground(Color.RED);
-        //$
         
         weightPanel = new WeightVisualizationSettingsPanel(this);
         GridBagLayout voteLayout = new GridBagLayout();
@@ -533,11 +459,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         votePanel.setLayout(voteLayout);
         JLabel defineThresholdMessageLabel = new JLabel(defineThresholdMessage);
         //defineThresholdMessageLabel.setBorder(BorderFactory.createEmptyBorder(0,0,20,0));
-        
-        //$
-           //defineThresholdMessageLabel.setOpaque(true);
-           //defineThresholdMessageLabel.setBackground(Color.BLUE);
-        //$
         
         JPanel moreLessLabel = new JPanel();
         /*{
@@ -623,10 +544,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
           voteConstraints.gridy = 2;
         //$
         voteLayout.setConstraints(nodeThresholdSlider,voteConstraints);
-        //$
-          //nodeThresholdSlider.setOpaque(true);
-          //nodeThresholdSlider.setBackground(Color.GREEN);
-        //$
+
         votePanel.add(nodeThresholdSlider);
         percentageDisplay = new JLabel(nodeThresholdSlider.getValue()+ "%");
         //have created methods below to turn this on and off (so that changes during setup don't affect the map)
@@ -705,9 +623,9 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     public void LWCChanged(LWCEvent e)
     {
         //nodeThresholdSlider.setValue(e.oldValue)
-        System.out.println("mmc: LWCChanged -- old value: " + e.getOldValue());
-        System.out.println("mmc: LWCChanged -- source: " + e.getSource());
-        System.out.println("mmc: LWCChanged -- component: " + e.getComponent());
+        //System.out.println("mmc: LWCChanged -- old value: " + e.getOldValue());
+        //System.out.println("mmc: LWCChanged -- source: " + e.getSource());
+        //System.out.println("mmc: LWCChanged -- component: " + e.getComponent());
     }
     
     public void stateChanged(ChangeEvent e)
@@ -919,12 +837,12 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             //set selection settings
             map.setMapListSelectionType(sp.getMapListSelectionType());
             
-            map.setMapFileList(sp.getMapFileList());
             //todo: send all maps not just the active ones.
             sp.fillMapList();
             //System.out.println("mmc: " + sp.getMapList().size());
             map.setMapList(sp.getMapList());
-            //System.out.println("mmc: map list size: " + map.getMapList().size());
+            System.out.println("mmc: map list size in generate merge map " + map.getMapList().size());
+            map.setMapFileList(sp.getMapFileList());
             
             //set base map settings
             map.setBaseMapSelectionType(getBaseMapSelectionType());
@@ -1022,8 +940,11 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     public void createWeightedMerge(LWMergeMap map)
     {
         
+        System.out.println("mmc: createWeightedMerge mapList size: " + mapList.size() );
+        System.out.println("mmc: createWeightedMerge LWMerge Map mapList size: " + map.getMapList().size() );
+        
         ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
-        Iterator<LWMap> i = mapList.iterator();
+        Iterator<LWMap> i = map.getMapList().iterator();
         while(i.hasNext())
         {
           cms.add(new ConnectivityMatrix(i.next()));
@@ -1142,8 +1063,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                }
            }
         }
-        
-       // map.getNodeThresholdValueStack().push(map.getNodeThresholdSliderValue());
         
     }
     
@@ -1341,9 +1260,33 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         setActiveMap(map);
     }
     
+    public void programmaticNodeSliderChange(int newValue)
+    {
+        nodeThresholdSlider.setValue(newValue);
+    }
 
-
-class SelectPanel extends JPanel implements ActionListener
+    public static class MMCKey extends LWComponent.Key
+    {
+            private MergeMapsChooser mmc;
+            
+            public MMCKey(String keyString,String propString)
+            {
+                super(keyString,propString);
+            }
+            
+            public void setMMC(MergeMapsChooser m)
+            {
+                mmc = m;
+            }
+        
+            public void setValue(LWComponent c, Object val) {
+                System.out.println("KEY_NODE_CHANGE setValue: " + val); 
+                mmc.programmaticNodeSliderChange(((Integer)val).intValue());
+            }
+            public Object getValue(LWComponent c) { System.out.println("KEY_NODE_CHANGE getValue"); return 0; }
+    };
+    
+    class SelectPanel extends JPanel implements ActionListener
     {
         private JComboBox choice;
         private JTextField fileField;
@@ -1371,9 +1314,6 @@ class SelectPanel extends JPanel implements ActionListener
             add(topPanel);
             //choice combobox will display browsePanel (see below)
             add(bottomPanel);
-            
-            //setOpaque(true);
-            //setBackground(new Color(100,100,255));
             
             int b = TAB_BORDER_SIZE;
             setBorder(BorderFactory.createEmptyBorder(b,b,b,b));
@@ -1539,9 +1479,10 @@ class SelectPanel extends JPanel implements ActionListener
                  Iterator <LWMap> i = VUE.getLeftTabbedPane().getAllMaps();
                  while(i.hasNext())
                  {
-                   if(!(i instanceof LWMergeMap))
+                   LWMap m = i.next();
+                   if(!(m instanceof LWMergeMap))
                    {
-                     mapList.add(i.next());
+                     mapList.add(m);
                    }
                  }
                  //map.setSelectChoice("all");

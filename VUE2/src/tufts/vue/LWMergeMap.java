@@ -54,7 +54,7 @@ public class LWMergeMap extends LWMap {
     private List<File> fileList;
     private List<Boolean> activeFiles;
     // without this next line it seems that Castor only reads back one element..
-    private List<LWMap> mapList = new ArrayList();
+    private List<LWMap> mapList = new ArrayList<LWMap>();
     
     private Stack<Integer> nodeThresholdValueStack;
     
@@ -111,35 +111,8 @@ public class LWMergeMap extends LWMap {
         return activeFiles;
     }
     
-    /*public java.util.Collection getMapListCollection()
-    {
-        return mapList;
-    }*/
-    
-    /*public void setMapListCollection(java.util.Collection c)
-    {
-        System.out.println("set map list collection: ");
-        Iterator i = c.iterator();
-        while(i.hasNext())
-        {
-            System.out.println(i.next());
-        }
-        System.out.println("--");
-        mapList = (List<LWMap>)c;
-    }*/
-    
     public void setMapList(List<LWMap> mapList)
     {
-        //System.out.println("LWMergeMap: set map list: " + mapList.size());
-        Iterator<LWMap> i = mapList.iterator();
-        int c = 0;
-        while(i.hasNext())
-        {
-            //System.out.println(c++);
-            //System.out.println(i.next().getLabel());
-            //System.out.println("--");
-        }
-        //Thread.dumpStack();
         this.mapList = mapList; 
     }
     
@@ -243,11 +216,8 @@ public class LWMergeMap extends LWMap {
         return nodeThresholdValueStack;
     }
     
-    public void recreateVoteMerge(/*List<LWMap> mapList*/)
+    public void recreateVoteMerge()
     {
-        //System.out.println("recreate vote merge starting dump stack: ");
-        //Thread.dumpStack();
-        //System.out.println("end recreate vote merge stack dump");
         
         //produces ConcurrentModificationException
         //removeChildren(getChildIterator());
@@ -264,7 +234,7 @@ public class LWMergeMap extends LWMap {
         // concurrentModificationException unless do nodes and links seperately...
         //Iterator si = VUE.getActiveMap().getChildIterator();
         
-        
+        // this deletion code is from LWComponent
         while(li.hasNext())
         {
             LWComponent c = (LWComponent)li.next();
@@ -284,28 +254,6 @@ public class LWMergeMap extends LWMap {
             }
         }
                   
-       // getUndoManager().mark("Map Cleared");
-        
-        /*Iterator si = getNodeIterator();
-        while(si.hasNext())
-        {
-            LWComponent c = (LWComponent)si.next();
-            
-            
-            LWContainer parent = c.getParent();
-            if (parent == null) {
-                System.out.println("DELETE: " + c + " skipping: null parent (already deleted)");
-            } else if (c.isDeleted()) {
-                System.out.println("DELETE: " + c + " skipping (already deleted)");
-            } else if (parent.isDeleted()) { // after prior check, this case should be impossible now
-                System.out.println("DELETE: " + c + " skipping (parent already deleted)"); // parent will call deleteChildPermanently
-            } else if (parent.isSelected()) { // if parent selected, it will delete it's children
-                System.out.println("DELETE: " + c + " skipping - parent selected & will be deleting");
-            } else {
-                parent.deleteChildPermanently(c);
-            }
-        }*/
-        
         ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
         //System.out.println("recreate merge: getMapList.size() " + getMapList().size());
         Iterator<LWMap> i = getMapList().iterator();
@@ -313,64 +261,10 @@ public class LWMergeMap extends LWMap {
         while(i.hasNext())
         {
           LWMap m = i.next();
-          //Iterator mi = m.getAllLinks().iterator();
-          /*while(mi.hasNext())
-          {
-              System.out.println(mi);
-          }*/
           
-          
-          // moving this to seperate method to be called from SelectPanel
-          /*System.out.println(m.getChildList().size());
-          
-          List<LWComponent> chs = m.getChildList();
-          
-          
-          // adapted from private method in LWMap -- resolvePersistedLinks..
-          for (LWComponent currc : chs) {
-            if (!(currc instanceof LWLink))
-                continue;
-            LWLink l = (LWLink) currc;
-            try {
-                // was: final ep1ID
-                String ep1ID = l.getEndPoint1_ID();
-                System.out.println("before setting components");
-                System.out.println("l.getEndPoint1_ID(): " + l.getEndPoint1_ID());
-                System.out.println("l.getComponent1(): " + l.getComponent1());
-                // was: final ep2ID
-                String ep2ID = l.getEndPoint2_ID();
-                System.out.println("l.getEndPoint2_ID(): " + l.getEndPoint2_ID());
-                System.out.println("l.getComponent2(): " + l.getComponent2());
-
-                if (ep1ID != null && l.getComponent1() == null) l.setComponent1(findByID(chs, ep1ID));
-                if (ep2ID != null && l.getComponent2() == null) l.setComponent2(findByID(chs, ep2ID));
-                if(l.getComponent1() != null && l.getComponent2() != null)
-                {
-                    //markAsSaved();
-                    //getUndoManager().mark("links recalculated");
-                    //getUndoManager().flush();
-                }
-                
-                ep1ID = l.getEndPoint1_ID();
-                System.out.println("after setting components");
-                System.out.println("l.getEndPoint1_ID(): " + l.getEndPoint1_ID());
-                System.out.println("l.getComponent1(): " + l.getComponent1());
-                ep2ID = l.getEndPoint2_ID();
-                System.out.println("l.getEndPoint2_ID(): " + l.getEndPoint2_ID());
-                System.out.println("l.getComponent2(): " + l.getComponent2());
-                
-            } catch (Throwable e) {
-                tufts.Util.printStackTrace(e, "bad link? + l");
-            }
-          } */
-          
-          
-          
-          
-          
-          Iterator cl = m.getChildList().iterator();
-          int clc = 0;
-          while(cl.hasNext())
+          //Iterator cl = m.getChildList().iterator();
+          //int clc = 0;
+          /*while(cl.hasNext())
           {
               LWComponent com = (LWComponent)cl.next();
               //System.out.println("class: " + m.getLabel() + ":" + (clc++) + ":" + com.getClass());
@@ -389,7 +283,7 @@ public class LWMergeMap extends LWMap {
                   
                   //System.out.println("arrow state: " + ((LWLink)(com)).getArrowState());
               }
-          }
+          }*/
           
           Iterator ni = m.getNodeIterator();
           //System.out.println("node iterator: " + ni.hasNext());
@@ -425,9 +319,6 @@ public class LWMergeMap extends LWMap {
                LWNode node2 = (LWNode)children2.next();
                if(node2 != node1) {
                   int c = voteAggregate.getConnection(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
-                  //System.out.println("---");
-                  //System.out.println("lwmm: mp n1, mp n2 " + Util.getMergeProperty(node1) + "," + Util.getMergeProperty(node2) );
-                  //System.out.println("lwmm: getc " + voteAggregate.getConnection(Util.getMergeProperty(node1),Util.getMergeProperty(node2)));
                   if(c >0) {
                      addLink(new LWLink(node1,node2));
                   }
@@ -446,7 +337,7 @@ public class LWMergeMap extends LWMap {
         {
           LWMap m = i.next();
         
-          System.out.println(m.getChildList().size());
+          //System.out.println(m.getChildList().size());
           
           List<LWComponent> chs = m.getChildList();
           
