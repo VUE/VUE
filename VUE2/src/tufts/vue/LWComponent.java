@@ -41,7 +41,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.209 $ / $Date: 2007-03-06 16:54:17 $ / $Author: sfraize $
+ * @version $Revision: 1.210 $ / $Date: 2007-03-07 03:20:34 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -192,13 +192,43 @@ public class LWComponent
         }
     }
 
-    public void applyCSS(edu.tufts.vue.style.Style cssStyle) {
+    public void applyCSS(edu.tufts.vue.style.Style cssStyle)
+    {
+        out("Applying CSS style " + cssStyle.getName() + ":");
         for (Map.Entry<String,String> se : cssStyle.getAttributes().entrySet()) {
-            final String cssName = se.getKey();
+            final String cssName = se.getKey().trim().toLowerCase(); // todo: shouldn't have to trim this
+            final String cssValue = se.getValue().trim();
+            boolean applied = false;
+
+            System.err.format("%-35s CSS key %-17s value %-15s",
+                              toString(),
+                              '\'' + cssName + '\'',
+                              '\"' + cssValue + '\"'
+                              );
+            
             for (Key key : Key.AllKeys) {
-                if (key.cssName != null && supportsProperty(key)) {
+                //out("Checking key [" + cssName + "] against [" + key.cssName + "]");
+                if (supportsProperty(key) && cssName.equals(key.cssName)) {
+                    //out("Matched supported property key " + key.cssName);
+                    final Property slot = key.getSlot(this);
+                    if (slot == Key.NO_SLOT_PROVIDED) {
+                        out("Can't apply CSS Style property to non-slotted key: " + cssName + " -> " + key);
+                    } else {
+                        try {
+                            slot.setFromCSS(cssName, cssValue);
+                            System.err.println("applied value: " + slot);
+                            applied = true;
+                            break;
+                        } catch (Throwable t) {
+                            System.err.println();
+                            tufts.Util.printStackTrace(new Throwable(t), "failed to apply CSS key/value " + cssName + "=" + cssValue);
+                        }
+                    }
                 }
             }
+            if (!applied)
+                System.err.println("UNHANDLED");
+
         }
     }
 
@@ -311,7 +341,7 @@ public class LWComponent
             
             ClassProperties.put(clazz, propMaskForClass);
 
-            System.out.printf("KEY %-20s %-11s %-25s bit#%2d; %25s now has %2d properties\n", 
+            System.out.printf("KEY %-20s %-11s %-22s bit#%2d; %25s now has %2d properties\n", 
                               name,
                               //isStyleProperty ? "STYLE;" : "",
                               keyType,
@@ -342,10 +372,12 @@ public class LWComponent
         }
 
         private static final LWComponent EmptyStyle = new LWComponent();
-        private static final Property NO_SLOT_PROVIDED = EmptyStyle.mFillColor; // any slot will do
+        static final Property NO_SLOT_PROVIDED = EmptyStyle.mFillColor; // any slot will do
         //private static final Property BAD_SLOT = EmptyStyle.mStrokeColor; // any (different) slot will do
         /** If this isn't overriden to return non-null, getValue & setValue must be overriden to provide the setter/getter impl  */
         Property getSlot(TSubclass c) { return NO_SLOT_PROVIDED; }
+
+        boolean isSlotted(TSubclass c) { return getSlot(c) != NO_SLOT_PROVIDED; }
 
         // If we wanted to get rid of the slot decl's in the key's (for those that use
         // slots), we could, in our defult slot-using set/getValue, search all property
@@ -364,7 +396,7 @@ public class LWComponent
                     return (TValue) propertySlot.get();
             } catch (Throwable t) {
                 if (DEBUG.META)
-                    tufts.Util.printStackTrace(t, this + ": property slot get() failed " + propertySlot);
+                    tufts.Util.printStackTrace(new Throwable(t), this + ": property slot get() failed " + propertySlot);
                 else
                     VUE.Log.warn(this + ": property slot get() failed " + propertySlot + " " + t);
                 return DEBUG.Enabled ? (TValue) "<unsupported for this object>" : null;
@@ -406,7 +438,7 @@ public class LWComponent
                 VUE.Log.warn(msg + "; " + e);
                 return null;
             } catch (Throwable t) {
-                tufts.Util.printStackTrace(t, this + ": bad slot? unimplemented get/setValue?");
+                tufts.Util.printStackTrace(new Throwable(t), this + ": bad slot? unimplemented get/setValue?");
                 return null;
             }
         }
@@ -556,6 +588,11 @@ public class LWComponent
             }
         }
 
+        void setFromCSS(String cssKey, String value) {
+            throw new UnsupportedOperationException(this + " unimplemented setFromCSS " + cssKey + " = " + value);
+            //VUE.Log.error("unimplemented setFromCSS " + cssKey + " = " + value);
+        }
+
         void setBy(String fromValue) {
             // Could get rid all of the setBy's (and then mayve even all the StyleProp subclasses!!)
             // If we just had mapper class that took a type, a value, and returned a string (e.g., Font.class, Object value)
@@ -576,7 +613,7 @@ public class LWComponent
 
         /** used for debugging */
         public String toString() {
-            return key + "(" + value.toString() + ")";
+            return key + "[" + value.toString() + "]";
         }
         
     }
@@ -587,25 +624,39 @@ public class LWComponent
             super(key);
             value = _DefaultString;
         }
-        final void setBy(String s) { set(s); }
+        void setBy(String s) { set(s); }
     }
 
+    
+    abstract public class NumberProperty<T> extends Property<T> {
+        NumberProperty(Key key) { super(key); }
+            
+        void setFromCSS(String cssKey, String value) {
+            if (value.endsWith("pt") || value.endsWith("px"))
+                setBy(value.substring(0, value.length()-2));
+            else
+                throw new IllegalArgumentException("unhandled CSS number conversion for [" + value + "]");
+                      
+        }
+        
+    }
+    
     private static final Integer _DefaultInteger = new Integer(0);
-    public class IntProperty extends Property<java.lang.Integer> {
+    public class IntProperty extends NumberProperty<java.lang.Integer> {
         IntProperty(Key key) {
             super(key);
             value = _DefaultInteger;
         }
-        final void setBy(String s) { set(new Integer(s)); }
+        void setBy(String s) { set(new Integer(s)); }
     }
     
     private static final Float _DefaultFloat = new Float(0f);
-    public class FloatProperty extends Property<java.lang.Float> {
+    public class FloatProperty extends NumberProperty<java.lang.Float> {
         FloatProperty(Key key) {
             super(key);
             value = _DefaultFloat;
         }
-        final void setBy(String s) { set(new Float(s)); }
+        void setBy(String s) { set(new Float(s)); }
     }
 
     public class FontProperty extends Property<java.awt.Font> {
@@ -629,6 +680,49 @@ public class LWComponent
             return font.getName() + "-" + strStyle + "-" + font.getSize();
         }
     }
+
+    /**
+     * Handles CSS font-style value "italic" ("normal", or anything else, has no effect as of yet)
+     * Also handles CSS font-weight value of "bold" (anything else is ignored for now)
+     * todo: no hook for font-weight yet, permits invalid CSS
+     */
+    public class CSSFontStyleProperty extends IntProperty {
+        CSSFontStyleProperty(Key key) { super(key); }
+        void setFromCSS(String cssKey, String value) {
+            // todo: this ignoring the key, which will permit non-confomant CSS
+            if ("italic".equalsIgnoreCase(value))
+                set(java.awt.Font.ITALIC);
+            else if ("bold".equalsIgnoreCase(value))
+                set(java.awt.Font.BOLD);
+            else
+                set(0);
+        }
+    }
+
+    /*
+    public class CSSFontSizeProperty extends IntProperty {
+        CSSFontSizeProperty(Key key) { super(key); }
+        void setFromCSS(String cssKey, String value) {
+            if (value.endsWith("pt"))
+                setBy(value.substring(0, value.length()-2));
+            else
+                throw new IllegalArgumentException("unhandled CSS font size [" + value + "]");
+                      
+        }
+    }
+    */
+
+    public class CSSFontFamilyProperty extends StringProperty {
+        CSSFontFamilyProperty(Key key) { super(key); }
+        void setFromCSS(String cssKey, String value) {
+            // no translation needed for now: just use the raw name -- if it's a preference list tho, we'll need to handle it
+            setBy(value);
+        }
+    }
+    
+
+    
+    
     
     
     public class ColorProperty extends Property<java.awt.Color> {
@@ -648,6 +742,12 @@ public class LWComponent
 
         void setBy(String s) {
             set(StringToColor(s));
+        }
+
+        void setFromCSS(String key, String value) {
+            // todo: CSS Style object could include the already instanced Color object
+            // we ignore key: assume that whatever it is is a color value
+            setBy(value);
         }
 
         String asString() {
@@ -691,21 +791,18 @@ public class LWComponent
     public static final Key KEY_TextColor   = new Key("text.color", "font-color")       { final Property getSlot(LWComponent c) { return c.mTextColor; } };
     public static final Key KEY_StrokeColor = new Key("stroke.color", "border-color")   { final Property getSlot(LWComponent c) { return c.mStrokeColor; } };
     public static final Key KEY_StrokeStyle = new Key("stroke.style", "border-style")   { final Property getSlot(LWComponent c) { return null; } };
-    public static final Key KEY_StrokeWidth = new Key("stroke.width", "border-width")   { final Property getSlot(LWComponent c) { return c.mStrokeWidth; } };
+    public static final Key KEY_StrokeWidth = new Key("stroke.width", "stroke-width")   { final Property getSlot(LWComponent c) { return c.mStrokeWidth; } };
 
 
+    /* font.size: point size for font */
+    /* font.style: @See java.awt.Font 0x0=Plain, 0x1=Bold On, 0x2=Italic On */
+    /* font.name: family name of the font */
+    
     /** Aggregate font key, which represents the combination of it's three sub-properties */
-    public static final Key KEY_Font = new Key("font", KeyType.STYLE)
-        { final Property getSlot(LWComponent c) { return c.mFont; } };
-    /** point size for font */
-    public static final Key KEY_FontSize  = new Key("font.size", "font-size", KeyType.SUB_STYLE)
-        { final Property getSlot(LWComponent c) { return c.mFontSize; } };
-    /** @See java.awt.Font 0x0=Plain, 0x1=Bold On, 0x2=Italic On */
-    public static final Key KEY_FontStyle = new Key("font.style", "font-style", KeyType.SUB_STYLE)
-        { final Property getSlot(LWComponent c) { return c.mFontStyle; } };
-    /** name of the font */
-    public static final Key KEY_FontName  = new Key("font.name", "font-family", KeyType.SUB_STYLE)
-        { final Property getSlot(LWComponent c) { return c.mFontName; } };
+    public static final Key KEY_Font = new Key("font", KeyType.STYLE)                           { final Property getSlot(LWComponent c) { return c.mFont; } };
+    public static final Key KEY_FontSize  = new Key("font.size", "font-size", KeyType.SUB_STYLE)        { final Property getSlot(LWComponent c) { return c.mFontSize; } };
+    public static final Key KEY_FontStyle = new Key("font.style", "font-style", KeyType.SUB_STYLE)      { final Property getSlot(LWComponent c) { return c.mFontStyle; } };
+    public static final Key KEY_FontName  = new Key("font.name", "font-family", KeyType.SUB_STYLE)      { final Property getSlot(LWComponent c) { return c.mFontName; } };
     
     public final ColorProperty mFillColor = new ColorProperty(KEY_FillColor);
     public final ColorProperty mTextColor = new ColorProperty(KEY_TextColor, java.awt.Color.black) {
@@ -744,9 +841,9 @@ public class LWComponent
         };
 
 
-    public final IntProperty mFontStyle = new IntProperty(KEY_FontStyle)        { void onChange() { rebuildFont(); } };
-    public final IntProperty mFontSize = new IntProperty(KEY_FontSize)          { void onChange() { rebuildFont(); } };
-    public final StringProperty mFontName = new StringProperty(KEY_FontName)    { void onChange() { rebuildFont(); } };
+    public final IntProperty mFontStyle = new CSSFontStyleProperty(KEY_FontStyle)       { void onChange() { rebuildFont(); } };
+    public final IntProperty mFontSize = new IntProperty(KEY_FontSize)                  { void onChange() { rebuildFont(); } };
+    public final StringProperty mFontName = new CSSFontFamilyProperty(KEY_FontName)     { void onChange() { rebuildFont(); } };
 
     private boolean fontIsRebuilding; // hack till we cleanup the old font code in gui tools (it's only all-at-once)
     private void rebuildFont() {
@@ -761,9 +858,6 @@ public class LWComponent
     
     public final FontProperty mFont = new FontProperty(KEY_Font) {
             void onChange() {
-                // TODO: as "take" won't send notifications, tools listenting to just
-                // these properties won't get updated...  Tho we don't want notifications
-                // for now, as we'd loop...
                 if (!fontIsRebuilding) {
                     final Font f = get();
                     mFontStyle.take(f.getStyle());
@@ -3238,6 +3332,7 @@ public class LWComponent
 
     public static void main(String args[]) throws Exception {
 
+        /*
         for (java.lang.reflect.Field f : LWComponent.class.getDeclaredFields()) {
             Class type = f.getType();
             if (type == Key.class)
@@ -3245,6 +3340,26 @@ public class LWComponent
             else
                 System.out.println("Field: " + f + " (" + type + ")");
         }
+        */
+
+        // for debug: ensure basic LW types created first
+        new LWNode();
+        new LWLink();
+        new LWImage();
+
+        edu.tufts.vue.style.StyleReader.readStyles("compare.weight.css");
+
+        java.util.Set<String> sortedKeys = new java.util.TreeSet<String>(edu.tufts.vue.style.StyleMap.keySet());
+
+        for (String key : sortedKeys) {
+            final Object style = edu.tufts.vue.style.StyleMap.getStyle(key);
+            System.out.println("Found CSS style key; " + key + ": " + style);
+            //System.out.println("Style key: " + se.getKey() + ": " + se.getValue());
+        }
+
+        new LWNode().applyCSS(edu.tufts.vue.style.StyleMap.getStyle("node.w1"));
+        new LWLink().applyCSS(edu.tufts.vue.style.StyleMap.getStyle("link.w1"));
+        
     }
     
 
