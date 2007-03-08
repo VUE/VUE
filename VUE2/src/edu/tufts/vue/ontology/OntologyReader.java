@@ -20,6 +20,7 @@ package edu.tufts.vue.ontology;
 
 
 import com.hp.hpl.jena.rdf.model.*;
+import com.hp.hpl.jena.ontology.*;
 
 /*
  * OntologyReader.java
@@ -36,16 +37,18 @@ public class OntologyReader {
     
     public static void main(String[] args)
     {
-        Model model = ModelFactory.createDefaultModel();
+        //Model model = ModelFactory.createDefaultModel();
+        OntModel model = ModelFactory.createOntologyModel();
         RDFReader reader = model.getReader();
-        reader.read(model,"file:///Users/dhelle01/test.rdf");
+        //System.out.println(tufts.vue.VueResources.getURL("fedora.ontology.rdf").toString());
+        reader.read(model,tufts.vue.VueResources.getURL("fedora.ontology.rdf").toString());
         System.out.println(model.size());
         NodeIterator i = model.listObjects();
         while(i.hasNext())
         {
            System.out.println(i.next());       
         }
-        StmtIterator si = model.listStatements();
+        /*StmtIterator si = model.listStatements();
         while(si.hasNext())
         {
            Statement stmt = (Statement)si.next();
@@ -54,6 +57,6 @@ public class OntologyReader {
            System.out.println(stmt.getResource());
            // stmt.getProperty(RDFS.class
            // or maybe r=model.getResource(), r.getProperty()
-        }
+        }*/
     }
 }

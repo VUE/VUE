@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF base="info:fedora/fedora-system:def/relations-external#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+	<rdf:Property rdf:ID="fedoraRelationship">
+		<rdfs:comment>The primitive property for all object-to-object relationships in the fedora ontology</rdfs:comment>
+	</rdf:Property>
+	<rdf:Property rdf:ID="isPartOf">
+		<rdfs:label xml:lang="en-US">Is Part Of</rdfs:label>
+		<rdfs:comment xml:lang="en-US">A definition of the generic part/whole relationship between fedora objects.  The subject is a fedora object representing a part and the predicate is a fedora object representing a whole.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#fedoraRelationship"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="hasPart">
+		<rdfs:label xml:lang="en-US">Has Part</rdfs:label>
+		<rdfs:comment xml:lang="en-US">A definition of the generic part/whole relationship between fedora objects. The subject is a fedora object representing a whole and the predicate is a fedora object representing a part.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#fedoraRelationship"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="isConstituentOf">
+		<rdfs:label xml:lang="en-US">Is Constituent Of</rdfs:label>
+		<rdfs:comment xml:lang="en-US">This is a refinement of the generic part/whole relationship in the "made of" sense with referential integrity implications.  The subject is a fedora object representing a constituent part and the predicate is a fedora object representing a whole of which the subject is a constituent.  The constituent part cannot stand alone in any meaningful way without reference to the whole. </rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#isPartOf"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="hasConstituent">
+		<rdfs:label xml:lang="en-US">Has Constituent</rdfs:label>
+		<rdfs:comment xml:lang="en-US">This is a refinement of the generic part/whole relationship in the "made of" sense with referential integrity implications. The subject is a fedora object representing a whole that is made of constituent parts and the predicate is a fedora object representing one of the constituent parts. The whole loses its integrity if the constituent part is removed. </rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#hasPart"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="isMemberOf">
+		<rdfs:label xml:lang="en-US">Is Member Of</rdfs:label>
+		<rdfs:comment xml:lang="en-US">This is a refinement of the generic part/whole relationship that defines a set membership relationship between fedora objects. The subject is a fedora object representing a member of a set and the predicate is a fedora object representing a whole set of which the subject is a member.  The member can be separated from the set and still stand alone as an object in its own right.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#isPartOf"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="hasMember">
+		<rdfs:label xml:lang="en-US">Has Member</rdfs:label>
+		<rdfs:comment xml:lang="en-US">This is a refinement of the generic part/whole relationship that defines a set membership relationship between fedora objects. The subject is a fedora object representing a whole set and the predicate is a fedora object representing a member in the set.  The set does not lose its integrity if a member is removed from the set. </rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#hasPart/"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="isSubsetOf">
+		<rdfs:label xml:lang="en-US">Is Subset Of</rdfs:label>
+		<rdfs:comment xml:lang="en-US">This is a refinement of the generic set membership relationship to indicate the notion of a subset. The subject is a fedora object that represents a subset and the predicate is a fedora object that represents the set of which the subject is a subset.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#isMemberOf"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="hasSubset">
+		<rdfs:label xml:lang="en-US">Has Subset</rdfs:label>
+		<rdfs:comment xml:lang="en-US">This is a refinement of the generic set membership to indicate the notion of a subset.  The subject is a fedora object that represents a set of objects and the predicate is a fedora object that represents a subset of the subject set.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#hasMember"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="isMemberOfCollection">
+		<rdfs:label xml:lang="en-US">Is Member Of Collection</rdfs:label>
+		<rdfs:comment xml:lang="en-US">This is a refinement of the generic membership relationship to indicate the notion of a digital collection.  The subject is a fedora object representing an item in a digital collection and the predicate is a fedora object representing a whole digital collection. </rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#isMemberOf"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="hasCollectionMember">
+		<rdfs:label xml:lang="en-US">Has Collection Member</rdfs:label>
+		<rdfs:comment xml:lang="en-US">This is a refinement of the generic membership to indicate the notion of a digital collection.  The subject is a fedora object representing a whole digital collection and the predicate is a fedora object representing an item that is a member of the digital collection.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#hasMember"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="isDerivationOf">
+		<rdfs:label xml:lang="en-US">Is Derivation Of</rdfs:label>
+		<rdfs:comment xml:lang="en-US">A definition of a generic derivation relationship between fedora objects.  The subject is a fedora object that represents a derivation of the predicate which is another fedora object.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#fedoraRelationship"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="hasDerivation">
+		<rdfs:label xml:lang="en-US">Has Derivation</rdfs:label>
+		<rdfs:comment xml:lang="en-US">A definition of a generic derivation relationship between fedora objects.  The subject is a fedora object and the predicate is a fedora object that represents a derivation of the subject.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#fedoraRelationship"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="isDependentOf">
+		<rdfs:label xml:lang="en-US">Is Dependent Of</rdfs:label>
+		<rdfs:comment xml:lang="en-US">A definition of a generic dependency relationship between fedora objects.  The subject is a fedora object that represents a dependent and the predicate is another fedora object that is depended upon by the subject.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#fedoraRelationship"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="hasDependent">
+		<rdfs:label xml:lang="en-US">Has Dependent</rdfs:label>
+		<rdfs:comment xml:lang="en-US">A definition of a generic dependency relationship between fedora objects.  The subject is a fedora object that is depended upon and the predicate is a fedora object that represents a dependent of the subject.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#fedoraRelationship"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="isDescriptionOf">
+		<rdfs:label xml:lang="en-US">Is Description Of</rdfs:label>
+		<rdfs:comment>A generic descriptive relationship between fedora objects.  The subject is a fedora object that represents a descriptive entity and the predicate is a fedora object that is being described in some manner by the subject.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#fedoraRelationship"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="HasDescription">
+		<rdfs:label xml:lang="en-US">Has Description</rdfs:label>
+		<rdfs:comment>A generic descriptive relationship between fedora objects.  The subject is a fedora object that is being described in some manner and the predicate is a fedora object that represents a descriptive entity that is about the subject. </rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#fedoraRelationship"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="isMetadataFor">
+		<rdfs:label xml:lang="en-US">Is Metadata For</rdfs:label>
+		<rdfs:comment>A refinement of the generic descriptive relationship indicating a metadata relationship between fedora objects.  The subject is a fedora object that represents metadata and the predicate is a fedora object for which the subject serves as metadata.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#isDescriptionOf"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="HasMetadata">
+		<rdfs:label xml:lang="en-US">Has Metadata</rdfs:label>
+		<rdfs:comment>A refinement of the generic descriptive relationship indicating a metadata relationship between fedora objects.  The subject is a fedora object and the predicate is a fedora object that represents metadata about the subject. </rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#hasDescription"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="isAnnotationOf">
+		<rdfs:label xml:lang="en-US">Is Annotation Of</rdfs:label>
+		<rdfs:comment>A refinement of the generic descriptive relationship indicating a commentary relationship between fedora objects.  The subject is a fedora object that represents an annotation or comment and the predicate is a fedora object that is being commented upon by the subject.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#isDescriptionOf"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="HasAnnotation">
+		<rdfs:label xml:lang="en-US">Has Annotation</rdfs:label>
+		<rdfs:comment>A refinement of the generic descriptive relationship indicating a commentary relationship between fedora objects.  The subject is a fedora object that is being commented on and the predicate is a fedora object that represents an annotation or comment about the subject. </rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#hasDescription"/>
+	</rdf:Property>
+	<rdf:Property rdf:ID="hasEquivalent">
+		<rdfs:label xml:lang="en-US">Has Equivalent</rdfs:label>
+		<rdfs:comment xml:lang="en-US">A definition of a generic equivalence relationship between fedora objects.  The subject is a fedora object that is equivalent to the predicate which is another fedora objects.</rdfs:comment>
+		<rdfs:subPropertyOf rdf:resource="#fedoraRelationship"/>
+	</rdf:Property>
+</rdf:RDF>
