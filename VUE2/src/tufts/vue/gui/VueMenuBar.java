@@ -27,7 +27,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.18 $ / $Date: 2006-11-30 16:47:22 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2007-03-08 14:01:46 $ / $Author: dan $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -80,6 +80,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         JMenu arrangeMenu = new VueMenu("Arrange");
         JMenu windowMenu = null;
         JMenu alignMenu = new VueMenu("Arrange/Align");
+        JMenu toolsMenu = new VueMenu("Tools");
         //JMenu optionsMenu = menuBar.add(new VueMenu("Options"))l
         JMenu helpMenu = add(new VueMenu("Help"));
 
@@ -89,12 +90,6 @@ public class VueMenuBar extends javax.swing.JMenuBar
         OpenAction openAction = new OpenAction("Open...");
         ExitAction exitAction = new ExitAction("Quit");
         Publish publishAction = new Publish("Export");
-        JMenu compareAction = new VueMenu("Connectivity Analysis");
-       //Connectivity Acions
-        CreateCM createCMAction = new CreateCM("Create");
-        AnalyzeCM analyzeCMAction = new AnalyzeCM("Analyze");
-        compareAction.add(createCMAction);
-        compareAction.add(analyzeCMAction);   
         
         // Actions added by the power team
         PrintAction printAction = PrintAction.getPrintAction();
@@ -155,7 +150,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.add(printAction);
         fileMenu.add(printAction).setText("Print Visible...");
         fileMenu.add(publishAction);
-        fileMenu.add(compareAction);
+        //fileMenu.add(compareAction);
         
         rebuildRecentlyOpenedItems(fileMenu, recentlyOpenedMenu, rofm);
       
@@ -248,6 +243,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
         }
         
         //optionsMenu.add(new UserDataAction());
+        JMenu compareAction = new VueMenu("Connectivity Analysis");
+        //Connectivity Actions
+        CreateCM createCMAction = new CreateCM("Create");
+        AnalyzeCM analyzeCMAction = new AnalyzeCM("Analyze");
+        compareAction.add(createCMAction);
+        compareAction.add(analyzeCMAction);   
+        toolsMenu.add(compareAction);
 
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.vueWebsite.label"), VueResources.getString("helpMenu.vueWebsite.url")));
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.userGuide.label"), VueResources.getString("helpMenu.userGuide.url")));
@@ -273,6 +275,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         add(arrangeMenu);
         if (windowMenu != null)
             add(windowMenu);
+        add(toolsMenu);
         add(helpMenu);
             
         if (RootMenuBar == null)
