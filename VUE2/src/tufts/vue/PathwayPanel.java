@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.68 $ / $Date: 2007-03-07 18:01:10 $ / $Author: mike $
+ * @version $Revision: 1.69 $ / $Date: 2007-03-08 16:49:34 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -62,8 +62,6 @@ public class PathwayPanel extends JPanel
     private VueButton btnMasterSlide = new VueButton("presentationDialog.button.masterSlide",this);
     
     ///NOT YET IMPLEMENTED
-    private VueButton btnAnnotatePresentation = new VueButton("presentationDialog.button.annotate");        
-    private VueButton btnAnnotateSlide = new VueButton("presentationDialog.button.annotate");                
     private VueButton btnPlayMaps = new VueButton("presentationDialog.button.playMap");
     private VueButton btnPlaySlides = new VueButton("presentationDialog.button.playSlides");    
     private VueButton btnMergeInto = new VueButton("presentationDialog.button.mergeInto");
@@ -99,8 +97,8 @@ public class PathwayPanel extends JPanel
     public PathwayPanel(Frame parent) 
     {   
     	//DISABLE THE NOTES BUTTONS FOR NOW UNTIL WE FIGURE OUT WHAT THEY DO -MK
-    	btnAnnotateSlide.setEnabled(false);
-    	btnAnnotatePresentation.setEnabled(false);
+    //	btnAnnotateSlide.setEnabled(false);
+    //	btnAnnotatePresentation.setEnabled(false);
     	btnMergeInto.setEnabled(false);
     	btnPlayMaps.setEnabled(false);
     	btnPlaySlides.setEnabled(false);
@@ -387,9 +385,6 @@ public class PathwayPanel extends JPanel
         slidePanel.add(Box.createHorizontalStrut(6));
         slidePanel.add(btnDisplayAsMap);
         slidePanel.add(Box.createHorizontalStrut(6));
-        slidePanel.add(p1);
-        slidePanel.add(btnAnnotateSlide);        
-        slidePanel.add(Box.createHorizontalStrut(6));
         slidePanel.add(p2);
         slidePanel.add(btnPreview);
         slidePanel.add(Box.createHorizontalStrut(6));                        
@@ -420,8 +415,6 @@ public class PathwayPanel extends JPanel
         presentationPanel.add(btnPresentationDelete);
         presentationPanel.add(Box.createHorizontalStrut(6));
         presentationPanel.add(p);
-        presentationPanel.add(Box.createHorizontalStrut(6));
-        presentationPanel.add(btnAnnotatePresentation);
         presentationPanel.add(Box.createHorizontalStrut(6));
         presentationPanel.add(btnLockPresentation);
         presentationPanel.add(Box.createHorizontalStrut(6));
