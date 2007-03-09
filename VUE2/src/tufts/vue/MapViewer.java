@@ -24,6 +24,7 @@ import tufts.vue.gui.GUI;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.FocusManager;
 import tufts.vue.gui.MapScrollPane;
+import tufts.vue.gui.TimedASComponent;
 
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.305 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $ 
+ * @version $Revision: 1.306 $ / $Date: 2007-03-09 18:13:55 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -74,7 +75,7 @@ import osid.dr.*;
 // Todo: this class needs alot of refactoring / breaking up into more methods
 // It's a mess.
 
-public class MapViewer extends javax.swing.JComponent
+public class MapViewer extends TimedASComponent//javax.swing.JComponent
     implements VueConstants
                , FocusListener
                , LWComponent.Listener
