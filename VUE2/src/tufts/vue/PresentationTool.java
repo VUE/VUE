@@ -30,6 +30,7 @@ import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Dimension;
+import java.awt.geom.Point2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.event.*;
 import javax.swing.*;
@@ -442,7 +443,6 @@ public class PresentationTool extends VueTool
         if (mZoomToPage == false)
             return;
 
-        out("zoomToPage " + page);
         //tufts.Util.printStackTrace("zoomToPage");
         
         int margin = 0;
@@ -451,8 +451,11 @@ public class PresentationTool extends VueTool
 //         else margin = 8; // turn this off soon
         //else margin = 32; // turn this off soon
 
-        if (page instanceof LWGroup && !(page instanceof LWSlide))
-            margin = 32;
+        //if (page instanceof LWGroup && !(page instanceof LWSlide))
+        if (page instanceof LWSlide == false)
+            margin = (int) (tufts.vue.gui.GUI.GScreenHeight * 0.05);
+
+        out("zoomToPage " + page + " margin=" + margin);
         
         if (page != null)
             ZoomTool.setZoomFitRegion(VUE.getActiveViewer(), page.getBounds(), margin, animate);
@@ -516,13 +519,46 @@ public class PresentationTool extends VueTool
 
         dc.g.setColor(master.getFillColor());
         dc.g.fill(dc.g.getClipBounds());
-        dc.g.setClip(master.getBounds());
-        master.draw(dc);
-        dc.g.setClip(curClip);
+        //if (focal.getX() != 0 || focal.getY() != 0) {
+        if (focal instanceof LWSlide) {
+            // slides are always at 0,0, and the exact same size (thus zoom) as the master
+            // slide, so we can just draw the master slide w/out further ado
+            dc.g.setClip(master.getBounds());
+            master.draw(dc);
 
-        out("drawing focal " + focal);
+            // Now just draw the slide
+            dc.g.setClip(curClip);
+            focal.draw(dc);
+
+            
+        } else {
+
+            Point2D.Float offset = new Point2D.Float();
+            double masterZoom = ZoomTool.computeZoomFit(viewer.getVisibleSize(),
+                                                        0,
+                                                        master.getShapeBounds(), // don't include border
+                                                        offset,
+                                                        true);
+            
+            out("master slide compensated to zoom " + masterZoom + " at " + offset);
+
+            dc.setRawDrawing();
+
+            dc.g.translate(-offset.x, -offset.y);
+            dc.g.scale(masterZoom, masterZoom);
+            master.draw(dc);
+            dc.g.scale(1/masterZoom, 1/masterZoom);
+            dc.g.translate(offset.x, offset.y);
+
+            dc.setMapDrawing();
+
+            dc.g.setClip(curClip);
+            drawFocal(dc, viewer, focal);
+        }
         
-        focal.draw(dc); // will not work if is map-view
+
+        //out("drawing focal " + focal);
+        //focal.draw(dc); // will not work if is map-view
         out("-------------------------------------------------------");
     }
     
@@ -532,15 +568,15 @@ public class PresentationTool extends VueTool
 
     protected void drawFocal(final DrawContext dc, MapViewer viewer, final LWComponent focal)
     {
-        out("drawing focal " + focal);
-        /*
+        final LWMap underlyingMap = focal.getMap();
+        
+        out("drawing focal " + focal + " in map " + underlyingMap);
 
-        dc.g.setColor(mFocal.getMap().getFillColor());
-        dc.g.fill(dc.g.getClipBounds());
+        //dc.g.setColor(mFocal.getMap().getFillColor());
+        //dc.g.fill(dc.g.getClipBounds());
         
-        final LWMap underlyingMap = mFocal.getMap();
-        
-        if (mFocal.isTranslucent() && mFocal != underlyingMap) {
+        if (focal.isTranslucent() && focal != underlyingMap && focal instanceof LWGroup == false) { // groups not meant to operate transparently
+            out("drawing clipped focal " + focal.getShape());
 
             //out("drawing underlying map " + underlyingMap);
 
@@ -550,14 +586,14 @@ public class PresentationTool extends VueTool
             // the shape of the focal.
             
             final Shape curClip = dc.g.getClip();
-            dc.g.setClip(mFocal.getShape());
+            dc.g.setClip(focal.getShape());
             underlyingMap.draw(dc);
             dc.g.setClip(curClip);
             
         } else {
-            mFocal.draw(dc);
+            out("drawing raw focal");
+            focal.draw(dc);
         }
-        */
     }
     
     /** Draw a ghosted panner */
