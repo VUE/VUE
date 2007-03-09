@@ -41,7 +41,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.211 $ / $Date: 2007-03-07 20:20:46 $ / $Author: sfraize $
+ * @version $Revision: 1.212 $ / $Date: 2007-03-09 22:50:57 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -488,7 +488,7 @@ public class LWComponent
         boolean setValueFromCSS(TSubclass c, String cssKey, String cssValue) {
             final Property slot = getSlot(c);
             if (slot == Key.NO_SLOT_PROVIDED) {
-                c.out("Can't apply CSS Style property to non-slotted key: " + cssName + " -> " + this);
+                c.out("Can't auto-apply CSS Style property to non-slotted key: " + cssName + " -> " + this);
                 return false;
             }
             try {
@@ -3371,14 +3371,10 @@ public class LWComponent
         */
 
         // for debug: ensure basic LW types created first
-        /*
-        
-        new NodeTool(); // make sure this is loaded
         
         new LWNode();
         new LWLink();
         new LWImage();
-        */
 
         //NodeTool.getTool();
 
