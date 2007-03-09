@@ -242,6 +242,10 @@ public abstract class Style {
         }
         return 0;
     }
+
+    public String toString() {
+        return attributes == null ? "null" : attributes.toString();
+    }
     
 }
 
