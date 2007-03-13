@@ -98,6 +98,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     private JPanel vizPanel;
     private JLabel vizLabel;
     private JComboBox vizChoice;
+    private JCheckBox filterChoice;
     private JPanel votePanel;
     private WeightVisualizationSettingsPanel weightPanel;
     private JSlider nodeThresholdSlider;
@@ -427,6 +428,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         vizLabel = new JLabel("Select a visualization mode:");
         String[] vizChoices = {"Vote","Weight"};
         vizChoice = new JComboBox(vizChoices);
+        filterChoice = new JCheckBox("Filter on Base Map?");
         //$
           vizConstraints.fill = GridBagConstraints.BOTH;
           vizConstraints.anchor = GridBagConstraints.EAST;
@@ -441,6 +443,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         vizConstraints.gridwidth = GridBagConstraints.REMAINDER;
         vizLayout.setConstraints(vizChoice,vizConstraints);
         vizPanel.add(vizChoice);
+        vizLayout.setConstraints(filterChoice,vizConstraints);
+        vizPanel.add(filterChoice);
         int b = TAB_BORDER_SIZE;
         vizPanel.setBorder(BorderFactory.createEmptyBorder(b,b,b,b));
         
@@ -838,6 +842,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             map.setMapListSelectionType(sp.getMapListSelectionType());
             
             //todo: send all maps not just the active ones.
+            // this is for file based selection.
             sp.fillMapList();
             //System.out.println("mmc: " + sp.getMapList().size());
             map.setMapList(sp.getMapList());
@@ -852,7 +857,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             //be saved with the merge map or has already been loaded through
             //GUI
             //map.setBaseMap(baseMap);
-            //actually set base map below...
+            
             
             //set visualization settings
             map.setVisualizationSelectionType(vizChoice.getSelectedIndex());
@@ -893,18 +898,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                Object baseMapObject = baseChoice.getSelectedItem();
                if(baseMapObject instanceof LWMap)
                  baseMap = (LWMap)baseMapObject;
-               //if(choice.getSelectedItem().equals(ALL_TEXT))
-               //{
-               //Iterator <LWMap> i = VUE.getLeftTabbedPane().getAllMaps();
-               //while(i.hasNext())
-               //{
-               // mapList.add(i.next());
-               //}
                
-               //sp.fillMapList();
-               mapList = map.getMapList();//= sp.getMapList();
-               //need to get from sp
-               //map.setSelectChoice("all");
+               //$
+                 //mapList = map.getMapList();//= sp.getMapList();
+               //$
                
                map.setBaseMap(baseMap);
                
@@ -937,11 +934,70 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         return 0;
     }
     
+    
+    public void addMergeNodesForMap(LWMergeMap mergeMap,LWMap map,WeightAggregate weightAggregate,List<Style> styles)
+    {
+           Iterator children = map.getNodeIterator();    
+           while(children.hasNext()) {
+             LWNode comp = (LWNode)children.next();
+             boolean repeat = false;
+             //if(map.findByID(comp.getChildList(),Util.getMergeProperty(comp)) != null)
+             if(mergeMap.nodeAlreadyPresent(comp))
+             {
+               repeat = true;
+             }
+             LWNode node = (LWNode)comp.duplicate();
+             //System.out.println("Weighted Merge Demo: counts : " + node.getRawLabel() + ":" + weightAggregate.getNodeCount(node.getRawLabel()) + " " + weightAggregate.getCount());
+             double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(node))/weightAggregate.getCount();
+             if(score>100)
+             {
+               score = 100;
+             }
+             if(score<0)
+             {
+               score = 0;
+             }
+             //System.out.println("mmc: score: " + score);
+             //System.out.println("mmc: getInterval(score): " + getInterval(score));
+             Style currStyle = styles.get(getInterval(score)-1);
+             //System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
+             node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
+             if(!repeat)
+             {    
+               mergeMap.addNode(node);
+             }
+             //map.addNode(node);
+           }
+    }
+    
+    public void addMergeNodesForMap(LWMergeMap mergeMap,LWMap map,VoteAggregate voteAggregate)
+    {
+           Iterator children = map.getNodeIterator();    
+           while(children.hasNext()) {
+             LWNode comp = (LWNode)children.next();
+             boolean repeat = false;
+             //if(map.findByID(comp.getChildList(),Util.getMergeProperty(comp)) != null)
+             if(mergeMap.nodeAlreadyPresent(comp))
+             {
+               repeat = true;
+             }
+             
+             if(voteAggregate.isNodeVoteAboveThreshold(Util.getMergeProperty(comp)) ){
+                   LWNode node = (LWNode)comp.duplicate();
+                   if(!repeat)
+                   {
+                     mergeMap.addNode(node);
+                   }
+             }         
+             
+           }
+    }
+    
     public void createWeightedMerge(LWMergeMap map)
     {
         
-        System.out.println("mmc: createWeightedMerge mapList size: " + mapList.size() );
-        System.out.println("mmc: createWeightedMerge LWMerge Map mapList size: " + map.getMapList().size() );
+        //System.out.println("mmc: createWeightedMerge mapList size: " + mapList.size() );
+        //System.out.println("mmc: createWeightedMerge LWMerge Map mapList size: " + map.getMapList().size() );
         
         ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
         Iterator<LWMap> i = map.getMapList().iterator();
@@ -950,12 +1006,12 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
           cms.add(new ConnectivityMatrix(i.next()));
         }
         
-        ArrayList<Style> styles = new ArrayList<Style>();
+        ArrayList<Style> nodeStyles = new ArrayList<Style>();
         ArrayList<Style> linkStyles = new ArrayList<Style>();
         
         for(int si=0;si<5;si++)
         {
-            styles.add(StyleMap.getStyle("node.w" + (si +1)));
+            nodeStyles.add(StyleMap.getStyle("node.w" + (si +1)));
         }
         
         for(int lsi=0;lsi<5;lsi++)
@@ -966,8 +1022,23 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         //System.out.println("mmc: create weight aggregate");
         WeightAggregate weightAggregate = new WeightAggregate(cms);
         
+        addMergeNodesForMap(map,baseMap,weightAggregate,nodeStyles);
+        
+        if(!filterChoice.isSelected())
+        {
+          Iterator<LWMap> maps = map.getMapList().iterator();
+          while(maps.hasNext())
+          {
+            LWMap m = maps.next();
+            if(m!=baseMap)
+            {
+                addMergeNodesForMap(map,m,weightAggregate,nodeStyles);
+            }
+          }
+        }
+        
         //compute and create nodes in Merge Map, apply just background style for now
-        Iterator children = baseMap.getNodeIterator();
+        /* Iterator children = baseMap.getNodeIterator();
         while(children.hasNext()) {
            LWNode comp = (LWNode)children.next();
            LWNode node = (LWNode)comp.duplicate();
@@ -987,7 +1058,9 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
            //System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
            node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
            map.addNode(node);
-        }
+        }*/
+        
+        
         
         //compute and create links in Merge Map
         Iterator children1 = map.getNodeIterator();
@@ -1029,6 +1102,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     public void createVoteMerge(LWMergeMap map)
     {
         ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
+        
+        // why not map.getMapList()? is something wrong here?...
         Iterator<LWMap> i = /*map.getMapList()*/mapList.iterator();
         while(i.hasNext())
         {
@@ -1038,15 +1113,34 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         voteAggregate.setNodeThreshold((double)(nodeThresholdSlider.getValue()/100.0));
         voteAggregate.setLinkThreshold((double)(linkThresholdSlider.getValue()/100.0));
         
+        
+        //*** change to be same as for weight merge ***
+        
         //compute and create nodes in Merge Map
-        Iterator children = baseMap.getNodeIterator();
+        
+        addMergeNodesForMap(map,baseMap,voteAggregate);
+        
+        if(!filterChoice.isSelected())
+        {
+          Iterator<LWMap> maps = map.getMapList().iterator();
+          while(maps.hasNext())
+          {
+            LWMap m = maps.next();
+            if(m!=baseMap)
+            {
+                addMergeNodesForMap(map,m,voteAggregate);
+            }
+          }
+        }
+        
+        /*Iterator children = baseMap.getNodeIterator();
         while(children.hasNext()) {
            LWComponent comp = (LWComponent)children.next();
            if(voteAggregate.isNodeVoteAboveThreshold(Util.getMergeProperty(comp)) ){
                    LWNode node = (LWNode)comp.duplicate();
                    map.addNode(node);
            }
-        }
+        }*/
         
         //compute and create links in Merge Map
         Iterator children1 = map.getNodeIterator();

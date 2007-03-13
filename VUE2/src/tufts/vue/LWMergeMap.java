@@ -385,5 +385,20 @@ public class LWMergeMap extends LWMap {
         getUndoManager().flush();
 
     }
+    
+    
+    public boolean nodeAlreadyPresent(LWNode node)
+    {
+        Iterator<LWComponent> i = getChildList().iterator();
+        while(i.hasNext())
+        {
+            LWComponent c = i.next();
+            if(Util.getMergeProperty(node).equals(Util.getMergeProperty(c)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
         
 }
