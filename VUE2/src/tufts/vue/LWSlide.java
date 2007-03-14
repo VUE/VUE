@@ -24,12 +24,12 @@ import java.awt.geom.*;
 
 /**
  *
- * Sublcass (for now) of LWGroup for slide features.
+ * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.9 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2007-03-14 17:22:58 $ / $Author: sfraize $
  */
-public class LWSlide extends LWGroup
+public class LWSlide extends LWContainer
 {
     protected static final int SlideWidth = 800;
     protected static final int SlideHeight = 600;
@@ -168,6 +168,16 @@ public class LWSlide extends LWGroup
         
     }
 
+    protected void addChildImpl(LWComponent c)
+    {
+        super.addChildImpl(c);
+        c.setParentStyle(getMasterSlide().textStyle);
+    }
+
+    private LWPathway.MasterSlide getMasterSlide() {
+        return ((LWPathway)getParent()).getMasterSlide();
+    }
+
 
     /*
     void createForNode(LWComponent node) {
@@ -221,14 +231,6 @@ public class LWSlide extends LWGroup
         notify(LWKey.Scale);
     }
 
-    public boolean intersects(Rectangle2D rect) {
-        return rect.intersects(getBounds());
-    }
-
-    public boolean supportsUserResize() {
-        return true;
-    }
-    
     /* groups were transparent -- restore use of fill color: undo group override */
     /*
     public java.awt.Color getFillColor()
@@ -239,10 +241,37 @@ public class LWSlide extends LWGroup
     }
     */
 
+    public boolean intersects(Rectangle2D rect) {
+        return rect.intersects(getBounds());
+    }
+
+    public boolean contains(float x, float y)
+    {
+        boolean hit = super.contains(x, y);
+        if (DEBUG.PRESENT) out("CONTAINS " + x + "," + y + " = " + hit);
+        return hit;
+    }
+    
+    protected LWComponent pickChild(PickContext pc, LWComponent c) {
+        if (DEBUG.PRESENT) out("PICKING CHILD: " + c);
+        return c;
+    }
+
     /** @return the slide */
     protected LWComponent defaultPick(PickContext pc) {
+        if (DEBUG.PRESENT) out("DEFAULT PICK: THIS");
         return this;
+//         LWComponent dp = (pc.dropping == null ? null : this);
+//         out("DEFAULT PICK: " + dp);
+//         return dp;
     }
+
+    protected LWComponent defaultDropTarget(PickContext pc) {
+        LWComponent c = super.defaultDropTarget(pc);
+        if (DEBUG.PRESENT) out("DEFAULT DROP TARGET: " + c);
+        return c;
+    }
+    
 }
     
     
