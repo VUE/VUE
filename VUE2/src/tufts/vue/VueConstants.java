@@ -29,7 +29,7 @@ import java.awt.font.FontRenderContext;
  *
  * Is an interface so can be "implemented" as virtual java 1.5 static import.
  *
- * @version $Revision: 1.46 $ / $Date: 2006-10-18 17:56:33 $ / $Author: sfraize $ 
+ * @version $Revision: 1.47 $ / $Date: 2007-03-14 17:41:29 $ / $Author: sfraize $ 
  */
 
 // todo: rename GUI constants & move to GUI
@@ -112,6 +112,8 @@ public interface VueConstants
     static java.awt.BasicStroke STROKE_HALF = new java.awt.BasicStroke(0.5f);
     static java.awt.BasicStroke STROKE_ONE = new java.awt.BasicStroke(1f);
     static java.awt.BasicStroke STROKE_TWO = new java.awt.BasicStroke(2f);
+    static java.awt.BasicStroke STROKE_FIVE = new java.awt.BasicStroke(5f);
+    static java.awt.BasicStroke STROKE_SEVEN = new java.awt.BasicStroke(7f);
     static java.awt.BasicStroke STROKE_INDICATION = new java.awt.BasicStroke(3f);
     static java.awt.BasicStroke STROKE_DEFAULT = STROKE_ONE;
     static java.awt.BasicStroke STROKE_SELECTION = new java.awt.BasicStroke(1f);
