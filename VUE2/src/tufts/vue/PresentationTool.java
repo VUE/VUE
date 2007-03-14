@@ -485,6 +485,7 @@ public class PresentationTool extends VueTool
         // be nice to find a way around it.
 
         dc.setInteractive(false);
+        dc.setPresenting(true);
         dc.isFocused = true;
 
         if (mEntry != null && !mEntry.isPathway())
