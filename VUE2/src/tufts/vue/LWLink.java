@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.112 $ / $Date: 2007-03-14 17:20:01 $ / $Author: sfraize $
+ * @version $Revision: 1.113 $ / $Date: 2007-03-14 21:01:25 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -322,8 +322,10 @@ public class LWLink extends LWComponent
         controlPoints[CEndPoint1].setColor(null); // no fill (transparent)
         controlPoints[CEndPoint2].setColor(null);
 
-        controlPoints[CPrune1] = new LWSelection.ControlPoint(centerX-10, centerY, COLOR_SELECTION);
-        controlPoints[CPrune2] = new LWSelection.ControlPoint(centerX+10, centerY, COLOR_SELECTION);
+        //controlPoints[CPrune1] = new LWSelection.ControlPoint(centerX-10, centerY, Color.red);
+        //controlPoints[CPrune2] = new LWSelection.ControlPoint(centerX+10, centerY, Color.red);
+        controlPoints[CPrune1] = null;
+        controlPoints[CPrune2] = null;
             
         if (this.ep1 == null) controlPoints[CEndPoint1].setColor(COLOR_SELECTION_HANDLE);
         if (this.ep2 == null) controlPoints[CEndPoint2].setColor(COLOR_SELECTION_HANDLE);
@@ -1492,7 +1494,7 @@ public class LWLink extends LWComponent
         
         boolean ep1group = getComponent1() instanceof LWGroup;
         boolean ep2group = getComponent2() instanceof LWGroup;
-        if ((ep1group || ep2group) && dc.isInteractive() || DEBUG.BOXES) {
+        if (DEBUG.BOXES && ((ep1group || ep2group) && dc.isInteractive() || DEBUG.BOXES)) {
             float size = 8;
             if (dc.zoom < 1)
                 size /= dc.zoom;
