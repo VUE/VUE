@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.115 $ / $Date: 2007-03-14 22:42:26 $ / $Author: sfraize $
+ * @version $Revision: 1.116 $ / $Date: 2007-03-14 23:09:53 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -52,21 +52,40 @@ public class LWLink extends LWComponent
     public final static Font DEFAULT_FONT = VueResources.getFont("link.font");
     public final static Color DEFAULT_LABEL_COLOR = java.awt.Color.darkGray;
     
-    //private static final Color ContrastFillColor = new Color(255,255,255,224);
-    //private static final Color ContrastFillColor = new Color(255,255,255);
-    // transparency fill is actually just distracting
+    /** neither endpoint has arrow */   public static final int ARROW_NONE = 0;
+    /** head has an arrow */            public static final int ARROW_HEAD = 0x1;
+    /** tail has an arrow */            public static final int ARROW_TAIL = 0x2;
+    /** both endpoints have arrows */   public static final int ARROW_BOTH = ARROW_HEAD + ARROW_TAIL;
     
+    /** @deprecated -- use ARROW_HEAD */ public static final int ARROW_EP1 = ARROW_HEAD;
+    /** @deprecated -- use ARROW_TAIL */ public static final int ARROW_EP2 = ARROW_TAIL;
+    
+    // todo: create set of arrow types
+    private final static float ArrowBase = 5;
+    private final static RectangularShape HeadShape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
+    private final static RectangularShape TailShape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
+
+    // member variables:
+
     private LWComponent head;
     private LWComponent tail;
+    /** used when link is straight */
     private Line2D.Float line = new Line2D.Float();
+    /** used when link is a quadradic curve (1 control point) */
     private QuadCurve2D.Float quadCurve = null;
+    /** used when link is a cubic curve (2 control points) */
     private CubicCurve2D.Float cubicCurve = null;
+    /** convenience alias for current curve */
     private Shape curve = null;
     private float mCurveCenterX;
     private float mCurveCenterY;
-    private java.util.List<Point2D.Float> mPoints; // point on a flattened-into-segments version of the curve
+    /** points on a flattened-into-segments version of the curve for hit detection */
+    private java.util.List<Point2D.Float> mPoints;
+    /** the current total length of the line / curve (estimated by segments for curves) */
+    private double mLength; 
 
-    private int curveControls = 0; // 0=straight, 1=quad curved, 2=cubic curved
+    /** number of curve control points in use: 0=straight, 1=quad curved, 2=cubic curved */
+    private int curveControls = 0; 
     
     private float centerX;
     private float centerY;
@@ -74,29 +93,11 @@ public class LWLink extends LWComponent
     private float headY;
     private float tailX;
     private float tailY;
-    private double mLength;
     
     private boolean ordered = false; // not doing anything with this yet
     
-    // todo: create set of arrow types
-    private final static float ArrowBase = 5;
-    private final static RectangularShape HeadShape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
-    private final static RectangularShape TailShape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
+    private transient boolean endpointMoved = true; // has an endpoint moved since we last computed shape?
 
-    private boolean endpointMoved = true; // has an endpoint moved since we last compute shape?
-
-    /** neither endpoint has arrow */
-    public static final int ARROW_NONE = 0;
-    /** endpoint 1 has arrow */
-    public static final int ARROW_HEAD = 0x1;
-    /** endpoint 2 has arrow */
-    public static final int ARROW_TAIL = 0x2;
-    /** both endpoints have arrows */
-    public static final int ARROW_BOTH = ARROW_HEAD + ARROW_TAIL;
-    
-    /** @deprecated -- use ARROW_HEAD */ public static final int ARROW_EP1 = ARROW_HEAD;
-    /** @deprecated -- use ARROW_TAIL */ public static final int ARROW_EP2 = ARROW_TAIL;
-    
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
                          11, 9,
@@ -212,6 +213,15 @@ public class LWLink extends LWComponent
     public boolean handleDoubleClick(MapMouseEvent e)
     {
         return mIconBlock.handleDoubleClick(e);
+    }
+
+    /** @return the component connected at the head end, or null if none */
+    public LWComponent getHead() {
+        return head;
+    }
+    /** @return the component connected at the tail end, or null if none */
+    public LWComponent getTail() {
+        return tail;
     }
 
     public void setHeadPoint(float x, float y) {
@@ -769,16 +779,8 @@ public class LWLink extends LWComponent
         return x >= sx && x <= ex && y >= sy && y <= ey;
     }
     
-    public LWComponent getHead() { return head; }
-    public LWComponent getTail() { return tail; }
-    /** @deprecated */
-    public LWComponent getComponent1() { return getHead(); }
-    /** @deprecated */
-    public LWComponent getComponent2() { return getTail(); }
-
     void disconnectFrom(LWComponent c)
     {
-        boolean changed = false;
         if (head == c)
             setHead(null);
         else if (tail == c)
@@ -1477,6 +1479,10 @@ public class LWLink extends LWComponent
     }
 
 
+    //private static final Color ContrastFillColor = new Color(255,255,255,224);
+    //private static final Color ContrastFillColor = new Color(255,255,255);
+    // transparency fill is actually just distracting
+    
     private void drawLinkDecorations(DrawContext dc)
     {
         //-------------------------------------------------------
@@ -1865,6 +1871,8 @@ public class LWLink extends LWComponent
         return s;
     }
 
+    /** @deprecated -- use getHead */ public LWComponent getComponent1() { return getHead(); }
+    /** @deprecated -- use getTail */ public LWComponent getComponent2() { return getTail(); }
     /** @deprecated -- use setHeadPoint */ public void setStartPoint(float x, float y) { setHeadPoint(x, y); }
     /** @deprecated -- use setTailPoint */ public void setEndPoint(float x, float y) { setTailPoint(x, y); }
     /** @deprecated -- use getHeadPoint */ public Point2D getPoint1() { return getHeadPoint(); }
