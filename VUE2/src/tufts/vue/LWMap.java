@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.112 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
+ * @version $Revision: 1.113 $ / $Date: 2007-03-14 17:20:12 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -592,20 +592,6 @@ public class LWMap extends LWContainer
         return this.userZoom;
     }
     
-    /*
-    public LWComponent findLWComponentAt(float mapX, float mapY)
-    {
-        LWComponent c = super.findLWComponentAt(mapX, mapY);
-        return c == this ? null : c;
-    }
-     
-    public LWComponent findDeepestComponentAt(float mapX, float mapY, LWComponent excluded)
-    {
-        LWComponent c = super.findDeepestComponentAt(mapX, mapY, excluded);
-        return c == this ? null : c;
-    }
-     */
-
     public LWMap getMap() {
         return this;
     }
