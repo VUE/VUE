@@ -159,7 +159,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             LWComponent c = VUE.getSelection().first();
             // todo: put the selection in the ControlListener interface: don't look it up here.
             if (c.supportsUserResize())
-                dragReshape(i, c, mNewDraggedBounds);
+                dragReshape(i, c, mNewDraggedBounds, e);
         } else {
             final double scaleX = mNewDraggedBounds.width / mOriginalGroup_bounds.width;
             final double scaleY = mNewDraggedBounds.height / mOriginalGroup_bounds.height;
@@ -178,7 +178,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
      * @param c - the component to reshape
      * @param request - the new requested bounds
      */
-    private void dragReshape(final int controlPoint, final LWComponent c, final Rectangle2D.Float request)
+    private void dragReshape(final int controlPoint, final LWComponent c, final Rectangle2D.Float request, MapMouseEvent e)
     {
         final boolean lockedLocation = c.getParent() instanceof LWNode; // todo: have a locked flag
 
@@ -187,16 +187,16 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
 
         if (lockedLocation || isSizeOnlyCtrl(controlPoint)) {
             
-            c.userSetSize(requestWidth, requestHeight);
+            c.userSetSize(requestWidth, requestHeight, e);
             
         } else {
 
                 
-            if (c instanceof LWImage) {
-                // hack for LWImage's which handle this specially
-                c.userSetFrame(request.x, request.y, request.width, request.height);
-                return;
-            }
+//             if (c instanceof LWImage) {
+//                 // hack for LWImage's which handle this specially
+//                 c.userSetFrame(request.x, request.y, request.width, request.height, e);
+//                 return;
+//             }
 
             // an origin control point is any control point that might
             // change the location
@@ -212,7 +212,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             // that's not working at the moment for floating text
             // layout's.
                     
-            c.userSetSize(requestWidth, requestHeight);
+            c.userSetSize(requestWidth, requestHeight, e);
 
             final float newWidth = c.getWidth();
             final float newHeight = c.getHeight();
