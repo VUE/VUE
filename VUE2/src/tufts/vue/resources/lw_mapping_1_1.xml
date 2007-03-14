@@ -173,7 +173,7 @@
 	<class name="tufts.vue.LWGroup" extends="tufts.vue.LWContainer">
 		<map-to xml="group"/>
 	</class>
-	<class name="tufts.vue.LWSlide" extends="tufts.vue.LWGroup">
+	<class name="tufts.vue.LWSlide" extends="tufts.vue.LWContainer">
 		<map-to xml="slide"/>
 		<!-- field name="layer"><bind-xml name="layer" node="element"/></field> -->
 	</class>
