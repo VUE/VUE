@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.97 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
+ * @version $Revision: 1.98 $ / $Date: 2007-03-14 17:18:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -236,7 +236,7 @@ public abstract class LWContainer extends LWComponent
     {
         notify(LWKey.HierarchyChanging);
         
-        ArrayList addedChildren = new ArrayList();
+        ArrayList<LWComponent> addedChildren = new ArrayList();
         while (i.hasNext()) {
             LWComponent c = i.next();
             addChildImpl(c);
@@ -244,9 +244,9 @@ public abstract class LWContainer extends LWComponent
         }
 
         // need to do this afterwords so everyone has a parent to check
-        Iterator in = addedChildren.iterator();
+        Iterator<LWComponent> in = addedChildren.iterator();
         while (in.hasNext())
-            ensureLinksPaintOnTopOfAllParents((LWComponent) in.next());
+            ensureLinksPaintOnTopOfAllParents(in.next());
         
         if (addedChildren.size() > 0) {
             notify(LWKey.ChildrenAdded, addedChildren);
@@ -301,6 +301,7 @@ public abstract class LWContainer extends LWComponent
             c.setFont(getFont());
         this.children.add(c);
         c.setParent(this);
+        c.addNotify(this);
         ensureID(c);
     }
 
@@ -562,52 +563,6 @@ public abstract class LWContainer extends LWComponent
     }
     
     /*
-    protected LWSlide buildSlide(LWPathway p) {
-        //LWContainer dupe = (LWContainer) duplicate();
-        //return LWSlide.createFromList(dupe.children);
-        final LWSlide slide = LWSlide.create();
-
-        // This makes the slide a virtual child only: the slide
-        // at least can know it's part of the map, but the map
-        // doesn't know it contains the slide (so it won't
-        // be seen as part of the map for saving, picking,
-        // or drawing, so all those must be done directly
-        // on the slide).
-        slide.setParent(this);
-
-        // make sure it has an ID -- will need for persistance
-        ensureID(slide);
-        
-        slide.setStrokeWidth(0f);
-        slide.setFillColor(null);
-
-        //slide.createForNode(this);
-
-        LWComponent dupeChildren = duplicate(); // just for children: rest of node thrown away
-        java.util.List toLayout = new java.util.ArrayList();
-        LWNode title = NodeTool.buildTextNode(getLabel()); // need to "sync" this...=
-
-        title.setParentStyle(p.getMasterSlide().textStyle);
-
-        toLayout.add(title);
-        toLayout.addAll(dupeChildren.getChildList());
-        slide.importAndLayout(toLayout);
-        
-        
-        //slide.setLocation(getX(), getY() + getHeight() + 20);
-        //slide.setScale(0.125f);
-        //slide.setLocation(Short.MAX_VALUE, Short.MAX_VALUE);
-        //slide.setLocked(true);
-        //slide.setLayer(1); // effective make invisible on the map map
-        //getMap().addChild(slide);
-        return slide;
-    }
-    */
-    
-    
-
-
-    /*
      * Find child at mapX, mapY -- may actually return this component also.
 
     private static ArrayList curvedLinks = new ArrayList();
@@ -657,45 +612,6 @@ public abstract class LWContainer extends LWComponent
         return defaultHitComponent();
     }
 
-    /* Code is mostly duplicated from above here, but subclasses (e.g.,
-     * LWGroup) handle this differently, and we can't reuse
-     * above code due to recursive usage.
-
-
-    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded) {
-        return findDeepestChildAt(mapX, mapY, excluded, false);
-    }
-    public LWComponent findDeepestChildAt(float mapX, float mapY, boolean ignoreSelected) {
-        return findDeepestChildAt(mapX, mapY, null, ignoreSelected);
-    }
-    
-    /**
-     * Find deepest child at mapX, mapY.  May return this component.
-
-
-    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded, boolean ignoreSelected)
-    {
-        if (DEBUG.CONTAINMENT) {
-            System.out.print("LWContainer.findDeepestChildAt[" + toName() + "]");
-            if (excluded  != null)
-                System.out.print("<exclude:" + excluded.toName() + ">");
-            System.out.print(" -> ");
-            if (focusComponent != null) System.out.println("\tfocusComponent=" + focusComponent);
-        }
-
-        LWComponent found = pickDeepestChildAt(mapX, mapY, excluded, ignoreSelected);
-
-        if (DEBUG.CONTAINMENT) {
-            if (found == this)
-                System.out.println("ITSELF");
-            else if (found == null)
-                System.out.println("null");
-            else
-                System.out.println(found.toName());
-        }
-
-        return found;
-    }
     
     // TODO: better to replace with a traversal/visit mechanism
     // and completely remove the focusComponent crap: handle that another way (e.g., like pop-up rollover)
@@ -749,23 +665,6 @@ public abstract class LWContainer extends LWComponent
         return defaultHitComponent();
     }
 
-
-    public LWComponent findDeepestChildAt(float mapX, float mapY)
-    {
-        return findDeepestChildAt(mapX, mapY, null);
-    }
-        
-    public LWComponent findDeepestChildAt(Point2D p)
-    {
-        return findDeepestChildAt((float)p.getX(), (float)p.getY(), null);
-    }
-
-    public LWComponent findChildAt(Point2D p)
-    {
-        return findChildAt((float)p.getX(), (float)p.getY());
-    }
-
-    
     */
 
     protected LWComponent defaultPick(PickContext pc)
@@ -783,43 +682,6 @@ public abstract class LWContainer extends LWComponent
     protected LWComponent pickChild(PickContext pc, LWComponent c) {
         return c;
     }
-    
-
-    
-    //    public LWNode findLWNodeAt(float mapX, float mapY, LWComponent excluded)
-    /*
-    public LWNode findLWNodeAt(float mapX, float mapY)
-    {
-        // hit detection must traverse list in reverse as top-most
-        // components are at end
-        
-        if (children.size() > 0) {
-            java.util.ListIterator i = children.listIterator(children.size());
-            while (i.hasPrevious()) {
-                LWComponent c = (LWComponent) i.previous();
-                if (!c.isDrawn())
-                    continue;
-                if (!(c instanceof LWNode))
-                    continue;
-                //if (c != excluded && c.contains(mapX, mapY)) {
-                // todo: why do skip if node is selected here???
-                // was a reason once but now I think this is a bug
-                // OR: was this to make sure we never found
-                // the node we're dragging itself?
-                if (!c.isSelected() && c.contains(mapX, mapY)) {
-                    if (c.hasChildren())
-                        return ((LWContainer)c).findLWNodeAt(mapX, mapY);
-                    else
-                        return (LWNode) c;
-                }
-            }
-        }
-        if (this instanceof LWNode)
-            return (LWNode) this;
-        else
-            return null;
-    }
-    */
 
     public boolean isOnTop(LWComponent c)
     {
@@ -1052,10 +914,13 @@ public abstract class LWContainer extends LWComponent
         c.setScale(scale);
     }
 
-    public void draw(DrawContext dc)
+    protected void drawImpl(DrawContext dc)
     {
+        if (getFillColor() != null) {
+            dc.g.setColor(getFillColor());
+            dc.g.fill(getShape());
+        }
         drawChildren(dc);
-        super.draw(dc); // draw any pathway decorations
     }
 
     public void drawChildren(DrawContext dc)
