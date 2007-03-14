@@ -45,7 +45,7 @@ import java.awt.geom.Rectangle2D;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.44 $ / $Date: 2007-03-06 16:36:52 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2007-03-14 17:18:25 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -453,14 +453,14 @@ public class LWGroup extends LWContainer
     */
     
     
-    public void draw(DrawContext dc)
+    protected void drawImpl(DrawContext dc)
     {
         if (getStrokeWidth() == -1) { // todo: temporary debug
             System.err.println("hiding " + this);
             return;
         }
 
-        drawSelectionDecorations(dc);
+        //drawSelectionDecorations(dc);
 
         //out("transform at draw: " + dc.g.getTransform());        
         //out("    shape to fill: " + getShape());
@@ -488,7 +488,7 @@ public class LWGroup extends LWContainer
         // rectangles includes the current scale factor when being computed...
 
         // draw children, pathway decorations, etc.
-        super.draw(dc);
+        super.drawImpl(dc);
 
         if (getStrokeWidth() > 0) {
             dc.g.setStroke(this.stroke);

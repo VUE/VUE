@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.111 $ / $Date: 2007-03-06 16:54:30 $ / $Author: sfraize $
+ * @version $Revision: 1.112 $ / $Date: 2007-03-14 17:20:01 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -1346,14 +1346,14 @@ public class LWLink extends LWComponent
     }
 
     
-    public void draw(DrawContext dc)
+    protected void drawImpl(DrawContext dc)
     {
         if (endpointMoved)
             computeLinkEndpoints();
 
         //if (dc.drawAbsoluteLinks) dc.setAbsoluteDrawing(true);
 
-        super.draw(dc);
+        //super.draw(dc);
 
         //BasicStroke stroke = this.stroke;
 
