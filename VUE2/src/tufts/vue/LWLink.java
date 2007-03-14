@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.114 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $
+ * @version $Revision: 1.115 $ / $Date: 2007-03-14 22:42:26 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -75,8 +75,6 @@ public class LWLink extends LWComponent
     private float tailX;
     private float tailY;
     private double mLength;
-    private String head_ID; // used only during restore
-    private String tail_ID; // used only during restore
     
     private boolean ordered = false; // not doing anything with this yet
     
@@ -789,7 +787,7 @@ public class LWLink extends LWComponent
             throw new IllegalArgumentException(this + " cannot disconnect: not connected to " + c);
     }
             
-    void setHead(LWComponent c)
+    public void setHead(LWComponent c)
     {
         if (c == head)
             return;
@@ -799,11 +797,12 @@ public class LWLink extends LWComponent
         this.head = c;
         if (c != null)
             c.addLinkRef(this);
-        head_ID = null;
+        //head_ID = null;
         endpointMoved = true;
         notify("link.head.connect", new Undoable(oldHead) { void undo() { setHead(oldHead); }} );
     }
-    void setTail(LWComponent c)
+    
+    public void setTail(LWComponent c)
     {
         if (c == tail)
             return;
@@ -813,7 +812,7 @@ public class LWLink extends LWComponent
         this.tail = c;
         if (c != null)
             c.addLinkRef(this);
-        tail_ID = null;
+        //tail_ID = null;
         endpointMoved = true;
         notify("link.tail.connect", new Undoable(oldTail) { void undo() { setTail(oldTail); }} );
     }
@@ -1871,7 +1870,12 @@ public class LWLink extends LWComponent
     /** @deprecated -- use getHeadPoint */ public Point2D getPoint1() { return getHeadPoint(); }
     /** @deprecated -- use getTailPoint */ public Point2D getPoint2() { return getTailPoint(); }
     
-    /** @deprecated -- for persistance/init ONLY */
+    /** @deprecated -- no longer needed (now using castor references), always returns null */
+    public String getHead_ID() { return null; }
+    /** @deprecated -- no longer needed (now using castor references), always returns null */
+    public String getTail_ID() { return null; }
+    
+    /* @deprecated -- for persistance/init ONLY *
     public String getHead_ID()
     {
         //System.err.println("getEndPoint1_ID called for " + this);
@@ -1880,7 +1884,7 @@ public class LWLink extends LWComponent
         else
             return this.head.getID();
     }
-    /** @deprecated -- for persistance/init ONLY */
+    /* @deprecated -- for persistance/init ONLY *
     public String getTail_ID()
     {
         //System.err.println("getEndPoint2_ID called for " + this);
@@ -1889,14 +1893,16 @@ public class LWLink extends LWComponent
         else
             return this.tail.getID();
     }
-    /** @deprecated -- for persistance/init ONLY */
+    /* @deprecated -- for persistance/init ONLY *
     public void setHead_ID(String s) {
         this.head_ID = s;
     }
-    /** @deprecated -- for persistance/init ONLY */
+    /* @deprecated -- for persistance/init ONLY *
     public void setTail_ID(String s) {
         this.tail_ID = s;
     }
+    */
+    
     /** @deprecated -- for persistance/init ONLY */
     public void setHeadPoint(Point2D p) {
         if (mXMLRestoreUnderway) {

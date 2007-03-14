@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.114 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $
+ * @version $Revision: 1.115 $ / $Date: 2007-03-14 22:42:26 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -400,7 +400,7 @@ public class LWMap extends LWContainer
 
         final Collection<LWComponent> allRestored = getAllDescendents(ChildKind.ANY);
 
-        resolvePersistedLinks(allRestored);
+        //resolvePersistedLinks(allRestored);
         
         for (LWComponent c : allRestored) {
             if (DEBUG.XML) System.out.println("RESTORED: " + c);
@@ -461,6 +461,8 @@ public class LWMap extends LWContainer
         markAsSaved();
     }
 
+    /*
+      // no longer needed: we now use castor references to handle this for us
     private void resolvePersistedLinks(Collection<LWComponent> allRestored)
     {
         for (LWComponent c : allRestored) {
@@ -477,6 +479,7 @@ public class LWMap extends LWContainer
             }
         }
     }
+    */
 
     LWComponent findByID(Collection<LWComponent> allRestored, String id) {
         for (LWComponent c : allRestored)
