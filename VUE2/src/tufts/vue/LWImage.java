@@ -59,24 +59,25 @@ import edu.tufts.vue.preferences.implementations.ImageSizePreference;
 //       drags do an implicit system drag to create a standalone
 //       version of the image.
 
-public class LWImage extends LWComponent
-    implements LWSelection.ControlListener, Images.Listener, edu.tufts.vue.preferences.VuePrefListener
+public class LWImage extends
+                         LWComponent
+                         //LWNode
+    implements //LWSelection.ControlListener,
+               Images.Listener,
+               edu.tufts.vue.preferences.VuePrefListener
 {
     static int MaxRenderSize = PreferencesManager.getIntegerPrefValue(ImageSizePreference.getInstance());
     //private static VueIntegerPreference PrefImageSize = ImageSizePreference.getInstance(); // is failing for some reason
     //static int MaxRenderSize = PrefImageSize.getValue();
     //static int MaxRenderSize = 64;
     
-    /** scale of images when a child of other nodes */
-    static final float ChildImageScale = 0.2f;
-    static final boolean RawImageSizes = false;
-
     private final static int MinWidth = 32;
     private final static int MinHeight = 32;
     
     private Image mImage;
-    private int mImageWidth = -1;
-    private int  mImageHeight = -1;
+    private int mImageWidth = -1; // pixel width of raw image
+    private int mImageHeight = -1; // pixel height of raw image
+    private float mImageAspect = NEEDS_DEFAULT; // image width / height
     //private double mImageScale = 1; // scale to the fixed size
     private double mRotation = 0;
     private Point2D.Float mOffset = new Point2D.Float(); // x & y always <= 0
@@ -84,9 +85,8 @@ public class LWImage extends LWComponent
     private boolean mImageError = false;
     
 
-    // for current save files with images inside nodes to work, this has to be false for now,
-    // tho it completely breaks the image tool stuff (cropping)
-    private boolean isRawImage = false;
+    /** is this image currently serving as an icon for an LWNode? */
+    private boolean isNodeIcon = false;
     
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -98,18 +98,17 @@ public class LWImage extends LWComponent
 
     public LWImage() {
     	edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
+        setFillColor(null);
     }
     
     // todo: not so great to have every single LWImage instance be a listener
-    public void preferenceChanged(VuePrefEvent prefEvent) {        
-        
-            if (DEBUG.IMAGE) out("new pref value is " + ((Integer)ImageSizePreference.getInstance().getValue()).intValue());
-            MaxRenderSize = ((Integer)prefEvent.getNewValue()).intValue();
-            System.out.println("MaxRenderSize : " + MaxRenderSize);
-            //setImageSize(mImageWidth, mImageHeight);
-            if (mImage != null)
-            	setImageSize(mImage.getWidth(null), mImage.getHeight(null));        
-        
+    public void preferenceChanged(VuePrefEvent prefEvent)
+    {        
+        if (DEBUG.IMAGE) out("new pref value is " + ((Integer)ImageSizePreference.getInstance().getValue()).intValue());
+        MaxRenderSize = ((Integer)prefEvent.getNewValue()).intValue();
+        System.out.println("MaxRenderSize : " + MaxRenderSize);
+        if (mImage != null && isNodeIcon)
+            setMaxSizeDimension(MaxRenderSize);
     }
 
 
@@ -121,66 +120,121 @@ public class LWImage extends LWComponent
         i.mImage = mImage;
         i.mImageWidth = mImageWidth;
         i.mImageHeight = mImageHeight;
+        i.mImageAspect = mImageAspect;
+        i.isNodeIcon = isNodeIcon;
         i.mImageError = mImageError;
         i.setOffset(this.mOffset);
         i.setRotation(this.mRotation);
         return i;
     }
 
-    public boolean isAutoSized() { return false; }
+    public boolean isAutoSized() {
+        if (getClass().isAssignableFrom(LWNode.class))
+            return super.isAutoSized();
+        else
+            return false;
+    }
 
     public boolean isTransparent() {
-        return false;
+        if (false)// && this instanceof LWNode)
+            return super.isTransparent();
+        else
+            return false;
     }
     
     public boolean isTranslucent() {
-        // Technically, if there are any transparent pixels in the image,
-        // we'd want to return true.
-        return false;
+        if (false)// && this instanceof LWNode) {
+            return super.isTranslucent();
+        else {
+            // Technically, if there are any transparent pixels in the image,
+            // we'd want to return true.
+            return false;
+        }
+    }
+
+    public boolean isNodeIcon() {
+        return isNodeIcon;
     }
 
     /** This currently makes LWImages invisible to selection (they're locked in their parent node */
     //@Override
     protected LWComponent defaultPick(PickContext pc) {
-        return (pc.pickDepth > 0 || getParent() instanceof LWMap) ? this : getParent();
+        if (getClass().isAssignableFrom(LWNode.class))
+            return super.defaultPick(pc);
+        else
+            return (pc.pickDepth > 0 || getParent() instanceof LWMap) ? this : getParent();
         // todo: checking the map is a hack -- PickContext should tell us all we need
     }
 
     
     
-    /** @return true -- image's support resize (which is currently just a crop) */
+    /** @return true unless this is a node icon image */
     public boolean supportsUserResize() {
-        return true;
+        return !isNodeIcon;
     }
 
-    public void X_setParent(LWContainer parent) {
-        super.setParent(parent);
-        if (parent instanceof LWNode == false)
-            isRawImage = true;
-        else
-            isRawImage = false;
-    }
-
-    /*
-    public void setScale(float scale) {
-        if (scale == 1f)
-            super.setScale(1f);
-        else {
-            float adjustment = ChildImageScale / LWNode.ChildScale;
-            super.setScale(scale * adjustment); // produce ChildImageScale at top level child
-        }
-    }
-    */
+    /** this for backward compat with old save files to establish the image as a special "node" image */
     public void XML_addNotify(String name, Object parent) {
         super.XML_addNotify(name, parent);
-        if (parent instanceof LWNode == false)
-            isRawImage = true;
-        //if (this.scale == 1f && parent instanceof LWNode)
-        //setScale(ChildImageScale);
+        if (parent instanceof LWNode)
+            updateNodeIconStatus((LWNode)parent);
     }
 
+    protected void addNotify(LWContainer parent) {
+        super.addNotify(parent);
+        updateNodeIconStatus(parent);
+    }
+
+    private void updateNodeIconStatus(LWContainer parent) {
+
+        //tufts.Util.printStackTrace("updateNodeIconStatus, mImage=" + mImage + " parent=" + parent);
+        if (DEBUG.IMAGE) out("updateNodeIconStatus, mImage=" + mImage + " parent=" + parent);
+
+        if (parent == null)
+            return;
+
+        if (parent instanceof LWNode && parent.getChild(0) == this) {
+            // special case: if first child of a LWNode is an LWImage, treat it as an icon
+            isNodeIcon = true;
+            if (mImageWidth <= 0)
+                return;
+            setMaxSizeDimension(MaxRenderSize);
+        } else {
+            isNodeIcon = false;
+        }
+    }
+    
+    private void setMaxSizeDimension(final float max)
+    {
+        if (DEBUG.IMAGE) out("setMaxSizeDimension " + max);
+
+        if (mImageWidth <= 0)
+            return;
+
+        final float width = mImageWidth;
+        final float height = mImageHeight;
+
+        if (DEBUG.IMAGE) out("setMaxSizeDimension curSize " + width + "x" + height);
+        
+        float newWidth, newHeight;
+
+        if (width > height) {
+            newWidth = max;
+            newHeight = Math.round(height * max / width);
+        } else {
+            newHeight = max;
+            newWidth = Math.round(width * max / height);
+        }
+        if (DEBUG.IMAGE) out("setMaxSizeDimension newSize " + newWidth + "x" + newHeight);
+        setSize(newWidth, newHeight);
+    }        
+    
+
     public void layout() {
-        mIconBlock.layout();
+        if (getClass().isAssignableFrom(LWNode.class))
+            super.layout();
+        else
+            mIconBlock.layout();
     }
     
     // TODO: this wants to be on LWComponent, in case this is a
@@ -239,16 +293,6 @@ public class LWImage extends LWComponent
 
     
 
-    public void setSize(float w, float h) {
-        super.setSize(w, h);
-        // Even if we don't have an image yet, we need to keep these set in case user attemps to resize the frame.
-        // They can still crop down if they like, but this prevents them from making it any bigger.
-        if (mImageWidth < 0)
-            mImageWidth = (int) getAbsoluteWidth();
-        if (mImageHeight < 0)
-            mImageHeight = (int) getAbsoluteHeight();
-    }
-
     public boolean isCropped() {
         return mOffset.x < 0 || mOffset.y < 0;
     }
@@ -256,8 +300,7 @@ public class LWImage extends LWComponent
     /** @see Images.Listener */
     public synchronized void gotImageSize(Object imageSrc, int width, int height)
     {
-        //mImageWidth = width;
-        //mImageHeight = height;
+        if (DEBUG.IMAGE) out("gotImageSize " + width + "x" + height);
         setImageSize(width, height);
 
         if (mUndoMarkForThread == null) {
@@ -271,10 +314,14 @@ public class LWImage extends LWComponent
         // If we're interrupted before this happens, and this is the drop of a new image,
         // we'll see a zombie event complaint from this setSize which is safely ignorable.
         // todo: suspend events if our thread was interrupted
-        if (isRawImage && isCropped() == false) {
-            // don't set size if we are cropped: we're probably reloading from a saved .vue
-            setSize(width, height);
-        }
+        // don't set size if we are cropped: we're probably reloading from a saved .vue
+        //if (isRawImage && isCropped() == false) {
+        //if (isCropped() == false) {
+//         if (super.width == NEEDS_DEFAULT) {
+//             // if this is a new image object, set it's size to the image size (natural size)
+//             setSize(width, height);
+//         }
+        updateNodeIconStatus(getParent());
         layout();
         notify(LWKey.RepaintAsync);
     }
@@ -289,8 +336,11 @@ public class LWImage extends LWComponent
         //mImageHeight = h;
         mImage = image;
 
-        if (isRawImage && isCropped() == false)
-            setSize(w, h);
+        //if (isRawImage && isCropped() == false)
+        //if (isCropped() == false)
+        //    setSize(w, h);
+        
+        updateNodeIconStatus(getParent());
         
         if (mUndoMarkForThread == null) {
             notify(LWKey.RepaintAsync);
@@ -320,32 +370,53 @@ public class LWImage extends LWComponent
         
     }
 
-    void setImageSize(int w, int h)
-    {    	
-        if (isRawImage) {
-            if (DEBUG.IMAGE) out("setImageSize RAW " + w + "x" + h);
-            mImageWidth = w;
-            mImageHeight = h;
-        } else {
-            if (w > h) {
-                mImageWidth = MaxRenderSize;
-                mImageHeight = Math.round(h * MaxRenderSize / w);
-            } else {
-                mImageHeight = MaxRenderSize;
-                mImageWidth = Math.round(w * MaxRenderSize / h);
-            }
-            if (DEBUG.IMAGE) out("setImageSize FIXED " + mImageWidth + "x" + mImageHeight);
-            setSize(mImageWidth, mImageHeight);
-        }
+    public void X_setSize(float w, float h) {
+        super.setSize(w, h);
+        // Even if we don't have an image yet, we need to keep these set in case user attemps to resize the frame.
+        // They can still crop down if they like, but this prevents them from making it any bigger.
+        if (mImageWidth < 0)
+            mImageWidth = (int) getAbsoluteWidth();
+        if (mImageHeight < 0)
+            mImageHeight = (int) getAbsoluteHeight();
     }
 
-    
+    /** record the actual pixel dimensions of the underlying raw image */
+    void setImageSize(int w, int h)
+    {    	
+        mImageWidth = w;
+        mImageHeight = h;
+        mImageAspect = ((float)w) / ((float)h);
+        // todo: may want to just always update the node status here -- covers most cases, plus better when the drop code calls this?
+        if (DEBUG.IMAGE) out("setImageSize " + w + "x" + h + " aspect=" + mImageAspect);
+        //setAspect(aspect); // LWComponent too paternal for us right now
+    }
+
     /**
      * Don't let us get bigger than the size of our image, or
      * smaller than MinWidth/MinHeight.
      */
-    public void userSetSize(float width, float height) {
-        if (DEBUG.IMAGE) out("userSetSize0 " + width + "x" + height);
+    protected void userSetSize(float width, float height, MapMouseEvent e)
+    {
+        if (DEBUG.IMAGE) out("userSetSize");
+
+        if (e.isShiftDown()) {
+            // Unconstrained aspect ration scaling
+            super.userSetSize(width, height, e);
+        } else {
+            Size newSize = ConstrainToAspect(mImageAspect, width, height);
+            setSize(newSize.width, newSize.height);
+        }
+
+//         if (e != null && e.isShiftDown())
+//             croppingSetSize(width, height);
+//         else
+//             scalingSetSize(width, height);
+    }
+
+    private void scalingSetSize(float width, float height)
+    {
+        /*
+        if (DEBUG.IMAGE) out("scalingSetSize0 " + width + "x" + height);
         if (mImageWidth + mOffset.x < width)
             width = mImageWidth + mOffset.x;
         if (mImageHeight + mOffset.y < height)
@@ -354,9 +425,34 @@ public class LWImage extends LWComponent
             width = MinWidth;
         if (height < MinHeight)
             height = MinHeight;
-        if (DEBUG.IMAGE) out("userSetSize1 " + width + "x" + height);
-        super.setSize(width, height);
+        */
+
+        if (DEBUG.IMAGE) out("scalingSetSize1 " + width + "x" + height);
+
+        setSize(width, height);
     }
+
+    /** this leaves the image exactly as it is, and just resizes the cropping region */
+    private void croppingSetSize(float width, float height) {
+
+        //if (DEBUG.IMAGE) out("croppingSetSize0 " + width + "x" + height);
+        if (mImageWidth + mOffset.x < width)
+            width = mImageWidth + mOffset.x;
+        if (mImageHeight + mOffset.y < height)
+            height = mImageHeight + mOffset.y;
+        if (width < MinWidth)
+            width = MinWidth;
+        if (height < MinHeight)
+            height = MinHeight;
+        if (DEBUG.IMAGE) out("croppingSetSize1 " + width + "x" + height);
+
+        final float oldAspect = super.mAspect;
+        super.mAspect = 0; // don't pay attention to aspect when cropping
+        super.setSize(width, height);
+        super.mAspect = oldAspect;
+    }
+    
+    
 
     /* @param r - requested LWImage frame in map coordinates */
     //private void constrainFrameToImage(Rectangle2D.Float r) {}
@@ -367,7 +463,7 @@ public class LWImage extends LWComponent
      * it look like we're just moving a the clip-region, if the LWImage
      * is smaller than the size of the underlying image).
      */
-    public void userSetFrame(float x, float y, float w, float h)
+    public void X_RESIZE_CONTROL_HACK_userSetFrame(float x, float y, float w, float h, MapMouseEvent e)
     {
         if (DEBUG.IMAGE) out("userSetFrame0 " + VueUtil.out(new Rectangle2D.Float(x, y, w, h)));
         if (w < MinWidth) {
@@ -396,7 +492,7 @@ public class LWImage extends LWComponent
         }
         setOffset(off);
         if (DEBUG.IMAGE) out("userSetFrame1 " + VueUtil.out(new Rectangle2D.Float(x, y, w, h)));
-        userSetSize(w, h);
+        userSetSize(w, h, e);
         setLocation(x, y);
     }
 
@@ -456,7 +552,26 @@ public class LWImage extends LWComponent
     }
 
     private static final AlphaComposite HudTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f);
-    public void draw(DrawContext dc)
+    //private static final Color IconBorderColor = new Color(255,255,255,64);
+    private static final Color IconBorderColor = new Color(0,0,0,64);
+    //private static final Color IconBorderColor = Color.darkGray;
+
+    // FOR LWNode IMPL:
+    /*
+    protected void drawNode(DrawContext dc) {
+        // do this for implmemented as a subclass of node
+        drawImage(dc);
+        super.drawNode(dc);
+    }
+    */
+
+    // REMOVE FOR LWNode IMPL:
+    protected void drawImpl(DrawContext dc) {
+        drawWithoutShape(dc);
+    }
+
+    
+    public void drawWithoutShape(DrawContext dc)
     {
         LWComponent c = getParent();
         if (c != null && c.isFiltered()) {
@@ -468,30 +583,34 @@ public class LWImage extends LWComponent
         float _scale = getScale();
         if (_scale != 1f) dc.g.scale(_scale, _scale);
 
-        Shape shape = null;
+        final Shape shape = getClipShape();
 
         if (getFillColor() != null) {
-            if (shape == null)
-                shape = getClipShape();
             dc.g.setColor(getFillColor());
             dc.g.fill(shape);
         }
 
         drawImage(dc);
 
-        if (getStrokeWidth() > 0) {
-            if (shape == null)
-                shape = getClipShape();
-            dc.g.setStroke(this.stroke);
-            dc.g.setColor(getStrokeColor());
+        if (isNodeIcon) {
+
+            dc.g.setStroke(STROKE_TWO);
+            dc.g.setColor(IconBorderColor);
             dc.g.draw(shape);
+            
+        } else {
+
+            if (getStrokeWidth() > 0) {
+                dc.g.setStroke(this.stroke);
+                dc.g.setColor(getStrokeColor());
+                dc.g.draw(shape);
+            }
         }
 
         if (_scale != 1f) dc.g.scale(1/_scale, 1/_scale);
         dc.g.translate(-getX(), -getY());
 
-        //super.drawChildren(dc);
-        super.draw(dc); // need this for label
+        //super.drawImpl(dc); // need this for label
     }
 
     /** For interactive images as separate objects, which are currently disabled */
@@ -554,6 +673,45 @@ public class LWImage extends LWComponent
             return;
         }
         
+        //AffineTransform transform = AffineTransform.getTranslateInstance(mOffset.x, mOffset.y);
+        AffineTransform transform = new AffineTransform();
+        
+        if (isSelected() && dc.isInteractive() && dc.getActiveTool() instanceof ImageTool) {
+            dc.g.setComposite(MatteTransparency);
+            dc.g.drawImage(mImage, transform, null);
+            dc.g.setComposite(AlphaComposite.Src);
+        }
+
+        Shape oldClip = dc.g.getClip();
+        if (false && isCropped()) {
+            dc.g.clip(getClipShape());
+            dc.g.drawImage(mImage, transform, null);
+        } else {
+            //dc.g.clip(super.drawnShape);
+            transform.scale(super.width / mImageWidth, super.height / mImageHeight);
+            dc.g.drawImage(mImage, transform, null);
+            //dc.g.drawImage(mImage, 0, 0, (int)super.width, (int)super.height, null);
+            //dc.g.drawImage(mImage, 0, 0, mImageWidth, mImageHeight, null);
+        }
+        dc.g.setClip(oldClip);
+   }
+
+    /*
+    protected void drawImage(DrawContext dc)
+    {    	    	
+        if (mImage == null) {
+            int w = (int) getAbsoluteWidth();
+            int h = (int) getAbsoluteHeight();
+            if (mImageError)
+                dc.g.setColor(ErrorColor);
+            else
+                dc.g.setColor(Color.darkGray);
+            dc.g.fillRect(0, 0, w, h);
+            dc.g.setColor(Color.lightGray);
+            dc.g.drawRect(0, 0, w, h); // can't see this line at small scales
+            return;
+        }
+        
         AffineTransform transform = AffineTransform.getTranslateInstance(mOffset.x, mOffset.y);
         if (mRotation != 0 && mRotation != 360)
             transform.rotate(mRotation, getImageWidth() / 2, getImageHeight() / 2);
@@ -563,6 +721,7 @@ public class LWImage extends LWComponent
             dc.g.drawImage(mImage, transform, null);
             dc.g.setComposite(AlphaComposite.Src);
         }
+
         if (isRawImage) {
             Shape oldClip = dc.g.getClip();
             dc.g.clip(getClipShape());
@@ -572,10 +731,14 @@ public class LWImage extends LWComponent
             dc.g.drawImage(mImage, 0, 0, mImageWidth, mImageHeight, null);
         }
    }
-
+    */
+    
     public void mouseOver(MapMouseEvent e)
     {
-        mIconBlock.checkAndHandleMouseOver(e);
+        if (getClass().isAssignableFrom(LWNode.class))
+            super.mouseOver(e);
+        else
+            mIconBlock.checkAndHandleMouseOver(e);
     }
 
     // Holy shit: if we somehow defined all this control-point stuff as a property editor,
@@ -610,29 +773,44 @@ public class LWImage extends LWComponent
             
             float deltaX = dragStart.x - e.getMapX();
             float deltaY = dragStart.y - e.getMapY();
-            Point2D.Float off = new Point2D.Float();
+
             if (e.isShiftDown()) {
-                // drag frame around on underlying image
-                // we need to constantly adjust offset to keep
-                // it fixed in absolute map coordinates.
-                Point2D.Float loc = new  Point2D.Float();
-                loc.x = locationStart.x - deltaX;
-                loc.y = locationStart.y - deltaY;
-                off.x = offsetStart.x + deltaX;
-                off.y = offsetStart.y + deltaY;
-                constrainLocationToImage(loc, off);
-                setOffset(off);
-                setLocation(loc);
+                dragCropImage(deltaX, deltaY);
             } else {
-                // drag underlying image around within frame
-                off.x = offsetStart.x - deltaX;
-                off.y = offsetStart.y - deltaY;
-                constrainOffset(off);
-                setOffset(off);
+                dragMoveCropRegion(deltaX, deltaY);
             }
         } else
             throw new IllegalArgumentException(this + " no such control point");
 
+    }
+
+    private void dragCropImage(float deltaX, float deltaY)
+    {
+        Point2D.Float off = new Point2D.Float();
+            
+        // drag frame around on underlying image
+        // we need to constantly adjust offset to keep
+        // it fixed in absolute map coordinates.
+        Point2D.Float loc = new  Point2D.Float();
+        loc.x = locationStart.x - deltaX;
+        loc.y = locationStart.y - deltaY;
+        off.x = offsetStart.x + deltaX;
+        off.y = offsetStart.y + deltaY;
+        constrainLocationToImage(loc, off);
+        setOffset(off);
+        setLocation(loc);
+    }
+
+    
+    private void dragMoveCropRegion(float deltaX, float deltaY)
+    {
+        Point2D.Float off = new Point2D.Float();
+        
+        // drag underlying image around within frame
+        off.x = offsetStart.x - deltaX;
+        off.y = offsetStart.y - deltaY;
+        constrainOffset(off);
+        setOffset(off);
     }
 
     /** Keep LWImage filled with image bits (never display "area" outside of the image) */
@@ -697,7 +875,7 @@ public class LWImage extends LWComponent
 
     private LWSelection.ControlPoint[] controlPoints = new LWSelection.ControlPoint[1];
     /** interface ControlListener */
-    public LWSelection.ControlPoint[] getControlPoints()
+    public LWSelection.ControlPoint[] X_getControlPoints() // DEIMPLEMENTED
     {
         controlPoints[0] = new LWSelection.ControlPoint(getCenterX(), getCenterY());
         controlPoints[0].setColor(null); // no fill (transparent)
@@ -705,7 +883,7 @@ public class LWImage extends LWComponent
     }
 
     public String paramString() {
-        return super.paramString() + (isRawImage ? " RAW" : " fixed");
+        return super.paramString() + (isNodeIcon ? " <NodeIcon>" : "");
     }
 
 
