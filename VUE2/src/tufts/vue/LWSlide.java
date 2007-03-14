@@ -27,7 +27,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.12 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2007-03-14 22:24:22 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -177,10 +177,10 @@ public class LWSlide extends LWContainer
     protected void addChildImpl(LWComponent c)
     {
         super.addChildImpl(c);
-        c.setParentStyle(getMasterSlide().textStyle);
+        //c.setParentStyle(getMasterSlide().textStyle);
     }
 
-    private LWPathway.MasterSlide getMasterSlide() {
+    private LWPathway.MasterSlide XgetMasterSlide() {
         LWPathway pathway = (LWPathway) getParent();
         return pathway.getMasterSlide();
     }
