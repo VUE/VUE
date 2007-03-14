@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.51 $ / $Date: 2007-02-21 22:04:00 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2007-03-14 17:42:05 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -391,6 +391,8 @@ public class VueToolbarController
             } else
                 if (c instanceof LWLink)
                     panel = LinkTool.getLinkToolPanel();
+                else
+                    panel = NodeTool.getNodeToolPanel(); // the generic default for now
             
         } else {
             panel = getLWCToolPanel();
