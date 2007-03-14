@@ -216,7 +216,11 @@ public class MapChooser extends JDialog implements ActionListener{
             {
                 if(getSelectedMap()!=null)
                 {
-                    ConnectivityMatrix matrix = new ConnectivityMatrix(getSelectedMap());
+                    
+                    LWMap m = getSelectedMap();
+                    
+                    // connectivity matrix
+                    ConnectivityMatrix matrix = new ConnectivityMatrix(m);
                     String sMatrix = matrix.toString();
                     File temp = File.createTempFile("ConnectivityMatrixTemp",".txt");
                     String fileName = temp.getAbsolutePath();
@@ -224,6 +228,118 @@ public class MapChooser extends JDialog implements ActionListener{
                     writer.write(sMatrix);
                     writer.close();
                     VueUtil.openURL(FILE_URL + fileName);
+                    
+                    //metadata
+                    /*PropertyMap props = m.getMetadata();
+                    java.util.Collection c = props.keySet();
+                    java.util.Iterator i = c.iterator();
+                    System.out.println("about to output metadata: ");
+                    while(i.hasNext())
+                    {
+                        Object key = i.next();
+                        System.out.println("mc: metadata key: " + key);
+                        System.out.println("mc: value for key: " + props.get(key));
+                    }
+                    System.out.println("done outputting metadata"); */
+                    
+                    int nodeCount = m.getChildList().size();
+                    
+                    java.util.Iterator<LWComponent> i = m.getNodeIterator();
+                    
+                    
+                    int jmax = 0;
+                    while(i.hasNext())
+                    {
+                        LWComponent c = i.next();
+                        tufts.vue.filter.NodeFilter filter = c.getNodeFilter();
+                        int rows = filter.getRowCount();
+                        if(rows>jmax)
+                            jmax = rows;
+                    }
+                    
+                    java.util.Iterator<LWComponent> i2 = m.getNodeIterator();
+                    
+                    String categories = "";
+                    String[][] metadata = new String[nodeCount][jmax];
+                    int ni = 0;
+                    while(i2.hasNext())
+                    {
+                        LWComponent c = i2.next();
+                        tufts.vue.filter.NodeFilter filter = c.getNodeFilter();
+                        int rows = filter.getRowCount();
+                        int cols = filter.getColumnCount();
+                        for(int j=0;j<rows;j++)
+                        {
+                            for(int k=0;k<cols;k++)
+                            {   
+                                //System.out.print(filter.getValueAt(j,k) +",");
+
+                                if(k==0)
+                                {
+                                  categories += filter.getValueAt(j,k);
+                                  if(j!=(rows-1))
+                                  {
+                                    categories+=",";
+                                  }
+                                }
+                                
+                                if(k==1)
+                                {
+                                  metadata[ni][j] = filter.getValueAt(j,k).toString();
+                                }
+                                
+                            }
+                            
+                            //System.out.println("\n");
+                                                        
+                        }
+                        
+                        if(ni<nodeCount-1)
+                        {
+                           categories += "\n";
+                        }
+                        ni++;
+                    }
+                    
+                    System.out.println("mc: categories " + categories );
+                    
+                    if(categories.length() > 0)
+                    {
+                      File temp2 = File.createTempFile("MetadataCategoriesTemp",".txt");
+                      String fileName2 = temp2.getAbsolutePath();
+                      PrintWriter writer2 = new PrintWriter(new BufferedWriter(new FileWriter(fileName2)));
+                      writer2.write(categories);
+                      writer2.close();
+                      VueUtil.openURL(FILE_URL + fileName2);
+                    }
+                    
+                    String md = "";
+                    
+                    for(int ji = 0;ji<jmax;ji++)
+                    {
+                        for(int ki=0;ki<nodeCount;ki++)
+                        {
+                            if(metadata[ki][ji]!=null)
+                            {
+                                md += metadata[ki][ji];
+                            }
+                            if(ki!=(nodeCount-1))
+                                md +=",";
+                        }
+                        if(ji < jmax-1)
+                            md += "\n";
+                    }
+                    
+                    if(md.length() > 0)
+                    {
+                      File temp3 = File.createTempFile("MetadataValueTemp",".txt");
+                      String fileName3 = temp3.getAbsolutePath();
+                      PrintWriter writer3 = new PrintWriter(new BufferedWriter(new FileWriter(fileName3)));
+                      writer3.write(md);
+                      writer3.close();
+                      VueUtil.openURL(FILE_URL + fileName3);
+                    }
+                    
                 }
             }
             catch(Exception ex)

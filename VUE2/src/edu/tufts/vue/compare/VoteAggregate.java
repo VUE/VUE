@@ -66,6 +66,17 @@ public class VoteAggregate extends WeightAggregate {
             return false;
     }
     
+    public boolean isLinkVoteAboveThreshold(String label1,String label2)
+    {
+        int linkCount = getConnection(label1,label2);
+        int count = getCount();
+        double threshold = (double)count*linkThreshold;
+        if(linkCount>=threshold) {
+            return true;
+        }else
+            return false;
+    }
+    
     public void setLinkThreshold(double percentage)
     {
         linkThreshold = percentage;

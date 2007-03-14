@@ -56,7 +56,7 @@ public class LWMergeMap extends LWMap {
     // without this next line it seems that Castor only reads back one element..
     private List<LWMap> mapList = new ArrayList<LWMap>();
     
-    private Stack<Integer> nodeThresholdValueStack;
+    //private Stack<Integer> nodeThresholdValueStack;
     
     private File baseMapFile;
     
@@ -70,15 +70,11 @@ public class LWMergeMap extends LWMap {
     public LWMergeMap()
     {
         super(); 
-        //todo: call next constructor instead when data starts to pile up in this class
-        //most things are currently created outside... (or read from xml)
-        nodeThresholdValueStack = new Stack();
     }
     
     public LWMergeMap(String label)
     {
         super(label);
-        nodeThresholdValueStack = new Stack();
     }
     
     public void setMapFileList(List<File> mapList)
@@ -211,10 +207,10 @@ public class LWMergeMap extends LWMap {
         return styleFile;
     }
     
-    public Stack<Integer> getNodeThresholdValueStack()
+    /*public Stack<Integer> getNodeThresholdValueStack()
     {
         return nodeThresholdValueStack;
-    }
+    }*/
     
     public void recreateVoteMerge()
     {

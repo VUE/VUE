@@ -1150,8 +1150,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
            while(children2.hasNext()) {
                LWNode node2 = (LWNode)children2.next();
                if(node2 != node1) {
-                  int c = voteAggregate.getConnection(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
-                  if(c >0) {
+                  boolean addLink = voteAggregate.isLinkVoteAboveThreshold(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
+                  if(addLink) {
                      map.addLink(new LWLink(node1,node2));
                   }
                }

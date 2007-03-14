@@ -280,6 +280,9 @@
             <field name="nodeThresholdSliderValue">
                 <bind-xml name="nodeSliderValue"/>
             </field>
+            <field name="linkThresholdSliderValue">
+                <bind-xml name="linkSliderValue"/>
+            </field>
             <field name="styleMapFile">
                 <bind-xml name="styleMapFile" node="element"/>
             </field>
