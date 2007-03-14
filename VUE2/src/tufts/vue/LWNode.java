@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.135 $ / $Date: 2007-03-07 20:20:46 $ / $Author: sfraize $
+ * @version $Revision: 1.136 $ / $Date: 2007-03-14 17:48:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -656,9 +656,9 @@ public class LWNode extends LWContainer
     void setScaleOnChild(float parentScale, LWComponent c) {
         if (DEBUG.LAYOUT) out("setScaleOnChild " + parentScale + "*" + ChildScale + " " + c);
         if (c instanceof LWImage) {
-            if (LWImage.RawImageSizes)
-                c.setScale(parentScale * LWImage.ChildImageScale);
-            else
+//             if (LWImage.RawImageSizes)
+//                 c.setScale(parentScale * LWImage.ChildImageScale);
+//             else
                 c.setScale(parentScale);
         } else {
             c.setScale(parentScale * LWNode.ChildScale);
@@ -1798,11 +1798,11 @@ public class LWNode extends LWContainer
     }
     */
     
-    public void draw(DrawContext dc)
+    protected void drawImpl(DrawContext dc)
     {
         if (isFiltered() == false) {
 
-            super.drawPathwayDecorations(dc);
+            //super.drawPathwayDecorations(dc);
             
             dc.g.translate(getX(), getY());
             float scale = getScale();
@@ -1845,7 +1845,7 @@ public class LWNode extends LWContainer
         }
     }
         
-    private void drawNode(DrawContext dc)
+    protected void drawNode(DrawContext dc)
     {
         Graphics2D g = dc.g;
         
@@ -1873,7 +1873,7 @@ public class LWNode extends LWContainer
             // experimental
             //imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
             imageIcon.paintIcon(null, g, 0, 0);
-        } else if (dc.isPresenting() || isPresentationContext()) {
+        } else if (false && (dc.isPresenting() || isPresentationContext())) { // old-style "turn off the wrappers"
             ; // do nothing: no fill
         } else {
             Color fillColor = getRenderFillColor();
@@ -1901,7 +1901,7 @@ public class LWNode extends LWContainer
         }
         else*/
         
-        if (getStrokeWidth() > 0 && !isPresentationContext() && !dc.isPresenting()) {
+        if (getStrokeWidth() > 0 /*&& !isPresentationContext() && !dc.isPresenting()*/) { // old style "turn off the wrappers"
             //if (LWSelection.DEBUG_SELECTION && isSelected())
             //if (isSelected())
             //g.setColor(COLOR_SELECTION);
@@ -2029,7 +2029,7 @@ public class LWNode extends LWContainer
         // paint the node icons
         //-------------------------------------------------------
 
-        if (!dc.isPresenting() && iconShowing()) {
+        if (/*!dc.isPresenting() &&*/ iconShowing()) {
             mIconBlock.draw(dc);
             // draw divider if there's a label
             if (hasLabel()) {
