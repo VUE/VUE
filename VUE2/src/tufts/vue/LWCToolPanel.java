@@ -461,8 +461,8 @@ public class LWCToolPanel extends JPanel
             //mIgnoreLWCEvents = true;
             try {
                 for (tufts.vue.LWComponent c : selection) {
-                    // TODO: first check to see if it supports the value...
-                    c.setProperty(key, newValue);
+                    if (c.supportsProperty(key))
+                        c.setProperty(key, newValue);
                 }
             } finally {
                 // mIgnoreLWCEvents = false;

@@ -356,7 +356,10 @@ class LWCInspector extends javax.swing.JPanel
         for (Map.Entry<JTextField,LWComponent.Key> e : fieldKeys.entrySet()) {
             final JTextField field = e.getKey();
             final LWComponent.Key key = e.getValue();
-            field.setText(key.getStringValue(c));
+            if (c.supportsProperty(key))
+                field.setText(key.getStringValue(c));
+            else
+                field.setText("<unsupported for " + c.getClass().getName() + ">");
         }
 
         //loading the metadata if it exists
