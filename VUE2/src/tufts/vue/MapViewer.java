@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.307 $ / $Date: 2007-03-14 17:40:09 $ / $Author: sfraize $ 
+ * @version $Revision: 1.308 $ / $Date: 2007-03-14 21:01:11 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2446,8 +2446,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             resizeControl.active = true;
             for (int i = 0; i < resizeControl.handles.length; i++) {
                 LWSelection.ControlPoint cp = resizeControl.handles[i];
-                drawSelectionHandleCentered(g2, cp.x, cp.y,
-                                            groupies ? COLOR_SELECTION : cp.getColor());
+                drawSelectionHandleCentered(g2,
+                                            cp.x,
+                                            cp.y,
+                                            groupies ? COLOR_SELECTION : cp.getColor(),
+                                            i);
             }
         }
         
@@ -2458,18 +2461,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //-------------------------------------------------------
         
         //if (activeTool != PathwayTool) {
-        java.util.Iterator ci = selection.getControlListeners().iterator();
-        while (ci.hasNext()) {
-            LWSelection.ControlListener cl = (LWSelection.ControlListener) ci.next();
-            LWSelection.ControlPoint[] ctrlPoints = cl.getControlPoints();
-            for (int i = 0; i < ctrlPoints.length; i++) {
-                LWSelection.ControlPoint cp = ctrlPoints[i];
-                if (cp == null)
+        for (LWSelection.ControlListener cl : selection.getControlListeners()) {
+            //for (LWSelection.ControlPoint ctrlPnt : cl.getControlPoints()) {
+            LWSelection.ControlPoint[] points = cl.getControlPoints();
+            for (int i = 0; i < points.length; i++) {
+                LWSelection.ControlPoint ctrlPnt = points[i];
+                if (ctrlPnt == null)
                     continue;
                 drawSelectionHandleCentered(g2,
-                                            mapToScreenX(cp.x),
-                                            mapToScreenY(cp.y),
-                                            cp.getColor());
+                                            mapToScreenX(ctrlPnt.x),
+                                            mapToScreenY(ctrlPnt.y),
+                                            ctrlPnt.getColor(),
+                                            -(i+1)
+                                            );
             }
         }
         //}
@@ -2558,21 +2562,26 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //static final int SelectionMargin = SelectionHandleSize > SelectionStrokeWidth/2 ? SelectionHandleSize : SelectionStrokeWidth/2;
     // can't combine these: one rendered at scale and one not!
     
-    private void drawSelectionHandleCentered(Graphics2D g, float x, float y, Color fillColor) {
+    private void drawSelectionHandleCentered(Graphics2D g, float x, float y, Color fillColor, int index) {
         x -= SelectionHandleSize/2;
         y -= SelectionHandleSize/2;
-        drawSelectionHandle(g, x, y, fillColor);
+        drawSelectionHandle(g, x, y, fillColor, index);
     }
     private void drawSelectionHandle(Graphics2D g, float x, float y) {
-        drawSelectionHandle(g, x, y, COLOR_SELECTION_HANDLE);
+        drawSelectionHandle(g, x, y, COLOR_SELECTION_HANDLE, -1);
     }
-    private void drawSelectionHandle(Graphics2D g, float x, float y, Color fillColor) {
+    private void drawSelectionHandle(Graphics2D g, float x, float y, Color fillColor, int index) {
         //x = Math.round(x);
         //y = Math.round(y);
         SelectionHandle.setFrame(x, y, SelectionHandleSize, SelectionHandleSize);
         if (fillColor != null) {
             g.setColor(fillColor);
             g.fill(SelectionHandle);
+        }
+        if (DEBUG.BOXES) {
+            g.setFont(new Font("Courier", Font.BOLD, 14));
+            g.setColor(Color.red);
+            g.drawString("cp" + index, x, y-2);
         }
         // todo: if fillColor == COLOR_SELECTION, then this control point
         // will have poor to no contrast if it's over the selection color --
