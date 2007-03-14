@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.64 $ / $Date: 2007-01-03 05:24:40 $ / $Author: sfraize $  
+ * @version $Revision: 1.65 $ / $Date: 2007-03-14 17:39:43 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -311,7 +311,7 @@ class MapDropTarget
 
         if (dropLocation != null) {
             dropTarget = mViewer.pickDropTarget(mapLocation, null);
-            if (DEBUG.DND) out("dropTarget=" + dropTarget);
+            if (DEBUG.DND) out("dropTarget=" + dropTarget + " in " + mViewer);
             /*
               // handle via traversal picking code:
             if (dropTarget instanceof LWImage) { // todo: does LWComponent accept drop events...
@@ -745,7 +745,10 @@ class MapDropTarget
 
         // can't currently generate link action when dragging an image from
         // a web browser.
-        boolean dropImagesAsNodes = DropImagesAsNodes && !drop.isLinkAction /*&& !DEBUG.IMAGE*/;
+        boolean dropImagesAsNodes =
+            DropImagesAsNodes
+            && !drop.isLinkAction
+            && !(drop.hitParent instanceof LWSlide);
 
         LWComponent node;
         LWImage lwImage = null;
