@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.113 $ / $Date: 2007-03-14 21:01:25 $ / $Author: sfraize $
+ * @version $Revision: 1.114 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -56,9 +56,8 @@ public class LWLink extends LWComponent
     //private static final Color ContrastFillColor = new Color(255,255,255);
     // transparency fill is actually just distracting
     
-    // todo: change all the naming conventions to use "head" and "tail" for the two endpoints
-    private LWComponent ep1;
-    private LWComponent ep2;
+    private LWComponent head;
+    private LWComponent tail;
     private Line2D.Float line = new Line2D.Float();
     private QuadCurve2D.Float quadCurve = null;
     private CubicCurve2D.Float cubicCurve = null;
@@ -71,35 +70,34 @@ public class LWLink extends LWComponent
     
     private float centerX;
     private float centerY;
-    private float startX;       // todo: either consistently use these or the values in this.line
-    private float startY;
-    private float endX;
-    private float endY;
+    private float headX;       // todo: either consistently use these or the values in this.line
+    private float headY;
+    private float tailX;
+    private float tailY;
     private double mLength;
-    private String endPoint1_ID; // used only during restore
-    private String endPoint2_ID; // used only during restore
+    private String head_ID; // used only during restore
+    private String tail_ID; // used only during restore
     
     private boolean ordered = false; // not doing anything with this yet
-    private int endPoint1Style = 0;
-    private int endPoint2Style = 0;
     
     // todo: create set of arrow types
     private final static float ArrowBase = 5;
-    private RectangularShape ep1Shape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
-    private RectangularShape ep2Shape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
+    private final static RectangularShape HeadShape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
+    private final static RectangularShape TailShape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
 
     private boolean endpointMoved = true; // has an endpoint moved since we last compute shape?
 
     /** neither endpoint has arrow */
     public static final int ARROW_NONE = 0;
     /** endpoint 1 has arrow */
-    public static final int ARROW_EP1 = 0x1;
+    public static final int ARROW_HEAD = 0x1;
     /** endpoint 2 has arrow */
-    public static final int ARROW_EP2 = 0x2;
+    public static final int ARROW_TAIL = 0x2;
     /** both endpoints have arrows */
-    public static final int ARROW_BOTH = ARROW_EP1+ARROW_EP2;
+    public static final int ARROW_BOTH = ARROW_HEAD + ARROW_TAIL;
     
-    //private int mArrowState = ARROW_NONE;
+    /** @deprecated -- use ARROW_HEAD */ public static final int ARROW_EP1 = ARROW_HEAD;
+    /** @deprecated -- use ARROW_TAIL */ public static final int ARROW_EP2 = ARROW_TAIL;
     
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -118,13 +116,13 @@ public class LWLink extends LWComponent
     /**
      * Create a new link between two LWC's
      */
-    public LWLink(LWComponent ep1, LWComponent ep2)
+    public LWLink(LWComponent head, LWComponent tail)
     {
         initLink();
         //if (ep1 == null || ep2 == null) throw new IllegalArgumentException("LWLink: ep1=" + ep1 + " ep2=" + ep2);
         SetDefaults(this);
-        setComponent1(ep1);
-        setComponent2(ep2);
+        setHead(head);
+        setTail(tail);
         computeLinkEndpoints();
     }
 
@@ -141,13 +139,15 @@ public class LWLink extends LWComponent
     public final IntProperty mArrowState = new IntProperty(KEY_LinkArrows) { void onChange() { layout(); } };
     
     
-    public static final Key KEY_LinkStartPoint = new Key<LWLink,Point2D>("link.start.location") {
-        @Override public void setValue(LWLink l, Point2D val) { l.setStartPoint(val); }
-        @Override public Point2D getValue(LWLink l) { return l.getPoint1(); }
+    public static final Key KEY_LinkHeadPoint = new Key<LWLink,Point2D>("link.head.location") {
+        @Override public void setValue(LWLink l, Point2D val) { l.setHeadPoint(val); }
+        @Override public Point2D getValue(LWLink l) { return l.getHeadPoint(); }
+    };
+    public static final Key KEY_LinkTailPoint = new Key<LWLink,Point2D>("link.tail.location") {
+        @Override public void setValue(LWLink l, Point2D val) { l.setTailPoint(val); }
+        @Override public Point2D getValue(LWLink l) { return l.getTailPoint(); }
     };
 
-    //private final String Key_LinkStartPoint = "link.start.location";
-    private final static String Key_LinkEndPoint = "link.end.location";
     private final static String Key_Control_0 = "link.control.0";
     private final static String Key_Control_1 = "link.control.1";
 
@@ -176,8 +176,6 @@ public class LWLink extends LWComponent
         
         //if (key == LWKey.LinkArrows)       return new Integer(getArrowState()); else
         if (key == LWKey.LinkCurves)       return new Integer(getControlCount());
-             //else if (key == Key_LinkStartPoint)     return getPoint1();
-        else if (key == Key_LinkEndPoint)       return getPoint2();
         else if (key == Key_Control_0)          return getCtrlPoint0();
         else if (key == Key_Control_1)          return getCtrlPoint1();
         else
@@ -188,8 +186,6 @@ public class LWLink extends LWComponent
     {
         //if (key == LWKey.LinkArrows)       setArrowState(((Integer) val).intValue()); else
         if (key == LWKey.LinkCurves)       setControlCount(((Integer) val).intValue());
-             //else if (key == Key_LinkStartPoint)     setStartPoint((Point2D)val);
-        else if (key == Key_LinkEndPoint)       setEndPoint((Point2D)val);
         else if (key == Key_Control_0)          setCtrlPoint0((Point2D)val);
         else if (key == Key_Control_1)          setCtrlPoint1((Point2D)val);
         else
@@ -220,28 +216,22 @@ public class LWLink extends LWComponent
         return mIconBlock.handleDoubleClick(e);
     }
 
-    public void setStartPoint(Point2D p) {
-        setStartPoint((float)p.getX(), (float)p.getY());
+    public void setHeadPoint(float x, float y) {
+        if (head != null) throw new IllegalStateException("Can't set pixel start point for connected link");
+        Object old = new Point2D.Float(headX, headY);
+        headX = x;
+        headY = y;
+        endpointMoved = true;
+        notify(KEY_LinkHeadPoint, old);
     }
 
-    public void setStartPoint(float x, float y) {
-        if (ep1 != null) throw new IllegalStateException("Can't set pixel start point for connected link");
-        Object old = new Point2D.Float(startX, startY);
-        startX = x;
-        startY = y;
+    public void setTailPoint(float x, float y) {
+        if (tail != null) throw new IllegalStateException("Can't set pixel end point for connected link");
+        Object old = new Point2D.Float(tailX, tailY);
+        tailX = x;
+        tailY = y;
         endpointMoved = true;
-        notify(KEY_LinkStartPoint, old);
-    }
-    public void setEndPoint(Point2D p) {
-        setEndPoint((float)p.getX(), (float)p.getY());
-    }
-    public void setEndPoint(float x, float y) {
-        if (ep2 != null) throw new IllegalStateException("Can't set pixel end point for connected link");
-        Object old = new Point2D.Float(endX, endY);
-        endX = x;
-        endY = y;
-        endpointMoved = true;
-        notify(Key_LinkEndPoint, old);
+        notify(KEY_LinkTailPoint, old);
     }
     
     /** interface ControlListener handler */
@@ -256,14 +246,14 @@ public class LWLink extends LWComponent
         
         if (index == CEndPoint1) {
             // endpoint 1 (start)
-            setComponent1(null); // disconnect from node
-            setStartPoint(e.getMapPoint());
-            LinkTool.setMapIndicationIfOverValidTarget(ep2, this, e);
+            setHead(null); // disconnect from node
+            setHeadPoint(e.getMapPoint());
+            LinkTool.setMapIndicationIfOverValidTarget(tail, this, e);
         } else if (index == CEndPoint2) {
             // endpoint 2 (end)
-            setComponent2(null);  // disconnect from node
-            setEndPoint(e.getMapPoint());
-            LinkTool.setMapIndicationIfOverValidTarget(ep1, this, e);
+            setTail(null);  // disconnect from node
+            setTailPoint(e.getMapPoint());
+            LinkTool.setMapIndicationIfOverValidTarget(head, this, e);
         } else if (index == CPrune1) {
             out("CP2");
         } else if (index == CPrune2) {
@@ -286,10 +276,10 @@ public class LWLink extends LWComponent
         // TODO BUG: above doesn't work if everything is selected
         if (DEBUG.MOUSE) System.out.println("LWLink: control point " + index + " dropped on " + dropTarget);
         if (dropTarget != null && !e.isShiftDown()) {
-            if (index == CEndPoint1 && ep1 == null && ep2 != dropTarget)
-                setComponent1(dropTarget);
-            else if (index == CEndPoint2 && ep2 == null && ep1 != dropTarget)
-                setComponent2(dropTarget);
+            if (index == CEndPoint1 && head == null && tail != dropTarget)
+                setHead(dropTarget);
+            else if (index == CEndPoint2 && tail == null && head != dropTarget)
+                setTail(dropTarget);
             // todo: ensure paint sequence same as LinkTool.makeLink
         }
     }
@@ -314,10 +304,10 @@ public class LWLink extends LWComponent
         // we iterate through this on every paint for each link in selection
         // todo: need to indicate a color for these so we
         // can show a connection as green and a hanging endpoint as red
-        //controlPoints[0] = new Point2D.Float(startX, startY);
-        //controlPoints[1] = new Point2D.Float(endX, endY);
-        controlPoints[CEndPoint1] = new LWSelection.ControlPoint(startX, startY, COLOR_SELECTION);
-        controlPoints[CEndPoint2] = new LWSelection.ControlPoint(endX, endY, COLOR_SELECTION);
+        //controlPoints[0] = new Point2D.Float(headX, headY);
+        //controlPoints[1] = new Point2D.Float(tailX, tailY);
+        controlPoints[CEndPoint1] = new LWSelection.ControlPoint(headX, headY, COLOR_SELECTION);
+        controlPoints[CEndPoint2] = new LWSelection.ControlPoint(tailX, tailY, COLOR_SELECTION);
         //controlPoints[2] = new LWSelection.ControlPoint(centerX, centerY, COLOR_SELECTION);
         controlPoints[CEndPoint1].setColor(null); // no fill (transparent)
         controlPoints[CEndPoint2].setColor(null);
@@ -327,8 +317,8 @@ public class LWLink extends LWComponent
         controlPoints[CPrune1] = null;
         controlPoints[CPrune2] = null;
             
-        if (this.ep1 == null) controlPoints[CEndPoint1].setColor(COLOR_SELECTION_HANDLE);
-        if (this.ep2 == null) controlPoints[CEndPoint2].setColor(COLOR_SELECTION_HANDLE);
+        if (this.head == null) controlPoints[CEndPoint1].setColor(COLOR_SELECTION_HANDLE);
+        if (this.tail == null) controlPoints[CEndPoint2].setColor(COLOR_SELECTION_HANDLE);
         if (curveControls == 1) {
             //controlPoints[2] = (Point2D.Float) quadCurve.getCtrlPt();
             controlPoints[CCurve1] = new LWSelection.ControlPoint(quadCurve.getCtrlPt(), COLOR_SELECTION_CONTROL);
@@ -496,33 +486,33 @@ public class LWLink extends LWComponent
     protected void removeFromModel()
     {
         super.removeFromModel();
-        if (ep1 != null) ep1.removeLinkRef(this);
-        if (ep2 != null) ep2.removeLinkRef(this);
+        if (head != null) head.removeLinkRef(this);
+        if (tail != null) tail.removeLinkRef(this);
     }
 
     protected void restoreToModel()
     {
         super.restoreToModel();
-        if (ep1 != null) ep1.addLinkRef(this);
-        if (ep2 != null) ep2.addLinkRef(this);
+        if (head != null) head.addLinkRef(this);
+        if (tail != null) tail.addLinkRef(this);
         endpointMoved = true; // for some reason cached label position is off on restore
     }
 
     /** Is this link between a parent and a child? */
     public boolean isParentChildLink()
     {
-        if (ep1 == null || ep2 == null)
+        if (head == null || tail == null)
             return false;
-        return ep1.getParent() == ep2 || ep2.getParent() == ep1;
+        return head.getParent() == tail || tail.getParent() == head;
     }
 
     /** @return the endpoint of this link that is not the given source */
     public LWComponent getFarPoint(LWComponent source)
     {
-        if (getComponent1() == source)
-            return getComponent2();
-        else if (getComponent2() == source)
-            return getComponent1();
+        if (getHead() == source)
+            return getTail();
+        else if (getTail() == source)
+            return getHead();
         else
             throw new IllegalArgumentException("bad farpoint: " + source + " not connected to " + this);
     }
@@ -532,12 +522,12 @@ public class LWLink extends LWComponent
     public LWComponent getFarNavPoint(LWComponent source)
     {
         int arrows = getArrowState();
-        if (getComponent1() == source) {
-            if (arrows == ARROW_NONE || (arrows & ARROW_EP2) != 0)
-                return getComponent2();
-        } else if (getComponent2() == source) {
-            if (arrows == ARROW_NONE || (arrows & ARROW_EP1) != 0)
-                return getComponent1();
+        if (getHead() == source) {
+            if (arrows == ARROW_NONE || (arrows & ARROW_TAIL) != 0)
+                return getTail();
+        } else if (getTail() == source) {
+            if (arrows == ARROW_NONE || (arrows & ARROW_HEAD) != 0)
+                return getHead();
         } else
             throw new IllegalArgumentException("bad farpoint: " + source + " not connected to " + this);
         return null;
@@ -552,11 +542,11 @@ public class LWLink extends LWComponent
     {
         if (isCurved())
             return false;
-        if (ep1 == null || ep2 == null)
+        if (head == null || tail == null)
             return getParent() instanceof LWNode;
-        if (ep1.getParent() == ep2 || ep2.getParent() == ep1)
+        if (head.getParent() == tail || tail.getParent() == head)
             return true;
-        return ep1.getParent() == ep2.getParent() && ep1.getParent() instanceof LWNode;
+        return head.getParent() == tail.getParent() && head.getParent() instanceof LWNode;
     }
     
     public Shape getShape()
@@ -781,83 +771,54 @@ public class LWLink extends LWComponent
         return x >= sx && x <= ex && y >= sy && y <= ey;
     }
     
-    /* TODO FIX: not everybody is going to be okay with these returning null... */
-    public LWComponent getComponent1() { return ep1; }
-    public LWComponent getComponent2() { return ep2; }
+    public LWComponent getHead() { return head; }
+    public LWComponent getTail() { return tail; }
+    /** @deprecated */
+    public LWComponent getComponent1() { return getHead(); }
+    /** @deprecated */
+    public LWComponent getComponent2() { return getTail(); }
 
     void disconnectFrom(LWComponent c)
     {
         boolean changed = false;
-        if (ep1 == c)
-            setComponent1(null);
-        else if (ep2 == c)
-            setComponent2(null);
+        if (head == c)
+            setHead(null);
+        else if (tail == c)
+            setTail(null);
         else
             throw new IllegalArgumentException(this + " cannot disconnect: not connected to " + c);
     }
             
-    void setComponent1(LWComponent c)
+    void setHead(LWComponent c)
     {
-        if (c == ep1)
+        if (c == head)
             return;
-        if (ep1 != null)
-            ep1.removeLinkRef(this);            
-        //final LWComponent oldEP = this.ep1;
-        Object old = this.ep1;
-        this.ep1 = c;
+        if (head != null)
+            head.removeLinkRef(this);            
+        final LWComponent oldHead = this.head;
+        this.head = c;
         if (c != null)
             c.addLinkRef(this);
-        endPoint1_ID = null;
+        head_ID = null;
         endpointMoved = true;
-        //notify("link.ep1.connect", new Undoable() { void undo() { setComponent1(oldEP); }} );
-        notify("link.ep1.connect", new Undoable(old) { void undo() { setComponent1((LWComponent)old); }} );
+        notify("link.head.connect", new Undoable(oldHead) { void undo() { setHead(oldHead); }} );
     }
-    void setComponent2(LWComponent c)
+    void setTail(LWComponent c)
     {
-        if (c == ep2)
+        if (c == tail)
             return;
-        if (ep2 != null)
-            ep2.removeLinkRef(this);            
-        Object old = this.ep2;
-        this.ep2 = c;
+        if (tail != null)
+            tail.removeLinkRef(this);            
+        final LWComponent oldTail = this.tail;
+        this.tail = c;
         if (c != null)
             c.addLinkRef(this);
-        endPoint2_ID = null;
+        tail_ID = null;
         endpointMoved = true;
-        notify("link.ep2.connect", new Undoable(old) { void undo() { setComponent2((LWComponent)old); }} );
+        notify("link.tail.connect", new Undoable(oldTail) { void undo() { setTail(oldTail); }} );
     }
 
     
-    // used only during save
-    public String getEndPoint1_ID()
-    {
-        //System.err.println("getEndPoint1_ID called for " + this);
-        if (this.ep1 == null)
-            return this.endPoint1_ID;
-        else
-            return this.ep1.getID();
-    }
-    // used only during save
-    public String getEndPoint2_ID()
-    {
-        //System.err.println("getEndPoint2_ID called for " + this);
-        if (this.ep2 == null)
-            return this.endPoint2_ID;
-        else
-            return this.ep2.getID();
-    }
-
-    // used only during restore
-    public void setEndPoint1_ID(String s)
-    {
-        this.endPoint1_ID = s;
-    }
-    // used only during restore
-    public void setEndPoint2_ID(String s)
-    {
-        this.endPoint2_ID = s;
-    }
-
     public boolean isOrdered()
     {
         return this.ordered;
@@ -891,8 +852,8 @@ public class LWLink extends LWComponent
     public java.util.Iterator getLinkEndpointsIterator()
     {
         java.util.List endpoints = new java.util.ArrayList(2);
-        if (this.ep1 != null) endpoints.add(this.ep1);
-        if (this.ep2 != null) endpoints.add(this.ep2);
+        if (this.head != null) endpoints.add(this.head);
+        if (this.tail != null) endpoints.add(this.tail);
         return new VueUtil.GroupIterator(endpoints,
                                          super.getLinkEndpointsIterator());
         
@@ -902,8 +863,8 @@ public class LWLink extends LWComponent
     {
         java.util.List list = new java.util.ArrayList(getLinkRefs().size() + 2);
         list.addAll(getLinkRefs());
-        list.add(getComponent1());
-        list.add(getComponent2());
+        list.add(getHead());
+        list.add(getTail());
         return list;
     }
     
@@ -920,11 +881,11 @@ public class LWLink extends LWComponent
         float dx = x - getX();
         float dy = y - getY();
 
-        if (ep1 == null)
-            setStartPoint(startX + dx, startY + dy);
+        if (head == null)
+            setHeadPoint(headX + dx, headY + dy);
 
-        if (ep2 == null)
-            setEndPoint(endX + dx, endY + dy);
+        if (tail == null)
+            setTailPoint(tailX + dx, tailY + dy);
 
         if (curveControls == 1) {
             setCtrlPoint0(quadCurve.ctrlx + dx,
@@ -952,19 +913,19 @@ public class LWLink extends LWComponent
     private float[] intersection = new float[2]; // result cache for intersection coords
     void computeLinkEndpoints()
     {
-        //if (ep1 == null || ep2 == null) throw new IllegalStateException("LWLink: attempting to compute shape w/out endpoints");
+        //if (head == null || tail == null) throw new IllegalStateException("LWLink: attempting to compute shape w/out endpoints");
         // we clear this at the top in case another thread
         // (e.g., AWT paint) clears it again while we're
         // in here
         endpointMoved = false;
 
-        if (ep1 != null) {
-            startX = ep1.getCenterX();
-            startY = ep1.getCenterY();
+        if (head != null) {
+            headX = head.getCenterX();
+            headY = head.getCenterY();
         }
-        if (ep2 != null) {
-            endX = ep2.getCenterX();
-            endY = ep2.getCenterY();
+        if (tail != null) {
+            tailX = tail.getCenterX();
+            tailY = tail.getCenterY();
         }
 
         
@@ -977,18 +938,18 @@ public class LWLink extends LWComponent
             //-------------------------------------------------------
             // INTIALIZE CONTROL POINTS
             //-------------------------------------------------------
-            this.centerX = startX - (startX - endX) / 2;
-            this.centerY = startY - (startY - endY) / 2;
+            this.centerX = headX - (headX - tailX) / 2;
+            this.centerY = headY - (headY - tailY) / 2;
 
             if (curveControls == 2) {
                     /*
                     // disperse the 2 control points -- todo: get working
-                    float offX = Math.abs(startX - centerX) * 0.66f;
-                    float offY = Math.abs(startY - centerY) * 0.66f;
-                    cubicCurve.ctrlx1 = startX + offX;
-                    cubicCurve.ctrly1 = startY + offY;
-                    cubicCurve.ctrlx2 = endX - offX;
-                    cubicCurve.ctrly2 = endY - offY;
+                    float offX = Math.abs(headX - centerX) * 0.66f;
+                    float offY = Math.abs(headY - centerY) * 0.66f;
+                    cubicCurve.ctrlx1 = headX + offX;
+                    cubicCurve.ctrly1 = headY + offY;
+                    cubicCurve.ctrlx2 = tailX - offX;
+                    cubicCurve.ctrly2 = tailY - offY;
                     */
                 if (cubicCurve.ctrlx1 == Float.MIN_VALUE) {
                     cubicCurve.ctrlx1 = centerX;
@@ -1009,7 +970,7 @@ public class LWLink extends LWComponent
         
 
         float srcX, srcY;
-        Shape ep1Shape = ep1 == null ? null : ep1.getShape();
+        final Shape headShape = (head == null ? null : head.getShape());
         // if either endpoint shape is a straight line, we don't need to
         // bother computing the shape intersection -- it will just
         // be the default connection point -- the center point.
@@ -1019,7 +980,7 @@ public class LWLink extends LWComponent
         // the convex side, but from the concave side, it winds
         // up at the center point for a regular straight link.
 
-        if (ep1Shape != null && !(ep1Shape instanceof Line2D)) {
+        if (headShape != null && !(headShape instanceof Line2D)) {
             if (curveControls == 1) {
                 srcX = quadCurve.ctrlx;
                 srcY = quadCurve.ctrly;
@@ -1027,21 +988,21 @@ public class LWLink extends LWComponent
                 srcX = cubicCurve.ctrlx1;
                 srcY = cubicCurve.ctrly1;
             } else {
-                srcX = endX;
-                srcY = endY;
+                srcX = tailX;
+                srcY = tailY;
             }
-            float[] result = VueUtil.computeIntersection(startX, startY, srcX, srcY, ep1Shape, intersection, 1);
+            float[] result = VueUtil.computeIntersection(headX, headY, srcX, srcY, headShape, intersection, 1);
             // If intersection fails for any reason, leave endpoint as center
             // of object.
-            //if (!Float.isNaN(intersection[0])) startX = intersection[0];
-            //if (!Float.isNaN(intersection[1])) startY = intersection[1];
+            //if (!Float.isNaN(intersection[0])) headX = intersection[0];
+            //if (!Float.isNaN(intersection[1])) headY = intersection[1];
             if (result != VueUtil.NoIntersection) {
-                 startX = intersection[0];
-                 startY = intersection[1];
+                 headX = intersection[0];
+                 headY = intersection[1];
             }
         }
-        Shape ep2Shape = ep2 == null ? null : ep2.getShape();
-        if (ep2Shape != null && !(ep2Shape instanceof Line2D)) {
+        Shape tailShape = tail == null ? null : tail.getShape();
+        if (tailShape != null && !(tailShape instanceof Line2D)) {
             if (curveControls == 1) {
                 srcX = quadCurve.ctrlx;
                 srcY = quadCurve.ctrly;
@@ -1049,22 +1010,22 @@ public class LWLink extends LWComponent
                 srcX = cubicCurve.ctrlx2;
                 srcY = cubicCurve.ctrly2;
             } else {
-                srcX = startX;
-                srcY = startY;
+                srcX = headX;
+                srcY = headY;
             }
-            float[] result = VueUtil.computeIntersection(srcX, srcY, endX, endY, ep2Shape, intersection, 1);
+            float[] result = VueUtil.computeIntersection(srcX, srcY, tailX, tailY, tailShape, intersection, 1);
             // If intersection fails for any reason, leave endpoint as center
             // of object.
-            //if (!Float.isNaN(intersection[0])) endX = intersection[0];
-            //if (!Float.isNaN(intersection[1])) endY = intersection[1];
+            //if (!Float.isNaN(intersection[0])) tailX = intersection[0];
+            //if (!Float.isNaN(intersection[1])) tailY = intersection[1];
             if (result != VueUtil.NoIntersection) {
-                 endX = intersection[0];
-                 endY = intersection[1];
+                 tailX = intersection[0];
+                 tailY = intersection[1];
             }
         }
         
-        this.centerX = startX - (startX - endX) / 2;
-        this.centerY = startY - (startY - endY) / 2;
+        this.centerX = headX - (headX - tailX) / 2;
+        this.centerY = headY - (headY - tailY) / 2;
         
         // We only set the size & location here so LWComponent.getBounds
         // can do something reasonable with us for computing/drawing
@@ -1081,12 +1042,12 @@ public class LWLink extends LWComponent
             if (isCubicCurve) {
                 if (false&&cubicCurve.ctrlx1 == Float.MIN_VALUE) {
                     // unintialized control points
-                    float offX = Math.abs(startX - centerX) * 0.66f;
-                    float offY = Math.abs(startY - centerY) * 0.66f;
-                    cubicCurve.ctrlx1 = startX + offX;
-                    cubicCurve.ctrly1 = startY + offY;
-                    cubicCurve.ctrlx2 = endX - offX;
-                    cubicCurve.ctrly2 = endY - offY;
+                    float offX = Math.abs(headX - centerX) * 0.66f;
+                    float offY = Math.abs(headY - centerY) * 0.66f;
+                    cubicCurve.ctrlx1 = headX + offX;
+                    cubicCurve.ctrly1 = headY + offY;
+                    cubicCurve.ctrlx2 = tailX - offX;
+                    cubicCurve.ctrly2 = tailY - offY;
                 }
             } else {
                 if (false&&quadCurve.ctrlx == Float.MIN_VALUE) {
@@ -1098,8 +1059,8 @@ public class LWLink extends LWComponent
             */
 
             Rectangle2D.Float bounds = new Rectangle2D.Float();
-            bounds.width = Math.abs(startX - endX);
-            bounds.height = Math.abs(startY - endY);
+            bounds.width = Math.abs(headX - tailX);
+            bounds.height = Math.abs(headY - tailY);
             bounds.x = centerX - bounds.width/2;
             bounds.y = centerY - bounds.height/2;
             if (curveControls == 2) {
@@ -1122,7 +1083,7 @@ public class LWLink extends LWComponent
             try {
                 mChangeSupport.setEventsSuspended();
                 // todo check: any problem with events off here?
-                setSize(Math.abs(startX - endX), Math.abs(startY - endY));
+                setSize(Math.abs(headX - tailX), Math.abs(headY - tailY));
                 setX(this.centerX - getWidth()/2);
                 setY(this.centerY - getHeight()/2);
             } finally {
@@ -1133,12 +1094,12 @@ public class LWLink extends LWComponent
         //-------------------------------------------------------
         // Set the stroke line
         //-------------------------------------------------------
-        this.line.setLine(startX, startY, endX, endY);
+        this.line.setLine(headX, headY, tailX, tailY);
         if (curveControls == 1) {
-            quadCurve.x1 = startX;
-            quadCurve.y1 = startY;
-            quadCurve.x2 = endX;
-            quadCurve.y2 = endY;
+            quadCurve.x1 = headX;
+            quadCurve.y1 = headY;
+            quadCurve.x2 = tailX;
+            quadCurve.y2 = tailY;
 
             // compute approximate on-curve "center" for label
 
@@ -1155,10 +1116,10 @@ public class LWLink extends LWComponent
             mCurveCenterY = (ctrly1 + ctrly2) / 2;
             
         } else if (curveControls == 2) {
-            cubicCurve.x1 = startX;
-            cubicCurve.y1 = startY;
-            cubicCurve.x2 = endX;
-            cubicCurve.y2 = endY;
+            cubicCurve.x1 = headX;
+            cubicCurve.y1 = headY;
+            cubicCurve.x2 = tailX;
+            cubicCurve.y2 = tailY;
 
             // compute approximate on-curve "center" for label
             // (See CubicCurve2D.subdivide)
@@ -1257,19 +1218,19 @@ public class LWLink extends LWComponent
         // Draw arrows
         //-------------------------------------------------------
 
-        ////ep1Shape.setFrame(this.line.getP1(), new Dimension(arrowSize, arrowSize));
-        ////ep1Shape.setFrame(this.line.getX1() - arrowSize/2, this.line.getY1(), arrowSize, arrowSize*2);
-        //ep1Shape.setFrame(0,0, arrowSize, arrowSize*2);
+        ////headShape.setFrame(this.line.getP1(), new Dimension(arrowSize, arrowSize));
+        ////headShape.setFrame(this.line.getX1() - arrowSize/2, this.line.getY1(), arrowSize, arrowSize*2);
+        //headShape.setFrame(0,0, arrowSize, arrowSize*2);
 
         double rotation1 = 0;
         double rotation2 = 0;
 
         if (curveControls == 1) {
-            rotation1 = computeVerticalRotation(startX, startY, quadCurve.ctrlx, quadCurve.ctrly);
-            rotation2 = computeVerticalRotation(endX, endY, quadCurve.ctrlx, quadCurve.ctrly);
+            rotation1 = computeVerticalRotation(headX, headY, quadCurve.ctrlx, quadCurve.ctrly);
+            rotation2 = computeVerticalRotation(tailX, tailY, quadCurve.ctrlx, quadCurve.ctrly);
         } else if (curveControls == 2) {
-            rotation1 = computeVerticalRotation(startX, startY, cubicCurve.ctrlx1, cubicCurve.ctrly1);
-            rotation2 = computeVerticalRotation(endX, endY, cubicCurve.ctrlx2, cubicCurve.ctrly2);
+            rotation1 = computeVerticalRotation(headX, headY, cubicCurve.ctrlx1, cubicCurve.ctrly1);
+            rotation2 = computeVerticalRotation(tailX, tailY, cubicCurve.ctrlx2, cubicCurve.ctrly2);
         } else {
             rotation1 = computeVerticalRotation(line.getX1(), line.getY1(), line.getX2(), line.getY2());
             rotation2 = rotation1 + Math.PI;  // flip: add 180 degrees
@@ -1285,8 +1246,8 @@ public class LWLink extends LWComponent
         //dc.g.translate(line.getX1(), line.getY1());
 
         //double controlOffset = mLength / 10;
-        //double controlOffset = mLength / 10 + ep1Shape.getHeight();
-        double controlOffset = ep1Shape.getHeight() * 2;
+        //double controlOffset = mLength / 10 + headShape.getHeight();
+        double controlOffset = HeadShape.getHeight() * 2;
         double room = mLength - controlOffset * 2;
         final int controlSize = 6;
 
@@ -1295,10 +1256,10 @@ public class LWLink extends LWComponent
 
         if (DEBUG.WORK) out("LEN " + mLength + " CO " + controlOffset + " ROOM=" + room);
 
-        if ((mArrowState.get() & ARROW_EP1) != 0) {
+        if ((mArrowState.get() & ARROW_HEAD) != 0) {
             dc.g.setStroke(this.stroke);
             dc.g.setColor(getStrokeColor());
-            dc.g.translate(startX, startY);
+            dc.g.translate(headX, headY);
             dc.g.rotate(rotation1);
 
             // Now we're operating in a coordinate space where the line is vertical.
@@ -1308,12 +1269,12 @@ public class LWLink extends LWComponent
             
             // Move back to the left half the width of the arrow, so
             // that when drawn it will be centered on the line.
-            dc.g.translate(-ep1Shape.getWidth() / 2, 0);
-            dc.g.fill(ep1Shape);
-            dc.g.draw(ep1Shape);
+            dc.g.translate(-HeadShape.getWidth() / 2, 0);
+            dc.g.fill(HeadShape);
+            dc.g.draw(HeadShape);
 
             // test: move down line to draw "control"
-            dc.g.translate(ep1Shape.getWidth() / 2, 0); // return to line
+            dc.g.translate(HeadShape.getWidth() / 2, 0); // return to line
             dc.g.translate(-controlSize/2, controlOffset); // move half width of circle to left to center, and down 20 px
             dc.g.setColor(Color.green);
             //dc.g.setStroke(STROKE_EIGHTH);
@@ -1322,26 +1283,22 @@ public class LWLink extends LWComponent
             dc.g.setTransform(savedTransform);
         }
         
-        if ((mArrowState.get() & ARROW_EP2) != 0) {
+        if ((mArrowState.get() & ARROW_TAIL) != 0) {
             dc.g.setStroke(this.stroke);
             dc.g.setColor(getStrokeColor());
             // draw the second arrow
             //dc.g.translate(line.getX2(), line.getY2());
-            dc.g.translate(endX, endY);
+            dc.g.translate(tailX, tailY);
             dc.g.rotate(rotation2);
-            dc.g.translate(-ep2Shape.getWidth() / 2, 0); // center shape on point 
-            dc.g.fill(ep2Shape);
-            dc.g.draw(ep2Shape);
+            dc.g.translate(-TailShape.getWidth() / 2, 0); // center shape on point 
+            dc.g.fill(TailShape);
+            dc.g.draw(TailShape);
 
-            
-            dc.g.translate(ep1Shape.getWidth() / 2, 0);
+            dc.g.translate(TailShape.getWidth() / 2, 0);
             dc.g.translate(-controlSize/2, controlOffset);
             dc.g.setColor(Color.red);
             //dc.g.setStroke(STROKE_EIGHTH);
             dc.g.drawOval(0,0, controlSize,controlSize);
-            
-
-
             
             dc.g.setTransform(savedTransform);
         }
@@ -1365,13 +1322,13 @@ public class LWLink extends LWComponent
         // todo: cache this scaled stroke
         // todo: do we really even want this functionality?
         /*
-        if (ep1 != null && ep2 != null) { // todo cleanup
-        if ((ep1 != null && ep1.getScale() != 1f) || (ep2 != null && ep2.getScale() != 1f)) {
+        if (head != null && tail != null) { // todo cleanup
+        if ((head != null && head.getScale() != 1f) || (tail != null && tail.getScale() != 1f)) {
             float strokeWidth = getStrokeWidth();
-            if (ep1.getScale() < ep2.getScale())
-                strokeWidth *= ep1.getScale();
+            if (head.getScale() < tail.getScale())
+                strokeWidth *= head.getScale();
             else
-                strokeWidth *= ep2.getScale();
+                strokeWidth *= tail.getScale();
             //g.setStroke(new BasicStroke(strokeWidth));
             stroke = new BasicStroke(strokeWidth);
         } else {
@@ -1492,9 +1449,9 @@ public class LWLink extends LWComponent
         if (!isNestedLink())
             drawLinkDecorations(dc);
         
-        boolean ep1group = getComponent1() instanceof LWGroup;
-        boolean ep2group = getComponent2() instanceof LWGroup;
-        if (DEBUG.BOXES && ((ep1group || ep2group) && dc.isInteractive() || DEBUG.BOXES)) {
+        boolean headgroup = head instanceof LWGroup;
+        boolean tailgroup = tail instanceof LWGroup;
+        if (DEBUG.BOXES && ((headgroup || tailgroup) && dc.isInteractive() || DEBUG.BOXES)) {
             float size = 8;
             if (dc.zoom < 1)
                 size /= dc.zoom;
@@ -1502,12 +1459,12 @@ public class LWLink extends LWComponent
             Composite composite = dc.g.getComposite();
             dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
             dc.g.setColor(Color.green);
-            if (ep1group || DEBUG.BOXES) {
-                dot.setFrameFromCenter(startX, startY, startX+size/2, startY+size/2);
+            if (headgroup || DEBUG.BOXES) {
+                dot.setFrameFromCenter(headX, headY, headX+size/2, headY+size/2);
                 dc.g.fill(dot);
             }
-            if (ep2group || DEBUG.BOXES) {
-                dot.setFrameFromCenter(endX, endY, endX+size/2, endY+size/2);
+            if (tailgroup || DEBUG.BOXES) {
+                dot.setFrameFromCenter(tailX, tailY, tailX+size/2, tailY+size/2);
                 if (DEBUG.BOXES) dc.g.setColor(Color.red);
                 dc.g.fill(dot);
             }
@@ -1749,7 +1706,7 @@ public class LWLink extends LWComponent
             if (DEBUG.BOXES) out("POINTS ON FLATTENED CURVE: " + mPoints.size() + " total length estimate=" + mLength);
             
         } else {
-            mLength = lineLength(startX, startY, endX, endY);
+            mLength = lineLength(headX, headY, tailX, tailY);
             if (DEBUG.BOXES) out("length=" + mLength);
         }
 
@@ -1878,10 +1835,10 @@ public class LWLink extends LWComponent
     {
         //todo: make sure we've got everything (styles, etc)
         LWLink link = (LWLink) super.duplicate(linkPatcher);
-        link.startX = startX;
-        link.startY = startY;
-        link.endX = endX;
-        link.endY = endY;
+        link.headX = headX;
+        link.headY = headY;
+        link.tailX = tailX;
+        link.tailY = tailY;
         link.centerX = centerX;
         link.centerY = centerY;
         link.ordered = ordered;
@@ -1897,39 +1854,74 @@ public class LWLink extends LWComponent
     public String paramString()
     {
         String s =
-            " " + (int)startX+","+(int)startY
-            + " -> " + (int)endX+","+(int)endY;
+            " " + (int)headX+","+(int)headY
+            + " -> " + (int)tailX+","+(int)tailY;
         if (getControlCount() == 1)
             s += " cc1"; // quadratic
         else if (getControlCount() == 2)
             s += " cc2"; // cubic
 
-        //s += "\n\t" + ep1 + "\n\t" + ep2;
+        //s += "\n\t" + head + "\n\t" + tail;
         
         return s;
     }
 
-    /** @deprecated for persistance/init ONLY */
-    public void setPoint1(Point2D p)
+    /** @deprecated -- use setHeadPoint */ public void setStartPoint(float x, float y) { setHeadPoint(x, y); }
+    /** @deprecated -- use setTailPoint */ public void setEndPoint(float x, float y) { setTailPoint(x, y); }
+    /** @deprecated -- use getHeadPoint */ public Point2D getPoint1() { return getHeadPoint(); }
+    /** @deprecated -- use getTailPoint */ public Point2D getPoint2() { return getTailPoint(); }
+    
+    /** @deprecated -- for persistance/init ONLY */
+    public String getHead_ID()
     {
-        startX = (float) p.getX();
-        startY = (float) p.getY();
+        //System.err.println("getEndPoint1_ID called for " + this);
+        if (this.head == null)
+            return this.head_ID;
+        else
+            return this.head.getID();
     }
-    /** @deprecated for persistance/init ONLY */
-    public void setPoint2(Point2D p)
+    /** @deprecated -- for persistance/init ONLY */
+    public String getTail_ID()
     {
-        endX = (float) p.getX();
-        endY = (float) p.getY();
+        //System.err.println("getEndPoint2_ID called for " + this);
+        if (this.tail == null)
+            return this.tail_ID;
+        else
+            return this.tail.getID();
     }
-    /** for persistance */
-    public Point2D.Float getPoint1()
-    {
-        return new Point2D.Float(startX, startY);
+    /** @deprecated -- for persistance/init ONLY */
+    public void setHead_ID(String s) {
+        this.head_ID = s;
     }
-    /** for persistance */
-    public Point2D.Float getPoint2()
-    {
-        return new Point2D.Float(endX, endY);
+    /** @deprecated -- for persistance/init ONLY */
+    public void setTail_ID(String s) {
+        this.tail_ID = s;
+    }
+    /** @deprecated -- for persistance/init ONLY */
+    public void setHeadPoint(Point2D p) {
+        if (mXMLRestoreUnderway) {
+            headX = (float) p.getX();
+            headY = (float) p.getY();
+        } else {
+            setHeadPoint((float)p.getX(), (float)p.getY());
+        }
+    }
+    /** @deprecated -- for persistance/init ONLY  */
+    public void setTailPoint(Point2D p) {
+        if (mXMLRestoreUnderway) {
+            tailX = (float) p.getX();
+            tailY = (float) p.getY();
+        } else {
+            setTailPoint((float)p.getX(), (float)p.getY());
+        }
+    }
+    /** for persistance/init ONLY */
+    public Point2D.Float getHeadPoint() {
+        return new Point2D.Float(headX, headY);
+    }
+    /** for persistance/init ONLY */
+    public Point2D.Float getTailPoint() {
+        return new Point2D.Float(tailX, tailY);
     }
 
     // these two to support a special dynamic link
@@ -1937,21 +1929,21 @@ public class LWLink extends LWComponent
     //boolean viewerCreationLink = false;
     // todo: this boolean a hack until we no longer need to use
     // clip-regions to draw the links
-    LWLink(LWComponent ep2)
+    LWLink(LWComponent tail)
     {
         initLink();
         //viewerCreationLink = true;
-        this.ep2 = ep2;
+        this.tail = tail;
         setStrokeWidth(2f); //todo config: default link width
     }
     
-    // sets ep1 WIHOUT adding a link ref -- used for
+    // sets head WIHOUT adding a link ref -- used for
     // temporary drawing of link hack during drag outs --
     // you know, we should just skip using a LWLink object
     // for that crap alltogether. TODO
-    void setTemporaryEndPoint1(LWComponent ep1)
+    void setTemporaryEndPoint1(LWComponent head)
     {
-        this.ep1 = ep1;
+        this.head = head;
     }
     
     

@@ -342,7 +342,7 @@ public class LWCToolPanel extends JPanel
         boolean loaded = false;
         for (LWEditor editor : mEditors) {
             //if (DEBUG.TOOL&&DEBUG.META) System.out.println(this + " checking key [" + propertyKey + "] against " + propertyProducer);
-            if (editor.getPropertyKey() == key) {
+            if (editor.getPropertyKey() == key && source.supportsProperty(key)) {
                 if (DEBUG.TOOL) out("loadEditorsMatchingKey: found producer for key [" + key + "]: " + editor.getClass());
                 final Object value = source.getPropertyValue(key);
                 editor.displayValue(value);

@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.308 $ / $Date: 2007-03-14 21:01:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.309 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4312,9 +4312,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // todo: not currently used as link dragging disabled
                     // todo: fix with new dragComponent being link as control point
                     LWLink l = (LWLink) dragComponent;
-                    LWComponent c = l.getComponent1();
+                    LWComponent c = l.getHead();
                     if (c != null) repaintRegion.add(c.getBounds());
-                    c = l.getComponent2();
+                    c = l.getTail();
                     if (c != null) repaintRegion.add(c.getBounds());
                 }
             }

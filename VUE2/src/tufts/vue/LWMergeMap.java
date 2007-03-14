@@ -270,12 +270,12 @@ public class LWMergeMap extends LWMap {
               if(com instanceof LWLink)
               {
                   LWLink comlink = (LWLink)com;
-                  //System.out.println("component1: " + comlink.getComponent1());
+                  //System.out.println("component1: " + comlink.getHead());
                   //System.out.println("comlink.getEndPoint1_ID(): " + comlink.getEndPoint1_ID());
-                  //System.out.println("component1 label: " + comlink.getComponent1().getLabel());
-                  //System.out.println("component2: " + comlink.getComponent2());
+                  //System.out.println("component1 label: " + comlink.getHead().getLabel());
+                  //System.out.println("component2: " + comlink.getTail());
                   //System.out.println("comlink.getEndPoint2_ID(): " + comlink.getEndPoint2_ID());
-                  //System.out.println("component2 label: " + comlink.getComponent2().getLabel());
+                  //System.out.println("component2 label: " + comlink.getTail().getLabel());
                   
                   //System.out.println("arrow state: " + ((LWLink)(com)).getArrowState());
               }
@@ -345,31 +345,31 @@ public class LWMergeMap extends LWMap {
             LWLink l = (LWLink) currc;
             try {
                 // was: final ep1ID
-                String ep1ID = l.getEndPoint1_ID();
+                String ep1ID = l.getHead_ID();
                 //System.out.println("before setting components");
-                //System.out.println("l.getEndPoint1_ID(): " + l.getEndPoint1_ID());
-                //System.out.println("l.getComponent1(): " + l.getComponent1());
+                //System.out.println("l.getHead_ID(): " + l.getHead_ID());
+                //System.out.println("l.getHead(): " + l.getHead());
                 // was: final ep2ID
-                String ep2ID = l.getEndPoint2_ID();
-                //System.out.println("l.getEndPoint2_ID(): " + l.getEndPoint2_ID());
-                //System.out.println("l.getComponent2(): " + l.getComponent2());
+                String ep2ID = l.getTail_ID();
+                //System.out.println("l.getTail_ID(): " + l.getTail_ID());
+                //System.out.println("l.getTail(): " + l.getTail());
 
-                if (ep1ID != null && l.getComponent1() == null) l.setComponent1(findByID(chs, ep1ID));
-                if (ep2ID != null && l.getComponent2() == null) l.setComponent2(findByID(chs, ep2ID));
-                if(l.getComponent1() != null && l.getComponent2() != null)
+                if (ep1ID != null && l.getHead() == null) l.setHead(findByID(chs, ep1ID));
+                if (ep2ID != null && l.getTail() == null) l.setTail(findByID(chs, ep2ID));
+                if(l.getHead() != null && l.getTail() != null)
                 {
                     //markAsSaved();
                     //getUndoManager().mark("links recalculated");
                     //getUndoManager().flush();
                 }
                 
-                ep1ID = l.getEndPoint1_ID();
+                ep1ID = l.getHead_ID();
                 //System.out.println("after setting components");
-                //System.out.println("l.getEndPoint1_ID(): " + l.getEndPoint1_ID());
-                //System.out.println("l.getComponent1(): " + l.getComponent1());
-                ep2ID = l.getEndPoint2_ID();
-                //System.out.println("l.getEndPoint2_ID(): " + l.getEndPoint2_ID());
-                //System.out.println("l.getComponent2(): " + l.getComponent2());
+                //System.out.println("l.getHead_ID(): " + l.getHead_ID());
+                //System.out.println("l.getHead(): " + l.getHead());
+                ep2ID = l.getTail_ID();
+                //System.out.println("l.getTail_ID(): " + l.getTail_ID());
+                //System.out.println("l.getTail(): " + l.getTail());
                 
             } catch (Throwable e) {
                 tufts.Util.printStackTrace(e, "bad link? + l");

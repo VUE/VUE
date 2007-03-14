@@ -28,7 +28,7 @@ import java.awt.geom.Point2D;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.50 $ / $Date: 2007-03-14 17:20:24 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -163,7 +163,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             throw new IllegalStateException(this + " didn't contain control listener " + listener);
     }
 
-    java.util.List getControlListeners()
+    java.util.List<ControlListener> getControlListeners()
     {
         return controlListeners;
     }

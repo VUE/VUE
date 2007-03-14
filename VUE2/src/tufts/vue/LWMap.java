@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.113 $ / $Date: 2007-03-14 17:20:12 $ / $Author: sfraize $
+ * @version $Revision: 1.114 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -468,10 +468,10 @@ public class LWMap extends LWContainer
                 continue;
             LWLink l = (LWLink) c;
             try {
-                final String ep1ID = l.getEndPoint1_ID();
-                final String ep2ID = l.getEndPoint2_ID();
-                if (ep1ID != null && l.getComponent1() == null) l.setComponent1(findByID(allRestored, ep1ID));
-                if (ep2ID != null && l.getComponent2() == null) l.setComponent2(findByID(allRestored, ep2ID));
+                final String headID = l.getHead_ID();
+                final String tailID = l.getTail_ID();
+                if (headID != null && l.getHead() == null) l.setHead(findByID(allRestored, headID));
+                if (tailID != null && l.getTail() == null) l.setTail(findByID(allRestored, tailID));
             } catch (Throwable e) {
                 tufts.Util.printStackTrace(e, "bad link? + l");
             }

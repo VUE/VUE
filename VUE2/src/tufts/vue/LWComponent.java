@@ -43,7 +43,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.214 $ / $Date: 2007-03-14 18:49:35 $ / $Author: sfraize $
+ * @version $Revision: 1.215 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -414,6 +414,10 @@ public class LWComponent
             }
         }
 
+        void setValueInternal(TSubclass c, TValue value) {
+            setValue(c, value);
+        }
+        
         /** non slot-based property keys can override this */
         void setValue(TSubclass c, TValue value) {
             final Property slot = getSlotSafely(c);
@@ -1034,17 +1038,17 @@ public class LWComponent
                 final LWLink linkCopy = (LWLink) c;
                 final LWLink linkOriginal = (LWLink) mOriginals.get(linkCopy);
                 
-                final LWComponent endPoint1Copy = mCopies.get(linkOriginal.getComponent1());
-                final LWComponent endPoint2Copy = mCopies.get(linkOriginal.getComponent2());
+                final LWComponent headCopy = mCopies.get(linkOriginal.getHead());
+                final LWComponent tailCopy = mCopies.get(linkOriginal.getTail());
                 
                 if (DEBUG.DND)
                     System.out.println("LinkPatcher: reconnecting " + linkCopy + " endpoints:"
-                                       + "\n\t" + endPoint1Copy
-                                       + "\n\t" + endPoint2Copy
+                                       + "\n\t" + headCopy
+                                       + "\n\t" + tailCopy
                                        );
                 
-                linkCopy.setComponent1(endPoint1Copy);
-                linkCopy.setComponent2(endPoint2Copy);
+                linkCopy.setHead(headCopy);
+                linkCopy.setTail(tailCopy);
             }
         }
     }
@@ -2084,27 +2088,27 @@ public class LWComponent
      * If this is a LWLink, it should include it's
      * own endpoints in the list.
      */
-    public java.util.Iterator getLinkEndpointsIterator()
+    public java.util.Iterator<LWComponent> getLinkEndpointsIterator()
     {
         return
-            new java.util.Iterator() {
+            new java.util.Iterator<LWComponent>() {
                 java.util.Iterator i = getLinkRefs().iterator();
                 public boolean hasNext() {return i.hasNext();}
-		public Object next()
+		public LWComponent next()
                 {
                     LWLink l = (LWLink) i.next();
-                    LWComponent c1 = l.getComponent1();
-                    LWComponent c2 = l.getComponent2();
+                    LWComponent head = l.getHead();
+                    LWComponent tail = l.getTail();
                     
                     // Every link, as it's connected to us, should have us as one of
                     // it's endpoints -- so return the opposite endpoint.  TODO: now
                     // that links can have null endpoints, this iterator can return null
                     // -- hasNext will have to get awfully fancy to handle this.
                     
-                    if (c1 == LWComponent.this)
-                        return c2;
+                    if (head == LWComponent.this)
+                        return tail;
                     else
-                        return c1;
+                        return head;
                 }
 		public void remove() {
 		    throw new UnsupportedOperationException();
@@ -2112,7 +2116,7 @@ public class LWComponent
             };
     }
     
-    /**
+    /*
      * Return all LWComponents connected via LWLinks to this object.
      * Included everything except LWLink objects themselves (unless
      * it's an endpoint -- a link to a link)
@@ -2146,14 +2150,12 @@ public class LWComponent
     public java.util.List getAllConnectedComponents()
     {
         List list = new java.util.ArrayList(this.links.size());
-        Iterator i = this.links.iterator();
-        while (i.hasNext()) {
-            LWLink l = (LWLink) i.next();
+        for (LWLink l : this.links) {
             list.add(l);
-            if (l.getComponent1() != this)
-                list.add(l.getComponent1());
-            else if (l.getComponent2() != this) // todo opt: remove extra check eventually
-                list.add(l.getComponent2());
+            if (l.getHead() != this)
+                list.add(l.getHead());
+            else if (l.getTail() != this) // todo opt: remove extra check eventually
+                list.add(l.getTail());
             else
                 // todo: actually, I think we want to support these
                 throw new IllegalStateException("link to self on " + this);
@@ -2169,12 +2171,12 @@ public class LWComponent
         Iterator i = getLinks().iterator();
         while (i.hasNext()) {
             LWLink link = (LWLink) i.next();
-            LWComponent c1 = link.getComponent1();
-            LWComponent c2 = link.getComponent2();
-            if (c1 != this) {
-                if (c1 != null) list.add(c1);
-            } else if (c2 != this) {
-                if (c2 != null) list.add(c2);
+            LWComponent head = link.getHead();
+            LWComponent tail = link.getTail();
+            if (head != this) {
+                if (head != null) list.add(head);
+            } else if (tail != this) {
+                if (tail != null) list.add(tail);
             } else
                 throw new IllegalStateException("link to self on " + this);
             
@@ -2202,10 +2204,8 @@ public class LWComponent
 
     public LWLink getLinkTo(LWComponent c)
     {
-        java.util.Iterator i = this.links.iterator();
-        while (i.hasNext()) {
-            LWLink l = (LWLink) i.next();
-            if (l.getComponent1() == c || l.getComponent2() == c)
+        for (LWLink l : this.links) {
+            if (l.getHead() == c || l.getTail() == c)
                 return l;
         }
         return null;

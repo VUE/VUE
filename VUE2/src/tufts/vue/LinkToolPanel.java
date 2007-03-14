@@ -32,7 +32,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.34 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $
  * 
  */
 
@@ -66,15 +66,15 @@ public class LinkToolPanel extends LWCToolPanel
                 public Integer produceValue() {
                     int arrowState = LWLink.ARROW_NONE;
                     if (mArrowStartButton.isSelected())
-                        arrowState |= LWLink.ARROW_EP1;
+                        arrowState |= LWLink.ARROW_HEAD;
                     if (mArrowEndButton.isSelected())
-                        arrowState |= LWLink.ARROW_EP2;
+                        arrowState |= LWLink.ARROW_TAIL;
                     return arrowState;
                 }
                 public void displayValue(Integer i) {
                     int arrowState = i;
-                    mArrowStartButton.setSelected((arrowState & LWLink.ARROW_EP1) != 0);
-                      mArrowEndButton.setSelected((arrowState & LWLink.ARROW_EP2) != 0);
+                    mArrowStartButton.setSelected((arrowState & LWLink.ARROW_HEAD) != 0);
+                      mArrowEndButton.setSelected((arrowState & LWLink.ARROW_TAIL) != 0);
                 }
             };
 

@@ -280,13 +280,13 @@ public class LinkTool extends VueTool
         boolean ok = true;
         if (linkTarget instanceof LWLink) {
             LWLink lwl = (LWLink) linkTarget;
-            ok &= (lwl.getComponent1() != linkSource &&
-                   lwl.getComponent2() != linkSource);
+            ok &= (lwl.getHead() != linkSource &&
+                   lwl.getTail() != linkSource);
         }
         if (linkSource instanceof LWLink) {
             LWLink lwl = (LWLink) linkSource;
-            ok &= (lwl.getComponent1() != linkTarget &&
-                   lwl.getComponent2() != linkTarget);
+            ok &= (lwl.getHead() != linkTarget &&
+                   lwl.getTail() != linkTarget);
         }
         return ok;
     }
@@ -340,7 +340,7 @@ public class LinkTool extends VueTool
                 link = new LWLink(pLinkSource, pLinkDest);
             } else {
                 link = new LWLink(pLinkSource, null);
-                link.setEndPoint(e.getMapPoint()); // set to drop location
+                link.setTailPoint(e.getMapPoint()); // set to drop location
             }
 
             // init link based on user defined state

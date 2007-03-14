@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.98 $ / $Date: 2007-03-14 17:18:03 $ / $Author: sfraize $
+ * @version $Revision: 1.99 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -414,10 +414,10 @@ public abstract class LWContainer extends LWComponent
             LWLink l = (LWLink) i.next();
             LWContainer parent1 = null;
             LWContainer parent2 = null;
-            if (l.getComponent1() != null)
-                parent1 = l.getComponent1().getParent();
-            if (l.getComponent2() != null)
-                parent2 = l.getComponent2().getParent();
+            if (l.getHead() != null)
+                parent1 = l.getHead().getParent();
+            if (l.getTail() != null)
+                parent2 = l.getTail().getParent();
             // don't need to do anything if link doesn't cross a (logical) parent boundry
             if (parent1 == parent2)
                     continue;
@@ -429,8 +429,8 @@ public abstract class LWContainer extends LWComponent
             /*
             System.err.println("*** ENSURING " + l);
             System.err.println("    (parent) " + l.getParent());
-            System.err.println("  ep1 parent " + l.getComponent1().getParent());
-            System.err.println("  ep2 parent " + l.getComponent2().getParent());
+            System.err.println("  ep1 parent " + l.getHead().getParent());
+            System.err.println("  ep2 parent " + l.getTail().getParent());
             */
             LWContainer commonParent = l.getParent();
             if (commonParent == null) {
