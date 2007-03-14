@@ -48,11 +48,11 @@ public class ImageTool extends VueTool
                     addComponent(mStrokeColorButton);
                     addComponent(mStrokeButton);
                     JSlider slider = new RotationSlider();
-                    addComponent(slider);
+                    //addComponent(slider);
                     slider.addPropertyChangeListener(this) ;
-                    //slider.getModel().addPropertyChangeListener(this); 
-                    //addComponent(new RotationSlider());
-                    //addComponent(ImageTool.mSlider);
+                    ////slider.getModel().addPropertyChangeListener(this); 
+                    ////addComponent(new RotationSlider());
+                    ////addComponent(ImageTool.mSlider);
                 }
             };
     }
