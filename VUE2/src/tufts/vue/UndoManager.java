@@ -435,6 +435,7 @@ public class UndoManager
                     if (child.isDeleted())
                         child.restoreToModel();
                     child.setParent(parent);
+                    child.addNotify(parent);
                 }
             }
             parent.setScale(parent.getScale());
