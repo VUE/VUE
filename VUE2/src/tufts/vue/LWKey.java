@@ -49,7 +49,7 @@ public interface LWKey {
     public LWComponent.Key Shape = LWNode.KEY_Shape;
 
     public LWComponent.Key Label = LWComponent.KEY_Label;
-    
+    public LWComponent.Key Notes = LWComponent.KEY_Notes;;
     
     //public String FillColor = "fill.color"; 
     //public String TextColor = "text.color"; 
@@ -68,7 +68,7 @@ public interface LWKey {
     public String Frame = "frame"; // location & size
     
     //public String Label = "label"; 
-    public String Notes = "notes"; 
+    //public String Notes = "notes"; 
     public String Scale = "scale"; 
     public String Resource = "resource"; 
     public String Hidden = "hidden";

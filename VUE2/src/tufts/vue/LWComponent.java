@@ -43,7 +43,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.213 $ / $Date: 2007-03-14 17:17:16 $ / $Author: sfraize $
+ * @version $Revision: 1.214 $ / $Date: 2007-03-14 18:49:35 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -129,6 +129,7 @@ public class LWComponent
 
     protected transient LWContainer parent = null;
     protected transient LWComponent mParentStyle;
+    protected transient LWComponent mSibling; // "semantic source" for nodes on slide to refer back to the concept map
     protected transient boolean isStyleParent;
 
     // list of LWLinks that contain us as an endpoint
@@ -899,47 +900,17 @@ public class LWComponent
             public void setValue(LWComponent c, Object val) { c.setLabel((String)val); }
             public Object getValue(LWComponent c) { return c.getLabel(); }
         };
-    
+    public static final Key KEY_Notes = new Key("notes", KeyType.DATA) {
+            public void setValue(LWComponent c, Object val) { c.setNotes((String)val); }
+            public Object getValue(LWComponent c) { return c.getNotes(); }
+        };
 
-    /**
-     * Get the named property value from this component.
-     * @param key property key (see LWKey)
-     * @return object representing appropriate value, or null if none found (note: properties may be null also -- todo: fix)
-     */
-    //public static final Object UnsupportedPropertyValue = "<value-of-unsupported-property>";
-    public Object getPropertyValue(final Object key)
-    {
-        if (key instanceof Key) {
-            // If getValue on the key was overriden, we may still need to trap an exception here
-            try {
-                return ((Key)key).getValue(this);
-            } catch (ClassCastException e) {
-                String msg = "Property not supported(getPropertyValue): " + key + " on " + this + " (returned null)";
-                if (DEBUG.META)
-                    tufts.Util.printStackTrace(e, msg);
-                else
-                    VUE.Log.warn(msg + "; " + e);
-                return null;
-            }
-        }
 
-        //if (key == LWKey.FillColor.name)     return getFillColor();
-        //if (key == LWKey.TextColor.name)     return getTextColor();
-        //if (key == LWKey.StrokeColor.name)   return getStrokeColor();
-        //if (key == LWKey.StrokeWidth.name)   return new Float(getStrokeWidth());
-        //if (key == LWKey.Font.name)          return getFont();
-        //if (key == LWKey.Label)         return getLabel();
-        if (key == LWKey.Notes)         return getNotes();
-        if (key == LWKey.Resource)      return getResource();
-        if (key == LWKey.Location)      return getLocation();
-        if (key == LWKey.Size)          return new Size(this.width, this.height);
-        if (key == LWKey.Hidden)        return new Boolean(isHidden());
-             
-        if (DEBUG.TOOL) out("note: getPropertyValue; unsupported property [" + key + "] (returning null)");
-        //return UnsupportedPropertyValue;
-        return null;
-        //throw new RuntimeException("Unknown property key[" + key + "]");
-    }
+    //===================================================================================================
+    //
+    // End of Key's and Properties
+    //
+    //===================================================================================================
 
     // for debug
     private static String vtag(Object key, Object val, Property p) 
@@ -962,26 +933,51 @@ public class LWComponent
         return key + " " + valType + "(" + valRep + ")" + extra + "";
     }
     
+    /**
+     * Get the named property value from this component.
+     * @param key property key (see LWKey)
+     * @return object representing appropriate value, or null if none found (note: properties may be null also -- todo: fix)
+     */
+
+    public Object getPropertyValue(final Object key)
+    {
+        if (key instanceof Key) {
+            // If getValue on the key was overriden, we may still need to trap an exception here
+            try {
+                return ((Key)key).getValue(this);
+            } catch (ClassCastException e) {
+                String msg = "Property not supported(getPropertyValue): " + key + " on " + this + " (returned null)";
+                if (DEBUG.META)
+                    tufts.Util.printStackTrace(e, msg);
+                else
+                    VUE.Log.warn(msg + "; " + e);
+                return null;
+            }
+        }
+
+        // Old property keys that don't make use of the Key class yet:
+        if (key == LWKey.Resource)      return getResource();
+        if (key == LWKey.Location)      return getLocation();
+        if (key == LWKey.Size)          return new Size(this.width, this.height);
+        if (key == LWKey.Hidden)        return isHidden() ? Boolean.TRUE : Boolean.FALSE;
+             
+        VUE.Log.warn(this + " getPropertyValue; unsupported property [" + key + "] (returning null)");
+        //throw new RuntimeException("Unknown property key[" + key + "]");
+        return null;
+    }
+
     public void setProperty(final Object key, Object val)
     {
         if (DEBUG.Enabled||DEBUG.UNDO) System.out.println("setProperty: " + vtag(key, val, null) + " on " + LWComponent.this);
 
         if (key instanceof Key) {
-            ((Key)key).setValue(this, val);
+            final Key k = (Key) key;
+            k.setValue(this, val);
+            // Experiment it auto-copying over data elements to siblings
+            if (k.keyType == KeyType.DATA && mSibling != null)
+                k.setValue(mSibling, val);
         }
-        
-        // "Still need this hack for fill color name till toolbars handle the new key objects"
-        // This is coming from the damn VueBeans code, which is presumably what
-        // the above comment ultimately refers to.  All this ".name" cases are that crap.
-        //else if (key == LWKey.FillColor.name)   setFillColor( (Color) val);
-        //if (val == UnsupportedPropertyValue) return;
-                                           
-        //else if (key == LWKey.TextColor.name)        setTextColor( (Color) val);
-        //else if (key == LWKey.StrokeColor.name)      setStrokeColor( (Color) val);
-        //else if (key == LWKey.StrokeWidth.name)      setStrokeWidth( ((Float) val).floatValue());
-        //else if (key == LWKey.Font.name)             setFont( (Font) val);
-        //else if (key == LWKey.Label)            setLabel( (String) val);
-        else if (key == LWKey.Notes)            setNotes( (String) val);
+        // Old property keys that don't make use of the Key class yet:
         else if (key == LWKey.Resource)         setResource( (Resource) val);
         else if (key == LWKey.Location)         setLocation( (Point2D) val);
         else if (key == LWKey.Hidden)           setHidden( ((Boolean)val).booleanValue());
@@ -1412,21 +1408,16 @@ public class LWComponent
         return false;
     }
     
-    public boolean hasLabel()
-    {
+    public boolean hasLabel() {
         return this.label != null;
     }
-    
-    public String getNotes()
-    {
+    public String getNotes() {
         return this.notes;
     }
-    public boolean hasNotes()
-    {
+    public boolean hasNotes() {
         return this.notes != null && this.notes.length() > 0;
     }
-    public boolean hasResource()
-    {
+    public boolean hasResource() {
         return this.resource != null;
     }
     /*
@@ -1910,6 +1901,11 @@ public class LWComponent
     void setParent(LWContainer parent) {
         this.parent = parent;
     }
+
+    protected void setSibling(LWComponent sibling) {
+        mSibling = sibling;
+    }
+
 
     protected void addNotify(LWContainer parent) {}
 
@@ -2733,8 +2729,6 @@ public class LWComponent
         } else
             drawSlide = false;
 
-        
-        
         if (drawSlide) {
 
             drawPathwayDecorations(dc);

@@ -27,7 +27,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.10 $ / $Date: 2007-03-14 17:22:58 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2007-03-14 18:49:36 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -69,15 +69,19 @@ public class LWSlide extends LWContainer
         LWNode title = NodeTool.buildTextNode(node.getDisplayLabel()); // need to "sync" this...=
 
         
-        LWComponent dupeChildren = node.duplicate(); // just for children: rest of node thrown away
         toLayout.add(title);
-        toLayout.addAll(dupeChildren.getChildList());
+        //LWComponent dupeChildren = node.duplicate(); // just for children: rest of node thrown away
+        //toLayout.addAll(dupeChildren.getChildList());
+        final LWComponent textStyle = pathway.getMasterSlide().textStyle;
+        for (LWComponent c : node.getChildList()) {
+            final LWComponent slideCopy = c.duplicate();
+            slideCopy.setParentStyle(textStyle);
+            slideCopy.setSibling(c);
+            toLayout.add(slideCopy);
+        }
 
-        for (LWComponent c : toLayout)
-            c.setParentStyle(pathway.getMasterSlide().textStyle);
-
+        slide.setParent(pathway); // must do before import
         slide.importAndLayout(toLayout);
-        slide.setParent(pathway);
         pathway.ensureID(slide);
         
         //slide.setLocation(getX(), getY() + getHeight() + 20);
@@ -97,6 +101,7 @@ public class LWSlide extends LWContainer
     //public boolean isFiltered() { return true; }
     //public boolean isHidden() { return true; }
 
+    /*
     static LWSlide CreateFromList(java.util.List<LWComponent> nodes)
     {
         final LWSlide slide = Create();
@@ -106,8 +111,9 @@ public class LWSlide extends LWContainer
 
         return slide;
     }
+    */
     
-    void importAndLayout(java.util.List<LWComponent> nodes)
+    private void importAndLayout(java.util.List<LWComponent> nodes)
     {
         //java.util.Collections.reverse(nodes);
         final LWSelection selection = new LWSelection(nodes);
