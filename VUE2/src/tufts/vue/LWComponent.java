@@ -24,6 +24,8 @@ import java.awt.Font;
 import java.awt.Stroke;
 import java.awt.BasicStroke;
 import java.awt.Dimension;
+import java.awt.AlphaComposite;
+import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -41,7 +43,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.212 $ / $Date: 2007-03-09 22:50:57 $ / $Author: sfraize $
+ * @version $Revision: 1.213 $ / $Date: 2007-03-14 17:17:16 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -803,20 +805,15 @@ public class LWComponent
         
         if (c.getAlpha() == 255) // opaque: only bother to save hue info
             return String.format("#%06X", c.getRGB() & 0xFFFFFF);
-        //return String.format("#%06X (%s)", c.getRGB() & 0xFFFFFF, Integer.toHexString(c.getRGB() & 0xFFFFFF));
-        // this puts out non zero-filled strings
-        //return "#" + Integer.toHexString(c.getRGB() & 0xFFFFFF);
-        else if (c.getAlpha() == 0) // totally transparent, be sure alpha still indicated!
-            return "#00" + Integer.toHexString(c.getRGB());
         else
-            return "#" + Integer.toHexString(c.getRGB());
+            return String.format("#%08X", c.getRGB());
     }
 
     
     public static final Key KEY_FillColor   = new Key("fill.color", "background")       { final Property getSlot(LWComponent c) { return c.mFillColor; } };
     public static final Key KEY_TextColor   = new Key("text.color", "font-color")       { final Property getSlot(LWComponent c) { return c.mTextColor; } };
     public static final Key KEY_StrokeColor = new Key("stroke.color", "border-color")   { final Property getSlot(LWComponent c) { return c.mStrokeColor; } };
-    public static final Key KEY_StrokeStyle = new Key("stroke.style", "border-style")   { final Property getSlot(LWComponent c) { return null; } };
+    //public static final Key KEY_StrokeStyle = new Key("stroke.style", "border-style")   { final Property getSlot(LWComponent c) { return null; } };
     public static final Key KEY_StrokeWidth = new Key("stroke.width", "stroke-width")   { final Property getSlot(LWComponent c) { return c.mStrokeWidth; } };
 
 
@@ -1453,11 +1450,10 @@ public class LWComponent
         if (pathwayRefs == null || path == null)
             return false;
 
-        Iterator i = pathwayRefs.iterator();
-        while (i.hasNext()) {
-            if (i.next() == path)
+        for (LWPathway p : pathwayRefs)
+            if (p == path)
                 return true;
-        }
+        
         return false;
     }
     
@@ -1911,12 +1907,11 @@ public class LWComponent
         //return y;
     }
     
-    void setParent(LWContainer c)
-    {
-        //LWContainer old = this.parent;
-        this.parent = c;
-        //if (this.parent != null) notify("set-parent", new Undoable(old) { void undo() { setParent((LWContainer)old); }} );
+    void setParent(LWContainer parent) {
+        this.parent = parent;
     }
+
+    protected void addNotify(LWContainer parent) {}
 
     public void setParentStyle(LWComponent parentStyle)
     {
@@ -2310,6 +2305,10 @@ public class LWComponent
     public void userSetFrame(float x, float y, float w, float h) {
         setFrame(x, y, w, h);
     }
+    
+    protected void userSetFrame(float x, float y, float w, float h, MapMouseEvent e) {
+        userSetFrame(x, y, w, h);
+    }
         
 
     private boolean linkNotificationDisabled = false;
@@ -2382,9 +2381,10 @@ public class LWComponent
         this.height = h;
     }
 
-    float mAspect = 0;
+    protected float mAspect = 0;
     public void setAspect(float aspect) {
         mAspect = aspect;
+        if (DEBUG.IMAGE) out("setAspect " + aspect);
     }
     
     /** set component to this many pixels in size */
@@ -2393,54 +2393,14 @@ public class LWComponent
         if (this.width == w && this.height == h)
             return;
         if (DEBUG.LAYOUT||DEBUG.PRESENT) out("*** setSize  (LWC)  " + w + "x" + h);
-        Size old = new Size(width, height);
+        final Size old = new Size(width, height);
 
         if (mAspect > 0) {
-
-            // Given width & height are MINIMUM size: expand to keep aspect
-            
-            if (w <= 0) w = 1;
-            if (h <= 0) h = 1;
-            double tmpAspect = w / h; // aspect we would have if we did not constrain it
-            // a = w / h
-            // w = a*h
-            // h = w/a
-            if (DEBUG.PRESENT) {
-                out("keepAspect=" + mAspect);
-                out(" tmpAspect=" + tmpAspect);
-            }
-//             if (h == this.height) {
-//                 out("case0");
-//                 h = (float) (w / mAspect);
-//             } else if (w == this.width) {
-//                 out("case1");
-//                 w = (float) (h * mAspect); 
-//             } else
-            if (tmpAspect > mAspect) {
-                out("case2: expand height");
-                h = (float) (w / mAspect);
-            } else if (tmpAspect < mAspect) {
-                out("case3: expand width");
-                w = (float) (h * mAspect);
-            }
-            else
-                if (DEBUG.PRESENT) out("NO ASPECT CHANGE");
-
-            /*
-            if (false) {
-                if (h == this.height || tmpAspect < mAspect)
-                    h = (float) (w / mAspect);
-                else if (w == this.width || tmpAspect > mAspect)
-                    w = (float) (h * mAspect);
-            } else {
-                if (tmpAspect < mAspect)
-                    h = (float) (w / mAspect);
-                else if (tmpAspect > mAspect)
-                    w = (float) (h * mAspect);
-            }
-            */
-                
+            Size constrained = ConstrainToAspect(mAspect, w, h);
+            w = constrained.width;
+            h = constrained.height;
         }
+        
         if (w < MIN_SIZE) w = MIN_SIZE;
         if (h < MIN_SIZE) h = MIN_SIZE;
         takeSize(w, h);
@@ -2451,10 +2411,61 @@ public class LWComponent
             notify(LWKey.Size, old); // todo perf: can we optimize this event out?
     }
 
+    public static Size ConstrainToAspect(float aspect, float w, float h)
+    {
+        // Given width & height are MINIMUM size: expand to keep aspect
+            
+        if (w <= 0) w = 1;
+        if (h <= 0) h = 1;
+        double tmpAspect = w / h; // aspect we would have if we did not constrain it
+        // a = w / h
+        // w = a*h
+        // h = w/a
+//         if (DEBUG.PRESENT || DEBUG.IMAGE) {
+//             out("keepAspect=" + mAspect);
+//             out(" tmpAspect=" + tmpAspect);
+//         }
+        //             if (h == this.height) {
+        //                 out("case0");
+        //                 h = (float) (w / mAspect);
+        //             } else if (w == this.width) {
+        //                 out("case1");
+        //                 w = (float) (h * mAspect); 
+        //             } else
+        if (tmpAspect > aspect) {
+            //out("case2: expand height");
+            h = w / aspect;
+        } else if (tmpAspect < aspect) {
+            //out("case3: expand width");
+            w = h * aspect;
+        }
+        //else out("NO ASPECT CHANGE");
+
+        return new Size(w, h);
+
+        /*
+          if (false) {
+          if (h == this.height || tmpAspect < mAspect)
+          h = (float) (w / mAspect);
+          else if (w == this.width || tmpAspect > mAspect)
+          w = (float) (h * mAspect);
+          } else {
+          if (tmpAspect < mAspect)
+          h = (float) (w / mAspect);
+          else if (tmpAspect > mAspect)
+          w = (float) (h * mAspect);
+          }
+        */
+                
+    }
+
     
     /** default calls setSize -- override to provide constraints */
     public void userSetSize(float w, float h) {
         setSize(w, h);
+    }
+    protected void userSetSize(float w, float h, MapMouseEvent e) {
+        userSetSize(w, h);
     }
         
     /** set on screen visible component size to this many pixels in size -- used for user set size from
@@ -2712,9 +2723,64 @@ public class LWComponent
 
     public void draw(DrawContext dc)
     {
-        if (dc.drawPathways())
+        final boolean drawSlide;
+        LWPathway.Entry entry = null;
+
+        final LWPathway path = VUE.getActivePathway();
+        if (inPathway(path) && path.isDrawn()) {
+            entry = path.getEntry(path.firstIndexOf(this));
+            drawSlide = !entry.isMapView;
+        } else
+            drawSlide = false;
+
+        
+        
+        if (drawSlide) {
+
             drawPathwayDecorations(dc);
+            drawImpl(dc);
+
+            final double slideScale = 0.1;
+            final LWSlide slide = entry.getSlide();
+            
+            //double slideX = getCenterX() - (slide.getWidth()*slideScale) / 2;
+            //double slideY = getCenterY() - (slide.getHeight()*slideScale) / 2;
+            double slideX = getX();
+            double slideY = getY() + getHeight() + 5;
+            
+            dc.g.translate(slideX, slideY);
+            dc.g.scale(slideScale, slideScale);
+            //dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.95f));
+            path.getMasterSlide().draw(dc);
+            slide.draw(dc);
+
+            Rectangle2D border = slide.getBounds();
+            dc.g.setColor(Color.darkGray);
+            dc.g.setStroke(VueConstants.STROKE_SEVEN);
+            dc.g.draw(border);
+            
+        } else {
+            if (dc.drawPathways())
+                drawPathwayDecorations(dc);
+
+            if (entry != null) {
+                // if we had an entry, but it was a map-view slide, do something to make it look slide-like
+                dc.g.setColor(path.getMasterSlide().getFillColor());
+                if (entry.node instanceof LWGroup) {
+                    if (!dc.isPresenting())
+                        dc.g.fill(entry.node.getBounds());
+                } else if (entry.node.isTransparent()) {
+                    Area toFill = new Area(entry.node.getBounds());
+                    toFill.subtract(new Area(entry.node.getShape()));
+                    dc.g.fill(toFill);
+                }
+            }
+            
+            drawImpl(dc);
+        }
     }
+
+    protected void drawImpl(DrawContext dc) {}
 
     protected LWChangeSupport getChangeSupport() {
         return mChangeSupport;
