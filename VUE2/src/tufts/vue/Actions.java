@@ -979,15 +979,15 @@ public class Actions implements VueConstants
         public boolean overrideIgnoreAllActions() { return true; }
     };
     
-    public static final VueAction NewSlide =
-    new NewItemAction("New Slide", keyStroke(KeyEvent.VK_S, LEFT_OF_SPACE+CTRL)) {
-        LWComponent createNewItem(MapViewer viewer, Point2D newLocation) {
-            final LWComponent slide = LWSlide.CreateFromList(VUE.getSelection());
-            slide.setLocation(newLocation);
-            viewer.getFocal().addChild(slide);
-            return slide;
-        }
-    };
+//     public static final VueAction NewSlide =
+//     new NewItemAction("New Slide", keyStroke(KeyEvent.VK_S, LEFT_OF_SPACE+CTRL)) {
+//         LWComponent createNewItem(MapViewer viewer, Point2D newLocation) {
+//             final LWComponent slide = LWSlide.CreateFromList(VUE.getSelection());
+//             slide.setLocation(newLocation);
+//             viewer.getFocal().addChild(slide);
+//             return slide;
+//         }
+//     };
 
     
     public static final VueAction NewText =
@@ -1010,7 +1010,7 @@ public class Actions implements VueConstants
     public static final Action[] NEW_OBJECT_ACTIONS = {
         NewNode,
         NewText,
-        NewSlide
+        //NewSlide
     };
     
     
