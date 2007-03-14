@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.306 $ / $Date: 2007-03-09 18:13:55 $ / $Author: mike $ 
+ * @version $Revision: 1.307 $ / $Date: 2007-03-14 17:40:09 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2844,7 +2844,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         });
         m.addSeparator();
         m.add(Actions.HierarchyView);
-        m.add(GUI.buildMenu("Nudge", Actions.ARRANGE_SINGLE_MENU_ACTIONS));
+        //m.add(GUI.buildMenu("Nudge", Actions.ARRANGE_SINGLE_MENU_ACTIONS));
         sAssetMenu = new JMenu("Disseminators");
         // todo: special add-to selection action that adds
         // hitComponent to selection so have way other
@@ -4827,7 +4827,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //out("EX MODIFIERS ACCORDING TO InputEvent [" + InputEvent.getModifiersExText(e.getModifiersEx()) + "]");
             //out("EX MODIFIERS ACCORDING TO MouseEvent [" + MouseEvent.getMouseModifiersText(e.getModifiersEx()) + "]");
             // button is 0 (!) on the PC, which is why <= 1 compare for getB
-            return !e.isPopupTrigger() && e.getButton() <= 1 && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == SYSTEM_DRAG_MODIFIER;
+
+            if (VUE.getSelection().only() instanceof LWImage && ((LWImage)VUE.getSelection().only()).isNodeIcon())
+                return true;
+            else
+                return !e.isPopupTrigger() && e.getButton() <= 1 && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == SYSTEM_DRAG_MODIFIER;
         }
         
         private final boolean isDoubleClickEvent(MouseEvent e) {
