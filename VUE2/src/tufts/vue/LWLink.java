@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.116 $ / $Date: 2007-03-14 23:09:53 $ / $Author: sfraize $
+ * @version $Revision: 1.117 $ / $Date: 2007-03-15 05:45:09 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -104,7 +104,7 @@ public class LWLink extends LWComponent
                          Color.darkGray,
                          LWIcon.Block.HORIZONTAL,
                          LWIcon.Block.COORDINATES_MAP);
-    
+
     /**
      * Used only for restore -- must be public
      */
@@ -1274,12 +1274,14 @@ public class LWLink extends LWComponent
             dc.g.fill(HeadShape);
             dc.g.draw(HeadShape);
 
-            // test: move down line to draw "control"
-            dc.g.translate(HeadShape.getWidth() / 2, 0); // return to line
-            dc.g.translate(-controlSize/2, controlOffset); // move half width of circle to left to center, and down 20 px
-            dc.g.setColor(Color.green);
-            //dc.g.setStroke(STROKE_EIGHTH);
-            dc.g.drawOval(0,0, controlSize,controlSize);
+            if (DEBUG.Enabled) {
+                // test: move down line to draw "control"
+                dc.g.translate(HeadShape.getWidth() / 2, 0); // return to line
+                dc.g.translate(-controlSize/2, controlOffset); // move half width of circle to left to center, and down 20 px
+                dc.g.setColor(Color.green);
+                //dc.g.setStroke(STROKE_EIGHTH);
+                dc.g.drawOval(0,0, controlSize,controlSize);
+            }
             
             dc.g.setTransform(savedTransform);
         }
@@ -1295,11 +1297,13 @@ public class LWLink extends LWComponent
             dc.g.fill(TailShape);
             dc.g.draw(TailShape);
 
-            dc.g.translate(TailShape.getWidth() / 2, 0);
-            dc.g.translate(-controlSize/2, controlOffset);
-            dc.g.setColor(Color.red);
-            //dc.g.setStroke(STROKE_EIGHTH);
-            dc.g.drawOval(0,0, controlSize,controlSize);
+            if (DEBUG.Enabled) {
+                dc.g.translate(TailShape.getWidth() / 2, 0);
+                dc.g.translate(-controlSize/2, controlOffset);
+                dc.g.setColor(Color.red);
+                //dc.g.setStroke(STROKE_EIGHTH);
+                dc.g.drawOval(0,0, controlSize,controlSize);
+            }
             
             dc.g.setTransform(savedTransform);
         }
@@ -1452,7 +1456,7 @@ public class LWLink extends LWComponent
         
         boolean headgroup = head instanceof LWGroup;
         boolean tailgroup = tail instanceof LWGroup;
-        if (DEBUG.BOXES && ((headgroup || tailgroup) && dc.isInteractive() || DEBUG.BOXES)) {
+        if ((headgroup || tailgroup) && dc.isInteractive() || DEBUG.BOXES) {
             float size = 8;
             if (dc.zoom < 1)
                 size /= dc.zoom;
