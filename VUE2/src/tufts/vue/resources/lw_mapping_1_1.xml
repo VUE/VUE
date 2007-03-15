@@ -283,6 +283,9 @@
             <field name="visualizationSelectionType">
                 <bind-xml name="visualizationSelectionType" node="element"/>
             </field>
+            <field name="filterOnBaseMap">
+                <bind-xml name="filterOnBaseMap" node="element" />
+            </field>
             <field name="nodeThresholdSliderValue">
                 <bind-xml name="nodeSliderValue"/>
             </field>

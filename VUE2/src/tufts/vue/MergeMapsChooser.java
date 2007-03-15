@@ -839,6 +839,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             LWMergeMap map = new LWMergeMap(LWMergeMap.getTitle());
             
             //set selection settings
+            //really should probably default to file but 
             map.setMapListSelectionType(sp.getMapListSelectionType());
             
             //todo: send all maps not just the active ones.
@@ -846,7 +847,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             sp.fillMapList();
             //System.out.println("mmc: " + sp.getMapList().size());
             map.setMapList(sp.getMapList());
-            System.out.println("mmc: map list size in generate merge map " + map.getMapList().size());
+            //System.out.println("mmc: map list size in generate merge map " + map.getMapList().size());
+            
+            //todo: switch to saving the maps themselves even when from files originally.
+            // or, at very least, change these to filenames..
             map.setMapFileList(sp.getMapFileList());
             
             //set base map settings
@@ -872,6 +876,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             {
               ex.printStackTrace();  
             }
+            map.setFilterOnBaseMap(filterChoice.isSelected());
             //map.setVoteThresholds();
             //map.setWeightStyle();
             
@@ -970,6 +975,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
            }
     }
     
+    // todo: replace with LWMergeMap method -- addMergeNodesFromSourceMap, already
+    // used by recreateVoteMerge method in LWMergeMap and by slider in this Class...
     public void addMergeNodesForMap(LWMergeMap mergeMap,LWMap map,VoteAggregate voteAggregate)
     {
            Iterator children = map.getNodeIterator();    
@@ -1099,22 +1106,28 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         }
     }
     
+    // this is really "fill vote merge map" as the map must already be created
+    // recreatevotemerge in LWMergeMap should be able to use this method
+    // with a call to "clear merge map" that currently resides in that function
+    // performed first. -- todo: move to "fill/clear" methodology as this functionality
+    // moves completely to LWMergeMap -- should also allow dynamic switch from weight
+    // to merge -- perhaps name this "fill *as* vote merge map"
     public void createVoteMerge(LWMergeMap map)
     {
         ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
         
-        // why not map.getMapList()? is something wrong here?...
-        Iterator<LWMap> i = /*map.getMapList()*/mapList.iterator();
+        // why not map.getMapList()? is something wrong here?... 3/15/2007-- lets try it
+        // (beware the ides of march!)
+        Iterator<LWMap> i = map.getMapList().iterator(); // /*map.getMapList()*/mapList.iterator();
         while(i.hasNext())
         {
           cms.add(new ConnectivityMatrix(i.next()));
         }
         VoteAggregate voteAggregate= new VoteAggregate(cms);
+        
+        // todo: get these from map in order to move this function to LWMergeMap.
         voteAggregate.setNodeThreshold((double)(nodeThresholdSlider.getValue()/100.0));
         voteAggregate.setLinkThreshold((double)(linkThresholdSlider.getValue()/100.0));
-        
-        
-        //*** change to be same as for weight merge ***
         
         //compute and create nodes in Merge Map
         
@@ -1162,13 +1175,18 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     
     public void refreshSettings(final LWMergeMap map)
     {
-        
-        map.recalculateLinks();
+        // no longer needed now that links are persisted in xml file? what
+        // about for maps saved before update? Probably still works as
+        // the data is in the file? todo: ask scott fraize
+        // (starting 3/15/2007 this was created exceptions on dynamic slider change..
+        //map.recalculateLinks();
         
         sp.setMapListSelectionType(map.getMapListSelectionType());
         
-        //stopListeningToChanges();
+        stopListeningToChanges();
         
+        // dialog level map list needed for?... maybe no longer
+        // needed since starting saving source maps along with map?
         mapList = map.getMapList();
        
         // need to also populate select panel... use LWMergeMap as Model
@@ -1199,6 +1217,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         // visualization settings
         
         vizChoice.setSelectedIndex(map.getVisualizationSelectionType());
+        
+        filterChoice.setSelected(map.getFilterOnBaseMap());
         
         nodeThresholdSlider.setValue(map.getNodeThresholdSliderValue());
         linkThresholdSlider.setValue(map.getLinkThresholdSliderValue());
@@ -1253,7 +1273,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         //$
         
  
-        //startListeningToChanges();   
+        startListeningToChanges();   
  
     }
     
