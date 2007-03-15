@@ -67,21 +67,29 @@ public class ConnectivityMatrix {
     }
     private void generateMatrix() {
         Iterator links = map.getLinkIterator();
-        while(links.hasNext()) {
+        while(links.hasNext()) {        
             LWLink link = (LWLink)links.next();
-            LWComponent n1 = link.getComponent1();
-            LWComponent n2 = link.getComponent2();
-            int arrowState = link.getArrowState();
-            if(n1  instanceof LWNode && n2 instanceof LWNode) {
-                if(arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE) {
-                    c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
-                    c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
-                } else if(arrowState == LWLink.ARROW_EP1) {
-                    c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
-                } else    if(arrowState == LWLink.ARROW_EP2) {
-                    c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
-                }
+            try
+            {
+              LWComponent n1 = link.getComponent1();
+              LWComponent n2 = link.getComponent2();
+              int arrowState = link.getArrowState();
+              if(n1  instanceof LWNode && n2 instanceof LWNode) {
+                  if(arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE) {
+                      c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
+                      c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
+                 } else if(arrowState == LWLink.ARROW_EP1) {
+                      c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
+                 } else    if(arrowState == LWLink.ARROW_EP2) {
+                      c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
+                 }
                 
+              }
+              
+            }
+            catch(Exception e)
+            {
+                System.out.println("Connectivity Matrix: skipping link: " + link);
             }
         }
     }
