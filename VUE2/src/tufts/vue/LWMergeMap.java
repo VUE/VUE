@@ -493,6 +493,12 @@ public class LWMergeMap extends LWMap {
     
     public boolean nodeAlreadyPresent(LWNode node)
     {
+        
+        if(getFilterOnBaseMap())
+        {
+            return false;
+        }
+        
         Iterator<LWComponent> i = getChildList().iterator();
         while(i.hasNext())
         {

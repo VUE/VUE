@@ -103,7 +103,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     private WeightVisualizationSettingsPanel weightPanel;
     private JSlider nodeThresholdSlider;
     private boolean nodeChangeProgrammatic;
-    private boolean nodeMousePressed;
+    private boolean mousePressed;
     private JLabel percentageDisplay;
     private JSlider linkThresholdSlider;
     private JLabel linkPercentageDisplay;
@@ -118,7 +118,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
       
     private JTabbedPane vueTabbedPane = VUE.getTabbedPane();
     
-    JButton undoButton = new JButton("Undo");
+    private JButton closeButton = new JButton("Close");
+    private JButton undoButton = new JButton("Undo");
     private int undoCount;
     
     public final static String ALL_TEXT = "All maps currently opened";
@@ -138,10 +139,25 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     public final int TAB_BORDER_SIZE = 20;
     
     
-    public static final MMCKey KEY_NODE_CHANGE   = new MMCKey("nodeThresholdSliderValue", "integer");
+    //public static final MMCKey KEY_NODE_CHANGE = new MMCKey("nodeThresholdSliderValue", "integer");
+    //public static final MMCKey KEY_LINK_CHANGE = new MMCKey("linkThresholdSliderValue", "integer");
+    
+    public static final MMCKey KEY_NODE_CHANGE = new MMCKey("nodeThresholdSliderValue");
+    public static final MMCKey KEY_LINK_CHANGE = new MMCKey("linkThresholdSliderValue");
+    // will require a refill (recreate) for weight maps as well..
+    // public static final MMCKey KEY_FILTER_CHANGE = new MMCKey("filterChoiceChange");
    
     public MergeMapsChooser() 
     {
+        
+        closeButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+              setVisible(false);
+            }
+        });
+        
         undoButton.addActionListener(new ActionListener()
         {
           public void actionPerformed(ActionEvent e)
@@ -152,6 +168,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
              {
                 LWMergeMap am = (LWMergeMap)VUE.getActiveMap();
                 am.setNodeThresholdSliderValue(nodeThresholdSlider.getValue());
+                am.setLinkThresholdSliderValue(linkThresholdSlider.getValue());
+                //am.setFilterOnBaseMap(filterChoice.isSelected());
              }
              if(undoCount == 1)
              {
@@ -172,8 +190,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         setLayout(new BorderLayout());
         buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         generate = new JButton("Generate");
-        buttonPane.add(generate);
+        //buttonPane.add(generate);
+        buttonPane.add(closeButton);
         buttonPane.add(undoButton);
+        buttonPane.add(generate);
         undoButton.setEnabled(false);
         
         JTabbedPane mTabbedPane = new JTabbedPane();
@@ -429,6 +449,12 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         String[] vizChoices = {"Vote","Weight"};
         vizChoice = new JComboBox(vizChoices);
         filterChoice = new JCheckBox("Filter on Base Map?");
+        /* filterChoice.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent me)
+            {
+                mousePressed = true;
+            }
+        }); */
         //$
           vizConstraints.fill = GridBagConstraints.BOTH;
           vizConstraints.anchor = GridBagConstraints.EAST;
@@ -482,7 +508,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         nodeThresholdSlider.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent me)
             {
-                nodeMousePressed = true;
+                mousePressed = true;
             }
         });
         nodeThresholdSlider.setPaintTicks(true);
@@ -564,6 +590,12 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         votePanel.add(percentageDisplay);
         
         linkThresholdSlider = new JSlider(0,100,50);
+        linkThresholdSlider.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent me)
+            {
+                mousePressed = true;
+            }
+        });
         linkThresholdSlider.setPaintTicks(true);
         linkThresholdSlider.setMajorTickSpacing(10);
         linkThresholdSlider.setPaintLabels(true);
@@ -608,11 +640,13 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     public void startListeningToChanges()
     {
         nodeThresholdSlider.addChangeListener(this);
+        linkThresholdSlider.addChangeListener(this);
     }
     
     public void stopListeningToChanges()
     {
         nodeThresholdSlider.removeChangeListener(this);
+        linkThresholdSlider.removeChangeListener(this);
     }
     
     // didn't quite compile, but maybe we don't this right now..
@@ -642,7 +676,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             
             if(getActiveMap() instanceof LWMergeMap)
             {
-                if(!nodeThresholdSlider.getValueIsAdjusting() && nodeMousePressed == true)
+                if(!nodeThresholdSlider.getValueIsAdjusting() && mousePressed == true)
                 {
                     
                    /*if(nodeChangeProgrammatic)
@@ -652,7 +686,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                        return;
                    }*/
                     
-                    nodeMousePressed = false;
+                    mousePressed = false;
                     
                     // this created a new window with new map..
                     //generateMergeMap();
@@ -682,6 +716,33 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         if(e.getSource()==linkThresholdSlider)
         {
             linkPercentageDisplay.setText(linkThresholdSlider.getValue() + "%");
+            
+            
+            if(getActiveMap() instanceof LWMergeMap)
+            {
+                if(!linkThresholdSlider.getValueIsAdjusting() && mousePressed == true)
+                {
+                    
+                    
+                   mousePressed = false;
+                    
+                                        
+                   LWMergeMap am = (LWMergeMap)getActiveMap();
+                   
+                   KEY_LINK_CHANGE.setMMC(this);
+                   LWCEvent nodeEvent = new LWCEvent(am,am,KEY_LINK_CHANGE,new Integer(am.getLinkThresholdSliderValue()));
+                   am.setLinkThresholdSliderValue(linkThresholdSlider.getValue());
+                   am.notifyProxy(nodeEvent);
+
+                   am.recreateVoteMerge();
+
+                   am.getUndoManager().mark("Merge Recalculate");
+                   undoButton.setEnabled(true);
+                   undoCount++;
+
+                }
+            }
+
         }
         if(e.getSource()==vueTabbedPane)
         {
@@ -1307,6 +1368,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         
         //map.addLWCListener(this);
         map.addLWCListener(this,KEY_NODE_CHANGE);
+        map.addLWCListener(this,KEY_LINK_CHANGE);
         
         
         refreshBaseChoices();
@@ -1378,14 +1440,21 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     {
         nodeThresholdSlider.setValue(newValue);
     }
+    
+    public void programmaticLinkSliderChange(int newValue)
+    {
+        linkThresholdSlider.setValue(newValue);
+    }
 
     public static class MMCKey extends LWComponent.Key
     {
             private MergeMapsChooser mmc;
+            private String keyString;
             
-            public MMCKey(String keyString,String propString)
+            public MMCKey(String keyString)
             {
-                super(keyString,propString);
+                super(keyString,LWComponent.KeyType.DATA);
+                this.keyString = keyString;
             }
             
             public void setMMC(MergeMapsChooser m)
@@ -1394,10 +1463,20 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             }
         
             public void setValue(LWComponent c, Object val) {
-                System.out.println("KEY_NODE_CHANGE setValue: " + val); 
-                mmc.programmaticNodeSliderChange(((Integer)val).intValue());
+                System.out.println("mmc: Key Property: " + keyString);
+                
+                if(keyString.equals("nodeThresholdSliderValue"))
+                {
+                  System.out.println("KEY_NODE_CHANGE setValue: " + val); 
+                  mmc.programmaticNodeSliderChange(((Integer)val).intValue());
+                }
+                if(keyString.equals("linkThresholdSliderValue"))
+                {
+                  System.out.println("KEY_LINK_CHANGE setValue: " + val); 
+                  mmc.programmaticLinkSliderChange(((Integer)val).intValue());
+                }
             }
-            public Object getValue(LWComponent c) { System.out.println("KEY_NODE_CHANGE getValue"); return 0; }
+            public Object getValue(LWComponent c) { System.out.println("mmc: KEY_NODE OR LINK CHANGE getValue"); return 0; }
     };
     
     class SelectPanel extends JPanel implements ActionListener
