@@ -45,7 +45,7 @@ import java.awt.geom.Rectangle2D;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.45 $ / $Date: 2007-03-14 17:18:25 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2007-03-17 22:31:55 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -116,7 +116,7 @@ public class LWGroup extends LWContainer
 
         for (LWComponent c : allUniqueDescendents) {
             if (DEBUG.PARENTING) out("ALL UNIQUE " + c);
-            for (LWLink l : c.getLinkRefs()) {
+            for (LWLink l : c.getLinks()) {
                 boolean bothEndsInPlay = !uniqueLinks.add(l);
                 if (DEBUG.PARENTING) out("SEEING LINK " + l + " IN-PLAY=" + bothEndsInPlay);
                 if (bothEndsInPlay && l.getParent() instanceof LWMap) {

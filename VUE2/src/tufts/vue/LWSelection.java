@@ -23,12 +23,13 @@ import java.util.Iterator;
 import java.util.Collection;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.RectangularShape;
 
 /**
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.51 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2007-03-17 22:31:55 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -106,10 +107,37 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     public interface Listener extends java.util.EventListener {
         void selectionChanged(LWSelection selection);
     }
-    public static class ControlPoint extends Point2D.Float
-    {
-        java.awt.Color color;
 
+    public static class Controller extends Point2D.Float
+    {
+        protected java.awt.Color color;
+        //final RectangularShape shape = new java.awt.geom.Ellipse2D.Float(0,0, 9,9);
+        //final RectangularShape shape = new tufts.vue.shape.RectangularPoly2D.Diamond();
+        //final RectangularShape shape = new java.awt.geom.Rectangle2D.Float();
+        protected RectangularShape shape = null;
+        
+        public Controller() {}
+        public Controller(float x, float y)
+        {
+            super(x,y);
+        }
+
+        public RectangularShape getShape() {
+            return shape == null ? new java.awt.geom.Ellipse2D.Float(0,0, 9,9) : shape;
+        }
+        
+        public void setColor(java.awt.Color c) {
+            this.color = c;
+        }
+        public java.awt.Color getColor() {
+            return this.color;
+        }
+
+        public double getRotation() { return 0; }
+
+    }
+    public static class ControlPoint extends Controller
+    {
         public ControlPoint(float x, float y)
         {
             this(x, y, VueConstants.COLOR_SELECTION_CONTROL);
@@ -132,20 +160,12 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         {
             setColor(c);
         }
-        public void setColor(java.awt.Color c)
-        {
-            this.color = c;
-        }
-        public java.awt.Color getColor()
-        {
-            return this.color;
-        }
     }
     public interface ControlListener extends java.util.EventListener {
         void controlPointPressed(int index, MapMouseEvent e);
         void controlPointMoved(int index, MapMouseEvent e);
         void controlPointDropped(int index, MapMouseEvent e);
-        ControlPoint[] getControlPoints();
+        Controller[] getControlPoints();
     }
     
 
@@ -252,7 +272,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             VUE.getResourceSelection().setTo(null, this);
     }
     
-    void setTo(Collection bag)
+    public void setTo(Collection bag)
     {
         setTo(bag.iterator());
     }
@@ -264,7 +284,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         clear0();
         add(i);
     }
-     
+    
     synchronized public boolean add(LWComponent c)
     {
         if (notifyUnderway())

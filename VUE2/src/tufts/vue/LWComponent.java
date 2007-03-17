@@ -30,11 +30,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Iterator;
-import java.util.Collection;
-import java.util.ArrayList;
+import java.util.*;
 
 import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
@@ -43,7 +39,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.215 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $
+ * @version $Revision: 1.216 $ / $Date: 2007-03-17 22:31:55 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -59,6 +55,9 @@ public class LWComponent
     enum ChildKind {
         /** the default, conceptually significant chilren */
         PROPER,
+            
+        /** VISIBLE is PROPER + Currently visible */
+        VISIBLE,
 
         /** Above, plus include ANY children, such as slides and their children -- the only
          * way to make sure you hit every active LWComponent in the runtime related
@@ -69,11 +68,22 @@ public class LWComponent
        // VIRTUAL -- would be *just* what ANY currently adds, and exclude PROPER -- currently unsupported
     }
 
-    public static final int HIDE_USER = 0x1;
-    public static final int HIDE_FILTER = 0x2;
-    public static final int HIDE_PRUNE = 0x4;
-    public static final int HIDE_PATHWAY_UNREVEALED = 0x8;
-    public static final int HIDE_PATHWAY_EXCLUDE_OTHERS = 0x16;
+    public enum HideReason {
+        DEFAULT (false), // each subclass of LWComponent can use this for it's own purposes.
+            FILTER (false), // we've been hidden by a filter
+            PRUNE (false), // we've been hidden via link pruning
+            PATH_TO_REVEAL (true), // we've been hidden by a pathway that is in the process of revealing
+            PATH_EXCLUDE_OTHERS (true); // we've been hidden because everything other than current pathway is hidden
+            
+        final int bit = 1 << ordinal();
+        final boolean isPathReason;
+
+        HideReason(boolean isPathMemberReason) {
+            isPathReason = isPathMemberReason;
+        }
+    }
+
+    //static { for (Hide reason : Hide.values()) { System.out.println(reason + " bit=" + reason.bit); } }
 
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(LWComponent.class);
@@ -120,12 +130,10 @@ public class LWComponent
      */
     protected transient TextBox labelBox = null;
     protected transient BasicStroke stroke = STROKE_ZERO;
-    protected transient boolean hidden = false;
-    //protected transient boolean locked = false;
     protected transient boolean selected = false;
-    //protected transient boolean indicated = false;
     protected transient boolean rollover = false;
     protected transient boolean isZoomedFocus = false;
+    protected transient int mHideBits = 0x0; // any bit set means we're hidden
 
     protected transient LWContainer parent = null;
     protected transient LWComponent mParentStyle;
@@ -133,8 +141,8 @@ public class LWComponent
     protected transient boolean isStyleParent;
 
     // list of LWLinks that contain us as an endpoint
-    private transient java.util.List<LWLink> links = new java.util.ArrayList<LWLink>();
-    protected transient java.util.List<LWPathway> pathwayRefs;
+    private transient List<LWLink> mLinks = new ArrayList<LWLink>();
+    protected transient List<LWPathway> pathwayRefs;
     private transient long mSupportedPropertyKeys;
 
     // Scale currently exists ONLY to support the auto-managed child-node feature of nodes
@@ -984,7 +992,7 @@ public class LWComponent
         // Old property keys that don't make use of the Key class yet:
         else if (key == LWKey.Resource)         setResource( (Resource) val);
         else if (key == LWKey.Location)         setLocation( (Point2D) val);
-        else if (key == LWKey.Hidden)           setHidden( ((Boolean)val).booleanValue());
+        //else if (key == LWKey.Hidden)           setHidden( ((Boolean)val).booleanValue());
         else if (key == LWKey.Size) {
             Size s = (Size) val;
             setSize(s.width, s.height);
@@ -1486,7 +1494,8 @@ public class LWComponent
         }
         pathwayRefs.remove(p);
         if (p.isRevealer()) // if was a revealer, make sure we're not left invisible if it had us hidden
-            setVisible(true);
+            //setVisible(true);
+            clearHidden(HideReason.PATH_TO_REVEAL);
         layout();
         //notify("pathway.remove");
     }
@@ -2063,31 +2072,95 @@ public class LWComponent
     void addLinkRef(LWLink link)
     {
         if (DEBUG.EVENTS||DEBUG.UNDO) out(this + " adding link ref to " + link);
-        if (this.links.contains(link))
+        if (mLinks.contains(link))
             throw new IllegalStateException("addLinkRef: " + this + " already contains " + link);
-        this.links.add(link);
+        mLinks.add(link);
         notify(LWKey.LinkAdded, link); // informational only event
     }
     /** for tracking who's linked to us */
     void removeLinkRef(LWLink link)
     {
         if (DEBUG.EVENTS||DEBUG.UNDO) out(this + " removing link ref to " + link);
-        if (!this.links.remove(link))
+        if (!mLinks.remove(link))
             throw new IllegalStateException("removeLinkRef: " + this + " didn't contain " + link);
+        clearHidden(HideReason.PRUNE);
         notify(LWKey.LinkRemoved, link); // informational only event
     }
     
     /* tell us all the links who have us as one of their endpoints */
-    java.util.List<LWLink> getLinkRefs() {
-        return this.links;
+    public List<LWLink> getLinks(){
+        return mLinks;
+    }
+    
+    /** @return all LWComponents directly connected to this one: for most components, this
+     * is just all the LWLink's that connect to us.  For LWLinks, it's mainly it's endpoints,
+     * plus also any LWLink that may be directly connected to the link itself
+     */
+    public Collection<? extends LWComponent> getLinked() {
+        // returning mLinks is an optimization, but requireds
+        // subclasses to override this method also if want to change
+        // the impl.
+        return mLinks;
+        
+        //return getLinked(new ArrayList(mLinks.size()));
+        //return Collections.unmodifiableList(mLinks);
+    }
+    
+    public Collection<LWComponent> getLinked(Collection bag) {
+        bag.addAll(mLinks);
+        return bag;
+    }
+
+    /** @return a list of every component connected to this one via links, including the links themselves */
+    public Collection<LWComponent> getLinkChain() {
+        return getLinkChain(new HashSet());
     }
     
     /**
+     * @return a list of every component connected to this one via links, including the links themselves
+     * @param bag - the collection to store the results in.  Any component already in the bag will not
+     * have it's outbound links followed -- this provides inherent loop protection.
+     * Note that this collection isn't a Set of some kind, components will appear in the bag more than once.
+     * (Once for every time they were visited).
+     */
+    public Collection<LWComponent> getLinkChain(Collection bag)
+    {
+        if (!bag.add(this)) {
+            // already added to the set with all connections -- don't process again            
+            return bag;
+        }
+        
+        for (LWComponent c : getLinked())
+            c.getLinkChain(bag);
+
+        return bag;
+    }
+
+    
+    /** @return a list of all LWComponents at the far end of any links that are connected to us */
+    public List<LWComponent> getLinkEndpoints()
+    {
+        List list = new java.util.ArrayList(getLinks().size());
+        for (LWLink link : getLinks()) {
+            LWComponent head = link.getHead();
+            LWComponent tail = link.getTail();
+            if (head != this) {
+                if (head != null) list.add(head);
+            } else if (tail != this) {
+                if (tail != null) list.add(tail);
+            } else
+                throw new IllegalStateException("link to self on " + this);
+            
+        }
+        return list;
+    }
+
+    /*
      * Return an iterator over all link endpoints,
      * which will all be instances of LWComponent.
      * If this is a LWLink, it should include it's
      * own endpoints in the list.
-     */
+
     public java.util.Iterator<LWComponent> getLinkEndpointsIterator()
     {
         return
@@ -2115,7 +2188,7 @@ public class LWComponent
                 }
             };
     }
-    
+     */    
     /*
      * Return all LWComponents connected via LWLinks to this object.
      * Included everything except LWLink objects themselves (unless
@@ -2129,8 +2202,8 @@ public class LWComponent
     /*
     public java.util.List getAllConnectedNodes()
     {
-        java.util.List list = new java.util.ArrayList(this.links.size());
-        java.util.Iterator i = this.links.iterator();
+        java.util.List list = new java.util.ArrayList(mLinks.size());
+        java.util.Iterator i = mLinks.iterator();
         while (i.hasNext()) {
             LWLink l = (LWLink) i.next();
             if (l.getComponent1() != this)
@@ -2146,11 +2219,11 @@ public class LWComponent
     }
     */
     
-    /** include all links and far endpoints of links connected to this component */
+    /* include all links and far endpoints of links connected to this component 
     public java.util.List getAllConnectedComponents()
     {
-        List list = new java.util.ArrayList(this.links.size());
-        for (LWLink l : this.links) {
+        List list = new java.util.ArrayList(mLinks.size());
+        for (LWLink l : mLinks) {
             list.add(l);
             if (l.getHead() != this)
                 list.add(l.getHead());
@@ -2163,32 +2236,8 @@ public class LWComponent
         }
         return list;
     }
+*/
     
-    /** include all non-null far endpoints of links connected to this component */
-    public java.util.List getLinkedComponents()
-    {
-        List list = new java.util.ArrayList(getLinks().size());
-        Iterator i = getLinks().iterator();
-        while (i.hasNext()) {
-            LWLink link = (LWLink) i.next();
-            LWComponent head = link.getHead();
-            LWComponent tail = link.getTail();
-            if (head != this) {
-                if (head != null) list.add(head);
-            } else if (tail != this) {
-                if (tail != null) list.add(tail);
-            } else
-                throw new IllegalStateException("link to self on " + this);
-            
-        }
-        return list;
-    }
-    
-    // todo: this same as getLinkRefs
-    public List getLinks(){
-        return this.links;
-    }
-
     /** get all links to us + to any descendents */
     // TODO: return immutable versions
     public List getAllLinks() {
@@ -2198,13 +2247,13 @@ public class LWComponent
     /*
       why was this here??
     public void setLinks(List links){
-        this.links = links;
+        mLinks = links;
     }
     */
 
     public LWLink getLinkTo(LWComponent c)
     {
-        for (LWLink l : this.links) {
+        for (LWLink l : mLinks) {
             if (l.getHead() == c || l.getTail() == c)
                 return l;
         }
@@ -2265,7 +2314,7 @@ public class LWComponent
      */
     protected void updateConnectedLinks()
     {
-        for (LWLink l : getLinkRefs()) 
+        for (LWLink l : mLinks) 
             l.setEndpointMoved(true);
     }
     
@@ -2940,8 +2989,8 @@ public class LWComponent
     {
         if (DEBUG.PARENTING||DEBUG.EVENTS) out(this + " restoreToModel");
         if (!isDeleted()) {
-            throw new IllegalStateException("Attempt to restore already restored: " + this);
-            //out("FYI: already restored: " + this);
+            //throw new IllegalStateException("Attempt to restore already restored: " + this);
+            if (DEBUG.Enabled) out("FYI: already restored");
             //return;
         }
         // There is no reconnectToLinks: link endpoint connect events handle this.
@@ -2965,37 +3014,46 @@ public class LWComponent
 
     private void disconnectFromLinks()
     {
-        Object[] links = this.links.toArray(); // may be modified concurrently
-        for (int i = 0; i < links.length; i++) {
-            LWLink l = (LWLink) links[i];
-            l.disconnectFrom(this);
-        }
+        // iterate through copy of the list, as it may be modified concurrently during removals
+        for (LWLink link : mLinks.toArray(new LWLink[mLinks.size()]))
+            link.disconnectFrom(this);
+        clearHidden(HideReason.PRUNE);
      }
     
-    public void setSelected(boolean selected)
-    {
+    public void setSelected(boolean selected) {
         this.selected = selected;
     }
-    public boolean isSelected()
-    {
+    
+    public boolean isSelected() {
         return this.selected;
     }
-    
-    public void setHidden(boolean hidden)
-    {
-        if (this.hidden != hidden) {
-            Object oldValue = hidden ? Boolean.TRUE : Boolean.FALSE;
-            this.hidden = hidden;
-            notify(LWKey.Hidden, oldValue);
+
+    private void setHideBits(int bits) {
+        final boolean wasHidden = isHidden();
+        mHideBits = bits;
+        if (wasHidden != isHidden()) {
+            if (isSelected()) // TODO: should probably be done in the viewer...
+                VUE.getSelection().remove(this);
+            notify(LWKey.Hidden);
         }
     }
+    
+    public void setHidden(HideReason reason) {
+        setHideBits(mHideBits | reason.bit);
+    }
+    
+    public void clearHidden(HideReason reason) {
+        setHideBits(mHideBits & ~reason.bit);
+    }
 
-    public Boolean getXMLhidden() {
-        return hidden ? Boolean.TRUE : null;
-    }
-    public void setXMLhidden(Boolean b) {
-        setHidden(b.booleanValue());
-    }
+//     public void setHidden(boolean hidden)
+//     {
+//         if (this.hidden != hidden) {
+//             Object oldValue = hidden ? Boolean.TRUE : Boolean.FALSE;
+//             this.hidden = hidden;
+//             notify(LWKey.Hidden, oldValue);
+//         }
+//     }
     
     /**
      * @return true if this component has been hidden.  Note that this
@@ -3003,35 +3061,40 @@ public class LWComponent
      * are also hidden, but not all children of a filtered component
      * are filtered.
      */
-    // TODO: can create a bit-set for hidden reasons: e.g.,
-    // FILTERED, PRUNED, NOT_ON_PATHWAY, etc, so if field
-    // is non-zero, it's hidden.
-    public boolean isHidden()
-    {
-        return this.hidden;
+    public boolean isHidden() {
+        return mHideBits != 0;
     }
-    /*
-    public boolean isLocked()
-    {
-        return this.locked;
+
+    public boolean isHidden(HideReason reason) {
+        return (mHideBits & reason.bit) != 0;
     }
-    public void setLocked(boolean locked)
-    {
-        this.locked = locked;
+    
+    public boolean isVisible() {
+        return mHideBits == 0;
     }
-    */
-    public void setVisible(boolean visible)
-    {
-        setHidden(!visible);
+    
+    public void setVisible(boolean visible) {
+        if (visible)
+            clearHidden(HideReason.DEFAULT);
+        else
+            setHidden(HideReason.DEFAULT);
     }
-    public boolean isVisible()
-    {
-        return !isHidden();
+    
+    // TODO: this always returns null for now -- to we need to save?
+    public Boolean getXMLhidden() {
+        //return hidden ? Boolean.TRUE : null;
+        return null;
     }
+    public void setXMLhidden(Boolean b) {
+        //setHidden(b.booleanValue());
+        VUE.Log.warn(this + " ignored persisted hidden flag");
+    }
+
+    
     public boolean isDrawn() {
-        //return !hidden && !isFiltered;
         return !isHidden() && !isFiltered();
     }
+    
     public void setRollover(boolean tv)
     {
         if (this.rollover != tv) {
@@ -3039,8 +3102,7 @@ public class LWComponent
         }
     }
 
-    public void setZoomedFocus(boolean tv)
-    {
+    public void setZoomedFocus(boolean tv) {
         throw new UnsupportedOperationException();
         /*
         if (this.isZoomedFocus != tv) {
@@ -3052,8 +3114,7 @@ public class LWComponent
         */
     }
 
-    public boolean isZoomedFocus()
-    {
+    public boolean isZoomedFocus() {
         return isZoomedFocus;
     }
     
@@ -3067,8 +3128,7 @@ public class LWComponent
     public boolean isIndicated() { return this.indicated; }
     */
     
-    public boolean isRollover()
-    {
+    public boolean isRollover() {
         return this.rollover;
     }
 

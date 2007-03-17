@@ -330,12 +330,16 @@ public class LWCToolPanel extends JPanel
     private void loadEditor(LWComponent source, LWEditor editor) {
         if (DEBUG.TOOL&&DEBUG.META) out("loadEditor0 " + editor + " loading " + editor.getPropertyKey() + " from " + source);
 
-        final Object value = source.getPropertyValue(editor.getPropertyKey());
-
+        final Object value;
+        final Object key = editor.getPropertyKey();
+        if (source.supportsProperty(key))
+            value = source.getPropertyValue(key);
+        else
+            value = null;
         if (value != null) {
             if (DEBUG.TOOL) out("loadEditor1 [" + value + "] -> " + editor);
             editor.displayValue(value);
-        } else if (DEBUG.TOOL) out("loadEditor1 " + source + " -> " + editor + " skipped; was null");
+        } else if (DEBUG.TOOL) out("loadEditor1 " + source + " -> " + editor + " skipped; unsupported property " + key);
     }
 
     private void loadEditorsMatchingKey(final Object key, final LWComponent source) {

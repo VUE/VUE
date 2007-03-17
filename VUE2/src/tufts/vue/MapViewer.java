@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.309 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $ 
+ * @version $Revision: 1.310 $ / $Date: 2007-03-17 22:31:55 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2283,10 +2283,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // todo perf: way too much calculation here for every draw: do some on selection change?
     // TODO: don't draw unless all components are within mFocal...
     protected void drawSelection(DrawContext dc, LWSelection selection) {
-        Graphics2D g2 = dc.g;
-        g2.setColor(COLOR_SELECTION);
+        dc.g.setColor(COLOR_SELECTION);
         //g2.setXORMode(Color.black);
-        g2.setStroke(STROKE_SELECTION);
+        dc.g.setStroke(STROKE_SELECTION);
         
         // draw bounding boxes -- still want to bother with this?
         /*
@@ -2324,9 +2323,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         dc.setMapDrawing();
         dc.setAbsoluteStroke(0.5);
 
-        java.util.Iterator si = selection.iterator();
-        while (si.hasNext()) {
-            LWComponent c = (LWComponent) si.next();
+        for (LWComponent c : selection) {
+
+            //if (c.isHidden()) continue;
 
             if (mFocalParent != null) {
                 if (!c.hasAncestor(mFocalParent)) {
@@ -2346,26 +2345,27 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //-------------------------------------------------------
             // draw ghost shapes
             //-------------------------------------------------------
-            if (sDragUnderway || c.getStrokeWidth() == 0 || c instanceof LWLink) {
+            //if (sDragUnderway || c.getStrokeWidth() == 0 || c instanceof LWLink) {
+            if (sDragUnderway) {
                 // todo: the ideal is to always draw the ghost (not just when
                 // dragging) but figure out a way not to uglify the border if
                 // it's visible with the blue streak -- may XOR draw to the border
                 // color? (or it's inverse)
                 //g2.setColor(c.getStrokeColor());
                 Shape shape = c.getShape();
-                g2.draw(shape);
+                dc.g.draw(shape);
                 if (shape instanceof RectangularPoly2D) {
                     if (((RectangularPoly2D)shape).getSides() > 4) {
                         Ellipse2D inscribed = new Ellipse2D.Float();
                         if (DEBUG.BOXES) {
                             inscribed.setFrame(shape.getBounds());
-                            g2.draw(inscribed);
+                            dc.g.draw(inscribed);
                         }
                         inscribed.setFrame(c.getX(),
                         c.getY()+(c.getHeight()-c.getWidth())/2,
                         c.getWidth(),
                         c.getWidth());
-                        g2.draw(inscribed);
+                        dc.g.draw(inscribed);
                     }
                 }
             }
@@ -2379,9 +2379,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         }
         
-        g2.setStroke(STROKE_SELECTION);
+        dc.g.setStroke(STROKE_SELECTION);
         //g2.setComposite(AlphaComposite.Src);
-        g2.setColor(COLOR_SELECTION);
+        dc.g.setColor(COLOR_SELECTION);
         
         //if (!VueSelection.isEmpty() && (!sDragUnderway || isDraggingSelectorBox)) {
         
@@ -2415,12 +2415,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // re-usable for a group -- perhaps move to LWGroup itself &
             // also use draggedSelectionGroup for this?)
             if (DEBUG.BOXES || selection.size() > 1 /*|| !VueSelection.allOfType(LWLink.class)*/)
-                g2.draw(mapSelectionBounds);
+                dc.g.draw(mapSelectionBounds);
             // no resize handles if only links or groups
             resizeControl.active = false;
         } else {
             if (selection.size() > 1) {
-                g2.draw(mapSelectionBounds);
+                dc.g.draw(mapSelectionBounds);
             } else {
                 // Only one in selection:
                 // SPECIAL CASE to keep control handles out of way of node icons
@@ -2446,9 +2446,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             resizeControl.active = true;
             for (int i = 0; i < resizeControl.handles.length; i++) {
                 LWSelection.ControlPoint cp = resizeControl.handles[i];
-                drawSelectionHandleCentered(g2,
-                                            cp.x,
-                                            cp.y,
+                drawSelectionHandleCentered(dc.g,
+                                            (float)cp.x,
+                                            (float)cp.y,
                                             groupies ? COLOR_SELECTION : cp.getColor(),
                                             i);
             }
@@ -2459,24 +2459,58 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //-------------------------------------------------------
         // draw LWComponent requested control points
         //-------------------------------------------------------
+
+        //dc.g.setStroke(STROKE_HALF);
         
-        //if (activeTool != PathwayTool) {
         for (LWSelection.ControlListener cl : selection.getControlListeners()) {
-            //for (LWSelection.ControlPoint ctrlPnt : cl.getControlPoints()) {
-            LWSelection.ControlPoint[] points = cl.getControlPoints();
-            for (int i = 0; i < points.length; i++) {
-                LWSelection.ControlPoint ctrlPnt = points[i];
-                if (ctrlPnt == null)
+            LWSelection.Controller[] points = cl.getControlPoints();
+            // draw them in reverse order, in case they overlap: will match hit detection forward-order
+            for (int i = points.length - 1; i >= 0; i--) {
+                LWSelection.Controller ctrl = points[i];
+                if (ctrl == null)
                     continue;
-                drawSelectionHandleCentered(g2,
-                                            mapToScreenX(ctrlPnt.x),
-                                            mapToScreenY(ctrlPnt.y),
-                                            ctrlPnt.getColor(),
-                                            -(i+1)
-                                            );
+
+
+                if (true) {
+                    final AffineTransform saveTx = dc.g.getTransform();
+                    final RectangularShape shape = ctrl.getShape();
+                        
+                    double size = shape.getWidth();
+                    if (size <= 0)
+                        size = 9;
+                    if (dc.zoom < 0.5) size /= (3.0/2.0);
+
+                    dc.g.translate(mapToScreenX(ctrl.x), mapToScreenY(ctrl.y));
+                    dc.g.rotate(ctrl.getRotation());
+                    // now center the control on the point
+                    dc.g.translate(-size/2, -size/2);
+                    shape.setFrame(0,0, size,size);
+
+                    
+//                     shape.setFrame(mapToScreenX(ctrl.x) - size/2,
+//                                    mapToScreenY(ctrl.y) - size/2,
+//                                    size,size);
+                    
+                    Color c = ctrl.getColor();
+                    if (c != null) {
+                        dc.g.setColor(c);
+                        dc.g.fill(shape);
+                    }
+                    dc.g.setColor(COLOR_SELECTION);
+                    dc.g.draw(shape);
+
+                    dc.g.setTransform(saveTx);
+                } else {
+                
+                    drawSelectionHandleCentered(dc.g,
+                                                mapToScreenX(ctrl.x),
+                                                mapToScreenY(ctrl.y),
+                                                ctrl.getColor(),
+                                                -(i+1)
+                                                );
+                }
             }
         }
-        //}
         
         if (DEBUG.VIEWER||DEBUG.LAYOUT) resizeControl.draw(dc); // debug
         
@@ -2581,7 +2615,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (DEBUG.BOXES) {
             g.setFont(new Font("Courier", Font.BOLD, 14));
             g.setColor(Color.red);
-            g.drawString("cp" + index, x, y-2);
+            if (index < 0)
+                g.drawString("cp" + -(index+1), x, y-2);
+            else
+                g.drawString("sp" + index, x, y-2);
         }
         // todo: if fillColor == COLOR_SELECTION, then this control point
         // will have poor to no contrast if it's over the selection color --
@@ -3476,9 +3513,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             float x = 0;
             float y = 0;
             
-            Point2D.Float[] ctrlPoints = cl.getControlPoints();
-            for (int i = 0; i < ctrlPoints.length; i++) {
-                Point2D.Float cp = ctrlPoints[i];
+//             LWSelection.Controller[] ctrlPoints = cl.getControlPoints();
+//             for (int i = 0; i < ctrlPoints.length; i++) {
+//                 Point2D.Double cp = ctrlPoints[i];
+            int i = -1;
+            for (LWSelection.Controller cp : cl.getControlPoints()) {
+                i++;
                 if (cp == null)
                     continue;
                 if (mapCoords) {

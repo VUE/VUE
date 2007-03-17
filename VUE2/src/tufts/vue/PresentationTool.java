@@ -163,7 +163,7 @@ public class PresentationTool extends VueTool
         
         out("handleMousePressed " + e + " hit on " + hit);
         if (hit != null && mCurrentPage != hit) {
-            List linked = hit.getLinkedComponents();
+            List linked = hit.getLinkEndpoints();
             if (mCurrentPage == null) {
                 // We have no current page, so just zoom to what's been clicked on and start there.
                 mBackList.clear();

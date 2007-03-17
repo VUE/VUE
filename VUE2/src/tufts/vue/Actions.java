@@ -83,7 +83,10 @@ public class Actions implements VueConstants
     public static final Action SelectAll =
     new VueAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
         public void act() {
-            VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque().iterator());
+            //VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque());
+            //VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.VISIBLE));
+            // SelectAll now ONLY does the top level of the map -- maybe direct selection tool could do deep selection
+            VUE.getSelection().setTo(VUE.getActiveMap().getChildList());
         }
     };
     public static final Action DeselectAll =

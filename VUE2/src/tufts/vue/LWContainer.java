@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.99 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $
+ * @version $Revision: 1.100 $ / $Date: 2007-03-17 22:31:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -409,9 +409,7 @@ public abstract class LWContainer extends LWComponent
 
     private static void ensureLinksPaintOnTopOfAllParents(LWComponent component)
     {
-        java.util.Iterator i = component.getLinkRefs().iterator();
-        while (i.hasNext()) {
-            LWLink l = (LWLink) i.next();
+        for (LWLink l : component.getLinks()) {
             LWContainer parent1 = null;
             LWContainer parent2 = null;
             if (l.getHead() != null)
@@ -472,7 +470,6 @@ public abstract class LWContainer extends LWComponent
         }
         return list;
     }
-    */
 
     public java.util.List getAllConnectedComponents()
     {
@@ -485,6 +482,7 @@ public abstract class LWContainer extends LWComponent
         }
         return list;
     }
+    */
 
     public java.util.List getAllLinks()
     {
@@ -512,6 +510,8 @@ public abstract class LWContainer extends LWComponent
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag)
     {
         for (LWComponent c : this.children) {
+            if (kind == ChildKind.VISIBLE && c.isHidden())
+                continue;
             bag.add(c);
             c.getAllDescendents(kind, bag);
         }

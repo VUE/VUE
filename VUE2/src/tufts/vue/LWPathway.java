@@ -49,7 +49,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.125 $ / $Date: 2007-03-07 18:01:09 $ / $Author: mike $
+ * @version $Revision: 1.126 $ / $Date: 2007-03-17 22:31:55 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -739,7 +739,7 @@ public class LWPathway extends LWContainer
     public static class MasterSlide extends LWSlide
     {
         final static String StyleLabel = "Sample Text";
-        // need to figure out how to make these non-deletable
+        // TODO: need to figure out how to make these non-deletable
         LWComponent textStyle;
 
         /** for castor persistance */
