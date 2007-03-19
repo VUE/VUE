@@ -26,6 +26,7 @@
 
 package tufts.vue;
 
+import java.awt.geom.Point2D;
 import junit.extensions.ActiveTestSuite;
 import tufts.vue.action.ActionUtil;
 import tufts.vue.gui.VueButton;
@@ -971,8 +972,11 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                
                map.setBaseMap(baseMap);
                
+               //map.setUserOrigin(VUE.getActiveViewer().getOriginX(),VUE.getActiveViewer().getOriginY());
                createWeightedMerge(map);
-               VUE.displayMap(map);
+               MapViewer v = VUE.displayMap(map);
+               v.grabVueApplicationFocus("New Merge Map",null);
+               ZoomTool.setZoomFit();
                // creates class cast exception? (should be MapScrollPane apparently, really need
                // an awkward run-time check..) Also, doesn't seem neccesary... (real problem
                // is base map showing incorrectly until mouse over map)
@@ -1752,7 +1756,17 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                map.setNodeThresholdSliderValue(nodeThresholdSlider.getValue());
                map.setLinkThresholdSliderValue(linkThresholdSlider.getValue());
                createVoteMerge(map);
-               VUE.displayMap(map);
+               //float x = VUE.getActiveViewer().getOriginX();
+               //float y = VUE.getActiveViewer().getOriginY();
+               //map.setUserOrigin(VUE.getActiveViewer().getOriginX(),VUE.getActiveViewer().getOriginY());
+               MapViewer v = VUE.displayMap(map);
+               //java.awt.Point p = new java.awt.Point((int)x,(int)y);
+               //VUE.getActiveViewer().setLocation(p);
+               //map.setUserOrigin(x,y);
+               
+               
+               v.grabVueApplicationFocus("Merge Map",null);
+               ZoomTool.setZoomFit();
                
                // creates class cast exception? Also, doesn't seem neccesary... (real problem
                // is base map showing incorrectly until mouse over map)
