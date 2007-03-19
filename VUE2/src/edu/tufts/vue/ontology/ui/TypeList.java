@@ -18,16 +18,23 @@
 
 package edu.tufts.vue.ontology.ui;
 
+import edu.tufts.vue.ontology.*;
+
 import java.awt.Component;
+import java.awt.datatransfer.*;
 import java.awt.geom.Rectangle2D;
+import java.awt.dnd.*;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
+import javax.swing.event.ListSelectionEvent;
 
-import tufts.vue.LWComponent;
-import tufts.vue.LWNode;
-import tufts.vue.LWLink;
+import tufts.vue.*;
+import tufts.vue.gui.*;
 
 /*
  * TypeList.java
@@ -43,19 +50,55 @@ import tufts.vue.LWLink;
  */
 public class TypeList extends JList {
     
+    private static javax.swing.ImageIcon DragIcon = tufts.vue.VueResources.getImageIcon("favorites.leafIcon");
+    
     private DefaultListModel mDataModel;
     
-    /** Creates a new instance of TypeList */
+    private LWComponent comp;
+
+    private LWMap holder;
+    private MapViewer holderViewer;
+    private LWSelection selection;
+    
     public TypeList() {
+        
+        holder = new LWMap();
+        holderViewer = new MapViewer(holder);
+        
         mDataModel = new DefaultListModel();
         setModel(mDataModel);
         setCellRenderer(new TypeCellRenderer());
+        
+        javax.swing.DefaultListSelectionModel selectionModel = new javax.swing.DefaultListSelectionModel();
+        selectionModel.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        setSelectionModel(selectionModel);
+        selectionModel.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent e)
+            {
+                comp = ((LWComponent)getSelectedValue()).duplicate();
+                comp.setParentStyle(comp);
+                VUE.getSelection().setTo(comp);
+            }
+        });
+        
+        addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {    
+                public void mouseDragged(java.awt.event.MouseEvent me) {
+                    System.out.println("TypeList: mouse dragged");
+                    System.out.println("TypeList: selected label " + ((LWComponent)(getSelectedValue())).getLabel());
+                    
+                    GUI.startLWCDrag(TypeList.this,
+                                     me,
+                                     comp,
+                                      VUE.getActiveViewer().getTransferableSelection());
+                 
+                }
+         });
+    
     }
     
-    public void addType(LWComponent componentType)
+    public void addType(LWComponent typeComponent)
     {
-        //todo: use getAsImage
-        mDataModel.addElement(componentType.createImage(1.0,new java.awt.Dimension(100,100),new java.awt.Color(225,225,225)));
+        mDataModel.addElement(typeComponent);
     }
     
     class TypeCellRenderer implements ListCellRenderer
@@ -63,14 +106,17 @@ public class TypeList extends JList {
         public java.awt.Component getListCellRendererComponent(JList jList, Object value, int i, boolean isSelected, boolean hasFocus) 
         {
             JPanel p = new JPanel();
-            if(value instanceof java.awt.Image)
+            if(value instanceof LWComponent)
             {
-                javax.swing.JLabel imageLabel = new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)value));
+                LWComponent comp = (LWComponent)value;
+                java.awt.Image im = comp.getAsImage();
+                javax.swing.JLabel imageLabel = new javax.swing.JLabel(new javax.swing.ImageIcon(im));
                 p.add(imageLabel);
             }
             return p;
         }
     }
+    
     
     /**
      *
@@ -86,14 +132,24 @@ public class TypeList extends JList {
         // if this works, try it all in VUE (and add ability to drag 
         // types to LWMap to create instances)
         
-        // really should use a DockWindow..
-        javax.swing.JFrame f = new javax.swing.JFrame();
         TypeList tlist = new TypeList();
+        javax.swing.JPanel panel = createTestPanel(tlist);//new javax.swing.JFrame();
+        javax.swing.JFrame f = new javax.swing.JFrame();
+        f.getContentPane().add(panel);
+        
+        //show the frame
+        f.setBounds(100,100,150,300);
+        f.setVisible(true);
+    }
+    
+    public static javax.swing.JPanel createTestPanel(TypeList tlist)
+    {
+        javax.swing.JPanel testPanel = new javax.swing.JPanel();
         javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tlist);
-        f.getContentPane().add(scroll);
+        testPanel.add(scroll);
         
         //add some demo data to the List
-        LWNode rectangle = new LWNode("Test Node");
+        /*LWNode rectangle = new LWNode("Test Node");
         rectangle.setShape( new java.awt.Rectangle(5,5,50,20));
         LWLink link = new LWLink();
         link.setStartPoint(10,10);
@@ -101,16 +157,38 @@ public class TypeList extends JList {
         link.setAbsoluteSize(100,15);
         link.setArrowState(LWLink.ARROW_BOTH);
         link.setWeight(2);
+        link.setLabel("contains");
         LWNode oval = new LWNode("Test Node 2");
         oval.setShape(new java.awt.geom.Ellipse2D.Double(5,5,50,20));
 
         tlist.addType(rectangle);
         tlist.addType(link);
-        tlist.addType(oval);
+        tlist.addType(oval);*/
         
-        //show the frame
-        f.setBounds(100,100,150,300);
-        f.setVisible(true);
+        //add Fedora types and an extra node
+        
+        LWNode node = new LWNode("Fedora Object");
+        //node.setLabel("Fedora Object");
+        node.setShape( new java.awt.Rectangle(5,5,50,20));
+        tlist.addType(node);
+        
+        Ontology ontology = OntManager.getFedoraOntologyWithStyles();
+        List<OntType> types = ontology.getOntTypes();
+        Iterator<OntType> iter = types.iterator();
+        while(iter.hasNext())
+        {
+            OntType ot = iter.next();
+            LWLink link = new LWLink();
+            link.setLabel(ot.getName());
+            link.setStartPoint(10,10);
+            link.setEndPoint(90,10);
+            link.setAbsoluteSize(100,15);
+            link.setArrowState(LWLink.ARROW_BOTH);
+            link.setWeight(2);
+            tlist.addType(link);
+        }
+        
+        return testPanel;
     }
     
 }

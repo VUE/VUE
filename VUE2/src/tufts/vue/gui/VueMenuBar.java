@@ -27,7 +27,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.19 $ / $Date: 2007-03-08 14:01:46 $ / $Author: dan $
+ * @version $Revision: 1.20 $ / $Date: 2007-03-19 01:43:10 $ / $Author: dan $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -248,8 +248,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         CreateCM createCMAction = new CreateCM("Create");
         AnalyzeCM analyzeCMAction = new AnalyzeCM("Analyze");
         compareAction.add(createCMAction);
-        compareAction.add(analyzeCMAction);   
+        compareAction.add(analyzeCMAction);
+        RDFOpenAction rdfOpen = new RDFOpenAction();
+        FedoraOntologyOpenAction fooa = new FedoraOntologyOpenAction("Fedora Ontology Types");
         toolsMenu.add(compareAction);
+        toolsMenu.add(rdfOpen);
+        toolsMenu.add(fooa);
 
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.vueWebsite.label"), VueResources.getString("helpMenu.vueWebsite.url")));
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.userGuide.label"), VueResources.getString("helpMenu.userGuide.url")));
