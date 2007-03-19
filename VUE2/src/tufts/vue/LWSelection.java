@@ -29,7 +29,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.52 $ / $Date: 2007-03-17 22:31:55 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2007-03-19 07:12:28 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -110,56 +110,29 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     public static class Controller extends Point2D.Float
     {
-        protected java.awt.Color color;
-        //final RectangularShape shape = new java.awt.geom.Ellipse2D.Float(0,0, 9,9);
-        //final RectangularShape shape = new tufts.vue.shape.RectangularPoly2D.Diamond();
-        //final RectangularShape shape = new java.awt.geom.Rectangle2D.Float();
-        protected RectangularShape shape = null;
+        protected java.awt.Color color = VueConstants.COLOR_SELECTION_HANDLE;
         
         public Controller() {}
-        public Controller(float x, float y)
-        {
-            super(x,y);
+        public Controller(float x, float y) {
+            super(x, y);
+        }
+        public Controller(java.awt.geom.Point2D p) {
+            this((float)p.getX(), (float)p.getY());
         }
 
-        public RectangularShape getShape() {
-            return shape == null ? new java.awt.geom.Ellipse2D.Float(0,0, 9,9) : shape;
-        }
-        
         public void setColor(java.awt.Color c) {
             this.color = c;
         }
+        
         public java.awt.Color getColor() {
-            return this.color;
+            return color;
         }
 
+        /** @return override for an optional shape (besides the default square) */
+        public RectangularShape getShape() { return null; }
+        /** @return override for an optional rotation for the shape (in radians) */
         public double getRotation() { return 0; }
 
-    }
-    public static class ControlPoint extends Controller
-    {
-        public ControlPoint(float x, float y)
-        {
-            this(x, y, VueConstants.COLOR_SELECTION_CONTROL);
-            //this(x, y, VueConstants.COLOR_SELECTION_HANDLE);
-        }
-        public ControlPoint(java.awt.geom.Point2D p)
-        {
-            this((float)p.getX(), (float)p.getY());
-        }
-        public ControlPoint(java.awt.geom.Point2D p, java.awt.Color c)
-        {
-            this((float)p.getX(), (float)p.getY(), c);
-        }
-        public ControlPoint(float x, float y, java.awt.Color c)
-        {
-            super(x,y);
-            setColor(c);
-        }
-        public ControlPoint(java.awt.Color c)
-        {
-            setColor(c);
-        }
     }
     public interface ControlListener extends java.util.EventListener {
         void controlPointPressed(int index, MapMouseEvent e);
@@ -169,7 +142,6 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     }
     
 
-    //public void addSelectionControl(java.awt.geom.Point2D mapLocation, ControlListener listener)
     private void addControlListener(ControlListener listener)
     {
         if (DEBUG.SELECTION) System.out.println(this + " adding control listener " + listener);

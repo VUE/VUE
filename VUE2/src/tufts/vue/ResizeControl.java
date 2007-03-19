@@ -48,7 +48,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     // arbitrary polygons!
         
     boolean active = false;
-    LWSelection.ControlPoint[] handles = new LWSelection.ControlPoint[8];
+    LWSelection.Controller[] handles = new LWSelection.Controller[8];
         
     // These are all in MAP coordinates
     private Rectangle2D.Float mOriginalGroup_bounds;
@@ -62,13 +62,13 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
 
     ResizeControl() {
         for (int i = 0; i < handles.length; i++)
-            handles[i] = new LWSelection.ControlPoint(COLOR_SELECTION_HANDLE);
+            handles[i] = new LWSelection.Controller();
     }
         
     /** interface ControlListener -- our control's are numbered starting at 0 in the upper left corner,
      * and increasing in index value in the clockwise direction.
      */
-    public LWSelection.ControlPoint[] getControlPoints() {
+    public LWSelection.Controller[] getControlPoints() {
         return handles;
     }
         

@@ -751,7 +751,7 @@ public class PresentationTool extends VueTool
     
     public boolean supportsSelection() { return true; }
     public boolean supportsResizeControls() { return false; }
-    public boolean supportsDraggedSelector(java.awt.event.MouseEvent e) { return false; }
+    public boolean supportsDraggedSelector(MapMouseEvent e) { return false; }
     public boolean hasDecorations() { return true; }
     public boolean usesRightClick() { return true; }
 

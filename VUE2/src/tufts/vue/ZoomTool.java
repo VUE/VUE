@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.44 $ / $Date: 2006-11-30 16:47:12 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2007-03-19 07:12:28 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -86,9 +86,12 @@ public class ZoomTool extends VueTool
 
     public boolean supportsSelection() { return false; }
 
-    public boolean supportsDraggedSelector(MouseEvent e)
+    public boolean supportsDraggedSelector(MapMouseEvent e)
     {
-        // todo: take a map mouse event, and if zoom level on viewer == MaxZoom, return false
+        if (false && e.getPicked() != null) // is causing a pick traversal for ever mouse drag event: too slow
+            return false;
+        
+        // todo: if zoom level on viewer == MaxZoom, return false
         
         // This is so that if they RIGHT click, the dragged selector doesn't appear --
         // because right click in zoom does a zoom out, and it makes less sense to
@@ -96,6 +99,15 @@ public class ZoomTool extends VueTool
         // Need to recognize button 1 on a drag, where getButton=0, or a release, where modifiers 0 but getButton=1
         return !isZoomOutMode() &&
             (e.getButton() == MouseEvent.BUTTON1 || (e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0);
+    }
+    
+    public boolean handleMousePressed(MapMouseEvent e) {
+        super.handleMousePressed(e);
+        if (false && e.getPicked() != null)  {
+            setZoomFitRegion(e.getPicked().getBounds());
+            return true;
+        }
+        return false;
     }
     
     public boolean handleMouseReleased(MapMouseEvent e)

@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.310 $ / $Date: 2007-03-17 22:31:55 $ / $Author: sfraize $ 
+ * @version $Revision: 1.311 $ / $Date: 2007-03-19 07:12:28 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2445,7 +2445,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             setSelectionBoxResizeHandles(mapSelectionBounds);
             resizeControl.active = true;
             for (int i = 0; i < resizeControl.handles.length; i++) {
-                LWSelection.ControlPoint cp = resizeControl.handles[i];
+                LWSelection.Controller cp = resizeControl.handles[i];
                 drawSelectionHandleCentered(dc.g,
                                             (float)cp.x,
                                             (float)cp.y,
@@ -2475,7 +2475,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     final AffineTransform saveTx = dc.g.getTransform();
                     final RectangularShape shape = ctrl.getShape();
                         
-                    double size = shape.getWidth();
+                    double size = shape.getWidth(); // control shape forced to aspect of 1:1 for now (height ignored)
                     if (size <= 0)
                         size = 9;
                     if (dc.zoom < 0.5) size /= (3.0/2.0);
@@ -2485,18 +2485,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // now center the control on the point
                     dc.g.translate(-size/2, -size/2);
                     shape.setFrame(0,0, size,size);
-
-                    
-//                     shape.setFrame(mapToScreenX(ctrl.x) - size/2,
-//                                    mapToScreenY(ctrl.y) - size/2,
-//                                    size,size);
-                    
-                    Color c = ctrl.getColor();
-                    if (c != null) {
-                        dc.g.setColor(c);
+                    final Color fillColor;
+                    if (false && sDragUnderway) // hilight the dragging control
+                        fillColor = Color.red; // don't do for ALL controls: just the active one...
+                    else
+                        fillColor = ctrl.getColor();
+                    if (fillColor != null) {
+                        dc.g.setColor(fillColor);
                         dc.g.fill(shape);
                     }
-                    dc.g.setColor(COLOR_SELECTION);
+                    if (fillColor == COLOR_SELECTION)
+                        dc.g.setColor(Color.white); // ensure border contrast
+                    else
+                        dc.g.setColor(COLOR_SELECTION);
                     dc.g.draw(shape);
 
                     dc.g.setTransform(saveTx);
@@ -3755,7 +3756,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     selectionClear();
                     repaint(); // if selection handles not on, we need manual repaint here
                 }
-                if (activeTool.supportsDraggedSelector(e))
+                if (activeTool.supportsDraggedSelector(mme))
                     isDraggingSelectorBox = true;
                 else
                     isDraggingSelectorBox = false;// todo ??? this was true?
@@ -4250,6 +4251,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 return;
             }
             
+            
             //-------------------------------------------------------
             // Stop component dragging if the mouse leaves our component (the viewer)
             //-------------------------------------------------------
@@ -4265,8 +4267,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (screenY >= getHeight())
                     screenY = getHeight()-1;
             }
+
+            final float mapX = screenToMapX(screenX);
+            final float mapY = screenToMapY(screenY);
+            final MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, null, draggedSelectorBox);
             
-            if (!activeTool.supportsDraggedSelector(e) && !activeTool.supportsResizeControls()) 
+            
+            if (!activeTool.supportsDraggedSelector(mme) && !activeTool.supportsResizeControls()) 
                 return;
             // todo: dragControls could be skipped! [WAS TRUE W/OUT RESIZE CONTROL CHECK ABOVE]
             // todo serious: now text tool leaves a dragged box around!
@@ -4284,10 +4291,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 lastPaintedSelectorBox = null;
             }
             
-            float mapX = screenToMapX(screenX);
-            float mapY = screenToMapY(screenY);
             
-            MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, null, draggedSelectorBox);
             
             Rectangle2D.Float repaintRegion = new Rectangle2D.Float();
             
@@ -4578,13 +4582,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (mouseWasDragged)
                 VUE.getUndoManager().mark("Drag");
             
-            if (draggedSelectorBox != null && !activeTool.supportsDraggedSelector(e))
+            if (draggedSelectorBox != null && !activeTool.supportsDraggedSelector(mme))
                 System.err.println("Illegal state warning: we've drawn a selector box w/out tool that supports it!");
             
             // reset in-drag only state
             clearIndicated();
             
-            if (draggedSelectorBox != null && activeTool.supportsDraggedSelector(e)) {
+            if (draggedSelectorBox != null && activeTool.supportsDraggedSelector(mme)) {
                 
                 //System.out.println("dragged " + draggedSelectorBox);
                 //Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectorBox);

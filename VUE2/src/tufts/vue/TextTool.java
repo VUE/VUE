@@ -50,7 +50,6 @@ public class TextTool extends VueTool
     
     
     public boolean supportsSelection() { return true; }
-    //public boolean supportsDraggedSelector(java.awt.event.MouseEvent e) { return false; }
     
     //public boolean supportsClick() { return true; }
 

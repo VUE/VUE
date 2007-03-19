@@ -873,11 +873,11 @@ public class LWImage extends
     }
 
 
-    private LWSelection.ControlPoint[] controlPoints = new LWSelection.ControlPoint[1];
+    private LWSelection.Controller[] controlPoints = new LWSelection.Controller[1];
     /** interface ControlListener */
-    public LWSelection.ControlPoint[] X_getControlPoints() // DEIMPLEMENTED
+    public LWSelection.Controller[] X_getControlPoints() // DEIMPLEMENTED
     {
-        controlPoints[0] = new LWSelection.ControlPoint(getCenterX(), getCenterY());
+        controlPoints[0] = new LWSelection.Controller(getCenterX(), getCenterY());
         controlPoints[0].setColor(null); // no fill (transparent)
         return controlPoints;
     }

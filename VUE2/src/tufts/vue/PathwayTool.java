@@ -37,7 +37,7 @@ import java.util.Iterator;
  * @see LWPathwayList
  * @see LWPathway
  *
- * @version $Revision: 1.28 $ / $Date: 2007-02-21 00:24:48 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2007-03-19 07:12:28 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 public class PathwayTool extends VueSimpleTool
@@ -86,7 +86,7 @@ public class PathwayTool extends VueSimpleTool
     public boolean supportsSelection() { return true; }
 
     // todo: need selection, but no drag, and click-to-deselect still working
-    public boolean supportsDraggedSelector(java.awt.event.MouseEvent e) { return true; }
+    public boolean supportsDraggedSelector(MapMouseEvent e) { return true; }
 
     public JPanel getContextualPanel() {
         if (sControlPanel == null)

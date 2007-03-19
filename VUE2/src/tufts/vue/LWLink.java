@@ -24,15 +24,7 @@ import java.util.*;
 
 import java.awt.*;
 import java.awt.font.*;
-import java.awt.geom.Area;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.QuadCurve2D;
-import java.awt.geom.CubicCurve2D;
-import java.awt.geom.RectangularShape;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.PathIterator;
+import java.awt.geom.*;
 
 import javax.swing.JTextArea;
 
@@ -46,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.118 $ / $Date: 2007-03-17 22:31:55 $ / $Author: sfraize $
+ * @version $Revision: 1.119 $ / $Date: 2007-03-19 07:12:28 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -410,27 +402,42 @@ public class LWLink extends LWComponent
     private static final int CPruneTail = 5;
     private static final int MAX_CONTROL = CPruneTail + 1;
 
-    private static class LinkCtrl extends LWSelection.ControlPoint {
-        public LinkCtrl(float x, float y, java.awt.Color c) {
-            super(x, y, c);
+    
+    private static RectangularShape ConnectCtrlShape = new Ellipse2D.Float(0,0, 9,9);
+    private static RectangularShape CurveCtrlShape = new Ellipse2D.Float(0,0, 8,8);
+    private static RectangularShape PruneCtrlShape = new Rectangle2D.Float(0,0,7,7);
+    
+    private static class ConnectCtrl extends LWSelection.Controller {
+        public ConnectCtrl(float x, float y, boolean isConnected) {
+            super(x, y);
+            setColor(isConnected ? null : COLOR_SELECTION_HANDLE);
         }
+        public RectangularShape getShape() { return ConnectCtrlShape; }
     }
-    private static class PruneCtrl extends LWSelection.ControlPoint {
+    private static class CurveCtrl extends LWSelection.Controller {
+        public CurveCtrl(Point2D p) {
+            super(p);
+            setColor(COLOR_SELECTION_CONTROL);
+            //super(p, COLOR_SELECTION_HANDLE);
+            //super(p, COLOR_SELECTION);
+        }
+        public RectangularShape getShape() { return CurveCtrlShape; }
+    }
+    private static class PruneCtrl extends LWSelection.Controller {
         private final double rotation;
         PruneCtrl(Point2D p, double rot, boolean active) {
             super(p);
-            super.shape = new java.awt.geom.Rectangle2D.Float(0,0,7,7);
-            super.color = active ? Color.gray : Color.lightGray;
+            setColor(active ? Color.gray : Color.lightGray);
             this.rotation = rot + Math.PI / 4;
         }
+        public RectangularShape getShape() { return PruneCtrlShape; }
         public double getRotation() { return rotation; }
     }
     
-    private LWSelection.ControlPoint[] controlPoints = new LWSelection.ControlPoint[MAX_CONTROL];
+    private LWSelection.Controller[] controlPoints = new LWSelection.Controller[MAX_CONTROL];
 
     /** interface ControlListener */
-    //private final Color freeEndpointColor = new Color(128,0,0);
-    public LWSelection.ControlPoint[] getControlPoints()
+    public LWSelection.Controller[] getControlPoints()
     {
         if (endpointMoved)
             computeLinkEndpoints();
@@ -438,12 +445,12 @@ public class LWLink extends LWComponent
         if (/*false &&*/ headNodeIsPruned()) {
             controlPoints[CHead] = null;
         } else {
-            controlPoints[CHead] = new LinkCtrl(headX, headY, head == null ? COLOR_SELECTION_HANDLE : null);
+            controlPoints[CHead] = new ConnectCtrl(headX, headY, head != null);
         }
         if (/*false &&*/ tailNodeIsPruned()) {
             controlPoints[CTail] = null;
         } else {
-            controlPoints[CTail] = new LinkCtrl(tailX, tailY, tail == null ? COLOR_SELECTION_HANDLE : null);
+            controlPoints[CTail] = new ConnectCtrl(tailX, tailY, tail != null);
         }
 
         //-------------------------------------------------------
@@ -469,13 +476,10 @@ public class LWLink extends LWComponent
         //-------------------------------------------------------
         
         if (curveControls == 1) {
-            //controlPoints[2] = (Point2D.Float) quadCurve.getCtrlPt();
-            controlPoints[CCurve1] = new LWSelection.ControlPoint(mQuad.getCtrlPt(), COLOR_SELECTION_CONTROL);
+            controlPoints[CCurve1] = new CurveCtrl(mQuad.getCtrlPt());
         } else if (curveControls == 2) {
-            //controlPoints[2] = (Point2D.Float) cubicCurve.getCtrlP1();
-            //controlPoints[3] = (Point2D.Float) cubicCurve.getCtrlP2();
-            controlPoints[CCurve1] = new LWSelection.ControlPoint(mCubic.getCtrlP1(), COLOR_SELECTION_CONTROL);
-            controlPoints[CCurve2] = new LWSelection.ControlPoint(mCubic.getCtrlP2(), COLOR_SELECTION_CONTROL);
+            controlPoints[CCurve1] = new CurveCtrl(mCubic.getCtrlP1());
+            controlPoints[CCurve2] = new CurveCtrl(mCubic.getCtrlP2());
         }
 
         return controlPoints;
@@ -578,7 +582,7 @@ public class LWLink extends LWComponent
         
         Object old = new Integer(curveControls);
         curveControls = newControlCount;
-        this.controlPoints = new LWSelection.ControlPoint[MAX_CONTROL];
+        this.controlPoints = new LWSelection.Controller[MAX_CONTROL];
         endpointMoved = true;
         computeLinkEndpoints();
         notify(LWKey.LinkCurves, old);
@@ -600,6 +604,7 @@ public class LWLink extends LWComponent
         else
             return mQuad.getCtrlPt();
     }
+    
     /** for persistance */
     public Point2D getCtrlPoint1()
     {
