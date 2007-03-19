@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.120 $ / $Date: 2007-03-19 07:24:55 $ / $Author: sfraize $
+ * @version $Revision: 1.121 $ / $Date: 2007-03-19 07:34:03 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -425,8 +425,9 @@ public class LWLink extends LWComponent
     }
     private static class PruneCtrl extends LWSelection.Controller {
         private final double rotation;
-        PruneCtrl(Point2D p, double rot, boolean active) {
-            super(p);
+        PruneCtrl(AffineTransform tx, double rot, boolean active)
+        {
+            tx.transform(this,this);
             setColor(active ? Color.gray : Color.lightGray);
             this.rotation = rot + Math.PI / 4;
         }
@@ -454,25 +455,7 @@ public class LWLink extends LWComponent
         }
 
         //-------------------------------------------------------
-        // Pruning control points:
-        //-------------------------------------------------------
-
-        final Point2D pHead = new Point2D.Float();
-        final Point2D pTail = new Point2D.Float();
-
-        mHeadCtrlTx.transform(pHead, pHead);
-        mTailCtrlTx.transform(pTail, pTail);
-
-        if (headIsPruned || getHead() != null)
-            controlPoints[CPruneHead] = new PruneCtrl(pHead, mRotationHead, headIsPruned);
-        else
-            controlPoints[CPruneHead] = null;
-        
-        if (tailIsPruned || getTail() != null)
-            controlPoints[CPruneTail] = new PruneCtrl(pTail, mRotationTail, tailIsPruned);
-        else
-            controlPoints[CPruneTail] = null;
-            
+        // Curve control points
         //-------------------------------------------------------
         
         if (curveControls == 1) {
@@ -486,7 +469,20 @@ public class LWLink extends LWComponent
             controlPoints[CCurve2] = null;
         }
             
+        //-------------------------------------------------------
+        // Pruning control points:
+        //-------------------------------------------------------
 
+        if (headIsPruned || getHead() != null)
+            controlPoints[CPruneHead] = new PruneCtrl(mHeadCtrlTx, mRotationHead, headIsPruned);
+        else
+            controlPoints[CPruneHead] = null;
+        
+        if (tailIsPruned || getTail() != null)
+            controlPoints[CPruneTail] = new PruneCtrl(mTailCtrlTx, mRotationTail, tailIsPruned);
+        else
+            controlPoints[CPruneTail] = null;
+            
         return controlPoints;
     }
     
