@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.121 $ / $Date: 2007-03-19 07:34:03 $ / $Author: sfraize $
+ * @version $Revision: 1.122 $ / $Date: 2007-03-19 07:56:47 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -130,14 +130,6 @@ public class LWLink extends LWComponent
         disableProperty(KEY_FillColor);
     }
     
-//     TODO: On restore, either link end points or prune controls aren't in right spot until repaint!
-//     public void XML_completed() {
-//         super.XML_completed();
-//         endpointMoved = true;
-//         computeLinkEndpoints();
-//     }
-
-
     // FYI: javac (mac java version "1.5.0_07") complains about an incompatible return
     // type in getSlot here if we don't compile this file at the same time as
     // LWCopmonent.java... (this is a javac bug)
@@ -429,7 +421,7 @@ public class LWLink extends LWComponent
         {
             tx.transform(this,this);
             setColor(active ? Color.gray : Color.lightGray);
-            this.rotation = rot + Math.PI / 4;
+            this.rotation = rot + Math.PI / 4; // rotate to square parallel on line, plus 45 degrees to get diamond display
         }
         public RectangularShape getShape() { return PruneCtrlShape; }
         public double getRotation() { return rotation; }
@@ -443,16 +435,19 @@ public class LWLink extends LWComponent
         if (endpointMoved)
             computeLinkEndpoints();
 
-        if (/*false &&*/ headNodeIsPruned()) {
+        //-------------------------------------------------------
+        // Connection control points
+        //-------------------------------------------------------
+
+        if (/*false &&*/ headNodeIsPruned())
             controlPoints[CHead] = null;
-        } else {
+        else 
             controlPoints[CHead] = new ConnectCtrl(headX, headY, head != null);
-        }
-        if (/*false &&*/ tailNodeIsPruned()) {
+
+        if (/*false &&*/ tailNodeIsPruned())
             controlPoints[CTail] = null;
-        } else {
+        else
             controlPoints[CTail] = new ConnectCtrl(tailX, tailY, tail != null);
-        }
 
         //-------------------------------------------------------
         // Curve control points
@@ -470,7 +465,7 @@ public class LWLink extends LWComponent
         }
             
         //-------------------------------------------------------
-        // Pruning control points:
+        // Pruning control points
         //-------------------------------------------------------
 
         if (headIsPruned || getHead() != null)
@@ -506,7 +501,7 @@ public class LWLink extends LWComponent
      * 2 is cubic curve.  Also called by persistance to establish
      * curved state of a link.
      */
-    private static final boolean CacheCurves = false;
+    private static final boolean CacheCurves = true; // needs to be true undo to work perfectly for curves
     public void setControlCount(int newControlCount)
     {
         //System.out.println(this + " setting CONTROL COUNT " + newControlCount);
@@ -1063,18 +1058,8 @@ public class LWLink extends LWComponent
     private float[] intersection = new float[2]; // result cache for intersection coords
     void computeLinkEndpoints()
     {
-        //if (head == null || tail == null) throw new IllegalStateException("LWLink: attempting to compute shape w/out endpoints");
-        // we clear this at the top in case another thread
-        // (e.g., AWT paint) clears it again while we're
-        // in here
         endpointMoved = false;
-
         
-        // TODO: sort out setting cubic control points when
-        // we're in here the first time and we haven't even
-        // computed the real intersected endpoints yet.
-        // (same applies to quadcurves but seems to be working better)
-
         if (curveControls > 0 && mCurve == null) {
             //-------------------------------------------------------
             // INTIALIZE CONTROL POINTS & CURVE ALIAS
@@ -1083,10 +1068,10 @@ public class LWLink extends LWComponent
             // Rely on the old actual values to CONNECTION points, previously computed in mLine
             // and centerX/centerY.
 
-            // Note that this is still very imperfect, as when we move to a curve,
-            // the connection points can change dramatically, so using the current
-            // axis is limited.  Unfortunately, we can't know the new axis until,
-            // of course, we first place the control points *somewhere*.
+            // Note that this is still very imperfect, as when we move from a line to a
+            // curve, the connection points can change dramatically, so using the
+            // current axis is limited.  Unfortunately, we can't know the new axis
+            // until, of course, we first place the control points *somewhere*.
 
             final float axisLen = (float) lineLength(mLine.x1, mLine.y1, mLine.x2, mLine.y2);
             final float axisOffset;
@@ -1391,7 +1376,6 @@ public class LWLink extends LWComponent
             mRotationHead = computeVerticalRotation(headX, headY, mCubic.ctrlx1, mCubic.ctrly1);
             mRotationTail = computeVerticalRotation(tailX, tailY, mCubic.ctrlx2, mCubic.ctrly2);
         } else {
-            //mRotationHead = computeVerticalRotation(mLine.getX1(), line.getY1(), line.getX2(), line.getY2());
             mRotationHead = computeVerticalRotation(mLine.x1, mLine.y1, mLine.x2, mLine.y2);
             mRotationTail = mRotationHead + Math.PI;  // can just flip head rotation: add 180 degrees
         }
@@ -1424,7 +1408,7 @@ public class LWLink extends LWComponent
     }
 
     /**
-     * Compute the rotation needed to normalize mLine segment to vertical orientation, making it
+     * Compute the rotation needed to normalize the ine segment to vertical orientation, making it
      * parrallel to the Y axis.  So vertical lines will return either 0 or Math.PI (180 degrees), horizontal lines
      * will return +/- PI/2.  (+/- 90 degrees).  In the rotated space, +y values move down, +x values move right.
      */
@@ -1497,41 +1481,7 @@ public class LWLink extends LWComponent
         // Draw arrows
         //-------------------------------------------------------
 
-        ////headShape.setFrame(mLine.getP1(), new Dimension(arrowSize, arrowSize));
-        ////headShape.setFrame(mLine.getX1() - arrowSize/2, mLine.getY1(), arrowSize, arrowSize*2);
-        //headShape.setFrame(0,0, arrowSize, arrowSize*2);
-
         AffineTransform savedTransform = dc.g.getTransform();
-        
-
-        // draw the first arrow
-        // todo: adjust the arrow shape with the stroke width
-        // do the adjustment in setStrokeWidth, actually.
-        //dc.g.translate(line.getX1(), line.getY1());
-
-        //double controlOffset = mLength / 10;
-        //double controlOffset = mLength / 10 + headShape.getHeight();
-        /*
-        double controlOffset = HeadShape.getHeight() * 2;
-        final int controlSize = 6;
-        final double minControlSize = MapViewer.SelectionHandleSize / dc.zoom;
-        final double room = mLength - controlOffset * 2;
-
-        if (room <= minControlSize*2)
-            controlOffset = mLength/4;
-        //if (room <= controlSize*2)
-        //    controlOffset = mLength/2 - controlSize;
-
-        // now just compute these (and the rotations) in computeLinkEndpoints, and
-        // we'll have our pruning control point locations
-        tHeadCtrl.setToTranslation(headX, headY);
-        tHeadCtrl.rotate(mRotationHead);
-        tHeadCtrl.translate(0, controlOffset);
-        tTailCtrl.setToTranslation(tailX, tailY);
-        tTailCtrl.rotate(mRotationTail);
-        tTailCtrl.translate(0, controlOffset);
-        if (DEBUG.WORK) out("LEN " + mLength + " CO " + controlOffset + " ROOM=" + room);
-        */
         
         if ((mArrowState.get() & ARROW_HEAD) != 0) {
             dc.g.setStroke(this.stroke);
@@ -1549,17 +1499,6 @@ public class LWLink extends LWComponent
             dc.g.translate(-HeadShape.getWidth() / 2, 0);
             dc.g.fill(HeadShape);
             dc.g.draw(HeadShape);
-
-            /*
-            if (DEBUG.BOXES) {
-                // test: move down line to draw "control"
-                dc.g.translate(HeadShape.getWidth() / 2, 0); // return to line
-                dc.g.translate(-controlSize/2, controlOffset); // move half width of circle to left to center, and down 20 px
-                dc.g.setColor(Color.green);
-                //dc.g.setStroke(STROKE_EIGHTH);
-                dc.g.drawOval(0,0, controlSize,controlSize);
-            }
-            */
             
             dc.g.setTransform(savedTransform);
         }
@@ -1574,16 +1513,6 @@ public class LWLink extends LWComponent
             dc.g.translate(-TailShape.getWidth() / 2, 0); // center shape on point 
             dc.g.fill(TailShape);
             dc.g.draw(TailShape);
-
-            /*
-            if (DEBUG.BOXES) {
-                dc.g.translate(TailShape.getWidth() / 2, 0);
-                dc.g.translate(-controlSize/2, controlOffset);
-                dc.g.setColor(Color.red);
-                //dc.g.setStroke(STROKE_EIGHTH);
-                dc.g.drawOval(0,0, controlSize,controlSize);
-            }
-            */
             
             dc.g.setTransform(savedTransform);
         }
@@ -2103,34 +2032,6 @@ public class LWLink extends LWComponent
     public String getHead_ID() { return null; }
     /** @deprecated -- no longer needed (now using castor references), always returns null */
     public String getTail_ID() { return null; }
-    
-    /* @deprecated -- for persistance/init ONLY *
-    public String getHead_ID()
-    {
-        //System.err.println("getEndPoint1_ID called for " + this);
-        if (this.head == null)
-            return this.head_ID;
-        else
-            return this.head.getID();
-    }
-    /* @deprecated -- for persistance/init ONLY *
-    public String getTail_ID()
-    {
-        //System.err.println("getEndPoint2_ID called for " + this);
-        if (this.tail == null)
-            return this.tail_ID;
-        else
-            return this.tail.getID();
-    }
-    /* @deprecated -- for persistance/init ONLY *
-    public void setHead_ID(String s) {
-        this.head_ID = s;
-    }
-    /* @deprecated -- for persistance/init ONLY *
-    public void setTail_ID(String s) {
-        this.tail_ID = s;
-    }
-    */
     
     /** @deprecated -- for persistance/init ONLY */
     public void setHeadPoint(Point2D p) {
