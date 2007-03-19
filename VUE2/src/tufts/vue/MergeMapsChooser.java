@@ -976,7 +976,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                createWeightedMerge(map);
                MapViewer v = VUE.displayMap(map);
                v.grabVueApplicationFocus("New Merge Map",null);
-               ZoomTool.setZoomFit();
+               //ZoomTool.setZoomFit();
                // creates class cast exception? (should be MapScrollPane apparently, really need
                // an awkward run-time check..) Also, doesn't seem neccesary... (real problem
                // is base map showing incorrectly until mouse over map)
@@ -1766,7 +1766,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                
                
                v.grabVueApplicationFocus("Merge Map",null);
-               ZoomTool.setZoomFit();
+               //ZoomTool.setZoomFit();
                
                // creates class cast exception? Also, doesn't seem neccesary... (real problem
                // is base map showing incorrectly until mouse over map)
