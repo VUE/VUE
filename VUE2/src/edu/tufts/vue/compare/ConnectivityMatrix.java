@@ -69,28 +69,30 @@ public class ConnectivityMatrix {
         Iterator links = map.getLinkIterator();
         while(links.hasNext()) {        
             LWLink link = (LWLink)links.next();
-            try
-            {
-              LWComponent n1 = link.getComponent1();
-              LWComponent n2 = link.getComponent2();
-              int arrowState = link.getArrowState();
-              if(n1  instanceof LWNode && n2 instanceof LWNode) {
-                  if(arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE) {
+            //LWComponent n1 = link.getComponent1(); // deprecated
+            //LWComponent n2 = link.getComponent2(); // deprecated
+            LWComponent n1 = link.getHead();
+            LWComponent n2 = link.getTail();
+            int arrowState = link.getArrowState();
+            if(n1  instanceof LWNode && n2 instanceof LWNode) {
+               try
+               {
+                 if(arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE) {
                       c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
                       c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
-                 } else if(arrowState == LWLink.ARROW_EP1) {
+                 } else if(arrowState == LWLink.ARROW_HEAD) { // EP1 and EP2 were deprecated.
                       c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
-                 } else    if(arrowState == LWLink.ARROW_EP2) {
+                 } else    if(arrowState == LWLink.ARROW_TAIL) { // EP1 and EP2 were deprecated.
                       c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
                  }
-                
-              }
-              
+               }
+               catch(ArrayIndexOutOfBoundsException ae)
+               {
+                   System.out.println("Connectivity Matrix Exception - skipping link: " + link);
+                   System.out.println("Exception was: " + ae);
+               }
             }
-            catch(Exception e)
-            {
-                System.out.println("Connectivity Matrix: skipping link: " + link);
-            }
+
         }
     }
     public List getLabels() {
