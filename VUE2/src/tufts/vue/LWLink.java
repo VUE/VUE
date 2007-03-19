@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.122 $ / $Date: 2007-03-19 07:56:47 $ / $Author: sfraize $
+ * @version $Revision: 1.123 $ / $Date: 2007-03-19 08:37:14 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -395,16 +395,16 @@ public class LWLink extends LWComponent
     private static final int MAX_CONTROL = CPruneTail + 1;
 
     
-    private static RectangularShape ConnectCtrlShape = new Ellipse2D.Float(0,0, 9,9);
-    private static RectangularShape CurveCtrlShape = new Ellipse2D.Float(0,0, 8,8);
-    private static RectangularShape PruneCtrlShape = new Rectangle2D.Float(0,0,7,7);
+    private static final RectangularShape ConnectCtrlShape = new Ellipse2D.Float(0,0, 9,9);
+    private static final RectangularShape CurveCtrlShape = new Ellipse2D.Float(0,0, 8,8);
+    private static final RectangularShape PruneCtrlShape = new Rectangle2D.Float(0,0,8,8);
     
     private static class ConnectCtrl extends LWSelection.Controller {
         ConnectCtrl(float x, float y, boolean isConnected) {
             super(x, y);
             setColor(isConnected ? null : COLOR_SELECTION_HANDLE);
         }
-        public RectangularShape getShape() { return ConnectCtrlShape; }
+        public final RectangularShape getShape() { return ConnectCtrlShape; }
     }
     private static class CurveCtrl extends LWSelection.Controller {
         CurveCtrl(Point2D p) {
@@ -413,7 +413,7 @@ public class LWLink extends LWComponent
             //super(p, COLOR_SELECTION_HANDLE);
             //super(p, COLOR_SELECTION);
         }
-        public RectangularShape getShape() { return CurveCtrlShape; }
+        public final RectangularShape getShape() { return CurveCtrlShape; }
     }
     private static class PruneCtrl extends LWSelection.Controller {
         private final double rotation;
@@ -423,8 +423,8 @@ public class LWLink extends LWComponent
             setColor(active ? Color.gray : Color.lightGray);
             this.rotation = rot + Math.PI / 4; // rotate to square parallel on line, plus 45 degrees to get diamond display
         }
-        public RectangularShape getShape() { return PruneCtrlShape; }
-        public double getRotation() { return rotation; }
+        public final RectangularShape getShape() { return PruneCtrlShape; }
+        public final double getRotation() { return rotation; }
     }
     
     private final LWSelection.Controller[] controlPoints = new LWSelection.Controller[MAX_CONTROL];
