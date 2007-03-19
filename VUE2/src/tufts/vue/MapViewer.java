@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.311 $ / $Date: 2007-03-19 07:12:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.312 $ / $Date: 2007-03-19 08:37:34 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2476,15 +2476,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     final RectangularShape shape = ctrl.getShape();
                         
                     double size = shape.getWidth(); // control shape forced to aspect of 1:1 for now (height ignored)
-                    if (size <= 0)
-                        size = 9;
-                    if (dc.zoom < 0.5) size /= (3.0/2.0);
+//                     if (size <= 0)
+//                         size = 9;
+//                     if (dc.zoom < 0.5) size /= (3.0/2.0);
 
                     dc.g.translate(mapToScreenX(ctrl.x), mapToScreenY(ctrl.y));
                     dc.g.rotate(ctrl.getRotation());
                     // now center the control on the point
                     dc.g.translate(-size/2, -size/2);
-                    shape.setFrame(0,0, size,size);
+                    //shape.setFrame(0,0, size,size); // can't do this if shape is a constant object!
                     final Color fillColor;
                     if (false && sDragUnderway) // hilight the dragging control
                         fillColor = Color.red; // don't do for ALL controls: just the active one...
