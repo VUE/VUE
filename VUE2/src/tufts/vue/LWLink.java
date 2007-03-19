@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.119 $ / $Date: 2007-03-19 07:12:28 $ / $Author: sfraize $
+ * @version $Revision: 1.120 $ / $Date: 2007-03-19 07:24:55 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -408,14 +408,14 @@ public class LWLink extends LWComponent
     private static RectangularShape PruneCtrlShape = new Rectangle2D.Float(0,0,7,7);
     
     private static class ConnectCtrl extends LWSelection.Controller {
-        public ConnectCtrl(float x, float y, boolean isConnected) {
+        ConnectCtrl(float x, float y, boolean isConnected) {
             super(x, y);
             setColor(isConnected ? null : COLOR_SELECTION_HANDLE);
         }
         public RectangularShape getShape() { return ConnectCtrlShape; }
     }
     private static class CurveCtrl extends LWSelection.Controller {
-        public CurveCtrl(Point2D p) {
+        CurveCtrl(Point2D p) {
             super(p);
             setColor(COLOR_SELECTION_CONTROL);
             //super(p, COLOR_SELECTION_HANDLE);
@@ -434,7 +434,7 @@ public class LWLink extends LWComponent
         public double getRotation() { return rotation; }
     }
     
-    private LWSelection.Controller[] controlPoints = new LWSelection.Controller[MAX_CONTROL];
+    private final LWSelection.Controller[] controlPoints = new LWSelection.Controller[MAX_CONTROL];
 
     /** interface ControlListener */
     public LWSelection.Controller[] getControlPoints()
@@ -477,10 +477,15 @@ public class LWLink extends LWComponent
         
         if (curveControls == 1) {
             controlPoints[CCurve1] = new CurveCtrl(mQuad.getCtrlPt());
+            controlPoints[CCurve2] = null;
         } else if (curveControls == 2) {
             controlPoints[CCurve1] = new CurveCtrl(mCubic.getCtrlP1());
             controlPoints[CCurve2] = new CurveCtrl(mCubic.getCtrlP2());
+        } else {
+            controlPoints[CCurve1] = null;
+            controlPoints[CCurve2] = null;
         }
+            
 
         return controlPoints;
     }
@@ -582,7 +587,7 @@ public class LWLink extends LWComponent
         
         Object old = new Integer(curveControls);
         curveControls = newControlCount;
-        this.controlPoints = new LWSelection.Controller[MAX_CONTROL];
+        //this.controlPoints = new LWSelection.Controller[MAX_CONTROL];
         endpointMoved = true;
         computeLinkEndpoints();
         notify(LWKey.LinkCurves, old);
