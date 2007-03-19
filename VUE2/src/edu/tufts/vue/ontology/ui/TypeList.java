@@ -18,6 +18,7 @@
 
 package edu.tufts.vue.ontology.ui;
 
+import edu.tufts.vue.style.*;
 import edu.tufts.vue.ontology.*;
 
 import java.awt.Component;
@@ -56,14 +57,14 @@ public class TypeList extends JList {
     
     private LWComponent comp;
 
-    private LWMap holder;
-    private MapViewer holderViewer;
+   // private LWMap holder;
+   // private MapViewer holderViewer;
     private LWSelection selection;
     
     public TypeList() {
         
-        holder = new LWMap();
-        holderViewer = new MapViewer(holder);
+        //holder = new LWMap();
+     //   holderViewer = new MapViewer(holder);
         
         mDataModel = new DefaultListModel();
         setModel(mDataModel);
@@ -106,6 +107,10 @@ public class TypeList extends JList {
         public java.awt.Component getListCellRendererComponent(JList jList, Object value, int i, boolean isSelected, boolean hasFocus) 
         {
             JPanel p = new JPanel();
+            p.setLayout(new java.awt.BorderLayout());
+            
+            p.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200,200,200)));
+                    
             if(value instanceof LWComponent)
             {
                 LWComponent comp = (LWComponent)value;
@@ -167,10 +172,7 @@ public class TypeList extends JList {
         
         //add Fedora types and an extra node
         
-        LWNode node = new LWNode("Fedora Object");
-        //node.setLabel("Fedora Object");
-        node.setShape( new java.awt.Rectangle(5,5,50,20));
-        tlist.addType(node);
+
         
         Ontology ontology = OntManager.getFedoraOntologyWithStyles();
         List<OntType> types = ontology.getOntTypes();
@@ -178,15 +180,22 @@ public class TypeList extends JList {
         while(iter.hasNext())
         {
             OntType ot = iter.next();
+            Style style = ot.getStyle();
             LWLink link = new LWLink();
             link.setLabel(ot.getName());
-            link.setStartPoint(10,10);
-            link.setEndPoint(90,10);
-            link.setAbsoluteSize(100,15);
+            link.setHeadPoint(10,25);
+            link.setTailPoint(140,25);
+            link.setAbsoluteSize(150,50);
             link.setArrowState(LWLink.ARROW_BOTH);
-            link.setWeight(2);
+            link.setWeight(Integer.parseInt(style.getAttribute("weight")));
             tlist.addType(link);
         }
+        
+        LWNode node = new LWNode("Fedora Object");
+        //node.setLabel("Fedora Object");
+        node.setAbsoluteSize(150,50);
+        node.setShape( new java.awt.Rectangle(5,5,135,45));
+        tlist.addType(node);
         
         return testPanel;
     }
