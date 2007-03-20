@@ -27,12 +27,12 @@ import java.util.*;
  * their contents, and rebroadcasting them to interested parties, such
  * as the PathwayTableModel.
  *
- * @version $Revision: 1.26 $ / $Date: 2007-03-14 23:16:57 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2007-03-20 21:53:48 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
 
-public class LWPathwayList implements LWComponent.Listener
+public class LWPathwayList implements LWComponent.Listener, Iterable<LWPathway>
 {
     private List<LWPathway> mPathways = new java.util.ArrayList();
     private LWMap mMap = null;
