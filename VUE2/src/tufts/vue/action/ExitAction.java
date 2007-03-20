@@ -125,6 +125,10 @@ public class ExitAction extends VueAction {
     
     public static void saveResources() {
         DataSource ds;
+        if (tufts.vue.DataSourceViewer.dataSourceList == null) {
+            System.err.println("dataSourceList is null; no resources to save.");
+            return;
+        }
         ListModel model = tufts.vue.DataSourceViewer.dataSourceList.getModel();
         int i;
         for (i =0 ; i< model.getSize(); i++){
