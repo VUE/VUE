@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.124 $ / $Date: 2007-03-20 16:47:51 $ / $Author: sfraize $
+ * @version $Revision: 1.125 $ / $Date: 2007-03-20 16:48:41 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -807,7 +807,7 @@ public class LWLink extends LWComponent
             } else {
                 if (rect.intersectsLine(mLine))
                     return true;
-v            }
+            }
             if (mIconBlock.intersects(rect))
                 return true;
             else if (hasLabel())
