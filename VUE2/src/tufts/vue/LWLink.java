@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.126 $ / $Date: 2007-03-20 20:40:03 $ / $Author: sfraize $
+ * @version $Revision: 1.127 $ / $Date: 2007-03-20 21:27:39 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -596,7 +596,7 @@ public class LWLink extends LWComponent
         curveControls = newControlCount;
         //this.controlPoints = new LWSelection.Controller[MAX_CONTROL];
         endpointMoved = true;
-        computeLinkEndpoints();
+        //computeLinkEndpoints();
         notify(LWKey.LinkCurves, old);
     }
 
@@ -757,10 +757,16 @@ public class LWLink extends LWComponent
         private final Line2D.Float seg = new Line2D.Float();
         
         public SegIterator() {
-            // last point is stored in second point of current segment
-            seg.x2 = mPoints[0];
-            seg.y2 = mPoints[1];
-            idx = 2;
+            // start with first point of first segment pre-loaded as last point in
+            // the cached segment
+            
+            //seg.x2 = mPoints[0];
+            //seg.y2 = mPoints[1];
+            //idx = 2;
+            
+            seg.x2 = headX;
+            seg.y2 = headY;
+            idx = 0;
         }
         
         public boolean hasNext() { return idx < mLastPoint; }
@@ -1313,14 +1319,27 @@ public class LWLink extends LWComponent
         if (curveControls > 0) {
             // Flatten the curve into a bunch of segments for hit detection.
 
+            if (DEBUG.Enabled && mCurve.getBounds().isEmpty()) { // assertion check
+                tufts.Util.printStackTrace("empty curve " + mCurve + " " + mCurve.getBounds());
+                return;
+            }
+
             if (mPoints == null)
                 mPoints = new float[16];
             mLastPoint = 0;
 
             //out("LINE: " + Util.out(mLine));
             //out("CURVE: " + mCurve + " bounds " + mCurve.getBounds2D());
+            //final PathIterator i = new FlatteningPathIterator(mCurve.getPathIterator(null), .001f);
             final PathIterator i = new FlatteningPathIterator(mCurve.getPathIterator(null), 1f);
             final float[] point = new float[2];
+
+            if (!i.isDone()) {
+                // throw out first point -- kept as headX/headY
+                // (the number segments often maxes out at a power of two,
+                // meaing the total number of flattened points is often 2^x+1)
+                i.next();
+            }
             
             while (!i.isDone()) {
                 i.currentSegment(point);
@@ -1336,6 +1355,7 @@ public class LWLink extends LWComponent
                     float[] oldPoints = mPoints;
                     mPoints = new float[oldPoints.length * 2];
                     System.arraycopy(oldPoints, 0, mPoints, 0, oldPoints.length);
+                    if (DEBUG.BOXES) out("NEW MAX SEGMENTS " + mPoints.length / 2);
                 }
                 mPoints[mLastPoint++] = point[0];
                 mPoints[mLastPoint++] = point[1];
@@ -1345,7 +1365,7 @@ public class LWLink extends LWComponent
             mLength = 100; // skip computing this for now -- not meaingfully used with curves for the moment
             //for (Line2D.Float seg : new SegIterator()) mLength += lineLength(seg);
 
-            if (DEBUG.BOXES) out("POINTS ON FLATTENED CURVE: " + mLastPoint / 2 + " total length estimate=" + mLength);
+            if (DEBUG.BOXES) out("SEGMENTS IN FLATTENED CURVE: " + mLastPoint / 2 + "; total length estimate=" + mLength + "; maxSeg=" + mPoints.length / 2);
             
         } else {
             mLength = lineLength(headX, headY, tailX, tailY);
@@ -1570,8 +1590,10 @@ public class LWLink extends LWComponent
                 dc.setAbsoluteStroke(0.5);
                 dc.g.setColor(COLOR_SELECTION);
                 
-                Point2D first = new Point2D.Float(mPoints[0], mPoints[1]);
-                Point2D last = new Point2D.Float(mPoints[mLastPoint-2], mPoints[mLastPoint-1]);
+                //Point2D first = new Point2D.Float(mPoints[0], mPoints[1]);
+                //Point2D last = new Point2D.Float(mPoints[mLastPoint-2], mPoints[mLastPoint-1]);
+                Point2D first = getHeadPoint();
+                Point2D last = getTailPoint();
                 
                 for (Line2D seg : new SegIterator()) {
                     dc.g.draw(seg);
@@ -1817,8 +1839,7 @@ public class LWLink extends LWComponent
         float cx;
         float cy;
 
-        if (endpointMoved)
-            computeLinkEndpoints();
+        //if (endpointMoved) computeLinkEndpoints();
 
         if (curveControls > 0) {
             cx = mCurveCenterX;
