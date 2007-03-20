@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.123 $ / $Date: 2007-03-19 08:37:14 $ / $Author: sfraize $
+ * @version $Revision: 1.124 $ / $Date: 2007-03-20 16:47:51 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -60,6 +60,20 @@ public class LWLink extends LWComponent
     private final static RectangularShape TailShape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
 
     // member variables:
+    
+    /*
+    private static class EndPoint { // todo: like this (could also subclass Point2D.Float)
+        float x, y; // point at node where the connection is made, or disconnected map location
+        LWComponent node; // if null, not connected
+        float lineX, lineY; // end of curve / line -- can be different than x / y if there is a connector shape
+        RectangularShape connectorShape; // e.g. an arrow -- null means none
+        boolean isPruned;
+        double rotation;
+        AffineTransform normalizer;
+    };
+    private EndPoint head, tail;
+    */
+
 
     private LWComponent head;
     private LWComponent tail;
@@ -138,7 +152,7 @@ public class LWLink extends LWComponent
             return l.mArrowState; // if getting a type-mismatch on mLine, feed this file to javac with LWComponent.java at the same time
         }
     };
-    private final IntProperty mArrowState = new IntProperty(KEY_LinkArrows) { void onChange() { layout(); } };
+    private final IntProperty mArrowState = new IntProperty(KEY_LinkArrows) { void onChange() { endpointMoved = true; layout(); } };
     
     
     public static final Key KEY_LinkHeadPoint = new Key<LWLink,Point2D>("link.head.location") {
@@ -420,7 +434,7 @@ public class LWLink extends LWComponent
         PruneCtrl(AffineTransform tx, double rot, boolean active)
         {
             tx.transform(this,this);
-            setColor(active ? Color.gray : Color.lightGray);
+            setColor(active ? Color.red : Color.lightGray);
             this.rotation = rot + Math.PI / 4; // rotate to square parallel on line, plus 45 degrees to get diamond display
         }
         public final RectangularShape getShape() { return PruneCtrlShape; }
@@ -793,7 +807,7 @@ public class LWLink extends LWComponent
             } else {
                 if (rect.intersectsLine(mLine))
                     return true;
-            }
+v            }
             if (mIconBlock.intersects(rect))
                 return true;
             else if (hasLabel())
@@ -1044,83 +1058,87 @@ public class LWLink extends LWComponent
     }
 
 
+    private void initCurveControlPoints()
+    {
+        //-------------------------------------------------------
+        // INTIALIZE CONTROL POINTS & CURVE ALIAS
+        //-------------------------------------------------------
+
+        // Rely on the old actual values to CONNECTION points, previously computed in mLine
+        // and centerX/centerY.
+
+        // Note that this is still very imperfect, as when we move from a line to a
+        // curve, the connection points can change dramatically, so using the
+        // current axis is limited.  Unfortunately, we can't know the new axis
+        // until, of course, we first place the control points *somewhere*.
+
+        final float axisLen = (float) lineLength(mLine.x1, mLine.y1, mLine.x2, mLine.y2);
+        final float axisOffset;
+
+        if (curveControls == 2)
+            axisOffset = axisLen / 4;
+        else
+            axisOffset = axisLen / 3; // do this via a log: grows slowing with length increaase
+            
+        //out("axisLen " + axisLen + " offset " + axisOffset);
+
+        final AffineTransform centerLeft = AffineTransform.getTranslateInstance(centerX, centerY);
+        //double deltaX = Math.abs(headX - tailX);
+        //double deltaY = Math.abs(headY - tailY);
+        if (tailX > headX)
+            centerLeft.rotate(mRotationTail);
+        //centerLeft.rotate(curveControls == 2 ? mRotationHead : mRotationTail);
+        else
+            centerLeft.rotate(mRotationHead);
+        //centerLeft.rotate(curveControls == 2 ? mRotationTail : mRotationHead);
+        centerLeft.translate(-axisOffset,0);
+        final AffineTransform centerRight = new AffineTransform(centerLeft);
+        centerRight.translate(axisOffset*2,0);
+        final Point2D.Float p = new Point2D.Float();
+            
+        if (curveControls == 2) {
+            mCurve = mCubic;
+            if (mCubic.ctrlx1 == NEEDS_DEFAULT) {
+                centerLeft.transform(p,p);
+                mCubic.ctrlx1 = p.x;
+                mCubic.ctrly1 = p.y;
+            }
+            if (mCubic.ctrlx2 == NEEDS_DEFAULT) {
+                p.x = p.y = 0;
+                centerRight.transform(p,p);
+                mCubic.ctrlx2 = p.x;
+                mCubic.ctrly2 = p.y;
+            }
+        } else {
+            mCurve = mQuad;
+            if (mQuad.ctrlx == NEEDS_DEFAULT) {
+                centerLeft.transform(p,p);
+                mQuad.ctrlx = p.x;
+                mQuad.ctrly = p.y;
+            }
+        }
+    }
+    
+
     /**
-     * Compute the endpoints of this link based on the edges
-     * of the shapes we're connecting.  To do this we draw
-     * a line from the center of one shape to the center of
-     * the other, and set the link endpoints to the places where
-     * mLine crosses the edge of each shape.  If one of
-     * the shapes is a straight line, or for some reason
-     * a shape doesn't have a facing "edge", or if anything
-     * unpredicatable happens, we just leave the connection
-     * point as the center of the object.
+     * Compute the endpoints of this link based on the edges of the shapes we're
+     * connecting.  To do this we draw a line from the center of one shape to the center
+     * of the other, and set the link endpoints to the places where mLine crosses the
+     * edge of each shape.  If one of the shapes is a straight line, or for some reason
+     * a shape doesn't have a facing "edge", or if anything unpredicatable happens, we
+     * just leave the connection point as the center of the object.
      */
     private float[] intersection = new float[2]; // result cache for intersection coords
-    void computeLinkEndpoints()
+    private void computeLinkEndpoints()
     {
         endpointMoved = false;
         
-        if (curveControls > 0 && mCurve == null) {
-            //-------------------------------------------------------
-            // INTIALIZE CONTROL POINTS & CURVE ALIAS
-            //-------------------------------------------------------
+        if (curveControls > 0 && mCurve == null)
+            initCurveControlPoints();
 
-            // Rely on the old actual values to CONNECTION points, previously computed in mLine
-            // and centerX/centerY.
-
-            // Note that this is still very imperfect, as when we move from a line to a
-            // curve, the connection points can change dramatically, so using the
-            // current axis is limited.  Unfortunately, we can't know the new axis
-            // until, of course, we first place the control points *somewhere*.
-
-            final float axisLen = (float) lineLength(mLine.x1, mLine.y1, mLine.x2, mLine.y2);
-            final float axisOffset;
-
-            if (curveControls == 2)
-                axisOffset = axisLen / 4;
-            else
-                axisOffset = axisLen / 3; // do this via a log: grows slowing with length increaase
-            
-            //out("axisLen " + axisLen + " offset " + axisOffset);
-
-            final AffineTransform centerLeft = AffineTransform.getTranslateInstance(centerX, centerY);
-            //double deltaX = Math.abs(headX - tailX);
-            //double deltaY = Math.abs(headY - tailY);
-            if (tailX > headX)
-                centerLeft.rotate(mRotationTail);
-                //centerLeft.rotate(curveControls == 2 ? mRotationHead : mRotationTail);
-            else
-                centerLeft.rotate(mRotationHead);
-                //centerLeft.rotate(curveControls == 2 ? mRotationTail : mRotationHead);
-            centerLeft.translate(-axisOffset,0);
-            final AffineTransform centerRight = new AffineTransform(centerLeft);
-            centerRight.translate(axisOffset*2,0);
-            final Point2D.Float p = new Point2D.Float();
-            
-            if (curveControls == 2) {
-                mCurve = mCubic;
-                if (mCubic.ctrlx1 == NEEDS_DEFAULT) {
-                    centerLeft.transform(p,p);
-                    mCubic.ctrlx1 = p.x;
-                    mCubic.ctrly1 = p.y;
-                }
-                if (mCubic.ctrlx2 == NEEDS_DEFAULT) {
-                    p.x = p.y = 0;
-                    centerRight.transform(p,p);
-                    mCubic.ctrlx2 = p.x;
-                    mCubic.ctrly2 = p.y;
-                }
-            } else {
-                mCurve = mQuad;
-                if (mQuad.ctrlx == NEEDS_DEFAULT) {
-                    centerLeft.transform(p,p);
-                    mQuad.ctrlx = p.x;
-                    mQuad.ctrly = p.y;
-                }
-            }
-        }
+        // Start with head & tail locations at center of the object at
+        // each endpoint:
         
-
         if (head != null) {
             headX = head.getCenterX();
             headY = head.getCenterY();
@@ -1131,7 +1149,7 @@ public class LWLink extends LWComponent
         }
 
         float srcX, srcY;
-        final Shape headShape = (head == null ? null : head.getShape());
+        final Shape shapeAtHead = (head == null ? null : head.getShape());
         // if either endpoint shape is a straight line, we don't need to
         // bother computing the shape intersection -- it will just
         // be the default connection point -- the center point.
@@ -1141,7 +1159,7 @@ public class LWLink extends LWComponent
         // the convex side, but from the concave side, it winds
         // up at the center point for a regular straight link.
 
-        if (headShape != null && !(headShape instanceof Line2D)) {
+        if (shapeAtHead != null && !(shapeAtHead instanceof Line2D)) {
             if (curveControls == 1) {
                 srcX = mQuad.ctrlx;
                 srcY = mQuad.ctrly;
@@ -1152,18 +1170,16 @@ public class LWLink extends LWComponent
                 srcX = tailX;
                 srcY = tailY;
             }
-            float[] result = VueUtil.computeIntersection(headX, headY, srcX, srcY, headShape, intersection, 1);
+            float[] result = VueUtil.computeIntersection(headX, headY, srcX, srcY, shapeAtHead, intersection, 1);
             // If intersection fails for any reason, leave endpoint as center
-            // of object.
-            //if (!Float.isNaN(intersection[0])) headX = intersection[0];
-            //if (!Float.isNaN(intersection[1])) headY = intersection[1];
+            // of object at the head.
             if (result != VueUtil.NoIntersection) {
                  headX = intersection[0];
                  headY = intersection[1];
             }
         }
-        Shape tailShape = tail == null ? null : tail.getShape();
-        if (tailShape != null && !(tailShape instanceof Line2D)) {
+        final Shape shapeAtTail = tail == null ? null : tail.getShape();
+        if (shapeAtTail != null && !(shapeAtTail instanceof Line2D)) {
             if (curveControls == 1) {
                 srcX = mQuad.ctrlx;
                 srcY = mQuad.ctrly;
@@ -1174,11 +1190,9 @@ public class LWLink extends LWComponent
                 srcX = headX;
                 srcY = headY;
             }
-            float[] result = VueUtil.computeIntersection(srcX, srcY, tailX, tailY, tailShape, intersection, 1);
+            float[] result = VueUtil.computeIntersection(srcX, srcY, tailX, tailY, shapeAtTail, intersection, 1);
             // If intersection fails for any reason, leave endpoint as center
-            // of object.
-            //if (!Float.isNaN(intersection[0])) tailX = intersection[0];
-            //if (!Float.isNaN(intersection[1])) tailY = intersection[1];
+            // of object at tail.
             if (result != VueUtil.NoIntersection) {
                  tailX = intersection[0];
                  tailY = intersection[1];
@@ -1229,13 +1243,65 @@ public class LWLink extends LWComponent
             }
         }
 
+        //---------------------------------------------------------------------------------------------------
+        // Compute rotations for arrows or for moving linearly along the link
+        //---------------------------------------------------------------------------------------------------
+
+        if (curveControls == 1) {
+            mRotationHead = computeVerticalRotation(headX, headY, mQuad.ctrlx, mQuad.ctrly);
+            mRotationTail = computeVerticalRotation(tailX, tailY, mQuad.ctrlx, mQuad.ctrly);
+        } else if (curveControls == 2) {
+            mRotationHead = computeVerticalRotation(headX, headY, mCubic.ctrlx1, mCubic.ctrly1);
+            mRotationTail = computeVerticalRotation(tailX, tailY, mCubic.ctrlx2, mCubic.ctrly2);
+        } else {
+            mRotationHead = computeVerticalRotation(mLine.x1, mLine.y1, mLine.x2, mLine.y2);
+            mRotationTail = mRotationHead + Math.PI;  // can just flip head rotation: add 180 degrees
+        }
+
+        double controlOffset = HeadShape.getHeight() * 2;
+        //final int controlSize = 6;
+        //final double minControlSize = MapViewer.SelectionHandleSize / dc.zoom;
+        // can get zoom by passing into getControlPoints from MapViewer.drawSelection,
+        // which could then pass it to computeLinkEndpoints, so we could have it here...
+        final double minControlSize = 2; // fudged: ignoring zoom for now
+        final double room = mLength - controlOffset * 2;
+
+        if (room <= minControlSize*2)
+            controlOffset = mLength/3;
+        //if (room <= controlSize*2)
+        //    controlOffset = mLength/2 - controlSize;
+
+        mHeadCtrlTx.setToTranslation(headX, headY);
+        mHeadCtrlTx.rotate(mRotationHead);
+        mHeadCtrlTx.translate(0, controlOffset);
+        mTailCtrlTx.setToTranslation(tailX, tailY);
+        mTailCtrlTx.rotate(mRotationTail);
+        mTailCtrlTx.translate(0, controlOffset);
+        
         //-------------------------------------------------------
-        // Set the stroke line
+        // Set the paramaters of the stroked line or curve
         //-------------------------------------------------------
+        
         mLine.setLine(headX, headY, tailX, tailY);
         if (curveControls == 1) {
-            mQuad.x1 = headX;
-            mQuad.y1 = headY;
+
+            if (false && (mArrowState.get() & ARROW_HEAD) != 0) {
+                // This backs up the curve endpoint to the tail of the arrow
+                // This will slightly move the curve, but it keeps the connection
+                // to the arrow much cleaner.
+                Point2D.Float hp = new Point2D.Float();
+                AffineTransform tx = new AffineTransform();
+                tx.setToTranslation(headX, headY);
+                tx.rotate(mRotationHead);
+                tx.translate(0, HeadShape.getHeight());
+                tx.transform(hp, hp);
+                mQuad.x1 = hp.x;
+                mQuad.y1 = hp.y;
+            } else {
+                mQuad.x1 = headX;
+                mQuad.y1 = headY;
+            }
+            
             mQuad.x2 = tailX;
             mQuad.y2 = tailY;
 
@@ -1365,41 +1431,6 @@ public class LWLink extends LWComponent
 
 
 
-        //---------------------------------------------------------------------------------------------------
-        // Compute rotations for arrows or for moving linearly along the link
-        //---------------------------------------------------------------------------------------------------
-
-        if (curveControls == 1) {
-            mRotationHead = computeVerticalRotation(headX, headY, mQuad.ctrlx, mQuad.ctrly);
-            mRotationTail = computeVerticalRotation(tailX, tailY, mQuad.ctrlx, mQuad.ctrly);
-        } else if (curveControls == 2) {
-            mRotationHead = computeVerticalRotation(headX, headY, mCubic.ctrlx1, mCubic.ctrly1);
-            mRotationTail = computeVerticalRotation(tailX, tailY, mCubic.ctrlx2, mCubic.ctrly2);
-        } else {
-            mRotationHead = computeVerticalRotation(mLine.x1, mLine.y1, mLine.x2, mLine.y2);
-            mRotationTail = mRotationHead + Math.PI;  // can just flip head rotation: add 180 degrees
-        }
-
-        double controlOffset = HeadShape.getHeight() * 2;
-        //final int controlSize = 6;
-        //final double minControlSize = MapViewer.SelectionHandleSize / dc.zoom;
-        // can get zoom by passing into getControlPoints from MapViewer.drawSelection,
-        // which could then pass it to computeLinkEndpoints, so we could have it here...
-        final double minControlSize = 2; // fudged: ignoring zoom for now
-        final double room = mLength - controlOffset * 2;
-
-        if (room <= minControlSize*2)
-            controlOffset = mLength/3;
-        //if (room <= controlSize*2)
-        //    controlOffset = mLength/2 - controlSize;
-
-        mHeadCtrlTx.setToTranslation(headX, headY);
-        mHeadCtrlTx.rotate(mRotationHead);
-        mHeadCtrlTx.translate(0, controlOffset);
-        mTailCtrlTx.setToTranslation(tailX, tailY);
-        mTailCtrlTx.rotate(mRotationTail);
-        mTailCtrlTx.translate(0, controlOffset);
-        
         layout();
         // if there are any links connected to this link, make sure they
         // know that this endpoint has moved.
@@ -1410,11 +1441,9 @@ public class LWLink extends LWComponent
     /**
      * Compute the rotation needed to normalize the ine segment to vertical orientation, making it
      * parrallel to the Y axis.  So vertical lines will return either 0 or Math.PI (180 degrees), horizontal lines
-     * will return +/- PI/2.  (+/- 90 degrees).  In the rotated space, +y values move down, +x values move right.
+     * will return +/- PI/2.  (+/- 90 degrees).  In the rotated space, +y values will move down, +x values will move right.
      */
 
-    //private static final double HalfPI = Math.PI / 2;
-    
     private double computeVerticalRotation(double x1, double y1, double x2, double y2)
     {
         final double xdiff = x1 - x2;
@@ -1498,6 +1527,7 @@ public class LWLink extends LWComponent
             // that when drawn it will be centered on the line.
             dc.g.translate(-HeadShape.getWidth() / 2, 0);
             dc.g.fill(HeadShape);
+            //if (getStrokeWidth() > 0) dc.g.setStroke(new BasicStroke(getStrokeWidth() / 2));
             dc.g.draw(HeadShape);
             
             dc.g.setTransform(savedTransform);
