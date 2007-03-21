@@ -57,13 +57,16 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 	private static final String Y_POS_KEY = "Y_POS_KEY";
 	private static final String ROLLEDUP_KEY = "ROLLEDUP_KEY";
 	private static final String defval = "false,true,-1,-1,-1,-1,false";
+	private Preferences p2 = Preferences.userNodeForPackage(getPrefRoot());
+	private static String defaultEnabledVal = "false";
 	private String value;
 	private static JCheckBox checkValue = new JCheckBox();
 	
 	protected WindowPropertiesPreference(String category, String key, String name, String desc, boolean showInUI) {
 		super(category, key, name, desc, defval, showInUI);
 		value = (String)getValue();
-		StringTokenizer tokens = new StringTokenizer(value,",");
+		StringTokenizer tokens = new StringTokenizer(value,",");						
+				
 		try		
 		{
 			table.put(ENABLED_KEY, tokens.nextToken());	
@@ -75,6 +78,7 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 			table.put(ROLLEDUP_KEY,tokens.nextToken());		
 		}catch(NoSuchElementException nsee)
 		{
+			nsee.printStackTrace();
 			//this shouldn't happen but if it does stuff the table with the defaults
 			table.put(ENABLED_KEY, "false");	
 			table.put(VISIBLE_KEY,"true");		
@@ -93,7 +97,19 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 
 	public void itemStateChanged(ItemEvent e) {
 		JCheckBox box = (JCheckBox)e.getSource();
-		table.put(ENABLED_KEY, box.isSelected());
+		
+		
+			//System.out.println("ITEM STATE CHANGED");
+			defaultEnabledVal = (new Boolean(box.isSelected()).toString());
+			
+			if (p2.get("enabledWinPos", "null").equals("null"))
+				p2.put("enabledWinPos", defaultEnabledVal);
+			else
+				p2.put("enabledWinPos",defaultEnabledVal);
+		
+			defaultEnabledVal = p2.get("enabledWinPos",defaultEnabledVal);
+			table.put(ENABLED_KEY, box.isSelected());
+		
 	}
 	public static WindowPropertiesPreference create(String category, String key, String name, String desc, boolean showInUI)
 	{
@@ -108,11 +124,20 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 		
 	public void setEnabled(boolean enable)
 	{
-		table.put(ENABLED_KEY, Boolean.valueOf(enable).toString());
+		//System.out.println("FLIPPING ENABLED?" + enable);
+		defaultEnabledVal = Boolean.valueOf(enable).toString();
+		
+		if (p2.get("enabledWinPos", "null").equals("null"))
+			p2.put("enabledWinPos", defaultEnabledVal);
+		else
+			p2.put("enabledWinPos",defaultEnabledVal);
+	
+		
+		table.put(ENABLED_KEY, defaultEnabledVal);
 	}
 	public boolean isEnabled()
 	{
-		return Boolean.valueOf((String)table.get(ENABLED_KEY));
+		return new Boolean(p2.get("enabledWinPos", defaultEnabledVal));//Boolean.valueOf((String)table.get(ENABLED_KEY));
 	}
 	public boolean isWindowVisible()
 	{
@@ -195,7 +220,7 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 		table.put(ROLLEDUP_KEY, Boolean.valueOf(rolled).toString());
 		
 		StringBuffer sb = new StringBuffer();
-		sb.append(getCheckBox().isSelected());
+		sb.append(p2.get("enabledWinPos", defaultEnabledVal));
 		sb.append(",");
 		sb.append(Boolean.valueOf(visible).toString());
 		sb.append(",");
@@ -208,7 +233,7 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 		sb.append(Integer.valueOf(y).toString());		
 		sb.append(",");
 		sb.append(Boolean.valueOf(rolled).toString());
-		
+		//System.out.println(sb.toString());
 		setValue(sb.toString());
 		
 	}
