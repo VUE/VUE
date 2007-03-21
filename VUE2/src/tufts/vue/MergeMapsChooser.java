@@ -1813,16 +1813,17 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                map.setNodeThresholdSliderValue(nodeThresholdSlider.getValue());
                map.setLinkThresholdSliderValue(linkThresholdSlider.getValue());
                createVoteMerge(map);
-               //float x = VUE.getActiveViewer().getOriginX();
-               //float y = VUE.getActiveViewer().getOriginY();
+               float x = VUE.getActiveViewer().getOriginX();
+               float y = VUE.getActiveViewer().getOriginY();
                //map.setUserOrigin(VUE.getActiveViewer().getOriginX(),VUE.getActiveViewer().getOriginY());
                MapViewer v = VUE.displayMap(map);
                //java.awt.Point p = new java.awt.Point((int)x,(int)y);
                //VUE.getActiveViewer().setLocation(p);
                //map.setUserOrigin(x,y);
                
-               
-               v.grabVueApplicationFocus("Merge Map",null);
+               //neccessary?
+               //v.grabVueApplicationFocus("Merge Map",null);
+               v.setMapOriginOffset(x,y);
                //ZoomTool.setZoomFit();
                
                // creates class cast exception? Also, doesn't seem neccesary... (real problem
