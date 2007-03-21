@@ -39,7 +39,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.217 $ / $Date: 2007-03-21 00:57:32 $ / $Author: sfraize $
+ * @version $Revision: 1.218 $ / $Date: 2007-03-21 01:46:18 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -137,7 +137,8 @@ public class LWComponent
 
     protected transient LWContainer parent = null;
     protected transient LWComponent mParentStyle;
-    protected transient LWComponent mSibling; // "semantic source" for nodes on slide to refer back to the concept map
+    protected transient LWComponent mSyncSource; // "semantic source" for nodes on slide to refer back to the concept map
+    protected transient Set<LWComponent> mSyncClients; // set of sync sources that point back to us
     protected transient boolean isStyle;
 
     // list of LWLinks that contain us as an endpoint
@@ -1248,10 +1249,29 @@ public class LWComponent
         layout();
         notify(LWKey.Label, old);
 
-        // non-Key'd temporary hack for label sibling
-        if (mSibling != null)
-            mSibling.setLabel(newLabel);
-        
+        // labels need own call to this due to TextBox use of setLabel0
+        syncUpdate(LWKey.Label);
+
+    }
+
+    protected void syncUpdate(Key key) {
+        // currently we only allow one or the other: you can be a source, or a client
+        // this is all we need for now (a node can be synced to nodes on multiple
+        // slides on different pathways, but a node in a slide can only refer
+        // back to one source)
+        if (mSyncSource != null) {
+            out("Updating sync source " + mSyncSource);
+            if (!mSyncSource.isDeleted())
+                key.copyValue(this, mSyncSource);
+
+        } else if (mSyncClients != null && !mSyncClients.isEmpty()) {
+            
+            for (LWComponent c : mSyncClients) {
+                out("Updating sync client " + c);
+                if (!c.isDeleted())
+                    key.copyValue(this, c);
+            }
+        }
     }
 
     TextBox getLabelBox()
@@ -1921,12 +1941,19 @@ public class LWComponent
         this.parent = parent;
     }
 
-    public void setSibling(LWComponent sibling) {
-        mSibling = sibling;
+    public void setSyncSource(LWComponent source) {
+        mSyncSource = source;
+        mSyncSource.addSyncClient(this);
     }
     
-    public LWComponent getSibling() {
-        return mSibling;
+    public LWComponent getSyncSource() {
+        return mSyncSource;
+    }
+
+    protected void addSyncClient(LWComponent c) {
+        if (mSyncClients == null)
+            mSyncClients = new HashSet();
+        mSyncClients.add(c);
     }
 
     protected void addNotify(LWContainer parent) {}

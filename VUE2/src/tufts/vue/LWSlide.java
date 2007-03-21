@@ -27,7 +27,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.14 $ / $Date: 2007-03-21 00:57:32 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2007-03-21 01:46:18 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -69,13 +69,13 @@ public class LWSlide extends LWContainer
         LWNode title = NodeTool.buildTextNode(node.getDisplayLabel()); // need to "sync" this...=
 
         title.setStyle(pathway.getMasterSlide().titleStyle);
-        title.setSibling(node);
+        title.setSyncSource(node);
 
         final LWComponent textStyle = pathway.getMasterSlide().textStyle;
         for (LWComponent c : node.getChildList()) {
             final LWComponent slideCopy = c.duplicate();
             slideCopy.setStyle(textStyle);
-            slideCopy.setSibling(c);
+            slideCopy.setSyncSource(c);
             toLayout.add(slideCopy);
         }
 
@@ -163,6 +163,8 @@ public class LWSlide extends LWContainer
     protected void addChildImpl(LWComponent c)
     {
         super.addChildImpl(c);
+        if (this instanceof LWPathway.MasterSlide)
+            return;
         out("addChildImpl " + c);
         LWPathway pathway = (LWPathway) getParent();
         if (pathway != null && c.getStyle() == null)
