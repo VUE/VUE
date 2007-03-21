@@ -39,7 +39,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.216 $ / $Date: 2007-03-17 22:31:55 $ / $Author: sfraize $
+ * @version $Revision: 1.217 $ / $Date: 2007-03-21 00:57:32 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -138,7 +138,7 @@ public class LWComponent
     protected transient LWContainer parent = null;
     protected transient LWComponent mParentStyle;
     protected transient LWComponent mSibling; // "semantic source" for nodes on slide to refer back to the concept map
-    protected transient boolean isStyleParent;
+    protected transient boolean isStyle;
 
     // list of LWLinks that contain us as an endpoint
     private transient List<LWLink> mLinks = new ArrayList<LWLink>();
@@ -986,8 +986,9 @@ public class LWComponent
             final Key k = (Key) key;
             k.setValue(this, val);
             // Experiment it auto-copying over data elements to siblings
-            if (k.keyType == KeyType.DATA && mSibling != null)
-                k.setValue(mSibling, val);
+            // TODO: label's a special case due to TextBox use of non-key'd setLabel0
+            //if (k.keyType == KeyType.DATA && mSibling != null)
+            //    k.setValue(mSibling, val);
         }
         // Old property keys that don't make use of the Key class yet:
         else if (key == LWKey.Resource)         setResource( (Resource) val);
@@ -1246,6 +1247,11 @@ public class LWComponent
         }
         layout();
         notify(LWKey.Label, old);
+
+        // non-Key'd temporary hack for label sibling
+        if (mSibling != null)
+            mSibling.setLabel(newLabel);
+        
     }
 
     TextBox getLabelBox()
@@ -1915,35 +1921,43 @@ public class LWComponent
         this.parent = parent;
     }
 
-    protected void setSibling(LWComponent sibling) {
+    public void setSibling(LWComponent sibling) {
         mSibling = sibling;
     }
-
+    
+    public LWComponent getSibling() {
+        return mSibling;
+    }
 
     protected void addNotify(LWContainer parent) {}
 
-    public void setParentStyle(LWComponent parentStyle)
+    public void setStyle(LWComponent parentStyle)
     {
         mParentStyle = parentStyle;
-        parentStyle.isStyleParent = true;
+        parentStyle.isStyle = true;
         if (!mXMLRestoreUnderway)       // we can skip the copy during restore
             copyStyle(parentStyle);
     }
 
     /** for castor persist */
-    public LWComponent getParentStyle() {
+    public LWComponent getStyle() {
         return mParentStyle;
     }
 
-    public boolean isStyleParent() {
-        return isStyleParent;
+    public boolean isStyle() {
+        return isStyle;
     }
-    public Boolean getPersistIsStyleParent() {
-        return isStyleParent ? Boolean.TRUE : null;
+    
+    public Boolean getPersistIsStyle() {
+        return isStyle ? Boolean.TRUE : null;
     }
-    public void setPersistIsStyleParent(Boolean b) {
-        isStyleParent = b.booleanValue();
+    public void setPersistIsStyle(Boolean b) {
+        isStyle = b.booleanValue();
     }
+
+    /** @deprecated: tmp back compat only */ public Boolean getPersistIsStyleParent() { return null; }
+    /** @deprecated: tmp back compat only */ public void setPersistIsStyleParent(Boolean b) { setPersistIsStyle(b); }
+    /** @deprecated: tmp back compat only */ public LWComponent getParentStyle() { return null; }
 
 
     public LWContainer getParent() {
@@ -2862,7 +2876,7 @@ public class LWComponent
         }
         mChangeSupport.notifyListeners(this, e);
 
-        if (isStyleParent)
+        if (isStyle)
             updateStyleWatchers(e);
         
     }

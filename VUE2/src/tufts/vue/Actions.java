@@ -566,6 +566,7 @@ public class Actions implements VueConstants
         }
         void act(LWComponent c) {
             // todo: throw interal exception if c not in active map
+            // todo: not working in slide viewer...
             VUE.getActiveViewer().activateLabelEdit(c);
         }
     };
@@ -715,9 +716,9 @@ public class Actions implements VueConstants
                 singleMover = selection.first();
                 selection.add(selection.first().getParent());
             } else if (!selection.allOfType(LWLink.class)) {
-                Iterator i = selection.iterator();
+                Iterator<LWComponent> i = selection.iterator();
                 while (i.hasNext()) {
-                    LWComponent c = (LWComponent) i.next();
+                    LWComponent c = i.next();
                     // remove all links from our cloned copy of the selection
                     if (c instanceof LWLink)
                         i.remove();
@@ -738,13 +739,13 @@ public class Actions implements VueConstants
             maxY = r.y + r.height;
             centerX = (minX + maxX) / 2;
             centerY = (minY + maxY) / 2;
-            Iterator i = selection.iterator();
             totalWidth = totalHeight = 0;
-            while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
+
+            for (LWComponent c : selection) {
                 totalWidth += c.getWidth();
                 totalHeight += c.getHeight();
             }
+            
             if (singleMover != null) {
                 // If we're a single selected object laying out in a parent,
                 // only bother to arrange that one object -- make sure
@@ -772,7 +773,7 @@ public class Actions implements VueConstants
     public static LWComponent[] sortByY(LWComponent[] array) {
         java.util.Arrays.sort(array, LWComponent.YSorter);
         return array;
-        }
+    }
     
     
     public static final Action FillWidth = new ArrangeAction("Fill Width") {
@@ -852,12 +853,13 @@ public class Actions implements VueConstants
             boolean enabledFor(LWSelection s) { return s.size() >= 2; }
             void arrange(LWSelection selection) {
                 AlignCentersColumn.arrange(selection);
-                float height;
-                if (selection.getHeight() > 0)
-                    height = selection.getHeight();
-                else
-                    height = totalHeight;
-                maxY = minY + height;
+//                 float height;
+//                 if (selection.getHeight() > 0)
+//                     height = selection.getHeight();
+//                 else
+//                     height = totalHeight;
+//                 maxY = minY + height;
+                maxY = minY + totalHeight;
                 DistributeVertically.arrange(selection);
             }
         };

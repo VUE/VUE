@@ -27,7 +27,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.13 $ / $Date: 2007-03-14 22:24:22 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2007-03-21 00:57:32 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -65,31 +65,28 @@ public class LWSlide extends LWContainer
     {
         final LWSlide slide = CreatePathwaySlide();
 
-        java.util.List<LWComponent> toLayout = new java.util.ArrayList();
+        java.util.LinkedList<LWComponent> toLayout = new java.util.LinkedList();
         LWNode title = NodeTool.buildTextNode(node.getDisplayLabel()); // need to "sync" this...=
 
-        
-        toLayout.add(title);
-        //LWComponent dupeChildren = node.duplicate(); // just for children: rest of node thrown away
-        //toLayout.addAll(dupeChildren.getChildList());
+        title.setStyle(pathway.getMasterSlide().titleStyle);
+        title.setSibling(node);
+
         final LWComponent textStyle = pathway.getMasterSlide().textStyle;
         for (LWComponent c : node.getChildList()) {
             final LWComponent slideCopy = c.duplicate();
-            slideCopy.setParentStyle(textStyle);
+            slideCopy.setStyle(textStyle);
             slideCopy.setSibling(c);
             toLayout.add(slideCopy);
         }
 
+        toLayout.addFirst(title);
+        
         slide.setParent(pathway); // must do before import
         slide.importAndLayout(toLayout);
         pathway.ensureID(slide);
         
-        //slide.setLocation(getX(), getY() + getHeight() + 20);
-        //slide.setScale(0.125f);
-        //slide.setLocation(Short.MAX_VALUE, Short.MAX_VALUE);
         //slide.setLocked(true);
-        //slide.setLayer(1); // effective make invisible on the map map
-        //getMap().addChild(slide);
+        
         return slide;
     }
 
@@ -101,18 +98,6 @@ public class LWSlide extends LWContainer
     //public boolean isFiltered() { return true; }
     //public boolean isHidden() { return true; }
 
-    /*
-    static LWSlide CreateFromList(java.util.List<LWComponent> nodes)
-    {
-        final LWSlide slide = Create();
-
-        if (nodes != null && nodes.size() > 0)
-            slide.importAndLayout(nodes);
-
-        return slide;
-    }
-    */
-    
     private void importAndLayout(java.util.List<LWComponent> nodes)
     {
         //java.util.Collections.reverse(nodes);
@@ -143,9 +128,11 @@ public class LWSlide extends LWContainer
         // the master slide styles...
         if (DEBUG.Enabled) out("LAYING OUT CHILDREN, parent=" + getParent());
 
-        selection.setSize(SlideWidth - SlideMargin*2,
-                          SlideHeight - SlideMargin*2);
-        Actions.MakeColumn.act(selection);
+        setSize(SlideWidth, SlideHeight);
+        
+        selection.setSize(SlideWidth - SlideMargin*2, SlideHeight - SlideMargin*4);
+        Actions.DistributeVertically.act(selection);
+        //Actions.MakeColumn.act(selection);
 
         /*
         Rectangle2D bounds = LWMap.getBounds(getChildIterator());
@@ -154,7 +141,6 @@ public class LWSlide extends LWContainer
                 (float)bounds.getHeight());
         */
 
-        setSize(SlideWidth, SlideHeight);
 
         // 640/480 == 1024/768 == 1.333...
         // Keynote uses 800/600 (1.3)
@@ -177,13 +163,18 @@ public class LWSlide extends LWContainer
     protected void addChildImpl(LWComponent c)
     {
         super.addChildImpl(c);
-        //c.setParentStyle(getMasterSlide().textStyle);
+        out("addChildImpl " + c);
+        LWPathway pathway = (LWPathway) getParent();
+        if (pathway != null && c.getStyle() == null)
+            c.setStyle(pathway.getMasterSlide().textStyle);
     }
 
+    /*
     private LWPathway.MasterSlide XgetMasterSlide() {
         LWPathway pathway = (LWPathway) getParent();
         return pathway.getMasterSlide();
     }
+    */
 
 
     /*

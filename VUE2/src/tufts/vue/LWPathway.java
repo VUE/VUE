@@ -49,7 +49,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.126 $ / $Date: 2007-03-17 22:31:55 $ / $Author: sfraize $
+ * @version $Revision: 1.127 $ / $Date: 2007-03-21 00:57:32 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -496,7 +496,10 @@ public class LWPathway extends LWContainer
         while (i.hasNext()) {
             LWComponent c = i.next();
             if (DEBUG.PATHWAY||DEBUG.PARENTING) out("adding " + c);
-            newEntries.add(new Entry(this, c));
+            Entry e = new Entry(this, c);
+            if (c instanceof LWGroup)
+                e.setMapView(true); // default for groups
+            newEntries.add(e);
             addCount++;
         }
 
@@ -735,11 +738,30 @@ public class LWPathway extends LWContainer
     // TODO: add master slide subclass to lw_mapping which needn't add anything over
     // it's superclass, but it will let us save/restore instances of this that
     // can do stuff like always return 0,0 x/y values.
+
+    private static void getMasterStyle() {
+
+        System.out.println("MASTER SLIDE CSS: " + VueResources.getURL("masterSlide.css"));
+        edu.tufts.vue.style.StyleReader.readStyles("masterSlide.css");
+
+        java.util.Set<String> sortedKeys = new java.util.TreeSet<String>(edu.tufts.vue.style.StyleMap.keySet());
+
+        for (String key : sortedKeys) {
+            final Object style = edu.tufts.vue.style.StyleMap.getStyle(key);
+            System.out.println("Found CSS style key; " + key + ": " + style);
+            //System.out.println("Style key: " + se.getKey() + ": " + se.getValue());
+        }
+
+    }        
+    
     
     public static class MasterSlide extends LWSlide
     {
-        final static String StyleLabel = "Sample Text";
+        //final static String StyleLabel = "Sample Text";
+        final static String TitleLabel = "Slide Title";
+        final static String TextLabel = "Slide Text";
         // TODO: need to figure out how to make these non-deletable
+        LWComponent titleStyle;
         LWComponent textStyle;
 
         /** for castor persistance */
@@ -751,9 +773,12 @@ public class LWPathway extends LWContainer
             // it's our desired text style.
             for (LWComponent c : children) {
                 // check the label is a temporary hack
-                if (c.isStyleParent() || StyleLabel.equals(c.getLabel())) {
+                if ("Sample Text".equals(c.getLabel()) || TextLabel.equals(c.getLabel())) {
                     textStyle = c;
-                    break;
+                    out("FOUND TEXT STYLE " + c);
+                } else if (TitleLabel.equals(c.getLabel())) {
+                    out("FOUND TITLE  STYLE " + c);
+                    titleStyle = c;
                 }
             }
         }
@@ -761,38 +786,57 @@ public class LWPathway extends LWContainer
         
         MasterSlide(final LWPathway owner)
         {
+            //getMasterStyle();
+                
             setStrokeWidth(0);
-            if (owner != null)
-                setFillColor(owner.getStrokeColor()); // TODO: debugging for now: use the pathway stroke as slide color
+            //if (owner != null) setFillColor(owner.getStrokeColor()); // TODO: debugging for now: use the pathway stroke as slide color
+            setFillColor(Color.black);
             setSize(SlideWidth, SlideHeight);
 
             // Create the default items for the master slide:
             
-            textStyle = NodeTool.initAsTextNode(new LWNode(StyleLabel));
-            textStyle.setFont(new Font("SansSerif", Font.BOLD, 48));
-            textStyle.setPersistIsStyleParent(Boolean.TRUE);
+            titleStyle = NodeTool.initAsTextNode(new LWNode(TitleLabel));
+            titleStyle.setFont(new Font("Gill Sans", Font.PLAIN, 36));
+            titleStyle.setTextColor(Color.white);
+            titleStyle.setPersistIsStyle(Boolean.TRUE);
             
-            //titleStyle.setLocation(40,30);
-            //textStyle.setLocation(45,140);
+            textStyle = titleStyle.duplicate();
+            textStyle.setLabel(TextLabel);
+            textStyle.setFont(titleStyle.getFont().deriveFont(22f));
+            textStyle.setPersistIsStyle(Boolean.TRUE);
+            
+            titleStyle.setLocation(40,30);
+            textStyle.setLocation(45,100);
             
             if (owner != null) {
                 setParent(owner);
                 ensureID(this);
             }
             
-            LWComponent footer = NodeTool.buildTextNode(getLabel());
-            footer.setFont(new Font("SansSerif", Font.ITALIC+Font.BOLD, 48));
-            footer.setTextColor(new Color(255,255,255,64));
+
+            LWComponent header = NodeTool.buildTextNode("Header Text");
+            header.setFont(titleStyle.getFont().deriveFont(16f));
+            header.setTextColor(VueResources.makeColor("#b3bfe3"));
+
+            LWComponent footer = header.duplicate();
+            footer.setLabel("Footer Text");
 
             //tufts.Util.printStackTrace("inPath=" + owner + " pathMAP=" + owner.getMap());
 
             
-            addChild(footer);
-            //addChild(titleStyle);
+            addChild(titleStyle);
             addChild(textStyle);
+            addChild(header);
+            addChild(footer);
             
             // Now that the footer is parented, move it to lower right in it's parent
-            LWSelection s = new LWSelection(footer);
+            LWSelection s = new LWSelection(header);
+
+            s.setTo(header);
+            Actions.AlignRightEdges.act(s);
+            Actions.AlignTopEdges.act(s);
+
+            s.setTo(footer);
             Actions.AlignRightEdges.act(s);
             Actions.AlignBottomEdges.act(s);
 
@@ -800,22 +844,22 @@ public class LWPathway extends LWContainer
             s.setTo(titleStyle);
             Actions.AlignCentersRow.act(s);
             Actions.AlignCentersColumn.act(s);
-            */
 
             s.setTo(textStyle);
             Actions.AlignCentersRow.act(s);
             Actions.AlignCentersColumn.act(s);
-
+            
             //titleStyle.translate(0, -100);
             //textStyle.translate(0, +50);
+            */
+
         }
 
         // we could not have a special master slide object if we could handle
         // this draw-skipping in some other way (and arbitrary nodes can be style master's)
         // Tho having a special master-slide object isn't really that big a deal.
         public void drawChild(LWComponent child, DrawContext dc) {
-            //if (!dc.isEditMode() && (child == titleStyle || child == textStyle))
-            if (!dc.isEditMode() && child == textStyle)
+            if (!dc.isEditMode() && (child == titleStyle || child == textStyle))
             //if (!dc.isEditMode() && child.isParentStyle())
                 return;
             else

@@ -131,11 +131,24 @@
                 
 		<field name="autoSized" type="boolean"><bind-xml name="autoSized" node="attribute"/></field>
                 
+		<field name="style" type="tufts.vue.LWComponent">
+                  <bind-xml name="styleID" node="attribute" reference="true"/>
+                </field>
+                
+		<field name="sibling" type="tufts.vue.LWComponent">
+                  <bind-xml name="siblingID" node="attribute" reference="true"/>
+                </field>
+  
+                <field name="persistIsStyle" type="boolean">
+                  <bind-xml name="isStyle" node="attribute"/>
+                </field>
+                
+
+                
+                <!-- tmp back compat -->
 		<field name="parentStyle" type="tufts.vue.LWComponent">
                   <bind-xml name="parentStyleID" node="attribute" reference="true"/>
                 </field>
-
-                
 		<field name="persistIsStyleParent" type="boolean">
                   <bind-xml name="isStyleParent" node="attribute"/>
                 </field>

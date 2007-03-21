@@ -29,7 +29,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.53 $ / $Date: 2007-03-19 07:12:28 $ / $Author: sfraize $
+ * @version $Revision: 1.54 $ / $Date: 2007-03-21 00:57:32 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -42,7 +42,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 {
     private List listeners = new java.util.ArrayList();
     private List controlListeners = new java.util.LinkedList();
-    private Rectangle2D bounds = null;
+    private Rectangle2D.Float mBounds = null;
 
     private boolean isClone = false;
 
@@ -77,6 +77,10 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     // currently only used for special case manually created selections
     public int getHeight() {
         return mHeight;
+    }
+
+    public boolean isSized() {
+        return mWidth > 0 && mHeight > 0;
     }
 
     public void setSize(int w, int h) {
@@ -328,7 +332,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         
         if (!c.isSelected()) {
             if (!isClone) c.setSelected(true);
-            bounds = null;
+            mBounds = null;
             super.add(c);
             if (!isClone && c instanceof ControlListener)
                 addControlListener((ControlListener)c);
@@ -350,7 +354,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         if (!isClone) c.setSelected(false);
         if (!isClone && c instanceof ControlListener)
             removeControlListener((ControlListener)c);
-        bounds = null;
+        mBounds = null;
         if (!super.remove(c))
             throw new RuntimeException(this + " remove: list doesn't contain " + c);
     }
@@ -389,7 +393,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             }
         }
         controlListeners.clear();
-        bounds = null;
+        mBounds = null;
         super.clear();
         return true;
     }
@@ -420,10 +424,16 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             return null;
         //todo:not really safe to cache as we don't know if anything in has has moved?
         //if (bounds == null) {
-            bounds = LWMap.getBounds(iterator());
+        mBounds = LWMap.getBounds(iterator());
             //System.out.println("COMPUTED SELECTION BOUNDS=" + bounds);
             //}
-        return bounds;
+
+        if (isSized()) {
+            mBounds.width = mWidth;
+            mBounds.height = mHeight;
+        }
+                
+        return mBounds;
     }
 
     /** return shape bounds of map selection in map (not screen) coordinates
@@ -437,7 +447,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     void flushBounds()
     {
-        bounds = null;
+        mBounds = null;
     }
 
     public boolean contains(float mapX, float mapY)

@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.115 $ / $Date: 2007-03-14 22:42:26 $ / $Author: sfraize $
+ * @version $Revision: 1.116 $ / $Date: 2007-03-21 00:57:32 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -719,11 +719,11 @@ public class LWMap extends LWContainer
         mChanges++;
     }
     
-    public java.awt.geom.Rectangle2D getBounds() {
+    public java.awt.geom.Rectangle2D.Float getBounds() {
         return getBounds(Short.MAX_VALUE);
     }
     
-    public java.awt.geom.Rectangle2D getBounds(int maxLayer) {
+    public java.awt.geom.Rectangle2D.Float getBounds(int maxLayer) {
         if (true||mCachedBounds == null) {
             mCachedBounds = getBounds(getChildIterator(), maxLayer);
             takeSize(mCachedBounds.width, mCachedBounds.height);
