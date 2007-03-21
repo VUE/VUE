@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.128 $ / $Date: 2007-03-21 00:57:32 $ / $Author: sfraize $
+ * @version $Revision: 1.129 $ / $Date: 2007-03-21 08:07:33 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -139,7 +139,7 @@ public class LWLink extends LWComponent
         SetDefaults(this);
         setHead(head);
         setTail(tail);
-        computeLinkEndpoints();
+        computeLink();
     }
 
     private void initLink() {
@@ -449,7 +449,7 @@ public class LWLink extends LWComponent
     public LWSelection.Controller[] getControlPoints()
     {
         if (endpointMoved)
-            computeLinkEndpoints();
+            computeLink();
 
         //-------------------------------------------------------
         // Connection control points
@@ -596,7 +596,6 @@ public class LWLink extends LWComponent
         curveControls = newControlCount;
         //this.controlPoints = new LWSelection.Controller[MAX_CONTROL];
         endpointMoved = true;
-        //computeLinkEndpoints();
         notify(LWKey.LinkCurves, old);
     }
 
@@ -739,7 +738,7 @@ public class LWLink extends LWComponent
     public Shape getShape()
     {
         if (endpointMoved)
-            computeLinkEndpoints();
+            computeLink();
         if (curveControls > 0)
             return mCurve;
         else
@@ -786,7 +785,7 @@ public class LWLink extends LWComponent
     public boolean intersects(Rectangle2D rect)
     {
         if (endpointMoved)
-            computeLinkEndpoints();
+            computeLink();
 
         if (mCurve != null) {
             for (Line2D seg : new SegIterator())
@@ -830,7 +829,7 @@ public class LWLink extends LWComponent
     public boolean contains(float x, float y)
     {
         if (endpointMoved)
-            computeLinkEndpoints();
+            computeLink();
 
         float maxDist = getStrokeWidth() / 2;
         final int slop = 4; // near miss on line still hits it
@@ -877,7 +876,7 @@ public class LWLink extends LWComponent
         // return true; // let the picker sort out who's closest -- not good enough: will always pick *some* link!
         
         if (endpointMoved)
-            computeLinkEndpoints();
+            computeLink();
         
         if (mCurve != null) {
             // Java curve shapes check the entire concave region for containment.
@@ -898,7 +897,7 @@ public class LWLink extends LWComponent
     public boolean targetContains(float x, float y)
     {
         if (endpointMoved)
-            computeLinkEndpoints();
+            computeLink();
         float swath = getStrokeWidth() / 2 + 20; // todo: config/preference
         float sx = this.centerX - swath;
         float sy = this.centerY - swath;
@@ -1027,8 +1026,8 @@ public class LWLink extends LWComponent
         final float axisLen = lineLength(mLine);
         final float axisOffset;
 
-        //out("AXIS LEN " + axisLen + " for line " + Util.out(mLine) + " center currently " + centerX + "," + centerY);
-        //out("rotHeadI " + mRotationHead + " rotTailI " + mRotationTail);
+        if (DEBUG.LINK) out("AXIS LEN " + axisLen + " for line " + Util.out(mLine) + " center currently " + centerX + "," + centerY);
+        if (DEBUG.LINK) out("rotHeadINIT " + mRotationHead + " rotTailINIT " + mRotationTail);
 
         if (curveControls == 2)
             axisOffset = axisLen / 4;
@@ -1074,6 +1073,7 @@ public class LWLink extends LWComponent
         }
     }
     
+    private float[] intersection = new float[2]; // result cache for intersection coords
 
     /**
      * Compute the endpoints of this link based on the edges of the shapes we're
@@ -1082,9 +1082,13 @@ public class LWLink extends LWComponent
      * edge of each shape.  If one of the shapes is a straight line, or for some reason
      * a shape doesn't have a facing "edge", or if anything unpredicatable happens, we
      * just leave the connection point as the center of the object.
+     *
+     * We also compute and cache rotation values for normalizing the link
+     * to vertical (or it's control lines to vertical if a curve) so we
+     * can easily move along these lines to provide control points (Controllers) for the link.
      */
-    private float[] intersection = new float[2]; // result cache for intersection coords
-    private void computeLinkEndpoints()
+    
+    private void computeLink()
     {
         endpointMoved = false;
         
@@ -1199,12 +1203,16 @@ public class LWLink extends LWComponent
         }
 
         mLine.setLine(headX, headY, tailX, tailY);
+
+        // length is currently always set to the length of the straight line: curve length not compute
+        mLength = lineLength(mLine);
+        
         
         //---------------------------------------------------------------------------------------------------
         // Compute rotations for arrows or for moving linearly along the link
         //---------------------------------------------------------------------------------------------------
 
-        //out("head " + headX+","+headY + " tail " + tailX+","+tailY + " line " + Util.out(mLine));
+        if (DEBUG.LINK) out("head " + headX+","+headY + " tail " + tailX+","+tailY + " line " + Util.out(mLine));
 
         if (curveControls == 1) {
             mRotationHead = computeVerticalRotation(headX, headY, mQuad.ctrlx, mQuad.ctrly);
@@ -1217,19 +1225,21 @@ public class LWLink extends LWComponent
             mRotationTail = mRotationHead + Math.PI;  // can just flip head rotation: add 180 degrees
         }
 
-        //out("rotHead0 " + mRotationHead + " rotTail0 " + mRotationTail);
+        if (DEBUG.LINK) out("rotHead0 " + mRotationHead + " rotTail0 " + mRotationTail);
         
 
         float controlOffset = (float) HeadShape.getHeight() * 2;
         //final int controlSize = 6;
         //final double minControlSize = MapViewer.SelectionHandleSize / dc.zoom;
         // can get zoom by passing into getControlPoints from MapViewer.drawSelection,
-        // which could then pass it to computeLinkEndpoints, so we could have it here...
+        // which could then pass it to computeLink, so we could have it here...
         final float minControlSize = 2; // fudged: ignoring zoom for now
         final float room = mLength - controlOffset * 2;
 
         if (room <= minControlSize*2)
             controlOffset = mLength/3;
+
+        if (DEBUG.LINK) out("controlOffset " + controlOffset);
         //if (room <= controlSize*2)
         //    controlOffset = mLength/2 - controlSize;
 
@@ -1314,13 +1324,12 @@ public class LWLink extends LWComponent
          * segment at middle of that distance...
          */
 
-        mLength = 0;
-         
         if (curveControls > 0) {
             // Flatten the curve into a bunch of segments for hit detection.
 
-            if (DEBUG.Enabled && mCurve.getBounds().isEmpty()) { // assertion check
-                tufts.Util.printStackTrace("empty curve " + mCurve + " " + mCurve.getBounds());
+            if (mCurve.getBounds().isEmpty()) {
+                if (DEBUG.Enabled) out("empty curve " + mCurve + " " + mCurve.getBounds());
+                //tufts.Util.printStackTrace("empty curve " + mCurve + " " + mCurve.getBounds());
                 return;
             }
 
@@ -1362,13 +1371,13 @@ public class LWLink extends LWComponent
                 i.next();
             }
 
-            mLength = 100; // skip computing this for now -- not meaingfully used with curves for the moment
+            //mLength = 100; // skip computing this for now -- not meaingfully used with curves for the moment
             //for (Line2D.Float seg : new SegIterator()) mLength += lineLength(seg);
 
             if (DEBUG.BOXES) out("SEGMENTS IN FLATTENED CURVE: " + mLastPoint / 2 + "; total length estimate=" + mLength + "; maxSeg=" + mPoints.length / 2);
             
         } else {
-            mLength = lineLength(headX, headY, tailX, tailY);
+            //mLength = lineLength(headX, headY, tailX, tailY);
             if (DEBUG.BOXES) out("length=" + mLength);
         }
 
@@ -1496,7 +1505,7 @@ public class LWLink extends LWComponent
     protected void drawImpl(DrawContext dc)
     {
         if (endpointMoved)
-            computeLinkEndpoints();
+            computeLink();
 
         //if (dc.drawAbsoluteLinks) dc.setAbsoluteDrawing(true);
 
@@ -1834,12 +1843,10 @@ public class LWLink extends LWComponent
     }
 
 
-    public void layout()
+    protected void layout()
     {
         float cx;
         float cy;
-
-        //if (endpointMoved) computeLinkEndpoints();
 
         if (curveControls > 0) {
             cx = mCurveCenterX;
@@ -1985,7 +1992,7 @@ public class LWLink extends LWComponent
             if (curveControls > 1)
                 link.setCtrlPoint1(getCtrlPoint1());
         }
-        computeLinkEndpoints();
+        computeLink();
         layout();
         return link;
     }
