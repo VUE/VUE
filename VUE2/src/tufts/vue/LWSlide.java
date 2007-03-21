@@ -27,7 +27,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.16 $ / $Date: 2007-03-21 03:28:12 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2007-03-21 04:34:27 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -254,7 +254,7 @@ public class LWSlide extends LWContainer
     public boolean contains(float x, float y)
     {
         boolean hit = super.contains(x, y);
-        if (DEBUG.PRESENT) out("CONTAINS " + x + "," + y + " = " + hit);
+        //if (DEBUG.PRESENT) out("CONTAINS " + x + "," + y + " = " + hit);
         return hit;
     }
     
@@ -265,7 +265,7 @@ public class LWSlide extends LWContainer
 
     /** @return the slide */
     protected LWComponent defaultPick(PickContext pc) {
-        if (DEBUG.PRESENT) out("DEFAULT PICK: THIS");
+        //if (DEBUG.PRESENT) out("DEFAULT PICK: THIS");
         return this;
 //         LWComponent dp = (pc.dropping == null ? null : this);
 //         out("DEFAULT PICK: " + dp);
