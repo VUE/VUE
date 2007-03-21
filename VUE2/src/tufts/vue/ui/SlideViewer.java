@@ -87,7 +87,7 @@ public class SlideViewer extends tufts.vue.MapViewer
     private final AbstractButton btnFocus;
     private final AbstractButton btnSlide;
     private final AbstractButton btnMaster;
-    private final AbstractButton btnMapSlide;
+    private final AbstractButton btnMapView;
     private final AbstractButton btnFill;
     //private final AbstractButton btnPresent;
 
@@ -97,14 +97,14 @@ public class SlideViewer extends tufts.vue.MapViewer
     private class Toolbar extends JPanel implements ActionListener {
         Toolbar() {
             //btnLocked.setFont(VueConstants.FONT_SMALL);
-            add(btnLocked);
+            //add(btnLocked);
             add(Box.createHorizontalGlue());
-            add(btnZoom);
+            //add(btnZoom);
             //if (DEBUG.Enabled) add(btnFocus);
             add(btnSlide);
             add(btnMaster);
-            add(btnMapSlide);
-            add(btnFill);
+            add(btnMapView);
+            //add(btnFill);
             //add(btnPresent);
 
             ButtonGroup exclusive = new ButtonGroup();
@@ -122,9 +122,9 @@ public class SlideViewer extends tufts.vue.MapViewer
 
         public void actionPerformed(ActionEvent e) {
             if (DEBUG.PRESENT) out(e);
-            if (e.getSource() == btnMapSlide) {
+            if (e.getSource() == btnMapView) {
                 if (mLastLoad != null && !mLastLoad.isPathway())
-                    mLastLoad.setMapView(btnMapSlide.isSelected());
+                    mLastLoad.setMapView(btnMapView.isSelected());
             } else if (e.getSource() == btnMaster) {
                 masterJustPressed = true;
             } else if (e.getSource() == btnSlide) {
@@ -146,7 +146,7 @@ public class SlideViewer extends tufts.vue.MapViewer
         btnFocus = makeButton("Focus");
         btnSlide = makeButton("Slide");
         btnMaster = makeButton("Master Slide");
-        btnMapSlide = new JCheckBox("Map Slide");
+        btnMapView = new JCheckBox("Map View");
         btnFill = new JCheckBox("Fill");
         //btnPresent = makeButton("Present");
 
@@ -220,12 +220,14 @@ public class SlideViewer extends tufts.vue.MapViewer
 
     public void showMasterSlideMode()
     {
+        out("showMasterSlideMode");
     	masterJustPressed = true;
     	reload();
     }
     
     public void showSlideMode()
     {
+        out("showSlideMode");
     	slideJustPressed = true;
     	reload();
     }
@@ -333,13 +335,15 @@ if (true) return;
             mZoomContent = null;
             inFocal = false;
             focal = null;
-            btnMapSlide.setEnabled(false);
+            btnMapView.setEnabled(false);
             //} else if (btnMaster.isSelected() || entry.isPathway()) {
         } else if (masterJustPressed || (entry.isPathway() && !slideJustPressed)) {
+            if (DEBUG.PRESENT) out("master auto-select");
             btnMaster.setSelected(true);
             isMapView = false;
             focal = entry.pathway.getMasterSlide();
         } else {
+            if (DEBUG.PRESENT) out("slide auto-select");
             btnSlide.setSelected(true);
             
             if (entry.isPathway()) {
@@ -352,7 +356,7 @@ if (true) return;
 
                 
             isMapView = entry.isMapView();
-            btnMapSlide.setSelected(isMapView);
+            btnMapView.setSelected(isMapView);
             focal = entry.getFocal();
         }
 
