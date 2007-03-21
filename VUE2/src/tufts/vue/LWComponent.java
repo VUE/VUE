@@ -39,7 +39,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.219 $ / $Date: 2007-03-21 02:04:38 $ / $Author: sfraize $
+ * @version $Revision: 1.220 $ / $Date: 2007-03-21 02:09:49 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -278,7 +278,7 @@ public class LWComponent
          * pointing to it via mParentStyle */
         public final boolean isStyleProperty;
 
-        public final KeyType keyType;
+        public final KeyType type;
 
         /* True this property is a sub-part of some other property */
         //public final boolean isSubProperty;
@@ -337,7 +337,7 @@ public class LWComponent
         protected Key(String name, String cssName, KeyType keyType) {
             this.name = name;
             this.cssName = cssName;
-            this.keyType = keyType;
+            this.type = keyType;
             this.isStyleProperty = (keyType == KeyType.STYLE);
             //this.isStyleProperty = partOfStyle;
             //this.isSubProperty = isSubProperty;
@@ -1958,6 +1958,7 @@ public class LWComponent
         isStyle = b.booleanValue();
     }
 
+    /** @deprecated: tmp back compat only */ public void setParentStyle(LWComponent c) { setStyle(c); }
     /** @deprecated: tmp back compat only */ public Boolean getPersistIsStyleParent() { return null; }
     /** @deprecated: tmp back compat only */ public void setPersistIsStyleParent(Boolean b) { setPersistIsStyle(b); }
     /** @deprecated: tmp back compat only */ public LWComponent getParentStyle() { return null; }
@@ -2886,7 +2887,7 @@ public class LWComponent
             if (isStyle && key.isStyleProperty)
                 updateStyleWatchers(key, e);
             
-            if (key.keyType == KeyType.DATA)
+            if (key.type == KeyType.DATA)
                 syncUpdate(key);
         }
 
