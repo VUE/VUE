@@ -39,7 +39,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.218 $ / $Date: 2007-03-21 01:46:18 $ / $Author: sfraize $
+ * @version $Revision: 1.219 $ / $Date: 2007-03-21 02:04:38 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -138,7 +138,7 @@ public class LWComponent
     protected transient LWContainer parent = null;
     protected transient LWComponent mParentStyle;
     protected transient LWComponent mSyncSource; // "semantic source" for nodes on slide to refer back to the concept map
-    protected transient Set<LWComponent> mSyncClients; // set of sync sources that point back to us
+    protected transient Collection<LWComponent> mSyncClients; // set of sync sources that point back to us
     protected transient boolean isStyle;
 
     // list of LWLinks that contain us as an endpoint
@@ -1248,30 +1248,6 @@ public class LWComponent
         }
         layout();
         notify(LWKey.Label, old);
-
-        // labels need own call to this due to TextBox use of setLabel0
-        syncUpdate(LWKey.Label);
-
-    }
-
-    protected void syncUpdate(Key key) {
-        // currently we only allow one or the other: you can be a source, or a client
-        // this is all we need for now (a node can be synced to nodes on multiple
-        // slides on different pathways, but a node in a slide can only refer
-        // back to one source)
-        if (mSyncSource != null) {
-            out("Updating sync source " + mSyncSource);
-            if (!mSyncSource.isDeleted())
-                key.copyValue(this, mSyncSource);
-
-        } else if (mSyncClients != null && !mSyncClients.isEmpty()) {
-            
-            for (LWComponent c : mSyncClients) {
-                out("Updating sync client " + c);
-                if (!c.isDeleted())
-                    key.copyValue(this, c);
-            }
-        }
     }
 
     TextBox getLabelBox()
@@ -2903,23 +2879,60 @@ public class LWComponent
         }
         mChangeSupport.notifyListeners(this, e);
 
-        if (isStyle)
-            updateStyleWatchers(e);
+        if (getParent() != null && e.key instanceof Key) {
+            // if parent is null, we're still initializing
+            final Key key = (Key) e.key;
+
+            if (isStyle && key.isStyleProperty)
+                updateStyleWatchers(key, e);
+            
+            if (key.keyType == KeyType.DATA)
+                syncUpdate(key);
+        }
+
+        // labels need own call to this due to TextBox use of setLabel0
+    }
+
+    
+    /** Copy the value for the given key either back to our sync source, or to our sync clients */
+    private boolean syncUnderway = false;
+    private void syncUpdate(Key key) {
+
+        if (syncUnderway)
+            return;
         
+        syncUnderway = true;
+        try {
+            doSyncUpdate(key);
+        } finally {
+            syncUnderway = false;
+        }
+    }
+    
+    protected void doSyncUpdate(Key key) {
+        // currently we only allow one or the other: you can be a source, or a client
+        // this is all we need for now (a node can be synced to nodes on multiple
+        // slides on different pathways, but a node in a slide can only refer
+        // back to one source)
+        if (mSyncSource != null) {
+            out("UPDATING SYNC SOURCE " + mSyncSource + " for " + key);
+            if (!mSyncSource.isDeleted())
+                key.copyValue(this, mSyncSource);
+
+        } else if (mSyncClients != null && !mSyncClients.isEmpty()) {
+            
+            for (LWComponent c : mSyncClients) {
+                out("UPDATING SYNC CLIENT " + c + " for " + key);
+                if (!c.isDeleted())
+                    key.copyValue(this, c);
+            }
+        }
     }
 
     /** If the event is a change for a style property, apply the change to all
         LWComponents that refer to us as their style parent */
-    protected void updateStyleWatchers(LWCEvent e)
+    protected void updateStyleWatchers(Key key, LWCEvent e)
     {
-        if ((e.key instanceof Key) == false || getParent() == null) {
-            // This only works with real Key's, and if parent is null,
-            // we're still initializing.
-            return;
-        }
-
-        final Key key = (Key) e.key;
-
         if (!key.isStyleProperty) {
             // nothing to do if this isn't a style property that's changing
             return;
