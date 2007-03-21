@@ -155,7 +155,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         {
             public void actionPerformed(ActionEvent e)
             {
-              setVisible(false);
+              //setVisible(false);
+              p.dispose();
+              setDockWindow(null);
+              //p.dispose();
             }
         });
         
@@ -266,7 +269,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     public static void setDockWindow(DockWindow d)
     {
         p = d;
-        p.setResizeEnabled(false);
+        if(p!=null)
+        {    
+          p.setResizeEnabled(false);
+        }
     }
     
     public static DockWindow getDockWindow()
@@ -1824,6 +1830,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                //neccessary?
                //v.grabVueApplicationFocus("Merge Map",null);
                v.setMapOriginOffset(x,y);
+              // v.getCurrentTool().handleMouseReleased(new tufts.vue.MapMouseEvent());
+
                //ZoomTool.setZoomFit();
                
                // creates class cast exception? Also, doesn't seem neccesary... (real problem
