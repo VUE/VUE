@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.116 $ / $Date: 2007-03-21 00:57:32 $ / $Author: sfraize $
+ * @version $Revision: 1.117 $ / $Date: 2007-03-21 07:47:09 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -390,13 +390,17 @@ public class LWMap extends LWContainer
     protected String getNextUniqueID() {
         return Integer.toString(nextID++, 10);
     }
-    
+
     public void completeXMLRestore() {
 
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
             System.out.println(getLabel() + ": completing restore...");
 
-        mPathways.completeXMLRestore(this);
+        try {
+            mPathways.completeXMLRestore(this);
+        } catch (Throwable t) {
+            tufts.Util.printStackTrace(new Throwable(t), "PATHWAYS RESTORE");
+        }
 
         final Collection<LWComponent> allRestored = getAllDescendents(ChildKind.ANY);
 
@@ -421,14 +425,15 @@ public class LWMap extends LWContainer
             mPathways = new LWPathwayList(this);
 
         this.nextID = findGreatestID(allRestored) + 1;
-        Iterator<LWPathway> pi = mPathways.iterator();
-        while (pi.hasNext()) {
+        
+        for (LWPathway pathway : mPathways) {
             // 2006-11-30 14:33.32 SMF: LWPathways now have ID's,
             // but they didn't used to, so make sure they
             // have an ID on restore in case it was a save file prior
             // to 11/30/06.
-            ensureID(pi.next());
+            ensureID(pathway);
         }
+
         
         /*
           
@@ -452,7 +457,11 @@ public class LWMap extends LWContainer
             if (DEBUG.LAYOUT) System.out.println("LAYOUT: " + c + " parent=" + c.getParent());
             // ideally, this should be done depth-first, but it appears to be
             // working for the moment...
-            c.layout("completeXMLRestore");
+            try {
+                c.layout("completeXMLRestore");
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(new Throwable(t), "RESTORE LAYOUT " + c);
+            }
         }
         
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) out("RESTORE COMPLETED; nextID=" + nextID + "\n");
