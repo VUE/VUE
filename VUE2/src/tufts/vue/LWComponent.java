@@ -39,7 +39,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.222 $ / $Date: 2007-03-21 03:28:12 $ / $Author: sfraize $
+ * @version $Revision: 1.223 $ / $Date: 2007-03-21 04:33:58 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2119,21 +2119,27 @@ public class LWComponent
 
     
     /** @return a list of all LWComponents at the far end of any links that are connected to us */
-    public List<LWComponent> getLinkEndpoints()
+    public Collection<LWComponent> getLinkEndPoints() {
+        // default uses a set, in case there are multiple links to the same endpoint
+        return getLinkEndPoints(new HashSet(getLinks().size()));
+    }
+    
+    public Collection<LWComponent> getLinkEndPoints(Collection bag)
     {
-        List list = new java.util.ArrayList(getLinks().size());
         for (LWLink link : getLinks()) {
             LWComponent head = link.getHead();
             LWComponent tail = link.getTail();
             if (head != this) {
-                if (head != null) list.add(head);
+                if (head != null)
+                    bag.add(head);
             } else if (tail != this) {
-                if (tail != null) list.add(tail);
+                if (tail != null)
+                    bag.add(tail);
             } else
                 throw new IllegalStateException("link to self on " + this);
             
         }
-        return list;
+        return bag;
     }
 
     /*
