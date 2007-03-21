@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.313 $ / $Date: 2007-03-21 03:28:12 $ / $Author: sfraize $ 
+ * @version $Revision: 1.314 $ / $Date: 2007-03-21 03:41:29 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2323,14 +2323,29 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         dc.setMapDrawing();
         dc.setAbsoluteStroke(0.5);
 
-        for (LWComponent c : selection) {
+        for (LWComponent c : selection.clone()) {
 
             //if (c.isHidden()) continue;
 
             if (mFocalParent != null) {
+                if (c == mFocalParent) {
+                    // TODO: this is a pretty major hack: get this de-selected earlier
+                    // (the LWSlide is being included in the selection generated
+                    // by the dragged selector box, because the first mouse press
+                    // at the start of the drag actually selected the slide itself,
+                    // which we need to do, but then if a drag starts, we want to
+                    // de-select it, unless we can change selection to happen on mouse-up)
+                    // also, we're needing to iterate a selection clone here now
+                    // to ensure against comodification exception.
+                    selection.remove(c);
+                    continue;
+                }
                 if (!c.hasAncestor(mFocalParent)) {
                     // Something in selection is not in the current focal for this viewer,
                     // so don't draw the selection box here.
+                    // TODO: crap: the slide itself (the focal) is in the selection:
+                    // need to specal case remove that at start of selector box drag...
+                    out(c + " in selection doesn't have ancestor " + mFocalParent);
                     drawSelectorBoxInThisViewer = false;
                     break;
                 }
@@ -3204,6 +3219,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     protected void setToDrag(LWSelection s) {
+        out("set to drag " + s);
+        //if (s.only() instanceof LWSlide) s.clear(); // okay, this stopped us from picking up the slide, but too soon: can't change BG color
         if (s.size() > 0 && s.first().isMoveable()) {
             draggedSelectionGroup.useSelection(s);
             setDragger(draggedSelectionGroup);
