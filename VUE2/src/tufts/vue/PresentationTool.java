@@ -21,10 +21,8 @@ package tufts.vue;
 import tufts.macosx.MacOSX;
 import tufts.vue.gui.TextRow;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Stack;
+import java.util.*;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Rectangle;
@@ -163,7 +161,7 @@ public class PresentationTool extends VueTool
         
         out("handleMousePressed " + e + " hit on " + hit);
         if (hit != null && mCurrentPage != hit) {
-            List linked = hit.getLinkEndpoints();
+            Collection linked = hit.getLinkEndPoints();
             if (mCurrentPage == null) {
                 // We have no current page, so just zoom to what's been clicked on and start there.
                 mBackList.clear();
@@ -179,7 +177,7 @@ public class PresentationTool extends VueTool
                 // problem is case of nav'd to a link, then click on edge of node to right of link,
                 // where you'd want to go to that node, but instead if that's it's only link, it follows
                 // the link back to where you came from.  This is not a likely usage case tho.
-                followLink(hit, hit.getLinkTo((LWComponent) linked.get(0)));
+// followLink(hit, hit.getLinkTo((LWComponent) linked.get(0))); // NO LONGER A LIST...
                 /*
                 LWComponent linkingTo = 
                 mLastFollowed = mCurrentPage.getLinkTo(linkingTo);
@@ -488,9 +486,10 @@ public class PresentationTool extends VueTool
         dc.setPresenting(true);
         dc.isFocused = true;
 
-        if (mEntry != null && !mEntry.isPathway())
+        if (mEntry != null && !mEntry.isPathway()) {
+            mCurrentPage = mEntry.node; // set for drawNavNodes
             drawPathwayEntry(dc, viewer, mEntry);
-        else
+        } else
             drawFocal(dc, viewer, focal);
         
         /*
@@ -502,6 +501,8 @@ public class PresentationTool extends VueTool
 
         if (VUE.inFullScreen() && mShowNavigator)
             drawNavigatorMap(dc);
+
+        drawNavNodes(dc);
         
     }
 
@@ -582,7 +583,7 @@ public class PresentationTool extends VueTool
             //out("drawing underlying map " + underlyingMap);
 
             // If our fill is in any way translucent, the underlying
-            // map can show thru, thus we have to draw the whole map
+           // map can show thru, thus we have to draw the whole map
             // to see the real result -- we just set the clip to
             // the shape of the focal.
             
@@ -618,6 +619,7 @@ public class PresentationTool extends VueTool
     {
         dc.setRawDrawing();
         Rectangle frame = dc.getFrame();
+        out("dc frame " + frame);
         dc.g.translate(frame.x, frame.y);
 
         if (DEBUG.Enabled) {
@@ -629,22 +631,22 @@ public class PresentationTool extends VueTool
         if (mCurrentPage.getLinks().size() == 0)
             return;
         
-        List labels = getNavLabels(mCurrentPage);
+        List<String> labels = getNavLabels(mCurrentPage);
         //out("got nav labels: " + labels);
         
         int y = frame.height;
-        Iterator i = labels.iterator();
         int cnt = 0;
-        while (i.hasNext()) {
+        for (String label : labels) {
+            out("nav label " + label);
             int x = frame.width / labels.size() * cnt++;
-            LWComponent nav = makeNavNode((String)i.next(), x, y);
+            LWComponent nav = makeNavNode(label, x, y);
             nav.translate(0, -nav.getHeight());
             nav.draw(dc);
         }
     }
 
-    private static List getNavLabels(LWComponent page) {
-        List navs = new ArrayList();
+    private static List<String> getNavLabels(LWComponent page) {
+        List<String> navs = new ArrayList();
         List links = page.getLinks();
         Iterator i = links.iterator();
         while (i.hasNext()) {
