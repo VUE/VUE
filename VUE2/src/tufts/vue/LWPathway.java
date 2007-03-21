@@ -49,7 +49,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.128 $ / $Date: 2007-03-21 03:28:12 $ / $Author: sfraize $
+ * @version $Revision: 1.129 $ / $Date: 2007-03-21 07:38:51 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -775,12 +775,14 @@ public class LWPathway extends LWContainer
                 // check the label is a temporary hack
                 if ("Sample Text".equals(c.getLabel()) || TextLabel.equals(c.getLabel())) {
                     textStyle = c;
-                    out("FOUND TEXT STYLE " + c);
+                    if (DEBUG.PRESENT) out("FOUND TEXT STYLE " + c);
                 } else if (TitleLabel.equals(c.getLabel())) {
-                    out("FOUND TITLE  STYLE " + c);
+                    if (DEBUG.PRESENT) out("FOUND TITLE STYLE " + c);
                     titleStyle = c;
                 }
             }
+            if (textStyle == null || titleStyle == null)
+                createStyles();
             initStyles();
         }
 
@@ -792,6 +794,21 @@ public class LWPathway extends LWContainer
             textStyle.setPersistIsStyle(Boolean.TRUE);
             textStyle.disableProperty(LWKey.Label);
             textStyle.setMoveable(false);
+        }
+        
+        private void createStyles() {
+            if (titleStyle == null) {
+                titleStyle = NodeTool.initAsTextNode(new LWNode(TitleLabel));
+                titleStyle.setFont(new Font("Gill Sans", Font.PLAIN, 36));
+                titleStyle.setTextColor(Color.white);
+                titleStyle.setLocation(40,30);
+            }
+            if (textStyle == null) {
+                textStyle = titleStyle.duplicate();
+                textStyle.setLabel(TextLabel);
+                textStyle.setFont(titleStyle.getFont().deriveFont(22f));
+                textStyle.setLocation(45,100);
+            }
         }
 
         
@@ -806,17 +823,7 @@ public class LWPathway extends LWContainer
 
             // Create the default items for the master slide:
             
-            titleStyle = NodeTool.initAsTextNode(new LWNode(TitleLabel));
-            titleStyle.setFont(new Font("Gill Sans", Font.PLAIN, 36));
-            titleStyle.setTextColor(Color.white);
-            
-            textStyle = titleStyle.duplicate();
-            textStyle.setLabel(TextLabel);
-            textStyle.setFont(titleStyle.getFont().deriveFont(22f));
-            
-            titleStyle.setLocation(40,30);
-            textStyle.setLocation(45,100);
-
+            createStyles();
             initStyles();
             
             if (owner != null) {
