@@ -39,7 +39,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.220 $ / $Date: 2007-03-21 02:09:49 $ / $Author: sfraize $
+ * @version $Revision: 1.221 $ / $Date: 2007-03-21 02:21:51 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -197,11 +197,9 @@ public class LWComponent
 
     /** Apply all style properties from styleSource to this component */
     public void copyStyle(LWComponent styleSource) {
-        for (Key key : Key.AllKeys) {
-            if (key.isStyleProperty && supportsProperty(key) && styleSource.supportsProperty(key)) {
+        for (Key key : Key.AllKeys)
+            if (key.isStyleProperty)
                 key.copyValue(styleSource, this);
-            }
-        }
     }
 
     public void applyCSS(edu.tufts.vue.style.Style cssStyle)
@@ -530,10 +528,9 @@ public class LWComponent
         void copyValue(TSubclass source, TSubclass target)
         {
             if (!source.supportsProperty(this)) {
-                // TODO: Some supported bits apparently not being fully updated... need to fix that!  (Happening to LWStyle in LWPathway)
-                if (DEBUG.Enabled) System.err.println(" COPY-VALUE: " + this + "; source doesn't support this property; " + source);
+                if (DEBUG.Enabled && DEBUG.META) System.err.println(" COPY-VALUE: " + this + "; source doesn't support this property; " + source);
             } else if (!target.supportsProperty(this)) {
-                if (DEBUG.Enabled) System.err.println(" COPY-VALUE: " + this + "; target doesn't support this property; " + target);
+                if (DEBUG.Enabled && DEBUG.META) System.err.println(" COPY-VALUE: " + this + "; target doesn't support this property; " + target);
             } else {
                 if (DEBUG.Enabled) System.err.print(" COPY-VALUE: " + this + "(");
                 final TValue copyValue = getValue(source);
@@ -542,43 +539,8 @@ public class LWComponent
             }
         }
 
-        
-        
         public String toString() { return name; } // must == name for now until tool panels handle new key objects
     }
-
-    /* A marker class for Key's that are considered user interested "data" (e.g., a label) 
-    public static class DataKey<TSubclass extends LWComponent,TValue> extends Key<TSubclass,TValue> {
-        public DataKey(String name) {
-            super(name, false, false);
-        }
-    }
-*/    
-    /* A marker class for Key's that are for style properties 
-    public static class StyleKey<TSubclass extends LWComponent> extends Key<TSubclass,Object> {
-        public StyleKey(String name) {
-            super(name, true, false);
-        }
-    }
-*/    /*
-    public static class TypedStyleKey<TSubclass extends LWComponent,TValue> extends Key<TSubclass,TValue> {
-        public TypedStyleKey(String name) {
-            super(name, true, false);
-        }
-    }
-    */
-    
-    /* A marker class for Key's that are for sub-style properties (properties that make up some other total style value) 
-    public static class SubStyleKey<TSubclass extends LWComponent,TValue> extends Key<TSubclass,TValue> {
-        public SubStyleKey(String name) {
-            super(name, true, true);
-        }
-    }
-    
-*/
-    // this is a bit obscene given that it just recaptulations introspection, but it's obviously faster.
-    // Tho it would also make handling the duplicate code alot more automatic.
-    //private java.util.ArrayList<Property> allProps = new java.util.ArrayList();
 
     /**
      * This class allows us to define an arbitrary property for a LWComponent, and
