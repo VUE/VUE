@@ -525,6 +525,12 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                 ((javax.swing.JComponent)label).setFont(new Font("Courier",Font.PLAIN,9));
             }
         }
+        
+        
+        //$
+           nodeThresholdSlider.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
+        //$
+        
         JLabel nodeLabel = new JLabel("Nodes:");
         
         //voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -577,7 +583,28 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         voteLayout.setConstraints(nodeThresholdSlider,voteConstraints);
 
         votePanel.add(nodeThresholdSlider);
-        percentageDisplay = new JLabel(nodeThresholdSlider.getValue()+ "%");
+        /*String nodePercentageText = "";
+        if(nodeThresholdSlider.getValue()<10)
+        {
+            nodePercentageText = nodeThresholdSlider.getValue() + "%  ";
+        }
+        if(nodeThresholdSlider.getValue()<100)
+        {
+            nodePercentageText = nodeThresholdSlider.getValue() + "% ";
+        }
+        else
+        {
+            nodePercentageText = nodeThresholdSlider.getValue() + "%";
+        }
+        percentageDisplay = new JLabel("");
+        percentageDisplay.setText(nodePercentageText);*/
+        percentageDisplay = new JLabel(nodeThresholdSlider.getValue() + "%")
+        {
+           public Dimension getPreferredSize()
+           {
+               return (new JLabel("100%").getPreferredSize());
+           }
+        };
         //have created methods below to turn this on and off (so that changes during setup don't affect the map)
         //boolean method could be used to turn this on (if not already on) from outside this constructor
         nodeThresholdSlider.addChangeListener(this);
@@ -610,6 +637,11 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                 ((javax.swing.JComponent)linkLabel).setFont(new Font("Courier",Font.PLAIN,9));
             }
         }
+        
+        //$
+           linkThresholdSlider.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
+        //$
+        
         JLabel linkPanel = new JLabel("Links:");
         voteConstraints.gridwidth = 1;
         voteConstraints.insets= new java.awt.Insets(0,40,0,0);
@@ -626,7 +658,13 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         //$
         voteLayout.setConstraints(linkThresholdSlider,voteConstraints);
         votePanel.add(linkThresholdSlider);
-        linkPercentageDisplay = new JLabel(linkThresholdSlider.getValue()+"%");
+        linkPercentageDisplay = new JLabel(linkThresholdSlider.getValue()+"%")
+        {
+           public Dimension getPreferredSize()
+           {
+               return (new JLabel("100%").getPreferredSize());
+           }
+        };
         linkThresholdSlider.addChangeListener(this);
         voteConstraints.insets = new java.awt.Insets(0,0,0,40);
         //voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -636,6 +674,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         //$
         voteLayout.setConstraints(linkPercentageDisplay,voteConstraints);
         votePanel.add(linkPercentageDisplay);
+        
+        //votePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
     }
     
     public void startListeningToChanges()
@@ -671,7 +711,24 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     {
         if(e.getSource()==nodeThresholdSlider)
         {
+            
+            /*String nodePercentageText = "";
+            if(nodeThresholdSlider.getValue()<10)
+            {
+              nodePercentageText = nodeThresholdSlider.getValue() + "%  ";
+            }
+            if(nodeThresholdSlider.getValue()<100)
+            {
+              nodePercentageText = nodeThresholdSlider.getValue() + "% ";
+            }
+            else
+            {
+              nodePercentageText = nodeThresholdSlider.getValue() + "%";
+            }
+            percentageDisplay.setText(nodePercentageText); */
+            
             percentageDisplay.setText(nodeThresholdSlider.getValue() + "%");
+            
             // todo: make LWMergeMap a changelistener in future -- waiting on 
             // focus problems with activeMap
             
