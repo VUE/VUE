@@ -14,7 +14,7 @@ import javax.swing.text.*;
  * and enters an undo entry.
  *
  * @author Scott Fraize
- * @version $Revision: 1.10 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2007-03-21 03:28:12 $ / $Author: sfraize $
  */
 
 // todo: create an abstract class for handling property & undo code, and subclass this and VueTextField from it.
@@ -151,13 +151,9 @@ public class VueTextPane extends JTextPane
             } catch (ClassCastException e) {
                 throw new IllegalArgumentException("VueTextPane only handles properties of type String");
             }
-            //setEditable(true);
-            setEnabled(true);
-            //setFocusable(true);
+            setEnabled(lwc.supportsProperty(propertyKey));
         } else {
-            //setEditable(false);
             setEnabled(false);
-            //setFocusable(false);
         }
         if (text == null) {
             setText("");

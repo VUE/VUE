@@ -39,7 +39,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.221 $ / $Date: 2007-03-21 02:21:51 $ / $Author: sfraize $
+ * @version $Revision: 1.222 $ / $Date: 2007-03-21 03:28:12 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -145,6 +145,7 @@ public class LWComponent
     private transient List<LWLink> mLinks = new ArrayList<LWLink>();
     protected transient List<LWPathway> pathwayRefs;
     private transient long mSupportedPropertyKeys;
+    private transient boolean isMoveable = true;
 
     // Scale currently exists ONLY to support the auto-managed child-node feature of nodes
     protected transient float scale = 1.0f;
@@ -2333,6 +2334,15 @@ public class LWComponent
     
     protected void userSetFrame(float x, float y, float w, float h, MapMouseEvent e) {
         userSetFrame(x, y, w, h);
+    }
+
+    // todo: handle via disabling a location property
+    public void setMoveable(boolean moveable) {
+        isMoveable = moveable;
+    }
+        
+    public boolean isMoveable() {
+        return isMoveable;
     }
         
 

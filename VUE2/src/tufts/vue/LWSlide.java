@@ -27,7 +27,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.15 $ / $Date: 2007-03-21 01:46:18 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2007-03-21 03:28:12 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -38,7 +38,19 @@ public class LWSlide extends LWContainer
     int mLayer = 0;
     
     /** for persistance */
-    public LWSlide() {}
+    public LWSlide() {
+        disableProperty(LWKey.Label);
+    }
+
+    public String getLabel() {
+        final LWContainer parent = getParent();
+        if (false && parent instanceof LWPathway)
+            return super.getLabel();
+        else if (parent != null)
+            return "Slide for " + getParent().getDisplayLabel();
+        else
+            return "<LWSlide w/null parent>"; // true during persist restore
+    }
 
     /** create a default LWSlide */
     public static LWSlide Create()
@@ -51,6 +63,10 @@ public class LWSlide extends LWContainer
         //setAspect(((float)GUI.GScreenWidth) / ((float)GUI.GScreenHeight));
         s.setAspect(s.getWidth() / s.getHeight());
         return s;
+    }
+
+    public boolean isMoveable() {
+        return false;
     }
 
     public static LWSlide CreatePathwaySlide()
@@ -201,16 +217,6 @@ public class LWSlide extends LWContainer
     }
     */
     
-    public String getLabel() {
-        final LWContainer parent = getParent();
-        if (parent instanceof LWPathway)
-            return super.getLabel();
-        else if (parent != null)
-            return "Slide for " + getParent().getLabel();
-        else
-            return "<LWSlide w/null parent>"; // true during persist restore
-    }
-
     public void setLayer(int layer) {
         mLayer = layer;
     }

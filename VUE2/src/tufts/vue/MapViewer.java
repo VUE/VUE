@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.312 $ / $Date: 2007-03-19 08:37:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.313 $ / $Date: 2007-03-21 03:28:12 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2139,7 +2139,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     void activateLabelEdit(LWComponent lwc) {
         if (activeTextEdit != null && activeTextEdit.getLWC() == lwc)
             return;
-        if (!lwc.supportsUserLabel())
+        if (!lwc.supportsUserLabel() || !lwc.supportsProperty(LWKey.Label))
             return;
         if (activeTextEdit != null)
             remove(activeTextEdit);
@@ -2282,7 +2282,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // todo: move all this code to LWSelection?
     // todo perf: way too much calculation here for every draw: do some on selection change?
     // TODO: don't draw unless all components are within mFocal...
-    protected void drawSelection(DrawContext dc, LWSelection selection) {
+    protected void drawSelection(DrawContext dc, final LWSelection selection) {
         dc.g.setColor(COLOR_SELECTION);
         //g2.setXORMode(Color.black);
         dc.g.setStroke(STROKE_SELECTION);
@@ -2405,12 +2405,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //System.out.println("screenSelectionBounds="+mapSelectionBounds);
         
 
-        if (//VueSelection.countTypes(LWNode.class) + VueSelection.countTypes(LWImage.class) <= 0
-            //||
-            //(VueSelection.size() == 1 && VueSelection.first() instanceof LWNode && ((LWNode)VueSelection.first()).isTextNode())
-            selection.allOfType(LWLink.class)
-            ) {
-            // todo: this check is a hack: need to check if any in selection return true for supportsUserResize
+//         if (//VueSelection.countTypes(LWNode.class) + VueSelection.countTypes(LWImage.class) <= 0
+//             //||
+//             //(VueSelection.size() == 1 && VueSelection.first() instanceof LWNode && ((LWNode)VueSelection.first()).isTextNode())
+//             selection.allOfType(LWLink.class)
+//             ) {
+            
+        if (!selection.first().isMoveable()) {
+            resizeControl.active = false;
+        } else if (selection.allOfType(LWLink.class)) {
+            // todo: this check is a hack: need to check if any in selection return true for supportsUserResize (change to merge w/isMoveable -- a dynamic property)
             // todo: also alow groups to resize (make selected group resize
             // re-usable for a group -- perhaps move to LWGroup itself &
             // also use draggedSelectionGroup for this?)
@@ -3199,6 +3203,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return inputHandler;
     }
 
+    protected void setToDrag(LWSelection s) {
+        if (s.size() > 0 && s.first().isMoveable()) {
+            draggedSelectionGroup.useSelection(s);
+            setDragger(draggedSelectionGroup);
+        } else {
+            setDragger(null);
+        }
+    }
 
     protected void setDragger(LWComponent c) {
         //out("\n***DRAG SET TO " + c);
@@ -3714,9 +3726,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // Okay, ONLY drag even a single object via the selection
                     //if (VueSelection.size() > 1) {
                     // pick up a group selection for dragging
-                    draggedSelectionGroup.useSelection(VUE.getSelection());
-                    //draggedSelectionGroup.useSelection(VueSelection);
-                    setDragger(draggedSelectionGroup);
+
+                    setToDrag(VUE.getSelection());
+
                     //} else {
                     // [ We never drag just single components anymore --
                     // just the entire selection ]
@@ -3743,8 +3755,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // the bounds of an existing selection, pick it
                     // up for dragging.
                     //-------------------------------------------------------
-                    draggedSelectionGroup.useSelection(VueSelection);
-                    setDragger(draggedSelectionGroup);
+                    setToDrag(VUE.getSelection());
+                    //draggedSelectionGroup.useSelection(VueSelection);
+                    //setDragger(draggedSelectionGroup);
                 } else if (!e.isShiftDown() && activeTool.supportsSelection()) {
                     //-------------------------------------------------------
                     // CLEAR CURRENT SELECTION & START DRAGGING FOR A NEW ONE
@@ -3756,10 +3769,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     selectionClear();
                     repaint(); // if selection handles not on, we need manual repaint here
                 }
+//                 if (activeTool.supportsDraggedSelector(mme))
+//                     isDraggingSelectorBox = true;
+//                 else
+//                     isDraggingSelectorBox = false;// todo ??? this was true?
+            }
+
+            if (dragComponent == null) {
                 if (activeTool.supportsDraggedSelector(mme))
                     isDraggingSelectorBox = true;
                 else
-                    isDraggingSelectorBox = false;// todo ??? this was true?
+                    isDraggingSelectorBox = false;
             }
             
             if (dragComponent != null)
@@ -4196,7 +4216,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                              toDrag,
                              new LWTransfer(toDrag));
         }
-            
+
         //private int drags=0;
         public void mouseDragged(MouseEvent e) {
 
@@ -4216,12 +4236,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // we'll get no more mouseDragged, and no mouseReleased
                     return;
                 }
-                
+
                 // dragStart
                 // we're just starting this drag
                 //if (inScrollPane || dragComponent != null || dragControl != null) always set mousewasdragged
                 if (dragComponent == null && dragControl == null)
                     viewer.setAutoscrolls(false);
+                
                 mouseWasDragged = true;
                 lastDrag.setLocation(dragStart);
                 if (DEBUG.MOUSE) System.out.println(" lastDragSet " + out(lastDrag));
