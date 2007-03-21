@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.100 $ / $Date: 2007-03-17 22:31:55 $ / $Author: sfraize $
+ * @version $Revision: 1.101 $ / $Date: 2007-03-21 11:28:56 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -272,13 +272,15 @@ public abstract class LWContainer extends LWComponent
                 removeChildImpl(c);
                 removedChildren.add(c);
             } else
-                throw new IllegalArgumentException(this + " asked to remove child it doesn't own: " + c);
+                throw new IllegalStateException(this + " asked to remove child it doesn't own: " + c);
         }
         if (removedChildren.size() > 0) {
             notify(LWKey.ChildrenRemoved, removedChildren);
             layout();
         }
     }
+
+    // TODO: deleteAll: can removeChildren on all, then remove all from model
     
     protected void addChildImpl(LWComponent c)
     {
@@ -1053,11 +1055,11 @@ public abstract class LWContainer extends LWComponent
      * and if we weren't given a LinkPatcher, to patch up any links
      * among our children.
      */
-    public LWComponent duplicate(LinkPatcher linkPatcher)
+    public LWComponent duplicate(CopyContext cc)
     {
         boolean isPatcherOwner = false;
         
-        if (linkPatcher == null && hasChildren()) {
+        if (cc.patcher == null && cc.dupeChildren && hasChildren()) {
 
             // Normally VUE Actions (e.g. Duplicate, Copy, Paste)
             // provide a patcher for duplicating a selection of
@@ -1065,22 +1067,22 @@ public abstract class LWContainer extends LWComponent
             // This will take care of arbitrary single instances of
             // duplication, including duplicating an entire Map.
             
-            linkPatcher = new LinkPatcher();
+            cc.patcher = new LinkPatcher();
             isPatcherOwner = true;
         }
         
-        LWContainer containerCopy = (LWContainer) super.duplicate(linkPatcher);
-        
-        Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            LWComponent childCopy = c.duplicate(linkPatcher);
-            containerCopy.children.add(childCopy);
-            childCopy.setParent(containerCopy);
+        LWContainer containerCopy = (LWContainer) super.duplicate(cc);
+
+        if (cc.dupeChildren) {
+            for (LWComponent c : getChildList()) {
+                LWComponent childCopy = c.duplicate(cc);
+                containerCopy.children.add(childCopy);
+                childCopy.setParent(containerCopy);
+            }
         }
 
         if (isPatcherOwner)
-            linkPatcher.reconnectLinks();
+            cc.patcher.reconnectLinks();
             
         return containerCopy;
     }

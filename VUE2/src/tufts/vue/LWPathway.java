@@ -21,10 +21,9 @@ package tufts.vue;
 import tufts.vue.DEBUG;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.Iterator;
+
+import java.util.*;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -49,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.130 $ / $Date: 2007-03-21 08:06:03 $ / $Author: sfraize $
+ * @version $Revision: 1.131 $ / $Date: 2007-03-21 11:28:56 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -763,26 +762,31 @@ public class LWPathway extends LWContainer
         // TODO: need to figure out how to make these non-deletable
         LWComponent titleStyle;
         LWComponent textStyle;
+        LWComponent urlStyle;
+
+        //private List<LWComponent> mStyles = new ArrayList();
 
         /** for castor persistance */
         public MasterSlide() {}
 
         void completeXMLRestore() {
-            // this is a hack for now: just grab the first
-            // child that is a style parent, and assume
-            // it's our desired text style.
             for (LWComponent c : children) {
-                // check the label is a temporary hack
+                // check the label is a temporary hack for now to get the styles back:
+                // we may want to make these special objects actually managed by the
+                // master slide
                 if ("Sample Text".equals(c.getLabel()) || TextLabel.equals(c.getLabel())) {
                     textStyle = c;
                     if (DEBUG.PRESENT) out("FOUND TEXT STYLE " + c);
                 } else if (TitleLabel.equals(c.getLabel())) {
                     if (DEBUG.PRESENT) out("FOUND TITLE STYLE " + c);
                     titleStyle = c;
+                } else if (c.hasLabel() && c.getLabel().startsWith("http:")) {
+                    if (DEBUG.PRESENT) out("FOUND URL STYLE " + c);
+                    urlStyle = c;
                 }
             }
-            if (textStyle == null || titleStyle == null)
-                createStyles();
+
+            createStyles();
             initStyles();
             // todo for recent back compat: if styles not on master slide, add them
         }
@@ -796,7 +800,12 @@ public class LWPathway extends LWContainer
             textStyle.setPersistIsStyle(Boolean.TRUE);
             textStyle.disableProperty(LWKey.Label);
             textStyle.setMoveable(false);
-            textStyle.setLocation(45,100);
+            textStyle.setLocation(45,110);
+            
+            urlStyle.setPersistIsStyle(Boolean.TRUE);
+            urlStyle.disableProperty(LWKey.Label);
+            urlStyle.setMoveable(false);
+            urlStyle.setLocation(45,180);
         }
         
         private void createStyles() {
@@ -809,6 +818,12 @@ public class LWPathway extends LWContainer
                 textStyle = titleStyle.duplicate();
                 textStyle.setLabel(TextLabel);
                 textStyle.setFont(titleStyle.getFont().deriveFont(22f));
+            }
+            if (urlStyle == null) {
+                urlStyle = titleStyle.duplicate();
+                urlStyle.setLabel("http://www.google.com/");
+                urlStyle.setFont(titleStyle.getFont().deriveFont(18f));
+                urlStyle.setTextColor(VueResources.makeColor("#b3bfe3"));
             }
         }
 
@@ -842,9 +857,9 @@ public class LWPathway extends LWContainer
 
             //tufts.Util.printStackTrace("inPath=" + owner + " pathMAP=" + owner.getMap());
 
-            
             addChild(titleStyle);
             addChild(textStyle);
+            addChild(urlStyle);
             addChild(header);
             addChild(footer);
             
@@ -878,8 +893,7 @@ public class LWPathway extends LWContainer
         // this draw-skipping in some other way (and arbitrary nodes can be style master's)
         // Tho having a special master-slide object isn't really that big a deal.
         public void drawChild(LWComponent child, DrawContext dc) {
-            if (!dc.isEditMode() && (child == titleStyle || child == textStyle))
-            //if (!dc.isEditMode() && child.isParentStyle())
+            if (!dc.isEditMode() && !child.isMoveable())
                 return;
             else
                 super.drawChild(child, dc);

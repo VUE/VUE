@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import tufts.vue.gui.GUI;
+import java.util.*;
 import java.awt.Color;
 import java.awt.geom.*;
 
@@ -27,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.17 $ / $Date: 2007-03-21 04:34:27 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2007-03-21 11:28:57 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -80,17 +81,18 @@ public class LWSlide extends LWContainer
     public static LWSlide CreateForPathway(LWPathway pathway, LWComponent node)
     {
         final LWSlide slide = CreatePathwaySlide();
+        final LWNode title = NodeTool.buildTextNode(node.getDisplayLabel());
+        final LWPathway.MasterSlide master = pathway.getMasterSlide();
+        final CopyContext cc = new CopyContext(false);
+        final LinkedList<LWComponent> toLayout = new java.util.LinkedList();
 
-        java.util.LinkedList<LWComponent> toLayout = new java.util.LinkedList();
-        LWNode title = NodeTool.buildTextNode(node.getDisplayLabel()); // need to "sync" this...=
-
-        title.setStyle(pathway.getMasterSlide().titleStyle);
+        title.setStyle(master.titleStyle);
         title.setSyncSource(node);
 
-        final LWComponent textStyle = pathway.getMasterSlide().textStyle;
-        for (LWComponent c : node.getChildList()) {
-            final LWComponent slideCopy = c.duplicate();
-            slideCopy.setStyle(textStyle);
+        for (LWComponent c : node.getAllDescendents()) {
+            final LWComponent slideCopy = c.duplicate(cc);
+            slideCopy.setScale(1f);
+            applyMasterStyle(master, slideCopy);
             slideCopy.setSyncSource(c);
             toLayout.add(slideCopy);
         }
@@ -106,7 +108,49 @@ public class LWSlide extends LWContainer
         return slide;
     }
 
+    public void rebuild() {
+        
+    }
+
+    private void applyMasterStyle(LWComponent c) {
+        applyMasterStyle(getMasterSlide(), c);
+    }
+            
+    private static void applyMasterStyle(LWPathway.MasterSlide master, LWComponent c) {
+        if (master == null) {
+            VUE.Log.error("null master slide applying master style to " + c);
+            return;
+        }
+        if (c.hasResource())
+            c.setStyle(master.urlStyle);
+        else
+            c.setStyle(master.textStyle);
+    }
+
+    public LWPathway.MasterSlide getMasterSlide() {
+        LWPathway pathway = (LWPathway) getParent();
+        if (pathway == null) {
+            tufts.Util.printStackTrace("null parent attempting to get master slide");
+            return null;
+        } 
+        return pathway.getMasterSlide();
+    }
+
     
+    protected void addChildImpl(LWComponent c)
+    {
+        super.addChildImpl(c);
+
+        // TODO: need to apply proper style w/generic code
+        
+        if (this instanceof LWPathway.MasterSlide)
+            return;
+        out("addChildImpl " + c);
+        LWPathway pathway = (LWPathway) getParent();
+        if (pathway != null && c.getStyle() == null)
+            c.setStyle(pathway.getMasterSlide().textStyle);
+    }
+
     // This will prevent the object from ever being drawn on the map.
     // But this bit isn't checked at the top level if this is the top
     // level object requested to draw, so it will still work on the slide viewer.
@@ -114,7 +158,7 @@ public class LWSlide extends LWContainer
     //public boolean isFiltered() { return true; }
     //public boolean isHidden() { return true; }
 
-    private void importAndLayout(java.util.List<LWComponent> nodes)
+    private void importAndLayout(List<LWComponent> nodes)
     {
         //java.util.Collections.reverse(nodes);
         final LWSelection selection = new LWSelection(nodes);
@@ -175,24 +219,6 @@ public class LWSlide extends LWContainer
         //slide.setSizeFromChildren();
         
     }
-
-    protected void addChildImpl(LWComponent c)
-    {
-        super.addChildImpl(c);
-        if (this instanceof LWPathway.MasterSlide)
-            return;
-        out("addChildImpl " + c);
-        LWPathway pathway = (LWPathway) getParent();
-        if (pathway != null && c.getStyle() == null)
-            c.setStyle(pathway.getMasterSlide().textStyle);
-    }
-
-    /*
-    private LWPathway.MasterSlide XgetMasterSlide() {
-        LWPathway pathway = (LWPathway) getParent();
-        return pathway.getMasterSlide();
-    }
-    */
 
 
     /*

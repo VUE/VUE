@@ -249,17 +249,18 @@ public class Actions implements VueConstants
     //-------------------------------------------------------
 
     
-    private static List ScratchBuffer = new ArrayList();
+    private static final List ScratchBuffer = new ArrayList();
     private static LWContainer ScratchMap;
     private static LWComponent StyleBuffer; // this holds the style copied by "Copy Style"
     
-    private static LWComponent.LinkPatcher sLinkPatcher = new LWComponent.LinkPatcher();
-    private static List DupeList = new ArrayList(); // cache for dupe'd items
+    //    private static final LWComponent.LinkPatcher _LinkPatcher = 
+    private static final LWComponent.CopyContext CopyContext = new LWComponent.CopyContext(new LWComponent.LinkPatcher(), true);
+    private static final List DupeList = new ArrayList(); // cache for dupe'd items
     
     private static final int sCopyOffset = 10;
     
     public static Collection duplicatePreservingLinks(Iterator i) {
-        sLinkPatcher.reset();
+        CopyContext.reset();
         DupeList.clear();
         
         while (i.hasNext()) {
@@ -273,12 +274,12 @@ public class Actions implements VueConstants
                 // set.
                 continue;
             }
-            LWComponent copy = c.duplicate(sLinkPatcher);
+            LWComponent copy = c.duplicate(CopyContext);
             DupeList.add(copy);
             //System.out.println("duplicated " + copy);
         }
-        sLinkPatcher.reconnectLinks();
-        sLinkPatcher.reset();
+        CopyContext.complete();
+        CopyContext.reset();
         return DupeList;
     }
 
@@ -294,15 +295,15 @@ public class Actions implements VueConstants
         // just leave in the arbitrary selection order!
         void act(Iterator i) {
             DupeList.clear();
-            sLinkPatcher.reset();
+            CopyContext.reset();
             super.act(i);
-            sLinkPatcher.reconnectLinks();
+            CopyContext.complete();
             VUE.getSelection().setTo(DupeList.iterator());
             DupeList.clear();
         }
         
         void act(LWComponent c) {
-            LWComponent copy = c.duplicate(sLinkPatcher);
+            LWComponent copy = c.duplicate(CopyContext);
             DupeList.add(copy);
             copy.setLocation(c.getX()+sCopyOffset,
             c.getY()+sCopyOffset);

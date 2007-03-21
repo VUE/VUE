@@ -39,7 +39,7 @@ import edu.tufts.vue.style.Style;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.223 $ / $Date: 2007-03-21 04:33:58 $ / $Author: sfraize $
+ * @version $Revision: 1.224 $ / $Date: 2007-03-21 11:28:56 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -974,7 +974,8 @@ public class LWComponent
     /**
      * This is used during duplication of group's of LWComponent's
      * (e.g., a random selection, or a set of children, or an entire map),
-     * to reconnect links within the group after duplication.
+     * to reconnect links within the group after duplication, and
+     * passing flags into the dupe context.
      */
     public static class LinkPatcher {
         private java.util.Map<LWComponent,LWComponent> mCopies = new java.util.HashMap();
@@ -1025,6 +1026,29 @@ public class LWComponent
             }
         }
     }
+
+    public static class CopyContext {
+        final boolean dupeChildren;
+        LinkPatcher patcher;
+        CopyContext() { this(true); }
+        CopyContext(boolean dupeChildren) {
+            this.dupeChildren = dupeChildren;
+        }
+        CopyContext(LinkPatcher lp, boolean dupeChildren) {
+            this.patcher = lp;
+            this.dupeChildren = dupeChildren;
+        }
+
+        void reset() {
+            if (patcher != null)
+                patcher.reset();
+        }
+
+        void complete() {
+            if (patcher != null)
+                patcher.reconnectLinks();
+        }
+    }
     
     
     /**
@@ -1037,7 +1061,7 @@ public class LWComponent
      * reconnected at the end of the duplicate.
      */
 
-    public LWComponent duplicate(LinkPatcher patcher)
+    public LWComponent duplicate(CopyContext cc)
     {
         final LWComponent c;
 
@@ -1073,14 +1097,14 @@ public class LWComponent
         if (hasNotes())
             c.setNotes(getNotes());
 
-        if (patcher != null)
-            patcher.track(this, c);
+        if (cc.patcher != null)
+            cc.patcher.track(this, c);
 
         return c;
     }
 
     public LWComponent duplicate() {
-        return duplicate(null);
+        return duplicate(new CopyContext());
     }
 
     protected boolean isPresentationContext() {

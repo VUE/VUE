@@ -87,7 +87,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.45 $ / $Date: 2007-02-16 04:03:07 $ / $Author: mike $
+ * @version $Revision: 1.46 $ / $Date: 2007-03-21 11:28:57 $ / $Author: sfraize $
  *
  */
 
@@ -285,7 +285,7 @@ public class TextBox extends JTextPane
         // This is a complete hack:
         if (c == null && nodeParent instanceof LWSlide) {
             try {
-                c = VUE.getActivePathway().getMasterSlide().getFillColor();
+                c = ((LWSlide)nodeParent).getMasterSlide().getFillColor();
             } catch (Throwable t) { if (DEBUG.Enabled) t.printStackTrace(); }
         }
 

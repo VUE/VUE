@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.136 $ / $Date: 2007-03-14 17:48:05 $ / $Author: sfraize $
+ * @version $Revision: 1.137 $ / $Date: 2007-03-21 11:28:56 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -296,9 +296,9 @@ public class LWNode extends LWContainer
 
     /** Duplicate this node.
      * @return the new node -- will be an exact copy, except for any pathway state from the source node */
-    public LWComponent duplicate(LinkPatcher linkPatcher)
+    public LWComponent duplicate(CopyContext cc)
     {
-        LWNode newNode = (LWNode) super.duplicate(linkPatcher);
+        LWNode newNode = (LWNode) super.duplicate(cc);
         // TODO: do this as a class and we don't have to keep handling the newInstance everywhere we setNodeShape
         if (getShape() != null)
             newNode._applyShape(getShape());
@@ -357,7 +357,7 @@ public class LWNode extends LWContainer
         if (isPresentationContext())
              return false;
          else
-            return AlwaysShowIcon || mIconBlock.isShowing(); // remember not current till after a layout
+            return mIconBlock.isShowing(); // remember not current till after a layout
     }
 
     // was text box hit?  coordinates are component local
@@ -2167,8 +2167,6 @@ public class LWNode extends LWContainer
     // (label, icons & children, etc)
     //------------------------------------------------------------------
 
-    private static final boolean AlwaysShowIcon = false;
-        
     private static final int EdgePadY = 4; // Was 3 in VUE 1.5
     private static final int PadTop = EdgePadY;
 

@@ -112,11 +112,11 @@ public class LWImage extends
     }
 
 
-    public LWComponent duplicate(LinkPatcher linkPatcher)
+    public LWComponent duplicate(CopyContext cc)
     {
         // TODO: if had list of property keys in object, LWComponent
         // could handle all the duplicate code.
-        LWImage i = (LWImage) super.duplicate(linkPatcher);
+        LWImage i = (LWImage) super.duplicate(cc);
         i.mImage = mImage;
         i.mImageWidth = mImageWidth;
         i.mImageHeight = mImageHeight;

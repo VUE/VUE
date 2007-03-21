@@ -66,14 +66,15 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.314 $ / $Date: 2007-03-21 03:41:29 $ / $Author: sfraize $ 
+ * @version $Revision: 1.315 $ / $Date: 2007-03-21 11:28:57 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
 // feature, and is not turned on.
 
-// Todo: this class needs alot of refactoring / breaking up into more methods
-// It's a mess.
+// TODO: this class is offically a major mess.  The key/mouse input, tool delegation,
+// selection and dragging code all need a full visit to refactoring rehab.
+
 
 public class MapViewer extends TimedASComponent//javax.swing.JComponent
     implements VueConstants
