@@ -49,7 +49,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.129 $ / $Date: 2007-03-21 07:38:51 $ / $Author: sfraize $
+ * @version $Revision: 1.130 $ / $Date: 2007-03-21 08:06:03 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -784,16 +784,19 @@ public class LWPathway extends LWContainer
             if (textStyle == null || titleStyle == null)
                 createStyles();
             initStyles();
+            // todo for recent back compat: if styles not on master slide, add them
         }
 
         private void initStyles() {
             titleStyle.setPersistIsStyle(Boolean.TRUE);
             titleStyle.disableProperty(LWKey.Label);
             titleStyle.setMoveable(false);
+            titleStyle.setLocation(40,30);
             
             textStyle.setPersistIsStyle(Boolean.TRUE);
             textStyle.disableProperty(LWKey.Label);
             textStyle.setMoveable(false);
+            textStyle.setLocation(45,100);
         }
         
         private void createStyles() {
@@ -801,13 +804,11 @@ public class LWPathway extends LWContainer
                 titleStyle = NodeTool.initAsTextNode(new LWNode(TitleLabel));
                 titleStyle.setFont(new Font("Gill Sans", Font.PLAIN, 36));
                 titleStyle.setTextColor(Color.white);
-                titleStyle.setLocation(40,30);
             }
             if (textStyle == null) {
                 textStyle = titleStyle.duplicate();
                 textStyle.setLabel(TextLabel);
                 textStyle.setFont(titleStyle.getFont().deriveFont(22f));
-                textStyle.setLocation(45,100);
             }
         }
 
