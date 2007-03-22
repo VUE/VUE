@@ -11,38 +11,38 @@
    Syntax recommendation http://www.w3.org/TR/REC-CSS2/
 */
 
-link.info:fedora/fedora-system:def/relations-external:isPartOf { 
+link.isPartOf { 
     stroke-width: 1px; font-size: 8px; vue-head: 10px;
 }
 
-link.info:fedora/fedora-system:def/relations-external:hasPart { 
+link.hasPart { 
     stroke-width: 1px; font-size: 8px; vue-head: 10px;
 }
 
-link.info:fedora/fedora-system:def/relations-external:isDerivationOf { 
+link.isDerivationOf { 
     stroke-width: 2px; font-size: 9px; vue-head: 11px;
 }
 
-link.info:fedora/fedora-system:def/relations-external:hasDerivation { 
+link.hasDerivation { 
     stroke-width: 2px; font-size: 9px; vue-head: 11px;
 }
 
-link.info:fedora/fedora-system:def/relations-external:isDependentOf { 
+link.isDependentOf { 
     stroke-width: 3px; font-size: 10px; vue-head: ARROW_HEAD;
 }
 
-link.info:fedora/fedora-system:def/relations-external:hasDependent { 
+link.hasDependent { 
     stroke-width: 3px; font-size: 10px; vue-head: 12px;
 }
 
-link.info:fedora/fedora-system:def/relations-external:isDescriptionOf { 
+link.isDescriptionOf { 
     stroke-width: 4px; font-size: 11px; vue-head: 12px;
 }
 
-link.info:fedora/fedora-system:def/relations-external:hasDescription { 
+link.hasDescription { 
     stroke-width: 4px; font-size: 11px; vue-head: 12px;
 }
 
-link.info:fedora/fedora-system:def/relations-external:hasEquivalent { 
+link.hasEquivalent { 
     stroke-width: 5px; font-size: 12px; vue-head: 13px;
 }
