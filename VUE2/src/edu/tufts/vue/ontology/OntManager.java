@@ -56,11 +56,11 @@ public class OntManager {
             type.setBase(base);
             //Style style = new LinkStyle(base+":"+ontTerms[i]);
             //style.setAttribute("weight",""+ontWeights[i]);
-            Style style = StyleMap.getStyle("link."+base+":"+ontTerms[i]);
+            Style style = StyleMap.getStyle("link."/*+base+":"*/+ontTerms[i]);
             if(style==null) {
                 System.out.println("OntManager: couldn't load style for " + base+":"+ontTerms[i]);
                 style = new LinkStyle(base+":"+ontTerms[i]);
-                style.setAttribute("weight",""+ontWeights[i]);
+                style.setAttribute("stroke-width",""+ontWeights[i]+"px");
             }
             type.setStyle(style);
             types.add(type);
