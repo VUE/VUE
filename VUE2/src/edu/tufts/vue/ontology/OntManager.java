@@ -37,14 +37,24 @@ public class OntManager {
         int[] ontWeights = {1,1,2,2,3,3,4,4,5};
         String base ="info:fedora/fedora-system:def/relations-external";
         List<OntType> types = new ArrayList<OntType>();
+        
+        StyleReader.readStyles("fedora.ontology.css");
+        
         Ontology ont = new Ontology();
         ont.setBase(base);
         for(int i = 0;i<ontTerms.length;i++) {
             OntType type = new OntType();
             type.setName(ontTerms[i]);
             type.setBase(base);
-            Style style = new LinkStyle(base+":"+ontTerms[i]);
-            style.setAttribute("weight",""+ontWeights[i]);
+            //Style style = new LinkStyle(base+":"+ontTerms[i]);
+            //style.setAttribute("weight",""+ontWeights[i]);
+            Style style = StyleMap.getStyle("link."+base+":"+ontTerms[i]);
+            if(style==null)
+            {
+               System.out.println("OntManager: couldn't load style for " + base+":"+ontTerms[i]);
+               style = new LinkStyle(base+":"+ontTerms[i]);
+               style.setAttribute("weight",""+ontWeights[i]);
+            }
             type.setStyle(style);
             types.add(type);
         }

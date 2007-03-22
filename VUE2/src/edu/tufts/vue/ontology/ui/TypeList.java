@@ -186,8 +186,9 @@ public class TypeList extends JList {
             link.setHeadPoint(10,25);
             link.setTailPoint(140,25);
             link.setAbsoluteSize(150,50);
-            link.setArrowState(LWLink.ARROW_BOTH);
-            link.setWeight(Integer.parseInt(style.getAttribute("weight")));
+            link.setArrowState(LWLink.ARROW_HEAD);
+            //link.setWeight(Integer.parseInt(style.getAttribute("weight")));
+            link.applyCSS(style);
             tlist.addType(link);
         }
         

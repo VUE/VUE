@@ -1,0 +1,48 @@
+/* 
+    Document   : DefaultFedoraStyle
+    Created on : March 19, 2007, 10:49 AM
+    Author     : dhelle01
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+link.info:fedora/fedora-system:def/relations-external:isPartOf { 
+    stroke-width: 1px; font-size: 8px; vue-head: 10px;
+}
+
+link.info:fedora/fedora-system:def/relations-external:hasPart { 
+    stroke-width: 1px; font-size: 8px; vue-head: 10px;
+}
+
+link.info:fedora/fedora-system:def/relations-external:isDerivationOf { 
+    stroke-width: 2px; font-size: 9px; vue-head: 11px;
+}
+
+link.info:fedora/fedora-system:def/relations-external:hasDerivation { 
+    stroke-width: 2px; font-size: 9px; vue-head: 11px;
+}
+
+link.info:fedora/fedora-system:def/relations-external:isDependentOf { 
+    stroke-width: 3px; font-size: 10px; vue-head: ARROW_HEAD;
+}
+
+link.info:fedora/fedora-system:def/relations-external:hasDependent { 
+    stroke-width: 3px; font-size: 10px; vue-head: 12px;
+}
+
+link.info:fedora/fedora-system:def/relations-external:isDescriptionOf { 
+    stroke-width: 4px; font-size: 11px; vue-head: 12px;
+}
+
+link.info:fedora/fedora-system:def/relations-external:hasDescription { 
+    stroke-width: 4px; font-size: 11px; vue-head: 12px;
+}
+
+link.info:fedora/fedora-system:def/relations-external:hasEquivalent { 
+    stroke-width: 5px; font-size: 12px; vue-head: 13px;
+}
