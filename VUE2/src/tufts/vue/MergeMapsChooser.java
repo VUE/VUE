@@ -1349,7 +1349,9 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         filterChoice.setSelected(map.getFilterOnBaseMap());
         
         nodeThresholdSlider.setValue(map.getNodeThresholdSliderValue());
+        percentageDisplay.setText(map.getNodeThresholdSliderValue()+"%");
         linkThresholdSlider.setValue(map.getLinkThresholdSliderValue());
+        linkPercentageDisplay.setText(map.getLinkThresholdSliderValue()+"%");
         try
         {
           if(vizChoice.getSelectedIndex()==1)
