@@ -71,7 +71,7 @@ public class VoteAggregate extends WeightAggregate {
         int linkCount = getConnection(label1,label2);
         int count = getCount();
         double threshold = (double)count*linkThreshold;
-        if(linkCount>=threshold) {
+        if( (linkCount>=threshold) && (linkCount > 0) ) {
             return true;
         }else
             return false;
