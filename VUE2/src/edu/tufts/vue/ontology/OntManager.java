@@ -27,6 +27,14 @@ package edu.tufts.vue.ontology;
 import java.util.*;
 import edu.tufts.vue.style.*;
 
+
+import com.hp.hpl.jena.rdf.model.*;
+import com.hp.hpl.jena.ontology.*;
+import com.hp.hpl.jena.util.iterator.*;
+import com.hp.hpl.jena.vocabulary.RDF;
+import com.hp.hpl.jena.shared.PrefixMapping;
+import com.hp.hpl.jena.util.iterator.Filter;
+
 public class OntManager {
     /** Creates a new instance of OntManager */
     public OntManager() {
@@ -49,16 +57,45 @@ public class OntManager {
             //Style style = new LinkStyle(base+":"+ontTerms[i]);
             //style.setAttribute("weight",""+ontWeights[i]);
             Style style = StyleMap.getStyle("link."+base+":"+ontTerms[i]);
-            if(style==null)
-            {
-               System.out.println("OntManager: couldn't load style for " + base+":"+ontTerms[i]);
-               style = new LinkStyle(base+":"+ontTerms[i]);
-               style.setAttribute("weight",""+ontWeights[i]);
+            if(style==null) {
+                System.out.println("OntManager: couldn't load style for " + base+":"+ontTerms[i]);
+                style = new LinkStyle(base+":"+ontTerms[i]);
+                style.setAttribute("weight",""+ontWeights[i]);
             }
             type.setStyle(style);
             types.add(type);
         }
         ont.setOntTypes(types);
         return ont;
+    }
+    
+    public static Ontology readOntologyWithStyle(String url,String cssUrl,int ontType) {
+        String NS = "http://www.fedora.info/definitions/1/0/fedora-relsext-ontology.rdfs";
+        OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM_RDFS_INF,null);
+         List<OntType> types = new ArrayList<OntType>();
+        m.read(url);
+        OntProperty p = m.getOntProperty(NS+"#fedoraRelationship");
+        ExtendedIterator iter = p.listSubProperties(false);
+        StyleReader.readStyles("fedora.ontology.css");
+        Ontology ont = new Ontology();
+        ont.setBase(NS);
+       while(iter.hasNext()) {
+             OntProperty sp = (OntProperty) iter.next();
+             OntType type = new OntType();
+             type.setName(sp.getLocalName());
+             type.setBase(NS);
+             type.setDescription(sp.getComment(null));
+             Style  style = StyleMap.getStyle("link."+sp.getLocalName());
+             if(style == null ) {
+                 System.out.println("OntManager: couldn't load style for :"+sp.getLocalName());
+                style = new LinkStyle(sp.getLocalName());
+                style.setAttribute("weight","12");
+             }
+             type.setStyle(style);
+             types.add(type);
+        }
+        ont.setOntTypes(types);
+        return ont;
+        
     }
 }
