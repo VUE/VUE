@@ -30,8 +30,8 @@ import edu.tufts.vue.style.*;
 public class OntType {
     private String name;
     private String base;
+    private String description;
     private Style style;
-    
     /** Creates a new instance of OntType */
     public OntType() {
         
@@ -43,6 +43,12 @@ public class OntType {
     
     public void setName(String name) {
         this.name = name;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public String getDescription() {
+        return this.description;
     }
     
     public String getBase() {
