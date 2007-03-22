@@ -1038,7 +1038,12 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                //map.setUserOrigin(VUE.getActiveViewer().getOriginX(),VUE.getActiveViewer().getOriginY());
                createWeightedMerge(map);
                MapViewer v = VUE.displayMap(map);
-               v.grabVueApplicationFocus("New Merge Map",null);
+               
+               tufts.vue.LWCEvent event = new tufts.vue.LWCEvent(v,map,new LWComponent.Key("Merge Map Displayed"));
+               v.LWCChanged(event);
+               
+               
+               //v.grabVueApplicationFocus("New Merge Map",null);
                //ZoomTool.setZoomFit();
                // creates class cast exception? (should be MapScrollPane apparently, really need
                // an awkward run-time check..) Also, doesn't seem neccesary... (real problem
@@ -1234,7 +1239,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         }
     }
     
-    // this is really "fill vote merge map" as the map must already be created
+    // this is really "fill vote merge map" as the map must already be instantiated
     // recreatevotemerge in LWMergeMap should be able to use this method
     // with a call to "clear merge map" that currently resides in that function
     // performed first. -- todo: move to "fill/clear" methodology as this functionality
@@ -1825,13 +1830,43 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                float y = VUE.getActiveViewer().getOriginY();
                //map.setUserOrigin(VUE.getActiveViewer().getOriginX(),VUE.getActiveViewer().getOriginY());
                MapViewer v = VUE.displayMap(map);
+               tufts.vue.LWCEvent event = new tufts.vue.LWCEvent(v,map,new LWComponent.Key("Merge Map Displayed"));
+               v.LWCChanged(event);
+               //v.grabVueApplicationFocus("Merge Map",null);
+               //VUE.getActiveMap().notifyProxy(event);
                //java.awt.Point p = new java.awt.Point((int)x,(int)y);
                //VUE.getActiveViewer().setLocation(p);
                //map.setUserOrigin(x,y);
                
-               //neccessary?
-               //v.grabVueApplicationFocus("Merge Map",null);
-               v.setMapOriginOffset(x,y);
+               //v.fireViewerEvent(MapViewerEvent.PAN);
+               //v.repaint();
+               
+               //v.addNotify();
+               
+               //v.loadFocal(map);
+               //v.revalidate();
+               //VUE.getTabbedPane().revalidate();
+               //VUE.getTabbedPane().repaint();
+               
+               /*java.awt.Component[] comps = VUE.getTabbedPane().getComponents();
+               
+               for(int compc=0;compc<comps.length;compc++)
+               {
+                   if(comps[compc] instanceof MapViewer)
+                   {
+                       MapViewer vc = (MapViewer)comps[compc];
+                       if(!(vc.getMap() instanceof LWMergeMap))
+                       {
+                           x = Math.max(x,vc.getOriginX());
+                           y=  Math.max(y,vc.getOriginY());
+                       }
+                   }
+               }
+
+               v.setMapOriginOffset(x,y);*/
+               
+               
+               
               // v.getCurrentTool().handleMouseReleased(new tufts.vue.MapMouseEvent());
 
                //ZoomTool.setZoomFit();
