@@ -29,7 +29,7 @@ import javax.swing.Icon;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.7 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2007-03-22 17:40:02 $ / $Author: sfraize $
  * @author csb
  * @author Scott Fraize
  */
@@ -67,6 +67,13 @@ public class ColorMenuButton extends MenuButton
      */
     public void setColor(Color c) {
         if (DEBUG.TOOL) System.out.println(this + " setColor " + c);
+        if (c.getAlpha() == 0)
+            setToolTipText("No Fill");
+        else if (c.getAlpha() == 255)
+            setToolTipText(String.format("RGB: %d,%d,%d", c.getRed(), c.getGreen(), c.getBlue()));
+        else
+            setToolTipText(String.format("RGB: %d,%d,%d @ %.0f%%", c.getRed(), c.getGreen(), c.getBlue(),
+                                         100f * ((float)c.getAlpha()) / 255f));
         mCurColor = c;
         Icon i = getButtonIcon();
         if (i instanceof BlobIcon)
