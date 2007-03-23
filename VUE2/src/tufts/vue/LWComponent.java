@@ -18,12 +18,15 @@
 
 package tufts.vue;
 
+import tufts.Util;
+
 import java.awt.Shape;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Stroke;
 import java.awt.BasicStroke;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.AlphaComposite;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
@@ -43,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.227 $ / $Date: 2007-03-23 20:20:43 $ / $Author: anoop $
+ * @version $Revision: 1.228 $ / $Date: 2007-03-23 23:28:11 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -171,8 +174,6 @@ public class LWComponent
     protected transient LWChangeSupport mChangeSupport = new LWChangeSupport(this);
     protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore? (todo: eliminate this as a member variable)
     protected transient BufferedImage mCachedImage;
-    protected transient double mCachedImageAlpha;
-    protected transient Dimension mCachedImageMaxSize;
 
     public static final java.util.Comparator XSorter = new java.util.Comparator<LWComponent>() {
             public int compare(LWComponent c1, LWComponent c2) {
@@ -2980,7 +2981,7 @@ public class LWComponent
             ; // keep the cached image
         } else {
             //out("*** CLEARING IMAGE CACHE");
-            mCachedImage = null;
+            //mCachedImage = null;
         }
         mChangeSupport.notifyListeners(this, e);
 
@@ -3439,24 +3440,75 @@ public class LWComponent
         //layout(); need to wait till scale values are all set: so the LWMap needs to trigger this
     }
 
+    private static final double OPAQUE = 1.0;
 
-    public BufferedImage getAsImage(double alpha, java.awt.Dimension maxSize) {
-        if (mCachedImage == null || mCachedImageAlpha != alpha || mCachedImageMaxSize != maxSize) {
-            // todo opt: mCachedImage should be a SoftReference
-            mCachedImage = createImage(alpha, maxSize);
-            mCachedImageAlpha = alpha;
-            mCachedImageMaxSize = maxSize;
-        }
-        return mCachedImage;
+
+    /**
+     * @param alpha -- an alpha value for the whole image
+     * @param maxSize -- if non-null, the max width/height of the produced image (may be smaller)
+     * @param zoom -- a zoom for the map size in producing the image (currently ignored if maxSize is provided)
+     */
+    private BufferedImage getAsImage(double alpha, Dimension maxSize, double zoom) {
+        return createImage(alpha, maxSize, (Color) null, zoom);
     }
     
+    public BufferedImage getAsImage(double alpha, Dimension maxSize) {
+        return getAsImage(alpha, maxSize, 1.0);
+    }
+    public BufferedImage getAsImage(double zoom) {
+        return getAsImage(OPAQUE, null, zoom);
+    }
     public BufferedImage getAsImage() {
-        return getAsImage(1.0, null);
+        return getAsImage(OPAQUE, null, 1.0);
     }
 
-    public BufferedImage createImage(double alpha, java.awt.Dimension maxSize) {
-        return createImage(alpha, maxSize, null);
+    public BufferedImage createImage(double alpha, Dimension maxSize) {
+        return createImage(alpha, maxSize, null, 1.0);
     }
+
+    private static Rectangle2D.Float grow(Rectangle2D.Float r, int size) {
+        r.x -= size;
+        r.y -= size;
+        r.width += size * 2;
+        r.height += size * 2;
+        return r;
+    }
+
+    private static Rectangle2D.Float getImageBounds(LWComponent c) {
+        final Rectangle2D.Float bounds = (Rectangle2D.Float) c.getBounds();
+
+        int growth = 1; // just in case / rounding errors
+        
+        if (c instanceof LWMap)
+            growth += 15;
+        
+        if (growth > 0)
+            grow(bounds, growth);
+
+        return bounds;
+    }
+
+    private static double computeZoomAndSize(Rectangle2D.Float bounds, Dimension maxSize, double zoomRequest, Size sizeResult)
+    {
+        double fitZoom = 1.0;
+        
+        if (maxSize != null) {
+            if (bounds.width > maxSize.width || bounds.height > maxSize.height) {
+                fitZoom = ZoomTool.computeZoomFit(maxSize, 0, bounds, null);
+                sizeResult.width = (float) Math.ceil(bounds.width * fitZoom);
+                sizeResult.height = (float) Math.ceil(bounds.height * fitZoom);
+            }
+        } else if (zoomRequest != 1.0) {
+            sizeResult.width *= zoomRequest;
+            sizeResult.height *= zoomRequest;
+            fitZoom = zoomRequest;
+        }
+
+        return fitZoom;
+    }
+    
+
+    
     
     /**
      * Create a new buffered image, of max dimension maxSize, and render the LWComponent
@@ -3464,116 +3516,111 @@ public class LWComponent
      * @param alpha 0.0 (invisible) to 1.0 (no alpha)
      * @param maxSize max dimensions for image. May be null.  Image may be smaller than maxSize.
      * @param fillColor -- if non-null, will be rendered as background for image.  If alpha is
+     * @param zoomRequest -- desired zoom; ignored if maxSize is non-null
      * also set, background fill will have transparency of alpha^3 to enhance contrast.
      */
-    public BufferedImage createImage(double alpha, java.awt.Dimension maxSize, Color fillColor)
+    public BufferedImage createImage(double alpha, Dimension maxSize, Color fillColor, double zoomRequest)
     {
         //tufts.Util.printStackTrace("CREATE IMAGE");
-        if (DEBUG.IMAGE) out("createImage; MAX size " + maxSize);
-        Rectangle2D.Float bounds = (Rectangle2D.Float) getBounds();
+        //if (DEBUG.IMAGE) out("createImage; MAX size " + maxSize);
 
-        final boolean drawBorder = this instanceof LWMap && alpha != 1.0;
+        final Rectangle2D.Float bounds = getImageBounds(this);
 
-        bounds.width += 1;
-        bounds.height += 1;
-
-        if (drawBorder) {
-            bounds.x--;
-            bounds.y--;
-            bounds.width += 2;
-            bounds.height += 2;
-        }
-            
-        if (DEBUG.IMAGE) out("createImage; natural bounds " + bounds);
+        if (DEBUG.IMAGE) out("createImage;"
+                             + " zoomRequst=" + (zoomRequest == 1.0 ? "none" : zoomRequest)
+                             + " maxSize=" + Util.out(maxSize)
+                             + " mapCoordBounds=" + Util.out(bounds)
+                             );
         
-        int width = (int) Math.ceil(bounds.width);
-        int height = (int) Math.ceil(bounds.height);
-        double zoom = 1.0;
 
-        if (maxSize != null) {
-            
-            if (width > maxSize.width || height > maxSize.height) {
-                zoom = ZoomTool.computeZoomFit(maxSize, 0, bounds, null);
-                width = (int) Math.ceil(bounds.width * zoom);
-                height = (int) Math.ceil(bounds.height * zoom);
-            }
-        }
-        
+        Size imageSize = new Size(bounds);
+        computeZoomAndSize(bounds, maxSize, zoomRequest, imageSize);
+
+        // Image type ARGB is needed if at any point in the generated image,
+        // there is a not 100% opaque pixel all the way through the background.
+        // So TYPE_INT_RGB will handle transparency with a map fine --
+        // but we need TYPE_INT_ARGB if, say, we're generating drag
+        // image that we want to be a borderless node (fully transparent
+        // image border), or if the whole drag image itself is semi-transparent.
 
         final int imageType;
-
-        if (alpha == 1.0 && fillColor != null)
+        if (alpha == OPAQUE && fillColor != null && fillColor.getAlpha() == 255)
             imageType = BufferedImage.TYPE_INT_RGB;
         else
             imageType = BufferedImage.TYPE_INT_ARGB;
+
+       final int width = imageSize.pixelWidth();
+        final int height = imageSize.pixelHeight();
         
-        if (DEBUG.IMAGE) out("createImage; final size " + width + "x" + height);
+        if (DEBUG.IMAGE) out("createImage; final size " + width + "x" + height
+                             + " fill=" + fillColor
+                             + " alpha=" + alpha
+                             + " type=" + (imageType == BufferedImage.TYPE_INT_RGB ? "OPAQUE" : "TRANSPARENT"));
 
-        BufferedImage image = new BufferedImage(width, height, imageType);
+        if (mCachedImage != null &&
+            mCachedImage.getWidth() == width &&
+            mCachedImage.getHeight() == height &&
+            mCachedImage.getType() == imageType)
+        {
+            // todo: could also re-use if cached image is > our needed size as long it's
+            // an ARGB and we fill it with full alpha first, tho we really shouldn't
+            // have each component caching it's own image: some kind of small
+            // recently used image buffers cache would make more sense.
+            if (DEBUG.DND || DEBUG.IMAGE) out("got cached image: " + mCachedImage);
+        } else {
+            mCachedImage = new BufferedImage(width, height, imageType);
+            if (DEBUG.DND || DEBUG.IMAGE) out("created image: " + mCachedImage);
+        }
 
-        drawImage((java.awt.Graphics2D) image.getGraphics(),
+        drawImage((Graphics2D) mCachedImage.getGraphics(),
                   alpha,
                   maxSize,
-                  fillColor);
+                  fillColor,
+                  zoomRequest
+                  );
 
-
-        if (DEBUG.DND || DEBUG.IMAGE) out("created image: " + image);
-
-        return image;
+        return mCachedImage;
     }
 
     /**
      * Useful for drawing drag images into an existing graphics buffer, or drawing exportable images.
      *
-     * @param alpha 0.0 (invisible) to 1.0 (no alpha)
+     * @param alpha 0.0 (invisible) to 1.0 (no alpha -- completely opaque)
      * @param maxSize max dimensions for image. May be null.  Image may be smaller than maxSize.
      * @param fillColor -- if non-null, will be rendered as background for image.  If alpha is
+     * @param zoomRequest -- desired zoom; ignored if maxSize is non-null
      * also set, background fill will have transparency of alpha^3 to enhance contrast.
      */
 
-    public void drawImage(java.awt.Graphics2D g, double alpha, java.awt.Dimension maxSize, Color fillColor)
+    public void drawImage(Graphics2D g, double alpha, Dimension maxSize, Color fillColor, double zoomRequest)
     {
         if (DEBUG.IMAGE) out("drawImage; size " + maxSize);
-        Rectangle2D.Float bounds = (Rectangle2D.Float) getBounds();
 
-        final boolean drawBorder = this instanceof LWMap && alpha != 1.0;
+        final boolean drawBorder = this instanceof LWMap; // hack for dragged images of LWMaps
 
-        bounds.width += 1;
-        bounds.height += 1;
-
-        if (drawBorder) {
-            bounds.x--;
-            bounds.y--;
-            bounds.width += 2;
-            bounds.height += 2;
-        }
+        final Rectangle2D.Float bounds = getImageBounds(this);
             
-        if (DEBUG.IMAGE) out("drawImage; natural bounds " + bounds);
-        
-        int width = (int) Math.ceil(bounds.width);
-        int height = (int) Math.ceil(bounds.height);
-        double zoom = 1.0;
+        if (DEBUG.IMAGE) out("drawImage; mapCoordBounds " + bounds + " fill=" + fillColor + " alpha=" + alpha);
 
-        if (maxSize != null) {
-            // Shrink to fit maxSize, but don't expand to fill it.
-            if (width > maxSize.width || height > maxSize.height) {
-                zoom = ZoomTool.computeZoomFit(maxSize, 0, bounds, null);
-                width = (int) Math.ceil(bounds.width * zoom);
-                height = (int) Math.ceil(bounds.height * zoom);
-            }
-        }
+        Size imageSize = new Size(bounds);
+        double zoom = computeZoomAndSize(bounds, maxSize, zoomRequest, imageSize);
         
-
         /*if (c instanceof LWGroup && ((LWGroup)c).numChildren() > 1) {
             g.setColor(new Color(255,255,255,32)); // give a bit of background
             //g.fillRect(0, 0, width, height);
             }*/
 
         DrawContext dc = new DrawContext(g);
-        dc.setAlpha(alpha, java.awt.AlphaComposite.SRC); // erase any underlying
+        if (alpha != OPAQUE)
+            dc.setAlpha(alpha, java.awt.AlphaComposite.SRC); // erase any underlying
+
+        if (DEBUG.IMAGE && DEBUG.META) fillColor = Color.red;
+
+        final int width = imageSize.pixelWidth();
+        final int height = imageSize.pixelHeight();
         
         if (fillColor != null) {
-            if (alpha != 1.0) {
+            if (false && alpha != OPAQUE) {
                 Color c = fillColor;
                 // if we have an alpha and a fill, amplify the alpha on the background fill
                 // by changing the fill to one that has alpha*alpha, for a total of

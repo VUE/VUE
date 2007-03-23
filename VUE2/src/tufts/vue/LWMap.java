@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.118 $ / $Date: 2007-03-23 16:57:15 $ / $Author: sfraize $
+ * @version $Revision: 1.119 $ / $Date: 2007-03-23 23:28:11 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -552,8 +552,13 @@ public class LWMap extends LWContainer
         
         /*
          * Draw all the children of the map
+         *
+         * Note that when the map draws, it does NOT fill the background,
+         * as the background color of the map is usually a special case
+         * property used to completely fill the background of an underlying
+         * GUI component or an image.
          */
-        super.drawImpl(dc);
+        super.drawChildren(dc);
         
         /*
          * Draw the pathways
@@ -569,9 +574,10 @@ public class LWMap extends LWContainer
         }
     }
 
-    public java.awt.image.BufferedImage createImage(double alpha, java.awt.Dimension maxSize) {
-        return createImage(alpha, maxSize, getFillColor());
+    public java.awt.image.BufferedImage createImage(double alpha, java.awt.Dimension maxSize, java.awt.Color fillColor, double mapZoom) {
+        return super.createImage(alpha, maxSize, fillColor == null ? getFillColor() : fillColor, mapZoom);
     }
+
     
     
     /** for viewer to report user origin sets via pan drags */

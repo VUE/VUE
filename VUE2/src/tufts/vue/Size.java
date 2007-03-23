@@ -66,6 +66,22 @@ public class Size {
 	return height;
     }
 
+    public int pixelWidth() {
+        return (int) Math.ceil(width);
+    }
+
+    public int pixelHeight() {
+        return (int) Math.ceil(height);
+    }
+
+    public boolean equals(int w, int h) {
+        return w == pixelWidth() && h == pixelHeight();
+    }
+
+    public boolean equals(float w, float h) {
+        return w == width && height == height;
+    }
+
     public void fit(Size s) {
         fitWidth(s.width);
         fitHeight(s.height);

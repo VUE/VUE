@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.64 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2007-03-23 23:28:12 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1893,7 +1893,7 @@ public class GUI
             DragGraphicsBuf.setColor(TransparentColor);
             DragGraphicsBuf.fillRect(0,0, DragSize,DragSize);
             
-            c.drawImage(DragGraphicsBuf, 0.667, new Dimension(DragSize,DragSize), null);
+            c.drawImage(DragGraphicsBuf, 0.667, new Dimension(DragSize,DragSize), (Color) null, 1.0);
             
             startSystemDrag(source, mouseEvent, DragImage, transfer);
         }
