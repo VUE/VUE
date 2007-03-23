@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.58 $ / $Date: 2006-11-01 18:37:40 $ / $Author: mike $
+ * @version $Revision: 1.59 $ / $Date: 2007-03-23 20:44:09 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -74,7 +74,8 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     private Timer timer;
     
     public AddLibraryDialog(DataSourceList dataSourceList) {    	
-        super(VUE.getDialogParentAsFrame(),TITLE,true);        
+        super(VUE.getDialogParentAsFrame(),TITLE,true); 
+        this.getRootPane().setDefaultButton(addButton);
         this.dataSourceList = dataSourceList;
         
         try {
@@ -388,6 +389,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             	SwingUtilities.invokeLater(new Runnable() { 
                                     public void run() { 
                                         KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                                        AddLibraryDialog.this.getRootPane().setDefaultButton(cancelButton);
                                         cancelButton.requestFocusInWindow();
                                     } 
                             	} );
@@ -411,6 +413,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             SwingUtilities.invokeLater(new Runnable() { 
                                 public void run() { 
                                     KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                                    AddLibraryDialog.this.getRootPane().setDefaultButton(cancelButton);
                                     cancelButton.requestFocusInWindow();
                                 } 
                             } );
@@ -451,6 +454,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     SwingUtilities.invokeLater(new Runnable() { 
                         public void run() { 
                             KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                            AddLibraryDialog.this.getRootPane().setDefaultButton(cancelButton);
                             cancelButton.requestFocusInWindow();
                         } 
                     } );
@@ -549,6 +553,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
         SwingUtilities.invokeLater(new Runnable() { 
             public void run() { 
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                AddLibraryDialog.this.getRootPane().setDefaultButton(cancelButton);
                 cancelButton.requestFocusInWindow();
             } 
         } );
@@ -587,6 +592,8 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
         } else {
             providerListRenderer.clearAllChecked();
             setVisible(false);
+            this.getRootPane().setDefaultButton(addButton);
+            addButton.requestFocusInWindow();
         }
     }
     private class AddDSThread extends Thread {
