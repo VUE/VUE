@@ -56,10 +56,12 @@ public class OpenAction extends VueAction {
         }
         try {
             File file = ActionUtil.openFile("Open Map", VueFileFilter.VUE_DESCRIPTION);
-            displayMap(file);
+            displayMap(file);            
             System.out.println("Action["+e.getActionCommand()+"] completed.");
         } finally {
             openUnderway = false;
+            
+            
         }
     }
     
@@ -74,7 +76,9 @@ public class OpenAction extends VueAction {
                 VUE.displayMap(loadedMap);
             } finally {
                 VUE.clearWaitCursor();
-            }
+                VUE.getPathwayPanel().updateEnabledStates();
+                
+            }            
         }
     }
 

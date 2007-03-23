@@ -115,6 +115,7 @@ public class SlideViewer extends tufts.vue.MapViewer
             //exclusive.add(btnPresent);
         }
 
+      
         private void add(AbstractButton b) {
             b.addActionListener(this);
             super.add(b);
@@ -275,7 +276,7 @@ public class SlideViewer extends tufts.vue.MapViewer
         */
     }
 
-    private void reload() {
+    public void reload() {
         // TODO: load nothing if active pathway from a different map
         //if (mLastLoad != null)
         if (mLastLoad == null) {

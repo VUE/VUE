@@ -49,14 +49,19 @@ public class PathwayTableModel extends DefaultTableModel
 {
     private LWMap mMap;
 
-    final static String[] ColumnNames = {"A", "B", "C", "D", "E", "F", /*"G"*/};
+    final static String[] ColumnNames = {"A", "B", "C", "D", "E", "F", "G"};
 
     public static final int COL_VISIBLE = 0;
-    public static final int COL_COLOR = 5;
     public static final int COL_OPEN = 1;
-    public static final int COL_LABEL = 2; // Applies to pathway's and pathway members
-    public static final int COL_NOTES = 3; // Applies to pathway's and pathway members
-    public static final int COL_LOCKED = 4;
+    public static final int COL_MAPVIEW = 2;
+    public static final int COL_LABEL = 3; // Applies to pathway's and pathway members
+    public static final int COL_NOTES = 4; // Applies to pathway's and pathway members
+    
+    public static final int COL_LOCKED = 5;
+    public static final int COL_COLOR = 6;
+    
+    
+    
    // public static final int COL_REVEALER = 1;
     
     public PathwayTableModel()
@@ -115,7 +120,7 @@ public class PathwayTableModel extends DefaultTableModel
     }
     public void moveRow(int start,int end, int to, LWPathway pathway)
     {
-    	System.out.println("MOVE : " + start + " to: " + to);
+    	//System.out.println("MOVE : " + start + " to: " + to);
     	//final LWPathway activePathway = VUE.getActivePathway();    	
         pathway.moveEntry(start, to);
         fireTableDataChanged();
@@ -277,7 +282,7 @@ public class PathwayTableModel extends DefaultTableModel
     public Class getColumnClass(int col){
         if (col == COL_COLOR)
             return Color.class;
-        else if (col == COL_VISIBLE || col == COL_NOTES || col == COL_LOCKED)
+        else if (col == COL_VISIBLE || col == COL_NOTES || col == COL_LOCKED || col == COL_MAPVIEW)
             return ImageIcon.class;
         else if (col == COL_LABEL || col == COL_OPEN)
             return Object.class;
@@ -346,7 +351,9 @@ public class PathwayTableModel extends DefaultTableModel
         } else {
             try {
                 if (col == COL_LABEL)                               	
-                		return entry.getLabel();                
+                		return entry.getLabel();  
+                else if (col == COL_MAPVIEW)
+                		return new Boolean(entry.isMapView());
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("exception in the table model, setting pathway element cell:" + e);
@@ -372,6 +379,9 @@ public class PathwayTableModel extends DefaultTableModel
             else if (col == COL_OPEN)    { p.setOpen(!p.isOpen()); }              // not proper
             else if (col == COL_LABEL)   { entry.setLabel((String)aValue); }      // proper
             else if (col == COL_LOCKED)  { p.setLocked(!p.isLocked()); }          // not proper
+            else if (col == COL_MAPVIEW)
+        	{entry.setMapView(((Boolean)aValue).booleanValue());        	
+        	}
            /* else if (col == COL_REVEALER) {
                 if (bool)
                     getPathwayList().setRevealer(p);
@@ -380,6 +390,12 @@ public class PathwayTableModel extends DefaultTableModel
             }*/
         } else {
             if (col == COL_LABEL) entry.setLabel((String)aValue);
+            else if (col == COL_MAPVIEW)
+            	{entry.setMapView(!entry.isMapView());
+            	VUE.getSlideViewer().reload();
+            
+            	}
+            	
         }
         VUE.getUndoManager().mark();
         // all the above sets will trigger LWCEvents, listeneted to by the

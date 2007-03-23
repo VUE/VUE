@@ -67,7 +67,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.61 $ / $Date: 2007-03-07 18:01:09 $ / $Author: mike $
+ * @version $Revision: 1.62 $ / $Date: 2007-03-23 02:28:09 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable implements DropTargetListener, DragSourceListener, DragGestureListener 
@@ -79,6 +79,9 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
 	private int dropRow = -1;
     private final ImageIcon notesIcon;
     private final ImageIcon lockIcon;
+    private final ImageIcon lockOpenIcon;
+    private final ImageIcon mapViewIcon;
+    private final ImageIcon slideViewIcon;
     private final ImageIcon eyeOpen;
     private final ImageIcon eyeClosed;
     
@@ -101,7 +104,7 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
    // private LWPathway.Entry lastSelectedEntry;
 
     private static final boolean showHeaders = true; // sets whether or not table column headers are shown
-    private final int[] colWidths = {20,20,13,120,20,20};
+    private final int[] colWidths = {20,20,13,180,30,30,30};
 
     private static Color selectedColor;
 
@@ -116,13 +119,16 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
 
         this.notesIcon = VueResources.getImageIcon("notes");
         this.lockIcon = VueResources.getImageIcon("lock");
+        this.lockOpenIcon = VueResources.getImageIcon("lockOpen");
         this.eyeOpen = VueResources.getImageIcon("pathwayOn");
         this.eyeClosed = VueResources.getImageIcon("pathwayOff");
-    
+        this.mapViewIcon = VueResources.getImageIcon("mapView");
+        this.slideViewIcon = VueResources.getImageIcon("slideView");
+        
         this.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         this.setRowHeight(20);
         this.setRowSelectionAllowed(true);
-        this.setShowVerticalLines(false);        
+        this.setShowVerticalLines(true);        
         this.setShowHorizontalLines(true);
         this.setGridColor(Color.lightGray);
         this.setIntercellSpacing(new Dimension(0,1));
@@ -143,16 +149,27 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
         this.setDefaultRenderer(Color.class, new ColorRenderer());
         this.setDefaultRenderer(ImageIcon.class, new ImageRenderer());
         this.setDefaultRenderer(Object.class, new LabelRenderer());
-      //  this.setDefaultRenderer(Boolean.class, new BooleanRenderer());
         this.setDefaultEditor(Color.class, new ColorEditor());
         this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         for (int i = 0; i < colWidths.length; i++){
             TableColumn col = getColumn(PathwayTableModel.ColumnNames[i]);
             if (i == PathwayTableModel.COL_OPEN)
-                col.setMinWidth(colWidths[i]);
-            if (i != PathwayTableModel.COL_LABEL)
-                col.setMaxWidth(colWidths[i]);
+                col.setMaxWidth(20);
+            else if (i == PathwayTableModel.COL_LABEL)
+                {//col.setMaxWidth(colWidths[i]);
+                col.setMinWidth(160);
+                col.setWidth(160);                
+                }
+            else if ( i == PathwayTableModel.COL_COLOR)
+            {
+            	col.setMaxWidth(25);
+            }
+            else
+            {
+            	col.setMaxWidth(colWidths[i]);
+            }
+            
         }
 
         this.getSelectionModel().addListSelectionListener
@@ -191,14 +208,22 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
                     if (entry.isPathway()) {
                         if (col == PathwayTableModel.COL_VISIBLE ||
                             col == PathwayTableModel.COL_OPEN ||
-                            col == PathwayTableModel.COL_LOCKED)
+                            col == PathwayTableModel.COL_LOCKED
+                            )
                         {
                             // setValue forces a value toggle in these cases
                             setValueAt(entry.pathway, row, col);
                         }
+                        else
+                        {
+                        	entry.pathway.setCurrentEntry(entry);
+                        	}
                         //pathway.setCurrentIndex(-1);
-                    } else {                    	
-                        entry.pathway.setCurrentEntry(entry);
+                    } else {
+                    	if (col == PathwayTableModel.COL_MAPVIEW)
+                    		setValueAt(entry.pathway,row,col);
+                    	else
+                    		entry.pathway.setCurrentEntry(entry);
                     }
 
                     //PathwayTable.this.tableSelectionUnderway = false;
@@ -275,7 +300,7 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
                 if (row == -1)
                     row = lastSelectedRow;
                 if (row != -1)
-                    getTableModel().setValueAt(currentColor = c, row, 1);
+                    getTableModel().setValueAt(currentColor = c, row, 6);
             }
         }
 
@@ -384,7 +409,7 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
             String debug = "";
 
             if (DEBUG.PATHWAY) debug = "(row"+row+")";
-            GradientLabel gl = new GradientLabel();
+            GradientLabel gl = new GradientLabel(entry.pathway);
             
             setMinimumSize(new Dimension(10, 20));
             setPreferredSize(new Dimension(500, 20));      
@@ -423,7 +448,7 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
             	
             	final LWPathway activePathway = VUE.getActivePathway();
             	
-            	if (col != 2)
+            	if (col != 3)
             	{
             		if (entry.pathway == activePathway && entry.pathway.getCurrentEntry() == entry) 
             		{
@@ -475,17 +500,27 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
     private class GradientLabel extends JPanel
     {
     	 //Gradient painting necessities
-        public final Color
+        private final Color
         TopGradient1 = new Color(179,166,121),
         BottomGradient1 = new Color(142,129,82);
 
-        public GradientLabel()
+       private final Color TopGradient2 = new Color(195,193,186);
+       private final Color BottomGradient2 = new Color(162,161,156);
+       private LWPathway path;
+       private GradientPaint Gradient = null;
+       
+       private GradientPaint Gradient2 = null;
+       
+        public GradientLabel(LWPathway pathway)
         {
         	setOpaque(false);
+        	path=pathway;
+        	Gradient = new GradientPaint(0,           0, TopGradient1,
+                    0, 20, BottomGradient1);
+        	Gradient2 = new GradientPaint(0,           0, TopGradient2,
+                    0, 20, BottomGradient2);
         }
-        private final GradientPaint Gradient
-        = new GradientPaint(0,           0, TopGradient1,
-                            0, 20, BottomGradient1);
+        
         
     	 public void paintComponent(Graphics g) {
              paintGradient((Graphics2D)g);
@@ -494,7 +529,11 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
 
          private void paintGradient(Graphics2D g)
          {       
-             g.setPaint(Gradient);
+        	 if (VUE.getActivePathway().equals(path))
+        		 g.setPaint(Gradient);
+        	 else
+        		 g.setPaint(Gradient2);
+        	 
              g.fillRect(0, 0, getWidth(),20);
          }
     }
@@ -513,7 +552,7 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
             if (entry == null)
                 return null;
             
-            GradientLabel gl = new GradientLabel();
+            
             
             this.setBorder(DefaultBorder);
             
@@ -534,7 +573,7 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
                         setBackground(BGColor);
                 }
                 else if (col == PathwayTableModel.COL_LOCKED) {
-                    setIcon(bool ? lockIcon : null);
+                    setIcon(bool ? lockIcon : lockOpenIcon);
                     if (entry.node == VUE.getActivePathway() && entry.pathway.getCurrentEntry() == entry)
                         setBackground(selectedColor);
                     else
@@ -547,7 +586,6 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
                         setBackground(selectedColor);
                     else
                         setBackground(BGColor);
-
                 }
             }
 
@@ -560,7 +598,20 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
                     setToolTipText(null);
                     setIcon(null);
                 }
-            } else if (!entry.isPathway())
+            }  else if (col == PathwayTableModel.COL_MAPVIEW) 
+            {
+            	boolean bool = false;
+                if (obj instanceof Boolean)
+                    bool = ((Boolean)obj).booleanValue();
+                
+                if(entry.isPathway())
+                	setIcon(null);
+                else
+                	setIcon(bool ? mapViewIcon : slideViewIcon);
+                               
+                setToolTipText("Toggle map/slide node");
+            } 
+            else if (!entry.isPathway())
             {
             	final LWPathway activePathway = VUE.getActivePathway();
             	//System.out.println("return null");
@@ -584,6 +635,7 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
             
            if (entry.isPathway())
            {
+        	   GradientLabel gl = new GradientLabel(entry.pathway);
         	   this.setOpaque(false);
         	   gl.add(this);
         	   return gl;

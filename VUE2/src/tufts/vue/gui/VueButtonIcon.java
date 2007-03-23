@@ -42,7 +42,7 @@ import javax.swing.border.*;
  * transparency, etc, based on button state.  Can also handle a null raw icon for just drawing borders.
  * Can install, via installGenerated, a set of icons into any AbstractButton using our default VUE GUI scheme.
  *
- * @version $Revision: 1.10 $ / $Date: 2007-03-07 18:01:10 $ / $Author: mike $
+ * @version $Revision: 1.11 $ / $Date: 2007-03-23 02:28:10 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -57,23 +57,14 @@ public class VueButtonIcon implements Icon
     public static final int MENU_SELECTED = 6;     // sub-menus: rollover (palette menu)
             
     public static void installGenerated(AbstractButton b, Icon raw, Dimension s) {
-        if (DEBUG.INIT||DEBUG.TOOL) System.out.println(b + " generating button states from " + raw);
-        if (s == null)
-            s = new Dimension(0,0);
-
-        if (GUI.isMacAqua() && b instanceof MenuButton) {
-            b.setIcon(raw);
-        } else {
-
-            b.setIcon(new VueButtonIcon(raw, UP, s));
-            b.setPressedIcon(new VueButtonIcon(raw, PRESSED, s));
-            b.setSelectedIcon(new VueButtonIcon(raw, SELECTED, s));
-            b.setDisabledIcon(new VueButtonIcon(raw, DISABLED, s));
-            b.setRolloverIcon(new VueButtonIcon(raw, ROLLOVER, s));
-        }
+    	installGenerated(b,raw,raw,s);
     }
     
     public static void installGenerated(AbstractButton b, Icon raw, Icon selected,Dimension s) {
+        installGenerated(b,raw,selected,raw,s);
+    }
+    
+    public static void installGenerated(AbstractButton b, Icon raw, Icon selected,Icon rollover,Dimension s) {
         if (DEBUG.INIT||DEBUG.TOOL) System.out.println(b + " generating button states from " + raw);
         if (s == null)
             s = new Dimension(0,0);
@@ -86,7 +77,7 @@ public class VueButtonIcon implements Icon
             b.setPressedIcon(new VueButtonIcon(raw, PRESSED, s));
             b.setSelectedIcon(new VueButtonIcon(selected, SELECTED, s));
             b.setDisabledIcon(new VueButtonIcon(raw, DISABLED, s));
-            b.setRolloverIcon(new VueButtonIcon(raw, ROLLOVER, s));
+            b.setRolloverIcon(new VueButtonIcon(rollover, ROLLOVER, s));
         }
     }
 
@@ -119,6 +110,7 @@ public class VueButtonIcon implements Icon
 
     public VueButtonIcon(Icon rawIcon, int t, int width, int height)
     {
+    	
         this.mRawIcon = rawIcon;
         this.mType = t;
         if (rawIcon != null) {

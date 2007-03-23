@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.396 $ / $Date: 2007-03-07 18:01:09 $ / $Author: mike $ 
+ * @version $Revision: 1.397 $ / $Date: 2007-03-23 02:28:09 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -108,7 +108,7 @@ public class VUE
 
     private static InspectorPane inspectorPane = null;
     private static FormatPanel formattingPanel; 
-    
+    private  static PathwayPanel pathwayPanel = null;
     public interface ActiveMapListener {
         public void activeMapChanged(LWMap map);
     }
@@ -589,6 +589,7 @@ public class VUE
         
         // The real tool palette window withtools and contextual tools
         VueToolbarController tbc = VueToolbarController.getController();
+        
         ModelSelection.addListener(tbc);
 
         DockWindow toolbarDock = null;
@@ -619,9 +620,9 @@ public class VUE
         //-----------------------------------------------------------------------------
         // Pathways panel
         //-----------------------------------------------------------------------------
-        
+        pathwayPanel = new PathwayPanel(VUE.getDialogParentAsFrame());
         pathwayDock = GUI.createDockWindow(VueResources.getString("dockWindow.presentation.title"),
-                                                            new PathwayPanel(VUE.getDialogParentAsFrame()));
+                                                            pathwayPanel);
 
         //-----------------------------------------------------------------------------
         // Formatting
@@ -1056,6 +1057,11 @@ public class VUE
     {
     	return formattingPanel;
     }
+    
+    public static PathwayPanel getPathwayPanel()
+    {
+    	return pathwayPanel;
+    }
 
     /**
      * Get the given windows displayed, but off screen, ready to be moved
@@ -1380,7 +1386,7 @@ public class VUE
     
     private static final LWComponent.Listener PathwayListListener =
         new LWComponent.Listener() {
-            public void LWCChanged(LWCEvent e) {
+            public void LWCChanged(LWCEvent e) {            	
                 if ("pathway.list.active".equals(e.getName())) {
                     setActivePathway((LWPathway) e.getComponent());
                 }
@@ -1415,15 +1421,17 @@ public class VUE
 
         if (pathwayList != null)
             pathwayList.addListener(PathwayListListener);
-
-        setActivePathway(map.getActivePathway());
+                
+        setActivePathway(map.getActivePathway());                
     }
 
-    private static void setActivePathway(final LWPathway pathway)
+    public static void setActivePathway(final LWPathway pathway)
     {
         if (ActivePathway == pathway)
+        {
             return;
-
+        }
+        
         ActivePathway = pathway;
         
         if (DEBUG.FOCUS || DEBUG.EVENTS) out("ActivePathway set to " + pathway);

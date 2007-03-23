@@ -35,7 +35,7 @@ import javax.swing.border.*;
  * VueResources in format buttonName.Up, buttonName.down,
  * buttonName.disabled, or .raw for generated buttons.
  *
- * @version $Revision: 1.8 $ / $Date: 2007-03-07 18:01:10 $ / $Author: mike $
+ * @version $Revision: 1.9 $ / $Date: 2007-03-23 02:28:10 $ / $Author: mike $
  * @author  akumar03
  * @author  Scott Fraize
  */
@@ -98,6 +98,7 @@ public class VueButton extends JButton
         // todo: make an LWPropertyHandler for boolean's
         protected String key;
         public Toggle(String name, ActionListener l) {
+        	        	
             init(name);
             if (l != null)
                 addActionListener(l);
@@ -197,21 +198,31 @@ public class VueButton extends JButton
     public static final String kDISABLED = ".disabled";
     public static final String kSIZE = ".size";
     public static final String kSELECTED = ".selected";
+    public static final String kROLLOVER=".rollover";
 
     public static void installResourceConfiguration(AbstractButton b, String key)
     {    	
         Icon i = null;
-        Icon i2 = null;
-        if ((i = VueResources.getImageIcon(key + kRAW)) != null) {
-        	if ((i2 = VueResources.getImageIcon(key + kSELECTED)) != null)
-        		VueButtonIcon.installGenerated(b, i,i2, VueResources.getSize(key + kSIZE));
-        	else
-        		VueButtonIcon.installGenerated(b, i, VueResources.getSize(key + kSIZE));
+        
+        if ((i = VueResources.getImageIcon(key + kRAW)) != null) 
+        {
+        	Icon i2 = null;
+        	i2 = VueResources.getImageIcon(key + kSELECTED);
+        	Icon i3 = VueResources.getImageIcon(key+kROLLOVER);
+        	
+        	if (i2 == null)
+        		i2=i;
+        	if (i3 == null)
+        		i3=i;
+        	
+        	VueButtonIcon.installGenerated(b, i,i2,i3, VueResources.getSize(key + kSIZE));
+        	        	        		
         } else {
         	if ((i = VueResources.getImageIcon(key+kSELECTED)) != null){ b.setSelectedIcon(i);System.out.println("MIKEK");}
             if ((i = VueResources.getImageIcon(key + kUP)) != null)       b.setIcon(i);
             if ((i = VueResources.getImageIcon(key + kDOWN)) != null)     b.setPressedIcon(i);
             if ((i = VueResources.getImageIcon(key + kDISABLED)) != null) b.setDisabledIcon(i);
+            
         }
         String tt = VueResources.getString(key + ".tooltip");
         if (tt != null) {

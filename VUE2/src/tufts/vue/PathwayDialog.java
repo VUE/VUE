@@ -44,6 +44,7 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
         super(parentFrame, VueResources.getString("presentationDialog.title"), true);
         this.tableModel = model;
         setSize(250, 100);
+        this.setFocusable(true);
         setLocation(location);
         setUpUI();
     }

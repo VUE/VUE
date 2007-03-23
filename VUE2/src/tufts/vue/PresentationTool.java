@@ -196,7 +196,7 @@ public class PresentationTool extends VueTool
         setPage(linkingTo);
     }
 
-    private void startPresentation()
+    public void startPresentation()
     {
         out(this + " startPresentation");
         //mShowContext.setSelected(false);

@@ -19,6 +19,8 @@
 package tufts.vue;
 
 import tufts.vue.gui.*;
+import tufts.vue.gui.formattingpalette.ButtonlessComboBoxUI;
+
 
 import java.util.*;
 import java.awt.*;
@@ -45,36 +47,54 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.69 $ / $Date: 2007-03-08 16:49:34 $ / $Author: mike $
+ * @version $Revision: 1.70 $ / $Date: 2007-03-23 02:28:09 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
     implements ActionListener, VUE.ActivePathwayEntryListener
 {    
     private Frame mParentFrame;
-    private VueButton btnPresentationCreate = new VueButton("presentationDialog.button.add",this);        
-    private VueButton btnPresentationDelete = new VueButton("presentationDialog.button.delete",this);        
-    private VueButton btnLockPresentation = new VueButton("presentationDialog.button.lock",this);
+    
     private VueButton btnAddSlide = new VueButton("presentationDialog.button.makeSlides",this);
-    private VueButton btnDeleteSlide = new VueButton("presentationDialog.button.delete",this);
-    private AbstractButton btnPathwayOnly = new VueButton.Toggle("presentationDialog.button.viewAll",this);    
+    private VueButton btnMergeInto = new VueButton("presentationDialog.button.mergeInto");
+    private VueButton btnLiveMap = new VueButton("presentationDialog.button.liveMap");
+    
+    //edit
     private VueButton btnPreview = new VueButton("presentationDialog.button.preview", this);
+    private VueButton btnPreviewFull = new VueButton("presentationDialog.button.previewFull", this);
+       
+    //master slide
     private VueButton btnMasterSlide = new VueButton("presentationDialog.button.masterSlide",this);
     
-    ///NOT YET IMPLEMENTED
-    private VueButton btnPlayMaps = new VueButton("presentationDialog.button.playMap");
-    private VueButton btnPlaySlides = new VueButton("presentationDialog.button.playSlides");    
-    private VueButton btnMergeInto = new VueButton("presentationDialog.button.mergeInto");
-    private VueButton btnDisplayAsText = new VueButton("presentationDialog.button.displayAsText");
-    private VueButton btnDisplayAsMap = new VueButton("presentationDialog.button.displayAsMap");
+    //new    
+    private VueButton btnPresentationCreate = new VueButton("presentationDialog.button.add",this);        
+    private VueButton btnPresentationDelete = new VueButton("presentationDialog.button.delete",this);
+    
+
+    //filter
+    private JToggleButton btnPathwayOnly = new VueButton.Toggle("presentationDialog.button.viewAll",this);
     
     
+    //map view
+    private ImageDropDown btnShowSlides = new ImageDropDown(VueResources.getImageIcon("presentationDialog.button.showSlides.raw"),VueResources.getImageIcon("presentationDialog.button.showNodes.raw"),VueResources.getImageIcon("presentationDialog.button.showSlides.disabled"));
     
-    private PathwayTable mPathwayTable;
+    
+    //playback mode
+    private ImageDropDown btnPlayMaps = new ImageDropDown(VueResources.getImageIcon("presentationDialog.button.playMap.raw"),VueResources.getImageIcon("presentationDialog.button.playSlides.raw"),VueResources.getImageIcon("presentationDialog.button.playSlides.disabled"));
+    private VueButton btnPlay = new VueButton("presentationDialog.button.play",this);    
+                                            
+    //Section Labels for the top
+    private JLabel lblCreateSlides = new JLabel(VueResources.getString("presentationDialog.createslides.label"));
+    private JLabel lblEditSlides = new JLabel(VueResources.getString("presentationDialog.editslides.label"));
+    private JLabel lblMasterSlide = new JLabel(VueResources.getString("presentationDialog.masterslide.label"));
+    private JLabel lblNew = new JLabel(VueResources.getString("presentationDialog.new.label"));    
+    private JLabel lblFilter = new JLabel(VueResources.getString("presentationDialog.filter.label"));
+    private JLabel lblMapView = new JLabel(VueResources.getString("presentationDialog.mapview.label"));
+    private JLabel lblPlayback = new JLabel(VueResources.getString("presentationDialog.playback.label"));
+
+    public PathwayTable mPathwayTable;
     private PathwayTableModel mTableModel;
-    
-    //private AbstractButton btnPathwayShowOnly;
-    //private AbstractButton btnElementUp, btnElementDown;
+      
     
     private JLabel pathLabel;           // updated for current PathwayTable selection
     private JLabel pathElementLabel;    // updated for current PathwayTable selection
@@ -97,14 +117,21 @@ public class PathwayPanel extends JPanel
     public PathwayPanel(Frame parent) 
     {   
     	//DISABLE THE NOTES BUTTONS FOR NOW UNTIL WE FIGURE OUT WHAT THEY DO -MK
+    	Icon i =VueResources.getIcon("presentationDialog.button.viewAll.raw");
     //	btnAnnotateSlide.setEnabled(false);
     //	btnAnnotatePresentation.setEnabled(false);
     	btnMergeInto.setEnabled(false);
     	btnPlayMaps.setEnabled(false);
-    	btnPlaySlides.setEnabled(false);
-    	btnDisplayAsMap.setEnabled(false);
-    	btnDisplayAsText.setEnabled(false);
-    	//END
+    	btnLiveMap.setEnabled(false);
+    	btnPreviewFull.setEnabled(false);
+    	btnShowSlides.setEnabled(false);
+    	btnPlayMaps.setEnabled(false);
+    //	btnPlaySlides.setEnabled(false);
+//    	btnDisplayAsMap.setEnabled(false);
+  //  	btnDisplayAsText.setEnabled(false);
+    	//END    	
+        		
+    
     	
         //Font defaultFont = new Font("Helvetica", Font.PLAIN, 12);
         //Font highlightFont = new Font("Helvetica", Font.BOLD, 12);
@@ -125,103 +152,13 @@ public class PathwayPanel extends JPanel
         
         mPathwayTable.setBackground(BGColor);
         
-        //-------------------------------------------------------
-        // Setup selected pathway VCR style controls for current
-        // element
-        //-------------------------------------------------------
-
-        //JPanel playbackPanel = new VueUtil.JPanelAA(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        //JLabel playbackLabel = new JLabel("Playback on selected path:  ");
-        //playbackLabel.setFont(defaultFont);
-      //  playbackPanel.setBorder(new EmptyBorder(7,0,0,0));
-     //   playbackPanel.add(playbackLabel);
-    //    playbackPanel.add(new PlaybackToolPanel());
-        
-        //-------------------------------------------------------
-        // Setup pathway master add/remove/lock control
-        //-------------------------------------------------------
-         
-        
-        
-        
-    //    btnPathwayShowOnly = new VueButton("pathways.showOnly", this);
-        //btnPathwayShowOnly = new VueButton.Toggle("pathways.showOnly", this);
-        
-     /*   JPanel pathwayMasterPanel = new VueUtil.JPanelAA() {
-                public void addNotify() {
-                    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-                    setBackground(new Color(66,76,105));
-                    setBorder(new EmptyBorder(2,2,2,4));
-
-      //              add(btnPathwayShowOnly);
-                    add(Box.createHorizontalGlue());
-                        
-                    JLabel label = new JLabel("Create Pathways");
-                    //if (DEBUG.Enabled) System.out.println("PathPanel.SmallBoldFont: " + smallBoldFont);
-                    label.setFont(smallBoldFont);
-                    label.setForeground(Color.white);
-                    label.setBorder(new EmptyBorder(0,0,2,3));
-                    add(label);
-        
-                    add(Box.createHorizontalStrut(2));
-        
-                    add(Box.createHorizontalStrut(2));
-        
-                    add(Box.createHorizontalStrut(2));
-                    
-                    
-                    super.addNotify();
-                    //JLabel help = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
-                    //help.setBackground(altbgColor);
-                    //help.setToolTipText("Check boxes below to display paths on the map. "
-                    //"Click on path's layer to make a specific path active for editing or playback.");
-                    //add(questionLabel, BorderLayout.WEST);
-                }
-            };
-       */ 
-        
-        //-------------------------------------------------------
-        // Selected pathway add/remove element buttons
-        //-------------------------------------------------------
-        
-        
-        
-        //btnElementAdd.setToolTipText("Add items to pathway");
-        //btnElementRemove.setToolTipText("Remove items from pathway");
-
-       // btnElementUp = new VueButton("move-up", this);
-   //     btnElementDown = new VueButton("move-down", this);
-
-        /*JPanel elementControlPanel = new VueUtil.JPanelAA(new FlowLayout(FlowLayout.RIGHT, 1, 1)) {
-                public void addNotify() {
-                    setBackground(new Color(98,115,161));
-                    setBorder(new EmptyBorder(1,2,1,5));
-
-                    JLabel label = new JLabel("Add object to pathway ");
-                    label.setFont(smallBoldFont);
-                    label.setForeground(Color.white);
-                    label.setBackground(getBackground());
-                    label.setBorder(new EmptyBorder(0,0,1,2)); //tlbr
-                    
-                    add(label);
-        
-        
-            ///        add(btnElementUp);
-              ///      add(btnElementDown);
-                    
-                    super.addNotify();
-                }
-            };
-        */        
-        
+   
         notesArea = new JTextArea("");
         notesArea.setColumns(5);
         notesArea.setWrapStyleWord(true);
         notesArea.setAutoscrolls(true);
         notesArea.setLineWrap(true);
         notesArea.setBackground(Color.white);
-        //notesArea.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
-        //notesArea.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED, Color.white, Color.darkGray));
         notesArea.addKeyListener(new KeyAdapter() {
                 public void keyPressed(KeyEvent e) { mNoteKeyWasPressed = true; }
                 public void keyReleased(KeyEvent e) { if (e.getKeyCode() == KeyEvent.VK_ENTER) ensureNotesSaved(); }
@@ -273,23 +210,16 @@ public class PathwayPanel extends JPanel
         c.fill = GridBagConstraints.HORIZONTAL;
         //bag.setConstraints(pathwayMasterPanel, c);
         //add(pathwayMasterPanel);        
-        JPanel presentationPanel = new JPanel();
+        JPanel playbackPanel = new JPanel();
         JPanel slidePanel = new JPanel();
-        JPanel masterSlidePanel = new JPanel();
         
-        
-        
-        buildPresentationPanel(presentationPanel);
+        buildPlaybackPanel(playbackPanel);
         buildSlidePanel(slidePanel);
-        buildMasterSlidePanel(masterSlidePanel);
-        tabbedPane.add(VueResources.getString("presentationDialog.presentationTab.title"), presentationPanel);
         tabbedPane.add(VueResources.getString("presentationDialog.slideTab.title"), slidePanel);
-        tabbedPane.add(VueResources.getString("presentationDialog.masterSlideTab.title"), masterSlidePanel);
-        
+        tabbedPane.add(VueResources.getString("presentationDialog.playbackTab.title"), playbackPanel);
+  
     //    setLayout(new BorderLayout());
         add(tabbedPane,c);
-        
-        
         //-------------------------------------------------------
         // add the PathwayTable
         //-------------------------------------------------------
@@ -300,16 +230,6 @@ public class PathwayPanel extends JPanel
         tablePane.setPreferredSize(new Dimension(getWidth(), 180));
         bag.setConstraints(tablePane, c);
         add(tablePane,c);
-        
-        //-------------------------------------------------------
-        // add pathway element add/remove control panel
-        //-------------------------------------------------------
-
-        //c.fill = GridBagConstraints.HORIZONTAL;
-       // c.weighty = 0;
-       // c.insets = new Insets(3,0,1,1);
-       // bag.setConstraints(elementControlPanel, c);
-        //add(elementControlPanel);
         
         //-------------------------------------------------------
         // Add the notes panel
@@ -323,13 +243,6 @@ public class PathwayPanel extends JPanel
         add(notesPanel);
 
         //-------------------------------------------------------
-        // Add the playback panel
-        //-------------------------------------------------------
-
-        // (no constraints needed)
-        //add(playbackPanel);
-        
-        //-------------------------------------------------------
         // Disable all that need to be
         //-------------------------------------------------------
         
@@ -339,16 +252,8 @@ public class PathwayPanel extends JPanel
         // Set up the listeners
         //-------------------------------------------------------
         
-        /*
-        mTableModel.addTableModelListener(new TableModelListener() {
-                public void tableChanged(TableModelEvent e) {
-                    if (DEBUG.PATHWAY) System.out.println(this + " " + e);
-                    updateTextAreas();
-                    updateEnabledStates();
-                }
-            });
-        */
-
+        
+        
         VUE.addActivePathwayEntryListener(this);
         
         VUE.getSelection().addListener(new LWSelection.Listener() {
@@ -360,78 +265,414 @@ public class PathwayPanel extends JPanel
                         updateEnabledStates();
                 }
             }     
-        );
-        
-        
+        );          
     }
+    
+ /*   public void paint(Graphics g)
+    {
+    	super.paint(g);
+    	System.out.println("master panel :" + masterPanel.getSize().toString());
+    	System.out.println("new panel :" + newPanel.getSize().toString());
+    }*/
     
     private void buildSlidePanel(JPanel slidePanel)
     {
     	slidePanel.setLayout(new BoxLayout(slidePanel,BoxLayout.X_AXIS));
-    	DividerPanel p = new DividerPanel(20);
-        DividerPanel p1 = new DividerPanel(20);
-        DividerPanel p2 = new DividerPanel(20);
+    	JPanel createSlidePanel = new JPanel();
+    	JPanel editPanel = new JPanel();
+    	JPanel masterPanel = new JPanel();
+    	JPanel newPanel = new JPanel();	
+    	JPanel deletePanel = new JPanel();
+    	
+    	DividerPanel p1 = new DividerPanel(25);
+        DividerPanel p2 = new DividerPanel(25);
+        DividerPanel p3 = new DividerPanel(25);
+        DividerPanel p4 = new DividerPanel(25);
+        
+        
+        java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
+        
+        createSlidePanel.setLayout(new GridBagLayout());
+        editPanel.setLayout(new GridBagLayout());
+        masterPanel.setLayout(new GridBagLayout());
+        newPanel.setLayout(new GridBagLayout());
+        deletePanel.setLayout(new GridBagLayout());
+        
+        lblCreateSlides.setFont(VueResources.getFont("node.icon.font"));
+        lblEditSlides.setFont(VueResources.getFont("node.icon.font"));
+        lblMasterSlide.setFont(VueResources.getFont("node.icon.font"));
+        lblNew.setFont(VueResources.getFont("node.icon.font"));
+        
+        
+        //START CREATE SLIDE PANEL
+        gbConstraints.gridx = 0;
+        gbConstraints.gridy = 0;
+        gbConstraints.gridwidth = 0;
+        gbConstraints.gridheight = 1;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+        createSlidePanel.add(lblCreateSlides,gbConstraints);
+        
+        gbConstraints.gridx=0;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.gridy=1;
+        gbConstraints.anchor=GridBagConstraints.WEST;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        createSlidePanel.add(btnAddSlide,gbConstraints);
     
-        slidePanel.add(Box.createHorizontalStrut(6));
-        slidePanel.add(btnAddSlide);
-        slidePanel.add(Box.createHorizontalStrut(3));
-        slidePanel.add(btnMergeInto);
-        slidePanel.add(Box.createHorizontalStrut(3));
-        slidePanel.add(btnDeleteSlide);
-        slidePanel.add(Box.createHorizontalStrut(6));
-        slidePanel.add(p);      
-        slidePanel.add(Box.createHorizontalStrut(6));        
-        slidePanel.add(btnDisplayAsText);
-        slidePanel.add(Box.createHorizontalStrut(6));
-        slidePanel.add(btnDisplayAsMap);
-        slidePanel.add(Box.createHorizontalStrut(6));
+        gbConstraints.gridx=1;
+        gbConstraints.gridy=1;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.anchor=GridBagConstraints.WEST;
+        createSlidePanel.add(btnMergeInto,gbConstraints);
+        
+        gbConstraints.gridx=2;
+        gbConstraints.gridy=1;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.anchor=GridBagConstraints.WEST;
+        createSlidePanel.add(btnLiveMap,gbConstraints);
+        //END CREATE SLIDE PANEL
+        
+        //START EDIT PANEL
+        gbConstraints.gridx = 0;
+        gbConstraints.gridy = 0;
+        gbConstraints.gridwidth = 0;
+        gbConstraints.gridheight = 1;
+        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+        gbConstraints.fill=GridBagConstraints.NONE;        
+        editPanel.add(lblEditSlides,gbConstraints);
+        
+        gbConstraints.gridx=0;
+        gbConstraints.gridy=1;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.anchor=GridBagConstraints.WEST;
+        editPanel.add(btnPreviewFull,gbConstraints);
+    
+        gbConstraints.gridx=1;
+        gbConstraints.gridy=1;       
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.anchor=GridBagConstraints.WEST;
+        editPanel.add(btnPreview,gbConstraints);
+        //END EDIT PANEL
+        
+        //START MASTER PANEL        
+        gbConstraints.gridx = 0;
+        gbConstraints.gridy = 0;
+        gbConstraints.gridwidth = 0;
+        gbConstraints.gridheight = 1;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+        masterPanel.add(lblMasterSlide,gbConstraints);
+        
+        gbConstraints.gridx=0;
+        gbConstraints.gridy=1;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.anchor=GridBagConstraints.WEST;
+        masterPanel.add(btnMasterSlide,gbConstraints);
+        //END MASTER PANEL
+        
+        //START NEW PANEL
+        gbConstraints.gridx = 0;
+        gbConstraints.gridy = 0;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.insets = new Insets(5,0,0,0);
+        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+        newPanel.add(lblNew,gbConstraints);
+        
+        gbConstraints.gridx=0;
+        gbConstraints.gridy=1;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.insets = new Insets(3,0,6,0);
+        gbConstraints.anchor=GridBagConstraints.WEST;
+        newPanel.add(btnPresentationCreate,gbConstraints);
+        //END NEW PANEL
+        
+        //START DELETE PANEL
+        gbConstraints.gridx = 0;
+        gbConstraints.gridy = 0;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.insets = new Insets(0,0,0,0);
+        gbConstraints.fill=GridBagConstraints.NONE;
+        deletePanel.add(new JPanel(),gbConstraints);
+        
+        
+        gbConstraints.gridx=0;
+        gbConstraints.gridy=1;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.insets = new Insets(2,0,0,0);
+        deletePanel.add(btnPresentationDelete,gbConstraints);
+        //END DELETE PANEL        
+        
+        slidePanel.add(Box.createHorizontalStrut(1));
+        slidePanel.add(createSlidePanel);
+        slidePanel.add(Box.createHorizontalStrut(1));
+        slidePanel.add(p1);
+        slidePanel.add(Box.createHorizontalStrut(1));
+        slidePanel.add(editPanel);                
+        slidePanel.add(Box.createHorizontalStrut(1));
+        slidePanel.add(p3);
+        slidePanel.add(Box.createHorizontalStrut(5));
+        slidePanel.add(masterPanel);        
+        slidePanel.add(p4);
+        slidePanel.add(Box.createHorizontalStrut(5));                
+        slidePanel.add(newPanel);        
         slidePanel.add(p2);
-        slidePanel.add(btnPreview);
-        slidePanel.add(Box.createHorizontalStrut(6));                        
-        
+        slidePanel.add(Box.createHorizontalStrut(1));
+        slidePanel.add(deletePanel);
+        slidePanel.add(Box.createHorizontalStrut(1));        
+       
+       
         return;
     }
     
-    private void buildMasterSlidePanel(JPanel masterSlidePanel)
+       
+    private void buildPlaybackPanel(JPanel presentationPanel)
     {
-    	masterSlidePanel.setLayout(new BoxLayout(masterSlidePanel,BoxLayout.X_AXIS));
-        masterSlidePanel.add(Box.createHorizontalStrut(16));
-        masterSlidePanel.add(btnMasterSlide);
-        masterSlidePanel.add(Box.createHorizontalStrut(6));
+    	presentationPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+    	JPanel filterPanel = new JPanel();
+    	JPanel mapViewPanel = new JPanel();
+    	JPanel playBackPanel = new JPanel();
+    	    	
+    	DividerPanel p1 = new DividerPanel(25);
+        DividerPanel p2 = new DividerPanel(25);
+                
+        java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
         
-        return;
-    }
-    
-    private void buildPresentationPanel(JPanel presentationPanel)
-    {
-    	DividerPanel p = new DividerPanel(20);
-        DividerPanel p1 = new DividerPanel(20);
-        DividerPanel p2 = new DividerPanel(20);
-    
-    	presentationPanel.setLayout(new BoxLayout(presentationPanel,BoxLayout.X_AXIS));        
-        presentationPanel.add(Box.createHorizontalStrut(16));
-        presentationPanel.add(btnPresentationCreate);
-        presentationPanel.add(Box.createHorizontalStrut(6));
-        presentationPanel.add(btnPresentationDelete);
-        presentationPanel.add(Box.createHorizontalStrut(6));
-        presentationPanel.add(p);
-        presentationPanel.add(Box.createHorizontalStrut(6));
-        presentationPanel.add(btnLockPresentation);
-        presentationPanel.add(Box.createHorizontalStrut(6));
+        filterPanel.setLayout(new GridBagLayout());
+        mapViewPanel.setLayout(new GridBagLayout());
+        playBackPanel.setLayout(new GridBagLayout());
+        
+        lblFilter.setFont(VueResources.getFont("node.icon.font"));
+        lblMapView.setFont(VueResources.getFont("node.icon.font"));
+        lblPlayback.setFont(VueResources.getFont("node.icon.font"));        
+        
+        
+        //START FILTER PANEL
+        gbConstraints.gridx = 0;
+        gbConstraints.gridy = 0;
+        gbConstraints.gridwidth = 0;
+        gbConstraints.gridheight = 1;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+        gbConstraints.weightx=0;
+        gbConstraints.weighty=0;
+        filterPanel.add(lblFilter,gbConstraints);
+        
+        gbConstraints.gridx=0;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.gridy=1;
+        gbConstraints.fill=GridBagConstraints.BOTH;
+        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+        filterPanel.add(btnPathwayOnly,gbConstraints);            
+        //END FILTER PANEL
+        
+        //START MAP VIEW PANEL
+        gbConstraints.gridx = 0;
+        gbConstraints.gridy = 0;
+        gbConstraints.gridwidth = 0;
+        gbConstraints.gridheight = 1;
+        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+        gbConstraints.fill=GridBagConstraints.NONE;        
+        gbConstraints.weightx=0;
+        gbConstraints.weighty=0;
+        //gbConstraints.insets = new Insets(4,15,4,15);
+        mapViewPanel.add(lblMapView,gbConstraints);
+        
+        gbConstraints.gridx=0;
+        gbConstraints.gridy=1;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+        mapViewPanel.add(btnShowSlides,gbConstraints);    
+        //END MAP VIEW PANEL
+        
+        //START PLAYBACK PANEL        
+        gbConstraints.gridx = 0;
+        gbConstraints.gridy = 0;
+        gbConstraints.gridwidth = 0;
+        gbConstraints.gridheight = 1;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+        gbConstraints.weightx=0;
+        gbConstraints.weighty=0;
+        playBackPanel.add(lblPlayback,gbConstraints);
+        
+        gbConstraints.gridx=0;
+        gbConstraints.gridy=1;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+        playBackPanel.add(btnPlayMaps,gbConstraints);
+        
+        gbConstraints.gridx=1;
+        gbConstraints.gridy=1;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.insets = new Insets(0,6,0,0);
+        gbConstraints.fill=GridBagConstraints.NONE;
+        playBackPanel.add(btnPlay,gbConstraints);
+        //END PLAYBACK PANEL
+        
+       
+        presentationPanel.add(Box.createHorizontalStrut(1));
+        presentationPanel.add(filterPanel);
+        presentationPanel.add(Box.createHorizontalStrut(1));
         presentationPanel.add(p1);
-        presentationPanel.add(Box.createHorizontalStrut(6));
-        presentationPanel.add(btnPathwayOnly);
-        presentationPanel.add(Box.createHorizontalStrut(6));
+        presentationPanel.add(Box.createHorizontalStrut(1));
+        presentationPanel.add(mapViewPanel);                
+        presentationPanel.add(Box.createHorizontalStrut(1));
         presentationPanel.add(p2);
-        presentationPanel.add(Box.createHorizontalStrut(6));
-        presentationPanel.add(btnPlayMaps);
-        presentationPanel.add(Box.createHorizontalStrut(6));
-        presentationPanel.add(btnPlaySlides);
-        
+        presentationPanel.add(Box.createHorizontalStrut(5));
+        presentationPanel.add(playBackPanel);        
+        presentationPanel.add(Box.createHorizontalStrut(5));                
+                                                                         	
         return;
     }
+    
+
+    class ImageDropDown extends JPanel {
+        
+    	ImageIcon[] images;        
+        private JComboBox comboList;
+        ImageIcon disabledIcon = null;
+        public ImageDropDown(ImageIcon icon1, ImageIcon icon2,ImageIcon icon3) {
+            super(new BorderLayout());
+            
+            disabledIcon = icon3;
+            
+            //Load the pet images and create an array of indexes.
+            images = new ImageIcon[2];
+            Integer[] intArray = new Integer[2];
+            
+            intArray[0] = new Integer(0);
+            intArray[1] = new Integer(1);
+                
+            images[0] = icon1;
+            images[1] = icon2;                                                      
+
+            //Create the combo box.
+            
+            comboList = new JComboBox(intArray);
+            ComboBoxRenderer renderer= new ComboBoxRenderer();
+            renderer.setPreferredSize(new Dimension(20, 20));
+            comboList.setRenderer(renderer);
+            comboList.setMaximumRowCount(3);
+            comboList.setUI(new ButtonlessComboBoxUI());
+            comboList.setOpaque(false);
+            comboList.setBorder(BorderFactory.createEmptyBorder());
+            comboList.setBackground(this.getBackground());
+            //Lay out the demo.
+            setOpaque(true);
+            add(comboList, BorderLayout.PAGE_START);
+          //  this.setPreferredSize(new Dimension(comboList.getWidth()-10,comboList.getHeight()));            
+        }
+
+        public void setEnabled(boolean enabled)
+        {
+        	comboList.setEnabled(enabled);
+        }
+        public JComboBox getComboBox()
+        {
+        	return comboList;
+        }
+        
+        class ComboBoxRenderer extends JLabel
+                               implements ListCellRenderer {
+            private Font uhOhFont;
+
+            public ComboBoxRenderer() {
+                setOpaque(true);
+                setHorizontalAlignment(CENTER);
+                setVerticalAlignment(CENTER);
+                
+            }
+
+            /*
+             * This method finds the image and text corresponding
+             * to the selected value and returns the label, set up
+             * to display the text and image.
+             */
+            public Component getListCellRendererComponent(
+                                               JList list,
+                                               Object value,
+                                               int index,
+                                               boolean isSelected,
+                                               boolean cellHasFocus) {
+                //Get the selected index. (The index param isn't
+                //always valid, so just use the value.)
+                int selectedIndex = ((Integer)value).intValue();
+
+                /*if (isSelected) {
+                    setBackground(list.getSelectionBackground());
+                    setForeground(list.getSelectionForeground());
+                } else {
+                    setBackground(list.getBackground());
+                    setForeground(list.getForeground());
+                }
+                */
+                
+                //Set the icon and text.  If icon was null, say so.
+                ImageIcon icon = images[selectedIndex];
+                setIcon(icon);
+                if (!comboList.isEditable())
+                	setIcon(disabledIcon);
+      
+                return this;
+            }
+        }
+//      default offsets for drawing popup arrow via code
+        public int mArrowSize = 3;
+        public int mArrowHOffset  = -9;
+        public int mArrowVOffset = -7;
+        public void paint(Graphics g)
+        {
+        	super.paint(g);
+        	
+        	        // draw popup arrow
+                    Color saveColor = g.getColor();
+                    g.setColor( Color.black);
+        			
+                    int w = getWidth();
+                    int h = getHeight();
+        			
+                    int x1 = w + mArrowHOffset;
+                    int y = h + mArrowVOffset;
+                    int x2 = x1 + (mArrowSize * 2) -1;
+        			
+                    //((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    //RenderingHints.VALUE_ANTIALIAS_ON);
+                    
+                    for(int i=0; i< mArrowSize; i++) { 
+                        g.drawLine(x1,y,x2,y);
+                        x1++;
+                        x2--;
+                        y++;
+                    }
+                    g.setColor( saveColor);
+              }
+        
+    }
+    
+    
     public void activePathwayEntryChanged(LWPathway.Entry entry) {
-        updateTextAreas(entry);
+    	
+    	updateTextAreas(entry);
         updateEnabledStates();
     }
     
@@ -508,37 +749,54 @@ public class PathwayPanel extends JPanel
         	VUE.getSlideDock().setVisible(true);
         	VUE.getSlideViewer().showSlideMode();
         }    
+        else if (btn == btnPlay)
+        {
+        	 VueTool PresentationTool = VueToolbarController.getController().getTool("viewTool");
+        	 VueToolbarController.getController().setSelectedTool(PresentationTool);
+        	((PresentationTool)PresentationTool).startPresentation();
+        	VUE.toggleFullScreen(true);
+        }
         else if (btn == btnMasterSlide)
         {
         	VUE.getSlideDock().setVisible(true);
         	VUE.getSlideViewer().showMasterSlideMode();
         }
-        else if (btn == btnDeleteSlide) {
-            
-            // This is a heuristic to try and best guess what the user might want to
-            // actually remove.  If nothing in selection, and we have a current pathway
-            // index/element, remove that current pathway element.  If one item in
-            // selection, also remove whatever the current element is (which ideally is
-            // usually also the selection, but if it's different, we want to prioritize
-            // the current element hilighted in the PathwayTable).  If there's MORE than
-            // one item in selection, do a removeAll of everything in the selection.
-            // This removes ALL instances of everything in selection, so that, for
-            // instance, a SelectAll followed by pathway delete is guaranteed to empty
-            // the pathway entirely.
-
-            if (pathway.getCurrentIndex() >= 0 && VUE.ModelSelection.size() < 2) {
-                pathway.remove(pathway.getCurrentIndex());
-            } else {
-                pathway.remove(VUE.getSelection().iterator());
-            }
-        }
         else if (btn == btnAddSlide)  { pathway.add(VUE.getSelection().iterator()); }
       //  else if (btn == btnElementUp)   { pathway.moveCurrentUp(); }
       //  else if (btn == btnElementDown) { pathway.moveCurrentDown(); }
 
-        else if (btn == btnPresentationDelete)   { deletePathway(pathway); }
+        else if (btn == btnPresentationDelete)   
+        {
+        	System.out.println("Current " + pathway.getCurrentEntry());
+        	if (pathway.getCurrentEntry() == null)
+        	{
+        		//delete the pathway
+        		deletePathway(pathway);
+        	}
+        	else
+        	{
+        		//delete the current entry
+//        		 This is a heuristic to try and best guess what the user might want to
+                // actually remove.  If nothing in selection, and we have a current pathway
+                // index/element, remove that current pathway element.  If one item in
+                // selection, also remove whatever the current element is (which ideally is
+                // usually also the selection, but if it's different, we want to prioritize
+                // the current element hilighted in the PathwayTable).  If there's MORE than
+                // one item in selection, do a removeAll of everything in the selection.
+                // This removes ALL instances of everything in selection, so that, for
+                // instance, a SelectAll followed by pathway delete is guaranteed to empty
+                // the pathway entirely.
+
+                if (pathway.getCurrentIndex() >= 0 && VUE.ModelSelection.size() < 2) {
+                    pathway.remove(pathway.getCurrentIndex());
+                } else {
+                    pathway.remove(VUE.getSelection().iterator());
+                }
+        	}
+        //	deletePathway(pathway); 
+        }
         else if (btn == btnPresentationCreate)   { new PathwayDialog(mParentFrame, mTableModel, getLocationOnScreen()).setVisible(true); }
-        else if (btn == btnLockPresentation)     { pathway.setLocked(!pathway.isLocked()); }
+     //   else if (btn == btnLockPresentation)     { pathway.setLocked(!pathway.isLocked()); }
         else if (btn == btnPathwayOnly) {
             toggleHideEverythingButCurrentPathway();
         }
@@ -612,7 +870,7 @@ public class PathwayPanel extends JPanel
         
         if (path == null || path.isLocked()) {
             btnAddSlide.setEnabled(false);
-            btnDeleteSlide.setEnabled(false);
+           // btnDeleteSlide.setEnabled(false);
             btnPresentationDelete.setEnabled(false);
             notesArea.setEnabled(false);
             return;
@@ -627,7 +885,7 @@ public class PathwayPanel extends JPanel
         // if any viable index, AND path is open so you can see
         // it selected, enable the remove button.
         if (path.getCurrentIndex() >= 0 && path.isOpen()) {
-            btnDeleteSlide.setEnabled(true);
+           //btnDeleteSlide.setEnabled(true);
             removeDone = true;
         }
             
@@ -647,27 +905,27 @@ public class PathwayPanel extends JPanel
                         break;
                     }
                 }
-                btnDeleteSlide.setEnabled(enabled);
+               // btnDeleteSlide.setEnabled(enabled);
             }
         } else {
             btnAddSlide.setEnabled(false);
-            if (!removeDone)
-                btnDeleteSlide.setEnabled(false);
+            //if (!removeDone)
+                //btnDeleteSlide.setEnabled(false);
         }
     }
 
-    private void updateEnabledStates()
-    {
-        if (DEBUG.PATHWAY&&DEBUG.META) System.out.println(this + " updateEnabledStates");
+    public void updateEnabledStates()
+    {        if (DEBUG.PATHWAY&&DEBUG.META) System.out.println(this + " updateEnabledStates");
         
         updateAddRemoveActions();
-
+        
         LWPathway pathway = VUE.getActivePathway();
+       
         if (pathway != null && pathway.length() > 1) {
             boolean atFirst = pathway.atFirst();
             boolean atLast = pathway.atLast();
-              path_rewind.setEnabled(!atFirst);
-              path_backward.setEnabled(!atFirst);
+             path_rewind.setEnabled(!atFirst);
+             path_backward.setEnabled(!atFirst);
              path_forward.setEnabled(!atLast);
              path_last.setEnabled(!atLast);
 //            if (pathway.isLocked()) {
@@ -682,8 +940,9 @@ public class PathwayPanel extends JPanel
     //        btnElementUp.setEnabled(false);
     //        btnElementDown.setEnabled(false);
         }
-        btnPathwayOnly.setEnabled(pathway != null && pathway.length() > 0);
-        btnLockPresentation.setEnabled(pathway != null);
+        btnPathwayOnly.setEnabled(pathway != null);
+        
+      //  btnLockPresentation.setEnabled(pathway != null);
     }
     
     /** Delete's a pathway and all it's contents */
