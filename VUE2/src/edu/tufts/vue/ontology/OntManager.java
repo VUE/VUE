@@ -26,7 +26,7 @@ package edu.tufts.vue.ontology;
 
 import java.util.*;
 import edu.tufts.vue.style.*;
-
+import java.net.*;
 
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.ontology.*;
@@ -70,14 +70,14 @@ public class OntManager {
         return ont;
     }
     
-    public static Ontology readOntologyWithStyle(String url,String cssUrl,int ontType) {
+    public static Ontology readOntologyWithStyle(URL url,URL cssUrl,int ontType) {
         String NS = "http://www.fedora.info/definitions/1/0/fedora-relsext-ontology.rdfs";
         OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM_RDFS_INF,null);
          List<OntType> types = new ArrayList<OntType>();
-        m.read(url);
+        m.read(url.toString());
         OntProperty p = m.getOntProperty(NS+"#fedoraRelationship");
         ExtendedIterator iter = p.listSubProperties(false);
-        StyleReader.readStyles("fedora.ontology.css");
+        StyleReader.readCSS(cssUrl);
         Ontology ont = new Ontology();
         ont.setBase(NS);
        while(iter.hasNext()) {
