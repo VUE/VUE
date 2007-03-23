@@ -180,10 +180,16 @@ public class LWImage extends
             updateNodeIconStatus((LWNode)parent);
     }
 
-    protected void addNotify(LWContainer parent) {
-        super.addNotify(parent);
+    void setParent(LWContainer parent) {
+        super.setParent(parent);
         updateNodeIconStatus(parent);
     }
+    /*
+    protected void reparentNotify(LWContainer parent) {
+        super.reparentNotify(parent);
+        updateNodeIconStatus(parent);
+    }
+    */
 
     private void updateNodeIconStatus(LWContainer parent) {
 
@@ -230,9 +236,9 @@ public class LWImage extends
     }        
     
 
-    public void layout() {
+    public void layoutImpl(Object triggerKey) {
         if (getClass().isAssignableFrom(LWNode.class))
-            super.layout();
+            super.layoutImpl(triggerKey);
         else
             mIconBlock.layout();
     }

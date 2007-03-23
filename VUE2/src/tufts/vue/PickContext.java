@@ -23,7 +23,7 @@ package tufts.vue;
  *
  * This class essentially just a parameter block for picking LWTraversals.
  *
- * @version $Revision: 1.2 $ / $Date: 2006-12-04 02:15:44 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2007-03-23 16:57:16 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -53,7 +53,33 @@ public class PickContext
     /** A modifier for how deep to allow the pick: mediated by the LWComponent hierarcy with pickChild/defaultPick */
     public int pickDepth = 0;
 
-    public PickContext() {}
+    /** The location being picked, or start of region for region pick. */
+    public final float x, y;
+
+    /** If this is a region-pick, the size of the region */
+    public final float width, height;
+
+
+    public PickContext(float x, float y) {
+        this.x = x;
+        this.y = y;
+        width = height = 0;
+    }
+    public PickContext() {
+        this(Float.NaN,Float.NaN);
+    }
+    public PickContext(java.awt.geom.Rectangle2D.Float r) {
+        x = r.x;
+        y = r.y;
+        width = r.width;
+        height = r.height;
+    }
+    public PickContext(java.awt.geom.Rectangle2D r) {
+        x = (float) r.getX();
+        y = (float) r.getY();
+        width = (float) r.getWidth();
+        height = (float) r.getHeight();
+    }
 
     public String toString() {
         return "PickContext["

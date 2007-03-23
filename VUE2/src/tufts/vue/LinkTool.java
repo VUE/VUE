@@ -204,9 +204,9 @@ public class LinkTool extends VueTool
         float mapX = e.getMapX();
         float mapY = e.getMapY();
 
-        PickContext pc = e.getViewer().getPickContext();
+        PickContext pc = e.getViewer().getPickContext(mapX, mapY);
         pc.excluded = link;
-        LWComponent directHit = LWTraversal.PointPick.pick(pc, mapX, mapY);
+        LWComponent directHit = LWTraversal.PointPick.pick(pc);
 
         if (directHit != null && isValidLinkTarget(linkSource, directHit))
             return directHit;

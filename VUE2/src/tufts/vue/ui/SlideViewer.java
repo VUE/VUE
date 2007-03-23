@@ -247,8 +247,8 @@ public class SlideViewer extends tufts.vue.MapViewer
     // no longer relevant: maxLayer hack currently not in use
     //protected int getMaxLayer() { return inPathwaySlide ? 1 : 0; }
 
-    protected PickContext getPickContext() {
-        PickContext pc = super.getPickContext();
+    protected PickContext getPickContext(float x, float y) {
+        PickContext pc = super.getPickContext(x, y);
 
         // This makes sure we can't select the background,
         // and we can initiate the drag selector box on

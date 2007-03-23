@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.131 $ / $Date: 2007-03-21 11:28:56 $ / $Author: sfraize $
+ * @version $Revision: 1.132 $ / $Date: 2007-03-23 16:57:16 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -372,6 +372,16 @@ public class LWPathway extends LWContainer
 
         return getNodeEntry(mCurrentIndex);
     }
+
+    /*
+    public Entry getEntryWithSlide(LWSlide slide) {
+        for (Entry e : mEntries)
+            if (e.slide == slide)
+                return e;
+        return null;
+    }
+    */
+    
     
     private List<Entry> cloneEntries() {
         return (List<Entry>) ((ArrayList<Entry>)mEntries).clone();
@@ -1007,9 +1017,12 @@ public class LWPathway extends LWContainer
         setEntries("pathway.restore", newEntries, 0);
 
         // The parent of a slide tied to an Entry is the LWPathway itself
-        for (Entry e : mEntries)
-            if (e.slide != null)
+        for (Entry e : mEntries) {
+            if (e.slide != null) {
                 e.slide.setParent(this);
+                e.slide.setSourceNode(e.node);
+            }
+        }
 
         // Now restore old-style notes
         for (LWPathwayElementProperty pep : mOldStyleProperties) {

@@ -37,7 +37,7 @@ import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 import java.awt.geom.*;
 
-import java.util.Iterator;
+import java.util.*;
 
 import javax.swing.*;
 
@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.315 $ / $Date: 2007-03-21 11:28:57 $ / $Author: sfraize $ 
+ * @version $Revision: 1.316 $ / $Date: 2007-03-23 16:57:16 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1277,12 +1277,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     private java.util.List computeSelection(final Rectangle2D mapRect, final Class selectionType)
     {
-        PickContext pc = getPickContext();
+        PickContext pc = getPickContext((Rectangle2D.Float) mapRect);
 
         pc.pickType = selectionType;
         pc.maxDepth = 1;
 
-        return LWTraversal.RegionPick.pick(pc, mapRect);
+        return LWTraversal.RegionPick.pick(pc);
     }
 
     
@@ -1354,17 +1354,35 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     
     void setIndicated(LWComponent c) {
-        if (indication != c) {
-            clearIndicated();
-            indication = c;
-            if (DEBUG.PARENTING) out("indication  set  to " + c);
-            //c.setIndicated(true);
-            if (indication.getStrokeWidth() < STROKE_INDICATION.getLineWidth())
-                repaintMapRegionGrown(indication.getBounds(), STROKE_INDICATION.getLineWidth());
-            else
-                repaintMapRegion(indication.getBounds());
+        if (indication == c)
+            return;
+
+        if (c instanceof LWSlide) { 
+            //if (c instanceof LWSlide && mFocal != c) {
+
+            // We never want to indicate the slide-icon on the main map for any reason,
+            // as it's not really "there" right now.  E.g., you can't link to, or drop
+            // objects into it, etc.  This is still allowed for slides that completely
+            // own the viewer (they are the focal, e.g. as in SlideViewer) The
+            // slide-icons can still be picked and selected via LWComponent hacks, but
+            // we never want them indicated;
+
+            // Actually, we never need the slide indicated at all for the moment:
+            // no need to show it in the SlideViewer either.
+        
+            return;
         }
+            
+        clearIndicated();
+        indication = c;
+        if (DEBUG.PARENTING) out("indication  set  to " + c);
+        //c.setIndicated(true);
+        if (indication.getStrokeWidth() < STROKE_INDICATION.getLineWidth())
+            repaintMapRegionGrown(indication.getBounds(), STROKE_INDICATION.getLineWidth());
+        else
+            repaintMapRegion(indication.getBounds());
     }
+    
     void clearIndicated() {
         if (indication != null) {
             //indication.setIndicated(false);
@@ -1378,8 +1396,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     LWComponent getIndication() { return indication; }
 
-    protected PickContext getPickContext() {
-        PickContext pc = new PickContext();
+    protected PickContext getPickContext(float x, float y) {
+        PickContext pc = new PickContext(x, y);
+        pc.root = mFocal;
+        pc.maxLayer = getMaxLayer();
+        return pc;
+    }
+    
+    protected PickContext getPickContext(Rectangle2D.Float rect) {
+        PickContext pc = new PickContext(rect);
         pc.root = mFocal;
         pc.maxLayer = getMaxLayer();
         return pc;
@@ -1402,20 +1427,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private static final Object POSSIBLE_RESOURCE = new Object();
     
     public LWComponent pickDropTarget(float mapX, float mapY, Object dropping) {
-        PickContext pc = getPickContext();
+        PickContext pc = getPickContext(mapX, mapY);
         if (dropping == null)
             pc.dropping = POSSIBLE_RESOURCE; // most lenient targeting if unknown
         else
             pc.dropping = dropping;
-        return LWTraversal.PointPick.pick(pc, mapX, mapY);
+        return LWTraversal.PointPick.pick(pc);
     }
 
     
     protected LWComponent pick(float mapX, float mapY, boolean ignoreSelected)
     {
-        PickContext pc = getPickContext();
+        PickContext pc = getPickContext(mapX, mapY);
         pc.ignoreSelected = ignoreSelected;
-        return LWTraversal.PointPick.pick(pc, mapX, mapY);
+        return LWTraversal.PointPick.pick(pc);
             
         /*
         if (mFocal instanceof LWContainer) {
@@ -3220,12 +3245,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     protected void setToDrag(LWSelection s) {
-        out("set to drag " + s);
         //if (s.only() instanceof LWSlide) s.clear(); // okay, this stopped us from picking up the slide, but too soon: can't change BG color
         if (s.size() > 0 && s.first().isMoveable()) {
+            if (DEBUG.Enabled) out("set to drag " + s);
             draggedSelectionGroup.useSelection(s);
             setDragger(draggedSelectionGroup);
         } else {
+            if (DEBUG.Enabled) out("drag not allowed for " + s);
             setDragger(null);
         }
     }
@@ -3670,10 +3696,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //if (activeTool.supportsSelection() || activeTool.supportsClick()) {
             // Change to supportsComponentSelection?
             if (activeTool.supportsSelection()) {
-                hitComponent = activeTool.pickNodeAt(getPickContext(), mapX, mapY);
+                hitComponent = activeTool.pickNodeAt(getPickContext(mapX, mapY));
                 if (DEBUG.MOUSE && hitComponent != null)
                     System.out.println("\t    on " + hitComponent + "\n" +
                     "\tparent " + hitComponent.getParent());
+                // if a LWSlide picked, animate zoom into it, and then load as focal
                 mme.setPicked(hitComponent);
             } else {
                 hitComponent = null;
@@ -4441,7 +4468,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // a dragged object are not selected?
                 //over = pickDropTarget(mapX, mapY, true);
 
-                PickContext pc = getPickContext();
+                PickContext pc = getPickContext(mapX, mapY);
                 pc.ignoreSelected = true;
 
                 // TODO: stop using group if just one item in selection, use
@@ -4452,7 +4479,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else
                     pc.dropping = dragComponent;
 
-                over = LWTraversal.PointPick.pick(pc, mapX, mapY);
+                over = LWTraversal.PointPick.pick(pc);
                 
                 
                 if (indication != null && indication != over) {
@@ -4603,14 +4630,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 repaint();
             }
             else if (mouseWasDragged && (indication == null || indication instanceof LWContainer)) {
-                /*
-                if (VUE.TUFTS) {
-                    if (indication == null || indication instanceof LWNode)
-                        checkAndHandleNodeDropReparenting();
-                } else {
-                */
                 // this allows dropping into a group
-                if (!e.isShiftDown())
+                if (dragComponent == null || e.isShiftDown())
+                    ; // nothing dragged, or shift requst to skip reparenting
+                else
                     checkAndHandleDroppedReparenting();
             }
             
@@ -4737,11 +4760,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 }
             } else
                 parentTarget = (LWContainer) indication;
-            
-            java.util.List moveList = new java.util.ArrayList();
-            java.util.Iterator i = VueSelection.iterator();
-            while (i.hasNext()) {
-                LWComponent droppedChild = (LWComponent) i.next();
+
+            Collection<LWComponent> moveList = new java.util.ArrayList();
+            for (LWComponent droppedChild : VueSelection) {
                 // don't reparent links
                 if (droppedChild instanceof LWLink)
                     continue;
@@ -4775,15 +4796,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // back to the parent's layout spot from the draggeed position they
                 // currently occupy and we're trying to move them to.
                 
-                java.util.HashSet parents = new java.util.HashSet();
-                i = moveList.iterator();
-                while (i.hasNext()) {
-                    LWComponent c = (LWComponent) i.next();
+                Collection<LWContainer> parents = new java.util.HashSet();
+                for (LWComponent c : moveList)
                     parents.add(c.getParent());
-                }
-                java.util.Iterator pi = parents.iterator();
-                while (pi.hasNext()) {
-                    LWContainer parent = (LWContainer) pi.next();
+
+                for (LWContainer parent : parents) {
                     if (DEBUG.PARENTING)  System.out.println("*** HANDLING PARENT " + parent);
                     parent.reparentTo(parentTarget, moveList.iterator());
                     //parent.removeChildren(moveList.iterator());

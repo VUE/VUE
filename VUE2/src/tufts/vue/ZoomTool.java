@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.45 $ / $Date: 2007-03-19 07:12:28 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2007-03-23 16:57:16 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -101,18 +101,53 @@ public class ZoomTool extends VueTool
             (e.getButton() == MouseEvent.BUTTON1 || (e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0);
     }
     
+    private boolean pickedZoom = false;
+    private boolean ignoreRelease = false;
     public boolean handleMousePressed(MapMouseEvent e) {
         super.handleMousePressed(e);
-        if (false && e.getPicked() != null)  {
-            setZoomFitRegion(e.getPicked().getBounds());
+
+        final MapViewer viewer = e.getViewer();
+
+        if (pickedZoom && !e.isShiftDown()) {
+            setZoomFit(viewer, true);
+            pickedZoom = false;
+            ignoreRelease = true;
             return true;
-        }
-        return false;
+        } else if (e.getPicked() != null)  {
+            if (e.getPicked() instanceof LWSlide) {
+                final LWSlide slide = (LWSlide) e.getPicked();
+                setZoomFitRegion(viewer,
+                                 slide.getSourceNode().getSlideIconBounds(),
+                                 0,
+                                 true);
+
+                tufts.vue.gui.GUI.invokeAfterAWT(new Runnable() {
+                        public void run() {
+                            viewer.loadFocal(slide);
+                            setZoomFitRegion(viewer, slide.getBounds(), 0, false);
+                        }});
+                
+            } else {
+                setZoomFitRegion(viewer,
+                                 e.getPicked().getBounds(),
+                                 0,
+                                 true);
+            }
+            pickedZoom = true;
+            ignoreRelease = true;
+            return true;
+        } else
+            return false;
     }
     
     public boolean handleMouseReleased(MapMouseEvent e)
     {
         if (DEBUG.TOOL) System.out.println(this + " handleMouseReleased " + e);
+
+        if (ignoreRelease) {
+            ignoreRelease = false;
+            return true;
+        }
 
         //Point p = e.getPoint();
         Point2D p = e.getMapPoint();
@@ -237,19 +272,29 @@ public class ZoomTool extends VueTool
                 //viewer.resetScrollRegion();
             } else {
 
-                if (animate)
+                if (animate) {
                     animatedZoomTo(viewer, newZoom, offset);
+                    //if (DEBUG.Enabled) System.out.println("zoomFinal " + newZoom);
+                }
                 
-                //if (DEBUG.Enabled) System.out.println("zoomX " + newZoom);
                 setZoom(viewer, newZoom, false, DONT_FOCUS, true);
                 viewer.setMapOriginOffset(offset.getX(), offset.getY());
             }
         }
     }
 
+    /** Animate all but the last step of a zoom to the given given zoom and offset.   Caller must provide the final calls. */
     private static void animatedZoomTo(MapViewer viewer, double newZoom, Point2D offset)
     {
-        final int frames = 6;
+        // This will currenly only work on a viewer that's NOT
+        // in a scroll-pane (so ony full-screen windows for now)
+        // as the repaint does nothing to adjust the scrolling
+        // viewport.
+        
+        if (viewer.inScrollPane())
+            return;
+        
+        final int frames = 4; // will do frame-1 intermediate frames: last is left to caller for the exact final value
 
         double cz = viewer.getZoomFactor();
         double cx = viewer.getOriginX();
@@ -263,16 +308,12 @@ public class ZoomTool extends VueTool
         double ix = dx/frames;
         double iy = dy/frames;
 
-        // This will currenly only work on a viewer that's NOT
-        // in a scroll-pane (so ony full-screen windows for now)
-        // as the repaint does nothing to adjust the scrolling
-        // viewport.
         for (int i = 1; i < frames; i++) {
             double zoom = cz + iz*i;
             setZoom(viewer, zoom, false, DONT_FOCUS, true);
             viewer.setMapOriginOffset(cx + ix*i, cy + iy*i);
             viewer.paintImmediately();
-            //if (DEBUG.Enabled) System.out.println("zoom+ " + zoom);
+            //if (DEBUG.Enabled) System.out.println("zoomAnimate " + zoom);
         }
     }
     
@@ -287,12 +328,17 @@ public class ZoomTool extends VueTool
     }
     
     /** fit all of the map contents for the given viewer to be visible */
-    public static void setZoomFit(MapViewer viewer)
+    public static void setZoomFit(MapViewer viewer) {
+        setZoomFit(viewer, false);
+    }
+        
+    /** fit all of the map contents for the given viewer to be visible */
+    public static void setZoomFit(MapViewer viewer, boolean animate)
     {
         // if don't want this to vertically center map in viewport, will need
         // to tell setZoomFitRegion above to compute center using mapRegion.getY()
         // instead of mapRegion.getCenterY()
-        setZoomFitRegion(viewer, viewer.getDisplayableMapBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD, false);
+        setZoomFitRegion(viewer, viewer.getDisplayableMapBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD, animate);
         //setZoomFitRegion(viewer, viewer.getMap().getBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD, false);
         // while it would be nice to call getActiveViewer().getContentBounds()
         // as a way to get bounds with max selection edges, etc, it computes some
@@ -301,8 +347,7 @@ public class ZoomTool extends VueTool
     }
     
     /** fit everything in the current map into the current viewport */
-    public static void setZoomFit()
-    {
+    public static void setZoomFit() {
         setZoomFit(VUE.getActiveViewer());
     }
     

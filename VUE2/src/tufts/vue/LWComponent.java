@@ -34,12 +34,16 @@ import java.util.*;
 
 import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
+
 import edu.tufts.vue.style.Style;
+
+import edu.tufts.vue.preferences.implementations.BooleanPreference;
+import edu.tufts.vue.preferences.interfaces.VuePreference;    
 
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.224 $ / $Date: 2007-03-21 11:28:56 $ / $Author: sfraize $
+ * @version $Revision: 1.225 $ / $Date: 2007-03-23 16:57:15 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -52,6 +56,7 @@ import edu.tufts.vue.style.Style;
 public class LWComponent
     implements VueConstants, XMLUnmarshalListener
 {
+
     enum ChildKind {
         /** the default, conceptually significant chilren */
         PROPER,
@@ -67,6 +72,18 @@ public class LWComponent
 
        // VIRTUAL -- would be *just* what ANY currently adds, and exclude PROPER -- currently unsupported
     }
+
+    /*
+    // need an IntegerPreference and/or an IntegerRangePreference (that ImagePreference could also use)
+    private static final VuePreference SlideIconPref =
+        IntegerPreference.create(edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
+			"slideIconSize", 
+			"Slide Icon Size", 
+			"Size of Slide icons displayed on the map",
+			true);
+
+    */
+    
 
     public enum HideReason {
         DEFAULT (false), // each subclass of LWComponent can use this for it's own purposes.
@@ -152,7 +169,7 @@ public class LWComponent
 
     //protected transient java.util.List listeners;
     protected transient LWChangeSupport mChangeSupport = new LWChangeSupport(this);
-    protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore?
+    protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore? (todo: eliminate this as a member variable)
     protected transient BufferedImage mCachedImage;
     protected transient double mCachedImageAlpha;
     protected transient Dimension mCachedImageMaxSize;
@@ -177,6 +194,11 @@ public class LWComponent
         // TODO: shouldn't have to create a node filter for every one of these constructed...
         nodeFilter = new NodeFilter();
         mSupportedPropertyKeys = Key.PropertyMaskForClass(getClass());
+    }
+    
+    /** for internal proxy instances only */
+    private LWComponent(String label) {
+        setLabel(label);
     }
 
     /** Convenience: If key not a real Key (a String), always return true */
@@ -1618,11 +1640,21 @@ public class LWComponent
      * If this component supports special layout for it's children,
      * or resizes based on font, label, etc, do it here.
      */
-    protected void layout() {
+    final void layout() {
         if (mXMLRestoreUnderway == false)
             layout("default");
     }
-    protected void layout(Object triggerKey) {}
+    
+    final void layout(Object triggerKey) {
+        if (mXMLRestoreUnderway == false) {
+            layoutImpl(triggerKey);
+            // need a reshape/reshapeImpl for this (size/location changes)
+            //if (mSlideIconBounds != null)
+            //    mSlideIconBounds.x = Float.NaN; // invalidate
+        }
+    }
+
+    protected void layoutImpl(Object triggerKey) {}
     
     public String OLD_toString()
     {
@@ -1903,6 +1935,8 @@ public class LWComponent
     void setParent(LWContainer parent) {
         this.parent = parent;
     }
+    
+    //protected void reparentNotify(LWContainer parent) {}
 
     public void setSyncSource(LWComponent source) {
         mSyncSource = source;
@@ -1918,8 +1952,6 @@ public class LWComponent
             mSyncClients = new HashSet();
         mSyncClients.add(c);
     }
-
-    protected void addNotify(LWContainer parent) {}
 
     public void setStyle(LWComponent parentStyle)
     {
@@ -1941,6 +1973,7 @@ public class LWComponent
     public Boolean getPersistIsStyle() {
         return isStyle ? Boolean.TRUE : null;
     }
+    
     public void setPersistIsStyle(Boolean b) {
         isStyle = b.booleanValue();
     }
@@ -1974,7 +2007,8 @@ public class LWComponent
         else
             return parent.getDepth() + 1;
     }
-    
+
+    //private static LWComponent ProxySlideComponent = new LWComponent("<global-slide-proxy>");
 
     /** return the component to be picked if we're picked: e.g., may return null if you only want children picked, and not the parent */
     protected LWComponent defaultPick(PickContext pc) {
@@ -1982,8 +2016,14 @@ public class LWComponent
         // if we're a descendent of what's being dropped! (would be a parent/child loop)
         if (pc.dropping instanceof LWContainer && hasAncestor((LWContainer)pc.dropping))
             return null;
+        else if (isDrawingSlideIcon() && getSlideIconBounds().contains(pc.x, pc.y))
+            return getEntryToDisplay().getSlide();
         else
-            return this;
+            return defaultPickImpl(pc);
+    }
+    
+    protected LWComponent defaultPickImpl(PickContext pc) {
+        return this;
     }
 
     /** If PickContext.dropping is a LWComponent, return parent (as we can't take children),
@@ -2627,16 +2667,6 @@ public class LWComponent
     }
     
     /**
-     * Default implementation: checks bounding box
-     * Subclasses should override and compute via shape.
-     */
-    public boolean contains(float x, float y)
-    {
-        return x >= this.x && x <= (this.x+getWidth())
-            && y >= this.y && y <= (this.y+getHeight());
-    }
-    
-    /**
      * Default implementation: returns false;
      * For "do-what-I-mean" hit detection, when all the more strict contains calls failed.
      */
@@ -2649,8 +2679,17 @@ public class LWComponent
      * Default implementation: checks bounding box
      * Subclasses should override and compute via shape.
      */
-    public boolean intersects(Rectangle2D rect)
+    public final boolean intersects(Rectangle2D rect)
     {
+        if (intersectsImpl(rect))
+            return true;
+        else if (isDrawingSlideIcon() && getSlideIconBounds().intersects(rect))
+            return true;
+        else
+            return false;
+    }
+
+    protected boolean intersectsImpl(Rectangle2D rect) {
         return rect.intersects(getBounds());
     }
     
@@ -2786,35 +2825,98 @@ public class LWComponent
         }
     }
 
-    public void draw(DrawContext dc)
+    /**
+     * Default implementation: checks bounding box
+     * Subclasses should override and compute via shape.
+     */
+    public final boolean contains(float x, float y) {
+        if (containsImpl(x, y))
+            return true;
+        else if (isDrawingSlideIcon() && getSlideIconBounds().contains(x, y))
+            return true;
+        else
+            return false;
+    }
+    
+    protected boolean containsImpl(float x, float y)
     {
-        final boolean drawSlide;
-        LWPathway.Entry entry = null;
+        return x >= this.x && x <= (this.x+getWidth())
+            && y >= this.y && y <= (this.y+getHeight());
+    }
 
+    private final float SlideScale = 0.1f;
+    private Rectangle2D.Float mSlideIconBounds;
+    public Rectangle2D.Float getSlideIconBounds() {
+        if (mSlideIconBounds == null)
+            mSlideIconBounds = computeSlideIconBounds(new Rectangle2D.Float());
+        else if (true || mSlideIconBounds.x == Float.NaN) // need a reshape/reshapeImpl trigger on move/resize to properly re-validate
+            computeSlideIconBounds(mSlideIconBounds);
+        return mSlideIconBounds;
+    }
+
+    private Rectangle2D.Float computeSlideIconBounds(Rectangle2D.Float rect)
+    {
+        final float width = LWSlide.SlideWidth * SlideScale;
+        final float height = LWSlide.SlideHeight * SlideScale;
+        final float xoff = 0;
+        final float yoff = getHeight() + 5;
+        //final float xoff = getWidth() + -width / 2f;
+        //final float yoff = getHeight() + -height / 2f;
+        rect.setRect(getX() + xoff,
+                     getY() + yoff,
+                     width,
+                     height);
+        return rect;
+    }
+
+    /** If there's a pathway entry we want to be showing, return it, otherwise, null */
+    private LWPathway.Entry getEntryToDisplay()
+    {
         final LWPathway path = VUE.getActivePathway();
         if (inPathway(path) && path.isDrawn()) {
-            entry = path.getEntry(path.firstIndexOf(this));
-            drawSlide = !entry.isMapView;
-        } else
-            drawSlide = false;
+            final LWPathway.Entry entry = path.getCurrentEntry();
+            // This is just in case the node is in the pathway more than once: if it is,
+            // and the current entry is for this node, use that, otherwise, just
+            // use the first entry for the the node.
+            if (entry != null && entry.node == this)
+                return entry;
+            else
+                return path.getEntry(path.firstIndexOf(this));
+        }
+        return null;
+    }
+
+    protected boolean isDrawingSlideIcon() {
+        final LWPathway.Entry entry = getEntryToDisplay();
+        return entry != null && !entry.isMapView;
+    }
+    
+    /**
+     * For every component, draw any needed pathway decorations and related slide icons,
+     * and then invoke drawImpl for the sub-component.
+     */
+    public void draw(DrawContext dc)
+    {
+        final LWPathway.Entry entry = getEntryToDisplay();
+        final boolean drawSlide = (entry != null && !entry.isMapView);
 
         if (drawSlide) {
 
             drawPathwayDecorations(dc);
             drawImpl(dc);
 
-            final double slideScale = 0.1;
             final LWSlide slide = entry.getSlide();
             
             //double slideX = getCenterX() - (slide.getWidth()*slideScale) / 2;
             //double slideY = getCenterY() - (slide.getHeight()*slideScale) / 2;
-            double slideX = getX();
-            double slideY = getY() + getHeight() + 5;
-            
-            dc.g.translate(slideX, slideY);
-            dc.g.scale(slideScale, slideScale);
-            //dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.95f));
-            path.getMasterSlide().draw(dc);
+            //dc.g.translate(slideX, slideY);
+
+            Rectangle2D.Float slideFrame = getSlideIconBounds();
+
+            dc.g.translate(slideFrame.x, slideFrame.y);
+            dc.g.scale(SlideScale, SlideScale);
+            //dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.9f));
+            entry.pathway.getMasterSlide().draw(dc);
             slide.draw(dc);
 
             Rectangle2D border = slide.getBounds();
@@ -2828,7 +2930,7 @@ public class LWComponent
 
             if (entry != null) {
                 // if we had an entry, but it was a map-view slide, do something to make it look slide-like
-                dc.g.setColor(path.getMasterSlide().getFillColor());
+                dc.g.setColor(entry.pathway.getMasterSlide().getFillColor());
                 if (entry.node instanceof LWGroup) {
                     if (!dc.isPresenting())
                         dc.g.fill(entry.node.getBounds());
@@ -3514,7 +3616,7 @@ public class LWComponent
         if (getID() == null)
             s += tufts.Util.pad(9, Integer.toHexString(hashCode()));
         else
-            s += tufts.Util.pad(3, getID());
+            s += tufts.Util.pad(4, getID());
         if (getLabel() != null) {
             if (isAutoSized())
                 s += "\"" + getDisplayLabel() + "\" ";

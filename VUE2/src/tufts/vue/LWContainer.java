@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.101 $ / $Date: 2007-03-21 11:28:56 $ / $Author: sfraize $
+ * @version $Revision: 1.102 $ / $Date: 2007-03-23 16:57:15 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -303,7 +303,7 @@ public abstract class LWContainer extends LWComponent
             c.setFont(getFont());
         this.children.add(c);
         c.setParent(this);
-        c.addNotify(this);
+        //c.reparentNotify(this);
         ensureID(c);
     }
 
@@ -669,7 +669,7 @@ public abstract class LWContainer extends LWComponent
 
     */
 
-    protected LWComponent defaultPick(PickContext pc)
+    protected LWComponent defaultPickImpl(PickContext pc)
     {
         //return isDrawn() ? this : null; // should already be handled now in the PointPick traversal
         return this;
@@ -916,16 +916,19 @@ public abstract class LWContainer extends LWComponent
         c.setScale(scale);
     }
 
+    /**
+     * Default impl just fills the background and draws any children.
+     */
     protected void drawImpl(DrawContext dc)
     {
-        if (getFillColor() != null) {
+        if (!isTransparent()) {
             dc.g.setColor(getFillColor());
             dc.g.fill(getShape());
         }
         drawChildren(dc);
     }
 
-    public void drawChildren(DrawContext dc)
+    protected void drawChildren(DrawContext dc)
     {
         int nodes = 0;
         int links = 0;

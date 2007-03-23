@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.137 $ / $Date: 2007-03-21 11:28:56 $ / $Author: sfraize $
+ * @version $Revision: 1.138 $ / $Date: 2007-03-23 16:57:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -95,7 +95,7 @@ public class LWNode extends LWContainer
     //------------------------------------------------------------------
     // Preferences
     //------------------------------------------------------------------
-    private static VuePreference IconPref = BooleanPreference.create(
+    private static final VuePreference IconPref = BooleanPreference.create(
 			edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
 			"showNodeIcons", 
 			"Show Icons", 
@@ -550,7 +550,7 @@ public class LWNode extends LWContainer
     }
     */
 
-    public boolean intersects(final Rectangle2D rect)
+    protected boolean intersectsImpl(final Rectangle2D rect)
     {
         final Rectangle2D hitRect;
         final boolean overlaps;
@@ -585,7 +585,7 @@ public class LWNode extends LWContainer
         return overlaps;
     }
 
-    public boolean contains(float x, float y)
+    protected boolean containsImpl(float x, float y)
     {
         if (imageIcon != null) {
             return super.contains(x,y);
@@ -698,10 +698,8 @@ public class LWNode extends LWContainer
     private boolean inLayout = false;
     private boolean isCenterLayout = false;// todo: get rid of this and use mChildPos, etc for boxed layout also
 
-    protected void layout(Object triggerKey) {
-        //layout(triggerKey, null, new Size(getWidth(), getHeight()));
-        if (mXMLRestoreUnderway == false)
-            layout(triggerKey, new Size(getWidth(), getHeight()), null);
+    protected void layoutImpl(Object triggerKey) {
+        layout(triggerKey, new Size(getWidth(), getHeight()), null);
     }
 
     /**
@@ -1877,7 +1875,7 @@ public class LWNode extends LWContainer
             ; // do nothing: no fill
         } else {
             Color fillColor = getRenderFillColor();
-            if (fillColor != null) { // transparent if null
+            if (fillColor != null && fillColor.getAlpha() != 0) { // transparent if null
                 g.setColor(fillColor);
                 if (isZoomedFocus())
                     g.setComposite(ZoomTransparency);

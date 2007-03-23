@@ -58,7 +58,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.117 $ / $Date: 2007-03-21 07:47:09 $ / $Author: sfraize $
+ * @version $Revision: 1.118 $ / $Date: 2007-03-23 16:57:15 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -550,13 +550,17 @@ public class LWMap extends LWContainer
         }
         */
         
-        super.draw(dc);
+        /*
+         * Draw all the children of the map
+         */
+        super.drawImpl(dc);
         
+        /*
+         * Draw the pathways
+         */
         if (mPathways != null && dc.drawPathways()) {
-            Iterator i = mPathways.iterator();
             int pathIndex = 0;
-            while (i.hasNext()) {
-                LWPathway path = (LWPathway) i.next();
+            for (LWPathway path : mPathways) {
                 if (path.isDrawn()) {
                     dc.setIndex(pathIndex++);
                     path.drawPathway(dc.create());

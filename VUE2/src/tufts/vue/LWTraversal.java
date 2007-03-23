@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import java.awt.geom.Rectangle2D;
+
 
 /**
  * Traversals are used to descend into a map, starting from any given root
@@ -32,7 +34,7 @@ package tufts.vue;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.5 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2007-03-23 16:57:16 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -174,15 +176,15 @@ public class LWTraversal {
 
         private LWComponent hit;
 
-        public PointPick(PickContext pc, float x, float y) {
+        public PointPick(PickContext pc) {
             super(pc);
-            mapX = x;
-            mapY = y;
+            mapX = pc.x;
+            mapY = pc.y;
             scaleX = scaleY = 1f;
         }
 
         public PointPick(MapMouseEvent e) {
-            this(e.getViewer().getPickContext(), e.getMapX(), e.getMapY());
+            this(e.getViewer().getPickContext(e.getMapX(), e.getMapY()));
         }
         
         public boolean acceptTraversal(LWComponent c) {
@@ -223,8 +225,9 @@ public class LWTraversal {
             if (c.hasAncestor
             }*/
 
-        public static LWComponent pick(PickContext pc, float mapX, float mapY) {
-            return new PointPick(pc, mapX, mapY).traverseAndPick(pc.root);
+        //public static LWComponent pick(PickContext pc, float mapX, float mapY) {
+        public static LWComponent pick(PickContext pc) {
+            return new PointPick(pc).traverseAndPick(pc.root);
         }
         
         public static LWComponent pick(MapMouseEvent e) {
@@ -339,12 +342,12 @@ public class LWTraversal {
 
     public static class RegionPick extends LWTraversal.Picker
     {
-        final java.awt.geom.Rectangle2D mapRect;
+        final Rectangle2D mapRect;
         final java.util.List<LWComponent> hits = new java.util.ArrayList();
 
-        public RegionPick(PickContext pc, java.awt.geom.Rectangle2D mapRect) {
+        public RegionPick(PickContext pc) {
             super(pc);
-            this.mapRect = mapRect;
+            this.mapRect = new Rectangle2D.Float(pc.x, pc.y, pc.width, pc.height);
         }
 
         public void visit(LWComponent c) {
@@ -356,8 +359,8 @@ public class LWTraversal {
 
         }
 
-        public static java.util.List<LWComponent> pick(PickContext pc, java.awt.geom.Rectangle2D mapRect) {
-            return new RegionPick(pc, mapRect).traverseAndPick(pc.root);
+        public static java.util.List<LWComponent> pick(PickContext pc) {
+            return new RegionPick(pc).traverseAndPick(pc.root);
         }
         
 

@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.130 $ / $Date: 2007-03-21 11:28:56 $ / $Author: sfraize $
+ * @version $Revision: 1.131 $ / $Date: 2007-03-23 16:57:15 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -782,7 +782,7 @@ public class LWLink extends LWComponent
         public Iterator<Line2D.Float> iterator() { return this; }
     }
     
-    public boolean intersects(Rectangle2D rect)
+    protected boolean intersectsImpl(Rectangle2D rect)
     {
         if (endpointMoved)
             computeLink();
@@ -826,7 +826,7 @@ public class LWLink extends LWComponent
         
     }
 
-    public boolean contains(float x, float y)
+    protected boolean containsImpl(float x, float y)
     {
         if (endpointMoved)
             computeLink();
@@ -1843,7 +1843,7 @@ public class LWLink extends LWComponent
     }
 
 
-    protected void layout()
+    protected void layoutImpl(Object triggerKey)
     {
         float cx;
         float cy;

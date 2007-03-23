@@ -28,19 +28,28 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.18 $ / $Date: 2007-03-21 11:28:57 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2007-03-23 16:57:16 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
-    protected static final int SlideWidth = 800;
-    protected static final int SlideHeight = 600;
+    public static final int SlideWidth = 800;
+    public static final int SlideHeight = 600;
     protected static final int SlideMargin = 30;
+
+    private LWComponent mSourceNode; // the node this slide was created from -- todo: restore on persist
 
     int mLayer = 0;
     
-    /** for persistance */
+    /** public only for persistance */
     public LWSlide() {
         disableProperty(LWKey.Label);
+    }
+
+    LWComponent getSourceNode() {
+        return mSourceNode;
+    }
+    void setSourceNode(LWComponent node) {
+        mSourceNode = node;
     }
 
     public String getLabel() {
@@ -48,7 +57,7 @@ public class LWSlide extends LWContainer
         if (false && parent instanceof LWPathway)
             return super.getLabel();
         else if (parent != null)
-            return "Slide for " + getParent().getDisplayLabel();
+            return "Slide in " + getParent().getDisplayLabel();
         else
             return "<LWSlide w/null parent>"; // true during persist restore
     }
@@ -86,6 +95,7 @@ public class LWSlide extends LWContainer
         final CopyContext cc = new CopyContext(false);
         final LinkedList<LWComponent> toLayout = new java.util.LinkedList();
 
+        slide.mSourceNode = node;
         title.setStyle(master.titleStyle);
         title.setSyncSource(node);
 
@@ -273,17 +283,11 @@ public class LWSlide extends LWContainer
     }
     */
 
-    public boolean intersects(Rectangle2D rect) {
-        return rect.intersects(getBounds());
+    /** @return false -- slides themseleves never have slide icons: only nodes that own them */
+    protected boolean isDrawingSlideIcon() {
+        return false;
     }
 
-    public boolean contains(float x, float y)
-    {
-        boolean hit = super.contains(x, y);
-        //if (DEBUG.PRESENT) out("CONTAINS " + x + "," + y + " = " + hit);
-        return hit;
-    }
-    
     protected LWComponent pickChild(PickContext pc, LWComponent c) {
         if (DEBUG.PRESENT) out("PICKING CHILD: " + c);
         return c;

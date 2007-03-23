@@ -619,13 +619,17 @@ public class PresentationTool extends VueTool
     {
         dc.setRawDrawing();
         Rectangle frame = dc.getFrame();
-        out("dc frame " + frame);
+        //out("dc frame " + frame);
         dc.g.translate(frame.x, frame.y);
 
         if (DEBUG.Enabled) {
             dc.g.setFont(VueConstants.FixedFont);
             dc.g.setColor(Color.gray);
-            dc.g.drawString(mCurrentPage.getDiagnosticLabel(), 10, 20);
+            int y = 20;
+            if (mEntry != null) dc.g.drawString(mEntry.pathway.getDiagnosticLabel(), 10, y+=15);
+            dc.g.drawString("Page: " + mCurrentPage.getDiagnosticLabel(), 10, y+=15);
+            if (mEntry != null) dc.g.drawString(mEntry.toString(), 10, y+=15);
+            dc.g.drawString("Frame: " + tufts.Util.out(frame), 10, y+=15);
         }
 
         if (mCurrentPage.getLinks().size() == 0)

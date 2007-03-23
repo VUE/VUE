@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.26 $ / $Date: 2007-03-19 08:21:10 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2007-03-23 16:57:15 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -74,6 +74,8 @@ public class DrawContext
         this.offsetY = offsetY;
         this.frame = frame;
         //this.drawAbsoluteLinks = absoluteLinks;
+        //setPrioritizeSpeed(true);
+        //disableAntiAlias(true);
     }
     
     public DrawContext(Graphics g, double zoom)
