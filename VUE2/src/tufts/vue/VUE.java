@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.397 $ / $Date: 2007-03-23 02:28:09 $ / $Author: mike $ 
+ * @version $Revision: 1.398 $ / $Date: 2007-03-23 19:43:59 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1584,9 +1584,11 @@ public class VUE
     private static boolean askSaveIfModified(LWMap map) {
         //final Object[] defaultOrderButtons = { "Save", "Don't Save", "Cancel"};
     	final Object[] defaultOrderButtons = { "Don't Save","Cancel","Save"};
+    	final Object[] macOrderButtons = { "Save","Cancel","Don't Save"};
         // oddly, mac aqua is reversing order of these buttons
         //final Object[] macAquaOrderButtons = { "Cancel", "Don't Save", "Save" };
         
+    	
         if (!map.isModified())
             return true;
 
@@ -1605,8 +1607,7 @@ public class VUE
              JOptionPane.YES_NO_CANCEL_OPTION,
              JOptionPane.PLAIN_MESSAGE,
              null,
-             //GUI.isMacAqua() ? macAquaOrderButtons : defaultOrderButtons,
-             defaultOrderButtons,
+             Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons,             
              "Save"
              );
         
