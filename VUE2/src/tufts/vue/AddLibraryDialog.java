@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.59 $ / $Date: 2007-03-23 20:44:09 $ / $Author: mike $
+ * @version $Revision: 1.60 $ / $Date: 2007-03-23 20:47:14 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -591,9 +591,10 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                 
         } else {
             providerListRenderer.clearAllChecked();
-            setVisible(false);
             this.getRootPane().setDefaultButton(addButton);
             addButton.requestFocusInWindow();
+            setVisible(false);
+            
         }
     }
     private class AddDSThread extends Thread {
