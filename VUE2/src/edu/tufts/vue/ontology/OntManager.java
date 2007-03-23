@@ -75,7 +75,6 @@ public class OntManager {
         List<OntType> types = new ArrayList<OntType>();
         m.read(url.toString());
         OntProperty p = m.getOntProperty(url.toString()+"#fedoraRelationship");
-        System.out.println("OntProperty: "+p+" Local Name: ");  
         ExtendedIterator iter = p.listSubProperties(false);
         StyleReader.readCSS(cssUrl);
         Ontology ont = new Ontology();
