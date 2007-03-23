@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.133 $ / $Date: 2007-03-23 14:57:22 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.133 2007-03-23 14:57:22 anoop Exp $ -->
+<!-- $Revision: 1.134 $ / $Date: 2007-03-23 16:23:20 $ / $Author: dan $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.134 2007-03-23 16:23:20 dan Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -166,6 +166,7 @@
                    commons-httpclient.jar
                    commons-httpclient-2.0.jar
                    commons-logging.jar
+                   concurrent.jar
                    cryptix-asn1.jar
                    cryptix32.jar
                    dom2.jar
@@ -174,11 +175,11 @@
                    fedoragentypes.jar
                    gnu-getopt-1.0.9.jar
                    googleapi.jar
-                   icu4j.jar
+                   icu4j-3_6.jar
                    id.jar
                    jakarta-regexp-1.2.jar
                    jdom.jar
-                   jena.jar
+                   jena-2.5.2.jar
 				   jhapi.jar
                    jakarta-oro-2.0.8.jar
 				   javatar.jar
@@ -188,6 +189,7 @@
                    jsse.jar
                    jxtaid.jar
                    jxtasecurity.jar
+                   iri.jar
                    log4j-1.2.12.jar
                    MITAuthenticationTypes.jar
 				   MIT-OTS.jar
