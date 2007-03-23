@@ -45,7 +45,7 @@ import java.awt.geom.Rectangle2D;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.47 $ / $Date: 2007-03-23 16:57:15 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2007-03-23 23:24:21 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -350,13 +350,13 @@ public class LWGroup extends LWContainer
                     return true;
             return false;
         } else
-            return super.contains(x, y);
+            return super.containsImpl(x, y);
     }
     
     protected boolean intersectsImpl(final Rectangle2D rect)
     {
         if (hasVisibleFeatures())
-            return super.intersects(rect);
+            return super.intersectsImpl(rect);
         
         for (LWComponent c : getChildList())
             if (c.intersects(rect))
