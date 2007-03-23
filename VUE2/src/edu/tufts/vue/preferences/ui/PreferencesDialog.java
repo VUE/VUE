@@ -68,7 +68,7 @@ public class PreferencesDialog extends JDialog {
 	private JTree prefTree;
 
 	private JSplitPane splitPane = null;
-
+	private DefaultMutableTreeNode rootNode = null;
 	// private JTable editTable;
 
 		public PreferencesDialog(JFrame owner, String title, Class userObj,
@@ -82,11 +82,60 @@ public class PreferencesDialog extends JDialog {
 		// editTable = new JTable();
 		createSplitPane();
 		createButtonPanel();
+		String[] array = new String[3];
+		array[0] = new String("VUE Preferences");
+		array[1] = new String("Map Display:");
+		array[2] = new String("Images");
+		
+		TreePath path = findByName(prefTree,array);
+		PrefTreeNode node = (PrefTreeNode) path.getLastPathComponent();		
+		splitPane.setRightComponent(node.getPrefObject().getPreferenceUI());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	}
+		
+		  // Finds the path in tree as specified by the array of names. The names array is a
+	    // sequence of names where names[0] is the root and names[i] is a child of names[i-1].
+	    // Comparison is done using String.equals(). Returns null if not found.
+	    public TreePath findByName(JTree tree, String[] names) {
+	        TreeNode root = (TreeNode)tree.getModel().getRoot();
+	        return find2(tree, new TreePath(root), names, 0, true);
+	    }
+	    private TreePath find2(JTree tree, TreePath parent, Object[] nodes, int depth, boolean byName) {
+	        TreeNode node = (TreeNode)parent.getLastPathComponent();
+	        Object o = node;
+	    
+	        // If by name, convert node to a string
+	        if (byName) {
+	            o = o.toString();
+	        }
+	    
+	        // If equal, go down the branch
+	        if (o.equals(nodes[depth])) {
+	            // If at end, return match
+	            if (depth == nodes.length-1) {
+	                return parent;
+	            }
+	    
+	            // Traverse children
+	            if (node.getChildCount() >= 0) {
+	                for (Enumeration e=node.children(); e.hasMoreElements(); ) {
+	                    TreeNode n = (TreeNode)e.nextElement();
+	                    TreePath path = parent.pathByAddingChild(n);
+	                    TreePath result = find2(tree, path, nodes, depth+1, byName);
+	                    // Found a match
+	                    if (result != null) {
+	                        return result;
+	                    }
+	                }
+	            }
+	        }
+	    
+	        // No match at this branch
+	        return null;
+	    }		
 
 	private void createTree() {
-		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(
+		rootNode = new DefaultMutableTreeNode(
 				"VUE Preferences");
 
 		Iterator i = PreferencesManager.getCategories().iterator();
@@ -197,7 +246,7 @@ public class PreferencesDialog extends JDialog {
 							&& (((PrefCategoryTreeNode) n).toString().equals(PreferencesManager.mapCategoryKeyToName(vp
 									.getCategoryKey())))) {
 						try {
-							n.add(new PrefTreeNode(vp));
+							n.add(new PrefTreeNode(vp));							
 						} catch (BackingStoreException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
