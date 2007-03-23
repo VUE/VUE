@@ -43,7 +43,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.225 $ / $Date: 2007-03-23 16:57:15 $ / $Author: sfraize $
+ * @version $Revision: 1.226 $ / $Date: 2007-03-23 18:26:16 $ / $Author: anoop $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2633,7 +2633,7 @@ public class LWComponent
     public Rectangle2D getBounds()
     {
         // todo opt: cache this object?
-        final Rectangle2D.Float b = new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
+        final Rectangle2D.Float b = new Rectangle2D.Float(this.x-15, this.y-15, getWidth()+30, getHeight()+30);
         float strokeWidth = getStrokeWidth();
 
         // we need this adjustment for repaint optimzation to
