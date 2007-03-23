@@ -71,11 +71,11 @@ public class OntManager {
     }
     
     public static Ontology readOntologyWithStyle(URL url,URL cssUrl,int ontType) {
-        String NS = "http://www.fedora.info/definitions/1/0/fedora-relsext-ontology.rdfs";
         OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM_RDFS_INF,null);
-         List<OntType> types = new ArrayList<OntType>();
+        List<OntType> types = new ArrayList<OntType>();
         m.read(url.toString());
-        OntProperty p = m.getOntProperty(NS+"#fedoraRelationship");
+        OntProperty p = m.getOntProperty(url.toString()+"#fedoraRelationship");
+        System.out.println("OntProperty: "+p+" Local Name: ");  
         ExtendedIterator iter = p.listSubProperties(false);
         StyleReader.readCSS(cssUrl);
         Ontology ont = new Ontology();
