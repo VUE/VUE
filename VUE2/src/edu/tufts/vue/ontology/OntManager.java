@@ -36,6 +36,7 @@ import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.util.iterator.Filter;
 
 public class OntManager {
+    public static final int RDFS = 0;
     /** Creates a new instance of OntManager */
     public OntManager() {
     }
