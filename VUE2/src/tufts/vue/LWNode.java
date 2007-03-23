@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.138 $ / $Date: 2007-03-23 16:57:16 $ / $Author: sfraize $
+ * @version $Revision: 1.139 $ / $Date: 2007-03-23 23:24:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -588,7 +588,7 @@ public class LWNode extends LWContainer
     protected boolean containsImpl(float x, float y)
     {
         if (imageIcon != null) {
-            return super.contains(x,y);
+            return super.containsImpl(x,y);
         } else {
             if (true) {
                 return boundsShape.contains(x, y);
@@ -597,7 +597,7 @@ public class LWNode extends LWContainer
                 // outside their bounds, we're checking everything in the bounding box
                 // for the moment if there are any children.
                 if (hasChildren())
-                    return super.contains(x,y);
+                    return super.containsImpl(x,y);
                 else if (mIsRectShape) {
                     return boundsShape.contains(x, y);
                 } else {
