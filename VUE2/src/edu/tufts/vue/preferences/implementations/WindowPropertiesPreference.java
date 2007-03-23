@@ -62,6 +62,17 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 	private String value;
 	private static JCheckBox checkValue = new JCheckBox();
 	
+	/**
+	 * The first parameter in the string used to store the window position was originally intended 
+	 * to say whether the preference as a whole was enabled or disabled, this is now not used but 
+	 * its kept there for legacy purpose.  There's now a new separate preference enableWinPos which 
+	 * stores whether window positions should be stored if this is true, then the strings are used
+	 * to mantain the positions. 
+	 * 
+	 * Also, this tool is very useful for exploring your Java preferences:
+	 * 						http://freshmeat.net/projects/javaprefs/
+	 * -MK
+	 */
 	protected WindowPropertiesPreference(String category, String key, String name, String desc, boolean showInUI) {
 		super(category, key, name, desc, defval, showInUI);
 		value = (String)getValue();
