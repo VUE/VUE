@@ -39,7 +39,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.9 $ / $Date: 2006-10-18 17:50:52 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2007-03-23 20:28:09 $ / $Author: mike $
  */
 public class ResourceList extends JList
     implements DragGestureListener, tufts.vue.ResourceSelection.Listener
@@ -340,13 +340,21 @@ public class ResourceList extends JList
                 setText("<HTML>" + r.getTitle());
             else
                 setText(r.getTitle());
-            if (isSelected) {
+          /*  if (isSelected) {
                 setBackground(list.getSelectionBackground());
                 setForeground(list.getSelectionForeground());
             } else {
                 setBackground(list.getBackground());
                 setForeground(list.getForeground());
+            }*/
+            Color bg = null;
+            if (isSelected) {
+                bg = GUI.getTextHighlightColor();
+            } else {
+                
+                bg = list.getBackground();
             }
+            setBackground(bg);
             //setEnabled(list.isEnabled());
             return this;
         }
