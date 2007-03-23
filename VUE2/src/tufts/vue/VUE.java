@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.398 $ / $Date: 2007-03-23 19:43:59 $ / $Author: mike $ 
+ * @version $Revision: 1.399 $ / $Date: 2007-03-23 19:49:29 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1611,18 +1611,36 @@ public class VUE
              "Save"
              );
         
-     //   if (GUI.isMacAqua())
-        switch (response)
+     
+        if (!Util.isMacPlatform())
         {
-         case 0:
-        	 response = 1;
-        	 break;
-         case 1:
-        	 response = 2;
-        	 break;
-         case 2:
-        	 response = 0;
-        	 break;
+        	switch (response)
+        	{
+        	case 0:
+        		response = 1;
+        		break;
+        	case 1:
+        		response = 2;
+        		break;
+        	case 2:
+        		response = 0;
+        		break;
+        	}
+        }
+        else
+        {
+        	switch (response)
+        	{
+        	case 0:
+        		response = 0;
+        		break;
+        	case 1:
+        		response = 2;
+        		break;
+        	case 2:
+        		response = 1;
+        		break;
+        	}
         }
         
         // If they change focus to another button, then hit "return"
