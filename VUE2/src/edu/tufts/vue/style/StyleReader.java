@@ -44,7 +44,7 @@ public class StyleReader {
         parser.parse(tufts.vue.VueResources.getURL(lookupKey));
     }
     
-    private static void readCSS(URL url) {
+    public static void readCSS(URL url) {
         try {
           CSSParser parser = new CSSParser();
           parser.parse(url);
