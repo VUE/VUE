@@ -78,12 +78,12 @@ public class OntManager {
         ExtendedIterator iter = p.listSubProperties(false);
         StyleReader.readCSS(cssUrl);
         Ontology ont = new Ontology();
-        ont.setBase(NS);
+        ont.setBase(url.toString());
        while(iter.hasNext()) {
              OntProperty sp = (OntProperty) iter.next();
              OntType type = new OntType();
              type.setName(sp.getLocalName());
-             type.setBase(NS);
+             type.setBase(url.toString());
              type.setDescription(sp.getComment(null));
              Style  style = StyleMap.getStyle("link."+sp.getLocalName());
              if(style == null ) {
