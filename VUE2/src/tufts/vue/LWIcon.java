@@ -987,7 +987,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.hasChildren(); }
 
         void doDoubleClickAction() {
-            VUE.ObjectInspectorPanel.setTab(ObjectInspectorPanel.TREE_TAB);
+            //VUE.ObjectInspectorPanel.setTab(ObjectInspectorPanel.TREE_TAB);
         }
         
         private JLabel ttTree;
