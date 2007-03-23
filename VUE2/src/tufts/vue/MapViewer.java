@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.316 $ / $Date: 2007-03-23 16:57:16 $ / $Author: sfraize $ 
+ * @version $Revision: 1.317 $ / $Date: 2007-03-23 23:23:27 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2349,11 +2349,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         dc.setMapDrawing();
         dc.setAbsoluteStroke(0.5);
 
-        for (LWComponent c : selection.clone()) {
+        //for (LWComponent c : selection.clone()) {
+        for (LWComponent c : selection) {
 
-            //if (c.isHidden()) continue;
+            if (c instanceof LWSlide) {
+                // hack for slides, which are currently not proper children of anyone
+                // (prevents selection of a slide icon from drawing a selection
+                // drag frame for the 0,0 based slide, which isn't really on
+                // any map -- it's owned by the pathway).
+                continue;
+            }
 
             if (mFocalParent != null) {
+                /*
                 if (c == mFocalParent) {
                     // TODO: this is a pretty major hack: get this de-selected earlier
                     // (the LWSlide is being included in the selection generated
@@ -2366,6 +2374,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     selection.remove(c);
                     continue;
                 }
+                */
                 if (!c.hasAncestor(mFocalParent)) {
                     // Something in selection is not in the current focal for this viewer,
                     // so don't draw the selection box here.
