@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.19 $ / $Date: 2007-01-03 15:37:15 $ -->
+<!-- $Revision: 1.20 $ / $Date: 2007-03-23 15:45:19 $ -->
 
 <!-- 
 This ant build file:
@@ -121,7 +121,9 @@ This ant build file:
 	<pathelement path="${lib.home}/jsse.jar" />
 
    <!-- RDF support -->
-   <pathelement path="${lib.home}/jena.jar" />
+   <pathelement path="${lib.home}/jena-2.5.2.jar" />
+    <pathelement path="${lib.home}/iri.jar" />
+     <pathelement path="${lib.home}/concurrent.jar" />
     <pathelement location="${java.class.path}" />
     
     <!-- castor -->
@@ -130,6 +132,10 @@ This ant build file:
     <!-- css -->
     <pathelement path="${lib.home}/sac-1.3.jar" />
     <pathelement path="${lib.home}/batik.jar" />
+    
+    <!-- icu -->
+    <pathelement path="${lib.home}/icu4j-3_6.jar" />
+    
   </path>
 
 
