@@ -118,6 +118,14 @@ public class TypeList extends JList {
                 javax.swing.JLabel imageLabel = new javax.swing.JLabel(new javax.swing.ImageIcon(im));
                 p.add(imageLabel);
             }
+            
+            //selected
+            if(value == getSelectedValue())
+            {
+                p.setBackground(new java.awt.Color(230,230,230));
+            }
+            else
+                p.setBackground(new java.awt.Color(255,255,255));
             return p;
         }
     }
