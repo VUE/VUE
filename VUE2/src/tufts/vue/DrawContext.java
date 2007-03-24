@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.28 $ / $Date: 2007-03-24 00:45:58 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2007-03-24 00:52:23 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -126,13 +126,13 @@ public class DrawContext
     public void resetComposit(Color fill) {
         if (alpha != 1f) {
             
-            // if we're going to do a non-opaque fill during an general transparent
+            // if we're going to do a non-opaque fill during a general transparent
             // rendering situation, change temporarily to the SRC_OVER rule instead of
             // SRC, so that what's under the translucent node will show through.  If we
             // just left it SRC, color values that had an alpha channel would end up
             // blowing away what's underneath them.
             
-            if (fill == null || fill.getAlpha() != 255)
+            if (fill != null && fill.getAlpha() != 255)
                 setAlpha(alpha, AlphaComposite.SRC_OVER);
             else
                 setAlpha(alpha, AlphaComposite.SRC);
