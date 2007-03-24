@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.27 $ / $Date: 2007-03-23 16:57:15 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2007-03-24 00:45:58 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -55,8 +55,7 @@ public class DrawContext
 
     public boolean isFocused;
 
-    
-    //private float mAlpha = 1f;
+    private float alpha = 1f;
 
     private VueTool activeTool;
 
@@ -112,15 +111,32 @@ public class DrawContext
     }
 
     public void setAlpha(double alpha, int alphaRule) {
-        //mAlpha = (float) alpha;
+        this.alpha = (float) alpha;
         if (alpha == 1)
             g.setComposite(AlphaComposite.Src);
         else
             g.setComposite(AlphaComposite.getInstance(alphaRule, (float) alpha));
+        // todo: cache the alpha instance
     }
 
     public void setAlpha(double alpha) {
         setAlpha(alpha, AlphaComposite.SRC_OVER);
+    }
+    
+    public void resetComposit(Color fill) {
+        if (alpha != 1f) {
+            
+            // if we're going to do a non-opaque fill during an general transparent
+            // rendering situation, change temporarily to the SRC_OVER rule instead of
+            // SRC, so that what's under the translucent node will show through.  If we
+            // just left it SRC, color values that had an alpha channel would end up
+            // blowing away what's underneath them.
+            
+            if (fill == null || fill.getAlpha() != 255)
+                setAlpha(alpha, AlphaComposite.SRC_OVER);
+            else
+                setAlpha(alpha, AlphaComposite.SRC);
+        }
     }
     
 
@@ -295,6 +311,7 @@ public class DrawContext
         this.activeTool = dc.activeTool;
         this.inMapDraw = dc.inMapDraw;
         this.frame = dc.frame;
+        this.alpha = dc.alpha;
         //this.drawAbsoluteLinks = dc.drawAbsoluteLinks;
         this.maxLayer = dc.maxLayer;
         this.isFocused = dc.isFocused;

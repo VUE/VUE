@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.228 $ / $Date: 2007-03-23 23:28:11 $ / $Author: sfraize $
+ * @version $Revision: 1.229 $ / $Date: 2007-03-24 00:45:58 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2904,6 +2904,7 @@ public class LWComponent
         if (drawSlide) {
 
             drawPathwayDecorations(dc);
+            dc.resetComposit(getRenderFillColor());
             drawImpl(dc);
 
             final LWSlide slide = entry.getSlide();
@@ -2942,6 +2943,7 @@ public class LWComponent
                 }
             }
             
+            dc.resetComposit(getRenderFillColor());
             drawImpl(dc);
         }
     }
@@ -3610,15 +3612,13 @@ public class LWComponent
             //g.fillRect(0, 0, width, height);
             }*/
 
-        DrawContext dc = new DrawContext(g);
-        if (alpha != OPAQUE)
-            dc.setAlpha(alpha, java.awt.AlphaComposite.SRC); // erase any underlying
-
-        if (DEBUG.IMAGE && DEBUG.META) fillColor = Color.red;
-
         final int width = imageSize.pixelWidth();
         final int height = imageSize.pixelHeight();
         
+        if (DEBUG.IMAGE && DEBUG.META) fillColor = Color.red;
+
+        DrawContext dc = new DrawContext(g);
+
         if (fillColor != null) {
             if (false && alpha != OPAQUE) {
                 Color c = fillColor;
@@ -3627,9 +3627,18 @@ public class LWComponent
                 // alpha*alpha*alpha given our GC already has an alpha set.
                 fillColor = new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) (alpha*alpha*255+0.5));
             }
+            if (alpha != OPAQUE) 
+                dc.setAlpha(alpha, AlphaComposite.SRC); // erase any underlying in cache
             g.setColor(fillColor);
             g.fillRect(0, 0, width, height);
+        } else if (alpha != OPAQUE) {
+            // we didn't have a fill, but we have an alpha: make sure any cached data is cleared
+            dc.g.setComposite(AlphaComposite.Clear);
+            g.fillRect(0, 0, width, height);
         }
+        
+        if (alpha != OPAQUE)
+            dc.setAlpha(alpha, AlphaComposite.SRC);
 
         dc.setAntiAlias(true);
             
