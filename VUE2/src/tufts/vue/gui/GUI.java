@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.66 $ / $Date: 2007-03-25 18:23:19 $ / $Author: mike $
+ * @version $Revision: 1.67 $ / $Date: 2007-03-25 18:33:04 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -245,6 +245,7 @@ public class GUI
             }
         }
 
+        UIManager.put("FileChooser.filesOfTypeLabelText","Format:");
 
         javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(false);
         
