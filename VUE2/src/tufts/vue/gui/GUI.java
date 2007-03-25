@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.65 $ / $Date: 2007-03-23 23:28:12 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2007-03-25 18:23:19 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1497,6 +1497,7 @@ public class GUI
     
     public static JPopupMenu buildMenu(Action[] actions) {
         JPopupMenu menu = new JPopupMenu();
+        menu.setBorder(BorderFactory.createEmptyBorder(5,0,5,0));
         for (int i = 0; i < actions.length; i++) {
             Action a = actions[i];
             if (a == null)
