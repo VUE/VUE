@@ -27,7 +27,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.20 $ / $Date: 2007-03-19 01:43:10 $ / $Author: dan $
+ * @version $Revision: 1.21 $ / $Date: 2007-03-25 18:09:52 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -89,7 +89,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         SaveAction saveAsAction = new SaveAction("Save As...");
         OpenAction openAction = new OpenAction("Open...");
         ExitAction exitAction = new ExitAction("Quit");
-        Publish publishAction = new Publish("Export");
+        Publish publishAction = new Publish("Export...");
         
         // Actions added by the power team
         PrintAction printAction = PrintAction.getPrintAction();
