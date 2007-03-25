@@ -27,6 +27,9 @@
 package tufts.oki.localFiling;
 import java.io.*;
 import java.util.*;
+
+import javax.swing.filechooser.FileSystemView;
+
 import tufts.oki.shared.*;
 
 /**
@@ -107,6 +110,13 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
    /**
      * Gets the root cabinets for the local file system.
      */
+    
+    private static ArrayList list = new ArrayList();
+    {
+    	File[] roots = File.listRoots();
+    	for (int i=0;i<roots.length;i++)
+    		list.add(roots[i]);
+    }
     private void initializeRoots() throws osid.filing.FilingException {
         String[] drives = {"C","D","E","F","G","H","I","J","K","L","M","N",
                            "O","P","Q","R","S","T","U","V","W","X","Y","Z"};
@@ -124,15 +134,27 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
         //  If files exist, then add that drive as a root.
         if(rootCabinets.size() == 0) {
             for (int i = 0; i < drives.length; i++) {
-                File file = new File(drives[i]+":" + java.io.File.separator);
-                if(file.exists()){
+            	  
+            	File file = new File(drives[i]+":" + java.io.File.separator);
+            	
+            	 //* Trying out a test for removable disks here...
+     
+            	boolean isRemovableDisk = false;
+            	if (list.contains(file))
+            	{
+            	 	isRemovableDisk = FileSystemView.getFileSystemView().getSystemTypeDescription(file).equals("Removable Disk");
+            	}
+            	
+            	//isRemovableDisk = !FileSystemView.getFileSystemView().getSystemTypeDescription(file).equals("Removable Disk");
+                
+            	if(!isRemovableDisk && file.exists()){
                     String idStr = drives[i]+":" + java.io.File.separator;
                     //this.rootCabinets.put(idStr, new LocalCabinet(this, null, idStr));
                     LocalCabinet newRoot = new LocalCabinet (idStr, agent, null);
                     rootCabinets.add (newRoot);
                     if (drives[i].compareTo("C:") == 0)
                         cwd = newRoot;
-                }
+                }                
             } 
         }
         
