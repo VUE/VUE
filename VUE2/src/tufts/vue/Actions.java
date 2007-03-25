@@ -58,6 +58,7 @@ public class Actions implements VueConstants
     public static final int CTRL = Event.CTRL_MASK;
     public static final int SHIFT = Event.SHIFT_MASK;
     public static final int ALT = Event.ALT_MASK;
+    
     public static final int CTRL_ALT = VueUtil.isMacPlatform() ? CTRL+COMMAND : CTRL+ALT;
     
     static final private KeyStroke keyStroke(int vk, int mod) {
@@ -792,19 +793,36 @@ public class Actions implements VueConstants
     // has focus (e.g., not a field that would also grab arrow keys), they get through.
     // So just need to turn them off in ScrollPane try editing action map via gui defaults)
     //public static final Action NudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, SHIFT)) {
-    public static final Action NudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, SHIFT)) {
+    public static final Action NudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, 0)) {
         void act(LWComponent c) { nudgeOrReorder(c,  0, -1); }
     };
-    public static final Action NudgeDown = new LWCAction("Nudge Down", keyStroke(KeyEvent.VK_DOWN, SHIFT)) {
+    public static final Action NudgeDown = new LWCAction("Nudge Down", keyStroke(KeyEvent.VK_DOWN, 0)) {
         void act(LWComponent c) { nudgeOrReorder(c,  0,  1); }
     };
-    public static final Action NudgeLeft = new LWCAction("Nudge Left", keyStroke(KeyEvent.VK_LEFT, SHIFT)) {
+    public static final Action NudgeLeft = new LWCAction("Nudge Left", keyStroke(KeyEvent.VK_LEFT, 0)) {
         void act(LWComponent c) { nudgeOrReorder(c, -1,  0); }
     };
-    public static final Action NudgeRight = new LWCAction("Nudge Right", keyStroke(KeyEvent.VK_RIGHT, SHIFT)) {
+    public static final Action NudgeRight = new LWCAction("Nudge Right", keyStroke(KeyEvent.VK_RIGHT, 0)) {
         void act(LWComponent c) { nudgeOrReorder(c,  1,  0); }
     };
 
+    //new addition of big nudges replacing the old small nudge
+    //keystroke, the small nudge keystroke are replacing the panning
+    //the jscrollpane.
+    public static final Action BigNudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, SHIFT)) {
+        void act(LWComponent c) { nudgeOrReorder(c,  0, -10); }
+    };
+    public static final Action BigNudgeDown = new LWCAction("Nudge Down", keyStroke(KeyEvent.VK_DOWN, SHIFT)) {
+        void act(LWComponent c) { nudgeOrReorder(c,  0,  10); }
+    };
+    public static final Action BigNudgeLeft = new LWCAction("Nudge Left", keyStroke(KeyEvent.VK_LEFT, SHIFT)) {
+        void act(LWComponent c) { nudgeOrReorder(c, -10,  0); }
+    };
+    public static final Action BigNudgeRight = new LWCAction("Nudge Right", keyStroke(KeyEvent.VK_RIGHT, SHIFT)) {
+        void act(LWComponent c) { nudgeOrReorder(c,  10,  0); }
+    };
+
+    
     private static void nudgeOrReorder(LWComponent c, int x, int y) {
         if (c.getParent() instanceof LWNode) { // TODO: a more abstract test... inVisuallyOrderedContainer?
             if (x < 0 || y < 0)

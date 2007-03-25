@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.317 $ / $Date: 2007-03-23 23:23:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.318 $ / $Date: 2007-03-25 22:10:05 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3359,6 +3359,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (VUE.inFullScreen())
                     VUE.toggleFullScreen();
             } else if (e.isShiftDown() && VueSelection.isEmpty()) {
+            	
                 // this is mainly for debug.
                      if (key == KeyEvent.VK_UP)    viewer.panScrollRegion( 0,-1);
                 else if (key == KeyEvent.VK_DOWN)  viewer.panScrollRegion( 0, 1);
@@ -3372,7 +3373,28 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
             else if (activeTool.handleKeyPressed(e)) {
                 ; // handled is true
-            } else {
+            } else if (!VueSelection.isEmpty())
+            {
+            	if (e.isShiftDown())
+            	{
+            		if (key == KeyEvent.VK_UP)    Actions.BigNudgeUp.actionPerformed(new ActionEvent(this,0,"BigNudgeUp"));
+                	else if (key == KeyEvent.VK_DOWN)  Actions.BigNudgeDown.actionPerformed(new ActionEvent(this,0,"NudgeDown"));
+                	else if (key == KeyEvent.VK_LEFT)  Actions.BigNudgeLeft.actionPerformed(new ActionEvent(this,0,"NudgeLeft"));
+                	else if (key == KeyEvent.VK_RIGHT) Actions.BigNudgeRight.actionPerformed(new ActionEvent(this,0,"NudgeRight"));
+                	else
+                		handled = false;
+            	}
+            	else
+            	{
+            		if (key == KeyEvent.VK_UP)    Actions.NudgeUp.actionPerformed(new ActionEvent(this,0,"NudgeUp"));
+                	else if (key == KeyEvent.VK_DOWN)  Actions.NudgeDown.actionPerformed(new ActionEvent(this,0,"NudgeDown"));
+                	else if (key == KeyEvent.VK_LEFT)  Actions.NudgeLeft.actionPerformed(new ActionEvent(this,0,"NudgeLeft"));
+                	else if (key == KeyEvent.VK_RIGHT) Actions.NudgeRight.actionPerformed(new ActionEvent(this,0,"NudgeRight"));
+                	else
+                		handled = false;
+            	}
+            }            
+            else {
                 handled = false;
             }
 
