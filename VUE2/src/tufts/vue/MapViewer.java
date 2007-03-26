@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.318 $ / $Date: 2007-03-25 22:10:05 $ / $Author: mike $ 
+ * @version $Revision: 1.319 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -176,8 +176,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //private InputHandler inputHandler = new InputHandler(this);
     private final MapViewer inputHandler; // == this
     private final MapViewer viewer;  // == this: for old InputHandler references
-    
-    
+
     public MapViewer(LWMap map) {
         this(map, "");
     }
@@ -201,8 +200,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         setLayout(null);
 
         if (map != null) {
-            if (map.getFillColor() != null)
-                setBackground(map.getFillColor());
+            //if (map.getFillColor() != null) setBackground(map.getFillColor());
             loadFocal(map);
         
             //-------------------------------------------------------
@@ -245,11 +243,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     boolean inScrollPane() {
         return inScrollPane;
     }
-
-    protected int getMaxLayer() {
-        return 0;
-    }
-
 
     // TODO: rework this due to fact this get's added/removed again
     // during full-screen swaps: could the focus stuff have been
@@ -729,7 +722,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      * happen to be panned to and displaying at the moment.
      */
     public Rectangle2D getVisibleMapBounds() {
-        return screenToMapRect(getVisibleBounds());
+        LWSlide slide;
+        // TODO: temporary hack until / if slides actualy go on the map
+        if (mFocal instanceof LWSlide)
+            slide = (LWSlide) mFocal;
+        else
+            slide = (LWSlide) mFocal.getAncestorOfType(LWSlide.class);
+        
+        if (slide != null) {
+            // hack for slides which aren't really on the map: for MapPanner
+            LWComponent node = slide.getSourceNode();
+            return node.getBounds().createUnion(node.getSlideIconBounds());
+        } else
+            return screenToMapRect(getVisibleBounds());
     }
     
     /**
@@ -752,7 +757,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (mFocal == mMap)
             return mMap.getBounds(getMaxLayer());
         else
-            return mFocal.getBounds();
+            return mFocal.getShapeBounds();
     }
 
     /**
@@ -828,12 +833,68 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             repaint(); 
 
         if (!ignore) {
-            fireViewerEvent(MapViewerEvent.PAN);
-            reshapeImpl(x,y,w,h);
+            if (reshapeUnderway) {
+                //Util.printStackTrace("reshapeLoop");
+                out("RESHAPE LOOP");
+            } else {
+                reshapeUnderway = true;
+                fireViewerEvent(MapViewerEvent.PAN);
+                try {
+                    reshapeImpl(x,y,w,h);
+                } finally {
+                    reshapeUnderway = false;
+                }
+            }
         }
     }
 
-    protected void reshapeImpl(int x, int y, int w, int h) {}
+    private boolean reshapeUnderway = false;
+    protected void reshapeImpl(int x, int y, int w, int h)
+    {
+        if (mFocal == null || mFocal instanceof LWMap)
+            return;
+        zoomToContents();
+    }
+
+    protected void zoomToContents() {
+        if (zoomUnderway) {
+            out("ZOOM UNDERWAY");
+            return;
+        }
+        zoomUnderway = true;
+        try {
+            doZoomToContents();
+        } finally {
+            zoomUnderway = false;
+        }
+    }
+    
+    private boolean zoomUnderway = false;
+    private void doZoomToContents() {
+
+        if (mFocal == null) {
+            out("Can't soom to null focal!");
+            return;
+        }
+        final Rectangle2D zoomBounds = mFocal.getShapeBounds();
+
+        int margin = 30;
+
+        if (VUE.inFullScreen() && mFocal instanceof LWSlide)
+            margin = 0;
+
+        if (DEBUG.PRESENT) out("zoomToContents " + mFocal);
+        
+        tufts.vue.ZoomTool.setZoomFitRegion(this,
+                                            zoomBounds,
+                                            margin,
+                                            false);
+        
+    }
+
+    
+    
+    
 
     /** at startup make sure the contents of the map are visible in the viewport */
     private void ensureMapVisible()
@@ -909,11 +970,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     public void loadFocal(LWComponent focal) {
+        out("loadFocal " + focal);
         //if (focal == null) throw new IllegalArgumentException(this + " loadFocal: focal is null");
         if (mFocal == focal)
             return;
-        if (mFocal != null)
+        boolean autoZoom = false;
+        if (mFocal != null) {
             unloadFocal();
+            autoZoom = true;
+        } else if (!(focal instanceof LWMap))
+            autoZoom = true;
+        
         mOffset.x = mOffset.y = 0;
         mFocal = focal;
         if (mFocal != null) {
@@ -931,9 +998,22 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
             mMap.setUndoManager(new UndoManager(mMap));
         }
+
+//         if (mFocal instanceof LWMap) {
+//             ;
+//         } else {
+//         }
+
+        if (autoZoom) {
+            // If we are switching from another focal, automatically do a zoom-fit
+            if (DEBUG.PRESENT) out("Auto ZoomFit");
+            zoomToContents();
+            //tufts.vue.ZoomTool.setZoomFit(this);
+        }
+        
         repaint();
     }
-    
+
     /*
     void setFocal(LWComponent focal) {
         if (focal == null) {
@@ -1400,6 +1480,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         PickContext pc = new PickContext(x, y);
         pc.root = mFocal;
         pc.maxLayer = getMaxLayer();
+        pc.pickDepth = getPickDepth();
         return pc;
     }
     
@@ -1407,9 +1488,23 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         PickContext pc = new PickContext(rect);
         pc.root = mFocal;
         pc.maxLayer = getMaxLayer();
+        pc.pickDepth = getPickDepth();
         return pc;
     }
         
+    protected int getMaxLayer() {
+        return 0;
+    }
+
+    protected int getPickDepth() {
+        if (!inScrollPane())
+            return 1; // todo: temporary hack for presentations -- find a clearer way
+        else
+            return 0;
+    }
+
+
+    
     public LWComponent pickNode(Point2D.Float p) {
         return pickNode(p.x, p.y);
     }
@@ -1844,7 +1939,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     
     protected DrawContext getDrawContext(Graphics2D g) {
-        DrawContext dc = new DrawContext(g, getZoomFactor(), -getOriginX(), -getOriginY(), getVisibleBounds(), true);
+        DrawContext dc = new DrawContext(g, getZoomFactor(), -getOriginX(), -getOriginY(), getVisibleBounds(), mFocal, true);
         
         dc.setInteractive(true);
         dc.setAntiAlias(DEBUG_ANTI_ALIAS);
@@ -1863,7 +1958,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      */
     public void paintComponent(Graphics g)
     {
-        //isScaleDraw = false;
         Graphics2D g2 = (Graphics2D) g;
         
         /*
@@ -1887,8 +1981,48 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
         
-        DrawContext dc = getDrawContext(g2);
+        DrawContext dc = activeTool.tweakDrawContext(getDrawContext(g2));
+
+        // first, be sure to erase anything already in the GC,
+        // using the appropriate background fill.
         
+        final Color bgFill;
+        
+        if (dc.isPresenting() && !inScrollPane()) {
+            bgFill = VUE.getActivePathway().getMasterSlide().getFillColor();
+            /*
+            if (mFocal instanceof LWSlide)
+                bgFill = ((LWSlide)mFocal).getMasterSlide().getFillColor();
+            else
+                bgFill = mMap.getFillColor();
+            */
+        } else {
+            if (mMap == null)
+                bgFill = Color.gray;
+            else
+                bgFill = mMap.getFillColor();
+        }
+
+        g2.setColor(bgFill);
+        g2.fill(g2.getClipBounds());
+        
+        /*
+        if (mFocal instanceof LWSlide && !inScrollPane()) {
+            // todo opt: don't have the master slide do it's fill,
+            // and do this non-scaled before drawFocal if we're not in a scroll pane, or maybe if just full-screen
+            dc.g.setColor(((LWSlide)mFocal).getMasterSlide().getFillColor());
+            dc.g.fill(dc.g.getClipBounds());
+        }
+
+        if (mFocal instanceof LWMap) {
+            // be sure to erase anything already in the GC
+            dc.g.setColor(mFocal.getFillColor());
+            dc.g.fill(dc.g.getClipBounds());
+            mFocal.draw(dc);
+            
+        } else
+        */
+
         //-------------------------------------------------------
         // adjust GC for pan & zoom
         //-------------------------------------------------------
@@ -1909,7 +2043,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // their children, etc down the line.
         //-------------------------------------------------------
 
-        drawMap(dc);
+        drawFocal(dc);
         
         dc.setMapDrawing();
         if (DEBUG_SHOW_ORIGIN) {
@@ -2095,12 +2229,48 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
 
-    protected void drawMap(DrawContext dc) {
+    protected void drawFocal(DrawContext dc) {
         if (mFocal == null)
             return;
 
+        // TODO: draw the master slide behind mapView entries...
+        //dc.g.setClip(master.getBounds());
+        //    master.draw(dc);
+        //    dc.g.setClip(curClip);
+            
+        if (mFocal.isTranslucent() && mFocal != mMap) {
+            // If our fill is in any way translucent, the underlying
+            // map can show thru, thus we have to draw the whole map
+            // to see the real result -- we just set the clip to
+            // the shape of the focal.
+            final Shape curClip = dc.g.getClip();
+            dc.g.clip(mFocal.getShape());
+            LWComponent parentSlide = mFocal.getAncestorOfType(LWSlide.class);
+            if (parentSlide != null) {
+                parentSlide.draw(dc);
+                mFocal.draw(dc);
+            } else {
+                mFocal.getMap().draw(dc);
+                // don't need to re-draw the focal itself -- already drawn in it's map
+            }
+            dc.g.setClip(curClip);
+        } else {
+            // now draw the map / focal
+            mFocal.draw(dc);
+        }
+        
         activeTool.handleDraw(dc, this, mFocal);
+
+        //if (activeTool.handleDraw(dc, this, mFocal))
+        //    return;
+        //dc.g.setColor(mFocal.getMap().getFillColor());
+        //dc.g.setColor(mFocal.getFillColor());
+        //dc.g.fill(dc.g.getClipBounds());
+        
     }
+
+
+    
     
     /** This paintChildren is a no-op.  super.paint() will call this,
      * and we want it to do nothing because we need to invoke this
@@ -3338,6 +3508,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (!e.isConsumed())
                     Actions.Delete.fire(this);
             } else if (key == KEY_ABORT_ACTION) {
+
                 if (dragComponent != null) {
                     double oldX = viewer.screenToMapX(dragStart.x) + dragOffset.x;
                     double oldY = viewer.screenToMapY(dragStart.y) + dragOffset.y;
@@ -3356,8 +3527,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     isDraggingSelectorBox = false;
                     repaint();
                 }
-                if (VUE.inFullScreen())
+
+                if (!(mFocal instanceof LWMap))
+                    loadFocal(mFocal.getMap());
+                
+                else if (VUE.inFullScreen()) {
                     VUE.toggleFullScreen();
+                }
             } else if (e.isShiftDown() && VueSelection.isEmpty()) {
             	
                 // this is mainly for debug.
@@ -3643,10 +3819,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         
         
-        private LWComponent hitComponent = null;
-        private Point2D originAtDragStart;
-        private Point viewportAtDragStart;
-        private boolean mLabelEditWasActiveAtMousePress;
+    private LWComponent hitComponent = null;
+    private Point2D originAtDragStart;
+    private Point viewportAtDragStart;
+    private boolean mLabelEditWasActiveAtMousePress;
+
+    private boolean activeToolAteMousePress = false;
+    
     // TODO: if APPLE (Command) down when drag starts, do NOT select the object,
     // so can drag copies off map into slide viewer more easily (if it selects
     // on the map, it will swap out the slide displayed!)
@@ -3710,8 +3889,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, null, null);
             
-            if (activeTool.handleMousePressed(mme))
+            if (activeTool.handleMousePressed(mme)) {
+                activeToolAteMousePress = true;
                 return;
+            }
             
             if (e.getButton() == MouseEvent.BUTTON1 && activeTool.supportsSelection()) {
                 hitOnSelectionHandle = checkAndHandleControlPointPress(mme);
@@ -4759,6 +4940,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             setDragger(null);
             isDraggingSelectorBox = false;
             mouseWasDragged = false;
+            activeToolAteMousePress = false;
             
             
             // todo opt: only need to do this if we don't draw selection
@@ -4975,7 +5157,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         private final boolean isDoubleClickEvent(MouseEvent e) {
-            return e.getClickCount() == 2
+            return !activeToolAteMousePress
+                && e.getClickCount() == 2
                 && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
                 && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
         }

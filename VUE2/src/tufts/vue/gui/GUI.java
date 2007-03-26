@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.67 $ / $Date: 2007-03-25 18:33:04 $ / $Author: mike $
+ * @version $Revision: 1.68 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -791,7 +791,10 @@ public class GUI
                 setVisible(true);
                 setVisible(false);
             }
+
+            setBackground(Color.black);
         }
+        
         public void setVisible(boolean show) {
 
             setFocusableWindowState(show);
@@ -1088,7 +1091,11 @@ public class GUI
             bounds.height -= GInsets.top;
         }
 
-        if (DEBUG.FOCUS) bounds.height /= 5; // so we can see terminal
+        if (DEBUG.PRESENT) {
+            // so we can see underlying diagnostic windows
+            bounds.width /= 3;
+            bounds.height /= 3;
+        }
         
         //out("FSBounds: " + bounds);
 

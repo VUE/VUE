@@ -193,10 +193,10 @@ public class LinkTool extends VueTool
         this.linkSource = null;
     }
 
-    public void handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {
-        super.handleDraw(dc, viewer, focal);
+    public boolean handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {
         if (linkSource != null)
             creationLink.draw(dc);
+        return false;
     }
     
     private static LWComponent findLWLinkTargetAt(LWComponent linkSource, LWLink link, MapMouseEvent e)

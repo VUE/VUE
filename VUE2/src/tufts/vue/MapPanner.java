@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.52 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -295,6 +295,7 @@ public class MapPanner extends javax.swing.JPanel
         paintViewerIntoRectangle(null, g, viewer, pannerSize);
     }
     
+    // TODO: take a DrawContext, not a viewer
     static void paintViewerIntoRectangle(MapPanner panner, Graphics g, final MapViewer viewer, final Rectangle paintRect)
     {
 
@@ -344,7 +345,7 @@ public class MapPanner extends javax.swing.JPanel
          * map on the panner window.
          */
 
-        final DrawContext dc = new DrawContext(g, zoomFactor, -offset.x, -offset.y, null, false);
+        final DrawContext dc = new DrawContext(g, zoomFactor, -offset.x, -offset.y, null, map, false);
 
         dc.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, viewer.AA_ON);//pickup MapViewer AA state for debug
         dc.setPrioritizeSpeed(true);

@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.132 $ / $Date: 2007-03-23 16:57:16 $ / $Author: sfraize $
+ * @version $Revision: 1.133 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -899,10 +899,24 @@ public class LWPathway extends LWContainer
 
         }
 
+        // override LWSlide impl that tries to draw master slide -- only draw children -- no fill
+        protected void drawImpl(DrawContext dc) {
+            drawChildren(dc);
+        }
+
+        // skip fancy LWComponent stuff, and draw background
+        public void draw(DrawContext dc) {
+            if (!isTransparent()) {
+                dc.g.setColor(getFillColor());
+                dc.g.fill(getShape());
+            }
+            drawImpl(dc);
+        }
+        
         // we could not have a special master slide object if we could handle
         // this draw-skipping in some other way (and arbitrary nodes can be style master's)
         // Tho having a special master-slide object isn't really that big a deal.
-        public void drawChild(LWComponent child, DrawContext dc) {
+        protected void drawChild(LWComponent child, DrawContext dc) {
             if (!dc.isEditMode() && !child.isMoveable())
                 return;
             else

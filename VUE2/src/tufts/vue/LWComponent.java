@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.229 $ / $Date: 2007-03-24 00:45:58 $ / $Author: sfraize $
+ * @version $Revision: 1.230 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1433,7 +1433,7 @@ public class LWComponent
     }
     
     public boolean hasLabel() {
-        return this.label != null;
+        return this.label != null && this.label.length() > 0;
     }
     public String getNotes() {
         return this.notes;
@@ -1940,10 +1940,16 @@ public class LWComponent
     //protected void reparentNotify(LWContainer parent) {}
 
     public void setSyncSource(LWComponent source) {
+        if (mSyncClients != null) {
+            out("blowing away sync clients on syncSource set");
+            // just in case
+            mSyncClients.clear();
+            mSyncClients = null;
+        }
         mSyncSource = source;
         mSyncSource.addSyncClient(this);
     }
-    
+
     public LWComponent getSyncSource() {
         return mSyncSource;
     }
@@ -2336,6 +2342,16 @@ public class LWComponent
             return parent.hasAncestor(c);
     }
 
+    public LWComponent getAncestorOfType(Class clazz) {
+        LWComponent parent = getParent();
+        if (parent == null)
+            return null;
+        else if (clazz.isInstance(parent))
+            return parent;
+        else
+            return parent.getAncestorOfType(clazz);
+    }
+    
     void setScale(float scale)
     {
         if (this.scale == scale)
@@ -2498,7 +2514,7 @@ public class LWComponent
     {
         if (this.width == w && this.height == h)
             return;
-        if (DEBUG.LAYOUT||DEBUG.PRESENT) out("*** setSize  (LWC)  " + w + "x" + h);
+        if (DEBUG.LAYOUT) out("*** setSize  (LWC)  " + w + "x" + h);
         final Size old = new Size(width, height);
 
         if (mAspect > 0) {
@@ -2799,7 +2815,8 @@ public class LWComponent
             return;
         
         for (LWPathway path : pathwayRefs) {
-            if (!dc.isFocused && path.isDrawn()) {
+            //if (!dc.isFocused && path.isDrawn()) {
+            if (path.isDrawn()) {
                 path.drawComponentDecorations(new DrawContext(dc), this);
             }
         }
@@ -2898,14 +2915,28 @@ public class LWComponent
      */
     public void draw(DrawContext dc)
     {
+        if (dc.focal == this || dc.isFocused())
+            drawRaw(dc);
+        else
+            drawDecorated(dc);
+    }
+
+    private void drawRaw(DrawContext dc) {
+        dc.checkComposite(this);
+        drawImpl(dc);        
+    }
+    
+    protected void drawDecorated(DrawContext dc)
+    {
         final LWPathway.Entry entry = getEntryToDisplay();
         final boolean drawSlide = (entry != null && !entry.isMapView);
 
+        if (dc.drawPathways() && dc.focal != this)
+            drawPathwayDecorations(dc);
+        
         if (drawSlide) {
 
-            drawPathwayDecorations(dc);
-            dc.resetComposit(getRenderFillColor());
-            drawImpl(dc);
+            drawRaw(dc);
 
             final LWSlide slide = entry.getSlide();
             
@@ -2918,8 +2949,8 @@ public class LWComponent
             dc.g.translate(slideFrame.x, slideFrame.y);
             dc.g.scale(SlideScale, SlideScale);
             //dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.9f));
-            entry.pathway.getMasterSlide().draw(dc);
-            slide.draw(dc);
+            //entry.pathway.getMasterSlide().drawImpl(dc);
+            slide.drawImpl(dc);
 
             Rectangle2D border = slide.getBounds();
             dc.g.setColor(Color.darkGray);
@@ -2927,24 +2958,22 @@ public class LWComponent
             dc.g.draw(border);
             
         } else {
-            if (dc.drawPathways())
-                drawPathwayDecorations(dc);
 
+            //if (entry != null && !dc.isFocused) {
             if (entry != null) {
                 // if we had an entry, but it was a map-view slide, do something to make it look slide-like
                 dc.g.setColor(entry.pathway.getMasterSlide().getFillColor());
                 if (entry.node instanceof LWGroup) {
                     if (!dc.isPresenting())
                         dc.g.fill(entry.node.getBounds());
-                } else if (entry.node.isTransparent()) {
+                } else if (dc.focal != this && entry.node.isTranslucent()) {
                     Area toFill = new Area(entry.node.getBounds());
                     toFill.subtract(new Area(entry.node.getShape()));
                     dc.g.fill(toFill);
                 }
             }
             
-            dc.resetComposit(getRenderFillColor());
-            drawImpl(dc);
+            drawRaw(dc);
         }
     }
 

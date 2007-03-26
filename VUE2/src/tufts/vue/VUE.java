@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.399 $ / $Date: 2007-03-23 19:49:29 $ / $Author: mike $ 
+ * @version $Revision: 1.400 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1960,6 +1960,7 @@ public class VUE
     
     static void toggleFullScreen(boolean goNative) {
         FullScreen.toggleFullScreen(goNative);
+        VUE.getActiveViewer().zoomToContents();
     }
     
     static void installExampleNodes(LWMap map) {

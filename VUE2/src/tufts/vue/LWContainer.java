@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -35,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.102 $ / $Date: 2007-03-23 16:57:15 $ / $Author: sfraize $
+ * @version $Revision: 1.103 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -930,82 +931,100 @@ public abstract class LWContainer extends LWComponent
 
     protected void drawChildren(DrawContext dc)
     {
+        if (this.children.size() <= 0)
+            return;
+
         int nodes = 0;
         int links = 0;
         int images = 0;
         
-        if (this.children.size() > 0) {
-
-            Rectangle clipBounds = dc.g.getClipBounds();
+        final Rectangle2D clipBounds;
+        final Shape clip = dc.g.getClip();
+        if (clip instanceof Rectangle2D) {
+            clipBounds = (Rectangle2D) clip;
+        } else {
+            clipBounds = dc.g.getClipBounds();
+            if (true || DEBUG.PAINT) {
+                out("USING CLIPBOUNDS: clip=" + clip);
+                out("      CLIPBOUNDS: " + clipBounds);
+            }
 
             // fudge clip bounds to deal with anti-aliasing
-            // edges that are being missed.
-            // TODO: so this is growing every time we descend into
-            // a container?  We only want to do this at the LWMap level...
-            if (clipBounds != null)
-                clipBounds.grow(1,1);
+            // edges that are being missed (only at the top level)
+            /*
+              if (dc.focal == this) {
+              if (clipBounds != null)
+              clipBounds.grow(1,1);
+              }
+            */
+        }
+
+        //System.out.println("clipBounds " + clipBounds + " drawing children of " + this);
+        //System.out.println("      clip " + clip + " drawing children of " + this);
+
             
-            if (DEBUG.PAINT) {
-                //System.out.println("DRAWING " + this);
-                out("drawChildren: clipBounds="+clipBounds);
-                //System.out.println("      mvrr="+MapViewer.RepaintRegion);
+        if (DEBUG.PAINT) {
+            System.out.println("DRAWING CHILDREN; clip=" + clipBounds + " for " + this);
+            //out("drawChildren: clipBounds="+clipBounds);
+            //System.out.println("      mvrr="+MapViewer.RepaintRegion);
+        }
+                
+        LWComponent focused = null;
+        for (LWComponent child : getChildList()) {
+
+            final LWComponent c = child.getView();
+
+            // make sure the rollover is painted on top
+            // a bit of a hack to do this here -- better MapViewer
+            //if (c.isRollover() && c.getParent() instanceof LWNode) {
+            if (c.isZoomedFocus()) {
+                focused = c;
+                continue;
             }
-                
-            LWComponent focused = null;
-            for (LWComponent child : getChildList()) {
 
-                final LWComponent c = child.getView();
-
-                // make sure the rollover is painted on top
-                // a bit of a hack to do this here -- better MapViewer
-                //if (c.isRollover() && c.getParent() instanceof LWNode) {
-                if (c.isZoomedFocus()) {
-                    focused = c;
-                    continue;
-                }
-
-                if (c != child) c.setLocation(child.getX(), child.getY());
+            if (c != child) c.setLocation(child.getX(), child.getY());
                 
-                //-------------------------------------------------------
-                // This is a huge speed optimzation.  Eliminating all
-                // the Graphics2D calls that would end up having to
-                // check the clipBounds internally makes a giant
-                // difference.
-                // -------------------------------------------------------
+            //-------------------------------------------------------
+            // This is a huge speed optimzation.  Eliminating all
+            // the Graphics2D calls that would end up having to
+            // check the clipBounds internally makes a giant
+            // difference.
+            // -------------------------------------------------------
                 
-                // if filtered, don't draw, unless has children, in which case
-                // we need to draw just in case any of the children are NOT filtered.
-                if (c.isVisible()
-                    && (!c.isFiltered() || c.hasChildren())
-                    && c.getLayer() <= dc.getMaxLayer()
-                    && (clipBounds == null || c.intersects(clipBounds))
-                    )
+            // if filtered, don't draw, unless has children, in which case
+            // we need to draw just in case any of the children are NOT filtered.
+            if (c.isVisible()
+                && (!c.isFiltered() || c.hasChildren())
+                && c.getLayer() <= dc.getMaxLayer()
+                && (clipBounds == null || c.intersects(clipBounds))
+                )
                 {
                     drawChildSafely(dc, c);
                     if (DEBUG.PAINT) {
-                             if (c instanceof LWLink) links++;
+                        if (c instanceof LWLink) links++;
                         else if (c instanceof LWNode) nodes++;
                         else if (c instanceof LWImage) images++;
                     }
                 }
-            }
+        }
 
-            if (focused != null) {
-                setFocusComponent(focused);
-                drawChildSafely(dc, focused);
-            } else
-                setFocusComponent(null);
+        if (focused != null) {
+            setFocusComponent(focused);
+            drawChildSafely(dc, focused);
+        } else
+            setFocusComponent(null);
                 
-            if (DEBUG.PAINT) 
-                out(this + " painted " + links + " links, " + nodes + " nodes, " + images + " images");
-        }
-        /*
-        if (DEBUG.CONTAINMENT) {
-            dc.g.setColor(java.awt.Color.green);
-            dc.g.setStroke(STROKE_ONE);
-            dc.g.draw(getBounds());
-        }
-        */
+        if (DEBUG.PAINT) 
+            out(this + " painted " + links + " links, " + nodes + " nodes, " + images + " images");
+        
+    /*
+      if (DEBUG.CONTAINMENT) {
+      dc.g.setColor(java.awt.Color.green);
+      dc.g.setStroke(STROKE_ONE);
+      dc.g.draw(getBounds());
+      }
+    */
+        
     }
 
     private void drawChildSafely(DrawContext _dc, LWComponent c)
@@ -1037,7 +1056,7 @@ public abstract class LWContainer extends LWComponent
 
     
 
-    public void drawChild(LWComponent child, DrawContext dc)
+    protected void drawChild(LWComponent child, DrawContext dc)
     {
         /*
           // this works to draw w/all children & coords scaled

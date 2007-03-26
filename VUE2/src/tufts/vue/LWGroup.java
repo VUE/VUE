@@ -45,7 +45,7 @@ import java.awt.geom.Rectangle2D;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.48 $ / $Date: 2007-03-23 23:24:21 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -451,6 +451,11 @@ public class LWGroup extends LWContainer
         setFrame(computeBounds());
     }
     */
+
+    public void draw(DrawContext dc) {
+        // always force drawing decorted for now, in case of slide fill
+        drawDecorated(dc);
+    }
     
     
     protected void drawImpl(DrawContext dc)

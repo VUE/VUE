@@ -28,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.19 $ / $Date: 2007-03-23 16:57:16 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -56,9 +56,12 @@ public class LWSlide extends LWContainer
         final LWContainer parent = getParent();
         if (false && parent instanceof LWPathway)
             return super.getLabel();
-        else if (parent != null)
-            return "Slide in " + getParent().getDisplayLabel();
-        else
+        else if (parent != null) {
+            if (mSourceNode == null)
+                return "Slide in " + getParent().getDisplayLabel();
+            else
+                return "Slide for " + mSourceNode.getDisplayLabel() + " in " + getParent().getDisplayLabel();
+        } else
             return "<LWSlide w/null parent>"; // true during persist restore
     }
 
@@ -118,6 +121,37 @@ public class LWSlide extends LWContainer
         return slide;
     }
 
+    /** slides never considered translucent: they're not on the map needing backfill when they're the focal */
+    public boolean isTranslucent() {
+        return false;
+    }
+
+    protected void drawImpl(DrawContext dc)
+    {
+        final LWSlide master = getMasterSlide();
+
+        // We only want to fill one background.  Normally use the
+        // master background, unless we have one.  Then draw the
+        // master children (no fill), then draw our children (no
+        // fill).
+        
+        if (isTransparent()) {
+            dc.g.setColor(master.getFillColor());
+        } else {
+            dc.g.setColor(getFillColor());
+        }
+        dc.g.fill(getShape());
+
+            // When just filling the background with the master, only draw
+            // what's in the containment box
+            //dc.g.setClip(master.getBounds());
+            //master.drawChildren(dc);
+            //dc.g.setClip(curClip);
+        
+        master.drawChildren(dc);
+        drawChildren(dc);
+    }
+    
     public void rebuild() {
         
     }

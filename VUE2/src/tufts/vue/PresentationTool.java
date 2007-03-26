@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import tufts.macosx.MacOSX;
+import tufts.vue.gui.GUI;
 import tufts.vue.gui.TextRow;
 
 import java.util.*;
@@ -69,7 +70,9 @@ public class PresentationTool extends VueTool
     private boolean mFadeEffect = true;
     private boolean mZoomToPage = true;
 
-    private Stack mBackList = new Stack();
+    private Stack<LWComponent> mBackList = new Stack();
+
+    private List<LWComponent> mNavNodes = new java.util.ArrayList();
 
     public PresentationTool() {
         super();
@@ -157,9 +160,22 @@ public class PresentationTool extends VueTool
     
     public boolean handleMousePressed(MapMouseEvent e)
     {
+        for (LWComponent c : mNavNodes) {
+            System.out.println("pickCheck " + c + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
+            if (c.contains(e.getX(), e.getY())) {
+                System.out.println("HIT " + c);
+                LWComponent oneBack = mBackList.peek();
+                if (oneBack == c.getSyncSource() || (oneBack instanceof LWSlide && ((LWSlide)oneBack).getSourceNode() == c.getSyncSource()))
+                    backUp();
+                else
+                    setPage(c.getSyncSource());
+                return true;
+            }
+        }
+
         final LWComponent hit = e.getPicked();
         
-        out("handleMousePressed " + e + " hit on " + hit);
+        out("handleMousePressed " + e.paramString() + " hit on " + hit);
         if (hit != null && mCurrentPage != hit) {
             Collection linked = hit.getLinkEndPoints();
             if (mCurrentPage == null) {
@@ -186,6 +202,8 @@ public class PresentationTool extends VueTool
             } else {
                 setPage(hit);
             }
+        } else if (mCurrentPage == hit && mEntry != null && mEntry.getFocal() != mCurrentPage) {
+            backUp();
         }
         return true;
     }
@@ -194,6 +212,13 @@ public class PresentationTool extends VueTool
         LWComponent linkingTo = link.getFarPoint(src);
         mLastFollowed = link;
         setPage(linkingTo);
+    }
+
+    private LWComponent currentNode() {
+        if (mCurrentPage instanceof LWSlide)
+            return mEntry.node;
+        else
+            return mCurrentPage;
     }
 
     public void startPresentation()
@@ -219,16 +244,20 @@ public class PresentationTool extends VueTool
         }
     }
 
+    private void backUp() {
+       if (!mBackList.empty())
+           setPage(VUE.getActiveViewer(), mBackList.pop(), true);
+    }
+    
     private void backPage() {
-
         if (mPathway != null && inCurrentPathway(mCurrentPage)) {
             setEntry(nextPathwayEntry(Direction.BACKWARD));
             //LWComponent prevPage = nextPathwayPage(Direction.BACKWARD);
             //LWComponent prevPage = null;
             //if (prevPage != null)
             //    setPage(prevPage);
-        } else if (!mBackList.empty())
-            setPage(VUE.getActiveViewer(), (LWComponent) mBackList.pop(), true);
+        } else
+            backUp();
     }
         
 
@@ -307,6 +336,11 @@ public class PresentationTool extends VueTool
     
     private LWComponent guessNextPage()
     {
+        return null;
+    }
+        
+    private LWComponent OLD_guessNextPage()
+    {
         // todo: only bother with links that have component endpoints!
         List links = mCurrentPage.getLinks();
         LWLink toFollow = null;
@@ -317,7 +351,7 @@ public class PresentationTool extends VueTool
             
             while (i.hasNext()) {
                 LWLink link = (LWLink) i.next();
-                if (link.getFarNavPoint(mCurrentPage) == null)
+                if (link.getFarNavPoint(currentNode()) == null)
                     continue; // if a link to nothing, ignore
                 if (link != mLastFollowed) {
                     toFollow = link;
@@ -328,7 +362,7 @@ public class PresentationTool extends VueTool
         LWComponent nextPage = null;
         if (toFollow != null) {
             mLastFollowed = toFollow;
-            nextPage = toFollow.getFarNavPoint(mCurrentPage);
+            nextPage = toFollow.getFarNavPoint(currentNode());
             if (nextPage.getParent() instanceof LWGroup)
                 nextPage = nextPage.getParent();
         }
@@ -347,43 +381,6 @@ public class PresentationTool extends VueTool
         return mCurrentPage;
     }
             
-    private void makeInvisible() {
-        if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
-            //out("makeInvisible");
-            try {
-                MacOSX.makeMainInvisible();
-                mScreenBlanked = true;
-            } catch (Error e) {
-                System.err.println(e);
-            }
-        }
-    }
-        
-    private void makeVisible() {
-        if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
-            //out("makeVisible");
-            try {
-                if (MacOSX.isMainInvisible())
-                    MacOSX.fadeUpMainWindow();
-                mScreenBlanked = false;
-            } catch (Error e) {
-                System.err.println(e);
-            }
-        }
-    }
-
-    private void makeVisibleLater() {
-        if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
-            VUE.invokeAfterAWT(new Runnable() {
-                    public void run() {
-                        //out("makeVisibleLater");
-                        //if (invisible)
-                        makeVisible();
-                    }
-                });
-        }
-    }
-
     private void setEntry(LWPathway.Entry e)
     {
         out("setEntry " + e);
@@ -401,6 +398,10 @@ public class PresentationTool extends VueTool
     private void setPage(final MapViewer viewer, final LWComponent page, boolean backup)
     {
         out("setPage " + page);
+
+        if (page == null) // for now
+            return;
+        
         if (!backup && mCurrentPage != null) {
             if (mBackList.empty() || mBackList.peek() != page)
                 mBackList.push(mCurrentPage);
@@ -408,6 +409,7 @@ public class PresentationTool extends VueTool
         mLastPage = mCurrentPage;
         mCurrentPage = page;
         mNextPage = null;
+        mNavNodes.clear();
         viewer.clearTip();
 
         if (mFadeEffect) {
@@ -431,9 +433,14 @@ public class PresentationTool extends VueTool
         } else {
             zoomToPage(page, true);
         }
-            
     }
+    
+    private void zoomToPage(LWComponent page, boolean animate) {
+        VUE.getActiveViewer().loadFocal(page);
+    }
+    
 
+    /*
     private void zoomToPage(LWComponent page, boolean animate)
     {
         animate = false; // TODO: is forced off for now: currently meaningless to animate between slides
@@ -463,50 +470,41 @@ public class PresentationTool extends VueTool
         //ZoomTool.setZoomFitRegion(viewer, viewer.getMap().getBounds(), margin);
         //ZoomTool.setZoomFit();
     }
+    */
 
-    public void handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {
-        //LWMap map = focal.getMap();
-
-        // TODO TODO TODO: This is a disaster.  Either need to make a PresentationViewer
-        // ala the SlideViewer, or move SlideViewer functionality up into MapViewer
-        // (most powerful, as then we could do all that stuff in the regular viewer).
-        // Tho after doing that, we may still want a PresentationViewer to subclass
-        // the MapViewer to turn off all the stuff we're not going to want to be
-        // active when in presentation mode.
-
-        // TODO ACTION: okay, we can move the focal code up to the MapViewer for
-        // the current slide (and thus also will get us reshapeImpl handling),
-        // and we could JUST do the master slide handling here, tho it would
-        // still be nice to see the master stuff for working full-screen edit mode.
-        // What that really means is exposes the MapViewer to the LWPathway.Entry
-        // concept -- oh well, I suppose we can live with that, tho would
-        // be nice to find a way around it.
-
-        dc.setInteractive(false);
-        dc.setPresenting(true);
-        dc.isFocused = true;
-
-        if (mEntry != null && !mEntry.isPathway()) {
-            mCurrentPage = mEntry.node; // set for drawNavNodes
-            drawPathwayEntry(dc, viewer, mEntry);
-        } else
-            drawFocal(dc, viewer, focal);
-        
-        /*
-        if (focal instanceof LWSlide)
-            drawSlide(dc, viewer, (LWSlide) focal);
-        else
-            drawFocal(dc, viewer, focal);
-        */
-
+    // todo: viewer & focal are already in the DrawContext!
+    public boolean handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {
         if (VUE.inFullScreen() && mShowNavigator)
-            drawNavigatorMap(dc);
+            drawOverviewMap(dc);
 
-        drawNavNodes(dc);
+        if (viewer instanceof tufts.vue.ui.SlideViewer) {
+            // TODO: Will need a set of nav nodes per-viewer if this is to work in both
+            // the main viewer and the slide viewer... for now, don't do them
+            // if we're in the slide viewer.
+            ;
+        } else {
+            drawNavNodes(dc);
+        }
+
+        if (DEBUG.Enabled) {
+            dc.g.setFont(VueConstants.FixedFont);
+            dc.g.setColor(Color.gray);
+            int y = 20;
+            if (mEntry != null)         dc.g.drawString(mEntry.pathway.getDiagnosticLabel(), 10, y+=15);
+            if (mCurrentPage != null)   dc.g.drawString("Page: " + mCurrentPage.getDiagnosticLabel(), 10, y+=15);
+            if (mEntry != null)         dc.g.drawString(mEntry.toString(), 10, y+=15);
+            dc.g.drawString("Frame: " + tufts.Util.out(dc.frame), 10, y+=15);
+        }
+
         
+        return false;
     }
 
-
+    public DrawContext tweakDrawContext(DrawContext dc) {
+        dc.setPresenting(true);
+        return dc;
+    }
+        
     protected void drawPathwayEntry(final DrawContext dc, MapViewer viewer, final LWPathway.Entry entry)
     {
         out("drawing entry " + entry);
@@ -577,7 +575,7 @@ public class PresentationTool extends VueTool
         //dc.g.setColor(mFocal.getMap().getFillColor());
         //dc.g.fill(dc.g.getClipBounds());
         
-        if (focal.isTranslucent() && focal != underlyingMap && focal instanceof LWGroup == false) { // groups not meant to operate transparently
+        if (false && focal.isTranslucent() && focal != underlyingMap && focal instanceof LWGroup == false) { // groups not meant to operate transparently
             out("drawing clipped focal " + focal.getShape());
 
             //out("drawing underlying map " + underlyingMap);
@@ -597,20 +595,29 @@ public class PresentationTool extends VueTool
             focal.draw(dc);
         }
     }
+
+    private static int OverviewMapFraction = 4; // 1/scale
     
     /** Draw a ghosted panner */
-    private void drawNavigatorMap(DrawContext sourceDC) {
-
-        final Rectangle panner = new Rectangle(0,0, 192,128);
-
+    private void drawOverviewMap(DrawContext sourceDC)
+    {
         sourceDC.setRawDrawing();
         DrawContext dc = sourceDC.create();
-        //dc.setAlpha(0.2);
-        //dc.g.setColor(Color.white);
+
+        final Rectangle panner = new Rectangle(0,0,
+                                               dc.frame.width / OverviewMapFraction,
+                                               dc.frame.height / OverviewMapFraction);
+
+        dc.g.translate(dc.frame.width - panner.width,
+                       dc.frame.height - panner.height);
+        
         dc.setAlpha(0.3);
-        dc.g.setColor(Color.black);
+        // todo: black or white depending on brightess of the fill
+        dc.g.setColor(Color.white);
         dc.g.fill(panner);
-        dc.setAlpha(1);
+        //dc.setAlpha(1);
+
+        dc.setAlpha(0.75);
         dc.g.clipRect(0,0, panner.width, panner.height);
         MapPanner.paintViewerIntoRectangle(dc.g, VUE.getActiveViewer(), panner);
     }
@@ -618,44 +625,60 @@ public class PresentationTool extends VueTool
     private void drawNavNodes(DrawContext dc)
     {
         dc.setRawDrawing();
-        Rectangle frame = dc.getFrame();
-        //out("dc frame " + frame);
-        dc.g.translate(frame.x, frame.y);
 
-        if (DEBUG.Enabled) {
-            dc.g.setFont(VueConstants.FixedFont);
-            dc.g.setColor(Color.gray);
-            int y = 20;
-            if (mEntry != null) dc.g.drawString(mEntry.pathway.getDiagnosticLabel(), 10, y+=15);
-            dc.g.drawString("Page: " + mCurrentPage.getDiagnosticLabel(), 10, y+=15);
-            if (mEntry != null) dc.g.drawString(mEntry.toString(), 10, y+=15);
-            dc.g.drawString("Frame: " + tufts.Util.out(frame), 10, y+=15);
-        }
+        LWComponent node = currentNode();
 
-        if (mCurrentPage.getLinks().size() == 0)
+        mNavNodes.clear();
+        
+        if (node == null || node.getLinks().size() == 0)
             return;
         
-        List<String> labels = getNavLabels(mCurrentPage);
-        //out("got nav labels: " + labels);
+        makeNavNodes(node, dc.getFrame());
         
-        int y = frame.height;
+        dc.g.translate(dc.frame.x, dc.frame.y);
+        for (LWComponent c : mNavNodes)
+            c.draw(dc);
+
+    }
+
+    private void makeNavNodes(LWComponent node, Rectangle frame)
+    {
+        for (LWLink link : node.getLinks()) {
+            LWComponent farpoint = link.getFarNavPoint(node);
+            if (farpoint != null) {
+                final LWComponent nav;
+                if (false && link.hasLabel())
+                    nav = createNavNode(link); // just need to set syncSource to the farpoint
+                else
+                    nav = createNavNode(farpoint);
+                mNavNodes.add(nav);
+            }
+        }
+
+        float spacePerNode = frame.width;
+        if (mShowNavigator)
+            spacePerNode -= (frame.width / OverviewMapFraction);
+        spacePerNode /= mNavNodes.size();
         int cnt = 0;
-        for (String label : labels) {
-            out("nav label " + label);
-            int x = frame.width / labels.size() * cnt++;
-            LWComponent nav = makeNavNode(label, x, y);
-            nav.translate(0, -nav.getHeight());
-            nav.draw(dc);
+        float x, y;
+        //out("frame " + frame);
+        for (LWComponent c : mNavNodes) {
+            x = cnt * spacePerNode + spacePerNode / 2;
+            x -= c.getWidth() / 2;
+            y = frame.height - c.getHeight();
+            c.setLocation(x, y);
+            //out("location set to " + x + "," + y);
+            cnt++;
         }
     }
 
+    /*
     private static List<String> getNavLabels(LWComponent page) {
         List<String> navs = new ArrayList();
-        List links = page.getLinks();
-        Iterator i = links.iterator();
-        while (i.hasNext()) {
-            LWLink link = (LWLink) i.next();
+        System.out.println("\nLINKS FOR CURRENT PAGE " + page);
+        for (LWLink link : page.getLinks()) {
             LWComponent farpoint = link.getFarNavPoint(page);
+            System.out.println("LINK " + link + " FARPOINT " + farpoint);
             if (farpoint != null) {
                 if (link.hasLabel())
                     navs.add(link.getLabel());
@@ -665,6 +688,7 @@ public class PresentationTool extends VueTool
         }
         return navs;
     }
+    */
         
     
     private static Font NavFont = new Font("SansSerif", Font.PLAIN, 18);
@@ -673,41 +697,27 @@ public class PresentationTool extends VueTool
     private static Color NavFillColor = new Color(64,64,64,96);
     private static Color NavTextColor = Color.gray;
 
-    private LWComponent makeNavNode(String label, int x, int y) {
-        LWNode n = new LWNode("  " + label + " ", x, y);
-        n.setFont(NavFont);
-        n.setTextColor(NavTextColor);
-        n.setFillColor(NavFillColor);
-        n.setStrokeWidth(0);
-        n.setShape(new RoundRectangle2D.Float(0,0, 10,10, 30,30));
-        return n;
-    }
-        
-    private void drawNavTest(DrawContext dc)
-    {
-        dc.setRawDrawing();
-        dc.g.setFont(NavFont);
-        Rectangle frame = dc.getFrame();
-        dc.g.translate(frame.x, frame.y);
-        
-        String labels[] = { "One", "Three", "Jumping", "Twenty" };
-        dc.g.setColor(Color.gray);
-        dc.g.drawString("PRESENTATION", 20, 20);
-        int y = frame.height;
-        //y -= makeNavNode("Kj",0,0).getHeight(); // calibrate height
-        for (int i = 0; i < labels.length; i++) {
-            int x = frame.width / labels.length * i;
-            LWComponent nav = makeNavNode(labels[i], x, y);
-            nav.translate(0, -nav.getHeight());
-            nav.draw(dc);
-            
-            //TextRow row = new TextRow(labels[i], dc.g);
-            //row.draw(dc.g, x, y - row.height);
-            //dc.g.drawString(labels[i], x, y);
+    private LWComponent createNavNode(LWComponent src) {
+
+        if (false) {
+            LWComponent c = src.duplicate();
+            c.setSyncSource(src);
+            return c;
         }
+        
+        LWNode c = new LWNode("  " + src.getDisplayLabel() + " ");
+        //LWComponent c = NodeTool.createTextNode(src.getDisplayLabel());
+        c.setFont(NavFont);
+        c.setTextColor(NavTextColor);
+        c.setFillColor(NavFillColor);
+        c.setStrokeWidth(0);
+        c.setSyncSource(src); // TODO: these will never get GC'd, and will be updating for ever based on their source...
+        c.setShape(new RoundRectangle2D.Float(0,0, 10,10, 30,30));
+        return c;
     }
+        
     
-    public void handleFullScreen(boolean fullScreen) {
+    public void XhandleFullScreen(boolean fullScreen) {
         // when entering or exiting full-screen, keep us zoomed
         // to current page.
         makeInvisible();
@@ -716,6 +726,42 @@ public class PresentationTool extends VueTool
         }
         makeVisibleLater();
     }
+    
+    private void makeInvisible() {
+        if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
+            //out("makeInvisible");
+            try {
+                MacOSX.makeMainInvisible();
+                mScreenBlanked = true;
+            } catch (Error e) {
+                System.err.println(e);
+            }
+        }
+    }
+    private void makeVisible() {
+        if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
+            //out("makeVisible");
+            try {
+                if (MacOSX.isMainInvisible())
+                    MacOSX.fadeUpMainWindow();
+                mScreenBlanked = false;
+            } catch (Error e) {
+                System.err.println(e);
+            }
+        }
+    }
+    private void makeVisibleLater() {
+        if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
+            VUE.invokeAfterAWT(new Runnable() {
+                    public void run() {
+                        //out("makeVisibleLater");
+                        //if (invisible)
+                        makeVisible();
+                    }
+                });
+        }
+    }
+
     
     public void handleToolSelection() {
         out(this + " SELECTED");

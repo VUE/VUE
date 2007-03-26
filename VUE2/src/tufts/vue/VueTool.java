@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.47 $ / $Date: 2007-03-23 16:57:16 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -328,28 +328,12 @@ public abstract class VueTool extends AbstractAction
     /** what to do, if anything, when the tool is selected */
     public void handleToolSelection() {}
 
-    public void handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {
+    public DrawContext tweakDrawContext(DrawContext dc) {
+        return dc;
+    }
 
-        dc.g.setColor(focal.getMap().getFillColor());
-        dc.g.fill(dc.g.getClipBounds());
-
-        /*
-          // Experimental draw of all the open maps on top of each other (for eventual map compares)
-        MapTabbedPane mapPanes = VUE.getLeftTabbedPane();
-
-        dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-         
-        for (int i = 0; i < mapPanes.getTabCount(); i++) {
-            LWMap overlay = mapPanes.getMapAt(i);
-            if (overlay == map)
-                continue;
-            overlay.draw(dc);
-        }
-
-        dc.g.setComposite(AlphaComposite.Src);
-        */
-        
-        focal.draw(dc);
+    public boolean handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {
+        return false;
     }
     
     public void handleFullScreen(boolean fullScreen) {}

@@ -72,14 +72,14 @@ import javax.swing.*;
 public class SlideViewer extends tufts.vue.MapViewer
     implements VUE.ActivePathwayEntryListener
 {
-    private final VueTool PresentationTool = VueToolbarController.getController().getTool("viewTool");
+    //private final VueTool PresentationTool = VueToolbarController.getController().getTool("viewTool");
 
     private boolean isMapView = false;
     private boolean mBlackout = false;
     
     private boolean mZoomBorder;
     private boolean inFocal;
-    private LWComponent mZoomContent; // what we zoom-to
+    //private LWComponent mZoomContent; // what we zoom-to
     private LWPathway.Entry mLastLoad;
 
     private final AbstractButton btnLocked;
@@ -182,13 +182,6 @@ public class SlideViewer extends tufts.vue.MapViewer
     public void addNotify() {
         super.addNotify();
         getParent().add(new Toolbar(), BorderLayout.NORTH);
-    }
-
-    public void XfocusGained(FocusEvent e) {
-        out("focusGained ignored");
-    }
-    public void XfocusLost(FocusEvent e) {
-        out("focusLost ignored");
     }
 
     public void grabVueApplicationFocus(String from, ComponentEvent event) {
@@ -312,16 +305,6 @@ if (true) return;
     }
     */
 
-    protected void XsetDragger(LWComponent c) {
-        // need to cleanup MapViewer such that overriding this actually works
-        if (btnMaster.isSelected() && c instanceof LWSlide)
-            return;
-        else {
-            out("setting dragger to: " + c);
-            super.setDragger(c);
-        }
-    }
-
     protected void load(LWPathway.Entry entry)
     {
         if (DEBUG.PRESENT) out("SlideViewer: loading " + entry);
@@ -333,7 +316,7 @@ if (true) return;
 
         if (entry == null) {
             mZoomBorder = false;
-            mZoomContent = null;
+            //mZoomContent = null;
             inFocal = false;
             focal = null;
             btnMapView.setEnabled(false);
@@ -361,13 +344,12 @@ if (true) return;
             focal = entry.getFocal();
         }
 
-        mZoomContent = focal;
+        //mZoomContent = focal;
 
         masterJustPressed = slideJustPressed = false;
         
-        
         super.loadFocal(focal);
-        reshapeImpl(0,0,0,0);
+        //reshapeImpl(0,0,0,0);
         if (DEBUG.PRESENT) out("SlideViewer: focused is now " + mFocal + " from map " + mMap);
     }
 
@@ -379,10 +361,31 @@ if (true) return;
     }
 
 
+    protected void drawSelection(DrawContext dc, LWSelection s) {
+        // Don't draw selection if its the focused component
+        if (s.size() == 1 && s.first() == mFocal)
+            return;
+        super.drawSelection(dc, s);
+    }
+
+
+    protected DrawContext getDrawContext(Graphics2D g) {
+        DrawContext dc = super.getDrawContext(g);
+        dc.setEditMode(btnMaster.isSelected());
+        /* dc.focal now handles this 
+        if (isMapView) {
+            dc.isFocused = true;// turns off pathway drawing
+            //dc.setInteractive(false); // turns off selection drawing
+        }
+        */
+        return dc;
+    }
+
     public void fireViewerEvent(int id) {
         if (DEBUG.PRESENT) out("fireViewerEvent <" + id + "> skipped");
     }
 
+    /*
     protected void reshapeImpl(int x, int y, int w, int h) {
         if (DEBUG.PRESENT) out("reshapeImpl");
         zoomToContents();
@@ -412,45 +415,85 @@ if (true) return;
         out("zoomed to " + zoomBounds + " @ " + tufts.vue.ZoomTool.prettyZoomPercent(getZoomFactor()));
 
     }
-    
-    
-    protected void drawSelection(DrawContext dc, LWSelection s) {
-        // Don't draw selection if its the focused component
-        if (s.size() == 1 && s.first() == mFocal)
-            return;
-        super.drawSelection(dc, s);
-    }
-
-    /*
-    protected DrawContext getDrawContext(Graphics2D g) {
-        DrawContext dc = super.getDrawContext(g);
-        //if (inFocal)
-        if (btnFocus.isSelected()) {
-            dc.isFocused = true;
-            dc.setInteractive(false);
-        }
-            dc.isFocused = true;
-        return dc;
-    }
     */
-
-    protected void drawMap(DrawContext dc) {
-
+    
+    /*
+    protected void drawMap(DrawContext dc)
+    {
         if (mFocal == null)
             return;
+        if (isMapView) {
+            drawFocal(dc);
+        } else {
+            //out("Drawing focal " + mFocal);
+            dc.setEditMode(btnMaster.isSelected());
+            mFocal.draw(dc);
+            //drawSlide(dc);
+        }
+    }
+    */
+    
+    /* either draws the entire map (previously zoomed to to something to focus on),
+     * or a fully focused part of of it, where we only draw that item.
+     */
+    /*
+    protected void drawFocal(DrawContext dc)
+    {
+        // TODO: need to get this working to wherever we've been "zoom fitted" to, and/or
+        // fundamentally change all object drawing to be zero based.
+        //drawMasterSlide(dc); 
+        
+        out("drawing focal " + mFocal);
 
         if (isMapView) {
-
-            drawFocal(dc);
-            
-        } else {
-
-            drawSlide(dc);
-
+            dc.isFocused = true;// turns off pathway drawing
+            //dc.setInteractive(false); // turns off selection drawing
         }
         
-    }
+//         if (btnFocus.isSelected())
+//             dc.g.setColor(Color.black);
+//         else
+//             dc.g.setColor(mFocal.getMap().getFillColor());
+//         dc.g.fill(dc.g.getClipBounds());
+        
+        final LWMap underlyingMap = mFocal.getMap();
 
+        //zoomToContents();
+        
+        if (mFocal.isTranslucent() && mFocal != underlyingMap) {
+
+            //out("drawing underlying map " + underlyingMap);
+
+            // If our fill is in any way translucent, the underlying
+            // map can show thru, thus we have to draw the whole map
+            // to see the real result -- we just set the clip to
+            // the shape of the focal.
+            
+            final Shape curClip = dc.g.getClip();
+            dc.g.setClip(mFocal.getShape());
+            underlyingMap.draw(dc);
+            dc.g.setClip(curClip);
+            
+        } else {
+            mFocal.draw(dc);
+        }
+    }
+    */
+    
+
+    /*
+    protected void XsetDragger(LWComponent c) {
+        // need to cleanup MapViewer such that overriding this actually works
+        if (btnMaster.isSelected() && c instanceof LWSlide)
+            return;
+        else {
+            out("setting dragger to: " + c);
+            super.setDragger(c);
+        }
+    }
+    */
+    
+    /*
     protected void drawSlide(DrawContext dc)
     {
         // just drawing the master slide here only happens to work because it's exactly
@@ -464,7 +507,7 @@ if (true) return;
         // happen during a draw traversal, which could be shared code with similar
         // translation we'd need to do via pick traversals.
         
-        drawMasterSlide(dc); 
+        //drawMasterSlide(dc); 
         
         // Now draw the actual slide
         mFocal.draw(dc);
@@ -504,56 +547,9 @@ if (true) return;
             dc.g.setClip(curClip);
         }
 
-        //dc.setMapDrawing();
+        //Dc.setMapDrawing();
     }
-    
-    /** either draws the entire map (previously zoomed to to something to focus on),
-     * or a fully focused part of of it, where we only draw that item.
-     */
-
-    protected void drawFocal(DrawContext dc)
-    {
-
-        // TODO: need to get this working to wherever we've been "zoom fitted" to, and/or
-        // fundamentally change all object drawing to be zero based.
-        //drawMasterSlide(dc); 
-        
-        out("drawing focal " + mFocal);
-
-        if (isMapView) {
-            dc.isFocused = true;
-            dc.setInteractive(false);
-        }
-        
-//         if (btnFocus.isSelected())
-//             dc.g.setColor(Color.black);
-//         else
-//             dc.g.setColor(mFocal.getMap().getFillColor());
-//         dc.g.fill(dc.g.getClipBounds());
-        
-        final LWMap underlyingMap = mFocal.getMap();
-
-        //zoomToContents();
-        
-        if (mFocal.isTranslucent() && mFocal != underlyingMap) {
-
-            //out("drawing underlying map " + underlyingMap);
-
-            // If our fill is in any way translucent, the underlying
-            // map can show thru, thus we have to draw the whole map
-            // to see the real result -- we just set the clip to
-            // the shape of the focal.
-            
-            final Shape curClip = dc.g.getClip();
-            dc.g.setClip(mFocal.getShape());
-            underlyingMap.draw(dc);
-            dc.g.setClip(curClip);
-            
-        } else {
-            mFocal.draw(dc);
-        }
-    }
-    
+    */
     
     
 
@@ -580,6 +576,7 @@ if (true) return;
     }
     */
 
+    /*
     protected void XsetMapOriginOffsetImpl(float panelX, float panelY, boolean update) {
         if (inFocal) {
             super.setMapOriginOffsetImpl(mFocal.getX(), mFocal.getY(), update);
@@ -606,6 +603,7 @@ if (true) return;
         else
             return super.getOriginY();
     }
+    */
     
         
     /*

@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.29 $ / $Date: 2007-03-24 00:52:23 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -51,9 +51,9 @@ public class DrawContext
     private boolean isBlackWhiteReversed = false;
     private boolean isPresenting = false;
     private boolean isEditMode = false;
-    private Rectangle frame;
+    public final Rectangle frame;
 
-    public boolean isFocused;
+    public LWComponent focal;
 
     private float alpha = 1f;
 
@@ -65,13 +65,14 @@ public class DrawContext
 
     // todo: move coord mappers from MapViewer to here?
 
-    public DrawContext(Graphics g, double zoom, float offsetX, float offsetY, Rectangle frame, boolean absoluteLinks)
+    public DrawContext(Graphics g, double zoom, float offsetX, float offsetY, Rectangle frame, LWComponent focal, boolean absoluteLinks)
     {
         this.g = (Graphics2D) g;
         this.zoom = zoom;
         this.offsetX = offsetX;
         this.offsetY = offsetY;
         this.frame = frame;
+        this.focal = focal;
         //this.drawAbsoluteLinks = absoluteLinks;
         //setPrioritizeSpeed(true);
         //disableAntiAlias(true);
@@ -79,7 +80,7 @@ public class DrawContext
     
     public DrawContext(Graphics g, double zoom)
     {
-        this(g, zoom, 0, 0, null, false);
+        this(g, zoom, 0, 0, (Rectangle) null, (LWComponent) null, false);
     }
     public DrawContext(Graphics g)
     {
@@ -110,12 +111,12 @@ public class DrawContext
         return activeTool;
     }
 
-    public void setAlpha(double alpha, int alphaRule) {
-        this.alpha = (float) alpha;
-        if (alpha == 1)
+    public void setAlpha(double p_alpha, int alphaRule) {
+        this.alpha = (float) p_alpha;
+        if (alpha == 1f)
             g.setComposite(AlphaComposite.Src);
         else
-            g.setComposite(AlphaComposite.getInstance(alphaRule, (float) alpha));
+            g.setComposite(AlphaComposite.getInstance(alphaRule, this.alpha));
         // todo: cache the alpha instance
     }
 
@@ -123,7 +124,7 @@ public class DrawContext
         setAlpha(alpha, AlphaComposite.SRC_OVER);
     }
     
-    public void resetComposit(Color fill) {
+    public void checkComposite(LWComponent c) {
         if (alpha != 1f) {
             
             // if we're going to do a non-opaque fill during a general transparent
@@ -131,6 +132,8 @@ public class DrawContext
             // SRC, so that what's under the translucent node will show through.  If we
             // just left it SRC, color values that had an alpha channel would end up
             // blowing away what's underneath them.
+
+            final Color fill = c.getRenderFillColor();
             
             if (fill != null && fill.getAlpha() != 255)
                 setAlpha(alpha, AlphaComposite.SRC_OVER);
@@ -179,7 +182,12 @@ public class DrawContext
     }
 
     public boolean drawPathways() {
-        return !isFocused && !isPresenting();
+        return !isPresenting() && focal instanceof LWMap;
+        //    return !isFocused && !isPresenting();
+    }
+
+    public boolean isFocused() {
+        return focal instanceof LWMap == false;
     }
 
     public void setDraftQuality(boolean t) {
@@ -294,6 +302,7 @@ public class DrawContext
         return new DrawContext(this);
     }
     
+    // todo: replace with a faster clone op?
     public DrawContext(DrawContext dc)
     {
         //System.out.println("transform before dupe: " + dc.g.getTransform());
@@ -311,10 +320,10 @@ public class DrawContext
         this.activeTool = dc.activeTool;
         this.inMapDraw = dc.inMapDraw;
         this.frame = dc.frame;
+        this.focal = dc.focal;
         this.alpha = dc.alpha;
         //this.drawAbsoluteLinks = dc.drawAbsoluteLinks;
         this.maxLayer = dc.maxLayer;
-        this.isFocused = dc.isFocused;
         this.isEditMode = dc.isEditMode;
         //this.mAlpha = dc.mAlpha;
     }
