@@ -504,9 +504,15 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
               return nodeThresholdSlider.getSize();
           }
         };*/
+        
         JLabel moreLabel = new JLabel("<< more",JLabel.LEFT);
         JLabel lessLabel = new JLabel("less >>",JLabel.RIGHT);
-
+        
+        //JLabel moreLabel = new JLabel("<< more nodes",JLabel.LEFT);
+        //moreLabel.setFont(new Font("Courier",Font.PLAIN,10));
+        //JLabel lessLabel = new JLabel("less nodes >>",JLabel.RIGHT);
+        //lessLabel.setFont(new Font("Courier",Font.PLAIN,10));
+        
         moreLessLabel.setLayout(new BorderLayout());
         moreLessLabel.add(BorderLayout.WEST,moreLabel);
         moreLessLabel.add(BorderLayout.EAST,lessLabel);

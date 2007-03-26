@@ -32,9 +32,15 @@ public class VoteAggregate extends WeightAggregate {
     public static final double DEFAULT_THRESHOLD =  .5;
     private double nodeThreshold = DEFAULT_THRESHOLD;
     private double linkThreshold = DEFAULT_THRESHOLD;
+    
+    protected int[][] linkCounts = new int[SIZE][SIZE];
+    
     /** Creates a new instance of VotingAggregate */
      public VoteAggregate(List<ConnectivityMatrix> matrices ){
          super(matrices);
+         for(int i=0;i<SIZE;i++)
+             for(int j=0;j<SIZE;j++)
+                 linkCounts[i][j] = c[i][j];
          computeVotes();
     }
      
@@ -66,15 +72,39 @@ public class VoteAggregate extends WeightAggregate {
             return false;
     }
     
+    public int getLinkCount(String label1,String label2) {
+        int index1 = labels.indexOf(label1);
+        int index2 = labels.indexOf(label2);
+        if(index1 >= 0 && index2 >=0 ){
+            return linkCounts[index1][index2];
+        } else {
+            return 0;
+        }
+    }
+    
     public boolean isLinkVoteAboveThreshold(String label1,String label2)
     {
-        int linkCount = getConnection(label1,label2);
+        
+        //System.out.println("-----------\n Is link vote above threshold");
+        
+        int linkCount = getLinkCount(label1,label2);
+        //System.out.println("ilvat: linkCount " + linkCount);
         int count = getCount();
+        //System.out.println("ilvat: count: " + count);
         double threshold = (double)count*linkThreshold;
+        //System.out.println("ilvat: threshold -- " + threshold + " for: " + label1 + " | " + label2);
+        //System.out.println("ilvat: active viewer: " + tufts.vue.VUE.getActiveViewer() + " - active map: " + tufts.vue.VUE.getActiveMap());
+        
+        
         if( (linkCount>=threshold) && (linkCount > 0) ) {
+            //System.out.println("ilvat: returning true \n -------------");
             return true;
-        }else
+        }
+        else
+        {    
+            //System.out.println("ilvat: returning false \n -------------");
             return false;
+        }
     }
     
     public void setLinkThreshold(double percentage)
