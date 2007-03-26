@@ -65,7 +65,12 @@ public class LWMergeMap extends LWMap {
     
     public static String getTitle()
     {
-        return "Merge Map" + (++maps) + "*";
+        return "Merge Map" + (++maps); //+ "*";
+    }
+    
+    public String getLabel()
+    {
+        return super.getLabel() + "*";
     }
     
     public LWMergeMap()
