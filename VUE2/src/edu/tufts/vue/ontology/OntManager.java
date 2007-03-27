@@ -37,53 +37,28 @@ import com.hp.hpl.jena.util.iterator.Filter;
 
 public class OntManager {
     public static final int RDFS = 0;
+    public static final int OWL = 1;
     /** Creates a new instance of OntManager */
+    List<Ontology> ontList = new ArrayList<Ontology> ();
+    OntManager ontManager;
     public OntManager() {
     }
+
     
-    public static Ontology getFedoraOntologyWithStyles() {
-        String[] ontTerms = {"isPartOf","hasPart","isDerivationOf","hasDerivation","isDependentOf","hasDependent","isDescriptionOf","hasDescription","hasEquivalent"};
-        int[] ontWeights = {1,1,2,2,3,3,4,4,5};
-        String base ="info:fedora/fedora-system:def/relations-external";
-        List<OntType> types = new ArrayList<OntType>();
-        
-        StyleReader.readStyles("fedora.ontology.css");
-        
-        Ontology ont = new Ontology();
-        ont.setBase(base);
-        for(int i = 0;i<ontTerms.length;i++) {
-            OntType type = new OntType();
-            type.setName(ontTerms[i]);
-            type.setBase(base);
-            //Style style = new LinkStyle(base+":"+ontTerms[i]);
-            //style.setAttribute("weight",""+ontWeights[i]);
-            Style style = StyleMap.getStyle("link."/*+base+":"*/+ontTerms[i]);
-            if(style==null) {
-                System.out.println("OntManager: couldn't load style for " + base+":"+ontTerms[i]);
-                style = new LinkStyle(base+":"+ontTerms[i]);
-                style.setAttribute("stroke-width",""+ontWeights[i]+"px");
-            }
-            type.setStyle(style);
-            types.add(type);
-        }
-        ont.setOntTypes(types);
-        return ont;
-    }
-    
-    public static Ontology readOntologyWithStyle(URL url,URL cssUrl,int ontType) {
+    public  Ontology readOntologyWithStyle(URL ontUrl,URL cssUrl,int ontType) {
         OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM_RDFS_INF,null);
         List<OntType> types = new ArrayList<OntType>();
-        m.read(url.toString());
-        OntProperty p = m.getOntProperty(url.toString()+"#fedoraRelationship");
+        m.read(ontUrl.toString());
+        OntProperty p = m.getOntProperty(ontUrl.toString()+"#fedoraRelationship");
         ExtendedIterator iter = p.listSubProperties(false);
         StyleReader.readCSS(cssUrl);
         Ontology ont = new Ontology();
-        ont.setBase(url.toString());
+        ont.setBase(ontUrl.toString());
        while(iter.hasNext()) {
              OntProperty sp = (OntProperty) iter.next();
              OntType type = new OntType();
              type.setName(sp.getLocalName());
-             type.setBase(url.toString());
+             type.setBase(ontUrl.toString());
              type.setDescription(sp.getComment(null));
              Style  style = StyleMap.getStyle("link."+sp.getLocalName());
              if(style == null ) {
@@ -98,4 +73,22 @@ public class OntManager {
         return ont;
         
     }
+    
+    public List<Ontology> getOntList() {
+        return null;
+    }
+    public Ontology getOntology(URL ontUrl) {
+        return null;
+    }
+    
+    public Ontology applyStyle(URL ontUrl, URL cssUrl) {
+        return null;
+    }
+    public  OntManager getOntManager() {
+        if(ontManager == null) {
+            ontManager = new OntManager();
+        }
+        return ontManager;
+    }
+            
 }
