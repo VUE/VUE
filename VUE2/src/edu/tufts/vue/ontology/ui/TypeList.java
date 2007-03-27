@@ -87,6 +87,14 @@ public class TypeList extends JList {
                     System.out.println("TypeList: mouse dragged");
                     System.out.println("TypeList: selected label " + ((LWComponent)(getSelectedValue())).getLabel());
                     
+                    if(comp instanceof LWNode)
+                    {
+                      VueToolbarController vtc = VueToolbarController.getController();
+                      VueTool rTool = vtc.getTool("nodeTool");
+                      //rTool.setSelectedSubTool(vtc.getTool("rect"));
+                      VueToolbarController.getController().setSelectedTool(rTool);
+                    }
+;                    
                     GUI.startLWCDrag(TypeList.this,
                                      me,
                                      comp,
@@ -226,7 +234,9 @@ public class TypeList extends JList {
         LWNode node = new LWNode("Fedora Object");
         //node.setLabel("Fedora Object");
         node.setAbsoluteSize(150,50);
-        node.setShape( new java.awt.Rectangle(5,5,135,45));
+        //node.setShape( new java.awt.Rectangle(5,5,135,45));
+        NodeTool.SubTool st = NodeTool.getActiveSubTool();
+        node.setShape(st.getShape());
         tlist.addType(node);
         
         return testPanel;
