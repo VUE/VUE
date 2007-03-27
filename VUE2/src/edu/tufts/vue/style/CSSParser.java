@@ -92,6 +92,9 @@ public class CSSParser {
     /** Set to true if any whitespace is read. */
     private boolean        readWS;
     
+    private boolean isParseToMap = false;
+    /** if isParseToMap is true styles will be loaded in styleMap*/
+    private Map<String,Style> styleMap; 
     
     transient Style currentStyle;
     /** Creates a new instance of CSSParser */
@@ -113,6 +116,21 @@ public class CSSParser {
             System.out.println("CSSParser.parse: "+ex);
             ex.printStackTrace();
         }
+    }
+    
+    /*
+     * This method parses css url and loads it to a map, unlike parse method
+     * which loads styles to StyleMap
+     * @param url url of css file
+     * @return returns a map with styles and keys that are loaded from the css
+     */
+    
+    public Map<String,Style> parseToMap(URL url) {
+        styleMap   = new HashMap<String,Style> ();
+        isParseToMap = true;
+        parse(url);
+        isParseToMap = false;
+        return styleMap;
     }
     
     private boolean getNextStatement() throws IOException {
@@ -318,7 +336,10 @@ public class CSSParser {
             }
         }
         currentStyle.setAttributes(bufferToMap(unitBuffer));
-        StyleMap.addStyle(currentStyle);
+        if(isParseToMap)
+            styleMap.put(currentStyle.getName(),currentStyle);
+        else 
+            StyleMap.addStyle(currentStyle);
     }
     
     private int nextToken(char idChar) throws IOException {
