@@ -40,7 +40,7 @@ public class OntManager {
     public static final int OWL = 1;
     /** Creates a new instance of OntManager */
     List<Ontology> ontList = new ArrayList<Ontology> ();
-    OntManager ontManager;
+    static OntManager ontManager;
     public OntManager() {
     }
 
@@ -84,7 +84,7 @@ public class OntManager {
     public Ontology applyStyle(URL ontUrl, URL cssUrl) {
         return null;
     }
-    public  OntManager getOntManager() {
+    public  static OntManager getOntManager() {
         if(ontManager == null) {
             ontManager = new OntManager();
         }
