@@ -36,18 +36,25 @@ public class VoteAggregate extends WeightAggregate {
     protected int[][] linkCounts = new int[SIZE][SIZE];
     
     /** Creates a new instance of VotingAggregate */
-     public VoteAggregate(List<ConnectivityMatrix> matrices ){
-         super(matrices);
-         for(int i=0;i<SIZE;i++)
-             for(int j=0;j<SIZE;j++)
-                 linkCounts[i][j] = c[i][j];
-         computeVotes();
+    public VoteAggregate(List<ConnectivityMatrix> matrices ){
+        super(matrices);
+        for(int i=0;i<SIZE;i++)
+            for(int j=0;j<SIZE;j++)
+                linkCounts[i][j] = c[i][j];
+        computeVotes();
     }
-     
+    
+    /**
+     *
+     * @param matrices
+     * @param nodeMerge
+     */
     public VoteAggregate(List<ConnectivityMatrix> matrices,boolean nodeMerge) {
         super(matrices);
-    } 
-    
+    }
+    /*
+     * computes votes
+     */
     private void computeVotes() {
         int count = getCount();
         double threshold = (double)count*linkThreshold;
@@ -62,16 +69,28 @@ public class VoteAggregate extends WeightAggregate {
         }
     }
     
+    /*
+     * returns true if a node/label ia above the threshold
+     * @param label the label/merge property of the nodes
+     * @return  true if the node occurs above certain threshold
+     */
+    
     public boolean isNodeVoteAboveThreshold(String label) {
         int nodeCount = getNodeCount(label);
         int count = getCount();
         double threshold = (double)count*nodeThreshold;
         if(nodeCount>=threshold) {
             return true;
-        }else 
+        }else
             return false;
     }
-    
+   /*
+    * returns the nunber of links between two nodes
+    * @param label1 label/merge property of node 1
+    * @param label2 label/merge property of node 2
+    * @return number of links between node 1 and node 2
+    */
+            
     public int getLinkCount(String label1,String label2) {
         int index1 = labels.indexOf(label1);
         int index2 = labels.indexOf(label2);
@@ -82,38 +101,29 @@ public class VoteAggregate extends WeightAggregate {
         }
     }
     
-    public boolean isLinkVoteAboveThreshold(String label1,String label2)
-    {
-        
-        //System.out.println("-----------\n Is link vote above threshold");
-        
+    /*
+     * This method is similar to isNodeVoteAboveThreshold except it works for links
+     * @param label1 label/merge property of node 1
+     * @param label2 label/merge property of node 2
+     * @return true when number of links is above threshold
+     */
+    
+    public boolean isLinkVoteAboveThreshold(String label1,String label2) {
         int linkCount = getLinkCount(label1,label2);
-        //System.out.println("ilvat: linkCount " + linkCount);
         int count = getCount();
-        //System.out.println("ilvat: count: " + count);
         double threshold = (double)count*linkThreshold;
-        //System.out.println("ilvat: threshold -- " + threshold + " for: " + label1 + " | " + label2);
-        //System.out.println("ilvat: active viewer: " + tufts.vue.VUE.getActiveViewer() + " - active map: " + tufts.vue.VUE.getActiveMap());
-        
-        
         if( (linkCount>=threshold) && (linkCount > 0) ) {
-            //System.out.println("ilvat: returning true \n -------------");
             return true;
-        }
-        else
-        {    
-            //System.out.println("ilvat: returning false \n -------------");
+        } else {
             return false;
         }
     }
     
-    public void setLinkThreshold(double percentage)
-    {
+    public void setLinkThreshold(double percentage) {
         linkThreshold = percentage;
     }
     
-    public void setNodeThreshold(double percentage)
-    {
+    public void setNodeThreshold(double percentage) {
         nodeThreshold = percentage;
     }
 }
