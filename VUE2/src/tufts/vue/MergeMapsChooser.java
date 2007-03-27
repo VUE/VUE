@@ -1509,10 +1509,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         //selectPanelHolder.add(sp);
         //selectPanels.put(activeMap,sp);
         //selectPanelHolder.repaint();
-        if(p!=null)
+        /*if(p!=null)
         {    
           p.pack();
-        }
+        }*/
 
     }
     
@@ -1524,7 +1524,23 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     public void activeMapChanged(LWMap map)
     {
         //System.out.println("Merge Maps Chooser: active map changed " + map.getLabel());
+        
+
+        
         setActiveMap(map);
+        
+        
+        /*if(p!=null)
+        {
+            if(p.isRolledUp())
+            {
+                //p.getHiddenFrame().repaint();
+                //p.getHiddenFrame().setBounds(300,300,300,300);
+                //p.repaint();
+                p.showRolledUp();
+            }
+                
+        }*/
     }
     
     public void programmaticNodeSliderChange(int newValue)
