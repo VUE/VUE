@@ -21,7 +21,7 @@
 /**
  *
  * @author akumar03
- * The class creates a connectivity Matrix using a VUe Map.  Further information
+ * The class creates a connectivity Matrix using a VUE Map.  Further information
  * on connectivity matrix can be found at
  * http://w3.antd.nist.gov/wctg/netanal/netanal_netmodels.html
  * The matrix can be used to assess the connetiving among give set of nodes.
@@ -45,7 +45,7 @@ public class ConnectivityMatrix {
     protected List labels = new  ArrayList(); // these labels need not be node labels
     protected int c[][] = new int[SIZE][SIZE];
     protected int size;
-    private LWMap map; 
+    private LWMap map;
     /** Creates a new instance of ConnectivityMatrix */
     public ConnectivityMatrix() {
     }
@@ -56,6 +56,10 @@ public class ConnectivityMatrix {
         addLabels();
         generateMatrix();
     }
+    /*
+     *The method adds labels to the connectivity matrix
+     *
+     */
     
     private void addLabels(){
         Iterator i = map.getNodeIterator();
@@ -65,34 +69,32 @@ public class ConnectivityMatrix {
             size++;
         }
     }
+    /* 
+     * creates a matrix from the map.
+     */
     private void generateMatrix() {
         Iterator links = map.getLinkIterator();
-        while(links.hasNext()) {        
+        while(links.hasNext()) {
             LWLink link = (LWLink)links.next();
-            //LWComponent n1 = link.getComponent1(); // deprecated
-            //LWComponent n2 = link.getComponent2(); // deprecated
             LWComponent n1 = link.getHead();
             LWComponent n2 = link.getTail();
             int arrowState = link.getArrowState();
             if(n1  instanceof LWNode && n2 instanceof LWNode) {
-               try
-               {
-                 if(arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE) {
-                      c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
-                      c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
-                 } else if(arrowState == LWLink.ARROW_HEAD) { // EP1 and EP2 were deprecated.
-                      c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
-                 } else    if(arrowState == LWLink.ARROW_TAIL) { // EP1 and EP2 were deprecated.
-                      c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
-                 }
-               }
-               catch(ArrayIndexOutOfBoundsException ae)
-               {
-                   System.out.println("Connectivity Matrix Exception - skipping link: " + link);
-                   System.out.println("Exception was: " + ae);
-               }
+                try {
+                    if(arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE) {
+                        c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
+                        c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
+                    } else if(arrowState == LWLink.ARROW_HEAD) { // EP1 and EP2 were deprecated.
+                        c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
+                    } else    if(arrowState == LWLink.ARROW_TAIL) { // EP1 and EP2 were deprecated.
+                        c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
+                    }
+                } catch(ArrayIndexOutOfBoundsException ae) {
+                    System.out.println("Connectivity Matrix Exception - skipping link: " + link);
+                    System.out.println("Exception was: " + ae);
+                }
             }
-
+            
         }
     }
     public List getLabels() {
@@ -144,7 +146,13 @@ public class ConnectivityMatrix {
             System.out.println("ConnectivityMatrix.store:"+ex);
         }
     }
-    
+    /**
+     * Compares a connectivity matrix to input connectivity matrix
+     * returns truf if both are same
+     * @param c2 ConnectivityMatrix to be compared to
+     * @return boolean
+     *
+     */
     
     public boolean compare(ConnectivityMatrix c2) {
         if(c2.getSize() != size) {
@@ -162,8 +170,8 @@ public class ConnectivityMatrix {
     
     public String toString() {
         String output = new String();
- // removed the first label from the output. to add it uncomment the commented lines in this function
- //       output = "\t";   //leave the first cell empty;
+        // removed the first label from the output. to add it uncomment the commented lines in this function
+        //       output = "\t";   //leave the first cell empty;
         Iterator iterator = labels.iterator();
         while(iterator.hasNext()){
             output += (String)iterator.next()+"\t";
