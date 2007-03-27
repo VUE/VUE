@@ -92,14 +92,11 @@ public class FedoraOntologyTest extends TestCase{
     
     
     
-    public void oldTestFedoraOntology() {
-        edu.tufts.vue.ontology.Ontology ont = OntManager.getFedoraOntologyWithStyles();
-        System.out.println("Ontology"+ont);
-    }
     
     public void testReadFedoraOntology() {
         try {
-            edu.tufts.vue.ontology.Ontology ont = OntManager.readOntologyWithStyle(new URL(ONTO_URL),tufts.vue.VueResources.getURL("fedora.ontology.css"),OntManager.RDFS); 
+            edu.tufts.vue.ontology.OntManager ontManager = edu.tufts.vue.ontology.OntManager.getOntManager();
+            edu.tufts.vue.ontology.Ontology ont = ontManager.readOntologyWithStyle(tufts.vue.VueResources.getURL("fedora.ontology.rdf"),tufts.vue.VueResources.getURL("fedora.ontology.css"),OntManager.RDFS);
             System.out.println("Fedora Ontology"+ont);
         } catch(Exception ex) {
             ex.printStackTrace();
