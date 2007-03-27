@@ -1091,6 +1091,17 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                repeat = true;
              }
              LWNode node = (LWNode)comp.duplicate();
+             
+             //$
+               List childList = node.getChildList();
+               //node.removeChildren(childList.iterator());
+               Iterator i = childList.iterator();
+               while(i.hasNext())
+               {
+                   ((LWComponent)i.next()).setVisible(false);
+               }
+             //$
+             
              //System.out.println("Weighted Merge Demo: counts : " + node.getRawLabel() + ":" + weightAggregate.getNodeCount(node.getRawLabel()) + " " + weightAggregate.getCount());
              double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(node))/weightAggregate.getCount();
              if(score>100)
