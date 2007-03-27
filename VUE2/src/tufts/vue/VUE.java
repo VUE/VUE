@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.401 $ / $Date: 2007-03-27 17:34:52 $ / $Author: mike $ 
+ * @version $Revision: 1.402 $ / $Date: 2007-03-27 18:29:21 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1039,7 +1039,15 @@ public class VUE
         outlineDock.positionWindowFromProperties();
 
         if (!SKIP_DR && (!DR_BROWSER_DOCK.getWindowProperties().isEnabled() || DR_BROWSER_DOCK.getWindowProperties().isAllValuesDefaults()))
-            DR_BROWSER_DOCK.setVisible(true);
+        {
+        	//I'm just putting a comment in here becuase this seems odd to me, and I wanted it to be clear it was intentional.
+        	//"As we move away from a "datasource" centric vision of VUE, the "Content" window should be collapsed when launching VUE"
+        	//This will only take effect the first time VUE is started or when preference to remember window position is disabled.
+        	// -MK
+        	DR_BROWSER_DOCK.showRolledUp();
+        	//DR_BROWSER_DOCK.setVisible(true);
+            
+        }
 
 
         /*
