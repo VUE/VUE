@@ -194,13 +194,14 @@ public class TypeList extends JList {
         
         Ontology ontology = null;
         
+        
         try
         {  
         
         System.out.println("fedora url: " + VueResources.getURL("fedora.ontology.url"));
         System.out.println("fedora url: " + VueResources.getString("fedora.ontology.url"));
         
-          ontology = OntManager.readOntologyWithStyle(new java.net.URL(VueResources.getString("fedora.ontology.url")),
+          ontology = OntManager.getOntManager().readOntologyWithStyle(new java.net.URL(VueResources.getString("fedora.ontology.url")),
                                                       //new java.net.URL("http://www.fedora.info/definitions/1/0/fedora-relsext-ontology.rdfs"),
                                                       VueResources.getURL("fedora.ontology.css"),
                                                       OntManager.RDFS);
@@ -211,7 +212,8 @@ public class TypeList extends JList {
         catch(java.net.MalformedURLException urlException)
         {
             System.out.println("Ontology Manager: Malformed URL:" + urlException);
-            ontology = OntManager.getFedoraOntologyWithStyles();
+            VueUtil.alert("Ontology","Ontology Load Failed - improper URL");
+            //ontology = OntManager.getFedoraOntologyWithStyles();
         }
         
         List<OntType> types = ontology.getOntTypes();
