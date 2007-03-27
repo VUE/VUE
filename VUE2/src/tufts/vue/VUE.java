@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.400 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.401 $ / $Date: 2007-03-27 17:34:52 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -840,7 +840,7 @@ public class VUE
         Dimension sz = wpframe.getWindowSize();
     	Point pos = wpframe.getWindowLocationOnScreen();
     	
-        if (wpframe.isEnabled() &&
+        if (wpframe.isEnabled() && !wpframe.isAllValuesDefaults() &&
         	ApplicationFrame.isPointFullyOnScreen(pos,sz))
         {
         	
@@ -1038,7 +1038,7 @@ public class VUE
         ObjectInspector.positionWindowFromProperties();
         outlineDock.positionWindowFromProperties();
 
-        if (!SKIP_DR && !DR_BROWSER_DOCK.getWindowProperties().isEnabled())
+        if (!SKIP_DR && (!DR_BROWSER_DOCK.getWindowProperties().isEnabled() || DR_BROWSER_DOCK.getWindowProperties().isAllValuesDefaults()))
             DR_BROWSER_DOCK.setVisible(true);
 
 

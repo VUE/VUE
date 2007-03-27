@@ -56,9 +56,9 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 	private static final String X_POS_KEY = "X_POS_KEY";
 	private static final String Y_POS_KEY = "Y_POS_KEY";
 	private static final String ROLLEDUP_KEY = "ROLLEDUP_KEY";
-	private static final String defval = "false,true,-1,-1,-1,-1,false";
+	private static final String defval = "true,false,-1,-1,-1,-1,false";
 	private Preferences p2 = Preferences.userNodeForPackage(getPrefRoot());
-	private static String defaultEnabledVal = "false";
+	private static String defaultEnabledVal = "true";
 	private String value;
 	private static JCheckBox checkValue = new JCheckBox();
 	
@@ -91,8 +91,8 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 		{
 			nsee.printStackTrace();
 			//this shouldn't happen but if it does stuff the table with the defaults
-			table.put(ENABLED_KEY, "false");	
-			table.put(VISIBLE_KEY,"true");		
+			table.put(ENABLED_KEY, "true");	
+			table.put(VISIBLE_KEY,"false");		
 			table.put(WIDTH_KEY, "-1");		
 			table.put(HEIGHT_KEY,"-1");
 			table.put(X_POS_KEY,"-1");
@@ -106,6 +106,21 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 		return;
 	}
 
+	public boolean isAllValuesDefaults()
+	{
+		if (	this.isEnabled() && 
+				!this.isWindowVisible() && 
+				this.getWindowSize().getHeight() == -1 && 
+				this.getWindowSize().getWidth() == -1 &&
+				this.getWindowLocationOnScreen().getX() == -1.0 &&
+				this.getWindowLocationOnScreen().getY() == -1.0)
+		{
+			return true;
+		}
+		else
+			return false;
+		
+	}
 	public void itemStateChanged(ItemEvent e) {
 		JCheckBox box = (JCheckBox)e.getSource();
 		
@@ -148,7 +163,8 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 	}
 	public boolean isEnabled()
 	{
-		return new Boolean(p2.get("enabledWinPos", defaultEnabledVal));//Boolean.valueOf((String)table.get(ENABLED_KEY));
+		Boolean b =new Boolean(p2.get("enabledWinPos", defaultEnabledVal));
+		return b;//Boolean.valueOf((String)table.get(ENABLED_KEY));
 	}
 	public boolean isWindowVisible()
 	{
