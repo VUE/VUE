@@ -33,12 +33,15 @@ public class WeightAggregate extends ConnectivityMatrix {
     private int mergeNodeCount[] = new int[SIZE];
     private int count;
     public WeightAggregate(List<ConnectivityMatrix> matrices ){
-      this.matrices  = matrices;
-      count= matrices.size();
-       mergeMatrices();
+        this.matrices  = matrices;
+        count= matrices.size();
+        mergeMatrices();
     }
     
-    
+    /*
+     * merges connectivity matrices in the list 'matrices'
+     *
+     */
     private void mergeMatrices() {
         Iterator<ConnectivityMatrix> i = matrices.iterator();
         while(i.hasNext()){
@@ -50,27 +53,12 @@ public class WeightAggregate extends ConnectivityMatrix {
             }
             for(int index1 = 0;index1 < getLabels().size();index1++) {
                 for(int index2= index1+1; index2<getLabels().size();index2++) {
-                   // c[index1][index2] += matrix.getConnection((String)matrix.getLabels().get(index1),(String)matrix.getLabels().get(index2));
                     c[index1][index2] += matrix.getConnection((String)getLabels().get(index1),(String)getLabels().get(index2));
                 }
             }
-            /**
-            Iterator i1 = matrix.getLabels().iterator();
-            while(i1.hasNext()){
-                String label1 = (String)i1.next();
-                Iterator i2 = matrix.getLabels().iterator();
-                while(i2.hasNext()){
-                    String label2 = (String)i2.next();
-                    int index1 = labels.indexOf(label1);
-                    int index2 = labels.indexOf(label2);
-                    c[index1][index2] += matrix.getConnection(label1,label2);
-//                    System.out.println("C:labe11:"+label1+" label2:"+label2+" c:"+c[index1][index2]);
-                }
-            }
-             */
         }
     }
-
+    
     public ConnectivityMatrix getAggregate(){
         return this;
     }
@@ -92,6 +80,11 @@ public class WeightAggregate extends ConnectivityMatrix {
         }
     }
     
+    /**
+     * gets the number of nodes with the label in the aggregate
+     * @param label label of the node
+     * @return node count
+    */        
     public int getNodeCount(String label) {
         if(labels.indexOf(label)>=0)
             return mergeNodeCount[labels.indexOf(label)];
