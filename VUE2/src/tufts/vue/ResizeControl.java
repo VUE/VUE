@@ -54,7 +54,6 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     private Rectangle2D.Float mOriginalGroup_bounds;
     private Rectangle2D.Float mOriginalGroupULC_bounds;
     private Rectangle2D.Float mOriginalGroupLRC_bounds;
-    private Rectangle2D.Float mCurrent;
     private Rectangle2D.Float mNewDraggedBounds;
     private Object[]  mOriginal_each_bounds; // Rectangle2D.Float for everything but links
     private Box2D resize_box = null;
@@ -108,12 +107,12 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
         mOriginal_each_bounds = new Object[selection.size()];
         int idx = 0;
         for (LWComponent c : selection) {
-            System.out.println("PROCESSING " + c);
+            //System.out.println("PROCESSING " + c);
             if (c.isManagedLocation())
                 continue;
             if (c instanceof LWLink) {
                 mOriginal_each_bounds[idx] = ((LWLink)c).getMoveableControls().clone();
-                c.out("ResizeControl GOT CONTROLS " + java.util.Arrays.asList(mOriginal_each_bounds[idx]));
+                //c.out("ResizeControl GOT CONTROLS " + java.util.Arrays.asList(mOriginal_each_bounds[idx]));
             } else {
                 mOriginal_each_bounds[idx] = c.getShapeBounds();
                 if (DEBUG.LAYOUT) System.out.println(this + " " + c + " shapeBounds " + c.getShapeBounds());
@@ -127,9 +126,16 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     void draw(DrawContext dc) { // this only called if viewer or layout debug is on
         if (mNewDraggedBounds != null) {
             MapViewer viewer = VUE.getActiveViewer();
-            dc.g.setColor(java.awt.Color.red);
+
+
+            dc.g.setStroke(STROKE_TWO);
+            dc.g.setColor(java.awt.Color.blue);
+            dc.g.draw(viewer.mapToScreenRect(mOriginalGroup_bounds));
+
             dc.g.setStroke(STROKE_ONE);
+            dc.g.setColor(java.awt.Color.red);
             dc.g.draw(viewer.mapToScreenRect(mNewDraggedBounds));
+            
             if (false) {
                 dc.g.setColor(java.awt.Color.green);
                 dc.g.draw(viewer.mapToScreenRect(mOriginalGroupULC_bounds));
@@ -306,12 +312,52 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                     //c.out("HANDLING CPI " + controlIndex);
 
                     // reproduces c_new_x / c_new_y code from below:
-                    float dx = (float) ( (originalPoint.x - mOriginalGroup_bounds.x) * dScaleX );
-                    float dy = (float) ( (originalPoint.y - mOriginalGroup_bounds.y) * dScaleY );
+//                     float dx = (float) ( (originalPoint.x - mOriginalGroup_bounds.x) * dScaleX );
+//                     float dy = (float) ( (originalPoint.y - mOriginalGroup_bounds.y) * dScaleY );
+//                     float new_x = mNewDraggedBounds.x + dx;
+//                     float new_y = mNewDraggedBounds.y + dy;
+                    
+                    float normal_x = (originalPoint.x - mOriginalGroup_bounds.x);
+                    float normal_y = (originalPoint.y - mOriginalGroup_bounds.y);
+                    float ratio_x = normal_x / mOriginalGroup_bounds.width;
+                    float ratio_y = normal_y / mOriginalGroup_bounds.height;
 
-                    ((LWLink)c).setControllerLocation(controlIndex,
-                                                      mNewDraggedBounds.x + dx,
-                                                      mNewDraggedBounds.y + dy);
+                    //float new_x = mNewDraggedBounds.x + mNewDraggedBounds.width * ratio_x;
+                    //float new_y = mNewDraggedBounds.y + mNewDraggedBounds.height * ratio_y;
+
+                    // TODO: need to change entire method to at least move object on-center,
+                    // and possible to support four different movement aspects: one for
+                    // each direction the selection edge is moving in (left/right/up/down),
+                    // as what we really want is for objects to never exceed the mo1ving
+                    // edge.  If the selection gets to small, they may exceed the non-moving
+                    // edge of the original group, where we'll start getting errors, tho
+                    // we could also force a stop a that point.
+
+                    // turn  on DEBUG.LAYOUT to see the red box that everything is actually
+                    // being laid-out inside...
+
+                    final Rectangle2D.Float newBounds = mNewDraggedBounds;
+                    //final Rectangle2D.Float newBounds = (Rectangle2D.Float) selection.getBounds(); // grows continually on it's own... (rounding error?)
+                    
+                    float new_normal_x = newBounds.width * ratio_x;
+                    float new_normal_y = newBounds.height * ratio_y;
+                    float new_x = newBounds.x + new_normal_x;
+                    float new_y = newBounds.y + new_normal_y;
+
+                    /*
+                    System.out.format("RATIOX %.2f orig-x %.2f  normal-x %.1f  orig-width %.1f  new-width %.1f  new-normal-x %.1f\n",
+                                      ratio_x,
+                                      originalPoint.x,
+                                      normal_x,
+                                      mOriginalGroup_bounds.width,
+                                      mNewDraggedBounds.width,
+                                      new_normal_x
+                                      );
+                    */
+                    
+                    
+
+                    ((LWLink)c).setControllerLocation(controlIndex, new_x, new_y);
                 }
                 continue;
             }
