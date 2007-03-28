@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.231 $ / $Date: 2007-03-28 16:03:26 $ / $Author: sfraize $
+ * @version $Revision: 1.232 $ / $Date: 2007-03-28 22:41:50 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2060,6 +2060,10 @@ public class LWComponent
         return false;
     }
 
+    public boolean isManagedLocation() {
+        return getParent() instanceof LWNode;
+    }
+
     /** @return true - A single component always "has content" -- subclasses override to provide varying semantics */
     public boolean hasContent() {
         return true;
@@ -2466,6 +2470,10 @@ public class LWComponent
         setLocation(x, y);
     }
     
+    public void userTranslate(float dx, float dy) {
+        translate(dx, dy);
+    }
+    
     public void translate(float dx, float dy) {
         setLocation(this.x + dx,
                     this.y + dy);
@@ -2676,7 +2684,7 @@ public class LWComponent
      * Return internal bounds of the border shape, not including
      * the width of any stroked border.
      */
-    public Rectangle2D getShapeBounds()
+    public Rectangle2D.Float getShapeBounds()
     {
         // todo opt: cache this object?
         //return new Rectangle2D.Float(this.x, this.y, getAbsoluteWidth(), getAbsoluteHeight());
