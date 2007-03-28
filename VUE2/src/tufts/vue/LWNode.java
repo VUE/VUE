@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.139 $ / $Date: 2007-03-23 23:24:02 $ / $Author: sfraize $
+ * @version $Revision: 1.140 $ / $Date: 2007-03-28 22:41:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -580,7 +580,7 @@ public class LWNode extends LWContainer
 
         overlaps = boundsShape.intersects(hitRect);
             
-        if (DEBUG.PAINT) System.out.println("INTERSECTS " + hitRect + " is " + overlaps + " for " + boundsShape + " " + this);
+        if (DEBUG.PAINT && DEBUG.META) System.out.println("INTERSECTS LWNode " + hitRect + " is " + overlaps + " for " + boundsShape + " " + this);
 
         return overlaps;
     }

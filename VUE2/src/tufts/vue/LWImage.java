@@ -891,7 +891,7 @@ public class LWImage extends
     }
 
     public String paramString() {
-        return super.paramString() + " " + mImageWidth + "x" + mImageHeight + (isNodeIcon ? " <NodeIcon>" : "");
+        return super.paramString() + " raw=" + mImageWidth + "x" + mImageHeight + (isNodeIcon ? " <NodeIcon>" : "");
     }
 
 

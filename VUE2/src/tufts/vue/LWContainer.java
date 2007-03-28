@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.105 $ / $Date: 2007-03-28 16:13:23 $ / $Author: sfraize $
+ * @version $Revision: 1.106 $ / $Date: 2007-03-28 22:41:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -945,7 +945,7 @@ public abstract class LWContainer extends LWComponent
         } else {
             clipBounds = dc.g.getClipBounds();
             if (DEBUG.PAINT || DEBUG.CONTAINMENT) {
-                out("CURRENT CLIP:" + clip);
+                out("CURRENT CLIP: " + clip);
                 out("  CLIPBOUNDS: " + clipBounds);
             }
 
