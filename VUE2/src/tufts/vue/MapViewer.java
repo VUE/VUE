@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.319 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.320 $ / $Date: 2007-03-28 19:53:09 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2246,12 +2246,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             final Shape curClip = dc.g.getClip();
             dc.g.clip(mFocal.getShape());
             LWComponent parentSlide = mFocal.getAncestorOfType(LWSlide.class);
+            // don't need to re-draw the focal itself, it's being
+            // drawn in it's parent (slide or map)
             if (parentSlide != null) {
                 parentSlide.draw(dc);
-                mFocal.draw(dc);
             } else {
                 mFocal.getMap().draw(dc);
-                // don't need to re-draw the focal itself -- already drawn in it's map
             }
             dc.g.setClip(curClip);
         } else {
@@ -4362,10 +4362,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             mMouseHasEnteredToolTip = false;
             clearTipSoon();
-            grabVueApplicationFocus("mouseEntered", e);
+            //grabVueApplicationFocus("mouseEntered", e);
 
         }
-        
+    
         public void mouseExited(MouseEvent e) {
             if (DEBUG.MOUSE||DEBUG.ROLLOVER) out(e.paramString());
 
