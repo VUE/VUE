@@ -28,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.20 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2007-03-28 22:41:14 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -190,9 +190,14 @@ public class LWSlide extends LWContainer
         if (this instanceof LWPathway.MasterSlide)
             return;
         out("addChildImpl " + c);
+        if (c.getStyle() == null)
+            applyMasterStyle(c);
+        
+        /*
         LWPathway pathway = (LWPathway) getParent();
         if (pathway != null && c.getStyle() == null)
             c.setStyle(pathway.getMasterSlide().textStyle);
+        */
     }
 
     // This will prevent the object from ever being drawn on the map.
