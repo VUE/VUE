@@ -70,7 +70,11 @@ public class PresentationTool extends VueTool
     private boolean mFadeEffect = true;
     private boolean mZoomToPage = true;
 
-    private Stack<LWComponent> mBackList = new Stack();
+    private Stack<LWComponent> mBackList = new Stack<LWComponent>() {
+        public LWComponent peek() {
+            return empty() ? null : super.peek();
+        }
+    };
 
     private List<LWComponent> mNavNodes = new java.util.ArrayList();
 
