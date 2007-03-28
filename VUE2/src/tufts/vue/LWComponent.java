@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.230 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
+ * @version $Revision: 1.231 $ / $Date: 2007-03-28 16:03:26 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3398,9 +3398,6 @@ public class LWComponent
     public String paramString()
     {
         return String.format(" %.0f,%.0f %.0fx%.0f", getX(), getY(), width, height);
-        //return
-            //" " + VueUtil.oneDigitDecimal(getX())+","+VueUtil.oneDigitDecimal(getY()) + " " +
-            //VueUtil.oneDigitDecimal(width) + "x" + VueUtil.oneDigitDecimal(height);
     }
 
     protected void out(String s) {
