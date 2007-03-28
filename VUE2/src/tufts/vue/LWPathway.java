@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.133 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
+ * @version $Revision: 1.134 $ / $Date: 2007-03-28 22:41:35 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -169,6 +169,8 @@ public class LWPathway extends LWContainer
             notes = s;
             if (pathway != null) // will be null during restore
                 pathway.notify("pathway.entry.notes", new Undoable() { void undo() { setNotes(oldNotes); }});
+
+            // TODO: this isn't updating on undo / remote call
         }
 
         public int index() {
