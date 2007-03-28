@@ -247,6 +247,7 @@ public class CSSParser {
         int       nextToken;
         if (tokenBufferLength > 0) {
             String selector = new String(tokenBuffer,0,tokenBufferLength);
+            selector = selector.trim();
             if(selector.startsWith(NODE_PREFIX)) {
                 currentStyle = new NodeStyle(selector);
             }else if(selector.startsWith(LINK_PREFIX)){
@@ -724,7 +725,7 @@ public class CSSParser {
         for(int i=0;i<keyValues.length;i++) {
             String tokens[] = keyValues[i].split(":");
             if(tokens.length ==  2) {
-                map.put(tokens[0],tokens[1]);
+                map.put(tokens[0].trim(),tokens[1].trim());
             }
             
         }
@@ -732,4 +733,5 @@ public class CSSParser {
         
         
     }
+   
 }
