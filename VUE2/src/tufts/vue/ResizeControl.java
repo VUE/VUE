@@ -56,7 +56,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     private Rectangle2D.Float mOriginalGroupLRC_bounds;
     private Rectangle2D.Float mCurrent;
     private Rectangle2D.Float mNewDraggedBounds;
-    private Rectangle2D.Float[] original_lwc_bounds;
+    private Object[]  mOriginal_each_bounds; // Rectangle2D.Float for everything but links
     private Box2D resize_box = null;
     private Point2D mapMouseDown;
 
@@ -82,18 +82,21 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     /** interface ControlListener handler -- for handling resize on selection */
     public void controlPointPressed(int index, MapMouseEvent e) {
         if (DEBUG.LAYOUT||DEBUG.MOUSE) System.out.println(this + " resize control point " + index + " pressed");
-        mOriginalGroup_bounds = (Rectangle2D.Float) VUE.getSelection().getShapeBounds();
+
+        final LWSelection selection = VUE.getSelection().clone();
         
+        mOriginalGroup_bounds = (Rectangle2D.Float) selection.getShapeBounds();
+
         if (mOriginalGroup_bounds == null) {
             // if some code is written that clears the selection at the wrong time, this might happen.
-            System.err.println(this + " control point pressed with empty selection " + VUE.getSelection());
+            System.err.println(this + " control point pressed with empty selection " + selection);
             if (DEBUG.Enabled) tufts.Util.printStackTrace();
             return;
         }
         
         if (DEBUG.LAYOUT) System.out.println(this + " originalGroup_bounds " + mOriginalGroup_bounds);
-        mOriginalGroupULC_bounds = LWMap.getULCBounds(VUE.getSelection().iterator());
-        mOriginalGroupLRC_bounds = LWMap.getLRCBounds(VUE.getSelection().iterator());
+        mOriginalGroupULC_bounds = LWMap.getULCBounds(selection.iterator());
+        mOriginalGroupLRC_bounds = LWMap.getLRCBounds(selection.iterator());
         resize_box = new Box2D(mOriginalGroup_bounds);
         mNewDraggedBounds = resize_box.getRect();
         //mNewDraggedBounds = (Rectangle2D.Float) mOriginalGroup_bounds.getBounds2D();
@@ -102,16 +105,21 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
         // save the original locations & sizes of everything in the selection
         //------------------------------------------------------------------
             
-        original_lwc_bounds = new Rectangle2D.Float[VUE.getSelection().size()];
-        Iterator i = VUE.getSelection().iterator();
+        mOriginal_each_bounds = new Object[selection.size()];
         int idx = 0;
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c instanceof LWLink)
+        for (LWComponent c : selection) {
+            System.out.println("PROCESSING " + c);
+            if (c.isManagedLocation())
                 continue;
-            original_lwc_bounds[idx++] = (Rectangle2D.Float) c.getShapeBounds();
-            if (DEBUG.LAYOUT) System.out.println(this + " " + c + " shapeBounds " + c.getShapeBounds());
-            //original_lwc_bounds[idx++] = (Rectangle2D.Float) c.getBounds();
+            if (c instanceof LWLink) {
+                mOriginal_each_bounds[idx] = ((LWLink)c).getMoveableControls().clone();
+                c.out("ResizeControl GOT CONTROLS " + java.util.Arrays.asList(mOriginal_each_bounds[idx]));
+            } else {
+                mOriginal_each_bounds[idx] = c.getShapeBounds();
+                if (DEBUG.LAYOUT) System.out.println(this + " " + c + " shapeBounds " + c.getShapeBounds());
+            }
+            idx++;
+            //mOriginal_each_bounds[idx++] = (Rectangle2D.Float) c.getBounds();
         }
         mapMouseDown = e.getMapPoint();
     }
@@ -164,10 +172,10 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             final double scaleX = mNewDraggedBounds.width / mOriginalGroup_bounds.width;
             final double scaleY = mNewDraggedBounds.height / mOriginalGroup_bounds.height;
             
-            dragReshapeGroup(i,
-                             VUE.getSelection().iterator(),
-                             scaleX, scaleY,
-                             e.isAltDown()); // resize if ALT is down, otherwise reposition only
+            dragReshapeSelection(i,
+                                 VUE.getSelection(),
+                                 scaleX, scaleY,
+                                 e.isAltDown()); // resize if ALT is down, otherwise reposition only
         }
     }
         
@@ -273,21 +281,42 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     // Note: this method will still work with just one item in the iterator, but
     // it doesn't prevent moving the object when it should, which is why we have
     // dragReshape above.
-    private void dragReshapeGroup(final int cpi,
-                                  final Iterator i,
-                                  final double dScaleX,
-                                  final double dScaleY,
-                                  final boolean reshapeObjects)
+    private void dragReshapeSelection(final int cpi,
+                                      final LWSelection selection,
+                                      final double dScaleX,
+                                      final double dScaleY,
+                                      final boolean reshapeObjects)
     {
         int idx = 0;
         //System.out.println("scaleX="+scaleX);System.out.println("scaleY="+scaleY);
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c instanceof LWLink) // must match conditinal aboice where we collect original_lwc_bounds[]
+        LWLink currentLink;
+        for (LWComponent c : selection) {
+            if (c.isManagedLocation()) // must match conditinal aboice where we collect mOriginal_each_bounds[] -- OVERKILL, allow reshaping of child (managed loc) objects
                 continue;
-            if (c.getParent().isSelected()) // skip if our parent also being resized -- race conditions possible
+            if (false && c.getParent().isSelected()) // skip if our parent also being resized -- race conditions possible -- todo: deeper nesting???
                 continue;
-            Rectangle2D.Float c_original_bounds = original_lwc_bounds[idx++];
+
+            if (c instanceof LWLink) {
+                int controlIndex = -1;
+                for (Point2D.Float originalPoint : ((Point2D.Float[]) mOriginal_each_bounds[idx++])) {
+                    controlIndex++;
+                    if (originalPoint == null)
+                        continue;
+
+                    //c.out("HANDLING CPI " + controlIndex);
+
+                    // reproduces c_new_x / c_new_y code from below:
+                    float dx = (float) ( (originalPoint.x - mOriginalGroup_bounds.x) * dScaleX );
+                    float dy = (float) ( (originalPoint.y - mOriginalGroup_bounds.y) * dScaleY );
+
+                    ((LWLink)c).setControllerLocation(controlIndex,
+                                                      mNewDraggedBounds.x + dx,
+                                                      mNewDraggedBounds.y + dy);
+                }
+                continue;
+            }
+            
+            Rectangle2D.Float c_original_bounds = (Rectangle2D.Float) mOriginal_each_bounds[idx++];
 
             boolean resized = false;
             boolean repositioned = false;
@@ -306,13 +335,17 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                 c_new_height = (float) (c_original_bounds.height * dScaleY);
                 resized = true;
             }
+
+            // TODO: even if managed location, if reshaping, should allow a child
+            // of an object being reshaped to also be reshaped.
                 
-            
             //-------------------------------------------------------
             // Don't try to reposition child nodes -- their parents
-            // handle their layout (todo: flag for this)
+            // handle their layout (todo: flag for this -- e.g. isManagedLocation)
             //-------------------------------------------------------
-            if ((c.getParent() instanceof LWNode) == false) {
+            //if ((c.getParent() instanceof LWNode) == false) {
+
+            if (true) { // if "reposition allowed"
                 //-------------------------------------------------------
                 // Reposition (todo: needs work in the case of not resizing)
                 //-------------------------------------------------------
@@ -328,15 +361,18 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                     c_new_y = mNewDraggedBounds.y + (c_original_bounds.y - mOriginalGroup_bounds.y) * scaleY;
                 } else {
                     // when just repositioning, we have to compute the new component positions
-                    // based on their lower right corner.
-                    float c_delta_x = (c_original_bounds.x - mOriginalGroup_bounds.x) * scaleX;
-                    float c_delta_y = (c_original_bounds.y - mOriginalGroup_bounds.y) * scaleY;
+                    // based on their lower right corner. (? is this still true?)
+
+                    // dx/dy are the CUMULATIVE delta's from the position at the start of
+                    // the drag operation
+                    float dx = (c_original_bounds.x - mOriginalGroup_bounds.x) * scaleX;
+                    float dy = (c_original_bounds.y - mOriginalGroup_bounds.y) * scaleY;
                         
-                    c_new_x = mNewDraggedBounds.x + c_delta_x;
-                    c_new_y = mNewDraggedBounds.y + c_delta_y;
+                    c_new_x = mNewDraggedBounds.x + dx;
+                    c_new_y = mNewDraggedBounds.y + dy;
                 }
                     
-                if (reshapeObjects){
+                if (reshapeObjects) {
                     if (isLeftCtrl(cpi)) {
                         float c_width = resized ? c_new_width * c.getScale() : c.getWidth();
                         if (c_new_x + c_width > resize_box.lr.x)
@@ -351,13 +387,14 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                 repositioned = true;
             }
 
-            if (resized && repositioned)
+
+            if (resized && repositioned) {
                 c.userSetFrame(c_new_x, c_new_y, c_new_width / c.getScale(), c_new_height / c.getScale());
-            else if (resized)
+            } else if (resized) {
                 c.userSetSize(c_new_width / c.getScale(), c_new_height / c.getScale());
-            else if (repositioned)
+            } else if (repositioned) {
                 c.userSetLocation(c_new_x, c_new_y);
-            else
+            } else
                 throw new IllegalStateException("Unhandled dragResizeReshape");
 
         }
