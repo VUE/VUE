@@ -1035,7 +1035,7 @@ public class Util
     }
     
     public static String out(java.awt.Dimension d) {
-        return d.width + "x" + d.height;
+        return d == null ? "null" : (d.width + "x" + d.height);
     }
 
     public static String out(java.awt.geom.Rectangle2D r) {
