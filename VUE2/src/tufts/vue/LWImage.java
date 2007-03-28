@@ -55,9 +55,7 @@ import edu.tufts.vue.preferences.implementations.ImageSizePreference;
 //       just by selecting the object, in case the resource previewer
 //       didn't happen to be open.
 
-// TODO: Allow node image selection w/out resize borders, and
-//       drags do an implicit system drag to create a standalone
-//       version of the image.
+// TODO: Allow node image icon selection w/out resize controls
 
 public class LWImage extends
                          LWComponent
@@ -207,6 +205,10 @@ public class LWImage extends
             setMaxSizeDimension(MaxRenderSize);
         } else {
             isNodeIcon = false;
+            if (super.width == NEEDS_DEFAULT) {
+                // use icon size also as default size for plain (non-icon) images
+                setMaxSizeDimension(MaxRenderSize);
+            }
         }
     }
     
@@ -694,7 +696,7 @@ public class LWImage extends
             dc.g.drawImage(mImage, transform, null);
         } else {
             //dc.g.clip(super.drawnShape);
-            transform.scale(super.width / mImageWidth, super.height / mImageHeight);
+            transform.scale(getWidth() / mImageWidth, getHeight() / mImageHeight);
             dc.g.drawImage(mImage, transform, null);
             //dc.g.drawImage(mImage, 0, 0, (int)super.width, (int)super.height, null);
             //dc.g.drawImage(mImage, 0, 0, mImageWidth, mImageHeight, null);
@@ -889,7 +891,7 @@ public class LWImage extends
     }
 
     public String paramString() {
-        return super.paramString() + (isNodeIcon ? " <NodeIcon>" : "");
+        return super.paramString() + " " + mImageWidth + "x" + mImageHeight + (isNodeIcon ? " <NodeIcon>" : "");
     }
 
 
@@ -1267,4 +1269,5 @@ public class LWImage extends
     {
     	//MaxRenderSize = size;
     }
+
 }
