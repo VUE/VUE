@@ -111,7 +111,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             if (c.isManagedLocation())
                 continue;
             if (c instanceof LWLink) {
-                mOriginal_each_bounds[idx] = ((LWLink)c).getMoveableControls().clone();
+                mOriginal_each_bounds[idx] = ((LWLink)c).getMoveableControls().clone(); // be sure to clone, as this is changing all the time
                 //c.out("ResizeControl GOT CONTROLS " + java.util.Arrays.asList(mOriginal_each_bounds[idx]));
             } else {
                 mOriginal_each_bounds[idx] = c.getShapeBounds();
@@ -302,66 +302,32 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             if (false && c.getParent().isSelected()) // skip if our parent also being resized -- race conditions possible -- todo: deeper nesting???
                 continue;
 
+            
             if (c instanceof LWLink) {
                 int controlIndex = -1;
+                Point2D.Float result = new Point2D.Float();
                 for (Point2D.Float originalPoint : ((Point2D.Float[]) mOriginal_each_bounds[idx++])) {
                     controlIndex++;
                     if (originalPoint == null)
                         continue;
-
                     //c.out("HANDLING CPI " + controlIndex);
-
-                    // reproduces c_new_x / c_new_y code from below:
-//                     float dx = (float) ( (originalPoint.x - mOriginalGroup_bounds.x) * dScaleX );
-//                     float dy = (float) ( (originalPoint.y - mOriginalGroup_bounds.y) * dScaleY );
-//                     float new_x = mNewDraggedBounds.x + dx;
-//                     float new_y = mNewDraggedBounds.y + dy;
-                    
-                    float normal_x = (originalPoint.x - mOriginalGroup_bounds.x);
-                    float normal_y = (originalPoint.y - mOriginalGroup_bounds.y);
-                    float ratio_x = normal_x / mOriginalGroup_bounds.width;
-                    float ratio_y = normal_y / mOriginalGroup_bounds.height;
-
-                    //float new_x = mNewDraggedBounds.x + mNewDraggedBounds.width * ratio_x;
-                    //float new_y = mNewDraggedBounds.y + mNewDraggedBounds.height * ratio_y;
-
-                    // TODO: need to change entire method to at least move object on-center,
-                    // and possible to support four different movement aspects: one for
-                    // each direction the selection edge is moving in (left/right/up/down),
-                    // as what we really want is for objects to never exceed the mo1ving
-                    // edge.  If the selection gets to small, they may exceed the non-moving
-                    // edge of the original group, where we'll start getting errors, tho
-                    // we could also force a stop a that point.
-
-                    // turn  on DEBUG.LAYOUT to see the red box that everything is actually
-                    // being laid-out inside...
-
-                    final Rectangle2D.Float newBounds = mNewDraggedBounds;
-                    //final Rectangle2D.Float newBounds = (Rectangle2D.Float) selection.getBounds(); // grows continually on it's own... (rounding error?)
-                    
-                    float new_normal_x = newBounds.width * ratio_x;
-                    float new_normal_y = newBounds.height * ratio_y;
-                    float new_x = newBounds.x + new_normal_x;
-                    float new_y = newBounds.y + new_normal_y;
-
-                    /*
-                    System.out.format("RATIOX %.2f orig-x %.2f  normal-x %.1f  orig-width %.1f  new-width %.1f  new-normal-x %.1f\n",
-                                      ratio_x,
-                                      originalPoint.x,
-                                      normal_x,
-                                      mOriginalGroup_bounds.width,
-                                      mNewDraggedBounds.width,
-                                      new_normal_x
-                                      );
-                    */
-                    
-                    
-
-                    ((LWLink)c).setControllerLocation(controlIndex, new_x, new_y);
+                    Point2D.Float newPoint = translatePoint(originalPoint, result);
+                    ((LWLink)c).setControllerLocation(controlIndex, newPoint);
                 }
                 continue;
             }
             
+            // TODO: need to change entire method to at least move object on-center, and
+            // possible to support four different movement aspects: one for each
+            // direction the selection edge is moving in (left/right/up/down), as what
+            // we really want is for objects to never exceed the mo1ving edge.  If the
+            // selection gets to small, they may exceed the non-moving edge of the
+            // original group, where we'll start getting errors, tho we could also force
+            // a stop a that point.
+            
+            // turn  on DEBUG.LAYOUT to see the red box that everything is actually
+            // being laid-out inside...
+
             Rectangle2D.Float c_original_bounds = (Rectangle2D.Float) mOriginal_each_bounds[idx++];
 
             boolean resized = false;
@@ -391,6 +357,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             //-------------------------------------------------------
             //if ((c.getParent() instanceof LWNode) == false) {
 
+            Point2D.Float centerPoint = null;
             if (true) { // if "reposition allowed"
                 //-------------------------------------------------------
                 // Reposition (todo: needs work in the case of not resizing)
@@ -411,11 +378,25 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
 
                     // dx/dy are the CUMULATIVE delta's from the position at the start of
                     // the drag operation
+
+                    // CRAP, was this ever right?  This doesn't look normalized....
                     float dx = (c_original_bounds.x - mOriginalGroup_bounds.x) * scaleX;
                     float dy = (c_original_bounds.y - mOriginalGroup_bounds.y) * scaleY;
-                        
+                    
                     c_new_x = mNewDraggedBounds.x + dx;
                     c_new_y = mNewDraggedBounds.y + dy;
+
+                    // This is better, in that everything gets squshed the same now matter from what direction, tho then
+                    // we can get empty curves, which are blowing our bounds to infinity (i think) and
+                    // the selection dissappearing... fix that before enabling this.
+                    
+                    /*
+                    centerPoint = translatePoint(new Point2D.Float((float)c_original_bounds.getCenterX(),
+                                                                   (float)c_original_bounds.getCenterY()));
+                    */
+
+                    
+                    
                 }
                     
                 if (reshapeObjects) {
@@ -439,12 +420,54 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             } else if (resized) {
                 c.userSetSize(c_new_width / c.getScale(), c_new_height / c.getScale());
             } else if (repositioned) {
-                c.userSetLocation(c_new_x, c_new_y);
+                if (centerPoint != null)
+                    c.setCenterAt(centerPoint);
+                else
+                    c.userSetLocation(c_new_x, c_new_y);
             } else
                 throw new IllegalStateException("Unhandled dragResizeReshape");
 
         }
     }
+
+    private Point2D.Float translatePoint(Point2D.Float originalPoint)
+    {
+        return translatePoint(originalPoint, originalPoint);
+    }
+    private Point2D.Float translatePoint(Point2D.Float originalPoint, Point2D.Float result)
+    {
+        float normal_x = (originalPoint.x - mOriginalGroup_bounds.x);
+        float normal_y = (originalPoint.y - mOriginalGroup_bounds.y);
+        float ratio_x = normal_x / mOriginalGroup_bounds.width;
+        float ratio_y = normal_y / mOriginalGroup_bounds.height;
+        
+        final Rectangle2D.Float newBounds = mNewDraggedBounds;
+        //final Rectangle2D.Float newBounds = (Rectangle2D.Float) selection.getBounds(); // grows continually on it's own... (rounding error?)
+        
+        float new_normal_x = newBounds.width * ratio_x;
+        float new_normal_y = newBounds.height * ratio_y;
+        float new_x = newBounds.x + new_normal_x;
+        float new_y = newBounds.y + new_normal_y;
+
+        result.x = new_x;
+        result.y = new_y;
+
+        return result;
+
+
+        /*
+          System.out.format("RATIOX %.2f orig-x %.2f  normal-x %.1f  orig-width %.1f  new-width %.1f  new-normal-x %.1f\n",
+          ratio_x,
+          originalPoint.x,
+          normal_x,
+          mOriginalGroup_bounds.width,
+          mNewDraggedBounds.width,
+          new_normal_x
+          );
+        */
+        
+    }
+    
     
     /** interface ControlListener handler -- for handling resize on selection */
     public void controlPointDropped(int index, MapMouseEvent e) {
