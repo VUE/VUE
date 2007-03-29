@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.140 $ / $Date: 2007-03-28 22:41:21 $ / $Author: sfraize $
+ * @version $Revision: 1.141 $ / $Date: 2007-03-29 02:51:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1615,7 +1615,7 @@ public class LWNode extends LWContainer
     private Size layoutChildren(float baseX, float baseY, float minWidth, Size result)
     {
         if (DEBUG.LAYOUT) out("*** layoutChildren at " + baseX + "," + baseY);
-        if (DEBUG.LAYOUT) Util.printClassTrace("tufts.vue.LW", "*** layoutChildren");
+        if (DEBUG.LAYOUT && DEBUG.META) Util.printClassTrace("tufts.vue.LW", "*** layoutChildren");
         //if (baseX > 0) new Throwable("LAYOUT-CHILDREN").printStackTrace();
         if (isPresentationContext())
             layoutChildrenGrid(baseX, baseY, result, 1, minWidth);
