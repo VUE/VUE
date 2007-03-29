@@ -43,9 +43,20 @@ public class OntManager {
     static OntManager ontManager;
     public OntManager() {
     }
-
+    
     
     public  Ontology readOntologyWithStyle(URL ontUrl,URL cssUrl,int ontType) {
+        switch (ontType) {
+            case RDFS:
+                return readRDFSOntologyWithStyle(ontUrl,cssUrl);
+                
+        }
+        return null;
+        
+        
+    }
+    
+    private Ontology readRDFSOntologyWithStyle(URL ontUrl, URL cssUrl) {
         OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM_RDFS_INF,null);
         List<OntType> types = new ArrayList<OntType>();
         m.read(ontUrl.toString());
@@ -54,24 +65,23 @@ public class OntManager {
         StyleReader.readCSS(cssUrl);
         Ontology ont = new Ontology();
         ont.setBase(ontUrl.toString());
-       while(iter.hasNext()) {
-             OntProperty sp = (OntProperty) iter.next();
-             OntType type = new OntType();
-             type.setName(sp.getLocalName());
-             type.setBase(ontUrl.toString());
-             type.setDescription(sp.getComment(null));
-             Style  style = StyleMap.getStyle("link."+sp.getLocalName());
-             if(style == null ) {
-                 System.out.println("OntManager: couldn't load style for :"+sp.getLocalName());
+        while(iter.hasNext()) {
+            OntProperty sp = (OntProperty) iter.next();
+            OntType type = new OntType();
+            type.setName(sp.getLocalName());
+            type.setBase(ontUrl.toString());
+            type.setDescription(sp.getComment(null));
+            Style  style = StyleMap.getStyle("link."+sp.getLocalName());
+            if(style == null ) {
+                System.out.println("OntManager: couldn't load style for :"+sp.getLocalName());
                 style = new LinkStyle(sp.getLocalName());
                 style.setAttribute("weight","12");
-             }
-             type.setStyle(style);
-             types.add(type);
+            }
+            type.setStyle(style);
+            types.add(type);
         }
         ont.setOntTypes(types);
         return ont;
-        
     }
     
     public List<Ontology> getOntList() {
@@ -90,5 +100,5 @@ public class OntManager {
         }
         return ontManager;
     }
-            
+    
 }
