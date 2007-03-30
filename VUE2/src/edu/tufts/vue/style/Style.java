@@ -31,7 +31,9 @@ import java.util.*;
 public abstract class Style {
     public static final String[] DEFAULT_KEYS = { "font-family","font-size","font-color"};
     public static final String[] DEFAULT_VALUES = {"Arial","10pt","#000000"};
-    
+    public static final String NODE_PREFIX = "node";
+    public static final String LINK_PREFIX = "link";
+    public static final int LENGTH_PREFIX = 4;
     public static final String OPEN="{";
     public static final String CLOSE="}";
     public static final String SEMI=";";
@@ -61,7 +63,7 @@ public abstract class Style {
         }
         this.attributes.put(key,value);
     }
-   protected void setDefaultAttributes(){
+    protected void setDefaultAttributes(){
         for(int i = 0;i<DEFAULT_KEYS.length;i++) {
             setAttribute(DEFAULT_KEYS[i],DEFAULT_VALUES[i]);
         }
@@ -252,7 +254,18 @@ public abstract class Style {
         }
         return 0;
     }
-    
+    public static final Style getStyle(String reference, Map<String,Style> map) {
+        Set keys = map.keySet();
+        Iterator<String> i = keys.iterator();
+        while(i.hasNext()) {
+            String key = i.next();
+            if(key.substring(LENGTH_PREFIX+1).equals(reference)){
+                return map.get(key);
+            }
+        }
+        //TODO: should return a default style in future
+        return null;
+    }
     public String toString() {
         return attributes == null ? "null" : attributes.toString();
     }
