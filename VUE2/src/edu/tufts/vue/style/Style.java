@@ -53,6 +53,9 @@ public abstract class Style {
     }
     
     public void setAttribute(String key,String value) {
+        if(this.attributes.containsKey(key)){
+            this.attributes.remove(key);
+        }
         this.attributes.put(key,value);
     }
     
