@@ -49,7 +49,6 @@ public class OntManager {
         switch (ontType) {
             case RDFS:
                 return readRDFSOntologyWithStyle(ontUrl,cssUrl);
-                
         }
         return null;
         
@@ -82,7 +81,30 @@ public class OntManager {
         ont.setOntTypes(types);
         return ont;
     }
-    
+    private Ontology readOWLOntolgyWithStyle(URL ontUrl,URL cssUrl) {
+        OntModel m = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM, null);
+        List<OntType> types = new ArrayList<OntType>();
+        ExtendedIterator iter;
+        Ontology ont = new Ontology();
+        ont.setBase(ontUrl.toString());
+        CSSParser parser = new CSSParser();
+        Map<String,Style> styleMap = parser.parseToMap(cssUrl);
+        //reading classes
+        iter  = m.listNamedClasses();
+        while(iter.hasNext()) {
+            OntClass c = (OntClass) iter.next();
+            OntType type = new OntType();
+            type.setName(c.getLocalName());
+            type.setBase(ontUrl.toString());
+            type.setDescription(c.getComment(null));
+            types.add(type);
+        }
+        //reading object properties
+        
+        //reading ont properties
+        ont.setOntTypes(types);
+        return ont;
+    }
     public List<Ontology> getOntList() {
         return null;
     }
