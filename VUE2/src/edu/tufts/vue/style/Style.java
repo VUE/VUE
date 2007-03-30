@@ -264,7 +264,12 @@ public abstract class Style {
             }
         }
         //TODO: should return a default style in future
-        return null;
+        return getDefaultStyle();
+    }
+    
+    public static final Style getDefaultStyle() {
+        Style link = new LinkStyle(new String("Default"));
+        return link;
     }
     public String toString() {
         return attributes == null ? "null" : attributes.toString();
