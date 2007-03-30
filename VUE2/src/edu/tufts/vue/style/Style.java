@@ -263,7 +263,6 @@ public abstract class Style {
                 return map.get(key);
             }
         }
-        //TODO: should return a default style in future
         return getDefaultStyle();
     }
     
