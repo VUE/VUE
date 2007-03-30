@@ -14,9 +14,15 @@
 
 package edu.tufts.vue;
 import tufts.vue.*;
-import com.hp.hpl.jena.rdf.model.*;
-
+import java.io.*;
 import java.util.*;
+import com.hp.hpl.jena.rdf.model.*;
+import com.hp.hpl.jena.ontology.*;
+import com.hp.hpl.jena.util.iterator.*;
+import com.hp.hpl.jena.vocabulary.RDF;
+import com.hp.hpl.jena.shared.PrefixMapping;
+import com.hp.hpl.jena.util.iterator.Filter;
+
 
 public class JenaTest {
     public static final int N_OBJECTS = 1000;
@@ -24,7 +30,9 @@ public class JenaTest {
     public static final String CODED="coded";
     public static final String LABEL="LABEL";
     public static ArrayList<LWNode> nodeList;
+    public static final String  ANIMAL_OWL ="http://www.atl.lmco.com/projects/ontology/ontologies/animals/animalsA.owl";
     private static final Runtime sRuntime = Runtime.getRuntime();
+    
     /** Creates a new instance of JenaTest */
     public JenaTest() {
     }
@@ -33,6 +41,20 @@ public class JenaTest {
      * @param args the command line arguments
      */
     
+    public void testOWLOntology() {
+        try {
+            OntModel m = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM ,null);
+            m.read(ANIMAL_OWL);
+            Util.printIterator(m.listHierarchyRootClasses(),"ROOT CLASSES");
+            Util.printIterator(m.listNamedClasses(),"ALL CLASSES");
+            Util.printIterator( m.listOntProperties(),"ONT PROPERTIES");
+             Util.printIterator( m.listObjectProperties(),"OBJECT PROPERTIES");
+        }catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        
+        
+    }
     public static void testCreateObjects() {
         System.gc();
         Runtime.getRuntime().gc();
@@ -108,8 +130,8 @@ public class JenaTest {
         String j = "";
         boolean flag = true;
         if(iter.hasNext() && flag) {
-           j = iter.nextResource().getURI();
-           if(j.equalsIgnoreCase(CODED)){ flag = false;}
+            j = iter.nextResource().getURI();
+            if(j.equalsIgnoreCase(CODED)){ flag = false;}
         }
         System.out.println("Time taken for search: "+(System.currentTimeMillis()-tStart));
         System.out.println("Coded found in: "+j+" randCode:"+randCode);
@@ -117,12 +139,15 @@ public class JenaTest {
         
     }
     public static void main(String[] args) {
+        JenaTest test = new JenaTest();
         System.out.println("STARTING TESTS");
         System.out.println("Creating objects: "+N_OBJECTS);
         System.out.println("Performing get/sets: "+N_SETS);
         testCreateObjects();
         System.out.println("Testing through Jena");
         testJena();
+        System.out.println("Testing OWL Ontology");
+        test.testOWLOntology();
         
         // TODO code application logic here
     }
