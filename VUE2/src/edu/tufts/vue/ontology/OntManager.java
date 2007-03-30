@@ -54,10 +54,10 @@ public class OntManager {
         }
         return null;
         
-        
     }
     
     private Ontology readRDFSOntologyWithStyle(URL ontUrl, URL cssUrl) {
+       
         OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM,null);
         List<OntType> types = new ArrayList<OntType>();
         m.read(ontUrl.toString());
@@ -92,9 +92,10 @@ public class OntManager {
         CSSParser parser = new CSSParser();
         Map<String,Style> styleMap = parser.parseToMap(cssUrl);
         //reading classes
+        m.read(ontUrl.toString());
         iter  = m.listNamedClasses();
         while(iter.hasNext()) {
-           OntProperty c = (OntProperty) iter.next();
+           OntClass c = (OntClass) iter.next();
             OntType type = new OntType();
             type.setName(c.getLocalName());
             type.setBase(ontUrl.toString());
