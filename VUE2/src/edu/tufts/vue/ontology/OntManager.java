@@ -57,11 +57,10 @@ public class OntManager {
     }
     
     private Ontology readRDFSOntologyWithStyle(URL ontUrl, URL cssUrl) {
-        OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM_RDFS_INF,null);
+        OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM,null);
         List<OntType> types = new ArrayList<OntType>();
         m.read(ontUrl.toString());
-        OntProperty p = m.getOntProperty(ontUrl.toString()+"#fedoraRelationship");
-        ExtendedIterator iter = p.listSubProperties(false);
+        ExtendedIterator iter = m.listOntProperties();
         StyleReader.readCSS(cssUrl);
         Ontology ont = new Ontology();
         ont.setBase(ontUrl.toString());
