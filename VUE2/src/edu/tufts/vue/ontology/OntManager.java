@@ -49,6 +49,8 @@ public class OntManager {
         switch (ontType) {
             case RDFS:
                 return readRDFSOntologyWithStyle(ontUrl,cssUrl);
+            case OWL:
+                return  readOWLOntolgyWithStyle(ontUrl,cssUrl);
         }
         return null;
         
@@ -92,16 +94,36 @@ public class OntManager {
         //reading classes
         iter  = m.listNamedClasses();
         while(iter.hasNext()) {
-            OntClass c = (OntClass) iter.next();
+           OntProperty c = (OntProperty) iter.next();
             OntType type = new OntType();
             type.setName(c.getLocalName());
             type.setBase(ontUrl.toString());
             type.setDescription(c.getComment(null));
+            type.setStyle(Style.getStyle(c.getLocalName(),styleMap));
             types.add(type);
         }
         //reading object properties
-        
+        iter  = m.listObjectProperties();
+        while(iter.hasNext()) {
+            OntProperty p = (OntProperty) iter.next();
+            OntType type = new OntType();
+            type.setName(p.getLocalName());
+            type.setBase(ontUrl.toString());
+            type.setDescription(p.getComment(null));
+            type.setStyle(Style.getStyle(p.getLocalName(),styleMap));
+            types.add(type);
+        }
         //reading ont properties
+        iter  = m.listOntProperties();
+        while(iter.hasNext()) {
+            OntProperty p = (OntProperty) iter.next();
+            OntType type = new OntType();
+            type.setName(p.getLocalName());
+            type.setBase(ontUrl.toString());
+            type.setDescription(p.getComment(null));
+            type.setStyle(Style.getStyle(p.getLocalName(),styleMap));
+            types.add(type);
+        }
         ont.setOntTypes(types);
         return ont;
     }
