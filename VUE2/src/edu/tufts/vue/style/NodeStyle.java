@@ -25,9 +25,13 @@
 package edu.tufts.vue.style;
 
 public class NodeStyle extends Style {
+    public static final String[] DEFAULT_KEYS = {"background"};
+    public static final String[] DEFAULT_VALUES = {"#FFFFFF"};
+    
     /** Creates a new instance of NodeStyle */
     public NodeStyle(String name) {
         this.name = name;
+        setDefaultAttributes();
     }
     
 }

@@ -29,6 +29,9 @@ import java.awt.*;
 import java.util.*;
 
 public abstract class Style {
+    public static final String[] DEFAULT_KEYS = { "font-family","font-size","font-color"};
+    public static final String[] DEFAULT_VALUES = {"Arial","10pt","#000000"};
+    
     public static final String OPEN="{";
     public static final String CLOSE="}";
     public static final String SEMI=";";
@@ -39,7 +42,7 @@ public abstract class Style {
     public String  getName() {
         return name;
     }
-        
+    
     public void setAttributes(Map<String,String> attributes) {
         this.attributes = attributes;
     }
@@ -58,7 +61,11 @@ public abstract class Style {
         }
         this.attributes.put(key,value);
     }
-    
+   protected void setDefaultAttributes(){
+        for(int i = 0;i<DEFAULT_KEYS.length;i++) {
+            setAttribute(DEFAULT_KEYS[i],DEFAULT_VALUES[i]);
+        }
+    }
     public  String toCSS() {
         String s = new String();
         s += name+OPEN+"\n";
@@ -245,7 +252,7 @@ public abstract class Style {
         }
         return 0;
     }
-
+    
     public String toString() {
         return attributes == null ? "null" : attributes.toString();
     }

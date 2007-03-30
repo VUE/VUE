@@ -26,10 +26,13 @@
 package edu.tufts.vue.style;
 
 public class LinkStyle extends Style {
-    
+    public static final String[] DEFAULT_KEYS = {"stroke-width","font-size"};
+    public static final String[] DEFAULT_VALUES = {"1px","8px"};
     /** Creates a new instance of LinkStyle */
     public LinkStyle(String name) {
         this.name = name;
+        setDefaultAttributes();
     }
-
+   
+    
 }
