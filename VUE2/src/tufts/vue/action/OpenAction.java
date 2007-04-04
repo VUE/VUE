@@ -36,6 +36,7 @@ import javax.swing.*;
 import tufts.vue.*;
 
 public class OpenAction extends VueAction {
+    public static final String ZIP_IMPORT_LABEL ="Imported";
     public OpenAction(String label) {
         super(label, null, ":general/Open");
     }
@@ -150,6 +151,8 @@ public class OpenAction extends VueAction {
            
                 File mapFile  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+IMSCP.MAP_FILE);
                 LWMap map = ActionUtil.unmarshallMap(mapFile);
+                map.setFile(null);
+                map.setLabel(ZIP_IMPORT_LABEL);
                 Iterator i = resourceVector.iterator();
                 while(i.hasNext()){
                     Resource r = (Resource)i.next();
