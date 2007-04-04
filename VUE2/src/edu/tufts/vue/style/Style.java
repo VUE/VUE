@@ -29,8 +29,10 @@ import java.awt.*;
 import java.util.*;
 
 public abstract class Style {
-    public static final String[] DEFAULT_KEYS = { "font-family","font-size","font-color"};
-    public static final String[] DEFAULT_VALUES = {"Arial","10pt","#000000"};
+    public static final String[] DEFAULT_FONT_KEYS = { "font-family","font-size","font-color"};
+    public static final String[] DEFAULT_FONT_VALUES = {"Arial","10pt","#000000"};
+    public static final int DEFAULT_FONT_FAMILY_KEY = 0;
+    public static final int DEFAULT_FONT_SIZE_KEY = 1;
     public static final String NODE_PREFIX = "node";
     public static final String LINK_PREFIX = "link";
     public static final int LENGTH_PREFIX = 4;
@@ -63,9 +65,14 @@ public abstract class Style {
         }
         this.attributes.put(key,value);
     }
+    
+    public Font getFont() {
+        Font f = new Font(DEFAULT_FONT_VALUES[DEFAULT_FONT_FAMILY_KEY],Font.PLAIN,10);
+        return f;
+    }
     protected void setDefaultAttributes(){
-        for(int i = 0;i<DEFAULT_KEYS.length;i++) {
-            setAttribute(DEFAULT_KEYS[i],DEFAULT_VALUES[i]);
+        for(int i = 0;i<DEFAULT_FONT_KEYS.length;i++) {
+            setAttribute(DEFAULT_FONT_KEYS[i],DEFAULT_FONT_VALUES[i]);
         }
     }
     public  String toCSS() {
