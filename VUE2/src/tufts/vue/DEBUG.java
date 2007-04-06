@@ -65,6 +65,7 @@ public class DEBUG
     public static boolean PICK = false;
     public static boolean LISTS = false; //for debugging UL and OL in HTML textbox code
     public static boolean LINK = false; // for LWLinks
+    public static boolean STYLE = false; // for Styles
     //If you set LISTS to true you'll get the HTML code for the node in the Info Label
     //instead of the rendered HTML this should be useful for debugging, at least I hope so.
     //see my note in InspectorPane for more info. -MK
@@ -78,7 +79,7 @@ public class DEBUG
         Enabled=CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
             PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
-            CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=WIDGET=DATA=PRESENT=PICK=LINK=t;
+            CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=WIDGET=DATA=PRESENT=PICK=LINK=STYLE=t;
 
         // only turn META & WORK off, not on
         if (t == false)
@@ -142,6 +143,7 @@ public class DEBUG
             else if (a.startsWith("widget")) DEBUG.WIDGET = true;
             else if (a.startsWith("pres"))   DEBUG.PRESENT = true;
             else if (a.startsWith("link"))   DEBUG.LINK = true;
+            else if (a.startsWith("style"))  DEBUG.STYLE = true;
         }
     }
 
