@@ -40,7 +40,7 @@ import java.awt.geom.AffineTransform;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.53 $ / $Date: 2007-04-06 22:57:04 $ / $Author: sfraize $
+ * @version $Revision: 1.54 $ / $Date: 2007-04-06 23:08:43 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -603,6 +603,10 @@ public class LWGroup extends LWContainer
             dc.g.setColor(java.awt.Color.blue);
             dc.setAbsoluteStroke(1.0);
             dc.g.draw(shape);
+        } else if (isSelected() && dc.isInteractive()) {
+            java.awt.Shape shape = getLocalShape();
+            dc.g.setColor(COLOR_HIGHLIGHT);
+            dc.g.fill(shape);
         }
         
         if (FancyGroups)
