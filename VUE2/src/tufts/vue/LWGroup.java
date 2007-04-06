@@ -40,7 +40,7 @@ import java.awt.geom.AffineTransform;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.50 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2007-04-06 22:41:37 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -565,7 +565,7 @@ public class LWGroup extends LWContainer
             translateChildren(getX() - newBounds.x,
                               getY() - newBounds.y,
                               null);
-            out("UPDATING LOCATION\n");
+            if (DEBUG.CONTAINMENT) out("UPDATING LOCATION\n");
             super.takeLocation(newBounds.x, newBounds.y);
             reshaped = true;
         }
@@ -574,7 +574,7 @@ public class LWGroup extends LWContainer
             reshaped = true;
         
         if (reshaped) {
-            out("UPDATING SIZE\n");
+            if (DEBUG.CONTAINMENT) out("UPDATING SIZE\n");
             super.takeSize(newBounds.width, newBounds.height);
             return true;
         } else
