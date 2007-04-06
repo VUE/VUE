@@ -223,7 +223,7 @@ public class TypeList extends JList {
             OntType ot = iter.next();
             Style style = ot.getStyle();
             LWLink link = new LWLink();
-            link.setLabel(ot.getName());
+            link.setLabel(ot.getId());
             link.setHeadPoint(10,25);
             link.setTailPoint(140,25);
             link.setAbsoluteSize(150,50);
