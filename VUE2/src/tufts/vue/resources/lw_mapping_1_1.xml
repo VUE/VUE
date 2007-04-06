@@ -273,6 +273,9 @@
                  <field name="mapFilterModel">
                     <bind-xml name="mapFilterModel" node="element"/>
                  </field> 
+                 <field name="modelVersion">
+                   <bind-xml name="modelVersion" node="element"/>
+                 </field> 
                 <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
                   <bind-xml matches="*"/> 
                 </field>
