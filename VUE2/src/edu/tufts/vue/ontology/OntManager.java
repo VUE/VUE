@@ -148,6 +148,15 @@ public class OntManager {
         return null;
     }
     
+    public void removeOntology(URL ontUrl) {
+        for(Ontology ont: ontList) {
+            if(ont.getBase().equalsIgnoreCase(ontUrl.toString())){
+                ontList.remove(ont);
+                return;
+            }
+        }
+    }
+    
     public Ontology applyStyle(URL ontUrl, URL cssUrl) {
         return null;
     }
