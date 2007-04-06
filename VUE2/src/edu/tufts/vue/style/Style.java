@@ -26,6 +26,7 @@
 package edu.tufts.vue.style;
 
 import java.awt.*;
+import java.awt.font.*;
 import java.util.*;
 
 public abstract class Style {
@@ -33,6 +34,8 @@ public abstract class Style {
     public static final String[] DEFAULT_FONT_VALUES = {"Arial","10pt","#000000"};
     public static final int DEFAULT_FONT_FAMILY_KEY = 0;
     public static final int DEFAULT_FONT_SIZE_KEY = 1;
+    public static final String FONT_COLOR_KEY = "font-color";
+    public static final String FONT_SIZE_KEY = "font-size";
     public static final String NODE_PREFIX = "node";
     public static final String LINK_PREFIX = "link";
     public static final int LENGTH_PREFIX = 4;
@@ -68,6 +71,15 @@ public abstract class Style {
     
     public Font getFont() {
         Font f = new Font(DEFAULT_FONT_VALUES[DEFAULT_FONT_FAMILY_KEY],Font.PLAIN,10);
+        // setting the font color
+        Map fa = new HashMap();
+        if(attributes.get(FONT_COLOR_KEY) != null) {
+            fa.put(TextAttribute.FOREGROUND,attributes.get(FONT_COLOR_KEY));
+        }
+        if(attributes.get(FONT_SIZE_KEY) != null) {
+            fa.put(TextAttribute.SIZE,ShorthandParser.parseFontSize(attributes.get(FONT_SIZE_KEY)));
+        }
+        f = f.deriveFont(fa);
         return f;
     }
     protected void setDefaultAttributes(){
