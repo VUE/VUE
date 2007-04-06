@@ -33,11 +33,18 @@ public class OntType {
     private String base;
     private String comment;
     private Style style;
+    private  org.osid.shared.Type type;
     /** Creates a new instance of OntType */
     public OntType() {
         
     }
    
+    public void setType(org.osid.shared.Type type) {
+        this.type = type;
+    }
+    public org.osid.shared.Type getType() {
+        return type;
+    }
     public void setId(String id) {
         this.id = id;
     }
