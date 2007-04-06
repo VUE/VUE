@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.234 $ / $Date: 2007-04-06 22:55:08 $ / $Author: sfraize $
+ * @version $Revision: 1.235 $ / $Date: 2007-04-06 23:26:23 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1435,6 +1435,11 @@ public class LWComponent
     // that could have arbitrary properties added to it by plugged-in non-standard tools
     public boolean supportsUserResize() {
         return false;
+    }
+    
+    /** for containers, if allows children dragged in and out */
+    public boolean supportsDragReparenting() {
+        return true;
     }
     
     public boolean hasLabel() {

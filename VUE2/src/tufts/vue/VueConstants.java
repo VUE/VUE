@@ -29,7 +29,7 @@ import java.awt.font.FontRenderContext;
  *
  * Is an interface so can be "implemented" as virtual java 1.5 static import.
  *
- * @version $Revision: 1.49 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.50 $ / $Date: 2007-04-06 23:26:24 $ / $Author: sfraize $ 
  */
 
 // todo: rename GUI constants & move to GUI
@@ -72,7 +72,7 @@ public interface VueConstants
     static java.awt.Color COLOR_SELECTION_NOTICE = new java.awt.Color(255, 74, 74);
     static java.awt.Color COLOR_SELECTION_HANDLE = Color.white;
     static java.awt.Color COLOR_SELECTION_DRAG = java.awt.Color.gray;
-    static java.awt.Color COLOR_INDICATION = java.awt.Color.red;
+    static java.awt.Color COLOR_INDICATION = java.awt.Color.green;
     static java.awt.Color COLOR_ACTIVE_VIEWER = new java.awt.Color(74, 255, 133);
     static java.awt.Color COLOR_ACTIVE_MODEL = COLOR_ACTIVE_VIEWER;
     static java.awt.Color COLOR_DEFAULT = java.awt.Color.black;
