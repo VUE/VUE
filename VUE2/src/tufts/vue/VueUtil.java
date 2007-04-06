@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.75 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2007-04-06 22:29:07 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -234,9 +234,9 @@ public class VueUtil extends tufts.Util
     
     public static float[] computeIntersection(float rayX1, float rayY1,
                                               float rayX2, float rayY2,
-                                              java.awt.Shape shape)
+                                              java.awt.Shape shape, java.awt.geom.AffineTransform shapeTransform)
     {
-        return computeIntersection(rayX1,rayY1, rayX2,rayY2, shape, new float[2], 1);
+        return computeIntersection(rayX1,rayY1, rayX2,rayY2, shape, shapeTransform, new float[2], 1);
     }
     
     /**
@@ -253,10 +253,10 @@ public class VueUtil extends tufts.Util
      */
     public static float[] computeIntersection(float rayX1, float rayY1,
                                               float rayX2, float rayY2,
-                                              java.awt.Shape shape,
+                                              java.awt.Shape shape, java.awt.geom.AffineTransform shapeTransform,
                                               float[] result, int max)
     {
-        java.awt.geom.PathIterator i = shape.getPathIterator(null);
+        java.awt.geom.PathIterator i = shape.getPathIterator(shapeTransform);
         // todo performance: if this shape has no curves (CUBICTO or QUADTO)
         // this flattener is redundant.  Also, it would be faster to
         // actually do the math for arcs and compute the intersection
@@ -305,7 +305,7 @@ public class VueUtil extends tufts.Util
 
     /** compute the first two y value crossings of the given x_axis and shape */
     public static float[] computeYCrossings(float x_axis, Shape shape, float[] result) {
-        return computeIntersection(x_axis, Integer.MIN_VALUE, x_axis, Integer.MAX_VALUE, shape, result, 2);
+        return computeIntersection(x_axis, Integer.MIN_VALUE, x_axis, Integer.MAX_VALUE, shape, null, result, 2);
     }
     
     /** compute 2 y values for crossings of at x_axis, and store result in the given Line2D */
@@ -380,9 +380,9 @@ public class VueUtil extends tufts.Util
         //float[] intersection_at_1 = computeIntersection(segX2, segY2, segX1, segY1, c1.getShape());
 
         // compute intersection at shape 1 of ray from center of shape 1 to center of shape 2
-        float[] intersection_at_1 = computeIntersection(segX1, segY1, segX2, segY2, c1.getShape());
+        float[] intersection_at_1 = computeIntersection(segX1, segY1, segX2, segY2, c1.getLocalShape(), c1.getLocalTransform());
         // compute intersection at shape 2 of ray from center of shape 2 to center of shape 1
-        float[] intersection_at_2 = computeIntersection(segX2, segY2, segX1, segY1, c2.getShape());
+        float[] intersection_at_2 = computeIntersection(segX2, segY2, segX1, segY1, c2.getLocalShape(), c2.getLocalTransform());
 
         if (intersection_at_1 == NoIntersection) {
             // default to center of component 1
