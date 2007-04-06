@@ -31,6 +31,9 @@ import java.awt.*;
 public class ShorthandParser {
     public static final float DEFAULT_FONT_SIZE = 10;
     
+    /**
+     * the method returns the float value of font size defined in css file. 
+     */
     public static Float parseFontSize(String value){
         float fv = DEFAULT_FONT_SIZE;
         if(value.endsWith("pt")) {
