@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.86 $ / $Date: 2006-11-16 14:20:48 $ / $Author: sfraize $
+ * @version $Revision: 1.87 $ / $Date: 2007-04-06 22:27:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3418,7 +3418,7 @@ public class DockWindow extends javax.swing.JWindow
 
             //if (GUI.isMacBrushedMetal() && isToolbar)
             if (isToolbar) {
-                gradientBG = true;
+                //gradientBG = true;
                 changeAll(widget);
             }
 
