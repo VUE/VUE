@@ -57,7 +57,6 @@ public class OntManager {
     }
     
     private Ontology readRDFSOntologyWithStyle(URL ontUrl, URL cssUrl) {
-       
         OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM,null);
         List<OntType> types = new ArrayList<OntType>();
         m.read(ontUrl.toString());
@@ -68,9 +67,10 @@ public class OntManager {
         while(iter.hasNext()) {
             OntProperty sp = (OntProperty) iter.next();
             OntType type = new OntType();
-            type.setName(sp.getLocalName());
+            type.setId(sp.getLocalName());
+            type.setLabel(sp.getLabel(null));
             type.setBase(ontUrl.toString());
-            type.setDescription(sp.getComment(null));
+            type.setComment(sp.getComment(null));
             Style  style = StyleMap.getStyle("link."+sp.getLocalName());
             if(style == null ) {
                 System.out.println("OntManager: couldn't load style for :"+sp.getLocalName());
@@ -97,9 +97,10 @@ public class OntManager {
         while(iter.hasNext()) {
            OntClass c = (OntClass) iter.next();
             OntType type = new OntType();
-            type.setName(c.getLocalName());
+            type.setId(c.getLocalName());
+            type.setLabel(c.getLabel(null));
             type.setBase(ontUrl.toString());
-            type.setDescription(c.getComment(null));
+            type.setComment(c.getComment(null));
             type.setStyle(Style.getStyle(c.getLocalName(),styleMap));
             types.add(type);
         }
@@ -108,9 +109,10 @@ public class OntManager {
         while(iter.hasNext()) {
             OntProperty p = (OntProperty) iter.next();
             OntType type = new OntType();
-            type.setName(p.getLocalName());
+            type.setId(p.getLocalName());
             type.setBase(ontUrl.toString());
-            type.setDescription(p.getComment(null));
+            type.setLabel(p.getLabel(null));
+            type.setComment(p.getComment(null));
             type.setStyle(Style.getStyle(p.getLocalName(),styleMap));
             types.add(type);
         }
@@ -119,9 +121,10 @@ public class OntManager {
         while(iter.hasNext()) {
             OntProperty p = (OntProperty) iter.next();
             OntType type = new OntType();
-            type.setName(p.getLocalName());
+            type.setId(p.getLocalName());
             type.setBase(ontUrl.toString());
-            type.setDescription(p.getComment(null));
+             type.setLabel(p.getLabel(null));
+            type.setComment(p.getComment(null));
             type.setStyle(Style.getStyle(p.getLocalName(),styleMap));
             types.add(type);
         }
