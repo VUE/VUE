@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.31 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $ 
+ * @version $Revision: 1.32 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -65,7 +65,7 @@ public class MapTabbedPane extends JTabbedPane
     private int mWasSelected = -1;
     protected void fireStateChanged() {
         try {
-            if (DEBUG.FOCUS) out("fireStateChanged, selectedIndex=" +getSelectedIndex());
+            if (true||DEBUG.FOCUS) out("fireStateChanged, selectedIndex=" +getSelectedIndex());
             super.fireStateChanged();
         } catch (ArrayIndexOutOfBoundsException e) {
             // this is happening after we close everything and then
@@ -88,9 +88,11 @@ public class MapTabbedPane extends JTabbedPane
         }
         
         mWasSelected = selected;
-        Component viewer = getSelectedViewer();
-        if (viewer != null)
+        MapViewer viewer = getSelectedViewer();
+        if (viewer != null) {
+            if (DEBUG.FOCUS) out("REQUESTING FOCUS FOR " + viewer);
             viewer.requestFocus();
+        }
     }
         
     public void reshape(int x, int y, int w, int h) {

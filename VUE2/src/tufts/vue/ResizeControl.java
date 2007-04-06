@@ -84,7 +84,8 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
 
         final LWSelection selection = VUE.getSelection().clone();
         
-        mOriginalGroup_bounds = (Rectangle2D.Float) selection.getShapeBounds();
+        //mOriginalGroup_bounds = (Rectangle2D.Float) selection.getShapeBounds();
+        mOriginalGroup_bounds = (Rectangle2D.Float) selection.getBounds();
 
         if (mOriginalGroup_bounds == null) {
             // if some code is written that clears the selection at the wrong time, this might happen.
@@ -114,7 +115,8 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                 mOriginal_each_bounds[idx] = ((LWLink)c).getMoveableControls().clone(); // be sure to clone, as this is changing all the time
                 //c.out("ResizeControl GOT CONTROLS " + java.util.Arrays.asList(mOriginal_each_bounds[idx]));
             } else {
-                mOriginal_each_bounds[idx] = c.getShapeBounds();
+                //mOriginal_each_bounds[idx] = c.getShapeBounds();
+                mOriginal_each_bounds[idx] = c.getBounds();
                 if (DEBUG.LAYOUT) System.out.println(this + " " + c + " shapeBounds " + c.getShapeBounds());
             }
             idx++;
@@ -196,8 +198,8 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     {
         final boolean lockedLocation = c.getParent() instanceof LWNode; // todo: have a locked flag
 
-        final float requestWidth = request.width / c.getScale();
-        final float requestHeight = request.height / c.getScale();
+        final float requestWidth = request.width / c.getMapScaleF();
+        final float requestHeight = request.height / c.getMapScaleF();
 
         if (lockedLocation || isSizeOnlyCtrl(controlPoint)) {
             
@@ -401,12 +403,12 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                     
                 if (reshapeObjects) {
                     if (isLeftCtrl(cpi)) {
-                        float c_width = resized ? c_new_width * c.getScale() : c.getWidth();
+                        float c_width = resized ? c_new_width * c.getMapScaleF() : c.getWidth();
                         if (c_new_x + c_width > resize_box.lr.x)
                             c_new_x = (float) resize_box.lr.x - c_width;
                     }
                     if (isTopCtrl(cpi)) {
-                        float c_height = resized ? c_new_height * c.getScale() : c.getHeight();
+                        float c_height = resized ? c_new_height * c.getMapScaleF() : c.getHeight();
                         if (c_new_y + c_height > resize_box.lr.y)
                             c_new_y = (float) resize_box.lr.y - c_height;
                     }
@@ -416,9 +418,12 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
 
 
             if (resized && repositioned) {
-                c.userSetFrame(c_new_x, c_new_y, c_new_width / c.getScale(), c_new_height / c.getScale());
+                c.userSetFrame(c_new_x, c_new_y,
+                               c_new_width / c.getMapScaleF(),
+                               c_new_height / c.getMapScaleF());
             } else if (resized) {
-                c.userSetSize(c_new_width / c.getScale(), c_new_height / c.getScale());
+                c.userSetSize(c_new_width / c.getMapScaleF(),
+                              c_new_height / c.getMapScaleF());
             } else if (repositioned) {
                 if (centerPoint != null)
                     c.setCenterAt(centerPoint);

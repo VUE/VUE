@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.Util;
+
 import java.util.List;
 import java.util.Collection;
 import java.util.Iterator;
@@ -36,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.106 $ / $Date: 2007-03-28 22:41:55 $ / $Author: sfraize $
+ * @version $Revision: 1.107 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -49,6 +51,10 @@ public abstract class LWContainer extends LWComponent
         if (child instanceof LWComponent) {
             ((LWComponent)child).setParent(this);
         }
+    }
+
+    public boolean supportsDragReparenting() {
+        return true;
     }
     
     /*
@@ -105,13 +111,6 @@ public abstract class LWContainer extends LWComponent
     }
 
     
-    /*
-    public Iterator getPathwayIterator()
-    {
-        return getPathwayList().iterator();
-    }*/
-    
-
     public Iterator getNodeIterator()    { return getNodeList().iterator(); }
     // todo: temporary for html?
     private List getNodeList()
@@ -139,21 +138,20 @@ public abstract class LWContainer extends LWComponent
         return list;
     }
 
-    /*
-    protected String getNextUniqueID()
-    {
-        if (getParent() == null)
-            throw new IllegalStateException("LWContainer needs a parent subclass of LWContainer that implements getNextUniqueID: " + this);
-        else
-            return getParent().getNextUniqueID();
-    }
-    */
-
     /** In case the container subclass can do anything to lay out it's children
      *  (e.g., so that LWNode can override & handle chil layout).
      */
     void layoutChildren() { }
 
+    protected void updateConnectedLinks()
+    {
+        super.updateConnectedLinks();
+        if (VUE.RELATIVE_COORDS) {
+            // these components are now moving on the map, even tho their local location isn't changing
+            for (LWComponent c : getChildList()) 
+                c.updateConnectedLinks();
+        }
+    }
 
     /** called by LWChangeSupport, available here for override by parent classes that want to
      * monitor what's going on with their children */
@@ -166,17 +164,23 @@ public abstract class LWContainer extends LWComponent
      * to be reparented.  Children not in this container are ignored.
      * @param newParent is the new parent for any children of ours found in possibleChildren
      */
-    public void reparentTo(LWContainer newParent, Iterator possibleChildren)
+    public void reparentTo(LWContainer newParent, Collection<LWComponent> possibleChildren)
     {
         notify(LWKey.HierarchyChanging);
 
-        List reparenting = new ArrayList();
-        while (possibleChildren.hasNext()) {
-            LWComponent c = (LWComponent) possibleChildren.next();
+        List<LWComponent> reparenting = new ArrayList();
+        for (LWComponent c : possibleChildren) {
             if (c.getParent() == this)
                 reparenting.add(c);
         }
         removeChildren(reparenting.iterator());
+        /*
+        for (LWComponent c : reparenting) {
+            float x = c.getX();
+            float y = c.getY();
+            c.setLocation(getMapX() + x, getMapY() + y);
+        }
+        */
         newParent.addChildren(reparenting);
     }
 
@@ -208,7 +212,7 @@ public abstract class LWContainer extends LWComponent
         } else {
             java.util.Arrays.sort(toAdd, LWComponent.YSorter);
         }
-        addChildren(new tufts.Util.ArrayIterator(toAdd));
+        addChildren(toAdd);
     }
     
     /** If all the children do not have the same parent, the sort order won't be 100% correct. */
@@ -232,6 +236,16 @@ public abstract class LWContainer extends LWComponent
                 // but we'll save that for later.
             }
         };
+    
+    protected void addIterable(Iterable<LWComponent> iterable)
+    {
+        addChildren(iterable.iterator());
+    }
+    
+    protected void addChildren(LWComponent[] toAdd)
+    {
+        addChildren(new tufts.Util.ArrayIterator(toAdd));
+    }
     
     public void addChildren(Iterator<LWComponent> i)
     {
@@ -303,9 +317,18 @@ public abstract class LWContainer extends LWComponent
         if (c.getFont() == null)//todo: really want to do this? only if not manually set?
             c.setFont(getFont());
         this.children.add(c);
+        if (c.getParent() != null && !hasAbsoluteMapLocation()) // if it didn't have a parent, assume coords we're local (e.g., from a duplication)
+            translateLocationToLocalCoordinates(c);
         c.setParent(this);
         //c.reparentNotify(this);
         ensureID(c);
+    }
+
+    // TODO: only works when moving from higher to lower nesting -- not reverse (e.g., group dispersal)
+    protected void translateLocationToLocalCoordinates(LWComponent c) {
+        if (VUE.RELATIVE_COORDS && !c.hasAbsoluteMapLocation())
+            c.setLocation((c.getMapX() - getMapX()) / getMapScale(),
+                          (c.getMapY() - getMapY()) / getMapScale());
     }
 
     protected void removeChildImpl(LWComponent c)
@@ -435,7 +458,7 @@ public abstract class LWContainer extends LWComponent
             */
             LWContainer commonParent = l.getParent();
             if (commonParent == null) {
-                System.out.println("ELPOTOAP: ignoring link with no parent: " + l);
+                System.out.println("ELPOTOAP: ignoring link with no parent: " + l + " for " + component);
                 continue;
             }
             if (commonParent != component.getParent()) {
@@ -448,8 +471,11 @@ public abstract class LWContainer extends LWComponent
                 LWComponent topMostParentThatIsSiblingOfLink = component.getParentWithParent(commonParent);
                 if (topMostParentThatIsSiblingOfLink == null) {
                     // this could happen for stuff in cutbuffer w/out parent?
-                    System.err.println("note: couldn't find common parent for " + component);
-                    new Throwable("ELPOTOAP debug (ignorable stack trace)").printStackTrace();
+                    String msg = "FYI; ELPOTOAP couldn't find common parent for " + component;
+                    if (DEBUG.LINK)
+                        tufts.Util.printStackTrace(msg);
+                    else
+                        VUE.Log.info(msg);
                 } else
                     commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, l);
             }
@@ -546,6 +572,7 @@ public abstract class LWContainer extends LWComponent
     /**
      * Get all descendents, but do not seperately include
      * the children of groups.
+     * @deprecated - needs replacement: see Actions.java
      */
     public java.util.List getAllDescendentsGroupOpaque()
     {
@@ -899,22 +926,26 @@ public abstract class LWContainer extends LWComponent
     }
     */
     
-    void setScale(float scale)
+    @Override
+    void setScale(double scale)
     {
         //System.out.println("Scale set to " + scale + " in " + this);
         
         super.setScale(scale);
 
-        for (LWComponent c : this.children) 
+        for (LWComponent c : getChildList()) 
             setScaleOnChild(scale, c);
 
         layoutChildren(); // we do this for our rollover zoom hack so children are repositioned
     }
 
-    void setScaleOnChild(float scale, LWComponent c)
+    void setScaleOnChild(double scale, LWComponent c)
     {
         // vanilla containers don't scale down their children -- only nodes do
-        c.setScale(scale);
+        if (VUE.RELATIVE_COORDS)
+            ; //throw new Error("relative coordinate impl doesn't apply parent scale to child scale");
+        else
+            c.setScale(scale);
     }
 
     /**
@@ -924,8 +955,15 @@ public abstract class LWContainer extends LWComponent
     {
         if (!isTransparent()) {
             dc.g.setColor(getFillColor());
-            dc.g.fill(getShape());
+            dc.g.fill(getLocalShape());
         }
+        
+        if (getStrokeWidth() > 0) {
+            dc.g.setStroke(this.stroke);
+            dc.g.setColor(getStrokeColor());
+            dc.g.draw(getLocalShape());
+        }
+        
         drawChildren(dc);
     }
 
@@ -934,19 +972,46 @@ public abstract class LWContainer extends LWComponent
         if (this.children.size() <= 0)
             return;
 
+        if (!VUE.RELATIVE_COORDS && !hasAbsoluteMapLocation()) {
+            // restore us to absolute map coords for drawing the children
+            // if we were made relative
+            
+            // TODO: change to a straight inversion of the local transform,
+            // or create a transformLocalInverse
+            // Actually: BETTER: keep a saveTransform we can simply
+            // restore -- either in the LWContainer, or the DrawContext
+            /*
+            try {
+                dc.g.transform(getLocalTransform().createInverse());
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+            */
+            
+            if (getScale() != 1f) {
+                double scaleInverse = 1.0 / getScale();
+                dc.g.scale(scaleInverse, scaleInverse);
+            }
+            dc.g.translate(-getX(), -getY());
+        }
+        
+
         int nodes = 0;
         int links = 0;
         int images = 0;
+        int other = 0;
         
         final Rectangle2D clipBounds;
         final Shape clip = dc.g.getClip();
         if (clip instanceof Rectangle2D) {
             clipBounds = (Rectangle2D) clip;
+            if (DEBUG.PAINT) System.out.println("CLIPBOUNDS=" + Util.out(clipBounds) + " for " + this);
+            //System.out.println("      mvrr="+MapViewer.RepaintRegion);
         } else {
             clipBounds = dc.g.getClipBounds();
             if (DEBUG.PAINT || DEBUG.CONTAINMENT) {
-                out("CURRENT CLIP: " + clip);
-                out("  CLIPBOUNDS: " + clipBounds);
+                out("CURRENT SHAPE CLIP: " + clip + " for " + this);
+                out("        CLIPBOUNDS: " + Util.out(clipBounds));
             }
 
             // fudge clip bounds to deal with anti-aliasing
@@ -959,20 +1024,9 @@ public abstract class LWContainer extends LWComponent
             */
         }
 
-        //System.out.println("clipBounds " + clipBounds + " drawing children of " + this);
-        //System.out.println("      clip " + clip + " drawing children of " + this);
-
-            
-        if (DEBUG.PAINT) {
-            System.out.println("DRAWING CHILDREN; clip=" + clipBounds + " for " + this);
-            //out("drawChildren: clipBounds="+clipBounds);
-            //System.out.println("      mvrr="+MapViewer.RepaintRegion);
-        }
                 
         LWComponent focused = null;
-        for (LWComponent child : getChildList()) {
-
-            final LWComponent c = child.getView();
+        for (LWComponent c : getChildList()) {
 
             // make sure the rollover is painted on top
             // a bit of a hack to do this here -- better MapViewer
@@ -982,30 +1036,33 @@ public abstract class LWContainer extends LWComponent
                 continue;
             }
 
-            if (c != child) c.setLocation(child.getX(), child.getY());
-                
             //-------------------------------------------------------
             // This is a huge speed optimzation.  Eliminating all
             // the Graphics2D calls that would end up having to
             // check the clipBounds internally makes a giant
             // difference.
             // -------------------------------------------------------
-                
+
             // if filtered, don't draw, unless has children, in which case
             // we need to draw just in case any of the children are NOT filtered.
-            if (c.isVisible()
-                && (!c.isFiltered() || c.hasChildren())
-                && c.getLayer() <= dc.getMaxLayer()
-                && (clipBounds == null || c.intersects(clipBounds))
-                )
-                {
-                    drawChildSafely(dc, c);
-                    if (DEBUG.PAINT) {
-                        if (c instanceof LWLink) links++;
-                        else if (c instanceof LWNode) nodes++;
-                        else if (c instanceof LWImage) images++;
-                    }
-                }
+            if (!c.isVisible() || (c.isFiltered() && !c.hasChildren()))
+                continue;
+
+            if (c.getLayer() > dc.getMaxLayer())
+                continue;
+
+            // todo: probably want an intersects(DrawContext) ...
+            if (!VUE.RELATIVE_COORDS && !c.intersects(clipBounds)) // doesn't work for relative at moment
+                continue;
+
+            drawChildSafely(dc, c);
+            
+            if (DEBUG.PAINT) {
+                if (c instanceof LWLink) links++;
+                else if (c instanceof LWNode) nodes++;
+                else if (c instanceof LWImage) images++;
+                else other++;
+            }
         }
 
         if (focused != null) {
@@ -1014,17 +1071,8 @@ public abstract class LWContainer extends LWComponent
         } else
             setFocusComponent(null);
                 
-        if (DEBUG.PAINT) 
-            out(this + " painted " + links + " links, " + nodes + " nodes, " + images + " images");
-        
-    /*
-      if (DEBUG.CONTAINMENT) {
-      dc.g.setColor(java.awt.Color.green);
-      dc.g.setStroke(STROKE_ONE);
-      dc.g.draw(getBounds());
-      }
-    */
-        
+        if (DEBUG.PAINT && (DEBUG.META || this instanceof LWMap)) 
+            System.out.println("PAINTED " + links + " links, " + nodes + " nodes, " + images + " images, " + other + " other; for " + this);
     }
 
     private void drawChildSafely(DrawContext _dc, LWComponent c)
@@ -1034,8 +1082,6 @@ public abstract class LWContainer extends LWComponent
         // todo: same goes for pathway decorations!
         DrawContext dc = _dc.create();
         try {
-            if (c.doesRelativeDrawing())
-                dc.g.translate(c.getX(), c.getY());
             drawChild(c, dc);
         } catch (Throwable t) {
             synchronized (System.err) {
@@ -1059,15 +1105,30 @@ public abstract class LWContainer extends LWComponent
     protected void drawChild(LWComponent child, DrawContext dc)
     {
         /*
-          // this works to draw w/all children & coords scaled
+        if (child.hasAbsoluteMapLocation()) {
+            child.draw(dc);
+            return;
+        }
+        dc.g.translate(child.getX(), child.getY());
         if (child.getScale() != 1f) {
-            final float scaleX, scaleY;
-            scaleX = scaleY = child.getScale();
-            //dc = new DrawContext(dc);
-            child.out("scaled to: " + scaleX);
-            dc.g.scale(scaleX, scaleY);
+            final float scale = child.getScale();
+            dc.g.scale(scale, scale);
         }
         */
+
+        /*
+          moved to LWComponent.draw, so random use of LWComponent.draw will use it's location if it has one
+        if (VUE.RELATIVE_COORDS) {
+            if (child.hasAbsoluteMapLocation())
+                dc.resetMapDrawing();
+            else// this will cascade to all children when they draw, combining with their calls to transformRelative
+                child.transformRelative(dc.g);
+        } else {
+            // this will be reset here for each child
+            child.transformLocal(dc.g);
+        }
+        */
+
         
         child.draw(dc);
     }

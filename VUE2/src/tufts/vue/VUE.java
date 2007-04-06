@@ -1,4 +1,4 @@
- /*
+/*
  * -----------------------------------------------------------------------------
  *
  * <p><b>License and Copyright: </b>The contents of this file are subject to the
@@ -57,12 +57,14 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.402 $ / $Date: 2007-03-27 18:29:21 $ / $Author: mike $ 
+ * @version $Revision: 1.403 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $ 
  */
 
 public class VUE
     implements VueConstants
 {
+    public static final boolean RELATIVE_COORDS = true;
+        
     public static final Logger Log = Logger.getLogger(VUE.class);
     
     private static AppletContext sAppletContext = null;

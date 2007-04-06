@@ -306,7 +306,7 @@ public abstract class LWIcon extends Rectangle2D.Float
                 Rectangle2D.Float tipRegion = (Rectangle2D.Float) tipIcon.getBounds2D();
                 if (mCoordsNodeLocal) {
                     // translate tipRegion from component to map coords
-                    float s = mLWC.getScale();
+                    double s = mLWC.getScale();
                     if (s != 1) {
                         tipRegion.x *= s;
                         tipRegion.y *= s;

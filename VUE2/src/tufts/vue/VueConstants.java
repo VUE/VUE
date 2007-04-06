@@ -29,7 +29,7 @@ import java.awt.font.FontRenderContext;
  *
  * Is an interface so can be "implemented" as virtual java 1.5 static import.
  *
- * @version $Revision: 1.48 $ / $Date: 2007-03-19 07:12:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.49 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $ 
  */
 
 // todo: rename GUI constants & move to GUI
@@ -40,6 +40,7 @@ public interface VueConstants
    
     //static Font DefaultFont = new Font("SansSerif", Font.PLAIN, 18);
     static Font FixedFont = new Font("Courier", Font.BOLD, 12);
+    static Font FixedSmallFont = new Font("Courier", Font.BOLD, 10);
     static Font MediumFont = new Font("SansSerif", Font.PLAIN, 12);
     static Font SmallFont = new Font("SansSerif", Font.PLAIN, 10);
     //static Font LinkLabelFont = new Font("SansSerif", Font.PLAIN, 10);

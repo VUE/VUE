@@ -28,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.21 $ / $Date: 2007-03-28 22:41:14 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -104,7 +104,7 @@ public class LWSlide extends LWContainer
 
         for (LWComponent c : node.getAllDescendents()) {
             final LWComponent slideCopy = c.duplicate(cc);
-            slideCopy.setScale(1f);
+            slideCopy.setScale(1);
             applyMasterStyle(master, slideCopy);
             slideCopy.setSyncSource(c);
             toLayout.add(slideCopy);
@@ -148,7 +148,8 @@ public class LWSlide extends LWContainer
             //master.drawChildren(dc);
             //dc.g.setClip(curClip);
         
-        master.drawChildren(dc);
+        if (master != null)
+            master.drawChildren(dc);
         drawChildren(dc);
     }
     
@@ -172,6 +173,10 @@ public class LWSlide extends LWContainer
     }
 
     public LWPathway.MasterSlide getMasterSlide() {
+        if (!(getParent() instanceof LWPathway)) {
+            // old on-map slides could do this
+            return null;
+        }
         LWPathway pathway = (LWPathway) getParent();
         if (pathway == null) {
             tufts.Util.printStackTrace("null parent attempting to get master slide");
@@ -189,7 +194,7 @@ public class LWSlide extends LWContainer
         
         if (this instanceof LWPathway.MasterSlide)
             return;
-        out("addChildImpl " + c);
+        if (DEBUG.PRESENT || DEBUG.STYLE) out("addChildImpl " + c);
         if (c.getStyle() == null)
             applyMasterStyle(c);
         
@@ -235,7 +240,7 @@ public class LWSlide extends LWContainer
 
         // TODO: need to know master slide at this point, or at least
         // the master slide styles...
-        if (DEBUG.Enabled) out("LAYING OUT CHILDREN, parent=" + getParent());
+        if (DEBUG.PRESENT || DEBUG.STYLE) out("LAYING OUT CHILDREN, parent=" + getParent());
 
         setSize(SlideWidth, SlideHeight);
         
@@ -283,15 +288,6 @@ public class LWSlide extends LWContainer
     }
     */
 
-    /*
-    protected LWComponent pickChild(PickContext pc, LWComponent c) {
-        if (pc.pickDepth > 0)
-            return c;
-        else
-            return this;
-    }
-    */
-    
     public void setLayer(int layer) {
         mLayer = layer;
     }
@@ -305,22 +301,6 @@ public class LWSlide extends LWContainer
         return true;
     }
     
-    void setScale(float scale)
-    {
-        // for now: LWGroup disables
-        this.scale = scale;
-        notify(LWKey.Scale);
-    }
-
-    /* groups were transparent -- restore use of fill color: undo group override */
-    /*
-    public java.awt.Color getFillColor()
-    {
-        //return getParent() == null ? null : getParent().getFillColor();
-        //return LWComponent.this.getFillColor();
-        return super.fillColor;
-    }
-    */
 
     /** @return false -- slides themseleves never have slide icons: only nodes that own them */
     protected boolean isDrawingSlideIcon() {

@@ -18,15 +18,10 @@
 
 package tufts.vue;
 
-import java.util.List;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
+import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 
 /**
  *
@@ -45,15 +40,58 @@ import java.awt.geom.Rectangle2D;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.49 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
-    public LWGroup() {}
-
-    public boolean supportsUserResize() {
-        return !isTransparent();
+    private static final boolean FancyGroups = false;
+    private static final boolean AbsoluteChildren = false;
+    
+    public LWGroup() {
+        if (!FancyGroups) {
+            disableProperty(LWKey.FillColor);
+            disableProperty(LWKey.TextColor);
+            disableProperty(LWKey.StrokeWidth);
+            disableProperty(LWKey.StrokeColor);
+            disableProperty(LWKey.Font);
+            disableProperty(LWKey.FontSize);
+            disableProperty(LWKey.FontName);
+            disableProperty(LWKey.FontStyle);
+        }
     }
+
+    //public boolean hasAbsoluteMapLocation() { return AbsoluteChildren; }
+    
+    public boolean supportsDragReparenting() {
+        return FancyGroups;
+    }
+    
+    public boolean supportsUserResize() {
+        if (FancyGroups)
+            return !isTransparent();
+        else
+            return false;
+    }
+
+    // atttempt to disable relative coords
+    
+    /*
+    @Override public AffineTransform getLocalTransform() { return IDENTITY_TRANSFORM; }
+    @Override public AffineTransform transformLocal(AffineTransform a) { return a; }
+    @Override public void transformLocal(Graphics2D g) {}
+    @Override public void transformRelative(Graphics2D g) {}
+    
+    protected double getMapXPrecise() { return 0; }
+    protected double getMapYPrecise() { return 0; }
+    public float getMapX() {
+        return (float) (parent == null ? 0 : parent.getMapXPrecise()) + getX();
+    }
+    public float getMapY() {
+        return (float) (parent == null ? 0 : parent.getMapYPrecise()) + getY();
+    }
+    */
+    
+
     
     /**
      * For the viewer selection code -- we're mainly interested
@@ -78,10 +116,11 @@ public class LWGroup extends LWContainer
      * Create a new LWGroup, reparenting all the LWComponents
      * in the selection to the new group.
      */
-    static LWGroup create(java.util.List selection)
+    static LWGroup create(LWSelection selection)
     {
         LWGroup group = new LWGroup();
 
+        //group.setFrame(selection.getBounds());
         group.importNodes(selection);
         group.setSizeFromChildren();
 
@@ -90,7 +129,7 @@ public class LWGroup extends LWContainer
 
     /** Make the given nodes members of this group, importing also any links that are been two members of the set.
      * This also makes sure to maintain the relative z-order of the imported nodes */
-    public void importNodes(java.util.List<LWComponent> nodes)
+    public void importNodes(Collection<LWComponent> nodes)
     {
         final List<LWComponent> reparentList = new java.util.ArrayList();
         final Collection<LWComponent> allUniqueDescendents = new java.util.HashSet(); // enforce unique w/HashSet
@@ -127,8 +166,9 @@ public class LWGroup extends LWContainer
         }
         // Be sure to preserve the current relative ordering of all
         // these components the new group.
-        for (LWComponent c : sort(reparentList, LWContainer.ReverseOrder))
-            addChildImpl(c);
+        addChildren(sort(reparentList, LWContainer.ReverseOrder));
+        //for (LWComponent c : sort(reparentList, LWContainer.ReverseOrder))
+        //    addChildImpl(c);
 
         // we can use addChildImpl instead of addChildren as this only
         // happens during creation, and we don't need to optimize
@@ -143,27 +183,18 @@ public class LWGroup extends LWContainer
      * TODO: get rid of this and just have useSelection,
      * or move this code to LWSelection itself.
      */
+    private boolean isForSelection = false;
     static LWGroup createTemporary(java.util.ArrayList selection)
     {
         LWGroup group = new LWGroup();
         if (DEBUG.Enabled) group.setLabel("<=SELECTION=>");
         group.children = (java.util.ArrayList) selection.clone();
         group.setSizeFromChildren();
+        group.isForSelection = true;
         if (DEBUG.CONTAINMENT) System.out.println("LWGroup.createTemporary " + group);
         return group;
     }
 
-    /** Set size & location of this group based on LWComponents in selection */
-    /*
-    private LWGroup(java.util.List selection)
-    {
-        Rectangle2D bounds = LWMap.getBounds(selection.iterator());
-        super.setSize((float)bounds.getWidth(),
-                      (float)bounds.getHeight());
-        super.setLocation((float)bounds.getX(),
-                          (float)bounds.getY());
-    }
-    */
     
     protected void setSizeFromChildren()
     {
@@ -172,49 +203,59 @@ public class LWGroup extends LWContainer
                       (float)bounds.getHeight());
         super.setLocation((float)bounds.getX(),
                           (float)bounds.getY());
-
+                          
     }
     
-    protected Rectangle2D getChildBounds()
+    protected Rectangle2D.Float getChildBounds()
     {
         return LWMap.getBounds(getChildIterator());
     }
 
+    /*
     public void setSize(float w, float h) {
-        final Rectangle2D bounds = getChildBounds();
 
-        bounds.add(getX(), getY());
+        final Rectangle2D.Float bounds = getChildBounds();
+        
+        if (FancyGroups) {
 
-        if (bounds.getWidth() > w)
-            w = (float) bounds.getWidth();
-        if (bounds.getHeight() > h)
-            h = (float) bounds.getHeight();
-        super.setSize(w, h);
+            bounds.add(getX(), getY());
+
+            if (bounds.getWidth() > w)
+                w = (float) bounds.getWidth();
+            if (bounds.getHeight() > h)
+                h = (float) bounds.getHeight();
+            super.setSize(w, h);
+            
+        } else {
+            super.setSize(bounds.width, bounds.height);
+        }
     }
+    */
 
-    private static final Rectangle2D EmptyBounds = new Rectangle2D.Float();
 
     // TODO: do we really need different methods for computing bounds: here and setSizeFromChildren?
-    public Rectangle2D getBounds()
+    /*
+    private static final Rectangle2D.Float EmptyBounds = new Rectangle2D.Float(0,0,10,10);
+    @Override
+    public Rectangle2D.Float getBounds()
     {
-        if (supportsUserResize())
+        if (FancyGroups && (VUE.RELATIVE_COORDS || supportsUserResize()))
             return super.getBounds();
 
         // Without user-resize, always report size as bounds of what we contain
         
         Rectangle2D.Float bounds = null;
-        Iterator i = getChildIterator();
+        Iterator<LWComponent> i = getChildIterator();
         if (i.hasNext()) {
             bounds = new Rectangle2D.Float();
-            bounds.setRect(((LWComponent)i.next()).getBounds());
+            bounds.setRect(i.next().getBounds());
         } else {
             // this happens normally on group dispersal
-            //System.out.println(this + " getBounds: EMPTY!");
             return EmptyBounds;
         }
 
         while (i.hasNext())
-            bounds.add(((LWComponent)i.next()).getBounds());
+            bounds.add(i.next().getBounds());
         //System.out.println(this + " getBounds: " + bounds);
 
         // how safe is this?
@@ -225,6 +266,7 @@ public class LWGroup extends LWContainer
         setAbsoluteHeight(bounds.height);
         return bounds;
     }
+    */
 
     public void setZoomedFocus(boolean tv)
     {
@@ -262,118 +304,136 @@ public class LWGroup extends LWContainer
         getParent().deleteChildPermanently(this);
     }
 
-    /*
-    public String getLabel()
-    {
-        if (super.getLabel() == null)
-            return "[LWGroup #" + getID() + " nChild=" + (children==null?-1:children.size()) + "]";
-        else
-            return super.getLabel();
-    }
-    */
-
     /** groups are transparent -- defer to parent for background fill color */
-    public java.awt.Color X_getFillColor()
+    public java.awt.Color getRenderFillColor()
     {
-        return getParent() == null ? null : getParent().getFillColor();
+        if (FancyGroups)
+            return super.getRenderFillColor();
+        else
+            return getParent() == null ? null : getParent().getRenderFillColor();
+    }
+    
+    public java.awt.Color getFillColor()
+    {
+        if (FancyGroups)
+            return super.getFillColor();
+        else
+            return null;
     }
 
     public void setLocation(float x, float y)
     {
-//setAspect(1280f / 854f);
+        if (AbsoluteChildren || isForSelection || !VUE.RELATIVE_COORDS) {
+            setAllLocations(x, y);
+        } else {
+            final float dx = x - getX();
+            final float dy = y - getY();
+            if (FancyGroups) {
+                translateAbsoluteChildren(dx, dy);
+                super.setLocation(x, y);
+            } else {
+                super.setLocation(x, y);
+                translateAbsoluteChildren(dx, dy);
+            }
+        }
+    }
+    
+    // todo: do this by default for any container (e.g., slides!)
+    private void translateAbsoluteChildren(float dx, float dy)
+    {
+        for (LWComponent c : getChildList()) {
+            if (c.hasAbsoluteMapLocation()) // if not fancy links, contents are all absolute
+                c.translate(dx, dy);
+        }
+    }
+    
+    private void setAllLocations(float x, float y)
+    {
         float dx = x - getX();
         float dy = y - getY();
         //System.out.println(getLabel() + " setLocation");
-        Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        for (LWComponent c : getChildList()) {
 
-            boolean inGroup = c.getParent() instanceof LWGroup;
+            //boolean inGroup = c.getParent() instanceof LWGroup;
                 
-            // If parent and some child both in selection and you
-            // drag, the selection (an LWGroup) and the parent fight
-            // to control the location of the child.  There may be a
-            // cleaner way to handle this, but checking it here works.
-            // Also, do NOT skip if we're in a group -- that condition
-            // is caught below.
-            if (!inGroup && c.isSelected() && c.getParent().isSelected())
+            // If parent and some child both in selection and you drag, the selection
+            // (an LWGroup) and the parent fight to control the location of the child.
+            // There may be a cleaner way to handle this, but checking it here works.
+            // Also, do NOT skip if we're in a group -- that condition is caught below.
+
+            if (c.isSelected() && c.isAncestorSelected())
                 continue;
             
-            // If this component is part of the "temporary" group for the selection,
-            // don't move it -- only it's real parent group should reposition it.
-            // (The only way we could be here without "this" being the parent is
-            // if we're in the MapViewer special use draggedSelectionGroup)
-            //if (inGroup && c.getParent() != this)
-            //continue;
-            // allowed for new "page" style groups
-
             c.translate(dx, dy);
         }
-        // this setLocation I think never has any effect, as our
-        // bounds dynamically change with with content, quietly
-        // updating x & y, so it never appears we've moved!
+        
+        // this setLocation I think never has any effect, as our bounds dynamically
+        // change with with content, quietly updating x & y, so it never appears we've
+        // moved!  ??? -- wait, is that for selection move, or group object move, or
+        // moving of all group contents auto-creating the groups?  The latter?  really
+        // got to move this to selection code.
+        
         super.setLocation(x, y);
         updateConnectedLinks();
-
-        // todo: possibly redesign rendering to happen node-local
-        // so don't have to do all this
     }
     
-    // TODO: Can't sanely support scaling of a group because we'd also
-    // have to scale the space between the the children -- to make
-    // this work we'll have to set the scale for the whole group, draw
-    // it (and tell the children NOT to set their scale values
-    // individually) and sort out the rest of a mess getting all that
-    // to work will imply.
-    
-    void setScale(float scale)
+    //@Override public double getScale() { return 1; }
+    //@Override public double getMapScale() { return 1; }
+    /*
+    @Override void setScale(double scale)
     {
-        // intercept any attempt at scaling us and turn it off
-        super.setScale(1f);
-    }
-
-    public void XsetScale(float scale)
-    {
-        java.util.Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.setScale(scale);
+        if (FancyGroups && (VUE.RELATIVE_COORDS || DEBUG.Enabled)) {
+            super.setScale(scale);
+        } else {
+            // intercept any attempt at scaling us and turn it off
+            
+            // if a group ever defines it's size by it's children, it can't have a scale
+            // (too complicated -- the upper left position of the group is defined by
+            // the children, and the children's ultimate map coordinate is defined by
+            // the location of the group!), and in fact it's children's coords would
+            // be better off non-local!
+            
+            super.setScale(1);
         }
-        setSizeFromChildren();
     }
+    */
 
     protected boolean containsImpl(final float x, final float y)
     {
-        if (isTransparent()) {
+        if (hasDecoratedFeatures()) {
+            return super.containsImpl(x, y);
+        } else {
             for (LWComponent c : getChildList())
                 if (c.contains(x, y))
                     return true;
             return false;
-        } else
-            return super.containsImpl(x, y);
+        }
     }
     
     protected boolean intersectsImpl(final Rectangle2D rect)
     {
-        if (hasVisibleFeatures())
+        if (hasDecoratedFeatures()) {
             return super.intersectsImpl(rect);
-        
-        for (LWComponent c : getChildList())
-            if (c.intersects(rect))
-                return true;
-        
-        return false;
+        } else {
+            for (LWComponent c : getChildList())
+                if (c.intersects(rect))
+                    return true;
+            return false;
+        }
     }
 
-    private boolean hasVisibleFeatures() 
+    private boolean hasDecoratedFeatures() 
     {
-        return getStrokeWidth() > 0 || !isTransparent();
+        if (FancyGroups)
+            return getStrokeWidth() > 0 || !isTransparent();
+        else
+            return false;
     }
     
     
     /** If it paints a background or draws a border, it's empty space can be picked, otherwise, only pick via children */
     protected LWComponent defaultPick(PickContext pc) {
-        if (hasVisibleFeatures())
+        if (hasDecoratedFeatures())
             return this;
         else 
             return null;
@@ -388,16 +448,17 @@ public class LWGroup extends LWContainer
 
         //if (pc.pickDepth > 0 || pc.dropping != null)
 
-        // If we're dropping, we can/should allow a drop into the
-        // child of a group -- but if it's the group that's being
-        // dragged, and it was selected by selecting a child,
-        // we could drop the group into itself, creating an
-        // infinite loop...  Well either need to always enfore
-        // all members of a group selected together (which would
-        // work cause we ignore selected when looking for pick
-        // targets), or more robust, always excude the entire list
-        // of everything in the selection and all decendents from
-        // picks... (very heavy duty tho)
+        // If we're dropping, we can/should allow a drop into the child of a group --
+        // but if it's the group that's being dragged, and it was selected by selecting
+        // a child, we could drop the group into itself, creating an infinite loop...
+        // Well either need to always enfore all members of a group selected together
+        // (which would work cause we ignore selected when looking for pick targets), or
+        // more robust, always excude the entire list of everything in the selection and
+        // all decendents from picks... (very heavy duty tho)
+
+        // TODO: this not good enough -- doesn't deal with grand-children (children
+        // of group memebers -- they get picked even if group should have been picked)
+        // -- will need to handle this in LWTraversal...
 
         if (pc.pickDepth > 0)
             return c;
@@ -405,127 +466,154 @@ public class LWGroup extends LWContainer
             return this;
     }
 
-    /*
-    public LWComponent findChildAt(float mapX, float mapY)
-    {
-        if (DEBUG.CONTAINMENT) System.out.println("LWGroup.findChildAt " + getLabel());
-        // hit detection must traverse list in reverse as top-most
-        // components are at end
-        //todo: handle focusComponent here?
-        java.util.ListIterator i = children.listIterator(children.size());
-        while (i.hasPrevious()) {
-            LWComponent c = (LWComponent) i.previous();
-            if (!c.isDrawn())
-                continue;
-            if (c.contains(mapX, mapY))
-                return this;
-        }
-        return defaultHitComponent();
-    }
-    */
-    
-    /*
-    public LWComponent findLWSubTargetAt(float mapX, float mapY)
-    {
-        if (DEBUG.CONTAINMENT) System.out.println("LWGroup.findLWSubTargetAt[" + getLabel() + "]");
-        LWComponent c = super.findLWSubTargetAt(mapX, mapY);
-        return c == this ? null : c;
-        }*/
-    
     /** use the raw bounds: don't add a target swath */
     public boolean targetContains(float x, float y)
     {
         return contains(x, y);
     }
 
-    void broadcastChildEvent(LWCEvent e) {
-        if (e.key == LWKey.Location || e.key == LWKey.Size)
-            updateConnectedLinks();
-        super.broadcastChildEvent(e);
-    }
-    
+
     /*
-    public void layout()
-    {
-        super.layout();
-        setFrame(computeBounds());
+    protected void notifyLWCListeners(LWCEvent e) {
+        if (e.key == LWKey.ChildrenAdded || e.key == LWKey.ChildrenRemoved) {
+            // need to check this hear instead of add/remove child impl's
+            // as on undo, those aren't called, but we get a simulated event.
+            updateBounds();
+        }
+        super.notifyLWCListeners(e);
+    }
+    */
+    /*
+    protected void addChildImpl(LWComponent c) {
+        super.addChildImpl(c);
+        updateBounds();
+    }
+    protected void removeChildImpl(LWComponent c) {
+        super.removeChildImpl(c);
+        updateBounds();
     }
     */
 
-    public void draw(DrawContext dc) {
-        // always force drawing decorted for now, in case of slide fill
-        drawDecorated(dc);
+    
+    void broadcastChildEvent(LWCEvent e)
+    {
+        if (e.key == LWKey.Location || e.key == LWKey.Size) {
+            if (updateBounds()) {
+                updateConnectedLinks();
+                // events were replaced with new ones: no need to broadcast the old ones
+                return;
+            }
+        }
+
+        /*
+        //if (e.key == LWKey.Location || e.key == LWKey.Size) {
+        // if (e.key.isBoundsEvent() -- todo: see MapViewer code for similar; implement as bit in keys
+        if (true) {
+            Rectangle2D.Float newBounds = getChildBounds();
+            boolean groupReshaped = false;
+            if (newBounds.x != getX() || newBounds.y != getY()) {
+                
+                final LWComponent mover = e.getComponent();
+                
+                translateChildren(getX() - newBounds.x,
+                                  getY() - newBounds.y,
+                                  null);//mover);
+                super.setLocation(newBounds.x, newBounds.y);
+                //setX(newBounds.x);
+                //setY(newBounds.y);
+//mover.takeLocation(0,0); // not good enough yet: what if only exceeded left edge, or top edge
+                // NEED TO GET UNDO WORKING: currently, mostly,
+                // tho would need a way to know the difference between
+                // undoing a setLocation that was just a drag of the group,
+                // and a setLocation that came from the drag of a child,
+                // where we had to translate all the children around...
+//super.setSize(newBounds.width, newBounds.height);
+                //mover.notify("location-group-relative");
+                groupReshaped = true;
+            }
+
+            if (newBounds.width != getWidth() || newBounds.height != getHeight()) {
+                groupReshaped = true;
+            }
+            
+            if (groupReshaped) {
+                super.setSize(newBounds.width, newBounds.height);
+                return; // Ignore the original event: new ones were generated
+            }
+            updateConnectedLinks();
+        }
+        */
+        super.broadcastChildEvent(e);
     }
-    
-    
+
+//     public void layout() {
+//         super.layout();
+//         setFrame(computeBounds());
+//     }
+    protected void layoutImpl(Object trigger) {
+        updateConnectedLinks();
+        updateBounds();
+    }
+                          
+
+    private boolean updateBounds()
+    {
+        Rectangle2D.Float newBounds = getChildBounds();
+        boolean reshaped = false;
+        if (newBounds.x != getX() || newBounds.y != getY()) {
+                
+            translateChildren(getX() - newBounds.x,
+                              getY() - newBounds.y,
+                              null);
+            out("UPDATING LOCATION\n");
+            super.takeLocation(newBounds.x, newBounds.y);
+            reshaped = true;
+        }
+        
+        if (newBounds.width != getWidth() || newBounds.height != getHeight())
+            reshaped = true;
+        
+        if (reshaped) {
+            out("UPDATING SIZE\n");
+            super.takeSize(newBounds.width, newBounds.height);
+            return true;
+        } else
+            return false;
+        
+    }
+
+    protected void translateChildren(float dx, float dy, LWComponent exclude) {
+        for (LWComponent c : getChildList()) {
+            if (c != exclude) {
+                //c.translate(dx, dy);
+                c.takeLocation(c.getX() + dx,
+                               c.getY() + dy);
+                c.notify("location-group"); // mover map location changed, relative unchanged, all otherse the reverse
+            }
+        }
+    }
+
+
     protected void drawImpl(DrawContext dc)
     {
-        if (getStrokeWidth() == -1) { // todo: temporary debug
-            System.err.println("hiding " + this);
-            return;
-        }
-
-        //drawSelectionDecorations(dc);
-
-        //out("transform at draw: " + dc.g.getTransform());        
-        //out("    shape to fill: " + getShape());
-        //final float scale = getScale();
-        //if (scale != 1f) dc.g.scale(scale, scale);
-        //out("transform at fill: " + dc.g.getTransform());        
-        
-        if (getFillColor() != null) {
-            dc.g.setColor(getFillColor());
-            dc.g.fill(getShape());
-        }
-
-        
-        /*
-        if (isSelected()) {
-            dc.g.setColor(COLOR_HIGHLIGHT);
-            dc.g.setStroke(new java.awt.BasicStroke(SelectionStrokeWidth));
-            dc.g.draw(getBounds());
-        }
-        */
-
-
-        //if (scale != 1F) dc.g.scale(scale, scale);
-        // Only need to scale down for drawing children, as getShape for default
-        // rectangles includes the current scale factor when being computed...
-
-        // draw children, pathway decorations, etc.
-        super.drawImpl(dc);
-
-        if (getStrokeWidth() > 0) {
-            dc.g.setStroke(this.stroke);
-            dc.g.setColor(getStrokeColor());
-            dc.g.draw(getShape());
-            //dc.g.draw(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
-        }
-
-        
-        /*
-        if (isIndicated()) {
-            // this should never happen, but just in case...
-            dc.g.setColor(COLOR_INDICATION);
-            dc.g.setStroke(STROKE_INDICATION);
-            dc.g.draw(getBounds());
-        }
-        */
-        
-
         if (DEBUG.CONTAINMENT) {
-            if (isRollover())
-                dc.g.setColor(java.awt.Color.green);
-            else
-                dc.g.setColor(java.awt.Color.blue);
-            //if (isIndicated())
-            //    dc.g.setStroke(STROKE_INDICATION);
-            //else
-            dc.g.setStroke(STROKE_TWO);
-            dc.g.draw(getBounds());
+            java.awt.Shape shape = getLocalShape();
+            dc.g.setColor(new java.awt.Color(64,64,64,64));
+            dc.g.fill(shape);
+            dc.g.setColor(java.awt.Color.blue);
+            dc.setAbsoluteStroke(1.0);
+            dc.g.draw(shape);
         }
+        
+        if (FancyGroups)
+            // draw fill, border & children
+            super.drawImpl(dc);
+        else
+            // don't draw fill or border
+            drawChildren(dc);
+
 
     }
-    
+
     
 }

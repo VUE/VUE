@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 
@@ -34,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.6 $ / $Date: 2007-03-23 16:57:16 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -83,7 +84,8 @@ public class LWTraversal {
         // that top-most components are seen first
             
         for (java.util.ListIterator<LWComponent> i = children.listIterator(children.size()); i.hasPrevious();) {
-            traverse(i.previous().getView());
+            //traverse(i.previous().getView());
+            traverse(i.previous());
             if (done) return;
         }
     }
@@ -172,15 +174,16 @@ public class LWTraversal {
     {
         final float mapX, mapY;
 
-        private float scaleX, scaleY;
-
+        final Point2D.Float mapPoint = new Point2D.Float();
+            
         private LWComponent hit;
 
         public PointPick(PickContext pc) {
             super(pc);
             mapX = pc.x;
             mapY = pc.y;
-            scaleX = scaleY = 1f;
+            mapPoint.x = pc.x;
+            mapPoint.y = pc.y;
         }
 
         public PointPick(MapMouseEvent e) {
@@ -189,14 +192,6 @@ public class LWTraversal {
         
         public boolean acceptTraversal(LWComponent c) {
             if (super.acceptTraversal(c)) {
-                /*
-                if (c.getScale() != 1f) {// will need to concat as we descend...
-                    scaleX = scaleY = 1 / c.getScale();
-                } else {
-                    //scaleX = scaleY = 1f;
-                }
-                System.out.println("SCALEX=" + scaleX);
-                */
                 return true;
             } else {
                 return false;
@@ -207,8 +202,38 @@ public class LWTraversal {
 
             if (DEBUG.PICK && DEBUG.META) eoutln("PointPick VISITED: " + c);
 
-            final float x = mapX * scaleX;
-            final float y = mapY * scaleY;
+            final Point2D p;
+
+            if (VUE.RELATIVE_COORDS && !c.hasAbsoluteMapLocation()) {
+
+                try {
+                    // todo: can keep a cached transform for each parent encountered...
+                    p = c.getLocalTransform().inverseTransform(mapPoint, null);
+                } catch (java.awt.geom.NoninvertibleTransformException e) {
+                    e.printStackTrace();
+                    return;
+                }
+            } else {
+                p = mapPoint;
+            }
+
+            if (c.contains(p)) {
+                // If we expand impl to handle the contained children optimization (non-strayChildren):
+                //      Since we're POST_ORDER, if strayChildren is false, we already know this
+                //      object contains the point, because acceptTraversal had to accept it.
+                //if (VUE.RELATIVE_COORDS) System.out.println("hit with " + p);
+                hit = c;
+                done = true;
+                return;
+            }
+        }
+        
+        private void OLD_visitAbsolute(LWComponent c) {
+
+            if (DEBUG.PICK && DEBUG.META) eoutln("PointPick VISITED: " + c);
+
+            final float x = mapX;
+            final float y = mapY;
             
             if (c.contains(x, y)) {
                 // If we expand impl to handle the contained children optimization (non-strayChildren):
@@ -294,7 +319,7 @@ public class LWTraversal {
             // segments of every curve, and compute a distance^2 for *each* segment.
 
             
-            if (picked == null) {
+            if (false && picked == null) {
                 if (DEBUG.PICK) eoutln("PointPick: NO DEFINITIVE HITS; looking for loose hits");
 
                 // First past didn't turn anything up: try a second pass, looking for loose hits.

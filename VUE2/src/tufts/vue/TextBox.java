@@ -87,7 +87,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.46 $ / $Date: 2007-03-21 11:28:57 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
  *
  */
 
@@ -249,7 +249,7 @@ public class TextBox extends JTextPane
         if (parent instanceof MapViewer) { // todo: could be a scroller!
             double zoom = ((MapViewer)parent).getZoomFactor();
             // todo: also account for getScale of children!
-            zoom *= lwc.getScale();
+            zoom *= lwc.getMapScale();
             if (zoom != 1.0) {
                 Font f = lwc.getFont();
                 float zoomedPointSize = (float) (f.getSize() * zoom);
@@ -828,8 +828,8 @@ public class TextBox extends JTextPane
 
     public float getMapX() { return this.mapX; }
     public float getMapY() { return this.mapY; }
-    public float getMapWidth() { return mapWidth; }
-    public float getMapHeight() { return mapHeight; }
+    public float getMapWidth() { return mapWidth * lwc.getMapScaleF(); }
+    public float getMapHeight() { return mapHeight * lwc.getMapScaleF(); }
 
     public void setMapLocation(float x, float y)
     {

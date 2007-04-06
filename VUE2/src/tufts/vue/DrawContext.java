@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.30 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -58,6 +58,11 @@ public class DrawContext
     private float alpha = 1f;
 
     private VueTool activeTool;
+
+    private boolean inMapDraw = false;
+    private AffineTransform rawTransform;
+    private AffineTransform mapTransform;
+    
 
     // todo: consider including a Conatiner arg in here, for
     // MapViewer, etc.  And replace zoom with a getZoom
@@ -271,27 +276,32 @@ public class DrawContext
             g.scale(zoom, zoom);
     }
 
-    private boolean inMapDraw = false;
-    private AffineTransform savedTransform;
     /** set up for drawing a model: adjust to the current zoom and offset.
      * MapViewer, MapPanner, VueTool, etc, to use.*/
     // todo: change to single setMapDrawing(boolean)
     public void setMapDrawing() {
         if (!inMapDraw) {
-            savedTransform = g.getTransform();
+            rawTransform = g.getTransform();
             g.translate(offsetX, offsetY);
             g.scale(zoom, zoom);
+            mapTransform = g.getTransform();
             //System.out.println("DC SCALE TO " + zoom);
             //System.out.println("DC SCALE TO " + g.getTransform());
             inMapDraw = true;
         }
     }
+
+    public void resetMapDrawing() {
+        if (mapTransform != null)
+            g.setTransform(mapTransform);
+    }
+        
     public void setRawDrawing() {
         if (inMapDraw) {
-            if (savedTransform == null)
+            if (rawTransform == null)
                 throw new IllegalStateException("attempt to revert to raw draw in a derivative DrawContext");
             //System.out.println("DC REVER TO " + savedTransform);
-            g.setTransform(savedTransform);
+            g.setTransform(rawTransform);
             inMapDraw = false;
         }
     }
@@ -319,6 +329,7 @@ public class DrawContext
         this.isPresenting = dc.isPresenting;
         this.activeTool = dc.activeTool;
         this.inMapDraw = dc.inMapDraw;
+        this.mapTransform = dc.mapTransform;
         this.frame = dc.frame;
         this.focal = dc.focal;
         this.alpha = dc.alpha;

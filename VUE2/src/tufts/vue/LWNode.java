@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.141 $ / $Date: 2007-03-29 02:51:55 $ / $Author: sfraize $
+ * @version $Revision: 1.142 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -292,6 +292,13 @@ public class LWNode extends LWContainer
     /** @return shape object with map coordinates -- can be used for hit testing, drawing, etc */
     public Shape getShape() {
         return this.boundsShape;
+    }
+    
+    //public Shape getMapShape() { return this.boundsShape; }
+    
+    @Override
+    public Shape getLocalShape() {
+        return this.drawnShape;
     }
 
     /** Duplicate this node.
@@ -550,8 +557,12 @@ public class LWNode extends LWContainer
     }
     */
 
+    /*
+      // using the default means we're only intersecting with the rectangular bounds, not the actual shape...
     protected boolean intersectsImpl(final Rectangle2D rect)
     {
+        // todo: can't we generically handle in LWComponent?
+        
         final Rectangle2D hitRect;
         final boolean overlaps;
         
@@ -584,6 +595,7 @@ public class LWNode extends LWContainer
 
         return overlaps;
     }
+    */
 
     protected boolean containsImpl(float x, float y)
     {
@@ -619,6 +631,14 @@ public class LWNode extends LWContainer
         // but would be reasonable.
     }
 
+    /*
+    protected void addChildImpl(LWComponent c) {
+        super.addChildImpl(c);
+        if (c instanceof LWNode)
+            c.setScale(getScale() * LWNode.ChildScale);
+    }
+    */
+
 
     public void addChildren(Iterator i)
     {
@@ -643,28 +663,33 @@ public class LWNode extends LWContainer
     {
         if (DEBUG.LAYOUT) out("*** setSizeNoLayout " + w + "x" + h);
         super.setSize(w, h);
-        this.boundsShape.setFrame(getX(), getY(), getWidth(), getHeight());
+        if (VUE.RELATIVE_COORDS)
+            this.boundsShape.setFrame(0, 0, getWidth(), getHeight());
+        else
+            this.boundsShape.setFrame(getX(), getY(), getScaledWidth(), getScaledHeight());
         adjustDrawnShape();
     }
 
-    void setScale(float scale)
+    @Override
+    void setScale(double scale)
     {
         super.setScale(scale);
-        this.boundsShape.setFrame(getX(), getY(), getWidth(), getHeight());
-    }
-    
-    void setScaleOnChild(float parentScale, LWComponent c) {
-        if (DEBUG.LAYOUT) out("setScaleOnChild " + parentScale + "*" + ChildScale + " " + c);
-        if (c instanceof LWImage) {
-//             if (LWImage.RawImageSizes)
-//                 c.setScale(parentScale * LWImage.ChildImageScale);
-//             else
-                c.setScale(parentScale);
-        } else {
-            c.setScale(parentScale * LWNode.ChildScale);
-        }
+        if (!VUE.RELATIVE_COORDS)
+            this.boundsShape.setFrame(getX(), getY(), getScaledWidth(), getScaledHeight());
     }
 
+    @Override
+    void setScaleOnChild(double parentScale, LWComponent c) {
+        if (DEBUG.LAYOUT) out("setScaleOnChild " + parentScale + "*" + ChildScale + " " + c);
+        if (c instanceof LWImage) {
+            ; // we don't scale down images
+        } else {
+            if (VUE.RELATIVE_COORDS)
+                c.setScale(LWNode.ChildScale);
+            else
+                c.setScale(parentScale * LWNode.ChildScale);
+        }
+    }
     public Size getMinimumSize() {
         return mMinSize;
     }
@@ -684,7 +709,8 @@ public class LWNode extends LWContainer
     {
         //System.out.println("setLocation " + this);
         super.setLocation(x, y);
-        this.boundsShape.setFrame(x, y, getWidth(), getHeight());
+        if (!VUE.RELATIVE_COORDS)
+            this.boundsShape.setFrame(x, y, getScaledWidth(), getScaledHeight());
         //adjustDrawnShape(); // if width or height isn't changing, shouldn't need this...
 
         // Must lay-out children seperately from layout() -- if we
@@ -1596,14 +1622,14 @@ public class LWNode extends LWContainer
         float baseY = 0;
 
         if (!sizeOnly) {
-            baseX = getX() + childOffsetX() * getScale();
-            baseY = getY() + childOffsetY() * getScale();
+            if (VUE.RELATIVE_COORDS) {
+                baseX = childOffsetX();
+                baseY = childOffsetY();
+            } else {
+                baseX = getX() + childOffsetX() * getScaleF();
+                baseY = getY() + childOffsetY() * getScaleF();
+            }
         }
-
-        //childBaseX = baseX;
-        //childBaseY = baseY;
-        // for relative-to-parent child layouts
-        //baseX = baseY = 0;
 
         return layoutChildren(baseX, baseY, minWidth, result);
     }
@@ -1623,8 +1649,10 @@ public class LWNode extends LWContainer
             layoutChildrenSingleColumn(baseX, baseY, result);
 
         if (result != null) {
-            result.width /= getScale();
-            result.height /= getScale();
+            if (!VUE.RELATIVE_COORDS) {
+                result.width /= getScale();
+                result.height /= getScale();
+            }
             //if (DEBUG.BOXES)
             //child_box.setRect(baseX, baseY, result.width, result.height);
         }
@@ -1637,22 +1665,20 @@ public class LWNode extends LWContainer
         float y = baseY;
         float maxWidth = 0;
         boolean first = true;
-        java.util.Iterator i = getChildIterator();
         
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c instanceof LWLink)
+        for (LWComponent c : getChildList()) {
+            if (c instanceof LWLink) // todo: don't allow adding of links into a manged layout node!
                 continue;
             if (first)
                 first = false;
             else
                 y += ChildVerticalGap * getScale();
             c.setLocation(baseX, y);
-            y += c.getHeight();
+            y += c.getScaledHeight();
 
             if (result != null) {
                 // track max width
-                float w = c.getBoundsWidth();
+                float w = c.getScaledBoundsWidth();
                 if (w > maxWidth)
                     maxWidth = w;
             }
@@ -1744,11 +1770,11 @@ public class LWNode extends LWContainer
 
     public float getLabelX()
     {
-        return getX() + relativeLabelX() * getScale();
+        return getMapX() + relativeLabelX() * getMapScaleF();
     }
     public float getLabelY()
     {
-        return getY() + relativeLabelY() * getScale();
+        return getMapY() + relativeLabelY() * getMapScaleF();
         /*
         if (this.labelBox == null)
             return getY() + relativeLabelY();
@@ -1777,66 +1803,20 @@ public class LWNode extends LWContainer
         return fillColor;
     }
     
-    /*
-    public Color getRenderFillColor() {
-        return getRenderFillColor(null);
-    }
-    private Color getRenderFillColor(DrawContext dc)
-    {
-        // if (DEBUG.LAYOUT) if (!isAutoSized()) return Color.green; // LAYOUT-NEW
-
-        Color c = getFillColor();
-        if (getParent() instanceof LWNode) {
-            if (dc != null && dc.getAlpha() != 1.0)
-                c = null;
-            else if (c != null && c.equals(getParent().getRenderFillColor()))
-                c = VueUtil.darkerColor(c);
-        }
-        return c;
-    }
-    */
-    
     protected void drawImpl(DrawContext dc)
     {
-        if (isFiltered() == false) {
-
-            //super.drawPathwayDecorations(dc);
-            
-            dc.g.translate(getX(), getY());
-            float scale = getScale();
-            if (scale != 1f) dc.g.scale(scale, scale);
-
+        if (!isFiltered()) {
+            // Desired functionality is that if this node is filtered, we don't draw it, of course.
+            // But also, even if this node is filtered, we still draw any children who are
+            // NOT filtered -- we just drop out the parent background.
             drawNode(dc);
-
-            //-------------------------------------------------------
-            // Restore graphics context
-            //-------------------------------------------------------
-            // todo arch: consider not restoring the scale before we draw the children, and maybe
-            // even handling this in LWContainer, as a way to see if we could get rid of all the
-            // confusing "x * getScale()" code & awkward recursive setScale code.  Actually, we
-            // couldn't attempt this unless we also fully changed the children be drawn in a
-            // translated GC, and the hit-detection was compensated for more at search time instead
-            // of by resizing the object by having getHeight, etc, auto multiply by the scale
-            // factor, and actually resizing the bounds-shape when we scale an object.
-            
-
-            if (scale != 1f) dc.g.scale(1/scale, 1/scale);
-            dc.g.translate(-getX(), -getY());
         }
 
         //-------------------------------------------------------
         // Draw any children
         //-------------------------------------------------------
 
-        // This produces the cleanest code in all above -- don't need to manage scaling if we
-        // translate to a region where all the nodes will lie within, and then their positioning
-        // auto-collapses as they're scaled down...
-
         if (hasChildren()) {
-            //g.translate(childBaseX * ChildScale, childBaseY * ChildScale);
-            //g.scale(ChildScale, ChildScale);
-            //super.draw(dc.createScaled(ChildScale)); // not using this
-            //g.setComposite(childComposite);
             if (isZoomedFocus())
                 dc.g.setComposite(ZoomTransparency);
             super.drawChildren(dc);
@@ -1957,8 +1937,6 @@ public class LWNode extends LWContainer
         }
 
     }
-
-    public boolean doesRelativeDrawing() { return false; }
 
     /*
     public void XX_drawChild(LWComponent child, DrawContext dc)

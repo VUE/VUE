@@ -41,11 +41,19 @@ class LWCInspector extends javax.swing.JPanel
     private JTextField heightField = new JTextField();
     private JTextField xField = new JTextField();
     private JTextField yField = new JTextField();
+    private JTextField transLocField = new JTextField();
+    private JTextField bitsField = new JTextField();
     private JTextField zoomField = new JTextField();
     private JTextField categoryField = new JTextField();
     private JTextField resourceField = new JTextField();
     private JTextField notesField = new JTextField();
-    private JPanel extraPanel = new JPanel();
+    //private JPanel extraPanel = new JPanel();
+    private JTextArea log = new JTextArea() {
+            int rows = 0;
+            public void append(String s) {
+                super.append(rows++ + " " + s + "\n");
+            }
+        };
     
     //private JTextArea notesField = new JTextArea(1, 20);
 
@@ -53,32 +61,36 @@ class LWCInspector extends javax.swing.JPanel
     private JPanel resourceMetadataPanel = new JPanel();
     private JPanel metadataPane = new JPanel();
 
+    private LinkedList<LWCEvent> events = new LinkedList();
+
     //String[] labels = { "ID", "<html><font color=red>Label</font></html>", "Category", "Resource", "Notes" };
     private Object[] labelTextPairs = {
         "-ID",      idField,
         "-Location",locationField,
         "-Size",    sizeField,
-        "-Label(hex)", labelHex,
+        "-TransLoc",    transLocField,
+        "-HideBits",    bitsField,
         "Label",    labelField,
         "Width",    widthField,
         "Height",    heightField,
         "X",         xField,
         "Y",         yField,
-        "Zoom",    zoomField,
+        "Scale",    zoomField,
         "Resource", resourceField,
         //"Category", categoryField,
         //"-Notes",    notesField,
-        //"Extra",    extraPanel,
     };
 
     private java.util.Map<JTextField,LWComponent.Key> fieldKeys = new java.util.HashMap();
+
+    private JCheckBox lockBtn = new JCheckBox("Lock");
     
     public LWCInspector()
     {
         //extraPanel.setLayout(new BorderLayout());
         //extraPanel.setSize(200,100);
         //extraPanel.add(new JLabel("foo"));
-        
+
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         fieldPane.setLayout(gridBag);
@@ -105,7 +117,12 @@ class LWCInspector extends javax.swing.JPanel
         //setUpMetadataPane();
 
         setLayout(new BorderLayout());
+        add(new JScrollPane(log), BorderLayout.NORTH);
+        log.setFont(new Font("Lucida Sans Typewriter", Font.BOLD, 9));
+        log.setRows(15);
+        log.setEditable(false);
         add(fieldPane, BorderLayout.CENTER);
+        add(lockBtn, BorderLayout.SOUTH);
         //add(metadataPane,BorderLayout.SOUTH);
 
         VUE.ModelSelection.addListener(this);
@@ -173,7 +190,7 @@ class LWCInspector extends javax.swing.JPanel
           
             c.weightx = 1.0;
 
-            field.setFont(VueConstants.SmallFont);
+            field.setFont(VueConstants.FixedSmallFont);
             if (field instanceof JTextField)
                 ((JTextField)field).addActionListener(this);
             gridbag.setConstraints(field, c);
@@ -201,11 +218,32 @@ class LWCInspector extends javax.swing.JPanel
     }
     
 
+    /*
+    String s =  key + " " + source;
+        
+        if (component != null && component != source)
+            s += " c:" + component;
+        //basic information.. if more information wants to be stringfied, need to code this part
+        else if (components != null)
+            s += " l:" + components;
+        //s += " ArrayList";
+              
+        return s;
+    */
+    
     public void LWCChanged(LWCEvent e)
     {
         if (!isShowing())
             return;
 
+        String extra = "";
+
+        if (e.component != null && e.component != e.source)
+            extra += " from:" + e.component;
+        if (e.getComponents() != null)
+            extra += " list:" + e.getComponents();
+
+        log.append(String.format("%-21s %s" + extra, e.key, e.source));
         //System.out.println(this + " " + e);
         if (this.lwc != e.getSource())
             return;
@@ -213,14 +251,16 @@ class LWCInspector extends javax.swing.JPanel
             this.lwc = null;
             //loadItem(null);
             setAllEnabled(false);
-        }
-        else if (e.getSource() != this)
+        } else if (e.getSource() != this) {
             loadItem(this.lwc);
+            //log.setText(null);
+        } //else
     }
     
     public void selectionChanged(LWSelection selection)
     {
-        setSelection(selection);
+        if (!lockBtn.isSelected())
+            setSelection(selection);
     }
 
     private void loadText(JTextComponent c, String text)
@@ -239,10 +279,13 @@ class LWCInspector extends javax.swing.JPanel
     {
         //System.err.println("Inspector setSelection: " + sl);
 
-        if (selection.size() == 1)
+        if (selection.size() == 1) {
+            log.append("LOADED: " + selection.first() + "\n");
             loadItem(selection.first());
-        else //if (!selection.isEmpty())
+        } else {//  (!selection.isEmpty())
+            log.append("LOADED: " + selection + "\n");
             loadSelection(selection);
+        }
     }
 
     private void setAllEnabled(boolean tv)
@@ -340,17 +383,20 @@ class LWCInspector extends javax.swing.JPanel
         //loadText(heightField, new Float(c.getHeight()).toString());
         
         locationField.setText("x: " + c.getX() + "   y: " + c.getY());
-        String sizeText = c.getWidth() + " x " + c.getHeight();
-        if (c.getScale() != 1f)
-            sizeText += "  z" + c.getScale();
+        String sizeText = String.format("%.0fx%.0f", c.getWidth(), c.getHeight());
+        if (c.getScale() != 1f) {
+            sizeText += "  z=" + c.getScale();
+            sizeText += "  absZ=" + c.getMapScale();
+        }
         if (!c.isAutoSized())
             sizeText += " userSize";
         sizeField.setText(sizeText);
-        //labelHex.setText
-        widthField.setText(""+c.getAbsoluteWidth());
-        heightField.setText(""+c.getAbsoluteHeight());
-        xField.setText(""+c.getX());
-        yField.setText(""+c.getY());
+        transLocField.setText(c.getLocalTransform().toString());
+        bitsField.setText(c.getDescriptionOfSetBits());
+        widthField.setText(String.format("%5.1f map(%5.1f)", c.getWidth(), c.getMapWidth()));
+        heightField.setText(String.format("%5.1f map(%5.1f)", c.getHeight(), c.getMapHeight()));
+        xField.setText(String.format("%5.1f map(%5.1f)", c.getX(), c.getMapX()));
+        yField.setText(String.format("%5.1f map(%5.1f)", c.getY(), c.getMapY()));
         zoomField.setText(""+c.getScale());
 
         for (Map.Entry<JTextField,LWComponent.Key> e : fieldKeys.entrySet()) {
@@ -404,7 +450,8 @@ class LWCInspector extends javax.swing.JPanel
     {
         float w = Float.parseFloat(text);
         for (LWComponent c : getSelection())
-            c.setAbsoluteSize(w, c.getAbsoluteHeight());
+            c.setSize(w, c.getHeight());
+        //c.setAbsoluteSize(w, c.getAbsoluteHeight());
     }
     private void setHeights(String text)
         throws NumberFormatException
@@ -413,7 +460,8 @@ class LWCInspector extends javax.swing.JPanel
         Iterator i = getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            c.setAbsoluteSize(c.getAbsoluteWidth(), h);
+            c.setSize(c.getWidth(), h);
+            //c.setAbsoluteSize(c.getAbsoluteWidth(), h);
         }
     }
     private void setXs(String text)

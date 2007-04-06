@@ -18,10 +18,7 @@
 
 package tufts.vue;
 
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Properties;
+import java.util.*;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -58,7 +55,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.119 $ / $Date: 2007-03-23 23:28:11 $ / $Author: sfraize $
+ * @version $Revision: 1.120 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -96,6 +93,8 @@ public class LWMap extends LWContainer
     private float userOriginX;
     private float userOriginY;
     private double userZoom = 1;
+
+    private transient int mModelVersion = 0;
     
     
     // only to be used during a restore from persisted
@@ -128,6 +127,24 @@ public class LWMap extends LWContainer
         children.add(c);
         // todo: listen to child for events & pass up
     }
+
+    public final int getCurrentModelVersion() {
+        return VUE.RELATIVE_COORDS ? 1 : 0;
+    }
+
+    /** for persistance */
+    public int getModelVersion() {
+        return mModelVersion;
+    }
+    /** for persistance */
+    public void setModelVersion(int version) {
+        mModelVersion = version;
+    }
+    
+    public float getX() { return 0; }
+    public float getY() { return 0; }
+    public float getMapX() { return 0; }
+    public float getMapY() { return 0; }
     
     private void markDate() {
         long time = System.currentTimeMillis();
@@ -377,8 +394,8 @@ public class LWMap extends LWContainer
 
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag) {
         super.getAllDescendents(kind, bag);
-        if (kind == ChildKind.ANY) {
-            for (LWPathway pathway : mPathways.getElementList()) {
+        if (kind == ChildKind.ANY && mPathways != null) {
+            for (LWPathway pathway : mPathways) {
                 bag.add(pathway);
                 pathway.getAllDescendents(kind, bag);
             }
@@ -391,15 +408,29 @@ public class LWMap extends LWContainer
         return Integer.toString(nextID++, 10);
     }
 
+    private static void changeAbsoluteToRelativeCoords(LWContainer container, HashSet<LWComponent> processed) {
+        LWContainer parent = container.getParent();
+        if ((parent instanceof LWGroup || parent instanceof LWSlide) && !processed.contains(parent)) {
+            changeAbsoluteToRelativeCoords(parent, processed);
+        }
+        for (LWComponent c : container.getChildList()) {
+            c.takeLocation(c.getX() - container.getX(),
+                           c.getY() - container.getY());
+        }
+        processed.add(container);
+    }
+
     public void completeXMLRestore() {
 
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
             System.out.println(getLabel() + ": completing restore...");
 
-        try {
-            mPathways.completeXMLRestore(this);
-        } catch (Throwable t) {
-            tufts.Util.printStackTrace(new Throwable(t), "PATHWAYS RESTORE");
+        if (mPathways != null) {
+            try {
+                mPathways.completeXMLRestore(this);
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(new Throwable(t), "PATHWAYS RESTORE");
+            }
         }
 
         final Collection<LWComponent> allRestored = getAllDescendents(ChildKind.ANY);
@@ -417,10 +448,6 @@ public class LWMap extends LWContainer
                 c.setScale(c.getScale());
         }
         
-        //setChildScaleValues();
-        //setScale(getScale());
-        //setChildParentReferences();
-        
         if (mPathways == null)
             mPathways = new LWPathwayList(this);
 
@@ -434,6 +461,26 @@ public class LWMap extends LWContainer
             ensureID(pathway);
         }
 
+        //----------------------------------------------------------------------------------------
+        // Now update the model the the most recent data version
+        //----------------------------------------------------------------------------------------
+        
+        if (getModelVersion() < getCurrentModelVersion()) {
+            
+            if (getModelVersion() < 1) { // changeover to relative coords
+                HashSet<LWComponent> processed = new HashSet();
+                for (LWComponent c : allRestored) {
+                    if (c instanceof LWGroup || c instanceof LWSlide) {
+                        changeAbsoluteToRelativeCoords((LWContainer)c, processed);
+                    }
+                }
+            }
+
+            VUE.Log.info(this + " Updated from model version " + getModelVersion() + " to " + getCurrentModelVersion());
+            mModelVersion = getCurrentModelVersion();
+        }
+        
+        //----------------------------------------------------------------------------------------
         
         /*
           
@@ -746,7 +793,7 @@ public class LWMap extends LWContainer
         if (true||mCachedBounds == null) {
             mCachedBounds = getBounds(getChildIterator(), maxLayer);
             takeSize(mCachedBounds.width, mCachedBounds.height);
-            takeLocation(mCachedBounds.x, mCachedBounds.y);
+            //takeLocation(mCachedBounds.x, mCachedBounds.y);
             /*
             try {
                 setEventsSuspended();

@@ -30,7 +30,7 @@ import javax.swing.JScrollPane;
  * Extension of MouseEvent for events that happen on an instance of LWMap
  * in a MapViewer.
  *
- * @version $Revision: 1.13 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -151,13 +151,14 @@ public class MapMouseEvent extends MouseEvent
         return new Point2D.Float(mapX, mapY);
     }
 
+    // TODO: these handling new coord system??
     public float getComponentX() {
         getPicked();
-        return picked == null ? Float.NaN : (mapX - picked.getX()) / picked.getScale();
+        return picked == null ? Float.NaN : (mapX - picked.getX()) / picked.getScaleF();
     }
     public float getComponentY() {
         getPicked();
-        return picked == null ? Float.NaN : (mapY - picked.getY()) / picked.getScale();
+        return picked == null ? Float.NaN : (mapY - picked.getY()) / picked.getScaleF();
     }
     public Point2D.Float getComponentPoint() {
         return new Point2D.Float(getComponentX(), getComponentY());

@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.134 $ / $Date: 2007-03-28 22:41:35 $ / $Author: sfraize $
+ * @version $Revision: 1.135 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -948,7 +948,7 @@ public class LWPathway extends LWContainer
     protected void addChildImpl(LWComponent c) { throw new UnsupportedOperationException(); }
     public void removeChildren(Iterator i) { throw new UnsupportedOperationException(); }
     
-    void setScale(float scale) {}
+    @Override void setScale(double scale) {}
 
     /**
      * for persistance: override of LWContainer: pathways never save their children
@@ -1130,7 +1130,8 @@ public class LWPathway extends LWContainer
                                            , new float[] { dash_length, dash_length }
                                            , dash_phase));
         }
-        dc.g.draw(c.getShape());
+        // we're already transformed into the local GC -- just draw the raw shape
+        dc.g.draw(c.getLocalShape());
         dc.g.setComposite(AlphaComposite.Src);//TODO: restore old composite
     }
     
@@ -1169,7 +1170,7 @@ public class LWPathway extends LWContainer
             if (e.node == null)
                 continue;
             final LWComponent c = e.node;
-            if (last != null) {
+            if (last != null && last.isDrawn() && c.isDrawn()) {
                 dc.g.setComposite(PathTranslucence);
                 //connector.setLine(last.getCenterPoint(), c.getCenterPoint());
                 dc.g.draw(VueUtil.computeConnector(last, c, connector));

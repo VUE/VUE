@@ -161,7 +161,7 @@ public class LinkTool extends VueTool
             //repaintRegion.add(indication.getBounds());
             e.getViewer().clearIndicated();
         }
-        if (over != null && isValidLinkTarget(linkSource, over)) {
+        if (over != null && isValidLinkTarget(link, linkSource, over)) {
             e.getViewer().setIndicated(over);
             // todo: change drawing of indication to be handled here or by viewer
             // instead of in each component's draw...
@@ -208,7 +208,7 @@ public class LinkTool extends VueTool
         pc.excluded = link;
         LWComponent directHit = LWTraversal.PointPick.pick(pc);
 
-        if (directHit != null && isValidLinkTarget(linkSource, directHit))
+        if (directHit != null && isValidLinkTarget(link, linkSource, directHit))
             return directHit;
 
         // TODO: need a new PickTraversal type that handles target contains
@@ -264,7 +264,7 @@ public class LinkTool extends VueTool
      * the link we're looking for an endpoint with.
      * @return true if linkTarget is a valid link endpoint given our other end anchored at linkSource
      */
-    static boolean isValidLinkTarget(LWComponent linkSource, LWComponent linkTarget)
+    static boolean isValidLinkTarget(LWLink link, LWComponent linkSource, LWComponent linkTarget)
     {
         if (linkTarget == linkSource && linkSource != null)
             return false;
@@ -276,7 +276,10 @@ public class LinkTool extends VueTool
                 linkSource.getParent() == linkTarget)
                 return false;
         }
-        
+
+        if (link != null && linkTarget == link.getParent()) // if a link is inside something, don't link to it
+            return false;
+
         boolean ok = true;
         if (linkTarget instanceof LWLink) {
             LWLink lwl = (LWLink) linkTarget;

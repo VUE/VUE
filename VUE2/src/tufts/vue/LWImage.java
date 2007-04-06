@@ -587,10 +587,6 @@ public class LWImage extends
             return;
         }
 
-        dc.g.translate(getX(), getY());
-        float _scale = getScale();
-        if (_scale != 1f) dc.g.scale(_scale, _scale);
-
         final Shape shape = getClipShape();
 
         if (getFillColor() != null) {
@@ -614,9 +610,6 @@ public class LWImage extends
                 dc.g.draw(shape);
             }
         }
-
-        if (_scale != 1f) dc.g.scale(1/_scale, 1/_scale);
-        dc.g.translate(-getX(), -getY());
 
         //super.drawImpl(dc); // need this for label
     }

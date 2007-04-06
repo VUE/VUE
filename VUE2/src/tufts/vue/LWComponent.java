@@ -31,6 +31,8 @@ import java.awt.AlphaComposite;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RectangularShape;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 import java.util.*;
@@ -46,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.232 $ / $Date: 2007-03-28 22:41:50 $ / $Author: sfraize $
+ * @version $Revision: 1.233 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -89,11 +91,14 @@ public class LWComponent
     
 
     public enum HideReason {
-        DEFAULT (false), // each subclass of LWComponent can use this for it's own purposes.
+        DELETED (false), // special case bit for deleted objects in undo queue
+            
+            DEFAULT (false), // each subclass of LWComponent can use this for it's own purposes.
             FILTER (false), // we've been hidden by a filter
             PRUNE (false), // we've been hidden via link pruning
             PATH_TO_REVEAL (true), // we've been hidden by a pathway that is in the process of revealing
             PATH_EXCLUDE_OTHERS (true); // we've been hidden because everything other than current pathway is hidden
+
             
         final int bit = 1 << ordinal();
         final boolean isPathReason;
@@ -167,10 +172,8 @@ public class LWComponent
     private transient long mSupportedPropertyKeys;
     private transient boolean isMoveable = true;
 
-    // Scale currently exists ONLY to support the auto-managed child-node feature of nodes
-    protected transient float scale = 1.0f;
+    protected transient double scale = 1.0;
 
-    //protected transient java.util.List listeners;
     protected transient LWChangeSupport mChangeSupport = new LWChangeSupport(this);
     protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore? (todo: eliminate this as a member variable)
     protected transient BufferedImage mCachedImage;
@@ -229,6 +232,7 @@ public class LWComponent
     public void applyCSS(edu.tufts.vue.style.Style cssStyle)
     {
         out("Applying CSS style " + cssStyle.getName() + ":");
+        setFont(cssStyle.getFont());
         for (Map.Entry<String,String> se : cssStyle.getAttributes().entrySet()) {
             final String cssName = se.getKey().trim().toLowerCase(); // todo: shouldn't have to trim this
             final String cssValue = se.getValue().trim();
@@ -552,13 +556,13 @@ public class LWComponent
         void copyValue(TSubclass source, TSubclass target)
         {
             if (!source.supportsProperty(this)) {
-                if (DEBUG.Enabled && DEBUG.META) System.err.println(" COPY-VALUE: " + this + "; source doesn't support this property; " + source);
+                if (DEBUG.STYLE && DEBUG.META) System.err.println(" COPY-VALUE: " + this + "; source doesn't support this property; " + source);
             } else if (!target.supportsProperty(this)) {
-                if (DEBUG.Enabled && DEBUG.META) System.err.println(" COPY-VALUE: " + this + "; target doesn't support this property; " + target);
+                if (DEBUG.STYLE && DEBUG.META) System.err.println(" COPY-VALUE: " + this + "; target doesn't support this property; " + target);
             } else {
-                if (DEBUG.Enabled) System.err.print(" COPY-VALUE: " + this + "(");
+                if (DEBUG.STYLE) System.err.print(" COPY-VALUE: " + this + "(");
                 final TValue copyValue = getValue(source);
-                if (DEBUG.Enabled) System.err.println(copyValue + ") -> " + target);
+                if (DEBUG.STYLE) System.err.println(copyValue + ") -> " + target);
                 setValue(target, copyValue);
             }
         }
@@ -823,9 +827,9 @@ public class LWComponent
     
     /** Aggregate font key, which represents the combination of it's three sub-properties */
     public static final Key KEY_Font = new Key("font", KeyType.STYLE)                           { final Property getSlot(LWComponent c) { return c.mFont; } };
-    public static final Key KEY_FontSize  = new Key("font.size", "font-size", KeyType.SUB_STYLE)        { final Property getSlot(LWComponent c) { return c.mFontSize; } };
-    public static final Key KEY_FontStyle = new Key("font.style", "font-style", KeyType.SUB_STYLE)      { final Property getSlot(LWComponent c) { return c.mFontStyle; } };
-    public static final Key KEY_FontName  = new Key("font.name", "font-family", KeyType.SUB_STYLE)      { final Property getSlot(LWComponent c) { return c.mFontName; } };
+    public static final Key KEY_FontSize  = new Key("font.size", "xfont-size", KeyType.SUB_STYLE)        { final Property getSlot(LWComponent c) { return c.mFontSize; } };
+    public static final Key KEY_FontStyle = new Key("font.style", "xfont-style", KeyType.SUB_STYLE)      { final Property getSlot(LWComponent c) { return c.mFontStyle; } };
+    public static final Key KEY_FontName  = new Key("font.name", "xfont-family", KeyType.SUB_STYLE)      { final Property getSlot(LWComponent c) { return c.mFontName; } };
     
     public final ColorProperty mFillColor = new ColorProperty(KEY_FillColor);
     public final ColorProperty mTextColor = new ColorProperty(KEY_TextColor, java.awt.Color.black) {
@@ -978,9 +982,10 @@ public class LWComponent
             //    k.setValue(mSibling, val);
         }
         // Old property keys that don't make use of the Key class yet:
-        else if (key == LWKey.Resource)         setResource( (Resource) val);
-        else if (key == LWKey.Location)         setLocation( (Point2D) val);
-        //else if (key == LWKey.Hidden)           setHidden( ((Boolean)val).booleanValue());
+        //else if (key == LWKey.Hidden)        setHidden( ((Boolean)val).booleanValue());
+        else if (key == LWKey.Scale)         setScale((Double) val);
+        else if (key == LWKey.Resource)      setResource( (Resource) val);
+        else if (key == LWKey.Location)      setLocation( (Point2D) val);
         else if (key == LWKey.Size) {
             Size s = (Size) val;
             setSize(s.width, s.height);
@@ -2077,12 +2082,6 @@ public class LWComponent
         throw new UnsupportedOperationException(this + ": can't take children. ignored=" + children);
     }
 
-    /** return the currently active view */
-    public LWComponent getView() {
-        return this;
-    }
-
-
     /** return true if this component is only a "virutal" member of the map:
      * It may report that it's parent is in the map, but that parent doesn't
      * list the component as a child (so it will never be drawn or traversed
@@ -2128,10 +2127,13 @@ public class LWComponent
     void addLinkRef(LWLink link)
     {
         if (DEBUG.EVENTS||DEBUG.UNDO) out(this + " adding link ref to " + link);
-        if (mLinks.contains(link))
-            throw new IllegalStateException("addLinkRef: " + this + " already contains " + link);
-        mLinks.add(link);
-        notify(LWKey.LinkAdded, link); // informational only event
+        if (mLinks.contains(link)) {
+            //tufts.Util.printStackTrace("addLinkRef: " + this + " already contains " + link);
+            if (DEBUG.Enabled) VUE.Log.warn("addLinkRef: " + this + " already contains " + link);
+        } else {
+            mLinks.add(link);
+            notify(LWKey.LinkAdded, link); // informational only event
+        }
     }
     /** for tracking who's linked to us */
     void removeLinkRef(LWLink link)
@@ -2356,24 +2358,51 @@ public class LWComponent
             return parent.getAncestorOfType(clazz);
     }
     
-    void setScale(float scale)
+    void setScale(double scale)
     {
         if (this.scale == scale)
             return;
+        final double oldScale = this.scale;
         if (DEBUG.LAYOUT) out("setScale " + scale);
         if (DEBUG.LAYOUT) tufts.Util.printClassTrace("tufts.vue", "setScale " + scale);
         this.scale = scale;
-        //notify(LWKey.Scale); // todo: why do we need to notify if scale is changed? try removing this
+        if (VUE.RELATIVE_COORDS) {
+            notify(LWKey.Scale, oldScale); // todo: make scale a real property
+        }
+        updateConnectedLinks();
         //System.out.println("Scale set to " + scale + " in " + this);
     }
     
-    public float getScale()
+    /**
+     * This normnally returns 1.0 (no scaling).  If VUE.RELATIVE_COORDS == false (original implementation)
+     * this scale value should be the absolute desired scale: that is, a scale value concatenated
+     * (multiplied by) all parent scales.  So if the parent scale is 0.5, and we also want this
+     * node to be at 0.5 with it's parent, the scale value should be 0.25.  If VUE.RELATIVE_COORDS == true,
+     * this returns the scale value relative to it's parent.  So for a 50% scale in it's parent,
+     * it just returns 0.5, no matter what it's parent scale is set to.
+     */
+    public double getScale()
     {
-        //if (parent == null || isIndicated() || parent.isIndicated())
-        //return this.rollover ? 1f : this.scale;
         return this.scale;
-        //return 1f;
     }
+    
+    /** @return the on-map scale at 100% map scale -- only different from getScale() for VUE.RELATIVE_COORDS == true */
+    public double getMapScale()
+    {
+        if (VUE.RELATIVE_COORDS) {
+            if (getParent() == null)
+                return getScale();
+            else
+                return getParent().getMapScale() * getScale();
+        } else {
+            return getScale();
+        }
+    }
+
+    /** Convenience for returning float */ public final float getScaleF() { return (float) getScale(); }
+    /** Convenience for returning float */ public final float getMapScaleF() { return (float) getMapScale(); }
+    
+    
 
     public Size getMinimumSize() {
         return MinSize;
@@ -2598,36 +2627,104 @@ public class LWComponent
         userSetSize(w, h);
     }
         
-    /** set on screen visible component size to this many pixels in size -- used for user set size from
+    /* set on screen visible component size to this many pixels in size -- used for user set size from
      * GUI interaction -- takes into account any current scale factor
+     * (do we still need this? I think this should be deprecated -- SMF)
      */
+
     public void setAbsoluteSize(float w, float h)
     {
-        if (DEBUG.LAYOUT) out("*** setAbsoluteSize " + w + "x" + h);
-        setSize(w / getScale(), h / getScale());
+        if (true||DEBUG.LAYOUT) out("*** setAbsoluteSize " + w + "x" + h);
+        setSize(w / getScaleF(), h / getScaleF());
+        //setSize(w / getMapScaleF(), h / getMapScaleF());
     }
+    
+    /** for XML restore only --todo: remove*/ public void setX(float x) { this.x = x; }
+    /** for XML restore only! --todo remove*/ public void setY(float y) { this.y = y; }
 
+    /*
+     * getMapXXX methods are for values in absolute map positions and scales (needed for VUE.RELATIVE_COORDS == true)
+     * getScaledXXX methods are for VUE.RELATIVE_COORDS == false, tho I think we can get rid of them?  -- SMF
+     *
+     * "Map" values are absolute on-screen values that are true for any component in a map rendered at 100% scale (the size & location)
+     * (better naming scheme might be "getRenderXXX" or "getAbsoluteXX" ?)
+     */
+    
     public float getX() { return this.x; }
     public float getY() { return this.y; }
-    /** for XML restore only --todo: remove*/
-    public void setX(float x) { this.x = x; }
-    /** for XML restore only! --todo remove*/
-    public void setY(float y) { this.y = y; }
-    public float getWidth() { return this.width * getScale(); }
-    public float getHeight() { return this.height * getScale(); }
-    //public float getWidth() { return this.width; }
-    //public float getHeight() { return this.height; }
+    //public float getWidth() { return this.width * getScale(); }
+    //public float getHeight() { return this.height * getScale(); }
+    public float getScaledWidth()       { return (float) (this.width * getScale()); }
+    public float getScaledHeight()      { return (float) (this.height * getScale()); }
+    public float getWidth()             { return VUE.RELATIVE_COORDS ? this.width : getScaledWidth(); }
+    public float getHeight()             { return VUE.RELATIVE_COORDS ? this.height : getScaledHeight(); }
+    public float getMapWidth()          { return (float) (this.width * getMapScale()); }
+    public float getMapHeight()         { return (float) (this.height * getMapScale()); }
+    public float getAbsoluteWidth()     { return this.width; }
+    public float getAbsoluteHeight()    { return this.height; }
+    public float getBoundsWidth()       { return (float) ((this.width + mStrokeWidth.get()) * getScale()); }
+    public float getBoundsHeight()      { return (float) ((this.height + mStrokeWidth.get()) * getScale()); }
+    public float getScaledBoundsWidth() { return (float) ((this.width + mStrokeWidth.get()) * getScale()); }
+    public float getScaledBoundsHeight() { return (float) ((this.height + mStrokeWidth.get()) * getScale()); }
     //public float getBoundsWidth() { return (this.width + this.strokeWidth);  }
     //public float getBoundsHeight() { return (this.height + this.strokeWidth); }
     //public float getBoundsWidth() { return (this.width + this.strokeWidth) * getScale(); }
     //public float getBoundsHeight() { return (this.height + this.strokeWidth) * getScale(); }
-    public float getBoundsWidth() { return (this.width + mStrokeWidth.get()) * getScale(); }
-    public float getBoundsHeight() { return (this.height + mStrokeWidth.get()) * getScale(); }
-    public float getCenterX() { return this.x + getWidth() / 2; }
-    public float getCenterY() { return this.y + getHeight() / 2; }
 
-    public float getAbsoluteWidth() { return this.width; }
-    public float getAbsoluteHeight() { return this.height; }
+    /*
+    private class ParentIterator implements Iterator<LWContainer>, Iterable<LWContainer> {
+        final LinkedList<LWContainer> list = new LinkedList();
+        ParentIterator() {
+            LWContainer parent = getParent();
+            do {
+                list.addFirst(parent);
+                parent = parent.getParent();
+            } while (parent != null);
+            list.removeFirst();
+        }
+        public LWContainer next() { return null; }
+        public boolean hasNext() { return false; }
+        public void remove() { throw new UnsupportedOperationException(toString()); }
+        public Iterator<LWContainer> iterator() { return list.iterator(); }
+    }
+    */
+
+
+    public float getCenterX() {
+        return getMapX() + getMapWidth() / 2;
+    }
+    public float getCenterY() {
+        return getMapY() + getMapHeight() / 2;
+    }
+
+    protected double getMapXPrecise()
+    {
+        if (parent == null || parent.hasAbsoluteMapLocation())
+            return getX();
+        else
+            return parent.getMapXPrecise() + getX() * parent.getMapScale();
+    }
+    protected double getMapYPrecise() {
+        if (parent == null || parent.hasAbsoluteMapLocation())
+            return getY();
+        else
+            return parent.getMapYPrecise() + getY() * parent.getMapScale();
+    }
+
+    public float getMapX() {
+        if (VUE.RELATIVE_COORDS && !hasAbsoluteMapLocation()) {
+            return (float) getMapXPrecise();
+        } else
+            return getX();
+    }
+    
+    public float getMapY() {
+        if (VUE.RELATIVE_COORDS && !hasAbsoluteMapLocation()) {
+            return (float) getMapYPrecise();
+        } else
+            return getY();
+    }
+    
 
 
     // these 2 for persistance ONLY -- they don't deliver detectable events!
@@ -2636,11 +2733,9 @@ public class LWComponent
     /** for persistance ONLY */
     public void setAbsoluteHeight(float h) { this.height = h; }
     
-    /** return border shape of this object, with it's location in map coordinates  */
-    public Shape getShape()
-    {
-        return getShapeBounds();
-    }
+    /** @return true if when this this component draws, it draws on the map as a whole, not relative to it's coordinate space (default is false) */
+    public boolean hasAbsoluteMapLocation() { return false; }
+    
     /*
     public void setShape(Shape shape)
     {
@@ -2648,27 +2743,118 @@ public class LWComponent
     }
     */
 
-    public boolean doesRelativeDrawing() { return false; }    
 
+    /* return our shape object, full transformed into map coords and ultimate scale when drawn at 100% map zoom */
+    /*
+    private Shape getMapShape()
+    {
+        if (VUE.RELATIVE_COORDS == false)
+            return getShapeBounds();
+        
+            // THIS REALLY SHOULDN'T BE ALLOWED -- only works for rectangles or ciricles (e.g., not RoundRect -- corner scaling will be off)
+            
+            // This code needed for links to compute their endpoints, tho subclasses can
+        // override to provide faster impl's for cached local coord shape objects they may hold.
+        final Shape s = getRawShape();
+        if (getMapScale() != 1f && s instanceof RectangularShape) { // todo: do if any transform, not just scale
+            // todo: cache this: only need to updaate if location, size or scale changes
+            // (Also, on the scale or location change of any parent!)
+            RectangularShape rshape = (RectangularShape) s;
+            rshape = (RectangularShape) rshape.clone();
+            AffineTransform a = getLocalTransform();
+            Point2D.Float loc = new Point2D.Float();
+            a.transform(loc, loc);
+            rshape.setFrame(loc.x, loc.y,
+                            rshape.getWidth() * a.getScaleX(),
+                            rshape.getHeight() * a.getScaleY());
+            System.out.println("TRANSFORMED SHAPE: " + rshape + " for " + this);
+            return rshape;
+        } else {
+            return s;
+        }
+    }
+    */
+
+    /*
+     * Return internal bounds of the border shape, not including
+     * the width of any stroked border.
+    // TODO: do we need getShapeBounds??
+    public Rectangle2D.Float getShapeBounds()
+    {
+        // todo opt: cache this object?
+        if (VUE.RELATIVE_COORDS)
+            return new Rectangle2D.Float(0, 0, getWidth(), getHeight());
+        else
+            return new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
+        //return new Rectangle2D.Float(this.x, this.y, getAbsoluteWidth(), getAbsoluteHeight());
+    }
+     */
+
+    // TODO: may also need getRenderBounds: what bounds for printing would use
+    // -- needs borders, but NO room for selection strokes (wait, but pathway strokes???)
+    // screw it: we can get by with getPaintedBounds for this...
+    
+    /** @DEPRECATED */
+    public Rectangle2D.Float getShapeBounds() { return getBounds(); }
+
+    /** return border shape of this object.  If VUE.RELATIVE_COORDS, it's raw and zero based,
+        otherwise, with it's location in map coordinates  */
+    public Shape getShape()
+    {
+        //return VUE.RELATIVE_COORDS ? getRawShape() : getShapeBounds();
+        return getLocalShape();
+    }
+
+    /** @return the raw, zero based, non-scaled shape */
+    // TODO: getMAPShape
+    public Shape getLocalShape() {
+        return getLocalBounds();
+    }
+    
+    /** @return the raw, zero based, non-scaled bounds */
+    private Rectangle2D.Float getLocalBounds() {
+        if (hasAbsoluteMapLocation())
+            return getBounds();
+        else
+            return new Rectangle2D.Float(0, 0, getAbsoluteWidth(), getAbsoluteHeight());
+    }
+    
+    /** @return map-coord (absolute) bounds of the stroke shape (not including any stroke width) */
+    public Rectangle2D.Float getBounds()
+    {
+        return new Rectangle2D.Float(getMapX(), getMapY(), getMapWidth(), getMapHeight());
+        //return getPaintBounds();
+    }
+    
     /**
-     * Return bounds for hit detection & clipping.  This will vary
+     * Return absolute map bounds for hit detection & clipping.  This will vary
      * depenending on current stroke width, if in a visible pathway,
      * etc.
      */
-    public Rectangle2D getBounds()
+    public Rectangle2D.Float getPaintBounds()
     {
+        //if (VUE.RELATIVE_COORDS) return new Rectangle2D.Float(0, 0, getWidth(), getHeight());
+        
         // todo opt: cache this object?
-        final Rectangle2D.Float b = new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
+        final Rectangle2D.Float b;
         float strokeWidth = getStrokeWidth();
+        
+        if (inDrawnPathway())
+            strokeWidth += LWPathway.PathwayStrokeWidth;
+
+        if (VUE.RELATIVE_COORDS) {
+            b = new Rectangle2D.Float(getMapX(), getMapY(), getMapWidth(), getMapHeight());
+            strokeWidth *= getMapScale();
+        } else {
+            b = new Rectangle2D.Float(this.x, this.y, getMapWidth(), getMapHeight());
+        }
+
 
         // we need this adjustment for repaint optimzation to
         // work properly -- would be a bit cleaner to compensate
         // for this in the viewer
         //if (isIndicated() && STROKE_INDICATION.getLineWidth() > strokeWidth)
         //    strokeWidth = STROKE_INDICATION.getLineWidth();
-
-        if (inDrawnPathway())
-            strokeWidth += LWPathway.PathwayStrokeWidth;
 
         if (strokeWidth > 0) {
             final float adj = strokeWidth / 2;
@@ -2680,16 +2866,87 @@ public class LWComponent
         return b;
     }
 
-    /**
-     * Return internal bounds of the border shape, not including
-     * the width of any stroked border.
-     */
-    public Rectangle2D.Float getShapeBounds()
-    {
-        // todo opt: cache this object?
-        //return new Rectangle2D.Float(this.x, this.y, getAbsoluteWidth(), getAbsoluteHeight());
-        return new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
+    protected static final AffineTransform IDENTITY_TRANSFORM = new AffineTransform();
+    
+    // create and recursively set a transform to get to this object's coordinate space
+    // note: structure is same in the differen transform methods
+    public AffineTransform getLocalTransform() {
+
+        if (VUE.RELATIVE_COORDS) {
+        
+            if (hasAbsoluteMapLocation()) {
+                return (AffineTransform) IDENTITY_TRANSFORM.clone();
+            } else {
+                final AffineTransform a;
+                if (getParent() == null) {
+                    a = new AffineTransform();
+                } else {
+                    a = getParent().getLocalTransform();
+                }
+                return transformLocal(a);
+            }
+            
+        } else {
+            return transformLocal(new AffineTransform());
+        }
     }
+
+    public AffineTransform transformLocal(final AffineTransform a) {
+
+        if (hasAbsoluteMapLocation())
+            return a;
+        
+        //if ("tiny".equals(label)) out(a + " Transforming to " + getX() + "," + getY());
+        a.translate(getX(), getY());
+        //if ("tiny".equals(label)) out(a.toString());
+        final double scale = VUE.RELATIVE_COORDS ? getScale() : getMapScale();
+        if (scale != 1)
+            a.scale(scale, scale);
+        //if (parent instanceof LWMap) a.rotate(Math.PI / 16); // test
+        return a;
+    }
+
+    /** transform relative to the child after already being transformed relative to the parent */
+    public void transformRelative(final Graphics2D g) {
+        if (!VUE.RELATIVE_COORDS) throw new Error("non-relative coordinate impl!");
+
+        if (hasAbsoluteMapLocation())
+            return;
+        
+        g.translate(getX(), getY());
+        final double scale = getScale();
+        if (scale != 1)
+            g.scale(scale, scale);
+        //if (parent instanceof LWMap) g.rotate(Math.PI / 16); // test
+    }
+
+    /** Will transform all the way from the the map down to the component, wherever nested/scaled */
+    public void transformLocal(final Graphics2D g) {
+        if (VUE.RELATIVE_COORDS) {
+
+            if (hasAbsoluteMapLocation())
+                return;
+            
+            // todo: need a relative to parent transform only for cascading application during drawing
+            // (and ultimate picking when impl is optimized)
+            
+            if (getParent() == null) {
+                ;
+            } else {
+                getParent().transformLocal(g);
+            }
+
+            transformRelative(g);
+            
+            
+        } else {
+            g.translate(getX(), getY());
+            final double scale = getMapScale();
+            if (scale != 1)
+                g.scale(scale, scale);
+        }
+    }
+    
     
     /**
      * Default implementation: returns false;
@@ -2703,9 +2960,19 @@ public class LWComponent
     /**
      * Default implementation: checks bounding box
      * Subclasses should override and compute via shape.
+     * INTERSECTIONS always intersect based on map bounds, as opposed to contains, which tests a local point.
      */
     public final boolean intersects(Rectangle2D rect)
     {
+        // TODO: intersection wants to use render-bounds (with stroke) for paint testing,
+        // but just shape bounds for picking....
+        // ACTUALLY, paint testing uses MAP BOUNDS!  Picking uses
+        // raw local bounds!  Crap...  No, wait... the GC is
+        // scaled during drawing, so we're local -- it's just LWTraversal that needs updating...
+        
+        //boolean hit = intersectsImpl(rect);
+        //if (DEBUG.Enabled) System.out.println("INTERSECTS " + Util.out(rect) + " " + (hit?"YES":"NO ") + " for " + Util.out(bounds) + " " + this);
+        
         if (intersectsImpl(rect))
             return true;
         else if (isDrawingSlideIcon() && getSlideIconBounds().intersects(rect))
@@ -2714,8 +2981,14 @@ public class LWComponent
             return false;
     }
 
+    /** default impl intersects the render bounds, including any borders */
     protected boolean intersectsImpl(Rectangle2D rect) {
-        return rect.intersects(getBounds());
+        final Rectangle2D bounds = getPaintBounds();
+        //final Rectangle2D bounds = getRawBounds();
+        final boolean hit = rect.intersects(bounds);
+        if (DEBUG.PAINT || DEBUG.PICK) System.out.println("INTERSECTS " + Util.out(rect) + " " + (hit?"YES":"NO ") + " for " + Util.out(bounds) + " " + this);
+        return hit;
+        //return rect.intersects(getRenderBounds());
     }
     
     /**
@@ -2846,7 +3119,8 @@ public class LWComponent
             } else {
                 dc.g.setColor(COLOR_HIGHLIGHT);
                 dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
-                dc.g.draw(getShape());
+                transformLocal(dc.g);
+                dc.g.draw(getLocalShape());
             }
         }
     }
@@ -2863,11 +3137,19 @@ public class LWComponent
         else
             return false;
     }
+
+    public final boolean contains(Point2D p) {
+        return contains((float)p.getX(), (float)p.getY());
+    }
     
     protected boolean containsImpl(float x, float y)
     {
-        return x >= this.x && x <= (this.x+getWidth())
-            && y >= this.y && y <= (this.y+getHeight());
+        if (VUE.RELATIVE_COORDS)
+            return x >= 0 && x <= getWidth()
+                && y >= 0 && y <= getHeight();
+        else
+            return x >= this.x && x <= (this.x+getWidth())
+                && y >= this.y && y <= (this.y+getHeight());
     }
 
     private final float SlideScale = 0.1f;
@@ -2875,7 +3157,7 @@ public class LWComponent
     public Rectangle2D.Float getSlideIconBounds() {
         if (mSlideIconBounds == null)
             mSlideIconBounds = computeSlideIconBounds(new Rectangle2D.Float());
-        else if (true || mSlideIconBounds.x == Float.NaN) // need a reshape/reshapeImpl trigger on move/resize to properly re-validate
+        else if (true || mSlideIconBounds.x == Float.NaN) // need a reshape/reshapeImpl trigger on move/resize to properly re-validate (wait: NaN != NaN !)
             computeSlideIconBounds(mSlideIconBounds);
         return mSlideIconBounds;
     }
@@ -2884,14 +3166,26 @@ public class LWComponent
     {
         final float width = LWSlide.SlideWidth * SlideScale;
         final float height = LWSlide.SlideHeight * SlideScale;
-        final float xoff = 0;
-        final float yoff = getHeight() + 5;
+        //final float xoff = 0;
+        //final float yoff = getHeight() + 5;
+
         //final float xoff = getWidth() + -width / 2f;
         //final float yoff = getHeight() + -height / 2f;
-        rect.setRect(getX() + xoff,
-                     getY() + yoff,
-                     width,
-                     height);
+        final float xoff = getWidth() - 20;
+        final float yoff = getHeight() - 20;
+        
+        if (VUE.RELATIVE_COORDS) {
+            rect.setRect(xoff,
+                         yoff,
+                         width,
+                         height);
+        } else {
+            rect.setRect(getX() + xoff,
+                         getY() + yoff,
+                         width,
+                         height);
+        }
+        
         return rect;
     }
 
@@ -2923,10 +3217,26 @@ public class LWComponent
      */
     public void draw(DrawContext dc)
     {
+        if (VUE.RELATIVE_COORDS) {
+            if (hasAbsoluteMapLocation())
+                dc.resetMapDrawing();
+            else// this will cascade to all children when they draw, combining with their calls to transformRelative
+                transformRelative(dc.g);
+        } else {
+            // this will be reset here for each child
+            transformLocal(dc.g);
+        }
+        
         if (dc.focal == this || dc.isFocused())
             drawRaw(dc);
         else
             drawDecorated(dc);
+        
+        if (DEBUG.BOXES && !hasAbsoluteMapLocation()) {
+            // scaling testing -- draw an exactly 8x8 pixel (rendered) box
+            dc.g.setColor(Color.green);
+            dc.g.drawRect(0,0,7,7);
+        }
     }
 
     private void drawRaw(DrawContext dc) {
@@ -2937,7 +3247,8 @@ public class LWComponent
     protected void drawDecorated(DrawContext dc)
     {
         final LWPathway.Entry entry = getEntryToDisplay();
-        final boolean drawSlide = (entry != null && !entry.isMapView);
+        final boolean drawSlide = (entry != null);
+        //final boolean drawSlide = (entry != null && !entry.isMapView);
 
         if (dc.drawPathways() && dc.focal != this)
             drawPathwayDecorations(dc);
@@ -2973,10 +3284,10 @@ public class LWComponent
                 dc.g.setColor(entry.pathway.getMasterSlide().getFillColor());
                 if (entry.node instanceof LWGroup) {
                     if (!dc.isPresenting())
-                        dc.g.fill(entry.node.getBounds());
+                        dc.g.fill(entry.node.getLocalBounds());
                 } else if (dc.focal != this && entry.node.isTranslucent()) {
-                    Area toFill = new Area(entry.node.getBounds());
-                    toFill.subtract(new Area(entry.node.getShape()));
+                    Area toFill = new Area(entry.node.getLocalBounds());
+                    toFill.subtract(new Area(entry.node.getLocalShape()));
                     dc.g.fill(toFill);
                 }
             }
@@ -3198,17 +3509,17 @@ public class LWComponent
     }
 
     public boolean isDeleted() {
-        return this.scale == -1;
+        return isHidden(HideReason.DELETED);
     }
     
     private void setDeleted(boolean deleted) {
         if (deleted) {
-            this.scale = -1;
+            mHideBits |= HideReason.DELETED.bit; // direct set: don't trigger notify
             if (DEBUG.PARENTING||DEBUG.UNDO||DEBUG.EVENTS)
-                if (parent != null) out(this + " parent not yet null in setDeleted true (ok for undo of creates)");
+                if (parent != null) out("parent not yet null in setDeleted true (ok for undo of creates)");
             this.parent = null;
         } else
-            this.scale = 1;
+            mHideBits &= ~HideReason.DELETED.bit; // direct set: don't trigger notify
     }
 
     private void disconnectFromLinks()
@@ -3227,6 +3538,14 @@ public class LWComponent
         return this.selected;
     }
 
+    protected boolean selectedOrParent() {
+        return parent == null ? isSelected() : (parent.selectedOrParent() | isSelected());
+    }
+    
+    public boolean isAncestorSelected() {
+        return parent == null ? false : parent.selectedOrParent();
+    }
+
     private void setHideBits(int bits) {
         final boolean wasHidden = isHidden();
         mHideBits = bits;
@@ -3235,6 +3554,19 @@ public class LWComponent
                 VUE.getSelection().remove(this);
             notify(LWKey.Hidden);
         }
+    }
+
+    /** debug -- names of set HideBits */
+    String getDescriptionOfSetBits() {
+        StringBuffer buf = new StringBuffer();
+        for (HideReason reason : HideReason.values()) {
+            if (isHidden(reason)) {
+                if (buf.length() > 0)
+                    buf.append(',');
+                buf.append(reason);
+            }
+        }
+        return buf.toString();
     }
     
     public void setHidden(HideReason reason) {
@@ -3586,7 +3918,7 @@ public class LWComponent
             imageType = BufferedImage.TYPE_INT_ARGB;
 
        final int width = imageSize.pixelWidth();
-        final int height = imageSize.pixelHeight();
+       final int height = imageSize.pixelHeight();
         
         if (DEBUG.IMAGE) out("createImage; final size " + width + "x" + height
                              + " fill=" + fillColor
@@ -3715,9 +4047,11 @@ public class LWComponent
         }
         //if (getScale() != 1f) s += "z" + getScale() + " ";
         if (this.scale != 1f) s += "z" + this.scale + " ";
-        s += paramString() + " ";
+        s += paramString();
+        if (mHideBits != 0)
+            s += " " + getDescriptionOfSetBits();
         if (getResource() != null)
-            s += getResource();
+            s += " " + getResource();
         //s += " <" + getResource() + ">";
         s += "]";
         return s;
