@@ -84,10 +84,13 @@ public class Actions implements VueConstants
     public static final Action SelectAll =
     new VueAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
         public void act() {
-            //VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque());
+            VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsIterator());
+            
+            //VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque()); // TODO: handle when moving selection: don't move objects if parent is moving
             //VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.VISIBLE));
+            
             // SelectAll now ONLY does the top level of the map -- maybe direct selection tool could do deep selection
-            VUE.getSelection().setTo(VUE.getActiveMap().getChildList());
+            //VUE.getSelection().setTo(VUE.getActiveMap().getChildList());
         }
     };
     public static final Action DeselectAll =
@@ -256,9 +259,9 @@ public class Actions implements VueConstants
     
     //    private static final LWComponent.LinkPatcher _LinkPatcher = 
     private static final LWComponent.CopyContext CopyContext = new LWComponent.CopyContext(new LWComponent.LinkPatcher(), true);
-    private static final List DupeList = new ArrayList(); // cache for dupe'd items
+    private static final List<LWComponent> DupeList = new ArrayList(); // cache for dupe'd items
     
-    private static final int sCopyOffset = 10;
+    private static final int CopyOffset = 10;
     
     public static Collection duplicatePreservingLinks(Iterator i) {
         CopyContext.reset();
@@ -299,19 +302,23 @@ public class Actions implements VueConstants
             CopyContext.reset();
             super.act(i);
             CopyContext.complete();
-            VUE.getSelection().setTo(DupeList.iterator());
+            VUE.getSelection().setTo(DupeList);
+            if (DupeList.size() == 1 && DupeList.get(0).supportsUserLabel())
+                VUE.getActiveViewer().activateLabelEdit(DupeList.get(0));
             DupeList.clear();
         }
         
         void act(LWComponent c) {
             LWComponent copy = c.duplicate(CopyContext);
             DupeList.add(copy);
-            copy.setLocation(c.getX()+sCopyOffset,
-            c.getY()+sCopyOffset);
+            // set location before adding
+            copy.setLocation(c.getX()+CopyOffset,
+                             c.getY()+CopyOffset);
             c.getParent().addChild(copy);
         }
         
     };
+
     
     public static final Action Cut =
     new LWCAction("Cut", keyStroke(KeyEvent.VK_X, COMMAND)) {
@@ -411,7 +418,7 @@ public class Actions implements VueConstants
                 Iterator i = ScratchBuffer.iterator();
                 while (i.hasNext()) {
                     LWComponent c = (LWComponent) i.next();
-                    c.translate(sCopyOffset, sCopyOffset);
+                    c.translate(CopyOffset, CopyOffset);
                 }
             } else
                 ScratchMap = parent; // pastes again to this map will be offset
@@ -560,6 +567,7 @@ public class Actions implements VueConstants
             }
         }
     };
+    
     public static final Action Rename =
         new LWCAction("Rename", VueUtil.isWindowsPlatform() ? keyStroke(KeyEvent.VK_F2) : keyStroke(KeyEvent.VK_ENTER)) {
         boolean undoable() { return false; } // label editor handles the undo
