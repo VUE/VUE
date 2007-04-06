@@ -39,18 +39,23 @@ public class OntManager {
     public static final int RDFS = 0;
     public static final int OWL = 1;
     /** Creates a new instance of OntManager */
-    List<Ontology> ontList = new ArrayList<Ontology> ();
+    List<Ontology> ontList = Collections.synchronizedList(new ArrayList<Ontology>());
     static OntManager ontManager;
     public OntManager() {
     }
     
     
     public  Ontology readOntologyWithStyle(URL ontUrl,URL cssUrl,int ontType) {
+        
         switch (ontType) {
             case RDFS:
-                return readRDFSOntologyWithStyle(ontUrl,cssUrl);
+                Ontology ontR = readRDFSOntologyWithStyle(ontUrl,cssUrl);
+                ontList.add(ontR);
+                return ontR;
             case OWL:
-                return  readOWLOntolgyWithStyle(ontUrl,cssUrl);
+                Ontology ontO = readOWLOntolgyWithStyle(ontUrl,cssUrl);
+                ontList.add(ontO);
+                return  ontO;
         }
         return null;
         
@@ -95,7 +100,7 @@ public class OntManager {
         m.read(ontUrl.toString());
         iter  = m.listNamedClasses();
         while(iter.hasNext()) {
-           OntClass c = (OntClass) iter.next();
+            OntClass c = (OntClass) iter.next();
             OntType type = new OntType();
             type.setId(c.getLocalName());
             type.setLabel(c.getLabel(null));
@@ -123,7 +128,7 @@ public class OntManager {
             OntType type = new OntType();
             type.setId(p.getLocalName());
             type.setBase(ontUrl.toString());
-             type.setLabel(p.getLabel(null));
+            type.setLabel(p.getLabel(null));
             type.setComment(p.getComment(null));
             type.setStyle(Style.getStyle(p.getLocalName(),styleMap));
             types.add(type);
@@ -132,9 +137,14 @@ public class OntManager {
         return ont;
     }
     public List<Ontology> getOntList() {
-        return null;
+        return ontList;
     }
     public Ontology getOntology(URL ontUrl) {
+        for(Ontology ont: ontList) {
+            if(ont.getBase().equalsIgnoreCase(ontUrl.toString())){
+                return ont;
+            }
+        }
         return null;
     }
     
