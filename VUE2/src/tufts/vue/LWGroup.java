@@ -40,7 +40,7 @@ import java.awt.geom.AffineTransform;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.52 $ / $Date: 2007-04-06 22:55:08 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2007-04-06 22:57:04 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -361,7 +361,7 @@ public class LWGroup extends LWContainer
             // There may be a cleaner way to handle this, but checking it here works.
             // Also, do NOT skip if we're in a group -- that condition is caught below.
 
-            if (c.isManagedLocation())
+            if (c.isSelected() && c.isAncestorSelected())
                 continue;
             
             c.translate(dx, dy);
