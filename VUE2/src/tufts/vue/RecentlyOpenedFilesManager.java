@@ -17,7 +17,7 @@ public class RecentlyOpenedFilesManager
 				"recentlyOpenedFiles", 
 				"Recently Opened Files", 
 				"Number of Recently Opened Files to maintain",
-				"5",
+				"9",
 				false);
 	
 	private LinkedList list = new LinkedList();
