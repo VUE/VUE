@@ -59,7 +59,7 @@ import java.util.ArrayList;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.23 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $  
+ * @version $Revision: 1.24 $ / $Date: 2007-04-06 22:31:53 $ / $Author: sfraize $  
  
  */
 
@@ -77,11 +77,11 @@ public class LWCEvent
     final Object oldValue;
 
     /** What initiated this event -- usually the same as component */
-    final Object source;
+    public final Object source;
     
     /** a LWCevent can either hold a single component or an array of components: one of them is always null */
     private ArrayList components = null;
-    private final LWComponent component;
+    public final LWComponent component;
     
     // todo: we still using both src & component?
     public LWCEvent(Object source, LWComponent c, Object key, Object oldValue)
@@ -121,6 +121,14 @@ public class LWCEvent
         } else
             return component;
     }
+
+    public LWComponent onlyComponent() {
+        if (component == null && components != null)
+            return null;
+        else
+            return component;
+    }
+    
     
     public ArrayList getComponents() {
         return this.components;
@@ -153,10 +161,14 @@ public class LWCEvent
         return this.oldValue != NO_OLD_VALUE;
     }
 
-    public String toString()
+    public String toString() {
+        return "LWCEvent[" + paramString() + "]";
+        
+    }
+    
+    public String paramString() 
     {
-        String s = "LWCEvent[" + key
-            + " " + source;
+        String s =  key + " " + source;
         
         if (component != null && component != source)
             s += " c:" + component;
@@ -165,7 +177,7 @@ public class LWCEvent
             s += " l:" + components;
         //s += " ArrayList";
               
-        return s + "]";
+        return s;
     }
 
 
