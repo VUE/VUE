@@ -28,27 +28,34 @@ import edu.tufts.vue.style.*;
 
 
 public class OntType {
-    private String name;
+    private String id;
+    private String label;
     private String base;
-    private String description;
+    private String comment;
     private Style style;
     /** Creates a new instance of OntType */
     public OntType() {
         
     }
-    
-    public String getName() {
-        return this.name;
+   
+    public void setId(String id) {
+        this.id = id;
     }
-    
-    public void setName(String name) {
-        this.name = name;
+    public String getId() {
+        return this.id;
     }
-    public void setDescription(String description) {
-        this.description = description;
+    public void setLabel(String label) {
+        this.label = label;
     }
-    public String getDescription() {
-        return this.description;
+    public String getLabel() {
+        return this.label;
+    }
+   
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+    public String getComment() {
+        return this.comment;
     }
     
     public String getBase() {
@@ -68,7 +75,7 @@ public class OntType {
     }
     
     public String toString() {
-        return "Base: "+base+" name: "+ name+" Style: "+style;
+        return "Base: "+base+" name: "+ id+" Style: "+style;
     }
             
 }
