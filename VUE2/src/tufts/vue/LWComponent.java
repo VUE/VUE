@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.233 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.234 $ / $Date: 2007-04-06 22:55:08 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2066,7 +2066,7 @@ public class LWComponent
     }
 
     public boolean isManagedLocation() {
-        return getParent() instanceof LWNode;
+        return getParent() instanceof LWNode || (isSelected() && isAncestorSelected());
     }
 
     /** @return true - A single component always "has content" -- subclasses override to provide varying semantics */

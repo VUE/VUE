@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.321 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.322 $ / $Date: 2007-04-06 22:55:09 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2646,8 +2646,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //             //(VueSelection.size() == 1 && VueSelection.first() instanceof LWNode && ((LWNode)VueSelection.first()).isTextNode())
 //             selection.allOfType(LWLink.class)
 //             ) {
-            
-        if (!selection.first().isMoveable()) {
+
+        if (!selection.first().isMoveable() || !selection.first().supportsUserResize()) { // todo: check all, not any
+            resizeControl.active = false;
+        } if (selection.size() == 1 && !selection.first().supportsUserResize()) {
             resizeControl.active = false;
         } else if (selection.allOfType(LWLink.class)) {
             // todo: this check is a hack: need to check if any in selection return true for supportsUserResize (change to merge w/isMoveable -- a dynamic property)
