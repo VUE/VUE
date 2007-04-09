@@ -29,7 +29,7 @@ public class JenaTest {
     public static final int N_SETS = 100000;
     public static final String CODED="coded";
     public static final String LABEL="LABEL";
-    public static ArrayList<LWNode> nodeList;
+ //   public static List<LWNode> nodeList;
     public static final String  ANIMAL_OWL ="http://www.atl.lmco.com/projects/ontology/ontologies/animals/animalsA.owl";
     private static final Runtime sRuntime = Runtime.getRuntime();
     
@@ -40,6 +40,8 @@ public class JenaTest {
     /**
      * @param args the command line arguments
      */
+    
+    /**
     
     public void testOWLOntology() {
         try {
@@ -54,11 +56,12 @@ public class JenaTest {
         }
         
         
+        
     }
     public static void testCreateObjects() {
         System.gc();
         Runtime.getRuntime().gc();
-        nodeList = new ArrayList();
+        nodeList = new ArrayList<LWNode>();
         long totalMemory = usedMemory();
         long tStart = System.currentTimeMillis();
         for(int i=0;i<N_OBJECTS;i++) {
@@ -138,16 +141,17 @@ public class JenaTest {
         
         
     }
+     */
     public static void main(String[] args) {
         JenaTest test = new JenaTest();
         System.out.println("STARTING TESTS");
         System.out.println("Creating objects: "+N_OBJECTS);
         System.out.println("Performing get/sets: "+N_SETS);
-        testCreateObjects();
-        System.out.println("Testing through Jena");
-        testJena();
-        System.out.println("Testing OWL Ontology");
-        test.testOWLOntology();
+       // testCreateObjects();
+       // System.out.println("Testing through Jena");
+       // testJena();
+        //System.out.println("Testing OWL Ontology");
+        //test.testOWLOntology();
         
         // TODO code application logic here
     }
@@ -159,4 +163,5 @@ public class JenaTest {
     private static long usedMemory() {
         return (sRuntime.totalMemory() - sRuntime.freeMemory());
     }
+   
 }
