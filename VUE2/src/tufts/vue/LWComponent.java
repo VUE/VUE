@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.235 $ / $Date: 2007-04-06 23:26:23 $ / $Author: sfraize $
+ * @version $Revision: 1.236 $ / $Date: 2007-04-09 20:31:26 $ / $Author: anoop $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -232,7 +232,7 @@ public class LWComponent
     public void applyCSS(edu.tufts.vue.style.Style cssStyle)
     {
         out("Applying CSS style " + cssStyle.getName() + ":");
-        setFont(cssStyle.getFont());
+        //setFont(cssStyle.getFont());
         for (Map.Entry<String,String> se : cssStyle.getAttributes().entrySet()) {
             final String cssName = se.getKey().trim().toLowerCase(); // todo: shouldn't have to trim this
             final String cssValue = se.getValue().trim();
@@ -271,6 +271,7 @@ public class LWComponent
                     */
                 }
             }
+            setFont(cssStyle.getFont());
             if (!applied)
                 System.err.println("UNHANDLED");
 
