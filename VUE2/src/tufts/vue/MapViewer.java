@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.329 $ / $Date: 2007-04-10 22:20:19 $ / $Author: sfraize $ 
+ * @version $Revision: 1.330 $ / $Date: 2007-04-10 22:24:09 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1003,6 +1003,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         boolean autoZoom = false;
         if (mFocal != null) {
             unloadFocal();
+            // If we are switching from another focal, automatically do a zoom-fit
             autoZoom = true;
         } else if (!(focal instanceof LWMap))
             autoZoom = true;
@@ -1025,18 +1026,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             mMap.setUndoManager(new UndoManager(mMap));
         }
 
-//         if (mFocal instanceof LWMap) {
-//             ;
-//         } else {
-//         }
-
         if (AutoZoomToMapOnLoad || autoZoom) {
-            // If we are switching from another focal, automatically do a zoom-fit
-            GUI.invokeAfterAWT(new Runnable() {
-                    public void run() {
-                        if (DEBUG.PRESENT || DEBUG.VIEWER) out("Auto ZoomFit");
-                        zoomToContents();
-                    }});
+            if (DEBUG.PRESENT || DEBUG.VIEWER) out("Auto ZoomFit");
+            zoomToContents();
         }
         
         repaint();
