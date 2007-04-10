@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.54 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2007-04-10 22:20:05 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -382,7 +382,10 @@ public class MapPanner extends javax.swing.JPanel
          */
         
         dc.setAntiAlias(false);
-        dc.setAbsoluteStroke(1);
+        if (VUE.inNativeFullScreen()) // hack for map overview when presenting
+            dc.setAbsoluteStroke(3);
+        else
+            dc.setAbsoluteStroke(1);
         dc.g.setColor(Color.red);
         dc.g.draw(viewerRect);
     }
