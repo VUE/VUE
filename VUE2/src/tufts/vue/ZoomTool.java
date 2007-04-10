@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.49 $ / $Date: 2007-04-10 19:51:46 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2007-04-10 20:23:34 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -371,37 +371,46 @@ public class ZoomTool extends VueTool
                                         java.awt.geom.Point2D outgoingOffset,
                                         boolean centerSmallerDimensionInViewport)
     {
-        int viewWidth = viewport.width - borderGap * 2;
-        int viewHeight = viewport.height - borderGap * 2;
-        double vertZoom = (double) viewHeight / bounds.getHeight();
-        double horzZoom = (double) viewWidth / bounds.getWidth();
-        boolean centerVertical;
         double newZoom;
-        if (horzZoom < vertZoom) {
-            newZoom = horzZoom;
-            centerVertical = true;
-        } else {
-            newZoom = vertZoom;
-            centerVertical = false;
-        }
 
-        // Now center the components within the dimension
-        // that had extra room to scale in.
-                    
-        if (outgoingOffset != null) {
-            double offsetX = bounds.getX() * newZoom - borderGap;
-            double offsetY = bounds.getY() * newZoom - borderGap;
+        if (viewport.width <= 0 || viewport.height <= 0 || bounds.isEmpty()) {
             
-            if (centerSmallerDimensionInViewport) {
-                if (centerVertical)
-                    offsetY -= (viewHeight - bounds.getHeight()*newZoom) / 2;
-                else // center horizontal
-                    offsetX -= (viewWidth - bounds.getWidth()*newZoom) / 2;
+            newZoom = 1.0;
+            
+        } else {
+        
+            int viewWidth = viewport.width - borderGap * 2;
+            int viewHeight = viewport.height - borderGap * 2;
+            double vertZoom = (double) viewHeight / bounds.getHeight();
+            double horzZoom = (double) viewWidth / bounds.getWidth();
+            boolean centerVertical;
+            if (horzZoom < vertZoom) {
+                newZoom = horzZoom;
+                centerVertical = true;
+            } else {
+                newZoom = vertZoom;
+                centerVertical = false;
             }
-            outgoingOffset.setLocation(offsetX, offsetY);
-        }
+
+            // Now center the components within the dimension
+            // that had extra room to scale in.
+                    
+            if (outgoingOffset != null) {
+                double offsetX = bounds.getX() * newZoom - borderGap;
+                double offsetY = bounds.getY() * newZoom - borderGap;
             
-        return newZoom < ZoomDefaults[0] ? 1.0 : newZoom; // if less than 1%, go to 100% -- assume nothing in map
+                if (centerSmallerDimensionInViewport) {
+                    if (centerVertical)
+                        offsetY -= (viewHeight - bounds.getHeight()*newZoom) / 2;
+                    else // center horizontal
+                        offsetX -= (viewWidth - bounds.getWidth()*newZoom) / 2;
+                }
+                outgoingOffset.setLocation(offsetX, offsetY);
+            }
+        }
+        
+        if (DEBUG.PRESENT) System.out.format("ZoomTool: computed zoom of %.2f%% for map bounds %s in viewport %s\n", newZoom * 100, bounds, viewport);
+        return newZoom < ZoomDefaults[0] ? ZoomDefaults[0] : newZoom; // never let us be less than min-zoom
     }
 
 

@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.403 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.404 $ / $Date: 2007-04-10 20:23:34 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1725,7 +1725,7 @@ public class VUE
             leftViewer = new MapViewer(pMap, "*LEFT");
             rightViewer = new MapViewer(pMap, "right");
 
-            if (isActiveViewerOnLeft())
+            if (rightViewer != null && isActiveViewerOnLeft())
                 rightViewer.setFocusable(false); // so doesn't grab focus till we're ready
 
             if (DEBUG.FOCUS) {

@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.323 $ / $Date: 2007-04-06 23:26:24 $ / $Author: sfraize $ 
+ * @version $Revision: 1.324 $ / $Date: 2007-04-10 20:23:34 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -173,6 +173,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private boolean isFirstReshape = true;
     private boolean didReshapeZoomFit = false;
     private Component mFocusIndicator = new java.awt.Canvas(); // make sure is never null
+    private boolean mMapAutoZoomRequested = false;
 
     //private InputHandler inputHandler = new InputHandler(this);
     private final MapViewer inputHandler; // == this
@@ -679,7 +680,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     public Dimension getVisibleSize() {
         Dimension d = new Dimension(getVisibleWidth(), getVisibleHeight());
-        if (DEBUG.SCROLL) out(" visible size: " + out(d));
+        if (DEBUG.SCROLL || DEBUG.PRESENT) out("visible size: " + out(d));
         return d;
     }
     
@@ -808,7 +809,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // We get reshape events during text edits with no change
         // in size, yet are crucial for repaint update (thus: no ignore if activeTextEdit)
         
-        if (DEBUG.SCROLL||DEBUG.PAINT||DEBUG.EVENTS||DEBUG.FOCUS) {
+        if (DEBUG.SCROLL||DEBUG.PAINT||DEBUG.EVENTS||DEBUG.FOCUS||DEBUG.PRESENT) {
             out("     reshape: "
                 + w + " x " + h
                 + " "
@@ -852,8 +853,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private boolean reshapeUnderway = false;
     protected void reshapeImpl(int x, int y, int w, int h)
     {
-        if (mFocal == null || mFocal instanceof LWMap)
+        if (DEBUG.PRESENT) out("reshapeImpl");
+        if (!mMapAutoZoomRequested && (mFocal == null || mFocal instanceof LWMap))
             return;
+        mMapAutoZoomRequested = false;
         zoomToContents();
     }
 
@@ -862,6 +865,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             out("ZOOM UNDERWAY");
             return;
         }
+        
+        if (getVisibleWidth() <= 0 || getVisibleHeight() <= 0) {
+            if (DEBUG.PRESENT) out("requesting delayed autoZoom");
+            mMapAutoZoomRequested = true;
+            return;
+        }
+            
         zoomUnderway = true;
         try {
             doZoomToContents();
@@ -1008,9 +1018,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         if (true||autoZoom) {
             // If we are switching from another focal, automatically do a zoom-fit
-            if (DEBUG.PRESENT || DEBUG.VIEWER) out("Auto ZoomFit");
-            zoomToContents();
-            //tufts.vue.ZoomTool.setZoomFit(this);
+            GUI.invokeAfterAWT(new Runnable() {
+                    public void run() {
+                        if (DEBUG.PRESENT || DEBUG.VIEWER) out("Auto ZoomFit");
+                        zoomToContents();
+                    }});
         }
         
         repaint();
