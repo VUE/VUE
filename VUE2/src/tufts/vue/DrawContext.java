@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.31 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2007-04-10 21:19:11 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -51,7 +51,7 @@ public class DrawContext
     private boolean isBlackWhiteReversed = false;
     private boolean isPresenting = false;
     private boolean isEditMode = false;
-    public final Rectangle frame;
+    public final Rectangle frame; // if we have the pixel dimensions of the surface we're drawing on, they go here
 
     public LWComponent focal;
 
@@ -78,6 +78,7 @@ public class DrawContext
         this.offsetY = offsetY;
         this.frame = frame;
         this.focal = focal;
+        
         //this.drawAbsoluteLinks = absoluteLinks;
         //setPrioritizeSpeed(true);
         //disableAntiAlias(true);
