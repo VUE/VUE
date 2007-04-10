@@ -39,7 +39,7 @@ import java.awt.event.ActionEvent;
  * means that VUE can't repaint itself while the print dialogs are
  * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
- * @version $Revision: 1.33 $ / $Date: 2006-06-03 20:46:06 $ / $Author: sfraize $
+ * @version $Revision: 1.34 $ / $Date: 2007-04-10 20:50:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -247,13 +247,21 @@ public class PrintAction extends tufts.vue.VueAction
             }
         
             // compute zoom & offset for visible map components
-            Point2D offset = new Point2D.Double();
+            Point2D.Float offset = new Point2D.Float();
             // center vertically only if landscape mode
             //if (format.getOrientation() == PageFormat.LANDSCAPE)
             double scale = ZoomTool.computeZoomFit(page, 0, bounds, offset, false);
             out("rendering at scale " + scale);
-            g.translate(-offset.getX(), -offset.getY());
-            g.scale(scale,scale);
+            // set up the DrawContext
+            DrawContext dc = new DrawContext(g,
+                                             scale,
+                                             -offset.x,
+                                             -offset.y,
+                                             null,
+                                             map,
+                                             false); // todo: absolute links shouldn't be spec'd here
+            dc.setAntiAlias(true);
+            dc.setMapDrawing();
 
             if (isPrintingView())
                 g.clipRect((int) Math.floor(bounds.getX()),
@@ -267,9 +275,6 @@ public class PrintAction extends tufts.vue.VueAction
                 g.draw(bounds);
             }
             
-            // set up the DrawContext
-            DrawContext dc = new DrawContext(g, scale);
-            dc.setAntiAlias(true);
             // render the map
             map.draw(dc);
           
