@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.327 $ / $Date: 2007-04-10 21:45:13 $ / $Author: sfraize $ 
+ * @version $Revision: 1.328 $ / $Date: 2007-04-10 21:54:30 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -736,10 +736,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (slide != null) {
             // hack for slides which aren't really on the map: for MapPanner
             LWComponent node = slide.getSourceNode();
-            Rectangle2D.Float slideIcon = node.getSlideIconBounds();
+            Rectangle2D.Float slideIcon = (Rectangle2D.Float) node.getSlideIconBounds().clone();
             if (VUE.RELATIVE_COORDS) {
                 slideIcon.x += node.getMapX();
                 slideIcon.y += node.getMapY();
+                // todo: scale isn't quite right here...
+                slideIcon.width *= node.getMapScale();
+                slideIcon.height *= node.getMapScale();
             }
             return node.getBounds().createUnion(slideIcon);
         } else
@@ -846,8 +849,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (DEBUG.Enabled) out("RESHAPE UNDERWAY");
             } else {
                 reshapeUnderway = true;
-                fireViewerEvent(MapViewerEvent.PAN);
                 try {
+                    fireViewerEvent(MapViewerEvent.PAN);
                     reshapeImpl(x,y,w,h);
                 } finally {
                     reshapeUnderway = false;
