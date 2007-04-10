@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.325 $ / $Date: 2007-04-10 20:50:14 $ / $Author: sfraize $ 
+ * @version $Revision: 1.326 $ / $Date: 2007-04-10 20:56:21 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -94,6 +94,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     static final int RolloverMinZoomDeltaTrigger_int = VueResources.getInt("mapViewer.rolloverMinZoomDeltaTrigger", 10);
     static final float RolloverMinZoomDeltaTrigger = RolloverMinZoomDeltaTrigger_int > 0 ? RolloverMinZoomDeltaTrigger_int / 100f : 0f;
     private static boolean autoZoomEnabled = PreferencesManager.getBooleanPrefValue(edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance());
+
+    private static final boolean AutoZoomToMapOnLoad = true;
     
     private Rectangle2D.Float RepaintRegion = null; // could handle in DrawContext
     private Rectangle paintedSelectionBounds = null;
@@ -210,7 +212,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // have been an existing userZoom or userOrigin
             // set -- we honor that last user configuration here.
             //-------------------------------------------------------
-            if (map.getUserZoom() != 1.0)
+            if (!AutoZoomToMapOnLoad && map.getUserZoom() != 1.0)
                 setZoomFactor(getMap().getUserZoom(), false, null, false);
         }
 
@@ -1015,7 +1017,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //         } else {
 //         }
 
-        if (true||autoZoom) {
+        if (AutoZoomToMapOnLoad || autoZoom) {
             // If we are switching from another focal, automatically do a zoom-fit
             GUI.invokeAfterAWT(new Runnable() {
                     public void run() {
