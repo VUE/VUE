@@ -39,7 +39,7 @@ import java.awt.event.ActionEvent;
  * means that VUE can't repaint itself while the print dialogs are
  * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
- * @version $Revision: 1.34 $ / $Date: 2007-04-10 20:50:21 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2007-04-10 21:14:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -257,7 +257,7 @@ public class PrintAction extends tufts.vue.VueAction
                                              scale,
                                              -offset.x,
                                              -offset.y,
-                                             null,
+                                             null, // frame would be the PageFormat offset & size rectangle
                                              map,
                                              false); // todo: absolute links shouldn't be spec'd here
             dc.setAntiAlias(true);
@@ -292,9 +292,16 @@ public class PrintAction extends tufts.vue.VueAction
         if (p == null) return null;
         final String[] o = {"LANDSCAPE", "PORTRAIT", "REVERSE LANDSCAPE"};
         return
-            "PageFormat[" + o[p.getOrientation()]
-            + " " + p.getImageableX() + "," + p.getImageableY()
-            + " " + p.getImageableWidth() + "x" + p.getImageableHeight()
-            + "]";
+            String.format("PageFormat[%s xoff=%.1fpt (%.2fin); yoff=%.1fpt (%.2fin); imageable-area: %.1fpt x %.1fpt (%.2f x %.2f inches)]",
+                          o[p.getOrientation()],
+                          p.getImageableX(),
+                          p.getImageableX() / 72.0,
+                          p.getImageableY(),
+                          p.getImageableY() / 72.0,
+                          p.getImageableWidth(),
+                          p.getImageableHeight(),
+                          p.getImageableWidth() / 72.0,
+                          p.getImageableHeight() / 72.0
+                          );
     }
 }
