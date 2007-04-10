@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.324 $ / $Date: 2007-04-10 20:23:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.325 $ / $Date: 2007-04-10 20:50:14 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -836,8 +836,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         if (!ignore) {
             if (reshapeUnderway) {
-                //Util.printStackTrace("reshapeLoop");
-                out("RESHAPE LOOP");
+                if (DEBUG.Enabled) out("RESHAPE UNDERWAY");
             } else {
                 reshapeUnderway = true;
                 fireViewerEvent(MapViewerEvent.PAN);
