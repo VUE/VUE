@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.237 $ / $Date: 2007-04-10 20:23:03 $ / $Author: sfraize $
+ * @version $Revision: 1.238 $ / $Date: 2007-04-10 21:23:29 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3252,8 +3252,8 @@ public class LWComponent
     protected void drawDecorated(DrawContext dc)
     {
         final LWPathway.Entry entry = getEntryToDisplay();
-        final boolean drawSlide = (entry != null);
-        //final boolean drawSlide = (entry != null && !entry.isMapView);
+        //final boolean drawSlide = (entry != null);
+        final boolean drawSlide = (entry != null && !entry.isMapView);
 
         if (dc.drawPathways() && dc.focal != this)
             drawPathwayDecorations(dc);
