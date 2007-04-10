@@ -12,12 +12,13 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 public class RecentlyOpenedFilesManager 
 {
+	private static final String maxSize = "10";
 	 private static VuePreference openFilePref = StringPreference.create(
 				edu.tufts.vue.preferences.PreferenceConstants.FILES_CATEGORY,
 				"recentlyOpenedFiles", 
 				"Recently Opened Files", 
 				"Number of Recently Opened Files to maintain",
-				"9",
+				maxSize,
 				false);
 	
 	private LinkedList list = new LinkedList();
@@ -79,6 +80,10 @@ public class RecentlyOpenedFilesManager
 	{
 		//try to add this file to the list and update the preference
 		Iterator i = list.iterator();
+		
+		//update the maxFile count in case it changed...
+		list.remove(0);
+		list.add(0, maxSize);
 		
 		//is file already in list?
 		if (list.contains(s))
