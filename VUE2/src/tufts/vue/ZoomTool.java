@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.47 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2007-04-10 19:48:36 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -401,7 +401,7 @@ public class ZoomTool extends VueTool
             outgoingOffset.setLocation(offsetX, offsetY);
         }
             
-        return newZoom;
+        return newZoom < 0.01 ? 1.0 : newZoom; // if less than 1%, go to 100% -- assume nothing in map
     }
 
 
