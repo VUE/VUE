@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.328 $ / $Date: 2007-04-10 21:54:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.329 $ / $Date: 2007-04-10 22:20:19 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -738,11 +738,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             LWComponent node = slide.getSourceNode();
             Rectangle2D.Float slideIcon = (Rectangle2D.Float) node.getSlideIconBounds().clone();
             if (VUE.RELATIVE_COORDS) {
+                final float scale = node.getMapScaleF();
+                // Compress the local slide icon coords into the node's scale space:
+                slideIcon.x *= scale;
+                slideIcon.y *= scale;
+                // Now make them absolute map coordintes (no longer local):
                 slideIcon.x += node.getMapX();
                 slideIcon.y += node.getMapY();
-                // todo: scale isn't quite right here...
-                slideIcon.width *= node.getMapScale();
-                slideIcon.height *= node.getMapScale();
+                // Now scale down size:
+                slideIcon.width *= scale;
+                slideIcon.height *= scale;
             }
             return node.getBounds().createUnion(slideIcon);
         } else
