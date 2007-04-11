@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.108 $ / $Date: 2007-04-06 23:26:23 $ / $Author: sfraize $
+ * @version $Revision: 1.109 $ / $Date: 2007-04-11 01:17:53 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -313,18 +313,33 @@ public abstract class LWContainer extends LWComponent
         if (c.getFont() == null)//todo: really want to do this? only if not manually set?
             c.setFont(getFont());
         this.children.add(c);
-        if (c.getParent() != null && !hasAbsoluteMapLocation()) // if it didn't have a parent, assume coords we're local (e.g., from a duplication)
-            translateLocationToLocalCoordinates(c);
+
+        //----------------------------------------------------------------------------------------
+        // Delicately reparent, taking care that the model generates no events while
+        // in an indeterminate state.
+        //----------------------------------------------------------------------------------------
+        
+        // Save current mapX / mapY before setting the parent (which would change the reported mapX / mapY)
+        final float oldMapX = c.getMapX();
+        final float oldMapY = c.getMapY();
+        final LWContainer oldParent = c.getParent();
+
+        // Now set the parent, so that when the new location is set, it's already in it's
+        // new parent, and it's mapX / mapY will report correctly when asked (e.g., the
+        // bounds are immediatley correct for anyone listening to the location event).
         c.setParent(this);
+        
+        if (oldParent != null && !hasAbsoluteMapLocation()) // if it didn't have a parent, assume coords we're local (e.g., from a duplication)
+            translateLocationToLocalCoordinates(c, oldMapX, oldMapY);
         //c.reparentNotify(this);
         ensureID(c);
     }
 
     // TODO: only works when moving from higher to lower nesting -- not reverse (e.g., group dispersal)
-    protected void translateLocationToLocalCoordinates(LWComponent c) {
+    protected void translateLocationToLocalCoordinates(LWComponent c, float oldMapX, float oldMapY) {
         if (VUE.RELATIVE_COORDS && !c.hasAbsoluteMapLocation())
-            c.setLocation((c.getMapX() - getMapX()) / getMapScale(),
-                          (c.getMapY() - getMapY()) / getMapScale());
+            c.setLocation((oldMapX - getMapX()) / getMapScale(),
+                          (oldMapY - getMapY()) / getMapScale());
     }
 
     protected void removeChildImpl(LWComponent c)
@@ -353,8 +368,8 @@ public abstract class LWContainer extends LWComponent
 
         // If this child was scaled inside us (as all children are except groups)
         // be sure to restore it's scale back to 1 when de-parenting it.
-        // todo: maybe better to handle this in LWNode somehow as that's only
-        // place nodes actually get scaled at all right now -- either that or
+        // TODO: better to handle this in LWNode removeChildImpl as that's only
+        // place nodes actually get auto scaled right now -- either that or
         // when it's added back into it's new parent, which can set it based
         // on whatever scale policy it implements.
         if (c.getScale() != 1f)
