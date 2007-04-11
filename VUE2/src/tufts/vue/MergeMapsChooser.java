@@ -26,6 +26,7 @@
 
 package tufts.vue;
 
+import edu.tufts.vue.compare.ui.BaseMapChoiceSelector;
 import java.awt.geom.Point2D;
 import junit.extensions.ActiveTestSuite;
 import tufts.vue.action.ActionUtil;
@@ -90,7 +91,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     private JPanel baseBrowsePanel;
     private JButton baseBrowseButton;
     private JTextField baseFileField;
-    private JComboBox baseChoice;
+    //private JComboBox baseChoice;
+    private BaseMapChoiceSelector baseChoice;
     private LWMap baseMap;
     private JPanel buttonPane;
     private JButton generate;
@@ -136,6 +138,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     public final int BASE_FROM_BROWSE = 1;
     
     public final String otherString = "other";
+    public static final String BASE_SELECT_STRING = "Select";
+    public static final String BASE_OTHER_STRING = "Other";
     
     public final int TAB_BORDER_SIZE = 20;
     
@@ -147,6 +151,10 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     public static final MMCKey KEY_LINK_CHANGE = new MMCKey("linkThresholdSliderValue");
     // will require a refill (recreate) for weight maps as well..
     // public static final MMCKey KEY_FILTER_CHANGE = new MMCKey("filterChoiceChange");
+    
+    //$
+     static int c = 0;
+    //$
    
     public MergeMapsChooser() 
     {
@@ -188,7 +196,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
           }
         });
         
-        vueTabbedPane.addChangeListener(this);
+        //vueTabbedPane.addChangeListener(this);
         loadDefaultStyle();
         VUE.addActiveMapListener(this);
         setLayout(new BorderLayout());
@@ -285,6 +293,25 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         baseGridBag = new GridBagLayout();
         GridBagConstraints baseConstraints = new GridBagConstraints();
         basePanel = new JPanel();
+        
+        //$
+          //if(p!=null)
+         //{
+           basePanel.addMouseListener(new java.awt.event.MouseAdapter() {
+              //static int c =0;
+               
+              public void mouseEntered(java.awt.event.MouseEvent me)
+              {
+                  System.out.println("basePanel mouse entered: " + (c++) + " me: "+ me);
+                  if(baseChoice != null)
+                  {
+                      baseChoice.updateUI();
+                  }
+              }
+          });
+          //}
+        //$
+        
         int b = TAB_BORDER_SIZE;
         basePanel.setBorder(BorderFactory.createEmptyBorder(b,b,b,b));
         basePanel.setLayout(new BoxLayout(basePanel,BoxLayout.Y_AXIS));
@@ -300,9 +327,30 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         String baseMessage = "Select base map:";
         baseLabel = new JLabel(baseMessage);
 
-        String[] choices = {VUE.getActiveMap().getLabel(),"other"};
-        baseChoice = new JComboBox(choices);
-        baseChoice.setRenderer(new MapChoiceCellRenderer());
+        //String[] choices = {VUE.getActiveMap().getLabel(),"other"};
+        //Object[] choices = {BASE_SELECT_STRING,BASE_OTHER_STRING};
+        //Object[] choices = {new javax.swing.JSeparator()};
+        
+        
+        PolygonIcon lineIcon = new PolygonIcon(new Color(153,153,153));
+        lineIcon.setIconWidth(75);
+        lineIcon.setIconHeight(1);
+        //JLabel lineLabel = new JLabel(lineIcon);
+        //Object[] choices = {BASE_SELECT_STRING,lineIcon,BASE_OTHER_STRING};
+        
+        
+        refreshBaseChoices();
+       // baseChoice = new JComboBox(choices);
+        
+        //$
+          //baseChoice = new JComboBox();        
+          //baseChoice.addItem(BASE_SELECT_STRING);
+          baseChoice = new BaseMapChoiceSelector();
+        //$
+
+
+       //baseChoice.addItem(BASE_OTHER_STRING);
+        //baseChoice.setRenderer(new MapChoiceCellRenderer());
         JLabel helpLabel = new JLabel(VueResources.getIcon("helpIcon.raw"),JLabel.LEFT);
         baseConstraints.fill = GridBagConstraints.HORIZONTAL;
         baseGridBag.setConstraints(baseLabel,baseConstraints);
@@ -355,7 +403,33 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
     
     public void refreshBaseChoices()
     {
-        boolean otherSelected = false;
+        
+        //$
+          if(baseChoice != null)
+          {
+          //  baseChoice.refreshModel();
+            //baseChoice.contentsChanged(null);
+            //baseChoice.addNotify();
+            //baseChoice.invalidate();
+            //baseChoice.doLayout();
+            /*int oldIndex = baseChoice.getSelectedIndex();
+            if(baseChoice.getSelectedIndex()==0)
+              baseChoice.setSelectedItem(baseChoice.getModel().getElementAt(0));
+            else
+              baseChoice.setSelectedItem(baseChoice.getModel().getElementAt(1));
+            baseChoice.setSelectedItem(baseChoice.getModel().getElementAt(oldIndex));*/
+              
+            //baseChoice.setEnabled(false);
+            //baseChoice.setEnabled(true);
+            //baseChoice.repaint();
+            //baseChoice.revalidate();
+            
+              
+              //baseChoice.updateUI();
+          }
+        //$
+        
+        /*boolean otherSelected = false;
         if( baseChoice.getSelectedItem() != null && baseChoice.getSelectedItem().equals(otherString) )
         {
             otherSelected = true;
@@ -380,21 +454,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
            {
                baseChoice.addItem(map);
            }
-        }
-        /*if(otherSelected)
-        {
-            baseChoice.setSelectedItem(otherString);
-        }
-        else
-        if(activeMap instanceof LWMergeMap)
-        {
-            baseChoice.setSelectedItem(((LWMergeMap)activeMap).getBaseMap());
-        }
-        else
-        {
-            baseChoice.setSelectedIndex(0);
-        }*/
-        
+        } */
     }
     
     public int getBaseMapSelectionType()
@@ -831,6 +891,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane, selected Tab: " + vueTabbedPane.getModel().getSelectedIndex());
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane, #of components: " + vueTabbedPane.getComponents().length);
             
+            //$
+            /*
             if(noMapsLoaded)
             {
               baseChoice.removeAllItems();
@@ -850,7 +912,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                   refreshBaseChoices();
               }
               baseChoice.removeItem(selectString);
-            }
+            } */
+            //$
             //creates class cast exceptions and deadlock...
             //VUE.setActiveViewer((MapViewer)VUE.getTabbedPane().getSelectedComponent());
             
@@ -863,11 +926,15 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             return;
         if(e.getSource()==baseChoice)
         {
-          // comment back in to see focus error (and to enable browse to base map) 
+          System.out.println("MMC: action event on base choice: " + e);
+          System.out.println("MMC: action event on base choice - selected Item: " + baseChoice.getSelectedItem());
           if(baseChoice.getItemCount() == 0 || baseChoice.getSelectedItem() == null )
               return;
-          if(baseChoice.getSelectedItem().equals("other"));
+         // if(baseChoice.getSelectedItem().equals("other"));
+          if(baseChoice.getSelectedItem().equals(BaseMapChoiceSelector.OTHER_STRING))
             {    
+              System.out.println("MMC: other selected in base choice");
+              
               if(baseBrowsePanel==null)
               {
                   setUpBasePanelBrowse();
@@ -882,7 +949,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                 p.pack();
               }*/
             }
-            if(!baseChoice.getSelectedItem().equals("other"))
+            if(!baseChoice.getSelectedItem().equals(BaseMapChoiceSelector.OTHER_STRING))
             {
               basePanel.remove(baseBrowsePanel);
               //basePanel.revalidate();
@@ -906,6 +973,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
               try
               {        
                 baseMap = ActionUtil.unmarshallMap(selectedBaseFile);
+                baseChoice.setUserSelectedMap(baseMap);
               }
               catch(Exception ex)
               {
@@ -1025,15 +1093,21 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             else
             {
              
-               //LWMergeMap map = new LWMergeMap(LWMergeMap.getTitle());
-               //fail safe default value for base map is active map
+
+               Object baseMapObject = baseChoice.getModel().getSelectedItem();
+               //if(baseMapObject instanceof LWMap)
+                 baseMap = (LWMap)baseMapObject;
+               
+               //System.out.println("MMC: generate base map -- baseMap: " + baseMap);
+               
+               
+               
                if(baseMap == null)
                {
-                 baseMap = VUE.getActiveMap();
+                 VueUtil.alert("No Base Map Selected, Merge Failed","Base Map");
+                 return;
+                 //baseMap = VUE.getActiveMap();
                }
-               Object baseMapObject = baseChoice.getSelectedItem();
-               if(baseMapObject instanceof LWMap)
-                 baseMap = (LWMap)baseMapObject;
                
                //$
                  //mapList = map.getMapList();//= sp.getMapList();
@@ -1345,6 +1419,9 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         // base map settings
         selectedBaseFile = map.getBaseMapFile();
         baseMap = map.getBaseMap();
+        
+        //$
+        /*
         if(map.getBaseMapSelectionType() == BASE_FROM_LIST)
         {
             // assume base map not open, add to base map list
@@ -1361,8 +1438,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         {
             baseChoice.setSelectedItem(otherString);  
             baseFileField.setText(selectedBaseFile.getName());
-        }
-        
+        }*/
+        //$
 
         // visualization settings
         
@@ -1435,6 +1512,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         
         boolean noMapsLoaded = !(VUE.getLeftTabbedPane().getAllMaps().hasNext());
         
+        //$
+        /*
         if(noMapsLoaded)
         {
             baseChoice.removeAllItems();
@@ -1444,7 +1523,9 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         else
         {
             baseChoice.removeItem(selectString);
-        }
+        }*/
+        //$
+        
         /*if(map==null)
         {
             return;
@@ -1458,9 +1539,11 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         
         
         //map.addLWCListener(this);
-        map.addLWCListener(this,KEY_NODE_CHANGE);
-        map.addLWCListener(this,KEY_LINK_CHANGE);
         
+        //$
+          //map.addLWCListener(this,KEY_NODE_CHANGE);
+          //map.addLWCListener(this,KEY_LINK_CHANGE);
+        //$
         
         refreshBaseChoices();
 
@@ -1813,14 +1896,22 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         {
             //LWMergeMap map = new LWMergeMap(LWMergeMap.getTitle());
                //fail safe default value for base map is active map
-               if(baseMap == null)
+              /* if(baseMap == null)
                {
                  baseMap = VUE.getActiveMap();
                }
                Object baseMapObject = baseChoice.getSelectedItem();
                if(baseMapObject instanceof LWMap)
-                 baseMap = (LWMap)baseMapObject;
+                 baseMap = (LWMap)baseMapObject;*/
                
+               baseMap = baseChoice.getSelectedMap();
+            
+               if(baseMap == null)
+               {
+                   VueUtil.alert("Base Map not set","Base Map");
+                   return;
+               }
+            
                map.setBaseMap(baseMap);
                map.setBaseMapFile(baseMap.getFile());
                
