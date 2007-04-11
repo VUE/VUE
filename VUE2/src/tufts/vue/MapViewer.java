@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.331 $ / $Date: 2007-04-11 17:56:41 $ / $Author: sfraize $ 
+ * @version $Revision: 1.332 $ / $Date: 2007-04-11 18:22:57 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2281,7 +2281,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // to see the real result -- we just set the clip to
             // the shape of the focal.
             final Shape curClip = dc.g.getClip();
-            //dc.g.clip(mFocal.getShape());
+            //dc.g.clip(mFocal.getMapShape());
+            dc.g.setClip(mFocal.getMapShape());
             LWComponent parentSlide = mFocal.getAncestorOfType(LWSlide.class);
             // don't need to re-draw the focal itself, it's being
             // drawn in it's parent (slide or map)

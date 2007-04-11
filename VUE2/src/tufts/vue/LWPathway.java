@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.135 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.136 $ / $Date: 2007-04-11 18:22:57 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -910,7 +910,7 @@ public class LWPathway extends LWContainer
         public void draw(DrawContext dc) {
             if (!isTransparent()) {
                 dc.g.setColor(getFillColor());
-                dc.g.fill(getShape());
+                dc.g.fill(getLocalShape());
             }
             drawImpl(dc);
         }

@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.238 $ / $Date: 2007-04-10 21:23:29 $ / $Author: sfraize $
+ * @version $Revision: 1.239 $ / $Date: 2007-04-11 18:22:57 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2749,19 +2749,20 @@ public class LWComponent
     */
 
 
-    /* return our shape object, full transformed into map coords and ultimate scale when drawn at 100% map zoom */
-    /*
-    private Shape getMapShape()
+    /** @return our shape, full transformed into map coords and ultimate scale when drawn at 100% map zoom
+     * this is used for portal clipping, and will be imperfect for some scaled shapes, such as RountRect's
+     * This only works for raw shapes that are RectangularShapes -- other Shape types just return the map bounds
+     * (e.g., a link shape) */
+    public Shape getMapShape()
     {
         if (VUE.RELATIVE_COORDS == false)
             return getShapeBounds();
         
-            // THIS REALLY SHOULDN'T BE ALLOWED -- only works for rectangles or ciricles (e.g., not RoundRect -- corner scaling will be off)
+        // Will not work for shapes like RoundRect when scaled -- e..g, corner scaling will be off
             
-            // This code needed for links to compute their endpoints, tho subclasses can
-        // override to provide faster impl's for cached local coord shape objects they may hold.
-        final Shape s = getRawShape();
-        if (getMapScale() != 1f && s instanceof RectangularShape) { // todo: do if any transform, not just scale
+        final Shape s = getLocalShape();
+        //        if (getMapScale() != 1f && s instanceof RectangularShape) { // todo: do if any transform, not just scale
+        if (s instanceof RectangularShape) {
             // todo: cache this: only need to updaate if location, size or scale changes
             // (Also, on the scale or location change of any parent!)
             RectangularShape rshape = (RectangularShape) s;
@@ -2772,13 +2773,12 @@ public class LWComponent
             rshape.setFrame(loc.x, loc.y,
                             rshape.getWidth() * a.getScaleX(),
                             rshape.getHeight() * a.getScaleY());
-            System.out.println("TRANSFORMED SHAPE: " + rshape + " for " + this);
+            //System.out.println("TRANSFORMED SHAPE: " + rshape + " for " + this);
             return rshape;
         } else {
-            return s;
+            return getBounds();
         }
     }
-    */
 
     /*
      * Return internal bounds of the border shape, not including
@@ -2804,14 +2804,13 @@ public class LWComponent
 
     /** return border shape of this object.  If VUE.RELATIVE_COORDS, it's raw and zero based,
         otherwise, with it's location in map coordinates  */
-    public Shape getShape()
+    private Shape getShape()
     {
         //return VUE.RELATIVE_COORDS ? getRawShape() : getShapeBounds();
         return getLocalShape();
     }
 
-    /** @return the raw, zero based, non-scaled shape */
-    // TODO: getMAPShape
+    /** @return the raw, zero based, non-scaled shape; default impl returns getLocalBounds */
     public Shape getLocalShape() {
         return getLocalBounds();
     }

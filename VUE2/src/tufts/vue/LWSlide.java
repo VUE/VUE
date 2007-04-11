@@ -28,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.22 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2007-04-11 18:22:57 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -140,7 +140,7 @@ public class LWSlide extends LWContainer
         } else {
             dc.g.setColor(getFillColor());
         }
-        dc.g.fill(getShape());
+        dc.g.fill(getLocalShape());
 
             // When just filling the background with the master, only draw
             // what's in the containment box

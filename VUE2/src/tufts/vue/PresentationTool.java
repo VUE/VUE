@@ -509,6 +509,7 @@ public class PresentationTool extends VueTool
         return dc;
     }
         
+    /*
     protected void drawPathwayEntry(final DrawContext dc, MapViewer viewer, final LWPathway.Entry entry)
     {
         out("drawing entry " + entry);
@@ -565,11 +566,13 @@ public class PresentationTool extends VueTool
         //focal.draw(dc); // will not work if is map-view
         out("-------------------------------------------------------");
     }
+    */
     
     /** either draws the entire map (previously zoomed to to something to focus on),
      * or a fully focused part of of it, where we only draw that item.
      */
 
+    /*
     protected void drawFocal(final DrawContext dc, MapViewer viewer, final LWComponent focal)
     {
         final LWMap underlyingMap = focal.getMap();
@@ -580,7 +583,7 @@ public class PresentationTool extends VueTool
         //dc.g.fill(dc.g.getClipBounds());
         
         if (false && focal.isTranslucent() && focal != underlyingMap && focal instanceof LWGroup == false) { // groups not meant to operate transparently
-            out("drawing clipped focal " + focal.getShape());
+            out("drawing clipped focal " + focal.getLocalShape());
 
             //out("drawing underlying map " + underlyingMap);
 
@@ -599,6 +602,7 @@ public class PresentationTool extends VueTool
             focal.draw(dc);
         }
     }
+    */
 
     private static int OverviewMapFraction = 4; // 1/scale
     
