@@ -605,7 +605,7 @@ public class Util
     /** GroupIterator allows you to construct a new iterator that
      * will aggregate an underlying set of Iterators and/or Collections */
     public static class GroupIterator extends java.util.ArrayList
-        implements java.util.Iterator
+        implements java.util.Iterator, Iterable
     {
         int iterIndex = 0;
         Iterator curIter;
@@ -636,9 +636,9 @@ public class Util
          * @return result of super.add (ArrayList.add)
          */
         public boolean add(Object o) {
-            if (!(o instanceof Collection) &&
+            if (!(o instanceof Iterable) &&
                 !(o instanceof Iterator))
-                throw new IllegalArgumentException("Can only add Collection or Iterator: " + o);
+                throw new IllegalArgumentException("Can only add Iterable or Iterator: " + o);
             return super.add(o);
         }
 
@@ -651,7 +651,7 @@ public class Util
                 if (next instanceof Iterator)
                     curIter = (Iterator) next;
                 else
-                    curIter = ((Collection)next).iterator();
+                    curIter = ((Iterable)next).iterator();
                 iterIndex++;
                 if (curIter == null)
                     return false;
@@ -679,6 +679,10 @@ public class Util
                 curIter.remove();
             else
                 throw new IllegalStateException(this + ": no underlying iterator");
+        }
+
+        public Iterator iterator() {
+            return this;
         }
     }
 
@@ -1039,19 +1043,21 @@ public class Util
     }
 
     public static String out(java.awt.geom.Rectangle2D r) {
-        return ""
-            + (float)r.getX() + "," + (float)r.getY()
-            + " "
-            + (float)r.getWidth() + "x" + (float)r.getHeight()
-            ;
+        return String.format("[%7.1f,%-7.1f %5.0fx%-5.0f]", r.getX(), r.getY(), r.getWidth(), r.getHeight());
+//         return ""
+//             + (float)r.getX() + "," + (float)r.getY()
+//             + " "
+//             + (float)r.getWidth() + "x" + (float)r.getHeight()
+//             ;
     }
 
     public static String out(java.awt.Rectangle r) {
-        return ""
-            + r.width + "x" + r.height
-            + " "
-            + r.x + "," + r.y
-            ;
+        return String.format("[%4d,%4d %4dx%4d]", r.x, r.y, r.width, r.height);
+//         return ""
+//             + r.width + "x" + r.height
+//             + " "
+//             + r.x + "," + r.y
+//             ;
     }
     
     public static String out(java.awt.geom.RectangularShape r) {
