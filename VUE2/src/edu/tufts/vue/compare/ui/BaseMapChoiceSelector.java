@@ -49,24 +49,7 @@ public class BaseMapChoiceSelector extends javax.swing.JComboBox {
     {
         setModel(new BaseMapChoiceModel());
         
-        setRenderer(new BorderSeparatorRenderer());
-        
-        /*addActionListener(new java.awt.event.ActionListener()
-        {
-           public void actionPerformed(java.awt.event.ActionEvent ae)
-           {
-               //System.out.println("BMCS: action event " + ae );
-               updateUI();
-           }
-        });*/
-        
-        /*addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent me)
-            {
-                System.out.println("BMCS: mouse entered: " + me);
-            }
-        });*/
-        
+        setRenderer(new BorderSeparatorRenderer());        
     }
     
     public boolean isBaseMapSelected()
@@ -84,11 +67,6 @@ public class BaseMapChoiceSelector extends javax.swing.JComboBox {
         userSelectedMap = map;
     }
     
-    /*public void refreshModel()
-    {
-        setModel(new BaseMapChoiceModel());
-    }*/
-    
     class BaseMapChoiceModel implements javax.swing.ComboBoxModel
     {
         
@@ -99,25 +77,11 @@ public class BaseMapChoiceSelector extends javax.swing.JComboBox {
         
         public Object getSelectedItem()
         {
-            /*if(selectedIndex > 0 && selectedIndex < getSize() - 1)
-               return getMaps().get(selectedIndex).getLabel();
-            else
-            if(selectedIndex == 0)
-               return SELECT_STRING;
-            else
-               return OTHER_STRING; */
-            return selectedItem;
-            
+            return selectedItem;     
         }
         
         public void setSelectedItem(Object selected)
         {
-            /*if(selected == SELECT_STRING)
-                selectedIndex = 0;
-            else if(selected == OTHER_STRING)
-                selectedIndex = getSize() - 1;
-            else
-              selectedIndex = indexOf(selected); */
             selectedItem = selected;
         }
         
@@ -133,7 +97,6 @@ public class BaseMapChoiceSelector extends javax.swing.JComboBox {
         
         public void addListDataListener(ListDataListener listener)
         {
-            //System.out.println("BMCS: data listener added: " + listener);
             listeners.add(listener);
         }
         
@@ -184,7 +147,6 @@ public class BaseMapChoiceSelector extends javax.swing.JComboBox {
                     return userSelectedMap;
                 else
                 {
-                    //return getMaps().get(indexOf(getSelectedItem()));
                     return getMaps().get(getSelectedIndex()-1);
                 }
             }
@@ -202,10 +164,10 @@ public class BaseMapChoiceSelector extends javax.swing.JComboBox {
             javax.swing.JLabel label = (javax.swing.JLabel)super.getListCellRendererComponent(list,value,index,isSelected,hasFocus);
             
             if(index==0)
-                label.setBorder(javax.swing.BorderFactory.createMatteBorder(0,0,1,0,java.awt.Color.BLACK));
+                label.setBorder(javax.swing.BorderFactory.createMatteBorder(0,0,1,0,new java.awt.Color(140,140,140)));
             
             if(index == (getModel().getSize() - 1))
-                label.setBorder(javax.swing.BorderFactory.createMatteBorder(1,0,0,0,java.awt.Color.BLACK));
+                label.setBorder(javax.swing.BorderFactory.createMatteBorder(1,0,0,0,new java.awt.Color(140,140,140)));
             
             return label;
         }
