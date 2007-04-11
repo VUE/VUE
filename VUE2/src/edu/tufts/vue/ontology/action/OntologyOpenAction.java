@@ -16,39 +16,24 @@
  *
  */
 
-package edu.tufts.vue.ontology.ui;
-
-import java.awt.*;
-import javax.swing.*;
-
+package edu.tufts.vue.ontology.action;
 
 /*
- * OntologyViewer.java
+ * OntologyOpenAction.java
  *
- * Created on April 5, 2007, 2:10 PM
+ * Created on April 11, 2007, 2:35 PM
  *
  * @author dhelle01
  */
-public class OntologyViewer extends javax.swing.JPanel {
+public class OntologyOpenAction extends tufts.vue.VueAction {
     
-    private static OntologyBrowser ontologyBrowser;
-    private static OntologyList ontologyList;
-    
-    public OntologyViewer(OntologyBrowser browser) 
+    public OntologyOpenAction(String label) 
     {
-        ontologyList = new OntologyList(this);
-        add(ontologyList);
-        
-        /*Action[] actions = {
-            new edu.tufts.vue.ontology.action.RDFSOntologyOpenAction("RDFS"),
-            new edu.tufts.vue.ontology.action.OwlOntologyOpenAction("OWL")
-        };
-        tufts.vue.gui.Widget.setMenuActions(browser,actions);*/
+        super(label);
     }
     
-    public OntologyList getList()
+    public void actionPerformed(java.awt.event.ActionEvent e)
     {
-        return ontologyList;
+        edu.tufts.vue.ontology.ui.OntologyChooser chooser = new edu.tufts.vue.ontology.ui.OntologyChooser(tufts.vue.VUE.getDialogParentAsFrame(),"Add an Ontology");
     }
-    
 }

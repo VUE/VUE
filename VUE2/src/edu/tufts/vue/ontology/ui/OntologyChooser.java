@@ -20,6 +20,7 @@ package edu.tufts.vue.ontology.ui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -106,8 +107,11 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
         setUpBrowsePanel();
         setUpButtonPanel();
         
+        c.insets = new Insets(10,10,10,10);
+        gridBag.setConstraints(stepLabel,c);
         mainPanel.add(stepLabel);
         c.gridwidth = GridBagConstraints.REMAINDER;
+        c.anchor = GridBagConstraints.EAST;
         gridBag.setConstraints(info,c);
         mainPanel.add(info);
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -134,13 +138,15 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
        browsePanel.setLayout(browseGrid);
        
        //$
-          browsePanel.setOpaque(true);
-          browsePanel.setBackground(java.awt.Color.RED);
+          //browsePanel.setOpaque(true);
+          //browsePanel.setBackground(java.awt.Color.RED);
        //$
        
+       browseConstraints.insets = new Insets(5,5,5,5);
        browseGrid.setConstraints(browseLabel,browseConstraints);
        browsePanel.add(browseLabel);
        browseConstraints.weightx = 1.0;
+       browseConstraints.fill = GridBagConstraints.HORIZONTAL;
        browseGrid.setConstraints(browseFileField,browseConstraints);
        browsePanel.add(browseFileField);
        browseConstraints.weightx = 0.0;
@@ -151,8 +157,10 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
        browsePanel.add(attachButton);
        browseGrid.setConstraints(orLabel,browseConstraints);
        browsePanel.add(orLabel);
+       browseConstraints.gridwidth = 1;
        browseGrid.setConstraints(urlLabel,browseConstraints);
        browsePanel.add(urlLabel);
+       browseConstraints.gridwidth = GridBagConstraints.REMAINDER;
        browseGrid.setConstraints(typeURLField,browseConstraints);
        browsePanel.add(typeURLField);
                
@@ -160,14 +168,14 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
     
     public void setUpButtonPanel()
     {
-        styleSheetMessageLabel = new JLabel("*");
+        styleSheetMessageLabel = new JLabel();
         buttonPanel = new JPanel();
         
         //$
-           buttonPanel.setOpaque(true);
-           buttonPanel.setBackground(java.awt.Color.BLUE);
-           cancelButton.setOpaque(false);
-           nextButton.setOpaque(false);
+           //buttonPanel.setOpaque(true);
+           //buttonPanel.setBackground(java.awt.Color.BLUE);
+           //cancelButton.setOpaque(false);
+           //nextButton.setOpaque(false);
         //$
         
         GridBagLayout buttonLayout = new GridBagLayout();
@@ -192,9 +200,25 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
             if(step == STEP_ONE)
             {    
               step = STEP_TWO;
+              //setTitle("CSS");
+              stepLabel.setText(stepTwoMessage);
+              styleSheetMessageLabel.setText(styleSheetMessage);
+              cancelButton.setText("Back");
+              nextButton.setText("Finish");
             }
         }
-        
+        if(e.getSource() == cancelButton)
+        {
+            if(step == STEP_TWO)
+            {
+              step = STEP_ONE;
+              //setTitle("Ontology");
+              stepLabel.setText(stepOneMessage);
+              styleSheetMessageLabel.setText("");
+              cancelButton.setText("Cancel");
+              nextButton.setText("Next");
+            }
+        }
     }
     
     public static void main(String[] args)

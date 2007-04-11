@@ -129,8 +129,15 @@ public class OntologyBrowser extends JPanel {
             }
           });
           add(button);
+          
+          Action[] actions = {
+            new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology"),
+            new edu.tufts.vue.ontology.action.RDFSOntologyOpenAction("RDFS"),
+            new edu.tufts.vue.ontology.action.OwlOntologyOpenAction("OWL")
+          };
+          tufts.vue.gui.Widget.setMenuActions(this,actions);
         //$
-        
+          
     }
     
     public void loadOntologyViewer()
