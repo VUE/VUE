@@ -16,33 +16,33 @@
  *
  */
 
-package tufts.vue.action;
-
-import edu.tufts.vue.ontology.ui.TypeList;
-
-import tufts.vue.*;
-import tufts.vue.gui.DockWindow;
+package edu.tufts.vue.ontology.action;
 
 /*
- * FedoraOntologyOpenAction.java
+ * OntologyControlsOpenAction.java
  *
- * Created on March 12, 2007, 12:39 PM
+ * Created on April 9, 2007, 2:26 PM
  *
  * @author dhelle01
  */
-public class FedoraOntologyOpenAction extends VueAction {
+public class OntologyControlsOpenAction extends tufts.vue.VueAction {
     
-    /** Creates a new instance of FedoraOntologyOpenAction */
-    public FedoraOntologyOpenAction(String label) {
+    private tufts.vue.gui.DockWindow ontologyDock;
+    private edu.tufts.vue.ontology.ui.OntologyBrowser browser;
+    
+    public OntologyControlsOpenAction(String label) 
+    {
         super(label);
     }
     
     public void actionPerformed(java.awt.event.ActionEvent e)
     {
-        TypeList typeList = new edu.tufts.vue.ontology.ui.TypeList();
-        DockWindow typeWindow = tufts.vue.gui.GUI.createDockWindow("Fedora Ontology: " + (TypeList.count++),edu.tufts.vue.ontology.ui.TypeList.createTestPanel(typeList));
-        typeWindow.setLocation(200,100);
-        typeWindow.pack();
-        typeWindow.setVisible(true);
+        ontologyDock = tufts.vue.gui.GUI.createDockWindow("Constraint Mapping");
+        tufts.vue.gui.DockWindow searchDock = null;
+        //browser = new edu.tufts.vue.ontology.ui.OntologyBrowser(true, ontologyDock, searchDock);
+        browser = new edu.tufts.vue.ontology.ui.OntologyBrowser(false, ontologyDock, searchDock);
+        ontologyDock.setSize(300, (int) (tufts.vue.gui.GUI.GScreenHeight * 0.75));
+        ontologyDock.setVisible(true);
     }
+    
 }

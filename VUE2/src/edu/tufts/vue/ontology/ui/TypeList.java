@@ -26,9 +26,11 @@ import java.awt.datatransfer.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.dnd.*;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
@@ -51,20 +53,17 @@ import tufts.vue.gui.*;
  */
 public class TypeList extends JList {
     
-    private static javax.swing.ImageIcon DragIcon = tufts.vue.VueResources.getImageIcon("favorites.leafIcon");
+    public static int count = 0;
+    
+    private static Ontology fedoraOntology;
     
     private DefaultListModel mDataModel;
     
     private LWComponent comp;
 
-   // private LWMap holder;
-   // private MapViewer holderViewer;
     private LWSelection selection;
     
     public TypeList() {
-        
-        //holder = new LWMap();
-     //   holderViewer = new MapViewer(holder);
         
         mDataModel = new DefaultListModel();
         setModel(mDataModel);
@@ -115,19 +114,33 @@ public class TypeList extends JList {
         public java.awt.Component getListCellRendererComponent(JList jList, Object value, int i, boolean isSelected, boolean hasFocus) 
         {
             JPanel p = new JPanel();
-            p.setLayout(new java.awt.BorderLayout());
+            java.awt.GridLayout grid = new java.awt.GridLayout(1,2);
+            p.setLayout(grid);
+           // p.setLayout(new java.awt.BorderLayout());
             
             p.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200,200,200)));
                     
             if(value instanceof LWComponent)
             {
                 LWComponent comp = (LWComponent)value;
-                java.awt.Image im = comp.getAsImage();
-                javax.swing.JLabel imageLabel = new javax.swing.JLabel(new javax.swing.ImageIcon(im));
+                LWComponent noLabelComp = (LWComponent)comp.duplicate();
+                if(comp instanceof LWNode)
+                  noLabelComp.setLabel("   ");
+                else
+                  noLabelComp.setLabel("");
+                String truncatedLabel = comp.getLabel();
+                if(truncatedLabel.length() > 10)
+                {
+                    truncatedLabel = truncatedLabel.substring(0,10) + "...";
+                }
+                JLabel label = new JLabel(truncatedLabel);
+                //java.awt.Image im = comp.getAsImage();
+                java.awt.Image im = noLabelComp.getAsImage();
+                JLabel imageLabel = new JLabel(new javax.swing.ImageIcon(im));
                 p.add(imageLabel);
+                p.add(label);
             }
             
-            //selected
             if(value == getSelectedValue())
             {
                 p.setBackground(new java.awt.Color(230,230,230));
@@ -136,6 +149,145 @@ public class TypeList extends JList {
                 p.setBackground(new java.awt.Color(255,255,255));
             return p;
         }
+    }
+    
+    public void loadOntology(URL ontologyURL,URL cssURL,int ontType,boolean fromFile)
+    {
+        Ontology ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
+                                                      cssURL,
+                                                      ontType);
+        
+        //OntManager.getOntManager().getOntList().add(ontology);
+        //System.out.println("TypeList: ontology list size: " + OntManager.getOntManager().getOntList().size());
+        
+        
+        
+        fillList(ontology);
+        
+    }
+    
+    
+    public void loadOntology(String ontologyLocation,String cssLocation,int ontType,boolean fromFile)
+    {
+        Ontology ontology = OntManager.getOntManager().readOntologyWithStyle(VueResources.getURL(ontologyLocation),
+                                                      VueResources.getURL(cssLocation),
+                                                      ontType);
+        
+        //OntManager.getOntManager().getOntList().add(ontology);
+        
+        //System.out.println("TypeList: ontology list size: " + OntManager.getOntManager().getOntList().size());
+        
+        fillList(ontology);
+        
+    }
+    
+    /**
+     *
+     * May be handled by LWComponent in future.
+     *
+     * Right now OntManager appears to read only link.localname 
+     * styles, so check for node.localname and let default
+     * style get applied for now.
+     *
+     **/
+    private static boolean isNode(OntType type)
+    {
+        //Style style = type.getStyle();
+        //System.out.println("tl: isNode: style name: " + style.getName());
+                
+        if(StyleMap.getStyle("node."+type.getId())!=null)
+            return true;
+        else 
+            return false;
+      
+    }
+    
+    private void fillList(Ontology ontology)
+    {
+        List<OntType> types = ontology.getOntTypes();
+        
+        //System.out.println("TypeList: types size " + types.size());
+        
+        
+        //$
+          int count = 0;
+        //$
+        
+        Iterator<OntType> iter = types.iterator();
+        while(iter.hasNext() && (count++) < 1000)
+        {
+            OntType ot = iter.next();
+            
+            System.out.println("TypeList: " + ot.getComment());
+            System.out.println("tl: isNode: " + ot.getId() + " isNode?:" + isNode(ot));
+            
+            Style style = ot.getStyle();
+            if(isNode(ot))
+            {
+                LWNode node = new LWNode(ot.getLabel());
+                  
+                //node.setLabel(ot.getLabel());
+
+                node.setAutoSized(false);
+                
+                node.setAbsoluteSize(25,25);
+                
+
+                NodeTool.SubTool st = NodeTool.getActiveSubTool();
+                node.setShape(st.getShape());
+                node.applyCSS(style);
+                addType(node);
+            }
+            else
+            {    
+              LWLink link = new LWLink();
+              link.setLabel(ot.getLabel() + "-->" + count);
+              link.setHeadPoint(10,25);
+              link.setTailPoint(40,25);
+              link.setAbsoluteSize(30,50);
+              //link.setArrowState(LWLink.ARROW_HEAD);
+              //link.setWeight(Integer.parseInt(style.getAttribute("weight")));
+              link.applyCSS(style);
+              addType(link);
+            }
+        }
+        
+        if(ontology == fedoraOntology)
+        {
+          OntType fedoraObject = new OntType();  
+          Style style = new NodeStyle("fedora object");
+          addNode(fedoraObject,ontology,style);
+        }
+        
+    }
+    
+    private void addNode(OntType ontType,Ontology ontology,Style style)
+    {
+          if(ontology == fedoraOntology)
+          {
+            LWNode node = new LWNode("Fedora Object");
+            node.setAbsoluteSize(25,50);
+            NodeTool.SubTool st = NodeTool.getActiveSubTool();
+            node.setShape(st.getShape());
+            addType(node);
+          }
+          else
+          {
+            LWNode node = new LWNode(ontType.getLabel());
+            //node.setLabel(ot.getLabel());
+                
+            node.setAbsoluteSize(25,50);
+            NodeTool.SubTool st = NodeTool.getActiveSubTool();
+            node.setShape(st.getShape());
+            node.applyCSS(style);
+            addType(node);
+          }
+          
+    }
+    
+    private void addLink(OntType ontType,Ontology ontology, Style style)
+    {
+        
     }
     
     
@@ -201,36 +353,74 @@ public class TypeList extends JList {
         System.out.println("fedora url: " + VueResources.getURL("fedora.ontology.url"));
         System.out.println("fedora url: " + VueResources.getString("fedora.ontology.url"));
         
-          ontology = OntManager.getOntManager().readOntologyWithStyle(new java.net.URL(VueResources.getString("fedora.ontology.url")),
+         ontology = OntManager.getOntManager().readOntologyWithStyle(VueResources.getURL("fedora.ontology.rdf"),
                                                       //new java.net.URL("http://www.fedora.info/definitions/1/0/fedora-relsext-ontology.rdfs"),
                                                       VueResources.getURL("fedora.ontology.css"),
                                                       OntManager.RDFS);
           
+         /*ontology = OntManager.getOntManager().readOntologyWithStyle(//VueResources.getURL("fedora.ontology.rdf"),
+                                                      new java.net.URL("http://www.atl.lmco.com/projects/ontology/ontologies/animals/animalsA.owl"),
+                                                      new java.net.URL("http://vue-dev.uit.tufts.edu/ontology/css/animalsAStyle.css"),
+                                                      OntManager.OWL);*/
+         
+         
+          /*ontology = OntManager.getOntManager().readOntologyWithStyle(//VueResources.getURL("fedora.ontology.rdf"),
+                                                      new java.net.URL("http://vue-dev.uit.tufts.edu/ontology/season.rdfs.xml"),
+                                                      new java.net.URL("http://vue-dev.uit.tufts.edu/ontology/css/season.css"),
+                                                      OntManager.OWL);*/
 
           
         }
-        catch(java.net.MalformedURLException urlException)
+        //catch(java.net.MalformedURLException urlException)
+        catch(Exception urlException)
         {
             System.out.println("Ontology Manager: Malformed URL:" + urlException);
-            VueUtil.alert("Ontology","Ontology Load Failed - improper URL");
+            VueUtil.alert("Ontology Load Failed - improper URL","Ontology Load Failed - improper URL");
             //ontology = OntManager.getFedoraOntologyWithStyles();
         }
         
         List<OntType> types = ontology.getOntTypes();
+        
+        System.out.println("TypeList: types size " + types.size());
+        
         Iterator<OntType> iter = types.iterator();
         while(iter.hasNext())
         {
             OntType ot = iter.next();
             Style style = ot.getStyle();
+            
+            if(isNode(ot))
+            {
+                LWNode node = new LWNode();
+                node.applyCSS(style);
+                tlist.addType(node);
+            }
+            else
+            {    
+              LWLink link = new LWLink();
+              link.setLabel(ot.getLabel() + "-->" + count);
+              link.setHeadPoint(10,25);
+              link.setTailPoint(140,25);
+              link.setAbsoluteSize(150,50);
+              //link.setArrowState(LWLink.ARROW_HEAD);
+              //link.setWeight(Integer.parseInt(style.getAttribute("weight")));
+              link.applyCSS(style);
+              tlist.addType(link);
+            }
+            
+            
+            //System.out.println("tl: ot: " + ot + " style: " + style.getName());
+            /*System.out.println("tl: isNode: " + ot.getId() + " isNode?:" + isNode(ot));
+            System.out.println("tl: description: " + ot.getComment());
             LWLink link = new LWLink();
-            link.setLabel(ot.getId());
+            link.setLabel(ot.getLabel());
             link.setHeadPoint(10,25);
             link.setTailPoint(140,25);
             link.setAbsoluteSize(150,50);
-            link.setArrowState(LWLink.ARROW_HEAD);
+            //link.setArrowState(LWLink.ARROW_HEAD);
             //link.setWeight(Integer.parseInt(style.getAttribute("weight")));
             link.applyCSS(style);
-            tlist.addType(link);
+            tlist.addType(link);*/
         }
         
         LWNode node = new LWNode("Fedora Object");
