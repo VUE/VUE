@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.332 $ / $Date: 2007-04-11 18:22:57 $ / $Author: sfraize $ 
+ * @version $Revision: 1.333 $ / $Date: 2007-04-11 19:09:37 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -736,20 +736,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (slide != null) {
             // hack for slides which aren't really on the map: for MapPanner
             LWComponent node = slide.getSourceNode();
-            Rectangle2D.Float slideIcon = (Rectangle2D.Float) node.getSlideIconBounds().clone();
-            if (VUE.RELATIVE_COORDS) {
-                final float scale = node.getMapScaleF();
-                // Compress the local slide icon coords into the node's scale space:
-                slideIcon.x *= scale;
-                slideIcon.y *= scale;
-                // Now make them absolute map coordintes (no longer local):
-                slideIcon.x += node.getMapX();
-                slideIcon.y += node.getMapY();
-                // Now scale down size:
-                slideIcon.width *= scale;
-                slideIcon.height *= scale;
-            }
-            return node.getBounds().createUnion(slideIcon);
+            return node.getBounds().createUnion(node.getMapSlideIconBounds());
         } else
             return screenToMapRect(getVisibleBounds());
     }
@@ -3559,6 +3546,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // todo: can't we add this to a keymap for the MapViewer JComponent?
                 if (!e.isConsumed())
                     Actions.Delete.fire(this);
+            } else if (key == KeyEvent.VK_ENTER) {
+                if (!(mFocal instanceof LWMap))
+                    loadFocal(mFocal.getMap());
             } else if (key == KEY_ABORT_ACTION) {
 
                 if (dragComponent != null) {
@@ -3580,9 +3570,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     repaint();
                 }
 
-                if (!(mFocal instanceof LWMap))
-                    loadFocal(mFocal.getMap());
-                
                 else if (VUE.inFullScreen()) {
                     VUE.toggleFullScreen();
                 }

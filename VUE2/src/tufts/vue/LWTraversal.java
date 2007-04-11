@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.7 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2007-04-11 19:09:37 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -209,6 +209,7 @@ public class LWTraversal {
                 try {
                     // todo: can keep a cached transform for each parent encountered...
                     p = c.getLocalTransform().inverseTransform(mapPoint, null);
+                    if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + p);
                 } catch (java.awt.geom.NoninvertibleTransformException e) {
                     e.printStackTrace();
                     return;

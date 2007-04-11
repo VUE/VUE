@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.239 $ / $Date: 2007-04-11 18:22:57 $ / $Author: sfraize $
+ * @version $Revision: 1.240 $ / $Date: 2007-04-11 19:09:37 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2033,7 +2033,7 @@ public class LWComponent
         // if we're a descendent of what's being dropped! (would be a parent/child loop)
         if (pc.dropping instanceof LWContainer && hasAncestor((LWContainer)pc.dropping))
             return null;
-        else if (isDrawingSlideIcon() && getSlideIconBounds().contains(pc.x, pc.y))
+        else if (isDrawingSlideIcon() && getMapSlideIconBounds().contains(pc.x, pc.y))
             return getEntryToDisplay().getSlide();
         else
             return defaultPickImpl(pc);
@@ -2985,14 +2985,12 @@ public class LWComponent
             return false;
     }
 
-    /** default impl intersects the render bounds, including any borders */
+    /** default impl intersects the render/paint bounds, including any borders (we use this for draw clipping as well as selection) */
     protected boolean intersectsImpl(Rectangle2D rect) {
         final Rectangle2D bounds = getPaintBounds();
-        //final Rectangle2D bounds = getRawBounds();
         final boolean hit = rect.intersects(bounds);
         if (DEBUG.PAINT || DEBUG.PICK) System.out.println("INTERSECTS " + Util.out(rect) + " " + (hit?"YES":"NO ") + " for " + Util.out(bounds) + " " + this);
         return hit;
-        //return rect.intersects(getRenderBounds());
     }
     
     /**
@@ -3136,9 +3134,10 @@ public class LWComponent
     public final boolean contains(float x, float y) {
         if (containsImpl(x, y))
             return true;
-        else if (isDrawingSlideIcon() && getSlideIconBounds().contains(x, y))
-            return true;
-        else
+        else if (isDrawingSlideIcon()) {
+            if (DEBUG.PICK) out("Checking slide icon bounds " + getSlideIconBounds());
+            return getSlideIconBounds().contains(x, y);
+        } else
             return false;
     }
 
@@ -3164,6 +3163,25 @@ public class LWComponent
         else if (true || mSlideIconBounds.x == Float.NaN) // need a reshape/reshapeImpl trigger on move/resize to properly re-validate (wait: NaN != NaN !)
             computeSlideIconBounds(mSlideIconBounds);
         return mSlideIconBounds;
+    }
+
+    public Rectangle2D.Float getMapSlideIconBounds() {
+        if (!VUE.RELATIVE_COORDS)
+            return getSlideIconBounds();
+        
+        Rectangle2D.Float slideIcon = (Rectangle2D.Float) getSlideIconBounds().clone();
+        final float scale = getMapScaleF();
+        // Compress the local slide icon coords into the node's scale space:
+        slideIcon.x *= scale;
+        slideIcon.y *= scale;
+        // Now make them absolute map coordintes (no longer local):
+        slideIcon.x += getMapX();
+        slideIcon.y += getMapY();
+        // Now scale down size:
+        slideIcon.width *= scale;
+        slideIcon.height *= scale;
+
+        return slideIcon;
     }
 
     private Rectangle2D.Float computeSlideIconBounds(Rectangle2D.Float rect)
