@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.330 $ / $Date: 2007-04-10 22:24:09 $ / $Author: sfraize $ 
+ * @version $Revision: 1.331 $ / $Date: 2007-04-11 17:56:41 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -682,7 +682,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     public Dimension getVisibleSize() {
         Dimension d = new Dimension(getVisibleWidth(), getVisibleHeight());
-        if (DEBUG.SCROLL || DEBUG.PRESENT) out("visible size: " + out(d));
+        if (DEBUG.SCROLL) out("visible size: " + out(d));
         return d;
     }
     
@@ -868,8 +868,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected void reshapeImpl(int x, int y, int w, int h)
     {
         if (DEBUG.PRESENT) out("reshapeImpl");
-        if (!mMapAutoZoomRequested && (mFocal == null || mFocal instanceof LWMap))
+        if (!mMapAutoZoomRequested && (mFocal == null || mFocal instanceof LWMap)) {
+            //if (DEBUG.PRESENT) out("reshapeImpl: skipped");
+            //Util.printStackTrace("reshapeImpl");
             return;
+        }
         mMapAutoZoomRequested = false;
         zoomToContents();
     }
@@ -880,8 +883,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         }
         
-        if (getVisibleWidth() <= 0 || getVisibleHeight() <= 0) {
-            if (DEBUG.PRESENT) out("requesting delayed autoZoom");
+        if (getVisibleWidth() == 0 || getVisibleHeight() == 0) {
+            if (DEBUG.PRESENT) out("requesting delayed autoZoom; visSize=" + getVisibleSize());
             mMapAutoZoomRequested = true;
             return;
         }
@@ -895,7 +898,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     private boolean zoomUnderway = false;
-    private void doZoomToContents() {
+    private void doZoomToContents()
+    {
+        mMapAutoZoomRequested = false;
 
         if (mFocal == null) {
             out("Can't soom to null focal!");
@@ -1206,8 +1211,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     }
     
-    /*
-    private boolean isBoundsEvent(String k) {
+    private boolean isBoundsEvent(Object k)
+    {
+        //if (true) return k == LWKey.UserActionCompleted || k == LWKey.Location;
+        
+        return k != LWKey.HierarchyChanging
+            //&& k != LWKey.ChildrenRemoved
+                ;
+        /*
         return k == LWKey.Size
             || k == LWKey.Location
             || k == LWKey.Frame
@@ -1220,8 +1231,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //|| k == LWKey.Deleted // not currently being issued!
             //|| k == LWKey.Filtered // no such event yet
             ;
+        */
     }
-    */
     
     /**
      * Handle events coming off the LWMap we're displaying.
@@ -1261,7 +1272,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // when dragging if there are children of the dragged
         // object (still true?)
         
-        //if (isBoundsEvent(key))
+        if (isBoundsEvent(key))
             adjustCanvasSize();
         
         if (key == LWKey.Deleting) {
@@ -2270,7 +2281,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // to see the real result -- we just set the clip to
             // the shape of the focal.
             final Shape curClip = dc.g.getClip();
-            dc.g.clip(mFocal.getShape());
+            //dc.g.clip(mFocal.getShape());
             LWComponent parentSlide = mFocal.getAncestorOfType(LWSlide.class);
             // don't need to re-draw the focal itself, it's being
             // drawn in it's parent (slide or map)
