@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.133 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.134 $ / $Date: 2007-04-11 19:55:03 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -1715,8 +1715,7 @@ public class LWLink extends LWComponent
                 // outline shape, which can replace the manual code in MapViewer, and in
                 // the case of LWLink, can also draw the control lines.
                 //-------------------------------------------------------
-                //g.setColor(COLOR_SELECTION); // todo: move these to DrawContext
-                g.setColor(Color.green); 
+                g.setColor(COLOR_SELECTION); // todo: move these to DrawContext
                 dc.setAbsoluteStroke(0.5);
                 if (mCurveControls == 2) {
                     Line2D ctrlLine = new Line2D.Float(mLine.getP1(), mCubic.getCtrlP1());
