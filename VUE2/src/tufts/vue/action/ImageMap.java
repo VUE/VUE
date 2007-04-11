@@ -27,7 +27,7 @@ import java.awt.geom.Rectangle2D;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.9 $ / $Date: 2006-01-20 17:46:54 $ / $Author: sfraize $ *
+ * @version $Revision: 1.10 $ / $Date: 2007-04-11 18:41:54 $ / $Author: dan $ *
  * @author  Jay Briedis
  */
 public class ImageMap extends VueAction {
@@ -43,7 +43,7 @@ public class ImageMap extends VueAction {
     
     public void act()
     {
-        File selectedFile = ActionUtil.selectFile("Saving Imap", "imap");
+        File selectedFile = ActionUtil.selectFile("Saving Imap", "html");
         
         if (selectedFile != null)
             createImageMap(selectedFile);
@@ -51,8 +51,8 @@ public class ImageMap extends VueAction {
 
     public void createImageMap(File file)
     {    
-       String imageLocation = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+".jpeg";
-       String imageName = file.getName().substring(0, file.getName().length()-5)+".jpeg";
+       String imageLocation = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+"-for-image-map"+".jpeg";
+       String imageName = file.getName().substring(0, file.getName().length()-5)+"-for-image-map"+".jpeg";
        String fileName = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+".html";
        
        //createJpeg(imageLocation, "jpeg", currentMap, size);

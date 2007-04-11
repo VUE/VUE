@@ -67,7 +67,10 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         //  extensions = html;
         
         else if (description.equals(IMAGEMAP_DESCRIPTION))
-          extensions = imap;
+        {
+          //extensions = imap;
+            extensions = html;
+        }
         
         else if (description.equals(IMS_DESCRIPTION))
 			extensions = rli;

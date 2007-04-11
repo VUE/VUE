@@ -127,10 +127,11 @@ public class SaveAction extends VueAction
             else if (name.endsWith(".pdf"))
                 new PDFTransform().convert(file);
             
-            else if (name.endsWith(".html"))
-                new HTMLConversion().convert(file);
+            //else if (name.endsWith(".html"))
+              //  new HTMLConversion().convert(file);
             
-            else if (name.endsWith(".imap"))
+            //else if (name.endsWith(".imap"))
+            else if (name.endsWith(".html"))
                 new ImageMap().createImageMap(file);
             
 
