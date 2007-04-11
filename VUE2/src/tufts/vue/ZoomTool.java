@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.50 $ / $Date: 2007-04-10 20:23:34 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2007-04-11 20:44:35 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -116,10 +116,14 @@ public class ZoomTool extends VueTool
         } else if (e.getPicked() != null)  {
             if (e.getPicked() instanceof LWSlide) {
                 final LWSlide slide = (LWSlide) e.getPicked();
-                setZoomFitRegion(viewer,
-                                 slide.getSourceNode().getSlideIconBounds(),
-                                 0,
-                                 true);
+
+                if (VUE.inFullScreen()) {
+                    // animated zoom-to: only works in full-screen
+                    setZoomFitRegion(viewer,
+                                     slide.getSourceNode().getMapSlideIconBounds(),
+                                     0,
+                                     true);
+                }
 
                 tufts.vue.gui.GUI.invokeAfterAWT(new Runnable() {
                         public void run() {
