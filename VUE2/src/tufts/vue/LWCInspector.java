@@ -326,7 +326,7 @@ class LWCInspector extends javax.swing.JPanel
         LWComponent c = selection.first();
         // grab first in selection for moment
         idField.setText(id);
-        labelField.setBackground(c.getFillColor());
+        labelField.setBackground(Color.white);
         loadText(labelField, "");
         loadText(categoryField, "");
         
@@ -334,6 +334,18 @@ class LWCInspector extends javax.swing.JPanel
         disable(resourceField);
         disable(locationField);
         disable(sizeField);
+    }
+
+    private void loadLabel(LWComponent lwc) {
+        Color c = lwc.getRenderFillColor();
+        if (c == null || c.getAlpha() != 255)
+            c = Color.gray;
+        labelField.setBackground(c);
+//         if (c.isTranslucent() || c.getRenderFillColor() == null)
+//             labelField.setBackground(Color.gray);
+//         else
+//             labelField.setBackground(c.getRenderFillColor());
+        loadText(labelField, lwc.getLabel());
     }
 
     
@@ -375,12 +387,8 @@ class LWCInspector extends javax.swing.JPanel
         }
         
         idField.setText(id);
-        labelField.setBackground(c.getFillColor());
-        loadText(labelField, c.getLabel());
-        //loadText(categoryField, c.getCategory());
+        loadLabel(c);
         loadText(notesField, c.getNotes());
-        //loadText(widthField, new Float(c.getWidth()));
-        //loadText(heightField, new Float(c.getHeight()).toString());
         
         locationField.setText("x: " + c.getX() + "   y: " + c.getY());
         String sizeText = String.format("%.0fx%.0f", c.getWidth(), c.getHeight());
