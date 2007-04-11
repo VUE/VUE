@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.333 $ / $Date: 2007-04-11 19:09:37 $ / $Author: sfraize $ 
+ * @version $Revision: 1.334 $ / $Date: 2007-04-11 19:55:21 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1713,6 +1713,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     void setTip(JComponent pJComponent, Rectangle2D pAvoidRegion, Rectangle2D pTipRegion) {
         if (pJComponent == null)
             throw new IllegalArgumentException("JComponent is null");
+
+        if (VUE.inNativeFullScreen())
+            return;
 
         synchronized (sTipLock) {
             if (pJComponent == sTipComponent) {
