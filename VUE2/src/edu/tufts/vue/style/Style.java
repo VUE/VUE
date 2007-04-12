@@ -38,7 +38,7 @@ public abstract class Style {
     public static final String FONT_SIZE_KEY = "font-size";
     public static final String FONT_FAMILY_KEY = "font-family";
     public static final String FONT_STYLE_KEY = "font-style";
-    public static final String FONT_WEIGGHT_KEY = "font-weight";
+    public static final String FONT_WEIGHT_KEY = "font-weight";
     public static final int LENGTH_PREFIX = 4;
     public static final String OPEN="{";
     public static final String CLOSE="}";
@@ -88,6 +88,9 @@ public abstract class Style {
         }
         if(attributes.get(FONT_STYLE_KEY) != null) {
             fa.put(TextAttribute.POSTURE,ShorthandParser.parseFontStyle(attributes.get(FONT_STYLE_KEY)));
+        }
+        if(attributes.get(FONT_WEIGHT_KEY) != null) {
+            fa.put(TextAttribute.WEIGHT, ShorthandParser.parseFontWeight(attributes.get(FONT_WEIGHT_KEY)));
         }
         f = f.deriveFont(fa);
         return f;
