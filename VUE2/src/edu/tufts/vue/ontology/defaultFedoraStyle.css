@@ -29,11 +29,11 @@ link.hasPart {
 
 link.isDerivationOf { 
     font-weight: bold;
-    stroke-width: 2px; font-size: 9px; vue-head: 11px;
+    stroke-width: 2px; font-size: 20px; vue-head: 11px;
 }
 
 link.hasDerivation { 
-    stroke-width: 2px; font-size: 9px; vue-head: 11px;
+    stroke-width: 2px; font-size: 20px; vue-head: 11px;
 }
 
 link.isDependentOf { 
