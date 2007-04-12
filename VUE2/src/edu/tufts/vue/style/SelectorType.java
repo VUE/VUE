@@ -26,21 +26,20 @@
 package edu.tufts.vue.style;
 
 public class SelectorType extends org.osid.shared.Type{
+    public static final SelectorType defaultType = new SelectorType("Default Selector","edu.tufts","default");
     public static final SelectorType link = new SelectorType("Link Selector","edu.tufts","link");
-     public static final SelectorType node = new SelectorType("Node Selector","edu.tufts","node");
-     public SelectorType(String authority
-              , String domain
-              , String keyword)
-    {
-        super(authority,domain,keyword);        
-    }
-
+    public static final SelectorType node = new SelectorType("Node Selector","edu.tufts","node");
     public SelectorType(String authority
-              , String domain
-              , String keyword
-              , String description)
-    {
-        super(authority,domain,keyword,description);        
+            , String domain
+            , String keyword) {
+        super(authority,domain,keyword);
+    }
+    
+    public SelectorType(String authority
+            , String domain
+            , String keyword
+            , String description) {
+        super(authority,domain,keyword,description);
     }
     
     public static org.osid.shared.Type getLinkType() {
@@ -49,5 +48,8 @@ public class SelectorType extends org.osid.shared.Type{
     
     public static org.osid.shared.Type getNodeType() {
         return node;
+    }
+    public static org.osid.shared.Type getDefaultType() {
+        return defaultType;
     }
 }
