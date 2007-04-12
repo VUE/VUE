@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.334 $ / $Date: 2007-04-11 19:55:21 $ / $Author: sfraize $ 
+ * @version $Revision: 1.335 $ / $Date: 2007-04-12 19:55:53 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3552,6 +3552,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             } else if (key == KeyEvent.VK_ENTER) {
                 if (!(mFocal instanceof LWMap))
                     loadFocal(mFocal.getMap());
+                else
+                    handled = false;
             } else if (key == KEY_ABORT_ACTION) {
 
                 if (dragComponent != null) {
