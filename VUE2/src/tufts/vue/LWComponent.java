@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.240 $ / $Date: 2007-04-11 19:09:37 $ / $Author: sfraize $
+ * @version $Revision: 1.241 $ / $Date: 2007-04-12 19:58:34 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3155,7 +3155,7 @@ public class LWComponent
                 && y >= this.y && y <= (this.y+getHeight());
     }
 
-    private final float SlideScale = 0.1f;
+    private final float SlideScale = 0.125f;
     private Rectangle2D.Float mSlideIconBounds;
     public Rectangle2D.Float getSlideIconBounds() {
         if (mSlideIconBounds == null)
@@ -3193,8 +3193,15 @@ public class LWComponent
 
         //final float xoff = getWidth() + -width / 2f;
         //final float yoff = getHeight() + -height / 2f;
-        final float xoff = getWidth() - 20;
-        final float yoff = getHeight() - 20;
+        float xoff = getWidth() - 20;
+        float yoff = getHeight() - 20;
+
+        if (xoff < getWidth() / 2f)
+            xoff = getWidth() / 2f;
+        if (yoff < getHeight() * 0.75f)
+            yoff = getHeight() * 0.75f;
+
+        // never mode than 1/3 height, 1/2 width
         
         if (VUE.RELATIVE_COORDS) {
             rect.setRect(xoff,
