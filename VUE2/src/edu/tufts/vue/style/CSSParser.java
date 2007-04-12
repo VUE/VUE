@@ -252,6 +252,8 @@ public class CSSParser {
                 currentStyle = new NodeStyle(selector);
             }else if(selector.startsWith(LINK_PREFIX)){
                 currentStyle = new LinkStyle(selector);
+            }else {
+                currentStyle = new DefaultStyle(selector);
             }
             
             //callback.handleSelector(new String(tokenBuffer, 0,
