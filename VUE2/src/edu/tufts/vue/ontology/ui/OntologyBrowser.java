@@ -32,7 +32,8 @@ import tufts.vue.gui.*;
  */
 public class OntologyBrowser extends JPanel {
     
-    public static final Object POPULATE_TYPES = "type_list_layout_constraint";
+   // public static final Object POPULATE_TYPES = "type_list_layout_constraint";
+     public static final Object POPULATE_TYPES = java.awt.BorderLayout.CENTER;
     
     final JPanel ontologiesPanel;
     //final Widget typesPane = null;
@@ -86,6 +87,16 @@ public class OntologyBrowser extends JPanel {
 
     };
     
+    private WidgetStack resultsStack = new WidgetStack("types stack");
+    
+    public void addTypeList(edu.tufts.vue.ontology.ui.TypeList list,String name)
+    {
+        Widget w = new Widget(name);
+        w.add(list);
+        resultsStack.addPane(w);
+        revalidate();
+    }
+    
     
     public OntologyBrowser(boolean delayedLoading, DockWindow ontologyDock,DockWindow typeDock) 
     {
@@ -106,6 +117,9 @@ public class OntologyBrowser extends JPanel {
         {
             loadOntologyViewer();
         }
+        
+        populatePane.add(resultsStack);
+        ((Widget)populatePane).setTitleHidden(true);
         
         buildSingleDockWindow();
         
@@ -196,7 +210,7 @@ public class OntologyBrowser extends JPanel {
 
         stack.addPane(ontologiesPanel, 0f);
         stack.addPane(populatePane,0f);
-        stack.addPane(typesPane, 0f);
+       // stack.addPane(typesPane, 0f);
         
         this.dockWindow.setContent(stack);
     }

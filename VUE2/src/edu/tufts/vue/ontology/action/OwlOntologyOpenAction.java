@@ -92,7 +92,8 @@ public class OwlOntologyOpenAction extends tufts.vue.VueAction {
           else
           {
               //viewer.add(typeList);
-              viewer.getBrowser().getPopulatePane().add(typeList);
+              //viewer.getBrowser().getPopulatePane().add(typeList);
+              viewer.getBrowser().addTypeList(typeList,chooser.getSelectedFile().getName());
               viewer.revalidate();
           }
         }
