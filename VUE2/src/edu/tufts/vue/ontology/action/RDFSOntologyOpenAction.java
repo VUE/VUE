@@ -30,10 +30,17 @@ import edu.tufts.vue.ontology.ui.TypeList;
  */
 public class RDFSOntologyOpenAction extends tufts.vue.VueAction {
     
+    private edu.tufts.vue.ontology.ui.OntologyViewer viewer;
     
     /** Creates a new instance of RDFSOntologyOpenAction */
     public RDFSOntologyOpenAction(String label) {
         super(label);
+    }
+    
+    
+    public void setViewer(edu.tufts.vue.ontology.ui.OntologyViewer viewer)
+    {
+        this.viewer = viewer;
     }
     
     
@@ -74,11 +81,26 @@ public class RDFSOntologyOpenAction extends tufts.vue.VueAction {
               tufts.vue.VueUtil.alert("Couldn't load Ontology or Style","Error");
               System.out.println("Exception in rdfs ontology load: " + ex);
           }
-          tufts.vue.gui.DockWindow typeWindow = tufts.vue.gui.GUI.createDockWindow(chooser.getSelectedFile() + ": " + (TypeList.count++),
+          if(viewer==null)
+          {    
+            tufts.vue.gui.DockWindow typeWindow = tufts.vue.gui.GUI.createDockWindow(chooser.getSelectedFile() + ": " + (TypeList.count++),
                                                 typeList);
-          typeWindow.setLocation(200,100);
-          typeWindow.pack();
-          typeWindow.setVisible(true);
+            typeWindow.setLocation(200,100);
+            typeWindow.pack();
+            typeWindow.setVisible(true);
+          }
+          else
+          {
+              //viewer.getBrowser().getPopulatePane().addImpl(typeList,edu.tufts.vue.ontology.ui.OntologyBrowser.POPULATE_TYPES,edu.tufts.vue.ontology.OntManager.getOntManager().getOntList().size()+1);
+              
+              //System.out.println("rdfsooa: viewer: " + viewer);
+              //System.out.println("rdfsooa: viewer.getBrowser() " + viewer.getBrowser());
+              //System.out.println("rdfsooa: getPopulatePane() " + viewer.getBrowser().getPopulatePane());
+              
+              viewer.getBrowser().getPopulatePane().add(typeList);
+              viewer.revalidate();
+              viewer.getBrowser().revalidate();
+          }
         }
     }
     

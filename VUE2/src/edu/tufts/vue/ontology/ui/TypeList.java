@@ -224,7 +224,9 @@ public class TypeList extends JList {
             Style style = ot.getStyle();
             if(isNode(ot))
             {
-                LWNode node = new LWNode(ot.getLabel());
+                addNode(ot,ontology,style);
+                
+                /*LWNode node = new LWNode(ot.getLabel());
                   
                 //node.setLabel(ot.getLabel());
 
@@ -236,11 +238,13 @@ public class TypeList extends JList {
                 NodeTool.SubTool st = NodeTool.getActiveSubTool();
                 node.setShape(st.getShape());
                 node.applyCSS(style);
-                addType(node);
+                addType(node);*/
             }
             else
-            {    
-              LWLink link = new LWLink();
+            {   
+              addLink(ot,ontology,style);  
+                
+              /*LWLink link = new LWLink();
               link.setLabel(ot.getLabel() + "-->" + count);
               link.setHeadPoint(10,25);
               link.setTailPoint(40,25);
@@ -248,7 +252,7 @@ public class TypeList extends JList {
               //link.setArrowState(LWLink.ARROW_HEAD);
               //link.setWeight(Integer.parseInt(style.getAttribute("weight")));
               link.applyCSS(style);
-              addType(link);
+              addType(link);*/
             }
         }
         
@@ -273,20 +277,45 @@ public class TypeList extends JList {
           }
           else
           {
-            LWNode node = new LWNode(ontType.getLabel());
+            /*LWNode node = new LWNode(ontType.getLabel());
             //node.setLabel(ot.getLabel());
                 
             node.setAbsoluteSize(25,50);
             NodeTool.SubTool st = NodeTool.getActiveSubTool();
             node.setShape(st.getShape());
             node.applyCSS(style);
-            addType(node);
+            addType(node);*/
+              
+                LWNode node = new LWNode(ontType.getLabel());
+                  
+                //node.setLabel(ot.getLabel());
+
+                node.setAutoSized(false);
+                
+                node.setAbsoluteSize(25,25);
+                
+
+                NodeTool.SubTool st = NodeTool.getActiveSubTool();
+                node.setShape(st.getShape());
+                node.applyCSS(style);
+                addType(node);
+   
           }
           
     }
     
     private void addLink(OntType ontType,Ontology ontology, Style style)
     {
+        
+              LWLink link = new LWLink();
+              link.setLabel(ontType.getLabel() + "-->" + count);
+              link.setHeadPoint(10,25);
+              link.setTailPoint(40,25);
+              link.setAbsoluteSize(30,50);
+              //link.setArrowState(LWLink.ARROW_HEAD);
+              //link.setWeight(Integer.parseInt(style.getAttribute("weight")));
+              link.applyCSS(style);
+              addType(link);
         
     }
     

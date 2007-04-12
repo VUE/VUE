@@ -54,6 +54,7 @@ public class OntologyBrowser extends JPanel {
             }
             
             protected void addImpl(Component c, Object constraints, int idx) {
+            //public void addImpl(Component c, Object constraints, int idx) {
                 JComponent jc = null;
                 if (c instanceof JComponent)
                     jc = (JComponent) c;
@@ -130,10 +131,44 @@ public class OntologyBrowser extends JPanel {
           });
           add(button);
           
+          tufts.vue.VueAction addRDFSToBrowser = new tufts.vue.VueAction()
+          {
+              {
+                  setActionName("RDF in browser");
+              }
+              
+              public void actionPerformed(java.awt.event.ActionEvent e)
+              {
+                 setName("Browser rdfs");
+                 edu.tufts.vue.ontology.action.RDFSOntologyOpenAction rdfsooa = new edu.tufts.vue.ontology.action.RDFSOntologyOpenAction("Browser - RDFS");
+                 rdfsooa.setViewer(ontologyViewer);
+                 rdfsooa.actionPerformed(e);
+                 rdfsooa.setViewer(null);
+              }
+          };
+          
+          tufts.vue.VueAction addOWLToBrowser = new tufts.vue.VueAction()
+          {
+              {
+                  setActionName("OWL in browser");
+              }
+              
+              public void actionPerformed(java.awt.event.ActionEvent e)
+              {
+                 setName("Browser owl");
+                 edu.tufts.vue.ontology.action.OwlOntologyOpenAction owlsooa = new edu.tufts.vue.ontology.action.OwlOntologyOpenAction("OWL - RDFS");
+                 owlsooa.setViewer(ontologyViewer);
+                 owlsooa.actionPerformed(e);
+                 owlsooa.setViewer(null);
+              }
+          };
+          
           Action[] actions = {
             new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology"),
             new edu.tufts.vue.ontology.action.RDFSOntologyOpenAction("RDFS"),
-            new edu.tufts.vue.ontology.action.OwlOntologyOpenAction("OWL")
+            new edu.tufts.vue.ontology.action.OwlOntologyOpenAction("OWL"),
+            addRDFSToBrowser,
+            addOWLToBrowser
           };
           tufts.vue.gui.Widget.setMenuActions(this,actions);
         //$
@@ -164,6 +199,11 @@ public class OntologyBrowser extends JPanel {
         stack.addPane(typesPane, 0f);
         
         this.dockWindow.setContent(stack);
+    }
+    
+    public JComponent getPopulatePane()
+    {
+        return populatePane;
     }
     
 }

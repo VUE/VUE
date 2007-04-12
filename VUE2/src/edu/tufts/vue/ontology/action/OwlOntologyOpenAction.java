@@ -30,9 +30,16 @@ import edu.tufts.vue.ontology.ui.TypeList;
  */
 public class OwlOntologyOpenAction extends tufts.vue.VueAction {
     
+    private edu.tufts.vue.ontology.ui.OntologyViewer viewer;
+    
     /** Creates a new instance of OwlOntologyOpenAction */
     public OwlOntologyOpenAction(String label) {
         super(label);
+    }
+    
+    public void setViewer(edu.tufts.vue.ontology.ui.OntologyViewer viewer)
+    {
+        this.viewer = viewer;
     }
     
     /**
@@ -74,12 +81,20 @@ public class OwlOntologyOpenAction extends tufts.vue.VueAction {
           }
           
           javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(typeList);
-          
-          tufts.vue.gui.DockWindow typeWindow = tufts.vue.gui.GUI.createDockWindow(chooser.getSelectedFile() + ": " + (TypeList.count++),
+          if(viewer==null)
+          {
+            tufts.vue.gui.DockWindow typeWindow = tufts.vue.gui.GUI.createDockWindow(chooser.getSelectedFile() + ": " + (TypeList.count++),
                                                 scroll);
-          typeWindow.setLocation(200,100);
-          typeWindow.pack();
-          typeWindow.setVisible(true);
+            typeWindow.setLocation(200,100);
+            typeWindow.pack();
+            typeWindow.setVisible(true);
+          }
+          else
+          {
+              //viewer.add(typeList);
+              viewer.getBrowser().getPopulatePane().add(typeList);
+              viewer.revalidate();
+          }
         }
     }
     
