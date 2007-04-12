@@ -36,8 +36,9 @@ public abstract class Style {
     public static final int DEFAULT_FONT_SIZE_KEY = 1;
     public static final String FONT_COLOR_KEY = "font-color";
     public static final String FONT_SIZE_KEY = "font-size";
-    public static final String NODE_PREFIX = "node";
-    public static final String LINK_PREFIX = "link";
+    public static final String FONT_FAMILY_KEY = "font-family";
+    public static final String FONT_STYLE_KEY = "font-style";
+    public static final String FONT_WEIGGHT_KEY = "font-weight";
     public static final int LENGTH_PREFIX = 4;
     public static final String OPEN="{";
     public static final String CLOSE="}";
@@ -73,11 +74,20 @@ public abstract class Style {
         Font f = new Font(DEFAULT_FONT_VALUES[DEFAULT_FONT_FAMILY_KEY],Font.PLAIN,10);
         // setting the font color
         Map fa = new HashMap();
+        // Font color is not part of the font it is handled in 
+        /*
         if(attributes.get(FONT_COLOR_KEY) != null) {
-            fa.put(TextAttribute.FOREGROUND,attributes.get(FONT_COLOR_KEY));
+            fa.put(TextAttribute.FOREGROUND,ShorthandParser.parseFontColor(attributes.get(FONT_COLOR_KEY)));
         }
+         */
         if(attributes.get(FONT_SIZE_KEY) != null) {
             fa.put(TextAttribute.SIZE,ShorthandParser.parseFontSize(attributes.get(FONT_SIZE_KEY)));
+        }
+        if(attributes.get(FONT_FAMILY_KEY) != null) {
+            fa.put(TextAttribute.FAMILY,attributes.get(FONT_FAMILY_KEY));
+        }
+        if(attributes.get(FONT_STYLE_KEY) != null) {
+            fa.put(TextAttribute.POSTURE,ShorthandParser.parseFontStyle(attributes.get(FONT_STYLE_KEY)));
         }
         f = f.deriveFont(fa);
         return f;
