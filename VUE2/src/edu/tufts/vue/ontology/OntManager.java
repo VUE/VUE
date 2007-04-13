@@ -82,6 +82,17 @@ public class OntManager {
            // type.setType(edu.tufts.vue.style.SelectorType.getLinkType());
             types.add(type);
         }
+        iter  = m.listNamedClasses();
+        while(iter.hasNext()) {
+            OntClass c = (OntClass) iter.next();
+            OntType type = new OntType();
+            type.setId(c.getLocalName());
+            type.setLabel(c.getLabel(null));
+            type.setBase(ontUrl.toString());
+            type.setComment(c.getComment(null));
+            type.setStyle(Style.getStyle(c.getLocalName(),styleMap));
+            types.add(type);
+        }
         ont.setOntTypes(types);
         return ont;
     }
