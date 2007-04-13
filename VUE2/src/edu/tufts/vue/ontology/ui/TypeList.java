@@ -195,10 +195,21 @@ public class TypeList extends JList {
         //Style style = type.getStyle();
         //System.out.println("tl: isNode: style name: " + style.getName());
                 
-        if(StyleMap.getStyle("node."+type.getId())!=null)
-            return true;
-        else 
-            return false;
+        //System.out.println("tl: isNode type id: " + type.getId());
+        
+        // id no longer carries link. and node. info
+        //if(StyleMap.getStyle("node."+type.getId())!=null)
+        //    return true;
+        //else 
+        //    return false;
+        
+        //return type.getType().equals(edu.tufts.vue.style.SelectorType.getNodeType());
+        
+        System.out.println("tl: type.getStyle.getClass() " + type.getStyle().getClass());
+               
+        return (type.getStyle() instanceof NodeStyle);
+       
+        
       
     }
     
@@ -256,18 +267,18 @@ public class TypeList extends JList {
             }
         }
         
-        if(ontology == fedoraOntology)
+        /*if(ontology == fedoraOntology)
         {
           OntType fedoraObject = new OntType();  
           Style style = new NodeStyle("fedora object");
           addNode(fedoraObject,ontology,style);
-        }
+        }*/
         
     }
     
     private void addNode(OntType ontType,Ontology ontology,Style style)
     {
-          if(ontology == fedoraOntology)
+          /*if(ontology == fedoraOntology)
           {
             LWNode node = new LWNode("Fedora Object");
             node.setAbsoluteSize(25,50);
@@ -276,7 +287,7 @@ public class TypeList extends JList {
             addType(node);
           }
           else
-          {
+          {*/
             /*LWNode node = new LWNode(ontType.getLabel());
             //node.setLabel(ot.getLabel());
                 
@@ -300,7 +311,7 @@ public class TypeList extends JList {
                 node.applyCSS(style);
                 addType(node);
    
-          }
+          //}
           
     }
     
@@ -317,11 +328,18 @@ public class TypeList extends JList {
               link.setHeadPoint(10,25);
               link.setTailPoint(40,25);
               link.setAbsoluteSize(30,50);
+              
+              //link.setHeadPoint(10,25);
+              //link.setTailPoint(140,25);
+              //link.setAbsoluteSize(150,50);
+              
               //link.setArrowState(LWLink.ARROW_HEAD);
               //link.setWeight(Integer.parseInt(style.getAttribute("weight")));
               applyDefaultLinkStyle(link);
               //applyStyleSheetLinkStyle(link,style);
-              link.applyCSS(style);
+              //System.out.println("t1: addLink about to apply style for: " + ontType.getLabel());
+              //System.out.println("tl: addLink applying style: " + ontType.getStyle());
+              link.applyCSS(ontType.getStyle());
               addType(link);
         
     }
@@ -329,7 +347,8 @@ public class TypeList extends JList {
     private void applyStyleSheetLinkStyle(LWLink link,Style style)
     {
               //link.setArrowState(LWLink.ARROW_HEAD);
-              link.setWeight(Integer.parseInt(style.getAttribute("weight")));
+              if(style.getAttribute("stroke-width") != null)
+                link.setStrokeWidth(Float.parseFloat(style.getAttribute("stroke-width")));
     }
     
     private void applyDefaultLinkStyle(LWLink link)
@@ -452,6 +471,10 @@ public class TypeList extends JList {
               link.setAbsoluteSize(150,50);
               //link.setArrowState(LWLink.ARROW_HEAD);
               //link.setWeight(Integer.parseInt(style.getAttribute("weight")));
+              
+              System.out.println("t1: test panel about to apply style for: " + ot.getLabel());
+              System.out.println("tl: test panel applying style: " + ot.getStyle());
+              
               link.applyCSS(style);
               tlist.addType(link);
             }
