@@ -69,7 +69,7 @@ public class OwlOntologyOpenAction extends tufts.vue.VueAction {
             //java.net.URL cssURL = new java.net.URL("file:////" + styleFile.getAbsolutePath());
               
             java.net.URL fileURL = file.toURL();
-            java.net.URL cssURL = file.toURL();
+            java.net.URL cssURL = styleFile.toURL();
               
             System.out.println("owl open action: fileURL, cssURL: " + fileURL + "," + cssURL);
             

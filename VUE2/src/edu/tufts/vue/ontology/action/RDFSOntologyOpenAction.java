@@ -70,7 +70,7 @@ public class RDFSOntologyOpenAction extends tufts.vue.VueAction {
             //java.net.URL fileURL = new java.net.URL("file:////"+file.getAbsolutePath());
             //java.net.URL cssURL = new java.net.URL("file:////" + styleFile.getAbsolutePath());
             java.net.URL fileURL = file.toURL();
-            java.net.URL cssURL = file.toURL();
+            java.net.URL cssURL = styleFile.toURL();
               
             System.out.println("RDFS open action: fileURL, cssURL: " + fileURL + "," + cssURL);
             
