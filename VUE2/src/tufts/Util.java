@@ -1052,7 +1052,7 @@ public class Util
     }
 
     public static String out(java.awt.Rectangle r) {
-        return String.format("[%4d,%4d %4dx%4d]", r.x, r.y, r.width, r.height);
+        return String.format("[%4d,%4d %-5dx%4d]", r.x, r.y, r.width, r.height);
 //         return ""
 //             + r.width + "x" + r.height
 //             + " "
