@@ -39,16 +39,13 @@ public class ShorthandParser {
      */
     public static Float parseFontSize(String value){
         float fv = DEFAULT_FONT_SIZE;
-        if(value.endsWith("pt")) {
-            fv = Float.parseFloat(value.substring(0,value.length()-2)) ;
-        }else if(value.endsWith("px")) {
-            fv = Float.parseFloat(value.substring(0,value.length()-2)) ;
-        } else  {
-            fv = Float.parseFloat(value);
+         Float f = parseSize(value);
+         
+        if(f != null) {
+             return f;
+        } else {
+             return new Float(fv);
         }
-        
-        Float f = new Float(fv);
-        return f;
     }
     
     /*
@@ -70,5 +67,18 @@ public class ShorthandParser {
         }
         return fv;
         
+    }
+    
+    public static Float parseSize(String value) {
+         float fv;
+        if(value.endsWith("pt")) {
+            fv = Float.parseFloat(value.substring(0,value.length()-2)) ;
+        }else if(value.endsWith("px")) {
+            fv = Float.parseFloat(value.substring(0,value.length()-2)) ;
+        } else  {
+            fv = Float.parseFloat(value);
+        }
+        Float f = new Float(fv);
+        return f;
     }
 }
