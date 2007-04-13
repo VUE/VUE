@@ -19,18 +19,20 @@
 package tufts.vue;
 
 import java.awt.Color;
+import java.awt.Shape;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Rectangle;
 import java.awt.AlphaComposite;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 
 /**
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.32 $ / $Date: 2007-04-10 21:19:11 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2007-04-13 22:39:20 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -42,6 +44,7 @@ public class DrawContext
     
     public final float offsetX;
     public final float offsetY;
+    
     
     private int index;
     private int maxLayer = Short.MAX_VALUE; // don't draw layers above this level
@@ -59,9 +62,11 @@ public class DrawContext
 
     private VueTool activeTool;
 
-    private boolean inMapDraw = false;
-    private AffineTransform rawTransform;
-    private AffineTransform mapTransform;
+    //private boolean inMapDraw = false;
+    private final Shape rawClip;
+    private final AffineTransform rawTransform;
+    private final AffineTransform mapTransform;
+    private Rectangle2D masterClipRect; // for drawing map nodes
     
 
     // todo: consider including a Conatiner arg in here, for
@@ -70,14 +75,25 @@ public class DrawContext
 
     // todo: move coord mappers from MapViewer to here?
 
-    public DrawContext(Graphics g, double zoom, float offsetX, float offsetY, Rectangle frame, LWComponent focal, boolean absoluteLinks)
+    public DrawContext(Graphics _g, double zoom, float offsetX, float offsetY, Rectangle frame, LWComponent focal, boolean absoluteLinks)
     {
-        this.g = (Graphics2D) g;
+        this.g = (Graphics2D) _g;
         this.zoom = zoom;
         this.offsetX = offsetX;
         this.offsetY = offsetY;
         this.frame = frame;
         this.focal = focal;
+
+        this.rawClip = g.getClip();
+        //this.g.translate(frame.x, frame.y);
+        this.rawTransform = g.getTransform();
+        this.g.translate(offsetX, offsetY);
+        this.g.scale(zoom, zoom);
+        this.mapTransform = g.getTransform();
+        setMasterClip(g.getClip());
+
+        
+        //setMasterClip(rawClip = g.getClip());
         
         //this.drawAbsoluteLinks = absoluteLinks;
         //setPrioritizeSpeed(true);
@@ -91,6 +107,78 @@ public class DrawContext
     public DrawContext(Graphics g)
     {
         this(g, 1.0);
+    }
+
+    /** set up for drawing a model: adjust to the current zoom and offset.
+     * MapViewer, MapPanner, VueTool, etc, to use.*/
+    // todo: change to single setMapDrawing(boolean)
+    /*
+    public void setMapDrawing() {
+        if (rawTransform != null)
+            throw new Error("DrawContext: map paramaters already established");
+        
+        //if (!inMapDraw) {
+            rawTransform = g.getTransform();
+            g.translate(offsetX, offsetY);
+            g.scale(zoom, zoom);
+            mapTransform = g.getTransform();
+            setMasterClip(g.getClip());
+            //System.out.println("DC SCALE TO " + zoom);
+            //System.out.println("DC SCALE TO " + g.getTransform());
+            //inMapDraw = true;
+            //}
+    }
+    public void resetMapDrawing() {
+        if (mapTransform != null)
+            g.setTransform(mapTransform);
+        else
+            throw new Error("DrawContext: initial map transform not established");
+    }
+    public void setRawDrawing() {
+        //if (inMapDraw) {
+            if (rawTransform == null)
+                throw new IllegalStateException("attempt to revert to raw draw in a derivative DrawContext");
+            //System.out.println("DC REVER TO " + savedTransform);
+            g.setTransform(rawTransform);
+            //setMasterClip(rawClip);
+            //            inMapDraw = false;
+            //        }
+    }
+    
+    */
+    
+    public void setMapDrawing() {
+        g.setTransform(mapTransform);
+    }
+    public void setRawDrawing() {
+        g.setTransform(rawTransform);
+    }
+    
+    public void setFrameDrawing() {
+        g.setTransform(rawTransform);
+        g.translate(frame.x, frame.y);
+    }
+        
+    public void setMasterClip(Shape clip)
+    {
+        g.setClip(clip);
+        if (clip instanceof Rectangle2D) {
+            masterClipRect = (Rectangle2D) clip;
+            //if (DEBUG.PAINT) System.out.println("MASTER CLIP RECT2D=" + tufts.Util.out(masterClipRect));
+        } else {
+            // we've set the shaped clip in the gc, now extract the master clip rectangle from the gc
+            masterClipRect = g.getClipBounds();
+            if (DEBUG.PAINT || DEBUG.CONTAINMENT || DEBUG.PRESENT) {
+                System.out.println("SET SHAPE CLIP: " + clip);
+                //System.out.println("MASTER CLIP RECT2D: " + Util.out(masterClipRect));
+            }
+        }
+        if (DEBUG.PAINT || DEBUG.CONTAINMENT || DEBUG.PRESENT)
+            System.out.println("MASTER CLIP RECT2D=" + tufts.Util.out(masterClipRect));
+    }
+
+    public Rectangle2D getMasterClipRect() {
+        return masterClipRect;
     }
 
     public void setMaxLayer(int layer) {
@@ -277,36 +365,6 @@ public class DrawContext
             g.scale(zoom, zoom);
     }
 
-    /** set up for drawing a model: adjust to the current zoom and offset.
-     * MapViewer, MapPanner, VueTool, etc, to use.*/
-    // todo: change to single setMapDrawing(boolean)
-    public void setMapDrawing() {
-        if (!inMapDraw) {
-            rawTransform = g.getTransform();
-            g.translate(offsetX, offsetY);
-            g.scale(zoom, zoom);
-            mapTransform = g.getTransform();
-            //System.out.println("DC SCALE TO " + zoom);
-            //System.out.println("DC SCALE TO " + g.getTransform());
-            inMapDraw = true;
-        }
-    }
-
-    public void resetMapDrawing() {
-        if (mapTransform != null)
-            g.setTransform(mapTransform);
-    }
-        
-    public void setRawDrawing() {
-        if (inMapDraw) {
-            if (rawTransform == null)
-                throw new IllegalStateException("attempt to revert to raw draw in a derivative DrawContext");
-            //System.out.println("DC REVER TO " + savedTransform);
-            g.setTransform(rawTransform);
-            inMapDraw = false;
-        }
-    }
-    
 
     public DrawContext create()
     {
@@ -329,7 +387,7 @@ public class DrawContext
         this.isBlackWhiteReversed = dc.isBlackWhiteReversed;
         this.isPresenting = dc.isPresenting;
         this.activeTool = dc.activeTool;
-        this.inMapDraw = dc.inMapDraw;
+        //this.inMapDraw = dc.inMapDraw;
         this.mapTransform = dc.mapTransform;
         this.frame = dc.frame;
         this.focal = dc.focal;
@@ -337,6 +395,9 @@ public class DrawContext
         //this.drawAbsoluteLinks = dc.drawAbsoluteLinks;
         this.maxLayer = dc.maxLayer;
         this.isEditMode = dc.isEditMode;
+        this.rawClip = dc.rawClip;
+        this.rawTransform = dc.rawTransform;
+        this.masterClipRect = dc.masterClipRect;
         //this.mAlpha = dc.mAlpha;
     }
 

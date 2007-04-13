@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.241 $ / $Date: 2007-04-12 19:58:34 $ / $Author: sfraize $
+ * @version $Revision: 1.242 $ / $Date: 2007-04-13 22:39:20 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2985,11 +2985,26 @@ public class LWComponent
             return false;
     }
 
+    /** @return true if this component currently requires painting and intersects the master paint region */
+    public boolean requiresPaint(DrawContext dc)
+    {
+        // if filtered, don't draw, unless has children, in which case
+        // we need to draw just in case any of the children are NOT filtered.
+        if (!isVisible() || (isFiltered() && !hasChildren()))
+            return false;
+
+        if (getLayer() > dc.getMaxLayer())
+            return false;
+
+        return intersects(dc.getMasterClipRect());
+    }
+    
+
     /** default impl intersects the render/paint bounds, including any borders (we use this for draw clipping as well as selection) */
     protected boolean intersectsImpl(Rectangle2D rect) {
         final Rectangle2D bounds = getPaintBounds();
         final boolean hit = rect.intersects(bounds);
-        if (DEBUG.PAINT || DEBUG.PICK) System.out.println("INTERSECTS " + Util.out(rect) + " " + (hit?"YES":"NO ") + " for " + Util.out(bounds) + " " + this);
+        if (DEBUG.PAINT || DEBUG.PICK) System.out.println("INTERSECTS " + Util.out(rect) + " " + (hit?"YES":"NO ") + " for " + Util.out(bounds) + " of " + this);
         return hit;
     }
     
@@ -3151,8 +3166,13 @@ public class LWComponent
             return x >= 0 && x <= getWidth()
                 && y >= 0 && y <= getHeight();
         else
-            return x >= this.x && x <= (this.x+getWidth())
-                && y >= this.y && y <= (this.y+getHeight());
+            return containsRaw(x, y);
+    }
+
+    /** For using a node in a non-map context (e.g., as an on-screen button) */
+    public boolean containsRaw(float x, float y) {
+        return x >= this.x && x <= (this.x+getWidth())
+            && y >= this.y && y <= (this.y+getHeight());
     }
 
     private final float SlideScale = 0.125f;
@@ -3201,8 +3221,6 @@ public class LWComponent
         if (yoff < getHeight() * 0.75f)
             yoff = getHeight() * 0.75f;
 
-        // never mode than 1/3 height, 1/2 width
-        
         if (VUE.RELATIVE_COORDS) {
             rect.setRect(xoff,
                          yoff,
@@ -3248,7 +3266,7 @@ public class LWComponent
     {
         if (VUE.RELATIVE_COORDS) {
             if (hasAbsoluteMapLocation())
-                dc.resetMapDrawing();
+                dc.setMapDrawing();
             else// this will cascade to all children when they draw, combining with their calls to transformRelative
                 transformRelative(dc.g);
         } else {

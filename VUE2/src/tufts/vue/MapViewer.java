@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.335 $ / $Date: 2007-04-12 19:55:53 $ / $Author: sfraize $ 
+ * @version $Revision: 1.336 $ / $Date: 2007-04-13 22:39:20 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1904,7 +1904,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public void paint(Graphics g) {
         long start = 0;
         if (DEBUG.PAINT) {
-            System.out.print("paint " + paints + " clipBounds=" + g.getClipBounds()+" "); System.out.flush();
+            System.out.print("paint " + paints + " RAW-clipBounds=" + g.getClipBounds()+" "); System.out.flush();
             start = System.currentTimeMillis();
         }
         try {
@@ -2054,7 +2054,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //-------------------------------------------------------
         
         //setScaleDraw(g2);
-        dc.setMapDrawing();
+        //dc.setMapDrawing();
 
         //-------------------------------------------------------
         // DRAW THE MAP
@@ -2138,7 +2138,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
 
-        dc.setRawDrawing();
         
         //-------------------------------------------------------
         // draw the dragged selector box
@@ -2147,6 +2146,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //if (draggedSelectorBox != null && activeTool.supportsDraggedSelector(null)) {
         if (draggedSelectorBox != null) {
             // todo: box should already be null of tool doesn't support selector
+            dc.setRawDrawing();
             drawSelectorBox(g2, draggedSelectorBox);
             //if (VueSelection != null && !VueSelection.isEmpty())
             //    new Throwable("selection box while selection visible").printStackTrace();
@@ -2154,6 +2154,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         if (DEBUG.VIEWER) {
+            dc.setRawDrawing();
             g2.setColor(Color.red);
             g2.setStroke(new java.awt.BasicStroke(1f));
             g2.drawLine(_mouse.x,_mouse.y, _mouse.x+1,_mouse.y+1);
@@ -2171,6 +2172,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             g2.setFont(VueConstants.FixedFont);
             int x = -getX() + 40;
             int y = -getY() + 40;
+            //int x = dc.frame.x;
+            //int y = dc.frame.y;
             //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
             if (true) {
                 g2.drawString(" origin offset: " + out(getOriginLocation()), x, y+=15);
@@ -2190,6 +2193,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 g2.drawString("map-canvas-size " + out(mapToScreenDim(getMap().getBounds())), x, y+=15);
                 g2.drawString("map-canvas-adju " + out(mapToScreenDim(getContentBounds())), x, y+=15);
                 g2.drawString("    canvas-size " + out(getSize()), x, y+=15);
+                g2.drawString("          frame " + out(dc.getFrame()), x, y+=15);
             }
             if (inScrollPane) {
                 g2.drawString("  viewport-size " + out(mViewport.getSize()), x, y+=15);
@@ -2271,8 +2275,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // to see the real result -- we just set the clip to
             // the shape of the focal.
             final Shape curClip = dc.g.getClip();
-            //dc.g.clip(mFocal.getMapShape());
-            dc.g.setClip(mFocal.getMapShape());
+            dc.g.clip(mFocal.getMapShape());
+            dc.setMasterClip(mFocal.getMapShape());
             LWComponent parentSlide = mFocal.getAncestorOfType(LWSlide.class);
             // don't need to re-draw the focal itself, it's being
             // drawn in it's parent (slide or map)
@@ -2281,7 +2285,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             } else {
                 mFocal.getMap().draw(dc);
             }
-            dc.g.setClip(curClip);
+            dc.setMasterClip(curClip);
         } else {
             // now draw the map / focal
             mFocal.draw(dc);
@@ -2833,7 +2837,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (indication == null)
             return;
 
-        dc = dc.create(); // overkill?
+        //dc = dc.create(); // overkill?
         dc.setMapDrawing();
         //setScaleDraw(dc.g);
         double minStroke = STROKE_SELECTION.getLineWidth() * 3;// * mZoomInverse;

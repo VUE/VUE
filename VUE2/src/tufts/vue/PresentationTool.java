@@ -70,11 +70,20 @@ public class PresentationTool extends VueTool
     private boolean mFadeEffect = true;
     private boolean mZoomToPage = true;
 
-    private Stack<LWComponent> mBackList = new Stack<LWComponent>() {
+    private static class BackStack extends Stack<LWComponent> {
         public LWComponent peek() {
             return empty() ? null : super.peek();
         }
-    };
+        public LWComponent peekNode() {
+            LWComponent c = peek();
+            if (c instanceof LWSlide)
+                return ((LWSlide)c).getSourceNode();
+            else
+                return c;
+        }
+    }
+
+    private BackStack mBackList = new BackStack();
 
     private List<LWComponent> mNavNodes = new java.util.ArrayList();
 
@@ -166,10 +175,11 @@ public class PresentationTool extends VueTool
     {
         for (LWComponent c : mNavNodes) {
             System.out.println("pickCheck " + c + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
-            if (c.contains(e.getX(), e.getY())) {
+            if (c.containsRaw(e.getX(), e.getY())) {
                 System.out.println("HIT " + c);
-                LWComponent oneBack = mBackList.peek();
-                if (oneBack == c.getSyncSource() || (oneBack instanceof LWSlide && ((LWSlide)oneBack).getSourceNode() == c.getSyncSource()))
+                //LWComponent oneBack = mBackList.peek();
+                //if (oneBack == c.getSyncSource() || (oneBack instanceof LWSlide && ((LWSlide)oneBack).getSourceNode() == c.getSyncSource()))
+                if (mBackList.peek() == c.getSyncSource() || mBackList.peekNode() == c.getSyncSource())
                     backUp();
                 else
                     setPage(c.getSyncSource());
@@ -220,7 +230,7 @@ public class PresentationTool extends VueTool
 
     private LWComponent currentNode() {
         if (mCurrentPage instanceof LWSlide)
-            return mEntry.node;
+            return mEntry == null ? null : mEntry.node;
         else
             return mCurrentPage;
     }
@@ -490,14 +500,21 @@ public class PresentationTool extends VueTool
             drawNavNodes(dc);
         }
 
+        
         if (DEBUG.Enabled) {
-            dc.g.setFont(VueConstants.FixedFont);
+            dc.setFrameDrawing();
+            //dc.g.translate(dc.frame.x, dc.frame.y);
+            //dc.g.setFont(VueConstants.FixedFont);
+            dc.g.setFont(new Font("Lucida Sans Typewriter", Font.BOLD, 12));
+            //dc.g.setColor(new Color(128,128,128,192));
             dc.g.setColor(Color.gray);
-            int y = 20;
+            int y = 10;
+            dc.g.drawString("Frame: " + tufts.Util.out(dc.frame), 10, y+=15);
             if (mEntry != null)         dc.g.drawString(mEntry.pathway.getDiagnosticLabel(), 10, y+=15);
             if (mCurrentPage != null)   dc.g.drawString("Page: " + mCurrentPage.getDiagnosticLabel(), 10, y+=15);
             if (mEntry != null)         dc.g.drawString(mEntry.toString(), 10, y+=15);
-            dc.g.drawString("Frame: " + tufts.Util.out(dc.frame), 10, y+=15);
+            dc.g.drawString("  Backup: " + mBackList.peek(), 10, y+=15);
+            dc.g.drawString("BackNode: " + mBackList.peekNode(), 10, y+=15);
         }
 
         
@@ -609,8 +626,11 @@ public class PresentationTool extends VueTool
     /** Draw a ghosted panner */
     private void drawOverviewMap(DrawContext sourceDC)
     {
-        sourceDC.setRawDrawing();
+        //sourceDC.setRawDrawing();
         DrawContext dc = sourceDC.create();
+        //dc.setRawDrawing();
+        //final DrawContext dc = sourceDC;
+        dc.setFrameDrawing();
 
         final Rectangle panner = new Rectangle(0,0,
                                                dc.frame.width / OverviewMapFraction,
@@ -632,8 +652,6 @@ public class PresentationTool extends VueTool
 
     private void drawNavNodes(DrawContext dc)
     {
-        dc.setRawDrawing();
-
         LWComponent node = currentNode();
 
         mNavNodes.clear();
@@ -643,9 +661,11 @@ public class PresentationTool extends VueTool
         
         makeNavNodes(node, dc.getFrame());
         
-        dc.g.translate(dc.frame.x, dc.frame.y);
-        for (LWComponent c : mNavNodes)
+        //dc = dc.create(); // just in case
+        for (LWComponent c : mNavNodes) {
+            dc.setFrameDrawing(); // reset the GC each time, as draw translate it to local coords each time
             c.draw(dc);
+        }
 
     }
 
@@ -663,6 +683,16 @@ public class PresentationTool extends VueTool
             }
         }
 
+        float x = 0, y;
+        //out("frame " + frame);
+        for (LWComponent c : mNavNodes) {
+            y = frame.height - c.getHeight();
+            c.setLocation(x, y);
+            //out("location set to " + x + "," + y + " for " + c);
+            x += c.getWidth() + 15;
+        }
+
+        /*
         float spacePerNode = frame.width;
         if (mShowNavigator)
             spacePerNode -= (frame.width / OverviewMapFraction);
@@ -678,6 +708,7 @@ public class PresentationTool extends VueTool
             //out("location set to " + x + "," + y);
             cnt++;
         }
+        */
     }
 
     /*
@@ -712,8 +743,15 @@ public class PresentationTool extends VueTool
             c.setSyncSource(src);
             return c;
         }
+
+        String label = src.getDisplayLabel();
+
+        if (mBackList.peekNode() == src)
+            label = "BACK:" + label;
+        label = " " + label + " ";
         
-        LWNode c = new LWNode("  " + src.getDisplayLabel() + " ");
+        LWNode c = new LWNode(label);
+
         //LWComponent c = NodeTool.createTextNode(src.getDisplayLabel());
         c.setFont(NavFont);
         c.setTextColor(NavTextColor);

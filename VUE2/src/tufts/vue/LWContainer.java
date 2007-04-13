@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.110 $ / $Date: 2007-04-11 18:22:57 $ / $Author: sfraize $
+ * @version $Revision: 1.111 $ / $Date: 2007-04-13 22:39:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -1012,6 +1012,7 @@ public abstract class LWContainer extends LWComponent
         int images = 0;
         int other = 0;
         
+        /*
         final Rectangle2D clipBounds;
         final Shape clip = dc.g.getClip();
         if (clip instanceof Rectangle2D) {
@@ -1027,13 +1028,12 @@ public abstract class LWContainer extends LWComponent
 
             // fudge clip bounds to deal with anti-aliasing
             // edges that are being missed (only at the top level)
-            /*
-              if (dc.focal == this) {
-              if (clipBounds != null)
-              clipBounds.grow(1,1);
-              }
-            */
+//               if (dc.focal == this) {
+//               if (clipBounds != null)
+//               clipBounds.grow(1,1);
+//               }
         }
+        */
 
                 
         LWComponent focused = null;
@@ -1056,14 +1056,12 @@ public abstract class LWContainer extends LWComponent
 
             // if filtered, don't draw, unless has children, in which case
             // we need to draw just in case any of the children are NOT filtered.
-            if (!c.isVisible() || (c.isFiltered() && !c.hasChildren()))
-                continue;
+//             if (!c.isVisible() || (c.isFiltered() && !c.hasChildren()))
+//                 continue;
+//             if (c.getLayer() > dc.getMaxLayer())
+//                 continue;
 
-            if (c.getLayer() > dc.getMaxLayer())
-                continue;
-
-            // todo: probably want an intersects(DrawContext) ...
-            if (!VUE.RELATIVE_COORDS && !c.intersects(clipBounds)) // doesn't work for relative at moment
+            if (!c.requiresPaint(dc))
                 continue;
 
             drawChildSafely(dc, c);
@@ -1091,7 +1089,7 @@ public abstract class LWContainer extends LWComponent
         // todo opt: don't create all these GC's?
         // todo: if selection going to draw in map, consolodate it here!
         // todo: same goes for pathway decorations!
-        DrawContext dc = _dc.create();
+        final DrawContext dc = _dc.create();
         try {
             drawChild(c, dc);
         } catch (Throwable t) {
