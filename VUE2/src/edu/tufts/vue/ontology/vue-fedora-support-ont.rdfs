@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rdf:RDF base="info:vue/fedora" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
     <rdfs:Class rdf:ID="fedoraObject">
-        <rdfs:label xml:lang="en-US">Fedora Objext</rdfs:label>
+        <rdfs:label xml:lang="en-US">Fedora Object</rdfs:label>
         <rdfs:comment>A generic Fedora Object to create nodes in VUE.</rdfs:comment>
     </rdfs:Class>
 </rdf:RDF>
