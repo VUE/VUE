@@ -77,7 +77,7 @@ public class OwlOntologyOpenAction extends tufts.vue.VueAction {
                                   cssURL,
                                   edu.tufts.vue.ontology.OntManager.OWL,true);
           }
-          catch(Exception ex)
+          catch(java.net.MalformedURLException ex)
           {
               tufts.vue.VueUtil.alert("Couldn't load Ontology or Style","Error");
               System.out.println("Exception in owl ontology load: " + ex);

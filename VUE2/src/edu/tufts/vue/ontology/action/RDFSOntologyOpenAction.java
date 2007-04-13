@@ -78,7 +78,7 @@ public class RDFSOntologyOpenAction extends tufts.vue.VueAction {
                                   cssURL,
                                   edu.tufts.vue.ontology.OntManager.RDFS,true);
           }
-          catch(Exception ex)
+          catch(java.net.MalformedURLException ex)
           {
               tufts.vue.VueUtil.alert("Couldn't load Ontology or Style","Error");
               System.out.println("Exception in rdfs ontology load: " + ex);
