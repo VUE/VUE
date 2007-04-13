@@ -304,6 +304,11 @@ public class TypeList extends JList {
           
     }
     
+    private void applyDefaultNodeStyle(LWNode node)
+    {
+        
+    }
+    
     private void addLink(OntType ontType,Ontology ontology, Style style)
     {
         
@@ -314,9 +319,23 @@ public class TypeList extends JList {
               link.setAbsoluteSize(30,50);
               //link.setArrowState(LWLink.ARROW_HEAD);
               //link.setWeight(Integer.parseInt(style.getAttribute("weight")));
+              applyDefaultLinkStyle(link);
+              //applyStyleSheetLinkStyle(link,style);
               link.applyCSS(style);
               addType(link);
         
+    }
+    
+    private void applyStyleSheetLinkStyle(LWLink link,Style style)
+    {
+              //link.setArrowState(LWLink.ARROW_HEAD);
+              link.setWeight(Integer.parseInt(style.getAttribute("weight")));
+    }
+    
+    private void applyDefaultLinkStyle(LWLink link)
+    {
+              link.setArrowState(LWLink.ARROW_TAIL);
+              link.setWeight(1);
     }
     
     
