@@ -79,7 +79,7 @@ public class OntManager {
             type.setBase(ontUrl.toString());
             type.setComment(sp.getComment(null));
             type.setStyle(Style.getStyle(sp.getLocalName(),styleMap));
-            type.setType(edu.tufts.vue.style.SelectorType.getLinkType());
+           // type.setType(edu.tufts.vue.style.SelectorType.getLinkType());
             types.add(type);
         }
         ont.setOntTypes(types);
@@ -104,7 +104,7 @@ public class OntManager {
             type.setBase(ontUrl.toString());
             type.setComment(c.getComment(null));
             type.setStyle(Style.getStyle(c.getLocalName(),styleMap));
-            type.setType(edu.tufts.vue.style.SelectorType.getNodeType());
+       //     type.setType(edu.tufts.vue.style.SelectorType.getNodeType());
             types.add(type);
         }
         //reading object properties
@@ -117,7 +117,7 @@ public class OntManager {
             type.setLabel(p.getLabel(null));
             type.setComment(p.getComment(null));
             type.setStyle(Style.getStyle(p.getLocalName(),styleMap));
-            type.setType(edu.tufts.vue.style.SelectorType.getLinkType());
+       //     type.setType(edu.tufts.vue.style.SelectorType.getLinkType());
             types.add(type);
         }
         //reading ont properties
@@ -130,7 +130,7 @@ public class OntManager {
             type.setLabel(p.getLabel(null));
             type.setComment(p.getComment(null));
             type.setStyle(Style.getStyle(p.getLocalName(),styleMap));
-            type.setType(edu.tufts.vue.style.SelectorType.getLinkType());
+        //    type.setType(edu.tufts.vue.style.SelectorType.getLinkType());
             types.add(type);
         }
         ont.setOntTypes(types);

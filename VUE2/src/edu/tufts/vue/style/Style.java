@@ -47,6 +47,7 @@ public abstract class Style {
     String name;
     private Map<String,String>  attributes =  new HashMap();
     
+    public abstract org.osid.shared.Type getType();
     public String  getName() {
         return name;
     }

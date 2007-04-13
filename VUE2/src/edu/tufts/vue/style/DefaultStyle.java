@@ -34,6 +34,9 @@ public class DefaultStyle extends Style {
         setDefaultAttributes();
     }
     
+    public org.osid.shared.Type getType() {
+        return SelectorType.getDefaultType();
+    }
     
 }
 

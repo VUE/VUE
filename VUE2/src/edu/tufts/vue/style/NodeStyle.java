@@ -33,5 +33,9 @@ public class NodeStyle extends Style {
         this.name = name;
         setDefaultAttributes();
     }
+    public org.osid.shared.Type getType() {
+        return SelectorType.getNodeType();
+    }
+    
     
 }
