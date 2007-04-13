@@ -65,6 +65,8 @@ public class OntManager {
         OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM,null);
         List<OntType> types = new ArrayList<OntType>();
         m.read(ontUrl.toString());
+        CSSParser parser = new CSSParser();
+        Map<String,Style> styleMap = parser.parseToMap(cssUrl);
         ExtendedIterator iter = m.listOntProperties();
         StyleReader.readCSS(cssUrl);
         Ontology ont = new Ontology();
@@ -76,13 +78,7 @@ public class OntManager {
             type.setLabel(sp.getLabel(null));
             type.setBase(ontUrl.toString());
             type.setComment(sp.getComment(null));
-            Style  style = StyleMap.getStyle("link."+sp.getLocalName());
-            if(style == null ) {
-                System.out.println("OntManager: couldn't load style for :"+sp.getLocalName());
-                style = new LinkStyle(sp.getLocalName());
-                style.setAttribute("weight","12");
-            }
-            type.setStyle(style);
+            type.setStyle(Style.getStyle(sp.getLocalName(),styleMap));
             type.setType(edu.tufts.vue.style.SelectorType.getLinkType());
             types.add(type);
         }
