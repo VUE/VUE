@@ -84,7 +84,8 @@ public class Actions implements VueConstants
     public static final Action SelectAll =
     new VueAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
         public void act() {
-            VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsIterator());
+            VUE.getSelection().setTo(VUE.getActiveViewer().getFocal().getAllDescendents());
+            //VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsIterator());
             
             //VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque()); // TODO: handle when moving selection: don't move objects if parent is moving
             //VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.VISIBLE));
