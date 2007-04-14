@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.8 $ / $Date: 2007-04-11 19:09:37 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2007-04-14 22:36:59 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -380,7 +380,7 @@ public class LWTraversal {
             if (DEBUG.PICK) c.out("REGION VISITED");
             // region picks should never select the root object the region is
             // being dragged inside
-            if (c != pc.root && c.intersects(mapRect))
+            if (c != pc.root && c != pc.excluded && c.intersects(mapRect))
                 hits.add(c);
 
         }

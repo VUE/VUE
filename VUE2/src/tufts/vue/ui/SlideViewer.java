@@ -240,6 +240,7 @@ public class SlideViewer extends tufts.vue.MapViewer
     // no longer relevant: maxLayer hack currently not in use
     //protected int getMaxLayer() { return inPathwaySlide ? 1 : 0; }
 
+    /*
     protected PickContext getPickContext(float x, float y) {
         PickContext pc = super.getPickContext(x, y);
 
@@ -256,7 +257,8 @@ public class SlideViewer extends tufts.vue.MapViewer
 
         return pc;
     }
-
+    */
+ 
     private LWPathway mCurrentPath;
     public void activePathwayEntryChanged(LWPathway.Entry entry) {
         load(entry);
@@ -326,6 +328,7 @@ if (true) return;
             btnMaster.setSelected(true);
             isMapView = false;
             focal = entry.pathway.getMasterSlide();
+            inFocal = true;
         } else {
             if (DEBUG.PRESENT) out("slide auto-select");
             btnSlide.setSelected(true);
@@ -342,6 +345,7 @@ if (true) return;
             isMapView = entry.isMapView();
             btnMapView.setSelected(isMapView);
             focal = entry.getFocal();
+            inFocal = true;
         }
 
         //mZoomContent = focal;

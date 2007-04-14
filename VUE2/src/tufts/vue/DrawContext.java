@@ -32,7 +32,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.34 $ / $Date: 2007-04-14 22:12:12 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2007-04-14 22:36:59 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -168,12 +168,12 @@ public class DrawContext
         } else {
             // we've set the shaped clip in the gc, now extract the master clip rectangle from the gc
             masterClipRect = g.getClipBounds();
-            if (DEBUG.PAINT || DEBUG.CONTAINMENT || DEBUG.PRESENT) {
+            if (DEBUG.PAINT || DEBUG.CONTAINMENT) {
                 System.out.println("SET SHAPE CLIP: " + clip);
                 //System.out.println("MASTER CLIP RECT2D: " + Util.out(masterClipRect));
             }
         }
-        if (DEBUG.PAINT || DEBUG.CONTAINMENT || DEBUG.PRESENT)
+        if (DEBUG.PAINT || DEBUG.CONTAINMENT)
             System.out.println("MASTER CLIP RECT2D=" + tufts.Util.out(masterClipRect));
     }
 

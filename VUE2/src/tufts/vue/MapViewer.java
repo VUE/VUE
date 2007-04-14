@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.337 $ / $Date: 2007-04-14 22:12:12 $ / $Author: sfraize $ 
+ * @version $Revision: 1.338 $ / $Date: 2007-04-14 22:36:59 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1381,7 +1381,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         PickContext pc = getPickContext((Rectangle2D.Float) mapRect);
 
         pc.pickType = selectionType;
-        pc.maxDepth = 1;
 
         return LWTraversal.RegionPick.pick(pc);
     }
@@ -1513,7 +1512,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         PickContext pc = new PickContext(rect);
         pc.root = mFocal;
         pc.maxLayer = getMaxLayer();
-        pc.pickDepth = getPickDepth();
+        pc.pickDepth = getPickDepth(); // todo: is overlap with pickDepth/maxDepth
+        pc.excluded = mFocal; // never pick the focal for a dragged selection
+        pc.maxDepth = 1; // for rectangular picks, only pick top-level items (no children)
         return pc;
     }
         
@@ -1524,8 +1525,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected int getPickDepth() {
         if (activeTool == DirectSelectTool) // todo: hand to the tool for PickContext modifications
             return 1;
-        else if (!inScrollPane())
-            return 1; // todo: temporary hack for presentations -- find a clearer way
+        else if (mFocal != mMap)
+            return 1; // auto-deep pick for any non-map focal
+        //else if (!inScrollPane())
+        //    return 1; // todo: temporary hack for presentations -- find a clearer way
         else
             return 0;
     }
@@ -4958,7 +4961,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     if (e.isShiftDown())
                         selectionToggle(list.iterator());
                     else
-                        selectionAdd(list.iterator());
+                        selectionSet(list.iterator());
                     
                 }
                 
