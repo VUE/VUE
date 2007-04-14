@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.336 $ / $Date: 2007-04-13 22:39:20 $ / $Author: sfraize $ 
+ * @version $Revision: 1.337 $ / $Date: 2007-04-14 22:12:12 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -691,7 +691,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      * MapViewer canvas.  When not in a scroll pane, it's just
      * the size of the component (and x=y=0);
      */
-    private Rectangle getVisibleBounds() {
+    public Rectangle getVisibleBounds() {
         if (inScrollPane) {
             // In scroll pane, location of this panel goes negative
             // as it's scrolled off to the left.
@@ -1497,6 +1497,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     LWComponent getIndication() { return indication; }
 
+    protected PickContext getPickContext(Point2D p) {
+        return getPickContext((float)p.getX(), (float)p.getY());
+    }
+    
     protected PickContext getPickContext(float x, float y) {
         PickContext pc = new PickContext(x, y);
         pc.root = mFocal;
@@ -4316,13 +4320,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             LWComponent hit = pickNode(mapX, mapY);
             if (DEBUG.ROLLOVER) System.out.println("  mouseMoved: hit="+hit);
 
-            if (DEBUG.PICK) {
-                if (hit != null)
-                    setIndicated(hit);
-                else
-                    clearIndicated();
-            }
-            
+            final MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
+
             if (hit != sLastMouseOver) {
                 // we're over something different than we were
                 if (DEBUG.ROLLOVER||DEBUG.FOCUS)
@@ -4333,7 +4332,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     //viewer.clearTip(); // in case it had a tip displayed
                     if (sLastMouseOver == rollover)
                         clearRollover();
-                    MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
+                    //MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
                     sLastMouseOver.mouseExited(mme);
                 }
 
@@ -4346,13 +4345,24 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 
                 
             }
-            if (hit != null) {
-                MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
+
+            if (activeTool.handleMouseMoved(mme))
+                ; // don't process per-node mouse-over
+            else if (hit != null) {
+                //MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
                 if (hit == sLastMouseOver)
                     hit.mouseMoved(mme);
                 else
                     hit.mouseEntered(mme);
             } else {
+
+                if (DEBUG.PICK) {
+                    if (hit != null)
+                        setIndicated(hit);
+                    else
+                        clearIndicated();
+                }
+                
                 // We're currently over nothing (just empty map space).
                 
                 // TODO: for interactive tip regions, we want to allow

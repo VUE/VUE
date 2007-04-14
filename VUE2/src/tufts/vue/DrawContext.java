@@ -32,7 +32,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.33 $ / $Date: 2007-04-13 22:39:20 $ / $Author: sfraize $
+ * @version $Revision: 1.34 $ / $Date: 2007-04-14 22:12:12 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -276,7 +276,8 @@ public class DrawContext
     }
 
     public boolean drawPathways() {
-        return !isPresenting() && focal instanceof LWMap;
+        return true;
+        //return !isPresenting() && focal instanceof LWMap;
         //    return !isFocused && !isPresenting();
     }
 
@@ -369,6 +370,10 @@ public class DrawContext
     public DrawContext create()
     {
         return new DrawContext(this);
+    }
+
+    public String toString() {
+        return String.format("DrawContext[zoom=%.2f mapOffset=%.1f,%.1f focal=%s]", zoom, offsetX, offsetY, focal);
     }
     
     // todo: replace with a faster clone op?

@@ -23,7 +23,7 @@ package tufts.vue;
  *
  * This class essentially just a parameter block for picking LWTraversals.
  *
- * @version $Revision: 1.4 $ / $Date: 2007-04-11 19:09:37 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2007-04-14 22:12:13 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -82,9 +82,8 @@ public class PickContext
     }
 
     public String toString() {
-        return "PickContext["
-            + x + "," + y + " "
-            + "root=" + root
+        return String.format("PickContext[%.1f,%.1f", x, y)
+            + " root=" + root
             + " exclued=" + excluded
             + " dropping=" + dropping
             + " ignoreSelected=" + ignoreSelected

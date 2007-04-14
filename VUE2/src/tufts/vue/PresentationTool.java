@@ -69,6 +69,8 @@ public class PresentationTool extends VueTool
 
     private boolean mFadeEffect = true;
     private boolean mZoomToPage = true;
+    
+    private boolean mShowNavNodes = false;
 
     private static class BackStack extends Stack<LWComponent> {
         public LWComponent peek() {
@@ -170,6 +172,93 @@ public class PresentationTool extends VueTool
     }
     
     //private boolean isPresenting() { return !mShowContext.isSelected(); }
+    
+    private static int OverviewMapFraction = 4; // 1/scale
+    private float mNavMapX, mNavMapY; // location of the overview navigator map
+    private DrawContext mNavMapDC;
+
+    
+    /** Draw a ghosted panner */
+    private void drawOverviewMap(DrawContext sourceDC)
+    {
+        //sourceDC.setRawDrawing();
+        DrawContext dc = sourceDC.create();
+        //dc.setRawDrawing();
+        //final DrawContext dc = sourceDC;
+        dc.setFrameDrawing();
+
+        final Rectangle panner = new Rectangle(0,0,
+                                               dc.frame.width / OverviewMapFraction,
+                                               dc.frame.height / OverviewMapFraction);
+
+        mNavMapX = dc.frame.width - panner.width;
+        mNavMapY = dc.frame.height - panner.height;
+
+        dc.g.translate(mNavMapX, mNavMapY);
+        dc.setAlpha(0.3);
+        // todo: black or white depending on brightess of the fill
+        dc.g.setColor(Color.white);
+        dc.g.fill(panner);
+        //dc.setAlpha(1);
+
+        dc.setAlpha(0.75);
+        dc.g.clipRect(0,0, panner.width, panner.height);
+        mNavMapDC = MapPanner.paintViewerIntoRectangle(dc.g, VUE.getActiveViewer(), panner);
+    }
+
+    public boolean handleMouseMoved(MapMouseEvent e)
+    {
+        boolean handled = false;
+        if (DEBUG.PICK && mShowNavigator)
+            handled = debugTrackNavMapMouseOver(e);
+
+        boolean oldShowNav = mShowNavNodes;
+
+        int maxHeight = e.getViewer().getVisibleBounds().height;
+        if (e.getY() > maxHeight - 40) {
+            out("nav nodes on " + e.getY() + " max=" + maxHeight);
+            mShowNavNodes = true;
+        } else {
+            out("nav nodes off " + e.getY() + " max=" + maxHeight);
+            mShowNavNodes = false;
+        }
+
+        if (oldShowNav != mShowNavNodes)
+            e.getViewer().repaint();
+
+        return handled;
+    }
+
+    private boolean debugTrackNavMapMouseOver(MapMouseEvent e)
+    {
+        //out(mNavMapDC.g.getClipBounds().toString());
+        //if (mNavMapDC.g.getClipBounds().contains(e.getPoint())) {
+        if (e.getX() > mNavMapX && e.getY() > mNavMapY) {
+            //out("over map at " + e.getPoint());
+            Point2D.Float mapPoint = new Point2D.Float(e.getX() - mNavMapX,
+                                                       e.getY() - mNavMapY);
+
+            out(mNavMapDC.toString());
+            out("over nav map rect at " +  mapPoint);
+
+            mapPoint.x -= mNavMapDC.offsetX;
+            mapPoint.y -= mNavMapDC.offsetY;
+            mapPoint.x /= mNavMapDC.zoom;
+            mapPoint.y /= mNavMapDC.zoom;
+                
+            out("over nav map at " +  mapPoint);
+            PickContext pc = new PickContext(mapPoint.x, mapPoint.y);
+            pc.root = e.getViewer().getMap();
+            LWComponent hit = LWTraversal.PointPick.pick(pc);
+            //out("hit=" + hit);
+            if (hit != null)
+                e.getViewer().setIndicated(hit);
+            else
+                e.getViewer().clearIndicated();
+            return true;
+        } else
+            return false;
+    }
     
     public boolean handleMousePressed(MapMouseEvent e)
     {
@@ -488,7 +577,7 @@ public class PresentationTool extends VueTool
 
     // todo: viewer & focal are already in the DrawContext!
     public boolean handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {
-        if (VUE.inFullScreen() && mShowNavigator)
+        if (mShowNavigator)
             drawOverviewMap(dc);
 
         if (viewer instanceof tufts.vue.ui.SlideViewer) {
@@ -497,7 +586,8 @@ public class PresentationTool extends VueTool
             // if we're in the slide viewer.
             ;
         } else {
-            drawNavNodes(dc);
+            if (mShowNavNodes)
+                drawNavNodes(dc);
         }
 
         
@@ -620,35 +710,6 @@ public class PresentationTool extends VueTool
         }
     }
     */
-
-    private static int OverviewMapFraction = 4; // 1/scale
-    
-    /** Draw a ghosted panner */
-    private void drawOverviewMap(DrawContext sourceDC)
-    {
-        //sourceDC.setRawDrawing();
-        DrawContext dc = sourceDC.create();
-        //dc.setRawDrawing();
-        //final DrawContext dc = sourceDC;
-        dc.setFrameDrawing();
-
-        final Rectangle panner = new Rectangle(0,0,
-                                               dc.frame.width / OverviewMapFraction,
-                                               dc.frame.height / OverviewMapFraction);
-
-        dc.g.translate(dc.frame.width - panner.width,
-                       dc.frame.height - panner.height);
-        
-        dc.setAlpha(0.3);
-        // todo: black or white depending on brightess of the fill
-        dc.g.setColor(Color.white);
-        dc.g.fill(panner);
-        //dc.setAlpha(1);
-
-        dc.setAlpha(0.75);
-        dc.g.clipRect(0,0, panner.width, panner.height);
-        MapPanner.paintViewerIntoRectangle(dc.g, VUE.getActiveViewer(), panner);
-    }
 
     private void drawNavNodes(DrawContext dc)
     {

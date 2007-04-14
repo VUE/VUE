@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.55 $ / $Date: 2007-04-10 22:20:05 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2007-04-14 22:12:12 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -292,20 +292,23 @@ public class MapPanner extends javax.swing.JPanel
         paintViewerIntoRectangle(this, g, this.mapViewer, pannerSize);
     }
 
-    public static void paintViewerIntoRectangle(Graphics g, final MapViewer viewer, final Rectangle pannerSize) {
-        paintViewerIntoRectangle(null, g, viewer, pannerSize);
+    public static DrawContext paintViewerIntoRectangle(Graphics g, final MapViewer viewer, final Rectangle pannerSize) {
+        return paintViewerIntoRectangle(null, g, viewer, pannerSize);
     }
     
     // TODO: take a DrawContext, not a viewer
-    static void paintViewerIntoRectangle(MapPanner panner, Graphics g, final MapViewer viewer, final Rectangle paintRect)
+    /**
+     * @return the DrawContext that was used to draw the viewer contents into the given paintRect (to provide zoom/offset for picking)
+     * Note that the x/y location of paintRect is ignored.
+     */
+    static DrawContext paintViewerIntoRectangle(MapPanner panner, Graphics g, final MapViewer viewer, final Rectangle paintRect)
     {
-
         if (viewer.getVisibleWidth() < 1 || viewer.getVisibleHeight() < 1) {
             if (DEBUG.Enabled)
                 System.out.println("MapPanner: paintViewerIntoRectangle: nothing to paint; visible size="
                                    + viewer.getVisibleSize()
                                    + " in " + viewer);
-            return;
+            return null;
         }
 
         final LWMap map = viewer.getMap();
@@ -352,7 +355,7 @@ public class MapPanner extends javax.swing.JPanel
         dc.setPrioritizeSpeed(true);
         dc.setFractionalFontMetrics(false);
         dc.setDraftQuality(true); // okay to skimp in rendering of panner image -- it's usually so tiny
-        dc.setMapDrawing();
+        //dc.setMapDrawing(); // no longer needed: the default at dc init
 
         /*
          * Fill the background representing the currently active canvas region.
@@ -388,6 +391,8 @@ public class MapPanner extends javax.swing.JPanel
             dc.setAbsoluteStroke(1);
         dc.g.setColor(Color.red);
         dc.g.draw(viewerRect);
+
+        return dc;
     }
 
     
