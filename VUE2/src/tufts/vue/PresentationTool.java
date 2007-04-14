@@ -216,10 +216,10 @@ public class PresentationTool extends VueTool
 
         int maxHeight = e.getViewer().getVisibleBounds().height;
         if (e.getY() > maxHeight - 40) {
-            out("nav nodes on " + e.getY() + " max=" + maxHeight);
+            if (DEBUG.PRESENT) out("nav nodes on " + e.getY() + " max=" + maxHeight);
             mShowNavNodes = true;
         } else {
-            out("nav nodes off " + e.getY() + " max=" + maxHeight);
+            if (DEBUG.PRESENT) out("nav nodes off " + e.getY() + " max=" + maxHeight);
             mShowNavNodes = false;
         }
 
