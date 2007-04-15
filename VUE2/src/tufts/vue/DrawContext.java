@@ -32,7 +32,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.35 $ / $Date: 2007-04-14 22:36:59 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2007-04-15 23:41:06 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -178,6 +178,10 @@ public class DrawContext
     }
 
     public Rectangle2D getMasterClipRect() {
+        if (masterClipRect == null) {
+            tufts.Util.printStackTrace("DrawContext: null masterClipRect!");
+            masterClipRect = this.g.getClipBounds();
+        }
         return masterClipRect;
     }
 
