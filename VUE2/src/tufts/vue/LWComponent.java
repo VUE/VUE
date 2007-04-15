@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.242 $ / $Date: 2007-04-13 22:39:20 $ / $Author: sfraize $
+ * @version $Revision: 1.243 $ / $Date: 2007-04-15 23:39:58 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1437,9 +1437,9 @@ public class LWComponent
         return false;
     }
     
-    /** for containers, if allows children dragged in and out */
+    /** @return false: subclasses (e.g. containers), override to return true if allows children dragged in and out */
     public boolean supportsDragReparenting() {
-        return true;
+        return false;
     }
     
     public boolean hasLabel() {
@@ -4068,8 +4068,7 @@ public class LWComponent
                     -(int)Math.floor(bounds.getY()));
 
         // GC *must* have a bounds set or we get NPE's in JComponent (textBox) rendering
-        g.setClip(bounds);
-            
+        dc.setMasterClip(bounds);
 
         // render to the image through the DrawContext/GC pointing to it
         draw(dc);
