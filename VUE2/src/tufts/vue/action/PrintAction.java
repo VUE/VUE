@@ -39,7 +39,7 @@ import java.awt.event.ActionEvent;
  * means that VUE can't repaint itself while the print dialogs are
  * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
- * @version $Revision: 1.35 $ / $Date: 2007-04-10 21:14:36 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2007-04-15 23:36:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -250,7 +250,7 @@ public class PrintAction extends tufts.vue.VueAction
             Point2D.Float offset = new Point2D.Float();
             // center vertically only if landscape mode
             //if (format.getOrientation() == PageFormat.LANDSCAPE)
-            double scale = ZoomTool.computeZoomFit(page, 0, bounds, offset, false);
+            double scale = ZoomTool.computeZoomFit(page, 5, bounds, offset, false);
             out("rendering at scale " + scale);
             // set up the DrawContext
             DrawContext dc = new DrawContext(g,
