@@ -161,7 +161,7 @@ public class LWImage extends
             return super.defaultPick(pc);
         else
             return isNodeIcon() ? getParent() : this;
-        //return (pc.pickDepth > 0 || getParent() instanceof LWMap) ? this : getParent();
+            //return (pc.pickDepth > 0 || getParent() instanceof LWMap) ? this : getParent();
         // todo: checking the map is a hack -- PickContext should tell us all we need
     }
 
