@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.338 $ / $Date: 2007-04-14 22:36:59 $ / $Author: sfraize $ 
+ * @version $Revision: 1.339 $ / $Date: 2007-04-15 23:43:32 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1557,7 +1557,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             pc.dropping = POSSIBLE_RESOURCE; // most lenient targeting if unknown
         else
             pc.dropping = dropping;
-        return LWTraversal.PointPick.pick(pc);
+        LWComponent hit = LWTraversal.PointPick.pick(pc);
+        if (hit != null && hit.supportsDragReparenting())
+            return hit;
+        else
+            return null;
     }
 
     
