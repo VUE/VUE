@@ -33,10 +33,8 @@ import javax.swing.JMenuItem;
  * @author Scott Fraize
  */
 
-public class VuePopupMenu extends MenuButton
+public class VuePopupMenu<T> extends MenuButton<T>
 {
-    private Object mSelectedPropertyValue;
-
     public VuePopupMenu(Object propertyKey, Object[] valuesOrActions)
     {
         setPropertyKey(propertyKey);
@@ -45,22 +43,22 @@ public class VuePopupMenu extends MenuButton
         setName(propertyKey.toString());
     }
 
-    public Object getMenuValueAt(int index) {
+    public T getMenuValueAt(int index) {
         JComponent c = (JComponent) mPopup.getComponent(0);
-        return c.getClientProperty(ValueKey);
+        return (T) c.getClientProperty(ValueKey);
     }
 
-    public void displayValue(Object newValue) {
-        if (DEBUG.TOOL) System.out.println(this + " setPropertyValue " + newValue);
-        if (mSelectedPropertyValue == null || !mSelectedPropertyValue.equals(newValue)) {
-            mSelectedPropertyValue = newValue;
+    public void displayValue(T newValue) {
+        if (DEBUG.TOOL) System.out.println(this + " displayValue " + newValue);
+        if (mCurrentValue == null || !mCurrentValue.equals(newValue)) {
+            mCurrentValue = newValue;
             Icon i = getIconForPropertyValue(newValue);
             if (i != null)
                 setButtonIcon(i);
         }
     }
 
-    public Icon getIconForPropertyValue(Object value) {
+    public Icon getIconForPropertyValue(T value) {
         int count = mPopup.getComponentCount();
         for (int i = 0; i < count; i++) {
             JComponent c = (JComponent) mPopup.getComponent(i);
@@ -73,10 +71,6 @@ public class VuePopupMenu extends MenuButton
         return null;
     }
     
-    public Object produceValue() {
-        if (DEBUG.TOOL) System.out.println(this + " getPropertyValue " + mSelectedPropertyValue);
-        return mSelectedPropertyValue;
-    }
     
 
 }
