@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.134 $ / $Date: 2007-04-11 19:55:03 $ / $Author: sfraize $
+ * @version $Revision: 1.135 $ / $Date: 2007-04-16 06:06:07 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -1551,8 +1551,15 @@ public class LWLink extends LWComponent
 
         AffineTransform savedTransform = dc.g.getTransform();
         
-        if ((mArrowState.get() & ARROW_HEAD) != 0) {
+        // we currently use the stroke width drawn around the arrows
+        // to keep them reasonably sized relative to the line, but
+        // we don't want any dash-pattern in the stroke for this
+        if (mStrokeStyle.get() == StrokeStyle.SOLID)
             dc.g.setStroke(this.stroke);
+        else
+            dc.g.setStroke(StrokeStyle.SOLID.makeStroke(mStrokeWidth.get()));
+            
+        if ((mArrowState.get() & ARROW_HEAD) != 0) {
             dc.g.setColor(getStrokeColor());
             dc.g.translate(headX, headY);
             dc.g.rotate(mRotationHead);
@@ -1573,7 +1580,6 @@ public class LWLink extends LWComponent
         }
         
         if ((mArrowState.get() & ARROW_TAIL) != 0) {
-            dc.g.setStroke(this.stroke);
             dc.g.setColor(getStrokeColor());
             // draw the second arrow
             //dc.g.translate(line.getX2(), line.getY2());
@@ -1657,6 +1663,15 @@ public class LWLink extends LWComponent
             dc.g.setComposite(composite);
         }
         
+        g.setColor(getStrokeColor());
+
+        //-------------------------------------------------------
+        // Draw arrow heads if there are any
+        //-------------------------------------------------------
+        
+        if (mArrowState.get() != 0)
+            drawArrows(dc);
+        
         //-------------------------------------------------------
         // Draw the stroke
         //
@@ -1666,23 +1681,26 @@ public class LWLink extends LWComponent
         // as well as the text box.
         //-------------------------------------------------------
 
-        g.setColor(getStrokeColor());
+        float strokeWidth = mStrokeWidth.get();
+        if (strokeWidth <= 0)
+            strokeWidth = 0.5f;
 
         if (dc.drawAbsoluteLinks) {
-            dc.setAbsoluteStroke(stroke.getLineWidth() * getMapScale());
-        } else if (stroke == STROKE_ZERO) {
-            g.setStroke(STROKE_FOURTH);
+            //dc.setAbsoluteStroke(stroke.getLineWidth() * getMapScale());
+            g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth / g.getTransform().getScaleX()));
         } else {
-            float scale = getMapScaleF();
-            if (scale == 1f)
-                g.setStroke(stroke); // BasicStroke.CAP_ROUND
-            else
-                g.setStroke(new BasicStroke(stroke.getLineWidth() * scale));
+            if (stroke == STROKE_ZERO) { // mStrokeWidth.get() was 0
+                // never draw an invisible link: draw zero strokes at small absolute scale tho
+                g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth / g.getTransform().getScaleX()));
+            } else {
+                float scale = getMapScaleF();
+                if (scale == 1f)
+                    g.setStroke(stroke);
+                else
+                    g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth * scale));
+            }
         }
         
-        if (mArrowState.get() != 0)
-            drawArrows(dc);
-
         if (mCurve != null) {
             //-------------------------------------------------------
             // draw the curve

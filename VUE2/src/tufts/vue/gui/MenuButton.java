@@ -40,7 +40,7 @@ import javax.swing.border.*;
  *
  * Subclasses must implement LWEditor produce/display
  *
- * @version $Revision: 1.20 $ / $Date: 2007-04-16 04:23:09 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2007-04-16 06:06:08 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -66,6 +66,8 @@ public abstract class MenuButton<T> extends JButton
     private boolean actionAreaClicked = false;
 
     private Insets insets(int x) { return new Insets(x,x,x,x); }
+
+    protected T mCurrentValue;
 
     public MenuButton()
     {
@@ -380,7 +382,13 @@ public abstract class MenuButton<T> extends JButton
         repaint();
     }
 
-    //public void displayValue(T value) {}
+    /** @return the currently selected value (interface LWEditor) */
+    public T produceValue() {
+        return mCurrentValue;
+    }
+
+    /** Sub-classes can set the current value (mCurrentValue), and must update the display (icon, etc) and repaint (interface LWEditor) */
+    public abstract void displayValue(T value);
 	
     /** fire a property change event even if old & new values are the same */
     // COULD USE Component.firePropertyChange!  all this is getting us is diagnostics!

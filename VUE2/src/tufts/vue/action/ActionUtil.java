@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.54 $ / $Date: 2007-02-13 14:11:13 $ / $Author: mike $
+ * @version $Revision: 1.55 $ / $Date: 2007-04-16 06:06:08 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -384,6 +384,8 @@ public class ActionUtil {
             //marshaller.setRootElement("FOOBIE"); // overrides name of root element
             
             marshaller.setMapping(getDefaultMapping());
+            //marshaller.setValidation(false); // probably don't need this; disable if we have performance problems
+            
             /*
             Logger logger = new Logger(System.err);
             logger.setPrefix("Castor ");

@@ -126,8 +126,8 @@
 		<field name="XMLfont">          <bind-xml name="font" node="element"/></field>
 		<field name="XMLhidden">        <bind-xml name="hidden" node="attribute"/></field>
 		<field name="XMLtextBox">       <bind-xml name="textBox" node="element"/></field>
-                
-		<field name="strokeWidth">      <bind-xml name="strokeWidth" node="attribute"/></field>
+                <field name="strokeWidth">      <bind-xml name="strokeWidth" node="attribute"/></field>
+		<field name="XMLstrokeStyle">   <bind-xml name="strokeStyle" node="attribute"/></field>
                 
 		<field name="autoSized" type="boolean"><bind-xml name="autoSized" node="attribute"/></field>
                 

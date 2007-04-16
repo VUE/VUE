@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.244 $ / $Date: 2007-04-16 04:23:09 $ / $Author: sfraize $
+ * @version $Revision: 1.245 $ / $Date: 2007-04-16 06:06:07 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -875,29 +875,32 @@ public class LWComponent
             dashPattern[1] = dashOff; // pixels off (whitespace)
         }
 
-        public BasicStroke makeStroke(float width) {
-            return new BasicStroke(width
-                                   , BasicStroke.CAP_BUTT
-                                   , BasicStroke.JOIN_BEVEL
-                                   , 0f // miter-limit
-                                   , dashPattern
-                                   , 0f); // dash-phase (offset to start of pattern -- apparently pixels, not index)
+        public BasicStroke makeStroke(double width) {
+            return makeStroke((float) width);
         }
+        
+        public BasicStroke makeStroke(float width) {
+            if (this == SOLID)
+                return new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+                //return new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND);
+            else
+                return new BasicStroke(width
+                                       , BasicStroke.CAP_BUTT // anything else will mess with the dash pattern
+                                       , BasicStroke.JOIN_BEVEL
+                                       , 0f //10.0f // miter-limit
+                                       , dashPattern
+                                       , 0f); // dash-phase (offset to start of pattern -- apparently pixels, not index)
+        }
+        // todo opt: better: could cache the strokes here for each dash pattern/size
+        
     }
 
     private void rebuildStroke() {
         final float width = mStrokeWidth.get();
-        if (width > 0) {
-            final StrokeStyle strokeStyle = mStrokeStyle.get();
-            if (strokeStyle == StrokeStyle.SOLID) {
-                // todo perf: cache versions of this for standard small integer width values (e.g., 1-6)
-                this.stroke = new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
-            } else {
-                this.stroke = strokeStyle.makeStroke(width);
-            }
-        } else
+        if (width > 0)
+            this.stroke = mStrokeStyle.get().makeStroke(width);
+        else
             this.stroke = STROKE_ZERO;
-        
         /*/ below code was broken in previous code.  Node child layout does NOT
         // appear to be taking into account total bounds with at the moment anyway...
         // (Or was that just for Groups?  No, those appear to be handling the full bounds change.)
@@ -1755,6 +1758,22 @@ public class LWComponent
 
     public float        getStrokeWidth()                { return mStrokeWidth.get(); }
     public void         setStrokeWidth(float w)         { mStrokeWidth.set(w); }
+    
+    /** @return null for SOLID (ordinal 0, the default, as for old save files), or otherwise, the ordinal of the style enum
+     * Castor will not bother to generate the attribute/element when it's value is null. */
+    public Integer getXMLstrokeStyle() {
+        int code = mStrokeStyle.get().ordinal();
+        return code == 0 ? null : code;
+    }
+    public void setXMLstrokeStyle(Integer ordinal)  {
+        // todo: have the Key class process enum's generically, caching the results of Class<? extends Enum>.getEnumConstants()
+        for (StrokeStyle ss : StrokeStyle.values()) {
+            if (ss.ordinal() == ordinal) {
+                mStrokeStyle.set(ss);
+                break;
+            }
+        }
+    }
     
     public Color        getFillColor()                  { return mFillColor.get(); }
     public void         setFillColor(Color c)           { mFillColor.set(c); }

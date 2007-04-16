@@ -97,11 +97,14 @@ public class LWCToolPanel extends JPanel
 
     private static class StrokeStyleButton extends MenuButton<LWComponent.StrokeStyle>
     {
-        protected LWComponent.StrokeStyle mStrokeStyle = LWComponent.StrokeStyle.SOLID;
+        static final int ButtonWidth = 40;
+        static final int ButtonHeight = 22;
         
         public StrokeStyleButton() {
             buildMenu(LWComponent.StrokeStyle.class);
-            setFont(tufts.vue.VueConstants.FONT_TINY);
+            setFont(tufts.vue.VueConstants.FONT_SMALL); // does this have any effect?  maybe on Windows?
+            // set the size of the icon that displays the current value:
+            setButtonIcon(new LineIcon(ButtonWidth-18, 3)); // height really only needs to be 1 pixel
         }
         
         public void displayValue(LWComponent.StrokeStyle style) {
@@ -111,25 +114,19 @@ public class LWCToolPanel extends JPanel
                 icon.setStroke(style.makeStroke(1));
                 repaint();
             }
-            mStrokeStyle = style;
+            mCurrentValue = style;
         }
         
-        public LWComponent.StrokeStyle produceValue() {
-            return mStrokeStyle;
-        }
-
         /** returns the physical size of the outer button */
         protected Dimension getButtonSize() {
             // todo: the interaction between button size and icon/width height should
             // be clearer, and automatic!
-            return new Dimension(36,22);
+            return new Dimension(ButtonWidth,ButtonHeight);
         }
         
         /** factory for superclass buildMenu -- these are the icons that will appear in the pull-down menu */
-        static final int IconWidth = 24; // the size of the icon, internal to the button
-        static final int IconHeight = 16;
         protected Icon makeIcon(LWComponent.StrokeStyle style) {
-            LineIcon li = new LineIcon(IconWidth, IconHeight);
+            LineIcon li = new LineIcon(24, 3);
             li.setStroke(style.makeStroke(1));
             return li;
         }
@@ -208,8 +205,6 @@ public class LWCToolPanel extends JPanel
          
          mStrokeStyleButton = new StrokeStyleButton();
          mStrokeStyleButton.setPropertyKey(LWKey.StrokeStyle);
-         mStrokeStyleButton.setButtonIcon(new LineIcon(20,16));
-         mStrokeStyleButton.setToolTipText("Stroke Style");
          mStrokeStyleButton.addPropertyChangeListener(this);
 
          //-------------------------------------------------------
