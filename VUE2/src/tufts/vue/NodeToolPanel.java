@@ -35,15 +35,14 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.34 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2007-04-16 21:28:34 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends LWCToolPanel
 {
-    private ShapeMenuButton mShapeButton;
-    
     public NodeToolPanel() {
-        
+        ShapeMenuButton mShapeButton;
+    
         //JLabel label = new JLabel("   Node: ");
         //label.setFont(VueConstants.FONT_SMALL);
         getBox().add(mShapeButton = new ShapeMenuButton(), 0);
@@ -55,10 +54,8 @@ public class NodeToolPanel extends LWCToolPanel
     public boolean isPreferredType(Object o) {
         return o instanceof LWNode;
     }
-    static class ShapeMenuButton extends VuePopupMenu
+    static class ShapeMenuButton extends VuePopupMenu<RectangularShape>
     {
-        protected RectangularShape mShape; // an instance of the currently selected shape
-
         public ShapeMenuButton() {
             super(LWKey.Shape, NodeTool.getTool().getShapeSetterActions());
             setToolTipText("Node Shape");
@@ -69,37 +66,29 @@ public class NodeToolPanel extends LWCToolPanel
         }
 
         /** @param o an instance of RectangularShape */
-        @Override
-        public void displayValue(Object value) {
-            if (DEBUG.TOOL) System.out.println(this + " setPropertyValue " + value.getClass() + " [" + value + "]");
+        public void displayValue(RectangularShape shape) {
+            if (DEBUG.TOOL) System.out.println(this + " displayValue " + shape.getClass() + " [" + shape + "]");
 
-            if (mShape == null || !mShape.getClass().equals(value.getClass())) {
-                mShape = (RectangularShape) value;
+            if (mCurrentValue == null || !mCurrentValue.getClass().equals(shape.getClass())) {
+                mCurrentValue = shape;
 
-                // This is inefficent in that we there are already shape icons out there 
-                // (produced in getShapeSetterActions()) that we could use, but doing
-                // it this way (creating a new one every time) will allow for ANY
-                // rectangular shape to display properly in the tool menu, even it is
-                // a deprecated shape or non-standard shape (not defined as a standard
-                // from for the node tool in VueResources.properties).  (This is especially
-                // in-effecient if you look at what setButtonIcon does in MenuButton: it
-                // creates first a proxy icon, and then creates and installs a whole set of VueButtonIcons
-                // for all the various states the button can take, for a totale of 7 objects
-                // every time we do this (1 for the clone, 1 for proxy, 5 via VueButtonIcon.installGenerated)
+                // This is inefficent in that we there are already shape icons out there (produced
+                // in getShapeSetterActions()) that we could use, but doing it this way (creating a
+                // new one every time) will allow for ANY rectangular shape to display properly in
+                // the tool menu, even it is a deprecated shape or non-standard shape (not defined
+                // as a standard from for the node tool in VueResources.properties).  (This is
+                // especially in-effecient if you look at what setButtonIcon does in MenuButton: it
+                // creates first a proxy icon, and then creates and installs a whole set of
+                // VueButtonIcons for all the various states the button can take, for a totale of 7
+                // objects every time we do this (1 for the clone, 1 for proxy, 5 via
+                // VueButtonIcon.installGenerated)
                 
-                setButtonIcon(makeIcon(value));
+                setButtonIcon(makeIcon(shape));
             }
         }
 
-        /** @return  an instanceof RectangularShape, suitable for cloning & installing as a new node shape via setShape */
-        @Override
-        public Object produceValue() {
-            return mShape;
-        }
-        
         /** @return new icon for the given shape */
-        protected Icon makeIcon(Object value) {
-            RectangularShape shape = (RectangularShape) value;
+        protected Icon makeIcon(RectangularShape shape) {
             return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
         }
 	 
