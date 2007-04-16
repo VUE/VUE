@@ -74,16 +74,12 @@ remember it).
 public class LWCToolPanel extends JPanel
     implements ActionListener, PropertyChangeListener, ChangeListener, LWComponent.Listener
 {
-    /** fill button **/
-    protected ColorMenuButton mFillColorButton;
-    /** stroke color editor button **/
-    protected ColorMenuButton mStrokeColorButton;
-    /** Text color menu editor **/
-    protected ColorMenuButton mTextColorButton;
-    /** stroke size selector menu **/
-    protected StrokeMenuButton mStrokeButton;
-    /** the Font selection combo box **/
-    protected FontEditorPanel mFontPanel;
+    /** fill button **/                 protected ColorMenuButton mFillColorButton;
+    /** stroke color editor button **/  protected ColorMenuButton mStrokeColorButton;
+    /** Text color menu editor **/      protected ColorMenuButton mTextColorButton;
+    /** stroke size selector menu **/   protected StrokeMenuButton mStrokeButton;
+    /** stroke size selector menu **/   protected MenuButton mStrokeStyleButton;
+    /** the Font selection combo box **/protected FontEditorPanel mFontPanel;
  	
     //protected VueBeanState mDefaultState = null;
     //protected VueBeanState mState = null;
@@ -98,6 +94,47 @@ public class LWCToolPanel extends JPanel
 
     //private Collection<LWEditor> mEditors = new ArrayList<LWEditor>();
     private final Collection<LWEditor> mEditors = new HashSet<LWEditor>();
+
+    private static class StrokeStyleButton extends MenuButton<LWComponent.StrokeStyle>
+    {
+        protected LWComponent.StrokeStyle mStrokeStyle = LWComponent.StrokeStyle.SOLID;
+        
+        public StrokeStyleButton() {
+            buildMenu(LWComponent.StrokeStyle.class);
+            setFont(tufts.vue.VueConstants.FONT_TINY);
+        }
+        
+        public void displayValue(LWComponent.StrokeStyle style) {
+            setToolTipText("Stroke Style: " + style);
+            if (getButtonIcon() instanceof LineIcon) {
+                LineIcon icon = (LineIcon) getButtonIcon();
+                icon.setStroke(style.makeStroke(1));
+                repaint();
+            }
+            mStrokeStyle = style;
+        }
+        
+        public LWComponent.StrokeStyle produceValue() {
+            return mStrokeStyle;
+        }
+
+        /** returns the physical size of the outer button */
+        protected Dimension getButtonSize() {
+            // todo: the interaction between button size and icon/width height should
+            // be clearer, and automatic!
+            return new Dimension(36,22);
+        }
+        
+        /** factory for superclass buildMenu -- these are the icons that will appear in the pull-down menu */
+        static final int IconWidth = 24; // the size of the icon, internal to the button
+        static final int IconHeight = 16;
+        protected Icon makeIcon(LWComponent.StrokeStyle style) {
+            LineIcon li = new LineIcon(IconWidth, IconHeight);
+            li.setStroke(style.makeStroke(1));
+            return li;
+        }
+    }
+
 
     public LWCToolPanel()
     {
@@ -162,9 +199,18 @@ public class LWCToolPanel extends JPanel
          mStrokeButton.setPropertyKey(LWKey.StrokeWidth);
          mStrokeButton.setButtonIcon(new LineIcon(16,16));
          mStrokeButton.setStroke(1f);
-         //mStrokeButton.setPropertyKey(LWKey.StrokeWidth);
          mStrokeButton.setToolTipText("Stroke Width");
          mStrokeButton.addPropertyChangeListener(this);
+         
+         //-------------------------------------------------------
+         // Stroke Style menu
+         //-------------------------------------------------------
+         
+         mStrokeStyleButton = new StrokeStyleButton();
+         mStrokeStyleButton.setPropertyKey(LWKey.StrokeStyle);
+         mStrokeStyleButton.setButtonIcon(new LineIcon(20,16));
+         mStrokeStyleButton.setToolTipText("Stroke Style");
+         mStrokeStyleButton.addPropertyChangeListener(this);
 
          //-------------------------------------------------------
          // Text Color menu
@@ -252,6 +298,7 @@ public class LWCToolPanel extends JPanel
         addComponent(mFillColorButton);
         addComponent(mStrokeColorButton);
         addComponent(mStrokeButton);
+        addComponent(mStrokeStyleButton);
         addComponent(mFontPanel);
         addComponent(mTextColorButton);
     }

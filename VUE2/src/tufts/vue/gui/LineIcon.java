@@ -49,7 +49,7 @@ public class LineIcon extends BlobIcon
     public LineIcon( int pWidth,int  pHeight) {
         this( pWidth, pHeight, null, null);
     }
-	
+    
     public LineIcon( int pWidth, int pHeight, Color pColor) {
         this( pWidth, pHeight, pColor, null);
     }
@@ -80,12 +80,17 @@ public class LineIcon extends BlobIcon
     /** Sets the stroke weight **/
     public void setWeight(float pWeight) {
         mWeight = pWeight;
-        stroke = new BasicStroke(mWeight);
+        stroke = new BasicStroke(mWeight, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     }
 	
     /** Gets the stroke weight **/
     public float getWeight() {
         return mWeight;
+    }
+
+    public void setStroke(BasicStroke stroke) {
+        this.stroke = stroke;
+        mWeight = stroke.getLineWidth();
     }
 	
 	
@@ -96,9 +101,10 @@ public class LineIcon extends BlobIcon
      * painted on top.
      * @see java.awt.Icon
      **/
-    public void paintIcon(Component c, Graphics g, int x, int y)
+    public void paintIcon(Component c, Graphics _g, int x, int y)
     {
-        if (getWeight() > 0) {
+        Graphics2D g = (Graphics2D) _g;
+        if (getWeight() > 0 || stroke != null) {
             if (getColor() == null)
                 g.setColor(Color.black);
             else
@@ -112,8 +118,14 @@ public class LineIcon extends BlobIcon
                     g.setColor(Color.gray);
                     weight = 1;
                 }
-                int y1 = y + (getIconHeight() - weight) / 2;
-                g.fillRect(x, y1, getIconWidth(), weight );
+                //int y1 = y + (getIconHeight() - weight) / 2;
+                //g.fillRect(x, y1, getIconWidth(), weight );
+                if (mWeight > 0) {
+                    float midY = y + getIconHeight() / 2;
+                    java.awt.geom.Line2D line = new java.awt.geom.Line2D.Float(x, midY, x + getIconWidth(), midY);
+                    g.setStroke(this.stroke);
+                    g.draw(line);
+                }
             }
 			
         }

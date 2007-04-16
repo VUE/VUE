@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.243 $ / $Date: 2007-04-15 23:39:58 $ / $Author: sfraize $
+ * @version $Revision: 1.244 $ / $Date: 2007-04-16 04:23:09 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -108,7 +108,7 @@ public class LWComponent
         }
     }
 
-    //static { for (Hide reason : Hide.values()) { System.out.println(reason + " bit=" + reason.bit); } }
+    //Static { for (Hide reason : Hide.values()) { System.out.println(reason + " bit=" + reason.bit); } }
 
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(LWComponent.class);
@@ -650,6 +650,21 @@ public class LWComponent
         
     }
 
+    public class EnumProperty<T extends Enum> extends Property<T> {
+        EnumProperty(Key key, T defaultValue) {
+            super(key);
+            value = defaultValue;
+            //System.out.println("enum values: " + Arrays.asList(defaultValue.getClass().getEnumConstants()));
+            //System.out.println("enum test: " + Enum.valueOf(defaultValue.getClass(), "DASH1"));
+        }
+        void setBy(String s) {
+            // note: value can never be null, or we'll need to store the Enum class reference elsewhere
+            // (e.g., in the Key -- better there anyway, where we could provide a generic "values"
+            // to list the supported values)
+            set((T) Enum.valueOf(value.getClass(), s.trim())); 
+        }
+    }
+    
     private static final String _DefaultString = "";
     public class StringProperty extends Property<java.lang.String> {
         StringProperty(Key key) {
@@ -819,6 +834,8 @@ public class LWComponent
     public static final Key KEY_StrokeColor = new Key("stroke.color", "border-color")   { final Property getSlot(LWComponent c) { return c.mStrokeColor; } };
     //public static final Key KEY_StrokeStyle = new Key("stroke.style", "border-style")   { final Property getSlot(LWComponent c) { return null; } };
     public static final Key KEY_StrokeWidth = new Key("stroke.width", "stroke-width")   { final Property getSlot(LWComponent c) { return c.mStrokeWidth; } };
+    public static final Key KEY_StrokeStyle = new Key<LWComponent,StrokeStyle>
+        ("stroke.style", KeyType.STYLE)   { final Property getSlot(LWComponent c) { return c.mStrokeStyle; } };
 
 
     /* font.size: point size for font */
@@ -826,10 +843,10 @@ public class LWComponent
     /* font.name: family name of the font */
     
     /** Aggregate font key, which represents the combination of it's three sub-properties */
-    public static final Key KEY_Font = new Key("font", KeyType.STYLE)                           { final Property getSlot(LWComponent c) { return c.mFont; } };
-    public static final Key KEY_FontSize  = new Key("font.size", "xfont-size", KeyType.SUB_STYLE)        { final Property getSlot(LWComponent c) { return c.mFontSize; } };
-    public static final Key KEY_FontStyle = new Key("font.style", "xfont-style", KeyType.SUB_STYLE)      { final Property getSlot(LWComponent c) { return c.mFontStyle; } };
-    public static final Key KEY_FontName  = new Key("font.name", "xfont-family", KeyType.SUB_STYLE)      { final Property getSlot(LWComponent c) { return c.mFontName; } };
+    public static final Key KEY_Font = new Key("font", KeyType.STYLE)                   { final Property getSlot(LWComponent c) { return c.mFont; } };
+    public static final Key KEY_FontSize  = new Key("font.size", KeyType.SUB_STYLE)     { final Property getSlot(LWComponent c) { return c.mFontSize; } };
+    public static final Key KEY_FontStyle = new Key("font.style", KeyType.SUB_STYLE)    { final Property getSlot(LWComponent c) { return c.mFontStyle; } };
+    public static final Key KEY_FontName  = new Key("font.name", KeyType.SUB_STYLE)     { final Property getSlot(LWComponent c) { return c.mFontName; } };
     
     public final ColorProperty mFillColor = new ColorProperty(KEY_FillColor);
     public final ColorProperty mTextColor = new ColorProperty(KEY_TextColor, java.awt.Color.black) {
@@ -840,32 +857,58 @@ public class LWComponent
             }
         };
     public final ColorProperty mStrokeColor = new ColorProperty(KEY_StrokeColor, java.awt.Color.darkGray);
-    public final FloatProperty mStrokeWidth = new FloatProperty(KEY_StrokeWidth) {
-            void onChange() {
-                final float width = get();
-                // TODO: caching the stroke here is kind of overkill, and if we really want to do it,
-                // keep a list of the common stroke widths (1-6)...
-                // Also, assuming we keep the cached stroke around, this cached data would ideally go
-                // right in the the property, as another piece of meta-data related to it.
-                if (width > 0)
-                    LWComponent.this.stroke = new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
-                else
-                    LWComponent.this.stroke = STROKE_ZERO;
+    public final FloatProperty mStrokeWidth = new FloatProperty(KEY_StrokeWidth) { void onChange() { rebuildStroke(); }};
+    public final EnumProperty<StrokeStyle> mStrokeStyle = new EnumProperty(KEY_StrokeStyle, StrokeStyle.SOLID) { void onChange() { rebuildStroke(); }};
 
-                // below code was broken in previous code.  Node child layout does NOT
-                // appear to be taking into account total bounds with at the moment anyway...
-                // (Or was that just for Groups?  No, those appear to be handling the full bounds change.)
-                // Also, want to make generic with a flag in Key if layout needed when
-                // the given property changes.
-                /*
-                if (getParent() != null) {
-                    // because stroke affects bounds-width, may need to re-layout parent
-                    getParent().layout();
-                }
-                layout();
-                */
+    public enum StrokeStyle {
+
+        SOLID   (1,0),
+            DOTTED (1,1),
+            DASHED (2,2),
+            DASH2 (3,2),
+            DASH3 (5,3);
+            
+        private final float[] dashPattern = new float[2];
+
+        StrokeStyle(float dashOn, float dashOff) {
+            dashPattern[0] = dashOn; // pixels on (drawn)
+            dashPattern[1] = dashOff; // pixels off (whitespace)
+        }
+
+        public BasicStroke makeStroke(float width) {
+            return new BasicStroke(width
+                                   , BasicStroke.CAP_BUTT
+                                   , BasicStroke.JOIN_BEVEL
+                                   , 0f // miter-limit
+                                   , dashPattern
+                                   , 0f); // dash-phase (offset to start of pattern -- apparently pixels, not index)
+        }
+    }
+
+    private void rebuildStroke() {
+        final float width = mStrokeWidth.get();
+        if (width > 0) {
+            final StrokeStyle strokeStyle = mStrokeStyle.get();
+            if (strokeStyle == StrokeStyle.SOLID) {
+                // todo perf: cache versions of this for standard small integer width values (e.g., 1-6)
+                this.stroke = new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+            } else {
+                this.stroke = strokeStyle.makeStroke(width);
             }
-        };
+        } else
+            this.stroke = STROKE_ZERO;
+        
+        /*/ below code was broken in previous code.  Node child layout does NOT
+        // appear to be taking into account total bounds with at the moment anyway...
+        // (Or was that just for Groups?  No, those appear to be handling the full bounds change.)
+        // Also, want to make generic with a flag in Key if layout needed when
+        // the given property changes.
+        if (getParent() != null) {
+            // because stroke affects bounds-width, may need to re-layout parent
+            getParent().layout();
+        }
+        layout();*/
+    }
 
 
     public final IntProperty mFontStyle = new CSSFontStyleProperty(KEY_FontStyle)       { void onChange() { rebuildFont(); } };

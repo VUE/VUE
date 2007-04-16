@@ -32,7 +32,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.35 $ / $Date: 2007-03-14 22:14:31 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2007-04-16 04:23:09 $ / $Author: sfraize $
  * 
  */
 
@@ -103,6 +103,7 @@ public class LinkToolPanel extends LWCToolPanel
         addComponent(mArrowEndButton);
         addComponent(mStrokeColorButton);
         addComponent(mStrokeButton);
+        addComponent(mStrokeStyleButton);
         addComponent(mFontPanel);
         addComponent(mTextColorButton);
     }

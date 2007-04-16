@@ -40,7 +40,7 @@ import javax.swing.border.*;
  *
  * Subclasses must implement LWEditor produce/display
  *
- * @version $Revision: 1.19 $ / $Date: 2007-02-06 21:50:40 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2007-04-16 04:23:09 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -248,7 +248,7 @@ public abstract class MenuButton<T> extends JButton
     }
 
     /** factory method for subclasses -- build's an icon for menu items */
-    protected Icon makeIcon(Object value) {
+    protected Icon makeIcon(T value) {
         return null;
     }
     
@@ -258,7 +258,7 @@ public abstract class MenuButton<T> extends JButton
     }
     
     /** @param values can be property values or actions (or even a mixture) */
-    protected void buildMenu(Object[] values)
+    protected void buildMenu(T[] values)
     {
         buildMenu(values, null, false); 
     }
@@ -285,7 +285,7 @@ public abstract class MenuButton<T> extends JButton
      * that the action is handling the value change.  In this case override
      * handleMenuSelection to change the buttons appearance after a selection change.
      */
-    protected void buildMenu(Object[] values, String[] names, boolean createCustom)
+    protected void buildMenu(T[] values, String[] names, boolean createCustom)
     {
         mPopup = new JPopupMenu();
 			
@@ -299,12 +299,12 @@ public abstract class MenuButton<T> extends JButton
             
         for (int i = 0; i < values.length; i++) {
             JMenuItem item;
-            Object value;
+            T value;
             Icon icon = null;
             if (values[i] instanceof Action) {
                 Action a = (Action) values[i];
                 item = new JMenuItem((String) a.getValue(Action.NAME));
-                value = a.getValue(ValueKey);
+                value = (T) a.getValue(ValueKey);
                 icon = (Icon) a.getValue(Action.SMALL_ICON);
             } else {
                 item = new JMenuItem();
@@ -332,6 +332,17 @@ public abstract class MenuButton<T> extends JButton
         mEmptySelection.setVisible(false);
         mPopup.add(mEmptySelection);
     }
+
+    protected void buildMenu(Class<T> enumType)
+    {
+        T[] values = enumType.getEnumConstants();
+        String[] names = new String[values.length];
+        int i = 0;
+        for (T e : values)
+            names[i++] = e.toString();
+        buildMenu(values, names, false);
+    }
+    
 		
     protected void handleMenuSelection(ActionEvent e) {
 

@@ -79,8 +79,8 @@ public class StrokeMenuButton extends MenuButton<Float>
     }
 
     /** factory for superclass buildMenu */
-    protected Icon makeIcon(Object value) {
-        return new LineIcon(sIconWidth, sIconHeight, ((Float)value).floatValue());
+    protected Icon makeIcon(Float value) {
+        return new LineIcon(sIconWidth, sIconHeight, value);
     }
 }
 

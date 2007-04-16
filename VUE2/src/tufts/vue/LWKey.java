@@ -42,6 +42,7 @@ public interface LWKey {
     public LWComponent.Key TextColor = LWComponent.KEY_TextColor; 
     public LWComponent.Key StrokeColor = LWComponent.KEY_StrokeColor; 
     public LWComponent.Key StrokeWidth = LWComponent.KEY_StrokeWidth;
+    public LWComponent.Key StrokeStyle = LWComponent.KEY_StrokeStyle;
     public LWComponent.Key Font =  LWComponent.KEY_Font;
     public LWComponent.Key FontSize =  LWComponent.KEY_FontSize;
     public LWComponent.Key FontName =  LWComponent.KEY_FontName;
