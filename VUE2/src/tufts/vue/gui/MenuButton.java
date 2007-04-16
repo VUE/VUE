@@ -40,7 +40,7 @@ import javax.swing.border.*;
  *
  * Subclasses must implement LWEditor produce/display
  *
- * @version $Revision: 1.21 $ / $Date: 2007-04-16 06:06:08 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2007-04-16 21:27:55 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -56,6 +56,8 @@ public abstract class MenuButton<T> extends JButton
 // menu-popups would automatically work also.
 {
     protected Object mPropertyKey;
+    protected T mCurrentValue;
+    
     protected JPopupMenu mPopup;
     protected JMenuItem mEmptySelection;
     private Icon mButtonIcon;
@@ -67,7 +69,6 @@ public abstract class MenuButton<T> extends JButton
 
     private Insets insets(int x) { return new Insets(x,x,x,x); }
 
-    protected T mCurrentValue;
 
     public MenuButton()
     {
@@ -83,6 +84,8 @@ public abstract class MenuButton<T> extends JButton
             //setBorder(new LineBorder(Color.blue, 2));
             //setBorder(new EmptyBorder(2,2,2,2));
         }
+
+        //setBorderPainted(false);
 
         if (GUI.isMacAqua()) {
             // anything big makes them rounded & fit into their space.
@@ -217,7 +220,10 @@ public abstract class MenuButton<T> extends JButton
         //if (DEBUG.BOXES||DEBUG.TOOL) System.out.println(this + " _setIcon " + i);
         Dimension d = getButtonSize();
         if (true || !GUI.isMacAqua()) {
-            VueButtonIcon.installGenerated(this, new MenuProxyIcon(i), d);
+            if (false)
+                VueButtonIcon.installGenerated(this, i, d);
+            else
+                VueButtonIcon.installGenerated(this, new MenuProxyIcon(i), d);
             //System.out.println(this + " *** installed generated, setPreferredSize " + d);
         }
         setPreferredSize(d);
@@ -228,21 +234,8 @@ public abstract class MenuButton<T> extends JButton
         return mPopup;
     }
 
-    /*
-    public void setPropertyName(String pName) {
-        mPropertyName = pName;
-    }
-    */
-    /*
-    public String getPropertyName() {
-        return mPropertyKey == null ? null : mPropertyKey.toString();
-        //return mPropertyName;
-    }
-    */
-    
     public void setPropertyKey(Object key) {
         mPropertyKey = key;
-        //mPropertyName = key;
     }
  	
     public Object getPropertyKey() {
@@ -260,9 +253,9 @@ public abstract class MenuButton<T> extends JButton
     }
     
     /** @param values can be property values or actions (or even a mixture) */
-    protected void buildMenu(T[] values)
+    protected void buildMenu(Object[] valuesOrActions)
     {
-        buildMenu(values, null, false); 
+        buildMenu(valuesOrActions, null, false); 
     }
 
     /** Key for JMenuItem's: a place to store a property value for this menu item */
@@ -287,7 +280,7 @@ public abstract class MenuButton<T> extends JButton
      * that the action is handling the value change.  In this case override
      * handleMenuSelection to change the buttons appearance after a selection change.
      */
-    protected void buildMenu(T[] values, String[] names, boolean createCustom)
+    protected void buildMenu(Object[] values, String[] names, boolean createCustom)
     {
         mPopup = new JPopupMenu();
 			
@@ -310,7 +303,7 @@ public abstract class MenuButton<T> extends JButton
                 icon = (Icon) a.getValue(Action.SMALL_ICON);
             } else {
                 item = new JMenuItem();
-                value = values[i];
+                value = (T) values[i];
             }
             item.putClientProperty(ValueKey, value);
             if (icon == null)
@@ -338,6 +331,8 @@ public abstract class MenuButton<T> extends JButton
     protected void buildMenu(Class<T> enumType)
     {
         T[] values = enumType.getEnumConstants();
+        if (values == null)
+            throw new Error("no enum constants for (not an enum?) " + enumType);
         String[] names = new String[values.length];
         int i = 0;
         for (T e : values)
@@ -384,6 +379,7 @@ public abstract class MenuButton<T> extends JButton
 
     /** @return the currently selected value (interface LWEditor) */
     public T produceValue() {
+        if (DEBUG.TOOL) System.out.println(this + " produceValue " + mCurrentValue);
         return mCurrentValue;
     }
 
