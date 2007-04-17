@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.136 $ / $Date: 2007-04-16 06:23:36 $ / $Author: sfraize $
+ * @version $Revision: 1.137 $ / $Date: 2007-04-17 22:59:25 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -879,6 +879,11 @@ public class LWLink extends LWComponent
     {
         if (endpointMoved)
             computeLink();
+
+        //if (!super.containsImpl(x, y)) // fast-reject on bounding box
+        //    return false;
+        // Can't: bounding box doesn't currently include the label,
+        // which on a small link could be well outside the stroked path.
 
         float maxDist = getStrokeWidth() / 2;
         final int slop = 4; // near miss on line still hits it
