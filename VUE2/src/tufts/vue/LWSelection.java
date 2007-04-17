@@ -29,7 +29,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.56 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2007-04-17 22:31:01 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -50,6 +50,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     private Object source;
     private LWComponent focal; // root of selection tree
+
+    private long mEditablePropertyKeys;
 
     private List<LWComponent> mSecureList = null;
 
@@ -333,6 +335,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         if (!c.isSelected()) {
             if (!isClone) c.setSelected(true);
             mBounds = null;
+            mEditablePropertyKeys |= c.getSupportedPropertyBits();
             super.add(c);
             if (!isClone && c instanceof ControlListener)
                 addControlListener((ControlListener)c);
@@ -383,6 +386,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             return false;
         if (notifyUnderway())
             return false;
+
         if (DEBUG.SELECTION) System.out.println(this + " clear0");
 
         if (!isClone) {
@@ -393,6 +397,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             }
         }
         controlListeners.clear();
+        mEditablePropertyKeys = 0;
         mBounds = null;
         super.clear();
         return true;
@@ -535,6 +540,20 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         LWComponent[] array = new LWComponent[size()];
         super.toArray(array);
         return array;
+    }
+
+    public long getEditablePropertyBits() {
+        return mEditablePropertyKeys;
+    }
+    
+    public boolean hasEditableProperty(LWComponent.Key key) {
+        return ( mEditablePropertyKeys & key.bit ) != 0;
+        /*
+        if (key instanceof LWComponent.Key)
+            return ( mEditablePropertyKeys & ((LWComponent.Key)key).bit ) != 0;
+        else
+            return true;
+        */
     }
 
     public LWSelection clone()
