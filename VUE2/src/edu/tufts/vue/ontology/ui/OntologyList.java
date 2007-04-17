@@ -31,7 +31,6 @@ public class OntologyList extends javax.swing.JList {
     {
         super(new OntologyListModel());
         setCellRenderer(new OntologyListRenderer());
-       // super(new javax.swing.DefaultListModel());
     }
     
     public static class OntologyListModel implements javax.swing.ListModel

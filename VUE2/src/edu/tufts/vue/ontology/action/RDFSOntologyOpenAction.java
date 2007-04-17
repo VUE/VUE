@@ -101,8 +101,9 @@ public class RDFSOntologyOpenAction extends tufts.vue.VueAction {
               
              // viewer.getBrowser().getPopulatePane().add(typeList);
               viewer.getBrowser().addTypeList(typeList,chooser.getSelectedFile().getName());
-              viewer.revalidate();
-              viewer.getBrowser().revalidate();
+              //viewer.revalidate();
+              //viewer.getBrowser().revalidate();
+              viewer.getList().updateUI();
           }
         }
     }

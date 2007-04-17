@@ -30,7 +30,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.22 $ / $Date: 2007-04-11 15:40:52 $ / $Author: dan $
+ * @version $Revision: 1.23 $ / $Date: 2007-04-17 15:52:35 $ / $Author: dan $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -255,14 +255,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         RDFOpenAction rdfOpen = new RDFOpenAction();
         OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction("Constraint Mapping");
         FedoraOntologyOpenAction fooa = new FedoraOntologyOpenAction("Fedora Ontology Types");
-        RDFSOntologyOpenAction rdfsooa = new RDFSOntologyOpenAction("Open RDFS Ontology");
-        OwlOntologyOpenAction owlooa = new OwlOntologyOpenAction("Open OWL Ontology");
         toolsMenu.add(compareAction);
         toolsMenu.add(rdfOpen);
         toolsMenu.add(ontcontrls);
         toolsMenu.add(fooa);
-        toolsMenu.add(rdfsooa);
-        toolsMenu.add(owlooa);
 
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.vueWebsite.label"), VueResources.getString("helpMenu.vueWebsite.url")));
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.userGuide.label"), VueResources.getString("helpMenu.userGuide.url")));
