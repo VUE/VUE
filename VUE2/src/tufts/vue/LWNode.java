@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.142 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.143 $ / $Date: 2007-04-17 22:59:15 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -293,6 +293,24 @@ public class LWNode extends LWContainer
     public Shape getShape() {
         return this.boundsShape;
     }
+    
+    protected Point2D.Float getCorner() {
+        if (mIsRectShape)
+            return super.getCorner();
+
+        // find out where a line drawn from our local center to our
+        // lower right bounding box intersects the lower right edge of
+        // our local shape
+        
+        float[] corner =
+            VueUtil.computeIntersection(getWidth() / 2, getHeight() / 2,
+                                        getWidth(), getHeight(),
+                                        getLocalShape(),
+                                        null);
+
+        return new Point2D.Float(corner[0], corner[1]);
+    }
+
     
     //public Shape getMapShape() { return this.boundsShape; }
     
@@ -597,6 +615,14 @@ public class LWNode extends LWContainer
     }
     */
 
+    protected boolean containsImpl(float x, float y) {
+        if (super.containsImpl(x, y)) // fast-reject
+            return boundsShape.contains(x, y);
+        else
+            return false;
+    }
+    
+    /*
     protected boolean containsImpl(float x, float y)
     {
         if (imageIcon != null) {
@@ -624,12 +650,8 @@ public class LWNode extends LWContainer
                 }
             }
         }
-        
-        // to compensate for stroke width here, could get mathy here
-        // and move the x/y strokeWidth units along a line toward
-        // the center of the object, which wouldn't be perfect
-        // but would be reasonable.
     }
+    */
 
     /*
     protected void addChildImpl(LWComponent c) {
