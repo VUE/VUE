@@ -28,11 +28,7 @@ import java.awt.BasicStroke;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.AlphaComposite;
-import java.awt.geom.Area;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.RectangularShape;
-import java.awt.geom.AffineTransform;
+import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 
 import java.util.*;
@@ -48,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.245 $ / $Date: 2007-04-16 06:06:07 $ / $Author: sfraize $
+ * @version $Revision: 1.246 $ / $Date: 2007-04-17 22:57:24 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -203,6 +199,10 @@ public class LWComponent
     /** for internal proxy instances only */
     private LWComponent(String label) {
         setLabel(label);
+    }
+
+    public long getSupportedPropertyBits() {
+        return mSupportedPropertyKeys;
     }
 
     /** Convenience: If key not a real Key (a String), always return true */
@@ -3058,7 +3058,13 @@ public class LWComponent
         if (getLayer() > dc.getMaxLayer())
             return false;
 
-        return intersects(dc.getMasterClipRect());
+        if (intersects(dc.getMasterClipRect()))
+            return true;
+
+        if (isDrawingSlideIcon())
+            return getMapSlideIconBounds().intersects(dc.getMasterClipRect());
+        else
+            return false;
     }
     
 
@@ -3203,11 +3209,12 @@ public class LWComponent
             }
         }
     }
+    
+    public final boolean contains(Point2D p) {
+        return contains((float)p.getX(), (float)p.getY());
+    }
 
-    /**
-     * Default implementation: checks bounding box
-     * Subclasses should override and compute via shape.
-     */
+    /** @return true if the given x/y (already transformed to our local coordinate space), is within our shape */
     public final boolean contains(float x, float y) {
         if (containsImpl(x, y))
             return true;
@@ -3218,24 +3225,34 @@ public class LWComponent
             return false;
     }
 
-    public final boolean contains(Point2D p) {
-        return contains((float)p.getX(), (float)p.getY());
-    }
-    
+    /**
+     * Default implementation: checks bounding box
+     * Subclasses should override for more accurate hit detection.
+     */
     protected boolean containsImpl(float x, float y)
     {
         if (VUE.RELATIVE_COORDS)
-            return x >= 0 && x <= getWidth()
-                && y >= 0 && y <= getHeight();
+            return x >= 0
+                && y >= 0
+                && x <= getWidth()
+                && y <= getHeight();
         else
-            return containsRaw(x, y);
+            return containsParentCoord(x, y);
     }
 
     /** For using a node in a non-map context (e.g., as an on-screen button) */
-    public boolean containsRaw(float x, float y) {
-        return x >= this.x && x <= (this.x+getWidth())
-            && y >= this.y && y <= (this.y+getHeight());
+    // todo: this is bounding box only: odd shapes will have imperfect hit detection
+    // also, if we ever add rotation of arbitrary LWComponents, this won't handle it --
+    // will need need to dump this hack and do all in LWTraversal, or have the
+    // local LWComponent contains/intersects code adjust for the local transformation
+    // themselves.
+    public boolean containsParentCoord(float x, float y) {
+        return x >= this.x
+            && y >= this.y
+            && x <= (this.x+getScaledWidth())
+            && y <= (this.y+getScaledHeight());
     }
+    
 
     private final float SlideScale = 0.125f;
     private Rectangle2D.Float mSlideIconBounds;
@@ -3266,22 +3283,36 @@ public class LWComponent
         return slideIcon;
     }
 
-    private Rectangle2D.Float computeSlideIconBounds(Rectangle2D.Float rect)
+    /** @return the local lower right hand corner of the component: for rectangular shapes, this is just [width,height]
+     * Non-rectangular shapes can override to do something fancier. */
+    protected Point2D.Float getCorner() {
+        return new Point2D.Float(getWidth(), getHeight());
+    }
+
+    protected Rectangle2D.Float computeSlideIconBounds(Rectangle2D.Float rect)
     {
         final float width = LWSlide.SlideWidth * SlideScale;
         final float height = LWSlide.SlideHeight * SlideScale;
-        //final float xoff = 0;
-        //final float yoff = getHeight() + 5;
 
-        //final float xoff = getWidth() + -width / 2f;
-        //final float yoff = getHeight() + -height / 2f;
-        float xoff = getWidth() - 20;
-        float yoff = getHeight() - 20;
+        Point2D.Float corner = getCorner();
+        
+        //float xoff = corner.x;
+        //float yoff = corner.y;
 
+        float xoff = corner.x - 20;
+        float yoff = corner.y - 20;
+
+        // If shape is small, try and keep it from overlapping too much (esp the label)
         if (xoff < getWidth() / 2f)
             xoff = getWidth() / 2f;
         if (yoff < getHeight() * 0.75f)
             yoff = getHeight() * 0.75f;
+
+        // This can happen for wierd shapes (e.g., shield)
+        if (xoff > corner.x)
+            xoff = corner.x;
+        if (yoff > corner.y)
+            yoff = corner.y;
 
         if (VUE.RELATIVE_COORDS) {
             rect.setRect(xoff,
@@ -3299,7 +3330,7 @@ public class LWComponent
     }
 
     /** If there's a pathway entry we want to be showing, return it, otherwise, null */
-    private LWPathway.Entry getEntryToDisplay()
+    protected LWPathway.Entry getEntryToDisplay()
     {
         final LWPathway path = VUE.getActivePathway();
         if (inPathway(path) && path.isDrawn()) {
@@ -3336,16 +3367,32 @@ public class LWComponent
             transformLocal(dc.g);
         }
         
+        final AffineTransform saveTransform = dc.g.getTransform();
+
         if (dc.focal == this || dc.isFocused())
             drawRaw(dc);
         else
             drawDecorated(dc);
-        
-        if (DEBUG.BOXES && !hasAbsoluteMapLocation()) {
-            // scaling testing -- draw an exactly 8x8 pixel (rendered) box
-            dc.g.setColor(Color.green);
-            dc.g.drawRect(0,0,7,7);
+
+        if (DEBUG.BOXES) {
+            if (!hasAbsoluteMapLocation()) {
+                
+                dc.g.setTransform(saveTransform);
+                
+                // scaling testing -- draw an exactly 8x8 pixel (rendered) box
+                //dc.g.setStroke(STROKE_ONE); // make sure stroke is set to 1!
+                dc.setAbsoluteStroke(1); // make sure stroke is set to 1!
+                dc.g.setColor(Color.green);
+                dc.g.drawRect(0,0,7,7);
+
+                // show the center-point to corner intersect line (debug slide icon placement):
+                dc.g.setColor(Color.red);
+                //dc.setAbsoluteStroke(1);
+                dc.g.setStroke(STROKE_ONE);
+                dc.g.draw(new Line2D.Float(new Point2D.Float(getWidth()/2, getHeight()/2), getCorner()));
+            }
         }
+        
     }
 
     private void drawRaw(DrawContext dc) {
@@ -3384,7 +3431,7 @@ public class LWComponent
             dc.g.setColor(Color.darkGray);
             dc.g.setStroke(VueConstants.STROKE_SEVEN);
             dc.g.draw(border);
-            
+
         } else {
 
             //if (entry != null && !dc.isFocused) {
