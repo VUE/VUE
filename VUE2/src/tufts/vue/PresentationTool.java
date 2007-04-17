@@ -264,7 +264,7 @@ public class PresentationTool extends VueTool
     {
         for (LWComponent c : mNavNodes) {
             System.out.println("pickCheck " + c + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
-            if (c.containsRaw(e.getX(), e.getY())) {
+            if (c.containsParentCoord(e.getX(), e.getY())) {
                 System.out.println("HIT " + c);
                 //LWComponent oneBack = mBackList.peek();
                 //if (oneBack == c.getSyncSource() || (oneBack instanceof LWSlide && ((LWSlide)oneBack).getSourceNode() == c.getSyncSource()))
