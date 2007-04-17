@@ -29,7 +29,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.57 $ / $Date: 2007-04-17 22:31:01 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2007-04-17 22:36:16 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -358,6 +358,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         if (!isClone && c instanceof ControlListener)
             removeControlListener((ControlListener)c);
         mBounds = null;
+        mEditablePropertyKeys = 0; // will need to re-compute from scratch
         if (!super.remove(c))
             throw new RuntimeException(this + " remove: list doesn't contain " + c);
     }
@@ -543,11 +544,18 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     }
 
     public long getEditablePropertyBits() {
+        if (mEditablePropertyKeys == 0 && !isEmpty()) {
+            // keys may be zero if something was removed from the
+            // selection, requiring us to recompute from scratch
+            for (LWComponent c : this)
+                mEditablePropertyKeys |= c.getSupportedPropertyBits();
+        }
+            
         return mEditablePropertyKeys;
     }
     
     public boolean hasEditableProperty(LWComponent.Key key) {
-        return ( mEditablePropertyKeys & key.bit ) != 0;
+        return ( getEditablePropertyBits() & key.bit ) != 0;
         /*
         if (key instanceof LWComponent.Key)
             return ( mEditablePropertyKeys & ((LWComponent.Key)key).bit ) != 0;
