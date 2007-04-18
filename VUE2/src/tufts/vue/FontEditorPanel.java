@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.42 $ / $Date: 2007-04-18 21:04:30 $ / $Author: mike $
+ * @version $Revision: 1.43 $ / $Date: 2007-04-18 21:31:18 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -91,7 +91,7 @@ implements PropertyChangeListener
 
         mFontCombo = new JComboBox(getFontNames());
         Font f = mFontCombo.getFont();
-        Font menuFont = f.deriveFont((float) f.getSize()-2);        
+        Font menuFont = f.deriveFont((float) 9);        
         mFontCombo.setFont(menuFont);
         mFontCombo.setPrototypeDisplayValue("Ludica Sans Typewriter"); // biggest font name to bother sizing to
         if (false) {
@@ -229,8 +229,9 @@ implements PropertyChangeListener
         gbc.gridwidth=1;
         gbc.gridy=1;
         gbc.gridx=0;
-        add(mFontCombo,gbc);
         
+        add(mFontCombo,gbc);
+        gbc.insets= new Insets(1,1,1,1);
         gbc.gridy=1;
         gbc.gridx=1;
         add(mBoldButton,gbc);
@@ -249,21 +250,23 @@ implements PropertyChangeListener
         gbc.gridy=2;
         gbc.gridx=0;        
         gbc.fill=GridBagConstraints.VERTICAL;
-        gbc.anchor=GridBagConstraints.SOUTHWEST;
+        gbc.anchor=GridBagConstraints.WEST;
         gbc.weightx=0.30;
         //gbc.ipady=6;
         //gbc.ipadx=5;        
+        gbc.insets=new Insets(1,5,1,1);
         add(mSizeField,gbc);
                 
         
         gbc.gridy=2;
         gbc.gridx=3;
         gbc.fill=GridBagConstraints.REMAINDER;
-        gbc.gridheight=0;
+        gbc.anchor=GridBagConstraints.WEST;
+        gbc.gridheight=1;
         gbc.gridwidth=1;
         gbc.ipadx=0;
         gbc.ipady=0;
-        gbc.insets=new Insets(0,0,0,0);
+        
         alignmentButton.setBorder(BorderFactory.createEmptyBorder());
         alignmentButton.getComboBox().setBorder(BorderFactory.createEmptyBorder());
         alignmentButton.getComboBox().setEnabled(false);

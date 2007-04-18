@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.89 $ / $Date: 2007-04-18 13:52:48 $ / $Author: mike $
+ * @version $Revision: 1.90 $ / $Date: 2007-04-18 21:31:18 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -289,7 +289,7 @@ public class DockWindow extends javax.swing.JWindow
             if (!isToolbar)
             	setSize(DefaultWidth, getHeight());
             else
-            	setSize(570,70);
+            	setSize(580,70);
         } else {
             validate();
         }
