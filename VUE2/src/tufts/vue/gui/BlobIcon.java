@@ -184,11 +184,14 @@ public class BlobIcon implements Icon
             color = c.getBackground();
 
         g.setColor(color);
-        g.fillRect(x,y, mWidth, mHeight);
+   //     g.fillRect(x,y, mWidth, mHeight);
+        g.fillRoundRect(x,y, mWidth, mHeight,6,6);
         if (mColor != null && mPaintBorder) {
             //g.setColor(color.darker());
             g.setColor(Color.black);
-            g.drawRect(x,y, mWidth-1, mHeight-1);
+            g.drawRoundRect(x,y, mWidth-1, mHeight-1,6,6);
+     //       g.fillRoundRect(x,y, mWidth, mHeight,2,2);
+            //g.drawRect(x,y, mWidth-1, mHeight-1);
         }
         if( mOverlay != null) {
             mOverlay.paintIcon( c, g, x, y);
