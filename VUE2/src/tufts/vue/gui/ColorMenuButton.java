@@ -29,7 +29,7 @@ import javax.swing.Icon;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.9 $ / $Date: 2007-04-18 13:29:11 $ / $Author: mike $
+ * @version $Revision: 1.10 $ / $Date: 2007-04-18 13:47:10 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */
@@ -52,6 +52,7 @@ public class ColorMenuButton extends MenuButton
         // create default color swatch icon: override with setButtonIcon if want different
         setButtonIcon(new BlobIcon(16,16, true)); // can we live with no default? clean up init style...
         buildMenu(pColors, pMenuNames, pHasCustom);
+        setBorder(null);
     }
 	
     public ColorMenuButton(Color[] pColors, String [] pMenuNames) {
