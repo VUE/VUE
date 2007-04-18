@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.52 $ / $Date: 2007-03-14 17:42:05 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2007-04-18 13:27:49 $ / $Author: mike $
  *
  **/
 public class VueToolbarController  
@@ -339,7 +339,7 @@ public class VueToolbarController
         if (panel != null)
             initContextualPanelFromSelection(panel);
         
-        getToolbar().setContextualToolPanel(panel);
+   //     getToolbar().setContextualToolPanel(panel);
     }
 	 
 	 

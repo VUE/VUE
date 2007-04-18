@@ -33,7 +33,7 @@ import javax.swing.border.*;
  * The VueToolPanel is the component that holds the main VUE toolbar
  * and the contextual properties tools.
  *
- * @version $Revision: 1.27 $ / $Date: 2006-02-21 22:27:47 $ / $Author: sfraize $ 
+ * @version $Revision: 1.28 $ / $Date: 2007-04-18 13:27:49 $ / $Author: mike $ 
  *
  **/
 public class VueToolPanel extends JPanel
@@ -42,10 +42,7 @@ public class VueToolPanel extends JPanel
     public static final boolean IS_CONTEXTUAL_TOOLBAR_ENABLED = true;
     
     /** the panel where the main tools are placed **/
-    private JComponent mMainToolBar = null;
-	
-    /** the panel where contextual tools are placed **/
-    private JPanel mContextualToolPanel = null;
+    private JComponent mMainToolBar = null;	
 	
     /** the button group used for tool selection **/
     private ButtonGroup mButtonGroup = null;
@@ -88,16 +85,8 @@ public class VueToolPanel extends JPanel
         if (debug)
             mMainToolBar.setBackground(Color.green);
 
-        mContextualToolPanel = new JPanel();
-        mContextualToolPanel.setAlignmentX(LEFT_ALIGNMENT);
-        mContextualToolPanel.setLayout(new BoxLayout(mContextualToolPanel, BoxLayout.X_AXIS));
-
-        if (debug)
-            mContextualToolPanel.setBackground(Color.orange);
-		
         setAlignmentX( LEFT_ALIGNMENT);
         add(BorderLayout.WEST, mMainToolBar);
-        add(BorderLayout.EAST, mContextualToolPanel);
         //add( BorderLayout.CENTER, mContextualToolPanel);
         //add( BorderLayout.EAST, Box.createHorizontalGlue());
     }
@@ -204,11 +193,6 @@ public class VueToolPanel extends JPanel
     }
 	
 	
-    public void addContextual( Component pObj) {
-        if( pObj != null) {
-            mContextualToolPanel.add( pObj);
-        }
-    }
 	
     /**
      * setContextualToolPanel
@@ -216,25 +200,6 @@ public class VueToolPanel extends JPanel
      * any components already displayed.
      **/
     private JPanel mPanelContent;
-    void setContextualToolPanel(JPanel pPanel) {
-
-        if (IS_CONTEXTUAL_TOOLBAR_ENABLED == false) return;
-        
-        if (mPanelContent == pPanel)
-            return;
-        if (DEBUG.TOOL) System.out.println(this + " LOADING " + pPanel);
-        mContextualToolPanel.removeAll();        
-        if (pPanel != null) {
-            if (debug)
-                pPanel.setBackground(Color.cyan);
-            else
-                GUI.applyToolbarColor(pPanel);
-            mContextualToolPanel.add(pPanel);
-            mPanelContent = pPanel;
-        }
-        validate();
-        repaint();
-    }
      
 	
     /**
