@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.43 $ / $Date: 2007-04-18 21:31:18 $ / $Author: mike $
+ * @version $Revision: 1.44 $ / $Date: 2007-04-18 22:02:26 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -119,7 +119,7 @@ implements PropertyChangeListener
         if (sFontSizes == null)
             sFontSizes = VueResources.getStringArray("fontSizes");
         mSizeField = new JComboBox(sFontSizes);
-        mSizeField.setPrototypeDisplayValue("100");
+        mSizeField.setPrototypeDisplayValue("10000");
         mSizeField.setEditable(true);
         mSizeField.setOpaque(false);
         
@@ -263,10 +263,10 @@ implements PropertyChangeListener
         gbc.fill=GridBagConstraints.REMAINDER;
         gbc.anchor=GridBagConstraints.WEST;
         gbc.gridheight=1;
-        gbc.gridwidth=1;
+        gbc.gridwidth=0;
         gbc.ipadx=0;
         gbc.ipady=0;
-        
+        gbc.insets=new Insets(0,1,1,1);
         alignmentButton.setBorder(BorderFactory.createEmptyBorder());
         alignmentButton.getComboBox().setBorder(BorderFactory.createEmptyBorder());
         alignmentButton.getComboBox().setEnabled(false);
