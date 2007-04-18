@@ -24,7 +24,7 @@ import tufts.vue.shape.RectangularPoly2D;
 import edu.tufts.vue.preferences.PreferencesManager;
 import edu.tufts.vue.preferences.VuePrefEvent;
 import edu.tufts.vue.preferences.VuePrefListener;
-import edu.tufts.vue.preferences.implementations.BooleanPreference;
+import edu.tufts.vue.preferences.implementations.ShowIconsPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
     
 import java.util.Iterator;
@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.143 $ / $Date: 2007-04-17 22:59:15 $ / $Author: sfraize $
+ * @version $Revision: 1.144 $ / $Date: 2007-04-18 13:26:03 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -92,16 +92,6 @@ public class LWNode extends LWContainer
     /** how much smaller children are than their immediately enclosing parent (is cumulative) */
     static final float ChildScale = VueResources.getInt("node.child.scale", 75) / 100f;
 
-    //------------------------------------------------------------------
-    // Preferences
-    //------------------------------------------------------------------
-    private static final VuePreference IconPref = BooleanPreference.create(
-			edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
-			"showNodeIcons", 
-			"Show Icons", 
-			"Display rollover icons in map nodes",
-			true);
-    
     //------------------------------------------------------------------
     // Instance info
     //------------------------------------------------------------------
@@ -165,16 +155,7 @@ public class LWNode extends LWContainer
         //this.font = DEFAULT_NODE_FONT;
         setFont(DEFAULT_NODE_FONT); // shouldn't need to do this, but label not getting created in setLabel?
         //getLabelBox(); // shoudn't need to do this either: first attempt at labelbox should get it! (not working either!)
-        setLabel(label);
-
-        // todo perf: a bit heavy weight to have every node made a listener
-        // for this preference -- better to handle at the map level.
-        IconPref.addVuePrefListener(new VuePrefListener() {
-                public void preferenceChanged(VuePrefEvent prefEvent) {
-                    LWNode.this.layout();
-                    LWNode.this.notify(LWKey.Repaint);				
-                }        	
-        });
+        setLabel(label);       
         
     }
     
@@ -288,7 +269,7 @@ public class LWNode extends LWContainer
         layout();
         notify(LWKey.Shape, new Undoable(old) { void undo() { setShape((RectangularShape)old); }} );
     }
-
+    
     /** @return shape object with map coordinates -- can be used for hit testing, drawing, etc */
     public Shape getShape() {
         return this.boundsShape;
@@ -374,10 +355,7 @@ public class LWNode extends LWContainer
      * all nodes need to be re-laid out / resized
      */
     private boolean iconShowing()
-    {
-    	if (!PreferencesManager.getBooleanPrefValue(IconPref))
-    		return false;
-
+    {    	
         //if (getParent() instanceof LWSlide) // put in LWComponent so LWImage can use also (adjusting scale factor)
         if (isPresentationContext())
              return false;
@@ -2240,4 +2218,3 @@ public class LWNode extends LWContainer
     
     
 }
-
