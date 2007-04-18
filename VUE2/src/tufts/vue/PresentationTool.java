@@ -739,27 +739,46 @@ public class PresentationTool extends VueTool
 
     }
 
+    private static final int NavNodeX = -10; // clip the left edge of the round-rect
+    
     private void makeNavNodes(LWComponent node, Rectangle frame)
     {
-        for (LWLink link : node.getLinks()) {
-            LWComponent farpoint = link.getFarNavPoint(node);
-            if (farpoint != null) {
-                final LWComponent nav;
-                if (false && link.hasLabel())
-                    nav = createNavNode(link); // just need to set syncSource to the farpoint
-                else
-                    nav = createNavNode(farpoint);
+        float x = NavNodeX, y = frame.y;
+        
+        LWComponent nav = null;
+        
+        if (node.getPathways() != null) {
+            for (LWPathway path : node.getPathways()) {
+                nav = createNavNode(node, path);
+                
                 mNavNodes.add(nav);
+                
+                y += nav.getHeight() + 5;
+                nav.setLocation(x, y);
             }
         }
 
-        float x = -15, y = frame.y;
-        //out("frame " + frame);
-        for (LWComponent c : mNavNodes) {
-            y += c.getHeight() + 5;
-            c.setLocation(x, y);
-            //out("location set to " + x + "," + y + " for " + c);
+        if (nav != null)
+            y += nav.getHeight() + 5;
+        
+        for (LWLink link : node.getLinks()) {
+            LWComponent farpoint = link.getFarNavPoint(node);
+            if (farpoint != null) {
+                if (false && link.hasLabel())
+                    nav = createNavNode(link, null); // just need to set syncSource to the farpoint
+                else
+                    nav = createNavNode(farpoint, null);
+                mNavNodes.add(nav);
+
+                y += nav.getHeight() + 5;
+                nav.setLocation(x, y);
+            }
         }
+
+        //out("frame " + frame);
+//         for (LWComponent c : mNavNodes) {
+//             //out("location set to " + x + "," + y + " for " + c);
+//         }
 
         /*
         float spacePerNode = frame.width;
@@ -780,14 +799,14 @@ public class PresentationTool extends VueTool
         */
     }
 
-    private static Font NavFont = new Font("SansSerif", Font.PLAIN, 14);
-    private static Color NavFillColor = new Color(154,154,154);
-    //private static Color NavFillColor = new Color(64,64,64,96);
-    private static Color NavStrokeColor = new Color(96,93,93);
-    private static Color NavTextColor = Color.darkGray;
+    private static final Font NavFont = new Font("SansSerif", Font.PLAIN, 16);
+    private static final Color NavFillColor = new Color(154,154,154);
+    //private static final Color NavFillColor = new Color(64,64,64,96);
+    private static final Color NavStrokeColor = new Color(96,93,93);
+    private static final Color NavTextColor = Color.darkGray;
 
-    private LWComponent createNavNode(LWComponent src) {
-
+    private LWComponent createNavNode(LWComponent src, LWPathway pathway)
+    {
         if (false) {
             LWComponent c = src.duplicate();
             c.setSyncSource(src);
@@ -797,25 +816,32 @@ public class PresentationTool extends VueTool
         String label = src.getDisplayLabel();
 
         if (label.length() > 20)
-            label = label.substring(0,20) + "...";
+            label = label.substring(0,18) + "...";
 
-
-        if (mBackList.peekNode() == src)
+        if (pathway == null && mBackList.peekNode() == src)
             label = "BACK:" + label;
-        label = "    " + label + " ";
+        //label = "    " + label + " ";
         
-        LWNode c = new LWNode(label);
+        final LWNode c = new LWNode(label) {
+                // force label at left (non-centered)                
+                protected float relativeLabelX() { return -NavNodeX + 10; }
+            };
 
         //LWComponent c = NodeTool.createTextNode(src.getDisplayLabel());
         c.setFont(NavFont);
         c.setTextColor(NavTextColor);
         c.setFillColor(NavFillColor);
-        c.setStrokeColor(NavStrokeColor);
+        
+        if (pathway != null)
+            c.setStrokeColor(pathway.getStrokeColor());
+        else
+            c.setStrokeColor(NavStrokeColor);
+        
         c.setStrokeWidth(2);
         c.setSyncSource(src); // TODO: these will never get GC'd, and will be updating for ever based on their source...
         c.setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20));
-        //c.setAutoSized(false); 
-        //c.setSize(300, c.getHeight()); // we want it aligned left, and as long as need new code, add auto-text truncating?
+        c.setAutoSized(false); 
+        c.setSize(200, c.getHeight() + 6);
         return c;
     }
         
