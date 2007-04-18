@@ -33,7 +33,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.38 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2007-04-18 02:54:09 $ / $Author: sfraize $
  *
  */
 public class FontEditorPanel extends Box
@@ -92,7 +92,7 @@ public class FontEditorPanel extends Box
             mFontCombo.setBorder(new EmptyBorder(1,0,0,0));
 
         mFontCombo.setOpaque(false);
-        mFontCombo.addActionListener(new LWPropertyHandler<String>(LWKey.FontName) {
+        mFontCombo.addActionListener(new LWPropertyHandler<String>(LWKey.FontName, mFontCombo) {
                 public String produceValue() { return (String) mFontCombo.getSelectedItem(); }
                 public void displayValue(String value) { mFontCombo.setSelectedItem(value); }
             });
@@ -154,10 +154,7 @@ public class FontEditorPanel extends Box
         //mSizeField.getEditor().getEditorComponent().setSize(30,10);
         
         //mSizeField.addActionListener( this);
-        mSizeField.addActionListener(new LWPropertyHandler<Integer>(LWKey.FontSize) {
-                //public Object getPropertyValue() { return producePropertyValue(); }
-                //public void setPropertyValue(Object o) { loadPropertyValue(o); }
-                //Object producePropertyValue() { return new Integer((String) mSizeField.getSelectedItem()); }
+        mSizeField.addActionListener(new LWPropertyHandler<Integer>(LWKey.FontSize, mSizeField) {
                 public Integer produceValue() { return new Integer((String) mSizeField.getSelectedItem()); }
                 public void displayValue(Integer value) { mSizeField.setSelectedItem(""+value); }
             });
@@ -183,6 +180,10 @@ public class FontEditorPanel extends Box
                     final int style = value;
                     mBoldButton.setSelected((style & Font.BOLD) != 0);
                     mItalicButton.setSelected((style & Font.ITALIC) != 0);
+                }
+                public void setEnabled(boolean enabled) {
+                    mBoldButton.setEnabled(enabled);
+                    mItalicButton.setEnabled(enabled);
                 }
         };
  		
