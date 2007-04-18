@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.87 $ / $Date: 2007-04-06 22:27:51 $ / $Author: sfraize $
+ * @version $Revision: 1.88 $ / $Date: 2007-04-18 13:11:38 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -75,7 +75,7 @@ public class DockWindow extends javax.swing.JWindow
     //final static String RightArrow = "" + RightArrowChar;
     //final static String DownArrow = "" + DownArrowChar;
 
-    public final static int ToolbarHeight = VueResources.getInt("gui.dockToolbar.height", 35);
+    public final static int ToolbarHeight = VueResources.getInt("gui.dockToolbar.height", 70);
     private final static boolean MacWindowShadowEnabled = false;
     private static Border WindowBorder;
     private static Border ContentBorder;
@@ -215,7 +215,7 @@ public class DockWindow extends javax.swing.JWindow
             //setMinimumSize(new Dimension(180,100)); // java 1.5 only
             //setPreferredSize(new Dimension(300,150)); // interferes with height
         }
-
+       
         if (content != null) {
             setContent(content);
         } else
@@ -286,7 +286,10 @@ public class DockWindow extends javax.swing.JWindow
         
         if (!hadContent || !isDisplayable()) {
             pack();
-            setSize(DefaultWidth, getHeight());
+            if (!isToolbar)
+            	setSize(DefaultWidth, getHeight());
+            else
+            	setSize(570,70);
         } else {
             validate();
         }
@@ -3550,7 +3553,7 @@ public class DockWindow extends javax.swing.JWindow
             //super(new BorderLayout()); // close-button expands to fill whole gripper...
             //super(null);
             setName(DockWindow.this.getName());
-            setPreferredSize(new Dimension(10,-1));
+            setPreferredSize(new Dimension(16,-1));
             if (true)
                 setOpaque(false);
             else
@@ -3602,7 +3605,18 @@ public class DockWindow extends javax.swing.JWindow
 
         private void paintGripper(Graphics2D g)
         {
-            final int height = getHeight();
+        	final int height = getHeight();
+        	final int left = 0;
+            final int right = getWidth();
+        	final int width = right - left;
+        	GradientPaint mGradient = new GradientPaint(0, 0,BottomGradientColor,
+                     width,           0, TopGradientColor  );         
+         
+        	
+            ((Graphics2D)g).setPaint(mGradient);
+
+            g.fillRect(0,0, width, height);
+            /*final int height = getHeight();
             final int left = 0;
             final int right = getWidth();
             final int width = right - left;
@@ -3615,7 +3629,7 @@ public class DockWindow extends javax.swing.JWindow
                 g.setColor(Color.white);
                 g.drawLine(left,(y-width)-1, right,y-1);
                 y += yinc;
-            }
+            }*/
             /*
             for (int i = 0, y = 0; i < height; i++) {
                 g.setColor(Color.black);
@@ -3642,13 +3656,13 @@ public class DockWindow extends javax.swing.JWindow
                 y += yinc;
             }
             */
-            if (false) {
+         /*   if (false) {
                 //g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 // draw left & right border
                 g.setColor(Color.lightGray);
                 g.drawLine(0,0, 0,height);
                 g.drawLine(width-1,0, width-1,height);
-            }
+            }*/
         }
         
     }
@@ -3985,8 +3999,8 @@ public class DockWindow extends javax.swing.JWindow
             setName(dockWindow.getName());
 
             if (dockWindow.isToolbar) {
-                iconClose = VueResources.getIcon("gui.dockToolbar.closeIcon");
-                iconOver = VueResources.getIcon("gui.dockToolbar.closeIcon.over");
+                iconClose = VueResources.getIcon("gui.dockWindow.closeIcon");
+                iconOver = VueResources.getIcon("gui.dockWindow.closeIcon.over");
             } else {
                 iconClose = VueResources.getIcon("gui.dockWindow.closeIcon");
                 iconOver = VueResources.getIcon("gui.dockWindow.closeIcon.over");
