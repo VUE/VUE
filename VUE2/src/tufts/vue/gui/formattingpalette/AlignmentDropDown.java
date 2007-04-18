@@ -104,7 +104,7 @@ public class AlignmentDropDown extends JPanel {
     }
 //  default offsets for drawing popup arrow via code
     public int mArrowSize = 3;
-    public int mArrowHOffset  = -9;
+    public int mArrowHOffset  = -13;
     public int mArrowVOffset = -7;
     public void paint(Graphics g)
     {
