@@ -79,7 +79,6 @@ public class OntManager {
             type.setBase(ontUrl.toString());
             type.setComment(sp.getComment(null));
             type.setStyle(Style.getStyle(sp.getLocalName(),styleMap));
-           // type.setType(edu.tufts.vue.style.SelectorType.getLinkType());
             types.add(type);
         }
         iter  = m.listNamedClasses();
@@ -104,7 +103,6 @@ public class OntManager {
         ont.setBase(ontUrl.toString());
         CSSParser parser = new CSSParser();
         Map<String,Style> styleMap = parser.parseToMap(cssUrl);
-        //reading classes
         m.read(ontUrl.toString());
         iter  = m.listNamedClasses();
         while(iter.hasNext()) {
@@ -115,7 +113,6 @@ public class OntManager {
             type.setBase(ontUrl.toString());
             type.setComment(c.getComment(null));
             type.setStyle(Style.getStyle(c.getLocalName(),styleMap));
-       //     type.setType(edu.tufts.vue.style.SelectorType.getNodeType());
             types.add(type);
         }
         //reading object properties
@@ -128,8 +125,7 @@ public class OntManager {
             type.setLabel(p.getLabel(null));
             type.setComment(p.getComment(null));
             type.setStyle(Style.getStyle(p.getLocalName(),styleMap));
-       //     type.setType(edu.tufts.vue.style.SelectorType.getLinkType());
-            types.add(type);
+             types.add(type);
         }
         //reading ont properties
         iter  = m.listOntProperties();
@@ -141,7 +137,6 @@ public class OntManager {
             type.setLabel(p.getLabel(null));
             type.setComment(p.getComment(null));
             type.setStyle(Style.getStyle(p.getLocalName(),styleMap));
-        //    type.setType(edu.tufts.vue.style.SelectorType.getLinkType());
             types.add(type);
         }
         ont.setOntTypes(types);
