@@ -353,16 +353,23 @@ public class LWCToolPanel extends JPanel
     }
 
     private static boolean IgnoreEditorChangeEvents = false;
-    private void loadAllEditors(final LWComponent source)
+    
+    private void loadAllEditors(LWSelection selection)
     {
-        if (DEBUG.TOOL) out("loadValues (LWCToolPanel) " + source);
+        LWComponent propertySource = selection.first(); // TODO: this not what we want if selection size > 1
+        
+        if (DEBUG.TOOL) out("loadValues (LWCToolPanel) " + propertySource);
 
         // While the editors are loading, we want to ignore the
         // any change events that loading may produce.
         IgnoreEditorChangeEvents = true;
         try {
             for (LWEditor editor : mEditors) {
-                loadEditor(source, editor);
+                boolean supported = selection.hasEditableProperty(editor.getPropertyKey());
+                if (DEBUG.TOOL) out("SET-ENABLED " + editor + " = " + supported);
+                editor.setEnabled(supported);
+                if (supported)
+                    loadEditor(propertySource, editor);
             }
         } finally {
             IgnoreEditorChangeEvents = false;
@@ -387,13 +394,17 @@ public class LWCToolPanel extends JPanel
     private void loadEditorsMatchingKey(final Object key, final LWComponent source) {
         boolean loaded = false;
         for (LWEditor editor : mEditors) {
-            //if (DEBUG.TOOL&&DEBUG.META) System.out.println(this + " checking key [" + propertyKey + "] against " + propertyProducer);
-            if (editor.getPropertyKey() == key && source.supportsProperty(key)) {
-                if (DEBUG.TOOL) out("loadEditorsMatchingKey: found producer for key [" + key + "]: " + editor.getClass());
-                final Object value = source.getPropertyValue(key);
-                editor.displayValue(value);
-                //mState.setPropertyValue(propertyKey.toString(), value); // only load default state if nothing is selected...
-                loaded = true;
+            try {
+                //if (DEBUG.TOOL&&DEBUG.META) System.out.println(this + " checking key [" + propertyKey + "] against " + propertyProducer);
+                if (editor.getPropertyKey() == key && source.supportsProperty(key)) {
+                    if (DEBUG.TOOL) out("loadEditorsMatchingKey: found producer for key [" + key + "]: " + editor.getClass());
+                    final Object value = source.getPropertyValue(key);
+                    editor.displayValue(value);
+                    //mState.setPropertyValue(propertyKey.toString(), value); // only load default state if nothing is selected...
+                    loaded = true;
+                }
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(new Throwable(t), "exception loading editor: " + editor);
             }
         }
         if (DEBUG.TOOL && DEBUG.META) {
@@ -412,7 +423,8 @@ public class LWCToolPanel extends JPanel
         if (s.size() == 1) {
             if (singleSelection != null)
                 singleSelection.removeLWCListener(this);
-            loadAllEditors(singleSelection = s.first());
+            singleSelection = s.first();
+            loadAllEditors(s);
             singleSelection.addLWCListener(this);
 
             // do array of keys supported by this tool panel... Otherwise, we'll
@@ -422,7 +434,8 @@ public class LWCToolPanel extends JPanel
         } else if (s.size() > 1) {
             // todo: if we are to populate the tool bar properties when
             // there's a multiple selection, what do we use?
-            loadAllEditors(s.first());
+            //loadAllEditors(s.first());
+            loadAllEditors(s);
         }
 
         if (s.size() != 1 && singleSelection != null) {
