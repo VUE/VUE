@@ -29,6 +29,7 @@ import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Dimension;
+import java.awt.AlphaComposite;
 import java.awt.geom.Point2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.event.*;
@@ -214,13 +215,17 @@ public class PresentationTool extends VueTool
 
         boolean oldShowNav = mShowNavNodes;
 
-        int maxHeight = e.getViewer().getVisibleBounds().height;
-        if (e.getY() > maxHeight - 40) {
-            if (DEBUG.PRESENT) out("nav nodes on " + e.getY() + " max=" + maxHeight);
+        //int maxHeight = e.getViewer().getVisibleBounds().height;
+        //if (e.getY() > maxHeight - 40) {
+        if (e.getX() < 40) {
+            //if (DEBUG.PRESENT) out("nav nodes on " + e.getY() + " max=" + maxHeight);
             mShowNavNodes = true;
         } else {
-            if (DEBUG.PRESENT) out("nav nodes off " + e.getY() + " max=" + maxHeight);
-            mShowNavNodes = false;
+            if (mShowNavNodes) {
+                if (e.getX() > 200)
+                    mShowNavNodes = false;
+            }
+            //if (DEBUG.PRESENT) out("nav nodes off " + e.getY() + " max=" + maxHeight);
         }
 
         if (oldShowNav != mShowNavNodes)
@@ -586,12 +591,14 @@ public class PresentationTool extends VueTool
             // if we're in the slide viewer.
             ;
         } else {
-            if (mShowNavNodes)
+            if (mShowNavNodes) {
+                dc.g.setComposite(AlphaComposite.Src);
                 drawNavNodes(dc);
+            }
         }
 
         
-        if (DEBUG.Enabled) {
+        if (DEBUG.PRESENT && DEBUG.CONTAINMENT) {
             dc.setFrameDrawing();
             //dc.g.translate(dc.frame.x, dc.frame.y);
             //dc.g.setFont(VueConstants.FixedFont);
@@ -613,6 +620,8 @@ public class PresentationTool extends VueTool
 
     public DrawContext tweakDrawContext(DrawContext dc) {
         dc.setPresenting(true);
+        if (false &&mShowNavNodes)
+            dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
         return dc;
     }
         
@@ -744,13 +753,12 @@ public class PresentationTool extends VueTool
             }
         }
 
-        float x = 0, y;
+        float x = -15, y = frame.y;
         //out("frame " + frame);
         for (LWComponent c : mNavNodes) {
-            y = frame.height - c.getHeight();
+            y += c.getHeight() + 5;
             c.setLocation(x, y);
             //out("location set to " + x + "," + y + " for " + c);
-            x += c.getWidth() + 15;
         }
 
         /*
@@ -772,30 +780,11 @@ public class PresentationTool extends VueTool
         */
     }
 
-    /*
-    private static List<String> getNavLabels(LWComponent page) {
-        List<String> navs = new ArrayList();
-        System.out.println("\nLINKS FOR CURRENT PAGE " + page);
-        for (LWLink link : page.getLinks()) {
-            LWComponent farpoint = link.getFarNavPoint(page);
-            System.out.println("LINK " + link + " FARPOINT " + farpoint);
-            if (farpoint != null) {
-                if (link.hasLabel())
-                    navs.add(link.getLabel());
-                else
-                    navs.add(farpoint.getDisplayLabel());
-            }
-        }
-        return navs;
-    }
-    */
-        
-    
-    private static Font NavFont = new Font("SansSerif", Font.PLAIN, 18);
-    //private static Color NavFill = new Color(255,255,255,32);
-    //private static Color NavFillColor = new Color(0,0,0,64);
-    private static Color NavFillColor = new Color(64,64,64,96);
-    private static Color NavTextColor = Color.gray;
+    private static Font NavFont = new Font("SansSerif", Font.PLAIN, 14);
+    private static Color NavFillColor = new Color(154,154,154);
+    //private static Color NavFillColor = new Color(64,64,64,96);
+    private static Color NavStrokeColor = new Color(96,93,93);
+    private static Color NavTextColor = Color.darkGray;
 
     private LWComponent createNavNode(LWComponent src) {
 
@@ -807,9 +796,13 @@ public class PresentationTool extends VueTool
 
         String label = src.getDisplayLabel();
 
+        if (label.length() > 20)
+            label = label.substring(0,20) + "...";
+
+
         if (mBackList.peekNode() == src)
             label = "BACK:" + label;
-        label = " " + label + " ";
+        label = "    " + label + " ";
         
         LWNode c = new LWNode(label);
 
@@ -817,9 +810,12 @@ public class PresentationTool extends VueTool
         c.setFont(NavFont);
         c.setTextColor(NavTextColor);
         c.setFillColor(NavFillColor);
-        c.setStrokeWidth(0);
+        c.setStrokeColor(NavStrokeColor);
+        c.setStrokeWidth(2);
         c.setSyncSource(src); // TODO: these will never get GC'd, and will be updating for ever based on their source...
-        c.setShape(new RoundRectangle2D.Float(0,0, 10,10, 30,30));
+        c.setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20));
+        //c.setAutoSized(false); 
+        //c.setSize(300, c.getHeight()); // we want it aligned left, and as long as need new code, add auto-text truncating?
         return c;
     }
         
