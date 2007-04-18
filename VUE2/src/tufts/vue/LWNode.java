@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.144 $ / $Date: 2007-04-18 13:26:03 $ / $Author: mike $
+ * @version $Revision: 1.145 $ / $Date: 2007-04-18 14:30:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2035,7 +2035,7 @@ public class LWNode extends LWContainer
     // node?
     //-----------------------------------------------------------------------------
     
-    private float relativeLabelX()
+    protected float relativeLabelX()
     {
         //return mLabelPos.x;
         if (isCenterLayout) { // non-rectangular shapes
@@ -2061,7 +2061,7 @@ public class LWNode extends LWContainer
         }
     }
     
-    private float relativeLabelY()
+    protected float relativeLabelY()
     {
         //return mLabelPos.y;
         if (isCenterLayout) {
