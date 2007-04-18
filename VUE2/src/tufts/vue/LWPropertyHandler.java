@@ -35,17 +35,31 @@ public abstract class LWPropertyHandler<T>
     implements LWEditor<T>, java.awt.event.ActionListener
 {
     private final Object key;
+    private final java.awt.Component gui;
     private final PropertyChangeListener changeListener;
     
-    public LWPropertyHandler(Object propertyKey, PropertyChangeListener listener) {
-        key = propertyKey;
-        changeListener = listener;
+    public LWPropertyHandler(Object propertyKey, PropertyChangeListener listener, java.awt.Component gui) {
+        this.key = propertyKey;
+        this.changeListener = listener;
+        this.gui = gui;
     }
+    public LWPropertyHandler(Object propertyKey, java.awt.Component gui) {
+        this(propertyKey, null, gui);
+    }
+
     public LWPropertyHandler(Object propertyKey) {
-        this(propertyKey, null);
+        this(propertyKey, null, null);
     }
+
     
     public Object getPropertyKey() { return key; }
+
+    public void setEnabled(boolean enabled) {
+        if (gui != null)
+            gui.setEnabled(enabled);
+        else
+            throw new UnsupportedOperationException(this + ": provide a gui component, or subclass should override setEnabled");
+    }
 
     //public void itemStateChanged(java.awt.event.ItemEvent e) {
     public void actionPerformed(java.awt.event.ActionEvent e) {
