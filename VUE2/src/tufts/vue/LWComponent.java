@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.247 $ / $Date: 2007-04-18 02:27:27 $ / $Author: sfraize $
+ * @version $Revision: 1.248 $ / $Date: 2007-04-18 02:27:59 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1529,7 +1529,7 @@ public class LWComponent
     }
 
     public List<LWPathway> getPathways() {
-        return pathwayRefs;
+        return pathwayRefs == null ? java.util.Collections.EMPTY_LIST : pathwayRefs;
     }
     
     /**
