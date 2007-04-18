@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.404 $ / $Date: 2007-04-10 20:23:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.405 $ / $Date: 2007-04-18 13:29:12 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -632,7 +632,9 @@ public class VUE
 
         //formatDock = null;
         formattingPanel = new FormatPanel();
-        formatDock = GUI.createDockWindow("Format", formattingPanel);
+        formatDock = GUI.createDockWindow("Format",true);
+        
+        formatDock.setContent(formattingPanel);
         formatDock.setFocusable(false);
         
         //-----------------------------------------------------------------------------
@@ -749,7 +751,7 @@ public class VUE
         // GUI.createDockWindow("Font").add(new FontEditorPanel()); // just add automatically?
 
         //final DockWindow fontDock = GUI.createToolbar("Font", new FontPropertyPanel());
-        final DockWindow fontDock = GUI.createToolbar("Font", new FontEditorPanel(LWKey.Font));
+       // final DockWindow fontDock = GUI.createToolbar("Font", new FontEditorPanel(LWKey.Font));
         //final DockWindow linkDock = GUI.createToolbar("Link", new LinkPropertyPanel());
         //final DockWindow actionDock = GUI.createToolbar("Actions", new VueActionBar());
         //final DockWindow fontDock = null;
@@ -785,7 +787,7 @@ public class VUE
             pathwayDock,
             outlineDock,
             actionDock,
-            fontDock,
+            //fontDock,
             //linkDock,
             toolbarDock,
             slideDock,
@@ -999,8 +1001,7 @@ public class VUE
         	acrossTopList.add(pathwayDock);
         
         if (!DR_BROWSER_DOCK.getWindowProperties().isEnabled() || !DR_BROWSER_DOCK.getWindowProperties().isWindowVisible())
-        	acrossTopList.add(DR_BROWSER_DOCK);
-        
+        	acrossTopList.add(DR_BROWSER_DOCK);        
         if (!ObjectInspector.getWindowProperties().isEnabled() || !ObjectInspector.getWindowProperties().isWindowVisible())
         	acrossTopList.add(ObjectInspector);
         
@@ -1032,8 +1033,9 @@ public class VUE
         //restore window
         DR_BROWSER_DOCK.positionWindowFromProperties();
         pathwayDock.positionWindowFromProperties();
-        if (formatDock != null)
-        	formatDock.positionWindowFromProperties();
+
+       	formatDock.positionWindowFromProperties();
+        
         slideDock.positionWindowFromProperties();
         pannerDock.positionWindowFromProperties();
         MapInspector.positionWindowFromProperties();
@@ -1047,6 +1049,9 @@ public class VUE
         	//This will only take effect the first time VUE is started or when preference to remember window position is disabled.
         	// -MK
         	DR_BROWSER_DOCK.showRolledUp();
+        	formatDock.setLocation(GUI.GInsets.left+350,
+                    GUI.GInsets.top+50);        	 
+        //	formatDock.setVisible(true);
         	//DR_BROWSER_DOCK.setVisible(true);
             
         }

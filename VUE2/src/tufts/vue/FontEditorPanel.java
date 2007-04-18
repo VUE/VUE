@@ -19,12 +19,14 @@
 package tufts.vue;
 
 import tufts.vue.gui.*;
+import tufts.vue.gui.formattingpalette.AlignmentDropDown;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import java.io.*;
 import java.beans.*;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
@@ -33,12 +35,13 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.39 $ / $Date: 2007-04-18 02:54:09 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2007-04-18 13:29:12 $ / $Author: mike $
  *
  */
-public class FontEditorPanel extends Box
+public class FontEditorPanel extends JPanel
                                      //implements LWEditor
 //    implements ActionListener, VueConstants//, PropertyChangeListener
+implements PropertyChangeListener
 {
     private static String[] sFontSizes;
     
@@ -50,7 +53,14 @@ public class FontEditorPanel extends Box
     private final JComboBox mSizeField;
     private final AbstractButton mBoldButton;
     private final AbstractButton mItalicButton;
- 	
+    private final AbstractButton mUnderlineButton;
+ 	private final AlignmentDropDown alignmentButton;
+	private AbstractButton orderedListButton = new VueButton(
+	"list.button.ordered");
+	private final ColorMenuButton mTextColorButton;
+	private AbstractButton unorderedListButton = new VueButton(
+	"list.button.unordered");
+	
     /** the property name **/
     private final Object mPropertyKey;
  	
@@ -60,7 +70,8 @@ public class FontEditorPanel extends Box
 
     public FontEditorPanel(Object propertyKey)
     {
-	super(BoxLayout.X_AXIS);
+    	//super(BoxLayout.X_AXIS);
+    	setLayout(new GridBagLayout());
 
         mPropertyKey = propertyKey;
 
@@ -174,6 +185,7 @@ public class FontEditorPanel extends Box
                         style |= Font.ITALIC;
                     if (mBoldButton.isSelected())
                         style |= Font.BOLD;
+                    
                     return style;
                 }
                 public void displayValue(Integer value) {
@@ -189,35 +201,70 @@ public class FontEditorPanel extends Box
  		
         mBoldButton = new VueButton.Toggle("font.button.bold", styleChangeHandler);
         mItalicButton = new VueButton.Toggle("font.button.italic", styleChangeHandler);
-
-        /*
-          Color [] textColors = VueResources.getColorArray("textColorValues");
-          String [] textColorNames = VueResources.getStringArray("textColorNames");
-          mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
-          //mTextColorButton.setBackground( bakColor);
-          ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
-          BlobIcon textBlob = new BlobIcon();
-          textBlob.setOverlay( textIcon );
-          mTextColorButton.setIcon(textBlob);
-          mTextColorButton.setPropertyName( LWKey.TextColor);
-          mTextColorButton.setBorderPainted(false);
-          mTextColorButton.setMargin(ButtonInsets);
-          mTextColorButton.addActionListener(this);
-        */
+        mUnderlineButton = new VueButton.Toggle("font.button.underline", styleChangeHandler);
+        alignmentButton = new AlignmentDropDown();
+        
+         Color[] textColors = VueResources.getColorArray("textColorValues");
+        String[] textColorNames = VueResources.getStringArray("textColorNames");
+        mTextColorButton = new ColorMenuButton(textColors, textColorNames, true);
+        mTextColorButton.setColor(Color.black);
+        mTextColorButton.setPropertyKey(LWKey.TextColor);
+        mTextColorButton.setToolTipText("Text Color");
+        mTextColorButton.addPropertyChangeListener(this);
+        
          
-        if (false) {
-            JLabel label = new JLabel("   Text: ");
-            label.setFont(VueConstants.FONT_SMALL);
-            add(label);
-        } else {
-            add(Box.createHorizontalStrut(4));
-        }
-        add(mFontCombo);
-        add(mSizeField);
-        add(Box.createHorizontalStrut(1)); // add this affects vertical preferred size of mSizeField!
-        add(mBoldButton);
-        add(mItalicButton);
-        //add(mTextColorButton);
+        GridBagConstraints gbc = new GridBagConstraints();
+        
+        gbc.gridx=0;
+        gbc.gridy=0;
+        gbc.gridwidth=3;
+        gbc.insets = new Insets(1,5,1,1);
+        gbc.anchor=GridBagConstraints.NORTHWEST;
+        gbc.fill=GridBagConstraints.BOTH;
+        this.add(new JLabel("Text"),gbc);
+        
+        gbc.gridwidth=1;
+        gbc.gridy=1;
+        gbc.gridx=0;
+        add(mFontCombo,gbc);
+        
+        gbc.gridy=1;
+        gbc.gridx=1;
+        add(mBoldButton,gbc);
+        
+        gbc.gridy=1;
+        gbc.gridx=2;
+        add(mItalicButton,gbc);
+     
+        gbc.gridy=1;
+        gbc.gridx=3;
+        
+        gbc.fill=GridBagConstraints.REMAINDER;
+        mUnderlineButton.setEnabled(false);
+        add(mUnderlineButton,gbc);
+        
+        gbc.gridy=2;
+        gbc.gridx=0;        
+        gbc.fill=GridBagConstraints.VERTICAL;
+        gbc.weightx=0.25;
+        gbc.ipady=6;
+        gbc.ipadx=5;        
+        add(mSizeField,gbc);
+                
+        
+        gbc.gridy=2;
+        gbc.gridx=3;
+        gbc.fill=GridBagConstraints.REMAINDER;
+        gbc.gridheight=0;
+        gbc.gridwidth=1;
+        gbc.ipadx=0;
+        gbc.ipady=0;
+        gbc.insets=new Insets(0,0,0,0);
+        alignmentButton.setBorder(BorderFactory.createEmptyBorder());
+        alignmentButton.getComboBox().setBorder(BorderFactory.createEmptyBorder());
+        alignmentButton.getComboBox().setEnabled(false);
+        //add(alignmentButton,gbc);
+        add(mTextColorButton,gbc);
  	
         //displayValue(VueConstants.FONT_DEFAULT);
 
@@ -446,7 +493,62 @@ public class FontEditorPanel extends Box
         return "FontEditorPanel[" + getPropertyKey() + "]";
         //return "FontEditorPanel[" + getKey() + " " + makeFont() + "]";
     }
+    public void propertyChange(PropertyChangeEvent e)
+    {
 
+        if (e instanceof LWPropertyChangeEvent == false) {
+            // We're not interested in "ancestor" events, icon change events, etc.
+            if (DEBUG.TOOL && DEBUG.META) out("ignored AWT/Swing: [" + e.getPropertyName() + "] from " + e.getSource().getClass());
+            return;
+        } else {
+            if (DEBUG.TOOL) out("propertyChange: " + e);
+        }
+            
+        ApplyPropertyChangeToSelection(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
+    }
+
+    /** Will either modifiy the active selection, or if it's empty, modify the default state (creation state) for this tool panel */
+    public static void ApplyPropertyChangeToSelection(final LWSelection selection, final Object key, final Object newValue, Object source)
+    {
+        if (false) {
+            if (DEBUG.TOOL) System.out.println("APCTS: " + key + " " + newValue + " (skipping)");
+            return;
+        }
+        
+        if (DEBUG.TOOL) System.out.println("APCTS: " + key + " " + newValue);
+        
+        if (selection.isEmpty()) {
+            /*
+            if (mDefaultState != null)
+                mDefaultState.setProperty(key, newValue);
+            else
+                System.out.println("mDefaultState is null");
+            */
+            //if (DEBUG.TOOL && DEBUG.META) out("new state " + mDefaultState); // need a style dumper
+        } else {
+            
+            // As setting these properties in the model will trigger notify events from the selected objects
+            // back up to the tools, we want to ignore those events while this is underway -- the tools
+            // already have their state set to this.
+            //mIgnoreLWCEvents = true;
+            try {
+                for (tufts.vue.LWComponent c : selection) {
+                    if (c.supportsProperty(key))
+                        c.setProperty(key, newValue);
+                }
+            } finally {
+                // mIgnoreLWCEvents = false;
+            }
+            
+            if (VUE.getUndoManager() != null)
+                VUE.getUndoManager().markChangesAsUndo(key.toString());
+        }
+    }
+
+    protected void out(Object o) {
+        System.out.println(this + ": " + (o==null?"null":o.toString()));
+    }
+    
     public static void main(String[] args) {
         System.out.println("FontEditorPanel:main");
         DEBUG.Enabled = DEBUG.INIT = true;

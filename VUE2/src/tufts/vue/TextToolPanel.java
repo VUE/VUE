@@ -19,6 +19,9 @@
 
 package tufts.vue;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+
 /**
  * TextToolPanel
  * This creates an editor panel for text LWNode's (isTextNode() == true)
@@ -33,8 +36,21 @@ public class TextToolPanel extends LWCToolPanel
     }
 
     protected void buildBox() {
-        addComponent(mFontPanel);
-        addComponent(mTextColorButton);
+    	GridBagConstraints gbc = new GridBagConstraints();
+    	mBox.setLayout(new GridBagLayout());
+        if (addComponent(mFontPanel))
+        {
+        	gbc.gridx=0;
+        	gbc.gridy=0;
+        	mBox.add(mFontPanel,gbc);
+        }
+        
+        if (addComponent(mTextColorButton))
+        {
+        	gbc.gridx=1;
+        	gbc.gridy=0;
+        	mBox.add(mFontPanel,gbc);
+        }
     }
      
     /*

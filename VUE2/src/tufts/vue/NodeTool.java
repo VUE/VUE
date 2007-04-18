@@ -431,14 +431,14 @@ public class NodeTool extends VueTool
             //sShapeGradient = new GradientPaint(0,0,sShapeColor.brighter(), sWidth/2,sHeight/2,sShapeColor,true); // diagonal
             
         }
-        static class ShapeIcon implements Icon
+        public static class ShapeIcon implements Icon
         {
             public int getIconWidth() { return sWidth; }
             public int getIconHeight() { return sHeight; }
 
             private RectangularShape mShape;
             
-            ShapeIcon(RectangularShape pShape)
+            public ShapeIcon(RectangularShape pShape)
             {
                 mShape = pShape;
                 if (mShape instanceof RoundRectangle2D) {

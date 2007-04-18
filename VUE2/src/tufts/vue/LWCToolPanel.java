@@ -19,10 +19,12 @@
 package tufts.vue;
 
 //import tufts.vue.beans.*;
+import tufts.vue.NodeToolPanel.ShapeMenuButton.ComboBoxRenderer;
 import tufts.vue.gui.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.RectangularShape;
 import java.util.*;
 import java.io.*;
 import java.beans.*;
@@ -78,7 +80,7 @@ public class LWCToolPanel extends JPanel
     /** stroke color editor button **/  protected ColorMenuButton mStrokeColorButton;
     /** Text color menu editor **/      protected ColorMenuButton mTextColorButton;
     /** stroke size selector menu **/   protected StrokeMenuButton mStrokeButton;
-    /** stroke size selector menu **/   protected MenuButton mStrokeStyleButton;
+    /** stroke size selector menu **/   protected StrokeStyleButton mStrokeStyleButton;
     /** the Font selection combo box **/protected FontEditorPanel mFontPanel;
  	
     //protected VueBeanState mDefaultState = null;
@@ -90,39 +92,40 @@ public class LWCToolPanel extends JPanel
     protected static final Insets NoInsets = new Insets(0,0,0,0);
     protected static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
 
-    private Box mBox;
+    protected JPanel mBox;
 
     //private Collection<LWEditor> mEditors = new ArrayList<LWEditor>();
     private final Collection<LWEditor> mEditors = new HashSet<LWEditor>();
 
-    private static class StrokeStyleButton extends MenuButton<LWComponent.StrokeStyle>
+    private static class StrokeStyleButton extends ComboBoxMenuButton<LWComponent.StrokeStyle>
     {
-        static final int ButtonWidth = 40;
-        static final int ButtonHeight = 22;
         
         public StrokeStyleButton() {
             buildMenu(LWComponent.StrokeStyle.class);
             setFont(tufts.vue.VueConstants.FONT_SMALL); // does this have any effect?  maybe on Windows?
             // set the size of the icon that displays the current value:
-            setButtonIcon(new LineIcon(ButtonWidth-18, 3)); // height really only needs to be 1 pixel
+            //setButtonIcon(new LineIcon(ButtonWidth-18, 3)); // height really only needs to be 1 pixel
+            ComboBoxRenderer renderer= new ComboBoxRenderer();
+    		setRenderer(renderer);
+    		this.setMaximumRowCount(10);
         }
         
         public void displayValue(LWComponent.StrokeStyle style) {
             setToolTipText("Stroke Style: " + style);
-            if (getButtonIcon() instanceof LineIcon) {
-                LineIcon icon = (LineIcon) getButtonIcon();
-                icon.setStroke(style.makeStroke(1));
-                repaint();
-            }
+            //if (getButtonIcon() instanceof LineIcon) {
+            //    LineIcon icon = (LineIcon) getButtonIcon();
+            //    icon.setStroke(style.makeStroke(1));
+            //    repaint();
+           // }
             mCurrentValue = style;
         }
         
         /** returns the physical size of the outer button */
-        protected Dimension getButtonSize() {
+        //protected Dimension getButtonSize() {
             // todo: the interaction between button size and icon/width height should
             // be clearer, and automatic!
-            return new Dimension(ButtonWidth,ButtonHeight);
-        }
+            //return new Dimension(ButtonWidth,ButtonHeight);
+        //}
         
         /** factory for superclass buildMenu -- these are the icons that will appear in the pull-down menu */
         protected Icon makeIcon(LWComponent.StrokeStyle style) {
@@ -130,7 +133,59 @@ public class LWCToolPanel extends JPanel
             li.setStroke(style.makeStroke(1));
             return li;
         }
+        
+        class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+        	
+        	public ComboBoxRenderer() {
+        		setOpaque(true);
+        		setHorizontalAlignment(CENTER);
+        		setVerticalAlignment(CENTER);
+        		
+
+        	}
+
+        
+        	public Component getListCellRendererComponent(
+                        JList list,
+                        Object value,
+                        int index,
+                        boolean isSelected,
+                        boolean cellHasFocus) {
+        		
+        		if (isSelected) {
+        			setBackground(list.getSelectionBackground());
+        			setForeground(list.getSelectionForeground());
+        		} else {
+        			setBackground(Color.white);
+        			setForeground(list.getForeground());
+        		}
+        	 
+        		
+        		//Set the icon and text.  If icon was null, say so.        		
+        		LWComponent.StrokeStyle a = (LWComponent.StrokeStyle) value;
+        		
+                Icon    icon = makeIcon(a);
+                
+                setIcon(icon);
+        		
+                this.setBorder(BorderFactory.createEmptyBorder(5,1, 5, 1));
+
+        		return this;
+        	}
+        	  protected Icon makeIcon(LWComponent.StrokeStyle style) {
+                  LineIcon li = new LineIcon(24, 3);
+                  li.setStroke(style.makeStroke(1));
+                  return li;
+              }
+        	 /** @return new icon for the given shape */
+          //  protected Icon makeIcon(RectangularShape shape) {
+          //      return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
+          //  }
+            
+        }        
+	 
     }
+    
 
 
     public LWCToolPanel()
@@ -153,7 +208,9 @@ public class LWCToolPanel extends JPanel
              GUI.applyToolbarColor(this);
          setOpaque(false);
          
-         mBox = Box.createHorizontalBox();
+         
+         mBox = new JPanel();//Box.createHorizontalBox();
+         mBox.setLayout(new GridBagLayout());
          GUI.applyToolbarColor(mBox);
          
          //this.setAlignmentX( LEFT_ALIGNMENT);
@@ -182,7 +239,8 @@ public class LWCToolPanel extends JPanel
          String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
          mStrokeColorButton = new ColorMenuButton(strokeColors, strokeColorNames, true);
          mStrokeColorButton.setPropertyKey(LWKey.StrokeColor);
-         mStrokeColorButton.setButtonIcon(new LineIcon(16,16, 4, false));
+         mStrokeColorButton.setColor(VueResources.getColor("defaultStrokeColor"));
+         //mStrokeColorButton.setButtonIcon(new LineIcon(16,16, 4, false));
          mStrokeColorButton.setToolTipText("Stroke Color");
          mStrokeColorButton.addPropertyChangeListener(this);
          
@@ -194,7 +252,7 @@ public class LWCToolPanel extends JPanel
          String[] strokeMenuLabels = VueResources.getStringArray("strokeWeightNames");
          mStrokeButton = new StrokeMenuButton(strokeValues, strokeMenuLabels, true, false);
          mStrokeButton.setPropertyKey(LWKey.StrokeWidth);
-         mStrokeButton.setButtonIcon(new LineIcon(16,16));
+         //mStrokeButton.setButtonIcon(new LineIcon(16,16));
          mStrokeButton.setStroke(1f);
          mStrokeButton.setToolTipText("Stroke Width");
          mStrokeButton.addPropertyChangeListener(this);
@@ -206,17 +264,18 @@ public class LWCToolPanel extends JPanel
          mStrokeStyleButton = new StrokeStyleButton();
          mStrokeStyleButton.setPropertyKey(LWKey.StrokeStyle);
          mStrokeStyleButton.addPropertyChangeListener(this);
-
+         
+         
          //-------------------------------------------------------
          // Text Color menu
          //-------------------------------------------------------
          
-         Color[] textColors = VueResources.getColorArray("textColorValues");
-         String[] textColorNames = VueResources.getStringArray("textColorNames");
-         mTextColorButton = new ColorMenuButton(textColors, textColorNames, true);
-         mTextColorButton.setPropertyKey(LWKey.TextColor);
-         mTextColorButton.setToolTipText("Text Color");
-         mTextColorButton.addPropertyChangeListener(this);
+        // Color[] textColors = VueResources.getColorArray("textColorValues");
+         //String[] textColorNames = VueResources.getStringArray("textColorNames");
+         //mTextColorButton = new ColorMenuButton(textColors, textColorNames, true);
+         //mTextColorButton.setPropertyKey(LWKey.TextColor);
+         //mTextColorButton.setToolTipText("Text Color");
+         //mTextColorButton.addPropertyChangeListener(this);
 
          //-------------------------------------------------------
          // Font face & size editor
@@ -290,6 +349,45 @@ public class LWCToolPanel extends JPanel
     */
 
     protected void buildBox() {
+    	GridBagConstraints gbc = new GridBagConstraints();
+    	gbc.insets = new Insets(1,2,1,1);
+        if (addComponent(mFillColorButton))
+        {
+        	gbc.gridx = 2;
+    		gbc.gridy = 1;    		
+    		// c.gridwidth = GridBagConstraints.RELATIVE; // next-to-last in row
+    		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
+    		gbc.anchor = GridBagConstraints.WEST;
+    		
+    		mBox.add(mFillColorButton, gbc);
+        }
+        if (addComponent(mStrokeColorButton))
+        {
+        	gbc.gridx = 2;
+    		gbc.gridy = 2;    		
+    		// c.gridwidth = GridBagConstraints.RELATIVE; // next-to-last in row
+    		gbc.fill = GridBagConstraints.NONE; // the label never grows
+    		gbc.anchor = GridBagConstraints.WEST;
+    		
+    		mBox.add(mStrokeColorButton, gbc);
+        	
+        }
+        if (addComponent(mStrokeButton))
+        {
+        	gbc.gridx = 1;
+    		gbc.gridy = 2;    		
+    		// c.gridwidth = GridBagConstraints.RELATIVE; // next-to-last in row
+    		gbc.insets = new Insets(1,5,1,1);
+    		gbc.fill = GridBagConstraints.NONE; // the label never grows
+    		gbc.anchor = GridBagConstraints.WEST;
+    		gbc.ipadx=14;
+    		gbc.ipady=4;
+    		mBox.add(mStrokeButton, gbc);
+
+        }
+    }
+
+/*    protected void buildBox() {
         addComponent(mFillColorButton);
         addComponent(mStrokeColorButton);
         addComponent(mStrokeButton);
@@ -297,13 +395,13 @@ public class LWCToolPanel extends JPanel
         addComponent(mFontPanel);
         addComponent(mTextColorButton);
     }
-
+*/
     /** @param c component to add to the box-row.  If an instance of LWPropertyProducer,
      * also add to our tracking list of these for property updates */
-    public void addComponent(Component c) {
+    public boolean addComponent(Component c) {
         if (c == null)
-            return;
-        mBox.add(c);
+            return false;
+        //mBox.add(c);
         if (c instanceof LWEditor) {
             if (DEBUG.TOOL) System.out.println("*** FOUND AS EDITOR " + c);
             addEditor((LWEditor) c);
@@ -327,6 +425,7 @@ public class LWCToolPanel extends JPanel
                 }
             }.raiseStartingAt((Container)c);
         }
+        return true;
     }
 
     // todo: would be even sweeter to on addNotify (first time only!)

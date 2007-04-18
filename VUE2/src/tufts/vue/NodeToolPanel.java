@@ -22,7 +22,10 @@ import tufts.vue.gui.*;
 import tufts.vue.beans.*;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.geom.RectangularShape;
 import javax.swing.AbstractButton;
@@ -30,35 +33,82 @@ import javax.swing.JLabel;
 import javax.swing.Icon;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
 import javax.swing.border.*;
 
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.35 $ / $Date: 2007-04-16 21:28:34 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2007-04-18 13:29:12 $ / $Author: mike $
  */
  
 public class NodeToolPanel extends LWCToolPanel
 {
     public NodeToolPanel() {
-        ShapeMenuButton mShapeButton;
-    
+        ShapeMenuButton mShapeButton = new ShapeMenuButton();
+       		
         //JLabel label = new JLabel("   Node: ");
         //label.setFont(VueConstants.FONT_SMALL);
-        getBox().add(mShapeButton = new ShapeMenuButton(), 0);
+        GridBagConstraints gbc = new GridBagConstraints();
+    	
+    	gbc.gridx = 0;
+		gbc.gridy = 0;    		
+		gbc.insets = new Insets(1,5,1,1);
+		gbc.gridwidth=3;
+		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+		gbc.anchor = GridBagConstraints.WEST;				
+        getBox().add(new JLabel("Node"),gbc);
+        
+        gbc.gridx = 0;
+		gbc.gridy = 1;    		
+		gbc.gridwidth = 1;
+		gbc.gridheight=1;
+		gbc.fill = GridBagConstraints.NONE; // the label never grows
+		gbc.anchor = GridBagConstraints.WEST;
+		
+		JLabel shapeLabel = new JLabel("Shape: ");
+		shapeLabel.setForeground(new Color(51,51,51));
+        getBox().add(shapeLabel,gbc);
+        
+        gbc.gridx = 0;
+		gbc.gridy = 2;    		
+		gbc.gridwidth = 1; // next-to-last in row
+		gbc.gridheight=1;
+		gbc.fill = GridBagConstraints.NONE; // the label never grows
+		gbc.anchor = GridBagConstraints.WEST;
+		JLabel strokeLabel = new JLabel("Stroke: ");
+		strokeLabel.setForeground(new Color(51,51,51));
+        getBox().add(strokeLabel,gbc);
+        
+    	gbc.gridx = 1;
+		gbc.gridy = 1;    				
+		gbc.fill = GridBagConstraints.NONE; // the label never grows
+		gbc.ipadx=11;
+		gbc.ipady=6;
+		gbc.anchor = GridBagConstraints.WEST;
+        getBox().add(mShapeButton, gbc);
+        
+        
         mShapeButton.addPropertyChangeListener(this);
         addEditor(mShapeButton);
+        //add(mShapeButton);
+        //getBox().add(label, 0);
         //getBox().add(label, 0);
     }
     
     public boolean isPreferredType(Object o) {
         return o instanceof LWNode;
     }
-    static class ShapeMenuButton extends VuePopupMenu<RectangularShape>
+    static class ShapeMenuButton extends VueComboMenu<RectangularShape>
     {
         public ShapeMenuButton() {
             super(LWKey.Shape, NodeTool.getTool().getShapeSetterActions());
             setToolTipText("Node Shape");
+            ComboBoxRenderer renderer= new ComboBoxRenderer();
+    		setRenderer(renderer);
+    		this.setMaximumRowCount(10);
+    		
         }
 
         protected Dimension getButtonSize() {
@@ -83,16 +133,66 @@ public class NodeToolPanel extends LWCToolPanel
                 // objects every time we do this (1 for the clone, 1 for proxy, 5 via
                 // VueButtonIcon.installGenerated)
                 
-                setButtonIcon(makeIcon(shape));
+                //setButtonIcon(makeIcon(shape));
             }
         }
 
-        /** @return new icon for the given shape */
-        protected Icon makeIcon(RectangularShape shape) {
-            return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
-        }
+       
+        class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+        	
+        	public ComboBoxRenderer() {
+        		setOpaque(true);
+        		setHorizontalAlignment(CENTER);
+        		setVerticalAlignment(CENTER);
+
+        	}
+
+        
+        	public Component getListCellRendererComponent(
+                        JList list,
+                        Object value,
+                        int index,
+                        boolean isSelected,
+                        boolean cellHasFocus) {
+        		
+        		if (isSelected) {
+        			setBackground(list.getSelectionBackground());
+        			setForeground(list.getSelectionForeground());
+        		} else {
+        			setBackground(Color.white);
+        			setForeground(list.getForeground());
+        		}
+        	 
+        		
+        		//Set the icon and text.  If icon was null, say so.        		
+        		Action a = (Action) value;
+                Icon icon = (Icon) a.getValue(Action.SMALL_ICON);
+                value = a.getValue(ValueKey);
+                if (icon == null)
+                    icon = makeIcon(value);
+                if (icon != null)
+                    setIcon(icon);
+        		
+                this.setBorder(BorderFactory.createEmptyBorder(1,1, 1, 1));
+
+        		return this;
+        	}
+        	/** @return new icon for the given shape */
+            protected Icon makeIcon(Object value) {
+                RectangularShape shape = (RectangularShape) value;
+                return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
+            }
+        	 /** @return new icon for the given shape */
+          //  protected Icon makeIcon(RectangularShape shape) {
+          //      return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
+          //  }
+            
+        }        
 	 
     }
+    
+  
+
     
     public static void main(String[] args) {
         System.out.println("NodeToolPanel:main");

@@ -40,7 +40,7 @@ import javax.swing.border.*;
  *
  * Subclasses must implement LWEditor produce/display
  *
- * @version $Revision: 1.23 $ / $Date: 2007-04-18 02:54:33 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2007-04-18 13:29:11 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -234,7 +234,7 @@ public abstract class MenuButton<T> extends JButton
             if (false)
                 VueButtonIcon.installGenerated(this, i, d);
             else
-                VueButtonIcon.installGenerated(this, new MenuProxyIcon(i), d);
+                VueButtonIcon.installGenerated(this, i, d);
             //System.out.println(this + " *** installed generated, setPreferredSize " + d);
         }
         setPreferredSize(d);

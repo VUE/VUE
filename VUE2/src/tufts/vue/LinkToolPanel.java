@@ -32,24 +32,105 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.37 $ / $Date: 2007-04-18 02:54:01 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2007-04-18 13:29:12 $ / $Author: mike $
  * 
  */
 
 public class LinkToolPanel extends LWCToolPanel
 {
+	/**
+	 * This isn't here for good but until we do something else, this is here so we
+	 * don't loose the functionality with the loss of the contextual menu.
+	 * @author mkorcy01
+	 *
+	 */
+	private static class ArrowStyleButton extends JComboBox
+    {
+        ImageIcon[] imageIcons;
+        
+        public ArrowStyleButton(Object[] a) {
+        	super(a);
+            setFont(tufts.vue.VueConstants.FONT_SMALL); // does this have any effect?  maybe on Windows?
+            // set the size of the icon that displays the current value:
+            //setButtonIcon(new LineIcon(ButtonWidth-18, 3)); // height really only needs to be 1 pixel
+            ComboBoxRenderer renderer= new ComboBoxRenderer();
+    		setRenderer(renderer);
+    	      
+    		imageIcons = new ImageIcon[3];    
+            imageIcons[0] = (ImageIcon) VueResources.getIcon("leftarrow.raw");
+            imageIcons[1] = (ImageIcon) VueResources.getIcon("rightarrow.raw");
+            imageIcons[2] = (ImageIcon) VueResources.getIcon("botharrow.raw");                                               		
+    		this.setMaximumRowCount(10);
+        }
+                
+        
+        class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+        	
+        	public ComboBoxRenderer() {
+        		setOpaque(true);
+        		setHorizontalAlignment(CENTER);
+        		setVerticalAlignment(CENTER);		
+        	}
+
+        
+        	public Component getListCellRendererComponent(
+                        JList list,
+                        Object value,
+                        int index,
+                        boolean isSelected,
+                        boolean cellHasFocus) {
+        		
+        		if (isSelected) {
+        			setBackground(list.getSelectionBackground());
+        			setForeground(list.getSelectionForeground());
+        		} else {
+        			setBackground(Color.white);
+        			setForeground(list.getForeground());
+        		}   		
+                
+                int val = ((Integer)value).intValue();
+                if (val ==0)
+                {
+                	setText("none");
+                	setIcon(null);
+                }
+                else
+                {	val--;
+                	setText("");
+                	setIcon(imageIcons[val]);
+                }
+        		
+                //this.setBorder(BorderFactory.createEmptyBorder(1,4, 1, 4));
+
+        		return this;
+        	}
+        	  protected Icon makeIcon(LWComponent.StrokeStyle style) {
+                  LineIcon li = new LineIcon(24, 3);
+                  li.setStroke(style.makeStroke(1));
+                  return li;
+              }
+        	 /** @return new icon for the given shape */
+          //  protected Icon makeIcon(RectangularShape shape) {
+          //      return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
+          //  }
+            
+        }        
+	 
+    }
+    
+
     public boolean isPreferredType(Object o) {
         return o instanceof LWLink;
     }
     
     protected void buildBox()
     {
-        final AbstractButton mArrowStartButton = new VueButton.Toggle("link.button.arrow.start");
-        final AbstractButton mArrowEndButton = new VueButton.Toggle("link.button.arrow.end");
+       // final AbstractButton mArrowStartButton = new VueButton.Toggle("link.button.arrow.start");
+       // final AbstractButton mArrowEndButton = new VueButton.Toggle("link.button.arrow.end");
         
         //setting up tooltips for link specific buttons.
-        mArrowStartButton.setToolTipText(VueResources.getString("linkToolPanel.startArrow.toolTip"));
-        mArrowEndButton.setToolTipText(VueResources.getString("linkToolPanel.endArrow.toolTip"));
+        //mArrowStartButton.setToolTipText(VueResources.getString("linkToolPanel.startArrow.toolTip"));
+        //mArrowEndButton.setToolTipText(VueResources.getString("linkToolPanel.endArrow.toolTip"));
         
         final Action[] LinkTypeActions = new Action[] { 
             Actions.LinkMakeStraight,
@@ -57,6 +138,13 @@ public class LinkToolPanel extends LWCToolPanel
             Actions.LinkMakeCubicCurved
         };
         
+        Integer[] i = new Integer[4];
+		i[0]= new Integer(0);
+		i[1]= new Integer(1);
+		i[2]= new Integer(2);
+		i[3]= new Integer(3);
+		final ArrowStyleButton arrowCombo = new ArrowStyleButton(i);
+		
         AbstractButton linkTypeMenu = new VuePopupMenu(LWKey.LinkCurves, LinkTypeActions);
         linkTypeMenu.setToolTipText("Link Style");
         linkTypeMenu.addPropertyChangeListener(this);
@@ -65,24 +153,31 @@ public class LinkToolPanel extends LWCToolPanel
             new LWPropertyHandler<Integer>(LWKey.LinkArrows, LinkToolPanel.this) {
                 public Integer produceValue() {
                     int arrowState = LWLink.ARROW_NONE;
-                    if (mArrowStartButton.isSelected())
+                    if (arrowCombo.getSelectedIndex() == 0)
+                    	return arrowState;
+                    else if (arrowCombo.getSelectedIndex() ==1)
                         arrowState |= LWLink.ARROW_HEAD;
-                    if (mArrowEndButton.isSelected())
+                    else if (arrowCombo.getSelectedIndex() ==2)
                         arrowState |= LWLink.ARROW_TAIL;
+                    else if (arrowCombo.getSelectedIndex() ==3)
+                    {
+                    	arrowState |= LWLink.ARROW_HEAD;
+                    	arrowState |= LWLink.ARROW_TAIL;
+                    }
                     return arrowState;
                 }
                 public void displayValue(Integer i) {
                     int arrowState = i;
-                    mArrowStartButton.setSelected((arrowState & LWLink.ARROW_HEAD) != 0);
-                      mArrowEndButton.setSelected((arrowState & LWLink.ARROW_TAIL) != 0);
+                    
                 }
 
-                public void setEnabled(boolean enabled) {
+            /*    public void setEnabled(boolean enabled) {
                     mArrowStartButton.setEnabled(enabled);
                     mArrowEndButton.setEnabled(enabled);
-                }
+                }*/
             };
 
+            arrowCombo.addActionListener(arrowPropertyHandler);
         //LWCToolPanel.InstallHandler(mArrowStartButton, arrowPropertyHandler);
         //LWCToolPanel.InstallHandler(mArrowEndButton, arrowPropertyHandler);
 
@@ -97,20 +192,119 @@ public class LinkToolPanel extends LWCToolPanel
         
         //super.addEditor(arrowPropertyHandler);
 
-        mArrowStartButton.addActionListener(arrowPropertyHandler);
-        mArrowEndButton.addActionListener(arrowPropertyHandler);
+        //mArrowStartButton.addActionListener(arrowPropertyHandler);
+        //mArrowEndButton.addActionListener(arrowPropertyHandler);
         //mArrowStartButton.addItemListener(arrowPropertyHandler);
         //mArrowEndButton.addItemListener(arrowPropertyHandler);
 
+        //mArrowStartButton.addItemListener(arrowPropertyHandler);
+        //mArrowEndButton.addItemListener(arrowPropertyHandler);
+        GridBagConstraints gbc = new GridBagConstraints();
+        
         addComponent(linkTypeMenu);
-        addComponent(Box.createHorizontalStrut(3));
-        addComponent(mArrowStartButton);
-        addComponent(mArrowEndButton);
-        addComponent(mStrokeColorButton);
-        addComponent(mStrokeButton);
-        addComponent(mStrokeStyleButton);
-        addComponent(mFontPanel);
-        addComponent(mTextColorButton);
+        	
+        mBox.setLayout(new GridBagLayout());
+    	gbc.gridx = 0;
+		gbc.gridy = 0;    		
+		gbc.insets = new Insets(1,5,1,1);
+		gbc.gridwidth=3;
+		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+		gbc.anchor = GridBagConstraints.WEST;
+		JLabel linkLabel = new JLabel("Link");
+		linkLabel.setForeground(Color.black);
+		mBox.add(linkLabel,gbc);
+		
+		gbc.gridx = 0;
+		gbc.gridy = 1;    				
+		gbc.gridwidth=1;
+		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+		gbc.anchor = GridBagConstraints.WEST;
+		JLabel strokeLabel = new JLabel("Stroke :");
+		strokeLabel.setForeground(new Color(51,51,51));
+		mBox.add(strokeLabel,gbc);
+		
+		gbc.gridx = 0;
+		gbc.gridy = 2;    				
+		gbc.gridwidth=1;
+		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+		gbc.anchor = GridBagConstraints.WEST;
+		JLabel arrowLabel = new JLabel("Arrows :");
+		arrowLabel.setForeground(new Color(51,51,51));
+		mBox.add(arrowLabel,gbc);
+		
+        
+        //if (addComponent(mArrowStartButton)){
+        	
+        
+       // if (addComponent(mArrowEndButton)){
+        	
+       // }
+        
+		gbc.gridx = 1;
+		gbc.gridy = 1;    		
+		gbc.insets = new Insets(1,5,1,1);
+		gbc.gridwidth=1;
+		gbc.gridheight=1;
+		
+		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+		gbc.anchor = GridBagConstraints.WEST;
+		gbc.ipadx=10;
+		gbc.ipady=0;
+		
+		mBox.add(mStrokeStyleButton,gbc);
+		
+		gbc.ipadx=0;
+		gbc.ipady=4;
+		gbc.gridx = 1;
+		gbc.gridy = 2;    		
+		gbc.insets = new Insets(1,5,1,1);
+		gbc.gridwidth=1;
+		gbc.gridheight=1;
+		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+		gbc.anchor = GridBagConstraints.WEST;
+		JComboBox undefined = new JComboBox();
+		undefined.addItem("none");
+		undefined.setEnabled(false);
+		mBox.add(undefined,gbc);
+		
+		gbc.ipadx=0;
+		gbc.ipady=0;
+		gbc.gridx = 2;
+		gbc.gridy = 2;    		
+		gbc.insets = new Insets(1,5,1,1);
+		gbc.gridwidth=1;
+		gbc.gridheight=1;
+		gbc.ipadx=12;
+		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+		gbc.anchor = GridBagConstraints.WEST;		
+		mBox.add(arrowCombo,gbc);
+		
+		gbc.ipadx=0;
+        if (addComponent(mStrokeColorButton))
+        {
+        	gbc.gridx = 3;
+    		gbc.gridy = 1;    		
+    		gbc.insets = new Insets(1,5,1,1);
+    		gbc.gridwidth=1;
+    		gbc.gridheight=1;
+    		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+    		gbc.anchor = GridBagConstraints.WEST;
+    		mBox.add(mStrokeColorButton,gbc);
+        }
+        
+        if (addComponent(mStrokeButton))
+        {
+        	gbc.gridx = 2;
+    		gbc.gridy = 1;    		
+    	//	gbc.insets = new Insets(-6,5,-6,1);
+    		gbc.gridwidth=1;
+    		gbc.ipadx=10;
+    		gbc.gridheight=1;
+    		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+    		gbc.anchor = GridBagConstraints.WEST;
+    		mStrokeButton.setSelectedIndex(1);
+    		mBox.add(mStrokeButton,gbc);
+        }                
     }
      
     //protected VueBeanState getDefaultState() { return VueBeans.getState(LWLink.setDefaults(new LWLink())); }
@@ -126,4 +320,3 @@ public class LinkToolPanel extends LWCToolPanel
         VueUtil.displayComponent(new LinkToolPanel());
     }
 }
-

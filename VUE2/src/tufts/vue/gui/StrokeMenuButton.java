@@ -19,7 +19,16 @@
 package tufts.vue.gui;
 
 import java.awt.Color;
+import java.awt.Component;
+
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
+
+import tufts.vue.LWComponent;
+
 
 /**
  * StrokeMenuButton
@@ -29,7 +38,7 @@ import javax.swing.Icon;
  * @author Scott Fraize
  * @version March 2004
  **/
-public class StrokeMenuButton extends MenuButton<Float>
+public class StrokeMenuButton extends ComboBoxMenuButton<Float>
 {
     static private int sIconWidth = 24;
     static private int sIconHeight = 16;
@@ -48,22 +57,16 @@ public class StrokeMenuButton extends MenuButton<Float>
 
         buildMenu(values, pMenuNames, false);
         setFont(tufts.vue.VueConstants.FONT_SMALL);
+        ComboBoxRenderer renderer= new ComboBoxRenderer();
+		setRenderer(renderer);
+		this.setMaximumRowCount(10);
     }
 
     public StrokeMenuButton() {}
 	
     public void setStroke(float width) {
         setToolTipText("Stroke Width: " + width);
-        mStroke = width;
-	 	
-        // if we are using a LineIcon, update it
-        if (getButtonIcon() instanceof LineIcon) {
-            LineIcon icon = (LineIcon) getButtonIcon();
-            icon.setWeight(mStroke);
-            repaint();
-        }
-
-        if(false)setText(((int)mStroke) + "px");
+        mStroke = width;	 	   
     }
     public float getStroke() {
         return mStroke;
@@ -82,5 +85,45 @@ public class StrokeMenuButton extends MenuButton<Float>
     protected Icon makeIcon(Float value) {
         return new LineIcon(sIconWidth, sIconHeight, value);
     }
+    
+    class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+    	
+    	public ComboBoxRenderer() {
+    		setOpaque(true);
+    		setHorizontalAlignment(CENTER);
+    		setVerticalAlignment(CENTER);
+
+    	}
+
+    
+    	public Component getListCellRendererComponent(
+                    JList list,
+                    Object value,
+                    int index,
+                    boolean isSelected,
+                    boolean cellHasFocus) {
+    		
+    		if (isSelected) {
+    			setBackground(list.getSelectionBackground());
+    			setForeground(list.getSelectionForeground());
+    		} else {
+    			setBackground(Color.white);
+    			setForeground(list.getForeground());
+    		}
+    	     		
+    		//Set the icon and text.  If icon was null, say so.        		
+    		Float a = (Float) value;    		
+            //Icon    icon = makeIcon(a);
+    		setText(a.intValue() + "px");
+            //setIcon(icon);
+    		
+            this.setBorder(BorderFactory.createEmptyBorder(0,0, 1, 1));
+
+    		return this;
+    	}
+    	protected Icon makeIcon(Float value) {
+            return new LineIcon(sIconWidth, sIconHeight, value);
+        }	 
+    }        
 }
 
