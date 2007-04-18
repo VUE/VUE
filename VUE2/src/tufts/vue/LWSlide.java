@@ -28,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.24 $ / $Date: 2007-04-14 23:14:21 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2007-04-18 02:54:53 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -43,8 +43,14 @@ public class LWSlide extends LWContainer
     /** public only for persistance */
     public LWSlide() {
         disableProperty(LWKey.Label);
+        disableProperty(LWKey.TextColor);
         disableProperty(LWKey.StrokeWidth);
         disableProperty(LWKey.StrokeColor);
+        disableProperty(LWKey.StrokeStyle);
+        disableProperty(LWKey.Font);
+        disableProperty(LWKey.FontSize);
+        disableProperty(LWKey.FontName);
+        disableProperty(LWKey.FontStyle);
     }
 
     LWComponent getSourceNode() {
