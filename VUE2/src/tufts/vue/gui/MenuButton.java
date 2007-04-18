@@ -40,7 +40,7 @@ import javax.swing.border.*;
  *
  * Subclasses must implement LWEditor produce/display
  *
- * @version $Revision: 1.22 $ / $Date: 2007-04-16 21:27:55 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2007-04-18 02:54:33 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -100,6 +100,9 @@ public abstract class MenuButton<T> extends JButton
         final int borderIndent = 2;
         addMouseListener(new tufts.vue.MouseAdapter(toString()) {
                 public void mousePressed(MouseEvent e) {
+
+                    if (!MenuButton.this.isEnabled())
+                        return;
                     /*
                     if (//getText() == ArrowText &&
                         isButtonActionable && getIcon() != null && e.getX() < getIcon().getIconWidth() + borderIndent) {
@@ -187,10 +190,14 @@ public abstract class MenuButton<T> extends JButton
         public int getIconHeight() { return src.getIconHeight(); }
         
         public void paintIcon(Component c, Graphics g, int sx, int sy) {
+
             int w = src.getIconWidth();
             int h = src.getIconHeight();
             if (DEBUG.BOXES) System.out.println("proxyPaint x=" + sx + " y=" + sy + " src=" + src);
-            g.setColor(Color.darkGray);
+            if (c.isEnabled())
+                g.setColor(Color.darkGray);
+            else
+                g.setColor(Color.lightGray);
             int x = sx + w + arrowGap;
             //int y = sy + h / 2 - 1;  // src icon relative
             int y = getHeight() / 2 - 1; // parent button relative: keeps arrows aligned across butons buttons of same height
@@ -198,6 +205,10 @@ public abstract class MenuButton<T> extends JButton
                 g.drawLine(x,y,x+len,y);
                 y++;
                 x++;
+            }
+            if (!c.isEnabled()) {
+                //c.setBackground(Color.white);
+                ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
             }
             src.paintIcon(c, g, sx, sy);
         }
