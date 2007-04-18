@@ -32,7 +32,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.39 $ / $Date: 2007-04-18 17:33:21 $ / $Author: mike $
+ * @version $Revision: 1.40 $ / $Date: 2007-04-18 21:06:23 $ / $Author: mike $
  * 
  */
 
@@ -218,7 +218,7 @@ public class LinkToolPanel extends LWCToolPanel
 		gbc.gridx = 0;
 		gbc.gridy = 1;    				
 		gbc.gridwidth=1;
-		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+		gbc.fill = GridBagConstraints.NONE; // the label never grows
 		gbc.anchor = GridBagConstraints.WEST;
 		JLabel strokeLabel = new JLabel("Stroke :");
 		strokeLabel.setForeground(new Color(51,51,51));
@@ -228,28 +228,20 @@ public class LinkToolPanel extends LWCToolPanel
 		gbc.gridx = 0;
 		gbc.gridy = 2;    				
 		gbc.gridwidth=1;
-		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+		gbc.fill = GridBagConstraints.NONE; // the label never grows
 		gbc.anchor = GridBagConstraints.WEST;
 		JLabel arrowLabel = new JLabel("Arrows :");
 		arrowLabel.setForeground(new Color(51,51,51));
 		arrowLabel.setFont(tufts.vue.VueConstants.SmallFont);
 		mBox.add(arrowLabel,gbc);
 		
-        
-        //if (addComponent(mArrowStartButton)){
-        	
-        
-       // if (addComponent(mArrowEndButton)){
-        	
-       // }
-        
 		gbc.gridx = 1;
 		gbc.gridy = 1;    		
 		gbc.insets = new Insets(1,1,1,1);
 		gbc.gridwidth=1;
 		gbc.gridheight=1;
 		
-		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+		gbc.fill = GridBagConstraints.NONE; // the label never grows
 		gbc.anchor = GridBagConstraints.WEST;
 //		gbc.ipadx=10;
 //		gbc.ipady=0;
@@ -263,7 +255,7 @@ public class LinkToolPanel extends LWCToolPanel
 		gbc.insets = new Insets(1,1,1,1);
 		gbc.gridwidth=1;
 		gbc.gridheight=1;
-		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+		gbc.fill = GridBagConstraints.NONE; // the label never grows
 		gbc.anchor = GridBagConstraints.WEST;
 		JComboBox undefined = new JComboBox();
 		undefined.setFont(tufts.vue.VueConstants.FONT_SMALL); 
@@ -275,11 +267,11 @@ public class LinkToolPanel extends LWCToolPanel
 		gbc.ipady=0;
 		gbc.gridx = 2;
 		gbc.gridy = 2;    		
-		gbc.insets = new Insets(1,5,1,1);
+		gbc.insets = new Insets(1,1,1,1);
 		gbc.gridwidth=1;
 		gbc.gridheight=1;
-		gbc.ipadx=12;
-		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+		//gbc.ipadx=12;
+		gbc.fill = GridBagConstraints.NONE; // the label never grows
 		gbc.anchor = GridBagConstraints.WEST;		
 		mBox.add(arrowCombo,gbc);
 		
@@ -288,10 +280,10 @@ public class LinkToolPanel extends LWCToolPanel
         {
         	gbc.gridx = 3;
     		gbc.gridy = 1;    		
-    		gbc.insets = new Insets(1,5,1,1);
+    		gbc.insets = new Insets(1,1,1,1);
     		gbc.gridwidth=1;
     		gbc.gridheight=1;
-    		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+    		gbc.fill = GridBagConstraints.NONE; // the label never grows
     		gbc.anchor = GridBagConstraints.WEST;
     		mBox.add(mStrokeColorButton,gbc);
         }
@@ -302,9 +294,9 @@ public class LinkToolPanel extends LWCToolPanel
     		gbc.gridy = 1;    		
     	//	gbc.insets = new Insets(-6,5,-6,1);
     		gbc.gridwidth=1;
-    		gbc.ipadx=10;
+    	//	gbc.ipadx=10;
     		gbc.gridheight=1;
-    		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+    		gbc.fill = GridBagConstraints.NONE; // the label never grows
     		gbc.anchor = GridBagConstraints.WEST;
     		mStrokeButton.setSelectedIndex(1);
     		mBox.add(mStrokeButton,gbc);
