@@ -22,11 +22,16 @@ import tufts.vue.gui.TextRow;
 
 import java.awt.*;
 import java.awt.geom.*;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JTextArea;
 import javax.swing.*;
+
+import edu.tufts.vue.preferences.PreferencesManager;
+
 import java.util.Iterator;
+import edu.tufts.vue.preferences.PreferencesManager;
+import edu.tufts.vue.preferences.VuePrefEvent;
+import edu.tufts.vue.preferences.VuePrefListener;
+import edu.tufts.vue.preferences.implementations.ShowIconsPreference;
+import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 /**
  * Icon's for displaying on LWComponents.
@@ -49,6 +54,11 @@ public abstract class LWIcon extends Rectangle2D.Float
     protected Color mColor;
     protected float mMinWidth;
     protected float mMinHeight;
+    
+    //  ------------------------------------------------------------------
+    // Preferences
+    //------------------------------------------------------------------
+    private static final ShowIconsPreference IconPref = new ShowIconsPreference();
 
     private LWIcon(LWComponent lwc, Color c) {
         // default size
@@ -61,7 +71,10 @@ public abstract class LWIcon extends Rectangle2D.Float
         this(lwc, DefaultColor);
     }
 
-    
+    public static ShowIconsPreference getShowIconPreference()
+    {
+    	return IconPref;
+    }
     public void setLocation(float x, float y)
     {
         super.x = x;
@@ -121,7 +134,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         private boolean mVertical;
         private float mIconWidth;
         private float mIconHeight;
-        
+               
         public Block(LWComponent lwc,
                      int iconWidth,
                      int iconHeight,
@@ -152,6 +165,17 @@ public abstract class LWIcon extends Rectangle2D.Float
             }
 
             this.mLWC = lwc;
+            
+            // todo perf: a bit heavy weight to have every node made a listener
+            // for this preference -- better to handle at the map level.
+            LWIcon.getShowIconPreference().addVuePrefListener(new VuePrefListener() {
+                    public void preferenceChanged(VuePrefEvent prefEvent) {
+                        mLWC.layout();
+                        mLWC.notify(LWKey.Repaint);
+                        
+                    }        	
+            });
+
         }
 
         public float getIconWidth() { return mIconWidth; }
@@ -192,7 +216,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         //public float getHeight() { return super.height; }
 
         boolean isShowing() {
-            return super.width > 0 && super.height > 0;
+        	return super.width > 0 && super.height > 0;
         }
 
         void setLocation(float x, float y)
@@ -396,7 +420,12 @@ public abstract class LWIcon extends Rectangle2D.Float
             layout();
         }
 
-        boolean isShowing() { return mLWC.hasResource(); }
+        boolean isShowing() {
+        	if (IconPref.getResourceIconValue())
+        		return mLWC.hasResource();
+        	else 
+        		return false;
+        	}
 
         void doDoubleClickAction() {
             mLWC.getResource().displayContent();
@@ -604,7 +633,12 @@ public abstract class LWIcon extends Rectangle2D.Float
         Notes(LWComponent lwc, Color c) { super(lwc, c); }
         Notes(LWComponent lwc) { super(lwc); }
         
-        boolean isShowing() { return mLWC.hasNotes(); }
+        boolean isShowing() {
+        	if (IconPref.getNotesIconValue())
+        		return mLWC.hasNotes();
+        	else
+        		return false;
+        }
         
         void doDoubleClickAction() {
 
@@ -729,7 +763,12 @@ public abstract class LWIcon extends Rectangle2D.Float
         Pathway(LWComponent lwc, Color c) { super(lwc, c); }
         Pathway(LWComponent lwc) { super(lwc); }
 
-        boolean isShowing() { return mLWC.inPathway(); }
+        boolean isShowing() {
+        	if (IconPref.getPathwayIconValue())
+        		return mLWC.inPathway();
+        	else
+        		return false;
+        	}
 
         void doDoubleClickAction() {
             tufts.vue.gui.GUI.makeVisibleOnScreen(this, PathwayPanel.class);
@@ -843,7 +882,12 @@ public abstract class LWIcon extends Rectangle2D.Float
         MetaData(LWComponent lwc, Color c) { super(lwc, c); }
         MetaData(LWComponent lwc) { super(lwc); }
 
-        boolean isShowing() { return mLWC.hasMetaData(); }
+        boolean isShowing() {
+        	if (IconPref.getMetaDataIconValue())
+        		return mLWC.hasMetaData();
+        	else
+        		return false;
+        	}
 
         void doDoubleClickAction() {
             System.out.println(this + " Meta-Data Action?");
@@ -912,7 +956,12 @@ public abstract class LWIcon extends Rectangle2D.Float
         Behavior(LWComponent lwc, Color c) { super(lwc, c); }
         Behavior(LWComponent lwc) { super(lwc); }
 
-        boolean isShowing() { return mLWC.hasResource() && mLWC.getResource() instanceof AssetResource;  }
+        boolean isShowing() { 
+        	if (IconPref.getBehaviorIconValue())
+        		return mLWC.hasResource() && mLWC.getResource() instanceof AssetResource;
+        	else
+        		return false;
+        	}
 
         void doDoubleClickAction() {
             VUE.ObjectInspectorPanel.setTab(ObjectInspectorPanel.INFO_TAB);
@@ -984,7 +1033,12 @@ public abstract class LWIcon extends Rectangle2D.Float
         Hierarchy(LWComponent lwc, Color c) { super(lwc, c); }
         Hierarchy(LWComponent lwc) { super(lwc); }
 
-        boolean isShowing() { return mLWC.hasChildren(); }
+        boolean isShowing() {
+        	if (IconPref.getHierarchyIconValue())
+        		return mLWC.hasChildren();
+        	else
+        		return false;
+        }
 
         void doDoubleClickAction() {
             //VUE.ObjectInspectorPanel.setTab(ObjectInspectorPanel.TREE_TAB);
@@ -1074,4 +1128,3 @@ public abstract class LWIcon extends Rectangle2D.Float
 
     
 }
-
