@@ -117,8 +117,8 @@ public class StrokeMenuButton extends ComboBoxMenuButton<Float>
     		setText(a.intValue() + "px");
             //setIcon(icon);
     		
-            this.setBorder(BorderFactory.createEmptyBorder(0,0, 1, 1));
-
+          //  this.setBorder(BorderFactory.createEmptyBorder(0,0, 1, 1));
+    		this.setBorder(BorderFactory.createEmptyBorder(5,3, 5, 3));
     		return this;
     	}
     	protected Icon makeIcon(Float value) {

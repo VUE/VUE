@@ -40,7 +40,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.36 $ / $Date: 2007-04-18 13:29:12 $ / $Author: mike $
+ * @version $Revision: 1.37 $ / $Date: 2007-04-18 14:53:38 $ / $Author: mike $
  */
  
 public class NodeToolPanel extends LWCToolPanel
@@ -56,6 +56,7 @@ public class NodeToolPanel extends LWCToolPanel
 		gbc.gridy = 0;    		
 		gbc.insets = new Insets(1,5,1,1);
 		gbc.gridwidth=3;
+		gbc.gridheight=1;
 		gbc.fill = GridBagConstraints.BOTH; // the label never grows
 		gbc.anchor = GridBagConstraints.WEST;				
         getBox().add(new JLabel("Node"),gbc);
@@ -64,7 +65,7 @@ public class NodeToolPanel extends LWCToolPanel
 		gbc.gridy = 1;    		
 		gbc.gridwidth = 1;
 		gbc.gridheight=1;
-		gbc.fill = GridBagConstraints.NONE; // the label never grows
+		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
 		gbc.anchor = GridBagConstraints.WEST;
 		
 		JLabel shapeLabel = new JLabel("Shape: ");
@@ -75,7 +76,7 @@ public class NodeToolPanel extends LWCToolPanel
 		gbc.gridy = 2;    		
 		gbc.gridwidth = 1; // next-to-last in row
 		gbc.gridheight=1;
-		gbc.fill = GridBagConstraints.NONE; // the label never grows
+		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
 		gbc.anchor = GridBagConstraints.WEST;
 		JLabel strokeLabel = new JLabel("Stroke: ");
 		strokeLabel.setForeground(new Color(51,51,51));
@@ -84,8 +85,9 @@ public class NodeToolPanel extends LWCToolPanel
     	gbc.gridx = 1;
 		gbc.gridy = 1;    				
 		gbc.fill = GridBagConstraints.NONE; // the label never grows
-		gbc.ipadx=11;
-		gbc.ipady=6;
+		gbc.insets = new Insets(1,2,1,1);
+		//	gbc.ipadx=11;
+		//gbc.ipady=6;
 		gbc.anchor = GridBagConstraints.WEST;
         getBox().add(mShapeButton, gbc);
         
@@ -173,7 +175,7 @@ public class NodeToolPanel extends LWCToolPanel
                 if (icon != null)
                     setIcon(icon);
         		
-                this.setBorder(BorderFactory.createEmptyBorder(1,1, 1, 1));
+                this.setBorder(BorderFactory.createEmptyBorder(5,3, 5, 3));
 
         		return this;
         	}

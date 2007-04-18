@@ -355,10 +355,9 @@ public class LWCToolPanel extends JPanel
         {
         	gbc.gridx = 2;
     		gbc.gridy = 1;    		
-    		// c.gridwidth = GridBagConstraints.RELATIVE; // next-to-last in row
-    		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
+    		gbc.fill = GridBagConstraints.NONE; // the label never grows
     		gbc.anchor = GridBagConstraints.WEST;
-    		
+    	
     		mBox.add(mFillColorButton, gbc);
         }
         if (addComponent(mStrokeColorButton))
@@ -377,11 +376,11 @@ public class LWCToolPanel extends JPanel
         	gbc.gridx = 1;
     		gbc.gridy = 2;    		
     		// c.gridwidth = GridBagConstraints.RELATIVE; // next-to-last in row
-    		gbc.insets = new Insets(1,5,1,1);
+    		gbc.insets = new Insets(1,2,1,1);
     		gbc.fill = GridBagConstraints.NONE; // the label never grows
     		gbc.anchor = GridBagConstraints.WEST;
-    		gbc.ipadx=14;
-    		gbc.ipady=4;
+    		//gbc.ipadx=14;
+    		//gbc.ipady=4;
     		mBox.add(mStrokeButton, gbc);
 
         }
