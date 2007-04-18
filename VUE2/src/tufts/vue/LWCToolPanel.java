@@ -173,7 +173,7 @@ public class LWCToolPanel extends JPanel
         		return this;
         	}
         	  protected Icon makeIcon(LWComponent.StrokeStyle style) {
-                  LineIcon li = new LineIcon(24, 3);
+                  LineIcon li = new LineIcon(20, 3);
                   li.setStroke(style.makeStroke(1));
                   return li;
               }
@@ -350,20 +350,22 @@ public class LWCToolPanel extends JPanel
 
     protected void buildBox() {
     	GridBagConstraints gbc = new GridBagConstraints();
-    	gbc.insets = new Insets(1,2,1,1);
+    	gbc.insets = new Insets(1,2,1,5);
         if (addComponent(mFillColorButton))
         {
         	gbc.gridx = 2;
     		gbc.gridy = 1;    		
     		gbc.fill = GridBagConstraints.NONE; // the label never grows
     		gbc.anchor = GridBagConstraints.WEST;
-    	
+    		gbc.gridwidth=1;
     		mBox.add(mFillColorButton, gbc);
         }
         if (addComponent(mStrokeColorButton))
         {
         	gbc.gridx = 2;
-    		gbc.gridy = 2;    		
+    		gbc.gridy = 2;
+    		gbc.gridwidth=1;
+    		
     		// c.gridwidth = GridBagConstraints.RELATIVE; // next-to-last in row
     		gbc.fill = GridBagConstraints.NONE; // the label never grows
     		gbc.anchor = GridBagConstraints.WEST;
