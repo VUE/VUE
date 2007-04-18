@@ -40,7 +40,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.37 $ / $Date: 2007-04-18 14:53:38 $ / $Author: mike $
+ * @version $Revision: 1.38 $ / $Date: 2007-04-18 17:33:21 $ / $Author: mike $
  */
  
 public class NodeToolPanel extends LWCToolPanel
@@ -59,7 +59,9 @@ public class NodeToolPanel extends LWCToolPanel
 		gbc.gridheight=1;
 		gbc.fill = GridBagConstraints.BOTH; // the label never grows
 		gbc.anchor = GridBagConstraints.WEST;				
-        getBox().add(new JLabel("Node"),gbc);
+		JLabel nodeLabel = new JLabel("Node");
+		nodeLabel.setFont(tufts.vue.VueConstants.SmallFont);
+        getBox().add(nodeLabel,gbc);
         
         gbc.gridx = 0;
 		gbc.gridy = 1;    		
@@ -70,7 +72,8 @@ public class NodeToolPanel extends LWCToolPanel
 		
 		JLabel shapeLabel = new JLabel("Shape: ");
 		shapeLabel.setForeground(new Color(51,51,51));
-        getBox().add(shapeLabel,gbc);
+		shapeLabel.setFont(tufts.vue.VueConstants.SmallFont);
+		getBox().add(shapeLabel,gbc);
         
         gbc.gridx = 0;
 		gbc.gridy = 2;    		
@@ -80,7 +83,8 @@ public class NodeToolPanel extends LWCToolPanel
 		gbc.anchor = GridBagConstraints.WEST;
 		JLabel strokeLabel = new JLabel("Stroke: ");
 		strokeLabel.setForeground(new Color(51,51,51));
-        getBox().add(strokeLabel,gbc);
+		strokeLabel.setFont(tufts.vue.VueConstants.SmallFont);
+		getBox().add(strokeLabel,gbc);
         
     	gbc.gridx = 1;
 		gbc.gridy = 1;    				
@@ -175,7 +179,7 @@ public class NodeToolPanel extends LWCToolPanel
                 if (icon != null)
                     setIcon(icon);
         		
-                this.setBorder(BorderFactory.createEmptyBorder(5,3, 5, 3));
+                this.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
 
         		return this;
         	}

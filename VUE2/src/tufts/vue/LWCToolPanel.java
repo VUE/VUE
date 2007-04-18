@@ -168,7 +168,7 @@ public class LWCToolPanel extends JPanel
                 
                 setIcon(icon);
         		
-                this.setBorder(BorderFactory.createEmptyBorder(5,1, 5, 1));
+                this.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
 
         		return this;
         	}

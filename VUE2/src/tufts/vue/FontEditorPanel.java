@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.40 $ / $Date: 2007-04-18 13:29:12 $ / $Author: mike $
+ * @version $Revision: 1.41 $ / $Date: 2007-04-18 17:33:21 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -221,7 +221,9 @@ implements PropertyChangeListener
         gbc.insets = new Insets(1,5,1,1);
         gbc.anchor=GridBagConstraints.NORTHWEST;
         gbc.fill=GridBagConstraints.BOTH;
-        this.add(new JLabel("Text"),gbc);
+        JLabel textLabel = new JLabel("Text");
+        textLabel.setFont(tufts.vue.VueConstants.SmallFont);
+        this.add(textLabel,gbc);
         
         gbc.gridwidth=1;
         gbc.gridy=1;

@@ -32,7 +32,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.38 $ / $Date: 2007-04-18 13:29:12 $ / $Author: mike $
+ * @version $Revision: 1.39 $ / $Date: 2007-04-18 17:33:21 $ / $Author: mike $
  * 
  */
 
@@ -206,12 +206,13 @@ public class LinkToolPanel extends LWCToolPanel
         mBox.setLayout(new GridBagLayout());
     	gbc.gridx = 0;
 		gbc.gridy = 0;    		
-		gbc.insets = new Insets(1,5,1,1);
+		gbc.insets = new Insets(1,5,1,0);
 		gbc.gridwidth=3;
 		gbc.fill = GridBagConstraints.BOTH; // the label never grows
 		gbc.anchor = GridBagConstraints.WEST;
 		JLabel linkLabel = new JLabel("Link");
 		linkLabel.setForeground(Color.black);
+		linkLabel.setFont(tufts.vue.VueConstants.SmallFont);
 		mBox.add(linkLabel,gbc);
 		
 		gbc.gridx = 0;
@@ -221,6 +222,7 @@ public class LinkToolPanel extends LWCToolPanel
 		gbc.anchor = GridBagConstraints.WEST;
 		JLabel strokeLabel = new JLabel("Stroke :");
 		strokeLabel.setForeground(new Color(51,51,51));
+		strokeLabel.setFont(tufts.vue.VueConstants.SmallFont);
 		mBox.add(strokeLabel,gbc);
 		
 		gbc.gridx = 0;
@@ -230,6 +232,7 @@ public class LinkToolPanel extends LWCToolPanel
 		gbc.anchor = GridBagConstraints.WEST;
 		JLabel arrowLabel = new JLabel("Arrows :");
 		arrowLabel.setForeground(new Color(51,51,51));
+		arrowLabel.setFont(tufts.vue.VueConstants.SmallFont);
 		mBox.add(arrowLabel,gbc);
 		
         
@@ -242,27 +245,28 @@ public class LinkToolPanel extends LWCToolPanel
         
 		gbc.gridx = 1;
 		gbc.gridy = 1;    		
-		gbc.insets = new Insets(1,5,1,1);
+		gbc.insets = new Insets(1,1,1,1);
 		gbc.gridwidth=1;
 		gbc.gridheight=1;
 		
 		gbc.fill = GridBagConstraints.BOTH; // the label never grows
 		gbc.anchor = GridBagConstraints.WEST;
-		gbc.ipadx=10;
-		gbc.ipady=0;
+//		gbc.ipadx=10;
+//		gbc.ipady=0;
 		
 		mBox.add(mStrokeStyleButton,gbc);
 		
-		gbc.ipadx=0;
-		gbc.ipady=4;
+//		gbc.ipadx=0;
+//		gbc.ipady=4;
 		gbc.gridx = 1;
 		gbc.gridy = 2;    		
-		gbc.insets = new Insets(1,5,1,1);
+		gbc.insets = new Insets(1,1,1,1);
 		gbc.gridwidth=1;
 		gbc.gridheight=1;
 		gbc.fill = GridBagConstraints.BOTH; // the label never grows
 		gbc.anchor = GridBagConstraints.WEST;
 		JComboBox undefined = new JComboBox();
+		undefined.setFont(tufts.vue.VueConstants.FONT_SMALL); 
 		undefined.addItem("none");
 		undefined.setEnabled(false);
 		mBox.add(undefined,gbc);
