@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.88 $ / $Date: 2007-04-18 13:11:38 $ / $Author: mike $
+ * @version $Revision: 1.89 $ / $Date: 2007-04-18 13:52:48 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -3562,7 +3562,7 @@ public class DockWindow extends javax.swing.JWindow
 
             closeButton = new CloseButton(DockWindow.this);
 
-            closeButton.setBorder(new EmptyBorder(2,1,0,0));
+            closeButton.setBorder(new EmptyBorder(2,1,2,0));
 
             //add(Box.createVerticalGlue());
             add(closeButton);
@@ -3616,6 +3616,8 @@ public class DockWindow extends javax.swing.JWindow
             ((Graphics2D)g).setPaint(mGradient);
 
             g.fillRect(0,0, width, height);
+            g.setColor(new Color(128,128,128));
+            g.drawLine(right-1, 0, right-1, height);
             /*final int height = getHeight();
             final int left = 0;
             final int right = getWidth();
