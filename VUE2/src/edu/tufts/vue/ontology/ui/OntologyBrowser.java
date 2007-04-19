@@ -32,59 +32,24 @@ import tufts.vue.gui.*;
  */
 public class OntologyBrowser extends JPanel {
     
-   // public static final Object POPULATE_TYPES = "type_list_layout_constraint";
-     public static final Object POPULATE_TYPES = java.awt.BorderLayout.CENTER;
+    public static final Object POPULATE_TYPES = java.awt.BorderLayout.CENTER;
     
     final JPanel ontologiesPanel;
-    //final Widget typesPane = null;
     final Widget typesPane = new Widget("types");
     
     final DockWindow dockWindow;
     final DockWindow ontologyDock;
     final DockWindow typeDock;
     
-    //$
-      private OntologyViewer ontologyViewer;
-    //$
+    private OntologyViewer ontologyViewer;
     
-    // corresponds to searchPane from DRBrowser
+    // corresponds (roughly) to searchPane from DRBrowser (the original inspiration for OntologyBrowser
+    // implementation architecture)
     final JComponent populatePane = new Widget("Populate Types") {
             private Component editor, result;
             {
                 setOpaque(false);
             }
-            
-            protected void addImpl(Component c, Object constraints, int idx) {
-            //public void addImpl(Component c, Object constraints, int idx) {
-                JComponent jc = null;
-                if (c instanceof JComponent)
-                    jc = (JComponent) c;
-                if (constraints == POPULATE_TYPES) {
-
-                    // was SingleDockImpl in DRBrowser
-                    if (true) {
-                        // this method of setting this is a crazy hack for now, but
-                        // it's perfect for allowing us to try different layouts
-                        //typesPane.removeAll();
-                        typesPane.add(jc);
-                        //typesPane.setHidden(false);
-                        typesPane.validate();
-                        return;
-                    }
-                    
-                    if (result != null)
-                        remove(result);
-                    result = c;
-                    constraints = BorderLayout.CENTER;
-                } else {
-                    tufts.Util.printStackTrace("illegal type population constraints " + constraints);
-                }
-                
-                super.addImpl(c, constraints, idx);
-                revalidate();
-            }
-
-
     };
     
     private WidgetStack resultsStack = new WidgetStack("types stack");
@@ -111,7 +76,8 @@ public class OntologyBrowser extends JPanel {
         
         if(delayedLoading)
         {
-            //TBD see DRBrowser for likely path to take..
+            //TBD see DRBrowser for likely path that will be taken when loading ontologies at startup
+            // e.g. fedora ontology
         }
         else
         {
@@ -122,31 +88,9 @@ public class OntologyBrowser extends JPanel {
         ((Widget)populatePane).setTitleHidden(true);
         
         buildSingleDockWindow();
-        
-        //$
-          /*javax.swing.JButton button = new javax.swing.JButton("update");
-          button.addActionListener(new java.awt.event.ActionListener(){
-            public void actionPerformed(java.awt.event.ActionEvent e)
-            {
-               java.util.List<edu.tufts.vue.ontology.Ontology> list = edu.tufts.vue.ontology.OntManager.getOntManager().getOntList();
-               //for(int i=0;i<list.size();i++)
-               //{
-               //    
-               //}
-               System.out.println("Ontology Browser: OntManager list size: " + list.size());
-               System.out.println("Ontology Browser: ontology viewer model size: " + ontologyViewer.getList().getModel().getSize());
-               ontologyViewer.updateUI();
-               ontologyViewer.getList().updateUI();
-               revalidate();
-               repaint();
-               ontologyViewer.repaint();
-               updateUI();
-            }
-          });
-          add(button); */
           
-          tufts.vue.VueAction addRDFSToBrowser = new tufts.vue.VueAction()
-          {
+        tufts.vue.VueAction addRDFSToBrowser = new tufts.vue.VueAction()
+        {
               {
                   setActionName("Add RDFS Ontology");
               }
@@ -160,10 +104,10 @@ public class OntologyBrowser extends JPanel {
                  rdfsooa.actionPerformed(e);
                  rdfsooa.setViewer(null);
               }
-          };
+        };
           
-          tufts.vue.VueAction addOWLToBrowser = new tufts.vue.VueAction()
-          {
+        tufts.vue.VueAction addOWLToBrowser = new tufts.vue.VueAction()
+        {
               {
                   setActionName("Add OWL Ontology");
               }
@@ -177,17 +121,16 @@ public class OntologyBrowser extends JPanel {
                  owlsooa.actionPerformed(e);
                  owlsooa.setViewer(null);
               }
-          };
+        };
           
-          Action[] actions = {
-           // new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology"),
+        Action[] actions = {
+            new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this),
             //new edu.tufts.vue.ontology.action.RDFSOntologyOpenAction("RDFS"),
             //new edu.tufts.vue.ontology.action.OwlOntologyOpenAction("OWL"),
             addRDFSToBrowser,
             addOWLToBrowser
-          };
-          tufts.vue.gui.Widget.setMenuActions(this,actions);
-        //$
+        };
+        tufts.vue.gui.Widget.setMenuActions(this,actions);
           
     }
     
@@ -198,6 +141,11 @@ public class OntologyBrowser extends JPanel {
         ontologyViewer.setName("Ontology Viewer");
         ontologiesPanel.add(ontologyViewer);
         revalidate();
+    }
+    
+    public OntologyViewer getViewer()
+    {
+        return ontologyViewer;
     }
     
     public void buildSingleDockWindow()

@@ -18,13 +18,21 @@
 
 package edu.tufts.vue.ontology.ui;
 
+import edu.tufts.vue.ontology.OntManager;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+
+import tufts.vue.VueUtil;
 
 /*
  * OntologyChooser.java
@@ -58,15 +66,25 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
     private JButton cancelButton = null;
     private JButton nextButton = null;
     private JButton browseButton = null;
-    private JButton attachButton = null;
+   // private JButton attachButton = null;
     private JLabel stepLabel = null;
     private JTextField browseFileField = null;
     private JTextField typeURLField = null;
     private JLabel styleSheetMessageLabel = null;
     
-    public OntologyChooser(java.awt.Frame owner,String title) 
+    private OntologyBrowser browser = null;
+    
+    private File ontFile;
+    private File cssFile;
+    private String ontURLText;
+    private String cssURLText;
+    private URL ontURL;
+    private URL cssURL;
+    
+    public OntologyChooser(java.awt.Frame owner,String title,OntologyBrowser browser) 
     {
         super(owner,title);
+        this.browser = browser;
         setLocation(ONT_CHOOSER_X_LOCATION,ONT_CHOOSER_Y_LOCATION);
         setModal(true);
         setSize(ONT_CHOOSER_WIDTH,ONT_CHOOSER_HEIGHT);
@@ -74,12 +92,12 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
         cancelButton = new JButton("Cancel");
         nextButton = new JButton("Next");
         browseButton = new JButton("Browse");
-        attachButton = new JButton("Attach");
+        //attachButton = new JButton("Attach");
         
         cancelButton.addActionListener(this);
         nextButton.addActionListener(this);
         browseButton.addActionListener(this);
-        attachButton.addActionListener(this);
+        //attachButton.addActionListener(this);
         
         setUpPanels();
         
@@ -150,11 +168,12 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
        browseGrid.setConstraints(browseFileField,browseConstraints);
        browsePanel.add(browseFileField);
        browseConstraints.weightx = 0.0;
+       browseConstraints.gridwidth = GridBagConstraints.REMAINDER;
        browseGrid.setConstraints(browseButton,browseConstraints);
        browsePanel.add(browseButton);
-       browseConstraints.gridwidth = GridBagConstraints.REMAINDER;
-       browseGrid.setConstraints(attachButton,browseConstraints);
-       browsePanel.add(attachButton);
+       //browseConstraints.gridwidth = GridBagConstraints.REMAINDER;
+       //browseGrid.setConstraints(attachButton,browseConstraints);
+       //browsePanel.add(attachButton);
        browseGrid.setConstraints(orLabel,browseConstraints);
        browsePanel.add(orLabel);
        browseConstraints.gridwidth = 1;
@@ -171,13 +190,6 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
         styleSheetMessageLabel = new JLabel();
         buttonPanel = new JPanel();
         
-        //$
-           //buttonPanel.setOpaque(true);
-           //buttonPanel.setBackground(java.awt.Color.BLUE);
-           //cancelButton.setOpaque(false);
-           //nextButton.setOpaque(false);
-        //$
-        
         GridBagLayout buttonLayout = new GridBagLayout();
         GridBagConstraints buttonConstraints = new GridBagConstraints();
         buttonPanel.setLayout(buttonLayout);
@@ -193,22 +205,108 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
         buttonPanel.add(nextButton);
     }
     
+    public static int getOntType(URL ontURL)
+    {
+        String type = ontURL.toString().substring(ontURL.toString().lastIndexOf(".")+1);
+        if(type.equals("rdfs"))
+            return OntManager.RDFS;
+        else
+        if(type.equals("owl"))
+            return OntManager.OWL;
+        else
+            return OntManager.OWL;
+    }
+    
     public void actionPerformed(java.awt.event.ActionEvent e)
     {
         if(e.getSource() == nextButton)
         {
             if(step == STEP_ONE)
-            {    
-              step = STEP_TWO;
-              //setTitle("CSS");
-              stepLabel.setText(stepTwoMessage);
-              styleSheetMessageLabel.setText(styleSheetMessage);
-              cancelButton.setText("Back");
-              nextButton.setText("Finish");
+            {  
+               System.out.println("1--->2");
+               step = STEP_TWO;
+               stepLabel.setText(stepTwoMessage);
+               styleSheetMessageLabel.setText(styleSheetMessage);
+               cancelButton.setText("Back");
+               nextButton.setText("Finish");
+               ontURLText = typeURLField.getText();
+               System.out.println("end 1---->2");
+            }
+            else
+            if(step == STEP_TWO)
+            {
+               System.out.println("2 finish");
+               TypeList list = new TypeList();
+               if(ontURLText != null)
+               {
+                   boolean fromURL = true;
+                   try
+                   {
+                       ontURL = new URL(ontURLText);
+                   }
+                   catch(MalformedURLException mue)
+                   {
+                      fromURL = false;
+                      //this dialog can fall behind the chooser and create the appearance
+                      //of deadlock...
+                      //VueUtil.alert("Improper URL, try file field instead?","URL Error");
+                      System.out.println("OntologyChooser: Improper URL, will try file field instead");
+                      try
+                      {
+                          if(ontFile!=null)
+                          {
+                            ontURL = ontFile.toURL();
+                          }
+                      }
+                      catch(MalformedURLException mue2)
+                      {
+                          System.out.println("OntologyChooser: File also produced Malformed URL " + mue2);
+                      }
+                   }
+               if(typeURLField.getText() != null)
+               {
+                   fromURL = true;
+                   try
+                   {
+                       cssURL = new URL(typeURLField.getText());
+                   }
+                   catch(MalformedURLException mue)
+                   {
+                      fromURL = false;
+                      //this dialog can fall behind the chooser and create the appearance
+                      //of deadlock...
+                      //VueUtil.alert("Improper URL, try file field instead?","URL Error");
+                      System.out.println("OntologyChooser: Improper CSS URL, will try file field instead");
+                      try
+                      {
+                          if(cssFile!=null)
+                          {
+                            cssURL = cssFile.toURL();
+                          }
+                      }
+                      catch(MalformedURLException mue2)
+                      {
+                          System.out.println("OntologyChooser: CSS File also produced Malformed URL " + mue2);
+                      }
+                   }
+                   if(ontURL != null && cssURL!=null)
+                   {
+                       list.loadOntology(ontURL,cssURL,getOntType(ontURL));                             
+                       browser.addTypeList(list,ontURL.getFile());
+                       browser.getViewer().getList().updateUI();
+                   }
+               }
+               setVisible(false);
+               }
+               System.out.println("end 2 finish");
             }
         }
         if(e.getSource() == cancelButton)
         {
+            if(step == STEP_ONE)
+            {
+                dispose();
+            }
             if(step == STEP_TWO)
             {
               step = STEP_ONE;
@@ -217,14 +315,31 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
               styleSheetMessageLabel.setText("");
               cancelButton.setText("Cancel");
               nextButton.setText("Next");
+              cssURLText = typeURLField.getText();
+              if(ontURLText!=null && !ontURLText.equals(""))
+              {
+                  typeURLField.setText(ontURLText);
+              }
             }
         }
-    }
-    
-    public static void main(String[] args)
-    {
-        OntologyChooser ontoC = new OntologyChooser(null,"Add an Ontology");
-        ontoC.pack();
+        if(e.getSource() == browseButton)
+        {
+            JFileChooser chooser = new JFileChooser();
+            chooser.showOpenDialog(tufts.vue.VUE.getDialogParentAsFrame());
+            File selectedFile = chooser.getSelectedFile();
+            if(selectedFile!=null)
+            {
+                if(step==STEP_ONE)
+                {    
+                  ontFile = selectedFile;
+                }
+                if(step==STEP_TWO)
+                {
+                  cssFile = selectedFile;
+                }
+                browseFileField.setText(selectedFile.getName());
+            }
+        }
     }
     
 }

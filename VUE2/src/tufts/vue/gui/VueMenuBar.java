@@ -30,7 +30,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.23 $ / $Date: 2007-04-17 15:52:35 $ / $Author: dan $
+ * @version $Revision: 1.24 $ / $Date: 2007-04-19 22:29:54 $ / $Author: dan $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -256,8 +256,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction("Constraint Mapping");
         FedoraOntologyOpenAction fooa = new FedoraOntologyOpenAction("Fedora Ontology Types");
         toolsMenu.add(compareAction);
-        toolsMenu.add(rdfOpen);
         toolsMenu.add(ontcontrls);
+        toolsMenu.add(rdfOpen);
         toolsMenu.add(fooa);
 
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.vueWebsite.label"), VueResources.getString("helpMenu.vueWebsite.url")));

@@ -18,6 +18,8 @@
 
 package edu.tufts.vue.ontology.action;
 
+import edu.tufts.vue.ontology.ui.*;
+
 /*
  * OntologyOpenAction.java
  *
@@ -27,13 +29,18 @@ package edu.tufts.vue.ontology.action;
  */
 public class OntologyOpenAction extends tufts.vue.VueAction {
     
-    public OntologyOpenAction(String label) 
+    private OntologyBrowser browser;
+    
+    public OntologyOpenAction(String label,OntologyBrowser browser) 
     {
         super(label);
+        this.browser = browser;
     }
     
     public void actionPerformed(java.awt.event.ActionEvent e)
     {
-        edu.tufts.vue.ontology.ui.OntologyChooser chooser = new edu.tufts.vue.ontology.ui.OntologyChooser(tufts.vue.VUE.getDialogParentAsFrame(),"Add an Ontology");
+        edu.tufts.vue.ontology.ui.OntologyChooser chooser = new OntologyChooser(tufts.vue.VUE.getDialogParentAsFrame(),
+                                                                                "Add an Ontology",
+                                                                                browser);
     }
 }
