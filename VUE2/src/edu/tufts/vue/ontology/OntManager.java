@@ -71,8 +71,8 @@ public class OntManager {
         StyleReader.readCSS(cssUrl);
         Ontology ont = new Ontology();
         ont.setBase(ontUrl.toString());
-        readOntTypesFromProperty(iter,types,styleMap,ontUrl.toString());
-        readOntTypesFromClass(m.listNamedClasses(),types,styleMap,ontUrl.toString());
+        readOntTypes(iter,types,styleMap,ontUrl.toString());
+        readOntTypes(m.listNamedClasses(),types,styleMap,ontUrl.toString());
         ont.setOntTypes(types);
         return ont;
     }
@@ -85,32 +85,24 @@ public class OntManager {
         CSSParser parser = new CSSParser();
         Map<String,Style> styleMap = parser.parseToMap(cssUrl);
         m.read(ontUrl.toString());
-        readOntTypesFromClass(m.listNamedClasses(),types,styleMap,ontUrl.toString());
-        readOntTypesFromProperty(m.listObjectProperties(),types,styleMap,ontUrl.toString());
-        readOntTypesFromProperty( m.listOntProperties(),types,styleMap,ontUrl.toString());
-       
+        readOntTypes(m.listNamedClasses(),types,styleMap,ontUrl.toString());
+        readOntTypes(m.listObjectProperties(),types,styleMap,ontUrl.toString());
+        readOntTypes( m.listOntProperties(),types,styleMap,ontUrl.toString());
+        
         ont.setOntTypes(types);
         return ont;
     }
-    
-    private void readOntTypesFromProperty(ExtendedIterator iter,List<OntType> types,Map<String,Style> styleMap, String ontUrl) {
-         while(iter.hasNext()) {
-            OntProperty sp = (OntProperty) iter.next();
-            OntType type = new OntType();
-            type.setId(sp.getLocalName());
-            type.setLabel(sp.getLabel(null));
-            type.setBase(ontUrl.toString());
-            type.setComment(sp.getComment(null));
-            type.setStyle(Style.getStyle(sp.getLocalName(),styleMap));
-            types.add(type);
-        }
-    }
-    private void readOntTypesFromClass(ExtendedIterator iter, List<OntType> types,Map<String,Style> styleMap, String ontUrl) {
-         while(iter.hasNext()) {
-            OntClass c = (OntClass) iter.next();
+   
+    private void readOntTypes(ExtendedIterator iter, List<OntType> types,Map<String,Style> styleMap, String ontUrl) {
+        while(iter.hasNext()) {
+            OntResource c = (OntResource) iter.next();
             OntType type = new OntType();
             type.setId(c.getLocalName());
-            type.setLabel(c.getLabel(null));
+            if(c.getLabel(null) == null) {
+                type.setLabel(c.getLocalName());
+            }else {
+                type.setLabel(c.getLabel(null));
+            }
             type.setBase(ontUrl.toString());
             type.setComment(c.getComment(null));
             type.setStyle(Style.getStyle(c.getLocalName(),styleMap));
