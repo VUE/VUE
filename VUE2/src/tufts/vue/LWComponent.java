@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.248 $ / $Date: 2007-04-18 02:27:59 $ / $Author: sfraize $
+ * @version $Revision: 1.249 $ / $Date: 2007-04-19 16:47:34 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -690,10 +690,14 @@ public class LWComponent
     
     private static final Integer _DefaultInteger = new Integer(0);
     public class IntProperty extends NumberProperty<java.lang.Integer> {
-        IntProperty(Key key) {
+        IntProperty(Key key, Integer defaultValue) {
             super(key);
-            value = _DefaultInteger;
+            value = defaultValue;
         }
+        IntProperty(Key key) {
+            this(key, _DefaultInteger);
+        }
+        
         void setBy(String s) { set(new Integer(s)); }
     }
     
