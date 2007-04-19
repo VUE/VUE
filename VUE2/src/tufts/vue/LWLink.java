@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.137 $ / $Date: 2007-04-17 22:59:25 $ / $Author: sfraize $
+ * @version $Revision: 1.138 $ / $Date: 2007-04-19 16:46:34 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -122,6 +122,7 @@ public class LWLink extends LWComponent
                          LWIcon.Block.HORIZONTAL,
                          LWIcon.Block.COORDINATES_MAP);
 
+
     /**
      * Used only for restore -- must be public
      */
@@ -154,7 +155,7 @@ public class LWLink extends LWComponent
             return l.mArrowState; // if getting a type-mismatch on mLine, feed this file to javac with LWComponent.java at the same time
         }
     };
-    private final IntProperty mArrowState = new IntProperty(KEY_LinkArrows) { void onChange() { endpointMoved = true; layout(); } };
+    private final IntProperty mArrowState = new IntProperty(KEY_LinkArrows, ARROW_TAIL) { void onChange() { endpointMoved = true; layout(); } };
     
     
     public static final Key KEY_LinkHeadPoint = new Key<LWLink,Point2D>("link.head.location") {
