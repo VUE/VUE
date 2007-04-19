@@ -71,27 +71,8 @@ public class OntManager {
         StyleReader.readCSS(cssUrl);
         Ontology ont = new Ontology();
         ont.setBase(ontUrl.toString());
-        while(iter.hasNext()) {
-            OntProperty sp = (OntProperty) iter.next();
-            OntType type = new OntType();
-            type.setId(sp.getLocalName());
-            type.setLabel(sp.getLabel(null));
-            type.setBase(ontUrl.toString());
-            type.setComment(sp.getComment(null));
-            type.setStyle(Style.getStyle(sp.getLocalName(),styleMap));
-            types.add(type);
-        }
-        iter  = m.listNamedClasses();
-        while(iter.hasNext()) {
-            OntClass c = (OntClass) iter.next();
-            OntType type = new OntType();
-            type.setId(c.getLocalName());
-            type.setLabel(c.getLabel(null));
-            type.setBase(ontUrl.toString());
-            type.setComment(c.getComment(null));
-            type.setStyle(Style.getStyle(c.getLocalName(),styleMap));
-            types.add(type);
-        }
+        readOntTypesFromProperty(iter,types,styleMap,ontUrl.toString());
+        readOntTypesFromClass(m.listNamedClasses(),types,styleMap,ontUrl.toString());
         ont.setOntTypes(types);
         return ont;
     }
@@ -104,8 +85,28 @@ public class OntManager {
         CSSParser parser = new CSSParser();
         Map<String,Style> styleMap = parser.parseToMap(cssUrl);
         m.read(ontUrl.toString());
-        iter  = m.listNamedClasses();
-        while(iter.hasNext()) {
+        readOntTypesFromClass(m.listNamedClasses(),types,styleMap,ontUrl.toString());
+        readOntTypesFromProperty(m.listObjectProperties(),types,styleMap,ontUrl.toString());
+        readOntTypesFromProperty( m.listOntProperties(),types,styleMap,ontUrl.toString());
+       
+        ont.setOntTypes(types);
+        return ont;
+    }
+    
+    private void readOntTypesFromProperty(ExtendedIterator iter,List<OntType> types,Map<String,Style> styleMap, String ontUrl) {
+         while(iter.hasNext()) {
+            OntProperty sp = (OntProperty) iter.next();
+            OntType type = new OntType();
+            type.setId(sp.getLocalName());
+            type.setLabel(sp.getLabel(null));
+            type.setBase(ontUrl.toString());
+            type.setComment(sp.getComment(null));
+            type.setStyle(Style.getStyle(sp.getLocalName(),styleMap));
+            types.add(type);
+        }
+    }
+    private void readOntTypesFromClass(ExtendedIterator iter, List<OntType> types,Map<String,Style> styleMap, String ontUrl) {
+         while(iter.hasNext()) {
             OntClass c = (OntClass) iter.next();
             OntType type = new OntType();
             type.setId(c.getLocalName());
@@ -115,32 +116,7 @@ public class OntManager {
             type.setStyle(Style.getStyle(c.getLocalName(),styleMap));
             types.add(type);
         }
-        //reading object properties
-        iter  = m.listObjectProperties();
-        while(iter.hasNext()) {
-            OntProperty p = (OntProperty) iter.next();
-            OntType type = new OntType();
-            type.setId(p.getLocalName());
-            type.setBase(ontUrl.toString());
-            type.setLabel(p.getLabel(null));
-            type.setComment(p.getComment(null));
-            type.setStyle(Style.getStyle(p.getLocalName(),styleMap));
-             types.add(type);
-        }
-        //reading ont properties
-        iter  = m.listOntProperties();
-        while(iter.hasNext()) {
-            OntProperty p = (OntProperty) iter.next();
-            OntType type = new OntType();
-            type.setId(p.getLocalName());
-            type.setBase(ontUrl.toString());
-            type.setLabel(p.getLabel(null));
-            type.setComment(p.getComment(null));
-            type.setStyle(Style.getStyle(p.getLocalName(),styleMap));
-            types.add(type);
-        }
-        ont.setOntTypes(types);
-        return ont;
+        
     }
     public List<Ontology> getOntList() {
         return ontList;
