@@ -40,7 +40,7 @@ import javax.swing.border.*;
  *
  * Subclasses must implement LWEditor produce/display
  *
- * @version $Revision: 1.24 $ / $Date: 2007-04-18 13:29:11 $ / $Author: mike $
+ * @version $Revision: 1.25 $ / $Date: 2007-04-19 19:32:59 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -177,7 +177,7 @@ public abstract class MenuButton<T> extends JButton
      * Wraps an icon in a container icon that also draws a drop-down arrow at right of original
      * icon.  For indicating there's a drop-down menu with the MenuButton.
      */
-    private class MenuProxyIcon implements Icon {
+    /*private class MenuProxyIcon implements Icon {
         private static final int arrowWidth = 5; // make sure is odd #
         private static final int arrowGap = 3;
         private Icon src;
@@ -216,7 +216,7 @@ public abstract class MenuButton<T> extends JButton
             return "MenuProxyIcon[" + src + "]";
         }
     }
-    
+    */
     private void _setIcon(Icon i) {
         /*
             super.setIcon(i);
