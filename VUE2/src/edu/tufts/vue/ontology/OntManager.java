@@ -46,20 +46,22 @@ public class OntManager {
     
     
     public  Ontology readOntologyWithStyle(URL ontUrl,URL cssUrl,int ontType) {
-        
+        Ontology ont =null;
         switch (ontType) {
             case RDFS:
-                Ontology ontR = readRDFSOntologyWithStyle(ontUrl,cssUrl);
-                ontList.add(ontR);
-                return ontR;
+                ont = readRDFSOntologyWithStyle(ontUrl,cssUrl);
+                break;
             case OWL:
-                Ontology ontO = readOWLOntolgyWithStyle(ontUrl,cssUrl);
-                ontList.add(ontO);
-                return  ontO;
+                ont = readOWLOntolgyWithStyle(ontUrl,cssUrl);
+                break;
         }
-        return null;
+        if(ont != null) {
+            ontList.add(ont);
+        }
+        return ont;
         
     }
+    
     
     private Ontology readRDFSOntologyWithStyle(URL ontUrl, URL cssUrl) {
         OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM,null);
@@ -88,11 +90,10 @@ public class OntManager {
         readOntTypes(m.listNamedClasses(),types,styleMap,ontUrl.toString());
         readOntTypes(m.listObjectProperties(),types,styleMap,ontUrl.toString());
         readOntTypes( m.listOntProperties(),types,styleMap,ontUrl.toString());
-        
         ont.setOntTypes(types);
         return ont;
     }
-   
+    
     private void readOntTypes(ExtendedIterator iter, List<OntType> types,Map<String,Style> styleMap, String ontUrl) {
         while(iter.hasNext()) {
             OntResource c = (OntResource) iter.next();
