@@ -28,7 +28,7 @@ package edu.tufts.vue.ontology;
 import edu.tufts.vue.style.*;
 
 import java.util.*;
-
+import java.net.*;
 public class Ontology {
     private List<OntType> types = new ArrayList<OntType>();
     private String base;
@@ -46,6 +46,14 @@ public class Ontology {
     }
     public void setOntTypes(List<OntType> types) {
         this.types = types;
+    }
+    
+    public void applyStyle(URL cssUrl) {
+        CSSParser parser = new CSSParser();
+        Map<String,Style> styleMap = parser.parseToMap(cssUrl);
+        for(OntType type:types) {
+            type.setStyle(Style.getStyle(type.getId(),styleMap));
+        }
     }
     public String toString() {
         String s = new String();
