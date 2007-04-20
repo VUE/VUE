@@ -1094,10 +1094,19 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             {
              
 
-               Object baseMapObject = baseChoice.getModel().getSelectedItem();
+               //Object baseMapObject = baseChoice.getModel().getSelectedItem();
                //if(baseMapObject instanceof LWMap)
-                 baseMap = (LWMap)baseMapObject;
+               //  baseMap = (LWMap)baseMapObject;
                
+               baseMap = baseChoice.getSelectedMap();
+            
+               if(baseMap == null)
+               {
+                   VueUtil.alert("Base Map not set","Base Map");
+                   return;
+               } 
+                
+                
                //System.out.println("MMC: generate base map -- baseMap: " + baseMap);
                
                
