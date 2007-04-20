@@ -151,7 +151,7 @@ public class TypeList extends JList {
         }
     }
     
-    public void loadOntology(URL ontologyURL,URL cssURL,int ontType,boolean fromFile)
+    public void loadOntology(URL ontologyURL,URL cssURL,org.osid.shared.Type ontType,boolean fromFile)
     {
         Ontology ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
                                                       cssURL,
@@ -166,7 +166,7 @@ public class TypeList extends JList {
         
     }
     
-    public void loadOntology(URL ontologyURL,URL cssURL,int ontType)
+    public void loadOntology(URL ontologyURL,URL cssURL,org.osid.shared.Type ontType)
     {
         Ontology ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
                                                       cssURL,
@@ -177,7 +177,7 @@ public class TypeList extends JList {
     }
     
     
-    public void loadOntology(String ontologyLocation,String cssLocation,int ontType,boolean fromFile)
+    public void loadOntology(String ontologyLocation,String cssLocation,org.osid.shared.Type ontType,boolean fromFile)
     {
         Ontology ontology = OntManager.getOntManager().readOntologyWithStyle(VueResources.getURL(ontologyLocation),
                                                       VueResources.getURL(cssLocation),
@@ -351,7 +351,7 @@ public class TypeList extends JList {
          ontology = OntManager.getOntManager().readOntologyWithStyle(VueResources.getURL("fedora.ontology.rdf"),
                                                       //new java.net.URL("http://www.fedora.info/definitions/1/0/fedora-relsext-ontology.rdfs"),
                                                       VueResources.getURL("fedora.ontology.css"),
-                                                      OntManager.RDFS);
+                                                      OntologyType.RDFS_TYPE);
           
          /*ontology = OntManager.getOntManager().readOntologyWithStyle(//VueResources.getURL("fedora.ontology.rdf"),
                                                       new java.net.URL("http://www.atl.lmco.com/projects/ontology/ontologies/animals/animalsA.owl"),

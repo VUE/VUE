@@ -76,7 +76,7 @@ public class RDFSOntologyOpenAction extends tufts.vue.VueAction {
             
             typeList.loadOntology(fileURL,
                                   cssURL,
-                                  edu.tufts.vue.ontology.OntManager.RDFS,true);
+                                  edu.tufts.vue.ontology.OntologyType.RDFS_TYPE,true);
           }
           catch(java.net.MalformedURLException ex)
           {

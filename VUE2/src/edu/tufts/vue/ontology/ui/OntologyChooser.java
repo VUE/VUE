@@ -205,16 +205,16 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
         buttonPanel.add(nextButton);
     }
     
-    public static int getOntType(URL ontURL)
+    public static org.osid.shared.Type  getOntType(URL ontURL)
     {
         String type = ontURL.toString().substring(ontURL.toString().lastIndexOf(".")+1);
         if(type.equals("rdfs"))
-            return OntManager.RDFS;
+            return edu.tufts.vue.ontology.OntologyType.RDFS_TYPE;
         else
         if(type.equals("owl"))
-            return OntManager.OWL;
+            return edu.tufts.vue.ontology.OntologyType.OWL_TYPE;
         else
-            return OntManager.OWL;
+            return edu.tufts.vue.ontology.OntologyType.OWL_TYPE;
     }
     
     public void actionPerformed(java.awt.event.ActionEvent e)
