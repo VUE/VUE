@@ -57,6 +57,7 @@ public class OntManager {
         return ont;
     }
     
+    /**
     public  Ontology readOntologyWithStyle(URL ontUrl,URL cssUrl,int ontType) {
         Ontology ont =null;
         switch (ontType) {
@@ -70,6 +71,26 @@ public class OntManager {
         if(ont != null) {
             ontList.add(ont);
         }
+        return ont;
+        
+    }
+    **/
+    public Ontology readOntology(URL ontUrl,org.osid.shared.Type type) {
+        Ontology ont = new Ontology();
+        OntModel m = null;
+        if(type.isEqual(OntologyType.RDFS_TYPE)) {
+            m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM,null);
+        } else if(type.isEqual(OntologyType.OWL_TYPE)) {
+            m = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM, null);
+        }
+        List<OntType> types = new ArrayList<OntType>();
+        m.read(ontUrl.toString());
+        ont.setBase(ontUrl.toString());
+        ExtendedIterator iter;
+        readOntTypes(m.listNamedClasses(),types,ontUrl.toString());
+        readOntTypes( m.listOntProperties(),types,ontUrl.toString());
+        ont.setOntTypes(types);
+       
         return ont;
         
     }
@@ -126,6 +147,22 @@ public class OntManager {
             type.setBase(ontUrl.toString());
             type.setComment(c.getComment(null));
             type.setStyle(Style.getStyle(c.getLocalName(),styleMap));
+            types.add(type);
+        }
+        
+    }
+    private void readOntTypes(ExtendedIterator iter, List<OntType> types, String ontUrl) {
+        while(iter.hasNext()) {
+            OntResource c = (OntResource) iter.next();
+            OntType type = new OntType();
+            type.setId(c.getLocalName());
+            if(c.getLabel(null) == null) {
+                type.setLabel(c.getLocalName());
+            }else {
+                type.setLabel(c.getLabel(null));
+            }
+            type.setBase(ontUrl.toString());
+            type.setComment(c.getComment(null));
             types.add(type);
         }
         
