@@ -36,6 +36,7 @@ import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.util.iterator.Filter;
 
 public class OntManager {
+    public static final String ONT_NOT_FOUND = "Ontology Not Found";
     public static final int RDFS = 0;
     public static final int OWL = 1;
     /** Creates a new instance of OntManager */
@@ -61,8 +62,16 @@ public class OntManager {
         return ont;
         
     }
-    
-    
+   
+    public void applyStyleToOntology(URL ontUrl,URL cssUrl) throws Throwable  {
+        Ontology ont = getOntology(ontUrl);
+        if(ont == null) {
+            throw new Exception(ONT_NOT_FOUND);
+        }
+        ont.applyStyle(cssUrl);
+        
+    }
+   
     private Ontology readRDFSOntologyWithStyle(URL ontUrl, URL cssUrl) {
         OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM,null);
         List<OntType> types = new ArrayList<OntType>();
@@ -70,7 +79,6 @@ public class OntManager {
         CSSParser parser = new CSSParser();
         Map<String,Style> styleMap = parser.parseToMap(cssUrl);
         ExtendedIterator iter = m.listOntProperties();
-        StyleReader.readCSS(cssUrl);
         Ontology ont = new Ontology();
         ont.setBase(ontUrl.toString());
         readOntTypes(iter,types,styleMap,ontUrl.toString());
