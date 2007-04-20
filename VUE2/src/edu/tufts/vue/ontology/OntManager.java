@@ -44,7 +44,18 @@ public class OntManager {
     static OntManager ontManager;
     public OntManager() {
     }
-    
+    public Ontology readOntologyWithStyle(URL ontUrl,URL cssUrl,org.osid.shared.Type type) {
+        Ontology ont = null;
+        if(type.isEqual(OntologyType.RDFS_TYPE)) {
+            ont =  readRDFSOntologyWithStyle(ontUrl,cssUrl);
+        } else if(type.isEqual(OntologyType.OWL_TYPE)) {
+            ont = readOWLOntolgyWithStyle(ontUrl,cssUrl);
+        }
+        if(ont != null) {
+            ontList.add(ont);
+        }
+        return ont;
+    }
     
     public  Ontology readOntologyWithStyle(URL ontUrl,URL cssUrl,int ontType) {
         Ontology ont =null;
@@ -62,7 +73,7 @@ public class OntManager {
         return ont;
         
     }
-   
+    
     public void applyStyleToOntology(URL ontUrl,URL cssUrl) throws Throwable  {
         Ontology ont = getOntology(ontUrl);
         if(ont == null) {
@@ -71,7 +82,7 @@ public class OntManager {
         ont.applyStyle(cssUrl);
         
     }
-   
+    
     private Ontology readRDFSOntologyWithStyle(URL ontUrl, URL cssUrl) {
         OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM,null);
         List<OntType> types = new ArrayList<OntType>();
