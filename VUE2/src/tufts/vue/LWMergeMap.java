@@ -508,9 +508,24 @@ public class LWMergeMap extends LWMap {
         while(i.hasNext())
         {
             LWComponent c = i.next();
-            if(Util.getMergeProperty(node).equals(Util.getMergeProperty(c)))
+            if(c!=null && node!=null)
+            {    
+              if(Util.getMergeProperty(node) != null && Util.getMergeProperty(c) != null )
+              {    
+                if(Util.getMergeProperty(node).equals(Util.getMergeProperty(c)))
+                {
+                  return true;
+                }
+              }
+              else
+              {
+                  System.out.println("LWMergeMap: nodeAlreadyPresent, merge property is null for " + node + " or " + c );
+                  System.out.println("node: " + Util.getMergeProperty(node) + "c: (current) " + Util.getMergeProperty(c));
+              }
+            }
+            else
             {
-                return true;
+                System.out.println("LWMergeMap-nodeAlreadyPresent: node or c is null: (node,c) (" + node + "," + c + ")" );
             }
         }
         return false;

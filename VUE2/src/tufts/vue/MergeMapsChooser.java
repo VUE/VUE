@@ -1110,18 +1110,6 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                //System.out.println("MMC: generate base map -- baseMap: " + baseMap);
                
                
-               
-               if(baseMap == null)
-               {
-                 VueUtil.alert("No Base Map Selected, Merge Failed","Base Map");
-                 return;
-                 //baseMap = VUE.getActiveMap();
-               }
-               
-               //$
-                 //mapList = map.getMapList();//= sp.getMapList();
-               //$
-               
                map.setBaseMap(baseMap);
                
                //map.setUserOrigin(VUE.getActiveViewer().getOriginX(),VUE.getActiveViewer().getOriginY());
