@@ -127,11 +127,11 @@ public class TypeList extends JList {
                 if(comp instanceof LWNode)
                   noLabelComp.setLabel("   ");
                 else
-                  noLabelComp.setLabel("");
+                  noLabelComp.setLabel(" ");
                 String truncatedLabel = comp.getLabel();
-                if(truncatedLabel.length() > 10)
+                if(truncatedLabel.length() > 15)
                 {
-                    truncatedLabel = truncatedLabel.substring(0,10) + "...";
+                    truncatedLabel = truncatedLabel.substring(0,15) + "...";
                 }
                 JLabel label = new JLabel(truncatedLabel);
                 //java.awt.Image im = comp.getAsImage();
@@ -260,11 +260,14 @@ public class TypeList extends JList {
     {
         
               LWLink link = new LWLink();
-              link.setLabel(ontType.getLabel() + "-->" + count);
+              link.setAutoSized(false);
+              link.setLabel(ontType.getLabel());
               link.setHeadPoint(10,25);
-              link.setTailPoint(40,25);
-              link.setAbsoluteSize(30,50);
-              applyDefaultLinkStyle(link);
+              link.setTailPoint(60,30);
+              link.setAbsoluteSize(100,50);
+              link.setStrokeWidth(4.0f);
+              link.setStrokeColor(java.awt.Color.RED);
+              //applyDefaultLinkStyle(link);
               link.applyCSS(ontType.getStyle());
               addType(link);
         
