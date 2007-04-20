@@ -57,24 +57,6 @@ public class OntManager {
         return ont;
     }
     
-    /**
-    public  Ontology readOntologyWithStyle(URL ontUrl,URL cssUrl,int ontType) {
-        Ontology ont =null;
-        switch (ontType) {
-            case RDFS:
-                ont = readRDFSOntologyWithStyle(ontUrl,cssUrl);
-                break;
-            case OWL:
-                ont = readOWLOntolgyWithStyle(ontUrl,cssUrl);
-                break;
-        }
-        if(ont != null) {
-            ontList.add(ont);
-        }
-        return ont;
-        
-    }
-    **/
     public Ontology readOntology(URL ontUrl,org.osid.shared.Type type) {
         Ontology ont = new Ontology();
         OntModel m = null;
