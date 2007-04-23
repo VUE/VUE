@@ -38,7 +38,7 @@ import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.util.iterator.Filter;
 
 public class Ontology {
-    private List<OntType> types = new ArrayList<OntType>();
+    protected List<OntType> types = new ArrayList<OntType>();
     private String base;
     /** Creates a new instance of Ontology */
     public Ontology() {
@@ -72,7 +72,7 @@ public class Ontology {
         return s;
     }
     
-    public  void readOntTypes(ExtendedIterator iter, List<OntType> types, String ontUrl) {
+    public  void readOntTypes(ExtendedIterator iter) {
         while(iter.hasNext()) {
             OntResource c = (OntResource) iter.next();
             OntType type = new OntType();
@@ -82,7 +82,7 @@ public class Ontology {
             }else {
                 type.setLabel(c.getLabel(null));
             }
-            type.setBase(ontUrl.toString());
+            type.setBase(base);
             type.setComment(c.getComment(null));
             types.add(type);
         }

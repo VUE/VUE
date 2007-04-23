@@ -44,13 +44,11 @@ public class RDFSOntology extends Ontology{
     }
     
     public RDFSOntology(URL ontUrl) {
-        List<OntType> types = new ArrayList<OntType>();
         m.read(ontUrl.toString());
         setBase(ontUrl.toString());
         ExtendedIterator iter;
-        readOntTypes(m.listNamedClasses(),types,ontUrl.toString());
-        readOntTypes( m.listOntProperties(),types,ontUrl.toString());
-        setOntTypes(types);
+        readOntTypes(m.listNamedClasses());
+        readOntTypes( m.listOntProperties());
     }
     
     public RDFSOntology(URL ontUrl,URL cssUrl) {

@@ -32,13 +32,12 @@ public class OWLLOntology extends Ontology {
         
     }
      public OWLLOntology(URL ontUrl) {
-        List<OntType> types = new ArrayList<OntType>();
         m.read(ontUrl.toString());
         setBase(ontUrl.toString());
         ExtendedIterator iter;
-        readOntTypes(m.listNamedClasses(),types,ontUrl.toString());
-        readOntTypes(m.listObjectProperties(),types,ontUrl.toString());
-        readOntTypes( m.listOntProperties(),types,ontUrl.toString());
+        readOntTypes(m.listNamedClasses());
+        readOntTypes(m.listObjectProperties());
+        readOntTypes( m.listOntProperties());
         setOntTypes(types);
     }
     
