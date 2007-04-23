@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.339 $ / $Date: 2007-04-15 23:43:32 $ / $Author: sfraize $ 
+ * @version $Revision: 1.340 $ / $Date: 2007-04-23 21:02:32 $ / $Author: dan $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3381,7 +3381,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             MapResource.DataFlavor,
             //URLFlavor, // try text/uri-list
         };
-        private class LWTransfer implements Transferable
+        public class LWTransfer implements Transferable
         {
             private final LWComponent LWC;
 
