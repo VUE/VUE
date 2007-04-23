@@ -40,7 +40,7 @@ import javax.swing.border.*;
  *
  * Subclasses must implement LWEditor produce/display
  *
- * @version $Revision: 1.25 $ / $Date: 2007-04-19 19:32:59 $ / $Author: mike $
+ * @version $Revision: 1.26 $ / $Date: 2007-04-23 17:26:01 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -173,50 +173,6 @@ public abstract class MenuButton<T> extends JButton
         return new Dimension(32,22); // better at 22, but get clipped 1 pix at top in VueToolbarController! todo: BUG
     }
     
-    /**
-     * Wraps an icon in a container icon that also draws a drop-down arrow at right of original
-     * icon.  For indicating there's a drop-down menu with the MenuButton.
-     */
-    /*private class MenuProxyIcon implements Icon {
-        private static final int arrowWidth = 5; // make sure is odd #
-        private static final int arrowGap = 3;
-        private Icon src;
-        
-        MenuProxyIcon(Icon src) {
-            this.src = src;
-        }
-
-        public int getIconWidth() { return src.getIconWidth() + arrowWidth + arrowGap; };
-        public int getIconHeight() { return src.getIconHeight(); }
-        
-        public void paintIcon(Component c, Graphics g, int sx, int sy) {
-
-            int w = src.getIconWidth();
-            int h = src.getIconHeight();
-            if (DEBUG.BOXES) System.out.println("proxyPaint x=" + sx + " y=" + sy + " src=" + src);
-            if (c.isEnabled())
-                g.setColor(Color.darkGray);
-            else
-                g.setColor(Color.lightGray);
-            int x = sx + w + arrowGap;
-            //int y = sy + h / 2 - 1;  // src icon relative
-            int y = getHeight() / 2 - 1; // parent button relative: keeps arrows aligned across butons buttons of same height
-            for (int len = arrowWidth; len > 0; len -= 2) {
-                g.drawLine(x,y,x+len,y);
-                y++;
-                x++;
-            }
-            if (!c.isEnabled()) {
-                //c.setBackground(Color.white);
-                ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-            }
-            src.paintIcon(c, g, sx, sy);
-        }
-        public String toString() {
-            return "MenuProxyIcon[" + src + "]";
-        }
-    }
-    */
     private void _setIcon(Icon i) {
         /*
             super.setIcon(i);
@@ -234,7 +190,7 @@ public abstract class MenuButton<T> extends JButton
             if (false)
                 VueButtonIcon.installGenerated(this, i, d);
             else
-                VueButtonIcon.installGenerated(this, i, d);
+                VueButtonIcon.installGenerated(this, new MenuProxyIcon(i), d);
             //System.out.println(this + " *** installed generated, setPreferredSize " + d);
         }
         setPreferredSize(d);

@@ -40,7 +40,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.38 $ / $Date: 2007-04-18 17:33:21 $ / $Author: mike $
+ * @version $Revision: 1.39 $ / $Date: 2007-04-23 17:26:01 $ / $Author: mike $
  */
  
 public class NodeToolPanel extends LWCToolPanel
@@ -98,6 +98,7 @@ public class NodeToolPanel extends LWCToolPanel
         
         mShapeButton.addPropertyChangeListener(this);
         addEditor(mShapeButton);
+        
         //add(mShapeButton);
         //getBox().add(label, 0);
         //getBox().add(label, 0);
@@ -114,6 +115,7 @@ public class NodeToolPanel extends LWCToolPanel
             ComboBoxRenderer renderer= new ComboBoxRenderer();
     		setRenderer(renderer);
     		this.setMaximumRowCount(10);
+    		//setEnabled(false);
     		
         }
 
@@ -167,8 +169,7 @@ public class NodeToolPanel extends LWCToolPanel
         		} else {
         			setBackground(Color.white);
         			setForeground(list.getForeground());
-        		}
-        	 
+        		}        	         		
         		
         		//Set the icon and text.  If icon was null, say so.        		
         		Action a = (Action) value;
@@ -177,7 +178,7 @@ public class NodeToolPanel extends LWCToolPanel
                 if (icon == null)
                     icon = makeIcon(value);
                 if (icon != null)
-                    setIcon(icon);
+                    setIcon(new MenuProxyIcon(icon));
         		
                 this.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
 
