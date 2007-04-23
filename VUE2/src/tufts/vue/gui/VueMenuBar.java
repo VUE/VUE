@@ -30,7 +30,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.24 $ / $Date: 2007-04-19 22:29:54 $ / $Author: dan $
+ * @version $Revision: 1.25 $ / $Date: 2007-04-23 20:26:42 $ / $Author: dan $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -258,7 +258,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         toolsMenu.add(compareAction);
         toolsMenu.add(ontcontrls);
         toolsMenu.add(rdfOpen);
-        toolsMenu.add(fooa);
+        //toolsMenu.add(fooa);
 
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.vueWebsite.label"), VueResources.getString("helpMenu.vueWebsite.url")));
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.userGuide.label"), VueResources.getString("helpMenu.userGuide.url")));

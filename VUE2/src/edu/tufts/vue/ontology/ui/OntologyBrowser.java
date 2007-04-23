@@ -124,11 +124,11 @@ public class OntologyBrowser extends JPanel {
         };
           
         Action[] actions = {
-            new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this),
+            new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this)//,
             //new edu.tufts.vue.ontology.action.RDFSOntologyOpenAction("RDFS"),
             //new edu.tufts.vue.ontology.action.OwlOntologyOpenAction("OWL"),
-            addRDFSToBrowser,
-            addOWLToBrowser
+            //addRDFSToBrowser,
+            //addOWLToBrowser
         };
         tufts.vue.gui.Widget.setMenuActions(this,actions);
           
