@@ -29,6 +29,14 @@ import edu.tufts.vue.style.*;
 
 import java.util.*;
 import java.net.*;
+
+import com.hp.hpl.jena.rdf.model.*;
+import com.hp.hpl.jena.ontology.*;
+import com.hp.hpl.jena.util.iterator.*;
+import com.hp.hpl.jena.vocabulary.RDF;
+import com.hp.hpl.jena.shared.PrefixMapping;
+import com.hp.hpl.jena.util.iterator.Filter;
+
 public class Ontology {
     private List<OntType> types = new ArrayList<OntType>();
     private String base;
@@ -62,5 +70,40 @@ public class Ontology {
             s += o;
         }
         return s;
+    }
+    
+    public  void readOntTypes(ExtendedIterator iter, List<OntType> types, String ontUrl) {
+        while(iter.hasNext()) {
+            OntResource c = (OntResource) iter.next();
+            OntType type = new OntType();
+            type.setId(c.getLocalName());
+            if(c.getLabel(null) == null) {
+                type.setLabel(c.getLocalName());
+            }else {
+                type.setLabel(c.getLabel(null));
+            }
+            type.setBase(ontUrl.toString());
+            type.setComment(c.getComment(null));
+            types.add(type);
+        }
+        
+    }
+    
+    public void readOntTypes(ExtendedIterator iter, List<OntType> types,Map<String,Style> styleMap, String ontUrl) {
+        while(iter.hasNext()) {
+            OntResource c = (OntResource) iter.next();
+            OntType type = new OntType();
+            type.setId(c.getLocalName());
+            if(c.getLabel(null) == null) {
+                type.setLabel(c.getLocalName());
+            }else {
+                type.setLabel(c.getLabel(null));
+            }
+            type.setBase(ontUrl.toString());
+            type.setComment(c.getComment(null));
+            type.setStyle(Style.getStyle(c.getLocalName(),styleMap));
+            types.add(type);
+        }
+        
     }
 }
