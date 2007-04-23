@@ -45,7 +45,7 @@ public class MenuProxyIcon implements Icon {
 //        }
         if (!c.isEnabled()) {
             //c.setBackground(Color.white);
-        	System.out.println("PAINT ICON DISABLED");
+        //	System.out.println("PAINT ICON DISABLED");
             ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
         }
         src.paintIcon(c, g, sx, sy);
