@@ -24,17 +24,47 @@
  */
 package edu.tufts.vue.ontology;
 
+import edu.tufts.vue.style.*;
+
+import java.util.*;
 import java.net.*;
-public class RDFSOntology {
-    
+
+import com.hp.hpl.jena.rdf.model.*;
+import com.hp.hpl.jena.ontology.*;
+import com.hp.hpl.jena.util.iterator.*;
+import com.hp.hpl.jena.vocabulary.RDF;
+import com.hp.hpl.jena.shared.PrefixMapping;
+import com.hp.hpl.jena.util.iterator.Filter;
+
+
+public class RDFSOntology extends Ontology{
+    OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM,null);
     /** Creates a new instance of RDFSOntology */
     public RDFSOntology() {
     }
     
+    public RDFSOntology(URL ontUrl) {
+        List<OntType> types = new ArrayList<OntType>();
+        m.read(ontUrl.toString());
+        setBase(ontUrl.toString());
+        ExtendedIterator iter;
+        readOntTypes(m.listNamedClasses(),types,ontUrl.toString());
+        readOntTypes( m.listOntProperties(),types,ontUrl.toString());
+        setOntTypes(types);
+    }
+    
     public RDFSOntology(URL ontUrl,URL cssUrl) {
-        
+        List<OntType> types = new ArrayList<OntType>();
+        m.read(ontUrl.toString());
+        CSSParser parser = new CSSParser();
+        Map<String,Style> styleMap = parser.parseToMap(cssUrl);
+        ExtendedIterator iter = m.listOntProperties();
+        setBase(ontUrl.toString());
+        readOntTypes(iter,types,styleMap,ontUrl.toString());
+        readOntTypes(m.listNamedClasses(),types,styleMap,ontUrl.toString());
+        setOntTypes(types);
     }
     public org.osid.shared.Type getType() {
-       return OntologyType.RDFS_TYPE;
-   }
+        return OntologyType.RDFS_TYPE;
+    }
 }
