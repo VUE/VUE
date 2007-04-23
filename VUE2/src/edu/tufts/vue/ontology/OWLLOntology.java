@@ -37,6 +37,7 @@ public class OWLLOntology extends Ontology {
         setBase(ontUrl.toString());
         ExtendedIterator iter;
         readOntTypes(m.listNamedClasses(),types,ontUrl.toString());
+        readOntTypes(m.listObjectProperties(),types,styleMap,ontUrl.toString());
         readOntTypes( m.listOntProperties(),types,ontUrl.toString());
         setOntTypes(types);
     }
@@ -49,7 +50,7 @@ public class OWLLOntology extends Ontology {
         ExtendedIterator iter = m.listOntProperties();
         setBase(ontUrl.toString());
         readOntTypes(iter,types,styleMap,ontUrl.toString());
-         readOntTypes(m.listObjectProperties(),types,styleMap,ontUrl.toString());
+        readOntTypes(m.listObjectProperties(),types,styleMap,ontUrl.toString());
         readOntTypes(m.listNamedClasses(),types,styleMap,ontUrl.toString());
         setOntTypes(types);
     }
