@@ -190,16 +190,26 @@ public class TypeList extends JList {
                     
             if(value instanceof OntType)
             {
-                LWComponent noLabel = createLWComponent(value).duplicate();
+                OntType t = (OntType)value;
+                LWComponent noLabel = createLWComponent(t).duplicate();
                 noLabel.setLabel("");
                 noLabel.setAutoSized(false);
                 noLabel.setSize(40,25);
                 //p.add(new JLabel(new javax.swing.ImageIcon(createLWComponent(value).getAsImage())));
                 p.add(new JLabel(new javax.swing.ImageIcon(noLabel.getAsImage())));
-                p.add(new JLabel(((OntType)(value)).getLabel()));
+                p.add(new JLabel(t.getLabel()));
+                Style s = t.getStyle();
+                String icon = s.getAttribute("background-image");
+                System.out.println("icon " + icon);
+                if(icon != null)
+                {
+                    javax.swing.ImageIcon ii = new javax.swing.ImageIcon(icon);
+                    System.out.println("image icon: " + ii);
+                    p.add(new JLabel(ii));
+                }
             }
             
-            if(value instanceof LWComponent)
+            /*if(value instanceof LWComponent)
             {
                 LWComponent comp = (LWComponent)value;
                 LWComponent noLabelComp = (LWComponent)comp.duplicate();
@@ -218,7 +228,7 @@ public class TypeList extends JList {
                 JLabel imageLabel = new JLabel(new javax.swing.ImageIcon(im));
                 p.add(imageLabel);
                 p.add(label);
-            }
+            }*/
             
             if(value == getSelectedValue())
             {
