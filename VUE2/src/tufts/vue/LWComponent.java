@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.249 $ / $Date: 2007-04-19 16:47:34 $ / $Author: sfraize $
+ * @version $Revision: 1.250 $ / $Date: 2007-04-23 20:16:24 $ / $Author: anoop $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -58,7 +58,7 @@ public class LWComponent
     implements VueConstants, XMLUnmarshalListener
 {
 
-    enum ChildKind {
+    public enum ChildKind {
         /** the default, conceptually significant chilren */
         PROPER,
             
