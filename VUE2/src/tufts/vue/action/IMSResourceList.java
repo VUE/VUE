@@ -72,7 +72,7 @@ public class IMSResourceList
 			//System.out.println("size: " + descendents.size());
 			//for (int i=0; i < descendents.size(); i++) {
 			//	LWComponent lwc = (LWComponent)descendents.get(i);
-			for (LWComponent lwc : map.getAllDescendents()) {
+			for (LWComponent lwc : map.getAllDescendents(tufts.vue.LWComponent.ChildKind.ANY)) {
 				if (!(lwc instanceof LWImage)) {
 					Resource r = lwc.getResource();
 					if (r != null) {
