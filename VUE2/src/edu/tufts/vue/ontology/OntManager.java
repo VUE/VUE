@@ -59,7 +59,6 @@ public class OntManager {
     
     public Ontology readOntology(URL ontUrl,org.osid.shared.Type type) {
         Ontology ont = new Ontology();
-        OntModel m = null;
         if(type.isEqual(OntologyType.RDFS_TYPE)) {
             ont = new RDFSOntology(ontUrl);
             return ont;
@@ -88,39 +87,6 @@ public class OntManager {
         return ont;
     }
     
-    private void readOntTypes(ExtendedIterator iter, List<OntType> types,Map<String,Style> styleMap, String ontUrl) {
-        while(iter.hasNext()) {
-            OntResource c = (OntResource) iter.next();
-            OntType type = new OntType();
-            type.setId(c.getLocalName());
-            if(c.getLabel(null) == null) {
-                type.setLabel(c.getLocalName());
-            }else {
-                type.setLabel(c.getLabel(null));
-            }
-            type.setBase(ontUrl.toString());
-            type.setComment(c.getComment(null));
-            type.setStyle(Style.getStyle(c.getLocalName(),styleMap));
-            types.add(type);
-        }
-        
-    }
-    private void readOntTypes(ExtendedIterator iter, List<OntType> types, String ontUrl) {
-        while(iter.hasNext()) {
-            OntResource c = (OntResource) iter.next();
-            OntType type = new OntType();
-            type.setId(c.getLocalName());
-            if(c.getLabel(null) == null) {
-                type.setLabel(c.getLocalName());
-            }else {
-                type.setLabel(c.getLabel(null));
-            }
-            type.setBase(ontUrl.toString());
-            type.setComment(c.getComment(null));
-            types.add(type);
-        }
-        
-    }
     public List<Ontology> getOntList() {
         return ontList;
     }
