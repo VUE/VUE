@@ -452,11 +452,13 @@ public class NodeTool extends VueTool
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.translate(x,y);
+                /*
                 if (sShapeGradient != null)
                     g2.setPaint(sShapeGradient);
                 else
                     g2.setColor(sShapeColor);
                 g2.fill(mShape);
+                */
                 g2.setColor(Color.black);
                 g2.setStroke(STROKE_HALF);
                 g2.draw(mShape);
