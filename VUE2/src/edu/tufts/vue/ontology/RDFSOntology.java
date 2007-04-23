@@ -48,7 +48,7 @@ public class RDFSOntology extends Ontology{
         setBase(ontUrl.toString());
         ExtendedIterator iter;
         readOntTypes(m.listNamedClasses());
-        readOntTypes( m.listOntProperties());
+        readOntTypes(m.listOntProperties());
     }
     
     public RDFSOntology(URL ontUrl,URL cssUrl) {
@@ -59,7 +59,6 @@ public class RDFSOntology extends Ontology{
         setBase(ontUrl.toString());
         readOntTypes(iter,styleMap);
         readOntTypes(m.listNamedClasses(),styleMap);
-        setOntTypes(types);
     }
     public org.osid.shared.Type getType() {
         return OntologyType.RDFS_TYPE;

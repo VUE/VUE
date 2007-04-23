@@ -38,7 +38,6 @@ public class OWLLOntology extends Ontology {
         readOntTypes(m.listNamedClasses());
         readOntTypes(m.listObjectProperties());
         readOntTypes( m.listOntProperties());
-        setOntTypes(types);
     }
     
     public OWLLOntology(URL ontUrl,URL cssUrl) {
@@ -50,7 +49,6 @@ public class OWLLOntology extends Ontology {
         readOntTypes(iter,styleMap);
         readOntTypes(m.listObjectProperties(),styleMap);
         readOntTypes(m.listNamedClasses(),styleMap);
-        setOntTypes(types);
     }
     
     /**
