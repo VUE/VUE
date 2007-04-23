@@ -47,9 +47,9 @@ public class OntManager {
     public Ontology readOntologyWithStyle(URL ontUrl,URL cssUrl,org.osid.shared.Type type) {
         Ontology ont = null;
         if(type.isEqual(OntologyType.RDFS_TYPE)) {
-            ont =  readRDFSOntologyWithStyle(ontUrl,cssUrl);
+            ont =  new RDFSOntology(ontUrl,cssUrl);
         } else if(type.isEqual(OntologyType.OWL_TYPE)) {
-            ont = readOWLOntolgyWithStyle(ontUrl,cssUrl);
+            ont = new OWLLOntology(ontUrl,cssUrl);
         }
         if(ont != null) {
             ontList.add(ont);
@@ -58,13 +58,14 @@ public class OntManager {
     }
     
     public Ontology readOntology(URL ontUrl,org.osid.shared.Type type) {
-        Ontology ont = new Ontology();
+        Ontology ont =null;
         if(type.isEqual(OntologyType.RDFS_TYPE)) {
             ont = new RDFSOntology(ontUrl);
-            return ont;
         } else if(type.isEqual(OntologyType.OWL_TYPE)) {
             ont = new OWLLOntology(ontUrl);
-            return ont;
+        }
+         if(ont != null) {
+            ontList.add(ont);
         }
         return ont;
     }
@@ -77,16 +78,6 @@ public class OntManager {
         ont.applyStyle(cssUrl);
         
     }
-    
-    private Ontology readRDFSOntologyWithStyle(URL ontUrl, URL cssUrl) {
-        Ontology ont = new RDFSOntology(ontUrl,cssUrl);
-        return ont;
-    }
-    private Ontology readOWLOntolgyWithStyle(URL ontUrl,URL cssUrl) {
-        Ontology ont = new OWLLOntology(ontUrl,cssUrl);
-        return ont;
-    }
-    
     public List<Ontology> getOntList() {
         return ontList;
     }
