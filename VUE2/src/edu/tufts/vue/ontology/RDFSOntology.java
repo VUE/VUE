@@ -46,20 +46,17 @@ public class RDFSOntology extends Ontology{
     public RDFSOntology(URL ontUrl) {
         m.read(ontUrl.toString());
         setBase(ontUrl.toString());
-        ExtendedIterator iter;
         readOntTypes(m.listNamedClasses());
         readOntTypes(m.listOntProperties());
     }
     
     public RDFSOntology(URL ontUrl,URL cssUrl) {
         m.read(ontUrl.toString());
-        CSSParser parser = new CSSParser();
-        Map<String,Style> styleMap = parser.parseToMap(cssUrl);
-        ExtendedIterator iter = m.listOntProperties();
         setBase(ontUrl.toString());
-        readOntTypes(iter,styleMap);
-        readOntTypes(m.listNamedClasses(),styleMap);
+        readOntTypes(m.listOntProperties(),cssUrl);
+        readOntTypes(m.listNamedClasses(),cssUrl);
     }
+
     public org.osid.shared.Type getType() {
         return OntologyType.RDFS_TYPE;
     }

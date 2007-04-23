@@ -39,6 +39,7 @@ import com.hp.hpl.jena.util.iterator.Filter;
 
 public class Ontology {
     protected List<OntType> types = new ArrayList<OntType>();
+    OntModel m;
     private String base;
     /** Creates a new instance of Ontology */
     public Ontology() {
@@ -89,7 +90,9 @@ public class Ontology {
         
     }
     
-    public void readOntTypes(ExtendedIterator iter,Map<String,Style> styleMap) {
+    public void readOntTypes(ExtendedIterator iter,URL cssUrl) {
+        CSSParser parser = new CSSParser();
+        Map<String,Style> styleMap = parser.parseToMap(cssUrl);
         while(iter.hasNext()) {
             OntResource c = (OntResource) iter.next();
             OntType type = new OntType();
@@ -106,4 +109,6 @@ public class Ontology {
         }
         
     }
+   
+    
 }
