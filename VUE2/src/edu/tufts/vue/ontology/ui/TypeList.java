@@ -29,11 +29,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
-import javax.swing.DefaultListModel;
+//import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
+import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 
 import tufts.vue.*;
@@ -55,18 +57,51 @@ public class TypeList extends JList {
     
     public static int count = 0;
     
-    private static Ontology fedoraOntology;
+    //private static Ontology fedoraOntology;
     
-    private DefaultListModel mDataModel;
+    //private DefaultListModel mDataModel;
+    private ListModel mDataModel;
     
     private LWComponent comp;
 
     private LWSelection selection;
     
+    private Ontology ontology;
+    
     public TypeList() {
         
-        mDataModel = new DefaultListModel();
-        setModel(mDataModel);
+        //this.ontology = ontology;
+        
+        //mDataModel = new DefaultListModel();
+        /*mDataModel = new ListModel()
+        {
+            public Object getElementAt(int index)
+            {
+                if(ontology!=null)
+                  return ontology.getOntTypes().get(index);
+                else
+                  return null;
+            }
+            
+            public int getSize()
+            {
+                if(ontology!=null)
+                  return ontology.getOntTypes().size();
+                else
+                  return 0;
+            }
+            
+            public void addListDataListener(ListDataListener listener)
+            {
+
+            }
+            
+            public void removeListDataListener(ListDataListener listener)
+            {
+                
+            }
+        };*/
+        //setModel(mDataModel);
         setCellRenderer(new TypeCellRenderer());
         
         javax.swing.DefaultListSelectionModel selectionModel = new javax.swing.DefaultListSelectionModel();
@@ -75,7 +110,8 @@ public class TypeList extends JList {
         selectionModel.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent e)
             {
-                comp = ((LWComponent)getSelectedValue()).duplicate();
+                //comp = ((LWComponent)getSelectedValue()).duplicate();
+                comp = createLWComponent(getSelectedValue());
                 comp.setParentStyle(comp);
                 VUE.getSelection().setTo(comp);
             }
@@ -84,7 +120,7 @@ public class TypeList extends JList {
         addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {    
                 public void mouseDragged(java.awt.event.MouseEvent me) {
                     System.out.println("TypeList: mouse dragged");
-                    System.out.println("TypeList: selected label " + ((LWComponent)(getSelectedValue())).getLabel());
+                    //System.out.println("TypeList: selected label " + ((LWComponent)(getSelectedValue())).getLabel());
                     
                     if(comp instanceof LWNode)
                     {
@@ -104,10 +140,42 @@ public class TypeList extends JList {
     
     }
     
-    public void addType(LWComponent typeComponent)
+    public static LWComponent createLWComponent(Object type)
+    {
+        LWComponent compFor = null;
+        OntType ontType = null;
+        if(type instanceof OntType)
+        {
+          ontType = (OntType)type;
+          if(ontType !=null)
+            if(isNode(ontType))  
+            {
+              compFor = new LWNode(ontType.getLabel());
+            }
+            else
+            {
+              LWLink r = new LWLink();
+              r.setLabel(ontType.getLabel());
+              compFor = r;
+            }
+          else
+            compFor = new LWNode("null ont type");
+        }
+        else
+        {
+          compFor = new LWNode("error");    
+        }
+        
+        if(ontType.getStyle()!=null)
+            compFor.applyCSS(ontType.getStyle());
+        
+        return compFor;
+    }
+    
+    /*public void addType(LWComponent typeComponent)
     {
         mDataModel.addElement(typeComponent);
-    }
+    }*/
     
     class TypeCellRenderer implements ListCellRenderer
     { 
@@ -120,6 +188,17 @@ public class TypeList extends JList {
             
             p.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200,200,200)));
                     
+            if(value instanceof OntType)
+            {
+                LWComponent noLabel = createLWComponent(value).duplicate();
+                noLabel.setLabel("");
+                noLabel.setAutoSized(false);
+                noLabel.setSize(40,25);
+                //p.add(new JLabel(new javax.swing.ImageIcon(createLWComponent(value).getAsImage())));
+                p.add(new JLabel(new javax.swing.ImageIcon(noLabel.getAsImage())));
+                p.add(new JLabel(((OntType)(value)).getLabel()));
+            }
+            
             if(value instanceof LWComponent)
             {
                 LWComponent comp = (LWComponent)value;
@@ -153,33 +232,34 @@ public class TypeList extends JList {
     
     public void loadOntology(URL ontologyURL,URL cssURL,org.osid.shared.Type ontType,boolean fromFile)
     {
-        Ontology ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
+        ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
                                                       cssURL,
                                                       ontType);
         
         //OntManager.getOntManager().getOntList().add(ontology);
         //System.out.println("TypeList: ontology list size: " + OntManager.getOntManager().getOntList().size());
         
+        setModel(new OntologyTypeListModel(ontology));
         
-        
-        fillList(ontology);
+        //fillList(ontology);
         
     }
     
     public void loadOntology(URL ontologyURL,URL cssURL,org.osid.shared.Type ontType)
     {
-        Ontology ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
+       ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
                                                       cssURL,
                                                       ontType);
         
-        fillList(ontology);
+       setModel(new OntologyTypeListModel(ontology));
+       // fillList(ontology);
         
     }
     
     
     public void loadOntology(String ontologyLocation,String cssLocation,org.osid.shared.Type ontType,boolean fromFile)
     {
-        Ontology ontology = OntManager.getOntManager().readOntologyWithStyle(VueResources.getURL(ontologyLocation),
+        ontology = OntManager.getOntManager().readOntologyWithStyle(VueResources.getURL(ontologyLocation),
                                                       VueResources.getURL(cssLocation),
                                                       ontType);
         
@@ -187,7 +267,9 @@ public class TypeList extends JList {
         
         //System.out.println("TypeList: ontology list size: " + OntManager.getOntManager().getOntList().size());
         
-        fillList(ontology);
+        //fillList(ontology);
+        
+        setModel(new OntologyTypeListModel(ontology));
         
     }
     
@@ -247,7 +329,7 @@ public class TypeList extends JList {
                 NodeTool.SubTool st = NodeTool.getActiveSubTool();
                 node.setShape(st.getShape());
                 node.applyCSS(style);
-                addType(node);
+                //addType(node);
           
     }
     
@@ -269,7 +351,7 @@ public class TypeList extends JList {
               link.setStrokeColor(java.awt.Color.RED);
               //applyDefaultLinkStyle(link);
               link.applyCSS(ontType.getStyle());
-              addType(link);
+              //addType(link);
         
     }
     
@@ -285,13 +367,50 @@ public class TypeList extends JList {
               link.setWeight(1);
     }
     
+    public class OntologyTypeListModel implements ListModel
+    {
+        private Ontology ontology;
+             
+        public OntologyTypeListModel(Ontology ontology)
+        {
+          this.ontology = ontology;   
+        }
+        
+        public Object getElementAt(int index)
+            {
+                if(ontology!=null)
+                  return ontology.getOntTypes().get(index);
+                else
+                  return null;
+            }
+            
+            public int getSize()
+            {
+                if(ontology!=null)
+                  return ontology.getOntTypes().size();
+                else
+                  return 0;
+            }
+            
+            public void addListDataListener(ListDataListener listener)
+            {
+
+            }
+            
+            public void removeListDataListener(ListDataListener listener)
+            {
+                
+            }
+        
+    }
+    
     
     /**
      *
      * just for testing/demo purposes
      *
      */
-    public static void main(String[] args)
+    /*public static void main(String[] args)
     {
         
         // add a mouselistener to bring up a color chooser (and possibly
@@ -300,7 +419,7 @@ public class TypeList extends JList {
         // if this works, try it all in VUE (and add ability to drag 
         // types to LWMap to create instances)
         
-        TypeList tlist = new TypeList();
+        //TypeList tlist = new TypeList();
         javax.swing.JPanel panel = createTestPanel(tlist);//new javax.swing.JFrame();
         javax.swing.JFrame f = new javax.swing.JFrame();
         f.getContentPane().add(panel);
@@ -308,9 +427,9 @@ public class TypeList extends JList {
         //show the frame
         f.setBounds(100,100,150,300);
         f.setVisible(true);
-    }
+    }*/
     
-    public static javax.swing.JPanel createTestPanel(TypeList tlist)
+    /*public static javax.swing.JPanel createTestPanel(TypeList tlist)
     {
         javax.swing.JPanel testPanel = new javax.swing.JPanel();
         javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tlist);
@@ -339,7 +458,7 @@ public class TypeList extends JList {
         
         //Ontology ontology = OntManager.getFedoraOntologyWithStyles();
         
-        Ontology ontology = null;
+        /*Ontology ontology = null;
         
         
         try
@@ -365,9 +484,9 @@ public class TypeList extends JList {
                                                       OntManager.OWL);*/
 
           
-        }
+        //}
         //catch(java.net.MalformedURLException urlException)
-        catch(Exception urlException)
+        /*catch(Exception urlException)
         {
             System.out.println("Ontology Manager: Malformed URL:" + urlException);
             VueUtil.alert("Ontology Load Failed - improper URL","Ontology Load Failed - improper URL");
@@ -420,9 +539,9 @@ public class TypeList extends JList {
             //link.setWeight(Integer.parseInt(style.getAttribute("weight")));
             link.applyCSS(style);
             tlist.addType(link);*/
-        }
+        //}
         
-        LWNode node = new LWNode("Fedora Object");
+        /*LWNode node = new LWNode("Fedora Object");
         //node.setLabel("Fedora Object");
         node.setAbsoluteSize(150,50);
         //node.setShape( new java.awt.Rectangle(5,5,135,45));
@@ -431,6 +550,6 @@ public class TypeList extends JList {
         tlist.addType(node);
         
         return testPanel;
-    }
+    }*/
     
 }

@@ -40,9 +40,9 @@ public class FedoraOntologyOpenAction extends VueAction {
     public void actionPerformed(java.awt.event.ActionEvent e)
     {
         TypeList typeList = new edu.tufts.vue.ontology.ui.TypeList();
-        DockWindow typeWindow = tufts.vue.gui.GUI.createDockWindow("Fedora Ontology: " + (TypeList.count++),edu.tufts.vue.ontology.ui.TypeList.createTestPanel(typeList));
-        typeWindow.setLocation(200,100);
-        typeWindow.pack();
-        typeWindow.setVisible(true);
+        //DockWindow typeWindow = tufts.vue.gui.GUI.createDockWindow("Fedora Ontology: " + (TypeList.count++),edu.tufts.vue.ontology.ui.TypeList.createTestPanel(typeList));
+        //typeWindow.setLocation(200,100);
+        //typeWindow.pack();
+        //typeWindow.setVisible(true);
     }
 }
