@@ -64,15 +64,9 @@ public class OntManager {
             ont = new RDFSOntology(ontUrl);
             return ont;
         } else if(type.isEqual(OntologyType.OWL_TYPE)) {
-            m = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM, null);
+            ont = new OWLLOntology(ontUrl);
+            return ont;
         }
-        List<OntType> types = new ArrayList<OntType>();
-        m.read(ontUrl.toString());
-        ont.setBase(ontUrl.toString());
-        ExtendedIterator iter;
-        readOntTypes(m.listNamedClasses(),types,ontUrl.toString());
-        readOntTypes( m.listOntProperties(),types,ontUrl.toString());
-        ont.setOntTypes(types);
         return ont;
     }
     
@@ -90,18 +84,7 @@ public class OntManager {
         return ont;
     }
     private Ontology readOWLOntolgyWithStyle(URL ontUrl,URL cssUrl) {
-        OntModel m = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM, null);
-        List<OntType> types = new ArrayList<OntType>();
-        ExtendedIterator iter;
-        Ontology ont = new Ontology();
-        ont.setBase(ontUrl.toString());
-        CSSParser parser = new CSSParser();
-        Map<String,Style> styleMap = parser.parseToMap(cssUrl);
-        m.read(ontUrl.toString());
-        readOntTypes(m.listNamedClasses(),types,styleMap,ontUrl.toString());
-        readOntTypes(m.listObjectProperties(),types,styleMap,ontUrl.toString());
-        readOntTypes( m.listOntProperties(),types,styleMap,ontUrl.toString());
-        ont.setOntTypes(types);
+        Ontology ont = new OWLLOntology(ontUrl,cssUrl);
         return ont;
     }
     
