@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.340 $ / $Date: 2007-04-23 21:02:32 $ / $Author: dan $ 
+ * @version $Revision: 1.341 $ / $Date: 2007-04-23 21:18:29 $ / $Author: dan $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3369,6 +3369,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public Transferable getTransferableSelection() {
         draggedSelectionGroup.useSelection(VueSelection);
         return new LWTransfer(draggedSelectionGroup);
+    }
+    
+    public Transferable getTransferableHelper(LWComponent comp) {
+        //draggedSelectionGroup.useSelection(VueSelection);
+        
+        return new LWTransfer(comp);
     }
     
     

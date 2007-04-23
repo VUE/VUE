@@ -112,8 +112,9 @@ public class TypeList extends JList {
             {
                 //comp = ((LWComponent)getSelectedValue()).duplicate();
                 comp = createLWComponent(getSelectedValue());
-                comp.setParentStyle(comp);
-                VUE.getSelection().setTo(comp);
+                //comp.setParentStyle(comp);
+                //VUE.getSelection().setSource(TypeList.this);
+                //VUE.getSelection().setTo(comp);
             }
         });
         
@@ -122,18 +123,18 @@ public class TypeList extends JList {
                     System.out.println("TypeList: mouse dragged");
                     //System.out.println("TypeList: selected label " + ((LWComponent)(getSelectedValue())).getLabel());
                     
-                    if(comp instanceof LWNode)
+                    /*if(comp instanceof LWNode)
                     {
                       VueToolbarController vtc = VueToolbarController.getController();
                       VueTool rTool = vtc.getTool("nodeTool");
                       //rTool.setSelectedSubTool(vtc.getTool("rect"));
                       VueToolbarController.getController().setSelectedTool(rTool);
-                    }
+                    }*/
 ;                    
                     GUI.startLWCDrag(TypeList.this,
                                      me,
                                      comp,
-                                      VUE.getActiveViewer().getTransferableSelection());
+                                      VUE.getActiveViewer().getTransferableHelper(comp));
                  
                 }
          });
