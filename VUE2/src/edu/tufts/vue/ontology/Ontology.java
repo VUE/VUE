@@ -89,7 +89,7 @@ public class Ontology {
         
     }
     
-    public void readOntTypes(ExtendedIterator iter, List<OntType> types,Map<String,Style> styleMap, String ontUrl) {
+    public void readOntTypes(ExtendedIterator iter,Map<String,Style> styleMap) {
         while(iter.hasNext()) {
             OntResource c = (OntResource) iter.next();
             OntType type = new OntType();
@@ -99,7 +99,7 @@ public class Ontology {
             }else {
                 type.setLabel(c.getLabel(null));
             }
-            type.setBase(ontUrl.toString());
+            type.setBase(base);
             type.setComment(c.getComment(null));
             type.setStyle(Style.getStyle(c.getLocalName(),styleMap));
             types.add(type);

@@ -42,15 +42,14 @@ public class OWLLOntology extends Ontology {
     }
     
     public OWLLOntology(URL ontUrl,URL cssUrl) {
-        List<OntType> types = new ArrayList<OntType>();
-        m.read(ontUrl.toString());
+       m.read(ontUrl.toString());
         CSSParser parser = new CSSParser();
         Map<String,Style> styleMap = parser.parseToMap(cssUrl);
         ExtendedIterator iter = m.listOntProperties();
         setBase(ontUrl.toString());
-        readOntTypes(iter,types,styleMap,ontUrl.toString());
-        readOntTypes(m.listObjectProperties(),types,styleMap,ontUrl.toString());
-        readOntTypes(m.listNamedClasses(),types,styleMap,ontUrl.toString());
+        readOntTypes(iter,styleMap);
+        readOntTypes(m.listObjectProperties(),styleMap);
+        readOntTypes(m.listNamedClasses(),styleMap);
         setOntTypes(types);
     }
     

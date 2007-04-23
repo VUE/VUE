@@ -52,14 +52,13 @@ public class RDFSOntology extends Ontology{
     }
     
     public RDFSOntology(URL ontUrl,URL cssUrl) {
-        List<OntType> types = new ArrayList<OntType>();
         m.read(ontUrl.toString());
         CSSParser parser = new CSSParser();
         Map<String,Style> styleMap = parser.parseToMap(cssUrl);
         ExtendedIterator iter = m.listOntProperties();
         setBase(ontUrl.toString());
-        readOntTypes(iter,types,styleMap,ontUrl.toString());
-        readOntTypes(m.listNamedClasses(),types,styleMap,ontUrl.toString());
+        readOntTypes(iter,styleMap);
+        readOntTypes(m.listNamedClasses(),styleMap);
         setOntTypes(types);
     }
     public org.osid.shared.Type getType() {
