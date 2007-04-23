@@ -72,9 +72,7 @@ public class OntManager {
         readOntTypes(m.listNamedClasses(),types,ontUrl.toString());
         readOntTypes( m.listOntProperties(),types,ontUrl.toString());
         ont.setOntTypes(types);
-       
         return ont;
-        
     }
     
     public void applyStyleToOntology(URL ontUrl,URL cssUrl) throws Throwable  {
