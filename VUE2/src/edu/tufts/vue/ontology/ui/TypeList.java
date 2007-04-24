@@ -68,6 +68,8 @@ public class TypeList extends JList {
     
     private Ontology ontology;
     
+    private java.util.HashMap typeCache = new java.util.HashMap();
+    
     public TypeList() {
         
         //this.ontology = ontology;
@@ -130,19 +132,33 @@ public class TypeList extends JList {
                       //rTool.setSelectedSubTool(vtc.getTool("rect"));
                       VueToolbarController.getController().setSelectedTool(rTool);
                     }*/
-;                    
-                    GUI.startLWCDrag(TypeList.this,
+                    if(comp == null)
+                        return;
+                    
+                    //try
+                    //{        
+                      GUI.startLWCDrag(TypeList.this,
                                      me,
                                      comp,
                                       VUE.getActiveViewer().getTransferableHelper(comp));
+                    //}
+                    //catch(java.awt.dnd.InvalidDnDOperationException dnde)
+                    //{
+                    //    System.out.println("TypeList: invalid drag start: " + dnde);
+                    //    me.consume();
+                    //}
                  
                 }
          });
     
     }
     
-    public static LWComponent createLWComponent(Object type)
+    public LWComponent createLWComponent(Object type)
     {
+        if(typeCache.containsKey(type))
+        {
+            return (LWComponent)typeCache.get(type);
+        }    
         LWComponent compFor = null;
         OntType ontType = null;
         if(type instanceof OntType)
@@ -171,6 +187,8 @@ public class TypeList extends JList {
         
         if(ontType.getStyle()!=null)
             compFor.applyCSS(ontType.getStyle());
+        
+        typeCache.put(type,compFor);
         
         return compFor;
     }
