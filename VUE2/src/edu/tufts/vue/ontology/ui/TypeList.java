@@ -178,6 +178,22 @@ public class TypeList extends JList {
         mDataModel.addElement(typeComponent);
     }*/
     
+    public class LWComponentView extends javax.swing.JComponent
+    {
+        private LWComponent comp;
+        
+        public LWComponentView(LWComponent component)
+        {
+            comp = component;
+        }
+        
+        public void paintComponent(java.awt.Graphics g)
+        {
+            tufts.vue.DrawContext dc = new tufts.vue.DrawContext(g);
+            comp.draw(dc);
+        }
+    }
+    
     class TypeCellRenderer implements ListCellRenderer
     { 
         public java.awt.Component getListCellRendererComponent(JList jList, Object value, int i, boolean isSelected, boolean hasFocus) 
@@ -197,7 +213,8 @@ public class TypeList extends JList {
                 noLabel.setAutoSized(false);
                 noLabel.setSize(40,25);
                 //p.add(new JLabel(new javax.swing.ImageIcon(createLWComponent(value).getAsImage())));
-                p.add(new JLabel(new javax.swing.ImageIcon(noLabel.getAsImage())));
+                //p.add(new JLabel(new javax.swing.ImageIcon(noLabel.getAsImage())));
+                p.add(new LWComponentView(noLabel));
                 p.add(new JLabel(t.getLabel()));
                 Style s = t.getStyle();
                 String icon = s.getAttribute("background-image");
