@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.250 $ / $Date: 2007-04-23 20:16:24 $ / $Author: anoop $
+ * @version $Revision: 1.251 $ / $Date: 2007-04-24 01:14:54 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3304,11 +3304,8 @@ public class LWComponent
 
         Point2D.Float corner = getCorner();
         
-        //float xoff = corner.x;
-        //float yoff = corner.y;
-
-        float xoff = corner.x - 20;
-        float yoff = corner.y - 20;
+        float xoff = corner.x - 60;
+        float yoff = corner.y - 60;
 
         // If shape is small, try and keep it from overlapping too much (esp the label)
         if (xoff < getWidth() / 2f)
