@@ -156,6 +156,8 @@ public class TypeList extends JList {
             else
             {
               LWLink r = new LWLink();
+              r.setHeadPoint(20,20);
+              r.setTailPoint(80,30);
               r.setLabel(ontType.getLabel());
               compFor = r;
             }
