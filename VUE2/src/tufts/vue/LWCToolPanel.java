@@ -466,7 +466,7 @@ public class LWCToolPanel extends JPanel
         try {
             for (LWEditor editor : mEditors) {
                 boolean supported = selection.hasEditableProperty(editor.getPropertyKey());
-                if (DEBUG.TOOL) out("SET-ENABLED " + editor + " = " + supported);
+                if (DEBUG.TOOL) out("SET-ENABLED " + (supported?"YES":" NO") + ": " + editor);
                 editor.setEnabled(supported);
                 if (supported)
                     loadEditor(propertySource, editor);
