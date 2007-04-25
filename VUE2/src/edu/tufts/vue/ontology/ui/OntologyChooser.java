@@ -218,7 +218,7 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
         {
             if(step == STEP_ONE)
             {  
-               System.out.println("1--->2");
+               //System.out.println("1--->2");
                step = STEP_TWO;
                stepLabel.setText(stepTwoMessage);
                styleSheetMessageLabel.setText(styleSheetMessage);
@@ -232,7 +232,7 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
             else
             if(step == STEP_TWO)
             {
-               System.out.println("2 finish");
+               //System.out.println("2 finish");
                TypeList list = new TypeList();
                if(ontURLText != null)
                {
@@ -260,7 +260,7 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
                           System.out.println("OntologyChooser: File also produced Malformed URL " + mue2);
                       }
                    }
-               if(typeURLField.getText() != null)
+               if(!(typeURLField.getText().trim().length()==0))
                {
                    fromURL = true;
                    try
@@ -286,12 +286,30 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
                           System.out.println("OntologyChooser: CSS File also produced Malformed URL " + mue2);
                       }
                    }
-                   if(ontURL != null && cssURL!=null)
-                   {
+               }
+               else if(cssFile!=null)
+               {
+                       try
+                       {
+                         cssURL = cssFile.toURL();
+                       }
+                       catch(MalformedURLException mue)
+                       {
+                           System.out.println("Malformed URL from file choice: " + mue);
+                       }
+               }
+                   
+               if(ontURL!=null && (cssURL == null))
+               {
+                       tufts.vue.gui.Widget w = browser.addTypeList(list,ontURL.getFile());
+                       w.add(new JLabel("load style sheet"),java.awt.BorderLayout.NORTH);
+                       browser.getViewer().getList().updateUI();
+               }
+               if(ontURL != null && cssURL!=null)
+               {
                        tufts.vue.gui.Widget w = browser.addTypeList(list,ontURL.getFile());
                        browser.getViewer().getList().updateUI();
                        list.loadOntology(ontURL,cssURL,getOntType(ontURL),browser,w);                             
-                   }
                }
                setVisible(false);
                }

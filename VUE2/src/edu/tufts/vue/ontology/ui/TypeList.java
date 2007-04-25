@@ -85,6 +85,10 @@ public class TypeList extends JList {
             }
         });
         
+        // probably always zero for now, see overriden setModel below
+        if(getModel().getSize()!=0)
+          setSelectedIndex(0);
+        
         addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {    
                 public void mouseDragged(java.awt.event.MouseEvent me) {
                     System.out.println("TypeList: mouse dragged");
@@ -110,6 +114,13 @@ public class TypeList extends JList {
                 }
          });
     
+    }
+    
+    public void setModel(ListModel m)
+    {
+        super.setModel(m);
+        if(getModel().getSize()!=0)
+          setSelectedIndex(0);
     }
     
     public LWComponent createLWComponent(Object type)
