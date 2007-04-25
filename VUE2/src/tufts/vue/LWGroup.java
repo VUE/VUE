@@ -40,7 +40,7 @@ import java.awt.geom.AffineTransform;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.55 $ / $Date: 2007-04-06 23:26:24 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2007-04-25 18:28:44 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -53,6 +53,7 @@ public class LWGroup extends LWContainer
             disableProperty(LWKey.TextColor);
             disableProperty(LWKey.StrokeWidth);
             disableProperty(LWKey.StrokeColor);
+            disableProperty(LWKey.StrokeStyle);
             disableProperty(LWKey.Font);
             disableProperty(LWKey.FontSize);
             disableProperty(LWKey.FontName);
@@ -403,8 +404,11 @@ public class LWGroup extends LWContainer
         if (hasDecoratedFeatures()) {
             return super.containsImpl(x, y);
         } else {
+            // x/y have already been translated into the groups coordinate space
+            // (including compressed if the group is scaled).
+            // Might be better to have LWTraversal smartly handle this tho...
             for (LWComponent c : getChildList())
-                if (c.contains(x, y))
+                if (c.containsParentCoord(x, y))
                     return true;
             return false;
         }
@@ -416,7 +420,7 @@ public class LWGroup extends LWContainer
             return super.intersectsImpl(rect);
         } else {
             for (LWComponent c : getChildList())
-                if (c.intersects(rect))
+                if (c.intersects(rect))                 // TODO: not in parent coords!
                     return true;
             return false;
         }
@@ -427,16 +431,24 @@ public class LWGroup extends LWContainer
         if (FancyGroups)
             return getStrokeWidth() > 0 || !isTransparent();
         else
-            return false;
+            return getEntryToDisplay() != null;
     }
     
     
     /** If it paints a background or draws a border, it's empty space can be picked, otherwise, only pick via children */
-    protected LWComponent defaultPick(PickContext pc) {
+    // containsImpl is handling knowing what to do already!
+    protected LWComponent X_defaultPick(PickContext pc) {
         if (hasDecoratedFeatures())
             return this;
-        else 
+        else {
+            // could check for children hit, then return LWGroup.this,
+            // tho the coordinate in pc is the top-level map coordinate, and
+            // needs to be transformed to every child again -- can't
+            // we handle this gracefully somehow in LWTraversal?
+            //for (LWComponent c : getChildList()) {}
+            // christ -- what about groups inside groups??
             return null;
+        }
     }
 
     
@@ -459,6 +471,10 @@ public class LWGroup extends LWContainer
         // TODO: this not good enough -- doesn't deal with grand-children (children
         // of group memebers -- they get picked even if group should have been picked)
         // -- will need to handle this in LWTraversal...
+
+        // TODO: each LWComponent needs a traversal penetration parameter: either it
+        // will prevent descent entirely, or it could increase a depth
+        // value by a large enough number that it'll never be reached.
 
         if (pc.pickDepth > 0)
             return c;
