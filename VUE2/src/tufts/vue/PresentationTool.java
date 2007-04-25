@@ -88,7 +88,51 @@ public class PresentationTool extends VueTool
 
     private BackStack mBackList = new BackStack();
 
-    private List<LWComponent> mNavNodes = new java.util.ArrayList();
+    private List<NavNode> mNavNodes = new java.util.ArrayList();
+
+    private static final Font NavFont = new Font("SansSerif", Font.PLAIN, 16);
+    private static final Color NavFillColor = new Color(154,154,154);
+    //private static final Color NavFillColor = new Color(64,64,64,96);
+    private static final Color NavStrokeColor = new Color(96,93,93);
+    private static final Color NavTextColor = Color.darkGray;
+    
+    private class NavNode extends LWNode {
+        NavNode(LWComponent src, LWPathway pathway)
+        {
+            super(null);
+            
+            String label = src.getDisplayLabel();
+            
+            if (label.length() > 20)
+                label = label.substring(0,18) + "...";
+            
+            if (pathway == null && mBackList.peekNode() == src)
+                label = "BACK:" + label;
+            //label = "    " + label + " ";
+            setLabel(label);
+
+            setFont(NavFont);
+            setTextColor(NavTextColor);
+            setFillColor(NavFillColor);
+        
+            if (pathway != null)
+                setStrokeColor(pathway.getStrokeColor());
+            else
+                setStrokeColor(NavStrokeColor);
+        
+            setStrokeWidth(2);
+            setSyncSource(src); // TODO: these will never get GC'd, and will be updating for ever based on their source...
+            //setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20)); // is default
+            setAutoSized(false); 
+            setSize(200, getHeight() + 6);
+        }
+        
+        // force label at left (non-centered)                
+        protected float relativeLabelX() { return -NavNodeX + 10; }
+
+    }
+
+    
 
     public PresentationTool() {
         super();
@@ -267,16 +311,16 @@ public class PresentationTool extends VueTool
     
     public boolean handleMousePressed(MapMouseEvent e)
     {
-        for (LWComponent c : mNavNodes) {
-            System.out.println("pickCheck " + c + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
-            if (c.containsParentCoord(e.getX(), e.getY())) {
-                System.out.println("HIT " + c);
+        for (NavNode nav : mNavNodes) {
+            System.out.println("pickCheck " + nav + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
+            if (nav.containsParentCoord(e.getX(), e.getY())) {
+                System.out.println("HIT " + nav);
                 //LWComponent oneBack = mBackList.peek();
                 //if (oneBack == c.getSyncSource() || (oneBack instanceof LWSlide && ((LWSlide)oneBack).getSourceNode() == c.getSyncSource()))
-                if (mBackList.peek() == c.getSyncSource() || mBackList.peekNode() == c.getSyncSource())
+                if (mBackList.peek() == nav.getSyncSource() || mBackList.peekNode() == nav.getSyncSource())
                     backUp();
                 else
-                    setPage(c.getSyncSource());
+                    setPage(nav.getSyncSource());
                 return true;
             }
         }
@@ -745,17 +789,15 @@ public class PresentationTool extends VueTool
     {
         float x = NavNodeX, y = frame.y;
         
-        LWComponent nav = null;
+        NavNode nav = null;
         
-        if (node.getPathways() != null) {
-            for (LWPathway path : node.getPathways()) {
-                nav = createNavNode(node, path);
-                
-                mNavNodes.add(nav);
-                
-                y += nav.getHeight() + 5;
-                nav.setLocation(x, y);
-            }
+        for (LWPathway path : node.getPathways()) {
+            nav = createNavNode(node, path);
+            
+            mNavNodes.add(nav);
+            
+            y += nav.getHeight() + 5;
+            nav.setLocation(x, y);
         }
 
         if (nav != null)
@@ -774,11 +816,6 @@ public class PresentationTool extends VueTool
                 nav.setLocation(x, y);
             }
         }
-
-        //out("frame " + frame);
-//         for (LWComponent c : mNavNodes) {
-//             //out("location set to " + x + "," + y + " for " + c);
-//         }
 
         /*
         float spacePerNode = frame.width;
@@ -799,19 +836,24 @@ public class PresentationTool extends VueTool
         */
     }
 
+    private NavNode createNavNode(LWComponent src, LWPathway pathway) {
+        return new NavNode(src, pathway);
+    }
+    
+    /*
     private static final Font NavFont = new Font("SansSerif", Font.PLAIN, 16);
     private static final Color NavFillColor = new Color(154,154,154);
     //private static final Color NavFillColor = new Color(64,64,64,96);
     private static final Color NavStrokeColor = new Color(96,93,93);
     private static final Color NavTextColor = Color.darkGray;
 
-    private LWComponent createNavNode(LWComponent src, LWPathway pathway)
+    private NavNode createNavNode(LWComponent src, LWPathway pathway)
     {
-        if (false) {
-            LWComponent c = src.duplicate();
-            c.setSyncSource(src);
-            return c;
-        }
+//         if (false) {
+//             LWComponent c = src.duplicate();
+//             c.setSyncSource(src);
+//             return c;
+//         }
 
         String label = src.getDisplayLabel();
 
@@ -821,6 +863,8 @@ public class PresentationTool extends VueTool
         if (pathway == null && mBackList.peekNode() == src)
             label = "BACK:" + label;
         //label = "    " + label + " ";
+
+        final NavNode c = new NavNode(c, src, pathway);
         
         final LWNode c = new LWNode(label) {
                 // force label at left (non-centered)                
@@ -844,6 +888,7 @@ public class PresentationTool extends VueTool
         c.setSize(200, c.getHeight() + 6);
         return c;
     }
+    */
         
     
     public void XhandleFullScreen(boolean fullScreen) {
