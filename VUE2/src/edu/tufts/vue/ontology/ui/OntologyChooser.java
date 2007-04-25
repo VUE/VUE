@@ -225,7 +225,9 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
                cancelButton.setText("Back");
                nextButton.setText("Finish");
                ontURLText = typeURLField.getText();
-               System.out.println("end 1---->2");
+               typeURLField.setText("");
+               browseFileField.setText("");
+               //System.out.println("end 1---->2");
             }
             else
             if(step == STEP_TWO)

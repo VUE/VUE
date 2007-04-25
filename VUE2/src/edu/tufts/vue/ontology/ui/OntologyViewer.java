@@ -36,6 +36,7 @@ public class OntologyViewer extends javax.swing.JPanel {
     
     public OntologyViewer(OntologyBrowser browser) 
     {
+        setLayout(new java.awt.BorderLayout());
         ontologyBrowser = browser;
         ontologyList = new OntologyList(this);
         add(ontologyList);

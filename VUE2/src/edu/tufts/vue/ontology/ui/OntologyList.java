@@ -30,6 +30,7 @@ public class OntologyList extends javax.swing.JList {
     public OntologyList(OntologyViewer viewer)
     {
         super(new OntologyListModel());
+       // setLayout(new java.awt.BorderLayout());
         setCellRenderer(new OntologyListRenderer());
     }
     
@@ -64,7 +65,11 @@ public class OntologyList extends javax.swing.JList {
     {
         public java.awt.Component getListCellRendererComponent(javax.swing.JList list,Object value,int index,boolean isSelected,boolean hasFocus)
         {
+            //javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+            //javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout());
             javax.swing.JPanel panel = new javax.swing.JPanel();
+            panel.setLayout(new javax.swing.BoxLayout(panel,javax.swing.BoxLayout.X_AXIS));
+            panel.setBorder(javax.swing.BorderFactory.createMatteBorder(0,0,1,0,new java.awt.Color(200,200,200)));
             //panel.setOpaque(true);
            // panel.setBackground(java.awt.Color.BLUE);
             String base = ((edu.tufts.vue.ontology.Ontology)value).getBase();

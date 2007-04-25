@@ -71,6 +71,7 @@ public class OntologyBrowser extends JPanel {
     {
         //super(new BorderLayout());
         //super(new java.awt.GridLayout(0,1));
+        setLayout(new javax.swing.BoxLayout(this,javax.swing.BoxLayout.Y_AXIS));
         setName("Ontologies");
         
         this.dockWindow = ontologyDock;
