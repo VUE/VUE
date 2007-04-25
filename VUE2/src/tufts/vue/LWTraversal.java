@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.9 $ / $Date: 2007-04-14 22:36:59 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2007-04-25 18:29:37 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -141,6 +141,8 @@ public class LWTraversal {
                 return false;
             else if (depth > pc.maxDepth)
                 return false;
+            //else if (depth > pc.pickDepth)
+            //    return false;
             else if (c.getLayer() > pc.maxLayer)
                 return false;
             //else return strayChildren || c.contains(mapX, mapY); // for now, ALWAYS work as if strayChildren was true
@@ -208,6 +210,14 @@ public class LWTraversal {
 
                 try {
                     // todo: can keep a cached transform for each parent encountered...
+
+                    // TODO: do this in acceptTraversal, only when descending to children if there
+                    // are any, and might want to leave us in the parent space when checking the
+                    // children, so we could have one generic contains that always operates in the
+                    // parent's space.  Only drawback is that contains/intersects will have do
+                    // adjust for local scale, or, god forbid, a rotation, tho in the common cases
+                    // where there aren't any, it's probably alot faster...
+                    
                     p = c.getLocalTransform().inverseTransform(mapPoint, null);
                     if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + p);
                 } catch (java.awt.geom.NoninvertibleTransformException e) {
