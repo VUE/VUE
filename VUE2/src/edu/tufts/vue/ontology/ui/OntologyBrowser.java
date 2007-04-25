@@ -54,12 +54,16 @@ public class OntologyBrowser extends JPanel {
     
     private WidgetStack resultsStack = new WidgetStack("types stack");
     
-    public void addTypeList(edu.tufts.vue.ontology.ui.TypeList list,String name)
+    public Widget addTypeList(edu.tufts.vue.ontology.ui.TypeList list,String name)
     {
         Widget w = new Widget(name);
         w.add(list);
         resultsStack.addPane(w);
+        list.revalidate();
+        w.revalidate();
+        resultsStack.revalidate();
         revalidate();
+        return w;
     }
     
     

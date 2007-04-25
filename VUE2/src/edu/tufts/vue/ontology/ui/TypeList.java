@@ -73,38 +73,6 @@ public class TypeList extends JList {
     
     public TypeList() {
         
-        //this.ontology = ontology;
-        
-        //mDataModel = new DefaultListModel();
-        /*mDataModel = new ListModel()
-        {
-            public Object getElementAt(int index)
-            {
-                if(ontology!=null)
-                  return ontology.getOntTypes().get(index);
-                else
-                  return null;
-            }
-            
-            public int getSize()
-            {
-                if(ontology!=null)
-                  return ontology.getOntTypes().size();
-                else
-                  return 0;
-            }
-            
-            public void addListDataListener(ListDataListener listener)
-            {
-
-            }
-            
-            public void removeListDataListener(ListDataListener listener)
-            {
-                
-            }
-        };*/
-        //setModel(mDataModel);
         setCellRenderer(new TypeCellRenderer());
         
         javax.swing.DefaultListSelectionModel selectionModel = new javax.swing.DefaultListSelectionModel();
@@ -113,11 +81,7 @@ public class TypeList extends JList {
         selectionModel.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent e)
             {
-                //comp = ((LWComponent)getSelectedValue()).duplicate();
                 comp = createLWComponent(getSelectedValue());
-                //comp.setParentStyle(comp);
-                //VUE.getSelection().setSource(TypeList.this);
-                //VUE.getSelection().setTo(comp);
             }
         });
         
@@ -126,16 +90,10 @@ public class TypeList extends JList {
                     System.out.println("TypeList: mouse dragged");
                     //System.out.println("TypeList: selected label " + ((LWComponent)(getSelectedValue())).getLabel());
                     
-                    /*if(comp instanceof LWNode)
-                    {
-                      VueToolbarController vtc = VueToolbarController.getController();
-                      VueTool rTool = vtc.getTool("nodeTool");
-                      //rTool.setSelectedSubTool(vtc.getTool("rect"));
-                      VueToolbarController.getController().setSelectedTool(rTool);
-                    }*/
                     if(comp == null)
                         return;
                     
+                    // the try/catch produces an infinite loops of placements on the Viewer
                     //try
                     //{        
                       GUI.startLWCDrag(TypeList.this,
@@ -197,24 +155,68 @@ public class TypeList extends JList {
         return compFor;
     }
     
-    /*public void addType(LWComponent typeComponent)
-    {
-        mDataModel.addElement(typeComponent);
-    }*/
     
     public class LWComponentView extends javax.swing.JComponent
     {
-        private LWComponent comp;
+        //private LWComponent comp;
+        private OntType type;
         
-        public LWComponentView(LWComponent component)
+        int[] xpoints = {40,40,45};
+        int[] ypoints = {15,25,20};
+        int numpoints = 3;
+        
+        //public LWComponentView(LWComponent component)
+        public LWComponentView(/*OntType t*/)
         {
-            comp = component;
+            //comp = component;
+            //type = t;
+            setBorder(javax.swing.BorderFactory.createLineBorder(java.awt.Color.GRAY));
+        }
+        
+        public void setType(OntType t)
+        {
+            type = t;
+        }
+        
+        public java.awt.Dimension getPreferredSize()
+        {
+            return new java.awt.Dimension(100,50);
         }
         
         public void paintComponent(java.awt.Graphics g)
         {
-            tufts.vue.DrawContext dc = new tufts.vue.DrawContext(g);
-            comp.draw(dc);
+            //tufts.vue.DrawContext dc = new tufts.vue.DrawContext(g);
+           // comp.draw(dc);
+            java.awt.Color old = g.getColor();
+            g.setColor(getBackground());
+            g.fillRect(0,0,getWidth(),getHeight());
+            g.setColor(old);
+            if(!isNode(type))
+            {
+              g.drawLine(10,20,40,20);
+              g.fillPolygon(xpoints,ypoints,numpoints);
+            }
+            else
+            {
+              old = g.getColor();
+              g.setColor(tufts.vue.VueResources.getColor("node.fillColor"));  
+              g.fillRoundRect(10,15,30,25,5,5);
+              g.setColor(old);
+            }
+            if(type.getLabel()!=null);
+              g.drawString(type.getLabel(),60,20);
+              //g.drawString(comp.getLabel(),40,10);
+              
+                Style s = type.getStyle();
+                String icon = s.getAttribute("background-image");
+                //System.out.println("icon " + icon);
+                if(icon != null)
+                {
+                    javax.swing.ImageIcon ii = new javax.swing.ImageIcon(icon);
+                    //System.out.println("image icon: " + ii);
+                    //p.add(new JLabel(ii));
+                    g.drawImage(ii.getImage(),200,10,40,40,null);
+                }
         }
     }
     
@@ -222,12 +224,14 @@ public class TypeList extends JList {
     { 
         private JLabel label = new JLabel();
         
+        private LWComponentView lwcv = new LWComponentView();
+        
         public java.awt.Component getListCellRendererComponent(JList jList, Object value, int i, boolean isSelected, boolean hasFocus) 
         {
-            JPanel p = new JPanel();
+            /*JPanel p = new JPanel();
             java.awt.GridLayout grid = new java.awt.GridLayout(1,2);
             p.setLayout(grid);
-           // p.setLayout(new java.awt.BorderLayout());
+            // p.setLayout(new java.awt.BorderLayout());
             
             p.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200,200,200)));
                     
@@ -250,11 +254,11 @@ public class TypeList extends JList {
                 noLabel.setSize(40,25);
                 //p.add(new JLabel(new javax.swing.ImageIcon(createLWComponent(value).getAsImage())));
                 //p.add(new JLabel(new javax.swing.ImageIcon(noLabel.getAsImage())));
-                p.add(new LWComponentView(noLabel));
+                //p.add(new LWComponentView(noLabel));
                 //p.add(new JLabel(t.getLabel()));
                 
                 label.setText(t.getLabel());
-                p.add(label);
+                //p.add(label);
                 
                 Style s = t.getStyle();
                 String icon = s.getAttribute("background-image");
@@ -265,36 +269,19 @@ public class TypeList extends JList {
                     System.out.println("image icon: " + ii);
                     p.add(new JLabel(ii));
                 }
-            }
-            
-            /*if(value instanceof LWComponent)
-            {
-                LWComponent comp = (LWComponent)value;
-                LWComponent noLabelComp = (LWComponent)comp.duplicate();
-                if(comp instanceof LWNode)
-                  noLabelComp.setLabel("   ");
-                else
-                  noLabelComp.setLabel(" ");
-                String truncatedLabel = comp.getLabel();
-                if(truncatedLabel.length() > 15)
-                {
-                    truncatedLabel = truncatedLabel.substring(0,15) + "...";
-                }
-                JLabel label = new JLabel(truncatedLabel);
-                //java.awt.Image im = comp.getAsImage();
-                java.awt.Image im = noLabelComp.getAsImage();
-                JLabel imageLabel = new JLabel(new javax.swing.ImageIcon(im));
-                p.add(imageLabel);
-                p.add(label);
             }*/
+            
             
             if(value == getSelectedValue())
             {
-                p.setBackground(new java.awt.Color(230,230,230));
+                lwcv.setBackground(new java.awt.Color(230,230,230));
             }
             else
-                p.setBackground(new java.awt.Color(255,255,255));
-            return p;
+                lwcv.setBackground(new java.awt.Color(255,255,255));
+            
+            lwcv.setType((OntType)value);
+            
+            return lwcv;
         }
     }
     
@@ -313,27 +300,31 @@ public class TypeList extends JList {
         
     }
     
-    public void loadOntology(final URL ontologyURL,final URL cssURL,final org.osid.shared.Type ontType)
+    public void loadOntology(final URL ontologyURL,final URL cssURL,final org.osid.shared.Type ontType,
+                             final OntologyBrowser browser,final tufts.vue.gui.Widget widget)
     {
        Thread t = new Thread(){ 
         
          public void run()
          {
+           
+          JLabel loadingLabel = new JLabel("loading...");   
+             
+          widget.add(loadingLabel,java.awt.BorderLayout.NORTH);
+             
           ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
                                                       cssURL,
                                                       ontType);
-          
-          java.util.List types = ontology.getOntTypes();
-          //for(int i=0;i<types.size();i++)
-          int count = types.size();
-          if(count > 5000)
-              count = 5000;
-          for(int i=0;i<count;i++)
-          {
-              createLWComponent((OntType)types.get(i));
-          }
-          
+                    
           setModel(new OntologyTypeListModel(ontology));
+          
+          widget.remove(loadingLabel);
+          //repaint();
+          //browser.addTypeList(TypeList.this,ontologyURL.getFile());
+          browser.getViewer().getList().updateUI();
+          //browser.getViewer().repaint();
+          //browser.revalidate();
+         // browser.repaint();
          }
        };
        
@@ -341,11 +332,12 @@ public class TypeList extends JList {
        // fillList(ontology);
        
        t.start();
+       
         
     }
     
     
-    public void loadOntology(String ontologyLocation,String cssLocation,org.osid.shared.Type ontType,boolean fromFile)
+    /*public void loadOntology(String ontologyLocation,String cssLocation,org.osid.shared.Type ontType,boolean fromFile)
     {
         ontology = OntManager.getOntManager().readOntologyWithStyle(VueResources.getURL(ontologyLocation),
                                                       VueResources.getURL(cssLocation),
@@ -359,7 +351,7 @@ public class TypeList extends JList {
         
         setModel(new OntologyTypeListModel(ontology));
         
-    }
+    }*/
     
     /**
      *
@@ -374,12 +366,12 @@ public class TypeList extends JList {
     {        
         //return type.getType().equals(edu.tufts.vue.style.SelectorType.getNodeType());
         
-        System.out.println("tl: type.getStyle.getClass() " + type.getStyle().getClass());
+        //System.out.println("tl: type.getStyle.getClass() " + type.getStyle().getClass());
                
         return (type.getStyle() instanceof NodeStyle);    
     }
     
-    private void fillList(Ontology ontology)
+    /*private void fillList(Ontology ontology)
     {
         List<OntType> types = ontology.getOntTypes();
         
@@ -453,44 +445,65 @@ public class TypeList extends JList {
     {
               link.setArrowState(LWLink.ARROW_TAIL);
               link.setWeight(1);
-    }
+    }*/
     
     public class OntologyTypeListModel implements ListModel
     {
         private Ontology ontology;
+        
+        //java.util.ArrayList modified;// = new java.util.ArrayList();
              
         public OntologyTypeListModel(Ontology ontology)
         {
-          this.ontology = ontology;   
+          this.ontology = ontology;  
+          //modified = new java.util.ArrayList(getSize());
         }
         
         public Object getElementAt(int index)
-            {
-                if(ontology!=null && index < 5000)
+        {
+                //if(ontology!=null && index < 5000)
+            
+                //if(modified.size() == 0)
+                //    return null;
+            
+                /*OntType element = ontology.getOntTypes().get(index);
+                if(modified.get(index) == null)
+                {
+                  element.setLabel(element.getLabel()+":"+index);
+                  modified.set(index,"");
+                }
+            
+                if(ontology!=null)
+                  return element;
+                else
+                  return null;*/
+                
+                if(ontology!=null)
                   return ontology.getOntTypes().get(index);
                 else
                   return null;
-            }
+         }
             
-            public int getSize()
-            {
-                if(ontology!=null && ontology.getOntTypes().size() < 5000)
+         public int getSize()
+         {
+                //if(ontology!=null && ontology.getOntTypes().size() < 5000)
+                if(ontology!=null)
                   return ontology.getOntTypes().size();
-                else if(ontology.getOntTypes().size() >= 5000)
-                    return 5000;
+                //else if(ontology.getOntTypes().size() >= 5000)
+                //    return 5000;
                 else
                   return 0;
-            }
+         }
             
-            public void addListDataListener(ListDataListener listener)
-            {
+         public void addListDataListener(ListDataListener listener)
+         {
 
-            }
+         }
             
-            public void removeListDataListener(ListDataListener listener)
-            {
+         public void removeListDataListener(ListDataListener listener)
+         {
                 
-            }
+         }
         
     }
     

@@ -155,11 +155,6 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
        GridBagConstraints browseConstraints = new GridBagConstraints();
        browsePanel.setLayout(browseGrid);
        
-       //$
-          //browsePanel.setOpaque(true);
-          //browsePanel.setBackground(java.awt.Color.RED);
-       //$
-       
        browseConstraints.insets = new Insets(5,5,5,5);
        browseGrid.setConstraints(browseLabel,browseConstraints);
        browsePanel.add(browseLabel);
@@ -247,8 +242,8 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
                    catch(MalformedURLException mue)
                    {
                       fromURL = false;
-                      //this dialog can fall behind the chooser and create the appearance
-                      //of deadlock...
+                      //the following dialog can fall behind the chooser and create the (mistaken) 
+                      // appearance of deadlock...
                       //VueUtil.alert("Improper URL, try file field instead?","URL Error");
                       System.out.println("OntologyChooser: Improper URL, will try file field instead");
                       try
@@ -291,14 +286,14 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
                    }
                    if(ontURL != null && cssURL!=null)
                    {
-                       list.loadOntology(ontURL,cssURL,getOntType(ontURL));                             
-                       browser.addTypeList(list,ontURL.getFile());
+                       tufts.vue.gui.Widget w = browser.addTypeList(list,ontURL.getFile());
                        browser.getViewer().getList().updateUI();
+                       list.loadOntology(ontURL,cssURL,getOntType(ontURL),browser,w);                             
                    }
                }
                setVisible(false);
                }
-               System.out.println("end 2 finish");
+               //System.out.println("end 2 finish");
             }
         }
         if(e.getSource() == cancelButton)
