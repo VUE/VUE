@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.341 $ / $Date: 2007-04-23 21:18:29 $ / $Author: dan $ 
+ * @version $Revision: 1.342 $ / $Date: 2007-04-25 18:31:44 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1512,8 +1512,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         PickContext pc = new PickContext(rect);
         pc.root = mFocal;
         pc.maxLayer = getMaxLayer();
-        pc.pickDepth = getPickDepth(); // todo: is overlap with pickDepth/maxDepth
         pc.excluded = mFocal; // never pick the focal for a dragged selection
+        pc.pickDepth = getPickDepth(); // todo: is overlap with pickDepth/maxDepth
+        //pc.pickDepth = 1; // for rectangular picks, only pick top-level items (no children)
         pc.maxDepth = 1; // for rectangular picks, only pick top-level items (no children)
         return pc;
     }
@@ -1524,9 +1525,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     protected int getPickDepth() {
         if (activeTool == DirectSelectTool) // todo: hand to the tool for PickContext modifications
-            return 1;
+            return 1; //Short.MAX_VALUE;
         else if (mFocal != mMap)
-            return 1; // auto-deep pick for any non-map focal
+            return 1; //Short.MAX_VALUE; // auto-deep pick for any non-map focal
         //else if (!inScrollPane())
         //    return 1; // todo: temporary hack for presentations -- find a clearer way
         else
@@ -3387,6 +3388,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             MapResource.DataFlavor,
             //URLFlavor, // try text/uri-list
         };
+
         public class LWTransfer implements Transferable
         {
             private final LWComponent LWC;
@@ -4359,9 +4361,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 
             }
 
-            if (activeTool.handleMouseMoved(mme))
-                ; // don't process per-node mouse-over
-            else if (hit != null) {
+            boolean handled = false;
+            if (activeTool.handleMouseMoved(mme)) {
+                // don't process per-node mouse-over
+                handled = true;
+            } else if (hit != null) {
                 //MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
                 if (hit == sLastMouseOver)
                     hit.mouseMoved(mme);
@@ -4369,13 +4373,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     hit.mouseEntered(mme);
             } else {
 
-                if (DEBUG.PICK) {
-                    if (hit != null)
-                        setIndicated(hit);
-                    else
-                        clearIndicated();
-                }
-                
                 // We're currently over nothing (just empty map space).
                 
                 // TODO: for interactive tip regions, we want to allow
@@ -4389,6 +4386,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 //viewer.clearTip(); // if over nothing, always make sure no tip displayed
             }
             
+            if (DEBUG.PICK && !handled) {
+                if (hit != null)
+                    setIndicated(hit);
+                else
+                    clearIndicated();
+            }
+                
             sLastMouseOver = hit;
             
             if (DEBUG.VIEWER) {
@@ -5060,6 +5064,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // don't reparent links
                 if (droppedChild instanceof LWLink)
                     continue;
+                // even tho the indication has already checked this via isValidParentTarget,
+                // if there's more than one item in the selection, we still need
+                // to do do this check against bad cases -- TODO: not allowing
+                // reparenting when child moving from the a group to become
+                // a child of another group member.
                 if (!droppedChild.getParent().supportsDragReparenting())
                     continue;
                 //  continue; // not with new "page" groups
