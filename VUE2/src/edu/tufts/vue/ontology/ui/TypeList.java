@@ -69,6 +69,7 @@ public class TypeList extends JList {
     private Ontology ontology;
     
     private java.util.HashMap typeCache = new java.util.HashMap();
+    private java.util.HashMap typeNoLabelCache = new java.util.HashMap();
     
     public TypeList() {
         
@@ -188,6 +189,9 @@ public class TypeList extends JList {
         if(ontType.getStyle()!=null)
             compFor.applyCSS(ontType.getStyle());
         
+        LWComponent noLabel = compFor.duplicate();
+        noLabel.setLabel("");
+        typeNoLabelCache.put(type,noLabel);
         typeCache.put(type,compFor);
         
         return compFor;
@@ -216,6 +220,8 @@ public class TypeList extends JList {
     
     class TypeCellRenderer implements ListCellRenderer
     { 
+        private JLabel label = new JLabel();
+        
         public java.awt.Component getListCellRendererComponent(JList jList, Object value, int i, boolean isSelected, boolean hasFocus) 
         {
             JPanel p = new JPanel();
@@ -228,14 +234,28 @@ public class TypeList extends JList {
             if(value instanceof OntType)
             {
                 OntType t = (OntType)value;
-                LWComponent noLabel = createLWComponent(t).duplicate();
-                noLabel.setLabel("");
+                
+                LWComponent noLabel = null;
+                if(typeNoLabelCache.get(value) == null)
+                {    
+                  noLabel = createLWComponent(t).duplicate();
+                  noLabel.setLabel("");
+                }
+                else
+                {
+                  noLabel = (LWComponent)typeNoLabelCache.get(value);
+                }
+                //noLabel.setLabel("");
                 noLabel.setAutoSized(false);
                 noLabel.setSize(40,25);
                 //p.add(new JLabel(new javax.swing.ImageIcon(createLWComponent(value).getAsImage())));
                 //p.add(new JLabel(new javax.swing.ImageIcon(noLabel.getAsImage())));
                 p.add(new LWComponentView(noLabel));
-                p.add(new JLabel(t.getLabel()));
+                //p.add(new JLabel(t.getLabel()));
+                
+                label.setText(t.getLabel());
+                p.add(label);
+                
                 Style s = t.getStyle();
                 String icon = s.getAttribute("background-image");
                 System.out.println("icon " + icon);
@@ -293,14 +313,34 @@ public class TypeList extends JList {
         
     }
     
-    public void loadOntology(URL ontologyURL,URL cssURL,org.osid.shared.Type ontType)
+    public void loadOntology(final URL ontologyURL,final URL cssURL,final org.osid.shared.Type ontType)
     {
-       ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
+       Thread t = new Thread(){ 
+        
+         public void run()
+         {
+          ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
                                                       cssURL,
                                                       ontType);
-        
-       setModel(new OntologyTypeListModel(ontology));
+          
+          java.util.List types = ontology.getOntTypes();
+          //for(int i=0;i<types.size();i++)
+          int count = types.size();
+          if(count > 5000)
+              count = 5000;
+          for(int i=0;i<count;i++)
+          {
+              createLWComponent((OntType)types.get(i));
+          }
+          
+          setModel(new OntologyTypeListModel(ontology));
+         }
+       };
+       
+       //setModel(new OntologyTypeListModel(ontology));
        // fillList(ontology);
+       
+       t.start();
         
     }
     
@@ -426,7 +466,7 @@ public class TypeList extends JList {
         
         public Object getElementAt(int index)
             {
-                if(ontology!=null)
+                if(ontology!=null && index < 5000)
                   return ontology.getOntTypes().get(index);
                 else
                   return null;
@@ -434,8 +474,10 @@ public class TypeList extends JList {
             
             public int getSize()
             {
-                if(ontology!=null)
+                if(ontology!=null && ontology.getOntTypes().size() < 5000)
                   return ontology.getOntTypes().size();
+                else if(ontology.getOntTypes().size() >= 5000)
+                    return 5000;
                 else
                   return 0;
             }
