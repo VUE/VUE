@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.20 $ / $Date: 2007-03-23 15:45:19 $ -->
+<!-- $Revision: 1.21 $ / $Date: 2007-04-25 19:16:05 $ -->
 
 <!-- 
 This ant build file:
@@ -309,6 +309,22 @@ This ant build file:
         <test name="edu.tufts.vue.VUETest" outfile="VUETest" todir="${basedir}"/>
         <classpath refid="compile.classpath" />
     </junit>
+</target>
+
+<!--- =============  Repository Implementation Tests =========-->
+<target name="repositoryImplTests" depends="compile" description="Tests for OSID Implementations">
+	<echo message="Blackships Ping Test"/>
+	<java classname="junit.textui.TestRunner" failonerror="true" fork="true">
+		<arg value="edu.tufts.osidimpl.test.repository.OsidTester"/>
+		<classpath refid="compile.classpath"/>
+		<sysproperty key="testProfile" value="blackships-pingProfile.xml"/>
+	</java>
+	<echo message="Blackships Basic Searching Test"/>
+	<java classname="junit.textui.TestRunner" failonerror="true" fork="true">
+		<arg value="edu.tufts.osidimpl.test.repository.OsidTester"/>
+		<classpath refid="compile.classpath"/>
+		<sysproperty key="testProfile" value="blackships-basicProfile.xml"/>
+	</java>
 </target>
 </project>
 

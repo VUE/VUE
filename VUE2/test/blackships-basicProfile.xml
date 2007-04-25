@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<managerImpl name="Blackships" osid="org.osid.repository.RepositoryManager"
+             version="2.0">
+  <!--Provide the package name where the Manager is impemented.-->
+
+  <packagename>edu.mit.visualizingcultures.repository.blackships</packagename>
+
+  <!--Use the repositories element to test object returned by RepsitoryManager.getRepositories().  If the ordered attribute is true, order must match.  If the exact attribute is true, there can be no repositories extra or missing-->
+
+  <!--Not using attributes since harder to test (await market need)-->
+
+  <repositories exact="true" ordered="true">
+    <!--Add one repository element per repository you want to confirm-->
+
+    <repository>
+      <!--The Repository's display name; this will drive a literal string comparison-->
+
+      <displayname>Black Ships and Samurai</displayname>
+
+      <!--The Repository's description; this will drive a literal string comparison-->
+
+      <description />
+
+      <!--The string value of the Repository's id-->
+
+      <id>VC.001</id>
+
+      <!--The Repository's type in the format: domain/keyword@authority-->
+
+      <type>repository/multimedia@mit.edu</type>
+    </repository>
+
+    <repository>
+      <!--The Repository's display name; this will drive a literal string comparison-->
+
+      <displayname>Yokohama Boomtown</displayname>
+
+      <!--The Repository's description; this will drive a literal string comparison-->
+
+      <description />
+
+      <!--The string value of the Repository's id-->
+
+      <id>VC.002</id>
+
+      <!--The Repository's type in the format: domain/keyword@authority-->
+
+      <type>repository/multimedia@mit.edu</type>
+    </repository>
+  </repositories>
+
+  <!--To test whether a repository can be returned using only its id.-->
+
+  <repositorybyid id="VC.001" />
+
+  <repositorybyid id="VC.002" />
+
+  <!--To test whether the RepositoryManager returns the Repository Types you expect, add one or more type element values.  Note the current approach tests for the same order and does not fail if there are more types than what you specify.-->
+
+  <repositorytypes>
+    <type>repository/multimedia@mit.edu</type>
+  </repositorytypes>
+
+  <!--to test whether the expected repositories are returned.  If the auto attribute is "true", test will expect to be able to get all repositories and use their types to validate this method.-->
+
+  <repositoriesbytype auto="true" />
+
+  <!--To test for an asset by id as a RepositoryManager method.  Asset test elements are optional.-->
+
+  <assetbyidviamanager assetid="01_375L_narr_Dinner">
+    <type>asset/image@mit.edu</type>
+
+    <repositoryid>VC.001</repositoryid>
+  </assetbyidviamanager>
+
+  <!--To test for an asset by id as a Repository method.  Note the test requires the ability to get a repository by id.  Asset test elements are optional.-->
+
+  <assetbyidviarepository assetid="01_375L_narr_Dinner" repositoryid="VC.001">
+    <type>asset/image@mit.edu</type>
+  </assetbyidviarepository>
+
+  <!--To test if a repository supports specific search types.  Note the test requires the ability to get a repository by id.-->
+
+  <searchtypes repositoryid="VC.001">
+    <type>search/title@mit.edu</type>
+
+    <type>search/author@mit.edu</type>
+
+    <type>search/fulltext@mit.edu</type>
+
+    <type>search/keyword@mit.edu</type>
+  </searchtypes>
+
+  <!--To test the Repository.getAssetsBySearch() method provide the repository id as an attribute to the assetsBySearch element, a search type string, a search criteria string, and optionally any properties.-->
+
+  <assetsBySearch repositoryid="VC.001">
+    <search>
+      <type>search/keyword@mit.edu</type>
+
+      <criteria>food</criteria>
+
+      <properties>
+        <property key="" value="" />
+      </properties>
+    </search>
+
+    <!--To simply test for any return, include the assets element with the any attribute with the value true.  To test for specific assets (ordered) include one or more asset elements.  If displayname, description, id, or type elements have a value, it will be compared.  If there are any record parts, their type and value will be compared.-->
+
+    <assets any="false">
+      <asset>
+        <displayname />
+
+        <description />
+
+        <id>01_375L_narr_Dinner</id>
+
+        <type />
+
+        <records>
+          <record>
+            <!--The order of parts is not tested.  Each part will be checked against all parts returned by the implementation.-->
+
+            <parts>
+              <!--If a Value element has a value, the Type element must also have a value-->
+
+              <part>
+                <type>partStructure/URL@mit.edu</type>
+
+                <value>http://www.blackshipsandsamurai.com/BSS_COLLECTION_JPEGS/01_375L_narr_Dinner_lg.jpg</value>
+              </part>
+            </parts>
+          </record>
+        </records>
+      </asset>
+    </assets>
+  </assetsBySearch>
+</managerImpl>
