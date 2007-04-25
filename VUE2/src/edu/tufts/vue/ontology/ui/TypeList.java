@@ -57,6 +57,8 @@ public class TypeList extends JList {
     
     public static int count = 0;
     
+    public static final boolean DEBUG = false;
+    
     //private static Ontology fedoraOntology;
     
     //private DefaultListModel mDataModel;
@@ -477,22 +479,26 @@ public class TypeList extends JList {
                 //if(modified.size() == 0)
                 //    return null;
             
-                /*OntType element = ontology.getOntTypes().get(index);
-                if(modified.get(index) == null)
+                if(DEBUG)
                 {
-                  element.setLabel(element.getLabel()+":"+index);
-                  modified.set(index,"");
-                }
-            
-                if(ontology!=null)
-                  return element;
-                else
-                  return null;*/
+                  OntType element = ontology.getOntTypes().get(index);
                 
-                if(ontology!=null)
-                  return ontology.getOntTypes().get(index);
+                  if(!element.getLabel().endsWith("***"))
+                  {
+                    element.setLabel(element.getLabel()+":"+index+"***");
+                  }
+                  if(ontology!=null)
+                    return element;
+                  else
+                    return null;
+                }
                 else
-                  return null;
+                {
+                  if(ontology!=null)
+                    return ontology.getOntTypes().get(index);
+                  else
+                    return null;
+                }
          }
             
          public int getSize()
