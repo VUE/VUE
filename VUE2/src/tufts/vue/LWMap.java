@@ -55,7 +55,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.120 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.121 $ / $Date: 2007-04-25 18:24:46 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -617,6 +617,15 @@ public class LWMap extends LWContainer
                     dc.setIndex(pathIndex++);
                     path.drawPathway(dc.create());
                 }
+            }
+        }
+
+        if (DEBUG.BOXES) {
+            dc.g.setColor(java.awt.Color.red);
+            dc.g.setStroke(STROKE_ONE);
+            for (LWComponent c : getAllDescendents()) {
+                if (c.isDrawingSlideIcon())
+                    dc.g.draw(c.getMapSlideIconBounds());
             }
         }
     }
