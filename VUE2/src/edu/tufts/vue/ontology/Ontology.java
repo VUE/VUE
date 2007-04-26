@@ -36,8 +36,13 @@ import com.hp.hpl.jena.util.iterator.*;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.util.iterator.Filter;
+import org.w3c.dom.stylesheets.LinkStyle;
 
 public class Ontology {
+    public static final String ONT_CLASS_NODE = "node.OntClass";
+    public static final String DEFAULT_NODE = "node.default";
+    public static final String ONT_PROPERTY_LINK = "link.OntProperty";
+    public static final String DEFAULT_LINK = "link.default";
     protected List<OntType> types = new ArrayList<OntType>();
     OntModel m;
     private String base;
@@ -105,14 +110,28 @@ public class Ontology {
             type.setBase(base);
             type.setComment(c.getComment(null));
             Style style = Style.getStyle(c.getLocalName(),styleMap);
-            if((c instanceof OntClass) && (style == LinkStyle.DEFAULT_LINK_STYLE)) {
+            if(style == edu.tufts.vue.style.LinkStyle.DEFAULT_LINK_STYLE){
+                if(c instanceof OntClass) {
+                    style = Style.getStyle(ONT_CLASS_NODE,styleMap);
+                } else {
+                    style = Style.getStyle(ONT_PROPERTY_LINK,styleMap);
+                }
+            }
+            if(style == edu.tufts.vue.style.LinkStyle.DEFAULT_LINK_STYLE) {
+                if(c instanceof OntClass) {
+                style = Style.getStyle(DEFAULT_NODE,styleMap);
+                } else {
+                    style = Style.getStyle(DEFAULT_LINK,styleMap);
+                }
+            }
+            if((c instanceof OntClass) && (style == edu.tufts.vue.style.LinkStyle.DEFAULT_LINK_STYLE)) {
                 style = NodeStyle.DEFAULT_NODE_STYLE;
-            }          
+            }
             type.setStyle(style);
             types.add(type);
         }
         
     }
-   
+    
     
 }
