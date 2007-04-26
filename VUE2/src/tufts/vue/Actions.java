@@ -1098,7 +1098,7 @@ public class Actions implements VueConstants
                       keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND) :
                       keyStroke(KeyEvent.VK_F11)) {
         public void act() {
-            VUE.toggleFullScreen();
+            VUE.toggleFullScreen(false,true);
         }
     };
     
