@@ -96,7 +96,7 @@ public abstract class Style {
         f = f.deriveFont(fa);
         return f;
     }
-    protected void setDefaultAttributes(){
+    void setDefaultAttributes(){
         for(int i = 0;i<DEFAULT_FONT_KEYS.length;i++) {
             setAttribute(DEFAULT_FONT_KEYS[i],DEFAULT_FONT_VALUES[i]);
         }
@@ -300,8 +300,7 @@ public abstract class Style {
     }
     
     public static final Style getDefaultStyle() {
-        Style link = new LinkStyle(new String("Default"));
-        return link;
+        return LinkStyle.DEFAULT_LINK_STYLE;
     }
     public String toString() {
         return attributes == null ? "null" : attributes.toString();
