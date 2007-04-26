@@ -11,13 +11,14 @@ public class OsidTester extends TestCase
 	public static final String ASSET_VIA_REPOSITORY_TAG = "assetbyidviarepository";
 	public static final String ASSETS_BY_SEARCH_TAG = "assetsBySearch";
 	public static final String ASSETS_TAG = "assets";
+	public static final String CONFIGURATION_TAG = "configuration";
 	public static final String CRITERIA_TAG = "criteria";	
 	public static final String DESCRIPTION_TAG = "description";
 	public static final String DISPLAY_NAME_TAG = "displayname";
 	public static final String ID_TAG = "id";
 	public static final String MANAGER_TAG = "managerImpl";
 	public static final String PACKAGENAME_TAG = "packagename";
-	public static final String PROPERTY_ENTRY_TAG = "propertyEntry";
+	public static final String PROPERTY_TAG = "property";
 	public static final String REPOSITORIES_BY_TYPE_TAG = "repositoriesbytype";
 	public static final String REPOSITORIES_TAG = "repositories";
 	public static final String REPOSITORY_BY_ID_TAG = "repositorybyid";
@@ -43,6 +44,7 @@ public class OsidTester extends TestCase
 	
 	private org.osid.repository.RepositoryManager _repositoryManager = null;
 	private org.w3c.dom.Document _document = null;
+	private String _packagename = null;
 
 	protected void setUp()
 	{
@@ -153,7 +155,7 @@ public class OsidTester extends TestCase
 			String name = null;
 			String osid = null;
 			String version = null;
-			String packagename = null;
+			_packagename = null;
 			org.osid.OsidContext context = new org.osid.OsidContext();
 			java.util.Properties properties = new java.util.Properties();
 			
@@ -166,28 +168,40 @@ public class OsidTester extends TestCase
 			if (!version.equals("2.0")) throw new org.osid.repository.RepositoryException(org.osid.OsidException.CONFIGURATION_ERROR);
 			
 			org.w3c.dom.NodeList nl = managerElement.getElementsByTagName(PACKAGENAME_TAG);
-			org.w3c.dom.Element e = (org.w3c.dom.Element)nl.item(0);
-			packagename = e.getFirstChild().getNodeValue();
+			org.w3c.dom.Element packagenameElement = (org.w3c.dom.Element)nl.item(0);
+			_packagename = packagenameElement.getFirstChild().getNodeValue();
 				
 			//TODO: add support for OsidContext
 			
-			nl = managerElement.getElementsByTagName(PROPERTY_ENTRY_TAG);
-			int numProperties = nl.getLength();
-			for (int j=0; j < numProperties; j++) {
-				org.w3c.dom.Element el = (org.w3c.dom.Element)nl.item(j);
-				String key = el.getAttribute(KEY_ATTR);
-				// assume values are not encrypted
-				String value = el.getAttribute(VALUE_ATTR);
-				properties.setProperty(key,value);
-			}		
+			nl = managerElement.getElementsByTagName(CONFIGURATION_TAG);
+			int numConfigurations = nl.getLength();
+			if (numConfigurations > 0) {
+				org.w3c.dom.Element configurationElement = (org.w3c.dom.Element)nl.item(0);
+				nl = configurationElement.getElementsByTagName(PROPERTY_TAG);
+				int numProperties = nl.getLength();
+				for (int j=0; j < numProperties; j++) {
+					org.w3c.dom.Element el = (org.w3c.dom.Element)nl.item(j);
+					String key = el.getAttribute(KEY_ATTR);
+					// assume values are not encrypted
+					String value = el.getAttribute(VALUE_ATTR);
+					properties.setProperty(key,value);
+				}		
+			}
 			
 			/* If we are running in VUE, we need to use its method for loading OSID implementations
 			   The approach uses a factory and assumes a package name and repository id -- a "loadkey".
 			   We only care about the manager, so we add a dummy repository id, @foo, to fool the factory.
 			*/
-			return edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(packagename + "@foo",
-																									context,
-																									properties);
+			try {
+				return edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getRepositoryManagerInstance(_packagename + "@foo",
+																										context,
+																										properties);
+			} catch (Throwable t) {
+				return (org.osid.repository.RepositoryManager)org.osid.OsidLoader.getManager("org.osid.repository.RepositoryManager",
+																							 _packagename,
+																							 context,
+																							 properties);
+			}
 		} catch (Throwable t) {
 			t.printStackTrace();
 			throw new org.osid.repository.RepositoryException(org.osid.OsidException.CONFIGURATION_ERROR);
