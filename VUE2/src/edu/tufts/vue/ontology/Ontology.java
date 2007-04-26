@@ -104,7 +104,11 @@ public class Ontology {
             }
             type.setBase(base);
             type.setComment(c.getComment(null));
-            type.setStyle(Style.getStyle(c.getLocalName(),styleMap));
+            Style style = Style.getStyle(c.getLocalName(),styleMap);
+            if((c instanceof OntClass) && (style == LinkStyle.DEFAULT_LINK_STYLE)) {
+                style = NodeStyle.DEFAULT_NODE_STYLE;
+            }          
+            type.setStyle(style);
             types.add(type);
         }
         
