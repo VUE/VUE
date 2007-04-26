@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.342 $ / $Date: 2007-04-25 18:31:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.343 $ / $Date: 2007-04-26 18:10:44 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3612,7 +3612,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     handled = false;
             }
             else if (key == KeyEvent.VK_BACK_SLASH || key == KeyEvent.VK_F11) {
-                VUE.toggleFullScreen(e.isShiftDown());
+                VUE.toggleFullScreen(e.isShiftDown(),true);
             }
             else if (activeTool.handleKeyPressed(e)) {
                 ; // handled is true
@@ -5806,4 +5806,3 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	autoZoomEnabled = enabled;
     }        
 }
-

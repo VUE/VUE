@@ -28,18 +28,11 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 
-/**
- *
- * The VueToolPanel is the component that holds the main VUE toolbar
- * and the contextual properties tools.
- *
- * @version $Revision: 1.29 $ / $Date: 2007-04-26 18:10:44 $ / $Author: mike $ 
- *
- **/
-public class VueToolPanel extends JPanel
+public class FloatingZoomPanel extends JPanel
 {
-    // when we can set this to false, we can get rid of this class.
-    public static final boolean IS_CONTEXTUAL_TOOLBAR_ENABLED = false;
+	private final VueTool ArrowTool = VueToolbarController.getController().getTool("selectionTool");
+	private final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
+    private final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
     
     /** the panel where the main tools are placed **/
     private JComponent mMainToolBar = null;	
@@ -53,42 +46,52 @@ public class VueToolPanel extends JPanel
     /** the current tool selection (TO DO:  remove this)  **/
     private VueTool mCurrentTool = null;
 	
-    //private Box mMainBox = null;
 	
     /** a map of PaletteButtons keyed off of the tool ID **/
     private Map mToolButtons = new HashMap();
 	
 	
-    /***
-     * VueToolPanel()
-     * The constructor that builds an initial VUE ToolPanel
-     **/
-    private static final boolean debug = false;
-    public VueToolPanel() {
-        mButtonGroup = new ButtonGroup();
-        if (debug)
-            setBackground(Color.blue);
-        else
-            GUI.applyToolbarColor(this);
+    public FloatingZoomPanel() {
+        mButtonGroup = new ButtonGroup();          
+        
+        GUI.applyToolbarColor(this);
 		
         setLayout( new BorderLayout() );
         setOpaque(false);
+        
         if (GUI.isMacBrushedMetal())
             setBorder(new EmptyBorder(0,3,2,10));//tlbr
         else
             setBorder(new EmptyBorder(0,3,0,10));//tlbr
-        //setBorder(new EmptyBorder(1,3,2,10));//tlbr
-		
+        
         mMainToolBar = new Box(BoxLayout.X_AXIS);
-        //mMainBox = Box.createHorizontalBox();
-		
-        if (debug)
-            mMainToolBar.setBackground(Color.green);
-
+        
+        //addTool();
+        addTool(ArrowTool);
+        addTool(HandTool);        
+       // addSubZoomTool(ZoomTool);
+       //ZoomTool zt = new ZoomTool();
+       //zt.setID("zoomTool.zoomIn");
+       //zt.initFromResources();
+        VueTool zt = VueToolbarController.getController().getTool("zoomTool");
+      
+       VueTool zoomInTool= zt.getSubTool("zoomTool.zoomIn");
+        
+       VueTool zoomOut = zt.getSubTool("zoomTool.zoomOut");
+       //zoomOut.setID("zoomTool.zoomOut");
+       //zoomOut.initFromResources();
+      
+       VueTool zoomFullScreen = zt.getSubTool("zoomTool.zoomFullScreen");
+       
+       VueTool zoomOutToMap = zt.getSubTool("zoomTool.zoomOutToMap");
+       
+       addTool(zoomInTool);
+       addTool(zoomOut);
+       addTool(zoomFullScreen);
+       addTool(zoomOutToMap);
         setAlignmentX( LEFT_ALIGNMENT);
         add(BorderLayout.WEST, mMainToolBar);
-        //add( BorderLayout.CENTER, mContextualToolPanel);
-        //add( BorderLayout.EAST, Box.createHorizontalGlue());
+        
     }
 
     public JComponent getMainToolbar() {
@@ -105,31 +108,14 @@ public class VueToolPanel extends JPanel
      **/
     public void addToolButton( PaletteButton pButton) {
          
-        if (debug)
-            pButton.setBackground(Color.magenta);
-        else
-            GUI.applyToolbarColor(pButton);
+        GUI.applyToolbarColor(pButton);
         mMainToolBar.add( pButton);
         mButtonGroup.add( pButton);
         if( mButtonGroup.getButtonCount() == 1) {
             pButton.setSelected( true);
         }
     }
-	
-	
-    /**
-     * addTools()
-     * This method adds an array of VueTool items and creates
-     * main toolbar buttons based on the VueTool.
-     *
-     * @param VueTool [] - the list of tools
-     **/
-    public void addTools( VueTool [] pTools) {
-        for( int i=0; i<pTools.length; i++) {
-            addTool( pTools[i] );
-        }
-    }
-	
+		
 	
     /**
      * addTool
@@ -278,34 +264,5 @@ public class VueToolPanel extends JPanel
         pTool.setLinkedButton(button);
         
         return button;
-    }
-	
-
-    //  OLD CODE	
-    //	public void setEnabled( boolean pState) {
-    //	  // Manual override
-    //	  super.setEnabled( true);
-    //	}
-	
-	
-    // DEBUG :
-	
-	
-    protected void X_processMouseMontionEvent( MouseEvent pEvent) {
-        debug("  VueToolPanel: processMouseMotionEvent "+pEvent.getID() );
-        super.processMouseEvent( pEvent);
-    }
-
-
-    protected void X_processMouseEvent( MouseEvent pEvent) {
-        debug("  processMouseEvent() "+ pEvent.getID()  );
-        super.processMouseEvent( pEvent);
-    }
-
-
-    static private boolean sDebug = true;
-    private void debug( String pStr) {
-        if( sDebug)
-            System.out.println( "VueToolPanel - "+pStr);
     }
 }

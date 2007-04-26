@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.405 $ / $Date: 2007-04-18 13:29:12 $ / $Author: mike $ 
+ * @version $Revision: 1.406 $ / $Date: 2007-04-26 18:10:44 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -301,6 +301,7 @@ public class VUE
     private static DockWindow MapInspector;
     private static DockWindow ObjectInspector;
     private static DockWindow outlineDock;
+    private static DockWindow floatingZoomDock;
     
     static {
         Logger.getRootLogger().removeAllAppenders(); // need to do this or we get everything twice
@@ -632,10 +633,22 @@ public class VUE
 
         //formatDock = null;
         formattingPanel = new FormatPanel();
-        formatDock = GUI.createDockWindow("Format",true);
-        
+        formatDock = GUI.createDockWindow("Format",true,true);
         formatDock.setContent(formattingPanel);
-        formatDock.setFocusable(false);
+        formatDock.setFocusable(true);
+        
+
+        //-----------------------------------------------------------------------------
+        // Formatting
+        //-----------------------------------------------------------------------------
+
+        //formatDock = null;
+        FloatingZoomPanel floatingZoomPanel = new FloatingZoomPanel();
+        floatingZoomDock = GUI.createDockWindow("Floating Zoom",true,false);
+        floatingZoomDock.setContent(floatingZoomPanel);
+        floatingZoomDock.setFocusable(true);
+        floatingZoomDock.setSize(new Dimension(260,30));
+        floatingZoomDock.setLocation(0,15);        
         
         //-----------------------------------------------------------------------------
         // Panner
@@ -790,8 +803,7 @@ public class VUE
             //fontDock,
             //linkDock,
             toolbarDock,
-            slideDock,
-            
+            slideDock,                                    
         };
 
         // adding the menus and toolbars
@@ -1048,9 +1060,13 @@ public class VUE
         	//"As we move away from a "datasource" centric vision of VUE, the "Content" window should be collapsed when launching VUE"
         	//This will only take effect the first time VUE is started or when preference to remember window position is disabled.
         	// -MK
+        	if (Util.isMacPlatform())
+        		formatDock.setSize(new Dimension(700,54));
         	DR_BROWSER_DOCK.showRolledUp();
         	formatDock.setLocation(GUI.GInsets.left+350,
-                    GUI.GInsets.top+50);        	 
+                    GUI.GInsets.top+50);        	
+        	
+            	
         //	formatDock.setVisible(true);
         	//DR_BROWSER_DOCK.setVisible(true);
             
@@ -1973,9 +1989,17 @@ public class VUE
         toggleFullScreen(false);
     }
     
-    static void toggleFullScreen(boolean goNative) {
-        FullScreen.toggleFullScreen(goNative);
+    public static void toggleFullScreen(boolean goNative) {
+    	toggleFullScreen(false,false);
+    }
+    
+    public static void toggleFullScreen(boolean goNative,boolean showFloatingToolbar) {
+    	
+    	FullScreen.toggleFullScreen(goNative);
         VUE.getActiveViewer().zoomToContents();
+        
+    	if (showFloatingToolbar)
+        	floatingZoomDock.setVisible(FullScreen.inFullScreen());                	
     }
     
     static void installExampleNodes(LWMap map) {

@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.51 $ / $Date: 2007-04-11 20:44:35 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2007-04-26 18:10:45 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -80,8 +80,21 @@ public class ZoomTool extends VueTool
         return true;
     }
 
+    public boolean isZoomOutToMapMode()
+    {
+    	   return getSelectedSubTool().getID().equals("zoomTool.zoomOutToMap");
+    }
+    
+    public boolean isZoomFullScreenMode()
+    {
+    	   return getSelectedSubTool().getID().equals("zoomTool.zoomFullScreen");
+    }
     public boolean isZoomOutMode() {
         return getSelectedSubTool().getID().equals("zoomTool.zoomOut");
+    }
+    
+    public boolean isZoomInMode() {
+        return getSelectedSubTool().getID().equals("zoomTool.zoomIn");
     }
 
     public boolean supportsSelection() { return false; }
@@ -108,6 +121,14 @@ public class ZoomTool extends VueTool
 
         final MapViewer viewer = e.getViewer();
 
+        System.out.println("isZoomInMode:" + isZoomInMode()+" isZoomOutMode():"+isZoomOutMode()+ " isZoomFullScreen:"+isZoomFullScreenMode()+" isZoomOutToMap:"+isZoomOutToMapMode());
+        
+        if (isZoomInMode() || isZoomOutMode())
+        	return false;
+        
+        if (isZoomOutToMapMode())
+        	return false;
+        
         if (pickedZoom && !e.isShiftDown()) {
             setZoomFit(viewer, true);
             pickedZoom = false;
@@ -131,7 +152,11 @@ public class ZoomTool extends VueTool
                             //setZoomFitRegion(viewer, slide.getBounds(), 0, false);
                         }});
                 
-            } else {
+             pickedZoom = true;
+             ignoreRelease = true;
+             return true;
+            }
+             else {            	 
                 setZoomFitRegion(viewer,
                                  e.getPicked().getBounds(),
                                  0,
@@ -161,7 +186,9 @@ public class ZoomTool extends VueTool
             ) {
             if (isZoomOutMode())
                 setZoomBigger(p);
-            else
+            else if (isZoomOutToMapMode())
+            	setZoom(1.0);
+            else            	
                 setZoomSmaller(p);
         } else {
             Rectangle box = e.getSelectorBox();
@@ -170,6 +197,8 @@ public class ZoomTool extends VueTool
             } else {
                 if (isZoomOutMode())
                     setZoomSmaller(p);
+                else if (isZoomOutToMapMode())
+                	setZoom(1.0);
                 else
                     setZoomBigger(p);
             }
