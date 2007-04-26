@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.134 $ / $Date: 2007-03-23 16:23:20 $ / $Author: dan $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.134 2007-03-23 16:23:20 dan Exp $ -->
+<!-- $Revision: 1.135 $ / $Date: 2007-04-26 18:53:52 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.135 2007-04-26 18:53:52 jeff Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -698,6 +698,22 @@
          includes="tufts/oki/shared2/*.class"/>
   </target>
 
+<!-- ==================== Sakai Data Source ================================ -->
+  <target name="jar-sakai"  
+          depends="compile"
+          description="Create SakaiRepository-1.0.jar containing all supporting files">
+
+    <mkdir dir="dist/lib/osid"/>    
+    <delete file="dist/lib/osid/SakaiRepository-1.0.jar"/>
+    <jar jarfile="dist/lib/osid/SakaiRepository-1.0.jar"
+         basedir="${build.class}" 
+         includes="edu/tufts/osidimpl/repository/sakai/*.class"/>
+    <jar jarfile="dist/lib/osid/SakaiRepository-1.0.jar"
+         basedir="${build.class}" 
+		 update="true"
+         includes="edu/tufts/osidimpl/authentication/sakai/*.class"/>
+  </target>
+
 <!-- ==================== Core ================================ -->
   <target name="jar-core"
           depends="compile"
@@ -1174,10 +1190,6 @@ VUE_Installer.zip - ${installerMD5}
         <pathelement path="${java.class.path}" />
       </classpath>
     </available>    
-
-	<java classname="edu.tufts.vue.dsm.impl.edsmTest" failonerror="true" fork="true">
-        <classpath refid="runtime.classpath"/>
-	</java>
 
   </target>
     
