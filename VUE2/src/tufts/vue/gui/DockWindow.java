@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.90 $ / $Date: 2007-04-18 21:31:18 $ / $Author: mike $
+ * @version $Revision: 1.91 $ / $Date: 2007-04-26 18:06:20 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -110,7 +110,8 @@ public class DockWindow extends javax.swing.JWindow
     private final String mBaseTitle;
     private int mTitleWidth;
     private int mMinTitleWidth;
-
+    private boolean showCloseBtn=true;
+    
     private DockWindow mChild;
     private DockWindow mParent;
     private DockWindow mChildWhenHidden;
@@ -166,7 +167,7 @@ public class DockWindow extends javax.swing.JWindow
      * Create a new DockWindow.  You should use GUI.createDockWindow for creating
      * instances of DockWindow for VUE.
      */
-    public DockWindow(String title, Window owner, JComponent content, boolean asToolbar)
+    public DockWindow(String title, Window owner, JComponent content, boolean asToolbar,boolean showCloseButton)
     {
         super(owner == null ? getHiddenFrame() : owner);
 
@@ -189,7 +190,9 @@ public class DockWindow extends javax.swing.JWindow
         		title, 
         		"Remember size and position of window",
         		false);
-                
+        
+        showCloseBtn = showCloseButton;
+        
         if (asToolbar)
             setFocusableWindowState(false);
         mBaseTitle = title;
@@ -234,18 +237,25 @@ public class DockWindow extends javax.swing.JWindow
            }},
            });} */
         setFocusable(true);
+        
+        
+        
     }
 
+    public DockWindow(String title, Window owner, JComponent content, boolean asToolbar)
+    {
+    	this(title,owner,null,false,true);
+    }
     public DockWindow(String title, Window owner) {
-        this(title, owner, null, false);
+        this(title, owner, null, false,true);
     }
     
     public DockWindow(String title) {
-        this(title, null, null, false);
+        this(title, null, null, false,true);
     }
     
     public DockWindow(String title, JComponent content) {
-        this(title, null, content, false);
+        this(title, null, content, false,true);
     }
 
     public void setContent(JComponent c) {
@@ -289,7 +299,7 @@ public class DockWindow extends javax.swing.JWindow
             if (!isToolbar)
             	setSize(DefaultWidth, getHeight());
             else
-            	setSize(580,70);
+            	setSize(620,54);
         } else {
             validate();
         }
@@ -3321,8 +3331,11 @@ public class DockWindow extends javax.swing.JWindow
 //                 setMaximumSize(new Dimension(max.width, max.height-100));
                 //setPreferredSize(new Dimension(max.width, max.height-100));
 
+            if (isMac && isToolbar)
+            	setBorder(BorderFactory.createLineBorder(Color.black));
+            else
+            	setBorder(getWindowBorder());
             
-            setBorder(getWindowBorder());
             installTitlePanel(title, asToolbar);
             add(mContent, contentConstraints);
 
@@ -3565,7 +3578,8 @@ public class DockWindow extends javax.swing.JWindow
             closeButton.setBorder(new EmptyBorder(2,1,2,0));
 
             //add(Box.createVerticalGlue());
-            add(closeButton);
+            if (showCloseBtn)
+            	add(closeButton);
             //closeButton.setLocation(1,1);
             //add(Box.createVerticalGlue());
             //add(closeButton, BorderLayout.CENTER);
