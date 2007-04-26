@@ -45,8 +45,8 @@ public class ImageTool extends VueTool
         return
             new LWCToolPanel() {
                 protected void buildBox() {
-                    addComponent(mStrokeColorButton);
-                    addComponent(mStrokeButton);
+                //    addComponent(mStrokeColorButton);
+                //    addComponent(mStrokeButton);
                     JSlider slider = new RotationSlider();
                     //addComponent(slider);
                     slider.addPropertyChangeListener(this) ;

@@ -19,8 +19,12 @@
 
 package tufts.vue;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+
+import tufts.vue.gui.ColorMenuButton;
+import tufts.vue.gui.GUI;
 
 /**
  * TextToolPanel
@@ -31,11 +35,25 @@ import java.awt.GridBagLayout;
  
 public class TextToolPanel extends LWCToolPanel
 {
+    /** the Font selection combo box **/protected FontEditorPanel mFontPanel;
+    protected ColorMenuButton mTextColorButton;
+    
     public boolean isPreferredType(Object o) {
         return o instanceof LWNode && ((LWNode)o).isTextNode();
     }
 
     protected void buildBox() {
+    	
+    	if (true) {
+        mFontPanel = new FontEditorPanel(LWKey.Font);
+        if (debug)
+            mFontPanel.setBackground(Color.green);
+        else
+            GUI.applyToolbarColor(mFontPanel);
+        
+        mFontPanel.addPropertyChangeListener(this);
+    	}
+	
     	GridBagConstraints gbc = new GridBagConstraints();
     	mBox.setLayout(new GridBagLayout());
         if (addComponent(mFontPanel))
@@ -45,12 +63,12 @@ public class TextToolPanel extends LWCToolPanel
         	mBox.add(mFontPanel,gbc);
         }
         
-        if (addComponent(mTextColorButton))
+       /* if (addComponent(mTextColorButton))
         {
         	gbc.gridx=1;
         	gbc.gridy=0;
         	mBox.add(mFontPanel,gbc);
-        }
+        }*/
     }
      
     /*

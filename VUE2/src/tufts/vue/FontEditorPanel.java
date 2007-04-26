@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.44 $ / $Date: 2007-04-18 22:02:26 $ / $Author: mike $
+ * @version $Revision: 1.45 $ / $Date: 2007-04-26 18:09:04 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -173,7 +173,8 @@ implements PropertyChangeListener
 
 
         f = mSizeField.getFont();
-        Font sizeFont = f.deriveFont((float) f.getSize()-2);        
+        //Font sizeFont = f.deriveFont((float) f.getSize()-2);
+        Font sizeFont= f.deriveFont((float) 9);        
         mSizeField.setFont( sizeFont);
         //mSizeField.setMaximumSize(mSizeField.getPreferredSize());
         //mSizeField.setBackground(VueTheme.getVueColor());
@@ -213,25 +214,69 @@ implements PropertyChangeListener
         mTextColorButton.setToolTipText("Text Color");
         mTextColorButton.addPropertyChangeListener(this);
         
+        //Set up Labels...
+        JLabel styleLabel = new JLabel("Style :");
+		styleLabel.setForeground(new Color(51,51,51));
+		styleLabel.setFont(tufts.vue.VueConstants.SmallFont);
+		
+		JLabel textLabel = new JLabel("Text :");
+		textLabel.setForeground(new Color(51,51,51));
+		textLabel.setFont(tufts.vue.VueConstants.SmallFont);		
+		//Done With Labels..
          
         GridBagConstraints gbc = new GridBagConstraints();
         
+        //Layout Panel
         gbc.gridx=0;
         gbc.gridy=0;
-        gbc.gridwidth=3;
+        gbc.gridwidth=1;
         gbc.insets = new Insets(1,5,1,1);
         gbc.anchor=GridBagConstraints.WEST;
-        gbc.fill=GridBagConstraints.BOTH;
-        JLabel textLabel = new JLabel("Text");
-        textLabel.setFont(tufts.vue.VueConstants.SmallFont);
-        this.add(textLabel,gbc);
-        
-        gbc.gridwidth=1;
-        gbc.gridy=1;
-        gbc.gridx=0;
-        
+        gbc.fill=GridBagConstraints.BOTH;               
+    	
+		add(textLabel,gbc);
+		
+		
+		gbc.gridy=0;
+        gbc.gridx=1;        
+        gbc.gridwidth=5;
+        gbc.insets = new Insets(1,5,1,1);
+        gbc.anchor=GridBagConstraints.WEST;
+        gbc.fill=GridBagConstraints.BOTH;                                    
         add(mFontCombo,gbc);
-        gbc.insets= new Insets(1,1,1,1);
+        
+        gbc.gridy=0;
+        gbc.gridx=6;        
+        gbc.fill=GridBagConstraints.BOTH;
+        gbc.anchor=GridBagConstraints.WEST;
+        gbc.weightx=0.30;
+        gbc.gridwidth=1;
+        gbc.gridheight=1;
+        //gbc.ipady=6;
+        //gbc.ipadx=5;        
+        gbc.insets=new Insets(1,5,1,1);
+        add(mSizeField,gbc);
+        
+        gbc.gridy=0;
+        gbc.gridx=7;
+        gbc.fill=GridBagConstraints.REMAINDER;
+        gbc.anchor=GridBagConstraints.WEST;
+        gbc.gridheight=1;
+        gbc.gridwidth=1;
+        gbc.ipadx=0;
+        gbc.ipady=0;
+        gbc.insets=new Insets(0,1,1,1);
+        add(mTextColorButton,gbc);
+        
+        gbc.fill=GridBagConstraints.NONE;
+        gbc.anchor=GridBagConstraints.WEST;
+        gbc.gridwidth=1;
+        gbc.gridheight=0;
+        gbc.gridy=1;
+        gbc.gridx=0;        
+        add(styleLabel,gbc);
+        
+        
         gbc.gridy=1;
         gbc.gridx=1;
         add(mBoldButton,gbc);
@@ -241,37 +286,19 @@ implements PropertyChangeListener
         add(mItalicButton,gbc);
      
         gbc.gridy=1;
-        gbc.gridx=3;
-        
-        gbc.fill=GridBagConstraints.REMAINDER;
+        gbc.gridx=3;        
+        gbc.fill=GridBagConstraints.NONE;
         mUnderlineButton.setEnabled(false);
         add(mUnderlineButton,gbc);
         
-        gbc.gridy=2;
-        gbc.gridx=0;        
-        gbc.fill=GridBagConstraints.VERTICAL;
-        gbc.anchor=GridBagConstraints.WEST;
-        gbc.weightx=0.30;
-        //gbc.ipady=6;
-        //gbc.ipadx=5;        
-        gbc.insets=new Insets(1,5,1,1);
-        add(mSizeField,gbc);
+        
                 
         
-        gbc.gridy=2;
-        gbc.gridx=3;
-        gbc.fill=GridBagConstraints.REMAINDER;
-        gbc.anchor=GridBagConstraints.WEST;
-        gbc.gridheight=1;
-        gbc.gridwidth=0;
-        gbc.ipadx=0;
-        gbc.ipady=0;
-        gbc.insets=new Insets(0,1,1,1);
-        alignmentButton.setBorder(BorderFactory.createEmptyBorder());
-        alignmentButton.getComboBox().setBorder(BorderFactory.createEmptyBorder());
-        alignmentButton.getComboBox().setEnabled(false);
+        
+        //alignmentButton.setBorder(BorderFactory.createEmptyBorder());
+        //alignmentButton.getComboBox().setBorder(BorderFactory.createEmptyBorder());
+        //alignmentButton.getComboBox().setEnabled(false);
         //add(alignmentButton,gbc);
-        add(mTextColorButton,gbc);
  	
         //displayValue(VueConstants.FONT_DEFAULT);
 

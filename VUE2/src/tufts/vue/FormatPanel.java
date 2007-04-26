@@ -34,7 +34,9 @@ public class FormatPanel extends JPanel
 {
 	//	Resource panes
     private final NodeToolPanel nodeToolPanel;
+    private final FillToolPanel fillToolPanel;
     private final LinkToolPanel linkToolPanel;
+    private final ArrowToolPanel arrowToolPanel;
     private final TextToolPanel textToolPanel;
     
 	public FormatPanel()
@@ -45,30 +47,23 @@ public class FormatPanel extends JPanel
        // setName(VueResources.getString("formatting.label"));
      
 		nodeToolPanel = new NodeToolPanel();
+		fillToolPanel = new FillToolPanel();
 		linkToolPanel = new LinkToolPanel();
+		arrowToolPanel = new ArrowToolPanel();
 		textToolPanel = new TextToolPanel();
 		
-        
-        JPanel mAlignmentPane = new JPanel();
-        JPanel mMapPane = new JPanel();
-        
-      //  WidgetStack stack = new WidgetStack();
-
-   //     stack.addPane(VueResources.getString("formatting.text.label"), mTextPane, 0f);
-      //  stack.addPane(VueResources.getString("formatting.node.label"), mNodePane, 0f);
-       // stack.addPane(VueResources.getString("formatting.link.label"), mLinkPane, 0f);
-       // stack.addPane(VueResources.getString("formatting.alignment.label"), mAlignmentPane, 0f);
-       // stack.addPane(VueResources.getString("formatting.map.label"), mMapPane, 0f);
-        
-        // c.gridwidth = GridBagConstraints.RELATIVE; // next-to-last in row
-
-
         this.add(nodeToolPanel);
         this.add(new JSeparator(SwingConstants.VERTICAL));
         
-        this.add(linkToolPanel);
-        
+        this.add(fillToolPanel);
         this.add(new JSeparator(SwingConstants.VERTICAL));
+        
+        this.add(linkToolPanel);       
+        this.add(new JSeparator(SwingConstants.VERTICAL));
+        
+        this.add(arrowToolPanel);
+        this.add(new JSeparator(SwingConstants.VERTICAL));
+        
         this.add(textToolPanel);
 	}
 	

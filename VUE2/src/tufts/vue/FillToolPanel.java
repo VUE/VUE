@@ -42,23 +42,47 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.40 $ / $Date: 2007-04-26 18:09:04 $ / $Author: mike $
+ * @version $Revision: 1.1 $ / $Date: 2007-04-26 18:09:04 $ / $Author: mike $
  */
  
-public class NodeToolPanel extends LWCToolPanel
+public class FillToolPanel extends LWCToolPanel
 {
-    public NodeToolPanel() {
-       
+	 /** fill button **/                 protected ColorMenuButton mFillColorButton;
+	 /** stroke color editor button **/  protected ColorMenuButton mStrokeColorButton;
+	 
+    public FillToolPanel() {
+    
+        
     }
     
     public void buildBox()
     {
-    	 ShapeMenuButton mShapeButton = new ShapeMenuButton();
-    	 LinkMenuButton mLinkButton = new LinkMenuButton();
-         //JLabel label = new JLabel("   Node: ");
-         //label.setFont(VueConstants.FONT_SMALL);
-         GridBagConstraints gbc = new GridBagConstraints();
-     	    
+  	  //-------------------------------------------------------
+        // Fill Color menu
+        //-------------------------------------------------------
+        //TODO: need to come back here and move these tooltips into properties. -mikek         
+        Color [] fillColors = VueResources.getColorArray("fillColorValues");
+        String [] fillColorNames = VueResources.getStringArray("fillColorNames");
+        mFillColorButton = new ColorMenuButton(fillColors, fillColorNames, true);
+        mFillColorButton.setPropertyKey(LWKey.FillColor);
+        mFillColorButton.setColor(VueResources.getColor("defaultFillColor"));
+        mFillColorButton.setToolTipText("Fill Color");
+        mFillColorButton.addPropertyChangeListener(this); // always last or we get prop change events for setup
+         
+        //-------------------------------------------------------
+        // Stroke Color menu
+        //-------------------------------------------------------
+        
+        Color[] strokeColors = VueResources.getColorArray("strokeColorValues");
+        String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
+        mStrokeColorButton = new ColorMenuButton(strokeColors, strokeColorNames, true);
+        mStrokeColorButton.setPropertyKey(LWKey.StrokeColor);
+        mStrokeColorButton.setColor(VueResources.getColor("defaultStrokeColor"));
+        //mStrokeColorButton.setButtonIcon(new LineIcon(16,16, 4, false));
+        mStrokeColorButton.setToolTipText("Stroke Color");
+        mStrokeColorButton.addPropertyChangeListener(this);
+       GridBagConstraints gbc = new GridBagConstraints();
+     	gbc.insets = new Insets(3,3,3,3);    
         gbc.gridx = 0;
  		gbc.gridy = 0;    		
  		gbc.gridwidth = 1;
@@ -66,10 +90,10 @@ public class NodeToolPanel extends LWCToolPanel
  		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
  		gbc.anchor = GridBagConstraints.WEST;
  		
- 		JLabel shapeLabel = new JLabel("Shape: ");
- 		shapeLabel.setForeground(new Color(51,51,51));
- 		shapeLabel.setFont(tufts.vue.VueConstants.SmallFont);
- 		getBox().add(shapeLabel,gbc);
+ 		JLabel fillLabel = new JLabel("Fill: ");
+ 		fillLabel.setForeground(new Color(51,51,51));
+ 		fillLabel.setFont(tufts.vue.VueConstants.SmallFont);
+ 		getBox().add(fillLabel,gbc);
          
         gbc.gridx = 0;
  		gbc.gridy = 1;    		
@@ -77,32 +101,34 @@ public class NodeToolPanel extends LWCToolPanel
  		gbc.gridheight=1;
  		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
  		gbc.anchor = GridBagConstraints.WEST;
- 		JLabel strokeLabel = new JLabel("Line: ");
- 		strokeLabel.setForeground(new Color(51,51,51));
- 		strokeLabel.setFont(tufts.vue.VueConstants.SmallFont);
- 		getBox().add(strokeLabel,gbc);
+ 		JLabel lineLabel = new JLabel("Line: ");
+ 		lineLabel.setForeground(new Color(51,51,51));
+ 		lineLabel.setFont(tufts.vue.VueConstants.SmallFont);
+ 		getBox().add(lineLabel,gbc);
          
-     	gbc.gridx = 1;
- 		gbc.gridy = 0;    				
- 		gbc.fill = GridBagConstraints.NONE; // the label never grows
- 		gbc.insets = new Insets(1,1,1,5);
- 		gbc.anchor = GridBagConstraints.WEST;
-         getBox().add(mShapeButton, gbc);
+ 		  if (addComponent(mFillColorButton))
+ 	        {
+ 			  	gbc.gridx = 1;
+ 			 	gbc.gridy = 0;    				
+ 	 			gbc.fill = GridBagConstraints.NONE; // the label never grows
+ 	 			gbc.insets = new Insets(1,2,1,1);
+ 	 			gbc.anchor = GridBagConstraints.WEST;
+ 	    		getBox().add(mFillColorButton, gbc);
+ 	        }
+ 	        if (addComponent(mStrokeColorButton))
+ 	        {
+ 	        	gbc.gridx = 1;
+ 	      		gbc.gridy = 1;    				
+ 	      		gbc.fill = GridBagConstraints.BOTH; // the label never grows
+ 	      		gbc.insets = new Insets(1,2,1,1);
+	      		gbc.anchor = GridBagConstraints.WEST;		
+ 	    		getBox().add(mStrokeColorButton, gbc); 	        	
+ 	        }
+     	
+        
          
-         gbc.gridx = 1;
-  		gbc.gridy = 1;    				
-  		gbc.fill = GridBagConstraints.BOTH; // the label never grows
-  		gbc.insets = new Insets(1,1,1,5);
-  		gbc.anchor = GridBagConstraints.WEST;
-         getBox().add(mLinkButton,gbc);
-         
-         mShapeButton.addPropertyChangeListener(this);
-         mLinkButton.addPropertyChangeListener(this);
-         //addEditor(mLinkButton);
-         
-         //add(mShapeButton);
-         //getBox().add(label, 0);
-         //getBox().add(label, 0);
+        
+                  
     }
     public boolean isPreferredType(Object o) {
         return o instanceof LWNode;

@@ -20,7 +20,9 @@ package tufts.vue;
 
 import java.lang.*;
 import java.util.*;
+
 import javax.swing.*;
+
 import java.awt.geom.Point2D;
 //import tufts.vue.beans.VueBeanState;
 
@@ -35,6 +37,7 @@ public class LinkTool extends VueTool
 {
     /** link tool contextual tool panel **/
     private static LinkToolPanel sLinkContextualPanel;
+    private static LinkTool singleton = null;
     
     LWComponent linkSource; // for starting a link
 
@@ -47,6 +50,33 @@ public class LinkTool extends VueTool
         invisibleLinkEndpoint.addLinkRef(creationLink);
         invisibleLinkEndpoint.setSize(0,0);
         //creationLink.setStrokeColor(java.awt.Color.blue);
+        if (singleton != null) 
+            new Throwable("Warning: mulitple instances of " + this).printStackTrace();
+        singleton = this;
+    }
+    
+    /** return the singleton instance of this class */
+    public static LinkTool getTool()
+    {
+        if (singleton == null) {
+            new Throwable("Warning: LinkTool.getTool: class not initialized by VUE").printStackTrace();
+            new LinkTool();
+        }
+        return singleton;
+    }
+    
+    /** @return an array of actions, with icon set, that will set the shape of selected
+     * LinkTools */
+    public Action[] getSetterActions() {
+        Action[] actions = new Action[getSubToolIDs().size()];
+        Enumeration e = getSubToolIDs().elements();
+        int i = 0;
+        while (e.hasMoreElements()) {
+            String id = (String) e.nextElement();
+            LinkTool.SubTool nt = (LinkTool.SubTool) getSubTool(id);
+            actions[i++] = nt.getSetterAction();
+        }
+        return actions;
     }
     
     public JPanel getContextualPanel() {
@@ -408,6 +438,7 @@ public class LinkTool extends VueTool
                         void act(LWLink c) { c.setControlCount(curveCount); }
                     };
                 setterAction.putValue("property.value", new Integer(curveCount)); // this may be handy
+                setterAction.putValue(Action.SMALL_ICON, this.getRawIcon());
                 // key is from: MenuButton.ValueKey
             }
             return setterAction;

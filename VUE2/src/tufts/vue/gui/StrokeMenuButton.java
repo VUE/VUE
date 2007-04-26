@@ -20,6 +20,7 @@ package tufts.vue.gui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -60,6 +61,7 @@ public class StrokeMenuButton extends ComboBoxMenuButton<Float>
         ComboBoxRenderer renderer= new ComboBoxRenderer();
 		setRenderer(renderer);
 		this.setMaximumRowCount(10);
+	
     }
 
     public StrokeMenuButton() {}
@@ -118,7 +120,7 @@ public class StrokeMenuButton extends ComboBoxMenuButton<Float>
             //setIcon(icon);
     		
           //  this.setBorder(BorderFactory.createEmptyBorder(0,0, 1, 1));
-    		this.setBorder(BorderFactory.createEmptyBorder(3,3, 3, 3));
+    		this.setBorder(BorderFactory.createEmptyBorder(4,1, 3, 3));
     		return this;
     	}
     	protected Icon makeIcon(Float value) {

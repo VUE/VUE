@@ -86,6 +86,9 @@ public class PresentationTool extends VueTool
         }
     }
 
+    
+    private static PresentationTool singleton;
+    
     private BackStack mBackList = new BackStack();
 
     private List<NavNode> mNavNodes = new java.util.ArrayList();
@@ -136,6 +139,9 @@ public class PresentationTool extends VueTool
 
     public PresentationTool() {
         super();
+        if (singleton != null) 
+            new Throwable("Warning: mulitple instances of " + this).printStackTrace();
+        singleton = this;
         //VUE.addActiveViewerListener(this);
     }
     
@@ -157,6 +163,16 @@ public class PresentationTool extends VueTool
         return p;
     }
 
+    /** return the singleton instance of this class */
+    public static PresentationTool getTool()
+    {
+        if (singleton == null) {
+            new Throwable("Warning: NodeTool.getTool: class not initialized by VUE").printStackTrace();
+            //throw new IllegalStateException("NodeTool.getTool: class not initialized by VUE");
+            new NodeTool();
+        }
+        return singleton;
+    }
     private void add(JPanel p, AbstractButton c) {
         c.setFocusable(false);
         c.setFont(VueConstants.FONT_SMALL);

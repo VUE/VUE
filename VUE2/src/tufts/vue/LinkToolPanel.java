@@ -32,92 +32,106 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.41 $ / $Date: 2007-04-18 21:51:17 $ / $Author: mike $
+ * @version $Revision: 1.42 $ / $Date: 2007-04-26 18:09:04 $ / $Author: mike $
  * 
  */
 
 public class LinkToolPanel extends LWCToolPanel
 {
-	/**
-	 * This isn't here for good but until we do something else, this is here so we
-	 * don't loose the functionality with the loss of the contextual menu.
-	 * @author mkorcy01
-	 *
-	 */
-	private static class ArrowStyleButton extends JComboBox
-    {
-        ImageIcon[] imageIcons;
-        
-        public ArrowStyleButton(Object[] a) {
-        	super(a);
-            setFont(tufts.vue.VueConstants.FONT_SMALL); // does this have any effect?  maybe on Windows?
-            // set the size of the icon that displays the current value:
-            //setButtonIcon(new LineIcon(ButtonWidth-18, 3)); // height really only needs to be 1 pixel
-            ComboBoxRenderer renderer= new ComboBoxRenderer();
-    		setRenderer(renderer);
-    	      
-    		imageIcons = new ImageIcon[3];    
-            imageIcons[0] = (ImageIcon) VueResources.getIcon("leftarrow.raw");
-            imageIcons[1] = (ImageIcon) VueResources.getIcon("rightarrow.raw");
-            imageIcons[2] = (ImageIcon) VueResources.getIcon("botharrow.raw");                                               		
-    		this.setMaximumRowCount(10);
-        }
-                
-        
-        class ComboBoxRenderer extends JLabel implements ListCellRenderer {
-        	
-        	public ComboBoxRenderer() {
-        		setOpaque(true);
-        		setHorizontalAlignment(CENTER);
-        		setVerticalAlignment(CENTER);		
-        	}
+	/** stroke size selector menu **/   protected StrokeStyleButton mStrokeStyleButton;
+	/** stroke size selector menu **/   protected StrokeMenuButton mStrokeButton;
+	
+	 private static class StrokeStyleButton extends ComboBoxMenuButton<LWComponent.StrokeStyle>
+	    {
+	        
+	        public StrokeStyleButton() {
+	            buildMenu(LWComponent.StrokeStyle.class);
+	            setFont(tufts.vue.VueConstants.FONT_SMALL); // does this have any effect?  maybe on Windows?
+	            // set the size of the icon that displays the current value:
+	            //setButtonIcon(new LineIcon(ButtonWidth-18, 3)); // height really only needs to be 1 pixel
+	            ComboBoxRenderer renderer= new ComboBoxRenderer();
+	    		setRenderer(renderer);
+	    		this.setMaximumRowCount(10);
+	    		
+	        }
+	        
+	        public void displayValue(LWComponent.StrokeStyle style) {
+	            setToolTipText("Stroke Style: " + style);
+	            //if (getButtonIcon() instanceof LineIcon) {
+	            //    LineIcon icon = (LineIcon) getButtonIcon();
+	            //    icon.setStroke(style.makeStroke(1));
+	            //    repaint();
+	           // }
+	            mCurrentValue = style;
+	        }
+	        
+	        /** returns the physical size of the outer button */
+	        //protected Dimension getButtonSize() {
+	            // todo: the interaction between button size and icon/width height should
+	            // be clearer, and automatic!
+	            //return new Dimension(ButtonWidth,ButtonHeight);
+	        //}
+	        
+	        /** factory for superclass buildMenu -- these are the icons that will appear in the pull-down menu */
+	        protected Icon makeIcon(LWComponent.StrokeStyle style) {
+	            LineIcon li = new LineIcon(24, 3);
+	            li.setStroke(style.makeStroke(1));
+	            return li;
+	        }
+	        
+	        class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+	        	
+	        	public ComboBoxRenderer() {
+	        		setOpaque(true);
+	        		setHorizontalAlignment(CENTER);
+	        		setVerticalAlignment(CENTER);
+	        		
 
-        
-        	public Component getListCellRendererComponent(
-                        JList list,
-                        Object value,
-                        int index,
-                        boolean isSelected,
-                        boolean cellHasFocus) {
-        		
-        		if (isSelected) {
-        			setBackground(list.getSelectionBackground());
-        			setForeground(list.getSelectionForeground());
-        		} else {
-        			setBackground(Color.white);
-        			setForeground(list.getForeground());
-        		}   		
-                
-                int val = ((Integer)value).intValue();
-                if (val ==0)
-                {
-                	setText("none");
-                	setIcon(null);
-                }
-                else
-                {	val--;
-                	setText("");
-                	setIcon(imageIcons[val]);
-                }
-        		
-               this.setBorder(BorderFactory.createEmptyBorder(3,1, 3,1));
+	        	}
 
-        		return this;
-        	}
-        	  protected Icon makeIcon(LWComponent.StrokeStyle style) {
-                  LineIcon li = new LineIcon(24, 3);
-                  li.setStroke(style.makeStroke(1));
-                  return li;
-              }
-        	 /** @return new icon for the given shape */
-          //  protected Icon makeIcon(RectangularShape shape) {
-          //      return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
-          //  }
-            
-        }        
-	 
-    }
-    
+	        
+	        	public Component getListCellRendererComponent(
+	                        JList list,
+	                        Object value,
+	                        int index,
+	                        boolean isSelected,
+	                        boolean cellHasFocus) {
+	        		
+	        		if (isSelected) {
+	        			setBackground(list.getSelectionBackground());
+	        			setForeground(list.getSelectionForeground());
+	        		} else {
+	        			setBackground(Color.white);
+	        			setForeground(list.getForeground());
+	        		}
+	        	 
+	        		
+	        		//Set the icon and text.  If icon was null, say so.        		
+	        		LWComponent.StrokeStyle a = (LWComponent.StrokeStyle) value;
+	        		
+	                Icon    icon = makeIcon(a);
+	                
+	                setIcon(icon);
+	        		
+	                this.setBorder(BorderFactory.createEmptyBorder(5,5,2,2));
+
+	        		return this;
+	        	}
+	        	  protected Icon makeIcon(LWComponent.StrokeStyle style) {
+	                  LineIcon li = new LineIcon(20, 13);
+	                  li.setStroke(style.makeStroke(1));
+	                  return li;
+	              }
+	        	 /** @return new icon for the given shape */
+	          //  protected Icon makeIcon(RectangularShape shape) {
+	          //      return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
+	          //  }
+	            
+	        }        
+		 
+	    }
+	    
+
 
     public boolean isPreferredType(Object o) {
         return o instanceof LWLink;
@@ -125,12 +139,27 @@ public class LinkToolPanel extends LWCToolPanel
     
     protected void buildBox()
     {
-       // final AbstractButton mArrowStartButton = new VueButton.Toggle("link.button.arrow.start");
-       // final AbstractButton mArrowEndButton = new VueButton.Toggle("link.button.arrow.end");
+        //-------------------------------------------------------
+        // Stroke Width menu
+        //-------------------------------------------------------
         
-        //setting up tooltips for link specific buttons.
-        //mArrowStartButton.setToolTipText(VueResources.getString("linkToolPanel.startArrow.toolTip"));
-        //mArrowEndButton.setToolTipText(VueResources.getString("linkToolPanel.endArrow.toolTip"));
+        float[] strokeValues = VueResources.getFloatArray("strokeWeightValues");
+        String[] strokeMenuLabels = VueResources.getStringArray("strokeWeightNames");
+        mStrokeButton = new StrokeMenuButton(strokeValues, strokeMenuLabels, true, false);
+        mStrokeButton.setPropertyKey(LWKey.StrokeWidth);
+        //mStrokeButton.setButtonIcon(new LineIcon(16,16));
+        mStrokeButton.setStroke(1f);
+        mStrokeButton.setToolTipText("Stroke Width");
+        mStrokeButton.addPropertyChangeListener(this);
+        
+    	//-------------------------------------------------------
+        // Stroke Style menu
+        //-------------------------------------------------------
+        
+        mStrokeStyleButton = new StrokeStyleButton();
+        mStrokeStyleButton.setPropertyKey(LWKey.StrokeStyle);
+        mStrokeStyleButton.addPropertyChangeListener(this);
+        
         
         final Action[] LinkTypeActions = new Action[] { 
             Actions.LinkMakeStraight,
@@ -143,41 +172,11 @@ public class LinkToolPanel extends LWCToolPanel
 		i[1]= new Integer(1);
 		i[2]= new Integer(2);
 		i[3]= new Integer(3);
-		final ArrowStyleButton arrowCombo = new ArrowStyleButton(i);
 		
         AbstractButton linkTypeMenu = new VuePopupMenu(LWKey.LinkCurves, LinkTypeActions);
         linkTypeMenu.setToolTipText("Link Style");
         linkTypeMenu.addPropertyChangeListener(this);
         
-        final LWPropertyHandler arrowPropertyHandler =
-            new LWPropertyHandler<Integer>(LWKey.LinkArrows, LinkToolPanel.this) {
-                public Integer produceValue() {
-                    int arrowState = LWLink.ARROW_NONE;
-                    if (arrowCombo.getSelectedIndex() == 0)
-                    	return arrowState;
-                    else if (arrowCombo.getSelectedIndex() ==1)
-                        arrowState |= LWLink.ARROW_HEAD;
-                    else if (arrowCombo.getSelectedIndex() ==2)
-                        arrowState |= LWLink.ARROW_TAIL;
-                    else if (arrowCombo.getSelectedIndex() ==3)
-                    {
-                    	arrowState |= LWLink.ARROW_HEAD;
-                    	arrowState |= LWLink.ARROW_TAIL;
-                    }
-                    return arrowState;
-                }
-                public void displayValue(Integer i) {
-                    int arrowState = i;
-                    
-                }
-
-            /*    public void setEnabled(boolean enabled) {
-                    mArrowStartButton.setEnabled(enabled);
-                    mArrowEndButton.setEnabled(enabled);
-                }*/
-            };
-
-            arrowCombo.addActionListener(arrowPropertyHandler);
         //LWCToolPanel.InstallHandler(mArrowStartButton, arrowPropertyHandler);
         //LWCToolPanel.InstallHandler(mArrowEndButton, arrowPropertyHandler);
 
@@ -201,101 +200,51 @@ public class LinkToolPanel extends LWCToolPanel
         //mArrowEndButton.addItemListener(arrowPropertyHandler);
         GridBagConstraints gbc = new GridBagConstraints();
         
-        addComponent(linkTypeMenu);
+        //addComponent(linkTypeMenu);
         	
         mBox.setLayout(new GridBagLayout());
-    	gbc.gridx = 0;
-		gbc.gridy = 0;    		
-		gbc.insets = new Insets(1,5,1,0);
-		gbc.gridwidth=3;
-		gbc.fill = GridBagConstraints.BOTH; // the label never grows
-		gbc.anchor = GridBagConstraints.WEST;
-		JLabel linkLabel = new JLabel("Link");
-		linkLabel.setForeground(Color.black);
-		linkLabel.setFont(tufts.vue.VueConstants.SmallFont);
-		mBox.add(linkLabel,gbc);
-		
+    	
+        gbc.insets = new Insets(1,5,1,5);
 		gbc.gridx = 0;
-		gbc.gridy = 1;    				
+		gbc.gridy = 0;    				
 		gbc.gridwidth=1;
-		gbc.fill = GridBagConstraints.NONE; // the label never grows
-		gbc.anchor = GridBagConstraints.WEST;
+		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
+		gbc.anchor = GridBagConstraints.CENTER;
 		JLabel strokeLabel = new JLabel("Stroke :");
 		strokeLabel.setForeground(new Color(51,51,51));
 		strokeLabel.setFont(tufts.vue.VueConstants.SmallFont);
 		mBox.add(strokeLabel,gbc);
 		
 		gbc.gridx = 0;
-		gbc.gridy = 2;    				
+		gbc.gridy = 1;    				
 		gbc.gridwidth=1;
 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
-		gbc.anchor = GridBagConstraints.WEST;
-		JLabel arrowLabel = new JLabel("Arrows :");
-		arrowLabel.setForeground(new Color(51,51,51));
-		arrowLabel.setFont(tufts.vue.VueConstants.SmallFont);
-		mBox.add(arrowLabel,gbc);
+		gbc.anchor = GridBagConstraints.CENTER;
+		JLabel weightLabel = new JLabel("Weight :");
+		weightLabel.setForeground(new Color(51,51,51));
+		weightLabel.setFont(tufts.vue.VueConstants.SmallFont);
+		mBox.add(weightLabel,gbc);
 		
 		gbc.gridx = 1;
-		gbc.gridy = 1;    		
-		gbc.insets = new Insets(1,1,1,1);
-		gbc.gridwidth=1;
-		gbc.gridheight=1;
-		
+		gbc.gridy = 0;    		
+		gbc.insets = new Insets(1,5,1,15);
+	//	gbc.gridwidth=1;
+	//	gbc.gridheight=1;		
+		//gbc.ipady=8;
+		//gbc.ipadx=5;
 		gbc.fill = GridBagConstraints.BOTH; // the label never grows
 		gbc.anchor = GridBagConstraints.WEST;
-//		gbc.ipadx=10;
-//		gbc.ipady=0;
-		
 		mBox.add(mStrokeStyleButton,gbc);
 		
-		gbc.ipadx=4;
-//		gbc.ipady=4;
-		gbc.gridx = 1;
-		gbc.gridy = 2;    		
-		gbc.insets = new Insets(1,1,1,1);
-		gbc.gridwidth=1;
-		gbc.gridheight=1;
-		gbc.fill = GridBagConstraints.BOTH; // the label never grows
-		gbc.anchor = GridBagConstraints.WEST;
-		JComboBox undefined = new JComboBox();
-		undefined.setFont(tufts.vue.VueConstants.FONT_SMALL); 
-		undefined.addItem("none");
-		undefined.setEnabled(false);
-		mBox.add(undefined,gbc);
-		
-		gbc.ipadx=0;
-		gbc.ipady=0;
-		gbc.gridx = 2;
-		gbc.gridy = 2;    		
-		gbc.insets = new Insets(1,1,1,1);
-		gbc.gridwidth=1;
-		gbc.gridheight=1;
-		//gbc.ipadx=12;
-		gbc.fill = GridBagConstraints.BOTH; // the label never grows
-		gbc.anchor = GridBagConstraints.WEST;		
-		mBox.add(arrowCombo,gbc);
-		
-		gbc.ipadx=0;
-        if (addComponent(mStrokeColorButton))
-        {
-        	gbc.gridx = 3;
-    		gbc.gridy = 1;    		
-    		gbc.insets = new Insets(1,1,1,1);
-    		gbc.gridwidth=1;
-    		gbc.gridheight=1;
-    		gbc.fill = GridBagConstraints.NONE; // the label never grows
-    		gbc.anchor = GridBagConstraints.WEST;
-    		mBox.add(mStrokeColorButton,gbc);
-        }
-        
+		       
         if (addComponent(mStrokeButton))
-        {
-        	gbc.gridx = 2;
+        {        	
+        	//gbc.ipady=2;
+        	//gbc.ipadx=4;
+        	gbc.gridx = 1;
     		gbc.gridy = 1;    		
-    	//	gbc.insets = new Insets(-6,5,-6,1);
-    		gbc.gridwidth=1;
-    	//	gbc.ipadx=10;
-    		gbc.gridheight=1;
+    	//	gbc.gridwidth=1;
+    	//	gbc.gridheight=1;
     		gbc.fill = GridBagConstraints.BOTH; // the label never grows
     		gbc.anchor = GridBagConstraints.WEST;
     		mStrokeButton.setSelectedIndex(1);
