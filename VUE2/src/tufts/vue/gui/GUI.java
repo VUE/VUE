@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.68 $ / $Date: 2007-03-26 06:15:43 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2007-04-26 18:06:46 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -682,7 +682,7 @@ public class GUI
 
     
     /** @return a new VUE application DockWindow */
-    public static DockWindow createDockWindow(String title, boolean asToolbar) {
+    public static DockWindow createDockWindow(String title, boolean asToolbar,boolean showCloseButton) {
 
         // In Java 1.5 we can set the Window's to be always on top.  In this case, we
         // can use a hidden parent for the DockWindow, set them to be never focusable, and
@@ -703,21 +703,24 @@ public class GUI
     	if (Util.isUnixPlatform() && Util.getJavaVersion() >= 1.5f)
     	{
     		//There are a bunch of focus problems on Unix, hopefully this clears it up.
-    		return new DockWindow(title,VUE.getRootWindow(),null,asToolbar);
+    		return new DockWindow(title,VUE.getRootWindow(),null,asToolbar,showCloseButton);
     	}
     	else if (UseAlwaysOnTop && Util.getJavaVersion() >= 1.5f) {
             DockWindow dockWindow
-                = new DockWindow(title, DockWindow.getHiddenFrame(), null, asToolbar);
+                = new DockWindow(title, DockWindow.getHiddenFrame(), null, asToolbar,showCloseButton);
             dockWindow.setFocusableWindowState(false);
             setAlwaysOnTop(dockWindow, true);
             return dockWindow;
         } else {
             // TODO: create method in VUE for getting DockWindow parent for use elsewhere
-            return new DockWindow(title, getFullScreenWindow(), null, asToolbar);
+            return new DockWindow(title, getFullScreenWindow(), null, asToolbar,showCloseButton);
             //return new DockWindow(title, VUE.getRootWindow());
         }
     }
 
+    public static DockWindow createDockWindow(String title, boolean asToolbar) {
+    	return createDockWindow(title,asToolbar,true);
+    }
     public static DockWindow createDockWindow(String title) {
         return createDockWindow(title, false);
     }
