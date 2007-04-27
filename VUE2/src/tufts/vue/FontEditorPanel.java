@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.45 $ / $Date: 2007-04-26 18:09:04 $ / $Author: mike $
+ * @version $Revision: 1.46 $ / $Date: 2007-04-27 15:47:01 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -119,7 +119,7 @@ implements PropertyChangeListener
         if (sFontSizes == null)
             sFontSizes = VueResources.getStringArray("fontSizes");
         mSizeField = new JComboBox(sFontSizes);
-        mSizeField.setPrototypeDisplayValue("10000");
+  //      mSizeField.setPrototypeDisplayValue("10000");
         mSizeField.setEditable(true);
         mSizeField.setOpaque(false);
         
@@ -138,9 +138,9 @@ implements PropertyChangeListener
         //System.out.println("EDITOR-COMP " + mSizeField.getEditor().getEditorComponent());
 
         if (mSizeField.getEditor().getEditorComponent() instanceof JTextField) {
-            JTextField sizeEditor = (JTextField) mSizeField.getEditor().getEditorComponent();
-            sizeEditor.setColumns(2); // not exactly character columns
-
+           JTextField sizeEditor = (JTextField) mSizeField.getEditor().getEditorComponent();
+            sizeEditor.setColumns(3); // not exactly character columns
+        }
             /*
             if (!GUI.isMacAqua()) {
                 try {
@@ -161,7 +161,7 @@ implements PropertyChangeListener
             // (actually, both do that when they can resize), and they're
             // picking up more of our color override settings (and the
             // at-right button appears closer to Melanie's comps).
-        }
+//        }
 
         //mSizeField.getEditor().getEditorComponent().setSize(30,10);
         
@@ -230,8 +230,8 @@ implements PropertyChangeListener
         gbc.gridx=0;
         gbc.gridy=0;
         gbc.gridwidth=1;
-        gbc.insets = new Insets(1,5,1,1);
-        gbc.anchor=GridBagConstraints.WEST;
+        gbc.insets = new Insets(1,3,1,1);
+        gbc.anchor=GridBagConstraints.EAST;
         gbc.fill=GridBagConstraints.BOTH;               
     	
 		add(textLabel,gbc);
@@ -240,19 +240,19 @@ implements PropertyChangeListener
 		gbc.gridy=0;
         gbc.gridx=1;        
         gbc.gridwidth=5;
-        gbc.insets = new Insets(1,5,1,1);
-        gbc.anchor=GridBagConstraints.WEST;
+        gbc.insets = new Insets(1,3,1,1);
+        gbc.anchor=GridBagConstraints.EAST;
         gbc.fill=GridBagConstraints.BOTH;                                    
         add(mFontCombo,gbc);
         
         gbc.gridy=0;
         gbc.gridx=6;        
-        gbc.fill=GridBagConstraints.BOTH;
+        gbc.fill=GridBagConstraints.NONE;
         gbc.anchor=GridBagConstraints.WEST;
-        gbc.weightx=0.30;
         gbc.gridwidth=1;
-        gbc.gridheight=1;
-        //gbc.ipady=6;
+        gbc.weightx=0.3;
+        //   gbc.gridheight=1;
+        gbc.ipady=5;
         //gbc.ipadx=5;        
         gbc.insets=new Insets(1,5,1,1);
         add(mSizeField,gbc);

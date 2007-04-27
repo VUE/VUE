@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.1 $ / $Date: 2007-04-26 18:09:04 $ / $Author: mike $
+ * @version $Revision: 1.2 $ / $Date: 2007-04-27 15:47:01 $ / $Author: mike $
  */
  
 public class FillToolPanel extends LWCToolPanel
@@ -52,7 +52,7 @@ public class FillToolPanel extends LWCToolPanel
 	 
     public FillToolPanel() {
     
-        
+        //setBorder(BorderFactory.createLineBorder(Color.red));
     }
     
     public void buildBox()
@@ -82,13 +82,13 @@ public class FillToolPanel extends LWCToolPanel
         mStrokeColorButton.setToolTipText("Stroke Color");
         mStrokeColorButton.addPropertyChangeListener(this);
        GridBagConstraints gbc = new GridBagConstraints();
-     	gbc.insets = new Insets(3,3,3,3);    
+     	gbc.insets = new Insets(3,3,5,3);    
         gbc.gridx = 0;
  		gbc.gridy = 0;    		
  		gbc.gridwidth = 1;
  		gbc.gridheight=1;
  		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
- 		gbc.anchor = GridBagConstraints.WEST;
+ 		gbc.anchor = GridBagConstraints.NORTHEAST;
  		
  		JLabel fillLabel = new JLabel("Fill: ");
  		fillLabel.setForeground(new Color(51,51,51));
@@ -99,8 +99,9 @@ public class FillToolPanel extends LWCToolPanel
  		gbc.gridy = 1;    		
  		gbc.gridwidth = 1; // next-to-last in row
  		gbc.gridheight=1;
+ 		gbc.insets = new Insets(8,3,1,3);
  		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
- 		gbc.anchor = GridBagConstraints.WEST;
+ 		gbc.anchor = GridBagConstraints.NORTHEAST;
  		JLabel lineLabel = new JLabel("Line: ");
  		lineLabel.setForeground(new Color(51,51,51));
  		lineLabel.setFont(tufts.vue.VueConstants.SmallFont);
@@ -111,17 +112,17 @@ public class FillToolPanel extends LWCToolPanel
  			  	gbc.gridx = 1;
  			 	gbc.gridy = 0;    				
  	 			gbc.fill = GridBagConstraints.NONE; // the label never grows
- 	 			gbc.insets = new Insets(1,2,1,1);
- 	 			gbc.anchor = GridBagConstraints.WEST;
+ 	 			gbc.insets = new Insets(1,2,4,3);
+ 	 			gbc.anchor = GridBagConstraints.SOUTHWEST;
  	    		getBox().add(mFillColorButton, gbc);
  	        }
  	        if (addComponent(mStrokeColorButton))
  	        {
  	        	gbc.gridx = 1;
  	      		gbc.gridy = 1;    				
- 	      		gbc.fill = GridBagConstraints.BOTH; // the label never grows
- 	      		gbc.insets = new Insets(1,2,1,1);
-	      		gbc.anchor = GridBagConstraints.WEST;		
+ 	      		gbc.fill = GridBagConstraints.NONE; // the label never grows
+ 	      		gbc.insets = new Insets(4,2,1,3);
+	      		gbc.anchor = GridBagConstraints.SOUTHWEST;		
  	    		getBox().add(mStrokeColorButton, gbc); 	        	
  	        }
      	

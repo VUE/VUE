@@ -32,7 +32,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.42 $ / $Date: 2007-04-26 18:09:04 $ / $Author: mike $
+ * @version $Revision: 1.43 $ / $Date: 2007-04-27 15:47:01 $ / $Author: mike $
  * 
  */
 
@@ -204,12 +204,12 @@ public class LinkToolPanel extends LWCToolPanel
         	
         mBox.setLayout(new GridBagLayout());
     	
-        gbc.insets = new Insets(1,5,1,5);
+        gbc.insets = new Insets(1,3,1,1);
 		gbc.gridx = 0;
 		gbc.gridy = 0;    				
 		gbc.gridwidth=1;
 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
-		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.anchor = GridBagConstraints.EAST;
 		JLabel strokeLabel = new JLabel("Stroke :");
 		strokeLabel.setForeground(new Color(51,51,51));
 		strokeLabel.setFont(tufts.vue.VueConstants.SmallFont);
@@ -219,7 +219,7 @@ public class LinkToolPanel extends LWCToolPanel
 		gbc.gridy = 1;    				
 		gbc.gridwidth=1;
 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
-		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.anchor = GridBagConstraints.EAST;
 		JLabel weightLabel = new JLabel("Weight :");
 		weightLabel.setForeground(new Color(51,51,51));
 		weightLabel.setFont(tufts.vue.VueConstants.SmallFont);
@@ -227,7 +227,7 @@ public class LinkToolPanel extends LWCToolPanel
 		
 		gbc.gridx = 1;
 		gbc.gridy = 0;    		
-		gbc.insets = new Insets(1,5,1,15);
+		gbc.insets = new Insets(1,1,1,3);
 	//	gbc.gridwidth=1;
 	//	gbc.gridheight=1;		
 		//gbc.ipady=8;

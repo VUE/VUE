@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.40 $ / $Date: 2007-04-26 18:09:04 $ / $Author: mike $
+ * @version $Revision: 1.41 $ / $Date: 2007-04-27 15:47:01 $ / $Author: mike $
  */
  
 public class NodeToolPanel extends LWCToolPanel
@@ -63,8 +63,9 @@ public class NodeToolPanel extends LWCToolPanel
  		gbc.gridy = 0;    		
  		gbc.gridwidth = 1;
  		gbc.gridheight=1;
+ 		gbc.insets= new Insets(0,3,0,0);
  		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
- 		gbc.anchor = GridBagConstraints.WEST;
+ 		gbc.anchor = GridBagConstraints.EAST;
  		
  		JLabel shapeLabel = new JLabel("Shape: ");
  		shapeLabel.setForeground(new Color(51,51,51));
@@ -76,7 +77,7 @@ public class NodeToolPanel extends LWCToolPanel
  		gbc.gridwidth = 1; // next-to-last in row
  		gbc.gridheight=1;
  		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
- 		gbc.anchor = GridBagConstraints.WEST;
+ 		gbc.anchor = GridBagConstraints.EAST;
  		JLabel strokeLabel = new JLabel("Line: ");
  		strokeLabel.setForeground(new Color(51,51,51));
  		strokeLabel.setFont(tufts.vue.VueConstants.SmallFont);
