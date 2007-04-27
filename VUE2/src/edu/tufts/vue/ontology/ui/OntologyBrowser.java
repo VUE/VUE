@@ -127,9 +127,44 @@ public class OntologyBrowser extends JPanel {
                  owlsooa.setViewer(null);
               }
         };
+        
+        tufts.vue.VueAction applyStyle = new tufts.vue.VueAction()
+        {
+            {
+                setActionName("Apply Style");
+            }  
+            
+            public void actionPerformed(java.awt.event.ActionEvent e)
+            {
+                // apply modified OntologyOpenAction for next step-- 
+                // load the wizard with current file and move to step 2 - instead of the filechooser..
+                // maybe change the button to "edit ontology?"
+                // requires singleton for ontology though?
+                javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
+                chooser.showOpenDialog(OntologyBrowser.this);
+                if(chooser.getSelectedFile()!=null)
+                {
+                    java.net.URL cssURL = null;
+                    try
+                    {        
+                      cssURL = chooser.getSelectedFile().toURL();
+                    }
+                    catch(java.net.MalformedURLException mue)
+                    {
+                        System.out.println("trouble opening css file: " + mue);
+                    }
+                    int selectedOntology = getViewer().getList().getSelectedIndex();
+                    ((edu.tufts.vue.ontology.Ontology)(getViewer().getList().getModel().getElementAt(selectedOntology))).applyStyle(cssURL);
+                    // need getTypeList() method in order to refresh the typelist model...
+                    // also need a list of typelist that corresponds to the ont list .. or maybe
+                    // can just get the component at that location in the viewer?
+                }    
+            }
+        };
           
         Action[] actions = {
-            new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this)//,
+            new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this),
+            applyStyle
             //new edu.tufts.vue.ontology.action.RDFSOntologyOpenAction("RDFS"),
             //new edu.tufts.vue.ontology.action.OwlOntologyOpenAction("OWL"),
             //addRDFSToBrowser,

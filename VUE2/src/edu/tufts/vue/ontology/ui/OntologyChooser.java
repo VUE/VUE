@@ -19,6 +19,7 @@
 package edu.tufts.vue.ontology.ui;
 
 import edu.tufts.vue.ontology.OntManager;
+import edu.tufts.vue.ontology.OntologyType;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -301,15 +302,21 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
                    
                if(ontURL!=null && (cssURL == null))
                {
+                       //edu.tufts.vue.ontology.Ontology ontology = edu.tufts.vue.ontology.OntManager.getOntManager().readOntology(ontURL,OntologyType.OWL_TYPE);
                        tufts.vue.gui.Widget w = browser.addTypeList(list,ontURL.getFile());
                        w.add(new JLabel("load style sheet"),java.awt.BorderLayout.NORTH);
                        browser.getViewer().getList().updateUI();
+                       //list.setModel(new TypeList.OntologyTypeListModel(
+                       edu.tufts.vue.ontology.Ontology ontology = edu.tufts.vue.ontology.OntManager.getOntManager().
+                                                                   readOntology(ontURL,getOntType(ontURL));//));
+                       //todo: should really be done in typelist as ontology starts to load as in next case
+                       browser.getViewer().getList().setSelectedValue(ontology,true);
                }
                if(ontURL != null && cssURL!=null)
                {
                        tufts.vue.gui.Widget w = browser.addTypeList(list,ontURL.getFile());
                        browser.getViewer().getList().updateUI();
-                       list.loadOntology(ontURL,cssURL,getOntType(ontURL),browser,w);                             
+                       list.loadOntology(ontURL,cssURL,getOntType(ontURL),browser,w); 
                }
                setVisible(false);
                }

@@ -206,8 +206,28 @@ public class TypeList extends JList {
             g.setColor(old);
             if(!isNode(type))
             {
-              g.drawLine(10,20,40,20);
-              g.fillPolygon(xpoints,ypoints,numpoints);
+              Style style = type.getStyle();
+                  
+              float strokeWidth = 1.0f;     
+              if(style.getAttribute("stroke-width") != null)
+                strokeWidth = edu.tufts.vue.style.ShorthandParser.parseSize(style.getAttribute("stroke-width"));
+                //strokeWidth = Float.parseFloat(style.getAttribute("stroke-width"));
+              System.out.println("typelist: stroke width: " + strokeWidth);
+              //if(strokeWidth <= 1.1f)
+              //{
+               g.drawLine(10,20,40,20);
+              /*}
+              else
+              {
+               g.fillRect(10,20,30,(int)(strokeWidth));
+               for(int i=0;i<ypoints.length;i++)
+               {
+                  ypoints[i] += (int)((strokeWidth+1)/2 );
+               }
+              }*/
+              
+               
+               g.fillPolygon(xpoints,ypoints,numpoints);
             }
             else
             {
@@ -240,51 +260,7 @@ public class TypeList extends JList {
         private LWComponentView lwcv = new LWComponentView();
         
         public java.awt.Component getListCellRendererComponent(JList jList, Object value, int i, boolean isSelected, boolean hasFocus) 
-        {
-            /*JPanel p = new JPanel();
-            java.awt.GridLayout grid = new java.awt.GridLayout(1,2);
-            p.setLayout(grid);
-            // p.setLayout(new java.awt.BorderLayout());
-            
-            p.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200,200,200)));
-                    
-            if(value instanceof OntType)
-            {
-                OntType t = (OntType)value;
-                
-                LWComponent noLabel = null;
-                if(typeNoLabelCache.get(value) == null)
-                {    
-                  noLabel = createLWComponent(t).duplicate();
-                  noLabel.setLabel("");
-                }
-                else
-                {
-                  noLabel = (LWComponent)typeNoLabelCache.get(value);
-                }
-                //noLabel.setLabel("");
-                noLabel.setAutoSized(false);
-                noLabel.setSize(40,25);
-                //p.add(new JLabel(new javax.swing.ImageIcon(createLWComponent(value).getAsImage())));
-                //p.add(new JLabel(new javax.swing.ImageIcon(noLabel.getAsImage())));
-                //p.add(new LWComponentView(noLabel));
-                //p.add(new JLabel(t.getLabel()));
-                
-                label.setText(t.getLabel());
-                //p.add(label);
-                
-                Style s = t.getStyle();
-                String icon = s.getAttribute("background-image");
-                System.out.println("icon " + icon);
-                if(icon != null)
-                {
-                    javax.swing.ImageIcon ii = new javax.swing.ImageIcon(icon);
-                    System.out.println("image icon: " + ii);
-                    p.add(new JLabel(ii));
-                }
-            }*/
-            
-            
+        {            
             if(value == getSelectedValue())
             {
                 lwcv.setBackground(new java.awt.Color(230,230,230));
@@ -298,6 +274,8 @@ public class TypeList extends JList {
         }
     }
     
+    // actually only needed for RDF and OWL Ontology open actions which are not currently used in the main GUI
+    // needs update to used threads/etc if returned to regular operation (see alternative method above)
     public void loadOntology(URL ontologyURL,URL cssURL,org.osid.shared.Type ontType,boolean fromFile)
     {
         ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
@@ -311,7 +289,7 @@ public class TypeList extends JList {
         
         //fillList(ontology);
         
-    }
+    } 
     
     public void loadOntology(final URL ontologyURL,final URL cssURL,final org.osid.shared.Type ontType,
                              final OntologyBrowser browser,final tufts.vue.gui.Widget widget)
@@ -334,6 +312,7 @@ public class TypeList extends JList {
           widget.remove(loadingLabel);
           //repaint();
           //browser.addTypeList(TypeList.this,ontologyURL.getFile());
+          browser.getViewer().getList().setSelectedValue(ontology,true);
           browser.getViewer().getList().updateUI();
           //browser.getViewer().repaint();
           //browser.revalidate();
@@ -384,48 +363,7 @@ public class TypeList extends JList {
         return (type.getStyle() instanceof NodeStyle);    
     }
     
-    /*private void fillList(Ontology ontology)
-    {
-        List<OntType> types = ontology.getOntTypes();
-        
-        Iterator<OntType> iter = types.iterator();
-        while(iter.hasNext())
-        {
-            OntType ot = iter.next();
-            
-            System.out.println("TypeList: " + ot.getComment());
-            System.out.println("tl: isNode: " + ot.getId() + " isNode?:" + isNode(ot));
-            
-            Style style = ot.getStyle();
-            if(isNode(ot))
-            {
-                addNode(ot,ontology,style);
-            }
-            else
-            {   
-              addLink(ot,ontology,style);  
-            }
-        }        
-    }
-    
-    private void addNode(OntType ontType,Ontology ontology,Style style)
-    {         
-                LWNode node = new LWNode(ontType.getLabel());
-                  
-                //node.setLabel(ot.getLabel());
-
-                node.setAutoSized(false);
-                
-                node.setAbsoluteSize(25,25);
-                
-
-                NodeTool.SubTool st = NodeTool.getActiveSubTool();
-                node.setShape(st.getShape());
-                node.applyCSS(style);
-                //addType(node);
-          
-    }
-    
+    /*
     private void applyDefaultNodeStyle(LWNode node)
     {
         
@@ -460,25 +398,17 @@ public class TypeList extends JList {
               link.setWeight(1);
     }*/
     
-    public class OntologyTypeListModel implements ListModel
+    public static class OntologyTypeListModel implements ListModel
     {
         private Ontology ontology;
-        
-        //java.util.ArrayList modified;// = new java.util.ArrayList();
              
         public OntologyTypeListModel(Ontology ontology)
         {
           this.ontology = ontology;  
-          //modified = new java.util.ArrayList(getSize());
         }
         
         public Object getElementAt(int index)
         {
-                //if(ontology!=null && index < 5000)
-            
-                //if(modified.size() == 0)
-                //    return null;
-            
                 if(DEBUG)
                 {
                   OntType element = ontology.getOntTypes().get(index);

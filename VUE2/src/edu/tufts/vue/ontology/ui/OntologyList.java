@@ -18,6 +18,8 @@
 
 package edu.tufts.vue.ontology.ui;
 
+import javax.media.j3d.J3DBuffer;
+
 /*
  * OntologyList.java
  *
@@ -72,7 +74,10 @@ public class OntologyList extends javax.swing.JList {
             panel.setBorder(javax.swing.BorderFactory.createMatteBorder(0,0,1,0,new java.awt.Color(200,200,200)));
             //panel.setOpaque(true);
            // panel.setBackground(java.awt.Color.BLUE);
-            String base = ((edu.tufts.vue.ontology.Ontology)value).getBase();
+            
+            edu.tufts.vue.ontology.Ontology ontology = (edu.tufts.vue.ontology.Ontology)value;
+            
+            String base = ontology.getBase();
             String baseWithoutFileType = base.substring(0,base.lastIndexOf("."));
             String displayString = "";
             int baseIndex = baseWithoutFileType.lastIndexOf("/");
@@ -82,6 +87,19 @@ public class OntologyList extends javax.swing.JList {
                 displayString = baseWithoutFileType;
             javax.swing.JLabel label = new javax.swing.JLabel(displayString);
             panel.add(label);
+            
+            panel.setOpaque(true);
+            if(value == list.getSelectedValue())
+            {
+                panel.setBackground(new java.awt.Color(200,200,200));
+            }
+            else
+            {
+                panel.setBackground(new java.awt.Color(255,255,255));
+            }
+            
+            //if(ontology.getStyle()==null)
+            //    panel.add(new JLabel("load style"));
             return panel;
         }
     }
