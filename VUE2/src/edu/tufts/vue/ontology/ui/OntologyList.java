@@ -18,8 +18,6 @@
 
 package edu.tufts.vue.ontology.ui;
 
-import javax.media.j3d.J3DBuffer;
-
 /*
  * OntologyList.java
  *
