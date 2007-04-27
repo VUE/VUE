@@ -44,6 +44,7 @@ public class Ontology {
     public static final String ONT_PROPERTY_LINK = "link.OntProperty";
     public static final String DEFAULT_LINK = "link.default";
     protected List<OntType> types = new ArrayList<OntType>();
+    URL cssUrl;
     OntModel m;
     private String base;
     /** Creates a new instance of Ontology */
@@ -63,11 +64,16 @@ public class Ontology {
     }
     
     public void applyStyle(URL cssUrl) {
+        this.cssUrl = cssUrl;
         CSSParser parser = new CSSParser();
         Map<String,Style> styleMap = parser.parseToMap(cssUrl);
         for(OntType type:types) {
             type.setStyle(Style.getStyle(type.getId(),styleMap));
         }
+    }
+    
+    public URL getStyle() {
+        return this.cssUrl;
     }
     public String toString() {
         String s = new String();

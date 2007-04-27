@@ -40,6 +40,7 @@ public class OWLLOntology extends Ontology {
     }
     
     public OWLLOntology(URL ontUrl,URL cssUrl) {
+        this.cssUrl = cssUrl;
         m.read(ontUrl.toString());
         setBase(ontUrl.toString());
         readOntTypes(m.listOntProperties(),cssUrl);

@@ -51,6 +51,7 @@ public class RDFSOntology extends Ontology{
     }
     
     public RDFSOntology(URL ontUrl,URL cssUrl) {
+        this.cssUrl = cssUrl;
         m.read(ontUrl.toString());
         setBase(ontUrl.toString());
         readOntTypes(m.listOntProperties(),cssUrl);
