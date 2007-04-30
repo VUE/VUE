@@ -96,8 +96,11 @@ public class OntologyList extends javax.swing.JList {
                 panel.setBackground(new java.awt.Color(255,255,255));
             }
             
-            //if(ontology.getStyle()==null)
-            //    panel.add(new JLabel("load style"));
+            if(ontology.getStyle() == null)
+            {   
+                panel.add(javax.swing.Box.createHorizontalGlue());
+                panel.add(new javax.swing.JLabel("Import Style Sheet"));
+            }
             return panel;
         }
     }
