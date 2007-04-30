@@ -209,10 +209,10 @@ public class TypeList extends JList {
               Style style = type.getStyle();
                   
               float strokeWidth = 1.0f;     
-              if(style.getAttribute("stroke-width") != null)
+              if(style!= null && style.getAttribute("stroke-width") != null)
                 strokeWidth = edu.tufts.vue.style.ShorthandParser.parseSize(style.getAttribute("stroke-width"));
                 //strokeWidth = Float.parseFloat(style.getAttribute("stroke-width"));
-              System.out.println("typelist: stroke width: " + strokeWidth);
+              //System.out.println("typelist: stroke width: " + strokeWidth);
               //if(strokeWidth <= 1.1f)
               //{
                g.drawLine(10,20,40,20);
@@ -241,14 +241,17 @@ public class TypeList extends JList {
               //g.drawString(comp.getLabel(),40,10);
               
                 Style s = type.getStyle();
-                String icon = s.getAttribute("background-image");
-                //System.out.println("icon " + icon);
-                if(icon != null)
+                if(s!=null)
                 {
+                  String icon = s.getAttribute("background-image");
+                  //System.out.println("icon " + icon);
+                  if(icon != null)
+                  {
                     javax.swing.ImageIcon ii = new javax.swing.ImageIcon(icon);
                     //System.out.println("image icon: " + ii);
                     //p.add(new JLabel(ii));
                     g.drawImage(ii.getImage(),200,10,40,40,null);
+                  }
                 }
         }
     }

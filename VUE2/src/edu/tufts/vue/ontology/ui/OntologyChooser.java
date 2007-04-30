@@ -304,12 +304,13 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
                {
                        //edu.tufts.vue.ontology.Ontology ontology = edu.tufts.vue.ontology.OntManager.getOntManager().readOntology(ontURL,OntologyType.OWL_TYPE);
                        tufts.vue.gui.Widget w = browser.addTypeList(list,ontURL.getFile());
-                       w.add(new JLabel("load style sheet"),java.awt.BorderLayout.NORTH);
-                       browser.getViewer().getList().updateUI();
-                       //list.setModel(new TypeList.OntologyTypeListModel(
+                      // w.add(new JLabel("load style sheet"),java.awt.BorderLayout.NORTH);
+                      // browser.getViewer().getList().updateUI();
                        edu.tufts.vue.ontology.Ontology ontology = edu.tufts.vue.ontology.OntManager.getOntManager().
-                                                                   readOntology(ontURL,getOntType(ontURL));//));
-                       //todo: should really be done in typelist as ontology starts to load as in next case
+                                                                readOntology(ontURL,getOntType(ontURL));
+                       //ontology.applyStyle(OntManager.getOntManager().) // need default style for any ontology here...
+                       list.setModel(new TypeList.OntologyTypeListModel(ontology));
+                       browser.getViewer().getList().updateUI();
                        browser.getViewer().getList().setSelectedValue(ontology,true);
                }
                if(ontURL != null && cssURL!=null)

@@ -156,6 +156,7 @@ public class OntologyBrowser extends JPanel {
                     int selectedOntology = getViewer().getList().getSelectedIndex();
                     ((edu.tufts.vue.ontology.Ontology)(getViewer().getList().getModel().getElementAt(selectedOntology))).applyStyle(cssURL);
                     resultsStack.updateUI();
+                    getViewer().getList().updateUI();
                     // need getTypeList() method in order to refresh the typelist model...
                     // also need a list of typelist that corresponds to the ont list .. or maybe
                     // can just get the component at that location in the viewer?
