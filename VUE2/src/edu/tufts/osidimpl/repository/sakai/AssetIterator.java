@@ -17,10 +17,16 @@
  */
 package edu.tufts.osidimpl.repository.sakai;
 
+import org.apache.axis.client.Call;
+import org.apache.axis.client.Service;
+import javax.xml.namespace.QName;
+
 public class AssetIterator
 implements org.osid.repository.AssetIterator
 {
     private java.util.Iterator iterator = null;
+	private String siteString = null;
+	private String key = null;
 	
     public AssetIterator(java.util.Vector vector)
 		throws org.osid.repository.RepositoryException
@@ -28,10 +34,38 @@ implements org.osid.repository.AssetIterator
         this.iterator = vector.iterator();
     }
 	
+	public AssetIterator(String siteString,
+						 String key)
+	{
+		this.siteString = siteString;
+		this.key = key;
+	}
+	
     public boolean hasNextAsset()
 		throws org.osid.repository.RepositoryException
     {
-        return iterator.hasNext();
+		if (iterator.hasNext()) {
+			return true;
+		} else {
+			// look for more
+			try {
+				String endpoint = Utilities.getEndpoint();
+				Service  service = new Service();
+				
+				//	Get the list of resources in the test collection.
+				Call call = (Call) service.createCall();
+				call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+				call.setOperationName(new QName(Utilities.getAddress(), "getResources"));
+				String resString = (String) call.invoke( new Object[] {Utilities.getSessionId(this.key), this.siteString} );
+				System.out.println("Sent ContentHosting.getAllResources(sessionId,testId), got '" + resString + "'");
+				// how do we know whether there are more collections or resources?
+				return false;
+		    } 
+			catch (Exception e) {
+				System.err.println(e.toString());
+				return false;
+			}
+		}
     }
 	
     public org.osid.repository.Asset nextAsset()

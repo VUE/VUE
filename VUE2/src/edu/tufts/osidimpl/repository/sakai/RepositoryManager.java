@@ -118,6 +118,10 @@ implements org.osid.repository.RepositoryManager
 			Utilities.setRepositoryId(h + ".Virtual-Root-Identifier");
 			this.repositoryVector.removeAllElements();
 			this.repositoryVector.addElement(new Repository(key));
+			
+			String address = h + ":" + configuration.getProperty("sakaiPort") + "/";
+			Utilities.setEndpoint(address + "sakai-axis/ContentHosting.jws");		
+			Utilities.setAddress(address);
 		} catch (Throwable t) {
 			Utilities.log(t);
 			if (t instanceof org.osid.repository.RepositoryException) {

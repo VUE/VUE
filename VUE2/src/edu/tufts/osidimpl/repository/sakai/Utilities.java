@@ -26,6 +26,8 @@ public class Utilities
 	private static org.osid.shared.Type authenticationType = new Type("org.sakaiproject","authentication","sakai");
 	private static java.util.Map sessionIdMap = new java.util.HashMap();
 	private static org.osid.shared.Id repositoryId = null;
+	private static String endpoint = null;
+	private static String address = null;
 
 	public static void setOsidContext(org.osid.OsidContext c)
 	{
@@ -126,5 +128,25 @@ public class Utilities
 		} catch (Throwable t) {
 			throw new org.osid.repository.RepositoryException(t.getMessage());
 		}
+	}
+	
+	public static void setEndpoint(String ep)
+	{
+		endpoint = ep;
+	}
+	
+	public static String getEndpoint()
+	{
+		return endpoint;
+	}
+
+	public static void setAddress(String a)
+	{
+		address = a;
+	}
+	
+	public static String getAddress()
+	{
+		return address;
 	}
 }

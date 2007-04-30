@@ -32,7 +32,6 @@ implements org.osid.repository.Asset
     private org.osid.shared.Type collectionAssetType = new Type("org.sakaiproject","asset","siteCollection");
     private org.osid.shared.Type resourceAssetType =  new Type("org.sakaiproject","asset","resource");
     private org.osid.shared.Type uploadAssetType =  new Type("org.sakaiproject","asset","upload");
-	private org.osid.shared.Id repositoryId = null;
 	private org.osid.repository.Repository repository = null;
 	private org.osid.repository.Record record = null;
 	private org.osid.shared.Id recordStructureId = null;
@@ -49,7 +48,6 @@ implements org.osid.repository.Asset
     throws org.osid.repository.RepositoryException
     {
 		this.assetType = assetType;
-        this.repositoryId = repositoryId;
 		this.repository = repository;
 		this.key = key;
 		try {
@@ -99,7 +97,7 @@ implements org.osid.repository.Asset
     public org.osid.shared.Id getRepository()
     throws org.osid.repository.RepositoryException
     {
-        return this.repositoryId;
+        return Utilities.getRepositoryId();
     }
 
     public java.io.Serializable getContent()

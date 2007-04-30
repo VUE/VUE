@@ -123,14 +123,28 @@ implements org.osid.repository.Repository
 		try {
 			String contentId = "foo";
 			org.osid.shared.Type assetType = this.resourceAssetType;
+/*
+			String endpoint = Utilities.getEndpoint();
+			String address = Utilities.getAddress();
 			
-			// call ContentHosting Web Service
-				result.addElement(new Asset(contentId,
-											assetType,
-											this.repositoryId,
-											this,
-											this.key));
-			return new AssetIterator(result);
+			Service  service = new Service();
+			
+			//	Get the virtual root.
+			Call call = (Call) service.createCall();
+			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+			call.setOperationName(new QName(address, "getVirtualRoot"));
+			virtualRootId = (String) call.invoke( new Object[] {sessionId} );
+			System.out.println("Sent ContentHosting.getVirtualRoot(sessionId), got '" + virtualRootId + "'");
+			
+			//	Get the list of root collections from virtual root.
+			call = (Call) service.createCall();
+			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+			call.setOperationName(new QName(address, "getResources"));
+			String siteString = (String) call.invoke( new Object[] {sessionId, virtualRootId} );
+			System.out.println("Sent ContentHosting.getAllResources(sessionId,virtualRootId), got '" + siteString + "'");
+ */			
+			String siteString = null;
+			return new AssetIterator(siteString,this.key);			
 		} catch (Throwable t) {
 			t.printStackTrace();
 			Utilities.log(t);
@@ -306,6 +320,14 @@ implements org.osid.repository.Repository
 		java.util.Vector result = new java.util.Vector();
 
 		try {
+			// note this is a name match NOT a site search
+			org.osid.repository.AssetIterator assetIterator = getAssets();
+			while (assetIterator.hasNextAsset()) {
+				org.osid.repository.Asset asset = assetIterator.nextAsset();
+				if (asset.getDisplayName().toLowerCase().indexOf(criteria) != -1) {
+					result.addElement(asset);
+				}
+			}
 		} catch (Throwable t) {
             Utilities.log(t);
             throw new org.osid.repository.RepositoryException(t.getMessage());
