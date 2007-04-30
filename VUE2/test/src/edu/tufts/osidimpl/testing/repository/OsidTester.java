@@ -1,4 +1,22 @@
-package edu.tufts.osidimpl.test.repository;
+/*
+ * -----------------------------------------------------------------------------
+ *
+ * <p><b>License and Copyright: </b>The contents of this file are subject to the
+ * Mozilla Public License Version 1.1 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License
+ * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
+ *
+ * <p>Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+ * the specific language governing rights and limitations under the License.</p>
+ *
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
+ * Tufts University. All rights reserved.</p>
+ *
+ * -----------------------------------------------------------------------------
+ */
+
+package edu.tufts.osidimpl.testing.repository;
 
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -12,6 +30,7 @@ public class OsidTester extends TestCase
 	public static final String ASSETS_BY_SEARCH_TAG = "assetsBySearch";
 	public static final String ASSETS_TAG = "assets";
 	public static final String CONFIGURATION_TAG = "configuration";
+	public static final String CONTEXT_TAG = "context";
 	public static final String CRITERIA_TAG = "criteria";	
 	public static final String DESCRIPTION_TAG = "description";
 	public static final String DISPLAY_NAME_TAG = "displayname";
@@ -171,8 +190,6 @@ public class OsidTester extends TestCase
 			org.w3c.dom.Element packagenameElement = (org.w3c.dom.Element)nl.item(0);
 			_packagename = packagenameElement.getFirstChild().getNodeValue();
 				
-			//TODO: add support for OsidContext
-			
 			nl = managerElement.getElementsByTagName(CONFIGURATION_TAG);
 			int numConfigurations = nl.getLength();
 			if (numConfigurations > 0) {
@@ -185,6 +202,19 @@ public class OsidTester extends TestCase
 					// assume values are not encrypted
 					String value = el.getAttribute(VALUE_ATTR);
 					properties.setProperty(key,value);
+				}		
+
+				nl = configurationElement.getElementsByTagName(CONTEXT_TAG);
+				int numContexts = nl.getLength();
+				for (int j=0; j < numContexts; j++) {
+					org.w3c.dom.Element el = (org.w3c.dom.Element)nl.item(j);
+					String key = el.getAttribute(KEY_ATTR);
+					// values are class names
+					String value = el.getAttribute(VALUE_ATTR);
+					Class c = Class.forName(value);
+					edu.tufts.osidimpl.testing.ContextObjectGetter cog = (edu.tufts.osidimpl.testing.ContextObjectGetter)c.newInstance();
+					context.assignContext(key,cog.getContextObject());
+					System.out.println("Context Assigned");
 				}		
 			}
 			

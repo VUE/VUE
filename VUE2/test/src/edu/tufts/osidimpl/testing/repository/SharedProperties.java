@@ -1,4 +1,4 @@
-package edu.tufts.osidimpl.test.repository;
+package edu.tufts.osidimpl.testing.repository;
 
 public class SharedProperties
 implements org.osid.shared.Properties

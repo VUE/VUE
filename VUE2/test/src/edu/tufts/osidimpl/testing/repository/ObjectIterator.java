@@ -1,4 +1,4 @@
-package edu.tufts.osidimpl.test.repository;
+package edu.tufts.osidimpl.testing.repository;
 
 public class ObjectIterator
 implements org.osid.shared.ObjectIterator
