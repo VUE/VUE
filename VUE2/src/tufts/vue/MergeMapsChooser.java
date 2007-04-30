@@ -999,6 +999,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                 vizPane.remove(weightPanel);
                 vizPane.add(votePanel);
                 validate();
+                repaint();
                 if(p!=null)
                 {
                     p.pack();
@@ -1173,7 +1174,8 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                }
              //$
              
-             //System.out.println("Weighted Merge Demo: counts : " + node.getRawLabel() + ":" + weightAggregate.getNodeCount(node.getRawLabel()) + " " + weightAggregate.getCount());
+             //System.out.println("Weighted Merge: counts : " + Util.getMergeProperty(node) + ":" + weightAggregate.getNodeCount(Util.getMergeProperty(node)) +
+             //                   " " + weightAggregate.getCount());
              double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(node))/weightAggregate.getCount();
              if(score>100)
              {
@@ -1939,6 +1941,11 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
                    activeFileList.add(new Boolean(mlep.isActive())); 
                  }
                  mapList.addAll(listPanelMaps); */
+                 if(getMapFileList().size() == 0)
+                 {
+                     VueUtil.alert("No Maps Selected","Select Map");
+                     return;
+                 }
                  map.setMapFileList(getMapFileList());
                  //map.setActiveMapList(activeFileList);
                  map.setSelectChoice("list");
