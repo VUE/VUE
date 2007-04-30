@@ -32,10 +32,10 @@ import tufts.vue.gui.*;
  */
 public class OntologyBrowser extends JPanel {
     
-    public static final Object POPULATE_TYPES = java.awt.BorderLayout.CENTER;
+    //public static final Object POPULATE_TYPES = java.awt.BorderLayout.CENTER;
     
     final JPanel ontologiesPanel;
-    final Widget typesPane = new Widget("types");
+    //final Widget typesPane = new Widget("types");
     
     final DockWindow dockWindow;
     final DockWindow ontologyDock;
@@ -94,7 +94,7 @@ public class OntologyBrowser extends JPanel {
         
         buildSingleDockWindow();
           
-        tufts.vue.VueAction addRDFSToBrowser = new tufts.vue.VueAction()
+        /*tufts.vue.VueAction addRDFSToBrowser = new tufts.vue.VueAction()
         {
               {
                   setActionName("Add RDFS Ontology");
@@ -126,7 +126,7 @@ public class OntologyBrowser extends JPanel {
                  owlsooa.actionPerformed(e);
                  owlsooa.setViewer(null);
               }
-        };
+        }; */
         
         tufts.vue.VueAction applyStyle = new tufts.vue.VueAction()
         {
@@ -155,6 +155,7 @@ public class OntologyBrowser extends JPanel {
                     }
                     int selectedOntology = getViewer().getList().getSelectedIndex();
                     ((edu.tufts.vue.ontology.Ontology)(getViewer().getList().getModel().getElementAt(selectedOntology))).applyStyle(cssURL);
+                    resultsStack.updateUI();
                     // need getTypeList() method in order to refresh the typelist model...
                     // also need a list of typelist that corresponds to the ont list .. or maybe
                     // can just get the component at that location in the viewer?
@@ -190,9 +191,6 @@ public class OntologyBrowser extends JPanel {
     
     public void buildSingleDockWindow()
     {
-        // may not need these next two lines, these are adapted from DRBrowser
-        //typesPane.setTitleHidden(true);
-        //typesPane.setHidden(true);
         
         WidgetStack stack = new WidgetStack(getName());
 
@@ -200,14 +198,13 @@ public class OntologyBrowser extends JPanel {
 
         stack.addPane(ontologiesPanel, 0f);
         stack.addPane(populatePane,0f);
-       // stack.addPane(typesPane, 0f);
         
         this.dockWindow.setContent(stack);
     }
     
-    public JComponent getPopulatePane()
+    /*public JComponent getPopulatePane()
     {
         return populatePane;
-    }
+    }*/
     
 }
