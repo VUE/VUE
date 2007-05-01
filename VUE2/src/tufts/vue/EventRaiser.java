@@ -52,11 +52,11 @@ import java.awt.Frame;
  *
  * Does not currently traverse into children of popup menus.
  *
- * @version $Revision: 1.10 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2007-05-01 04:29:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
-public abstract class EventRaiser
+public abstract class EventRaiser<T>
 {
     private int depth = 0;
 
@@ -91,7 +91,7 @@ public abstract class EventRaiser
         traverse(start);
     }
 
-    public abstract void dispatch(Component target);
+    public abstract void dispatch(T target);
 
     
     /**
@@ -150,7 +150,7 @@ public abstract class EventRaiser
     {
         if (DEBUG.EVENTS) out("DISPATCHING " + this + " to " + target);
         try {
-            dispatch(target);
+            dispatch((T) target);
         } catch (Completion e) {
             throw e;
         } catch (Throwable e) {
