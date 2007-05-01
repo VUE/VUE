@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.252 $ / $Date: 2007-05-01 21:20:44 $ / $Author: sfraize $
+ * @version $Revision: 1.253 $ / $Date: 2007-05-01 21:58:31 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3400,7 +3400,7 @@ public class LWComponent
         
     }
 
-    private void drawRaw(DrawContext dc) {
+    public void drawRaw(DrawContext dc) {
         dc.checkComposite(this);
         drawImpl(dc);        
     }
