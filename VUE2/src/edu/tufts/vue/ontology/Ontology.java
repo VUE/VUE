@@ -63,7 +63,7 @@ public class Ontology {
     }
     public void setBase(String base) {
         this.base = base;
-        setLabelFromBase(base);
+        this.label = getLabelFromUrl(base);
     }
     public String getLabel() {
         return this.label;
@@ -78,11 +78,15 @@ public class Ontology {
     public void setOntTypes(List<OntType> types) {
         this.types = types;
     }
-    public void setLabelFromBase(String base) {
-        int start = Math.max(0,base.lastIndexOf("/")+1);
-        this.label = base.substring(start);
-    }
     
+    public static String getLabelFromUrl(String url) {
+        int start = Math.max(0,url.lastIndexOf("/")+1);
+        int stop =url.length()-1;
+        if(url.lastIndexOf(".")>0) {
+            stop = url.lastIndexOf(".");
+        }
+        return url.substring(start,stop);
+    }
     public void applyStyle(URL cssUrl) {
         this.cssUrl = cssUrl;
         CSSParser parser = new CSSParser();
