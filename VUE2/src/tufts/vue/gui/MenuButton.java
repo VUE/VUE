@@ -40,7 +40,7 @@ import javax.swing.border.*;
  *
  * Subclasses must implement LWEditor produce/display
  *
- * @version $Revision: 1.26 $ / $Date: 2007-04-23 17:26:01 $ / $Author: mike $
+ * @version $Revision: 1.27 $ / $Date: 2007-05-01 18:40:37 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -326,6 +326,12 @@ public abstract class MenuButton<T> extends JButton
     
     protected void handleValueSelection(Object newPropertyValue) {
         if (DEBUG.TOOL) System.out.println(this + " handleValueSelection: newPropertyValue=" + newPropertyValue);
+        // TODO: this is getting fired twice, once for ItemEvent stateChange=DESELECTED, and
+        // then the one we really want, with itemState=SELECTED.  We want to ignore the former,
+        // as it's generating extra property sets on the selection that are immediately
+        // overriden by the SELECTED value.  This should actually be harmless, but
+        // it's definitely unexpected internal behaviour.  -- SMF 2007-05-01 14:55.37
+        
         if (newPropertyValue == null) // could be result of custom chooser
             return;
         // even if we were build from actions, in which case the LWComponents
