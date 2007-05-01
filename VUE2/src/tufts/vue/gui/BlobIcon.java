@@ -178,6 +178,7 @@ public class BlobIcon implements Icon
      **/
 
     private static final RoundRectangle2D BlobShape = new RoundRectangle2D.Float();
+    private static final BasicStroke BlobStroke = new BasicStroke(0.75f);
     public void paintIcon(Component c, Graphics _g, int x, int y) {
         //if (DEBUG.TOOL) System.out.println(this + " PAINT on " + c);
 
@@ -197,8 +198,10 @@ public class BlobIcon implements Icon
         //g.fillRect(x,y, mWidth, mHeight);
         g.fill(BlobShape);
         if (mColor != null && mPaintBorder) {
-            //g.setColor(color.darker());
-            g.setColor(Color.black);
+            g.setColor(color.darker().darker());
+            //g.setColor(Color.black);
+            //g.setColor(Color.darkGray);
+            g.setStroke(BlobStroke);
             g.draw(BlobShape);
             //g.drawRect(x,y, mWidth-1, mHeight-1);
         }
