@@ -52,6 +52,7 @@ public class NodeTool extends VueTool
         singleton = this;
     }
 
+    /*
     final public Object getPropertyKey() { return LWKey.Shape; }
     
     public Object produceValue() {
@@ -59,7 +60,7 @@ public class NodeTool extends VueTool
         return getActiveSubTool().getShapeInstance();
     }
     
-    /** LWPropertyProducer impl: load the currently selected tool to the one with given shape */
+    /** LWPropertyProducer impl: load the currently selected tool to the one with given shape 
     public void displayValue(Object shape) {
         // Find the sub-tool with the matching shape, then load it's button icon images
         // into the displayed selection icon
@@ -78,6 +79,7 @@ public class NodeTool extends VueTool
             }
         }
     }
+    */
 
 
     /** return the singleton instance of this class */
