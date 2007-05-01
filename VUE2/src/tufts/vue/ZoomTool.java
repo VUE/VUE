@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.52 $ / $Date: 2007-04-26 18:10:45 $ / $Author: mike $
+ * @version $Revision: 1.53 $ / $Date: 2007-05-01 21:59:43 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -63,7 +63,7 @@ public class ZoomTool extends VueTool
 
     private static final Color SelectorColor = Color.red;
     private static final Color SelectorColorInverted = new Color(0,255,255); // inverse of red
-    public void drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
+    public void drawSelector(DrawContext dc, java.awt.Rectangle r)
     {
         /*
         if (VueUtil.isMacPlatform())
@@ -71,8 +71,8 @@ public class ZoomTool extends VueTool
         else
             g.setXORMode(SelectorColor);
         */
-        g.setColor(Color.red);
-        super.drawSelector(g, r);
+        dc.g.setColor(Color.red);
+        super.drawSelector(dc, r);
     }
 
     public boolean usesRightClick()

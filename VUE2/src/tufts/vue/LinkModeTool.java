@@ -287,11 +287,11 @@ public class LinkModeTool extends VueTool
     
     
     
-    public void drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
+    public void drawSelector(DrawContext dc, java.awt.Rectangle r)
     {
         //g.setXORMode(java.awt.Color.blue);
-        g.setColor(java.awt.Color.blue);
-        super.drawSelector(g, r);
+        dc.g.setColor(java.awt.Color.blue);
+        super.drawSelector(dc, r);
     }
 
     private void makeLink(MapMouseEvent e,
