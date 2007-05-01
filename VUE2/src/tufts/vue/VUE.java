@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.412 $ / $Date: 2007-05-01 18:25:44 $ / $Author: mike $ 
+ * @version $Revision: 1.413 $ / $Date: 2007-05-01 21:19:02 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -564,8 +564,8 @@ public class VUE
         }
 
         public void propertyChange(PropertyChangeEvent e) {
-            if (e instanceof LWPropertyChangeEvent) {
-                out("LWToolManager:propertyChange: " + e);
+            if (!IgnoreEditorChangeEvents && e instanceof LWPropertyChangeEvent) {
+                if (DEBUG.TOOL) out("LWToolManager:propertyChange: " + e);
                 ApplyPropertyChangeToSelection(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
             }
         }
@@ -580,9 +580,12 @@ public class VUE
         
             if (DEBUG.TOOL) out("loadAllEditors " + propertySource);
 
-            // While the editors are loading, we want to ignore the
-            // any change events that loading may produce.
-            //IgnoreEditorChangeEvents = true;
+            // While the editors are loading, we want to ignore any change events that
+            // loading may produce in the editors (otherwise, we'd then set the selected
+            // component properties, end end up risking recursion, even tho properties
+            // shouldn't be triggering events if their value hasn't actually changed)
+            IgnoreEditorChangeEvents = true;
+            
             try {
                 for (LWEditor editor : mEditors) {
                     boolean supported;
@@ -655,7 +658,40 @@ public class VUE
                     VUE.getUndoManager().markChangesAsUndo(key.toString());
             }
         }
+
+        public static Object GetPropertyValue(LWComponent.Key key) {
+            for (LWEditor editor : mEditors) {
+                if (editor.getPropertyKey() == key)
+                    return editor.produceValue();
+            }
+            return null;
+        }
         
+        public static void ApplyProperties(LWComponent c) {
+            ApplyProperties(c, ~0L);
+        }
+        
+        /**
+         * Apply the current value of all selected tools that are applicable to the given component.
+         * E.g., used for setting the properties of newly created objects.
+         * @param keyBits -- only apply keys whose bit is represented in keyBits (@see LWComonent.Key.bit)
+         */
+        public static void ApplyProperties(LWComponent c, long keyBits) {
+            for (LWEditor editor : mEditors) {
+                final Object k = editor.getPropertyKey();
+                final LWComponent.Key key;
+                if (k instanceof LWComponent.Key)
+                    key = (LWComponent.Key) k;
+                else {
+                    key = null;
+                    out("ApplyProperties: skipping non proper key: " + k.getClass().getName() + "[" + k + "]");
+                    continue;
+                }
+
+                if (c.supportsProperty(key) && (key.bit & keyBits) != 0)
+                    c.setProperty(key, editor.produceValue());
+            }
+        }        
         
         
     }
