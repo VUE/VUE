@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.50 $ / $Date: 2007-05-01 04:31:26 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2007-05-01 21:58:45 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -338,10 +338,10 @@ public abstract class VueTool extends AbstractAction
     
     public void handleFullScreen(boolean fullScreen) {}
     
-    public void drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
+    public void drawSelector(DrawContext dc, java.awt.Rectangle r)
     {
         //g.fill(r);//if mac?
-        g.draw(r);
+        dc.g.draw(r);
     }
 
     public boolean handleKeyPressed(java.awt.event.KeyEvent e) { return false; }
