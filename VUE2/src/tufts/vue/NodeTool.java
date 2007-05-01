@@ -402,18 +402,15 @@ public class NodeTool extends VueTool
         
         static {
 
-            // Select a width/height that will perfectly center within
-            // the parent button icon.  If parent width is even, our
-            // width should be even, if odd, we should be odd.  This
-            // is independent of the 50% size of the parent button
-            // we're using as a baseline (before the pixel tweak).
-            // This also means if somebody goes to center us in the
-            // parent (ToolIcon), that computation will always have an
-            // even integer result, thus perfectly pixel aligned.
-            // NOTE: if you paint a 1 pix border on the shape, when
-            // anti-aliased this generally adds a total of 1 pixel to
-            // the height & width.  If painting a border on the
-            // dyanmic shape, you need to account for that for perfect
+            // Select a width/height that will perfectly center within the parent button
+            // icon.  If parent width is even, our width should be even, if odd, we
+            // should be odd.  This is independent of the 50% size of the parent button
+            // we're using as a baseline (before the pixel tweak).  This also means if
+            // somebody goes to center us in the parent (ToolIcon), that computation
+            // will always have an even integer result, thus perfectly pixel aligned.
+            // NOTE: if you paint a 1 pix border on the shape, when anti-aliased this
+            // generally adds a total of 1 pixel to the height & width.  If painting a
+            // border on the dyanmic shape, you need to account for that for perfect
             // centering.
             
             if (ToolIcon.Width % 2 == 0)
@@ -424,7 +421,9 @@ public class NodeTool extends VueTool
                 sHeight = nearestOdd(ToolIcon.Height / 2);
             else
                 sHeight = nearestEven(ToolIcon.Height / 2);
-
+            
+            sHeight--; // new priority: for even veritcal alignment in the combo-box -- SMF 2007-05-01
+            
             sShapeGradient = new GradientPaint(sWidth/2,0,sShapeColorLight, sWidth/2,sHeight/2,sShapeColor,true); // horizontal dark center
             //sShapeGradient = new GradientPaint(sWidth/2,0,sShapeColor, sWidth/2,sHeight/2,sShapeColorLight,true); // horizontal light center
             //sShapeGradient = new GradientPaint(0,sHeight/2,sShapeColor.brighter(), sWidth/2,sHeight/2,sShapeColor,true); // vertical
@@ -452,13 +451,14 @@ public class NodeTool extends VueTool
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.translate(x,y);
-                /*
-                if (sShapeGradient != null)
-                    g2.setPaint(sShapeGradient);
-                else
-                    g2.setColor(sShapeColor);
-                g2.fill(mShape);
-                */
+
+                if (false) {
+                    if (sShapeGradient != null)
+                        g2.setPaint(sShapeGradient);
+                    else
+                        g2.setColor(sShapeColor);
+                    g2.fill(mShape);
+                }
                 g2.setColor(Color.black);
                 g2.setStroke(STROKE_HALF);
                 g2.draw(mShape);
