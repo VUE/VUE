@@ -21,10 +21,10 @@ package tufts.vue;
 /**
  * Broadcast events for the active map viewer.
  *
- * @version $Revision: 1.16 $ / $Date: 2006-03-24 22:25:14 $ / $Author: sfraize $ 
+ * @version $Revision: 1.17 $ / $Date: 2007-05-01 04:32:02 $ / $Author: sfraize $ 
  */
 
-public class MapViewerEvent extends EventRaiser
+public class MapViewerEvent extends EventRaiser<java.awt.Component>
 {
     public static final int DISPLAYED = 1;
     public static final int HIDDEN = 2;
