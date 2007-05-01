@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.42 $ / $Date: 2007-05-01 04:53:21 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2007-05-01 16:31:18 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -68,6 +68,7 @@ public class NodeToolPanel extends ToolPanel
  		gbc.anchor = GridBagConstraints.EAST;
  		
  		JLabel shapeLabel = new JLabel("Shape: ");
+                shapeLabel.setLabelFor(mShapeButton);
  		shapeLabel.setForeground(new Color(51,51,51));
  		shapeLabel.setFont(tufts.vue.VueConstants.SmallFont);
  		getBox().add(shapeLabel,gbc);
@@ -79,6 +80,7 @@ public class NodeToolPanel extends ToolPanel
  		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
  		gbc.anchor = GridBagConstraints.EAST;
  		JLabel strokeLabel = new JLabel("Line: ");
+ 		strokeLabel.setLabelFor(mLinkButton);
  		strokeLabel.setForeground(new Color(51,51,51));
  		strokeLabel.setFont(tufts.vue.VueConstants.SmallFont);
  		getBox().add(strokeLabel,gbc);
