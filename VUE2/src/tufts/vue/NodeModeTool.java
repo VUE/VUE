@@ -177,18 +177,21 @@ public class NodeModeTool extends VueTool
     /**
      * Create a new node with the current default properties.
      * @param name the name for the new node, can be null
-     * @param useToolShape if true, shape of node is shape of node tool, otherwise, shape in contextual toolbar
+     * @param [deprecated - ignored] useToolShape if true, shape of node is shape of node tool, otherwise, shape in contextual toolbar
      * @return the newly constructed node
      */
     public static LWNode createNode(String name, boolean useToolShape)
     {
         LWNode node = new LWNode(name);
+        VUE.LWToolManager.ApplyProperties(node);
+        /*
         if (useToolShape) {
             node.setShape(getActiveSubTool().getShape());
             VUE.LWToolManager.ApplyProperties(node, ~LWKey.Shape.bit);
         } else {
             VUE.LWToolManager.ApplyProperties(node);
         }
+        */
         return node;
     }
     
