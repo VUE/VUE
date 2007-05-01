@@ -82,6 +82,9 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         // too soon for all settings, so just load default styles here
         loadDefaultStyles();
         
+        int b = mmc.TAB_BORDER_SIZE;
+        setBorder(javax.swing.BorderFactory.createEmptyBorder(b,b,b,b));
+        
         String[] parameterChoices = {"Nodes","Links"};
         JLabel parameterChoiceMessage = new JLabel(parameterChoiceMessageString,JLabel.RIGHT)
         {
@@ -93,8 +96,14 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                 return new java.awt.Dimension(100,30);
             }
         };
+        
+        //$
+          //parameterChoiceMessage.setOpaque(true);
+          //parameterChoiceMessage.setBackground(java.awt.Color.CYAN);
+        //$
+        
         parameterChoice = new JComboBox(parameterChoices);
-        JLabel helpLabel = new JLabel(VueResources.getIcon("helpIcon.raw"),JLabel.LEFT);
+        //JLabel helpLabel = new JLabel(VueResources.getIcon("helpIcon.raw"),JLabel.LEFT);
         JLabel intervalNumberChoiceMessage = new JLabel(intervalChoiceMessageString,JLabel.RIGHT);
         Integer[] intervalNumberChoices = {3,4,5,6,7,8,9,10};
         intervalNumberChoice = new JComboBox(intervalNumberChoices)
@@ -138,12 +147,14 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         add(parameterChoiceMessage);
         c.insets = new Insets(0,0,0,0);
         c.anchor = GridBagConstraints.WEST;
+        //c.weightx = 1.0;
+        c.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(parameterChoice,c);
         add(parameterChoice);
-        c.weightx = 1.0;
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        gridBag.setConstraints(helpLabel,c);
-        add(helpLabel);
+        //c.weightx = 1.0;
+        //c.gridwidth = GridBagConstraints.REMAINDER;
+        //gridBag.setConstraints(helpLabel,c);
+        //add(helpLabel);
         
         
         //second row
@@ -177,6 +188,9 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         c.gridx = 0;
         c.gridy = 2;
         c.gridwidth = 3;
+        //$
+          c.weightx = 1.0;
+        //$
         gridBag.setConstraints(scroll,c);
         add(scroll);
         

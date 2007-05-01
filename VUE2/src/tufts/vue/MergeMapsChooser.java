@@ -523,6 +523,12 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
             }
         }); */
         //$
+        
+          //$
+           // vizLabel.setOpaque(true);
+           // vizLabel.setBackground(Color.CYAN);
+          //$
+        
           vizConstraints.fill = GridBagConstraints.BOTH;
           vizConstraints.anchor = GridBagConstraints.EAST;
           //vizConstraints.weightx = 0.0;
@@ -533,11 +539,14 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
            vizConstraints.anchor = GridBagConstraints.WEST;
            vizConstraints.weightx = 1.0;
         //$
-        vizConstraints.gridwidth = GridBagConstraints.REMAINDER;
         vizLayout.setConstraints(vizChoice,vizConstraints);
         vizPanel.add(vizChoice);
+        vizConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        JLabel helpLabel = new JLabel(VueResources.getIcon("helpIcon.raw"),JLabel.LEFT);
+        vizLayout.setConstraints(helpLabel,vizConstraints);
+        vizPanel.add(helpLabel);
         vizLayout.setConstraints(filterChoice,vizConstraints);
-        vizPanel.add(filterChoice);
+        //vizPanel.add(filterChoice);
         int b = TAB_BORDER_SIZE;
         vizPanel.setBorder(BorderFactory.createEmptyBorder(b,b,b,b));
         
@@ -627,7 +636,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
           voteConstraints.gridy = 1;
         //$
         voteLayout.setConstraints(moreLessLabel,voteConstraints);
-        votePanel.add(moreLessLabel);
+        //xvotePanel.add(moreLessLabel);
         
         //$
           voteConstraints.gridx = 0;
