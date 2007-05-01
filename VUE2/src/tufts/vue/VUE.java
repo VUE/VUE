@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.409 $ / $Date: 2007-04-27 15:47:01 $ / $Author: mike $ 
+ * @version $Revision: 1.410 $ / $Date: 2007-05-01 04:31:50 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -468,7 +468,9 @@ public class VUE
             Log.debug("caching tool panels...");
             NodeTool.getNodeToolPanel();
             LinkTool.getLinkToolPanel();
-       }
+        }
+        
+        new LWToolManager();
         
         // Start the loading of the data source viewer
         if (SKIP_DR == false && DR_BROWSER != null)
@@ -519,6 +521,143 @@ public class VUE
 
         
         Log.debug("initApplication completed.");
+    }
+
+    public static class LWToolManager
+        implements LWSelection.Listener, PropertyChangeListener
+    {
+        private static final Collection<LWEditor> mEditors = new HashSet<LWEditor>();
+        private static final HashMap<LWEditor,JLabel> mLabels = new HashMap();
+        private static LWToolManager singleton;
+        private static boolean IgnoreEditorChangeEvents = false;
+
+        private LWToolManager() {
+            if (singleton != null)
+                throw new Error("only meant to have one instance of LWToolManager");
+            singleton = this;
+            findEditors();
+            VUE.getSelection().addListener(this);
+        }
+
+        public static void registerEditor(LWEditor editor) {
+            if (mEditors.add(editor)) {
+                System.out.println("REGISTERED EDITOR: " + editor);
+                if (editor instanceof java.awt.Component)
+                    ((java.awt.Component)editor).addPropertyChangeListener(singleton);
+            } else
+                System.out.println(" REGISTERED AGAIN: " + editor);
+        }
+
+        public void findEditors() {
+            new EventRaiser<LWEditor>(this, LWEditor.class) {
+                public void dispatch(LWEditor editor) {
+                    registerEditor(editor);
+                }
+            }.raise();
+            new EventRaiser<JLabel>(this, JLabel.class) {
+                public void dispatch(JLabel label) {
+                    Component gui = label.getLabelFor();
+                    if (gui != null && gui instanceof LWEditor)
+                        mLabels.put((LWEditor)gui, label);
+                }
+            }.raise();
+        }
+
+        public void propertyChange(PropertyChangeEvent e) {
+            if (e instanceof LWPropertyChangeEvent) {
+                out("LWToolManager:propertyChange: " + e);
+                ApplyPropertyChangeToSelection(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
+            }
+        }
+
+        public void selectionChanged(LWSelection s) {
+            loadAllEditors(s);
+        }
+
+        private void loadAllEditors(LWSelection selection)
+        {
+            LWComponent propertySource = selection.only(); // will be null if selection size > 1
+        
+            if (DEBUG.TOOL) out("loadAllEditors " + propertySource);
+
+            // While the editors are loading, we want to ignore the
+            // any change events that loading may produce.
+            //IgnoreEditorChangeEvents = true;
+            try {
+                for (LWEditor editor : mEditors) {
+                    boolean supported;
+                    if (selection.isEmpty())
+                        supported = true;
+                    else
+                        supported = selection.hasEditableProperty(editor.getPropertyKey());
+                    if (DEBUG.TOOL) out("SET-ENABLED " + (supported?"YES":" NO") + ": " + editor);
+                    editor.setEnabled(supported);
+                    if (mLabels.containsKey(editor))
+                        mLabels.get(editor).setEnabled(supported);
+                    if (supported && propertySource != null)
+                        loadEditor(propertySource, editor);
+                }
+            } finally {
+                IgnoreEditorChangeEvents = false;
+            }
+        }
+    
+        private void loadEditor(LWComponent source, LWEditor editor) {
+            if (DEBUG.TOOL&&DEBUG.META) out("loadEditor: " + editor + " loading " + editor.getPropertyKey() + " from " + source);
+
+            final Object value;
+            final Object key = editor.getPropertyKey();
+            if (source.supportsProperty(key))
+                value = source.getPropertyValue(key);
+            else
+                value = null;
+            if (value != null) {
+                if (DEBUG.TOOL) out("\tloadEditor: value[" + value + "] -> " + editor);
+                editor.displayValue(value);
+            } else if (DEBUG.TOOL) out("\tloadEditor: " + source + " -> " + editor + " skipped; null value for " + key);
+        }
+
+
+        /** Will either modifiy the active selection, or if it's empty, modify the default state (creation state) for this tool panel */
+        public static void ApplyPropertyChangeToSelection(final LWSelection selection, final Object key, final Object newValue, Object source)
+        {
+            if (IgnoreEditorChangeEvents) {
+                if (DEBUG.TOOL) System.out.println("APCTS: " + key + " " + newValue + " (skipping)");
+                return;
+            }
+        
+            if (DEBUG.TOOL) System.out.println("APCTS: " + key + " " + newValue);
+        
+            if (selection.isEmpty()) {
+                /*
+                  if (mDefaultState != null)
+                  mDefaultState.setProperty(key, newValue);
+                  else
+                  System.out.println("mDefaultState is null");
+                */
+                //if (DEBUG.TOOL && DEBUG.META) out("new state " + mDefaultState); // need a style dumper
+            } else {
+            
+                // As setting these properties in the model will trigger notify events from the selected objects
+                // back up to the tools, we want to ignore those events while this is underway -- the tools
+                // already have their state set to this.
+                //mIgnoreLWCEvents = true;
+                try {
+                    for (tufts.vue.LWComponent c : selection) {
+                        if (c.supportsProperty(key))
+                            c.setProperty(key, newValue);
+                    }
+                } finally {
+                    // mIgnoreLWCEvents = false;
+                }
+            
+                if (VUE.getUndoManager() != null)
+                    VUE.getUndoManager().markChangesAsUndo(key.toString());
+            }
+        }
+        
+        
+        
     }
 
     private static void installMacOSXApplicationEventHandlers()
