@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.49 $ / $Date: 2007-04-14 22:12:13 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2007-05-01 04:31:26 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -348,7 +348,7 @@ public abstract class VueTool extends AbstractAction
     public boolean handleKeyReleased(java.awt.event.KeyEvent e) { return false; }
     
     public boolean handleMouseMoved(MapMouseEvent e) {
-        if (DEBUG.TOOL) System.out.println(this + " handleMouseMoved " + e);
+        if (DEBUG.TOOL && DEBUG.MOUSE) System.out.println(this + " handleMouseMoved " + e);
         return false;
     }
     public boolean handleMousePressed(MapMouseEvent e) {
