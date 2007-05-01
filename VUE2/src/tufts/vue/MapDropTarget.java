@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.65 $ / $Date: 2007-03-14 17:39:43 $ / $Author: sfraize $  
+ * @version $Revision: 1.66 $ / $Date: 2007-05-01 18:19:24 $ / $Author: mike $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -800,7 +800,7 @@ class MapDropTarget
                 // don't wrap image if we're about to drop it into something else
                 node = lwImage;
             } else {
-                node = NodeTool.createNode(shortName);
+                node = NodeModeTool.createNode(shortName);
                 node.setResource(resource);
                 if (lwImage != null)
                     ((LWNode)node).addChild(lwImage);
@@ -837,7 +837,7 @@ class MapDropTarget
 
     private LWComponent createTextNode(String text, Point2D where)
     {
-        return addNodeToMap(NodeTool.createTextNode(text), where);
+        return addNodeToMap(NodeModeTool.createTextNode(text), where);
     }
 
     private LWComponent addNodeToMap(LWComponent node, Point2D where)

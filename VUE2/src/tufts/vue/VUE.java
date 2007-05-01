@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.410 $ / $Date: 2007-05-01 04:31:50 $ / $Author: sfraize $ 
+ * @version $Revision: 1.411 $ / $Date: 2007-05-01 18:19:24 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1199,8 +1199,13 @@ public class VUE
         	//"As we move away from a "datasource" centric vision of VUE, the "Content" window should be collapsed when launching VUE"
         	//This will only take effect the first time VUE is started or when preference to remember window position is disabled.
         	// -MK
+
+        	//Different sized combobox components on each platform require this box to be two different
+        	//sizes.
         	if (Util.isMacPlatform())
         		formatDock.setSize(new Dimension(670,54));
+        	else
+        		formatDock.setSize(new Dimension(620,54));
         	DR_BROWSER_DOCK.showRolledUp();
         	formatDock.setLocation(GUI.GInsets.left+300,
                     GUI.GInsets.top+25);        	
@@ -2167,7 +2172,7 @@ public class VUE
         map.addNode(new LWNode("WWWWWWWWWWWWWWWWWWWW"));
         map.addNode(new LWNode("iiiiiiiiiiiiiiiiiiii"));
         
-        map.addNode(NodeTool.createTextNode("jumping"));
+        map.addNode(NodeModeTool.createTextNode("jumping"));
         
         // Experiment in internal actions -- only works
         // partially here because they're all auto sized

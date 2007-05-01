@@ -28,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.25 $ / $Date: 2007-04-18 02:54:53 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2007-05-01 18:19:24 $ / $Author: mike $
  */
 public class LWSlide extends LWContainer
 {
@@ -101,7 +101,7 @@ public class LWSlide extends LWContainer
     public static LWSlide CreateForPathway(LWPathway pathway, LWComponent node)
     {
         final LWSlide slide = CreatePathwaySlide();
-        final LWNode title = NodeTool.buildTextNode(node.getDisplayLabel());
+        final LWNode title = NodeModeTool.buildTextNode(node.getDisplayLabel());
         final LWPathway.MasterSlide master = pathway.getMasterSlide();
         final CopyContext cc = new CopyContext(false);
         final LinkedList<LWComponent> toLayout = new java.util.LinkedList();

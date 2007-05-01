@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.136 $ / $Date: 2007-04-11 18:22:57 $ / $Author: sfraize $
+ * @version $Revision: 1.137 $ / $Date: 2007-05-01 18:19:24 $ / $Author: mike $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -822,7 +822,7 @@ public class LWPathway extends LWContainer
         
         private void createStyles() {
             if (titleStyle == null) {
-                titleStyle = NodeTool.initAsTextNode(new LWNode(TitleLabel));
+                titleStyle = NodeModeTool.initAsTextNode(new LWNode(TitleLabel));
                 titleStyle.setFont(new Font("Gill Sans", Font.PLAIN, 36));
                 titleStyle.setTextColor(Color.white);
             }
@@ -860,7 +860,7 @@ public class LWPathway extends LWContainer
             }
             
 
-            LWComponent header = NodeTool.buildTextNode("Header Text");
+            LWComponent header = NodeModeTool.buildTextNode("Header Text");
             header.setFont(titleStyle.getFont().deriveFont(16f));
             header.setTextColor(VueResources.makeColor("#b3bfe3"));
 
