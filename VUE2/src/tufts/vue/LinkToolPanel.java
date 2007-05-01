@@ -32,11 +32,11 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.43 $ / $Date: 2007-04-27 15:47:01 $ / $Author: mike $
+ * @version $Revision: 1.44 $ / $Date: 2007-05-01 04:53:21 $ / $Author: sfraize $
  * 
  */
 
-public class LinkToolPanel extends LWCToolPanel
+public class LinkToolPanel extends ToolPanel
 {
 	/** stroke size selector menu **/   protected StrokeStyleButton mStrokeStyleButton;
 	/** stroke size selector menu **/   protected StrokeMenuButton mStrokeButton;
@@ -57,12 +57,8 @@ public class LinkToolPanel extends LWCToolPanel
 	        
 	        public void displayValue(LWComponent.StrokeStyle style) {
 	            setToolTipText("Stroke Style: " + style);
-	            //if (getButtonIcon() instanceof LineIcon) {
-	            //    LineIcon icon = (LineIcon) getButtonIcon();
-	            //    icon.setStroke(style.makeStroke(1));
-	            //    repaint();
-	           // }
 	            mCurrentValue = style;
+                    setSelectedIndex(style.ordinal());
 	        }
 	        
 	        /** returns the physical size of the outer button */
@@ -148,9 +144,8 @@ public class LinkToolPanel extends LWCToolPanel
         mStrokeButton = new StrokeMenuButton(strokeValues, strokeMenuLabels, true, false);
         mStrokeButton.setPropertyKey(LWKey.StrokeWidth);
         //mStrokeButton.setButtonIcon(new LineIcon(16,16));
-        mStrokeButton.setStroke(1f);
         mStrokeButton.setToolTipText("Stroke Width");
-        mStrokeButton.addPropertyChangeListener(this);
+        //mStrokeButton.addPropertyChangeListener(this);
         
     	//-------------------------------------------------------
         // Stroke Style menu
@@ -158,7 +153,7 @@ public class LinkToolPanel extends LWCToolPanel
         
         mStrokeStyleButton = new StrokeStyleButton();
         mStrokeStyleButton.setPropertyKey(LWKey.StrokeStyle);
-        mStrokeStyleButton.addPropertyChangeListener(this);
+        //mStrokeStyleButton.addPropertyChangeListener(this);
         
         
         final Action[] LinkTypeActions = new Action[] { 
@@ -175,7 +170,7 @@ public class LinkToolPanel extends LWCToolPanel
 		
         AbstractButton linkTypeMenu = new VuePopupMenu(LWKey.LinkCurves, LinkTypeActions);
         linkTypeMenu.setToolTipText("Link Style");
-        linkTypeMenu.addPropertyChangeListener(this);
+        //linkTypeMenu.addPropertyChangeListener(this);
         
         //LWCToolPanel.InstallHandler(mArrowStartButton, arrowPropertyHandler);
         //LWCToolPanel.InstallHandler(mArrowEndButton, arrowPropertyHandler);
@@ -211,6 +206,7 @@ public class LinkToolPanel extends LWCToolPanel
 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
 		gbc.anchor = GridBagConstraints.EAST;
 		JLabel strokeLabel = new JLabel("Stroke :");
+		strokeLabel.setLabelFor(mStrokeStyleButton);
 		strokeLabel.setForeground(new Color(51,51,51));
 		strokeLabel.setFont(tufts.vue.VueConstants.SmallFont);
 		mBox.add(strokeLabel,gbc);
@@ -221,6 +217,7 @@ public class LinkToolPanel extends LWCToolPanel
 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
 		gbc.anchor = GridBagConstraints.EAST;
 		JLabel weightLabel = new JLabel("Weight :");
+                weightLabel.setLabelFor(mStrokeButton);
 		weightLabel.setForeground(new Color(51,51,51));
 		weightLabel.setFont(tufts.vue.VueConstants.SmallFont);
 		mBox.add(weightLabel,gbc);

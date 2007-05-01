@@ -29,8 +29,10 @@ import javax.swing.event.*;
 import javax.swing.border.*;
 
 
-/**
+/**  @deprecated -- property handling functionality replaced by VUE.LWToolManager (and tufts.vue.ToolPanel provided
+     for interim GUI support */
    
+/*
 A property editor panel for LWComponents.  General usage: a series of small
 JComponents that are also LWEditors
 
@@ -85,7 +87,6 @@ public class LWCToolPanel extends JPanel
 
     protected JPanel mBox;
 
-    //private Collection<LWEditor> mEditors = new ArrayList<LWEditor>();
     private final Collection<LWEditor> mEditors = new HashSet<LWEditor>();
 
    
@@ -177,6 +178,9 @@ public class LWCToolPanel extends JPanel
     /** @param c component to add to the box-row.  If an instance of LWPropertyProducer,
      * also add to our tracking list of these for property updates */
     public boolean addComponent(Component c) {
+        out("addComponent IGNORED " + c);
+
+        /*
         if (c == null)
             return false;
         //mBox.add(c);
@@ -186,8 +190,8 @@ public class LWCToolPanel extends JPanel
         }
         if (c instanceof java.awt.Container) {
             // check for any editors in the children
-            new EventRaiser(this, JComponent.class) {
-                public void dispatch(Component c) {
+            new EventRaiser<JComponent>(this, JComponent.class) {
+                public void dispatch(JComponent c) {
                     ActionListener[] al = c.getListeners(ActionListener.class);
                     if (al == null || al.length == 0)
                         return;
@@ -203,6 +207,7 @@ public class LWCToolPanel extends JPanel
                 }
             }.raiseStartingAt((Container)c);
         }
+        */
         return true;
     }
 
@@ -372,7 +377,7 @@ public class LWCToolPanel extends JPanel
     }
 
     /** Will either modifiy the active selection, or if it's empty, modify the default state (creation state) for this tool panel */
-    public static void ApplyPropertyChangeToSelection(final LWSelection selection, final Object key, final Object newValue, Object source)
+    private static void ApplyPropertyChangeToSelection(final LWSelection selection, final Object key, final Object newValue, Object source)
     {
         if (IgnoreEditorChangeEvents) {
             if (DEBUG.TOOL) System.out.println("APCTS: " + key + " " + newValue + " (skipping)");

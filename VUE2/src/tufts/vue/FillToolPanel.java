@@ -42,10 +42,10 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.2 $ / $Date: 2007-04-27 15:47:01 $ / $Author: mike $
+ * @version $Revision: 1.3 $ / $Date: 2007-05-01 04:53:21 $ / $Author: sfraize $
  */
  
-public class FillToolPanel extends LWCToolPanel
+public class FillToolPanel extends ToolPanel
 {
 	 /** fill button **/                 protected ColorMenuButton mFillColorButton;
 	 /** stroke color editor button **/  protected ColorMenuButton mStrokeColorButton;
@@ -67,7 +67,7 @@ public class FillToolPanel extends LWCToolPanel
         mFillColorButton.setPropertyKey(LWKey.FillColor);
         mFillColorButton.setColor(VueResources.getColor("defaultFillColor"));
         mFillColorButton.setToolTipText("Fill Color");
-        mFillColorButton.addPropertyChangeListener(this); // always last or we get prop change events for setup
+        //mFillColorButton.addPropertyChangeListener(this); // always last or we get prop change events for setup
          
         //-------------------------------------------------------
         // Stroke Color menu
@@ -80,7 +80,7 @@ public class FillToolPanel extends LWCToolPanel
         mStrokeColorButton.setColor(VueResources.getColor("defaultStrokeColor"));
         //mStrokeColorButton.setButtonIcon(new LineIcon(16,16, 4, false));
         mStrokeColorButton.setToolTipText("Stroke Color");
-        mStrokeColorButton.addPropertyChangeListener(this);
+        //mStrokeColorButton.addPropertyChangeListener(this);
        GridBagConstraints gbc = new GridBagConstraints();
      	gbc.insets = new Insets(3,3,5,3);    
         gbc.gridx = 0;
@@ -91,6 +91,7 @@ public class FillToolPanel extends LWCToolPanel
  		gbc.anchor = GridBagConstraints.NORTHEAST;
  		
  		JLabel fillLabel = new JLabel("Fill: ");
+                fillLabel.setLabelFor(mFillColorButton);
  		fillLabel.setForeground(new Color(51,51,51));
  		fillLabel.setFont(tufts.vue.VueConstants.SmallFont);
  		getBox().add(fillLabel,gbc);
@@ -103,6 +104,7 @@ public class FillToolPanel extends LWCToolPanel
  		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
  		gbc.anchor = GridBagConstraints.NORTHEAST;
  		JLabel lineLabel = new JLabel("Line: ");
+                lineLabel.setLabelFor(mStrokeColorButton);
  		lineLabel.setForeground(new Color(51,51,51));
  		lineLabel.setFont(tufts.vue.VueConstants.SmallFont);
  		getBox().add(lineLabel,gbc);

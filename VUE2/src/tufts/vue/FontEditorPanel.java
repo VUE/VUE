@@ -35,13 +35,12 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.46 $ / $Date: 2007-04-27 15:47:01 $ / $Author: mike $
+ * @version $Revision: 1.47 $ / $Date: 2007-05-01 04:53:21 $ / $Author: sfraize $
  *
  */
 public class FontEditorPanel extends JPanel
                                      //implements LWEditor
-//    implements ActionListener, VueConstants//, PropertyChangeListener
-implements PropertyChangeListener
+//    implements ActionListener, VueConstants//, PropertyChangeListener//implements PropertyChangeListener
 {
     private static String[] sFontSizes;
     
@@ -195,9 +194,11 @@ implements PropertyChangeListener
                     mBoldButton.setSelected((style & Font.BOLD) != 0);
                     mItalicButton.setSelected((style & Font.ITALIC) != 0);
                 }
+
                 public void setEnabled(boolean enabled) {
                     mBoldButton.setEnabled(enabled);
                     mItalicButton.setEnabled(enabled);
+                    //mUnderlineButton.setEnabled(enabled);
                 }
         };
  		
@@ -212,7 +213,7 @@ implements PropertyChangeListener
         mTextColorButton.setColor(Color.black);
         mTextColorButton.setPropertyKey(LWKey.TextColor);
         mTextColorButton.setToolTipText("Text Color");
-        mTextColorButton.addPropertyChangeListener(this);
+        //mTextColorButton.addPropertyChangeListener(this);
         
         //Set up Labels...
         JLabel styleLabel = new JLabel("Style :");
@@ -220,6 +221,7 @@ implements PropertyChangeListener
 		styleLabel.setFont(tufts.vue.VueConstants.SmallFont);
 		
 		JLabel textLabel = new JLabel("Text :");
+                textLabel.setLabelFor(mFontCombo);
 		textLabel.setForeground(new Color(51,51,51));
 		textLabel.setFont(tufts.vue.VueConstants.SmallFont);		
 		//Done With Labels..
@@ -527,6 +529,8 @@ implements PropertyChangeListener
         return "FontEditorPanel[" + getPropertyKey() + "]";
         //return "FontEditorPanel[" + getKey() + " " + makeFont() + "]";
     }
+
+    /*
     public void propertyChange(PropertyChangeEvent e)
     {
 
@@ -541,7 +545,7 @@ implements PropertyChangeListener
         ApplyPropertyChangeToSelection(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
     }
 
-    /** Will either modifiy the active selection, or if it's empty, modify the default state (creation state) for this tool panel */
+    /** Will either modifiy the active selection, or if it's empty, modify the default state (creation state) for this tool panel 
     public static void ApplyPropertyChangeToSelection(final LWSelection selection, final Object key, final Object newValue, Object source)
     {
         if (false) {
@@ -557,7 +561,7 @@ implements PropertyChangeListener
                 mDefaultState.setProperty(key, newValue);
             else
                 System.out.println("mDefaultState is null");
-            */
+            *
             //if (DEBUG.TOOL && DEBUG.META) out("new state " + mDefaultState); // need a style dumper
         } else {
             
@@ -578,6 +582,7 @@ implements PropertyChangeListener
                 VUE.getUndoManager().markChangesAsUndo(key.toString());
         }
     }
+*/
 
     protected void out(Object o) {
         System.out.println(this + ": " + (o==null?"null":o.toString()));

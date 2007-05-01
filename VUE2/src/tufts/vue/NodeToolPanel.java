@@ -42,10 +42,10 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.41 $ / $Date: 2007-04-27 15:47:01 $ / $Author: mike $
+ * @version $Revision: 1.42 $ / $Date: 2007-05-01 04:53:21 $ / $Author: sfraize $
  */
  
-public class NodeToolPanel extends LWCToolPanel
+public class NodeToolPanel extends ToolPanel
 {
     public NodeToolPanel() {
        
@@ -97,8 +97,8 @@ public class NodeToolPanel extends LWCToolPanel
   		gbc.anchor = GridBagConstraints.WEST;
          getBox().add(mLinkButton,gbc);
          
-         mShapeButton.addPropertyChangeListener(this);
-         mLinkButton.addPropertyChangeListener(this);
+         //mShapeButton.addPropertyChangeListener(this);
+         //mLinkButton.addPropertyChangeListener(this);
          //addEditor(mLinkButton);
          
          //add(mShapeButton);
