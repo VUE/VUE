@@ -98,7 +98,8 @@ public interface LWKey {
     //public String LinkArrows = "link.arrows";
     public LWComponent.Key LinkArrows = LWLink.KEY_LinkArrows;
     /** link curve state: 0=straight, 1=1 control point (Quadric), 2=2 control points (Cubic) */
-    public String LinkCurves = "link.curves";
+    public LWComponent.Key LinkShape = LWLink.KEY_LinkShape;
+    //public String LinkCurves = "link.curves";
 
     /* the map filter has changed somehow */
     public String MapFilter = "map.filter"; 

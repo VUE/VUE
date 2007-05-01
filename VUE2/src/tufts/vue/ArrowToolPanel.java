@@ -32,7 +32,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.3 $ / $Date: 2007-05-01 04:51:14 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2007-05-01 22:36:54 $ / $Author: sfraize $
  * 
  */
 
@@ -149,9 +149,9 @@ public class ArrowToolPanel extends ToolPanel
 		final ArrowStyleButton arrowHeadCombo = new ArrowStyleButton(i,true);
 		final ArrowStyleButton arrowTailCombo = new ArrowStyleButton(i,false);
 		
-        AbstractButton linkTypeMenu = new VuePopupMenu(LWKey.LinkCurves, LinkTypeActions);
-        linkTypeMenu.setToolTipText("Link Style");
-//linkTypeMenu.addPropertyChangeListener(this);
+                //AbstractButton linkTypeMenu = new VuePopupMenu(LWKey.LinkCurves, LinkTypeActions);
+                //        linkTypeMenu.setToolTipText("Link Style");
+                //linkTypeMenu.addPropertyChangeListener(this);
         
         
 
@@ -218,7 +218,7 @@ public class ArrowToolPanel extends ToolPanel
         //mArrowEndButton.addItemListener(arrowPropertyHandler);
         GridBagConstraints gbc = new GridBagConstraints();
         
-        addComponent(linkTypeMenu);
+        //addComponent(linkTypeMenu);
         	
         mBox.setLayout(new GridBagLayout());
     	

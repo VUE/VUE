@@ -53,7 +53,7 @@ public class VueLWCPropertyMapper
                                                   LWKey.TextColor.name,
                                                   LWKey.Font.name,
                                                   LWKey.LinkArrows.name,
-                                                  LWKey.LinkCurves
+                                                  //LWKey.LinkCurves
     };
 												
     static final String [] sTextProperties = {  LWKey.TextColor.name, LWKey.Font.name };

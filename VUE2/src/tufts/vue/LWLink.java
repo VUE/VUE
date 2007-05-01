@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.138 $ / $Date: 2007-04-19 16:46:34 $ / $Author: sfraize $
+ * @version $Revision: 1.139 $ / $Date: 2007-05-01 22:36:54 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -156,6 +156,17 @@ public class LWLink extends LWComponent
         }
     };
     private final IntProperty mArrowState = new IntProperty(KEY_LinkArrows, ARROW_TAIL) { void onChange() { endpointMoved = true; layout(); } };
+
+    public static final Key KEY_LinkShape = new Key<LWLink,Integer>("link.shape") {
+        @Override public void setValue(LWLink link, Integer ccount) {
+            link.setControlCount(ccount);
+        }
+        @Override public Integer getValue(LWLink link) {
+            return link.getControlCount();
+        }
+
+    };
+    
     
     
     public static final Key KEY_LinkHeadPoint = new Key<LWLink,Point2D>("link.head.location") {
@@ -176,8 +187,9 @@ public class LWLink extends LWComponent
      */
     public Object getPropertyValue(Object key)
     {
-             if (key == LWKey.LinkCurves)       return new Integer(getControlCount());
-        else if (key == Key_Control_0)          return getCtrlPoint0();
+        //if (key == LWKey.LinkCurves)       return new Integer(getControlCount());else
+        
+             if (key == Key_Control_0)          return getCtrlPoint0();
         else if (key == Key_Control_1)          return getCtrlPoint1();
         else
             return super.getPropertyValue(key);
@@ -185,8 +197,9 @@ public class LWLink extends LWComponent
 
     public void setProperty(final Object key, Object val)
     {
-             if (key == LWKey.LinkCurves)       setControlCount(((Integer) val).intValue());
-        else if (key == Key_Control_0)          setCtrlPoint0((Point2D)val);
+        //if (key == LWKey.LinkCurves)       setControlCount(((Integer) val).intValue());else
+        
+             if (key == Key_Control_0)          setCtrlPoint0((Point2D)val);
         else if (key == Key_Control_1)          setCtrlPoint1((Point2D)val);
         else
             super.setProperty(key, val);
@@ -646,7 +659,7 @@ public class LWLink extends LWComponent
         mCurveControls = newControlCount;
         //this.mControlPoints = new LWSelection.Controller[MAX_CONTROL];
         endpointMoved = true;
-        notify(LWKey.LinkCurves, old);
+        notify(LWKey.LinkShape, old);
     }
 
     /** for persistance */

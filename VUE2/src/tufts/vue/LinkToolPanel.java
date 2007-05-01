@@ -32,7 +32,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.44 $ / $Date: 2007-05-01 04:53:21 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2007-05-01 22:36:54 $ / $Author: sfraize $
  * 
  */
 
@@ -168,7 +168,7 @@ public class LinkToolPanel extends ToolPanel
 		i[2]= new Integer(2);
 		i[3]= new Integer(3);
 		
-        AbstractButton linkTypeMenu = new VuePopupMenu(LWKey.LinkCurves, LinkTypeActions);
+        AbstractButton linkTypeMenu = new VuePopupMenu(LWKey.LinkShape, LinkTypeActions);
         linkTypeMenu.setToolTipText("Link Style");
         //linkTypeMenu.addPropertyChangeListener(this);
         

@@ -33,7 +33,7 @@ import java.awt.geom.Point2D;
  */
 
 public class LinkTool extends VueTool
-    implements VueConstants, LWEditor
+    implements VueConstants//, LWEditor
 {
     /** link tool contextual tool panel **/
     private static LinkToolPanel sLinkContextualPanel;
@@ -92,13 +92,14 @@ public class LinkTool extends VueTool
         return sLinkContextualPanel;
     }
 
+    /*
     public Class getSelectionType() { return LWLink.class; }
 
-    final public Object getPropertyKey() { return LWKey.LinkCurves; }
+    final public Object getPropertyKey() { return LWKey.LinkShape; }
     public Object produceValue() {
         return new Integer(getActiveSubTool().getCurveCount());
     }
-    /** LWPropertyProducer impl: load the currently selected link tool to the one with given curve count */
+    /** LWPropertyProducer impl: load the currently selected link tool to the one with given curve count 
     public void displayValue(Object curveValue) {
         // Find the sub-tool with the matching curve-count, then load it's button icon images
         // into the displayed selection icon
@@ -118,6 +119,7 @@ public class LinkTool extends VueTool
             }
         }
     }
+    */
 
     public void setSelectedSubTool(VueTool tool) {
         super.setSelectedSubTool(tool);
