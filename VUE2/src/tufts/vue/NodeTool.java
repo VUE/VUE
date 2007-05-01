@@ -35,7 +35,7 @@ import tufts.vue.beans.VueBeanState;
  */
 
 public class NodeTool extends VueTool
-    implements VueConstants, LWEditor
+    implements VueConstants//, LWEditor
 {
     private static NodeTool singleton = null;
     
