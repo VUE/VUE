@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.251 $ / $Date: 2007-04-24 01:14:54 $ / $Author: sfraize $
+ * @version $Revision: 1.252 $ / $Date: 2007-05-01 21:20:44 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -210,7 +210,7 @@ public class LWComponent
         if (key instanceof Key)
             return supportsProperty((Key)key);
         else
-            return true;
+            return false;
     }
     
     /** @return true if the given property is currently supported on this component */
