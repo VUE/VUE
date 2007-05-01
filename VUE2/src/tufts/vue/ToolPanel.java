@@ -7,7 +7,7 @@ import javax.swing.border.*;
  * Replacement for old LWCToolPanel, mainly for backward compat with some old code.
  * Ultimately, we probably don't need this class at all.  -- SMF 2007-04-30
  *
- * @version $Revision: 1.2 $ / $Date: 2007-05-01 04:41:00 $ / $Author: sfraize $  
+ * @version $Revision: 1.3 $ / $Date: 2007-05-01 21:20:00 $ / $Author: sfraize $  
  */
 
 public class ToolPanel extends JPanel
@@ -23,8 +23,14 @@ public class ToolPanel extends JPanel
          mBox = new JPanel();
          mBox.setLayout(new java.awt.GridBagLayout());
          //tufts.vue.gui.GUI.applyToolbarColor(mBox); // was only for the old perma-docked toolbar
-         buildBox();
-         add(mBox);
+         //buildBox();
+         //add(mBox);
+    }
+
+    public void addNotify() {
+        buildBox();
+        add(mBox);
+        super.addNotify();
     }
 
     protected void buildBox() {}
