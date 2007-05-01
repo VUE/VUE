@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.139 $ / $Date: 2007-05-01 22:36:54 $ / $Author: sfraize $
+ * @version $Revision: 1.140 $ / $Date: 2007-05-01 23:20:24 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -157,15 +157,33 @@ public class LWLink extends LWComponent
     };
     private final IntProperty mArrowState = new IntProperty(KEY_LinkArrows, ARROW_TAIL) { void onChange() { endpointMoved = true; layout(); } };
 
-    public static final Key KEY_LinkShape = new Key<LWLink,Integer>("link.shape") {
-        @Override public void setValue(LWLink link, Integer ccount) {
-            link.setControlCount(ccount);
+
+    public static final Key KEY_LinkShape = new Key<LWLink,Integer>("link.shape") { // do we want this to be a KeyType.STYLE? could argue either way...
+        @Override public void setValue(LWLink link, Integer linkStyle) {
+            link.setControlCount(linkStyle);
         }
         @Override public Integer getValue(LWLink link) {
             return link.getControlCount();
         }
-
     };
+
+    /*
+    public enum LinkStyle { STRAIGHT, QUAD_CURVED, CUBIC_CURVED; }
+    public static final Key KEY_LinkShape = new Key<LWLink,LinkStyle>("link.shape") { // do we want this to be a KeyType.STYLE? could argue either way...
+        @Override public void setValue(LWLink link, LinkStyle linkStyle) {
+            link.setControlCount(linkStyle.ordinal());
+        }
+        @Override public LinkStyle getValue(LWLink link) {
+            int cc = link.getControlCount();
+            if (cc == 0)
+                return LinkStyle.STRAIGHT;
+            else if (cc == 1)
+                return LinkStyle.QUAD_CURVED;
+            else
+                return LinkStyle.CUBIC_CURVED;
+        }
+    };
+    */
     
     
     

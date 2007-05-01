@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.253 $ / $Date: 2007-05-01 21:58:31 $ / $Author: sfraize $
+ * @version $Revision: 1.254 $ / $Date: 2007-05-01 23:20:24 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -468,7 +468,7 @@ public class LWComponent
             try {
                 if (value instanceof String) {
                     // If a String value comes in, this allows us to auto-parse it
-                    getSlot(c).setFromString((String)value);
+u                    getSlot(c).setFromString((String)value);
                 } else {
                     getSlot(c).set(value);
                 }
@@ -479,8 +479,9 @@ public class LWComponent
         }
         
         private Property getSlotSafely(TSubclass c) {
+            Property slot = null;
             try {
-                return getSlot(c);
+                slot = getSlot(c);
             } catch (ClassCastException e) {
                 String msg = "Property not supported: " + this + " on\t" + c + " (getSlot failed; returned null)";
                 //tufts.Util.printStackTrace(e, msg);
@@ -490,6 +491,8 @@ public class LWComponent
                 tufts.Util.printStackTrace(new Throwable(t), this + ": bad slot? unimplemented get/setValue?");
                 return null;
             }
+            //if (slot == NO_SLOT_PROVIDED) tufts.Util.printStackTrace(this + ": no slot provided");
+            return slot;
         }
         
 
@@ -522,8 +525,22 @@ public class LWComponent
                 return slot.asString();
         }
         
-        void setValue(TSubclass c, String stringValue) {
-            getSlotSafely(c).setFromString(stringValue);
+        void setStringValue(TSubclass c, String stringValue) {
+            Property slot = getSlotSafely(c);
+            if (slot != NO_SLOT_PROVIDED) {
+                slot.setFromString(stringValue);
+            } else {
+                TValue curValue = getValue(c);
+                // handle a few special cases for standard java types, even if there's no slot (Property object) to parse the string
+                // FYI, this won't work if getValue returns null, as we'll have to class object to check for type information.
+                     if (curValue instanceof String)    setValue(c, (TValue) stringValue);
+                else if (curValue instanceof Integer)   setValue(c, (TValue) new Integer(stringValue));
+                else if (curValue instanceof Long)      setValue(c, (TValue) new Long(stringValue));
+                else if (curValue instanceof Float)     setValue(c, (TValue) new Float(stringValue));
+                else if (curValue instanceof Double)    setValue(c, (TValue) new Double(stringValue));
+                else
+                    tufts.Util.printStackTrace(this + ":setValue(" + stringValue + "); no slot provided for parsing string value");
+            }
         }
 
         /** @return true if was successful */
@@ -815,7 +832,7 @@ public class LWComponent
         try {
             c = VueResources.makeColor(s);
         } catch (NumberFormatException e) {
-            System.err.println("LWComponent.StringToColor[" + s + "] " + e);
+            tufts.Util.printStackTrace(new Throwable(e), "LWComponent.StringToColor[" + s + "]");
         }
         return c;
     }
@@ -949,13 +966,13 @@ public class LWComponent
         };
 
 
-    public static final Key KEY_Label = new Key("label", KeyType.DATA) {
-            public void setValue(LWComponent c, Object val) { c.setLabel((String)val); }
-            public Object getValue(LWComponent c) { return c.getLabel(); }
+    public static final Key KEY_Label = new Key<LWComponent,String>("label", KeyType.DATA) {
+            public void setValue(LWComponent c, String val) { c.setLabel(val); }
+            public String getValue(LWComponent c) { return c.getLabel(); }
         };
-    public static final Key KEY_Notes = new Key("notes", KeyType.DATA) {
-            public void setValue(LWComponent c, Object val) { c.setNotes((String)val); }
-            public Object getValue(LWComponent c) { return c.getNotes(); }
+    public static final Key KEY_Notes = new Key<LWComponent,String>("notes", KeyType.DATA) {
+            public void setValue(LWComponent c, String val) { c.setNotes(val); }
+            public String getValue(LWComponent c) { return c.getNotes(); }
         };
 
 

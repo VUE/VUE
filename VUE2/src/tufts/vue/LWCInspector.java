@@ -530,7 +530,7 @@ class LWCInspector extends javax.swing.JPanel
             //            }
             //else if ((key = (LWComponent.Key) src.getClientProperty(KEY_KEY)) != null) {
             else if ((key = fieldKeys.get(src)) != null) {
-                key.setValue(c, text);
+                key.setStringValue(c, text);
             } else
                 set = false;
             if (set)
