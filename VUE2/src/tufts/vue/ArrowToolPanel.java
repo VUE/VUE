@@ -32,11 +32,11 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.2 $ / $Date: 2007-04-27 15:47:01 $ / $Author: mike $
+ * @version $Revision: 1.3 $ / $Date: 2007-05-01 04:51:14 $ / $Author: sfraize $
  * 
  */
 
-public class ArrowToolPanel extends LWCToolPanel
+public class ArrowToolPanel extends ToolPanel
 {
 	int headArrowState = LWLink.ARROW_NONE;
 	int tailArrowState = LWLink.ARROW_TAIL;
@@ -151,10 +151,11 @@ public class ArrowToolPanel extends LWCToolPanel
 		
         AbstractButton linkTypeMenu = new VuePopupMenu(LWKey.LinkCurves, LinkTypeActions);
         linkTypeMenu.setToolTipText("Link Style");
-        linkTypeMenu.addPropertyChangeListener(this);
+//linkTypeMenu.addPropertyChangeListener(this);
         
         
-        
+
+        /*
         final LWPropertyHandler arrowHeadPropertyHandler =
             new LWPropertyHandler<Integer>(LWKey.LinkArrows, ArrowToolPanel.this) {
                 public Integer produceValue() {
@@ -195,6 +196,7 @@ public class ArrowToolPanel extends LWCToolPanel
                 };
 
                 arrowTailCombo.addActionListener(arrowTailPropertyHandler);
+        */
 
         // We can't just rely on the each handler hanging free without knowing about it.
         // It works when the editor activates -- we can find which tool panel it's in
@@ -226,20 +228,22 @@ public class ArrowToolPanel extends LWCToolPanel
 		gbc.gridwidth=1;
 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
 		gbc.anchor = GridBagConstraints.EAST;
-		JLabel strokeLabel = new JLabel("Start :");
-		strokeLabel.setForeground(new Color(51,51,51));
-		strokeLabel.setFont(tufts.vue.VueConstants.SmallFont);
-		mBox.add(strokeLabel,gbc);
+		final JLabel headLabel = new JLabel("Start :");
+                headLabel.setLabelFor(arrowHeadCombo);
+		headLabel.setForeground(new Color(51,51,51));
+		headLabel.setFont(tufts.vue.VueConstants.SmallFont);
+		mBox.add(headLabel,gbc);
 		
 		gbc.gridx = 0;
 		gbc.gridy = 1;    				
 		gbc.gridwidth=1;
 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
 		gbc.anchor = GridBagConstraints.EAST;
-		JLabel weightLabel = new JLabel("End :");
-		weightLabel.setForeground(new Color(51,51,51));
-		weightLabel.setFont(tufts.vue.VueConstants.SmallFont);
-		mBox.add(weightLabel,gbc);
+		final JLabel tailLabel = new JLabel("End :");
+                tailLabel.setLabelFor(arrowTailCombo);
+		tailLabel.setForeground(new Color(51,51,51));
+		tailLabel.setFont(tufts.vue.VueConstants.SmallFont);
+		mBox.add(tailLabel,gbc);
 		
 		gbc.gridx = 1;
 		gbc.gridy = 0;    		
@@ -260,7 +264,44 @@ public class ArrowToolPanel extends LWCToolPanel
    		gbc.fill = GridBagConstraints.BOTH; // the label never grows
    		gbc.anchor = GridBagConstraints.WEST;
    		arrowTailCombo.setSelectedIndex(1);
-   		mBox.add(arrowTailCombo,gbc);                     
+   		mBox.add(arrowTailCombo,gbc);
+
+
+
+
+        final LWPropertyHandler arrowPropertyHandler =
+            new LWPropertyHandler<Integer>(LWKey.LinkArrows, arrowHeadCombo, arrowTailCombo) {
+                public Integer produceValue() {
+                    int arrowState = 0;
+                    if (arrowHeadCombo.getSelectedIndex() > 0)
+                    	arrowState |= LWLink.ARROW_HEAD;
+                    if (arrowTailCombo.getSelectedIndex() > 0)
+                        arrowState |= LWLink.ARROW_TAIL;
+                    return arrowState;
+                }
+                public void displayValue(Integer arrowState) {
+                    if ((arrowState & LWLink.ARROW_HEAD) == 0)
+                        arrowHeadCombo.setSelectedIndex(0);
+                    else
+                        arrowHeadCombo.setSelectedIndex(1);
+                    if ((arrowState & LWLink.ARROW_TAIL) == 0)
+                        arrowTailCombo.setSelectedIndex(0);
+                    else
+                        arrowTailCombo.setSelectedIndex(1);
+                }
+
+                public void setEnabled(boolean enabled) {
+                    super.setEnabled(enabled);
+                    headLabel.setEnabled(enabled);
+                    tailLabel.setEnabled(enabled);
+                }
+
+            };
+
+        arrowHeadCombo.addActionListener(arrowPropertyHandler);
+        arrowTailCombo.addActionListener(arrowPropertyHandler);
+
+                
     }
      
     //protected VueBeanState getDefaultState() { return VueBeans.getState(LWLink.setDefaults(new LWLink())); }
