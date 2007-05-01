@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.91 $ / $Date: 2007-04-26 18:06:20 $ / $Author: mike $
+ * @version $Revision: 1.92 $ / $Date: 2007-05-01 04:30:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1091,9 +1091,8 @@ public class DockWindow extends javax.swing.JWindow
     /** look for a tabbed pane within us with the given title, and select it */
     public void showTab(final String name) {
         
-        new EventRaiser(this, JTabbedPane.class) {
-            public void dispatch(Component target) {
-                JTabbedPane tabbedPane = (JTabbedPane) target;
+        new EventRaiser<JTabbedPane>(this, JTabbedPane.class) {
+            public void dispatch(JTabbedPane tabbedPane) {
                 int i = tabbedPane.indexOfTab(name);
                 if (i >= 0) {
                     tabbedPane.setSelectedIndex(i);
@@ -3397,7 +3396,7 @@ public class DockWindow extends javax.swing.JWindow
 
         private void changeAll(JComponent root) {
             
-            new EventRaiser(this, JComponent.class) {
+            new EventRaiser<JComponent>(this, JComponent.class) {
                 protected void visit(Component c) {
 
                     if (DEBUG.INIT == false) {
@@ -3412,15 +3411,14 @@ public class DockWindow extends javax.swing.JWindow
                         System.out.print("              ");
                     eoutln(GUI.name(c));
                 }
-                public void dispatch(Component target) {
-                    if (target instanceof javax.swing.text.JTextComponent)
+                public void dispatch(JComponent c) {
+                    if (c instanceof javax.swing.text.JTextComponent)
                         return;
                     //if (target instanceof javax.swing.AbstractButton)
                     //return;
 
                     // apparently can't make a JTabbedPane transparent...
                     
-                    JComponent c = (JComponent) target;
                     c.setBackground(null);
                     c.setOpaque(false);
                     //c.setBackground(Color.red);
