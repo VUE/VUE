@@ -29,6 +29,7 @@ import edu.tufts.vue.style.*;
 
 import java.util.*;
 import java.net.*;
+import java.io.*;
 
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.ontology.*;
@@ -43,12 +44,16 @@ public class Ontology {
     public static final String DEFAULT_NODE = "node.default";
     public static final String ONT_PROPERTY_LINK = "link.OntProperty";
     public static final String DEFAULT_LINK = "link.default";
+    public static final String DEFAULT_ONT_LABEL = "Ontology ";
     protected List<OntType> types = new ArrayList<OntType>();
+    static int ONT_COUNTER  =0;
     URL cssUrl;
     OntModel m;
     private String base;
+    private String label;
     /** Creates a new instance of Ontology */
     public Ontology() {
+        setLabel();
     }
     public List<OntType> getOntTypes() {
         return this.types;
@@ -58,9 +63,23 @@ public class Ontology {
     }
     public void setBase(String base) {
         this.base = base;
+        setLabelFromBase(base);
     }
+    public String getLabel() {
+        return this.label;
+    }
+    public void setLabel(String label) {
+        this.label = label;
+    }
+    public void setLabel() {
+        ONT_COUNTER++;
+        label = DEFAULT_ONT_LABEL+ONT_COUNTER;
+    } 
     public void setOntTypes(List<OntType> types) {
         this.types = types;
+    }
+    public void setLabelFromBase(String base) {
+        this.label = base.substring(base.lastIndexOf(File.separator));
     }
     
     public void applyStyle(URL cssUrl) {
