@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.69 $ / $Date: 2007-04-26 18:06:46 $ / $Author: mike $
+ * @version $Revision: 1.70 $ / $Date: 2007-05-01 04:35:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -860,7 +860,7 @@ public class GUI
      */
     public static void makeVisibleOnScreen(Object requestor, Class clazz)
     {
-        new EventRaiser(requestor, clazz) {
+        new EventRaiser<java.awt.Component>(requestor, clazz) {
             public void dispatch(Component c) {
                 if (isWidget(c)) {
                     Widget.setExpanded((JComponent)c, true);
@@ -1873,6 +1873,15 @@ public class GUI
     private static AlphaComposite DragAlpha = AlphaComposite.getInstance(AlphaComposite.SRC, .667f);
     public static final Color TransparentColor = new Color(0,0,0,0);
     
+    public static void startLWCDrag(Component source,
+                                    MouseEvent mouseEvent,
+                                    tufts.vue.LWComponent c)
+    {
+        // TODO: move LWTransfer (or most of it) out of MapViewer to GUI
+        //startLWCDrag(source, mouseEvent, c, new LWTransfer(c));
+        throw new UnsupportedOperationException();
+    }
+
     public static void startLWCDrag(Component source,
                                     MouseEvent mouseEvent,
                                     tufts.vue.LWComponent c,
