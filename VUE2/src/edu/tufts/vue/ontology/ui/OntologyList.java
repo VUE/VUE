@@ -74,7 +74,7 @@ public class OntologyList extends javax.swing.JList {
            // panel.setBackground(java.awt.Color.BLUE);
             
             edu.tufts.vue.ontology.Ontology ontology = (edu.tufts.vue.ontology.Ontology)value;
-            
+         /*   
             String base = ontology.getBase();
             String baseWithoutFileType = base.substring(0,base.lastIndexOf("."));
             String displayString = "";
@@ -83,7 +83,8 @@ public class OntologyList extends javax.swing.JList {
                 displayString = baseWithoutFileType.substring(baseIndex+1);
             else
                 displayString = baseWithoutFileType;
-            javax.swing.JLabel label = new javax.swing.JLabel(displayString);
+          */
+            javax.swing.JLabel label = new javax.swing.JLabel(ontology.getLabel());
             panel.add(label);
             
             panel.setOpaque(true);
