@@ -21,6 +21,7 @@ package tufts.vue.gui;
 import tufts.vue.DEBUG;
 
 import java.awt.*;
+import java.awt.geom.*;
 import javax.swing.*;
 
 /**
@@ -31,7 +32,7 @@ import javax.swing.*;
  * custom colors where you require an icon in a UI widget.
  *
  **/
-//todo: rename ColorIcon
+
 public class BlobIcon implements Icon
 {
     /** the icon height **/
@@ -175,22 +176,30 @@ public class BlobIcon implements Icon
      * system.
      * @see java.awt.Icon
      **/
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-        //if (DEBUG.TOOL) System.out.println(this + " PAINT on " + c);
-		
-        Color color = mColor;
-        Color oldColor = g.getColor();
-        if (color == null)
-            color = c.getBackground();
 
+    private static final RoundRectangle2D BlobShape = new RoundRectangle2D.Float();
+    public void paintIcon(Component c, Graphics _g, int x, int y) {
+        //if (DEBUG.TOOL) System.out.println(this + " PAINT on " + c);
+
+        final Graphics2D g = (Graphics2D) _g;
+		
+        final Color oldColor = g.getColor();
+        final Color color;
+        if (mColor == null)
+            color = c.getBackground();
+        else
+            color = mColor;
+
+        g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,  java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+        BlobShape.setRoundRect(x, y, mWidth-1, mHeight-1, 7, 7);
+        
         g.setColor(color);
-   //     g.fillRect(x,y, mWidth, mHeight);
-        g.fillRoundRect(x,y, mWidth, mHeight,6,6);
+        //g.fillRect(x,y, mWidth, mHeight);
+        g.fill(BlobShape);
         if (mColor != null && mPaintBorder) {
             //g.setColor(color.darker());
             g.setColor(Color.black);
-            g.drawRoundRect(x,y, mWidth-1, mHeight-1,6,6);
-     //       g.fillRoundRect(x,y, mWidth, mHeight,2,2);
+            g.draw(BlobShape);
             //g.drawRect(x,y, mWidth-1, mHeight-1);
         }
         if( mOverlay != null) {
