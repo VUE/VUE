@@ -29,7 +29,7 @@ import edu.tufts.vue.style.*;
 
 import java.util.*;
 import java.net.*;
-import java.io.*;
+
 
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.ontology.*;
@@ -79,7 +79,8 @@ public class Ontology {
         this.types = types;
     }
     public void setLabelFromBase(String base) {
-        this.label = base.substring(base.lastIndexOf(File.separator));
+        int start = Math.max(0,base.lastIndexOf("/")+1);
+        this.label = base.substring(start);
     }
     
     public void applyStyle(URL cssUrl) {
