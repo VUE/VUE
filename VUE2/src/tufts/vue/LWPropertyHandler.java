@@ -35,34 +35,46 @@ public abstract class LWPropertyHandler<T>
     implements LWEditor<T>, java.awt.event.ActionListener
 {
     private final Object key;
-    private final java.awt.Component gui;
-    private final PropertyChangeListener changeListener;
+    private final java.awt.Component[] gui;
+    //private final PropertyChangeListener changeListener;
     
-    public LWPropertyHandler(Object propertyKey, PropertyChangeListener listener, java.awt.Component gui) {
+    //public LWPropertyHandler(Object propertyKey, PropertyChangeListener listener, java.awt.Component gui) {
+    public LWPropertyHandler(Object propertyKey, java.awt.Component... gui) {
         this.key = propertyKey;
-        this.changeListener = listener;
+        //this.changeListener = listener;
         this.gui = gui;
+        VUE.LWToolManager.registerEditor(this);
     }
+
+    /*
     public LWPropertyHandler(Object propertyKey, java.awt.Component gui) {
         this(propertyKey, null, gui);
     }
-
+    */
     public LWPropertyHandler(Object propertyKey) {
-        this(propertyKey, null, null);
+        this(propertyKey, (java.awt.Component) null);
+        //this(propertyKey, null, null);
     }
 
     
     public Object getPropertyKey() { return key; }
 
     public void setEnabled(boolean enabled) {
-        if (gui != null)
-            gui.setEnabled(enabled);
-        else
+        if (gui != null) {
+            for (java.awt.Component c : gui) {
+                c.setEnabled(enabled);
+            }
+            //gui.setEnabled(enabled);
+        } else
             throw new UnsupportedOperationException(this + ": provide a gui component, or subclass should override setEnabled");
     }
 
     //public void itemStateChanged(java.awt.event.ItemEvent e) {
     public void actionPerformed(java.awt.event.ActionEvent e) {
+        System.out.println(this + " actionPerformed " + e.paramString());
+        VUE.LWToolManager.ApplyPropertyChangeToSelection(VUE.getSelection(), key, produceValue(), e.getSource());
+        
+        /*
         // TODO: we want to skip doing this if we're in the middle of LWEditor.displayValue...
         // this is prob why we don't want this class being the action listener...  so we can
         // handle that all in once place.
@@ -71,9 +83,16 @@ public abstract class LWPropertyHandler<T>
             LWCToolPanel.ApplyPropertyChangeToSelection(VUE.getSelection(), key, produceValue(), e.getSource());
         else
             changeListener.propertyChange(new LWPropertyChangeEvent(e.getSource(), key, produceValue()));
+        */
     }
 
     public String toString() {
-        return getClass().getName() + ":LWPropertyHandler[" + getPropertyKey() + "]";
+        Object value = null;
+        try {
+            value = produceValue();
+        } catch (Throwable t) {
+            value = t.toString();
+        }
+        return getClass().getName() + ":LWPropertyHandler[" + getPropertyKey() + "=" + value + "]";
     }
 }
