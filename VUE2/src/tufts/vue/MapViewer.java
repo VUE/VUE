@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.343 $ / $Date: 2007-04-26 18:10:44 $ / $Author: mike $ 
+ * @version $Revision: 1.344 $ / $Date: 2007-05-01 21:58:14 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1912,7 +1912,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //public boolean isOpaque() {return false;}
     
     private int paints=0;
-    private boolean redrawingSelector = false;
+    //private boolean redrawingSelector = false;
     public void paint(Graphics g) {
         long start = 0;
         if (DEBUG.PAINT) {
@@ -1921,10 +1921,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         try {
             // This a special speed optimization for the selector box -- not sure it helps anymore tho...
-            if (redrawingSelector && draggedSelectorBox != null && activeTool.supportsXORSelectorDrawing()) {
-                redrawSelectorBox((Graphics2D)g);
-                redrawingSelector = false;
-            } else
+//             if (redrawingSelector && draggedSelectorBox != null && activeTool.supportsXORSelectorDrawing()) {
+//                 redrawSelectorBox((Graphics2D)g);
+//                 redrawingSelector = false;
+//             } else
                 super.paint(g);
         } catch (Exception e) {
             System.err.println("*paint* Exception painting in: " + this);
@@ -2159,7 +2159,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (draggedSelectorBox != null) {
             // todo: box should already be null of tool doesn't support selector
             dc.setRawDrawing();
-            drawSelectorBox(g2, draggedSelectorBox);
+            drawSelectorBox(dc, draggedSelectorBox);
             //if (VueSelection != null && !VueSelection.isEmpty())
             //    new Throwable("selection box while selection visible").printStackTrace();
             // totally reasonable if doing a shift-drag for SELECTION TOGGLE
@@ -2413,7 +2413,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from requestFocus");
     }
     
-    private void drawSelectorBox(Graphics2D g2, Rectangle r) {
+    private void drawSelectorBox(DrawContext dc, Rectangle r) {
         // Setting XOR mode before setting the stroke actually
         // changes the behaviour of what happens on the painted-over
         // GC, and what happens appears pretty unpredicatable, thus
@@ -2429,12 +2429,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //activeTool.drawSelector(g2, r);
         
         // todo opt: would this be any faster done on a glass pane?
-        g2.setStroke(STROKE_SELECTION_DYNAMIC);
+        dc.g.setStroke(STROKE_SELECTION_DYNAMIC);
         if (activeTool.supportsXORSelectorDrawing())
-            g2.setXORMode(COLOR_SELECTION_DRAG);// using XOR may also be working around below clip-edge bug
+            dc.g.setXORMode(COLOR_SELECTION_DRAG);// using XOR may also be working around below clip-edge bug
         else
-            g2.setColor(COLOR_SELECTION_DRAG);
-        activeTool.drawSelector(g2, r);
+            dc.g.setColor(COLOR_SELECTION_DRAG);
+        activeTool.drawSelector(dc, r);
     }
     
     /*
@@ -2457,6 +2457,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
      */
      
+    /*
     private void redrawSelectorBox(Graphics2D g2)
     {
         //throw new UnsupportedOperationException("XOR redraw no longer supported");
@@ -2477,6 +2478,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         activeTool.drawSelector(g2, draggedSelectorBox);
         lastPaintedSelectorBox = new Rectangle(draggedSelectorBox); // for XOR mode: save to erase
     }
+    */
     
     /* Java/JVM 1.4.1 PC (Win32) Graphics Bugs
      
@@ -4175,8 +4177,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             repaintRect.width++;
             repaintRect.height++;
-            if (DEBUG.PAINT && redrawingSelector)
-                System.out.println("dragResizeSelectorBox: already repainting selector");
+            //if (DEBUG.PAINT && redrawingSelector) System.out.println("dragResizeSelectorBox: already repainting selector");
             
             // XOR drawing simply keeps repainting on an existing graphics context,
             // which is extremely fast (because we can just XOR erase the previous
