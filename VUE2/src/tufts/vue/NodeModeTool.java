@@ -82,8 +82,41 @@ public class NodeModeTool extends VueTool
         VUE.getUndoManager().mark("New Node");
         VUE.getSelection().setTo(node);
         viewer.activateLabelEdit(node);
+        creationNodeCurrent = false;
         return true;
     }
+
+    private LWNode creationNode = new LWNode();
+    private boolean creationNodeCurrent = false;
+
+    public void drawSelector(DrawContext dc, java.awt.Rectangle r)
+    {
+        dc.g.draw(r);
+
+        /*
+        // faster to pull directly from the known editor object, but this works, and is more general.
+        RectangularShape currentShape = (RectangularShape) VUE.LWToolManager.GetPropertyValue(LWKey.Shape);
+        Stroke currentStroke = (Stroke) VUE.LWToolManager.GetPropertyValue(LWKey.StrokeStyle);
+        currentShape.setFrame(r);
+        g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,  java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(COLOR_SELECTION);
+        g.draw(currentShape);
+        */
+
+        if (!creationNodeCurrent) {
+            VUE.LWToolManager.ApplyProperties(creationNode);
+            creationNodeCurrent = true;
+        }
+
+        // TODO: doesn't handle zoom
+        // Also, handleSelectorRelease can now just dupe the creationNode
+        
+        //dc.setMapDrawing();
+        creationNode.setFrame(r);
+        creationNode.draw(dc);
+        
+    }
+    
     /*
     public void handleSelectorRelease(java.awt.geom.Rectangle2D mapRect)
     {
@@ -123,7 +156,11 @@ public class NodeModeTool extends VueTool
         node.setShape(new java.awt.geom.Rectangle2D.Float());
         node.setStrokeWidth(0f);
         //node.setFillColor(COLOR_TRANSPARENT);
-        node.setFont(LWNode.DEFAULT_TEXT_FONT);
+
+        Font font = (Font) VUE.LWToolManager.GetPropertyValue(LWKey.Font);
+        if (font == null)
+            font = LWNode.DEFAULT_TEXT_FONT;
+        node.setFont(font);
         
         return node;
     }
@@ -145,19 +182,13 @@ public class NodeModeTool extends VueTool
      */
     public static LWNode createNode(String name, boolean useToolShape)
     {
-        LWNode node = new LWNode(name, getActiveSubTool().getShapeInstance());
-        /*
-        VueBeanState state = getNodeToolPanel().getCurrentState();
-        if (state != null) {
-            if (useToolShape) {
-                // clear out shape if there is one as node already had it's
-                // shape set based on state of the node tool
-                state.removeProperty(LWKey.Shape.name);
-            }
-            state.applyState(node);
+        LWNode node = new LWNode(name);
+        if (useToolShape) {
+            node.setShape(getActiveSubTool().getShape());
+            VUE.LWToolManager.ApplyProperties(node, ~LWKey.Shape.bit);
+        } else {
+            VUE.LWToolManager.ApplyProperties(node);
         }
-        node.setAutoSized(true);
-        */
         return node;
     }
     
@@ -165,11 +196,6 @@ public class NodeModeTool extends VueTool
     public static LWNode createTextNode(String text)
     {
         LWNode node = buildTextNode(text);
-        /*
-        VueBeanState state = TextTool.getTextToolPanel().getCreationStyle();
-        if (state != null)
-            state.applyState(node);
-        */
         if (VUE.getActiveViewer() != null) {
             // Okay, for now this completely overrides the font size from the text toolbar...
             final Font font = node.getFont();
