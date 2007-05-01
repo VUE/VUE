@@ -37,52 +37,40 @@ import tufts.vue.LWComponent;
  * This class provides a popup button selector component for stroke widths.
  *
  * @author Scott Fraize
- * @version March 2004
+ * @version $Revision: 1.10 $ / $Date: 2007-05-01 04:31:12 $ / $Author: sfraize $
+ *
  **/
 public class StrokeMenuButton extends ComboBoxMenuButton<Float>
 {
     static private int sIconWidth = 24;
     static private int sIconHeight = 16;
 	
-    /** The value of the currently selected stroke width item--if any **/
-    protected float mStroke = 1;
-			
-    //protected ButtonGroup mGroup = new ButtonGroup();
-    
     public StrokeMenuButton(float[] pValues, String [] pMenuNames, boolean pGenerateIcons, boolean pHasCustom)
     {
         Float[] values = new Float[pValues.length];
-        // I really hope that java 1.5 auto-boxing will handle this type of thing for us...
         for (int i = 0; i < pValues.length; i++)
             values[i] = new Float(pValues[i]);
 
         buildMenu(values, pMenuNames, false);
         setFont(tufts.vue.VueConstants.FONT_SMALL);
-        ComboBoxRenderer renderer= new ComboBoxRenderer();
-		setRenderer(renderer);
-		this.setMaximumRowCount(10);
-	
+        setRenderer(new ComboBoxRenderer());
+        this.setMaximumRowCount(10);
+        mCurrentValue = new Float(1);
     }
 
-    public StrokeMenuButton() {}
-	
-    public void setStroke(float width) {
-        setToolTipText("Stroke Width: " + width);
-        mStroke = width;	 	   
+    public StrokeMenuButton() {
+        mCurrentValue = new Float(1);
     }
-    public float getStroke() {
-        return mStroke;
+	
+    public void displayValue(Float width) {
+        setToolTipText("Stroke Width: " + width);
+        if (width == null)
+            mCurrentValue = new Float(1);
+        else
+            mCurrentValue = width;
+        setSelectedItem(mCurrentValue);
     }
     
-    public void displayValue(Float f) {
-        setStroke(f); // what does auto-box do if it's null???
-        //setStroke(f == null ? 0f : f);
-        //setStroke(o == null ? 0f : ((Float)o).floatValue());
-    }
-    public Float produceValue() {
-        return getStroke();
-    }
-
     /** factory for superclass buildMenu */
     protected Icon makeIcon(Float value) {
         return new LineIcon(sIconWidth, sIconHeight, value);
@@ -123,9 +111,6 @@ public class StrokeMenuButton extends ComboBoxMenuButton<Float>
     		this.setBorder(BorderFactory.createEmptyBorder(4,1, 3, 3));
     		return this;
     	}
-    	protected Icon makeIcon(Float value) {
-            return new LineIcon(sIconWidth, sIconHeight, value);
-        }	 
     }        
 }
 
