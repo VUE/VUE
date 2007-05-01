@@ -461,7 +461,10 @@ public class NodeTool extends VueTool
                         g2.setColor(sShapeColor);
                     g2.fill(mShape);
                 }
-                g2.setColor(Color.black);
+                if (c.isEnabled()) // todo: will never be false for renderers (e.g. ListCellRenderer)
+                    g2.setColor(Color.black);
+                else
+                    g2.setColor(Color.lightGray);
                 g2.setStroke(STROKE_HALF);
                 g2.draw(mShape);
                 g2.translate(-x,-y);
