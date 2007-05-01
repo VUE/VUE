@@ -28,15 +28,11 @@ import tufts.vue.gui.GUI;
 
 /**
  * TextToolPanel
- * This creates an editor panel for text LWNode's (isTextNode() == true)
- * This is really a sub-set of an LWCToolPanel: we use only the font
- * panel and the text color properties.
  */
  
-public class TextToolPanel extends LWCToolPanel
+public class TextToolPanel extends ToolPanel
 {
     /** the Font selection combo box **/protected FontEditorPanel mFontPanel;
-    protected ColorMenuButton mTextColorButton;
     
     public boolean isPreferredType(Object o) {
         return o instanceof LWNode && ((LWNode)o).isTextNode();
@@ -44,36 +40,15 @@ public class TextToolPanel extends LWCToolPanel
 
     protected void buildBox() {
     	
-    	if (true) {
         mFontPanel = new FontEditorPanel(LWKey.Font);
-        if (debug)
-            mFontPanel.setBackground(Color.green);
-        else
-            GUI.applyToolbarColor(mFontPanel);
-        
-        mFontPanel.addPropertyChangeListener(this);
-    	}
+        //GUI.applyToolbarColor(mFontPanel);
 	
+        // Don't know if we need these constraints here, tho the FontEditorPanel layout
+        // is broken on the mac right now (is clipped) -- SMF 2007-05-01
     	GridBagConstraints gbc = new GridBagConstraints();
-    	mBox.setLayout(new GridBagLayout());
-        if (addComponent(mFontPanel))
-        {
-        	gbc.gridx=0;
-        	gbc.gridy=0;
-        	mBox.add(mFontPanel,gbc);
-        }
+        gbc.gridx=0;
+        gbc.gridy=0;
+        mBox.add(mFontPanel,gbc);
         
-       /* if (addComponent(mTextColorButton))
-        {
-        	gbc.gridx=1;
-        	gbc.gridy=0;
-        	mBox.add(mFontPanel,gbc);
-        }*/
     }
-     
-    /*
-    protected VueBeanState getDefaultState() {
-        return VueBeans.getState(NodeTool.initAsTextNode(new LWNode()));
-    }
-    */
 }
