@@ -153,7 +153,7 @@ public class NodeTool extends VueTool
         */
     }
     
-    public boolean handleSelectorRelease(MapMouseEvent e)
+    /*public boolean handleSelectorRelease(MapMouseEvent e)
     {
     	LWNode node = createNode(VueResources.getString("newnode.html"), true);
         node.setAutoSized(false);
@@ -164,7 +164,7 @@ public class NodeTool extends VueTool
         VUE.getSelection().setTo(node);
         viewer.activateLabelEdit(node);
         return true;
-    }
+    }*/
     /*
     public void handleSelectorRelease(java.awt.geom.Rectangle2D mapRect)
     {
@@ -182,21 +182,21 @@ public class NodeTool extends VueTool
      * @param name the name for the new node, can be null
      * @return the newly constructed node
      */
-    public static LWNode createNode(String name) {
+    /*public static LWNode createNode(String name) {
         return createNode(name, false);
     }
-
+	*/
     
     /** @return a new default node with no label */
-    public static LWNode createNode() {
+    /*public static LWNode createNode() {
         return createNode(null);
-    }
+    }*/
     /** @return a new default node with the default new node label */
-    public static LWNode createNewNode() {
+    /*public static LWNode createNewNode() {
         return createNode(VueResources.getString("newnode.html"));
-    }
+    }*/
         
-    
+    /*
     public static LWNode initAsTextNode(LWNode node)
     {
         node.setIsTextNode(true);
@@ -207,15 +207,15 @@ public class NodeTool extends VueTool
         node.setFont(LWNode.DEFAULT_TEXT_FONT);
         
         return node;
-    }
-
+    }*/
+    /*
     public static LWNode buildTextNode(String text) {
         LWNode node = new LWNode();
         initAsTextNode(node);
         node.setLabel(text);
         return node;
     }
-
+	*/
     
     
     /**
@@ -224,9 +224,9 @@ public class NodeTool extends VueTool
      * @param useToolShape if true, shape of node is shape of node tool, otherwise, shape in contextual toolbar
      * @return the newly constructed node
      */
-    public static LWNode createNode(String name, boolean useToolShape)
+    /*public static LWNode createNode(String name, boolean useToolShape)
     {
-        LWNode node = new LWNode(name, getActiveSubTool().getShapeInstance());
+        LWNode node = new LWNode(name, getActiveSubTool().getShapeInstance());*/
         /*
         VueBeanState state = getNodeToolPanel().getCurrentState();
         if (state != null) {
@@ -239,19 +239,19 @@ public class NodeTool extends VueTool
         }
         node.setAutoSized(true);
         */
-        return node;
-    }
+        /*return node;
+    }*/
     
     /** For creating text nodes through the tools and on the map: will adjust text size for current zoom level */
-    public static LWNode createTextNode(String text)
+  /*  public static LWNode createTextNode(String text)
     {
-        LWNode node = buildTextNode(text);
+        LWNode node = buildTextNode(text);*/
         /*
         VueBeanState state = TextTool.getTextToolPanel().getCreationStyle();
         if (state != null)
             state.applyState(node);
         */
-        if (VUE.getActiveViewer() != null) {
+        /*if (VUE.getActiveViewer() != null) {
             // Okay, for now this completely overrides the font size from the text toolbar...
             final Font font = node.getFont();
             final float curZoom = (float) VUE.getActiveViewer().getZoomFactor();
@@ -261,7 +261,7 @@ public class NodeTool extends VueTool
         }
             
         return node;
-    }
+    }*/
     
     /** @return an array of actions, with icon set, that will set the shape of selected
      * LWNodes */

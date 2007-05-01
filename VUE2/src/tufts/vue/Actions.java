@@ -998,7 +998,7 @@ public class Actions implements VueConstants
     public static final VueAction NewNode =
     new NewItemAction("New Node", keyStroke(KeyEvent.VK_N, COMMAND)) {
         LWComponent createNewItem(MapViewer viewer, Point2D newLocation) {
-            final LWNode node = NodeTool.createNewNode();
+            final LWNode node = NodeModeTool.createNewNode();
             node.setLocation(newLocation);
             //node.setCenterAt(newLocation); // better but screws up NewItemAction's serial item creation positioning
             viewer.getFocal().addChild(node);
@@ -1026,7 +1026,7 @@ public class Actions implements VueConstants
     public static final VueAction NewText =
     new NewItemAction("New Text", keyStroke(KeyEvent.VK_T, COMMAND)) {
         LWComponent createNewItem(MapViewer viewer, Point2D newLocation) {
-            final LWNode node = NodeTool.createTextNode("new text");
+            final LWNode node = NodeModeTool.createTextNode("new text");
             node.setLocation(newLocation);
             //node.setCenterAt(newLocation);
             // todo: using setCenter, here and in NewNode action, will have to

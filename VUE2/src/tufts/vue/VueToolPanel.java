@@ -33,7 +33,7 @@ import javax.swing.border.*;
  * The VueToolPanel is the component that holds the main VUE toolbar
  * and the contextual properties tools.
  *
- * @version $Revision: 1.29 $ / $Date: 2007-04-26 18:10:44 $ / $Author: mike $ 
+ * @version $Revision: 1.30 $ / $Date: 2007-05-01 18:17:41 $ / $Author: mike $ 
  *
  **/
 public class VueToolPanel extends JPanel
@@ -42,7 +42,7 @@ public class VueToolPanel extends JPanel
     public static final boolean IS_CONTEXTUAL_TOOLBAR_ENABLED = false;
     
     /** the panel where the main tools are placed **/
-    private JComponent mMainToolBar = null;	
+  //  private JComponent mMainToolBar = null;	
 	
     /** the button group used for tool selection **/
     private ButtonGroup mButtonGroup = null;
@@ -71,7 +71,7 @@ public class VueToolPanel extends JPanel
         else
             GUI.applyToolbarColor(this);
 		
-        setLayout( new BorderLayout() );
+        setLayout( new BoxLayout(this,BoxLayout.X_AXIS) );
         setOpaque(false);
         if (GUI.isMacBrushedMetal())
             setBorder(new EmptyBorder(0,3,2,10));//tlbr
@@ -79,37 +79,67 @@ public class VueToolPanel extends JPanel
             setBorder(new EmptyBorder(0,3,0,10));//tlbr
         //setBorder(new EmptyBorder(1,3,2,10));//tlbr
 		
-        mMainToolBar = new Box(BoxLayout.X_AXIS);
+    //    mMainToolBar = new Box(BoxLayout.X_AXIS);
         //mMainBox = Box.createHorizontalBox();
 		
-        if (debug)
-            mMainToolBar.setBackground(Color.green);
+   //     if (debug)
+    //        mMainToolBar.setBackground(Color.green);
 
-        setAlignmentX( LEFT_ALIGNMENT);
-        add(BorderLayout.WEST, mMainToolBar);
+       // setAlignmentX( LEFT_ALIGNMENT);
+    //    add(mMainToolBar);
         //add( BorderLayout.CENTER, mContextualToolPanel);
         //add( BorderLayout.EAST, Box.createHorizontalGlue());
     }
 
     public JComponent getMainToolbar() {
-        return mMainToolBar;
+        return this;
     }
 	
+    class JLineSeparator extends JSeparator
+    {
+         private Dimension dim;
+
+         public JLineSeparator(int orient, int w, int h)
+         {
+             super(orient);
+
+             dim = new Dimension(w, h);
+         }
+
+         public Dimension getPreferredSize()
+         {
+             return dim;
+         }
+
+         public Dimension getMaximumSize()
+         {
+             return getPreferredSize();
+         }
+
+    } 
+    public void addSeparator()
+    {
+    	JLineSeparator jsp = new JLineSeparator(SwingConstants.VERTICAL,3,30);
+    	jsp.setBorder(BorderFactory.createEmptyBorder());
+    	add(jsp);
+    }
 	
     /**
-     * addToolButton
-     * This method adds a PaletteButton to the main tool panel as
-     * a tool to be used in the set of main tools
+     * createToolButton
+     * This method creates a PaletteButton and stores it in the button group
+     * however it may or may not get added to the main toolbar.
      *
      * @param PaletteButton - the button to add
+     * @param addToMainToolbar - whether or not to put it on the main toolbar.
      **/
-    public void addToolButton( PaletteButton pButton) {
+    public void createToolButton( PaletteButton pButton, boolean addToMainToolbar) {
          
         if (debug)
             pButton.setBackground(Color.magenta);
         else
             GUI.applyToolbarColor(pButton);
-        mMainToolBar.add( pButton);
+        if (addToMainToolbar)
+        	add( pButton);
         mButtonGroup.add( pButton);
         if( mButtonGroup.getButtonCount() == 1) {
             pButton.setSelected( true);
@@ -130,7 +160,9 @@ public class VueToolPanel extends JPanel
         }
     }
 	
-	
+    public void addTool( VueTool pTool) {
+    	addTool(pTool,false);
+    }
     /**
      * addTool
      * This method adds a single VueTool to the main toolbar.
@@ -138,7 +170,7 @@ public class VueToolPanel extends JPanel
      *
      * #param VueTool - the tool to add.
      **/
-    public void addTool( VueTool pTool) {
+    public void addTool( VueTool pTool,boolean addToMainToolbar) {
 	
         if( mTools == null) {
             mTools = new Vector();
@@ -152,7 +184,7 @@ public class VueToolPanel extends JPanel
             // todo: setting this mnemonic doesn't appear to work
             //if (pTool.getShortcutKey() != 0)
             //button.setMnemonic(pTool.getShortcutKey());
-            addToolButton( button);
+            createToolButton( button,addToMainToolbar);
         }
     }
 	
@@ -217,7 +249,10 @@ public class VueToolPanel extends JPanel
         // removeToolButton( pTool.getName() );
     }
 	
-	
+	public Map getToolButtons()
+	{
+		return  mToolButtons;
+	}
 	
 	
     /**

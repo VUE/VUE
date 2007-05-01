@@ -32,37 +32,29 @@ import java.awt.geom.Point2D;
  * of new links.
  */
 
-public class LinkTool extends VueTool
-    implements VueConstants, LWEditor
+public class LinkModeTool extends VueTool
+    implements VueConstants
 {
-    /** link tool contextual tool panel **/
-    private static LinkToolPanel sLinkContextualPanel;
-    private static LinkTool singleton = null;
     
     LWComponent linkSource; // for starting a link
 
     private final LWComponent invisibleLinkEndpoint = new LWComponent();
     private final LWLink creationLink = new LWLink(invisibleLinkEndpoint);
-
-    public LinkTool()
+    private boolean comboMode = true;
+    
+    public LinkModeTool()
     {
         super();
         invisibleLinkEndpoint.addLinkRef(creationLink);
         invisibleLinkEndpoint.setSize(0,0);
         //creationLink.setStrokeColor(java.awt.Color.blue);
-        if (singleton != null) 
-            new Throwable("Warning: mulitple instances of " + this).printStackTrace();
-        singleton = this;
+      
     }
-    
+        
     /** return the singleton instance of this class */
     public static LinkTool getTool()
     {
-        if (singleton == null) {
-            new Throwable("Warning: LinkTool.getTool: class not initialized by VUE").printStackTrace();
-            new LinkTool();
-        }
-        return singleton;
+    	return (LinkTool)VueToolbarController.getController().getTool("linkTool");
     }
     
     /** @return an array of actions, with icon set, that will set the shape of selected
@@ -80,45 +72,10 @@ public class LinkTool extends VueTool
     }
     
     public JPanel getContextualPanel() {
-        return getLinkToolPanel();
+        return null;
     }
 
-    private static final Object LOCK = new Object();
-    static LinkToolPanel getLinkToolPanel() {
-        synchronized (LOCK) {
-            if (sLinkContextualPanel == null)
-                sLinkContextualPanel = new LinkToolPanel();
-        }
-        return sLinkContextualPanel;
-    }
-
-    public Class getSelectionType() { return LWLink.class; }
-
-    final public Object getPropertyKey() { return LWKey.LinkCurves; }
-    public Object produceValue() {
-        return new Integer(getActiveSubTool().getCurveCount());
-    }
-    /** LWPropertyProducer impl: load the currently selected link tool to the one with given curve count */
-    public void displayValue(Object curveValue) {
-        // Find the sub-tool with the matching curve-count, then load it's button icon images
-        // into the displayed selection icon
-        if (curveValue == null)
-            return;
-        Enumeration e = getSubToolIDs().elements();
-        int curveCount = ((Integer)curveValue).intValue();
-        while (e.hasMoreElements()) {
-            String id = (String) e.nextElement();
-            SubTool subtool = (SubTool) getSubTool(id);
-            if (subtool.getCurveCount() == curveCount) {
-                ((PaletteButton)mLinkedButton).setPropertiesFromItem(subtool.mLinkedButton);
-                // call super.setSelectedSubTool to avoid firing the setters
-                // as we're only LOADING the value here.
-                super.setSelectedSubTool(subtool);
-                break;
-            }
-        }
-    }
-
+    
     public void setSelectedSubTool(VueTool tool) {
         super.setSelectedSubTool(tool);
         if (VUE.getSelection().size() > 0) {
@@ -212,12 +169,16 @@ public class LinkTool extends VueTool
             //repaintMapRegionAdjusted(creationLink.getBounds());
             LWComponent linkDest = e.getViewer().getIndication();
             if (linkDest != linkSource)
-                makeLink(e, linkSource, linkDest, !e.isShiftDown());
+                makeLink(e, linkSource, linkDest, !e.isShiftDown(),comboMode);
         }
         this.linkSource = null;
         return true;
     }
 
+    public void setComboMode(boolean comboMode)
+    {
+    	this.comboMode = comboMode;
+    }
     public void handleDragAbort()
     {
         this.linkSource = null;
@@ -336,7 +297,8 @@ public class LinkTool extends VueTool
     private void makeLink(MapMouseEvent e,
                           LWComponent pLinkSource,
                           LWComponent pLinkDest,
-                          boolean pMakeConnection)
+                          boolean pMakeConnection,
+                          boolean comboMode)
     {
         LWLink existingLink = null;
         if (pLinkDest != null)
@@ -361,7 +323,7 @@ public class LinkTool extends VueTool
                 commonParent = pLinkSource.getParent();
             }
             boolean createdNode = false;
-            if (pLinkDest == null && pMakeConnection) {
+            if (pLinkDest == null && (pMakeConnection && comboMode)) {
                 pLinkDest = NodeModeTool.createNewNode();
                 pLinkDest.setCenterAt(e.getMapPoint());
                 commonParent.addChild(pLinkDest);
@@ -369,28 +331,13 @@ public class LinkTool extends VueTool
             }
 
             LWLink link;
-            if (pMakeConnection) {
+            if (pMakeConnection && (comboMode || pLinkDest!=null)) {
                 link = new LWLink(pLinkSource, pLinkDest);
             } else {
                 link = new LWLink(pLinkSource, null);
                 link.setTailPoint(e.getMapPoint()); // set to drop location
             }
-
-            // init link based on user defined state
-            /*
-            VueBeanState state = getLinkToolPanel().getCurrentState();
-            if (state != null) {
-                // override the curve count from the contextual tool state with
-                // the state from the main link tool state.
-                SubTool subTool = (SubTool) getSelectedSubTool();
-                state.setPropertyValue(LWKey.LinkCurves, new Integer(subTool.getCurveCount()));
-                state.applyState(link);
-
-                // new ctrl points are on-center of curve: set ctrl pt off center a bit so can see curve
-                //if (subTool.getCurveCount() > 0)
-                //link.setCtrlPoint0(new Point2D.Float(link.getCenterX()-20, link.getCenterY()-10));
-            }
-            */
+     
             
             commonParent.addChild(link);
             // We ensure a paint sequence here because a link to a link
@@ -401,7 +348,7 @@ public class LinkTool extends VueTool
             if (pLinkDest instanceof LWLink)
                 commonParent.ensurePaintSequence(link, pLinkDest);
             VUE.getSelection().setTo(link);
-            if (pMakeConnection)
+            if (pMakeConnection && comboMode)
                 e.getViewer().activateLabelEdit(createdNode ? pLinkDest : link);
         }
     }

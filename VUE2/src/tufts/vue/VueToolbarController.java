@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.53 $ / $Date: 2007-04-18 13:27:49 $ / $Author: mike $
+ * @version $Revision: 1.54 $ / $Date: 2007-05-01 18:17:41 $ / $Author: mike $
  *
  **/
 public class VueToolbarController  
@@ -125,7 +125,7 @@ public class VueToolbarController
      * This method loads a VueTool with the given name from the
      * vue properties file.
      **/
-    private VueTool loadTool(String pName)
+    public VueTool loadTool(String pName)
     {
         final String classKey = pName + ".class";
         final String className = VueResources.getString(classKey);
@@ -202,6 +202,23 @@ public class VueToolbarController
     private VueToolPanel createDefaultToolbar() {
         VueToolPanel toolbar = new VueToolPanel();
         toolbar.addTools(mVueTools);
+        Map btns = toolbar.getToolButtons();
+        //defaultToolNames=selectionTool,nodeTool,linkTool,textTool,zoomTool,handTool,pathwayTool,nodeModeTool,comboModeTool
+        toolbar.createToolButton((PaletteButton)btns.get("selectionTool"),true);
+        toolbar.createToolButton((PaletteButton)btns.get("nodeModeTool"),true);
+        toolbar.createToolButton((PaletteButton)btns.get("linkModeTool"),true);
+        toolbar.createToolButton((PaletteButton)btns.get("comboModeTool"),true);
+        toolbar.createToolButton((PaletteButton)btns.get("textTool"),true);
+        toolbar.addSeparator();
+        toolbar.createToolButton((PaletteButton)btns.get("zoomTool"),true);
+        toolbar.createToolButton((PaletteButton)btns.get("handTool"),true);
+        toolbar.addSeparator();        
+        toolbar.createToolButton((PaletteButton)btns.get("pathwayTool"),true);
+        toolbar.addSeparator();
+        
+        
+        LinkModeTool cmt = (LinkModeTool)this.getTool("linkModeTool");
+        cmt.setComboMode(false);
         return toolbar;
     }
 	
@@ -327,7 +344,7 @@ public class VueToolbarController
      * not it uses the selection to get a panel.
      **/
     private void updateContextualToolPanel() {
-        VueTool tool = getSelectedTool();
+        /*VueTool tool = getSelectedTool();
         if (tool.getParentTool() != null)
             tool = tool.getParentTool();
 
@@ -338,7 +355,7 @@ public class VueToolbarController
 
         if (panel != null)
             initContextualPanelFromSelection(panel);
-        
+        */
    //     getToolbar().setContextualToolPanel(panel);
     }
 	 
