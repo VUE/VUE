@@ -27,7 +27,7 @@ import java.awt.geom.Rectangle2D;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.11 $ / $Date: 2007-05-02 15:57:10 $ / $Author: dan $ *
+ * @version $Revision: 1.12 $ / $Date: 2007-05-02 16:02:36 $ / $Author: dan $ *
  * @author  Jay Briedis
  */
 public class ImageMap extends VueAction {
@@ -63,7 +63,7 @@ public class ImageMap extends VueAction {
        
        if(imageLocationFile.exists())
        {
-          int confirm = VueUtil.confirm("jpg image already exists, overwrite?","File Already Exists");
+          int confirm = VueUtil.confirm("jpeg image already exists, overwrite?","File Already Exists");
           if(confirm == javax.swing.JOptionPane.NO_OPTION)
           {
               VueUtil.alert("Image map not saved","Image Map");
