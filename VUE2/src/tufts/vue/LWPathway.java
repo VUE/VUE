@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.141 $ / $Date: 2007-05-02 17:30:06 $ / $Author: sfraize $
+ * @version $Revision: 1.142 $ / $Date: 2007-05-02 18:02:39 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -145,8 +145,22 @@ public class LWPathway extends LWContainer
 
         public LWSlide getSlide() {
             if (slide == null)
-                slide = LWSlide.CreateForPathway(pathway, node);
+                rebuildSlide();
             return slide;
+        }
+
+        public void rebuildSlide() {
+            // TODO: not undoable...
+            final LWSlide oldSlide = slide;
+            slide = LWSlide.CreateForPathway(pathway, node);
+            pathway.notify("slide.rebuild", new Undoable() { void undo() {
+                slide = oldSlide;
+            }});
+        }
+        
+        public void revertSlideToMasterStyle() {
+            if (slide != null)
+                slide.revertToMasterStyle();
         }
         
         /** for castor: don't build a slide if we haven't got one */

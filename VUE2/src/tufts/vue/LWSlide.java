@@ -28,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.27 $ / $Date: 2007-05-02 04:36:04 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2007-05-02 18:02:39 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -168,6 +168,22 @@ public class LWSlide extends LWContainer
     
     public void rebuild() {
         
+    }
+
+    public void revertToMasterStyle() {
+        for (LWComponent c : getAllDescendents()) {
+            LWComponent style = c.getStyle();
+            if (style != null) {
+                c.copyStyle(style);
+            } else {
+                // TODO: shouldn't really need this, but if anything gets detached from it's
+                // style, this should re-attach it, tho we need a bit in the node
+                // to know if we never want to do this: e.g. we always want a node
+                // to stay "regular" node on the slide.
+                applyMasterStyle(c);
+            }
+        }
+        setFillColor(null); // this is how we revert a slide's bg color to that of the master slide
     }
 
     private void applyMasterStyle(LWComponent c) {
