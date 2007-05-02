@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.138 $ / $Date: 2007-05-02 04:36:04 $ / $Author: sfraize $
+ * @version $Revision: 1.139 $ / $Date: 2007-05-02 17:18:10 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -159,11 +159,19 @@ public class LWPathway extends LWContainer
         }
         
         public void setMapView(boolean asMapView) {
-            isMapView = asMapView;
+            if (asMapView && isMergedSlide()) {
+                tufts.Util.printStackTrace("merged slide can't have map view");
+            } else {
+                isMapView = asMapView;
+            }
         }
 
         public boolean isMapView() {
-            return isMapView;
+            return isMergedSlide() ? false : isMapView;
+        }
+
+        public boolean isMergedSlide() {
+            return node == null;
         }
 
         public boolean hasNotes() {

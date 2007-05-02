@@ -391,8 +391,11 @@ public class PathwayTableModel extends DefaultTableModel
         } else {
             if (col == COL_LABEL) entry.setLabel((String)aValue);
             else if (col == COL_MAPVIEW)
-            	{entry.setMapView(!entry.isMapView());
-            	VUE.getSlideViewer().reload();
+            	{
+                    if (!entry.isMergedSlide()) {
+                        entry.setMapView(!entry.isMapView());
+                        VUE.getSlideViewer().reload();
+                    }
             
             	}
             	

@@ -67,7 +67,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.63 $ / $Date: 2007-05-02 04:36:04 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2007-05-02 17:18:10 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable implements DropTargetListener, DragSourceListener, DragGestureListener 
@@ -604,7 +604,7 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
                 if (obj instanceof Boolean)
                     bool = ((Boolean)obj).booleanValue();
                 
-                if(entry.isPathway())
+                if (entry.isPathway() || entry.isMergedSlide())
                 	setIcon(null);
                 else
                 	setIcon(bool ? mapViewIcon : slideViewIcon);
