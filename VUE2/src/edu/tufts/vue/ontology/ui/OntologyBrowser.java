@@ -131,7 +131,7 @@ public class OntologyBrowser extends JPanel {
         tufts.vue.VueAction applyStyle = new tufts.vue.VueAction()
         {
             {
-                setActionName("Apply Style");
+                setActionName("Import Style Sheet");
             }  
             
             public void actionPerformed(java.awt.event.ActionEvent e)
