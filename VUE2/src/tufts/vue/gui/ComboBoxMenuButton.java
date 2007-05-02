@@ -40,7 +40,7 @@ import javax.swing.border.*;
  *
  * Subclasses must implement LWEditor produce/display
  *
- * @version $Revision: 1.1 $ / $Date: 2007-04-18 13:29:11 $ / $Author: mike $
+ * @version $Revision: 1.2 $ / $Date: 2007-05-02 02:06:01 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -146,12 +146,11 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
             
        
             
-        this.addItemListener(new ItemListener(){
-        	public void itemStateChanged(ItemEvent e)
-        	{
-        		handleMenuSelection(e);
+        this.addItemListener(new ItemListener() {
+        	public void itemStateChanged(ItemEvent e) {
+                    handleMenuSelection(e);
         	}
-        });
+            });
         for (int i = 0; i < values.length; i++) {
            // JMenuItem item;
            // T value;
@@ -216,14 +215,17 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
         // set in them, we could search thru them every time to figure out which icon
         // to set as a default...)
 
+        if (e.getStateChange() != ItemEvent.SELECTED) // ignore de-selections
+            return;
+
         if (DEBUG.TOOL) System.out.println("\n" + this + " handleMenuSelection " + e);
         if (e.getItem() instanceof Action)
-        	handleValueSelection(((Action)e.getItem()).getValue(ValueKey));
+            handleValueSelection((T) ((Action)e.getItem()).getValue(ValueKey));
         else
-        	handleValueSelection(e.getItem());
+            handleValueSelection((T) e.getItem());
     }
     
-    protected void handleValueSelection(Object newPropertyValue) {
+    protected void handleValueSelection(T newPropertyValue) {
         if (DEBUG.TOOL) System.out.println(this + " handleValueSelection: newPropertyValue=" + newPropertyValue);
         if (newPropertyValue == null) // could be result of custom chooser
             return;
@@ -236,8 +238,8 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
         if (newPropertyValue instanceof Action) {
             System.out.println("Skipping setPropertyValue & firePropertyChanged for Action " + newPropertyValue);
         } else {
-            Object oldValue = produceValue();
-            displayValue((T)newPropertyValue);
+            T oldValue = produceValue();
+            displayValue(newPropertyValue);
             firePropertyChanged(oldValue, newPropertyValue);
         }
         repaint();
