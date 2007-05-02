@@ -32,7 +32,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 /**
- * @version $Revision: 1.7 $ / $Date: 2007-05-02 22:04:14 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2007-05-02 22:54:53 $ / $Author: sfraize $
  */
 
 // as this class is now specialized to handle vue LWKey properties,
@@ -75,11 +75,19 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
     }
 
     public void displayValue(T newValue) {
-        if (DEBUG.TOOL && DEBUG.META) System.out.println(this + " displayValue " + newValue);
-        if (mCurrentValue == null || !mCurrentValue.equals(newValue)) {
+        //if (DEBUG.TOOL && DEBUG.META) System.out.println(this + " displayValue " + newValue);
+        if (DEBUG.TOOL) System.out.println(this + " displayValue " + newValue);
+        mCurrentValue = newValue;
+        setSelectedItem(newValue);
+        /*
+        //if (mCurrentValue == null || !mCurrentValue.equals(newValue)) {
+        if (mCurrentValue != newValue) {
             mCurrentValue = newValue;
             setSelectedItem(newValue);
+        } else {
+            System.err.println("EQUALS: " + mCurrentValue + "=" + newValue);
         }
+        */
     }
     
     /** factory method for subclasses -- build's an icon for menu items */

@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.49 $ / $Date: 2007-05-02 22:20:39 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2007-05-02 22:54:53 $ / $Author: sfraize $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -107,6 +107,13 @@ public class FontEditorPanel extends JPanel
                 public String produceValue() { return (String) mFontCombo.getSelectedItem(); }
                 public void displayValue(String value) { mFontCombo.setSelectedItem(value); }
             });
+        
+//         We don't appear to get any events here!
+//         mFontCombo.addItemListener(new ItemListener() {
+//                 public void itemStateChanged(ItemEvent e) {
+//                     System.err.println(mFontCombo + ": itemStateChanged " + e);
+//                 }
+//             });
         
         //mFontCombo.setBorder(new javax.swing.border.LineBorder(Color.green, 2));
         //mFontCombo.setBackground(Color.white); // handled by L&F tweaks in VUE.java

@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.52 $ / $Date: 2007-05-02 22:04:14 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2007-05-02 22:54:53 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -166,8 +166,6 @@ public class NodeToolPanel extends ToolPanel
                     System.out.println("RENDERER SET DISABLED ICON: " + icon + " for value " + value);
                 //setIcon(getIconForValue(value));
                 if (DEBUG.TOOL && DEBUG.META) setText(value.toString());
-
-                // not working for the drawn shape icon for some reason: debug in NodeTool.ShapeIcon
 
                 return this;
             }
