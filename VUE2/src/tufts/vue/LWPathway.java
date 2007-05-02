@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.139 $ / $Date: 2007-05-02 17:18:10 $ / $Author: sfraize $
+ * @version $Revision: 1.140 $ / $Date: 2007-05-02 17:25:16 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -82,7 +82,7 @@ public class LWPathway extends LWContainer
      * pathways themselves).  This special version of the entry represents the pathway
      * itself.
      */
-    public static class Entry implements Transferable{
+    public static class Entry implements Transferable {
         /** the pathway this entry is in */
         public final LWPathway pathway;
         /** can be null if slide is "pathway only" combination of other nodes
@@ -159,15 +159,19 @@ public class LWPathway extends LWContainer
         }
         
         public void setMapView(boolean asMapView) {
-            if (asMapView && isMergedSlide()) {
-                tufts.Util.printStackTrace("merged slide can't have map view");
-            } else {
-                isMapView = asMapView;
-            }
+            isMapView = asMapView;
+            
+// During restores, until node is set, we always think we're a merged slide, and isMapView never gets restored!
+// This is just a redundancy check anyway for runtime testing.
+//             if (asMapView && isMergedSlide()) {
+//                 tufts.Util.printStackTrace("merged slide can't have map view");
+//             } else {
+//                 isMapView = asMapView;
+//             }
         }
 
         public boolean isMapView() {
-            return isMergedSlide() ? false : isMapView;
+            return isMapView;
         }
 
         public boolean isMergedSlide() {
