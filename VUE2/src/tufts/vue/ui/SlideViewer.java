@@ -117,6 +117,10 @@ public class SlideViewer extends tufts.vue.MapViewer
             exclusive.add(btnSlide);
             exclusive.add(btnMaster);
             //exclusive.add(btnPresent);
+
+            btnRebuild.setEnabled(false);
+            btnRevert.setEnabled(false);
+            
         }
 
       
