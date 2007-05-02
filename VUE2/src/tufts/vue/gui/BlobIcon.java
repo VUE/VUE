@@ -211,7 +211,7 @@ public class BlobIcon implements Icon
         }
         if (isNoFill) {
             g.setColor(Color.black);
-            g.drawLine(x+1,y + mHeight-2,  x+mWidth-2, y+1);
+            g.drawLine(x+2,y + mHeight-3,  x+mWidth-3, y+2);
             //g.drawLine(x,y, x+mWidth-1, y+mHeight-1);
         }
             
