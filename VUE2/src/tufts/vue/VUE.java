@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.413 $ / $Date: 2007-05-01 21:19:02 $ / $Author: sfraize $ 
+ * @version $Revision: 1.414 $ / $Date: 2007-05-02 02:13:07 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -524,12 +524,15 @@ public class VUE
     }
 
     public static class LWToolManager
-        implements LWSelection.Listener, PropertyChangeListener
+        implements LWSelection.Listener, PropertyChangeListener, LWComponent.Listener
     {
         private static final Collection<LWEditor> mEditors = new HashSet<LWEditor>();
         private static final HashMap<LWEditor,JLabel> mLabels = new HashMap();
         private static LWToolManager singleton;
-        private static boolean IgnoreEditorChangeEvents = false;
+        private static boolean EditorLoadingUnderway; // editors are loading values from the selection
+        private static boolean PropertySettingUnderway; // editor values are being applied to the selection
+
+        private LWComponent singleSelection;
 
         private LWToolManager() {
             if (singleton != null)
@@ -564,7 +567,7 @@ public class VUE
         }
 
         public void propertyChange(PropertyChangeEvent e) {
-            if (!IgnoreEditorChangeEvents && e instanceof LWPropertyChangeEvent) {
+            if (!EditorLoadingUnderway && e instanceof LWPropertyChangeEvent) {
                 if (DEBUG.TOOL) out("LWToolManager:propertyChange: " + e);
                 ApplyPropertyChangeToSelection(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
             }
@@ -572,7 +575,30 @@ public class VUE
 
         public void selectionChanged(LWSelection s) {
             loadAllEditors(s);
+
+            if (s.size() == 1) {
+                if (singleSelection != null)
+                    singleSelection.removeLWCListener(this);
+                singleSelection = s.first();
+                singleSelection.addLWCListener(this);
+                
+            } else if (singleSelection != null) {
+                singleSelection.removeLWCListener(this);
+                singleSelection = null;
+            }
         }
+
+        /** If the single object in the selection has a property change that was NOT due to an editor,
+         * (e.g., a menu) we detect this here, and re-load the editors as needed.
+         */
+        public void LWCChanged(LWCEvent e) {
+            if (EditorLoadingUnderway || PropertySettingUnderway)
+                ; // ignore
+            else
+                loadAllEditors(VUE.getSelection());
+            // really, we only need to load the one editor for the key in LWCEvent
+        }
+        
 
         private void loadAllEditors(LWSelection selection)
         {
@@ -584,7 +610,7 @@ public class VUE
             // loading may produce in the editors (otherwise, we'd then set the selected
             // component properties, end end up risking recursion, even tho properties
             // shouldn't be triggering events if their value hasn't actually changed)
-            IgnoreEditorChangeEvents = true;
+            EditorLoadingUnderway = true;
             
             try {
                 for (LWEditor editor : mEditors) {
@@ -601,7 +627,7 @@ public class VUE
                         loadEditor(propertySource, editor);
                 }
             } finally {
-                IgnoreEditorChangeEvents = false;
+                EditorLoadingUnderway = false;
             }
         }
     
@@ -624,34 +650,25 @@ public class VUE
         /** Will either modifiy the active selection, or if it's empty, modify the default state (creation state) for this tool panel */
         public static void ApplyPropertyChangeToSelection(final LWSelection selection, final Object key, final Object newValue, Object source)
         {
-            if (IgnoreEditorChangeEvents) {
+            if (EditorLoadingUnderway) {
                 if (DEBUG.TOOL) System.out.println("APCTS: " + key + " " + newValue + " (skipping)");
                 return;
             }
         
             if (DEBUG.TOOL) System.out.println("APCTS: " + key + " " + newValue);
         
-            if (selection.isEmpty()) {
-                /*
-                  if (mDefaultState != null)
-                  mDefaultState.setProperty(key, newValue);
-                  else
-                  System.out.println("mDefaultState is null");
-                */
-                //if (DEBUG.TOOL && DEBUG.META) out("new state " + mDefaultState); // need a style dumper
-            } else {
-            
+            if (!selection.isEmpty()) {
                 // As setting these properties in the model will trigger notify events from the selected objects
                 // back up to the tools, we want to ignore those events while this is underway -- the tools
                 // already have their state set to this.
-                //mIgnoreLWCEvents = true;
+                PropertySettingUnderway = true;
                 try {
                     for (tufts.vue.LWComponent c : selection) {
                         if (c.supportsProperty(key))
                             c.setProperty(key, newValue);
                     }
                 } finally {
-                    // mIgnoreLWCEvents = false;
+                    PropertySettingUnderway = false;
                 }
             
                 if (VUE.getUndoManager() != null)
