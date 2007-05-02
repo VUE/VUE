@@ -186,7 +186,8 @@ public class BlobIcon implements Icon
 		
         final Color oldColor = g.getColor();
         final Color color;
-        if (mColor == null)
+        final boolean isNoFill = (mColor == null || mColor.getAlpha() == 0);
+        if (isNoFill)
             color = c.getBackground();
         else
             color = mColor;
@@ -198,14 +199,17 @@ public class BlobIcon implements Icon
         //g.fillRect(x,y, mWidth, mHeight);
         g.fill(BlobShape);
         if (mPaintBorder) {
-            g.setColor(color.darker().darker());
+            if (isNoFill)
+                g.setColor(Color.black);
+            else
+                g.setColor(color.darker().darker());
             //g.setColor(Color.black);
             //g.setColor(Color.darkGray);
             g.setStroke(BlobStroke);
             g.draw(BlobShape);
             //g.drawRect(x,y, mWidth-1, mHeight-1);
         }
-        if (mColor == null || mColor.getAlpha() == 0) {
+        if (isNoFill) {
             g.setColor(Color.black);
             g.drawLine(x+1,y + mHeight-2,  x+mWidth-2, y+1);
             //g.drawLine(x,y, x+mWidth-1, y+mHeight-1);
