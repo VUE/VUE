@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.142 $ / $Date: 2007-05-02 18:02:39 $ / $Author: sfraize $
+ * @version $Revision: 1.143 $ / $Date: 2007-05-02 19:58:56 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -105,7 +105,10 @@ public class LWPathway extends LWContainer
         private Entry(LWPathway pathway, Iterable<LWComponent> contents) {
             this.pathway = pathway;
             this.node = null;
-            this.slide = LWSlide.CreateForPathway(pathway, "Merged Slide", null, contents);
+            String titleText = "Untitled";
+            this.slide = LWSlide.CreateForPathway(pathway, titleText, null, contents, true);
+            this.slide.enableProperty(LWKey.Label);
+            this.setLabel(titleText);
         }
 
         /** for our use during castor restores */
@@ -115,6 +118,8 @@ public class LWPathway extends LWContainer
             this.slide = partial.slide;
             this.isMapView = partial.isMapView;
             this.notes = partial.notes;
+            if (isMergedSlide() && slide != null)
+                slide.enableProperty(LWKey.Label);
         }
         
 
@@ -124,12 +129,8 @@ public class LWPathway extends LWContainer
         public String getLabel() {
             if (node != null)
                 return node.getDisplayLabel();
-            else if (false && slide != null)
-                return slide.getDisplayLabel();
             else
-                return "Merged Slide";
-            //return "PathwayEntry " + Integer.toHexString(hashCode());
-            //return "PathwaySlide:" + slide.getDisplayLabel();
+                return getSlide().getLabel();
         }
 
         public void setLabel(String s) {
@@ -830,8 +831,8 @@ public class LWPathway extends LWContainer
     public static class MasterSlide extends LWSlide
     {
         //final static String StyleLabel = "Sample Text";
-        final static String TitleLabel = "Slide Title";
-        final static String TextLabel = "Slide Text";
+        final static String TitleLabel = "Slide Title Style";
+        final static String TextLabel = "Slide Text Style";
         // TODO: need to figure out how to make these non-deletable
         LWComponent titleStyle;
         LWComponent textStyle;
@@ -847,10 +848,10 @@ public class LWPathway extends LWContainer
                 // check the label is a temporary hack for now to get the styles back:
                 // we may want to make these special objects actually managed by the
                 // master slide
-                if ("Sample Text".equals(c.getLabel()) || TextLabel.equals(c.getLabel())) {
+                if ("Sample Text".equals(c.getLabel()) || TextLabel.startsWith(c.getLabel())) {
                     textStyle = c;
                     if (DEBUG.PRESENT) out("FOUND TEXT STYLE " + c);
-                } else if (TitleLabel.equals(c.getLabel())) {
+                } else if (TitleLabel.startsWith(c.getLabel())) {
                     if (DEBUG.PRESENT) out("FOUND TITLE STYLE " + c);
                     titleStyle = c;
                 } else if (c.hasLabel() && c.getLabel().startsWith("http:")) {

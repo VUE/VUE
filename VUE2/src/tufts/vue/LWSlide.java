@@ -28,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.28 $ / $Date: 2007-05-02 18:02:39 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2007-05-02 19:58:56 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -61,6 +61,10 @@ public class LWSlide extends LWContainer
     }
 
     public String getLabel() {
+
+        if (supportsProperty(LWKey.Label))
+            return super.getLabel();
+        
         final LWContainer parent = getParent();
         if (false && parent instanceof LWPathway)
             return super.getLabel();
@@ -99,10 +103,10 @@ public class LWSlide extends LWContainer
     }
     
     public static LWSlide CreateForPathway(LWPathway pathway, LWComponent node) {
-        return CreateForPathway(pathway, node.getDisplayLabel(), node, node.getAllDescendents());
+        return CreateForPathway(pathway, node.getDisplayLabel(), node, node.getAllDescendents(), false);
     }
         
-    public static LWSlide CreateForPathway(LWPathway pathway, String titleText, LWComponent sourceNode, Iterable<LWComponent> contents)
+    public static LWSlide CreateForPathway(LWPathway pathway, String titleText, LWComponent sourceNode, Iterable<LWComponent> contents, boolean syncTitle) 
     {
         final LWSlide slide = CreatePathwaySlide();
         final LWNode title = NodeModeTool.buildTextNode(titleText);
@@ -112,6 +116,7 @@ public class LWSlide extends LWContainer
 
         slide.mSourceNode = sourceNode;
         title.setStyle(master.titleStyle);
+        // if (syncTitle) title.setSyncSource(slide); doesn't seem to work in this direction (reverse is okay, but not what we want)
         if (sourceNode != null)
             title.setSyncSource(sourceNode);
 
@@ -171,6 +176,7 @@ public class LWSlide extends LWContainer
     }
 
     public void revertToMasterStyle() {
+        //out("REVERTING TO MASTER STYLE");
         for (LWComponent c : getAllDescendents()) {
             LWComponent style = c.getStyle();
             if (style != null) {

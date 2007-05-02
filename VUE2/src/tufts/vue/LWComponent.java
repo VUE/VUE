@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.254 $ / $Date: 2007-05-01 23:20:24 $ / $Author: sfraize $
+ * @version $Revision: 1.255 $ / $Date: 2007-05-02 19:58:56 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -220,6 +220,10 @@ public class LWComponent
 
     protected void disableProperty(Key key) {
         mSupportedPropertyKeys &= ~key.bit;
+    }
+    
+    protected void enableProperty(Key key) {
+        mSupportedPropertyKeys |= key.bit;
     }
 
     /** Apply all style properties from styleSource to this component */

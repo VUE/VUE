@@ -93,6 +93,9 @@ public class SlideViewer extends tufts.vue.MapViewer
     private final AbstractButton btnRevert;
     //private final AbstractButton btnPresent;
 
+    private static final String lblRevertOnSlide = "Revert Slide Style";
+    private static final String lblRevertOnMaster = "Revert All Slide Styles";
+
     private boolean masterJustPressed;
     private boolean slideJustPressed;
 
@@ -120,7 +123,6 @@ public class SlideViewer extends tufts.vue.MapViewer
 
             btnRebuild.setEnabled(false);
             btnRevert.setEnabled(false);
-            
         }
 
       
@@ -134,19 +136,33 @@ public class SlideViewer extends tufts.vue.MapViewer
             if (e.getSource() == btnMapView) {
                 if (mLastLoad != null && !mLastLoad.isPathway())
                     mLastLoad.setMapView(btnMapView.isSelected());
+                reload();
             } else if (e.getSource() == btnMaster) {
                 masterJustPressed = true;
+                reload();
             } else if (e.getSource() == btnSlide) {
                 slideJustPressed = true;
+                reload();
             } else if (e.getSource() == btnRebuild) {
                 mLastLoad.rebuildSlide();
                 mLastLoad.pathway.getMap().getUndoManager().mark(btnRebuild.getText());
+                reload();
             } else if (e.getSource() == btnRevert) {
-                mLastLoad.revertSlideToMasterStyle();
+                if (btnMaster.isSelected()) {
+                    //out("REVERTING ALL IN " + mLastLoad.pathway);
+                    for (LWPathway.Entry entry : mLastLoad.pathway.getEntries()) {
+                        //out("REVERTING ENTRY " + entry);
+                        LWSlide slide = entry.getSlide();
+                        if (slide != null) 
+                            slide.revertToMasterStyle();
+                    }
+                } else {
+                    //out("REVERTING CURRENT ENTRY " + mLastLoad);
+                    mLastLoad.revertSlideToMasterStyle();
+                }
                 mLastLoad.pathway.getMap().getUndoManager().mark(btnRevert.getText());
             }
 
-            reload();
         }
 
     }
@@ -349,7 +365,8 @@ if (true) return;
             focal = entry.pathway.getMasterSlide();
             inFocal = true;
             btnRebuild.setEnabled(false);
-            btnRevert.setEnabled(false);
+            btnRevert.setEnabled(true);
+            btnRevert.setText(lblRevertOnMaster);
         } else {
             if (DEBUG.PRESENT) out("slide auto-select");
             btnSlide.setSelected(true);
@@ -364,8 +381,9 @@ if (true) return;
 
             isMapView = entry.isMapView();
             btnMapView.setSelected(isMapView);
-            btnRebuild.setEnabled(true);
+            btnRebuild.setEnabled(!entry.isMergedSlide());
             btnRevert.setEnabled(true);
+            btnRevert.setText(lblRevertOnSlide);
             focal = entry.getFocal();
             inFocal = true;
         }
