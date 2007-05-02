@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.140 $ / $Date: 2007-05-02 17:25:16 $ / $Author: sfraize $
+ * @version $Revision: 1.141 $ / $Date: 2007-05-02 17:30:06 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -549,12 +549,13 @@ public class LWPathway extends LWContainer
     {
         // Could use a HashSet to force unique, but we want to
         // keep the order.
-        Collection<LWComponent> allContents = new ArrayList() {
+        Collection<LWComponent> allContents = new ArrayList<LWComponent>() {
                 public boolean add(LWComponent c) {
-                    if (contains(c))
+                    if (contains(c)) {
                         return false;
-                    else
+                    } else {
                         return super.add(c);
+                    }
                 }
             };
         for (LWComponent c : selection) {
