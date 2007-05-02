@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.50 $ / $Date: 2007-05-02 03:16:19 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2007-05-02 03:27:20 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -113,7 +113,7 @@ public class NodeToolPanel extends ToolPanel
         return o instanceof LWNode;
     }
     
-    class ShapeMenuButton extends VueComboMenu<Class<? extends RectangularShape>>
+    static class ShapeMenuButton extends VueComboMenu<Class<? extends RectangularShape>>
     {
         public ShapeMenuButton() {
             super(LWKey.Shape, NodeTool.getTool().getAllShapeClasses());
@@ -158,7 +158,7 @@ public class NodeToolPanel extends ToolPanel
                 
                 setIcon(getIconForValue(value));
 
-                //setEnabled(mShapeButton.isEnabled());
+                //setEnabled(ShapeMenuButton.this.isEnabled());
                 // not working for the drawn shape icon for some reason: debug in NodeTool.ShapeIcon
 
                 return this;
@@ -167,7 +167,7 @@ public class NodeToolPanel extends ToolPanel
 	 
     }
     
-    class LinkMenuButton extends VueComboMenu<Integer>
+    static class LinkMenuButton extends VueComboMenu<Integer>
     {
         private final Action[] actionsWithIcons;
         
@@ -209,7 +209,7 @@ public class NodeToolPanel extends ToolPanel
                     setForeground(list.getForeground());
                 }        	         		
         		
-                setEnabled(mLinkButton.isEnabled());
+                setEnabled(LinkMenuButton.this.isEnabled());
                 setIcon(getIconForValue(value));
                 return this;
             }
