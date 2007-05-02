@@ -292,7 +292,15 @@ public class NodeTool extends VueTool
         return values;
     }
 
-    public Shape getNamedShape(String name)
+    public Class<? extends Shape>[] getAllShapeClasses() {
+        Class<? extends Shape>[] classes = new Class[getSubToolIDs().size()];
+        int i = 0;
+        for (Object o : getAllShapeValues())
+            classes[i++] = ((Shape)o).getClass();
+        return classes;
+    }
+
+    public RectangularShape getNamedShape(String name)
     {
         if (mSubToolMap.isEmpty())
             throw new Error("uninitialized sub-tools");
@@ -465,7 +473,7 @@ public class NodeTool extends VueTool
                     g2.setColor(Color.black);
                 else
                     g2.setColor(Color.lightGray);
-                g2.setStroke(STROKE_HALF);
+                g2.setStroke(STROKE_ONE);
                 g2.draw(mShape);
                 g2.translate(-x,-y);
             }

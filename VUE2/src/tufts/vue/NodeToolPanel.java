@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.45 $ / $Date: 2007-05-01 22:36:54 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2007-05-02 02:15:31 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -112,10 +112,13 @@ public class NodeToolPanel extends ToolPanel
     public boolean isPreferredType(Object o) {
         return o instanceof LWNode;
     }
-    class ShapeMenuButton extends VueComboMenu<RectangularShape>
+    //class ShapeMenuButton extends VueComboMenu<RectangularShape>
+    class ShapeMenuButton extends VueComboMenu<Class<? extends RectangularShape>>
     {
         public ShapeMenuButton() {
-            super(LWKey.Shape, NodeTool.getTool().getShapeSetterActions());
+            //super(LWKey.Shape, NodeTool.getTool().getShapeSetterActions());
+            //super(LWKey.Shape, NodeTool.getTool().getAllShapeValues());
+            super(LWKey.Shape, NodeTool.getTool().getAllShapeClasses());
             setToolTipText("Node Shape");
             setRenderer(new ComboBoxRenderer());
             this.setMaximumRowCount(10);
@@ -123,9 +126,15 @@ public class NodeToolPanel extends ToolPanel
 
         //protected Dimension getButtonSize() { return new Dimension(37,22); }
 
-        public void displayValue(RectangularShape shape) {
-            if (DEBUG.TOOL) System.out.println(this + " displayValue " + shape.getClass() + " [" + shape + "]");
+        //public void displayValue(RectangularShape shape) {
+        public void displayValue(Class<? extends RectangularShape> shapeClass) {
+            //if (DEBUG.TOOL) System.out.println(this + " displayValue " + shape.getClass() + " [" + shape + "]");
+            if (DEBUG.TOOL) System.out.println(this + " displayValue " + shapeClass);
 
+            mCurrentValue = shapeClass;
+            setSelectedItem(shapeClass);
+
+            /*
             if (mCurrentValue == null || !mCurrentValue.getClass().equals(shape.getClass())) {
                 mCurrentValue = shape;
 
@@ -142,6 +151,19 @@ public class NodeToolPanel extends ToolPanel
                 
                 //setButtonIcon(makeIcon(shape));
             }
+            */
+        }
+        
+        protected Icon makeIcon(RectangularShape shape) {
+            return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
+        }
+        protected Icon makeIcon(Class<? extends RectangularShape> shapeClass) {
+            try {
+                return new NodeTool.SubTool.ShapeIcon(shapeClass.newInstance());
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t);
+            }
+            return null;
         }
 
         class ComboBoxRenderer extends JLabel implements ListCellRenderer {
@@ -168,15 +190,24 @@ public class NodeToolPanel extends ToolPanel
                     setBackground(Color.white);
                     setForeground(list.getForeground());
                 }        	         		
-        		
-                //Set the icon and text.  If icon was null, say so.        		
-                Action a = (Action) value;
-                Icon icon = (Icon) a.getValue(Action.SMALL_ICON);
-                value = a.getValue(ValueKey);
-                if (icon == null)
-                    icon = makeIcon(value);
-                if (icon != null)
+
+                Icon icon;
+
+                if (value instanceof Action) {
+                    Action a = (Action) value;
+                    icon = (Icon) a.getValue(Action.SMALL_ICON);
+                    value = a.getValue(ValueKey);
+                    if (icon == null) {
+                        icon = makeIcon((RectangularShape)value);
+                        a.putValue(Action.SMALL_ICON, icon);
+                    }
                     setIcon(icon);
+                } else if (value instanceof Class) {
+                    setIcon(makeIcon((Class)value)); // todo: overkill: creating icon every time we render
+                } else {
+                    setIcon(makeIcon((RectangularShape)value)); // todo: overkill: creating icon every time we render
+                 }
+
         		
                 //System.out.println("ICON SIZE NODE " + icon.getIconHeight() + " " + icon.getIconWidth());
 
@@ -187,11 +218,6 @@ public class NodeToolPanel extends ToolPanel
                 // SMF 2007-05-01
 
                 return this;
-            }
-            /** @return new icon for the given shape */
-            protected Icon makeIcon(Object value) {
-                RectangularShape shape = (RectangularShape) value;
-                return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
             }
         }        
 	 

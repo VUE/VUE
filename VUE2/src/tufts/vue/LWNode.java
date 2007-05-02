@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.145 $ / $Date: 2007-04-18 14:30:13 $ / $Author: sfraize $
+ * @version $Revision: 1.146 $ / $Date: 2007-05-02 02:15:31 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -172,6 +172,30 @@ public class LWNode extends LWContainer
         setResource(resource);
     }
     
+    public static final Key KEY_Shape = new Key<LWNode,Class<? extends RectangularShape>>("node.shape", "shape") {
+        @Override public boolean setValueFromCSS(LWNode c, String cssKey, String cssValue) {
+            RectangularShape shape = NodeTool.getTool().getNamedShape(cssValue);
+            if (shape == null) {
+                return false;
+            } else {
+                setValue(c, shape.getClass());
+                System.err.println("applied shape: " + this + "=" + getValue(c));
+                return true;
+            }
+        }
+        @Override public void setValue(LWNode c, Class<? extends RectangularShape> shapeClass) {
+            try {
+                c.setShape(shapeClass.newInstance());
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t);
+            }
+        }
+        @Override public Class<? extends RectangularShape> getValue(LWNode c) {
+            return c.getShape().getClass();
+        }
+    };
+
+    /*
     public static final Key KEY_Shape = new Key<LWNode,Shape>("node.shape", "shape") {
         @Override public boolean setValueFromCSS(LWNode c, String cssKey, String cssValue) {
             Shape shape = NodeTool.getTool().getNamedShape(cssValue);
@@ -193,6 +217,8 @@ public class LWNode extends LWContainer
             return IsSameShape(getValue(c), otherValue);
         }
     };
+    */
+    
     
     /*
     public static final Key KEY_Shape = new StyleKey("node.shape") { Property getSlot(LWComponent c) { return ((LWNode)c).mShape; }};
@@ -271,7 +297,7 @@ public class LWNode extends LWContainer
     }
     
     /** @return shape object with map coordinates -- can be used for hit testing, drawing, etc */
-    public Shape getShape() {
+    public RectangularShape getShape() {
         return this.boundsShape;
     }
     
