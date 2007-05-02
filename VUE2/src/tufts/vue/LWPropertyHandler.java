@@ -71,7 +71,7 @@ public abstract class LWPropertyHandler<T>
 
     //public void itemStateChanged(java.awt.event.ItemEvent e) {
     public void actionPerformed(java.awt.event.ActionEvent e) {
-        System.out.println(this + " actionPerformed " + e.paramString());
+        if (DEBUG.TOOL) System.out.println(this + " actionPerformed " + e.paramString());
         VUE.LWToolManager.ApplyPropertyChangeToSelection(VUE.getSelection(), key, produceValue(), e.getSource());
         
         /*
