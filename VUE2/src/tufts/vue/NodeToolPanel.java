@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.47 $ / $Date: 2007-05-02 02:55:54 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2007-05-02 03:07:50 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -118,7 +118,7 @@ public class NodeToolPanel extends ToolPanel
         public ShapeMenuButton() {
             super(LWKey.Shape, NodeTool.getTool().getAllShapeClasses());
             setToolTipText("Node Shape");
-            setRenderer(new ComboBoxRenderer());
+            setRenderer(new ShapeComboRenderer());
             this.setMaximumRowCount(10);
         }
 
@@ -131,9 +131,9 @@ public class NodeToolPanel extends ToolPanel
             return null;
         }
 
-        class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+        class ShapeComboRenderer extends JLabel implements ListCellRenderer {
         	
-            public ComboBoxRenderer() {
+            public ShapeComboRenderer() {
                 setOpaque(true);
                 setHorizontalAlignment(CENTER);
                 setVerticalAlignment(CENTER);
@@ -172,46 +172,28 @@ public class NodeToolPanel extends ToolPanel
     
     static class LinkMenuButton extends VueComboMenu<Integer>
     {
-        public LinkMenuButton() {
-            super(LWKey.LinkShape, LinkTool.getTool().getSetterActions());
-            setToolTipText("Link Shape");
-            setRenderer(new ComboBoxRenderer());
-            this.setMaximumRowCount(10);
-            //setEnabled(false);
-        }
-
-        //protected Dimension getButtonSize() { return new Dimension(37,22); }
-
-        /** @param o an instance of RectangularShape */
-        public void displayValue(Integer linkShape) {
-            // if (DEBUG.TOOL) System.out.println(this + " displayValue " + shape.getClass() + " [" + shape + "]");
-
-            //if (mCurrentValue == null || !mCurrentValue.getClass().equals(shape.getClass())) {
-            //    mCurrentValue = shape;
-
-            // This is inefficent in that we there are already shape icons out there (produced
-            // in getShapeSetterActions()) that we could use, but doing it this way (creating a
-            // new one every time) will allow for ANY rectangular shape to display properly in
-            // the tool menu, even it is a deprecated shape or non-standard shape (not defined
-            // as a standard from for the node tool in VueResources.properties).  (This is
-            // especially in-effecient if you look at what setButtonIcon does in MenuButton: it
-            // creates first a proxy icon, and then creates and installs a whole set of
-            // VueButtonIcons for all the various states the button can take, for a totale of 7
-            // objects every time we do this (1 for the clone, 1 for proxy, 5 via
-            // VueButtonIcon.installGenerated)
-                
-            //setButtonIcon(makeIcon(shape));
-        }
+        private final Action[] actionsWithIcons;
         
+        public LinkMenuButton() {
+            //super(LWKey.LinkShape, LinkTool.getTool().getSetterActions());
+            super(LWKey.LinkShape, new Integer[] { 0, 1, 2 });
+            actionsWithIcons = LinkTool.getTool().getSetterActions();
+            setToolTipText("Link Shape");
+            setRenderer(new LinkComboRenderer());
+            this.setMaximumRowCount(10);
+        }
 
-       
-        class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+        protected Icon getIconForValue(Integer i) {
+            return (Icon) actionsWithIcons[i].getValue(Action.SMALL_ICON);
+        }
+
+        class LinkComboRenderer extends JLabel implements ListCellRenderer {
         	
-            public ComboBoxRenderer() {
+            public LinkComboRenderer() {
                 setOpaque(true);
                 setHorizontalAlignment(CENTER);
                 setVerticalAlignment(CENTER);
-
+                setBorder(BorderFactory.createEmptyBorder(2,2,2,2));
             }
 
         
@@ -230,18 +212,9 @@ public class NodeToolPanel extends ToolPanel
                     setForeground(list.getForeground());
                 }        	         		
         		
-                //Set the icon and text.  If icon was null, say so.        		
-                Action a = (Action)value;
-                Icon icon = (Icon)a.getValue(Action.SMALL_ICON);
-                //   System.out.println("ICON SIZE LINK " + icon.getIconHeight() + " " + icon.getIconWidth());
-                //  if (icon != null)
-                //setIcon(new MenuProxyIcon(icon));
-                this.setBorder(BorderFactory.createEmptyBorder(2,2,2,2));
-                setIcon(icon);
+                setIcon(getIconForValue(value));
                 return this;
             }
-     
-            
         }        
 	 
     }
