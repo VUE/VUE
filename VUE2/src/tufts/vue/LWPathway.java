@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.137 $ / $Date: 2007-05-01 18:19:24 $ / $Author: mike $
+ * @version $Revision: 1.138 $ / $Date: 2007-05-02 04:36:04 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -100,6 +100,13 @@ public class LWPathway extends LWContainer
             this.pathway = pathway;
             this.node = node;
         }
+        
+        /** create a merge of multiple nodes */
+        private Entry(LWPathway pathway, Iterable<LWComponent> contents) {
+            this.pathway = pathway;
+            this.node = null;
+            this.slide = LWSlide.CreateForPathway(pathway, "Merged Slide", null, contents);
+        }
 
         /** for our use during castor restores */
         private Entry(LWPathway pathway, Entry partial) {
@@ -117,8 +124,12 @@ public class LWPathway extends LWContainer
         public String getLabel() {
             if (node != null)
                 return node.getDisplayLabel();
+            else if (false && slide != null)
+                return slide.getDisplayLabel();
             else
-                return "PathwaySlide:" + slide.getDisplayLabel();
+                return "Merged Slide";
+            //return "PathwayEntry " + Integer.toHexString(hashCode());
+            //return "PathwaySlide:" + slide.getDisplayLabel();
         }
 
         public void setLabel(String s) {
@@ -501,7 +512,7 @@ public class LWPathway extends LWContainer
     {
         if (DEBUG.PATHWAY||DEBUG.PARENTING) out("add " + i);
 
-        List newEntries = cloneEntries();
+        List<Entry> newEntries = cloneEntries();
         int addCount = 0;
         
         while (i.hasNext()) {
@@ -514,13 +525,36 @@ public class LWPathway extends LWContainer
             addCount++;
         }
 
-        if (addCount > 0) {
-            int newIndex = NO_INDEX_CHANGE;
-            if (addCount == 1)
-                newIndex = newEntries.size() - 1;
-            setEntries("pathway.add", newEntries, newIndex);
-        }
+         if (addCount > 0) {
+             int newIndex = NO_INDEX_CHANGE;
+             if (addCount == 1)
+                 newIndex = newEntries.size() - 1;
+             setEntries("pathway.add", newEntries, newIndex);
+         }
     }
+
+    public void addMergedSlide(LWSelection selection)
+    {
+        // Could use a HashSet to force unique, but we want to
+        // keep the order.
+        Collection<LWComponent> allContents = new ArrayList() {
+                public boolean add(LWComponent c) {
+                    if (contains(c))
+                        return false;
+                    else
+                        return super.add(c);
+                }
+            };
+        for (LWComponent c : selection) {
+            allContents.add(c);
+            c.getAllDescendents(ChildKind.PROPER, allContents);
+        }
+        Entry e = new Entry(this, allContents);
+        List<Entry> newEntries = cloneEntries();
+        newEntries.add(e);
+        setEntries("pathway.add", newEntries, newEntries.size() - 1);
+    }
+
 
     /** @param index is ignored if toRemove is non-null */
     // TODO: isDeleting currently not used -- do we still need it?

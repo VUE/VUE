@@ -28,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.26 $ / $Date: 2007-05-01 18:19:24 $ / $Author: mike $
+ * @version $Revision: 1.27 $ / $Date: 2007-05-02 04:36:04 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -98,19 +98,24 @@ public class LWSlide extends LWContainer
         return s;
     }
     
-    public static LWSlide CreateForPathway(LWPathway pathway, LWComponent node)
+    public static LWSlide CreateForPathway(LWPathway pathway, LWComponent node) {
+        return CreateForPathway(pathway, node.getDisplayLabel(), node, node.getAllDescendents());
+    }
+        
+    public static LWSlide CreateForPathway(LWPathway pathway, String titleText, LWComponent sourceNode, Iterable<LWComponent> contents)
     {
         final LWSlide slide = CreatePathwaySlide();
-        final LWNode title = NodeModeTool.buildTextNode(node.getDisplayLabel());
+        final LWNode title = NodeModeTool.buildTextNode(titleText);
         final LWPathway.MasterSlide master = pathway.getMasterSlide();
         final CopyContext cc = new CopyContext(false);
         final LinkedList<LWComponent> toLayout = new java.util.LinkedList();
 
-        slide.mSourceNode = node;
+        slide.mSourceNode = sourceNode;
         title.setStyle(master.titleStyle);
-        title.setSyncSource(node);
+        if (sourceNode != null)
+            title.setSyncSource(sourceNode);
 
-        for (LWComponent c : node.getAllDescendents()) {
+        for (LWComponent c : contents) {
             final LWComponent slideCopy = c.duplicate(cc);
             slideCopy.setScale(1);
             applyMasterStyle(master, slideCopy);

@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.414 $ / $Date: 2007-05-02 02:13:07 $ / $Author: sfraize $ 
+ * @version $Revision: 1.415 $ / $Date: 2007-05-02 04:36:04 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -2187,7 +2187,7 @@ public class VUE
     }
     
     public static void toggleFullScreen(boolean goNative) {
-    	toggleFullScreen(false,false);
+    	toggleFullScreen(goNative, false);
     }
     
     public static void toggleFullScreen(boolean goNative,boolean showFloatingToolbar) {

@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.71 $ / $Date: 2007-04-26 18:10:45 $ / $Author: mike $
+ * @version $Revision: 1.72 $ / $Date: 2007-05-02 04:36:04 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -56,7 +56,7 @@ public class PathwayPanel extends JPanel
     private Frame mParentFrame;
     
     private VueButton btnAddSlide = new VueButton("presentationDialog.button.makeSlides",this);
-    private VueButton btnMergeInto = new VueButton("presentationDialog.button.mergeInto");
+    private VueButton btnMergeInto = new VueButton("presentationDialog.button.mergeInto",this);
     private VueButton btnLiveMap = new VueButton("presentationDialog.button.liveMap");
     
     //edit
@@ -762,6 +762,7 @@ public class PathwayPanel extends JPanel
         	VUE.getSlideViewer().showMasterSlideMode();
         }
         else if (btn == btnAddSlide)  { pathway.add(VUE.getSelection().iterator()); }
+        else if (btn == btnMergeInto)  { pathway.addMergedSlide(VUE.getSelection()); }
       //  else if (btn == btnElementUp)   { pathway.moveCurrentUp(); }
       //  else if (btn == btnElementDown) { pathway.moveCurrentDown(); }
 
@@ -912,6 +913,7 @@ public class PathwayPanel extends JPanel
             //if (!removeDone)
                 //btnDeleteSlide.setEnabled(false);
         }
+        btnMergeInto.setEnabled(selection.size() > 1);
     }
 
     public void updateEnabledStates()

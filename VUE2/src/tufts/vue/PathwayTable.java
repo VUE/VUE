@@ -67,7 +67,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.62 $ / $Date: 2007-03-23 02:28:09 $ / $Author: mike $
+ * @version $Revision: 1.63 $ / $Date: 2007-05-02 04:36:04 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable implements DropTargetListener, DragSourceListener, DragGestureListener 
@@ -478,9 +478,9 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
                     
                     
                 	setText(debug+"   "+entry.getLabel());
-                    if (entry.node.isFiltered() || entry.node.isHidden())
-                    	setForeground(Color.lightGray);
-                    
+                        if (entry.node != null && (entry.node.isFiltered() || entry.node.isHidden()))
+                            setForeground(Color.lightGray);
+                        
                         
                 }
             }

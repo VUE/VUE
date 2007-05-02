@@ -67,7 +67,10 @@ public class FullScreen {
             tufts.Util.screenToBlack();
 
         if (fullScreenMode) {
-            exitFullScreenMode();
+            if (goNative && !inNativeFullScreen())
+                enterFullScreenMode(true);
+            else
+                exitFullScreenMode();
         } else {
             enterFullScreenMode(goNative);
         }
