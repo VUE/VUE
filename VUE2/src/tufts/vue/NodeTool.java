@@ -471,10 +471,10 @@ public class NodeTool extends VueTool
                 }
                 if (c.isEnabled()) {
                     g2.setColor(Color.black);
-                    System.out.println("DRAWING ENABLED:   " + this + " on " + c);
+                    if (DEBUG.TOOL) System.out.println("DRAWING ENABLED:   " + this + " on " + c);
                 } else {
                     g2.setColor(Color.lightGray);
-                    System.out.println("DRAWING DISABLED:  " + this + " on " + c);
+                    if (DEBUG.TOOL) System.out.println("DRAWING DISABLED:  " + this + " on " + c);
                 }
                 g2.setStroke(STROKE_ONE);
                 g2.draw(mShape);

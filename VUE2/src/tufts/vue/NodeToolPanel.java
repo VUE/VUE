@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.53 $ / $Date: 2007-05-02 22:54:53 $ / $Author: sfraize $
+ * @version $Revision: 1.54 $ / $Date: 2007-05-02 23:00:28 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -162,7 +162,7 @@ public class NodeToolPanel extends ToolPanel
                 
                 Icon icon = getIconForValue(value);
                 setIcon(icon);
-                if (!isEnabled())
+                if (DEBUG.TOOL && !isEnabled())
                     System.out.println("RENDERER SET DISABLED ICON: " + icon + " for value " + value);
                 //setIcon(getIconForValue(value));
                 if (DEBUG.TOOL && DEBUG.META) setText(value.toString());
