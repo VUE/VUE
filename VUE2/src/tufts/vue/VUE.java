@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.416 $ / $Date: 2007-05-02 20:26:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.417 $ / $Date: 2007-05-02 22:03:33 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -596,7 +596,10 @@ public class VUE
                 ; // ignore
             else
                 loadAllEditors(VUE.getSelection());
+            // todo performance:
             // really, we only need to load the one editor for the key in LWCEvent
+            // Doing this ways will constantly load all the editors, e.g., while
+            // the component is being dragged...
         }
         
 
@@ -604,7 +607,7 @@ public class VUE
         {
             LWComponent propertySource = selection.only(); // will be null if selection size > 1
         
-            if (DEBUG.TOOL) out("loadAllEditors " + propertySource);
+            if (DEBUG.TOOL) out("\nloadAllEditors " + propertySource);
 
             // While the editors are loading, we want to ignore any change events that
             // loading may produce in the editors (otherwise, we'd then set the selected
@@ -625,6 +628,7 @@ public class VUE
                         mLabels.get(editor).setEnabled(supported);
                     if (supported && propertySource != null)
                         loadEditor(propertySource, editor);
+                    //if (editor instanceof Component) ((Component)editor).repaint(); // not helping ShapeIcon's repaint when disabled...
                 }
             } finally {
                 EditorLoadingUnderway = false;
@@ -641,7 +645,7 @@ public class VUE
             else
                 value = null;
             //if (value != null) {
-                if (DEBUG.TOOL) out("\tloadEditor: value[" + value + "] -> " + editor);
+            if (DEBUG.TOOL) out("     loadEditor: " + editor + " <- value[" + value + "]");
                 editor.displayValue(value);
                 //} else if (DEBUG.TOOL) out("\tloadEditor: " + source + " -> " + editor + " skipped; null value for " + key);
         }
@@ -651,11 +655,11 @@ public class VUE
         public static void ApplyPropertyChangeToSelection(final LWSelection selection, final Object key, final Object newValue, Object source)
         {
             if (EditorLoadingUnderway) {
-                if (DEBUG.TOOL) System.out.println("APCTS: " + key + " " + newValue + " (skipping)");
+                if (DEBUG.TOOL) System.out.println("ApplyPropertyChangeToSelection: " + key + " " + newValue + " (skipping)");
                 return;
             }
         
-            if (DEBUG.TOOL) System.out.println("APCTS: " + key + " " + newValue);
+            if (DEBUG.TOOL) System.out.println("ApplyPropertyChangeToSelection: " + key + " " + newValue);
         
             if (!selection.isEmpty()) {
                 // As setting these properties in the model will trigger notify events from the selected objects
@@ -1256,7 +1260,7 @@ public class VUE
         	//Different sized combobox components on each platform require this box to be two different
         	//sizes.
         	if (Util.isMacPlatform())
-        		formatDock.setSize(new Dimension(690,54));
+                    ;//formatDock.setSize(new Dimension(690,54));
         	else
         		formatDock.setSize(new Dimension(620,54));
         	DR_BROWSER_DOCK.showRolledUp();
