@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.49 $ / $Date: 2007-05-02 03:13:00 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2007-05-02 03:16:19 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -158,11 +158,8 @@ public class NodeToolPanel extends ToolPanel
                 
                 setIcon(getIconForValue(value));
 
-                //setEnabled(mShapeButton.isEnabled()); 
-                // apparently, disabled ListCellRenderer's won't draw the selected item
-                // AT ALL in a combo box, so it goes blank if you do this.  Not horrible,
-                // but not ideal -- we'd still like to see the current shape grayed out.
-                // SMF 2007-05-01
+                //setEnabled(mShapeButton.isEnabled());
+                // not working for the drawn shape icon for some reason: debug in NodeTool.ShapeIcon
 
                 return this;
             }
@@ -170,7 +167,7 @@ public class NodeToolPanel extends ToolPanel
 	 
     }
     
-    static class LinkMenuButton extends VueComboMenu<Integer>
+    class LinkMenuButton extends VueComboMenu<Integer>
     {
         private final Action[] actionsWithIcons;
         
@@ -212,6 +209,7 @@ public class NodeToolPanel extends ToolPanel
                     setForeground(list.getForeground());
                 }        	         		
         		
+                setEnabled(mLinkButton.isEnabled());
                 setIcon(getIconForValue(value));
                 return this;
             }
