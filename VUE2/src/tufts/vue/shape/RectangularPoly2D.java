@@ -492,7 +492,7 @@ public abstract class RectangularPoly2D extends RectangularShape
 
     public String toString()
     {
-        return getClass().getName() + "[sides=" + sides + " " + x + "," + y + " " + width + "x" + height + "]";
+        return getClass().getName() + "@" + Integer.toHexString(hashCode()) + "[sides=" + sides + " " + x + "," + y + " " + width + "x" + height + "]";
     }
     
     class PolyIterator implements PathIterator

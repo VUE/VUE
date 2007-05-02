@@ -32,7 +32,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 /**
- * @version $Revision: 1.6 $ / $Date: 2007-05-02 21:20:22 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2007-05-02 22:04:14 $ / $Author: sfraize $
  */
 
 // as this class is now specialized to handle vue LWKey properties,
@@ -75,7 +75,7 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
     }
 
     public void displayValue(T newValue) {
-        if (DEBUG.TOOL) System.out.println(this + " displayValue " + newValue);
+        if (DEBUG.TOOL && DEBUG.META) System.out.println(this + " displayValue " + newValue);
         if (mCurrentValue == null || !mCurrentValue.equals(newValue)) {
             mCurrentValue = newValue;
             setSelectedItem(newValue);
@@ -274,7 +274,7 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
             if (listeners.length > 0) {
                 PropertyChangeEvent event = new LWPropertyChangeEvent(this, getPropertyKey(), oldValue, newValue);
                 for (int i = 0; i< listeners.length; i++) {
-                    if (DEBUG.TOOL) System.out.println(this + " fires " + event + " to " + listeners[i]);
+                    if (DEBUG.TOOL && (DEBUG.EVENTS || DEBUG.META)) System.out.println(this + " fires " + event + " to " + listeners[i]);
                     listeners[i].propertyChange(event);
                 }
             }

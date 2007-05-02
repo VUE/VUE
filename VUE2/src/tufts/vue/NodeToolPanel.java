@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.51 $ / $Date: 2007-05-02 03:27:20 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2007-05-02 22:04:14 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -156,9 +156,17 @@ public class NodeToolPanel extends ToolPanel
                     setForeground(list.getForeground());
                 }
                 
-                setIcon(getIconForValue(value));
-
                 //setEnabled(ShapeMenuButton.this.isEnabled());
+                // the combo box will NOT repaint our icon when it becomes disabled!
+                // Tho this works fine for the image-icons in the LinkMenuButton below!
+                
+                Icon icon = getIconForValue(value);
+                setIcon(icon);
+                if (!isEnabled())
+                    System.out.println("RENDERER SET DISABLED ICON: " + icon + " for value " + value);
+                //setIcon(getIconForValue(value));
+                if (DEBUG.TOOL && DEBUG.META) setText(value.toString());
+
                 // not working for the drawn shape icon for some reason: debug in NodeTool.ShapeIcon
 
                 return this;
@@ -211,6 +219,7 @@ public class NodeToolPanel extends ToolPanel
         		
                 setEnabled(LinkMenuButton.this.isEnabled());
                 setIcon(getIconForValue(value));
+                //setText(value.toString());
                 return this;
             }
         }        

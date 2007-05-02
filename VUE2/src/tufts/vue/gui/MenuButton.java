@@ -40,7 +40,7 @@ import javax.swing.border.*;
  *
  * Subclasses must implement LWEditor produce/display
  *
- * @version $Revision: 1.27 $ / $Date: 2007-05-01 18:40:37 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2007-05-02 22:04:14 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -368,7 +368,7 @@ public abstract class MenuButton<T> extends JButton
             if (listeners.length > 0) {
                 PropertyChangeEvent event = new LWPropertyChangeEvent(this, getPropertyKey(), oldValue, newValue);
                 for (int i = 0; i< listeners.length; i++) {
-                    if (DEBUG.TOOL) System.out.println(this + " fires " + event + " to " + listeners[i]);
+                    if (DEBUG.TOOL && (DEBUG.EVENTS || DEBUG.META)) System.out.println(this + " fires " + event + " to " + listeners[i]);
                     listeners[i].propertyChange(event);
                 }
             }
