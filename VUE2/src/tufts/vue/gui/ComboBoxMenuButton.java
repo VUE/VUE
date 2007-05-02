@@ -32,7 +32,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 /**
- * @version $Revision: 1.4 $ / $Date: 2007-05-02 03:07:27 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2007-05-02 03:10:29 $ / $Author: sfraize $
  */
 
 // as this class is now specialized to handle vue LWKey properties,
@@ -98,7 +98,10 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
     
     protected Icon getIconForValue(Object value)
     {
-        Icon icon = mIconCache.get(value);
+        Icon icon = null;
+
+        if (mIconCache != null)
+            icon = mIconCache.get(value);
 
         if (icon == NO_ICON)
             return null;
