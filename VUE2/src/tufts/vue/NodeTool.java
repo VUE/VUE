@@ -481,18 +481,19 @@ public class NodeTool extends VueTool
                 g2.translate(-x,-y);
             }
 
-            /** @return true if representing the same *class* of shape.
+            /* @return true if representing the same *class* of shape.
               *
               * Currently shape's are differentiated
               * by class only, which is why we have tufts.vue.shape.RoundRect2D with fixed arc widths as a separate
               * class.  (Additnal architecture will be needed if we want to get around this self-imposed limitation)
-              */
+              *
             public boolean equals(Object o) {
                 return o == this ||
                     o != null && o instanceof ShapeIcon && ((ShapeIcon)o).mShape.getClass().equals(getClass());
                 // note: above will consider awt RoundRect2D's with different arcs as same shape... use tufts.vue.shape.*
                 // with fixed params to avoid this.
             }
+            */
 
             public String toString() {
                 return "ShapeIcon[" + sWidth + "x" + sHeight + " " + mShape + "]";
