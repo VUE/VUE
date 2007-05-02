@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.4 $ / $Date: 2007-05-01 22:36:54 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2007-05-02 02:45:24 $ / $Author: sfraize $
  */
  
 public class FillToolPanel extends ToolPanel
@@ -136,6 +136,7 @@ public class FillToolPanel extends ToolPanel
     public boolean isPreferredType(Object o) {
         return o instanceof LWNode;
     }
+    /*
     static class ShapeMenuButton extends VueComboMenu<RectangularShape>
     {
         public ShapeMenuButton() {
@@ -152,7 +153,7 @@ public class FillToolPanel extends ToolPanel
             return new Dimension(37,22);
         }
 
-        /** @param o an instance of RectangularShape */
+        /** @param o an instance of RectangularShape *
         public void displayValue(RectangularShape shape) {
             if (DEBUG.TOOL) System.out.println(this + " displayValue " + shape.getClass() + " [" + shape + "]");
 
@@ -219,7 +220,7 @@ public class FillToolPanel extends ToolPanel
                 RectangularShape shape = (RectangularShape) value;
                 return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
             }
-        	 /** @return new icon for the given shape */
+        	 /* @return new icon for the given shape *
           //  protected Icon makeIcon(RectangularShape shape) {
           //      return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
           //  }
@@ -227,6 +228,7 @@ public class FillToolPanel extends ToolPanel
         }        
 	 
     }
+*/
 
     /*
     static class LinkMenuButton extends VueComboMenu<Object>
