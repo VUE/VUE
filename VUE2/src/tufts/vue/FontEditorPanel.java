@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.48 $ / $Date: 2007-05-02 22:19:39 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2007-05-02 22:20:39 $ / $Author: sfraize $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -122,6 +122,7 @@ public class FontEditorPanel extends JPanel
   //      mSizeField.setPrototypeDisplayValue("10000");
         mSizeField.setEditable(true);
         mSizeField.setOpaque(false);
+        mSizeField.setMaximumRowCount(30);
         
         /*
         if (GUI.isMacAqua()) {
