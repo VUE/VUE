@@ -27,7 +27,7 @@ import java.awt.geom.Rectangle2D;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.10 $ / $Date: 2007-04-11 18:41:54 $ / $Author: dan $ *
+ * @version $Revision: 1.11 $ / $Date: 2007-05-02 15:57:10 $ / $Author: dan $ *
  * @author  Jay Briedis
  */
 public class ImageMap extends VueAction {
@@ -51,12 +51,29 @@ public class ImageMap extends VueAction {
 
     public void createImageMap(File file)
     {    
-       String imageLocation = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+"-for-image-map"+".jpeg";
-       String imageName = file.getName().substring(0, file.getName().length()-5)+"-for-image-map"+".jpeg";
+       // See: VUE-536 in JIRA, If SaveAction Class still chooses "html" as the file type for image maps
+       // html file will already not be overwritten
+       //String imageLocation = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+"-for-image-map"+".jpeg";
+       //String imageName = file.getName().substring(0, file.getName().length()-5)+"-for-image-map"+".jpeg";
+       String imageLocation = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+".jpeg";
+       String imageName = file.getName().substring(0, file.getName().length()-5)+".jpeg";
        String fileName = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+".html";
        
+       File imageLocationFile = new File(imageLocation);
+       
+       if(imageLocationFile.exists())
+       {
+          int confirm = VueUtil.confirm("jpg image already exists, overwrite?","File Already Exists");
+          if(confirm == javax.swing.JOptionPane.NO_OPTION)
+          {
+              VueUtil.alert("Image map not saved","Image Map");
+              return;
+          }
+       }
+       
        //createJpeg(imageLocation, "jpeg", currentMap, size);
-       ImageConversion.createActiveMapJpeg(new File(imageLocation));
+       //ImageConversion.createActiveMapJpeg(new File(imageLocation));
+       ImageConversion.createActiveMapJpeg(imageLocationFile);
        createHtml(imageName, fileName);
     }
     
