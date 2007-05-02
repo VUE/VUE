@@ -30,7 +30,7 @@ import javax.swing.JMenuItem;
  * An exension of MenuButton that specifically handles pop-up menu
  * for a specific VUE LWComponent property (LWKey property)
  *
- * @version $Revision: 1.1 $ / $Date: 2007-04-18 13:29:11 $ / $Author: mike $
+ * @version $Revision: 1.2 $ / $Date: 2007-05-02 02:06:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -45,9 +45,11 @@ public class VueComboMenu<T> extends ComboBoxMenuButton<T>
     }
 
     public T getMenuValueAt(int index) {
-    	
-        Action c = (Action) this.getItemAt(0);
-        return (T) c.getValue(ValueKey);
+        Object item = getItemAt(index);
+        if (item instanceof Action)
+            return (T) ((Action)item).getValue(ValueKey);
+        else
+            return (T) item;
     }
 
     public void displayValue(T newValue) {
