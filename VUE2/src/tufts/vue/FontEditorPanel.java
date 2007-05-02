@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.47 $ / $Date: 2007-05-01 04:53:21 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2007-05-02 22:19:39 $ / $Author: sfraize $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -101,6 +101,7 @@ public class FontEditorPanel extends JPanel
         if (GUI.isMacAqua())
             mFontCombo.setBorder(new EmptyBorder(1,0,0,0));
 
+        mFontCombo.setMaximumRowCount(30);
         mFontCombo.setOpaque(false);
         mFontCombo.addActionListener(new LWPropertyHandler<String>(LWKey.FontName, mFontCombo) {
                 public String produceValue() { return (String) mFontCombo.getSelectedItem(); }
