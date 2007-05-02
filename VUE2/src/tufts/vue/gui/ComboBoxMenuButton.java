@@ -32,7 +32,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 /**
- * @version $Revision: 1.5 $ / $Date: 2007-05-02 03:10:29 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2007-05-02 21:20:22 $ / $Author: sfraize $
  */
 
 // as this class is now specialized to handle vue LWKey properties,
@@ -106,6 +106,9 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
         if (icon == NO_ICON)
             return null;
 
+        if (icon != null)
+            return icon;
+
         if (value instanceof Action) {
             Action a = (Action) value;
             icon = (Icon) a.getValue(Action.SMALL_ICON);
@@ -119,6 +122,7 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
         }
         if (mIconCache == null)
             mIconCache = new HashMap();
+        //System.out.println("Loading cache for [" + value + "] with " + icon);
         mIconCache.put((T) value, icon == null ? NO_ICON : icon);
         return icon;
     }
