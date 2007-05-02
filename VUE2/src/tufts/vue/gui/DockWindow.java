@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.94 $ / $Date: 2007-05-02 20:54:17 $ / $Author: sfraize $
+ * @version $Revision: 1.95 $ / $Date: 2007-05-02 22:02:41 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -296,10 +296,10 @@ public class DockWindow extends javax.swing.JWindow
         
         if (!hadContent || !isDisplayable()) {
             pack();
-            if (!isToolbar)
-            	setSize(DefaultWidth, getHeight());
+            if (isToolbar)
+            	;//setSize(620,54);
             else
-            	setSize(620,54);
+                setSize(DefaultWidth, getHeight());
         } else {
             validate();
         }
@@ -1035,42 +1035,43 @@ public class DockWindow extends javax.swing.JWindow
 
     public void positionWindowFromProperties()
     {
-    	if (wpp.isEnabled() && (wpp.isWindowVisible() || wpp.isRolledUp()))
-    	{
-    		Point p = wpp.getWindowLocationOnScreen();
-    		Dimension size = wpp.getWindowSize();
-    		Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-    		if (((int)p.getX()) > -1 && 
-    				isPointFullyOnScreen(p,size,screenSize))
-    		{
-    			setBounds((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
+    	if (wpp.isEnabled() && (wpp.isWindowVisible() || wpp.isRolledUp())) {
+            Point p = wpp.getWindowLocationOnScreen();
+            Dimension size = wpp.getWindowSize();
+            Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+            if (((int)p.getX()) > -1 && isPointFullyOnScreen(p,size,screenSize)) {
+                
+                if (isToolbar) // ignore size on toolbars: they always get their designed size
+                    setLocation((int)p.getX(),(int)p.getY());
+                else
+                    setBounds((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
     		
-    			if (wpp.isRolledUp())
-    			{
-    				mSavedShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
-    				showRolledUp();
-    			}
-    			else
-    				setVisible(wpp.isWindowVisible());    		
-    		}    	
-    		else
-    		{
-    			if (wpp.isWindowVisible())
-    			{
-    				System.out.println("OTHER");
-    				suggestLocation((int)p.getX(),(int)p.getY());
+                if (wpp.isRolledUp())
+                    {
+                        mSavedShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
+                        showRolledUp();
+                    }
+                else
+                    setVisible(wpp.isWindowVisible());    		
+            }    	
+            else
+                {
+                    if (wpp.isWindowVisible())
+                        {
+                            System.out.println("OTHER");
+                            suggestLocation((int)p.getX(),(int)p.getY());
 
-    				if (wpp.isRolledUp())
-        			{        			
-    					mSavedShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
-    					showRolledUp();
-        			}
-    				else
-    					setVisible(wpp.isWindowVisible());
-    			}    	
+                            if (wpp.isRolledUp())
+                                {        			
+                                    mSavedShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
+                                    showRolledUp();
+                                }
+                            else
+                                setVisible(wpp.isWindowVisible());
+                        }    	
     			
-    		}
-    	}    	
+                }
+        }    	
     }
     
     private boolean isPointFullyOnScreen(Point p, Dimension size, Dimension screenSize)
