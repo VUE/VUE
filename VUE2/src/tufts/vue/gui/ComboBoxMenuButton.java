@@ -32,7 +32,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 /**
- * @version $Revision: 1.3 $ / $Date: 2007-05-02 02:55:55 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2007-05-02 03:07:27 $ / $Author: sfraize $
  */
 
 // as this class is now specialized to handle vue LWKey properties,
@@ -49,7 +49,7 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
     protected Object mPropertyKey;
     protected T mCurrentValue;
 
-    private Map<T,Icon> mIconCache = new HashMap();
+    private Map<T,Icon> mIconCache;
     private static final Icon NO_ICON = new Icon() {
             public int getIconWidth() { return 0; }
             public int getIconHeight() { return 0; }
@@ -114,6 +114,8 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
         } else {
             icon = makeIcon((T) value);
         }
+        if (mIconCache == null)
+            mIconCache = new HashMap();
         mIconCache.put((T) value, icon == null ? NO_ICON : icon);
         return icon;
     }
