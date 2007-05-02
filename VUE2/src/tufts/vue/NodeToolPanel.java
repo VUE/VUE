@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.48 $ / $Date: 2007-05-02 03:07:50 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2007-05-02 03:13:00 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -183,8 +183,8 @@ public class NodeToolPanel extends ToolPanel
             this.setMaximumRowCount(10);
         }
 
-        protected Icon getIconForValue(Integer i) {
-            return (Icon) actionsWithIcons[i].getValue(Action.SMALL_ICON);
+        protected Icon getIconForValue(Object i) {
+            return (Icon) actionsWithIcons[((Integer)i)].getValue(Action.SMALL_ICON);
         }
 
         class LinkComboRenderer extends JLabel implements ListCellRenderer {
