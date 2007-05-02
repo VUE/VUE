@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.415 $ / $Date: 2007-05-02 04:36:04 $ / $Author: sfraize $ 
+ * @version $Revision: 1.416 $ / $Date: 2007-05-02 20:26:28 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -640,10 +640,10 @@ public class VUE
                 value = source.getPropertyValue(key);
             else
                 value = null;
-            if (value != null) {
+            //if (value != null) {
                 if (DEBUG.TOOL) out("\tloadEditor: value[" + value + "] -> " + editor);
                 editor.displayValue(value);
-            } else if (DEBUG.TOOL) out("\tloadEditor: " + source + " -> " + editor + " skipped; null value for " + key);
+                //} else if (DEBUG.TOOL) out("\tloadEditor: " + source + " -> " + editor + " skipped; null value for " + key);
         }
 
 
