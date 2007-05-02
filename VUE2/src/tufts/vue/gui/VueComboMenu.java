@@ -27,10 +27,10 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 
 /**
- * An exension of MenuButton that specifically handles pop-up menu
- * for a specific VUE LWComponent property (LWKey property)
+ * 
+ * TODO: should probably be merged with ComboBoxMenuButton
  *
- * @version $Revision: 1.2 $ / $Date: 2007-05-02 02:06:19 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2007-05-02 02:55:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -43,38 +43,4 @@ public class VueComboMenu<T> extends ComboBoxMenuButton<T>
         displayValue(getMenuValueAt(0));
         setName(propertyKey.toString());
     }
-
-    public T getMenuValueAt(int index) {
-        Object item = getItemAt(index);
-        if (item instanceof Action)
-            return (T) ((Action)item).getValue(ValueKey);
-        else
-            return (T) item;
-    }
-
-    public void displayValue(T newValue) {
-        if (DEBUG.TOOL) System.out.println(this + " displayValue " + newValue);
-        if (mCurrentValue == null || !mCurrentValue.equals(newValue)) {
-            mCurrentValue = newValue;
-            Icon i = getIconForPropertyValue(newValue);
-         //   if (i != null)
-          //      setButtonIcon(i);
-        }
-    }
-
-    public Icon getIconForPropertyValue(T value) {
-        int count = this.getItemCount();
-        for (int i = 0; i < count; i++) {
-            JComponent c = (JComponent) this.getItemAt(i);
-            if (c instanceof JMenuItem) {
-                JMenuItem mi = (JMenuItem) c;
-                if (mi.getClientProperty(ValueKey).equals(value))
-                    return mi.getIcon();
-            }
-        }
-        return null;
-    }
-    
-    
-
 }

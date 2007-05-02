@@ -32,17 +32,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 /**
- * A button that supports a drop-down menu and changes state based on the
- * currently selected drop-down menu item.  
- * The menu can be initialized from either an array of property values, or actions.
- * Property change events or action events (depending on the initialization type)
- * are fired when the menu selection changes.
- *
- * Subclasses must implement LWEditor produce/display
- *
- * @version $Revision: 1.2 $ / $Date: 2007-05-02 02:06:01 $ / $Author: sfraize $
- * @author Scott Fraize
- *
+ * @version $Revision: 1.3 $ / $Date: 2007-05-02 02:55:55 $ / $Author: sfraize $
  */
 
 // as this class is now specialized to handle vue LWKey properties,
@@ -52,57 +42,80 @@ import javax.swing.border.*;
 
 public abstract class ComboBoxMenuButton<T> extends JComboBox
     implements ActionListener, tufts.vue.LWEditor<T>
-// todo: cleaner to get this to subclass from JMenu, and then cross-menu drag-rollover
-// menu-popups would automatically work also.
 {
+    /** Key for JMenuItem's: a place to store a property value for this menu item */
+    public static final String VALUE_KEY = "property.value";
+    
     protected Object mPropertyKey;
     protected T mCurrentValue;
-    
-    //protected JPopupMenu mPopup;
-    //protected JMenuItem mEmptySelection;
-    private Icon mButtonIcon;
 
-    //protected static final String ArrowText = "v ";
-    private static boolean isButtonActionable = false;
+    private Map<T,Icon> mIconCache = new HashMap();
+    private static final Icon NO_ICON = new Icon() {
+            public int getIconWidth() { return 0; }
+            public int getIconHeight() { return 0; }
+            public void paintIcon(Component c, Graphics g, int x, int y) {}
+        };
 
-    private boolean actionAreaClicked = false;
-
-    private Insets insets(int x) { return new Insets(x,x,x,x); }
-
-
-    public ComboBoxMenuButton()
-    {
-    	super();
+    public ComboBoxMenuButton() {
         setFocusable(false);
-        addActionListener(this);
-      	
     }
 
-    /** if the there's an immediate action area of the button pressed, fire the property setter
-        right away instead of popping the menu (actionAreaClicked was determined in mousePressed) */
-    public void actionPerformed(ActionEvent e) {
-        if (DEBUG.TOOL) System.out.println(this + " " + e);
-        if (actionAreaClicked)
-            firePropertySetter();
-    }
-
-       /** return the default button size for this type of button: subclasses can override */
-    protected Dimension getButtonSize() {
-        return new Dimension(32,22); // better at 22, but get clipped 1 pix at top in VueToolbarController! todo: BUG
-    }
-    
-   
     public void setPropertyKey(Object key) {
         mPropertyKey = key;
     }
- 	
+    
     public Object getPropertyKey() {
         return mPropertyKey;
     }
+    
+    /** @return the currently selected value (interface LWEditor) */
+    public T produceValue() {
+        if (DEBUG.TOOL) System.out.println(this + " produceValue " + mCurrentValue);
+        return mCurrentValue;
+    }
 
+    public void displayValue(T newValue) {
+        if (DEBUG.TOOL) System.out.println(this + " displayValue " + newValue);
+        if (mCurrentValue == null || !mCurrentValue.equals(newValue)) {
+            mCurrentValue = newValue;
+            setSelectedItem(newValue);
+        }
+    }
+    
     /** factory method for subclasses -- build's an icon for menu items */
     protected Icon makeIcon(T value) {
         return null;
+    }
+
+    public T getMenuValueAt(int index) {
+        Object item = getItemAt(index);
+        if (item instanceof Action)
+            return (T) ((Action)item).getValue(VALUE_KEY);
+        else
+            return (T) item;
+    }
+
+    
+    protected Icon getIconForValue(Object value)
+    {
+        Icon icon = mIconCache.get(value);
+
+        if (icon == NO_ICON)
+            return null;
+
+        if (value instanceof Action) {
+            Action a = (Action) value;
+            icon = (Icon) a.getValue(Action.SMALL_ICON);
+            if (icon == null) {
+                value = a.getValue(VALUE_KEY);
+                icon = makeIcon((T) value);
+                //a.putValue(Action.SMALL_ICON, icon); // warning: side effect
+            }
+        } else {
+            icon = makeIcon((T) value);
+        }
+        mIconCache.put((T) value, icon == null ? NO_ICON : icon);
+        return icon;
     }
     
     /** override if there is a custom menu item */
@@ -116,9 +129,6 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
         buildMenu(valuesOrActions, null, false); 
     }
 
-    /** Key for JMenuItem's: a place to store a property value for this menu item */
-    public static final String ValueKey = "property.value";
-    
     /**
      * @param values can be property values or actions
      * @param names is optional
@@ -220,7 +230,7 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
 
         if (DEBUG.TOOL) System.out.println("\n" + this + " handleMenuSelection " + e);
         if (e.getItem() instanceof Action)
-            handleValueSelection((T) ((Action)e.getItem()).getValue(ValueKey));
+            handleValueSelection((T) ((Action)e.getItem()).getValue(VALUE_KEY));
         else
             handleValueSelection((T) e.getItem());
     }
@@ -245,14 +255,6 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
         repaint();
     }
 
-    /** @return the currently selected value (interface LWEditor) */
-    public T produceValue() {
-        if (DEBUG.TOOL) System.out.println(this + " produceValue " + mCurrentValue);
-        return mCurrentValue;
-    }
-
-    /** Sub-classes can set the current value (mCurrentValue), and must update the display (icon, etc) and repaint (interface LWEditor) */
-    public abstract void displayValue(T value);
 	
     /** fire a property change event even if old & new values are the same */
     // COULD USE Component.firePropertyChange!  all this is getting us is diagnostics!

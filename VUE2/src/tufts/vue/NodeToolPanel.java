@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.46 $ / $Date: 2007-05-02 02:15:31 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2007-05-02 02:55:54 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -112,51 +112,16 @@ public class NodeToolPanel extends ToolPanel
     public boolean isPreferredType(Object o) {
         return o instanceof LWNode;
     }
-    //class ShapeMenuButton extends VueComboMenu<RectangularShape>
+    
     class ShapeMenuButton extends VueComboMenu<Class<? extends RectangularShape>>
     {
         public ShapeMenuButton() {
-            //super(LWKey.Shape, NodeTool.getTool().getShapeSetterActions());
-            //super(LWKey.Shape, NodeTool.getTool().getAllShapeValues());
             super(LWKey.Shape, NodeTool.getTool().getAllShapeClasses());
             setToolTipText("Node Shape");
             setRenderer(new ComboBoxRenderer());
             this.setMaximumRowCount(10);
         }
 
-        //protected Dimension getButtonSize() { return new Dimension(37,22); }
-
-        //public void displayValue(RectangularShape shape) {
-        public void displayValue(Class<? extends RectangularShape> shapeClass) {
-            //if (DEBUG.TOOL) System.out.println(this + " displayValue " + shape.getClass() + " [" + shape + "]");
-            if (DEBUG.TOOL) System.out.println(this + " displayValue " + shapeClass);
-
-            mCurrentValue = shapeClass;
-            setSelectedItem(shapeClass);
-
-            /*
-            if (mCurrentValue == null || !mCurrentValue.getClass().equals(shape.getClass())) {
-                mCurrentValue = shape;
-
-                // This is inefficent in that we there are already shape icons out there (produced
-                // in getShapeSetterActions()) that we could use, but doing it this way (creating a
-                // new one every time) will allow for ANY rectangular shape to display properly in
-                // the tool menu, even it is a deprecated shape or non-standard shape (not defined
-                // as a standard from for the node tool in VueResources.properties).  (This is
-                // especially in-effecient if you look at what setButtonIcon does in MenuButton: it
-                // creates first a proxy icon, and then creates and installs a whole set of
-                // VueButtonIcons for all the various states the button can take, for a totale of 7
-                // objects every time we do this (1 for the clone, 1 for proxy, 5 via
-                // VueButtonIcon.installGenerated)
-                
-                //setButtonIcon(makeIcon(shape));
-            }
-            */
-        }
-        
-        protected Icon makeIcon(RectangularShape shape) {
-            return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
-        }
         protected Icon makeIcon(Class<? extends RectangularShape> shapeClass) {
             try {
                 return new NodeTool.SubTool.ShapeIcon(shapeClass.newInstance());
@@ -189,27 +154,9 @@ public class NodeToolPanel extends ToolPanel
                 } else {
                     setBackground(Color.white);
                     setForeground(list.getForeground());
-                }        	         		
-
-                Icon icon;
-
-                if (value instanceof Action) {
-                    Action a = (Action) value;
-                    icon = (Icon) a.getValue(Action.SMALL_ICON);
-                    value = a.getValue(ValueKey);
-                    if (icon == null) {
-                        icon = makeIcon((RectangularShape)value);
-                        a.putValue(Action.SMALL_ICON, icon);
-                    }
-                    setIcon(icon);
-                } else if (value instanceof Class) {
-                    setIcon(makeIcon((Class)value)); // todo: overkill: creating icon every time we render
-                } else {
-                    setIcon(makeIcon((RectangularShape)value)); // todo: overkill: creating icon every time we render
-                 }
-
-        		
-                //System.out.println("ICON SIZE NODE " + icon.getIconHeight() + " " + icon.getIconWidth());
+                }
+                
+                setIcon(getIconForValue(value));
 
                 //setEnabled(mShapeButton.isEnabled()); 
                 // apparently, disabled ListCellRenderer's won't draw the selected item
