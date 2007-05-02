@@ -197,7 +197,7 @@ public class BlobIcon implements Icon
         g.setColor(color);
         //g.fillRect(x,y, mWidth, mHeight);
         g.fill(BlobShape);
-        if (mColor != null && mPaintBorder) {
+        if (mPaintBorder) {
             g.setColor(color.darker().darker());
             //g.setColor(Color.black);
             //g.setColor(Color.darkGray);
@@ -205,6 +205,12 @@ public class BlobIcon implements Icon
             g.draw(BlobShape);
             //g.drawRect(x,y, mWidth-1, mHeight-1);
         }
+        if (mColor == null || mColor.getAlpha() == 0) {
+            g.setColor(Color.black);
+            g.drawLine(x+1,y + mHeight-2,  x+mWidth-2, y+1);
+            //g.drawLine(x,y, x+mWidth-1, y+mHeight-1);
+        }
+            
         if( mOverlay != null) {
             mOverlay.paintIcon( c, g, x, y);
             //g.drawImage( mOverlay.getImage(), x, y, null);
