@@ -85,5 +85,7 @@ public interface DataSource
 	
 	public void setConfiguration(java.util.Properties properties);	
 
-	public java.util.Properties getConfiguration();	
+	public java.util.Properties getConfiguration();
+	
+	public boolean supportsSearch();
 }

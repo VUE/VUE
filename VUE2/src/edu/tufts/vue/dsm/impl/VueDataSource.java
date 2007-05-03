@@ -53,6 +53,7 @@ public class VueDataSource
     private String repositoryDisplayName = null;
     private String repositoryDescription = null;
     private boolean repositorySupportsUpdate = false;
+	private boolean repositorySupportsSearch = false;
     private org.osid.shared.TypeIterator repositoryAssetTypes = null;
     private org.osid.shared.TypeIterator repositorySearchTypes = null;
     
@@ -229,6 +230,7 @@ public class VueDataSource
         
         try {
             this.repositorySearchTypes = this.repository.getSearchTypes();
+			this.repositorySupportsSearch = this.repositorySearchTypes.hasNextType();
         } catch (Throwable t) {
             edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.getSearchTypes()");
         }
@@ -238,7 +240,7 @@ public class VueDataSource
         } catch (Throwable t) {
             edu.tufts.vue.util.Logger.log(t,"in method edu.tufts.vue.dsm.VueDataSource calling Repository.supportsUpdating()");
         }
-    }
+	}
     
     //===================================================================================================================
     // Accessor Methods
@@ -345,6 +347,10 @@ public class VueDataSource
     
     public boolean supportsUpdate() {
         return this.repositorySupportsUpdate;
+    }
+    
+    public boolean supportsSearch() {
+        return this.repositorySupportsSearch;
     }
     
     public org.osid.shared.TypeIterator getAssetTypes() {
