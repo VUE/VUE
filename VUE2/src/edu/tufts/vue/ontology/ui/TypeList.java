@@ -157,8 +157,11 @@ public class TypeList extends JList {
           compFor = new LWNode("error");    
         }
         
+        
+        //$
         if(ontType.getStyle()!=null)
             compFor.applyCSS(ontType.getStyle());
+        //$
         
         LWComponent noLabel = compFor.duplicate();
         noLabel.setLabel("");
@@ -183,7 +186,9 @@ public class TypeList extends JList {
         {
             //comp = component;
             //type = t;
-            setBorder(javax.swing.BorderFactory.createLineBorder(java.awt.Color.GRAY));
+           // setBorder(javax.swing.BorderFactory.createLineBorder(java.awt.Color.GRAY));
+            setBorder(javax.swing.BorderFactory.createMatteBorder(0,0,1,0,
+                                                                  tufts.vue.VueResources.getColor("ui.resourceList.dividerColor", 204,204,204)));
         }
         
         public void setType(OntType t)
@@ -193,7 +198,8 @@ public class TypeList extends JList {
         
         public java.awt.Dimension getPreferredSize()
         {
-            return new java.awt.Dimension(100,50);
+            //return new java.awt.Dimension(100,50);
+            return new java.awt.Dimension(100,37);
         }
         
         public void paintComponent(java.awt.Graphics g)
@@ -232,12 +238,33 @@ public class TypeList extends JList {
             else
             {
               old = g.getColor();
-              g.setColor(tufts.vue.VueResources.getColor("node.fillColor"));  
-              g.fillRoundRect(10,15,30,25,5,5);
+              Style style = type.getStyle();
+              java.awt.Color fillColor = tufts.vue.VueResources.getColor("node.fillColor");
+              if(style!=null)
+              {
+                String fillColorString = style.getAttribute("background");
+                if(fillColorString!=null)
+                {
+                    try
+                    {        
+                      fillColor =  java.awt.Color.decode(fillColorString);
+                    }
+                    catch(NumberFormatException nfe)
+                    {
+                        System.out.println("TypeList: NumberFormatException " + nfe);
+                    }
+                }
+              }
+              g.setColor(fillColor);  
+              //g.fillRoundRect(10,15,30,25,5,5);
+              g.fillRoundRect(10,8,30,20,5,5);
               g.setColor(old);
             }
             if(type.getLabel()!=null);
-              g.drawString(type.getLabel(),60,20);
+              //g.drawString(type.getLabel(),60,20);
+              g.drawString(type.getLabel(),60,18 - 2 +g.getFontMetrics().getHeight()/2);
+              //g.drawString(type.getLabel(),60,18-g.getFontMetrics().getAscent()/2);
+              //g.drawString(type.getLabel(),60,18);
               //g.drawString(comp.getLabel(),40,10);
               
                 Style s = type.getStyle();
@@ -250,7 +277,8 @@ public class TypeList extends JList {
                     javax.swing.ImageIcon ii = new javax.swing.ImageIcon(icon);
                     //System.out.println("image icon: " + ii);
                     //p.add(new JLabel(ii));
-                    g.drawImage(ii.getImage(),200,10,40,40,null);
+                    //g.drawImage(ii.getImage(),200,10,40,40,null);
+                    g.drawImage(ii.getImage(),200,5,26,26,null);
                   }
                 }
         }
@@ -266,7 +294,8 @@ public class TypeList extends JList {
         {            
             if(value == getSelectedValue())
             {
-                lwcv.setBackground(new java.awt.Color(230,230,230));
+                //lwcv.setBackground(new java.awt.Color(230,230,230));
+                lwcv.setBackground(tufts.vue.gui.GUI.getTextHighlightColor());
             }
             else
                 lwcv.setBackground(new java.awt.Color(255,255,255));
