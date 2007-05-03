@@ -18,7 +18,6 @@
 
 package edu.tufts.vue.ontology.ui;
 
-import com.sun.media.jai.opimage.URLRIF;
 import edu.tufts.vue.style.*;
 import edu.tufts.vue.ontology.*;
 
