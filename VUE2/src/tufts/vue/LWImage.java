@@ -379,6 +379,10 @@ public class LWImage extends
         
     }
 
+    public void setToNaturalSize() {
+        setSize(mImageWidth, mImageHeight);
+    }
+
     public void X_setSize(float w, float h) {
         super.setSize(w, h);
         // Even if we don't have an image yet, we need to keep these set in case user attemps to resize the frame.
