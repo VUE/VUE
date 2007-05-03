@@ -48,12 +48,13 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.143 $ / $Date: 2007-05-02 19:58:56 $ / $Author: sfraize $
+ * @version $Revision: 1.144 $ / $Date: 2007-05-03 21:48:23 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
 {
     private static final int NO_INDEX_CHANGE = Short.MIN_VALUE;
+    private static boolean ShowSlides = false;
     
     private int mCurrentIndex = -1;
     private MasterSlide mMasterSlide;
@@ -271,6 +272,14 @@ public class LWPathway extends LWContainer
         setMap(map);
         setLabel(label);
         setStrokeColor(getNextColor());
+    }
+
+    public static void setShowSlides(boolean showSlides) {
+        ShowSlides = showSlides;
+    }
+
+    public boolean isShowingSlides() {
+        return ShowSlides && isDrawn();
     }
 
     /** @return the first Entry that is for the given LWComponent */

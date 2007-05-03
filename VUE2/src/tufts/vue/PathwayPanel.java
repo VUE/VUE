@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.72 $ / $Date: 2007-05-02 04:36:04 $ / $Author: sfraize $
+ * @version $Revision: 1.73 $ / $Date: 2007-05-03 21:48:23 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -76,11 +76,18 @@ public class PathwayPanel extends JPanel
     
     
     //map view
-    private ImageDropDown btnShowSlides = new ImageDropDown(VueResources.getImageIcon("presentationDialog.button.showSlides.raw"),VueResources.getImageIcon("presentationDialog.button.showNodes.raw"),VueResources.getImageIcon("presentationDialog.button.showSlides.disabled"));
+//     private ImageDropDown btnShowSlides = new ImageDropDown(VueResources.getImageIcon("presentationDialog.button.showSlides.raw"),
+//                                                             VueResources.getImageIcon("presentationDialog.button.showNodes.raw"),
+//                                                             VueResources.getImageIcon("presentationDialog.button.showSlides.disabled"));
+    // hack for now as single button just to get this working:
+    private final JToggleButton btnShowSlides = new VueButton.Toggle("presentationDialog.button.showSlides");
     
     
     //playback mode
-    private ImageDropDown btnPlayMaps = new ImageDropDown(VueResources.getImageIcon("presentationDialog.button.playMap.raw"),VueResources.getImageIcon("presentationDialog.button.playSlides.raw"),VueResources.getImageIcon("presentationDialog.button.playSlides.disabled"));
+    private ImageDropDown btnPlayMaps = new ImageDropDown(VueResources.getImageIcon("presentationDialog.button.playMap.raw"),
+                                                          VueResources.getImageIcon("presentationDialog.button.playSlides.raw"),
+                                                          VueResources.getImageIcon("presentationDialog.button.playSlides.disabled"));
+    
     private VueButton btnPlay = new VueButton("presentationDialog.button.play",this);    
                                             
     //Section Labels for the top
@@ -89,7 +96,8 @@ public class PathwayPanel extends JPanel
     private JLabel lblMasterSlide = new JLabel(VueResources.getString("presentationDialog.masterslide.label"));
     private JLabel lblNew = new JLabel(VueResources.getString("presentationDialog.new.label"));    
     private JLabel lblFilter = new JLabel(VueResources.getString("presentationDialog.filter.label"));
-    private JLabel lblMapView = new JLabel(VueResources.getString("presentationDialog.mapview.label"));
+    //private JLabel lblMapView = new JLabel(VueResources.getString("presentationDialog.mapview.label"));
+    private JLabel lblMapView = new JLabel("Slides");
     private JLabel lblPlayback = new JLabel(VueResources.getString("presentationDialog.playback.label"));
 
     public PathwayTable mPathwayTable;
@@ -124,13 +132,14 @@ public class PathwayPanel extends JPanel
     	btnPlayMaps.setEnabled(false);
     	btnLiveMap.setEnabled(false);
     	btnPreviewFull.setEnabled(false);
-    	btnShowSlides.setEnabled(false);
+    	btnShowSlides.setEnabled(true);
     	btnPlayMaps.setEnabled(false);
     //	btnPlaySlides.setEnabled(false);
 //    	btnDisplayAsMap.setEnabled(false);
   //  	btnDisplayAsText.setEnabled(false);
     	//END    	
-        		
+
+        btnShowSlides.addActionListener(this);
     
     	
         //Font defaultFont = new Font("Helvetica", Font.PLAIN, 12);
@@ -800,6 +809,11 @@ public class PathwayPanel extends JPanel
      //   else if (btn == btnLockPresentation)     { pathway.setLocked(!pathway.isLocked()); }
         else if (btn == btnPathwayOnly) {
             toggleHideEverythingButCurrentPathway();
+        } else if (btn == btnShowSlides) {
+            LWPathway.setShowSlides(btnShowSlides.isSelected());
+            pathway.notify("pathway.showSlides");
+        } else {
+            System.out.println(this + ": Unhandled action: " + e);
         }
 
         VUE.getUndoManager().mark();

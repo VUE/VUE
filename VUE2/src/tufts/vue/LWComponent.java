@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.255 $ / $Date: 2007-05-02 19:58:56 $ / $Author: sfraize $
+ * @version $Revision: 1.256 $ / $Date: 2007-05-03 21:48:23 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3358,8 +3358,16 @@ u                    getSlot(c).setFromString((String)value);
     /** If there's a pathway entry we want to be showing, return it, otherwise, null */
     protected LWPathway.Entry getEntryToDisplay()
     {
-        final LWPathway path = VUE.getActivePathway();
-        if (inPathway(path) && path.isDrawn()) {
+        LWPathway path = VUE.getActivePathway();
+
+        if (!inPathway(path)) {
+            if (pathwayRefs != null && pathwayRefs.size() > 0)
+                path = pathwayRefs.get(0); // show the first pathway it's in if it's not in the active pathway
+            else
+                path = null;
+        }
+            
+        if (path != null && path.isShowingSlides()) {
             final LWPathway.Entry entry = path.getCurrentEntry();
             // This is just in case the node is in the pathway more than once: if it is,
             // and the current entry is for this node, use that, otherwise, just
