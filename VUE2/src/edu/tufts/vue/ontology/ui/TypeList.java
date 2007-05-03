@@ -18,6 +18,7 @@
 
 package edu.tufts.vue.ontology.ui;
 
+import com.sun.media.jai.opimage.URLRIF;
 import edu.tufts.vue.style.*;
 import edu.tufts.vue.ontology.*;
 
@@ -130,16 +131,47 @@ public class TypeList extends JList {
         if(typeCache.containsKey(type))
         {
             return (LWComponent)typeCache.get(type);
-        }    
+        }
+      
         LWComponent compFor = null;
         OntType ontType = null;
         if(type instanceof OntType)
         {
           ontType = (OntType)type;
           if(ontType !=null)
+          {
+            Style style = ontType.getStyle();
             if(isNode(ontType))  
             {
-              compFor = new LWNode(ontType.getLabel());
+              String image = style.getAttribute("background-image");
+              if(image != null)
+              {
+                 System.out.println("TypeList: image not null");
+                 java.net.URL imageURL = null;
+                 URLResource resource = null;
+                 java.io.File file = null;
+                 try
+                 {
+                    file = new java.io.File(image);
+                    imageURL = file.toURL();//new URL(image);
+                    resource = new URLResource(imageURL);
+                 }
+                 catch(java.net.MalformedURLException mue)
+                 {
+                    System.out.println("TypeList: MalformedURLException: " + mue);    
+                 }
+                 if(resource!=null)
+                 {    
+                   compFor = new LWImage();
+                   compFor.setResource(resource);
+                 }
+                 else
+                 {
+                     compFor = new LWNode(ontType.getLabel());
+                 }
+              }
+              else
+                compFor = new LWNode(ontType.getLabel());
             }
             else
             {
@@ -149,6 +181,8 @@ public class TypeList extends JList {
               r.setLabel(ontType.getLabel());
               compFor = r;
             }
+            compFor.applyCSS(style);
+          }
           else
             compFor = new LWNode("null ont type");
         }
@@ -158,15 +192,18 @@ public class TypeList extends JList {
         }
         
         
-        //$
-        if(ontType.getStyle()!=null)
-            compFor.applyCSS(ontType.getStyle());
-        //$
+        //put within condition check for non-null ontType above
+        //if(ontType.getStyle()!=null)
+        //    compFor.applyCSS(ontType.getStyle());
         
-        LWComponent noLabel = compFor.duplicate();
-        noLabel.setLabel("");
-        typeNoLabelCache.put(type,noLabel);
-        typeCache.put(type,compFor);
+        //needed 
+        //LWComponent noLabel = compFor.duplicate();
+        //noLabel.setLabel("");
+        //typeNoLabelCache.put(type,noLabel);
+        
+        //blocking reload of style, need to account for 
+        //new style before reenabling
+        //typeCache.put(type,compFor);
         
         return compFor;
     }
@@ -212,11 +249,12 @@ public class TypeList extends JList {
             g.setColor(old);
             if(!isNode(type))
             {
-              Style style = type.getStyle();
+                
+              //Style style = type.getStyle();
                   
-              float strokeWidth = 1.0f;     
-              if(style!= null && style.getAttribute("stroke-width") != null)
-                strokeWidth = edu.tufts.vue.style.ShorthandParser.parseSize(style.getAttribute("stroke-width"));
+              //float strokeWidth = 1.0f;     
+              //if(style!= null && style.getAttribute("stroke-width") != null)
+              //  strokeWidth = edu.tufts.vue.style.ShorthandParser.parseSize(style.getAttribute("stroke-width"));
                 //strokeWidth = Float.parseFloat(style.getAttribute("stroke-width"));
               //System.out.println("typelist: stroke width: " + strokeWidth);
               //if(strokeWidth <= 1.1f)
