@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.73 $ / $Date: 2007-05-03 21:48:23 $ / $Author: sfraize $
+ * @version $Revision: 1.74 $ / $Date: 2007-05-03 21:49:26 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -97,7 +97,7 @@ public class PathwayPanel extends JPanel
     private JLabel lblNew = new JLabel(VueResources.getString("presentationDialog.new.label"));    
     private JLabel lblFilter = new JLabel(VueResources.getString("presentationDialog.filter.label"));
     //private JLabel lblMapView = new JLabel(VueResources.getString("presentationDialog.mapview.label"));
-    private JLabel lblMapView = new JLabel("Slides");
+    private JLabel lblMapView = new JLabel("Slide Icons");
     private JLabel lblPlayback = new JLabel(VueResources.getString("presentationDialog.playback.label"));
 
     public PathwayTable mPathwayTable;
