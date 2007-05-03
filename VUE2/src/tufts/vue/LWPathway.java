@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.144 $ / $Date: 2007-05-03 21:48:23 $ / $Author: sfraize $
+ * @version $Revision: 1.145 $ / $Date: 2007-05-03 21:54:46 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1279,6 +1279,7 @@ public class LWPathway extends LWContainer
     
     /** @deprecated - default constructor used for marshalling ONLY */
     public LWPathway() {
+        setVisible(false);
     }
 
 
