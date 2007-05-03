@@ -100,9 +100,19 @@ public class PresentationTool extends VueTool
     private static final Color NavTextColor = Color.darkGray;
     
     private class NavNode extends LWNode {
+        
+        final LWComponent destination;
+        final LWPathway pathway;
+        
         NavNode(LWComponent src, LWPathway pathway)
         {
             super(null);
+
+            if (src == null)
+                throw new IllegalArgumentException("destination can't be null");
+            
+            this.destination = src;
+            this.pathway = pathway;
             
             String label = src.getDisplayLabel();
             
@@ -113,7 +123,6 @@ public class PresentationTool extends VueTool
                 label = "BACK:" + label;
             //label = "    " + label + " ";
             setLabel(label);
-
             setFont(NavFont);
             setTextColor(NavTextColor);
             setFillColor(NavFillColor);
@@ -123,8 +132,8 @@ public class PresentationTool extends VueTool
             else
                 setStrokeColor(NavStrokeColor);
         
-            setStrokeWidth(2);
-            setSyncSource(src); // TODO: these will never get GC'd, and will be updating for ever based on their source...
+            setStrokeWidth(pathway == null ? 2 : 3);
+            //setSyncSource(src); // TODO: these will never get GC'd, and will be updating for ever based on their source...
             //setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20)); // is default
             setAutoSized(false); 
             setSize(200, getHeight() + 6);
@@ -333,10 +342,12 @@ public class PresentationTool extends VueTool
                 System.out.println("HIT " + nav);
                 //LWComponent oneBack = mBackList.peek();
                 //if (oneBack == c.getSyncSource() || (oneBack instanceof LWSlide && ((LWSlide)oneBack).getSourceNode() == c.getSyncSource()))
-                if (mBackList.peek() == nav.getSyncSource() || mBackList.peekNode() == nav.getSyncSource())
+                if (mBackList.peek() == nav.destination || mBackList.peekNode() == nav.destination)
                     backUp();
+                else if (nav.pathway != null)
+                    ; // TODO: handle pathway jump
                 else
-                    setPage(nav.getSyncSource());
+                    setPage(nav.destination);
                 return true;
             }
         }
@@ -786,7 +797,7 @@ public class PresentationTool extends VueTool
 
         mNavNodes.clear();
         
-        if (node == null || node.getLinks().size() == 0)
+        if (node == null || (node.getLinks().size() == 0 && node.getPathways().size() < 2))
             return;
         
         makeNavNodes(node, dc.getFrame());
