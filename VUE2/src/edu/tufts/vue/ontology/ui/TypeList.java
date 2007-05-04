@@ -163,6 +163,7 @@ public class TypeList extends JList {
                  {    
                    compFor = new LWImage();
                    compFor.setResource(resource);
+                   ((LWImage)compFor).setToNaturalSize();
                  }
                  else
                  {
