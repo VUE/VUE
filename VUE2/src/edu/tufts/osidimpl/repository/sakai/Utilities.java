@@ -93,6 +93,12 @@ public class Utilities
 	
 	public static org.osid.shared.Id getRepositoryId()
 	{
+		if (repositoryId == null) {
+			try {
+				repositoryId = idManager.getId("E89F7F92-8C23-481B-AF8C-7AE169699F34-2595-000008D778AFEB53");				
+			} catch (Throwable t) {
+			}
+		}
 		return repositoryId;
 	}
 	

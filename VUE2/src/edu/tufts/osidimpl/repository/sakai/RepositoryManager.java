@@ -86,42 +86,47 @@ implements org.osid.repository.RepositoryManager
 			 
 			 a session id is placed in the context if all goes well
 			 */
-			org.osid.shared.Type authenticationType = new Type("sakaiproject.org","authentication","sakai");
-			this.authenticationManager = (org.osid.authentication.AuthenticationManager)org.osid.OsidLoader.getManager("org.osid.authentication.AuthenticationManager",
-																													   "edu.tufts.osidimpl.authentication.sakai",
-																													   this.context,
-																													   configuration);			
-			Utilities.setAuthenticationManager(this.authenticationManager);
-			this.authenticationManager.authenticateUser(authenticationType);
-			if (!this.authenticationManager.isUserAuthenticated(authenticationType)) {
-				throw new org.osid.repository.RepositoryException(org.osid.OsidException.PERMISSION_DENIED);
+			if (configuration.getProperty("sakaiHost") != null) {
+				
+				org.osid.shared.Type authenticationType = new Type("sakaiproject.org","authentication","sakai");
+				this.authenticationManager = (org.osid.authentication.AuthenticationManager)org.osid.OsidLoader.getManager("org.osid.authentication.AuthenticationManager",
+																														   "edu.tufts.osidimpl.authentication.sakai",
+																														   this.context,
+																														   configuration);			
+				Utilities.setAuthenticationManager(this.authenticationManager);
+				this.authenticationManager.authenticateUser(authenticationType);
+				if (!this.authenticationManager.isUserAuthenticated(authenticationType)) {
+					throw new org.osid.repository.RepositoryException(org.osid.OsidException.PERMISSION_DENIED);
+				}
+				
+				String key = (String)context.getContext("org.sakaiproject.instanceKey");
+				//System.out.println("assigned key is " + key);
+				String sessionId = (String)context.getContext("org.sakaiproject.sessionId." + key);
+				if (sessionId == null) {
+					throw new org.osid.repository.RepositoryException(org.osid.OsidException.CONFIGURATION_ERROR);
+				}
+				Utilities.setSessionId(sessionId,key);
+				
+				/*
+				 Make one repository
+				 */
+				this.repositoryType = new Type("sakaiproject.org","repository","contentHosting");
+				
+				String h = configuration.getProperty("sakaiHost");
+				if (h.startsWith("http://")) {
+					h = h.substring(7);
+				}
+				
+				String displayName = configuration.getProperty("sakaiDisplayName");
+				
+				//Utilities.setRepositoryId(h + ".Virtual-Root-Identifier");
+				this.repositoryVector.removeAllElements();
+				this.repositoryVector.addElement(new Repository(displayName,key));
+				
+				String address = h + ":" + configuration.getProperty("sakaiPort") + "/";
+				Utilities.setEndpoint(address + "sakai-axis/ContentHosting.jws");		
+				Utilities.setAddress(address);
 			}
-			
-			String key = (String)context.getContext("org.sakaiproject.instanceKey");
-			System.out.println("assigned key is " + key);
-			String sessionId = (String)context.getContext("org.sakaiproject.sessionId." + key);
-			if (sessionId == null) {
-				throw new org.osid.repository.RepositoryException(org.osid.OsidException.CONFIGURATION_ERROR);
-			}
-			Utilities.setSessionId(sessionId,key);
-			
-			/*
-			 Make one repository
-			 */
-			this.repositoryType = new Type("sakaiproject.org","repository","contentHosting");
-			
-			String h = configuration.getProperty("sakaiHost");
-			if (h.startsWith("http://")) {
-				h = h.substring(7);
-			}
-			
-			Utilities.setRepositoryId(h + ".Virtual-Root-Identifier");
-			this.repositoryVector.removeAllElements();
-			this.repositoryVector.addElement(new Repository(key));
-			
-			String address = h + ":" + configuration.getProperty("sakaiPort") + "/";
-			Utilities.setEndpoint(address + "sakai-axis/ContentHosting.jws");		
-			Utilities.setAddress(address);
 		} catch (Throwable t) {
 			Utilities.log(t);
 			if (t instanceof org.osid.repository.RepositoryException) {

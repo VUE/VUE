@@ -39,6 +39,8 @@ implements org.osid.repository.AssetIterator
 	{
 		this.siteString = siteString;
 		this.key = key;
+		// temp shunt
+		this.iterator = (new java.util.Vector()).iterator();
 	}
 	
     public boolean hasNextAsset()

@@ -37,11 +37,11 @@ implements org.osid.repository.Repository
 	private String displayName = null;
 	private String key = null;
  
-    protected Repository(String key)
+    protected Repository(String displayName, String key)
 		    throws org.osid.repository.RepositoryException
     {
 		this.key = key;
-		this.displayName = "Sakai";
+		this.displayName = displayName;
 		this.searchTypeVector.addElement(this.keywordSearchType);
 		this.searchTypeVector.addElement(this.titleSearchType);		
 		this.assetTypeVector.addElement(this.collectionAssetType);
@@ -305,6 +305,7 @@ implements org.osid.repository.Repository
             Utilities.log("invalid criteria");
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
         }
+		java.util.Vector result = new java.util.Vector();
 		boolean knownType = false;
 		for (int i=0, size = this.searchTypeVector.size(); i < size; i++) {
 			if (searchType.isEqual((org.osid.shared.Type)this.searchTypeVector.elementAt(i))) {
@@ -317,7 +318,6 @@ implements org.osid.repository.Repository
 		}
 
 		String criteria = ((String)searchCriteria).toLowerCase();
-		java.util.Vector result = new java.util.Vector();
 
 		try {
 			// note this is a name match NOT a site search
@@ -332,7 +332,7 @@ implements org.osid.repository.Repository
             Utilities.log(t);
             throw new org.osid.repository.RepositoryException(t.getMessage());
         }
-		return null;
+		return new AssetIterator(result);
     }
 
     public org.osid.shared.Id copyAsset(org.osid.repository.Asset asset)
