@@ -35,6 +35,7 @@
 
 package edu.tufts.vue.compare;
 
+import com.sun.org.apache.xpath.internal.axes.ChildIterator;
 import java.util.*;
 import java.io.*;
 import tufts.vue.*;
@@ -62,14 +63,17 @@ public class ConnectivityMatrix {
      */
     
     private void addLabels(){
-        Iterator i = map.getNodeIterator();
+        Iterator i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
         while(i.hasNext()){
-            LWNode node = (LWNode)i.next();
-            labels.add(getMergeProperty(node));
-            size++;
+            Object o = i.next();
+            if(o instanceof LWNode) {
+                LWNode node = (LWNode) o;
+                labels.add(getMergeProperty(node));
+                size++;
+            }
         }
     }
-    /* 
+    /*
      * creates a matrix from the map.
      */
     private void generateMatrix() {
