@@ -47,7 +47,7 @@ import tufts.vue.action.*;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.39 $ / $Date: 2006-12-05 19:34:11 $ / $Author: anoop $
+ * @version $Revision: 1.40 $ / $Date: 2007-05-04 19:53:59 $ / $Author: jeff $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
     
@@ -56,6 +56,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final int PUBLISH_NO_MODES = 0;;
     public static final int PUBLISH_MAP = 1; // just the map
     public static final int PUBLISH_CMAP = 2; // the map with selected resources in IMSCP format
+    public static final int PUBLISH_SAKAI = 4; // an IMSCP to Sakai
     public static final int PUBLISH_ALL = 3; // all resources published to fedora and map published with pointers to resources.
     public static final int PUBLISH_ALL_MODES = 10; // this means that datasource can publish to any mode.
     //todo: create a pubishable interface for Datatasources. Create an interface for datasources and have separate implementations for each type of datasource.
@@ -71,8 +72,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final String[] PUBLISH_INFORMATION = {" The “Export” function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
     " “Export Map” saves only the map. Digital resources are not attached, but the resources’ paths are maintained. “Export Map” is the equivalent of the “Save” function for a registered digital repository.",
     "“Export IMSCP Map” embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a “zip” file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
-    "“Export All” creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resources are accessible to all users viewing the map."
-    
+    "“Export All” creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resources are accessible to all users viewing the map.",
+	"“Export IMSCP Map to Sakai” saves concept map in Sakai content hosting system."
     };
     
     private int publishMode = PUBLISH_MAP;
@@ -95,6 +96,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     JButton finishButton;
     JRadioButton publishMapRButton;
     JRadioButton publishCMapRButton;
+    JRadioButton publishSakaiRButton;
    // JRadioButton publishAllRButton;
     JTextArea informationArea;
     public static Vector resourceVector;
@@ -160,19 +162,24 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         buttonPanel.setLayout(buttonLayout);
         publishMapRButton = new JRadioButton("Export Map");
         publishCMapRButton = new JRadioButton("Export IMSCP Map");
+		publishSakaiRButton = new JRadioButton("Export IMSCP Map to Sakai");
  //       publishAllRButton = new JRadioButton("Export All");
         publishMapRButton.setToolTipText("Export map only without local resource files.");
         publishCMapRButton.setToolTipText("Export IMS content package that include local resource files.");
+        publishSakaiRButton.setToolTipText("Export alreday saved IMS content package to Sakai content hosting.");
 //        publishAllRButton.setToolTipText("Export map and local resources as separate files.");
         publishMapRButton.addActionListener(this);
         publishCMapRButton.addActionListener(this);
+        publishSakaiRButton.addActionListener(this);
      //   publishAllRButton.addActionListener(this);
         modeSelectionGroup.add(publishMapRButton);
         modeSelectionGroup.add(publishCMapRButton);
+        modeSelectionGroup.add(publishSakaiRButton);
       //  modeSelectionGroup.add(publishAllRButton);
         //buttonPanel.add(modeLabel);
         buttonPanel.add(publishMapRButton);
         buttonPanel.add(publishCMapRButton);
+        buttonPanel.add(publishSakaiRButton);
      //   buttonPanel.add(publishAllRButton);
         JPanel bottomPanel = new JPanel();
         // bottomPanel.setBorder(new LineBorder(Color.BLACK));
@@ -432,7 +439,24 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             publishMode = PUBLISH_CMAP;
             updatePublishPanel();
         }
-     /*   if(e.getSource() == publishAllRButton) {
+        if(e.getSource() == publishSakaiRButton) {
+            finishButton.setEnabled(false);
+            nextButton.setEnabled(true);
+            publishMode = PUBLISH_SAKAI;
+            //updatePublishPanel();
+			System.out.println("Sakai Data Sources:");
+			try {
+				SakaiExport sakaiExport = new SakaiExport(DataSourceViewer.dataSourceManager);
+				edu.tufts.vue.dsm.DataSource dataSources[] = sakaiExport.getSakaiDataSources();
+				for (int i=0; i < dataSources.length; i++) {
+					System.out.println("Fund: " + dataSources[i].getRepositoryDisplayName());
+				}
+			} catch (Throwable t) {
+				
+			}
+			this.dispose();
+        }
+		/*   if(e.getSource() == publishAllRButton) {
             finishButton.setEnabled(false);
             nextButton.setEnabled(true);
             publishMode = PUBLISH_ALL;

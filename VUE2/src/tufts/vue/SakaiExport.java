@@ -19,19 +19,27 @@ package tufts.vue;
 
 public class SakaiExport
 {
-//	private org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("org.sakaiproject","asset","siteCollection");
+//	private org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
 	private org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("com.harvestroad","asset","category");
-	private org.osid.shared.Type _sakaiRepositoryType = new edu.tufts.vue.util.Type("org.sakaiproject","repository","sakai");
+	private org.osid.shared.Type _sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
+	private edu.tufts.vue.dsm.DataSourceManager _dsm = null;
 
-	public edu.tufts.vue.dsm.DataSource[] getSakaiDataSources(edu.tufts.vue.dsm.DataSourceManager dsm)
+	public SakaiExport(edu.tufts.vue.dsm.DataSourceManager dsm)
+	{
+		_dsm = dsm;
+	}
+	
+	public edu.tufts.vue.dsm.DataSource[] getSakaiDataSources()
 		throws org.osid.repository.RepositoryException
 	{
 		java.util.Vector dataSourceVector = new java.util.Vector();
 		edu.tufts.vue.dsm.DataSource result[] = new edu.tufts.vue.dsm.DataSource[0];
 		
-		edu.tufts.vue.dsm.DataSource dataSources[] = dsm.getDataSources();
+		edu.tufts.vue.dsm.DataSource dataSources[] = _dsm.getDataSources();
 		for (int i=0; i < dataSources.length; i++) {
+			System.out.println("Examining Repository " + dataSources[i].getRepository().getDisplayName());
 			if (dataSources[i].supportsUpdate()) {
+				System.out.println("Supports Update, Now Checking Type");
 				org.osid.repository.Repository repository = dataSources[i].getRepository();
 				if (repository.getType().isEqual(_sakaiRepositoryType)) {
 					dataSourceVector.addElement(dataSources[i]);
