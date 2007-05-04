@@ -96,14 +96,14 @@ public class NodeModeTool extends VueTool
         /*
         // faster to pull directly from the known editor object, but this works, and is more general.
         RectangularShape currentShape = (RectangularShape) VUE.LWToolManager.GetPropertyValue(LWKey.Shape);
-        Stroke currentStroke = (Stroke) VUE.LWToolManager.GetPropertyValue(LWKey.StrokeStyle);
+v        Stroke currentStroke = (Stroke) VUE.LWToolManager.GetPropertyValue(LWKey.StrokeStyle);
         currentShape.setFrame(r);
         g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,  java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(COLOR_SELECTION);
         g.draw(currentShape);
         */
 
-        if (!creationNodeCurrent) {
+        if (true||!creationNodeCurrent) {
             VUE.LWToolManager.ApplyProperties(creationNode);
             creationNodeCurrent = true;
         }
