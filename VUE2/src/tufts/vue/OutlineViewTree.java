@@ -47,12 +47,12 @@ import java.util.ArrayList;
  * Todo: render right from the node labels so all we have to do is repaint to refresh.
  * (still need to modify tree for hierarchy changes tho).
  *
- * @version $Revision: 1.44 $ / $Date: 2006-07-28 21:27:29 $ / $Author: mike $
+ * @version $Revision: 1.45 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  */
 
 public class OutlineViewTree extends JTree
-    implements LWComponent.Listener, LWSelection.Listener, VUE.ActiveMapListener
+    implements LWComponent.Listener, LWSelection.Listener, ActiveListener<LWMap>
 {
     private boolean selectionFromVUE = false;
     private boolean valueChangedState = false;
@@ -142,9 +142,8 @@ public class OutlineViewTree extends JTree
         switchContainer(container);
     }
     
-    /** interface VUE.ActiveMapListener */
-    public void activeMapChanged(LWMap map) {
-        switchContainer(map);
+    public void activeChanged(ActiveEvent<LWMap> e) {
+        switchContainer(e.active);
     }
     
     /**A method which switches the displayed container*/

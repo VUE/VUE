@@ -39,7 +39,7 @@ import javax.swing.Action;
  */
 
 public class UndoManager
-    implements LWComponent.Listener, VUE.ActiveMapListener
+    implements LWComponent.Listener, ActiveListener<LWMap>
 {
     private static boolean sUndoUnderway = false;
     private static boolean sRedoUnderway = false;
@@ -67,14 +67,13 @@ public class UndoManager
     /** map of threads currently attched to a particular undo mark */
     private Map mThreadsWithMark = Collections.synchronizedMap(new HashMap());
 
-
     public UndoManager(LWMap map)
     {
         mMap = map;
         mCurrentUndo = new UndoAction();
         map.addLWCListener(this);
-        VUE.addActiveMapListener(this);
-        activeMapChanged(map); // make sure actions disabled at start
+        VUE.addActiveListener(LWMap.class, this);
+        updateActionLabels(); // make sure actions disabled at start
     }
 
     
@@ -534,9 +533,16 @@ public class UndoManager
         public Object remove(int index) { throw new UnsupportedOperationException(); }
     }
 
-    public void activeMapChanged(LWMap map)
+    public void activeChanged(ActiveEvent<LWMap> e)
     {
-        if (map == mMap)
+
+        // We really don't need every undo manager listening for
+        // active map changes -- a single listener for the active map
+        // that then tells the active map's undo manager, if it has
+        // one, to update the menu labels in the global VUE would
+        // suffice, tho this works just fine with minimal overhead.
+        
+        if (e.active == mMap)
             updateActionLabels();
     }
 

@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.32 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.33 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -362,7 +362,7 @@ public class MapTabbedPane extends JTabbedPane
                 forceFocusTransfer = true;
                 
             // Immediately make sure nothing can refer this this viewer.
-            VUE.setActiveViewer(null);
+            VUE.setActive(MapViewer.class, this, null);
 
             // we might want to force notification even if selection is already empty:
             // we want all listeners, particularly the actions, to

@@ -45,7 +45,7 @@ import tufts.vue.LWPathway.Entry;
  * @version February 2004
  */
 public class PathwayTableModel extends DefaultTableModel
-    implements VUE.ActiveMapListener, LWComponent.Listener
+    implements ActiveListener<LWMap>, LWComponent.Listener
 {
     private LWMap mMap;
 
@@ -66,7 +66,7 @@ public class PathwayTableModel extends DefaultTableModel
     
     public PathwayTableModel()
     {
-        VUE.addActiveMapListener(this);
+        VUE.addActiveListener(LWMap.class, this);
         setMap(VUE.getActiveMap());
     }
 
@@ -106,10 +106,10 @@ public class PathwayTableModel extends DefaultTableModel
     }
 
     /** VUE.ActiveMapListener */
-    public void activeMapChanged(LWMap map)
+    public void activeChanged(ActiveEvent<LWMap> e)
     {
-        if (DEBUG.PATHWAY) System.out.println(this + " activeMapChanged to " + map);
-        setMap(map);
+        if (DEBUG.PATHWAY) System.out.println(this + " activeMapChanged to " + e.active);
+        setMap(e.active);
     }
 
     LWPathwayList getPathwayList() {

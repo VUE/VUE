@@ -42,7 +42,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.ArrayList;
 
-public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,tufts.vue.VUE.ActiveMapListener{
+public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,tufts.vue.ActiveListener<tufts.vue.LWMap> {
     public static final String ADD_ELEMENT = "Define New Element";
     public static final String SELECT_ELEMENT = "Select";
     public static final String NODE_FILTER_INFO = tufts.vue.VueResources.getString("info.filter.node");
@@ -68,7 +68,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         tufts.vue.LWMap map = tufts.vue.VUE.getActiveMap();
         if (map != null) 
             map.getMapFilterModel().addListener(this);
-        tufts.vue.VUE.addActiveMapListener(this);
+        tufts.vue.VUE.addActiveListener(tufts.vue.LWMap.class, this);
         questionLabel.setToolTipText(NodeFilterEditor.NODE_FILTER_INFO);
         setNodeFilterPanel();
         
@@ -179,8 +179,8 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         nodeFilterTable.getColumnModel().getColumn(NodeFilter.KEY_COL).setCellEditor(keyEditor);
     }
     
-    public void activeMapChanged(tufts.vue.LWMap lWMap) {
-        this.lWMap = lWMap;
+    public void activeChanged(tufts.vue.ActiveEvent<tufts.vue.LWMap> e) {
+        this.lWMap = e.active;
         lWMap.getMapFilterModel().addListener(this);
         elementsModel.setElements(lWMap.getMapFilterModel().getKeyVector());
     }

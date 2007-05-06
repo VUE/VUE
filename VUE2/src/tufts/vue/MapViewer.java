@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.345 $ / $Date: 2007-05-03 21:48:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.346 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -82,7 +82,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                , LWComponent.Listener
                , LWSelection.Listener
                , VueToolSelectionListener
-               , VUE.ActiveViewerListener               
+               , ActiveListener<MapViewer>
                //, DragGestureListener
                //, DragSourceListener
                , java.awt.event.KeyListener
@@ -217,7 +217,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
 
         VUE.ModelSelection.addListener(this);
-        VUE.addActiveViewerListener(this);
+        VUE.addActiveListener(MapViewer.class, this);
         
         // draggedSelectionGroup is always a selected component as
         // it's only used when it IS the selection
@@ -5273,8 +5273,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private Runnable focusIndicatorRepaint = new Runnable() { public void run() { mFocusIndicator.repaint(); }};
     
-    /** VUE.activeViewerListener interface */
-    public void activeViewerChanged(MapViewer viewer) {
+    public void activeChanged(ActiveEvent<MapViewer> e) {
         
         // We delay the repaint request for the focus indicator on this event because normally, it
         // happens while we're grabbing focus, which means it happens twice: once here on active
@@ -5309,7 +5308,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             LWMap oldActiveMap = null;
             if (activeViewer != null)
                 oldActiveMap = activeViewer.getMap();
-            VUE.setActiveViewer(this);
+            VUE.setActive(MapViewer.class, this, this);
                 
             mFocal.getChangeSupport().setPriorityListener(this);
             // TODO: VUE.getSelection().setPriorityListener(this);

@@ -2,6 +2,8 @@ package tufts.vue.gui;
 
 import tufts.vue.VUE;
 import tufts.vue.MapViewer;
+import tufts.vue.ActiveListener;
+import tufts.vue.ActiveEvent;
 import tufts.vue.MapViewerEvent;
 import tufts.vue.VueResources;
 import tufts.vue.DEBUG;
@@ -22,13 +24,12 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.7 $ / $Date: 2006-11-14 19:31:35 $ / $Author: mike $ 
+ * @version $Revision: 1.8 $ / $Date: 2007-05-06 20:14:18 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
 //public class VueFrame extends com.jidesoft.docking.DefaultDockableHolder
 //public class VueFrame extends com.jidesoft.action.DefaultDockableBarDockableHolder // JIDE ENABLE
-//    implements MapViewer.Listener //, MouseWheelListener
-    implements VUE.ActiveViewerListener
+    implements ActiveListener<MapViewer>
 {
     private static int sNameIndex = 0;
     private WindowPropertiesPreference wpp = null;
@@ -102,14 +103,13 @@ public class VueFrame extends javax.swing.JFrame
             }
         });
 
-        VUE.addActiveViewerListener(this);
-        
+        VUE.addActiveListener(MapViewer.class, this);
     }
 
-    public void activeViewerChanged(MapViewer viewer) {
-        setTitleFromViewer(viewer);
+    public void activeChanged(ActiveEvent<MapViewer> e) {
+        setTitleFromViewer(e.active);
     }
-
+    
     /*
     final static int TitleChangeMask =
         MapViewerEvent.DISPLAYED |

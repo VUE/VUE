@@ -33,11 +33,11 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.48 $ / $Date: 2006-06-04 23:17:00 $ / $Author: sfraize $ 
+ * @version $Revision: 1.49 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $ 
  *
  */
 public class MapInspectorPanel extends JPanel
-    implements  VUE.ActiveMapListener
+    implements ActiveListener<LWMap>
 {
     static public final int ANY_MODE = 0;
     static public final int ALL_MODE = 1;
@@ -65,7 +65,7 @@ public class MapInspectorPanel extends JPanel
     
     public MapInspectorPanel() {
         super();
-        VUE.addActiveMapListener(this);
+        VUE.addActiveListener(LWMap.class, this);
         setMinimumSize( new Dimension( 180,200) );
         setLayout( new BorderLayout() );
         //setBorder( new EmptyBorder( 5,5,5,5) );
@@ -159,9 +159,9 @@ public class MapInspectorPanel extends JPanel
      * }
      *
      **/
-    public void activeMapChanged(LWMap map) {
+    public void activeChanged(ActiveEvent<LWMap> e) {
         //tufts.Util.printStackTrace("AMC START");
-        setMap(map);
+        setMap(e.active);
         //tufts.Util.printStackTrace("AMC END");
     }
     

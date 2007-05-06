@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.145 $ / $Date: 2007-05-03 21:54:46 $ / $Author: sfraize $
+ * @version $Revision: 1.146 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -496,9 +496,9 @@ public class LWPathway extends LWContainer
 
         if (VUE.getActivePathway() == this) {
             if (i < 0) {
-                VUE.setActivePathwayEntry(this.asEntry());
+                VUE.setActive(LWPathway.Entry.class, this, this.asEntry());
             } else {
-                VUE.setActivePathwayEntry(getEntry(i));
+                VUE.setActive(LWPathway.Entry.class, this, getEntry(i));
                 // TODO: if this node is in pathway more than once,
                 // this set-selection is re-triggering a pathway
                 // table selection of the FIRST instance of this node,

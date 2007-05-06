@@ -70,7 +70,6 @@ import javax.swing.*;
 // if we can handle the direct viewing, drawing & selecting of a container with clever traversals.
 
 public class SlideViewer extends tufts.vue.MapViewer
-    implements VUE.ActivePathwayEntryListener
 {
     //private final VueTool PresentationTool = VueToolbarController.getController().getTool("viewTool");
 
@@ -187,8 +186,36 @@ public class SlideViewer extends tufts.vue.MapViewer
         btnSlide.setSelected(true);
 
         DEBUG_TIMER_ROLLOVER = false;
-        VUE.addActivePathwayEntryListener(this);
+
+        VUE.addActiveListener(LWPathway.Entry.class, this);
+
+        /*
+        VUE.addActiveListener(LWPathway.Entry.class, new VUE.ActiveListener() {
+            public void activeChanged(VUE.ActiveEvent e) {
+                load((LWPathway.Entry) e.active);
+            }
+        });
+        */
+        
+        /*
+        VUE.ActivePathwayEntryHandler.addListener(new VUE.ActiveListener<LWPathway.Entry>() {
+                public void activeChanged(VUE.ActiveEvent<LWPathway.Entry> e) {
+                    load(e.active);
+                }
+            });
+        */
+        
     }
+
+    public void activeChanged(tufts.vue.ActiveEvent e) {
+        if (e.type == LWPathway.Entry.class)
+            load((LWPathway.Entry) e.active);
+        else if (e.type == MapViewer.class)
+            super.activeChanged(e); // not so cool that we can call super-class w/out the requested type information
+        //super.activeChanged((ActiveEvent<MapViewer>)e);
+    }
+
+    
     
     
     public void showSlideViewer()
@@ -291,18 +318,20 @@ public class SlideViewer extends tufts.vue.MapViewer
         return pc;
     }
     */
- 
+    
+    /*
     private LWPathway mCurrentPath;
-    public void activePathwayEntryChanged(LWPathway.Entry entry) {
-        load(entry);
-        /*
-        if (mCurrentPath != null)p
-            mCurrentPath.removeLWCListener(this);
-        mCurrentPath = path;
-        mCurrentPath.addLWCListener(this);
-        reload();
-        */
+    public void activeChanged(VUE.ActivePathwayEntry.Event e) {
+        load(e.entry);
+
+//         if (mCurrentPath != null)p
+//             mCurrentPath.removeLWCListener(this);
+//         mCurrentPath = path;
+//         mCurrentPath.addLWCListener(this);
+//         reload();
+
     }
+*/
 
     public void reload() {
         // TODO: load nothing if active pathway from a different map

@@ -77,7 +77,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 public class MergeMapsChooser extends JPanel
-implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Listener
+implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.Listener
 {
     
     private static DockWindow p;
@@ -198,7 +198,7 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         
         //vueTabbedPane.addChangeListener(this);
         loadDefaultStyle();
-        VUE.addActiveMapListener(this);
+        VUE.addActiveListener(LWMap.class, this);
         setLayout(new BorderLayout());
         buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         generate = new JButton("Generate");
@@ -1612,13 +1612,13 @@ implements VUE.ActiveMapListener,ActionListener,ChangeListener,LWComponent.Liste
         return activeMap;
     }
     
-    public void activeMapChanged(LWMap map)
+    public void activeChanged(ActiveEvent<LWMap> e)
     {
         //System.out.println("Merge Maps Chooser: active map changed " + map.getLabel());
         
 
         
-        setActiveMap(map);
+        setActiveMap(e.active);
         
         
         /*if(p!=null)

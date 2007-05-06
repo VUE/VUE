@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.56 $ / $Date: 2007-04-14 22:12:12 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
 public class MapPanner extends javax.swing.JPanel
     implements VueConstants,
                MapViewer.Listener,
-               VUE.ActiveViewerListener,
+               ActiveListener<MapViewer>,
                LWComponent.Listener,
                MouseListener,
                MouseMotionListener,
@@ -81,7 +81,7 @@ public class MapPanner extends javax.swing.JPanel
         addMouseMotionListener(this);
         addMouseWheelListener(this);
 
-        VUE.addActiveViewerListener(this);
+        VUE.addActiveListener(MapViewer.class, this);
     }
 
     public void addNotify()
@@ -115,8 +115,8 @@ public class MapPanner extends javax.swing.JPanel
                           ZoomTool.prettyZoomPercent(this.mapViewer.getZoomFactor()));
     }
 
-    public void activeViewerChanged(MapViewer viewer) {
-        setViewer(viewer);
+    public void activeChanged(ActiveEvent<MapViewer> e) {
+        setViewer(e.active);
     }
     
     private void setViewer(MapViewer mapViewer)

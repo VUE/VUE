@@ -47,11 +47,11 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.74 $ / $Date: 2007-05-03 21:49:26 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
-    implements ActionListener, VUE.ActivePathwayEntryListener
+    implements ActionListener, ActiveListener<LWPathway.Entry>
 {    
     private Frame mParentFrame;
     
@@ -263,7 +263,7 @@ public class PathwayPanel extends JPanel
         
         
         
-        VUE.addActivePathwayEntryListener(this);
+        VUE.addActiveListener(LWPathway.Entry.class, this);
         
         VUE.getSelection().addListener(new LWSelection.Listener() {
                 public void selectionChanged(LWSelection s) {
@@ -679,9 +679,8 @@ public class PathwayPanel extends JPanel
     }
     
     
-    public void activePathwayEntryChanged(LWPathway.Entry entry) {
-    	
-    	updateTextAreas(entry);
+    public void activeChanged(ActiveEvent<LWPathway.Entry> e) {
+    	updateTextAreas(e.active);
         updateEnabledStates();
     }
     

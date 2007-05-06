@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.417 $ / $Date: 2007-05-02 22:03:33 $ / $Author: sfraize $ 
+ * @version $Revision: 1.418 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -69,13 +69,6 @@ public class VUE
     
     private static AppletContext sAppletContext = null;
     
-    /** The currently active viewer (e.g., is visible
-     * and has focus).  Actions (@see Actions.java) are performed on
-     * the active model (sometimes querying the active viewer). */
-    private static MapViewer ActiveViewer = null;
-    private static LWMap ActiveMap = null;
-    private static LWPathway ActivePathway = null;
-    private static LWPathway.Entry ActivePathwayEntry = null;
     /** The currently active selection.
      * elements in ModelSelection should always be from the ActiveModel */
     static final LWSelection ModelSelection = new LWSelection();
@@ -103,27 +96,84 @@ public class VUE
     private static boolean isStartupUnderway = false;
     private static java.util.List FilesToOpen = Collections.synchronizedList(new java.util.ArrayList());
 
-    private static java.util.List<ActiveMapListener> ActiveMapListeners = new java.util.ArrayList();
-    private static java.util.List<ActiveViewerListener> ActiveViewerListeners = new java.util.ArrayList();
-    private static java.util.List<ActivePathwayListener> ActivePathwayListeners = new java.util.ArrayList();
-    private static java.util.List<ActivePathwayEntryListener> ActivePathwayEntryListeners = new java.util.ArrayList();
-
     private static InspectorPane inspectorPane = null;
     private static FormatPanel formattingPanel; 
     private  static PathwayPanel pathwayPanel = null;
-    public interface ActiveMapListener {
-        public void activeMapChanged(LWMap map);
-    }
-    public interface ActiveViewerListener {
-        public void activeViewerChanged(MapViewer viewer);
-    }
-    public interface ActivePathwayListener {
-        public void activePathwayChanged(LWPathway p);
-    }
-    public interface ActivePathwayEntryListener {
-        public void activePathwayEntryChanged(LWPathway.Entry e);
+
+
+    private static final LWComponent.Listener PathwayListListener =
+        new LWComponent.Listener() {
+            public void LWCChanged(LWCEvent e) {            	
+                if ("pathway.list.active".equals(e.getName())) {
+                    ActivePathwayHandler.setActive(e, (LWPathway) e.getComponent());
+                }
+            }
+        };
+
+    private static final ActiveChangeSupport<LWPathway> ActivePathwayHandler
+        = new ActiveChangeSupport<LWPathway>(LWPathway.class);
+
+// Nothing special done with this: allow lazy creation:
+//     private static final ActiveChangeSupport<LWPathway.Entry> ActivePathwayEntryHandler
+//         = new ActiveChangeSupport<LWPathway.Entry>(LWPathway.Entry.class);
+
+    private static final ActiveChangeSupport<LWMap> ActiveMapHandler
+        = new ActiveChangeSupport<LWMap>(LWMap.class) {
+        protected void onChange(ActiveEvent<LWMap> e) {
+            final LWPathwayList pathwayList = e.active.getPathwayList();
+            
+            if (e.oldActive != null && e.oldActive.getPathwayList() != null)
+                e.oldActive.getPathwayList().removeListener(PathwayListListener);
+            
+            if (pathwayList != null)
+                pathwayList.addListener(PathwayListListener);
+            
+            ActivePathwayHandler.setActive(e, e.active.getActivePathway());
+        }
+    };
+    
+    /**
+     * For the currently active viewer (e.g., is visible
+     * and has focus).  Actions (@see Actions.java) are performed on
+     * the active map in the active viewer.
+     * The active viewer can be null, which happens when we close the active viewer
+     * and until another grabs the application focus (unles it was the last viewer).
+     */
+    private static final ActiveChangeSupport<MapViewer> ActiveViewerHandler
+        = new ActiveChangeSupport<MapViewer>(MapViewer.class) {
+        protected void notifyListeners(ActiveEvent<MapViewer> e) {
+            if (!(e.active instanceof tufts.vue.ui.SlideViewer)) {
+                // SlideViewer not treated as application-level viewer: ignore when gets selected
+                super.notifyListeners(e);
+                ActiveMapHandler.setActive(e, e.active.getMap());
+            }
+        }
+    };
+
+
+    public static LWMap getActiveMap()          { return ActiveMapHandler.getActive(); }
+    public static LWPathway getActivePathway()  { return ActivePathwayHandler.getActive(); }
+    public static MapViewer getActiveViewer()   { return ActiveViewerHandler.getActive(); }
+    
+    public static void setActive(Class clazz, Object source, Object newActive) {
+        if (newActive == null || clazz.isInstance(newActive))
+            ActiveChangeSupport.getHandler(clazz).setActive(source, newActive);
+        else
+            tufts.Util.printStackTrace("not an instance of " + clazz + ": " + newActive);
     }
 
+    public static Object getActive(Class clazz) {
+        // todo: if a handler doesn't already exist for this class, just return null
+        return ActiveChangeSupport.getHandler(clazz).getActive();
+    }
+    
+    public static void addActiveListener(Class clazz, ActiveListener listener) {
+        ActiveChangeSupport.getHandler(clazz).addListener(listener);
+    }
+    public static void removeActiveListener(Class clazz, ActiveListener listener) {
+        ActiveChangeSupport.getHandler(clazz).removeListener(listener);
+    }
+    
     public static void setAppletContext(AppletContext ac) {
         sAppletContext = ac;
     }
@@ -949,7 +999,8 @@ public class VUE
         OutlineViewTree outlineTree = new OutlineViewTree();
         JScrollPane outlineScroller = new JScrollPane(outlineTree);
         VUE.getSelection().addListener(outlineTree);
-        VUE.addActiveMapListener(outlineTree);
+        //VUE.addActiveMapListener(outlineTree);
+        VUE.ActiveMapHandler.addListener(outlineTree);
         outlineScroller.setPreferredSize(new Dimension(500, 300));
         //outlineScroller.setBorder(null); // so DockWindow will add 1 pixel to bottom
         outlineDock =  GUI.createDockWindow("Outline", outlineScroller);
@@ -1544,177 +1595,7 @@ public class VUE
     public static int openMapCount() {
         return mMapTabsLeft == null ? 0 : mMapTabsLeft.getTabCount();
     }
-    
-    private static Object LOCK = new Object();
-    
-    public static void addActiveMapListener(ActiveMapListener l) {
-        synchronized (LOCK) {
-            ActiveMapListeners.add(l);
-        }
-    }
-    public static void removeActiveMapListener(ActiveMapListener l) {
-        synchronized (LOCK) {
-            ActiveMapListeners.remove(l);
-        }
-    }
-    public static void addActiveViewerListener(ActiveViewerListener l) {
-        synchronized (LOCK) {
-            ActiveViewerListeners.add(l);
-        }
-    }
-    public static void removeActiveViewerListener(ActiveViewerListener l) {
-        synchronized (LOCK) {
-            ActiveViewerListeners.remove(l);
-        }
-    }
-    public static void addActivePathwayListener(ActivePathwayListener l) {
-        synchronized (LOCK) {
-            ActivePathwayListeners.add(l);
-        }
-    }
-    public static void removeActivePathwayListener(ActivePathwayListener l) {
-        synchronized (LOCK) {
-            ActivePathwayListeners.remove(l);
-        }
-    }
-    public static void addActivePathwayEntryListener(ActivePathwayEntryListener l) {
-        synchronized (LOCK) {
-            ActivePathwayEntryListeners.add(l);
-        }
-    }
-    
-    /**
-     * Viewer can be null, which happens when we close the active viewer
-     * and until another grabs the application focus (unles it was the last viewer).
-     * This is responsible for notifing ActiveViewerListeners & ActiveMapListeners of changes.
-     */
-    public static void setActiveViewer(final MapViewer viewer) {
-        synchronized (LOCK) {
-            if (ActiveViewer != viewer) {
-                //LWMap oldActiveMap = null;
-                //if (ActiveViewer != null)
-                //    oldActiveMap = ActiveViewer.getMap();
-                ActiveViewer = viewer;
-                if (DEBUG.FOCUS || DEBUG.EVENTS) out("ActiveViewer set to " + viewer);
 
-                if (ActiveViewer != null) {
-
-                    if (!(viewer instanceof tufts.vue.ui.SlideViewer)) {
-                        // SlideViewer not treated as application-level viewer: ignore when gets selected
-                        for (ActiveViewerListener avl : ActiveViewerListeners) {
-                            if (DEBUG.FOCUS || DEBUG.EVENTS) out("activeViewerChanged -> " + avl);
-                            avl.activeViewerChanged(viewer);
-                        }
-                    }
-                    setActiveMap(viewer.getMap());
-                }
-            } else {
-                // prob don't need this now that we're synchronized
-                ActiveViewer = viewer;
-            }
-        }
-    }
-
-    
-    private static final LWComponent.Listener PathwayListListener =
-        new LWComponent.Listener() {
-            public void LWCChanged(LWCEvent e) {            	
-                if ("pathway.list.active".equals(e.getName())) {
-                    setActivePathway((LWPathway) e.getComponent());
-                }
-            }
-        };
-    /*
-        new LWComponent.Watcher("pathway.list.active") {
-            public void onChange() {
-                setActivePathway((LWPathway) e.getComponent());
-            }
-    */
-
-    private static void setActiveMap(final LWMap map)
-    {
-        if (ActiveMap == map)
-            return;
-
-        final LWMap oldActiveMap = ActiveMap;
-        
-        ActiveMap = map;
-        
-        if (DEBUG.FOCUS || DEBUG.EVENTS) out("ActiveMap set to " + map);
-        for (ActiveMapListener aml : ActiveMapListeners) {
-            if (DEBUG.EVENTS) out("activeMapChanged -> " + aml);
-            aml.activeMapChanged(map);
-        }
-
-        final LWPathwayList pathwayList = map.getPathwayList();
-
-        if (oldActiveMap != null && oldActiveMap.getPathwayList() != null)
-            oldActiveMap.getPathwayList().removeListener(PathwayListListener);
-
-        if (pathwayList != null)
-            pathwayList.addListener(PathwayListListener);
-                
-        setActivePathway(map.getActivePathway());                
-    }
-
-    public static void setActivePathway(final LWPathway pathway)
-    {
-        if (ActivePathway == pathway)
-        {
-            return;
-        }
-        
-        ActivePathway = pathway;
-        
-        if (DEBUG.FOCUS || DEBUG.EVENTS) out("ActivePathway set to " + pathway);
-        for (ActivePathwayListener apl : ActivePathwayListeners) {
-            if (DEBUG.FOCUS || DEBUG.EVENTS) out("activePathwayChanged -> " + apl);
-            apl.activePathwayChanged(pathway);
-        }
-        
-    }
-
-    static void setActivePathwayEntry(final LWPathway.Entry entry)
-    {
-        if (ActivePathwayEntry == entry)
-            return;
-
-        ActivePathwayEntry = entry;
-        
-        if (DEBUG.FOCUS || DEBUG.EVENTS) out("ActivePathwayEntry set to " + entry);
-        for (ActivePathwayEntryListener l : ActivePathwayEntryListeners) {
-            if (DEBUG.FOCUS || DEBUG.EVENTS) out("activePathwayEntryChanged -> " + l);
-            l.activePathwayEntryChanged(entry);
-        }
-        
-    }
-    
-
-    public static MapViewer getActiveViewer() {
-        return ActiveViewer;
-    }
-    
-    public static LWMap getActiveMap() {
-        return ActiveMap;
-        /*
-        if (getActiveViewer() != null)
-            return getActiveViewer().getMap();
-        else
-            return null;
-        */
-    }
-    
-    public static LWPathway getActivePathway() {
-        return ActivePathway;
-        /*
-        LWPathway p = null;
-        if (getActiveMap() != null)
-            p = getActiveMap().getActivePathway();
-        if (DEBUG.PATHWAY&&DEBUG.META) System.out.println("getActivePathway: " + p);
-        return p;
-        */
-    }
-    
     
     public static boolean multipleMapsVisible() {
         if (mViewerSplit == null)
@@ -1739,11 +1620,13 @@ public class VUE
     }
 
     public static boolean isActiveViewerOnLeft() {
-        return ActiveViewer == null || ActiveViewer.getName().startsWith("*");
+        final MapViewer activeViewer = ActiveViewerHandler.getActive();
+        return activeViewer == null || activeViewer.getName().startsWith("*");
     }
 
     public static boolean isActiveViewerOnRight() {
-        return ActiveViewer != null && ActiveViewer.getName().equals("right");
+        final MapViewer activeViewer = ActiveViewerHandler.getActive();
+        return activeViewer != null && activeViewer.getName().equals("right");
     }
     
     

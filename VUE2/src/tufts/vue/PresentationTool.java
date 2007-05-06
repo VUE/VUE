@@ -568,7 +568,7 @@ public class PresentationTool extends VueTool
         mEntry = e;
         mPathway = e.pathway;
         setPage(VUE.getActiveViewer(), mEntry.getFocal(), false);
-        VUE.setActivePathwayEntry(mEntry);
+        VUE.setActive(LWPathway.Entry.class, this, mEntry);
     }
     private void setPage(LWComponent page) {
         setPage(VUE.getActiveViewer(), page, false);

@@ -37,7 +37,7 @@ import java.util.Iterator;
  * @see LWPathwayList
  * @see LWPathway
  *
- * @version $Revision: 1.29 $ / $Date: 2007-03-19 07:12:28 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 public class PathwayTool extends VueSimpleTool
@@ -95,13 +95,13 @@ public class PathwayTool extends VueSimpleTool
     }
 
     private static class PathwayComboBoxModel extends DefaultComboBoxModel
-        implements VUE.ActiveMapListener, LWComponent.Listener
+        implements ActiveListener<LWMap>, LWComponent.Listener
+                   //implements VUE.ActiveMapListener, LWComponent.Listener
     {
         LWPathwayList mPathwayList;
 
         PathwayComboBoxModel() {
-            VUE.addActiveMapListener(this);
-            //activeMapChanged(VUE.getActiveMap());
+            VUE.addActiveListener(LWMap.class, this);
             setPathwayList(VUE.getActiveMap());
             LWPathway current = VUE.getActivePathway();
             if (DEBUG.TOOL) System.out.println(this + ": CURRENT PATHWAY AT INIT: " + current);
@@ -112,9 +112,9 @@ public class PathwayTool extends VueSimpleTool
         // TODO FIX: Active map not changing on tab select if the active mapviewer
         // doesn't have focus, cause then it's not knowing it's LOSING focus --
         // the tab switch is going to have to change the active map itself.
-        public void activeMapChanged(LWMap map) {
-            if (DEBUG.PATHWAY) System.out.println(this + ": map changed to " + map);
-            setPathwayList(map);
+        //public void activeMapChanged(LWMap map) {
+        public void activeChanged(ActiveEvent<LWMap> e) {
+            setPathwayList(e.active);
         }
         
         public void LWCChanged(LWCEvent e) {
