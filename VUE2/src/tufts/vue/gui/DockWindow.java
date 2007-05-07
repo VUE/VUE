@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.95 $ / $Date: 2007-05-02 22:02:41 $ / $Author: sfraize $
+ * @version $Revision: 1.96 $ / $Date: 2007-05-07 07:18:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -193,8 +193,13 @@ public class DockWindow extends javax.swing.JWindow
         
         showCloseBtn = showCloseButton;
         
-        if (false&&asToolbar)
+        if (asToolbar) {
+            // even tho you can't have any tool-tips without window
+            // being enabled, combo box pop-ups dissapear way
+            // to easily unless you do this (as soon as you mouse
+            // into the toolbar, they dismiss)
             setFocusableWindowState(false);
+        }
         mBaseTitle = title;
         setTitle(title);
         
