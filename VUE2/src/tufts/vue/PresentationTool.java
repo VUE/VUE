@@ -113,22 +113,27 @@ public class PresentationTool extends VueTool
         final LWComponent destination;
         final LWPathway pathway;
         
-        NavNode(LWComponent src, LWPathway pathway)
+        NavNode(LWComponent dest, LWPathway pathway)
         {
             super(null);
 
-            if (src == null)
+            if (dest == null)
                 throw new IllegalArgumentException("destination can't be null");
             
-            this.destination = src;
+            this.destination = dest;
             this.pathway = pathway;
             
-            String label = src.getDisplayLabel();
+            String label;
+
+            if (pathway != null)
+                label = pathway.getLabel();
+            else
+                label = destination.getDisplayLabel();
             
             if (label.length() > 20)
                 label = label.substring(0,18) + "...";
             
-            if (pathway == null && mBackList.peekNode() == src)
+            if (pathway == null && mBackList.peekNode() == destination)
                 label = "BACK:" + label;
             //label = "    " + label + " ";
             setLabel(label);
@@ -165,7 +170,9 @@ public class PresentationTool extends VueTool
     
     public void activeChanged(ActiveEvent<LWPathway.Entry> e) {
         if (isActive()) {
-            // only do this if this is the active tool!
+            // only do this if this is the active tool,
+            // as we use the globally active viewer
+            // when we change the page!
             if (!e.active.isPathway())
                 setEntry(e.active, SKIP_BACKUP_RECORD);
         }
@@ -362,14 +369,14 @@ public class PresentationTool extends VueTool
             System.out.println("pickCheck " + nav + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
             if (nav.containsParentCoord(e.getX(), e.getY())) {
                 System.out.println("HIT " + nav);
-                //LWComponent oneBack = mBackList.peek();
-                //if (oneBack == c.getSyncSource() || (oneBack instanceof LWSlide && ((LWSlide)oneBack).getSourceNode() == c.getSyncSource()))
-                if (mBackList.peek() == nav.destination || mBackList.peekNode() == nav.destination)
+                if (mBackList.peek() == nav.destination || mBackList.peekNode() == nav.destination) {
                     backUp();
-                else if (nav.pathway != null)
-                    ; // TODO: handle pathway jump
-                else
+                } else if (nav.pathway != null) {
+                     // jump to another pathway
+                    setEntry(nav.pathway.getEntry(nav.pathway.firstIndexOf(nav.destination)));
+                } else {
                     setPage(nav.destination);
+                }
                 return true;
             }
         }
@@ -808,22 +815,27 @@ public class PresentationTool extends VueTool
     
     private void makeNavNodes(LWComponent node, Rectangle frame)
     {
-        float x = NavNodeX, y = frame.y;
-        
-        NavNode nav = null;
+
+        // always add the current pathway at the top
+        if (node.inPathway(mPathway))
+            mNavNodes.add(createNavNode(node, mPathway));
         
         for (LWPathway path : node.getPathways()) {
-            nav = createNavNode(node, path);
-            
-            mNavNodes.add(nav);
-            
+            if (path != mPathway)
+                mNavNodes.add(createNavNode(node, path));
+        }
+
+
+        float x = NavNodeX, y = frame.y;
+        for (NavNode nav : mNavNodes) {
             y += nav.getHeight() + 5;
             nav.setLocation(x, y);
         }
-
-        if (nav != null)
-            y += nav.getHeight() + 5;
         
+        if (!mNavNodes.isEmpty())
+            y += 30;
+        
+        NavNode nav;
         for (LWLink link : node.getLinks()) {
             LWComponent farpoint = link.getFarNavPoint(node);
             if (farpoint != null) {
@@ -869,7 +881,7 @@ public class PresentationTool extends VueTool
     private static final Color NavTextColor = Color.darkGray;
 
     private NavNode createNavNode(LWComponent src, LWPathway pathway)
-    {
+    {av
 //         if (false) {
 //             LWComponent c = src.duplicate();
 //             c.setSyncSource(src);
