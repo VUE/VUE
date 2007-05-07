@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.21 $ / $Date: 2007-04-25 19:16:05 $ -->
+<!-- $Revision: 1.22 $ / $Date: 2007-05-07 20:02:47 $ -->
 
 <!-- 
 This ant build file:
@@ -312,20 +312,41 @@ This ant build file:
 </target>
 
 <!--- =============  Repository Implementation Tests =========-->
-<target name="repositoryImplTests" depends="compile" description="Tests for OSID Implementations">
+<target name="OsidTester" depends="compile" description="Tests Repository OSID Implementations via OsidTester tool">
 	<echo message="Blackships Ping Test"/>
 	<java classname="junit.textui.TestRunner" failonerror="true" fork="true">
-		<arg value="edu.tufts.osidimpl.test.repository.OsidTester"/>
+		<arg value="edu.tufts.osidimpl.testing.repository.OsidTester"/>
 		<classpath refid="compile.classpath"/>
 		<sysproperty key="testProfile" value="blackships-pingProfile.xml"/>
 	</java>
 	<echo message="Blackships Basic Searching Test"/>
 	<java classname="junit.textui.TestRunner" failonerror="true" fork="true">
-		<arg value="edu.tufts.osidimpl.test.repository.OsidTester"/>
+		<arg value="edu.tufts.osidimpl.testing.repository.OsidTester"/>
 		<classpath refid="compile.classpath"/>
 		<sysproperty key="testProfile" value="blackships-basicProfile.xml"/>
 	</java>
-</target>
+<!--	<echo message="Sakai Basic Test"/>
+	<java classname="junit.textui.TestRunner" failonerror="true" fork="true">
+		<arg value="edu.tufts.osidimpl.testing.repository.OsidTester"/>
+		<classpath refid="compile.classpath"/>
+		<sysproperty key="testProfile" value="sakai-basicProfile.xml"/>
+	</java>
+-->	
+	<echo message="Submitted Adapter Test"/>
+	<java classname="junit.textui.TestRunner" failonerror="true" fork="true">
+		<arg value="edu.tufts.osidimpl.testing.repository.OsidTester"/>
+		<classpath refid="compile.classpath"/>
+		<sysproperty key="testProfile" value="submissionAdapterProfile.xml"/>
+	</java>
+	</target>
+	
+	<!--- =============  Sakai Integration Tests =========-->
+	<target name="SakaiIntegration" depends="compile" description="Tests Storing IMS CP in Sakai via OSID">
+	<java classname="edu.tufts.osidimpl.testing.sakai.SakaiIntegrationTest" failonerror="true" fork="true">
+		<classpath refid="compile.classpath"/>
+	</java>
+	</target>
+
 </project>
 
 

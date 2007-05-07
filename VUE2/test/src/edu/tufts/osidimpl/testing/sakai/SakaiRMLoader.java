@@ -34,7 +34,7 @@ public class SakaiRMLoader implements edu.tufts.osidimpl.testing.ContextObjectGe
 				"edu.tufts.osidimpl.repository.sakai",
 				new org.osid.OsidContext(),
 				properties);
-			System.out.println("Sakai Repository OSID Impl Loaded");
+			//System.out.println("Sakai Repository OSID Impl Loaded");
 			return repositoryManager;
 		} catch (Throwable t) {
 			t.printStackTrace();

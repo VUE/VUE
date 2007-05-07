@@ -93,7 +93,7 @@
 
   <!--To test the Repository.getAssetsBySearch() method provide the repository id as an attribute to the assetsBySearch element, a search type string, a search criteria string, and optionally any properties.-->
 
-  <assetsBySearch repositoryid="VC.001">
+  <assetsbysearch repositoryid="VC.001">
     <search>
       <type>search/keyword@mit.edu</type>
 
@@ -133,5 +133,24 @@
         </records>
       </asset>
     </assets>
-  </assetsBySearch>
+  </assetsbysearch>
+  <assettypes repositoryid="VC.001">
+   <type>asset/image@mit.edu</type>
+  </assettypes>
+  <assetsbytype repositoryid="VC.001">
+   <type>
+	asset/image@mit.edu
+	<assets any="false">
+	 <asset>
+	  <displayname />
+	  <description />
+	  <id>01_375L_narr_Dinner</id>
+	  <type />
+	 </asset>
+	</assets>
+   </type>
+  </assetsbytype>
+  <supportsbrowsing repositoryid="VC.001">true</supportsbrowsing>
+  <supportssearching repositoryid="VC.001">true</supportssearching>
+  <supportsupdating repositoryid="VC.001">true</supportsupdating>
 </managerImpl>

@@ -20,23 +20,49 @@ package edu.tufts.osidimpl.testing.repository;
 
 import junit.framework.TestCase;
 
-public class GetRepositoryTest extends TestCase
+public class SupportsSearchTest extends TestCase
 {
-	public GetRepositoryTest(org.osid.repository.RepositoryManager repositoryManager, org.w3c.dom.Document document)
+	public SupportsSearchTest(org.osid.repository.RepositoryManager repositoryManager, org.w3c.dom.Document document)
 		throws org.osid.repository.RepositoryException, org.xml.sax.SAXParseException
 	{
 		// are there repositories to test for?
-		org.w3c.dom.NodeList repositoriesNodeList = document.getElementsByTagName(OsidTester.REPOSITORY_BY_ID_TAG);
+		org.w3c.dom.NodeList repositoriesNodeList = document.getElementsByTagName(OsidTester.SUPPORTS_SEARCHING_TAG);
 		int numRepositories = repositoriesNodeList.getLength();
 		for (int i=0; i < numRepositories; i++) {
 			org.w3c.dom.Element repositoryElement = (org.w3c.dom.Element)repositoriesNodeList.item(i);
-			String idString = repositoryElement.getAttribute(OsidTester.ID_ATTR);
+			String idString = repositoryElement.getAttribute(OsidTester.REPOSITORY_ID_ATTR);
 			if (idString != null) {
 				try {
 					org.osid.shared.Id id = Utilities.getIdManager().getId(idString);
 					org.osid.repository.Repository repository = repositoryManager.getRepository(id);
-					System.out.println("PASSED: Repository By Id " + idString);
+					String expected = null;
+					try {
+						expected = repositoryElement.getFirstChild().getNodeValue();
+						expected = expected.trim().toLowerCase();
+						if (expected.equals("true")) {
+							org.osid.repository.AssetIterator ai = repository.getAssets();
+							assertTrue(ai.hasNextAsset());
+							System.out.println("PASSED: Supports Search for Repository " + idString);
+						} else {
+							try {
+								org.osid.repository.AssetIterator ai = repository.getAssets();
+								if (ai.hasNextAsset()) {
+									fail("FAILED: Supports Search for Repository " + idString);
+								} else {
+									System.out.println("PASSED: Supports Search for Repository " + idString);
+								}
+							} catch (org.osid.repository.RepositoryException rex) {
+								if (rex.getMessage().equals(org.osid.OsidException.UNIMPLEMENTED)) {
+									System.out.println("PASSED: Supports Search for Repository " + idString);
+								} else {
+									fail("FAILED: Supports Search for Repository " + idString);
+								}
+							}
+						}
+					} catch (java.lang.NullPointerException npe) {
+					}
 				} catch (Throwable t) {
+					t.printStackTrace();
 					fail("ID Manager Failed");
 				}
 			}

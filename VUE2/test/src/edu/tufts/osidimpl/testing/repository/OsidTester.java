@@ -25,9 +25,11 @@ import junit.framework.Test;
 public class OsidTester extends TestCase
 {
 	public static final String ASSET_TAG = "asset";
+	public static final String ASSET_TYPES_TAG = "assettypes";
 	public static final String ASSET_VIA_MANAGER_TAG = "assetbyidviamanager";	
 	public static final String ASSET_VIA_REPOSITORY_TAG = "assetbyidviarepository";
-	public static final String ASSETS_BY_SEARCH_TAG = "assetsBySearch";
+	public static final String ASSETS_BY_SEARCH_TAG = "assetsbysearch";
+	public static final String ASSETS_BY_TYPE_TAG = "assetsbytype";
 	public static final String ASSETS_TAG = "assets";
 	public static final String CONFIGURATION_TAG = "configuration";
 	public static final String CONTEXT_TAG = "context";
@@ -45,7 +47,10 @@ public class OsidTester extends TestCase
 	public static final String REPOSITORY_TAG = "repository";
 	public static final String REPOSITORY_TYPES_TAG = "repositorytypes";	
 	public static final String SEARCH_TAG = "search";
-	public static final String SEARCH_TYPES_TAG = "searchtypes";	
+	public static final String SEARCH_TYPES_TAG = "searchtypes";
+	public static final String SUPPORTS_BROWSE_TAG = "supportsbrowse";
+	public static final String SUPPORTS_SEARCH_TAG = "supportssearch";
+	public static final String SUPPORTS_UPDATE_TAG = "supportsupdate";
 	public static final String TYPE_TAG = "type";
 	public static final String VALUE_TAG = "value";
 
@@ -137,6 +142,16 @@ public class OsidTester extends TestCase
 		}
 	}
 	
+	public void testGetAssetTypes()
+	{
+		try {
+			new GetAssetTypesTest(_repositoryManager,_document);
+		} catch (Throwable t) {
+			//t.printStackTrace();
+			fail(t.getMessage());
+		}
+	}
+	
 	public void testGetAssetByIdViaManager()
 	{
 		try {
@@ -161,6 +176,46 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetAssetsBySearchTest(_repositoryManager,_document);
+		} catch (Throwable t) {
+			//t.printStackTrace();
+			fail(t.getMessage());
+		}
+	}
+	
+	public void testGetAssetsByType()
+	{
+		try {
+			new GetAssetsByTypeTest(_repositoryManager,_document);
+		} catch (Throwable t) {
+			//t.printStackTrace();
+			fail(t.getMessage());
+		}
+	}
+	
+	public void testSupportsBrowse()
+	{
+		try {
+			new SupportsBrowseTest(_repositoryManager,_document);
+		} catch (Throwable t) {
+			//t.printStackTrace();
+			fail(t.getMessage());
+		}
+	}
+	
+	public void testSupportsSearch()
+	{
+		try {
+			new SupportsSearchTest(_repositoryManager,_document);
+		} catch (Throwable t) {
+			//t.printStackTrace();
+			fail(t.getMessage());
+		}
+	}
+	
+	public void testSupportsUpdate()
+	{
+		try {
+			new SupportsUpdateTest(_repositoryManager,_document);
 		} catch (Throwable t) {
 			//t.printStackTrace();
 			fail(t.getMessage());
@@ -214,7 +269,6 @@ public class OsidTester extends TestCase
 					Class c = Class.forName(value);
 					edu.tufts.osidimpl.testing.ContextObjectGetter cog = (edu.tufts.osidimpl.testing.ContextObjectGetter)c.newInstance();
 					context.assignContext(key,cog.getContextObject());
-					System.out.println("Context Assigned");
 				}		
 			}
 			
