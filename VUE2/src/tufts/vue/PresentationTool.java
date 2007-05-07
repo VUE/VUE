@@ -43,11 +43,14 @@ import javax.swing.*;
  *
  */
 public class PresentationTool extends VueTool
-//    implements VUE.ActiveViewerListener
+    implements ActiveListener<LWPathway.Entry>
 {
     enum Direction { FORWARD, BACKWARD };
     //private static int FORWARD = 1;
     //private static int BACKWARD = -1;
+
+    private static final boolean RECORD_BACKUP = true;
+    private static final boolean SKIP_BACKUP_RECORD = false;
     
     private JButton mStartButton;
     private LWComponent mCurrentPage;
@@ -76,6 +79,12 @@ public class PresentationTool extends VueTool
     private static class BackStack extends Stack<LWComponent> {
         public LWComponent peek() {
             return empty() ? null : super.peek();
+        }
+        public LWComponent push(LWComponent c) {
+            // never allow null or the same item repeated on the top of the stack
+            if (peek() != c && c != null)
+                super.push(c);
+            return c;
         }
         public LWComponent peekNode() {
             LWComponent c = peek();
@@ -151,13 +160,16 @@ public class PresentationTool extends VueTool
         if (singleton != null) 
             new Throwable("Warning: mulitple instances of " + this).printStackTrace();
         singleton = this;
-        //VUE.addActiveViewerListener(this);
+        VUE.addActiveListener(LWPathway.Entry.class, this);
     }
     
-//     public void activeViewerChanged(MapViewer viewer) {
-//         mCurrentPage = mNextPage = null;
-//         mBackList.clear();
-//     }
+    public void activeChanged(ActiveEvent<LWPathway.Entry> e) {
+        if (isActive()) {
+            // only do this if this is the active tool!
+            if (!e.active.isPathway())
+                setEntry(e.active, SKIP_BACKUP_RECORD);
+        }
+     }
     
     public JPanel createToolPanel() {
         //JPanel p = super.createToolPanel();
@@ -230,13 +242,11 @@ public class PresentationTool extends VueTool
                 forwardPage();
             }
             repaint();
-        } else if (k == '+') {
-            out("size++");
+        } else if (mShowNavigator && k == '+') {
             if (OverviewMapSizeIndex < OverviewMapScales.length-1)
                 OverviewMapSizeIndex++;
             repaint();
-        } else if (k == '-' || k == '_') { // allow "shift-minus" also
-            out("size--");
+        } else if (mShowNavigator && (k == '-' || k == '_')) { // allow "shift-minus" also
             if (OverviewMapSizeIndex > 0)
                 OverviewMapSizeIndex--;
             repaint();
@@ -437,7 +447,7 @@ public class PresentationTool extends VueTool
 
     private void backUp() {
        if (!mBackList.empty())
-           setPage(VUE.getActiveViewer(), mBackList.pop(), true);
+           setPage(VUE.getActiveViewer(), mBackList.pop(), SKIP_BACKUP_RECORD);
     }
     
     private void backPage() {
@@ -572,31 +582,35 @@ public class PresentationTool extends VueTool
         return mCurrentPage;
     }
             
-    private void setEntry(LWPathway.Entry e)
+    private void setEntry(LWPathway.Entry e) {
+        setEntry(e, RECORD_BACKUP);
+    }
+    
+    private void setEntry(LWPathway.Entry e, boolean recordBackup)
     {
         out("setEntry " + e);
         if (e == null)
             return;
         mEntry = e;
         mPathway = e.pathway;
-        setPage(VUE.getActiveViewer(), mEntry.getFocal(), false);
+        setPage(VUE.getActiveViewer(), mEntry.getFocal(), recordBackup);
         VUE.setActive(LWPathway.Entry.class, this, mEntry);
     }
+
     private void setPage(LWComponent page) {
-        setPage(VUE.getActiveViewer(), page, false);
+        setPage(VUE.getActiveViewer(), page, RECORD_BACKUP);
     }
     
-    private void setPage(final MapViewer viewer, final LWComponent page, boolean backup)
+    private void setPage(final MapViewer viewer, final LWComponent page, boolean recordBackup)
     {
         out("setPage " + page);
 
         if (page == null) // for now
             return;
         
-        if (!backup && mCurrentPage != null) {
-            if (mBackList.empty() || mBackList.peek() != page)
-                mBackList.push(mCurrentPage);
-        }
+        if (recordBackup)
+            mBackList.push(mCurrentPage);
+
         mLastPage = mCurrentPage;
         mCurrentPage = page;
         mNextPage = null;
@@ -630,38 +644,6 @@ public class PresentationTool extends VueTool
         VUE.getActiveViewer().loadFocal(page);
     }
     
-
-    /*
-    private void zoomToPage(LWComponent page, boolean animate)
-    {
-        animate = false; // TODO: is forced off for now: currently meaningless to animate between slides
-
-        if (mZoomToPage == false)
-            return;
-
-        //tufts.Util.printStackTrace("zoomToPage");
-        
-        int margin = 0;
-//         if (page instanceof LWImage)
-//             margin = 0;
-//         else margin = 8; // turn this off soon
-        //else margin = 32; // turn this off soon
-
-        //if (page instanceof LWGroup && !(page instanceof LWSlide))
-        if (page instanceof LWSlide == false)
-            margin = (int) (tufts.vue.gui.GUI.GScreenHeight * 0.05);
-
-        out("zoomToPage " + page + " margin=" + margin);
-        
-        if (page != null)
-            ZoomTool.setZoomFitRegion(VUE.getActiveViewer(), page.getBounds(), margin, animate);
-        
-        //VUE.ZoomFitButton.doClick(1000); // works
-        // below doesn't work because viewer.getVisibleSize() returning 0,0 before it's displayed!
-        //ZoomTool.setZoomFitRegion(viewer, viewer.getMap().getBounds(), margin);
-        //ZoomTool.setZoomFit();
-    }
-    */
 
     // todo: viewer & focal are already in the DrawContext!
     public boolean handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {

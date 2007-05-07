@@ -67,10 +67,14 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.64 $ / $Date: 2007-05-02 17:18:10 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2007-05-07 06:44:07 $ / $Author: sfraize $
  */
 
-public class PathwayTable extends JTable implements DropTargetListener, DragSourceListener, DragGestureListener 
+public class PathwayTable extends JTable
+    implements DropTargetListener,
+               DragSourceListener,
+               DragGestureListener,
+               ActiveListener<LWPathway.Entry>
 {
 	
 	private DropTarget dropTarget = null;
@@ -169,8 +173,9 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
             {
             	col.setMaxWidth(colWidths[i]);
             }
-            
         }
+
+        VUE.addActiveListener(LWPathway.Entry.class, this);
 
         this.getSelectionModel().addListSelectionListener
             (new ListSelectionListener() {
@@ -197,36 +202,30 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
                     int col = getSelectedColumn();
                     if (DEBUG.PATHWAY) System.out.println("PathwayTable: valueChanged: selected row "+row+", col "+col);
                     
-                    //PathwayTable.this.tableSelectionUnderway = true;
                     
                     final LWPathway.Entry entry = tableModel.getEntry(row);
                     if (DEBUG.PATHWAY) System.out.println("PathwayTable: valueChanged: object at row: " + entry);
 
-                  //  lastSelectedEntry = entry;
+                    //  lastSelectedEntry = entry;
                     tableModel.setCurrentPathway(entry.pathway);
                     
                     if (entry.isPathway()) {
                         if (col == PathwayTableModel.COL_VISIBLE ||
                             col == PathwayTableModel.COL_OPEN ||
-                            col == PathwayTableModel.COL_LOCKED
-                            )
-                        {
+                            col == PathwayTableModel.COL_LOCKED) {
                             // setValue forces a value toggle in these cases
                             setValueAt(entry.pathway, row, col);
+                        } else {
+                            entry.pathway.setCurrentEntry(entry);
                         }
-                        else
-                        {
-                        	entry.pathway.setCurrentEntry(entry);
-                        	}
                         //pathway.setCurrentIndex(-1);
                     } else {
                     	if (col == PathwayTableModel.COL_MAPVIEW)
-                    		setValueAt(entry.pathway,row,col);
+                            setValueAt(entry.pathway,row,col);
                     	else
-                    		entry.pathway.setCurrentEntry(entry);
+                            entry.pathway.setCurrentEntry(entry);
                     }
 
-                    //PathwayTable.this.tableSelectionUnderway = false;
                     VUE.getUndoManager().mark();
                 }
                 });
@@ -253,6 +252,13 @@ public class PathwayTable extends JTable implements DropTargetListener, DragSour
             });
         // end of PathwayTable constructor
     }
+
+    public void activeChanged(ActiveEvent<LWPathway.Entry> e) {
+        int row = getTableModel().getRow(e.active);
+        if (row >= 0)
+            changeSelection(row, 0, false, false);
+    }
+    
 
 
     /*

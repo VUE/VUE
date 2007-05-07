@@ -241,6 +241,32 @@ public class PathwayTableModel extends DefaultTableModel
         }
         return null;
     }
+
+
+    /**
+     * @return the entry display at the given row.  If the given
+     * entry is not currently displayed (the pathway is closed),
+     * return -1.
+     */
+    int getRow(LWPathway.Entry findEntry) {
+        Iterator<LWPathway> i = getPathwayIterator();
+        int row = 0;
+        while (i.hasNext()) {
+            LWPathway p = i.next();
+            if (findEntry.isPathway() && findEntry.pathway == p)
+                return row;
+            row++;
+            if (p.isOpen()) {
+                for (LWPathway.Entry e : p.getEntries()) {
+                    if (e == findEntry)
+                        return row;
+                    row++;
+                }
+            }
+        }
+        return -1;
+    }
+    
     /*
     Object getElement(int pRow) {
         if (pRow < 0)
