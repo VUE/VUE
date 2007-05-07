@@ -99,6 +99,11 @@ public class PathwayTableModel extends DefaultTableModel
             // the note icon.
             // We only really need the PathwayTable to repaint if a label
             // has changed, but this will do it.
+
+            // TODO: a global selection (ActiveChangeSupport / ActiveSelection) of a
+            // single pathway will serve the purposes of the currently selected
+            // pathway -- we should be able to get rid of this pathway.list.active event...
+            
             if (e.getName().equals("pathway.list.active"))
                 setCurrentPathway((LWPathway) e.getComponent());
             else
