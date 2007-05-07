@@ -34,77 +34,47 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.52 $ / $Date: 2007-05-02 22:04:14 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2007-05-07 03:48:11 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
 {
-    /** the tool's unique id **/
-    protected String mID = null;
-	
-    /** the tool name **/
-    protected String mToolName = null;
-	
-    /** the tool tip text, if any **/
-    protected String mToolTipText = null;
-	
-    /** the currently active subtool name **/
-    protected VueTool mSelectedSubTool = null;
-	
-    /** the sub tool map with toolname as key **/
-    protected Map<String,VueTool> mSubToolMap = new HashMap();    
+    /** the tool's unique id **/        protected String mID = null;
+    /** the tool name **/               protected String mToolName = null;
+    /** the tool tip text, if any **/   protected String mToolTipText = null;
     
-    /** tool display order by keyname **/
-    protected Vector mSubToolIDs = new Vector();
     
-    /** the parent tool -- if this is a subtool **/
-    protected VueTool mParentTool = null;
-    
-    /** the default icon to draw in the up or idle states **/
-    protected Icon mUpIcon = null;
-    
-    /** the icon to use for mouse down or press states **/
-    protected Icon 	mDownIcon = null;
-    
-    /** the icon to use for selected state **/
-    protected Icon  mSelectedIcon = null;
-    
-    /** the icon to use for disabled state **/
-    protected Icon mDisabledIcon = null;
-    
-    /** the rollover icon **/
-    protected Icon mRolloverIcon = null;
-    
-    /** the menu item state (if any) **/
-    protected Icon mMenuItemIcon = null;
-    
-    /** the menu item selected state **/
-    protected Icon mMenuItemSelectedIcon = null;
-    
-    /** the icon to overlay if there are any sub items **/
-    protected Icon mOverlayUpIcon = null;
-    
-    /** the icon to overlay if there are any sub items **/
-    protected Icon mOverlayDownIcon = null;
+    /** the default icon to draw in the up or idle states **/   protected Icon mUpIcon;
+    /** the icon to use for mouse down or press states **/      protected Icon mDownIcon;
+    /** the icon to use for selected state **/                  protected Icon mSelectedIcon;
+    /** the icon to use for disabled state **/                  protected Icon mDisabledIcon;
+    /** the rollover icon **/                                   protected Icon mRolloverIcon;
+    /** the menu item state (if any) **/                        protected Icon mMenuItemIcon;
+    /** the menu item selected state **/                        protected Icon mMenuItemSelectedIcon;
+    /** the icon to overlay if there are any sub items **/      protected Icon mOverlayUpIcon;
+    /** the icon to overlay if there are any sub items **/      protected Icon mOverlayDownIcon;
+    /** the raw icon used as a base for the generated icons */  protected Icon mRawIcon;
 
-    /** the raw icon used as a base for the generated icons */
-    protected Icon mRawIcon = null;
-
+    /** Short-cut key to active this tool */
     protected char mShortcutKey = 0;
-
-    protected java.awt.Cursor mCursor = null;
     
-    /** thedeafult  property bean state of any tool subproperties **/
-    protected Object mBeanState = null;
+    /** Short-cut key-code to temporarily active this tool while this key is held down */
+    protected int mActiveWhileDownKeyCode = 0;
     
-    /** is the tool currently enabled **/
-    protected boolean mEnabled = true;
-
+    /** A cursor to use with this tool */
+    protected java.awt.Cursor mCursor;
+    
     protected HashMap mResourceMap = new HashMap();
 
     protected AbstractButton mLinkedButton;
 
     private JPanel mToolPanel;
+
+    /** tool display order by keyname **/               protected Vector mSubToolIDs = new Vector();
+    /** the sub tool map with toolname as key **/       protected Map<String,VueTool> mSubToolMap = new HashMap();    
+    /** the parent tool -- if this is a subtool **/     protected VueTool mParentTool = null;
+    /** the currently active subtool name **/           protected VueTool mSelectedSubTool = null;
+    
     
     public VueTool() {
         super();
@@ -167,6 +137,7 @@ public abstract class VueTool extends AbstractAction
         }
         
         setShortcutKey(VueResources.getChar(mID+".shortcutKey"));
+        //setActiveWhileDownKey(VueResources.getChar(mID+".activeWhileDownKey")); // need to parse key code's...
 
         int cursorID = VueResources.getInt(mID+".cursorID", -1);
         if (cursorID >= 0) {
@@ -287,14 +258,20 @@ public abstract class VueTool extends AbstractAction
         return cursor;
     }
 
-    public void setShortcutKey(char pChar)
-    {
+    public void setShortcutKey(char pChar) {
         mShortcutKey = pChar;
     }
-    public char getShortcutKey()
-    {
+    public char getShortcutKey() {
         return mShortcutKey;
     }
+
+    public void setActiveWhileDownKeyCode(int keyCode) {
+        mActiveWhileDownKeyCode = keyCode;
+    }
+    public int getActiveWhileDownKeyCode() {
+        return mActiveWhileDownKeyCode;
+    }
+    
 
     /** if this returns non-null, only objects of the given type will be selected
      * by the dragged selector */

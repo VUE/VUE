@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.346 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $ 
+ * @version $Revision: 1.347 $ / $Date: 2007-05-07 03:48:11 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -155,15 +155,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     /** The currently selected tool **/
     private VueTool activeTool;
     
-    // todo: we should get rid of hard references to all the tools
-    private final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
+    // todo: we should get rid of hard references to all the tools and handle functionality via tool API's
+    //private final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
     private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("selectTool");
     private final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
-    private final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
+    //private final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
     private final NodeTool NodeTool = (NodeTool) VueToolbarController.getController().getTool("nodeTool");
     private final VueTool LinkTool = VueToolbarController.getController().getTool("linkTool");
     private final VueTool TextTool = VueToolbarController.getController().getTool("textTool");
-    private final VueTool PathwayTool = VueToolbarController.getController().getTool("pathwayTool");
+    //private final VueTool PathwayTool = VueToolbarController.getController().getTool("pathwayTool");
 
     
     //-------------------------------------------------------
@@ -190,8 +190,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     {
         this.instanceName = instanceName;
         this.activeTool = VueToolbarController.getActiveTool();
-        if (activeTool == null)
-            activeTool = ArrowTool;
+        if (activeTool == null) {
+            // default tool is first in list
+            activeTool = VueToolbarController.getController().getTools()[0];
+        }
         this.mapDropTarget = new MapDropTarget(this); // new CanvasDropHandler
         this.setDropTarget(new java.awt.dnd.DropTarget(this,
                                                        MapDropTarget.ACCEPTABLE_DROP_TYPES,
@@ -811,7 +813,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // We get reshape events during text edits with no change
         // in size, yet are crucial for repaint update (thus: no ignore if activeTextEdit)
         
-        if (DEBUG.SCROLL||DEBUG.PAINT||DEBUG.EVENTS||DEBUG.FOCUS||DEBUG.PRESENT) {
+        if (DEBUG.SCROLL||DEBUG.PAINT||DEBUG.EVENTS||DEBUG.FOCUS||DEBUG.VIEWER) {
             out("     reshape: "
                 + w + " x " + h
                 + " "
@@ -838,7 +840,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         if (!ignore) {
             if (reshapeUnderway) {
-                if (DEBUG.Enabled) out("RESHAPE UNDERWAY");
+                if (DEBUG.VIEWER) out("RESHAPE UNDERWAY");
             } else {
                 reshapeUnderway = true;
                 try {
@@ -854,7 +856,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private boolean reshapeUnderway = false;
     protected void reshapeImpl(int x, int y, int w, int h)
     {
-        if (DEBUG.PRESENT) out("reshapeImpl");
+        if (DEBUG.VIEWER) out("reshapeImpl");
         if (!mMapAutoZoomRequested && (mFocal == null || mFocal instanceof LWMap)) {
             //if (DEBUG.PRESENT) out("reshapeImpl: skipped");
             //Util.printStackTrace("reshapeImpl");
@@ -3078,7 +3080,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             nodeMenu.addSeparator();
             //nodeMenu.add(new JMenuItem("Set shape:")).setEnabled(false);
             nodeMenu.add(new JLabel("   Set shape:"));
-            Action[] shapeActions = NodeTool.getShapeSetterActions();
+            Action[] shapeActions = NodeTool.getTool().getShapeSetterActions();
             for (int i = 0; i < shapeActions.length; i++) {
                 nodeMenu.add(shapeActions[i]);
             }
@@ -3344,31 +3346,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         | java.awt.event.InputEvent.ALT_MASK;
     
     
-    // toolKeyDown: a key being held down to temporarily activate
-    // a particular tool;
-    private int toolKeyDown = 0;
-    private VueTool toolKeyOldTool;
-    private boolean toolKeyReleased = false;
-    //private KeyEvent toolKeyEvent = null; // to get at kbd modifiers active at time of keypress
-    
-    // temporary tool activators (while the key is held down)
-    // They require a further mouse action to actually
-    // do anythiing.
-    static final int KEY_TOOL_PAN   = KeyEvent.VK_SPACE;
-    static final int KEY_TOOL_ZOOM  = KeyEvent.VK_BACK_QUOTE;
-    static final int KEY_TOOL_LINK = VueUtil.isMacPlatform() ? KeyEvent.VK_ALT : KeyEvent.VK_CONTROL;
-    static final int KEY_TOOL_ARROW = KeyEvent.VK_Q;
-    // Mac overrides CONTROL-MOUSE to look like right-click (context menu popup) so we can't
-    // use CTRL wih mouse drag -- todo: change to ALT for PC too -- might as well be consistent.
-    static final int KEY_ABORT_ACTION = KeyEvent.VK_ESCAPE;
-    
+    /** The key-code for a key being held down that is temporarily activating a tool while the key is held */
+    private int tempToolKeyDown = 0;
+    private VueTool tempToolPendingActivation;
+    private VueTool tempToolWasActive;
+    private boolean tempToolKeyReleased = false;
     
     private void revertTemporaryTool() {
-        if (toolKeyDown != 0) {
-            toolKeyDown = 0;
-            //toolKeyEvent = null;
-            toolSelected(toolKeyOldTool); // restore prior cursor
-            toolKeyOldTool = null;
+        if (tempToolKeyDown != 0) {
+            tempToolKeyDown = 0;
+            toolSelected(tempToolWasActive); // restore prior cursor
+            tempToolWasActive = null;
         }
     }
 
@@ -3549,40 +3537,39 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             viewer.clearTip();
             
-            // FYI, Java 1.4.1 sends repeat key press events for
-            // non-modal keys that are being held down (e.g. not for
-            // shift, buf for spacebar)
+            // FYI, Java 1.4.1 sends repeat key press events for non-modal keys that are
+            // being held down (e.g. not for shift, buf for spacebar)
             
-            // Check for temporary tool activation via holding
-            // a key down.  Only one can be active at a time,
-            // so this is ignored if anything is already set.
+            // Check for temporary tool activation via holding a key down.  Only one can
+            // be active at a time, so this is ignored if anything is already set.
             
-            // todo: we'll probably want to change this to
-            // a general tool-activation scheme, and the active
-            // tool class will handle setting the cursor.
-            // e.g., dispatchToolKeyPress(e);
+            // todo: we'll probably want to change this to a general tool-activation
+            // scheme, and the active tool class will handle setting the cursor.  e.g.,
+            // dispatchToolKeyPress(e);
             
-            int key = e.getKeyCode();
-            char keyChar = e.getKeyChar();
             
-            /*
-            if (key == KeyEvent.VK_F2 && lastSelection instanceof LWNode) {//todo: handle via action only
-                Actions.Rename.actionPerformed(new ActionEvent(this, 0, "Rename-via-viewer-key"));
-                //activateLabelEdit(lastSelection);
-                return;
-                }*/
+            final int keyCode = e.getKeyCode();
+            final char keyChar = e.getKeyChar();
             boolean handled = true;
-            
-            if (key == KeyEvent.VK_DELETE || key == KeyEvent.VK_BACK_SPACE) {
+
+            switch (keyCode) {
+            case KeyEvent.VK_DELETE:
+            case KeyEvent.VK_BACK_SPACE:
                 // todo: can't we add this to a keymap for the MapViewer JComponent?
                 if (!e.isConsumed())
                     Actions.Delete.fire(this);
-            } else if (key == KeyEvent.VK_ENTER) {
+                else
+                    handled = false;
+                break;
+
+            case KeyEvent.VK_ENTER:
                 if (!(mFocal instanceof LWMap))
                     loadFocal(mFocal.getMap());
                 else
                     handled = false;
-            } else if (key == KEY_ABORT_ACTION) {
+                break;
+                
+            case KeyEvent.VK_ESCAPE: // general abort
 
                 if (dragComponent != null) {
                     double oldX = viewer.screenToMapX(dragStart.x) + dragOffset.x;
@@ -3595,64 +3582,83 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     clearIndicated(); // incase dragging new link
                     // TODO: dragControl not abortable...
                     repaint();
-                }
-                if (draggedSelectorBox != null) {
+                } if (draggedSelectorBox != null) {
                     // cancel any drags
                     draggedSelectorBox = null;
                     isDraggingSelectorBox = false;
                     repaint();
-                }
-
-                else if (VUE.inFullScreen()) {
+                } else if (VUE.inFullScreen()) {
                     VUE.toggleFullScreen();
-                }
-            } else if (e.isShiftDown() && VueSelection.isEmpty()) {
-            	
-                // this is mainly for debug.
-                     if (key == KeyEvent.VK_UP)    viewer.panScrollRegion( 0,-1);
-                else if (key == KeyEvent.VK_DOWN)  viewer.panScrollRegion( 0, 1);
-                else if (key == KeyEvent.VK_LEFT)  viewer.panScrollRegion(-1, 0);
-                else if (key == KeyEvent.VK_RIGHT) viewer.panScrollRegion( 1, 0);
-                else
+                } else
                     handled = false;
-            }
-            else if (key == KeyEvent.VK_BACK_SLASH || key == KeyEvent.VK_F11) {
-                VUE.toggleFullScreen(e.isShiftDown(),true);
-            }
-            else if (activeTool.handleKeyPressed(e)) {
-                ; // handled is true
-            }
-            else if (!VueSelection.isEmpty() && !e.isAltDown() && !e.isMetaDown() && !e.isControlDown())
-            {
-            	if (e.isShiftDown())
-            	{
-                         if (key == KeyEvent.VK_UP)    Actions.BigNudgeUp.actionPerformed(new ActionEvent(this,0,"BigNudgeUp"));
-                    else if (key == KeyEvent.VK_DOWN)  Actions.BigNudgeDown.actionPerformed(new ActionEvent(this,0,"NudgeDown"));
-                    else if (key == KeyEvent.VK_LEFT)  Actions.BigNudgeLeft.actionPerformed(new ActionEvent(this,0,"NudgeLeft"));
-                    else if (key == KeyEvent.VK_RIGHT) Actions.BigNudgeRight.actionPerformed(new ActionEvent(this,0,"NudgeRight"));
-                    else
-                        handled = false;
-            	}
-            	else
-            	{
-                         if (key == KeyEvent.VK_UP)    Actions.NudgeUp.actionPerformed(new ActionEvent(this,0,"NudgeUp"));
-                    else if (key == KeyEvent.VK_DOWN)  Actions.NudgeDown.actionPerformed(new ActionEvent(this,0,"NudgeDown"));
-                    else if (key == KeyEvent.VK_LEFT)  Actions.NudgeLeft.actionPerformed(new ActionEvent(this,0,"NudgeLeft"));
-                    else if (key == KeyEvent.VK_RIGHT) Actions.NudgeRight.actionPerformed(new ActionEvent(this,0,"NudgeRight"));
-                    else
-                        handled = false;
-            	}
-            }            
-            else {
+                break;
+                
+            case KeyEvent.VK_BACK_SLASH:
+            case KeyEvent.VK_F11:
+                VUE.toggleFullScreen(e.isShiftDown(), true);
+                break;
+            default:
                 handled = false;
             }
+
+            if (!handled) {
+                handled = activeTool.handleKeyPressed(e);
+                if (handled) {
+                    if (DEBUG.KEYS) out(e.paramString() + "; key handled by current tool: " + activeTool);
+                    e.consume();
+                    return;
+                }
+            }
+            
+            handled = true;
+            
+            switch (keyCode) {
+                
+            case KeyEvent.VK_UP:
+            case KeyEvent.VK_DOWN:
+            case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_RIGHT:
+
+                if (VueSelection.isEmpty()) {
+                    if (e.isShiftDown()) {
+                        // micro 1-pixel scroll adjustments (default in scroll-pane is bigger)
+            	
+                             if (keyCode == KeyEvent.VK_UP)    viewer.panScrollRegion( 0,-1);
+                        else if (keyCode == KeyEvent.VK_DOWN)  viewer.panScrollRegion( 0, 1);
+                        else if (keyCode == KeyEvent.VK_LEFT)  viewer.panScrollRegion(-1, 0);
+                        else if (keyCode == KeyEvent.VK_RIGHT) viewer.panScrollRegion( 1, 0);
+                    } else
+                        handled = false;
+                    
+                } else if (!e.isAltDown() && !e.isMetaDown() && !e.isControlDown()) {
+                    
+                    // there's something in the selection, and only shift might be down: apply big or small nudge
+                    if (e.isShiftDown()) {
+                             if (keyCode == KeyEvent.VK_UP)    Actions.BigNudgeUp.fire(this);
+                        else if (keyCode == KeyEvent.VK_DOWN)  Actions.BigNudgeDown.fire(this);
+                        else if (keyCode == KeyEvent.VK_LEFT)  Actions.BigNudgeLeft.fire(this);
+                        else if (keyCode == KeyEvent.VK_RIGHT) Actions.BigNudgeRight.fire(this);
+                    } else {
+                             if (keyCode == KeyEvent.VK_UP)    Actions.NudgeUp.fire(this);
+                        else if (keyCode == KeyEvent.VK_DOWN)  Actions.NudgeDown.fire(this);
+                        else if (keyCode == KeyEvent.VK_LEFT)  Actions.NudgeLeft.fire(this);
+                        else if (keyCode == KeyEvent.VK_RIGHT) Actions.NudgeRight.fire(this);
+                    }
+                } else
+                      handled = false;
+                break;
+                
+            default:
+                handled = false;
+            }
+            
 
             if (handled) {
                 e.consume();
                 return;
             }
             
-            /*if (VueUtil.isMacPlatform() && toolKeyDown == KEY_TOOL_PAN) {
+            /*if (VueUtil.isMacPlatform() && tempToolKeyDown == KEY_TOOL_PAN) {
                 // toggle cause mac auto-repeats space-bar screwing everything up
                 // todo: is this case only on my G4 kbd or does it happen on
                 // USB kbd w/external screen also?
@@ -3665,9 +3671,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // If any modifier keys down, may be an action command.
             // Is actually okay if a mouse is down while we do this tho.
             if ((e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0 && (!sDragUnderway || isDraggingSelectorBox)) {
-                VueTool[] tools =  VueToolbarController.getController().getTools();
-                for (int i = 0; i < tools.length; i++) {
-                    VueTool tool = tools[i];
+                for (VueTool tool : VueToolbarController.getController().getTools()) {
                     if (tool.getShortcutKey() == keyChar) {
                         VueToolbarController.getController().setSelectedTool(tool);
                         return;
@@ -3676,23 +3680,31 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
             
 
-            if (toolKeyDown == 0 && !isDraggingSelectorBox && !sDragUnderway) {
-                // todo: handle via resources
+            if (tempToolKeyDown == 0 && !isDraggingSelectorBox && !sDragUnderway && keyCode != 0) {
                 VueTool tempTool = null;
-                if      (key == KEY_TOOL_PAN) tempTool = HandTool;
-                else if (key == KEY_TOOL_ZOOM) tempTool = ZoomTool;
-                else if (key == KEY_TOOL_LINK) tempTool = LinkTool;
-                else if (key == KEY_TOOL_ARROW) tempTool = ArrowTool;
-                if (tempTool != null) {
-                    toolKeyDown = key;
-                    //toolKeyEvent = e;
-                    toolKeyOldTool = activeTool;
-                    if (tempTool != LinkTool) {
-                        // the temporary linktool needs mousepressed before fully selected
-                        // because it's CTRL, which is too generally used to change the cursor
-                        // for every time we hold it down.
-                        toolSelected(tempTool);
+                for (VueTool tool : VueToolbarController.getController().getTools()) {
+                    if (tool.getActiveWhileDownKeyCode() == keyCode) {
+                        tempTool = tool;
+                        break;
                     }
+                }
+                if (tempTool != null) {
+                    tempToolKeyDown = keyCode;
+                    tempToolWasActive = activeTool;
+                    if (keyCode == KeyEvent.VK_CONTROL ||
+                        keyCode == KeyEvent.VK_ALT ||
+                        keyCode == KeyEvent.VK_SHIFT ||
+                        keyCode == KeyEvent.VK_META) {
+                        // for temp tool activators that are modifier keys (e.g.,
+                        // LinkTool), we wait until we get a mouse pressed before fully
+                        // selecting because the modifier keys are too generally
+                        // used/pressed to change the cursor for every time we hold it
+                        // down.
+                        // TODO: we're also currently requiring a click on a node(!),
+                        // which is still the old special case link-tool code.
+                        tempToolPendingActivation = tempTool;
+                    } else
+                        toolSelected(tempTool);
                 }
             }
             
@@ -3768,12 +3780,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (c == '~') { System.err.println("MapViewer debug abort."); System.exit(-1); }
                 else if (c == '_') { DEBUG.DYNAMIC_UPDATE = !DEBUG.DYNAMIC_UPDATE; }
                 else if (c == '*') { OPTIMIZED_REPAINT = !OPTIMIZED_REPAINT; }
-                else if (c == '\\') {
-                    VUE.toggleFullScreen();
-                }
-                else if (c == '|') {
-                    VUE.toggleFullScreen(true); // native full screen mode
-                }
+                //else if (c == '\\') { VUE.toggleFullScreen(); }
+                //else if (c == '|') { VUE.toggleFullScreen(true); // native full screen mode }
                 else if (c == '!') {
                     if (true||debugInspector == null) {
                         debugInspector = new DockWindow("Inspector",
@@ -3804,17 +3812,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (activeTool.handleKeyReleased(e))
                 return;
 
-            if (toolKeyDown == e.getKeyCode()) {
+            if (tempToolKeyDown == e.getKeyCode()) {
                 // Don't revert tmp tool if we're in the middle of a drag
                 if (sDragUnderway)
-                    toolKeyReleased = true;
+                    tempToolKeyReleased = true;
                 else
                     revertTemporaryTool();
             }
             
             /*
-            if (toolKeyDown == e.getKeyCode()) {
-                //if (! (VueUtil.isMacPlatform() && toolKeyDown == KEY_TOOL_PAN)) {
+            if (tempToolKeyDown == e.getKeyCode()) {
+                //if (! (VueUtil.isMacPlatform() && tempToolKeyDown == KEY_TOOL_PAN)) {
                 revertTemporaryTool();
                 //}
             }
@@ -4017,8 +4025,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // doesn't want to be fully activated till the
                 // key is down (ctrl) AND the left mouse has been
                 // pressed over a component to drag a link off.
-                if (toolKeyDown == KEY_TOOL_LINK)
-                    toolSelected(LinkTool);
+                if (tempToolPendingActivation != null) {
+                    toolSelected(tempToolPendingActivation);
+                    tempToolPendingActivation = null;
+                }
                 
                 //-------------------------------------------------------
                 // MOUSE: We've pressed the left (normal) mouse on SOME LWComponent
@@ -5007,8 +5017,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             VUE.getUndoManager().mark(); // in case anything happened
             
-            if (toolKeyReleased) {
-                toolKeyReleased = false;
+            if (tempToolKeyReleased) {
+                tempToolKeyReleased = false;
                 revertTemporaryTool();
             }
             
@@ -5227,7 +5237,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 }
                  */
                     
-                } else if (isDoubleClickEvent(e) && toolKeyDown == 0 && hitComponent != null) {
+                } else if (isDoubleClickEvent(e) && tempToolKeyDown == 0 && hitComponent != null) {
                     if (DEBUG.MOUSE) System.out.println("\tDOULBLE-CLICK on: " + hitComponent);
                     
                     boolean handled = false;

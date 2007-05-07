@@ -22,6 +22,7 @@ public class HandTool extends VueTool
 {
     public HandTool() {
         super();
+        setActiveWhileDownKeyCode(java.awt.event.KeyEvent.VK_SPACE);
     }
     
     public javax.swing.JPanel getContextualPanel() {

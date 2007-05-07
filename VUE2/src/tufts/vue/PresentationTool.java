@@ -208,8 +208,8 @@ public class PresentationTool extends VueTool
 
     public boolean handleKeyPressed(java.awt.event.KeyEvent e) {
         out("handleKeyPressed " + e);
-        int key = e.getKeyCode();
-        char k = e.getKeyChar();
+        final int key = e.getKeyCode();
+        final char k = e.getKeyChar();
         if (key == KeyEvent.VK_SPACE || key == KeyEvent.VK_RIGHT) {
             if (mCurrentPage == null && mNextPage == null)
                 startPresentation();
@@ -230,6 +230,16 @@ public class PresentationTool extends VueTool
                 forwardPage();
             }
             repaint();
+        } else if (k == '+') {
+            out("size++");
+            if (OverviewMapSizeIndex < OverviewMapScales.length-1)
+                OverviewMapSizeIndex++;
+            repaint();
+        } else if (k == '-' || k == '_') { // allow "shift-minus" also
+            out("size--");
+            if (OverviewMapSizeIndex > 0)
+                OverviewMapSizeIndex--;
+            repaint();
         } else
             //        } else if (k == 'z')             { mZoomToPage = !mZoomToPage;
             return false;
@@ -243,7 +253,8 @@ public class PresentationTool extends VueTool
     
     //private boolean isPresenting() { return !mShowContext.isSelected(); }
     
-    private static int OverviewMapFraction = 4; // 1/scale
+    private static float[] OverviewMapScales = {8, 6, 4, 3, 2.5f, 2};
+    private static int OverviewMapSizeIndex = 2;
     private float mNavMapX, mNavMapY; // location of the overview navigator map
     private DrawContext mNavMapDC;
 
@@ -257,9 +268,10 @@ public class PresentationTool extends VueTool
         //final DrawContext dc = sourceDC;
         dc.setFrameDrawing();
 
+        float overviewMapFraction = OverviewMapScales[OverviewMapSizeIndex];
         final Rectangle panner = new Rectangle(0,0,
-                                               dc.frame.width / OverviewMapFraction,
-                                               dc.frame.height / OverviewMapFraction);
+                                               (int) (dc.frame.width / overviewMapFraction),
+                                               (int) (dc.frame.height / overviewMapFraction));
 
         mNavMapX = dc.frame.width - panner.width;
         mNavMapY = dc.frame.height - panner.height;

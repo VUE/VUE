@@ -21,7 +21,7 @@ package tufts.vue;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.1 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2007-05-07 03:48:11 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -94,7 +94,7 @@ public class ActiveChangeSupport<T>
                 try {
                     listener.activeChanged(e);
                 } catch (Throwable t) {
-                    tufts.Util.printStackTrace(new Throwable(t), this + "exception notifying " + listener + " with " + e);
+                    tufts.Util.printStackTrace(new Throwable(t), this + " exception notifying " + listener + " with " + e);
                 }
             }
         } finally {

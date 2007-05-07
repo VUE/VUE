@@ -18,9 +18,8 @@
 
 package tufts.vue;
 
-import java.lang.*;
 import java.util.*;
-
+import java.awt.event.KeyEvent;
 import javax.swing.*;
 
 import java.awt.geom.Point2D;
@@ -53,6 +52,11 @@ public class LinkTool extends VueTool
         if (singleton != null) 
             new Throwable("Warning: mulitple instances of " + this).printStackTrace();
         singleton = this;
+
+        // Mac overrides CONTROL-MOUSE to look like right-click (context menu popup) so we can't
+        // use CTRL wih mouse drag on a mac.
+        setActiveWhileDownKeyCode( KeyEvent.VK_ALT);
+        //setActiveWhileDownKeyCode(VueUtil.isMacPlatform() ? KeyEvent.VK_ALT : KeyEvent.VK_CONTROL);
     }
     
     /** return the singleton instance of this class */

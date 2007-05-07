@@ -802,32 +802,32 @@ public class Actions implements VueConstants
     // has focus (e.g., not a field that would also grab arrow keys), they get through.
     // So just need to turn them off in ScrollPane try editing action map via gui defaults)
     //public static final Action NudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, SHIFT)) {
-    public static final Action NudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, 0)) {
+    public static final LWCAction NudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, 0)) {
         void act(LWComponent c) { nudgeOrReorder(c,  0, -1); }
     };
-    public static final Action NudgeDown = new LWCAction("Nudge Down", keyStroke(KeyEvent.VK_DOWN, 0)) {
+    public static final LWCAction NudgeDown = new LWCAction("Nudge Down", keyStroke(KeyEvent.VK_DOWN, 0)) {
         void act(LWComponent c) { nudgeOrReorder(c,  0,  1); }
     };
-    public static final Action NudgeLeft = new LWCAction("Nudge Left", keyStroke(KeyEvent.VK_LEFT, 0)) {
+    public static final LWCAction NudgeLeft = new LWCAction("Nudge Left", keyStroke(KeyEvent.VK_LEFT, 0)) {
         void act(LWComponent c) { nudgeOrReorder(c, -1,  0); }
     };
-    public static final Action NudgeRight = new LWCAction("Nudge Right", keyStroke(KeyEvent.VK_RIGHT, 0)) {
+    public static final LWCAction NudgeRight = new LWCAction("Nudge Right", keyStroke(KeyEvent.VK_RIGHT, 0)) {
         void act(LWComponent c) { nudgeOrReorder(c,  1,  0); }
     };
 
     //new addition of big nudges replacing the old small nudge
     //keystroke, the small nudge keystroke are replacing the panning
     //the jscrollpane.
-    public static final Action BigNudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, SHIFT)) {
+    public static final LWCAction BigNudgeUp = new LWCAction("Big Nudge Up", keyStroke(KeyEvent.VK_UP, SHIFT)) {
         void act(LWComponent c) { nudgeOrReorder(c,  0, -10); }
     };
-    public static final Action BigNudgeDown = new LWCAction("Nudge Down", keyStroke(KeyEvent.VK_DOWN, SHIFT)) {
+    public static final LWCAction BigNudgeDown = new LWCAction("Big Nudge Down", keyStroke(KeyEvent.VK_DOWN, SHIFT)) {
         void act(LWComponent c) { nudgeOrReorder(c,  0,  10); }
     };
-    public static final Action BigNudgeLeft = new LWCAction("Nudge Left", keyStroke(KeyEvent.VK_LEFT, SHIFT)) {
+    public static final LWCAction BigNudgeLeft = new LWCAction("Big Nudge Left", keyStroke(KeyEvent.VK_LEFT, SHIFT)) {
         void act(LWComponent c) { nudgeOrReorder(c, -10,  0); }
     };
-    public static final Action BigNudgeRight = new LWCAction("Nudge Right", keyStroke(KeyEvent.VK_RIGHT, SHIFT)) {
+    public static final LWCAction BigNudgeRight = new LWCAction("Big Nudge Right", keyStroke(KeyEvent.VK_RIGHT, SHIFT)) {
         void act(LWComponent c) { nudgeOrReorder(c,  10,  0); }
     };
 

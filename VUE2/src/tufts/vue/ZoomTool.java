@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.53 $ / $Date: 2007-05-01 21:59:43 $ / $Author: sfraize $
+ * @version $Revision: 1.54 $ / $Date: 2007-05-07 03:48:11 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -55,6 +55,7 @@ public class ZoomTool extends VueTool
     
     public ZoomTool() {
         super();
+        setActiveWhileDownKeyCode(java.awt.event.KeyEvent.VK_BACK_QUOTE);
     }
 	
     public JPanel getContextualPanel() {

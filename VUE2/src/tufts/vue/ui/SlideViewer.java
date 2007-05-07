@@ -220,11 +220,11 @@ public class SlideViewer extends tufts.vue.MapViewer
     
     public void showSlideViewer()
     {
-    		if (Widget.isHidden(this) || !Widget.isExpanded(this))
-        		Widget.setExpanded(this, true);
-         	
-        
+        if (Widget.isHidden(this) || !Widget.isExpanded(this))
+            Widget.setExpanded(this, true);
     }
+    
+    
     protected AbstractButton makeButton(String name) {
         AbstractButton b = new JToggleButton(name);
         b.setFocusable(false);
