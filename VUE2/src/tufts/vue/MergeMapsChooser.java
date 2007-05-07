@@ -153,7 +153,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
     // public static final MMCKey KEY_FILTER_CHANGE = new MMCKey("filterChoiceChange");
     
     //$
-     static int c = 0;
+     //static int c = 0;
     //$
    
     public MergeMapsChooser() 
@@ -196,7 +196,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
           }
         });
         
-        //vueTabbedPane.addChangeListener(this);
+        vueTabbedPane.addChangeListener(this);
         loadDefaultStyle();
         VUE.addActiveListener(LWMap.class, this);
         setLayout(new BorderLayout());
@@ -302,7 +302,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
                
               public void mouseEntered(java.awt.event.MouseEvent me)
               {
-                  System.out.println("basePanel mouse entered: " + (c++) + " me: "+ me);
+                 // System.out.println("basePanel mouse entered: " + (c++) + " me: "+ me);
                   if(baseChoice != null)
                   {
                       baseChoice.updateUI();
@@ -756,6 +756,11 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         voteLayout.setConstraints(linkPercentageDisplay,voteConstraints);
         votePanel.add(linkPercentageDisplay);
         
+        voteConstraints.gridx = 0;
+        voteConstraints.gridy = 4;
+        voteLayout.setConstraints(filterChoice,voteConstraints);
+        vizPanel.add(filterChoice);
+        
         //votePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
     }
     
@@ -892,7 +897,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane: no maps loaded?: " + noMapsLoaded);
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane, getTabCount: " + vueTabbedPane.getTabCount());
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane, VUE.getActiveMap().getLabel() " + VUE.getActiveMap().getLabel());
-            //System.out.println("MergeMapsChooser, state changed on vueTabbedPane: e: " + e);
+            System.out.println("MergeMapsChooser, state changed on vueTabbedPane: e: " + e);
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane, getTitleAt(0): " + vueTabbedPane.getTitleAt(0));
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane, VUE.openMapCount(): " + VUE.openMapCount());
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane, VUE.getActiveViewer(): " + VUE.getActiveViewer());
@@ -1123,6 +1128,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
                map.setBaseMap(baseMap);
                
                //map.setUserOrigin(VUE.getActiveViewer().getOriginX(),VUE.getActiveViewer().getOriginY());
+               //map.set
                createWeightedMerge(map);
                MapViewer v = VUE.displayMap(map);
                
@@ -1162,7 +1168,15 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
     
     public void addMergeNodesForMap(LWMergeMap mergeMap,LWMap map,WeightAggregate weightAggregate,List<Style> styles)
     {
-           Iterator children = map.getNodeIterator();    
+        
+        
+        
+        
+           Iterator children = map.getNodeIterator();
+           //Iterator children = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+           
+           
+           
            while(children.hasNext()) {
              LWNode comp = (LWNode)children.next();
              boolean repeat = false;
@@ -1173,13 +1187,34 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
              }
              LWNode node = (LWNode)comp.duplicate();
              
+             
              //$
                List childList = node.getChildList();
                //node.removeChildren(childList.iterator());
                Iterator i = childList.iterator();
                while(i.hasNext())
                {
-                   ((LWComponent)i.next()).setVisible(false);
+                   //((LWComponent)i.next()).setVisible(false);
+                   
+                   LWComponent childComp = (LWComponent)i.next();
+                   if(childComp instanceof LWNode)
+                   {    
+                     LWNode child = (LWNode)childComp;
+                     double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(child))/weightAggregate.getCount();
+                     if(score>100)
+                     {
+                        score = 100;
+                     }
+                     if(score<0)
+                     {
+                        score = 0;
+                     }
+                     //System.out.println("mmc: score: " + score);
+                     //System.out.println("mmc: getInterval(score): " + getInterval(score));
+                     Style currStyle = styles.get(getInterval(score)-1);
+                     //System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
+                     child.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
+                   }
                }
              //$
              
@@ -1204,6 +1239,12 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
                mergeMap.addNode(node);
              }
              //map.addNode(node);
+             
+             
+             // actually need an intermediate map with all nodes about to be added? or mergeMap may
+             // already have styled elements...
+             //Iterator mergeMapChildren = mergMap.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();     
+             
            }
     }
     
@@ -1276,6 +1317,33 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
           }
         }
         
+        //apply styles here to make sure they get applied for all sub nodes (what
+        // about sub links?)
+        // todo: use applyCSS(style) -- need to plug in formatting panel
+        Iterator children = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+        
+        while(children.hasNext())
+        {
+             LWComponent comp = (LWComponent)children.next();
+             if(comp instanceof LWNode)
+             {
+                  LWNode node = (LWNode)comp;
+                  double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(node))/weightAggregate.getCount();
+                  if(score>100)
+                  {
+                    score = 100;
+                  }
+                  if(score<0)
+                  {
+                    score = 0;
+                  }
+                  //System.out.println("mmc: score: " + score);
+                  //System.out.println("mmc: getInterval(score): " + getInterval(score));
+                  Style currStyle = nodeStyles.get(getInterval(score)-1);
+                  //System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
+                  node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
+             }
+        }
         //compute and create nodes in Merge Map, apply just background style for now
         /* Iterator children = baseMap.getNodeIterator();
         while(children.hasNext()) {
@@ -1302,7 +1370,8 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         
         
         //compute and create links in Merge Map
-        Iterator children1 = map.getNodeIterator();
+        //Iterator children1 = map.getNodeIterator();
+        Iterator children1 = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
         while(children1.hasNext()) {
            LWNode node1 = (LWNode)children1.next();
            Iterator children2 = map.getNodeIterator();
