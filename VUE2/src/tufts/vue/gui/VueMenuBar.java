@@ -30,7 +30,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.25 $ / $Date: 2007-04-23 20:26:42 $ / $Author: dan $
+ * @version $Revision: 1.26 $ / $Date: 2007-05-09 04:57:00 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -433,60 +433,69 @@ public class VueMenuBar extends javax.swing.JMenuBar
         public void act() {
             if (window == null)
                 window = createWindow();
+            //window.setWidth(400);
+            window.pack(); // fit to widest line
             window.setVisible(true);
         }
         private DockWindow createWindow() {
             return GUI.createDockWindow(VUE.getName() + " Short-Cut Keys", createShortcutsList());
         }
 
+        private static String keyCodeName(int keyCode) {
+            if (keyCode == KeyEvent.VK_OPEN_BRACKET)
+                return "[";
+            else if (keyCode == KeyEvent.VK_CLOSE_BRACKET)
+                return "]";
+            else if (keyCode == 0)
+                return "";
+            else
+                return KeyEvent.getKeyText(keyCode);
+        }
+
         private JComponent createShortcutsList() {
             String text = new String();
             
             // get tool short-cuts
-            VueTool[] tools =  VueToolbarController.getController().getTools();
-            for (int i = 0; i < tools.length; i++) {
-                VueTool tool = tools[i];
-                if (tool.getShortcutKey() != 0)
-                {
-                    text += " " + tool.getShortcutKey() + " : \t\t" + tool.getToolName() + "\n";
+            for (VueTool t : VueToolbarController.getController().getTools()) {
+                if (DEBUG.TOOL) {
+                    text += String.format(" %-25s (%c) %-12s %-20s \n",
+                                          t.getID()+":",
+                                          t.getShortcutKey() == 0 ? ' ' : t.getShortcutKey(),
+                                          "("+keyCodeName(t.getActiveWhileDownKeyCode()) + ")",
+                                          t.getToolName());
+                } else if (t.getShortcutKey() != 0) {
+                    text += String.format(" (%c) %s \n", t.getShortcutKey(), t.getToolName());
                 }
             }
+            
             text += "\n";
+
             // get action short-cuts
-            java.util.Iterator i = getAllActions().iterator();
-            while (i.hasNext()) {
-                VueAction a = (VueAction) i.next();
+            for (VueAction a : getAllActions()) {
+                
                 KeyStroke k = (KeyStroke) a.getValue(Action.ACCELERATOR_KEY);
-                if (k != null) {
-                    String keyModifiers = KeyEvent.getKeyModifiersText(k.getModifiers());
-                    if (keyModifiers.length() > 0)
-                        keyModifiers += " ";
+                if (k == null)
+                    continue;
+                
+                String keyModifiers = KeyEvent.getKeyModifiersText(k.getModifiers());
+                if (keyModifiers.length() > 0)
+                    keyModifiers += " ";
 
-                    String keyName = KeyEvent.getKeyText(k.getKeyCode());
-                    if (k.getKeyCode() == KeyEvent.VK_OPEN_BRACKET)
-                        keyName = "[";
-                    else if (k.getKeyCode() == KeyEvent.VK_CLOSE_BRACKET)
-                        keyName = "]";
-                    else
-                        keyName = KeyEvent.getKeyText(k.getKeyCode());
-                    
-                    String strokeName = keyModifiers + keyName;
+                String strokeName = keyModifiers + keyCodeName(k.getKeyCode());
 
-                    if (strokeName.length() < 13)
-                        strokeName += ": \t\t";
-                    else
-                        strokeName += ": \t";
-                    text += " " + strokeName + a.getPermanentActionName();
-                    text += "\n";
-                }
+                text += String.format(" %-20s %s \n", strokeName, a.getPermanentActionName());
             }
+            
             javax.swing.JTextArea t = new javax.swing.JTextArea();
-            t.setFont(VueConstants.FONT_SMALL);
+            t.setFont(VueConstants.SmallFixedFont);
             t.setEditable(false);
           //  t.setFocusable(false);
             t.setText(text);
             t.setOpaque(false);
-            return t;
+            if (DEBUG.TOOL)
+                return new javax.swing.JScrollPane(t);
+            else
+                return t;
         }
         
     }
