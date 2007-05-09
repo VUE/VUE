@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.57 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2007-05-09 04:54:12 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -289,11 +289,11 @@ public class MapPanner extends javax.swing.JPanel
         final Rectangle pannerSize = new Rectangle(getSize());
         pannerSize.width -= 1;
         pannerSize.height -= 1;
-        paintViewerIntoRectangle(this, g, this.mapViewer, pannerSize);
+        paintViewerIntoRectangle(this, g, this.mapViewer, pannerSize, true);
     }
 
     public static DrawContext paintViewerIntoRectangle(Graphics g, final MapViewer viewer, final Rectangle pannerSize) {
-        return paintViewerIntoRectangle(null, g, viewer, pannerSize);
+        return paintViewerIntoRectangle(null, g, viewer, pannerSize, true);
     }
     
     // TODO: take a DrawContext, not a viewer
@@ -301,7 +301,11 @@ public class MapPanner extends javax.swing.JPanel
      * @return the DrawContext that was used to draw the viewer contents into the given paintRect (to provide zoom/offset for picking)
      * Note that the x/y location of paintRect is ignored.
      */
-    static DrawContext paintViewerIntoRectangle(MapPanner panner, Graphics g, final MapViewer viewer, final Rectangle paintRect)
+    static DrawContext paintViewerIntoRectangle(final MapPanner panner,
+                                                final Graphics g,
+                                                final MapViewer viewer,
+                                                final Rectangle paintRect,
+                                                final boolean drawViewerReticle)
     {
         if (viewer.getVisibleWidth() < 1 || viewer.getVisibleHeight() < 1) {
             if (DEBUG.Enabled)
@@ -368,29 +372,32 @@ public class MapPanner extends javax.swing.JPanel
         //final Rectangle2D fillCanvas = viewer.screenToMapRect(new Rectangle(1,1, viewer.getWidth(), viewer.getHeight()));
 
 
-        dc.g.setColor(map.getFillColor());
-        // round size of canvas down...
-        //dc.g.fill(canvas);
-        // now we only fill visible on-screen area:
-        dc.g.fill(viewerRect);
+        if (drawViewerReticle) {
+            dc.g.setColor(map.getFillColor());
+            // round size of canvas down...
+            //dc.g.fill(canvas);
+            // now we only fill visible on-screen area:
+            dc.g.fill(viewerRect);
+        }
         
         /*
          * Now tell the active LWMap to draw itself here on the panner.
          */
         
         map.draw(dc);
-        
-        /*
-         * Show where the edge of the *visible* viewer region overlaps the map
-         */
-        
-        dc.setAntiAlias(false);
-        if (VUE.inNativeFullScreen()) // hack for map overview when presenting
-            dc.setAbsoluteStroke(3);
-        else
-            dc.setAbsoluteStroke(1);
-        dc.g.setColor(Color.red);
-        dc.g.draw(viewerRect);
+
+        if (drawViewerReticle) {
+            /*
+             * Show where the edge of the *visible* viewer region overlaps the map
+             */
+            dc.setAntiAlias(false);
+            if (panner == null)
+                dc.setAbsoluteStroke(3);
+            else
+                dc.setAbsoluteStroke(1);
+            dc.g.setColor(Color.red);
+            dc.g.draw(viewerRect);
+        }
 
         return dc;
     }
