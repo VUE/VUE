@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.49 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $ 
+ * @version $Revision: 1.50 $ / $Date: 2007-05-09 23:27:01 $ / $Author: sfraize $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -212,6 +212,20 @@ public class MapInspectorPanel extends JPanel
             //descriptionScroller.setBorder(new CompoundBorder(new EmptyBorder(9,0,0,0), BorderFactory.createLineBorder(Color.DARK_GRAY)));
             //descriptionScroller.setBorder(new EmptyBorder(9,0,0,0));
             //mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+
+
+            /*
+              // TODO: need to add MenuButton functionality to allow it
+              // NOT to participate in the global selection, and "load"
+              // objects manually, or track only a specific LWComponent or something.
+              
+            final Color[] fillColors = VueResources.getColorArray("fillColorValues");
+            final String[] fillColorNames = VueResources.getStringArray("fillColorNames");
+            final ColorMenuButton mapFill;
+            mapFill = new ColorMenuButton(fillColors, fillColorNames, true);
+            mapFill.setPropertyKey(LWKey.FillColor);
+            */
+                        
             
             mDate = new JLabel();
             mLocation = new JLabel();
@@ -222,6 +236,7 @@ public class MapInspectorPanel extends JPanel
             //mPropPanel.addProperty("Author:", mAuthorEditor); //added through metadata
             mPropPanel.addProperty("Location:",mLocation);
             mPropPanel.addProperty("Created:", mDate);
+            //mPropPanel.addProperty("Background:", mapFill);
             mPropPanel.addProperty("Description:", descriptionScroller);
             //mPropPanel.addProperty("Description:", descriptionScroller);
             //mPropPanel.setBorder(BorderFactory.createEmptyBorder(6,9,6, 6));
@@ -288,7 +303,7 @@ public class MapInspectorPanel extends JPanel
          * Updates the Map info panel
          * @param LWMap the map
          **/
-        public void updatePanel( LWMap pMap) {
+        public void updatePanel(LWMap pMap) {
             // update the display
             mDate.setText( mMap.getDate() );
             //mTitleEditor.setText( mMap.getLabel() );
@@ -299,7 +314,8 @@ public class MapInspectorPanel extends JPanel
             if( file != null) {
                 path = file.getPath();
             }
-            mLocation.setText( path);
+            mLocation.setText(path);
+            mLocation.setToolTipText(path);
             propertiesEditor.setProperties(pMap.getMetadata(),true);
         }
         
