@@ -28,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.29 $ / $Date: 2007-05-02 19:58:56 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2007-05-09 04:53:38 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -338,7 +338,8 @@ public class LWSlide extends LWContainer
     
 
     /** @return false -- slides themseleves never have slide icons: only nodes that own them */
-    protected boolean isDrawingSlideIcon() {
+    @Override
+    public final boolean isDrawingSlideIcon() {
         return false;
     }
 
