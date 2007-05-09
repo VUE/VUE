@@ -69,7 +69,7 @@ public class PresentationTool extends VueTool
     //private int mPathwayIndex = 0;
     //private LWPathway.Entry mEntry;
 
-    private boolean mFadeEffect = !DEBUG.NAV;
+    private boolean mFadeEffect = false;
     private boolean mShowNavigator = DEBUG.NAV;
     private boolean mShowNavNodes = false;
     private boolean mForceShowNavNodes = false;
@@ -518,7 +518,10 @@ public class PresentationTool extends VueTool
             revisitPrior(amplified);
             break;
         case KeyEvent.VK_RIGHT:
-            revisitNext(amplified);
+            if (mVisited.hasNext())
+                revisitNext(amplified);
+            else
+                goForward(amplified);
             break;
             
         default:
@@ -544,13 +547,13 @@ public class PresentationTool extends VueTool
         case 'F':
             mFadeEffect = !mFadeEffect;
             break;
-        case 'C':
-        case 'N':
-            mShowContext.doClick();
-            break;
-        case 'B':
-            mToBlack.doClick();
-            break;
+//         case 'C':
+//         case 'N':
+//             mShowContext.doClick();
+//             break;
+//         case 'B':
+//             mToBlack.doClick();
+//             break;
         case 'm':
             mShowNavigator = !mShowNavigator;
             repaint();
@@ -585,7 +588,7 @@ public class PresentationTool extends VueTool
     
     //private boolean isPresenting() { return !mShowContext.isSelected(); }
     
-    private static float[] OverviewMapScales = {8, 6, 4, 3, 2.5f, 2};
+    private static float[] OverviewMapScales = {8, 6, 4, 3, 2.5f, 2, 1.5f, 1};
     //private static int OverviewMapSizeIndex = 2;
 private static int OverviewMapSizeIndex = 5;
     private float mNavMapX, mNavMapY; // location of the overview navigator map
