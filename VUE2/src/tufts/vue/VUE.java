@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.420 $ / $Date: 2007-05-09 22:42:50 $ / $Author: sfraize $ 
+ * @version $Revision: 1.421 $ / $Date: 2007-05-09 23:09:59 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -112,7 +112,14 @@ public class VUE
         };
 
     private static final ActiveChangeSupport<LWPathway> ActivePathwayHandler
-        = new ActiveChangeSupport<LWPathway>(LWPathway.class);
+        = new ActiveChangeSupport<LWPathway>(LWPathway.class) {
+        protected void onChange(ActiveEvent<LWPathway> e) {
+            if (e.active == null)
+                VUE.setActive(LWPathway.Entry.class, e, null);
+                
+        }
+    };
+
 
 // Nothing special done with this: allow lazy creation:
 //     private static final ActiveChangeSupport<LWPathway.Entry> ActivePathwayEntryHandler
