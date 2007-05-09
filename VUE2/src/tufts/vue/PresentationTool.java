@@ -38,69 +38,245 @@ import javax.swing.*;
 /**
  * Tool for presentation mode.
  *
- * @version $Revision: 1. $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $
+ * Handles presentation mode key commands and screen decorations.
+ *
+ * @version $Revision: 1.418 $ / $Date: 2007/05/06 20:14:17 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
 public class PresentationTool extends VueTool
     implements ActiveListener<LWPathway.Entry>
 {
-    enum Direction { FORWARD, BACKWARD };
-    //private static int FORWARD = 1;
-    //private static int BACKWARD = -1;
-
+    private static final String FORWARD = "FORWARD";
+    private static final String BACKWARD = "BACKWARD";
     private static final boolean RECORD_BACKUP = true;
-    private static final boolean SKIP_BACKUP_RECORD = false;
+    private static final boolean BACKING_UP = false;
     
     private JButton mStartButton;
-    private LWComponent mCurrentPage;
-    private LWComponent mNextPage; // is this really "startPage"?
-    private LWComponent mLastPage;
-    private LWLink mLastFollowed;
+    private final JCheckBox mShowContext = new JCheckBox("Show Context");
+    private final JCheckBox mToBlack = new JCheckBox("Black");
+    private final JCheckBox mZoomLock = new JCheckBox("Lock 100%");
+    
+    private final Page NO_PAGE = new Page((LWComponent)null);
+    
+    private Page mCurrentPage = NO_PAGE;
     private LWPathway mPathway;
-    private int mPathwayIndex = 0;
-    private LWPathway.Entry mEntry;
-    //private LWSlide mMasterSlide;
+    private Page mLastPathwayPage;
+    
+    private LWComponent mNextPage; // is this really "startPage"?
+    //private LWComponent mLastPage;
+    //private LWLink mLastFollowed;
+    //private int mPathwayIndex = 0;
+    //private LWPathway.Entry mEntry;
 
+    private boolean mFadeEffect = !DEBUG.NAV;
+    private boolean mShowNavigator = DEBUG.NAV;
+    private boolean mShowNavNodes = false;
+    private boolean mForceShowNavNodes = false;
     private boolean mScreenBlanked = false;
 
-    
-
-    private JCheckBox mShowContext = new JCheckBox("Show Context");
-    private JCheckBox mToBlack = new JCheckBox("Black");
-    private JCheckBox mZoomLock = new JCheckBox("Lock 100%");
-    private boolean mShowNavigator = false;
-
-    private boolean mFadeEffect = true;
-    private boolean mZoomToPage = true;
-    
-    private boolean mShowNavNodes = false;
-
-    private static class BackStack extends Stack<LWComponent> {
-        public LWComponent peek() {
-            return empty() ? null : super.peek();
+    /** a presentation moment (data for producing a single presentation screen) */
+    private static class Page {
+        final LWPathway.Entry entry;
+        final LWComponent node;
+        
+        Page(LWPathway.Entry e) {
+            entry = e;
+            node = null;
         }
-        public LWComponent push(LWComponent c) {
-            // never allow null or the same item repeated on the top of the stack
-            if (peek() != c && c != null)
-                super.push(c);
-            return c;
+        Page(LWComponent c) {
+            entry = null;
+            node = c;
         }
-        public LWComponent peekNode() {
-            LWComponent c = peek();
-            if (c instanceof LWSlide)
-                return ((LWSlide)c).getSourceNode();
+
+        /** @return the object we're actually going to draw on screen for this presentation moment */
+        public LWComponent getPresentationFocal() {
+            return entry == null ? node : entry.getFocal();
+        }
+
+
+        /** @return the map node that is the source of this presentation item.
+         * May return null if the this is a pathway entry that was a combo slide.
+         */
+        public LWComponent getOriginalMapNode() {
+            if (node != null)
+                return node;
+            else if (entry != null)
+                return entry.node;
+            return null;
+        }
+
+        public boolean isMapView() {
+            return entry == null ? true : entry.isMapView();
+        }
+
+        public boolean onPathway() {
+            return entry != null;
+        }
+
+        public LWPathway pathway() {
+            return entry == null ? null : entry.pathway;
+        }
+
+        public boolean inPathway(LWPathway p) {
+            if (node != null)
+                return node.inPathway(p);
+            else if (entry != null)
+                return entry.pathway == p;
             else
-                return c;
+                return false;
+        }
+
+        public String getDisplayLabel() {
+            if (node != null)
+                return node.getDisplayLabel();
+            else
+                return entry.getLabel();
+        }
+
+        public String toString() {
+            //String s = "PAGE: ";
+            String s = "";
+            if (node != null)
+                s += node;
+            else 
+                s += entry;
+            return s;
+        }
+        
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            } else if (o instanceof Page) {
+                final Page other = (Page) o;
+                return entry == other.entry && node == other.node;
+            } else if (o instanceof LWComponent) {
+                final LWComponent c= (LWComponent) o;
+                return node == c || (entry != null && entry.node == c);
+            } else
+                return false;
+        }
+    }
+
+    /**
+
+     * Implements a stack/queue that works like standard web browser forward/back page
+     * visit lists: You can always go back in a straight line, and you can keep going
+     * forward in a straight line until you push something else on the stack (browse off
+     * the current already visited list), in which case everything forward of where you
+     * are in the list is throw away.
+     
+     */
+    private static class PageQueue<T> extends ArrayList<T>
+    {
+        int index;
+
+        public boolean isEmpty() {
+            // somehow, ArrayList is getting to a size == -1 condition,
+            // and the default isEmpty checks size == 0, so it doesn't
+            // think it's empty in that case!
+            return size() <= 0;
+        }
+         	
+        public void rollBack() {
+            if (index > 0)
+                index--;
+            else
+                throw new IndexOutOfBoundsException("index=" + index);
+        }
+        public void rollForward() {
+            if (index < lastIndex())
+                index++;
+            else
+                throw new IndexOutOfBoundsException("index=" + index + " lastIndex=" + lastIndex());
+        }
+        
+        private final int lastIndex() {
+            return size() - 1;
+        }
+        
+        public T first() {
+            return size() <= 0 ? null : get(0);
+        }
+        public T last() {
+            return size() <= 0 ? null : get(lastIndex());
+        }
+
+        public T jumpFirst() {
+            index = 0;
+            return first();
+        }
+        public T jumpLast() {
+            index = lastIndex();
+            return last();
+        }
+        
+        
+        public void push(T o) {
+            // never allow null in the stack, or the same item repeated on the top of the stack
+            if (o == null)
+                return;
+
+            if (o.equals(next())) {
+                rollForward();
+            } else if (o.equals(current())) {
+                ; // do nothing: never repeat items in the queue
+            } else {
+                if (!isEmpty() && index < lastIndex()) {
+                    // toss out forward stack information whenever we push anything:
+                    removeRange(index+1, size());
+                }
+                add(o);
+                index = size() - 1;
+            } 
+        }
+        
+        public T current() {
+            return isEmpty() ? null : get(index);
+        }
+        
+        public boolean hasPrev() {
+            return !isEmpty() && index > 0;
+        }
+
+        public boolean hasNext() {
+            return index < lastIndex();
+        }
+        
+        /**
+         * @return the next item back in the queue without changing the queue position.
+         * Will return null if hasPrev() returns false.
+         */
+        public T prev() {
+            return hasPrev() ? get(index - 1) : null;
+        }
+
+        public T next() {
+            return hasNext() ? get(index + 1) : null;
+        }
+
+        
+        /** move the queue position back one, and return what's there */
+        public T popPrev() {
+            if (!hasPrev())
+                throw new NullPointerException(this + " empty; can't pop");
+            return get(--index);
+        }
+
+        public T popNext() {
+            if (!hasNext())
+                throw new NullPointerException(this + "index="+index + "; size="+size() + "; already at end");
+            return get(++index);
         }
     }
 
     
     private static PresentationTool singleton;
     
-    private BackStack mBackList = new BackStack();
-
-    private List<NavNode> mNavNodes = new java.util.ArrayList();
+    private final PageQueue<Page> mVisited = new PageQueue();
+    
+    private final List<NavNode> mNavNodes = new java.util.ArrayList();
 
     private static final Font NavFont = new Font("SansSerif", Font.PLAIN, 16);
     private static final Color NavFillColor = new Color(154,154,154);
@@ -110,31 +286,42 @@ public class PresentationTool extends VueTool
     
     private class NavNode extends LWNode {
         
-        final LWComponent destination;
-        final LWPathway pathway;
+        //final LWComponent destination;
+        final Page page; // destination page
+        //final LWPathway pathway;
         
-        NavNode(LWComponent dest, LWPathway pathway)
+        //NavNode(LWComponent destination, LWPathway pathway)
+        NavNode(Page destinationPage)
         {
             super(null);
 
-            if (dest == null)
-                throw new IllegalArgumentException("destination can't be null");
+//             if (destination == null)
+//                 throw new IllegalArgumentException("destination can't be null");
             
-            this.destination = dest;
-            this.pathway = pathway;
+            //this.page = new Page(destination);
+            this.page = destinationPage;
+            //this.pathway = pathway;
+
+            final LWPathway pathway;
+
+            if (destinationPage.entry != null)
+                pathway = destinationPage.entry.pathway;
+            else
+                pathway = null;
             
             String label;
 
             if (pathway != null)
                 label = pathway.getLabel();
             else
-                label = destination.getDisplayLabel();
+                label = page.getDisplayLabel();
+
+            if (pathway == null && destinationPage.equals(mVisited.prev()))
+                label = "<- " + label;
             
             if (label.length() > 20)
                 label = label.substring(0,18) + "...";
             
-            if (pathway == null && mBackList.peekNode() == destination)
-                label = "BACK:" + label;
             //label = "    " + label + " ";
             setLabel(label);
             setFont(NavFont);
@@ -174,7 +361,7 @@ public class PresentationTool extends VueTool
             // as we use the globally active viewer
             // when we change the page!
             if (!e.active.isPathway())
-                setEntry(e.active, SKIP_BACKUP_RECORD);
+                setEntry(e.active, BACKING_UP);
         }
      }
     
@@ -225,43 +412,171 @@ public class PresentationTool extends VueTool
         VUE.getActiveViewer().repaint();
     }
 
+    
+    private boolean inCurrentPathway() {
+        final Page p = mCurrentPage;
+        if (p == null || p == NO_PAGE || mPathway == null)
+            return false;
+
+        return p.inPathway(mPathway);
+
+        // This appears to be checking if we've descended into the contents of a pathway page...
+        //|| (p.node != null && page.node.getParent() == mPathway); // page.node != entry.node !!
+    }
+
+    private void revisitPrior() { revisitPrior(false); }
+    private void revisitPrior(boolean allTheWay) {
+        if (allTheWay)
+            setPage(mVisited.jumpFirst());
+        else if (mVisited.hasPrev())
+           setPage(mVisited.popPrev(), BACKING_UP);
+    }
+    
+    private void revisitNext() { revisitNext(false); }
+    private void revisitNext(boolean allTheWay) {
+        if (allTheWay)
+            setPage(mVisited.jumpLast());
+        else if (mVisited.hasNext())
+            setPage(mVisited.popNext(), BACKING_UP);
+    }
+    
+    private void goBackward(boolean allTheWay)
+    {
+        if (inCurrentPathway()) {
+            if (allTheWay) {
+                // todo: skip to start of queue if been there instead
+                // adding more to the end!
+                setEntry(mPathway.getFirst());
+            } else {
+                setEntry(nextPathwayEntry(BACKWARD), BACKING_UP);
+            }
+        } else {
+            revisitPrior(allTheWay);
+        }
+    }
+
+    private static final boolean SINGLE_STEP = false;
+    private static final boolean GUESSING = true;
+
+    private void goForward(boolean allTheWay) { goForward(allTheWay, false); }
+    private void goForward(boolean allTheWay, boolean guessing)
+    {
+        if (mCurrentPage == NO_PAGE && mNextPage == null) {
+            
+            startPresentation();
+            
+        } else if (inCurrentPathway()) {
+            if (false && allTheWay) {
+                // todo: skip to end of queue if been here instead
+                // of blowing it away!
+                // skipping far forward complicates the hell
+                // out of maintaining a sane seeming backlist...
+                setEntry(mPathway.getLast());
+            } else {
+                setEntry(nextPathwayEntry(FORWARD));
+            }
+        } else {
+            if (guessing) {
+                // if we hit space and there's nowhere to go, show them their options:
+                mForceShowNavNodes = mShowNavNodes = true;
+                repaint();
+            } else
+                revisitNext(allTheWay); 
+        }
+
+    }
+    
+    
+
     public boolean handleKeyPressed(java.awt.event.KeyEvent e) {
         out("handleKeyPressed " + e);
-        final int key = e.getKeyCode();
-        final char k = e.getKeyChar();
-        if (key == KeyEvent.VK_SPACE || key == KeyEvent.VK_RIGHT) {
-            if (mCurrentPage == null && mNextPage == null)
-                startPresentation();
-            else
-                forwardPage();
-        } else if (key == KeyEvent.VK_LEFT) {
-            backPage();
-        } else if (k == 'f')             { mFadeEffect = !mFadeEffect;
-        } else if (k == 'c' || k == 'n') { mShowContext.doClick();
-        } else if (k == 'b')             { mToBlack.doClick();
-        } else if (k == 'm')             {
+        final int keyCode = e.getKeyCode();
+        final char keyChar = e.getKeyChar();
+
+        boolean handled = true;
+
+        final boolean amplified = e.isShiftDown();
+
+        switch (keyCode) {
+        case KeyEvent.VK_SPACE:
+            goForward(SINGLE_STEP, GUESSING);
+            break;
+
+        case KeyEvent.VK_BACK_QUOTE:
+            // toggle showing the non-linear nav options:
+            mForceShowNavNodes = mShowNavNodes = !mForceShowNavNodes;
+            repaint();
+            break;
+            
+        case KeyEvent.VK_DOWN:
+            goForward(amplified);
+            break;
+        case KeyEvent.VK_UP:
+            goBackward(amplified);
+            break;
+        case KeyEvent.VK_LEFT:
+            revisitPrior(amplified);
+            break;
+        case KeyEvent.VK_RIGHT:
+            revisitNext(amplified);
+            break;
+            
+        default:
+            handled = false;
+        }
+
+        if (handled)
+            return true;
+
+        handled = true;
+
+        switch (keyChar) {
+            
+//         case '1':
+//             if (mPathway != null) {
+//                 mPathwayIndex = 0;
+//                 mNextPage = mPathway.getNodeEntry(0);
+//                 forwardPage();
+//             }
+//             repaint();
+//             break;
+            
+        case 'F':
+            mFadeEffect = !mFadeEffect;
+            break;
+        case 'C':
+        case 'N':
+            mShowContext.doClick();
+            break;
+        case 'B':
+            mToBlack.doClick();
+            break;
+        case 'm':
             mShowNavigator = !mShowNavigator;
             repaint();
-        } else if (k == '1') {
-            if (mPathway != null) {
-                mPathwayIndex = 0;
-                mNextPage = mPathway.getNodeEntry(0);
-                forwardPage();
-            }
-            repaint();
-        } else if (mShowNavigator && k == '+') {
-            if (OverviewMapSizeIndex < OverviewMapScales.length-1)
+            break;
+            
+        case '+':
+        case '=': // allow "non-shift-plus"
+            if (mShowNavigator && OverviewMapSizeIndex < OverviewMapScales.length-1) {
                 OverviewMapSizeIndex++;
-            repaint();
-        } else if (mShowNavigator && (k == '-' || k == '_')) { // allow "shift-minus" also
-            if (OverviewMapSizeIndex > 0)
+                repaint();
+            } else
+                handled = false;
+            break;
+        case '-':
+        case '_': // allow "shift-minus" also
+            if (mShowNavigator && OverviewMapSizeIndex > 0) {
                 OverviewMapSizeIndex--;
-            repaint();
-        } else
-            //        } else if (k == 'z')             { mZoomToPage = !mZoomToPage;
-            return false;
-        //repaint();
-        return true;
+                repaint();
+            } else
+                handled = false;
+            break;
+        default:
+            handled = false;
+        }
+
+        return handled;
     }
 
     public boolean handleKeyReleased(java.awt.event.KeyEvent e) {
@@ -271,18 +586,20 @@ public class PresentationTool extends VueTool
     //private boolean isPresenting() { return !mShowContext.isSelected(); }
     
     private static float[] OverviewMapScales = {8, 6, 4, 3, 2.5f, 2};
-    private static int OverviewMapSizeIndex = 2;
+    //private static int OverviewMapSizeIndex = 2;
+private static int OverviewMapSizeIndex = 5;
     private float mNavMapX, mNavMapY; // location of the overview navigator map
     private DrawContext mNavMapDC;
 
     
     /** Draw a ghosted panner */
-    private void drawOverviewMap(DrawContext sourceDC)
+    private void drawOverviewMap(DrawContext dc)
     {
         //sourceDC.setRawDrawing();
-        DrawContext dc = sourceDC.create();
+        //DrawContext dc = sourceDC.create();
         //dc.setRawDrawing();
         //final DrawContext dc = sourceDC;
+        
         dc.setFrameDrawing();
 
         float overviewMapFraction = OverviewMapScales[OverviewMapSizeIndex];
@@ -294,15 +611,56 @@ public class PresentationTool extends VueTool
         mNavMapY = dc.frame.height - panner.height;
 
         dc.g.translate(mNavMapX, mNavMapY);
-        dc.setAlpha(0.3);
-        // todo: black or white depending on brightess of the fill
-        dc.g.setColor(Color.white);
-        dc.g.fill(panner);
-        //dc.setAlpha(1);
 
-        dc.setAlpha(0.75);
+        // todo: black or white depending on brightess of the fill
+        dc.g.setColor(Color.gray);
+        dc.g.fill(panner);
+
+        // clip in case borders that might extend outside the panner if the fit is tight to the raw map shapes        
         dc.g.clipRect(0,0, panner.width, panner.height);
-        mNavMapDC = MapPanner.paintViewerIntoRectangle(dc.g, VUE.getActiveViewer(), panner);
+        
+        //final LWComponent focused = mCurrentPage.isMapView() ? null : mCurrentPage.getOriginalMapNode();
+        final LWComponent focused = mCurrentPage.getOriginalMapNode();
+
+
+        final MapViewer viewer = VUE.getActiveViewer();
+        
+        dc.skipDraw = focused;
+        mNavMapDC = MapPanner.paintViewerIntoRectangle(null,
+                                                       dc.g.create(),
+                                                       viewer,
+                                                       panner,
+                                                       false); //mCurrentPage.isMapView());
+
+        if (focused != null) {
+            dc.g.setColor(Color.black);
+            dc.setAlpha(0.5);
+            dc.g.fill(panner);
+            
+            mNavMapDC.setAntiAlias(true);
+            
+            if (false && mShowNavNodes) {
+                // Also highlight connectd nav nodes if non-linear nav overlay is showing:
+                for (NavNode nav : mNavNodes)
+                    if (nav.page.node != null && nav.page.node != focused)
+                        nav.page.node.draw(mNavMapDC.create());
+            }
+
+            if (mCurrentPage.isMapView()) {
+                // redraw the reticle at full brightness:
+                mNavMapDC.g.setColor(mCurrentPage.getPresentationFocal().getMap().getFillColor());
+                mNavMapDC.setAlpha(0.333);
+                mNavMapDC.g.fill(viewer.getVisibleMapBounds());
+                mNavMapDC.setAlpha(1);
+                mNavMapDC.g.setColor(Color.red);
+                mNavMapDC.g.setStroke(VueConstants.STROKE_THREE);
+                mNavMapDC.g.draw(viewer.getVisibleMapBounds());
+            }
+            
+            focused.draw(mNavMapDC.create());
+            
+        }
+            
     }
 
     public boolean handleMouseMoved(MapMouseEvent e)
@@ -318,8 +676,9 @@ public class PresentationTool extends VueTool
         if (e.getX() < 40) {
             //if (DEBUG.PRESENT) out("nav nodes on " + e.getY() + " max=" + maxHeight);
             mShowNavNodes = true;
+            mForceShowNavNodes = false;
         } else {
-            if (mShowNavNodes) {
+            if (mShowNavNodes && !mForceShowNavNodes) {
                 if (e.getX() > 200)
                     mShowNavNodes = false;
             }
@@ -369,13 +728,14 @@ public class PresentationTool extends VueTool
             System.out.println("pickCheck " + nav + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
             if (nav.containsParentCoord(e.getX(), e.getY())) {
                 System.out.println("HIT " + nav);
-                if (mBackList.peek() == nav.destination || mBackList.peekNode() == nav.destination) {
-                    backUp();
-                } else if (nav.pathway != null) {
-                     // jump to another pathway
-                    setEntry(nav.pathway.getEntry(nav.pathway.firstIndexOf(nav.destination)));
+                //if (mVisited.peek() == nav.destination || mVisited.peekNode() == nav.destination) {
+                if (nav.page.equals(mVisited.prev())) {
+                    revisitPrior();
+//                 } else if (nav.pathway != null) {
+//                      // jump to another pathway
+//                     setEntry(nav.pathway.getEntry(nav.pathway.firstIndexOf(nav.destination)));
                 } else {
-                    setPage(nav.destination);
+                    setPage(nav.page);
                 }
                 return true;
             }
@@ -384,11 +744,11 @@ public class PresentationTool extends VueTool
         final LWComponent hit = e.getPicked();
         
         out("handleMousePressed " + e.paramString() + " hit on " + hit);
-        if (hit != null && mCurrentPage != hit) {
+        if (hit != null && !mCurrentPage.equals(hit)) {
             Collection linked = hit.getLinkEndPoints();
-            if (mCurrentPage == null) {
+            if (mCurrentPage == NO_PAGE) {
                 // We have no current page, so just zoom to what's been clicked on and start there.
-                mBackList.clear();
+                mVisited.clear();
                 setPage(hit);
             } 
             
@@ -410,216 +770,141 @@ public class PresentationTool extends VueTool
             } else {
                 setPage(hit);
             }
-        } else if (mCurrentPage == hit && mEntry != null && mEntry.getFocal() != mCurrentPage) {
-            backUp();
         }
+//         else if (mCurrentPage.equals(hit) && mEntry != null && mEntry.getFocal() != mCurrentPage) {
+//             // what the hell we doing here???
+//             revisitPrior();
+//         }
         return true;
     }
 
-    private void followLink(LWComponent src, LWLink link) {
-        LWComponent linkingTo = link.getFarPoint(src);
-        mLastFollowed = link;
-        setPage(linkingTo);
-    }
-
-    private LWComponent currentNode() {
-        if (mCurrentPage instanceof LWSlide)
-            return mEntry == null ? null : mEntry.node;
-        else
-            return mCurrentPage;
-    }
+//     private LWComponent currentNode() {
+//         if (mCurrentPage instanceof LWSlide)
+//             return mEntry == null ? null : mEntry.node;
+//         else
+//             return mCurrentPage;
+//     }
 
     public void startPresentation()
     {
         out(this + " startPresentation");
         //mShowContext.setSelected(false);
-        mBackList.clear();
+        mVisited.clear();
 
         if (VUE.getActivePathway() != null && VUE.getActivePathway().length() > 0) {
-            mPathway = VUE.getActivePathway();
-            mPathwayIndex = 0;
-            mEntry = mPathway.getEntry(mPathwayIndex);
-            setEntry(mEntry);
+            
+            setEntry(VUE.getActivePathway().getEntry(0));
+            
         } else {
             mPathway = null;
-            mPathwayIndex = 0;
+            //mPathwayIndex = 0;
             if (VUE.getSelection().size() > 0)
                 setPage(VUE.getSelection().first());
-            else if (mCurrentPage != null)
-                setPage(mCurrentPage);
-            else
-                setPage(mNextPage);
+//             else if (mCurrentPage != NO_PAGE) // won't have any effect!
+//                 setPage(mCurrentPage);
+//             else
+//                 setPage(mNextPage);
         }
     }
 
-    private void backUp() {
-       if (!mBackList.empty())
-           setPage(VUE.getActiveViewer(), mBackList.pop(), SKIP_BACKUP_RECORD);
-    }
     
-    private void backPage() {
-        if (mPathway != null && inCurrentPathway(mCurrentPage)) {
-            setEntry(nextPathwayEntry(Direction.BACKWARD));
-            //LWComponent prevPage = nextPathwayPage(Direction.BACKWARD);
-            //LWComponent prevPage = null;
-            //if (prevPage != null)
-            //    setPage(prevPage);
-        } else
-            backUp();
-    }
-        
-
-    private void forwardPage()
-    {
-        out("forwardPage");
-        
-        if (mNextPage != null) {
-            out("NextPage is already " + mNextPage);
-            if (mNextPage != mCurrentPage) {
-                setPage(mNextPage);
-                mNextPage = null;
-                return;
-            }
-        }
-
-        //if (mPathway == null && mCurrentPage.inPathway(mCurrentPage.getMap().getPathwayList().getActivePathway())) {
-        if (mPathway == null && mCurrentPage.inPathway(VUE.getActivePathway())) {
-            //mPathway = mCurrentPage.getMap().getPathwayList().getActivePathway();
-            mPathway = VUE.getActivePathway();
-            mPathwayIndex = mPathway.indexOf(mCurrentPage);
-            out("Joined pathway " + mPathway + " at index " + mPathwayIndex);
-        }
-
-
-        if (mPathway == null || !inCurrentPathway(mCurrentPage))
-            setPage(guessNextPage());
-        else
-            setEntry(nextPathwayEntry(Direction.FORWARD));
-
-        /*
-        final LWComponent nextPage;
-
-        if (mPathway == null || !inCurrentPathway(mCurrentPage))
-            nextPage = guessNextPage();
-        else
-            nextPage = nextPathwayPage(Direction.FORWARD);
-
-        out("Next page: " + nextPage);
-        
-        if (nextPage != null)
-            setPage(nextPage);
-        */
-    }
-
-    private boolean inCurrentPathway(LWComponent c) {
-        if (c == null)
-            return false;
-        else
-            return c.inPathway(mPathway) || c.getParent() == mPathway;
-        // slides in a pathway have their parent set to the pathway
-    }
-
     /** @param direction either 1 or -1 */
-    private LWPathway.Entry nextPathwayEntry(Direction direction)
+    private LWPathway.Entry nextPathwayEntry(String direction)
     {
-        out("nextPathwayEntry " + direction);
-        if (direction == Direction.BACKWARD && mPathwayIndex == 0)
+        if (mLastPathwayPage == null)
+            return null;
+
+        int index = mLastPathwayPage.entry.index();
+
+        if (direction == FORWARD)
+            index++;
+        else
+            index--;
+
+        return mLastPathwayPage.entry.pathway.getEntry(index);
+        
+        
+        /*
+        //out("nextPathwayEntry " + direction);
+        if (direction == BACKWARD && mPathwayIndex == 0)
             return null;
         
-        if (direction == Direction.FORWARD)
+        if (direction == FORWARD)
             mPathwayIndex++;
         else
             mPathwayIndex--;
 
         final LWPathway.Entry nextEntry = mPathway.getEntry(mPathwayIndex);
-        out("Next pathway index: #" + mPathwayIndex + " = " + nextEntry);
+        //out("Next pathway index: #" + mPathwayIndex + " = " + nextEntry);
 
         if (nextEntry == null) {
             //nextEntry = mPathway.getFirstEntry(nextPathwayNode);
-            mPathwayIndex -= (direction == Direction.FORWARD ? 1 : -1);
+            mPathwayIndex -= (direction == FORWARD ? 1 : -1);
         }
         //out("Next pathway slide/focal: " + nextEntry);
         return nextEntry;
+        */
+        
     }
     
-    private LWComponent guessNextPage()
-    {
-        return null;
-    }
+    //private LWComponent guessNextPage() { return null; }
         
-    private LWComponent OLD_guessNextPage()
-    {
-        // todo: only bother with links that have component endpoints!
-        List links = mCurrentPage.getLinks();
-        LWLink toFollow = null;
-        if (links.size() == 1) {
-            toFollow = (LWLink) mCurrentPage.getLinks().get(0);
-        } else {
-            Iterator i = mCurrentPage.getLinks().iterator();
-            
-            while (i.hasNext()) {
-                LWLink link = (LWLink) i.next();
-                if (link.getFarNavPoint(currentNode()) == null)
-                    continue; // if a link to nothing, ignore
-                if (link != mLastFollowed) {
-                    toFollow = link;
-                    break;
-                }
-            }
-        }
-        LWComponent nextPage = null;
-        if (toFollow != null) {
-            mLastFollowed = toFollow;
-            nextPage = toFollow.getFarNavPoint(currentNode());
-            if (nextPage.getParent() instanceof LWGroup)
-                nextPage = nextPage.getParent();
-        }
-        // TODO: each page keeps a mPrevPage, which we use instead of
-        // the peek here to find the "default" backup.  Maybe
-        // a useful "uparrow" functionality can also make use of this?
-        // uparrow should also go back up to the parent of the current
-        // page if it's anything other than the map itself
-        if (nextPage == null && !mBackList.empty() && mBackList.peek() != mCurrentPage)
-            nextPage = (LWComponent) mBackList.peek();
-
-        return nextPage;
-    }
-
-    public LWComponent getCurrentPage() {
-        return mCurrentPage;
-    }
-            
     private void setEntry(LWPathway.Entry e) {
         setEntry(e, RECORD_BACKUP);
     }
     
-    private void setEntry(LWPathway.Entry e, boolean recordBackup)
+    /** this will jump us to the pathway for the entry, and set us viewing the given entry */
+    private void setEntry(LWPathway.Entry entry, boolean recordBackup)
     {
-        out("setEntry " + e);
-        if (e == null)
+        //out("setEntry " + entry);
+        if (entry == null)
             return;
-        mEntry = e;
-        mPathway = e.pathway;
-        setPage(VUE.getActiveViewer(), mEntry.getFocal(), recordBackup);
-        VUE.setActive(LWPathway.Entry.class, this, mEntry);
+        //mEntry = e;
+        //mPathway = entry.pathway;
+        //mPathwayIndex = entry.index();
+        setPage(new Page(entry), recordBackup);
+        //setPage(new Page(mEntry), recordBackup);
+        //setPage(mEntry.getFocal(), recordBackup);
+        VUE.setActive(LWPathway.Entry.class, this, entry);
     }
 
-    private void setPage(LWComponent page) {
-        setPage(VUE.getActiveViewer(), page, RECORD_BACKUP);
+    private void setPage(LWComponent destination) {
+        if (destination != null)
+            setPage(new Page(destination), RECORD_BACKUP);
     }
     
-    private void setPage(final MapViewer viewer, final LWComponent page, boolean recordBackup)
+    private void setPage(Page page) {
+        setPage(page, RECORD_BACKUP);
+    }
+
+    private void setPage(final Page page, boolean recordBackup)
     {
+        final MapViewer viewer = VUE.getActiveViewer();
+        
         out("setPage " + page);
 
         if (page == null) // for now
             return;
         
-        if (recordBackup)
-            mBackList.push(mCurrentPage);
+        if (recordBackup) {
+            mVisited.push(page);
+        } else {
+            // we're backing up:
+            //System.out.println("\nCOMPARING:\n\t" + page + "\n\t" + mVisited.prev());
+            if (page.equals(mVisited.prev()))
+                mVisited.rollBack();
+        }
 
-        mLastPage = mCurrentPage;
+        //mLastPage = mCurrentPage;
         mCurrentPage = page;
+
+        if (page.onPathway()) {
+            if (page.pathway() != mPathway)
+                mPathway = page.pathway();
+            mLastPathwayPage = page;
+            //mPathwayIndex = page.entry.index();
+        }
+        
         mNextPage = null;
         mNavNodes.clear();
         viewer.clearTip();
@@ -636,26 +921,24 @@ public class PresentationTool extends VueTool
                     public void run() {
                         if (mFadeEffect)
                             makeInvisible();
-                        zoomToPage(page, !mFadeEffect);
+                        zoomToFocal(page.getPresentationFocal(), !mFadeEffect);
                         if (mScreenBlanked)
                             makeVisibleLater();
                     }
                 });
             
         } else {
-            zoomToPage(page, true);
+            zoomToFocal(page.getPresentationFocal(), true);
         }
     }
     
-    private void zoomToPage(LWComponent page, boolean animate) {
-        VUE.getActiveViewer().loadFocal(page);
+    private void zoomToFocal(LWComponent focal, boolean animate) {
+        VUE.getActiveViewer().loadFocal(focal);
     }
     
 
     // todo: viewer & focal are already in the DrawContext!
     public boolean handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {
-        if (mShowNavigator)
-            drawOverviewMap(dc);
 
         if (viewer instanceof tufts.vue.ui.SlideViewer) {
             // TODO: Will need a set of nav nodes per-viewer if this is to work in both
@@ -664,169 +947,96 @@ public class PresentationTool extends VueTool
             ;
         } else {
             if (mShowNavNodes) {
-                dc.g.setComposite(AlphaComposite.Src);
-                drawNavNodes(dc);
+                //dc.g.setComposite(AlphaComposite.Src);
+                drawNavNodes(dc.create());
             }
         }
 
+
+        // Be sure to draw the navigator after the nav nodes, as navigator
+        // display can depend on the current nav nodes, which are created
+        // at draw time.
+        if (mShowNavigator)
+            drawOverviewMap(dc.create());
+
         
-        if (DEBUG.PRESENT && DEBUG.CONTAINMENT) {
+        if (DEBUG.NAV) {
             dc.setFrameDrawing();
             //dc.g.translate(dc.frame.x, dc.frame.y);
             //dc.g.setFont(VueConstants.FixedFont);
-            dc.g.setFont(new Font("Lucida Sans Typewriter", Font.BOLD, 12));
+            dc.g.setFont(new Font("Lucida Sans Typewriter", Font.BOLD, 10));
             //dc.g.setColor(new Color(128,128,128,192));
             dc.g.setColor(Color.gray);
             int y = 10;
-            dc.g.drawString("Frame: " + tufts.Util.out(dc.frame), 10, y+=15);
-            if (mEntry != null)         dc.g.drawString(mEntry.pathway.getDiagnosticLabel(), 10, y+=15);
-            if (mCurrentPage != null)   dc.g.drawString("Page: " + mCurrentPage.getDiagnosticLabel(), 10, y+=15);
-            if (mEntry != null)         dc.g.drawString(mEntry.toString(), 10, y+=15);
-            dc.g.drawString("  Backup: " + mBackList.peek(), 10, y+=15);
-            dc.g.drawString("BackNode: " + mBackList.peekNode(), 10, y+=15);
+            dc.g.drawString("  Frame: " + tufts.Util.out(dc.frame), 10, y+=15);
+            dc.g.drawString("Pathway: " + mPathway, 10, y+=15);
+            dc.g.drawString("   Page: " + mCurrentPage, 10, y+=15);
+            dc.g.drawString("  Focal: " + mCurrentPage.getPresentationFocal(), 10, y+=15);
+            dc.g.drawString(" OnPath: " + inCurrentPathway(), 10, y+=15);
+            y+=5;
+
+            dc.g.setFont(new Font("Lucida Sans Typewriter", Font.BOLD, 10));
+            int i = 0;
+            for (Page p : mVisited) {
+                if (p == mVisited.current())
+                    dc.g.setColor(Color.green);
+                else
+                    dc.g.setColor(Color.gray);
+                dc.g.drawString(String.format("%2d %s", i, p), 10, y+=15);
+                i++;
+            }
+            
+            //dc.g.drawString("  Backup: " + mVisited.peek(), 10, y+=15);
+            //dc.g.drawString("BackNode: " + mVisited.peekNode(), 10, y+=15);
         }
 
         
         return false;
     }
 
-    public DrawContext tweakDrawContext(DrawContext dc) {
-        dc.setPresenting(true);
-        if (false &&mShowNavNodes)
-            dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
-        return dc;
-    }
-        
-    /*
-    protected void drawPathwayEntry(final DrawContext dc, MapViewer viewer, final LWPathway.Entry entry)
-    {
-        out("drawing entry " + entry);
-        
-        final LWSlide master = entry.pathway.getMasterSlide();
-        final Shape curClip = dc.g.getClip();
-        final LWComponent focal = entry.getFocal();
-
-        out("drawing master " + master);
-
-        //zoomToPage(master, false); // can't do here: causes loop: need to handle via reshapeImpl
-
-        dc.g.setColor(master.getFillColor());
-        dc.g.fill(dc.g.getClipBounds());
-        //if (focal.getX() != 0 || focal.getY() != 0) {
-        if (focal instanceof LWSlide) {
-            // slides are always at 0,0, and the exact same size (thus zoom) as the master
-            // slide, so we can just draw the master slide w/out further ado
-            dc.g.setClip(master.getBounds());
-            master.draw(dc);
-
-            // Now just draw the slide
-            dc.g.setClip(curClip);
-            focal.draw(dc);
-
-            
-        } else {
-
-            Point2D.Float offset = new Point2D.Float();
-            double masterZoom = ZoomTool.computeZoomFit(viewer.getVisibleSize(),
-                                                        0,
-                                                        master.getShapeBounds(), // don't include border
-                                                        offset,
-                                                        true);
-            
-            out("master slide compensated to zoom " + masterZoom + " at " + offset);
-
-            dc.setRawDrawing();
-
-            dc.g.translate(-offset.x, -offset.y);
-            dc.g.scale(masterZoom, masterZoom);
-            master.draw(dc);
-            dc.g.scale(1/masterZoom, 1/masterZoom);
-            dc.g.translate(offset.x, offset.y);
-
-            dc.setMapDrawing();
-
-            dc.g.setClip(curClip);
-            drawFocal(dc, viewer, focal);
-        }
-        
-
-        //out("drawing focal " + focal);
-        //focal.draw(dc); // will not work if is map-view
-        out("-------------------------------------------------------");
-    }
-    */
-    
-    /** either draws the entire map (previously zoomed to to something to focus on),
-     * or a fully focused part of of it, where we only draw that item.
-     */
-
-    /*
-    protected void drawFocal(final DrawContext dc, MapViewer viewer, final LWComponent focal)
-    {
-        final LWMap underlyingMap = focal.getMap();
-        
-        out("drawing focal " + focal + " in map " + underlyingMap);
-
-        //dc.g.setColor(mFocal.getMap().getFillColor());
-        //dc.g.fill(dc.g.getClipBounds());
-        
-        if (false && focal.isTranslucent() && focal != underlyingMap && focal instanceof LWGroup == false) { // groups not meant to operate transparently
-            out("drawing clipped focal " + focal.getLocalShape());
-
-            //out("drawing underlying map " + underlyingMap);
-
-            // If our fill is in any way translucent, the underlying
-           // map can show thru, thus we have to draw the whole map
-            // to see the real result -- we just set the clip to
-            // the shape of the focal.
-            
-            final Shape curClip = dc.g.getClip();
-            dc.g.setClip(focal.getShape());
-            underlyingMap.draw(dc);
-            dc.g.setClip(curClip);
-            
-        } else {
-            out("drawing raw focal");
-            focal.draw(dc);
-        }
-    }
-    */
 
     private void drawNavNodes(DrawContext dc)
     {
-        LWComponent node = currentNode();
+        LWComponent node = mCurrentPage.getOriginalMapNode();
 
         mNavNodes.clear();
         
         if (node == null || (node.getLinks().size() == 0 && node.getPathways().size() < 2))
             return;
         
-        makeNavNodes(node, dc.getFrame());
-        
-        //dc = dc.create(); // just in case
+        makeNavNodes(mCurrentPage, dc.getFrame());
+
         for (LWComponent c : mNavNodes) {
             dc.setFrameDrawing(); // reset the GC each time, as draw translate it to local coords each time
             c.draw(dc);
         }
-
     }
 
     private static final int NavNodeX = -10; // clip the left edge of the round-rect
     
-    private void makeNavNodes(LWComponent node, Rectangle frame)
+    private void makeNavNodes(Page page, Rectangle frame)
     {
-
         // always add the current pathway at the top
-        if (node.inPathway(mPathway))
-            mNavNodes.add(createNavNode(node, mPathway));
+        //if (node.inPathway(mPathway))
+        if (page.inPathway(mPathway))
+            mNavNodes.add(createNavNode(page));
+
+        final LWComponent mapNode = page.getOriginalMapNode();
         
-        for (LWPathway path : node.getPathways()) {
-            if (path != mPathway)
-                mNavNodes.add(createNavNode(node, path));
+        for (LWPathway otherPath : mapNode.getPathways()) {
+            if (otherPath != mPathway)
+                mNavNodes.add(createNavNode(new Page(otherPath.getFirstEntry(mapNode))));
         }
 
 
         float x = NavNodeX, y = frame.y;
+
+        if (DEBUG.NAV) {
+            // make room for diagnostics:
+            y += 200;
+        }
+
+        
         for (NavNode nav : mNavNodes) {
             y += nav.getHeight() + 5;
             nav.setLocation(x, y);
@@ -834,15 +1044,20 @@ public class PresentationTool extends VueTool
         
         if (!mNavNodes.isEmpty())
             y += 30;
+
+        
+        
         
         NavNode nav;
-        for (LWLink link : node.getLinks()) {
-            LWComponent farpoint = link.getFarNavPoint(node);
+        for (LWLink link : mapNode.getLinks()) {
+            LWComponent farpoint = link.getFarNavPoint(mapNode);
             if (farpoint != null) {
                 if (false && link.hasLabel())
-                    nav = createNavNode(link, null); // just need to set syncSource to the farpoint
+                    nav = createNavNode(new Page(link));
+                //nav = createNavNode(link, null); // just need to set syncSource to the farpoint
                 else
-                    nav = createNavNode(farpoint, null);
+                    nav = createNavNode(new Page(farpoint));
+                //nav = createNavNode(farpoint, null);
                 mNavNodes.add(nav);
 
                 y += nav.getHeight() + 5;
@@ -869,70 +1084,22 @@ public class PresentationTool extends VueTool
         */
     }
 
-    private NavNode createNavNode(LWComponent src, LWPathway pathway) {
-        return new NavNode(src, pathway);
+    private NavNode createNavNode(Page page) {
+        return new NavNode(page);
     }
+//     private NavNode createNavNode(LWComponent src, LWPathway pathway) {
+//         return new NavNode(src, pathway);
+//     }
     
-    /*
-    private static final Font NavFont = new Font("SansSerif", Font.PLAIN, 16);
-    private static final Color NavFillColor = new Color(154,154,154);
-    //private static final Color NavFillColor = new Color(64,64,64,96);
-    private static final Color NavStrokeColor = new Color(96,93,93);
-    private static final Color NavTextColor = Color.darkGray;
-
-    private NavNode createNavNode(LWComponent src, LWPathway pathway)
-    {av
-//         if (false) {
-//             LWComponent c = src.duplicate();
-//             c.setSyncSource(src);
-//             return c;
-//         }
-
-        String label = src.getDisplayLabel();
-
-        if (label.length() > 20)
-            label = label.substring(0,18) + "...";
-
-        if (pathway == null && mBackList.peekNode() == src)
-            label = "BACK:" + label;
-        //label = "    " + label + " ";
-
-        final NavNode c = new NavNode(c, src, pathway);
-        
-        final LWNode c = new LWNode(label) {
-                // force label at left (non-centered)                
-                protected float relativeLabelX() { return -NavNodeX + 10; }
-            };
-
-        //LWComponent c = NodeTool.createTextNode(src.getDisplayLabel());
-        c.setFont(NavFont);
-        c.setTextColor(NavTextColor);
-        c.setFillColor(NavFillColor);
-        
-        if (pathway != null)
-            c.setStrokeColor(pathway.getStrokeColor());
-        else
-            c.setStrokeColor(NavStrokeColor);
-        
-        c.setStrokeWidth(2);
-        c.setSyncSource(src); // TODO: these will never get GC'd, and will be updating for ever based on their source...
-        c.setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20));
-        c.setAutoSized(false); 
-        c.setSize(200, c.getHeight() + 6);
-        return c;
-    }
-    */
-        
     
-    public void XhandleFullScreen(boolean fullScreen) {
-        // when entering or exiting full-screen, keep us zoomed
-        // to current page.
-        makeInvisible();
-        if (getCurrentPage() != null) {
-            zoomToPage(getCurrentPage(), false);
-        }
-        makeVisibleLater();
+
+    public DrawContext tweakDrawContext(DrawContext dc) {
+        dc.setPresenting(true);
+        if (false &&mShowNavNodes)
+            dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
+        return dc;
     }
+        
     
     private void makeInvisible() {
         if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
@@ -972,7 +1139,7 @@ public class PresentationTool extends VueTool
     
     public void handleToolSelection() {
         out(this + " SELECTED");
-        mCurrentPage = null;
+        mCurrentPage = NO_PAGE;
         if (VUE.getSelection().size() == 1)
             mNextPage = VUE.getSelection().first();
         else
@@ -981,20 +1148,69 @@ public class PresentationTool extends VueTool
         //handleSelectionChange(VUE.getSelection());
         //mStartButton.requestFocus();
     }
-    
+
+    /*
     public void handleSelectionChange(LWSelection s) {
         out("SELECTION CHANGE");
         // TODO: if active map changes, need to be sure to clear current page!
         if (s.size() == 1)
             mCurrentPage = s.first();
         
-        /*
-        if (s.size() == 1)
-            mNextPage = s.first();
-        else
-            mNextPage = null;
-        */
+//         if (s.size() == 1)
+//             mNextPage = s.first();
+//         else
+//             mNextPage = null;
+
     }
+    */
+
+//     private void followLink(LWComponent src, LWLink link) {
+//         LWComponent linkingTo = link.getFarPoint(src);
+//         mLastFollowed = link;
+//         setPage(linkingTo);
+//     }
+
+    
+    /*
+    private LWComponent OLD_guessNextPage()
+    {
+        // todo: only bother with links that have component endpoints!
+        List links = mCurrentPage.getLinks();
+        LWLink toFollow = null;
+        if (links.size() == 1) {
+            toFollow = (LWLink) mCurrentPage.getLinks().get(0);
+        } else {
+            Iterator i = mCurrentPage.getLinks().iterator();
+            
+            while (i.hasNext()) {
+                LWLink link = (LWLink) i.next();
+                if (link.getFarNavPoint(currentNode()) == null)
+                    continue; // if a link to nothing, ignore
+                if (link != mLastFollowed) {
+                    toFollow = link;
+                    break;
+                }
+            }
+        }
+        LWComponent nextPage = null;
+        if (toFollow != null) {
+            mLastFollowed = toFollow;
+            nextPage = toFollow.getFarNavPoint(currentNode());
+            if (nextPage.getParent() instanceof LWGroup)
+                nextPage = nextPage.getParent();
+        }
+        // TODO: each page keeps a mPrevPage, which we use instead of
+        // the peek here to find the "default" backup.  Maybe
+        // a useful "uparrow" functionality can also make use of this?
+        // uparrow should also go back up to the parent of the current
+        // page if it's anything other than the map itself
+        if (nextPage == null && !mVisited.isEmpty() && mVisited.peek() != mCurrentPage)
+            nextPage = mVisited.peek();
+
+        return nextPage;
+    }
+    */
+
     
     /*    
     public void handleSelectionChange(LWSelection s) {
