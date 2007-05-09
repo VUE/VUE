@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.347 $ / $Date: 2007-05-07 03:48:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.348 $ / $Date: 2007-05-09 04:54:36 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -157,7 +157,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     // todo: we should get rid of hard references to all the tools and handle functionality via tool API's
     //private final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
-    private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("selectTool");
+    //private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("selectTool");
+    private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("selectionTool.direct");
     private final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
     //private final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
     private final NodeTool NodeTool = (NodeTool) VueToolbarController.getController().getTool("nodeTool");
@@ -192,7 +193,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         this.activeTool = VueToolbarController.getActiveTool();
         if (activeTool == null) {
             // default tool is first in list
-            activeTool = VueToolbarController.getController().getTools()[0];
+            activeTool = VueToolbarController.getController().getTools().get(0);
         }
         this.mapDropTarget = new MapDropTarget(this); // new CanvasDropHandler
         this.setDropTarget(new java.awt.dnd.DropTarget(this,
@@ -736,9 +737,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             slide = (LWSlide) mFocal.getAncestorOfType(LWSlide.class);
         
         if (slide != null) {
-            // hack for slides which aren't really on the map: for MapPanner
-            LWComponent node = slide.getSourceNode();
-            return node.getBounds().createUnion(node.getMapSlideIconBounds());
+            final LWComponent node = slide.getSourceNode();
+            final Rectangle2D bounds = node.getBounds();
+            if (node.isDrawingSlideIcon()) {
+                // hack for slides which aren't really on the map: for MapPanner
+                return bounds.createUnion(node.getMapSlideIconBounds());
+            } else
+                return bounds;
         } else
             return screenToMapRect(getVisibleBounds());
     }
@@ -2029,16 +2034,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // first, be sure to erase anything already in the GC,
         // using the appropriate background fill.
         
+        
+        /*
+          // moved to drawFocal
+          
         final Color bgFill;
         
         if (dc.isPresenting() && !inScrollPane()) {
             bgFill = VUE.getActivePathway().getMasterSlide().getFillColor();
-            /*
-            if (mFocal instanceof LWSlide)
-                bgFill = ((LWSlide)mFocal).getMasterSlide().getFillColor();
-            else
-                bgFill = mMap.getFillColor();
-            */
+//             if (mFocal instanceof LWSlide)
+//                 bgFill = ((LWSlide)mFocal).getMasterSlide().getFillColor();
+//             else
+//                 bgFill = mMap.getFillColor();
         } else {
             if (mMap == null)
                 bgFill = Color.gray;
@@ -2048,6 +2055,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         g2.setColor(bgFill);
         g2.fill(g2.getClipBounds());
+        */
         
         /*
         if (mFocal instanceof LWSlide && !inScrollPane()) {
@@ -2274,8 +2282,41 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //setOpaque(true);
     }
 
+    protected Color getBackgroundFillColor(DrawContext dc) {
+        final Color bgFill;
 
-    protected void drawFocal(DrawContext dc) {
+        // TODO TODO: put fill in the graphics context, so presentation tool can tweak it in
+        // something renamed from tweakDrawContext, for pathway entries that are
+        // map-view nodes, where we don't have a slide to guess that we want to use for
+        // a background fill!  And while we're doing that, can add fill flag to draw
+        // context to know if we've already been filled, and actually a method to do the
+        // filling, which will set the flag...
+        
+        //if (dc.isPresenting() && !inScrollPane()) {
+        if (dc.isPresenting()) {
+            //bgFill = VUE.getActivePathway().getMasterSlide().getFillColor();
+            if (mFocal instanceof LWSlide)
+                bgFill = ((LWSlide)mFocal).getMasterSlide().getFillColor();
+            else
+                bgFill = VUE.getActivePathway().getMasterSlide().getFillColor();
+            //bgFill = mMap.getFillColor();
+        } else {
+            if (mMap == null)
+                bgFill = Color.gray;
+            else
+                bgFill = mMap.getFillColor();
+        }
+
+        return bgFill;
+        
+    }
+
+
+    protected void drawFocal(DrawContext dc)
+    {
+        dc.g.setColor(getBackgroundFillColor(dc));
+        dc.g.fill(dc.g.getClipBounds());
+        
         if (mFocal == null)
             return;
 
