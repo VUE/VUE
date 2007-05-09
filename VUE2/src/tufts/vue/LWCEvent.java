@@ -59,7 +59,7 @@ import java.util.ArrayList;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.24 $ / $Date: 2007-04-06 22:31:53 $ / $Author: sfraize $  
+ * @version $Revision: 1.25 $ / $Date: 2007-05-09 23:09:26 $ / $Author: sfraize $  
  
  */
 
@@ -109,7 +109,7 @@ public class LWCEvent
     {
         return this.source;
     }
-    
+
     public LWComponent getComponent()
     {
         if (component == null && components != null && components.size() > 0) {
@@ -161,6 +161,10 @@ public class LWCEvent
         return this.oldValue != NO_OLD_VALUE;
     }
 
+    public boolean isUndoable() {
+        return hasOldValue();
+    }
+    
     public String toString() {
         return "LWCEvent[" + paramString() + "]";
         
