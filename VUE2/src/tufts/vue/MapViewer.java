@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.349 $ / $Date: 2007-05-09 15:57:49 $ / $Author: mike $ 
+ * @version $Revision: 1.350 $ / $Date: 2007-05-09 22:41:50 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -158,7 +158,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // todo: we should get rid of hard references to all the tools and handle functionality via tool API's
     //private final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
     //private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("selectTool");
-    private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("selectionTool.direct");
+    private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("directSelectionTool");
     private final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
     //private final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
     private final NodeTool NodeTool = (NodeTool) VueToolbarController.getController().getTool("nodeTool");
@@ -3791,6 +3791,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (c == 'L') { DEBUG.LAYOUT = !DEBUG.LAYOUT; }
                 else if (c == 'M') { DEBUG.MOUSE = !DEBUG.MOUSE; }
                 else if (c == 'm') { DEBUG.MARGINS = !DEBUG.MARGINS; }
+                else if (c == 'N') { DEBUG.NAV = !DEBUG.NAV; }
                 else if (c == 'O') { DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN; }
                 else if (c == 'P') { DEBUG.PAINT = !DEBUG.PAINT; }
                 else if (c == 'Q') { DEBUG_RENDER_QUALITY = !DEBUG_RENDER_QUALITY; }
