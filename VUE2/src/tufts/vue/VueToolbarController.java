@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.54 $ / $Date: 2007-05-01 18:17:41 $ / $Author: mike $
+ * @version $Revision: 1.55 $ / $Date: 2007-05-09 04:59:17 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -53,15 +53,15 @@ public class VueToolbarController
 	
     /** a list of available tools **/
     private VueTool[] mVueTools = null;
+
+    /** for storing all the tools by name, including sub-tools */
+    private java.util.List<VueTool> mAllTools = new java.util.ArrayList();
 	
     /* current contextual panel **/
     //private JPanel mContextualPanel = null;
 	
     // the currently selected tool 
     private VueTool mSelectedTool = null;
-	
-    // current selection id
-    //private String mCurSelectionID = new String();
 
     private LWCToolPanel mLWCToolPanel;
 	
@@ -94,8 +94,13 @@ public class VueToolbarController
     }
 
     /** @return array of all the top-level VueTool's */
-    public VueTool[] getTools() {
+    public VueTool[] getTopLevelTools() {
         return mVueTools;
+    }
+    
+    /** @return list of all tools, including sub-tools */
+    public java.util.List<VueTool> getTools() {
+        return mAllTools;
     }
 
     private LWCToolPanel getLWCToolPanel()
@@ -111,14 +116,21 @@ public class VueToolbarController
      **/
     protected synchronized void loadTools()
     {
-        String [] names = VueResources.getStringArray(DefaultToolsKey);
+        String[] names = VueResources.getStringArray(DefaultToolsKey);
         if( names != null) {
-            mVueTools = new VueTool[ names.length];
-            for( int i=0; i< names.length; i++) {
-                debug("Loading tool "+names[i] );
-                mVueTools[i] = loadTool( names[i] );
+            mVueTools = new VueTool[names.length];
+            for (int i = 0; i < names.length; i++) {
+                debug("Loading tool " + names[i] );
+                mVueTools[i] = loadTool(names[i]);
             }
         }
+
+//         // add all top-level tools into list first, so they take priority
+//         // in shortcut-key searches
+//         for (VueTool t : mVueTools)
+//             mAllTools.add(t);
+//         for (VueTool t : mVueTools)
+//             // add sub-tools
     }
 	
     /**
@@ -150,6 +162,8 @@ public class VueToolbarController
             tool.setID(pName);
             tool.initFromResources();
 
+            mAllTools.add(tool);
+
             String subtools[];
             String defaultTool = null;
             subtools = VueResources.getStringArray( pName+".subtools");
@@ -159,7 +173,7 @@ public class VueToolbarController
                 tool.setOverlayDownIcon( VueResources.getImageIcon( pName+".overlaydown") );
 			
                 for(int i=0; i<subtools.length; i++) {
-                    VueTool subTool = this.loadTool( pName+"."+subtools[i] );
+                    VueTool subTool = loadTool(pName+"."+subtools[i]); // recursion...
                     subTool.setParentTool( tool);
                     tool.addSubTool(subTool);
                 }
@@ -255,11 +269,10 @@ public class VueToolbarController
      * @param pID id (name) of the tool
      **/
     public VueTool getTool(String pID) {
-        for( int i=0; i<mVueTools.length; i++) {
-            if (mVueTools[i].getID().equals(pID)) {
-                return mVueTools[i];
-            }
-        }
+        for (VueTool t : mAllTools)
+            if (t.getID().equals(pID))
+                return t;
+        tufts.Util.printStackTrace("failed to find tool [" + pID + "]");
         return null;
     }
 	
