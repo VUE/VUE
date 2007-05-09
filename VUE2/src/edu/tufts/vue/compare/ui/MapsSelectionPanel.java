@@ -13,6 +13,15 @@
  * <p>The entire file consists of original code.  Copyright &copy; 2003-2007
  * Tufts University. All rights reserved.</p>
  *
+ **********************************************
+ *
+ * MapsSelectionPanel.java
+ *
+ * Created on May 3, 2007, 11:17 AM
+ *
+ * @version $Revision: 1.2 $ / $Date: 2007-05-09 18:33:37 $ / $Author: dan $
+ * @author dhelle01
+ *
  *
  */
 
@@ -36,13 +45,6 @@ import javax.swing.table.*;
 
 import tufts.vue.*;
 
-/*
- * MapsSelectionPanel.java
- *
- * Created on May 3, 2007, 11:17 AM
- *
- * @author dhelle01
- */
 public class MapsSelectionPanel extends JPanel  {
     
     // probably should save settings when load LWMergeMap
