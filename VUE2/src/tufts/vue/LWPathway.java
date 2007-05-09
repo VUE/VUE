@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.146 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $
+ * @version $Revision: 1.147 $ / $Date: 2007-05-09 04:53:21 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -219,7 +219,7 @@ public class LWPathway extends LWContainer
         public boolean isPathway() { return false; }
 
         public String toString() {
-            return "Entry[" + node + " isMapView=" + isMapView + "]";
+            return "Entry[" + pathway.getLabel() + "#" + index() + "; " + node + " isMapView=" + isMapView + "]";
         }
 
 		public Object getTransferData(java.awt.datatransfer.DataFlavor arg0) throws UnsupportedFlavorException, IOException {
@@ -256,7 +256,7 @@ public class LWPathway extends LWContainer
             public final String getNotes() { return pathway.getNotes(); }
             public final void setNotes(String s) { pathway.setNotes(s); }
             public final boolean hasNotes() { return pathway.hasNotes(); }
-            public int index() { throw new Error("index of pathway itself is meaningless"); }
+            public int index() { return -1; }
         };
     
     public Entry asEntry() {
@@ -289,6 +289,20 @@ public class LWPathway extends LWContainer
                 return e;
         return null;
     }
+
+    public Entry getFirst() {
+        return mEntries.size() > 0 ? mEntries.get(0) : null;
+    }
+    
+    public Entry getLast() {
+        return mEntries.size() > 0 ? mEntries.get(mEntries.size()-1) : null;
+    }
+
+    /** pathways persist their hidden bit */
+    public Boolean getXMLhidden() {
+        return isHidden(HideReason.DEFAULT) ? Boolean.TRUE : null;
+    }
+    
 
     /**
      * Is this a "reveal"-way?  Members start hidden and are made visible as you move
@@ -398,7 +412,7 @@ public class LWPathway extends LWContainer
     }
 
     public Entry getEntry(int index) {
-        if (index >= length())
+        if (index >= length() || index < 0)
             return null;
         else
             return mEntries.get(index);
@@ -1279,7 +1293,6 @@ public class LWPathway extends LWContainer
     
     /** @deprecated - default constructor used for marshalling ONLY */
     public LWPathway() {
-        setVisible(false);
     }
 
 
