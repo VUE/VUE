@@ -29,7 +29,7 @@ import java.awt.font.FontRenderContext;
  *
  * Is an interface so can be "implemented" as virtual java 1.5 static import.
  *
- * @version $Revision: 1.50 $ / $Date: 2007-04-06 23:26:24 $ / $Author: sfraize $ 
+ * @version $Revision: 1.51 $ / $Date: 2007-05-09 04:58:32 $ / $Author: sfraize $ 
  */
 
 // todo: rename GUI constants & move to GUI
@@ -44,6 +44,8 @@ public interface VueConstants
     static Font MediumFont = new Font("SansSerif", Font.PLAIN, 12);
     static Font SmallFont = new Font("SansSerif", Font.PLAIN, 10);
     //static Font LinkLabelFont = new Font("SansSerif", Font.PLAIN, 10);
+
+    static Font SmallFixedFont = new Font("Lucida Sans Typewriter", Font.PLAIN, 10);
 
     static Font FONT_DEFAULT = new Font("SansSerif", Font.PLAIN, 14);
     static Font FONT_MEDIUM = new Font("SansSerif", Font.PLAIN, 12);
@@ -114,6 +116,7 @@ public interface VueConstants
     static java.awt.BasicStroke STROKE_HALF = new java.awt.BasicStroke(0.5f);
     static java.awt.BasicStroke STROKE_ONE = new java.awt.BasicStroke(1f);
     static java.awt.BasicStroke STROKE_TWO = new java.awt.BasicStroke(2f);
+    static java.awt.BasicStroke STROKE_THREE = new java.awt.BasicStroke(3f);
     static java.awt.BasicStroke STROKE_FIVE = new java.awt.BasicStroke(5f);
     static java.awt.BasicStroke STROKE_SEVEN = new java.awt.BasicStroke(7f);
     static java.awt.BasicStroke STROKE_INDICATION = new java.awt.BasicStroke(3f);
