@@ -181,8 +181,10 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
     
     public void activeChanged(tufts.vue.ActiveEvent<tufts.vue.LWMap> e) {
         this.lWMap = e.active;
-        lWMap.getMapFilterModel().addListener(this);
-        elementsModel.setElements(lWMap.getMapFilterModel().getKeyVector());
+        if (lWMap != null) {
+            lWMap.getMapFilterModel().addListener(this);
+            elementsModel.setElements(lWMap.getMapFilterModel().getKeyVector());
+        }
     }
     
     public class ElementComboBoxModel extends DefaultComboBoxModel {
