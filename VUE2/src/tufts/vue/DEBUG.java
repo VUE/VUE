@@ -62,6 +62,7 @@ public class DEBUG
     public static boolean DATA = false; // data production / meta-data
     public static boolean RESOURCE = false; // Resources
     public static boolean PRESENT = false;
+    public static boolean NAV = false; // presentation non-linear navigation
     public static boolean PICK = false;
     public static boolean LISTS = false; //for debugging UL and OL in HTML textbox code
     public static boolean LINK = false; // for LWLinks
@@ -79,7 +80,7 @@ public class DEBUG
         Enabled=CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
             PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
-            CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=WIDGET=DATA=PRESENT=PICK=LINK=STYLE=t;
+            CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=WIDGET=DATA=PRESENT=PICK=LINK=STYLE=NAV=t;
 
         // only turn META & WORK off, not on
         if (t == false)
@@ -142,6 +143,7 @@ public class DEBUG
             else if (a.startsWith("dock"))   DEBUG.DOCK = true;
             else if (a.startsWith("widget")) DEBUG.WIDGET = true;
             else if (a.startsWith("pres"))   DEBUG.PRESENT = true;
+            else if (a.startsWith("nav"))    DEBUG.NAV = true;
             else if (a.startsWith("link"))   DEBUG.LINK = true;
             else if (a.startsWith("style"))  DEBUG.STYLE = true;
         }
