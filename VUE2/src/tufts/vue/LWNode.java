@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.146 $ / $Date: 2007-05-02 02:15:31 $ / $Author: sfraize $
+ * @version $Revision: 1.147 $ / $Date: 2007-05-09 04:52:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -171,6 +171,17 @@ public class LWNode extends LWContainer
         this(label, 0, 0);
         setResource(resource);
     }
+
+    public void setResource(Resource r)
+    {
+        super.setResource(r);
+        if (getChild(0) instanceof LWImage) {
+            LWImage image = (LWImage) getChild(0);
+            if (image.isNodeIcon())
+                image.setResource(r);
+        }
+    }
+    
     
     public static final Key KEY_Shape = new Key<LWNode,Class<? extends RectangularShape>>("node.shape", "shape") {
         @Override public boolean setValueFromCSS(LWNode c, String cssKey, String cssValue) {
