@@ -53,6 +53,7 @@ implements org.osid.repository.RepositoryManager
     {
 		this.configuration = configuration;
 		try {
+			// setup logging and id manager, once
 			if (Utilities.getIdManager() == null) {
 				org.osid.logging.LoggingManager loggingManager = (org.osid.logging.LoggingManager)org.osid.OsidLoader.getManager("org.osid.logging.LoggingManager",
 																																 "comet.osidimpl.logging.plain",
@@ -137,6 +138,9 @@ implements org.osid.repository.RepositoryManager
 		}
 	}
 
+	/**
+		Unimplemented Method
+	 */
     public org.osid.repository.Repository createRepository(String displayName
                                                          , String description
                                                          , org.osid.shared.Type repositoryType)
@@ -145,6 +149,9 @@ implements org.osid.repository.RepositoryManager
         throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
+	/**
+		Unimplemented Method
+	 */
     public void deleteRepository(org.osid.shared.Id repositoryId)
     throws org.osid.repository.RepositoryException
     {
@@ -154,12 +161,18 @@ implements org.osid.repository.RepositoryManager
         throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
+	/**
+		Return the sole Repository that points to the Sakai instance.
+	 */
     public org.osid.repository.RepositoryIterator getRepositories()
     throws org.osid.repository.RepositoryException
     {
 		return new RepositoryIterator(this.repositoryVector);
 	}
 
+	/**
+		Return the sole Repository that points to the Sakai instance.
+	 */
     public org.osid.repository.RepositoryIterator getRepositoriesByType(org.osid.shared.Type repositoryType)
     throws org.osid.repository.RepositoryException
     {
@@ -172,6 +185,9 @@ implements org.osid.repository.RepositoryManager
 		return getRepositories();
     }
 
+	/**
+		Return the sole Repository that points to the Sakai instance.
+	 */
     public org.osid.repository.Repository getRepository(org.osid.shared.Id repositoryId)
     throws org.osid.repository.RepositoryException
     {
@@ -194,7 +210,6 @@ implements org.osid.repository.RepositoryManager
 			org.osid.repository.RepositoryIterator repositoryIterator = getRepositories();
 			while (repositoryIterator.hasNextRepository()) {
 				org.osid.repository.Repository repository = repositoryIterator.nextRepository();
-				//System.out.println("checking if " + repository.getId().getIdString() + " starts with " + repositoryIdString);
 				if (repository.getId().getIdString().equals(repositoryIdString)) {
 					return repository;
 				}
@@ -206,15 +221,34 @@ implements org.osid.repository.RepositoryManager
 		throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_ID);
     }
 
+	/**
+		Delgate to Repositories to perform work.
+	 */
     public org.osid.repository.Asset getAsset(org.osid.shared.Id assetId)
     throws org.osid.repository.RepositoryException
     {
         if (assetId == null) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
+        try {
+			org.osid.repository.RepositoryIterator repositoryIterator = getRepositories();
+			while (repositoryIterator.hasNextRepository()) {
+			org.osid.repository.Repository nextRepository = repositoryIterator.nextRepository();
+			try {
+				org.osid.repository.Asset asset = nextRepository.getAsset(assetId);
+				return asset;
+			} catch (Throwable t) {}
+			}
+		} catch (Throwable t) {
+            Utilities.log(t.getMessage());
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.OPERATION_FAILED);
+		}
+        throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.UNKNOWN_ID);
     }
 
+	/**
+		Unimplemented Method -- No version support
+	 */
     public org.osid.repository.Asset getAssetByDate(org.osid.shared.Id assetId
                                                   , long date)
     throws org.osid.repository.RepositoryException
@@ -225,6 +259,9 @@ implements org.osid.repository.RepositoryManager
 		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
+	/**
+		Unimplemented Method -- No version support
+	 */
     public org.osid.shared.LongValueIterator getAssetDates(org.osid.shared.Id assetId)
     throws org.osid.repository.RepositoryException
     {
@@ -234,6 +271,9 @@ implements org.osid.repository.RepositoryManager
 		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
+	/**
+		Delgate to Repositories to perform work.
+	 */
     public org.osid.repository.AssetIterator getAssetsBySearch(org.osid.repository.Repository[] repositories
                                                              , java.io.Serializable searchCriteria
                                                              , org.osid.shared.Type searchType
@@ -267,6 +307,9 @@ implements org.osid.repository.RepositoryManager
         }
     }
 
+	/**
+		Unimplemented Method
+	 */
     public org.osid.shared.Id copyAsset(org.osid.repository.Repository repository
                                       , org.osid.shared.Id assetId)
     throws org.osid.repository.RepositoryException
@@ -277,6 +320,9 @@ implements org.osid.repository.RepositoryManager
         throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
+	/**
+		Return the one type Sakai defines
+	 */
     public org.osid.shared.TypeIterator getRepositoryTypes()
     throws org.osid.repository.RepositoryException
     {

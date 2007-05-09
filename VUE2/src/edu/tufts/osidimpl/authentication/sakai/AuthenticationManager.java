@@ -72,10 +72,10 @@ implements org.osid.authentication.AuthenticationManager
 		this.host = this.configuration.getProperty("sakaiHost");
 		this.port = this.configuration.getProperty("sakaiPort");
 		
-		System.out.println("username " + this.username);
-		System.out.println("password " + this.password);
-		System.out.println("host " + this.host);
-		System.out.println("port " + this.port);
+		//System.out.println("username " + this.username);
+		//System.out.println("password " + this.password);
+		//System.out.println("host " + this.host);
+		//System.out.println("port " + this.port);
 		
 		// add http if it is not present
 		if (!this.host.startsWith("http://")) {
@@ -83,7 +83,7 @@ implements org.osid.authentication.AuthenticationManager
 		}
 		
 		try {
-/*			String endpoint = this.host + this.port + "/sakai-axis/SakaiLogin.jws";
+			String endpoint = this.host + ":" + this.port + "/sakai-axis/SakaiLogin.jws";
 			Service  service = new Service();
 			Call call = (Call) service.createCall();
 			
@@ -91,8 +91,8 @@ implements org.osid.authentication.AuthenticationManager
 			call.setOperationName(new QName(this.host + this.port + "/", "login"));
 			
 			this.sessionId = (String) call.invoke( new Object[] { this.username, this.password } );
-*/
-			this.sessionId = "0123456789";
+
+			this.sessionId = "0123456789";  // is this a GUID?
 			String key = this.host;
 			this.context.assignContext("org.sakaiproject.instanceKey",key); 
 			this.context.assignContext("org.sakaiproject.sessionId." + key,this.sessionId); 
@@ -104,6 +104,9 @@ implements org.osid.authentication.AuthenticationManager
 		}
 	}
 	
+	/**
+		We simply check if the session id is in the OsidContext.  TODO: Check the user is not logged out.
+	  */
     public boolean isUserAuthenticated(org.osid.shared.Type authenticationType)
     throws org.osid.authentication.AuthenticationException
     {
@@ -135,6 +138,9 @@ implements org.osid.authentication.AuthenticationManager
 		throw new org.osid.authentication.AuthenticationException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
+	/**
+		Set OsidContext keys' values to null.  TODO:  Is there a way to force a logout in Sakai?
+	  */
     public void destroyAuthentication()
     throws org.osid.authentication.AuthenticationException
     {
@@ -144,6 +150,7 @@ implements org.osid.authentication.AuthenticationManager
 		this.port = null;
 		
 		try {
+			this.context.assignContext("org.sakaiproject.sessionId." + this.host,null);
 			this.context.assignContext("org.sakaiproject.sessionId",null);
 		} catch (Throwable t) {
 			log(t);
