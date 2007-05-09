@@ -55,7 +55,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.121 $ / $Date: 2007-04-25 18:24:46 $ / $Author: sfraize $
+ * @version $Revision: 1.122 $ / $Date: 2007-05-09 23:09:01 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -759,10 +759,11 @@ public class LWMap extends LWContainer
             if (DEBUG.EVENTS) System.out.println(e + " SKIPPING (events disabled)");
             return;
         }
-        // consider flushing bounds if layout() called also (any child layout bubbles up to us)
-        // todo pref: should be safe to only do this if a size, location or scale, hide or filter event.
-        // TODO: make the key itself know if it's not a modification key!
-        // TODO: the UndoManager already knows if there's been a real change: ask that...
+        
+        if (e.isUndoable())
+            markChange(e);
+
+        /*
         final Object key = e.key;
         if (key == LWKey.Repaint || key == LWKey.Scale || key == LWKey.RepaintAsync || key == LWKey.RepaintComponent) {
             // nop
@@ -775,6 +776,8 @@ public class LWMap extends LWContainer
         } else {
             markChange(e);
         }
+        */
+        
         super.notifyLWCListeners(e);
         flushBounds();
     }
