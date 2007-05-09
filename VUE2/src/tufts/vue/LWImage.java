@@ -157,12 +157,14 @@ public class LWImage extends
     /** This currently makes LWImages invisible to selection (they're locked in their parent node */
     //@Override
     protected LWComponent defaultPick(PickContext pc) {
-        if (getClass().isAssignableFrom(LWNode.class))
+        if (getClass().isAssignableFrom(LWNode.class)) {
             return super.defaultPick(pc);
-        else
-            return isNodeIcon() ? getParent() : this;
-            //return (pc.pickDepth > 0 || getParent() instanceof LWMap) ? this : getParent();
-        // todo: checking the map is a hack -- PickContext should tell us all we need
+        } else {
+            if (isNodeIcon())
+                return pc.pickDepth > 0 ? this : getParent();
+            else
+                return this;
+        }
     }
 
     
