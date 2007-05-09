@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.50 $ / $Date: 2007-05-02 22:54:53 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2007-05-09 16:43:10 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -89,6 +89,7 @@ public class FontEditorPanel extends JPanel
         */
 
         mFontCombo = new JComboBox(getFontNames());
+        mFontCombo.setRenderer(new CustomComboBoxRenderer());        
         Font f = mFontCombo.getFont();
         Font menuFont = f.deriveFont((float) 9);        
         mFontCombo.setFont(menuFont);
@@ -126,6 +127,7 @@ public class FontEditorPanel extends JPanel
         if (sFontSizes == null)
             sFontSizes = VueResources.getStringArray("fontSizes");
         mSizeField = new JComboBox(sFontSizes);
+        mSizeField.setRenderer(new CustomComboBoxRenderer());
   //      mSizeField.setPrototypeDisplayValue("10000");
         mSizeField.setEditable(true);
         mSizeField.setOpaque(false);
@@ -315,6 +317,28 @@ public class FontEditorPanel extends JPanel
 
         //initColors(VueTheme.getToolbarColor());
     }
+
+    private class CustomComboBoxRenderer extends DefaultListCellRenderer {
+
+    	public Component getListCellRendererComponent( JList list,
+    	Object value,
+    	int index, boolean isSelected, boolean cellHasFocus) {
+    	Color bg = GUI.getTextHighlightColor();
+    	if (isSelected) {
+    	setBackground(bg);
+    	setForeground(list.getSelectionForeground());
+    	}
+    	else {
+    	setBackground(list.getBackground());
+    	setForeground(list.getForeground());
+    	}
+
+    	setText((value == null) ? "" : ((String) value).toString());    	
+    	
+
+    	return this;
+    	}
+    	}
 
     public void XpropertyChange(PropertyChangeEvent e)
     {

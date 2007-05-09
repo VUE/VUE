@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.54 $ / $Date: 2007-05-02 23:00:28 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2007-05-09 16:43:10 $ / $Author: mike $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -148,8 +148,9 @@ public class NodeToolPanel extends ToolPanel
                                                           boolean isSelected,
                                                           boolean cellHasFocus)
             {
-                if (isSelected) {
-                    setBackground(list.getSelectionBackground());
+            	Color bg = GUI.getTextHighlightColor();
+            	if (isSelected) {
+                    setBackground(bg);
                     setForeground(list.getSelectionForeground());
                 } else {
                     setBackground(Color.white);
@@ -206,9 +207,9 @@ public class NodeToolPanel extends ToolPanel
                                                           int index,
                                                           boolean isSelected,
                                                           boolean cellHasFocus) {
-        		
+        		Color bg = GUI.getTextHighlightColor();
                 if (isSelected) {
-                    setBackground(list.getSelectionBackground());
+                    setBackground(bg);
                     setForeground(list.getSelectionForeground());
                 } else {
                     setBackground(Color.white);

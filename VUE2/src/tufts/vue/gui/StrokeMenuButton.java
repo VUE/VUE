@@ -37,7 +37,7 @@ import tufts.vue.LWComponent;
  * This class provides a popup button selector component for stroke widths.
  *
  * @author Scott Fraize
- * @version $Revision: 1.10 $ / $Date: 2007-05-01 04:31:12 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2007-05-09 16:43:11 $ / $Author: mike $
  *
  **/
 public class StrokeMenuButton extends ComboBoxMenuButton<Float>
@@ -92,9 +92,9 @@ public class StrokeMenuButton extends ComboBoxMenuButton<Float>
                     int index,
                     boolean isSelected,
                     boolean cellHasFocus) {
-    		
+    		Color bg = GUI.getTextHighlightColor();
     		if (isSelected) {
-    			setBackground(list.getSelectionBackground());
+    			setBackground(bg);
     			setForeground(list.getSelectionForeground());
     		} else {
     			setBackground(Color.white);

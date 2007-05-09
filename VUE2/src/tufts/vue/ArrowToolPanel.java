@@ -32,7 +32,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.4 $ / $Date: 2007-05-01 22:36:54 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2007-05-09 16:43:10 $ / $Author: mike $
  * 
  */
 
@@ -83,9 +83,9 @@ public class ArrowToolPanel extends ToolPanel
                         int index,
                         boolean isSelected,
                         boolean cellHasFocus) {
-        		
+        		Color bg = GUI.getTextHighlightColor();
         		if (isSelected) {
-        			setBackground(list.getSelectionBackground());
+        			setBackground(bg);
         			setForeground(list.getSelectionForeground());
         		} else {
         			setBackground(Color.white);
