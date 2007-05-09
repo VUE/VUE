@@ -79,9 +79,9 @@ public class PublishUtil implements  tufts.vue.DublinCoreConstants  {
             Vector vector = (Vector)i.next();
             Resource r = (Resource)(vector.elementAt(1));
             Boolean b = (Boolean)(vector.elementAt(0));
-            File file = new File(r.getSpec());
+            File file = new File(new URL(r.getSpec()).getFile());
             //File file = new File((String)vector.elementAt(1));
-            if(file.isFile() && b.booleanValue()) {
+            if(b.booleanValue()) {
                 System.out.println("FileName = "+file.getName()+" index ="+resourceVector.indexOf(vector));
                 //resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
                 String entry = IMSCP.RESOURCE_FILES+File.separator+file.getName();

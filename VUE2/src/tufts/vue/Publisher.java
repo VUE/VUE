@@ -47,7 +47,7 @@ import tufts.vue.action.*;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.40 $ / $Date: 2007-05-04 19:53:59 $ / $Author: jeff $
+ * @version $Revision: 1.41 $ / $Date: 2007-05-09 18:52:57 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
     
@@ -61,6 +61,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final int PUBLISH_ALL_MODES = 10; // this means that datasource can publish to any mode.
     //todo: create a pubishable interface for Datatasources. Create an interface for datasources and have separate implementations for each type of datasource.
     
+    public static final String FILE_PREFIX = "file://";
     public static final int SELECTION_COL = 0; // boolean selection column in resource table
     public static final int RESOURCE_COL = 1; // column that displays the name of resource
     public static final int SIZE_COL = 2; // the column that displays size of files.
@@ -309,18 +310,18 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     
     private void setLocalResourceVector(Vector vector,LWContainer map) {
-        Iterator i = map.getChildIterator();
+        Iterator i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
         while(i.hasNext()) {
             LWComponent component = (LWComponent) i.next();
+            //System.out.println("Component:"+component+" has resource:"+component.hasResource());
             if(component.hasResource()){
                 Resource resource = component.getResource();
                 //   if(resource.getType() == Resource.URL) {
                 try {
                     // File file = new File(new URL(resource.getSpec()).getFile());
-                   // System.out.println("LWComponent:"+component.getLabel() + "Resource: "+resource.getSpec());
-                    
-                    File file = new File(resource.getSpec());
-                    if(file.isFile()) {
+                    if(resource.getSpec().startsWith(FILE_PREFIX)) {
+                        File file = new File(new URL(resource.getSpec()).getFile());
+                        System.out.println("LWComponent:"+component.getLabel() + "Resource: "+resource.getSpec()+"File:"+file+" exists:"+file.exists());
                         Vector row = new Vector();
                         row.add(new Boolean(true));
                         row.add(resource);
@@ -332,11 +333,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                     System.out.println("Publisher.setLocalResourceVector: Resource "+resource.getSpec()+ ex);
                     ex.printStackTrace();
                 }
-                // }
+                
             }
-            if(component instanceof LWContainer) {
-                setLocalResourceVector(vector,(LWContainer)component);
-            }
+            
         }
     }
     
