@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.66 $ / $Date: 2007-05-01 18:19:24 $ / $Author: mike $  
+ * @version $Revision: 1.67 $ / $Date: 2007-05-09 04:53:58 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -792,7 +792,7 @@ class MapDropTarget
                 }
                 */
             }
-            lwImage.setLabel(displayName);
+            //lwImage.setLabel(displayName);
         }
         
         if (lwImage == null || dropImagesAsNodes) {
@@ -1075,7 +1075,8 @@ class MapDropTarget
     }
 
     
-    private String makeNodeTitle(Resource resource)
+    // TODO: this should be here: move to URLResource.java
+    static String makeNodeTitle(Resource resource)
     {
         if (resource.getTitle() != null)
             return resource.getTitle();
@@ -1109,7 +1110,7 @@ class MapDropTarget
             }
         }
 
-        if (DEBUG.DND) out("MADE TITLE[" + name + "]");
+        //if (DEBUG.DND) out("MADE TITLE[" + name + "]");
 
         return name;
     }
