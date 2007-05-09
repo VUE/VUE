@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.75 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2007-05-09 16:30:23 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -126,6 +126,7 @@ public class PathwayPanel extends JPanel
     {   
     	//DISABLE THE NOTES BUTTONS FOR NOW UNTIL WE FIGURE OUT WHAT THEY DO -MK
     	Icon i =VueResources.getIcon("presentationDialog.button.viewAll.raw");
+    	addToolTips();
     //	btnAnnotateSlide.setEnabled(false);
     //	btnAnnotatePresentation.setEnabled(false);
     	btnMergeInto.setEnabled(false);
@@ -283,6 +284,38 @@ public class PathwayPanel extends JPanel
     	System.out.println("master panel :" + masterPanel.getSize().toString());
     	System.out.println("new panel :" + newPanel.getSize().toString());
     }*/
+    
+    private void addToolTips()
+    {
+    	String baseProp = "presentationDialog.button.";    	
+
+    	btnAddSlide.setToolTipText(VueResources.getString(baseProp+"makeSlides.tooltip"));
+        btnMergeInto.setToolTipText(VueResources.getString(baseProp+"mergeInto.tooltip"));
+        btnLiveMap.setToolTipText(VueResources.getString(baseProp+"liveMap.tooltip"));
+        
+        //edit
+        btnPreview.setToolTipText(VueResources.getString(baseProp+"preview.tooltip"));
+        btnPreviewFull.setToolTipText(VueResources.getString(baseProp+"previewFull.tooltip"));
+           
+        //master slide
+        btnMasterSlide.setToolTipText(VueResources.getString(baseProp+"masterSlide.tooltip"));
+        
+        //new    
+        btnPresentationCreate.setToolTipText(VueResources.getString(baseProp+"add.tooltip"));        
+        btnPresentationDelete.setToolTipText(VueResources.getString(baseProp+"delete.tooltip"));
+        
+
+        //filter
+        btnPathwayOnly.setToolTipText(VueResources.getString(baseProp+"viewAll.tooltip"));
+        
+        // hack for now as single button just to get this working:
+        btnShowSlides.setToolTipText(VueResources.getString(baseProp+"showNodes.tooltip"));
+        
+        
+        //playback mode
+        btnPlayMaps.setToolTipText(VueResources.getString(baseProp+"playSlides.tooltip"));
+        btnPlay.setToolTipText(VueResources.getString(baseProp+"play.tooltip"));               	
+    }
     
     private void buildSlidePanel(JPanel slidePanel)
     {
