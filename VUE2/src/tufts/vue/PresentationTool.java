@@ -868,7 +868,7 @@ private static int OverviewMapSizeIndex = 5;
         setPage(new Page(entry), recordBackup);
         //setPage(new Page(mEntry), recordBackup);
         //setPage(mEntry.getFocal(), recordBackup);
-        VUE.setActive(LWPathway.Entry.class, this, entry);
+        //VUE.setActive(LWPathway.Entry.class, this, entry);
     }
 
     private void setPage(LWComponent destination) {
@@ -904,6 +904,7 @@ private static int OverviewMapSizeIndex = 5;
         if (page.onPathway()) {
             if (page.pathway() != mPathway)
                 mPathway = page.pathway();
+            VUE.setActive(LWPathway.Entry.class, this, page.entry);
             mLastPathwayPage = page;
             //mPathwayIndex = page.entry.index();
         }
