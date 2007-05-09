@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.419 $ / $Date: 2007-05-09 15:57:49 $ / $Author: mike $ 
+ * @version $Revision: 1.420 $ / $Date: 2007-05-09 22:42:50 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -121,15 +121,18 @@ public class VUE
     private static final ActiveChangeSupport<LWMap> ActiveMapHandler
         = new ActiveChangeSupport<LWMap>(LWMap.class) {
         protected void onChange(ActiveEvent<LWMap> e) {
-            final LWPathwayList pathwayList = e.active.getPathwayList();
+            final LWPathwayList pathwayList = e.active == null ? null : e.active.getPathwayList();
             
             if (e.oldActive != null && e.oldActive.getPathwayList() != null)
                 e.oldActive.getPathwayList().removeListener(PathwayListListener);
             
             if (pathwayList != null)
                 pathwayList.addListener(PathwayListListener);
-            
-            ActivePathwayHandler.setActive(e, e.active.getActivePathway());
+
+            if (e.active != null)
+                ActivePathwayHandler.setActive(e, e.active.getActivePathway());
+            else
+                ActivePathwayHandler.setActive(e, null);
         }
     };
     
@@ -146,7 +149,10 @@ public class VUE
             if (!(e.active instanceof tufts.vue.ui.SlideViewer)) {
                 // SlideViewer not treated as application-level viewer: ignore when gets selected
                 super.notifyListeners(e);
-                ActiveMapHandler.setActive(e, e.active.getMap());
+                if (e.active != null)
+                    ActiveMapHandler.setActive(e, e.active.getMap());
+                else
+                    ActiveMapHandler.setActive(e, null);
             }
         }
     };
