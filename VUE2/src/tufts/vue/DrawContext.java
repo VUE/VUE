@@ -32,7 +32,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.37 $ / $Date: 2007-04-16 06:06:07 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2007-05-09 04:51:02 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -67,6 +67,8 @@ public class DrawContext
     private final AffineTransform rawTransform;
     private final AffineTransform mapTransform;
     private Rectangle2D masterClipRect; // for drawing map nodes
+
+    public LWComponent skipDraw;
     
 
     // todo: consider including a Conatiner arg in here, for
@@ -221,7 +223,14 @@ public class DrawContext
     public void setAlpha(double alpha) {
         setAlpha(alpha, AlphaComposite.SRC_OVER);
     }
+
+    public static final String[] AlphaRuleNames = {
+        // Index based on coded values in java.awt.AlphaComposite.java @version 10 Feb 1997:
+        "<none>",
+        "CLEAR", "SRC", "SRC_OVER", "DST_OVER", "SRC_IN", "DST_IN", "SRC_OUT", "DST_OUT", "DST", "SRC_ATOP", "DST_ATOP", "XOR"
+    };
     
+
     public void checkComposite(LWComponent c) {
         if (alpha != 1f) {
             
@@ -233,10 +242,23 @@ public class DrawContext
 
             final Color fill = c.getRenderFillColor();
             
-            if (fill != null && fill.getAlpha() != 255)
+            // TODO: images with transparency in them may need special handling
+            // At the moment, any time we draw with a global transparency,
+            // images with transparency are filling their background with black!
+
+            if (c instanceof LWImage) {
+                // not perfect, but helps sometimes:
+                setAlpha(alpha, AlphaComposite.SRC_ATOP);
+                //System.out.println("IMAGE COMPOSITE " + c);
+            } else if (fill != null && fill.getAlpha() != 255) {
+                // merge with background:
                 setAlpha(alpha, AlphaComposite.SRC_OVER);
-            else
+                //System.out.println("COMPOSITE: SRC_OVER (has fill with partial transparency) " + c);
+            } else {
+                // draw on top of background:
+                //System.out.println("COMPOSITE: SRC (has no fill or opaque fill)              " + c);
                 setAlpha(alpha, AlphaComposite.SRC);
+            }
         }
     }
     
@@ -408,6 +430,7 @@ public class DrawContext
         this.rawClip = dc.rawClip;
         this.rawTransform = dc.rawTransform;
         this.masterClipRect = dc.masterClipRect;
+        this.skipDraw = dc.skipDraw;
         //this.mAlpha = dc.mAlpha;
     }
 
