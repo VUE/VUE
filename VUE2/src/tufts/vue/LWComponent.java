@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.256 $ / $Date: 2007-05-03 21:48:23 $ / $Author: sfraize $
+ * @version $Revision: 1.257 $ / $Date: 2007-05-09 04:52:08 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3079,6 +3079,9 @@ u                    getSlot(c).setFromString((String)value);
     /** @return true if this component currently requires painting and intersects the master paint region */
     public boolean requiresPaint(DrawContext dc)
     {
+        if (dc.skipDraw == this)
+            return false;
+        
         // if filtered, don't draw, unless has children, in which case
         // we need to draw just in case any of the children are NOT filtered.
         if (!isVisible() || (isFiltered() && !hasChildren()))
@@ -3380,7 +3383,7 @@ u                    getSlot(c).setFromString((String)value);
         return null;
     }
 
-    protected boolean isDrawingSlideIcon() {
+    public boolean isDrawingSlideIcon() {
         final LWPathway.Entry entry = getEntryToDisplay();
         return entry != null && !entry.isMapView;
     }
@@ -3801,14 +3804,15 @@ u                    getSlot(c).setFromString((String)value);
             setHidden(HideReason.DEFAULT);
     }
     
-    // TODO: this always returns null for now -- to we need to save?
+    /** @return always null (false): subclasses can override to persist the DEFAULT
+     * hidden bit if they wish.
+     */
     public Boolean getXMLhidden() {
         //return hidden ? Boolean.TRUE : null;
         return null;
     }
     public void setXMLhidden(Boolean b) {
-        //setHidden(b.booleanValue());
-        VUE.Log.warn(this + " ignored persisted hidden flag");
+        setVisible(!b.booleanValue());
     }
 
     
