@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.348 $ / $Date: 2007-05-09 04:54:36 $ / $Author: sfraize $ 
+ * @version $Revision: 1.349 $ / $Date: 2007-05-09 15:57:49 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3629,7 +3629,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     isDraggingSelectorBox = false;
                     repaint();
                 } else if (VUE.inFullScreen()) {
-                    VUE.toggleFullScreen();
+                    VUE.toggleFullScreen(false,true);
                 } else
                     handled = false;
                 break;
@@ -5832,7 +5832,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 frame = VueUtil.displayComponent(viewer);
             }
             if (use_menu) {
-                JMenuBar menu = new tufts.vue.gui.VueMenuBar(null);
+                JMenuBar menu = new tufts.vue.gui.VueMenuBar();
                 menu.setFont(FONT_TINY);
                 // set the menu bar just so we can get all the actions connected to MapViewer
                 frame.setJMenuBar(menu);

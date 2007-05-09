@@ -30,21 +30,21 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.26 $ / $Date: 2007-05-09 04:57:00 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2007-05-09 15:57:49 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
     implements java.awt.event.FocusListener
 {
     public static VueMenuBar RootMenuBar;
-        
+    private static JCheckBoxMenuItem fullScreenToolbarItem = null;
     // this may be created multiple times as a workaround for the inability
     // to support a single JMenuBar for the whole application on the Mac
-    public VueMenuBar()
+/*    public VueMenuBar()
     {
         this(VUE.ToolWindows);
     }
-
+*/
     /*
       public void paint(Graphics g) {
       System.err.println("\nVueMenuBar: paint");
@@ -69,7 +69,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
     }
 
 
-    public VueMenuBar(Object[] toolWindows)
+    //public VueMenuBar(Object[] toolWindows)
+    public VueMenuBar()
     {
         //addFocusListener(this);
     	
@@ -80,14 +81,14 @@ public class VueMenuBar extends javax.swing.JMenuBar
         JMenu editMenu = new VueMenu("Edit");
         JMenu viewMenu = new VueMenu("View");
         JMenu formatMenu = new VueMenu("Format");
+        JMenu transformMenu = new VueMenu("Transform");
         JMenu arrangeMenu = new VueMenu("Arrange");
-        JMenu windowMenu = null;
-        JMenu alignMenu = new VueMenu("Arrange/Align");
+        JMenu windowMenu = new VueMenu("Windows");
+        JMenu alignMenu = new VueMenu("Align");        
         JMenu toolsMenu = new VueMenu("Tools");
         //JMenu optionsMenu = menuBar.add(new VueMenu("Options"))l
         JMenu helpMenu = add(new VueMenu("Help"));
-
-        //adding actions
+        
         SaveAction saveAction = new SaveAction("Save", false);
         SaveAction saveAsAction = new SaveAction("Save As...");
         OpenAction openAction = new OpenAction("Open...");
@@ -145,21 +146,22 @@ public class VueMenuBar extends javax.swing.JMenuBar
 			}
         	
         });
+
         fileMenu.add(Actions.NewMap);
         fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));
-        fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
-        fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));
         fileMenu.add(Actions.CloseMap);
-        fileMenu.add(printAction);
-        fileMenu.add(printAction).setText("Print Visible...");
+        fileMenu.addSeparator();
+        fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
+        fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));                
+        fileMenu.add(Actions.Revert);
+        fileMenu.addSeparator();
         fileMenu.add(publishAction);
-        //fileMenu.add(compareAction);
+        fileMenu.addSeparator();
+        fileMenu.add(printAction);
+        fileMenu.add(printAction).setText("Print Visible...");                
         
         rebuildRecentlyOpenedItems(fileMenu, recentlyOpenedMenu, rofm);
       
-        // GET RECENT FILES FROM PREFS!
-        //fileMenu.add(exportMenu);
-
         if (VUE.isApplet() || (VUE.isSystemPropertyTrue("apple.laf.useScreenMenuBar") && GUI.isMacAqua())) {
             // Do NOT add quit to the file menu.
             // Either we're an applet w/no quit, or it's already in the mac application menu bar.
@@ -172,60 +174,140 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.Undo);
         editMenu.add(Actions.Redo);
         editMenu.addSeparator();
-        GUI.addToMenu(editMenu, Actions.NEW_OBJECT_ACTIONS);
-        editMenu.add(Actions.Rename);
-        editMenu.add(Actions.Duplicate);
-        editMenu.add(Actions.Delete);
-        editMenu.addSeparator();
         editMenu.add(Actions.Cut);
         editMenu.add(Actions.Copy);
         editMenu.add(Actions.Paste);
-        editMenu.add(Actions.CopyStyle);
-        editMenu.add(Actions.PasteStyle);
+        editMenu.add(Actions.Duplicate);
+        editMenu.add(Actions.Delete);
         editMenu.addSeparator();
+        GUI.addToMenu(editMenu, Actions.NEW_OBJECT_ACTIONS);
+        //this isn't in the new comp..
+        // editMenu.add(Actions.Rename);                
+        editMenu.addSeparator();
+       // editMenu.addSeparator();
         editMenu.add(Actions.SelectAll);
+        editMenu.add(Actions.SelectAllNodes);
+        editMenu.add(Actions.SelectAllLinks);
         editMenu.add(Actions.DeselectAll);
         if (!tufts.Util.isMacPlatform())
+        {   editMenu.addSeparator();
             editMenu.add(Actions.Preferences);
+        }
+
         //editMenu.addSeparator();
         //editMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
+        
         if (DEBUG.IMAGE)
             editMenu.add(Images.ClearCacheAction);
         
         viewMenu.add(Actions.ZoomIn);
         viewMenu.add(Actions.ZoomOut);
-        viewMenu.add(Actions.ZoomFit);
         viewMenu.add(Actions.ZoomActual);
+        viewMenu.addSeparator();
         viewMenu.add(Actions.ZoomToSelection);
-
-        //if (tufts.Util.getJavaVersion() >= 1.5f)
-            viewMenu.add(Actions.ToggleFullScreen);
-
-        formatMenu.add(Actions.FontSmaller);
-        formatMenu.add(Actions.FontBigger);
-        formatMenu.add(Actions.FontBold);
-        formatMenu.add(Actions.FontItalic);
-        //formatMenu.add(new JMenuItem("Size"));
-        //formatMenu.add(new JMenuItem("Style"));
-        //formatMenu.add("Text Justify").setEnabled(false);
-        // TODO: ultimately better to break these out in to Node & Link submenus
-        formatMenu.addSeparator();
-        buildMenu(formatMenu, Actions.NODE_MENU_ACTIONS);
-        formatMenu.addSeparator();
-        buildMenu(formatMenu, Actions.LINK_MENU_ACTIONS);
+        viewMenu.add(Actions.ZoomFit);
+        viewMenu.addSeparator();        
+        viewMenu.add(Actions.ToggleFullScreen);
+        viewMenu.add(Actions.ToggleSplitScreen);
         
+        
+        if (VUE.getFormatDock() != null)
+        {
+        	formatMenu.add(createWindowItem(VUE.getFormatDock(),KeyEvent.VK_4,"Formatting Palette"));
+        	formatMenu.addSeparator();
+        }
+        
+        formatMenu.add(Actions.CopyStyle);
+        formatMenu.add(Actions.PasteStyle);
+        formatMenu.addSeparator();        
+        
+        //build format submenus...
         buildMenu(alignMenu, Actions.ARRANGE_MENU_ACTIONS);
-
         arrangeMenu.add(Actions.BringToFront);
         arrangeMenu.add(Actions.BringForward);
         arrangeMenu.add(Actions.SendToBack);
         arrangeMenu.add(Actions.SendBackward);
-        arrangeMenu.addSeparator();
-        arrangeMenu.add(Actions.Group);
-        arrangeMenu.add(Actions.Ungroup);
-        arrangeMenu.addSeparator();
-        arrangeMenu.add(alignMenu);
+        transformMenu.add(Actions.FontSmaller);
+        transformMenu.add(Actions.FontBigger);
+        transformMenu.add(Actions.FontBold);
+        transformMenu.add(Actions.FontItalic);
         
+        formatMenu.add(transformMenu);        
+        formatMenu.add(arrangeMenu);
+        formatMenu.add(alignMenu);
+        formatMenu.addSeparator();
+        formatMenu.add(Actions.Group);
+        formatMenu.add(Actions.Ungroup);
+        
+        //formatMenu.add(new JMenuItem("Size"));
+        //formatMenu.add(new JMenuItem("Style"));
+        //formatMenu.add("Text Justify").setEnabled(false);
+        // TODO: ultimately better to break these out in to Node & Link submenus
+        //formatMenu.addSeparator();
+  //      buildMenu(formatMenu, Actions.NODE_MENU_ACTIONS);
+   //     formatMenu.addSeparator();
+    //    buildMenu(formatMenu, Actions.LINK_MENU_ACTIONS);
+        
+        
+//      optionsMenu.add(new UserDataAction());
+        //JMenu compareAction = new VueMenu("Connectivity Analysis");
+        //Connectivity Actions
+        CreateCM createCMAction = new CreateCM("Connectivity Analysis");
+        AnalyzeCM analyzeCMAction = new AnalyzeCM("Merge Maps");
+        //compareAction.add(createCMAction);
+        //compareAction.add(analyzeCMAction);
+        RDFOpenAction rdfOpen = new RDFOpenAction();
+        OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction("Constraint Mapping");
+        FedoraOntologyOpenAction fooa = new FedoraOntologyOpenAction("Fedora Ontology Types");
+        //toolsMenu.add(Actions.AddResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
+        toolsMenu.add(Actions.AddResource);
+        toolsMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
+        toolsMenu.addSeparator();
+        
+        if (VUE.getPresentationDock() != null)
+        {
+        	toolsMenu.add(createWindowItem(VUE.getPresentationDock(),KeyEvent.VK_6, null));        
+        	toolsMenu.addSeparator();
+        }
+        
+        toolsMenu.add(createCMAction);
+        toolsMenu.add(analyzeCMAction);
+        toolsMenu.addSeparator();
+        toolsMenu.add(rdfOpen);
+        toolsMenu.add(fooa);
+        toolsMenu.add(ontcontrls);
+        toolsMenu.addSeparator();
+        toolsMenu.add(Actions.SearchFilterAction);
+        
+        //toolsMenu.add(fooa);
+     //   windowMenu = add(new VueMenu("Window"));
+        if (VUE.getInfoDock() !=null)
+        	windowMenu.add(createWindowItem(VUE.getInfoDock(),KeyEvent.VK_2, "Info"));
+        if (VUE.getMapInfoDock() !=null)
+        	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, "Map Info"));
+        if (VUE.getOutlineDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_7, "Outline"));
+        if (VUE.getPannerDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_5, "Panner"));
+        if (VUE.getContentDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_1, "Content"));                	
+        if (VUE.getFloatingZoomDock()!=null)
+        {
+        	fullScreenToolbarItem = createWindowItem(VUE.getFloatingZoomDock(),KeyEvent.VK_9, "FullScreen Toolbar");
+        	fullScreenToolbarItem.setEnabled(false);
+        	windowMenu.add(fullScreenToolbarItem);        	
+        }
+    /* 
+    	ObjectInspector,        	
+    
+    	MapInspector,
+    	outlineDock,
+    	pannerDock,        	
+    	DR_BROWSER_DOCK,
+    	slideDock, 
+    	*/
+        /*
+         * I have a feeling this may come back so I'm leaving it in.
         int index = 0;
         if (toolWindows != null) {
 
@@ -244,46 +326,38 @@ public class VueMenuBar extends javax.swing.JMenuBar
                 windowMenu.add(checkBox);
             }
         }
-        
-        //optionsMenu.add(new UserDataAction());
-        JMenu compareAction = new VueMenu("Connectivity Analysis");
-        //Connectivity Actions
-        CreateCM createCMAction = new CreateCM("Create");
-        AnalyzeCM analyzeCMAction = new AnalyzeCM("Analyze");
-        compareAction.add(createCMAction);
-        compareAction.add(analyzeCMAction);
-        RDFOpenAction rdfOpen = new RDFOpenAction();
-        OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction("Constraint Mapping");
-        FedoraOntologyOpenAction fooa = new FedoraOntologyOpenAction("Fedora Ontology Types");
-        toolsMenu.add(compareAction);
-        toolsMenu.add(ontcontrls);
-        toolsMenu.add(rdfOpen);
-        //toolsMenu.add(fooa);
-
-        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.vueWebsite.label"), VueResources.getString("helpMenu.vueWebsite.url")));
-        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.userGuide.label"), VueResources.getString("helpMenu.userGuide.url")));
-        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.feedback.label"), VueResources.getString("helpMenu.feedback.url")));
-        
+        */
         
         if (tufts.Util.isMacPlatform() == false) {
             // already in standard MacOSX place
             helpMenu.add(new AboutAction());
+            helpMenu.addSeparator();
         }
-
-        helpMenu.add(new ShortcutsAction());
-
-        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.releaseNotes.label"),
-                                       VueResources.getURL("helpMenu.releaseNotes.file"),
-                                       new String("ReleaseNotes_" + VueResources.getString("vue.version") + ".htm").replace(' ', '_')
-                                       ));
+        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.userGuide.label"), VueResources.getString("helpMenu.userGuide.url")));        
+        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.feedback.label"), VueResources.getString("helpMenu.feedback.url")));
+        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.vueWebsite.label"), VueResources.getString("helpMenu.vueWebsite.url")));
+        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.mymaps.label"), VueResources.getString("helpMenu.mymaps.url")));
         
+
+        
+        
+        helpMenu.addSeparator();
+        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.releaseNotes.label"),
+                VueResources.getURL("helpMenu.releaseNotes.file"),
+                new String("ReleaseNotes_" + VueResources.getString("vue.version") + ".htm").replace(' ', '_')
+                ));
+        helpMenu.addSeparator();
+        helpMenu.add(new ShortcutsAction());
+        
+        
+        //build out the main menus..
         add(fileMenu);
         add(editMenu);
         add(viewMenu);
         add(formatMenu);
-        add(arrangeMenu);
+       // add(arrangeMenu);
         add(toolsMenu);
-        if (windowMenu != null)
+        //if (windowMenu != null)
             add(windowMenu);
         //add(toolsMenu);
         add(helpMenu);
@@ -291,8 +365,28 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (RootMenuBar == null)
             RootMenuBar = this;
     }
-
     
+    public static void toggleFullScreenTools()
+    {
+    	fullScreenToolbarItem.setEnabled(FullScreen.inFullScreen());
+    }
+    
+    public JCheckBoxMenuItem createWindowItem(DockWindow dock,int accelKey, String text)
+    {
+    	final WindowDisplayAction windowAction = new WindowDisplayAction(dock);
+    	final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(accelKey, Actions.COMMAND);
+    	windowAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);    	
+    	if (text !=null)
+    		windowAction.setTitle(text);
+    	
+    	JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);
+    	
+    	
+    		//checkBox.setText(text);
+    	windowAction.setLinkedButton(checkBox);
+    	
+    	return checkBox;
+    }
     protected void rebuildRecentlyOpenedItems(JMenu fileMenu, JMenu recentlyOpenedMenu, RecentlyOpenedFilesManager rofm) {
     	if (rofm.getFileListSize() > 0)
         {
@@ -427,7 +521,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
     private static class ShortcutsAction extends VueAction {
         private static DockWindow window;
         ShortcutsAction() {
-            super("Short Cuts");
+            super("Keyboard Shortcuts");
         }
 
         public void act() {

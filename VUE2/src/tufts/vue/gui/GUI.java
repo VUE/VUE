@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.70 $ / $Date: 2007-05-01 04:35:05 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2007-05-09 15:57:49 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -797,7 +797,12 @@ public class GUI
 
             setBackground(Color.black);
         }
-        
+        public void setMenuBar(JMenuBar bar)
+        {
+        	if (!isMacAqua())
+                getRootPane().setJMenuBar(bar);
+            
+        }
         public void setVisible(boolean show) {
 
             setFocusableWindowState(show);
@@ -816,6 +821,10 @@ public class GUI
         
     }
 
+    public static void setFullScreenMenuBar(JMenuBar bar)
+    {
+    	((FullScreenWindow)FullScreenWindow).setMenuBar(bar);
+    }
     public static Window getFullScreenWindow() {
         if (FullScreenWindow == null) {
 

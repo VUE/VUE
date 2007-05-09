@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.418 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $ 
+ * @version $Revision: 1.419 $ / $Date: 2007-05-09 15:57:49 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -98,7 +98,8 @@ public class VUE
 
     private static InspectorPane inspectorPane = null;
     private static FormatPanel formattingPanel; 
-    private  static PathwayPanel pathwayPanel = null;
+    private static PathwayPanel pathwayPanel = null;
+    private static MapInspectorPanel mapInspectorPanel = null;
 
 
     private static final LWComponent.Listener PathwayListListener =
@@ -252,11 +253,6 @@ public class VUE
         
     public static LWSelection getSelection() {
         return ModelSelection;
-    }
-
-    public static DockWindow getSlideDock()
-    {
-    	return slideDock;
     }
     
     public static tufts.vue.ui.SlideViewer getSlideViewer()
@@ -932,7 +928,8 @@ public class VUE
         //-----------------------------------------------------------------------------
 
         MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"));
-        MapInspector.setContent(new MapInspectorPanel());
+        mapInspectorPanel = new MapInspectorPanel();
+        MapInspector.setContent(mapInspectorPanel);
         
         //-----------------------------------------------------------------------------
         // Object Inspector / Resource Inspector
@@ -1034,28 +1031,37 @@ public class VUE
         // the order they appear in the Window's menu.
         //
         //=============================================================================
-        
-        VUE.ToolWindows = new Object[] {
-            DR_BROWSER_DOCK,
-            searchDock,
-            ObjectInspector,
-            MapInspector,
+
+        /*
+         * This isn't currently used now but I have a feeling it'll come back if not i'll remove it.
+         */
+        //VUE.ToolWindows = new Object[] {
+        	//unused stuff.
+        	//searchDock,
+        	/* keywords goes here when its done*/
+        	//ObjectInspector,        	
+        	/* Linear View goes here when its done*/
+        	//MapInspector,
+        	/* node inspector */
+        	/*notes didn't end up getting its own window*/
+        	//outlineDock,
+        	//pannerDock,        	
+        	//DR_BROWSER_DOCK,
+        	//slideDock,                         
             //resourceDock,
-            formatDock,
-            pannerDock,
+            //formatDock,            
             //htWindow,
-            pathwayDock,
-            outlineDock,
-            actionDock,
+            //pathwayDock,            
+        	//actionDock,
             //fontDock,
             //linkDock,
-            toolbarDock,
-            slideDock,                                    
-        };
+            // toolbarDock,                                               
+            //};
 
         // adding the menus and toolbars
         if (DEBUG.INIT) out("setting JMenuBar...");
-        ApplicationFrame.setJMenuBar(VueMenuBar.RootMenuBar = new VueMenuBar(VUE.ToolWindows));
+        ApplicationFrame.setJMenuBar(VueMenuBar.RootMenuBar = new VueMenuBar(/*VUE.ToolWindows*/));
+        GUI.setFullScreenMenuBar(new VueMenuBar());
         if (DEBUG.INIT) out("VueMenuBar installed.");;
 
         if (true)
@@ -1340,6 +1346,56 @@ public class VUE
     {
     	return formattingPanel;
     }
+        
+    public static DockWindow getInfoDock()
+    {
+    	return ObjectInspector;
+    }
+    
+    public static DockWindow getFloatingZoomDock()
+    {
+    	return floatingZoomDock;
+    }
+    
+    public static DockWindow getContentDock()
+    {
+    	return DR_BROWSER_DOCK;
+    }
+    
+    public static DockWindow getPannerDock()
+    {
+    	return pannerDock;
+    }
+    
+    public static DockWindow getOutlineDock()
+    {
+    	return outlineDock;
+    }
+    
+    public static DockWindow getSlideDock()
+    {
+    	return slideDock;
+    }
+    
+    public static MapInspectorPanel getMapInspectorPanel()
+    {
+    	return mapInspectorPanel;
+    }
+    
+    public static DockWindow getMapInfoDock()
+    {
+    	return MapInspector;
+    }
+    
+    public static DockWindow getFormatDock()
+    {
+    	return formatDock;
+    }
+    
+    public static DockWindow getPresentationDock()
+    {
+    	return pathwayDock;
+    }
     
     public static PathwayPanel getPathwayPanel()
     {
@@ -1426,6 +1482,16 @@ public class VUE
     
     private static ActionListener SplitPaneRightButtonOneTouchActionHandler = null;
 
+    public static void toggleSplitScreen()
+    {
+    	if (mViewerSplit.getDividerLocation() >= mViewerSplit.getMaximumDividerLocation())    	
+    		mViewerSplit.setDividerLocation(0.50D);    		
+    	else
+    		  SplitPaneRightButtonOneTouchActionHandler.actionPerformed(null);
+      
+       
+    	 
+    }
     private static JSplitPane buildSplitPane(Component leftComponent, Component rightComponent)
     {
         JSplitPane split;

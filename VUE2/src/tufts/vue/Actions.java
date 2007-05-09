@@ -39,6 +39,7 @@ import javax.swing.Icon;
 import edu.tufts.vue.preferences.ui.PreferencesDialog;
 
 import tufts.vue.gui.GUI;
+import tufts.vue.gui.WindowDisplayAction;
 
 /**
  * VUE actions, all subclassed from VueAction, of generally these types:
@@ -94,6 +95,21 @@ public class Actions implements VueConstants
             //VUE.getSelection().setTo(VUE.getActiveMap().getChildList());
         }
     };
+    
+    public static final Action SelectAllLinks =
+        new VueAction("Select Links") {
+            public void act() {
+                VUE.getSelection().setTo(VUE.getActiveViewer().getFocal().getAllLinks());            
+            }
+        };
+
+     public static final Action SelectAllNodes =
+        new VueAction("Select Nodes") {
+            public void act() {
+            	VUE.getSelection().setTo(VUE.getActiveViewer().getMap().getNodeIterator());            
+            }
+        };
+                
     public static final Action DeselectAll =
     new LWCAction("Deselect", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
         boolean enabledFor(LWSelection s) { return s.size() > 0; }
@@ -126,19 +142,28 @@ public class Actions implements VueConstants
         }
     };
     
+    public static final Action AddResource =
+        new VueAction("Add Resource") {
+            public void act() {
+            	DataSourceViewer.getAddLibraryAction().actionPerformed(null);             
+            }                       
+        };
+        
     public static final Action UpdateResource =
-    new LWCAction("Update Resource") {
-        public void act(LWComponent c) {
-            if (c.getResource() instanceof MapResource) {
-                MapResource r = (MapResource) c.getResource();
-                r.scanForMetaDataAsync(c);
-            }
-        }
-        boolean enabledFor(LWSelection s) {
-            return s.size() > 1 || (s.size() == 1 && s.first().hasResource());
+    new VueAction("Update Resource") {
+        public void act() {
+        	DataSourceViewer.getUpdateLibraryAction().actionPerformed(null);
         }
     };
-    
+
+    public static final Action SearchFilterAction =
+        new VueAction("Search") {
+            public void act() {
+            	VUE.getMapInfoDock().setVisible(true);
+            	VUE.getMapInspectorPanel().activateFilterTab();
+            }
+        };
+
     
     //-------------------------------------------------------
     // Alternative View actions
@@ -223,7 +248,6 @@ public class Actions implements VueConstants
         LinkMakeCubicCurved,
         LinkArrows
     };
-    
     
     //-----------------------------------------------------------------------------
     // Node actions
@@ -374,7 +398,7 @@ public class Actions implements VueConstants
     };
     
     public static final LWCAction PasteStyle =
-    new LWCAction("Paste Style", keyStroke(KeyEvent.VK_V, CTRL+LEFT_OF_SPACE)) {
+    new LWCAction("Apply Style", keyStroke(KeyEvent.VK_V, CTRL+LEFT_OF_SPACE)) {
         boolean enabledFor(LWSelection s) { return s.size() > 0 && StyleBuffer != null; }
         void act(LWComponent c) {
             c.copyStyle(StyleBuffer);
@@ -974,6 +998,24 @@ public class Actions implements VueConstants
             VUE.displayMap(new LWMap("New Map " + count++));
         }
     };
+    public static final Action Revert =
+        new VueAction("Revert", keyStroke(KeyEvent.VK_R, COMMAND+SHIFT), ":general/Revert") {            
+            boolean undoable() { return false; }
+            public boolean enabled() { return true; }
+            public void act() {
+                if (tufts.vue.VUE.getActiveMap().getFile() == null)
+                {
+                	VUE.closeMap(tufts.vue.VUE.getActiveMap());
+                	VUE.displayMap(new LWMap(tufts.vue.VUE.getActiveMap().getDisplayLabel()));
+                }
+                else
+                {
+                	VUE.closeMap(tufts.vue.VUE.getActiveMap());
+                	tufts.vue.action.OpenAction.reloadActiveMap();
+                }
+                //VueUtil.alert("This feature is not yet implemented.", "Feature unavailable");
+            }
+        };
     public static final Action CloseMap =
     new VueAction("Close", keyStroke(KeyEvent.VK_W, COMMAND)) {
         // todo: listen to map viewer display event to tag
@@ -1011,7 +1053,8 @@ public class Actions implements VueConstants
         }
         public boolean overrideIgnoreAllActions() { return true; }
     };
-    
+
+        
 //     public static final VueAction NewSlide =
 //     new NewItemAction("New Slide", keyStroke(KeyEvent.VK_S, LEFT_OF_SPACE+CTRL)) {
 //         LWComponent createNewItem(MapViewer viewer, Point2D newLocation) {
@@ -1070,13 +1113,13 @@ public class Actions implements VueConstants
         }
     };
     public static final VueAction ZoomFit =
-        new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT), ":general/Zoom") {
+        new VueAction("Map Fit Window", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT), ":general/Zoom") {
         public void act() {
             ZoomTool.setZoomFit();
         }
     };
     public static final VueAction ZoomActual =
-    new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
+    new VueAction("View at 100%", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
         // no way to listen for zoom change events to keep this current
         //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
         public void act() {
@@ -1085,7 +1128,7 @@ public class Actions implements VueConstants
     };
     
     public static final Action ZoomToSelection =
-    new LWCAction("Zoom Selection", keyStroke(KeyEvent.VK_2, COMMAND+SHIFT)) {
+    new LWCAction("Selection Fit Window", keyStroke(KeyEvent.VK_2, COMMAND+SHIFT)) {
         public void act(LWSelection s) {
             MapViewer viewer = VUE.getActiveViewer();
             ZoomTool.setZoomFitRegion(viewer, s.getBounds(), 16, false);
@@ -1099,6 +1142,13 @@ public class Actions implements VueConstants
                       keyStroke(KeyEvent.VK_F11)) {
         public void act() {
             VUE.toggleFullScreen(false,true);
+        }
+    };
+    
+    public static final Action ToggleSplitScreen =
+        new VueAction("Split Screen") {
+        public void act() {
+            VUE.toggleSplitScreen();
         }
     };
     

@@ -68,8 +68,8 @@ public class DataSourceViewer extends JPanel
     RemoveLibraryDialog removeLibraryDialog;
     GetLibraryInfoDialog getLibraryInfoDialog;
     
-    AbstractAction checkForUpdatesAction;
-    AbstractAction addLibraryAction;
+    static AbstractAction checkForUpdatesAction;
+    static AbstractAction addLibraryAction;
     AbstractAction editLibraryAction;
     AbstractAction removeLibraryAction;
     AbstractAction getLibraryInfoAction;
@@ -616,6 +616,14 @@ public class DataSourceViewer extends JPanel
 
     }
     
+    public static Action getAddLibraryAction()
+    {
+    	return addLibraryAction;
+    }
+    public static Action getUpdateLibraryAction()
+    {
+    	return checkForUpdatesAction;
+    }
     public void searchPerformed(edu.tufts.vue.fsm.event.SearchEvent se) {
 
         if (se == null) {

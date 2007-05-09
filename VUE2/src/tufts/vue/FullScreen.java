@@ -77,6 +77,7 @@ public class FullScreen {
 
         VUE.getActiveViewer().requestFocus();
         //ToolWindow.adjustMacWindows();
+        VueMenuBar.toggleFullScreenTools();
 
         if (doBlack)
             VUE.invokeAfterAWT(new Runnable() {
