@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.55 $ / $Date: 2007-05-09 04:59:17 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2007-05-09 20:21:51 $ / $Author: mike $
  *
  **/
 public class VueToolbarController  
@@ -219,6 +219,7 @@ public class VueToolbarController
         Map btns = toolbar.getToolButtons();
         //defaultToolNames=selectionTool,nodeTool,linkTool,textTool,zoomTool,handTool,pathwayTool,nodeModeTool,comboModeTool
         toolbar.createToolButton((PaletteButton)btns.get("selectionTool"),true);
+        toolbar.createToolButton((PaletteButton)btns.get("directSelectionTool"),true);
         toolbar.createToolButton((PaletteButton)btns.get("nodeModeTool"),true);
         toolbar.createToolButton((PaletteButton)btns.get("linkModeTool"),true);
         toolbar.createToolButton((PaletteButton)btns.get("comboModeTool"),true);
