@@ -26,7 +26,7 @@ public class SupportsBrowseTest extends TestCase
 		throws org.osid.repository.RepositoryException, org.xml.sax.SAXParseException
 	{
 		// are there repositories to test for?
-		org.w3c.dom.NodeList repositoriesNodeList = document.getElementsByTagName(OsidTester.SUPPORTS_BROWSING_TAG);
+		org.w3c.dom.NodeList repositoriesNodeList = document.getElementsByTagName(OsidTester.SUPPORTS_BROWSE_TAG);
 		int numRepositories = repositoriesNodeList.getLength();
 		for (int i=0; i < numRepositories; i++) {
 			org.w3c.dom.Element repositoryElement = (org.w3c.dom.Element)repositoriesNodeList.item(i);
