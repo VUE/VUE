@@ -268,6 +268,7 @@ public class LWImage extends
     // todo: find a better way to do this than passing in an undo manager, which is dead ugly
     public void setResourceAndLoad(Resource r, UndoManager undoManager) {
         super.setResource(r);
+        setLabel(MapDropTarget.makeNodeTitle(r));
         loadResourceImage(r, undoManager);
     }
 
@@ -566,8 +567,8 @@ public class LWImage extends
 
     private static final AlphaComposite HudTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f);
     //private static final Color IconBorderColor = new Color(255,255,255,64);
-    private static final Color IconBorderColor = new Color(0,0,0,64);
-    //private static final Color IconBorderColor = Color.darkGray;
+    //private static final Color IconBorderColor = new Color(0,0,0,64); // screwing up in composite drawing
+    //private static final Color IconBorderColor = Color.gray;
 
     // FOR LWNode IMPL:
     /*
@@ -578,9 +579,18 @@ public class LWImage extends
     }
     */
 
+//     public void drawRaw(DrawContext dc) {
+//         // (skip default composite cleanup for images)
+//         drawImpl(dc);        
+//     }
+
     // REMOVE FOR LWNode IMPL:
     protected void drawImpl(DrawContext dc) {
         drawWithoutShape(dc);
+//         if (dc.g.getComposite() instanceof AlphaComposite) {
+//             AlphaComposite a = (AlphaComposite) dc.g.getComposite();
+//             System.err.println("ALPHA RULE: " + a.getRule() + " " + DrawContext.AlphaRuleNames[a.getRule()] + " " + this);
+//         }    
     }
 
     
@@ -594,21 +604,26 @@ public class LWImage extends
 
         final Shape shape = getClipShape();
 
-        if (getFillColor() != null) {
-            dc.g.setColor(getFillColor());
-            dc.g.fill(shape);
-        }
-
-        drawImage(dc);
 
         if (isNodeIcon) {
 
-            dc.g.setStroke(STROKE_TWO);
-            dc.g.setColor(IconBorderColor);
-            dc.g.draw(shape);
+            drawImage(dc);
+            if (!getParent().isTransparent()) {
+                dc.g.setStroke(STROKE_TWO);
+                //dc.g.setColor(IconBorderColor);
+                dc.g.setColor(getParent().getRenderFillColor().darker());
+                dc.g.draw(shape);
+            }
             
         } else {
+            
+            if (!super.isTransparent()) {
+                dc.g.setColor(getFillColor());
+                dc.g.fill(shape);
+            }
 
+            drawImage(dc);
+            
             if (getStrokeWidth() > 0) {
                 dc.g.setStroke(this.stroke);
                 dc.g.setColor(getStrokeColor());
