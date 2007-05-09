@@ -32,14 +32,14 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.22 $ / $Date: 2006-10-24 17:49:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.23 $ / $Date: 2007-05-09 04:58:20 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
     public static final boolean EnableSmallIconsForMenus = false;
     public static final String LARGE_ICON = "LargeIcon";
 
-    private static List AllActionList = new ArrayList();
+    private static List<VueAction> AllActionList = new ArrayList();
 
     private static boolean allIgnored = false;
 
@@ -90,7 +90,7 @@ public class VueAction extends javax.swing.AbstractAction
 	putValue(Action.NAME, getClass().getName() + anonIndex++);
     }    
 
-    public List getAllActions() {
+    public List<VueAction> getAllActions() {
         return Collections.unmodifiableList(AllActionList);
     }
 
