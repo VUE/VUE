@@ -42,7 +42,7 @@ public class RDFOpenAction extends VueAction {
     }
     
     public RDFOpenAction() {
-        this("Open RDF File");
+        this("Map from RDF File");
     }
     
     
