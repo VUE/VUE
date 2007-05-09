@@ -23,6 +23,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JScrollPane;
 
 import edu.tufts.vue.preferences.VuePrefEvent;
 import edu.tufts.vue.preferences.VuePrefListener;
@@ -30,7 +31,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.28 $ / $Date: 2007-05-09 20:06:47 $ / $Author: mike $
+ * @version $Revision: 1.29 $ / $Date: 2007-05-09 20:08:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -588,10 +589,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
           //  t.setFocusable(false);
             t.setText(text);
             t.setOpaque(false);
-            if (DEBUG.TOOL)
-                return new javax.swing.JScrollPane(t);
-            else
-                return t;
+            return new JScrollPane(t,
+                                   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                                   JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+                                   );
         }
         
     }
