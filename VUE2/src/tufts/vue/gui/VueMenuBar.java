@@ -30,7 +30,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.27 $ / $Date: 2007-05-09 15:57:49 $ / $Author: mike $
+ * @version $Revision: 1.28 $ / $Date: 2007-05-09 20:06:47 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -290,7 +290,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (VUE.getPannerDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_5, "Panner"));
         if (VUE.getContentDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_1, "Content"));                	
+        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_1, "Content"));    
+        if (VUE.getSlideDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getSlideDock(),KeyEvent.VK_8, "Slide Viewer"));
         if (VUE.getFloatingZoomDock()!=null)
         {
         	fullScreenToolbarItem = createWindowItem(VUE.getFloatingZoomDock(),KeyEvent.VK_9, "FullScreen Toolbar");
