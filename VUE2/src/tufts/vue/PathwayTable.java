@@ -67,7 +67,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.65 $ / $Date: 2007-05-07 06:44:07 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2007-05-09 23:50:27 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -256,7 +256,7 @@ public class PathwayTable extends JTable
     public void activeChanged(ActiveEvent<LWPathway.Entry> e) {
         int row = getTableModel().getRow(e.active);
         if (row >= 0)
-            changeSelection(row, 0, false, false);
+            changeSelection(row, -1, false, false);
     }
     
 
