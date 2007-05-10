@@ -107,26 +107,28 @@ implements org.osid.repository.RepositoryManager
 					throw new org.osid.repository.RepositoryException(org.osid.OsidException.CONFIGURATION_ERROR);
 				}
 				Utilities.setSessionId(sessionId,key);
+
+				// Setup Web Service SOAP call parameters
+				String h = configuration.getProperty("sakaiHost");
+				// add http if it is not present
+				if (!(h.startsWith("http://"))) {
+					h = "http://" + h;
+				}
+				
+				String address = h + ":" + configuration.getProperty("sakaiPort") + "/";
+				Utilities.setEndpoint(address + "sakai-axis/ContentHosting.jws");		
+				Utilities.setAddress(address);
 				
 				/*
 				 Make one repository
 				 */
 				this.repositoryType = new Type("sakaiproject.org","repository","contentHosting");
 				
-				String h = configuration.getProperty("sakaiHost");
-				if (h.startsWith("http://")) {
-					h = h.substring(7);
-				}
-				
 				String displayName = configuration.getProperty("sakaiDisplayName");
 				
-				//Utilities.setRepositoryId(h + ".Virtual-Root-Identifier");
+				Utilities.setRepositoryId(h.substring(7) + ".Virtual-Root-Identifier");
 				this.repositoryVector.removeAllElements();
 				this.repositoryVector.addElement(new Repository(displayName,key));
-				
-				String address = h + ":" + configuration.getProperty("sakaiPort") + "/";
-				Utilities.setEndpoint(address + "sakai-axis/ContentHosting.jws");		
-				Utilities.setAddress(address);
 			}
 		} catch (Throwable t) {
 			Utilities.log(t);

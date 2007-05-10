@@ -28,6 +28,13 @@ implements org.osid.repository.AssetIterator
 	private String siteString = null;
 	private String key = null;
 	
+	public static final String LIST_TAG = "list";
+	public static final String RESOURCE_TAG = "resource";
+	public static final String ID_TAG = "id";
+	public static final String NAME_TAG = "name";
+	public static final String TYPE_TAG = "type";
+	public static final String URL_TAG = "url";
+
     public AssetIterator(java.util.Vector vector)
 		throws org.osid.repository.RepositoryException
     {
@@ -35,39 +42,53 @@ implements org.osid.repository.AssetIterator
     }
 	
 	public AssetIterator(String siteString,
-						 String key)
+						 String key,
+						 String xml)
 	{
 		this.siteString = siteString;
 		this.key = key;
-		// temp shunt
-		this.iterator = (new java.util.Vector()).iterator();
+		
+		java.util.Vector result = new java.util.Vector();
+		try {
+			javax.xml.parsers.DocumentBuilderFactory dbf = null;
+			javax.xml.parsers.DocumentBuilder db = null;
+			
+			dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+			db = dbf.newDocumentBuilder();
+			org.w3c.dom.Document document = db.parse(new java.io.ByteArrayInputStream(xml.getBytes()));
+			
+			org.w3c.dom.NodeList nl = document.getElementsByTagName(LIST_TAG);
+			org.w3c.dom.Element listElement = (org.w3c.dom.Element)nl.item(0);
+			nl = document.getElementsByTagName(RESOURCE_TAG);
+			int numResources = nl.getLength();
+			for (int i=0; i < numResources; i++) {
+				org.w3c.dom.Element resourceElement = (org.w3c.dom.Element)nl.item(i);
+				String id = Utilities.expectedValue(resourceElement,ID_TAG);
+				String name = Utilities.expectedValue(resourceElement,NAME_TAG);
+				String type = Utilities.expectedValue(resourceElement,TYPE_TAG);
+				String url = Utilities.expectedValue(resourceElement,URL_TAG);
+				
+				System.out.println("Next Resource");
+				System.out.println("\tId: " + id);
+				System.out.println("\tName: " + name);
+				System.out.println("\tType: " + type);
+				System.out.println("\tURL: " + url);
+				
+				org.osid.shared.Type assetType = null;
+				if (type.equals("collection")) assetType = Utilities.getCollectionAssetType();
+				if (type.equals("resource")) assetType = Utilities.getResourceAssetType();
+				result.addElement(new Asset(id,assetType,key,name,url));
+			}
+		} catch (Throwable t) {
+			Utilities.log(t);
+		}
+		this.iterator = result.iterator();
 	}
 	
     public boolean hasNextAsset()
 		throws org.osid.repository.RepositoryException
     {
-		if (iterator.hasNext()) {
-			return true;
-		} else {
-			// look for more
-			try {
-				String endpoint = Utilities.getEndpoint();
-				Service  service = new Service();
-				
-				//	Get the list of resources in the test collection.
-				Call call = (Call) service.createCall();
-				call.setTargetEndpointAddress (new java.net.URL(endpoint) );
-				call.setOperationName(new QName(Utilities.getAddress(), "getResources"));
-				String resString = (String) call.invoke( new Object[] {Utilities.getSessionId(this.key), this.siteString} );
-				System.out.println("Sent ContentHosting.getAllResources(sessionId,testId), got '" + resString + "'");
-				// how do we know whether there are more collections or resources?
-				return false;
-		    } 
-			catch (Exception e) {
-				System.err.println(e.toString());
-				return false;
-			}
-		}
+		return iterator.hasNext();
     }
 	
     public org.osid.repository.Asset nextAsset()

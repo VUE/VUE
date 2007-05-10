@@ -24,11 +24,23 @@ public class Utilities
 	private static org.osid.OsidContext context = null;
 	private static org.osid.authentication.AuthenticationManager authenticationManager = null;
 	private static org.osid.shared.Type authenticationType = new Type("org.sakaiproject","authentication","sakai");
+    private static org.osid.shared.Type collectionAssetType = new Type("org.sakaiproject","asset","siteCollection");
+    private static org.osid.shared.Type resourceAssetType =  new Type("org.sakaiproject","asset","resource");
 	private static java.util.Map sessionIdMap = new java.util.HashMap();
 	private static org.osid.shared.Id repositoryId = null;
 	private static String endpoint = null;
 	private static String address = null;
 
+	public static org.osid.shared.Type getCollectionAssetType()
+	{
+		return collectionAssetType;
+	}
+	
+	public static org.osid.shared.Type getResourceAssetType()
+	{
+		return resourceAssetType;
+	}
+	
 	public static void setOsidContext(org.osid.OsidContext c)
 	{
 		context = c;
@@ -71,7 +83,7 @@ public class Utilities
 	public static void log(Throwable t)
 	{
 		try {
-			t.printStackTrace();
+			//t.printStackTrace();
 			log.appendLog(t.getMessage());
 		} catch (org.osid.logging.LoggingException lex) {
 			// swallow exception since logging is a best attempt to log an exception anyway
@@ -155,4 +167,20 @@ public class Utilities
 	{
 		return address;
 	}
+	
+	public static String expectedValue(org.w3c.dom.Element element, String tag)
+		throws org.xml.sax.SAXParseException
+	{
+		String expected = null;
+		org.w3c.dom.NodeList nameNodeList = element.getElementsByTagName(tag);
+		int numNodes = nameNodeList.getLength();
+		if (numNodes > 0) {
+			org.w3c.dom.Element e = (org.w3c.dom.Element)nameNodeList.item(0);
+			try {
+				expected = e.getFirstChild().getNodeValue();
+			} catch (java.lang.NullPointerException npe) {
+			}
+		}
+		return expected;
+	}	
 }

@@ -91,15 +91,15 @@ implements org.osid.authentication.AuthenticationManager
 			call.setOperationName(new QName(this.host + this.port + "/", "login"));
 			
 			this.sessionId = (String) call.invoke( new Object[] { this.username, this.password } );
+			System.out.println("Session id " + this.sessionId);
 
-			this.sessionId = "0123456789";  // is this a GUID?
 			String key = this.host;
 			this.context.assignContext("org.sakaiproject.instanceKey",key); 
 			this.context.assignContext("org.sakaiproject.sessionId." + key,this.sessionId); 
 			
 			System.out.println("Sent SakaiLogin.login( " + this.username + ", " + this.password + " ), got + " + sessionId);
 		} catch (Throwable t) {
-			t.printStackTrace();
+			//t.printStackTrace();
 			throw new org.osid.authentication.AuthenticationException(org.osid.OsidException.PERMISSION_DENIED);
 		}
 	}

@@ -24,6 +24,7 @@ import junit.framework.Test;
 
 public class OsidTester extends TestCase
 {
+	public static final String ALL_ASSETS_TAG = "allassets";
 	public static final String ASSET_TAG = "asset";
 	public static final String ASSET_TYPES_TAG = "assettypes";
 	public static final String ASSET_VIA_MANAGER_TAG = "assetbyidviamanager";	
@@ -69,10 +70,12 @@ public class OsidTester extends TestCase
 	private org.osid.repository.RepositoryManager _repositoryManager = null;
 	private org.w3c.dom.Document _document = null;
 	private String _packagename = null;
+	private static boolean abort = false;
 
 	protected void setUp()
 	{
 		try {
+			if (abort) System.exit(1);
 			// get environment variable with test file
 			java.util.Properties systemProperties = System.getProperties();
 			String xmlFilepath = systemProperties.getProperty("testProfile");
@@ -146,6 +149,16 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetAssetTypesTest(_repositoryManager,_document);
+		} catch (Throwable t) {
+			//t.printStackTrace();
+			fail(t.getMessage());
+		}
+	}
+	
+	public void testGetAssets()
+	{
+		try {
+			new GetAssetsTest(_repositoryManager,_document);
 		} catch (Throwable t) {
 			//t.printStackTrace();
 			fail(t.getMessage());
@@ -287,7 +300,8 @@ public class OsidTester extends TestCase
 																							 properties);
 			}
 		} catch (Throwable t) {
-			t.printStackTrace();
+			//t.printStackTrace();
+			abort = true;
 			throw new org.osid.repository.RepositoryException(org.osid.OsidException.CONFIGURATION_ERROR);
 		}
 	}

@@ -30,23 +30,28 @@ implements org.osid.repository.Repository
 	private org.osid.shared.Id repositoryId = null;
 	private String repositoryIdPrefixString = "E89F7F92-8C23-481B-AF8C-7AE169699F34-2595-000008D778AFEB53";
 	private org.osid.shared.Type repositoryType = new Type("sakaiproject.org","repository","contentHosting");
-    private org.osid.shared.Type collectionAssetType = new Type("sakaiproject.org.","asset","siteCollection");
-    private org.osid.shared.Type resourceAssetType =  new Type("sakaiproject.org.","asset","resource");
 	private org.osid.shared.Type keywordSearchType = new Type("mit.edu","search","keyword");
 	private org.osid.shared.Type titleSearchType = new Type("mit.edu","search","title");
 	private String displayName = null;
 	private String key = null;
+	private String sessionId = null;
  
     protected Repository(String displayName, String key)
 		    throws org.osid.repository.RepositoryException
     {
 		this.key = key;
+		this.sessionId = Utilities.getSessionId(key);
 		this.displayName = displayName;
 		this.searchTypeVector.addElement(this.keywordSearchType);
 		this.searchTypeVector.addElement(this.titleSearchType);		
-		this.assetTypeVector.addElement(this.collectionAssetType);
-		this.assetTypeVector.addElement(this.resourceAssetType);
+		this.assetTypeVector.addElement(Utilities.getCollectionAssetType());
+		this.assetTypeVector.addElement(Utilities.getResourceAssetType());
 		this.repositoryId = Utilities.getRepositoryId();
+		try {
+			System.out.println("Repository id is " + this.repositoryId.getIdString());
+		} catch (Throwable t) {
+			
+		}
 	}
 
     public String getDisplayName()
@@ -121,11 +126,10 @@ implements org.osid.repository.Repository
 		java.util.Vector result = new java.util.Vector();
 		
 		try {
-			String contentId = "foo";
-			org.osid.shared.Type assetType = this.resourceAssetType;
-/*
 			String endpoint = Utilities.getEndpoint();
+			System.out.println("Endpoint " + endpoint);
 			String address = Utilities.getAddress();
+			System.out.println("Address " + address);
 			
 			Service  service = new Service();
 			
@@ -133,7 +137,7 @@ implements org.osid.repository.Repository
 			Call call = (Call) service.createCall();
 			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
 			call.setOperationName(new QName(address, "getVirtualRoot"));
-			virtualRootId = (String) call.invoke( new Object[] {sessionId} );
+			String virtualRootId = (String) call.invoke( new Object[] {sessionId} );
 			System.out.println("Sent ContentHosting.getVirtualRoot(sessionId), got '" + virtualRootId + "'");
 			
 			//	Get the list of root collections from virtual root.
@@ -142,11 +146,9 @@ implements org.osid.repository.Repository
 			call.setOperationName(new QName(address, "getResources"));
 			String siteString = (String) call.invoke( new Object[] {sessionId, virtualRootId} );
 			System.out.println("Sent ContentHosting.getAllResources(sessionId,virtualRootId), got '" + siteString + "'");
- */			
-			String siteString = null;
-			return new AssetIterator(siteString,this.key);			
+
+			return new AssetIterator(siteString,this.key,siteString);			
 		} catch (Throwable t) {
-			t.printStackTrace();
 			Utilities.log(t);
 			throw new org.osid.repository.RepositoryException(t.getMessage());
 		}
@@ -159,8 +161,8 @@ implements org.osid.repository.Repository
         {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-		if ( !(assetType.isEqual(this.collectionAssetType) ||
-			   assetType.isEqual(this.resourceAssetType)) )
+		if ( !(assetType.isEqual(Utilities.getCollectionAssetType()) ||
+			   assetType.isEqual(Utilities.getResourceAssetType())) )
         {
 			throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);
         }
@@ -270,7 +272,25 @@ implements org.osid.repository.Repository
         {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-		throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_ID);
+		try {
+			String endpoint = Utilities.getEndpoint();
+			System.out.println("Endpoint " + endpoint);
+			String address = Utilities.getAddress();
+			System.out.println("Address " + address);
+			
+			Service  service = new Service();
+			Call call = (Call) service.createCall();
+			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+			call.setOperationName(new QName(address, "getResources"));
+			String assetIdString = assetId.getIdString();
+			String siteString = (String) call.invoke( new Object[] {sessionId, assetIdString} );
+			System.out.println("Sent ContentHosting.getAllResources(sessionId,assetId), got '" + siteString + "'");
+			
+			return new Asset(this.key,siteString);			
+		} catch (Throwable t) {
+			Utilities.log(t);
+			throw new org.osid.repository.RepositoryException(t.getMessage());
+		}
     }
 
     public org.osid.repository.Asset getAssetByDate(org.osid.shared.Id assetId

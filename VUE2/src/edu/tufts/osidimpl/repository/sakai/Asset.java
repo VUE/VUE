@@ -28,9 +28,8 @@ implements org.osid.repository.Asset
     private String displayName = null;
     private String description = null;
     private org.osid.shared.Id assetId = null;
+	private String assetIdString = null;
 	private org.osid.shared.Type assetType = null;
-    private org.osid.shared.Type collectionAssetType = new Type("org.sakaiproject","asset","siteCollection");
-    private org.osid.shared.Type resourceAssetType =  new Type("org.sakaiproject","asset","resource");
     private org.osid.shared.Type uploadAssetType =  new Type("org.sakaiproject","asset","upload");
 	private org.osid.repository.Repository repository = null;
 	private org.osid.repository.Record record = null;
@@ -38,23 +37,80 @@ implements org.osid.repository.Asset
 	private java.util.Vector partIdStringVector = null;
 	private java.util.Vector partValueVector = null;	
 	private String key = null;	
+	private String sessionId = null;
 	private java.util.Vector assetVector = new java.util.Vector();
 	
-    protected Asset(String contentId,
+	public static final String LIST_TAG = "list";
+	public static final String RESOURCE_TAG = "resource";
+	public static final String ID_TAG = "id";
+	public static final String NAME_TAG = "name";
+	public static final String TYPE_TAG = "type";
+	public static final String URL_TAG = "url";
+	
+    protected Asset(String assetIdString,
                     org.osid.shared.Type assetType,
-					org.osid.shared.Id repositoryId,
-					org.osid.repository.Repository repository,
-					String key)
-    throws org.osid.repository.RepositoryException
+					String key,
+					String displayName,
+					String url)
     {
+		System.out.println("this constructor");
+		this.assetIdString = assetIdString;
 		this.assetType = assetType;
-		this.repository = repository;
 		this.key = key;
 		try {
-			this.assetId = Utilities.getIdManager().getId(contentId);
+			this.sessionId = Utilities.getSessionId(key);
+			this.assetId = Utilities.getIdManager().getId(assetIdString);
 		} catch (Throwable t) {
 		}
+		this.displayName = displayName;
     }
+	
+	protected Asset(String key,
+					String xml)
+	{
+		try {
+			javax.xml.parsers.DocumentBuilderFactory dbf = null;
+			javax.xml.parsers.DocumentBuilder db = null;
+			
+			dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+			db = dbf.newDocumentBuilder();
+			org.w3c.dom.Document document = db.parse(new java.io.ByteArrayInputStream(xml.getBytes()));
+			
+			org.w3c.dom.NodeList nl = document.getElementsByTagName(LIST_TAG);
+			org.w3c.dom.Element listElement = (org.w3c.dom.Element)nl.item(0);
+			nl = document.getElementsByTagName(RESOURCE_TAG);
+			int numResources = nl.getLength();
+			for (int i=0; i < numResources; i++) {
+				org.w3c.dom.Element resourceElement = (org.w3c.dom.Element)nl.item(i);
+				String id = Utilities.expectedValue(resourceElement,ID_TAG);
+				String name = Utilities.expectedValue(resourceElement,NAME_TAG);
+				String type = Utilities.expectedValue(resourceElement,TYPE_TAG);
+				String url = Utilities.expectedValue(resourceElement,URL_TAG);
+				
+				System.out.println("Next Resource");
+				System.out.println("\tId: " + id);
+				System.out.println("\tName: " + name);
+				System.out.println("\tType: " + type);
+				System.out.println("\tURL: " + url);
+				
+				org.osid.shared.Type assetType = null;
+				if (type.equals("collection")) assetType = Utilities.getCollectionAssetType();
+				if (type.equals("resource")) assetType = Utilities.getResourceAssetType();
+				
+				this.assetIdString = id;
+				this.assetType = assetType;
+				this.key = key;
+				this.sessionId = Utilities.getSessionId(key);
+				try {
+					this.assetId = Utilities.getIdManager().getId(assetIdString);
+				} catch (Throwable t) {
+				}
+				System.out.println("setting display name to " + name);
+				this.displayName = name;
+			}
+		} catch (Throwable t) {
+		}
+	}
 	
 	public String getDisplayName()
     throws org.osid.repository.RepositoryException
@@ -103,7 +159,7 @@ implements org.osid.repository.Asset
     public java.io.Serializable getContent()
     throws org.osid.repository.RepositoryException
     {
-		if (this.assetType.isEqual(this.collectionAssetType)) {
+		if (this.assetType.isEqual(Utilities.getCollectionAssetType())) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);
 		}
 		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
@@ -140,11 +196,30 @@ implements org.osid.repository.Asset
     public org.osid.repository.AssetIterator getAssets()
     throws org.osid.repository.RepositoryException
     {
-		java.util.Vector result = new java.util.Vector();
-
 		// only site collection assets can have sub-assets
-		if (!this.assetType.isEqual(this.collectionAssetType)) {
-			return new AssetIterator(result);
+		if (!this.assetType.isEqual(Utilities.getCollectionAssetType())) {
+
+			try {
+				String endpoint = Utilities.getEndpoint();
+				System.out.println("Endpoint " + endpoint);
+				String address = Utilities.getAddress();
+				System.out.println("Address " + address);
+				
+				Service  service = new Service();
+				
+				//	Get the list of root collections from virtual root.
+				Call call = (Call) service.createCall();
+				call = (Call) service.createCall();
+				call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+				call.setOperationName(new QName(address, "getResources"));
+				String siteString = (String) call.invoke( new Object[] {sessionId, assetIdString} );
+				System.out.println("Sent ContentHosting.getAllResources(sessionId,collectionId), got '" + siteString + "'");
+				
+				return new AssetIterator(siteString,this.key,siteString);			
+			} catch (Throwable t) {
+				Utilities.log(t);
+				throw new org.osid.repository.RepositoryException(t.getMessage());
+			}
 		}
 		throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);
 	}
@@ -156,7 +231,7 @@ implements org.osid.repository.Asset
         {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-		if (!this.assetType.isEqual(this.collectionAssetType)) {
+		if (!this.assetType.isEqual(Utilities.getCollectionAssetType())) {
 			throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);
         }
 		return getAssets();
