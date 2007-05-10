@@ -36,5 +36,6 @@ public class PreferenceConstants
 		public static final String MAPDISPLAY_CATEGORY="mapdisplay";
 		public static final String WINDOW_CATEGORY="windows";
 		public static final String FILES_CATEGORY="files";
+		public static final String FORMATTING_CATEGORY="formatting";
 		
 }
