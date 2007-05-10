@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.421 $ / $Date: 2007-05-09 23:09:59 $ / $Author: sfraize $ 
+ * @version $Revision: 1.422 $ / $Date: 2007-05-10 17:47:20 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -899,7 +899,7 @@ public class VUE
 
         //formatDock = null;
         FloatingZoomPanel floatingZoomPanel = new FloatingZoomPanel();
-        floatingZoomDock = GUI.createDockWindow("Floating Zoom",true,false);
+        floatingZoomDock = GUI.createDockWindow("Floating Zoom",true);
         floatingZoomDock.setContent(floatingZoomPanel);
         floatingZoomDock.setFocusable(true);
         floatingZoomDock.setSize(new Dimension(280,30));
