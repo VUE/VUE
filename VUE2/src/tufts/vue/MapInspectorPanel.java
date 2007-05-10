@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.50 $ / $Date: 2007-05-09 23:27:01 $ / $Author: sfraize $ 
+ * @version $Revision: 1.51 $ / $Date: 2007-05-10 00:05:17 $ / $Author: sfraize $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -218,6 +218,12 @@ public class MapInspectorPanel extends JPanel
               // TODO: need to add MenuButton functionality to allow it
               // NOT to participate in the global selection, and "load"
               // objects manually, or track only a specific LWComponent or something.
+              // Create a subclass of LWEditor, LWTypeEditor, with a machesType method
+              // we check for instanceof LWMap.class, which the tool manager can
+              // handle, and then here we can have an non class instanceof ColorMenuButton
+              // that overrides handleMenuSelection and manually sets the current
+              // map fill color (because we won't normally actually select the map),
+              // and gets manually loaded with displayValue.
               
             final Color[] fillColors = VueResources.getColorArray("fillColorValues");
             final String[] fillColorNames = VueResources.getStringArray("fillColorNames");
