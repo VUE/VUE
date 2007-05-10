@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.51 $ / $Date: 2007-05-09 16:43:10 $ / $Author: mike $
+ * @version $Revision: 1.52 $ / $Date: 2007-05-10 13:23:39 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -326,7 +326,7 @@ public class FontEditorPanel extends JPanel
     	Color bg = GUI.getTextHighlightColor();
     	if (isSelected) {
     	setBackground(bg);
-    	setForeground(list.getSelectionForeground());
+    	setForeground(Color.black);
     	}
     	else {
     	setBackground(list.getBackground());

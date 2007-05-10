@@ -32,7 +32,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.46 $ / $Date: 2007-05-09 16:43:10 $ / $Author: mike $
+ * @version $Revision: 1.47 $ / $Date: 2007-05-10 13:23:39 $ / $Author: mike $
  * 
  */
 
@@ -95,7 +95,7 @@ public class LinkToolPanel extends ToolPanel
 	        		Color bg = GUI.getTextHighlightColor();
 	        		if (isSelected) {
 	        			setBackground(bg);
-	        			setForeground(list.getSelectionForeground());
+	        			setForeground(Color.black);
 	        		} else {
 	        			setBackground(Color.white);
 	        			setForeground(list.getForeground());
