@@ -27,7 +27,12 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.geom.RectangularShape;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import javax.swing.AbstractButton;
 import javax.swing.JLabel;
 import javax.swing.Icon;
@@ -38,11 +43,15 @@ import javax.swing.JSeparator;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import javax.swing.border.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import edu.tufts.vue.preferences.implementations.ColorPreference;
 
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.6 $ / $Date: 2007-05-02 14:58:54 $ / $Author: mike $
+ * @version $Revision: 1.7 $ / $Date: 2007-05-10 17:42:10 $ / $Author: mike $
  */
  
 public class FillToolPanel extends ToolPanel
@@ -55,6 +64,21 @@ public class FillToolPanel extends ToolPanel
      private final String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
      private final JLabel fillLabel = new JLabel("Fill: ");
      private final JLabel lineLabel = new JLabel("Line: ");
+     private final ColorPreference fillPrefColor = ColorPreference.create(
+				edu.tufts.vue.preferences.PreferenceConstants.FORMATTING_CATEGORY,
+				"fillColor", 
+				"Fill Color", 
+				"Remember Fill Color?",
+				VueResources.getColor("defaultFillColor"),
+				false);
+     
+     private final ColorPreference strokePrefColor = ColorPreference.create(
+				edu.tufts.vue.preferences.PreferenceConstants.FORMATTING_CATEGORY,
+				"strokeColor", 
+				"Stroke Color", 
+				"Remember Stroke Color?",
+				VueResources.getColor("defaultStrokeColor"),
+				false);
     public FillToolPanel() {
     
         //setBorder(BorderFactory.createLineBorder(Color.red));
@@ -68,21 +92,32 @@ public class FillToolPanel extends ToolPanel
         //TODO: need to come back here and move these tooltips into properties. -mikek         
         mFillColorButton = new ColorMenuButton(fillColors, fillColorNames, true);
         mFillColorButton.setPropertyKey(LWKey.FillColor);
-        mFillColorButton.setColor(VueResources.getColor("defaultFillColor"));
+        mFillColorButton.setColor((Color)fillPrefColor.getValue());
         mFillColorButton.setToolTipText("Fill Color");
         //mFillColorButton.addPropertyChangeListener(this); // always last or we get prop change events for setup
-         
+        mFillColorButton.addPropertyChangeListener(new PropertyChangeListener()
+        {	
+			public void propertyChange(PropertyChangeEvent arg0) {
+				fillPrefColor.setValue(mFillColorButton.getColor());							
+			}        	
+        });
         //-------------------------------------------------------
         // Stroke Color menu
         //-------------------------------------------------------
         
         mStrokeColorButton = new ColorMenuButton(strokeColors, strokeColorNames, true);
         mStrokeColorButton.setPropertyKey(LWKey.StrokeColor);
-        mStrokeColorButton.setColor(VueResources.getColor("defaultStrokeColor"));
+        mStrokeColorButton.setColor((Color)strokePrefColor.getValue());
         //mStrokeColorButton.setButtonIcon(new LineIcon(16,16, 4, false));
         mStrokeColorButton.setToolTipText("Stroke Color");
         //mStrokeColorButton.addPropertyChangeListener(this);
-     
+        mStrokeColorButton.addPropertyChangeListener(new PropertyChangeListener()
+        {	
+			public void propertyChange(PropertyChangeEvent arg0) {
+				strokePrefColor.setValue(mStrokeColorButton.getColor());							
+			}        	
+        });
+        
         fillLabel.setLabelFor(mFillColorButton);
  		fillLabel.setForeground(new Color(51,51,51));
  		fillLabel.setFont(tufts.vue.VueConstants.SmallFont);
