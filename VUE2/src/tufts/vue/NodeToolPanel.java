@@ -42,7 +42,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.55 $ / $Date: 2007-05-09 16:43:10 $ / $Author: mike $
+ * @version $Revision: 1.56 $ / $Date: 2007-05-11 15:35:24 $ / $Author: mike $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -197,7 +197,7 @@ public class NodeToolPanel extends ToolPanel
                 setOpaque(true);
                 setHorizontalAlignment(CENTER);
                 setVerticalAlignment(CENTER);
-                setBorder(BorderFactory.createEmptyBorder(2,2,2,2));
+                setBorder(BorderFactory.createEmptyBorder(3,0,3,0));
             }
 
         
