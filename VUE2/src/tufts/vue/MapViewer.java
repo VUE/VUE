@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.354 $ / $Date: 2007-05-11 20:51:04 $ / $Author: sfraize $ 
+ * @version $Revision: 1.355 $ / $Date: 2007-05-11 21:37:43 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -905,7 +905,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         int margin = 30;
 
-        if (VUE.inFullScreen() && mFocal instanceof LWSlide)
+        //if (VUE.inFullScreen() && mFocal instanceof LWSlide)
+        if (mFocal instanceof LWSlide)
             margin = 0;
 
         if (DEBUG.PRESENT) out("zoomToContents " + mFocal);
@@ -2705,7 +2706,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         if (!drawSelectorBoxInThisViewer || !atLeastOneVisible) {
             resizeControl.active = false;
-            out("selection contents not for this viewer");
+            if (!drawSelectorBoxInThisViewer) out("selection contents not for this viewer");
             return;
         }
         
