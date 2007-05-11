@@ -1,5 +1,7 @@
 package tufts.vue;
 
+import java.lang.reflect.Method;
+
 /**
  * This provides for tracking the single selection of a given typed
  * object, and providing notifications for interested listeners when this selection
@@ -21,7 +23,7 @@ package tufts.vue;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.3 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2007-05-11 17:24:18 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -37,6 +39,7 @@ public class ActiveChangeSupport<T>
     private T currentlyActive;
 
     private boolean inNotify;
+
 
     public ActiveChangeSupport(Class clazz) {
         type = clazz;
@@ -87,14 +90,30 @@ public class ActiveChangeSupport<T>
         
         inNotify = true;
         try {
+            Object target;
+            Method method;
             for (ActiveListener<T> listener : listenerList) {
-                if (listener == e.source)
+                if (listener instanceof MethodProxy) {
+                    target = ((MethodProxy)listener).target;
+                    method = ((MethodProxy)listener).method;
+                } else {
+                    target = listener;
+                    method = null;
+                }
+
+                if (target == e.source)
                     continue;
-                if (DEBUG.EVENTS) System.out.println("\tnotify" + typeName + " -> " + listener);
+                
+                if (DEBUG.EVENTS) System.out.println("\tnotify" + typeName + " -> " + target);
                 try {
-                    listener.activeChanged(e);
+                    if (method != null)
+                        method.invoke(target, e, e.active);
+                    else
+                        listener.activeChanged(e);
+                } catch (java.lang.reflect.InvocationTargetException ex) {
+                    tufts.Util.printStackTrace(ex.getCause(), this + " exception notifying " + target + " with " + e);
                 } catch (Throwable t) {
-                    tufts.Util.printStackTrace(new Throwable(t), this + " exception notifying " + listener + " with " + e);
+                    tufts.Util.printStackTrace(t, this + " exception notifying " + target + " with " + e);
                 }
             }
         } finally {
@@ -112,16 +131,62 @@ public class ActiveChangeSupport<T>
         }
     }
 
+    public void addListener(Object listener) {
+        Method method = null;
+        try {
+            // We could cache the method for the class of the given listener
+            // so future instance's of the class don't have to do the method lookup,
+            // but this type of listener is not frequently added.
+            method = listener.getClass().getMethod("activeChanged", ActiveEvent.class, this.type);
+        } catch (Throwable t) {
+            tufts.Util.printStackTrace(t, this + ": "
+                                       + listener.getClass()
+                                       + " must implement activeChanged(ActiveEvent, " + type + ")"
+                                       + " to be a listener for the active instance of " + type);
+            return;
+        }
+        addListener(new MethodProxy(listener, method));
+    }
+    
+
     public void removeListener(ActiveListener listener) {
         synchronized (listenerList) {
             listenerList.remove(listener);
         }
+    }
+    
+    public void removeListener(Object listener) {
+        throw new UnsupportedOperationException("implement MethodProxy removal");
     }
 
     public String toString() {
         return "ActiveChangeSupport" + typeName;
         
     }
+
+
+
+    private static class MethodProxy implements ActiveListener {
+        final Object target;
+        final Method method;
+        MethodProxy(Object t, Method m) {
+            target = t;
+            method = m;
+        }
+        public void activeChanged(ActiveEvent e) {
+            /*
+            try {
+                method.invoke(target, e, e.active);
+            } catch (java.lang.IllegalAccessException ex) {
+                throw new Error(ex);
+            } catch (java.lang.reflect.InvocationTargetException ex) {
+                throw new Error(ex.getCause());
+            }
+            */
+        }
+            
+    }
+    
         
         
 }

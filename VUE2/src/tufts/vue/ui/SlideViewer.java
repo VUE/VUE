@@ -207,16 +207,9 @@ public class SlideViewer extends tufts.vue.MapViewer
         
     }
 
-    public void activeChanged(tufts.vue.ActiveEvent e) {
-        if (e.type == LWPathway.Entry.class)
-            load((LWPathway.Entry) e.active);
-        else if (e.type == MapViewer.class)
-            super.activeChanged(e); // not so cool that we can call super-class w/out the requested type information
-        //super.activeChanged((ActiveEvent<MapViewer>)e);
+    public void activeChanged(tufts.vue.ActiveEvent e, LWPathway.Entry entry) {
+        load(entry);
     }
-
-    
-    
     
     public void showSlideViewer()
     {

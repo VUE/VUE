@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.148 $ / $Date: 2007-05-11 00:51:06 $ / $Author: sfraize $
+ * @version $Revision: 1.149 $ / $Date: 2007-05-11 17:24:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -869,7 +869,7 @@ public class LWNode extends LWContainer
     /** @return the current size of the label object, providing a margin of error
      * on the width given sometime java bugs in computing the accurate length of a
      * a string in a variable width font. */
-    private Size getTextSize() {
+    protected Size getTextSize() {
 
         if (WrapText) {
             Size s = new Size(getLabelBox().getSize());

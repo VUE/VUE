@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.258 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
+ * @version $Revision: 1.259 $ / $Date: 2007-05-11 17:24:18 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1814,7 +1814,10 @@ u                    getSlot(c).setFromString((String)value);
         //return fillColor == null || fillColor.getAlpha() != 0xFF;
     }
     
-    /** Color to use at draw time. LWNode overrides to provide darkening of children. */
+    /**
+     * Color to use at draw time. LWNode overrides to provide darkening of children.
+     * We also use this for the background color in active on-map text edits.
+     */
     public Color getRenderFillColor() {
         return getFillColor();
     }

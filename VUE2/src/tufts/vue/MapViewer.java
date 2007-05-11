@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.352 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $ 
+ * @version $Revision: 1.353 $ / $Date: 2007-05-11 17:24:19 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -82,7 +82,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                , LWComponent.Listener
                , LWSelection.Listener
                , VueToolSelectionListener
-               , ActiveListener<MapViewer>
                //, DragGestureListener
                //, DragSourceListener
                , java.awt.event.KeyListener
@@ -1237,47 +1236,46 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public void LWCChanged(LWCEvent e) {
         if (DEBUG.EVENTS && DEBUG.META) out("LWCChanged: " + e);
         
-        final Object key = e.key;
-
-        // If mFocal isn't a map, we must always update,
-        // as we'll never see the user-action-completed
-        // off the map, as we're not listening to it.
-        // (Actually, that would be easy to fix: also
-        // listen to the focal's map, but this updating
+        // If mFocal isn't a map, we must always update, as we'll never see the
+        // user-action-completed off the map, as we're not listening to it.  (Actually,
+        // that would be easy to fix: also listen to the focal's map, but this updating
         // is better anyway...)
-        if (mFocal == mMap && DEBUG.DYNAMIC_UPDATE == false) {
-            if (key == LWKey.RepaintAsync) {
-                repaint();
-                return;
-            } else if (VUE.getActiveViewer() != this) {
-                // this prevents other viewers of same map from updating until an
-                // action is completed in the active viewer.
-                if (sDragUnderway || key != LWKey.UserActionCompleted)
-                    return;
-            } else {
-                // The ACTIVE viewer can ignore these events,
-                // because we've been repainting all the updates
-                // due to events as they've been happening.
-                if (key == LWKey.UserActionCompleted)
-                    return;
-            }
-        }
+//         if (mFocal == mMap && DEBUG.DYNAMIC_UPDATE == false) {
+//             if (key == LWKey.RepaintAsync) {
+//                 repaint();
+//                 return;
+//             } else if (VUE.getActiveViewer() != this) {
+//                 // this prevents other viewers of same map from updating until an
+//                 // action is completed in the active viewer.
+//                 if (sDragUnderway || key != LWKey.UserActionCompleted)
+//                     return;
+//             } else {
+//                 // The ACTIVE viewer can ignore these events,
+//                 // because we've been repainting all the updates
+//                 // due to events as they've been happening.
+//                 if (key == LWKey.UserActionCompleted)
+//                     return;
+//             }
+//         }
         
         // ? todo: optimize -- we get lots of extra location events
         // when dragging if there are children of the dragged
         // object (still true?)
         
-        if (isBoundsEvent(key))
+        if (isBoundsEvent(e.key))
             adjustCanvasSize();
         
-        if (key == LWKey.Deleting) {
+        if (e.key == LWKey.Deleting) {
             if (rollover == e.getComponent())
                 clearRollover();
-        } else if (key == LWKey.FillColor && e.getComponent() == mMap && mFocal == mMap) {
-            setBackground(mMap.getFillColor());
+//         } else if (e.key == LWKey.FillColor && e.getComponent() == mMap && mFocal == mMap) {
+//             setBackground(mMap.getFillColor());
+        } else if (e.key == LWKey.Hidden) {
+            if (e.getComponent().isHidden() && e.getComponent().isSelected())
+                VueSelection.remove(e.getComponent());
         }
-        
-        if (key == LWKey.RepaintComponent) {
+
+        if (e.key == LWKey.RepaintComponent) {
             Rectangle r = mapToScreenRect(e.getComponent().getBounds());
             super.paintImmediately(r);
             //super.repaint(0,r.x,r.y,r.width,r.height);            
@@ -2637,6 +2635,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         dc.setMapDrawing();
 
         AffineTransform rawMapTransform = dc.g.getTransform();
+        boolean atLeastOneVisible = false;
         for (LWComponent c : selection) {
 
             if (c instanceof LWSlide) {
@@ -2678,6 +2677,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 drawSelectorBoxInThisViewer = false;
                 break;
             }
+
+            if (c.isDrawn())
+                atLeastOneVisible = true;
+
             
             //-------------------------------------------------------
             // draw ghost shapes
@@ -2697,7 +2700,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         dc.setRawDrawing();
         //----------------------------------------------------------------------------------------
 
-        if (!drawSelectorBoxInThisViewer) {
+        if (!drawSelectorBoxInThisViewer || !atLeastOneVisible) {
             resizeControl.active = false;
             out("selection contents not for this viewer");
             return;
@@ -3608,10 +3611,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 break;
 
             case KeyEvent.VK_ENTER:
-                if (!(mFocal instanceof LWMap)) {
+                if (!(mFocal instanceof LWMap) && !(this instanceof tufts.vue.ui.SlideViewer)) { // total SlideViewer hack...
                     loadFocal(mFocal.getMap());
                 } else if (Actions.Rename.enabledFor(VueSelection)) {
-                    // since removing this action from any menu, we have to fire it manually:
+                    // since removing this action from the main menu, we have to fire it manually:
+                    // todo: handle this kind of thing generically (make sure all action key bindings installed)
                     Actions.Rename.fire(this);
                 } else
                     handled = false;
@@ -5333,8 +5337,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private Runnable focusIndicatorRepaint = new Runnable() { public void run() { mFocusIndicator.repaint(); }};
     
-    public void activeChanged(ActiveEvent<MapViewer> e) {
-        
+    public void activeChanged(ActiveEvent e, MapViewer v) {
         // We delay the repaint request for the focus indicator on this event because normally, it
         // happens while we're grabbing focus, which means it happens twice: once here on active
         // viewer change, and once later when we get the focusGained event.  Since the focus
@@ -5343,7 +5346,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // because sometimes we ONLY see this event: e.g., if there is an active text edit (in
         // which cases we're the active viewer, but do NOT have keyboard focus), and then you mouse
         // over to another map, which then grabs the VUE application focus and becomes the active viewer.
-        
         VUE.invokeAfterAWT(focusIndicatorRepaint);
     }
     

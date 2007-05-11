@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.423 $ / $Date: 2007-05-11 00:52:47 $ / $Author: sfraize $ 
+ * @version $Revision: 1.424 $ / $Date: 2007-05-11 17:24:19 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -102,17 +102,6 @@ public class VUE
     private static MapInspectorPanel mapInspectorPanel = null;
 
 
-    /*
-    private static final LWComponent.Listener PathwayListListener =
-        new LWComponent.Listener() {
-            public void LWCChanged(LWCEvent e) {            	
-                if ("pathway.list.active".equals(e.getName())) {
-                    ActivePathwayHandler.setActive(e, (LWPathway) e.getComponent());
-                }
-            }
-        };
-    */
-
     private static final ActiveChangeSupport<LWPathway>
         ActivePathwayHandler = new ActiveChangeSupport<LWPathway>(LWPathway.class) {
         protected void onChange(ActiveEvent<LWPathway> e) {
@@ -139,22 +128,16 @@ public class VUE
                 ActivePathwayHandler.setActive(e, e.active.pathway);
             else
                 ActivePathwayHandler.setActive(e, null);
+
+            if (e.active != null && e.active.node != null && e.active.node.isVisible())
+                VUE.getSelection().setTo(e.active.node);
         }
     };
+
 
     private static final ActiveChangeSupport<LWMap>
         ActiveMapHandler = new ActiveChangeSupport<LWMap>(LWMap.class) {
         protected void onChange(ActiveEvent<LWMap> e) {
-            final LWPathwayList pathwayList = e.active == null ? null : e.active.getPathwayList();
-            
-            /*
-            if (e.oldActive != null && e.oldActive.getPathwayList() != null)
-                e.oldActive.getPathwayList().removeListener(PathwayListListener);
-            
-            if (pathwayList != null)
-                pathwayList.addListener(PathwayListListener);
-            */
-
             if (e.active != null)
                 ActivePathwayHandler.setActive(e, e.active.getActivePathway());
             else
@@ -202,6 +185,9 @@ public class VUE
     
     public static void addActiveListener(Class clazz, ActiveListener listener) {
         ActiveChangeSupport.getHandler(clazz).addListener(listener);
+    }
+    public static void addActiveListener(Class clazz, Object reflectedListener) {
+        ActiveChangeSupport.getHandler(clazz).addListener(reflectedListener);
     }
     public static void removeActiveListener(Class clazz, ActiveListener listener) {
         ActiveChangeSupport.getHandler(clazz).removeListener(listener);
@@ -683,7 +669,7 @@ public class VUE
 
         private void loadAllEditors(LWSelection selection)
         {
-            LWComponent propertySource = selection.only(); // will be null if selection size > 1
+            final LWComponent propertySource = selection.only(); // will be null if selection size > 1
         
             if (DEBUG.TOOL) out("\nloadAllEditors " + propertySource);
 
@@ -691,28 +677,43 @@ public class VUE
             // loading may produce in the editors (otherwise, we'd then set the selected
             // component properties, end end up risking recursion, even tho properties
             // shouldn't be triggering events if their value hasn't actually changed)
-            EditorLoadingUnderway = true;
             
+            EditorLoadingUnderway = true;
             try {
                 for (LWEditor editor : mEditors) {
-                    boolean supported;
-                    if (selection.isEmpty())
-                        supported = true;
-                    else
-                        supported = selection.hasEditableProperty(editor.getPropertyKey());
-                    if (DEBUG.TOOL) out("SET-ENABLED " + (supported?"YES":" NO") + ": " + editor);
-                    editor.setEnabled(supported);
-                    if (mLabels.containsKey(editor))
-                        mLabels.get(editor).setEnabled(supported);
-                    if (supported && propertySource != null)
-                        loadEditor(propertySource, editor);
-                    //if (editor instanceof Component) ((Component)editor).repaint(); // not helping ShapeIcon's repaint when disabled...
+                    try {
+                        processEditor(editor, selection, propertySource);
+                    } catch (Throwable t) {
+                        tufts.Util.printStackTrace(t, this + ": general failure processing LWEditor: " + editor);
+                    }
                 }
             } finally {
                 EditorLoadingUnderway = false;
             }
         }
-    
+
+        private void processEditor(LWEditor editor, LWSelection selection, LWComponent propertySource) {
+            boolean supported;
+            if (selection.isEmpty())
+                supported = true;
+            else
+                supported = selection.hasEditableProperty(editor.getPropertyKey());
+            if (DEBUG.TOOL) out("SET-ENABLED " + (supported?"YES":" NO") + ": " + editor);
+            
+            try {
+                editor.setEnabled(supported);
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t, this + ": LWEditor.setEnabled failed on: " + editor);
+            }
+            
+            if (mLabels.containsKey(editor))
+                mLabels.get(editor).setEnabled(supported);
+            
+            if (supported && propertySource != null)
+                loadEditor(propertySource, editor);
+            //if (editor instanceof Component) ((Component)editor).repaint(); // not helping ShapeIcon's repaint when disabled...
+        }
+        
         private void loadEditor(LWComponent source, LWEditor editor) {
             if (DEBUG.TOOL&&DEBUG.META) out("loadEditor: " + editor + " loading " + editor.getPropertyKey() + " from " + source);
 
@@ -724,8 +725,12 @@ public class VUE
                 value = null;
             //if (value != null) {
             if (DEBUG.TOOL) out("     loadEditor: " + editor + " <- value[" + value + "]");
+            try {
                 editor.displayValue(value);
-                //} else if (DEBUG.TOOL) out("\tloadEditor: " + source + " -> " + editor + " skipped; null value for " + key);
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t, this + ": LWEditor.displayValue failed on: " + editor + " with value [" + value + "]");
+            }
+            //} else if (DEBUG.TOOL) out("\tloadEditor: " + source + " -> " + editor + " skipped; null value for " + key);
         }
 
 
@@ -768,6 +773,10 @@ public class VUE
         
         public static void ApplyProperties(LWComponent c) {
             ApplyProperties(c, ~0L);
+        }
+
+        public String toString() {
+            return getClass().getName();
         }
         
         /**

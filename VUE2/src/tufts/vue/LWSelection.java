@@ -29,7 +29,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.60 $ / $Date: 2007-04-17 23:00:10 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2007-05-11 17:24:18 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -507,10 +507,13 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     public boolean allOfSameType()
     {
-        Iterator i = iterator();
-        Object first = i.next();
+        if (size() <= 1)
+            return true;
+        
+        final Iterator i = iterator();
+        final Class firstType = i.next().getClass();
         while (i.hasNext())
-            if (i.next().getClass() != first.getClass())
+            if (i.next().getClass() != firstType)
                 return false;
         return true;
     }

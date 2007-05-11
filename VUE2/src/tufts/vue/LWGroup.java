@@ -40,7 +40,7 @@ import java.awt.geom.AffineTransform;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.57 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2007-05-11 17:24:18 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -620,7 +620,7 @@ public class LWGroup extends LWContainer
             // don't draw fill or border
             drawChildren(dc);
 
-        if (isSelected() && dc.isInteractive()) {
+        if (isSelected() && dc.isInteractive() && dc.focal != this) {
             java.awt.Shape shape = getLocalShape();
             dc.g.setColor(COLOR_HIGHLIGHT);
             dc.g.fill(shape);

@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.148 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
+ * @version $Revision: 1.149 $ / $Date: 2007-05-11 17:24:18 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -523,20 +523,8 @@ public class LWPathway extends LWContainer
         if (isRevealer() && isVisible())
             updateMemberVisibility();
 
-        if (VUE.getActivePathway() == this) {
-            if (i < 0) {
-                VUE.setActive(LWPathway.Entry.class, this, this.asEntry());
-            } else {
-                VUE.setActive(LWPathway.Entry.class, this, getEntry(i));
-                // TODO: if this node is in pathway more than once,
-                // this set-selection is re-triggering a pathway
-                // table selection of the FIRST instance of this node,
-                // preventing us from ever kbd-arrow navigating
-                // down the the second instance of the node in the pathway.
-                //VUE.getSelection().setTo(getNodeEntry(i));
-            }
-        }
-        
+        broadcastCurrentEntry();
+
         // No longer need this as it's all handled via the setActive:
         
         //notify("pathway.index"); // we need this so the PathwayTable is eventually told to redraw
@@ -721,10 +709,33 @@ public class LWPathway extends LWContainer
         else if (mCurrentIndex >= newEntries.size())
             setIndex(newEntries.size() - 1);
             //mCurrentIndex = newEntries.size() - 1;
+
+        // no matter what, make sure to broadcast the entry at
+        // the current index, as it's possible for the index
+        // to stay the same, but the entry change, as on a
+        // delete or an undo of a delete.
+        broadcastCurrentEntry();
         
         notify(keyName, new Undoable() { void undo() {
             setEntries(keyName, oldEntries, oldIndex);
         }});
+    }
+
+    private void broadcastCurrentEntry() {
+        if (VUE.getActivePathway() == this) {
+            if (mCurrentIndex < 0) {
+                VUE.setActive(LWPathway.Entry.class, this, this.asEntry());
+            } else {
+                VUE.setActive(LWPathway.Entry.class, this, getEntry(mCurrentIndex));
+                // TODO: if this node is in pathway more than once,
+                // this set-selection is re-triggering a pathway
+                // table selection of the FIRST instance of this node,
+                // preventing us from ever kbd-arrow navigating
+                // down the the second instance of the node in the pathway.
+                //VUE.getSelection().setTo(getNodeEntry(i));
+            }
+        }
+        
     }
     
     
