@@ -33,7 +33,7 @@ import javax.swing.border.*;
  * The VueToolPanel is the component that holds the main VUE toolbar
  * and the contextual properties tools.
  *
- * @version $Revision: 1.30 $ / $Date: 2007-05-01 18:17:41 $ / $Author: mike $ 
+ * @version $Revision: 1.31 $ / $Date: 2007-05-11 18:03:47 $ / $Author: mike $ 
  *
  **/
 public class VueToolPanel extends JPanel
@@ -102,7 +102,7 @@ public class VueToolPanel extends JPanel
          public JLineSeparator(int orient, int w, int h)
          {
              super(orient);
-
+             this.setForeground(VueResources.getColor("dividerBarColor"));
              dim = new Dimension(w, h);
          }
 
@@ -119,7 +119,7 @@ public class VueToolPanel extends JPanel
     } 
     public void addSeparator()
     {
-    	JLineSeparator jsp = new JLineSeparator(SwingConstants.VERTICAL,3,30);
+    	JLineSeparator jsp = new JLineSeparator(SwingConstants.VERTICAL,3,18);
     	jsp.setBorder(BorderFactory.createEmptyBorder());
     	add(jsp);
     }
