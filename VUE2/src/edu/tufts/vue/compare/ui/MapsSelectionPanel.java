@@ -19,7 +19,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.3 $ / $Date: 2007-05-11 15:53:24 $ / $Author: dan $
+ * @version $Revision: 1.4 $ / $Date: 2007-05-11 20:27:08 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -190,8 +190,10 @@ public class MapsSelectionPanel extends JPanel  {
                 LWMap map = null;
                 try
                 {
-                  file = new File((String)model.getValueAt(1,i));
-                  map = ActionUtil.unmarshallMap(file);
+                  //file = new File((String)model.getValueAt(i,1));
+                  //file = new File((String)model.localFiles.get(i));
+                  String fileName ="file:///" + (String)model.localFiles.get(i);
+                  map = ActionUtil.unmarshallMap(new java.net.URL(fileName));
                 }
                 catch(java.io.IOException exc)
                 {
@@ -219,8 +221,10 @@ public class MapsSelectionPanel extends JPanel  {
            LWMap map = null;
            try
            {
-             file = new File((String)model.getValueAt(1,i));
-             map = ActionUtil.unmarshallMap(file);
+             //file = new File((String)model.getValueAt(1,i));
+             //map = ActionUtil.unmarshallMap(file);
+             String fileName ="file:///" + (String)model.localFiles.get(i);
+             map = ActionUtil.unmarshallMap(new java.net.URL(fileName));
            }
            catch(java.io.IOException exc)
            {
