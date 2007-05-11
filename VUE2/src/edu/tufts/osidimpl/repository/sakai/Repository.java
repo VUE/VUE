@@ -286,6 +286,11 @@ implements org.osid.repository.Repository
 			String siteString = (String) call.invoke( new Object[] {sessionId, assetIdString} );
 			System.out.println("Sent ContentHosting.getAllResources(sessionId,assetId), got '" + siteString + "'");
 			
+			System.out.println("getting info");
+			call.setOperationName(new QName(address, "getInfo"));
+			System.out.println((String) call.invoke( new Object[] {sessionId, assetIdString} ));
+			System.out.println("got info");
+			
 			return new Asset(this.key,siteString);			
 		} catch (Throwable t) {
 			Utilities.log(t);

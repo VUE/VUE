@@ -68,5 +68,7 @@
     <type>search/keyword@mit.edu</type>
     <type>search/title@mit.edu</type>
   </searchtypes>
+  
+  <assetbyidviamanager assetid="/group/27b63481-494f-42b0-00f1-a1048d26efb5/black shipsjpg.jpg"/>
 
 </managerImpl>

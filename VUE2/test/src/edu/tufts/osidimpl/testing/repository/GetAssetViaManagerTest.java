@@ -28,8 +28,8 @@ public class GetAssetViaManagerTest extends TestCase
 		// are their assets to test for?
 		org.w3c.dom.NodeList repositoriesNodeList = document.getElementsByTagName(OsidTester.ASSET_VIA_MANAGER_TAG);
 		int numRepositories = repositoriesNodeList.getLength();
-		for (int i=0; i < numRepositories; i++) {
-			org.w3c.dom.Element repositoryElement = (org.w3c.dom.Element)repositoriesNodeList.item(i);
+		for (int j=0; j < numRepositories; j++) {
+			org.w3c.dom.Element repositoryElement = (org.w3c.dom.Element)repositoriesNodeList.item(j);
 			String idString = repositoryElement.getAttribute(OsidTester.ASSET_ID_ATTR);
 			if (idString != null) {
 				try {
@@ -37,9 +37,29 @@ public class GetAssetViaManagerTest extends TestCase
 					org.osid.repository.Asset asset = repositoryManager.getAsset(id);
 					System.out.println("PASSED: Asset By Id Via Manager " + idString);
 					
+					byte[] bytes = (byte[])(asset.getContent());					
+					java.io.ByteArrayInputStream in = new java.io.ByteArrayInputStream(bytes);
+					byte block[] = new byte[4096];
+					java.io.BufferedOutputStream out = new java.io.BufferedOutputStream(new java.io.FileOutputStream("test.jpg"));
+					int i = 0;
+					try {
+						while (i != -1) {
+							i = in.read(block, 0, 4096);
+							out.write(block, 0, 4096);
+							System.out.print(".");
+							if (i == -1) {
+								out.flush();
+								System.out.println();
+							}
+						}
+					} catch (java.io.IOException ex) {
+						out.flush();
+					}
+				
 					// check asset metadata, if specified
 					AssetMetadataTest amt = new AssetMetadataTest(asset,repositoryElement,"");
 				} catch (Throwable t) {
+					t.printStackTrace();
 					fail("ID Manager Failed");
 				}
 			}

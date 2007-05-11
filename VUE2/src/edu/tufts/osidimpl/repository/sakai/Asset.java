@@ -162,13 +162,27 @@ implements org.osid.repository.Asset
 		if (this.assetType.isEqual(Utilities.getCollectionAssetType())) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);
 		}
-		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
-    }
-
-	/*
-		This operation is only supported for ????; otherwise UNKNOWN_TYPE is thrown.
-		The content must be able to be cast as a java.io.File
-	 */
+		try {
+			// OBA assumes serializable is a byte array
+			String collectionId = "/group/27b63481-494f-42b0-00f1-a1048d26efb5/";
+			String name = this.displayName;
+			String resourceId = collectionId + name;
+			
+			Service  service = new Service();
+			Call call = (Call) service.createCall();
+			call = (Call) service.createCall();
+			String endpoint = Utilities.getEndpoint();
+			String address = Utilities.getAddress();
+			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+			call.setOperationName(new QName(address, "getContentData"));
+			
+			String result = (String) call.invoke( new Object[] {sessionId, resourceId} );
+			return org.apache.axis.encoding.Base64.decode(result);
+		} catch (Throwable t) {
+			t.printStackTrace();
+			throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
+		}
+	}	
     
 	public void updateContent(java.io.Serializable content)
     throws org.osid.repository.RepositoryException
@@ -176,8 +190,10 @@ implements org.osid.repository.Asset
 		if (content == null) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
 		}
+		if (!(this.assetType.isEqual(Utilities.getCollectionAssetType()))) {
+			throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);
+		}
 		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
-/*		if (this.assetType.isEqual(this.categoryAssetType)) {  */
 	}
 
     public void addAsset(org.osid.shared.Id assetId)
