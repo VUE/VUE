@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.353 $ / $Date: 2007-05-11 17:24:19 $ / $Author: sfraize $ 
+ * @version $Revision: 1.354 $ / $Date: 2007-05-11 20:51:04 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1271,8 +1271,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //         } else if (e.key == LWKey.FillColor && e.getComponent() == mMap && mFocal == mMap) {
 //             setBackground(mMap.getFillColor());
         } else if (e.key == LWKey.Hidden) {
-            if (e.getComponent().isHidden() && e.getComponent().isSelected())
+            if (e.getComponent().isHidden() && e.getComponent().isSelected()) {
                 VueSelection.remove(e.getComponent());
+            } else
+                repaint();
+            return;
         }
 
         if (e.key == LWKey.RepaintComponent) {
@@ -1284,7 +1287,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (singleSrc != null && singleSrc.isHidden() && !(singleSrc instanceof LWPathway)) {
                 // todo: some kind of semantic check that knows pathway visibility
                 // is irrelevant here, as opposed to the type check.
-                out("skipping update from hidden component: " + e);
+                if (DEBUG.Enabled) out("skipping update from hidden component: " + e);
             } else
                 repaint();
         } else {
