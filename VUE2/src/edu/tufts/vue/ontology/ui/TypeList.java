@@ -161,9 +161,17 @@ public class TypeList extends JList {
                  }
                  if(resource!=null)
                  {    
-                   compFor = new LWImage();
+                   //compFor = new LWImage();
+                   compFor = new LWNode();
                    compFor.setResource(resource);
-                   ((LWImage)compFor).setToNaturalSize();
+                   LWImage im = new LWImage();
+                   im.setResource(resource);
+                   //((LWImage)compFor).setToNaturalSize();
+                   im.setToNaturalSize();
+                   java.util.ArrayList cl = new java.util.ArrayList();
+                   cl.add(im);
+                   ((LWNode)compFor).addChildren(cl);
+                   
                  }
                  else
                  {
