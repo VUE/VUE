@@ -29,12 +29,12 @@ import tufts.vue.gui.*;
 // TODO FIX: the text input fields should save value on focus loss
 
 /**
- * @version $Revision: 1.28 $ / $Date: 2007-02-06 21:50:39 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2007-05-11 20:27:48 $ / $Author: sfraize $
  */
 
 class LWCInfoPanel extends javax.swing.JPanel
     implements VueConstants,
-               LWSelection.Listener,
+               //LWSelection.Listener,
                LWComponent.Listener,
                ActionListener,
                FocusListener
@@ -94,7 +94,8 @@ class LWCInfoPanel extends javax.swing.JPanel
         metadataPane.setOpaque(false);
         add(fieldPane, BorderLayout.NORTH);
         add(metadataPane,BorderLayout.CENTER);
-        VUE.ModelSelection.addListener(this);
+        //VUE.ModelSelection.addListener(this);
+        VUE.addActiveListener(LWComponent.class, this);
     }
 
     private void setUpMetadataPane() {
@@ -232,12 +233,20 @@ class LWCInfoPanel extends javax.swing.JPanel
             loadItem(this.lwc);
     }
     
-    public void selectionChanged(LWSelection selection) {
-        if (selection.isEmpty() || selection.size() > 1)
+//     public void selectionChanged(LWSelection selection) {
+//         if (selection.isEmpty() || selection.size() > 1)
+//             setAllEnabled(false);
+//         else
+//             loadItem(selection.first());
+//     }
+
+    public void activeChanged(ActiveEvent e, LWComponent c) {
+        if (c == null)
             setAllEnabled(false);
         else
-            loadItem(selection.first());
+            loadItem(c);
     }
+    
     
     private void loadText(JTextComponent c, String text) {
         String hasText = c.getText();
