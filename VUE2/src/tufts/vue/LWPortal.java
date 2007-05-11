@@ -31,7 +31,7 @@ import java.awt.Color;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.1 $ / $Date: 2007-05-11 00:53:04 $ / $Author: sfraize $ 
+ * @version $Revision: 1.2 $ / $Date: 2007-05-11 17:22:41 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -40,18 +40,26 @@ public class LWPortal extends LWNode
     private static final Color LightFill = new Color(255,255,255,64);
     
     public LWPortal() {
-        setStrokeWidth(0);
-        setSize(200,100);
-        //setFillColor(new java.awt.Color(0,0,0,64));
-
         disablePropertyTypes(KeyType.STYLE);
         enableProperty(LWKey.Shape);
-
         //disableProperty(LWKey.Label);
-
-        //setAspect(LWSlide.SlideAspect);
-        setLabel("Portal");
     }
+
+    public static LWPortal create() {
+        final LWPortal p = new LWPortal();
+        p.setStrokeWidth(0);
+        p.setSize(LWSlide.SlideWidth / 4, LWSlide.SlideHeight / 4);
+        //setAspect(LWSlide.SlideAspect);
+        p.setLabel("Presentation Portal");
+        return p;
+    }
+
+
+    /* override to do nothing so we aren't constrainted by LWNode's minimum size*/
+    //@Override protected void layoutImpl(Object triggerKey) {}
+    //@Override protected void layout(Object triggerKey, Size curSize, Size request) {} // overkill: shrinks to nothing?
+    /** override to so we aren't constrainted by LWNode's minimum size */
+    @Override protected Size getTextSize() { return Size.None; }
 
     @Override protected void userSetSize(float width, float height, MapMouseEvent e)
     {
@@ -84,15 +92,23 @@ public class LWPortal extends LWNode
         }
     }
 
+    private boolean wasVisible = true;
     @Override public boolean isVisible() {
+        boolean visible;
         final java.util.Collection pathways = getPathways();
         if (pathways.size() > 0) {
+            visible = false;
             for (LWPathway p : getPathways())
                 if (p.isVisible())
-                    return true;
-            return false;
+                    visible = true;
         } else
-            return true;
+            visible = true;
+
+        if (wasVisible != visible) {
+            wasVisible = visible;
+            notify(LWKey.Hidden);
+        }
+        return visible;
     }
     
 
