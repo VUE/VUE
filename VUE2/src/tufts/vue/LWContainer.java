@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.113 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
+ * @version $Revision: 1.114 $ / $Date: 2007-05-11 20:07:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -187,7 +187,7 @@ public abstract class LWContainer extends LWComponent
         newParent.addChildren(reparenting);
     }
 
-    final void addChild(LWComponent c) {
+    public final void addChild(LWComponent c) {
         addChildren(new VueUtil.SingleIterator(c));
     }
     final void removeChild(LWComponent c) {
