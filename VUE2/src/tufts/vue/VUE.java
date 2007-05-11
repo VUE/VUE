@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.424 $ / $Date: 2007-05-11 17:24:19 $ / $Author: sfraize $ 
+ * @version $Revision: 1.425 $ / $Date: 2007-05-11 17:37:52 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -129,7 +129,7 @@ public class VUE
             else
                 ActivePathwayHandler.setActive(e, null);
 
-            if (e.active != null && e.active.node != null && e.active.node.isVisible())
+            if (e.active != null && e.active.node != null)
                 VUE.getSelection().setTo(e.active.node);
         }
     };
