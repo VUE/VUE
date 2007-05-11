@@ -51,7 +51,7 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.7 $ / $Date: 2007-05-10 17:42:10 $ / $Author: mike $
+ * @version $Revision: 1.8 $ / $Date: 2007-05-11 20:12:14 $ / $Author: sfraize $
  */
  
 public class FillToolPanel extends ToolPanel
@@ -95,11 +95,11 @@ public class FillToolPanel extends ToolPanel
         mFillColorButton.setColor((Color)fillPrefColor.getValue());
         mFillColorButton.setToolTipText("Fill Color");
         //mFillColorButton.addPropertyChangeListener(this); // always last or we get prop change events for setup
-        mFillColorButton.addPropertyChangeListener(new PropertyChangeListener()
-        {	
-			public void propertyChange(PropertyChangeEvent arg0) {
-				fillPrefColor.setValue(mFillColorButton.getColor());							
-			}        	
+        mFillColorButton.addPropertyChangeListener(new PropertyChangeListener() {	
+                public void propertyChange(PropertyChangeEvent e) {
+                    if (e instanceof LWPropertyChangeEvent)
+                        fillPrefColor.setValue(mFillColorButton.getColor());
+                }        	
         });
         //-------------------------------------------------------
         // Stroke Color menu
@@ -111,11 +111,11 @@ public class FillToolPanel extends ToolPanel
         //mStrokeColorButton.setButtonIcon(new LineIcon(16,16, 4, false));
         mStrokeColorButton.setToolTipText("Stroke Color");
         //mStrokeColorButton.addPropertyChangeListener(this);
-        mStrokeColorButton.addPropertyChangeListener(new PropertyChangeListener()
-        {	
-			public void propertyChange(PropertyChangeEvent arg0) {
-				strokePrefColor.setValue(mStrokeColorButton.getColor());							
-			}        	
+        mStrokeColorButton.addPropertyChangeListener(new PropertyChangeListener() {	
+                public void propertyChange(PropertyChangeEvent e) {
+                    if (e instanceof LWPropertyChangeEvent)
+                        strokePrefColor.setValue(mStrokeColorButton.getColor());							
+                }        	
         });
         
         fillLabel.setLabelFor(mFillColorButton);
