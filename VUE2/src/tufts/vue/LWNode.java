@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.149 $ / $Date: 2007-05-11 17:24:18 $ / $Author: sfraize $
+ * @version $Revision: 1.150 $ / $Date: 2007-05-11 17:40:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1859,7 +1859,7 @@ public class LWNode extends LWContainer
         // Fill the shape (if it's not transparent)
         //-------------------------------------------------------
         
-        if (isSelected() && dc.isInteractive()) {
+        if (isSelected() && dc.isInteractive() && dc.focal != this) {
             LWPathway p = VUE.getActivePathway();
             if (p != null && p.isVisible() && p.getCurrentNode() == this) {
                 // SPECIAL CASE:
