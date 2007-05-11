@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.52 $ / $Date: 2007-05-10 13:23:39 $ / $Author: mike $
+ * @version $Revision: 1.53 $ / $Date: 2007-05-11 17:35:58 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -108,7 +108,7 @@ public class FontEditorPanel extends JPanel
                 public String produceValue() { return (String) mFontCombo.getSelectedItem(); }
                 public void displayValue(String value) { mFontCombo.setSelectedItem(value); }
             });
-        
+        mFontCombo.setSelectedItem("Arial");
 //         We don't appear to get any events here!
 //         mFontCombo.addItemListener(new ItemListener() {
 //                 public void itemStateChanged(ItemEvent e) {
@@ -132,7 +132,7 @@ public class FontEditorPanel extends JPanel
         mSizeField.setEditable(true);
         mSizeField.setOpaque(false);
         mSizeField.setMaximumRowCount(30);
-        
+        mSizeField.setSelectedItem("13");
         /*
         if (GUI.isMacAqua()) {
             mFontCombo.setBackground(VueTheme.getToolbarColor());
