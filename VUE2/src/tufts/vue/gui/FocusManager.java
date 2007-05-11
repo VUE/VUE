@@ -146,7 +146,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.10 $ / $Date: 2006-07-28 18:26:25 $ / $Author: mike $ 
+ * @version $Revision: 1.11 $ / $Date: 2007-05-11 21:39:44 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -432,6 +432,8 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
             if ((ke.getModifiers() & MENU_BAR_MAYBE) != 0 || ke.isActionKey())
                 relayUnconsumedKeyPress(ke);
+
+            if (DEBUG.FOCUS) out("UNCONSUMED: " + e);
         }
 
         return dispatched;
@@ -488,7 +490,17 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         }
 
         if (DEBUG.FOCUS||DEBUG.KEYS) out(TERM_GREEN + eventName(e) + TERM_CLEAR);
-        return super.dispatchKeyEvent(e);
+        
+        // A complete and total hack making use of a global TAB press:
+        if (e.getKeyCode() == KeyEvent.VK_TAB && e.getSource() instanceof tufts.vue.MapViewer) {
+            if (e.getID() == KeyEvent.KEY_PRESSED) {
+                if (DEBUG.FOCUS||DEBUG.KEYS) out("trapped TAB press for DockWindow");
+                DockWindow.ToggleAllVisible();
+            }
+            return true;
+        } else {
+            return super.dispatchKeyEvent(e);
+        }
     }
 
     public boolean XpostProcessKeyEvent(KeyEvent e) {

@@ -27,7 +27,7 @@ import java.util.Iterator;
  * whenver a DockWindow's relvant edge is placed in the the region
  * while visible.
  *
- * @version $Revision: 1.1 $ / $Date: 2006-01-20 17:00:57 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2007-05-11 21:39:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -115,9 +115,7 @@ class DockRegion {
 
         if (DEBUG.DOCK) System.out.println("DockWindow.assignAllMemebers");
             
-        Iterator i = DockWindow.sAllWindows.iterator();
-        while (i.hasNext()) {
-            DockWindow dockWindow = (DockWindow) i.next();
+        for (DockWindow dockWindow : DockWindow.AllWindows) {
             DockRegion dockRegion = findRegion(dockWindow);
             // dockRegion may, of course, be null
             dockWindow.assignDockRegion(dockRegion);

@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.71 $ / $Date: 2007-05-09 15:57:49 $ / $Author: mike $
+ * @version $Revision: 1.72 $ / $Date: 2007-05-11 21:39:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -957,10 +957,8 @@ public class GUI
             //activateWaitCursor(ViewerWithWaitCursor = VUE.getActiveViewer());
             activateWaitCursor(VUE.ApplicationFrame);
             activateWaitCursor(getFullScreenWindow());
-            Iterator i = DockWindow.sAllWindows.iterator();
-            while (i.hasNext()) {
-                activateWaitCursor((DockWindow)i.next());
-            }
+            for (DockWindow dw : DockWindow.AllWindows)
+                activateWaitCursor(dw);
 
             WaitCursorActive = true;
         }
@@ -994,10 +992,8 @@ public class GUI
             //clearWaitCursor(ViewerWithWaitCursor);
             clearWaitCursor(VUE.ApplicationFrame);
             clearWaitCursor(getFullScreenWindow());
-            Iterator i = DockWindow.sAllWindows.iterator();
-            while (i.hasNext()) {
-                clearWaitCursor((DockWindow)i.next());
-            }
+            for (DockWindow dw : DockWindow.AllWindows)
+                clearWaitCursor(dw);
             CursorMap.clear();
             WaitCursorActive = false;
         }

@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.96 $ / $Date: 2007-05-07 07:18:40 $ / $Author: sfraize $
+ * @version $Revision: 1.97 $ / $Date: 2007-05-11 21:39:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -68,8 +68,9 @@ public class DockWindow extends javax.swing.JWindow
                , java.beans.PropertyChangeListener
 {
     public static final int DefaultWidth = 300;
+    private static boolean AllVisible = true;
     
-    final static java.util.List sAllWindows = new java.util.ArrayList();
+    final static java.util.List<DockWindow> AllWindows = new java.util.ArrayList();
     final static char RightArrowChar = 0x25B8; // unicode
     final static char DownArrowChar = 0x25BE; // unicode
     //final static String RightArrow = "" + RightArrowChar;
@@ -138,6 +139,7 @@ public class DockWindow extends javax.swing.JWindow
     private Rectangle mSavedShape;
     /** set to false as soon as we begin to go invisible */
     private boolean mShowing;
+    private boolean mWasVisible;
     private boolean mAnimatingReshape;
     private boolean mStickingRight;
     private boolean mWasStickingRight;
@@ -230,7 +232,7 @@ public class DockWindow extends javax.swing.JWindow
             ;//pack(); // ensure peer's created
         
         // add us to the static list of all DockWindow's
-        sAllWindows.add(this);
+        AllWindows.add(this);
 
         /* WAIT-CURSOR DEBUG
            setMenuActions(new Action[] {
@@ -242,9 +244,6 @@ public class DockWindow extends javax.swing.JWindow
            }},
            });} */
         setFocusable(true);
-        
-        
-        
     }
 
     public DockWindow(String title, Window owner, JComponent content, boolean asToolbar)
@@ -845,6 +844,32 @@ public class DockWindow extends javax.swing.JWindow
         */
     }
 
+    public static void ToggleAllVisible() {
+        AllVisible = !AllVisible;
+        if (AllVisible)
+            ShowPreviouslyHiddenWindows();
+        else
+            HideAllWindows();
+    }
+
+    private static void HideAllWindows() {
+        for (DockWindow dw : AllWindows) {
+            dw.mWasVisible = dw.isVisible();
+            dw.superSetVisible(false);
+        }
+    }
+    private static void ShowPreviouslyHiddenWindows() {
+        for (DockWindow dw : AllWindows) {
+            if (dw.mWasVisible)
+                dw.superSetVisible(true);
+        }
+        // The give the focus back to the viewer, which loses
+        // it when they go visible:
+        if (VUE.getActiveViewer() != null)
+            VUE.getActiveViewer().requestFocus();
+    }
+    
+
     /** keep the bottom of the window from going below the bottom screen edge */
     private void keepOnScreen() {
         Rectangle r = getBounds();
@@ -934,7 +959,13 @@ public class DockWindow extends javax.swing.JWindow
     {
         mShowing = show;
 
-        if (DEBUG.FOCUS || DEBUG.DOCK) out("setVisible " + show);
+        if (DEBUG.FOCUS || DEBUG.DOCK) {
+            out("setVisible " + show);
+            if (!show && !AllVisible && mWasVisible) {
+                out("ignoring visibility request: all are hidden");
+                return;
+            }
+        }
 
         if (isStackOwner && mChild != null) {
             setStackVisible(mShowing);
@@ -1951,11 +1982,8 @@ public class DockWindow extends javax.swing.JWindow
     */
     
     static void raiseAll() {
-        Iterator i = sAllWindows.iterator();
-        while (i.hasNext()) {
-            DockWindow dw = (DockWindow) i.next();
+        for (DockWindow dw : AllWindows)
             dw.toFront();
-        }
     }
         
     private static void refreshScreenInfo(DockWindow mover)
@@ -2003,10 +2031,8 @@ public class DockWindow extends javax.swing.JWindow
         addEdges(VUE.getMainWindow());
         //addEdges(VUE.getActiveViewer());
 
-        Iterator i = sAllWindows.iterator();
-        while (i.hasNext()) {
-            DockWindow dw = (DockWindow) i.next();
-
+        
+        for (DockWindow dw : AllWindows) {
             //if (dw == mover || !dw.isVisible() || dw.inSameStack(mover))
             if (dw == mover || !dw.isVisible() || mover.hasDescendant(dw))
                 continue;
@@ -2321,9 +2347,7 @@ public class DockWindow extends javax.swing.JWindow
         int mouseX = localMouseX + winX;
         int mouseY = localMouseY + winY;
         
-        Iterator i = sAllWindows.iterator();
-        while (i.hasNext()) {
-            DockWindow dw = (DockWindow) i.next();
+        for (DockWindow dw : AllWindows) {
 
             if (!dw.isVisible() || dw == this)
                 continue;
@@ -3005,7 +3029,7 @@ public class DockWindow extends javax.swing.JWindow
     private int StackDepth = -1;
     private void _updateChildLocation(boolean allChildren, int upcomingHeight, int upcomingY)
     {
-        if (StackDepth-1 > sAllWindows.size())
+        if (StackDepth-1 > AllWindows.size())
             throw new LoopError("updateChildLocation");
 
         StackDepth++;
@@ -3067,7 +3091,7 @@ public class DockWindow extends javax.swing.JWindow
     private class LoopError extends Error {
         LoopError(String where) {
             super("StackDepth=" + StackDepth
-                  + " #DockWindows=" + sAllWindows.size()
+                  + " #DockWindows=" + AllWindows.size()
                   + "\n" + where + " DockWindow" + DockWindow.this
                   + "\n\tparent=" + mParent
                   + "\n\t child=" + mChild
@@ -3092,7 +3116,7 @@ public class DockWindow extends javax.swing.JWindow
     /** recursive down children */
     private void _raiseChildren()
     {
-        if (StackDepth-1 > sAllWindows.size())
+        if (StackDepth-1 > AllWindows.size())
             throw new LoopError("raiseChildren");
 
         StackDepth++;
