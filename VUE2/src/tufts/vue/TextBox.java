@@ -87,7 +87,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.47 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2007-05-11 17:21:20 $ / $Author: sfraize $
  *
  */
 
@@ -274,20 +274,13 @@ public class TextBox extends JTextPane
         }
             
         wasOpaque = isOpaque();
-        Color c = lwc.getRenderFillColor();
+        Color background = lwc.getRenderFillColor();
         //if (c == null && lwc.getParent() != null && lwc.getParent() instanceof LWNode)
         final LWContainer nodeParent = lwc.getParent();
-        if (c == null && nodeParent != null)
-            c = nodeParent.getRenderFillColor(); // todo: only handles 1 level transparent embed!
+        if (background == null && nodeParent != null)
+            background = nodeParent.getRenderFillColor(); // todo: only handles 1 level transparent embed!
         // todo: could also consider using map background if the node itself
         // is transpatent (has no fill color)
-
-        // This is a complete hack:
-        if (c == null && nodeParent instanceof LWSlide) {
-            try {
-                c = ((LWSlide)nodeParent).getMasterSlide().getFillColor();
-            } catch (Throwable t) { if (DEBUG.Enabled) t.printStackTrace(); }
-        }
 
         // TODO: this workaround until we can recursively find a real fill color
         // node that for SLIDES, we'd have to get awfully fancy and
@@ -295,10 +288,14 @@ public class TextBox extends JTextPane
         // happened to have it's own special color).  Only super clean
         // way to do this would be to have established some kind of
         // rendering pipeline record... (yeah, right)
-        if (c == null)
-            c = Color.gray;
+        if (background == null) background = Color.gray;
+        //out("BACKGROUND COLOR " + background);
+
+        // TODO: the *selection* color always appears to be gray in for edits
+        // in the slide viewer on the mac, even if we manually set the selection
+        // color (which works in the main MapViewer) -- this is an oddity...
         
-        if (c != null) {
+        if (background != null) {
             // note that if we set opaque to false, interaction speed is
             // noticably slowed down in edit mode because it has to consider
             // repainting the entire map each cursor blink as the object
@@ -306,7 +303,7 @@ public class TextBox extends JTextPane
             // map.  So if we can guess at a reasonable fill color in edit mode,
             // we temporarily set us to opaque.
             setOpaque(true);
-            setBackground(c);
+            setBackground(background);
         }
         setSize(size);
 
