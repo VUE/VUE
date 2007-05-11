@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.147 $ / $Date: 2007-05-09 04:52:40 $ / $Author: sfraize $
+ * @version $Revision: 1.148 $ / $Date: 2007-05-11 00:51:06 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -271,11 +271,6 @@ public class LWNode extends LWContainer
         
     
     
-    /** Clone the given shape and call setShape.
-     * @param shape - an instance of RectangularShape */
-    private void _applyShape(Object shape) {
-        setShape(cloneShape(shape));
-    }
     private static RectangularShape cloneShape(Object shape) {
         return (RectangularShape) ((RectangularShape)shape).clone();
     }
@@ -338,29 +333,20 @@ public class LWNode extends LWContainer
     }
 
     /** Duplicate this node.
-     * @return the new node -- will be an exact copy, except for any pathway state from the source node */
+     * @return the new node -- will have the same style (visible properties) of the old node */
     public LWComponent duplicate(CopyContext cc)
     {
         LWNode newNode = (LWNode) super.duplicate(cc);
-        // TODO: do this as a class and we don't have to keep handling the newInstance everywhere we setNodeShape
-        if (getShape() != null)
-            newNode._applyShape(getShape());
-        //newNode.setShape((RectangularShape)((RectangularShape)getShape()).clone());
-
-        newNode.setSize(super.getWidth(), super.getHeight()); // make sure shape get's set with old size
-        //else if (getNodeShape() != null) // todo: for backward compat only 
-        //newNode.setNodeShape(getNodeShape());
-
+        // make sure shape get's set with old size:
+        newNode.setSize(super.getWidth(), super.getHeight()); 
         return newNode;
     }
-    
-    /**
+
+    /*
      * Get the named property value from this component.
      * @param key property key (see LWKey)
      * @return object representing appropriate value
-     */
-    /*
-
+     *
     public Object getPropertyValue(Object key)
     {
         if (key == LWKey.Shape.name) // TODO: shouldn't need this (old beans crap)
@@ -368,7 +354,6 @@ public class LWNode extends LWContainer
         else
             return super.getPropertyValue(key);
     }
-    */
     public void setProperty(final Object key, Object val)
     {
         if (key == LWKey.Shape.name) // TODO: shouldn't need this (old beans crap)
@@ -377,6 +362,12 @@ public class LWNode extends LWContainer
         else
             super.setProperty(key, val);
     }
+    /** Clone the given shape and call setShape.
+     * @param shape - an instance of RectangularShape *
+    private void _applyShape(Object shape) {
+        setShape(cloneShape(shape));
+    }
+    */
 
     public boolean supportsUserLabel() {
         return true;
@@ -391,7 +382,7 @@ public class LWNode extends LWContainer
      * to be laid out again.  (E.g., if we turn them all of with a pref,
      * all nodes need to be re-laid out / resized
      */
-    private boolean iconShowing()
+    protected boolean iconShowing()
     {    	
         //if (getParent() instanceof LWSlide) // put in LWComponent so LWImage can use also (adjusting scale factor)
         if (isPresentationContext())
