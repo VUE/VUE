@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.97 $ / $Date: 2007-05-11 21:39:44 $ / $Author: sfraize $
+ * @version $Revision: 1.98 $ / $Date: 2007-05-11 22:23:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -373,15 +373,21 @@ public class DockWindow extends javax.swing.JWindow
         }
 
         if (key == Widget.EXPANSION_KEY) {
-            boolean expand = ((Boolean) e.getNewValue()).booleanValue();
-            setRolledUp(!expand, isDisplayable(), true);
+
+            if (!mWasVisible) {
+                boolean expand = ((Boolean) e.getNewValue()).booleanValue();
+                setRolledUp(!expand, isDisplayable(), true);
+            }
             
         } else if (key == Widget.HIDDEN_KEY) {
-            boolean hide = ((Boolean) e.getNewValue()).booleanValue();
-            if (hide)
-                dismiss();
-            else
-                setRolledUp(false, isVisible(), true);
+
+            if (!mWasVisible) {
+                boolean hide = ((Boolean) e.getNewValue()).booleanValue();
+                if (hide)
+                    dismiss();
+                else
+                    setRolledUp(false, isVisible(), true);
+            }
             
         } else if (key == Widget.MENU_ACTIONS_KEY) {
             setMenuActions((Action[]) e.getNewValue());
@@ -855,13 +861,15 @@ public class DockWindow extends javax.swing.JWindow
     private static void HideAllWindows() {
         for (DockWindow dw : AllWindows) {
             dw.mWasVisible = dw.isVisible();
-            dw.superSetVisible(false);
+            if (dw.mWasVisible)
+                dw.superSetVisible(false);
         }
     }
     private static void ShowPreviouslyHiddenWindows() {
         for (DockWindow dw : AllWindows) {
             if (dw.mWasVisible)
                 dw.superSetVisible(true);
+            dw.mWasVisible = false;
         }
         // The give the focus back to the viewer, which loses
         // it when they go visible:
@@ -961,10 +969,10 @@ public class DockWindow extends javax.swing.JWindow
 
         if (DEBUG.FOCUS || DEBUG.DOCK) {
             out("setVisible " + show);
-            if (!show && !AllVisible && mWasVisible) {
-                out("ignoring visibility request: all are hidden");
-                return;
-            }
+//             if (!show && !AllVisible && mWasVisible) {
+//                 out("ignoring visibility request: all are hidden");
+//                 return;
+//             }
         }
 
         if (isStackOwner && mChild != null) {

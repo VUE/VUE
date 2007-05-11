@@ -146,7 +146,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.11 $ / $Date: 2007-05-11 21:39:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.12 $ / $Date: 2007-05-11 22:23:58 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -490,17 +490,28 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         }
 
         if (DEBUG.FOCUS||DEBUG.KEYS) out(TERM_GREEN + eventName(e) + TERM_CLEAR);
+
+        //boolean handled = super.dispatchKeyEvent(e);
+
+        boolean handled = false;
         
         // A complete and total hack making use of a global TAB press:
-        if (e.getKeyCode() == KeyEvent.VK_TAB && e.getSource() instanceof tufts.vue.MapViewer) {
-            if (e.getID() == KeyEvent.KEY_PRESSED) {
-                if (DEBUG.FOCUS||DEBUG.KEYS) out("trapped TAB press for DockWindow");
+        if (e.getKeyCode() == KeyEvent.VK_TAB && e.getID() == KeyEvent.KEY_PRESSED) {
+
+            //out("TAB: consumed=" + e.isConsumed() + " handled=" + handled);
+
+            //if (!e.isConsumed()) {
+            if (e.getSource() instanceof tufts.vue.MapViewer || e.getSource() instanceof tufts.vue.gui.DockWindow) {
+                if (DEBUG.FOCUS||DEBUG.KEYS) out("TAB press trapped for DockWindow toggle feature");
                 DockWindow.ToggleAllVisible();
+                handled = true;
             }
-            return true;
-        } else {
-            return super.dispatchKeyEvent(e);
         }
+
+        if (handled)
+            return true;
+        else
+            return super.dispatchKeyEvent(e);
     }
 
     public boolean XpostProcessKeyEvent(KeyEvent e) {
