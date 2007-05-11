@@ -19,7 +19,7 @@
 /** 
  * Provides an editable note panel for an LWComponents notes.
  *
- * @version $Revision: 1.14 $ / $Date: 2006-03-23 20:36:55 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2007-05-11 20:31:44 $ / $Author: sfraize $
  */
 
 package tufts.vue;
@@ -31,7 +31,6 @@ import javax.swing.JScrollPane;
 import java.awt.*;
 
 public class NotePanel extends JPanel
-    implements LWSelection.Listener
 {
     /** the text pane **/
     private VueTextPane mTextPane = new VueTextPane();
@@ -51,15 +50,11 @@ public class NotePanel extends JPanel
 
         add(BorderLayout.CENTER, scrollPane);
 
-        VUE.getSelection().addListener(this);        
+        VUE.addActiveListener(LWComponent.class, this);
     }
 	
-    public void selectionChanged(LWSelection selection) {
-        if (selection.isEmpty() || selection.size() > 1) {
-            load(null);
-        } else {
-            load(selection.first());
-        }
+    public void activeChanged(ActiveEvent e, LWComponent c) {
+        load(c);
     }
     
     private void load(LWComponent c) {
