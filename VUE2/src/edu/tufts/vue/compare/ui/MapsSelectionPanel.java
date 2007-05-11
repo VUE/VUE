@@ -19,7 +19,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.2 $ / $Date: 2007-05-09 18:33:37 $ / $Author: dan $
+ * @version $Revision: 1.3 $ / $Date: 2007-05-11 15:53:24 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -35,15 +35,17 @@ import java.awt.event.ActionListener;
 
 import java.beans.*;
 
-//import java.net.File;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
 
 import tufts.vue.*;
+import tufts.vue.action.ActionUtil;
 
 public class MapsSelectionPanel extends JPanel  {
     
@@ -67,7 +69,6 @@ public class MapsSelectionPanel extends JPanel  {
     private MapsSelectionPanel() 
     {
         setOpaque(false);
-       // setBackground(java.awt.Color.BLUE);
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
         setLayout(gridBag);
@@ -80,7 +81,7 @@ public class MapsSelectionPanel extends JPanel  {
            {
                JFileChooser choose = new JFileChooser();
                choose.showOpenDialog(MapsSelectionPanel.this);
-               String name = choose.getSelectedFile().getName();
+               String name = choose.getSelectedFile().getAbsolutePath();//.getName();
                ((MapTableModel)maps.getModel()).addRow(name);
                fileName.setText(name);
                revalidate();
@@ -117,9 +118,7 @@ public class MapsSelectionPanel extends JPanel  {
                 System.out.println("MSP: VUE tabbed pane property change event " + e.getPropertyName());
             }
         });
-        //VUE.getMainWindow().addPropertyChangeListener()
-        
-        //gridBagConstraints.anchor = GridBagConstraints.NORTH;
+
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 0.0;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
@@ -141,6 +140,10 @@ public class MapsSelectionPanel extends JPanel  {
                 else
                     ((MapTableModel)maps.getModel()).setSelected(true,maps.getSelectedRow());
             }
+            if(maps.getSelectedColumn() == 2)
+            {
+                ((MapTableModel)maps.getModel()).setBaseMapIndex(maps.getSelectedRow());
+            }
             repaint();
           }
         });
@@ -152,13 +155,136 @@ public class MapsSelectionPanel extends JPanel  {
         add(maps);
     }
     
+    /**
+     *
+     * List of Maps for immediate merging.
+     * (merge functionality can be found in tufts.vue.LWMergeMap)
+     *
+     * maps specified by files are loaded, open
+     * maps are passed in their current state.
+     *
+     * note: underlying model list may currently be changing
+     * during this operation and data may get corrupted.
+     * todo: consider copying the list before starting to load
+     * and/or changing the underlying table model to be 
+     * threadsafe
+     *
+     * Perhaps consider a way to clone and "freeze" the model
+     * for the duration of this method call?
+     *
+     **/
+    public List<LWMap> getMapList()
+    {
+        ArrayList mapList = new ArrayList();
+        MapTableModel model = (MapTableModel)maps.getModel();
+        int numberOfMaps = maps.getModel().getRowCount();
+        for(int i=0;i<numberOfMaps;i++)
+        {
+            if(model.getMapType(i) == OPEN_MAP && model.isSelected(i))
+            {
+                mapList.add(model.getMap(i));
+            }
+            else
+            {
+                File file = null;
+                LWMap map = null;
+                try
+                {
+                  file = new File((String)model.getValueAt(1,i));
+                  map = ActionUtil.unmarshallMap(file);
+                }
+                catch(java.io.IOException exc)
+                {
+                    System.out.println("MSP: IO Exception: " + exc);
+                }
+              
+                if(model.isSelected(i))
+                   mapList.add(map);
+            }
+        }
+        return mapList;
+    }
+    
+    public LWMap getBaseMap()
+    {
+        MapTableModel model = (MapTableModel)maps.getModel();
+        int i = model.getBaseMapIndex();
+        if(model.getMapType(i) == OPEN_MAP)
+        {
+           return model.getMap(i);
+        }
+        else
+        {
+           File file = null;
+           LWMap map = null;
+           try
+           {
+             file = new File((String)model.getValueAt(1,i));
+             map = ActionUtil.unmarshallMap(file);
+           }
+           catch(java.io.IOException exc)
+           {
+             System.out.println("MSP: IO Exception: " + exc);
+           }
+              
+           return map;
+        }      
+        
+    }
+    
+    /* class MapTableModelRow
+    {
+        private int type;
+        private boolean selected;
+        private LWMap map;
+        private String file;
+        private boolean isBaseMap;
+       
+        public MapTableModelRow(int type,boolean selected,LWMap map,String file,boolean isBaseMap)
+        {
+            this.type = type;
+            this.selected = selected;
+            this.map = map;
+            this.file = file;
+            this.isBaseMap = isBaseMap;
+        }
+        
+        public void setSelected(boolean value)
+        {
+            selected = value;
+        }
+        
+        public void toggleSelected()
+        {
+            if(selected)
+                selected = false;
+            else
+                selected = true;
+        }
+        
+        /**
+         *
+         * Loads map, if needed
+         *
+         **/
+       /* public LWMap getMap()
+        {
+           
+        }
+        
+        public int getType()
+        {
+            
+        }
+        
+    }*/
+    
     class MapTableModel implements TableModel
     {
        private ArrayList localFiles = new ArrayList(); 
        private ArrayList localFileSelectionStates = new ArrayList();
        private HashMap openMapSelections = new HashMap();
-       
-       //private JCheckBox checkBox = new JCheckBox();
+       private int baseMapIndex = 0;
        
        /**
         *
@@ -225,6 +351,12 @@ public class MapsSelectionPanel extends JPanel  {
            {
                LWMap map = getMap(row);
                String selected = (String)openMapSelections.get(getMap(row));
+               
+               if(map instanceof LWMergeMap && (selected == null || !selected.equals("Selected")) ) 
+               {
+                   return false;
+               }
+               
                if(selected == null || selected.equals("Selected"))
                    return true;
                else
@@ -249,8 +381,9 @@ public class MapsSelectionPanel extends JPanel  {
        {
            if(getMapType(row) == OPEN_MAP)
            {
-               String selected = (String)openMapSelections.get(getMap(row));
-               if(selected != null && selected.equals("Selected"))
+               //String selected = (String)openMapSelections.get(getMap(row));
+               //if(selected != null && selected.equals("Selected"))
+               if(!select)
                  openMapSelections.put(getMap(row),"Not Selected");
                else
                  openMapSelections.put(getMap(row),"Selected");
@@ -280,12 +413,14 @@ public class MapsSelectionPanel extends JPanel  {
        public LWMap getMap(int row)
        {
            LWMap map = null;
-           int openMapIndex = row-getFirstOpenMapRow()-1;
+           //int openMapIndex = row-getFirstOpenMapRow()-1;
+           int openMapIndex = row-getFirstOpenMapRow();
            if(openMapIndex < VUE.getLeftTabbedPane().getTabCount() && openMapIndex > -1)
                 map =  VUE.getLeftTabbedPane().getMapAt(openMapIndex);
                 // ****need list here, not iterator? ***** //map =  VUE.getLeftTabbedPane().getAllMaps().get(openMapIndex);
-           if(map instanceof LWMergeMap)
-               map = null;
+           // messing up selection?
+           //if(map instanceof LWMergeMap)
+           //    map = null;
            return map;
            //return null;
        }
@@ -315,6 +450,16 @@ public class MapsSelectionPanel extends JPanel  {
            return localFiles.size();
        }
        
+       private int getBaseMapIndex()
+       {
+           return baseMapIndex;
+       }
+       
+       private void setBaseMapIndex(int row)
+       {
+           baseMapIndex = row;
+       }
+       
        public Object getValueAt(int row,int col)
        {
            if(col == 0)
@@ -329,7 +474,25 @@ public class MapsSelectionPanel extends JPanel  {
                }
                else
                {
+                   int mapRow = row-getFirstOpenMapRow();
+                   LWMap map = VUE.getLeftTabbedPane().getMapAt(mapRow);
+                   // creates exceptions - can't set row height to 0 to hide'
+                   /*if(map instanceof LWMergeMap)
+                   {
+                       maps.setRowHeight(mapRow,0);
+                   }*/
                    return VUE.getLeftTabbedPane().getMapAt(row-getFirstOpenMapRow()).getLabel();
+               }
+           }
+           else if(col == 2)
+           {
+               if(getBaseMapIndex() == row)
+               {
+                   return "Guide";
+               }
+               else
+               {
+                   return "Not Guide";
                }
            }
            else if(col == 3)
@@ -343,7 +506,7 @@ public class MapsSelectionPanel extends JPanel  {
                    return "Local File";
                }
            }
-           else return "TBD";
+           else return "";
        }
        
        public boolean isCellEditable(int row,int col)
@@ -380,21 +543,36 @@ public class MapsSelectionPanel extends JPanel  {
     {
         private JCheckBox checkBox = new JCheckBox();
         private JLabel label = new JLabel();
+        private JRadioButton button = new JRadioButton();
         
         public Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int col)
         {
-            if(col !=0)
+            MapTableModel model = (MapTableModel)table.getModel();
+            
+            if(col == 0)
             {
-                label.setText(value.toString());
-                return label;
-            }
-            else
-            {
-                if(((MapTableModel)table.getModel()).isSelected(row))
+                if(model.isSelected(row))
                     checkBox.setSelected(true);
                 else
                     checkBox.setSelected(false);
                 return checkBox;
+            }
+            if(col == 2)
+            {
+                if(model.getBaseMapIndex() == row)
+                {
+                    button.setSelected(true);
+                }
+                else
+                {
+                    button.setSelected(false);
+                }
+                return button;
+            }
+            else
+            {
+                label.setText(value.toString());
+                return label;
             }
         }
     }
