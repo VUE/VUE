@@ -31,7 +31,7 @@ import java.awt.Color;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.2 $ / $Date: 2007-05-11 17:22:41 $ / $Author: sfraize $ 
+ * @version $Revision: 1.3 $ / $Date: 2007-05-11 21:37:11 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -94,6 +94,7 @@ public class LWPortal extends LWNode
 
     private boolean wasVisible = true;
     @Override public boolean isVisible() {
+        // TODO: handle this in LWPathway and actually set a hidden bit...
         boolean visible;
         final java.util.Collection pathways = getPathways();
         if (pathways.size() > 0) {
