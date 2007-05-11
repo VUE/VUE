@@ -67,7 +67,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.66 $ / $Date: 2007-05-09 23:50:27 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -177,59 +177,12 @@ public class PathwayTable extends JTable
 
         VUE.addActiveListener(LWPathway.Entry.class, this);
 
-        this.getSelectionModel().addListSelectionListener
-            (new ListSelectionListener() {
-                public void valueChanged(ListSelectionEvent le) {
-                    // this usually happens via mouse click, but also possible via arrow key's moving selected item
-                    // Note that dragging the mouse over an image icon sends us continuous value change events,
-                    // so ignore events where the model says the value is adjusting, so we only change on the
-                    // final event.  This does have an odd side effect tho: if you click down over one image
-                    // icon, then release over another, only the released over icon get's the change request.
-
-                    if (DEBUG.PATHWAY) {
-                        System.out.println("PathwayTable: valueChanged: " + le);
-                        if (DEBUG.META) new Throwable("PATHWAYVALUECHANGED").printStackTrace();
-                    }
-
-                    ListSelectionModel lsm = (ListSelectionModel) le.getSource();
-                    if (lsm.isSelectionEmpty() || le.getValueIsAdjusting())
-                        return;
-                
-                    PathwayTableModel tableModel = getTableModel();
-                    int row = lsm.getMinSelectionIndex();
-                    
-                    lastSelectedRow = row;
-                    int col = getSelectedColumn();
-                    if (DEBUG.PATHWAY) System.out.println("PathwayTable: valueChanged: selected row "+row+", col "+col);
-                    
-                    
-                    final LWPathway.Entry entry = tableModel.getEntry(row);
-                    if (DEBUG.PATHWAY) System.out.println("PathwayTable: valueChanged: object at row: " + entry);
-
-                    //  lastSelectedEntry = entry;
-                    tableModel.setCurrentPathway(entry.pathway);
-                    
-                    if (entry.isPathway()) {
-                        if (col == PathwayTableModel.COL_VISIBLE ||
-                            col == PathwayTableModel.COL_OPEN ||
-                            col == PathwayTableModel.COL_LOCKED) {
-                            // setValue forces a value toggle in these cases
-                            setValueAt(entry.pathway, row, col);
-                        } else {
-                            entry.pathway.setCurrentEntry(entry);
-                        }
-                        //pathway.setCurrentIndex(-1);
-                    } else {
-                    	if (col == PathwayTableModel.COL_MAPVIEW)
-                            setValueAt(entry.pathway,row,col);
-                    	else
-                            entry.pathway.setCurrentEntry(entry);
-                    }
-
-                    VUE.getUndoManager().mark();
-                }
-                });
-
+//         getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+//                 public void valueChanged(ListSelectionEvent le) {
+//                     handleValueChanged(le);
+//                 }
+//             });
+        
 
         addKeyListener(new KeyAdapter() {
                 public void keyPressed(KeyEvent e) {
@@ -253,13 +206,88 @@ public class PathwayTable extends JTable
         // end of PathwayTable constructor
     }
 
+    public void valueChanged(ListSelectionEvent e) {
+        //System.out.println("JTABLE     VALUE     CHANGED " + e);
+        super.valueChanged(e);
+        handleValueChanged(e);
+    }
+    
+//     public void columnSelectionChanged(ListSelectionEvent e) {
+//         System.out.println("JTABLE COL SELECTION CHANGED " + e);
+//         super.columnSelectionChanged(e);
+//     }
+
+
+    private void handleValueChanged(ListSelectionEvent le) {
+        // this usually happens via mouse click, but also possible via arrow key's moving selected item
+        // Note that dragging the mouse over an image icon sends us continuous value change events,
+        // so ignore events where the model says the value is adjusting, so we only change on the
+        // final event.  This does have an odd side effect tho: if you click down over one image
+        // icon, then release over another, only the released over icon get's the change request.
+
+        ListSelectionModel lsm = (ListSelectionModel) le.getSource();
+        if (lsm.isSelectionEmpty() || le.getValueIsAdjusting())
+            return;
+                
+        if (DEBUG.PATHWAY) {
+            System.out.println("PathwayTable: VALUECHANGED:  " + le);
+            if (DEBUG.META) new Throwable("PATHWAYVALUECHANGED").printStackTrace();
+        }
+
+        PathwayTableModel tableModel = getTableModel();
+        int row = lsm.getMinSelectionIndex();
+                    
+        lastSelectedRow = row;
+        int col = getSelectedColumn();
+        if (DEBUG.PATHWAY) System.out.println("PathwayTable: valueChanged: selected row "+row+", col "+col);
+                    
+                    
+        final LWPathway.Entry entry = tableModel.getEntry(row);
+        if (DEBUG.PATHWAY) System.out.println("PathwayTable: valueChanged: object at row: " + entry);
+
+        boolean selectedEntry = true;
+                    
+        // TODO: this isn't adequate for handling clicks on particular columns for, e.g., toggling values
+        // there, as if the row is already selected, there's no guarantee we get a new selection event
+        // when clicking (apparently if you click in the map-view column in another row, which doesn't
+        // change the selectedion, and then back on the map view icon for the selected row, we
+        // start getting selection events again, tho obviously we can't rely on that as a user action).
+        // We can always catch the actual mouse events, tho JTable editors may also handle this for us (?)
+        // -- SMF 2007-05-10
+
+        if (entry.isPathway()) {
+            if (col == PathwayTableModel.COL_VISIBLE ||
+                col == PathwayTableModel.COL_OPEN ||
+                col == PathwayTableModel.COL_LOCKED) {
+                // setValue forces a value toggle in these cases
+                setValueAt(entry.pathway, row, col);
+                selectedEntry = false;
+            }
+            //pathway.setCurrentIndex(-1);
+        } else if (col == PathwayTableModel.COL_MAPVIEW && entry.hasVariableDisplayMode()) {
+            setValueAt(entry.pathway, row,col);
+            selectedEntry = false;
+        }
+                    
+        if (selectedEntry) {
+            entry.pathway.setCurrentEntry(entry);
+            // The above will generate the below event, but only if it's the current pathway.
+            // If this entry isn't on the current pathway, this will ensure the entry's
+            // pathway becomes the new current pathway (and if the event won't actually fire
+            // again if there's been no change).
+            VUE.setActive(LWPathway.Entry.class, this, entry);
+        } else {
+            // in case the setValueAt's resulted in any permanent changes:
+            VUE.getUndoManager().mark();
+        }
+    }
+    
+
     public void activeChanged(ActiveEvent<LWPathway.Entry> e) {
         int row = getTableModel().getRow(e.active);
         if (row >= 0)
             changeSelection(row, -1, false, false);
     }
-    
-
 
     /*
     LWPathway.Entry getLastSelectedEntry() {
@@ -610,11 +638,10 @@ public class PathwayTable extends JTable
                 if (obj instanceof Boolean)
                     bool = ((Boolean)obj).booleanValue();
                 
-                if (entry.isPathway() || entry.isMergedSlide())
-                	setIcon(null);
+                if (entry.hasVariableDisplayMode())
+                    setIcon(bool ? mapViewIcon : slideViewIcon);
                 else
-                	setIcon(bool ? mapViewIcon : slideViewIcon);
-                               
+                    setIcon(null);
                 setToolTipText("Toggle map/slide node");
             } 
             else if (!entry.isPathway())

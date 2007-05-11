@@ -408,7 +408,7 @@ public class PresentationTool extends VueTool
     }
 
     private void repaint() {
-        out("repaint");
+        //out("repaint");
         VUE.getActiveViewer().repaint();
     }
 
@@ -489,7 +489,7 @@ public class PresentationTool extends VueTool
     
 
     public boolean handleKeyPressed(java.awt.event.KeyEvent e) {
-        out("handleKeyPressed " + e);
+        //out("handleKeyPressed " + e);
         final int keyCode = e.getKeyCode();
         final char keyChar = e.getKeyChar();
 
@@ -728,9 +728,9 @@ private static int OverviewMapSizeIndex = 5;
     public boolean handleMousePressed(MapMouseEvent e)
     {
         for (NavNode nav : mNavNodes) {
-            System.out.println("pickCheck " + nav + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
+            if (DEBUG.PRESENT) System.out.println("pickCheck " + nav + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
             if (nav.containsParentCoord(e.getX(), e.getY())) {
-                System.out.println("HIT " + nav);
+                if (DEBUG.PRESENT) System.out.println("HIT " + nav);
                 //if (mVisited.peek() == nav.destination || mVisited.peekNode() == nav.destination) {
                 if (nav.page.equals(mVisited.prev())) {
                     revisitPrior();
@@ -746,7 +746,7 @@ private static int OverviewMapSizeIndex = 5;
 
         final LWComponent hit = e.getPicked();
         
-        out("handleMousePressed " + e.paramString() + " hit on " + hit);
+        if (DEBUG.PRESENT) out("handleMousePressed " + e.paramString() + " hit on " + hit);
         if (hit != null && !mCurrentPage.equals(hit)) {
             Collection linked = hit.getLinkEndPoints();
             if (mCurrentPage == NO_PAGE) {
@@ -884,7 +884,7 @@ private static int OverviewMapSizeIndex = 5;
     {
         final MapViewer viewer = VUE.getActiveViewer();
         
-        out("setPage " + page);
+        if (DEBUG.PRESENT) out("setPage " + page);
 
         if (page == null) // for now
             return;

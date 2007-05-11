@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.147 $ / $Date: 2007-05-09 04:53:21 $ / $Author: sfraize $
+ * @version $Revision: 1.148 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -142,7 +142,7 @@ public class LWPathway extends LWContainer
         }
 
         public LWComponent getFocal() {
-            return isMapView ? node : getSlide();
+            return isMapView() ? node : getSlide();
         }
 
         public LWSlide getSlide() {
@@ -176,6 +176,9 @@ public class LWPathway extends LWContainer
         
         public void setMapView(boolean asMapView) {
             isMapView = asMapView;
+
+            if (pathway != null)
+                pathway.notify("entry.pathway.mapView");
             
 // During restores, until node is set, we always think we're a merged slide, and isMapView never gets restored!
 // This is just a redundancy check anyway for runtime testing.
@@ -187,11 +190,22 @@ public class LWPathway extends LWContainer
         }
 
         public boolean isMapView() {
-            return isMapView;
+            if (node instanceof LWPortal)
+                return true;
+            else
+                return isMapView;
         }
 
         public boolean isMergedSlide() {
             return node == null;
+        }
+
+        /** @return true if this entry can support more than one presentation display mode
+         * (e.g., a map view v.s. a slide view)
+         */
+        public boolean hasVariableDisplayMode() {
+            return !isMergedSlide();
+            //return !isMergedSlide() && !(node instanceof LWPortal);
         }
 
         public boolean hasNotes() {
@@ -256,6 +270,7 @@ public class LWPathway extends LWContainer
             public final String getNotes() { return pathway.getNotes(); }
             public final void setNotes(String s) { pathway.setNotes(s); }
             public final boolean hasNotes() { return pathway.hasNotes(); }
+            public boolean hasVariableDisplayMode() { return false; }
             public int index() { return -1; }
         };
     
@@ -522,12 +537,14 @@ public class LWPathway extends LWContainer
             }
         }
         
-        notify("pathway.index"); // we need this so the PathwayTable is eventually told to redraw
+        // No longer need this as it's all handled via the setActive:
         
+        //notify("pathway.index"); // we need this so the PathwayTable is eventually told to redraw
         // Although this property is actually saved, it doesn't seem worthy of having
         // it be in the undo list -- it's more of a GUI config. (And FYI, I'm not sure if
         // this property is being properly restored at the moment either).
         //notify("pathway.index", new Undoable(old) { void undo(int i) { setIndex(i); }} );
+        
         return mCurrentIndex;
     }
 
@@ -569,7 +586,7 @@ public class LWPathway extends LWContainer
             LWComponent c = i.next();
             if (DEBUG.PATHWAY||DEBUG.PARENTING) out("adding " + c);
             Entry e = new Entry(this, c);
-            if (c instanceof LWGroup)
+            if (c instanceof LWGroup || c instanceof LWPortal)
                 e.setMapView(true); // default for groups
             newEntries.add(e);
             addCount++;
@@ -699,9 +716,11 @@ public class LWPathway extends LWContainer
         final int oldIndex = mCurrentIndex;
 
         if (newIndex >= -1)
-            mCurrentIndex = newIndex;
+            setIndex(newIndex);
+            //mCurrentIndex = newIndex;
         else if (mCurrentIndex >= newEntries.size())
-            mCurrentIndex = newEntries.size() - 1;
+            setIndex(newEntries.size() - 1);
+            //mCurrentIndex = newEntries.size() - 1;
         
         notify(keyName, new Undoable() { void undo() {
             setEntries(keyName, oldEntries, oldIndex);
@@ -1174,8 +1193,8 @@ public class LWPathway extends LWContainer
     //private static final AlphaComposite PathSelectedTranslucence = AlphaComposite.Src;
     //private static final AlphaComposite PathSelectedTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
 
-    private static float dash_length = 4;
-    private static float dash_phase = 0;
+    private static final float[] SelectedDash = { 4, 4 };
+    private static final float[] MultiSelectedDash = { 8, 8 };
 
     public static final int PathwayStrokeWidth = 8; // technically, this is half the stroke, but it's the visible stroke
 
@@ -1204,16 +1223,27 @@ public class LWPathway extends LWContainer
         dc.g.setColor(getStrokeColor());
         
         strokeWidth += c.getStrokeWidth();
-        if (!selected) {
-            dc.g.setStroke(new BasicStroke(strokeWidth));
-        } else {
-            if (DEBUG.PATHWAY && dc.getIndex() % 2 != 0) dash_phase = c.getStrokeWidth();
+
+        if (selected) {
+            //if (DEBUG.PATHWAY && dc.getIndex() % 2 != 0) dash_phase = c.getStrokeWidth();
+
+            int visiblePathMemberships = 0;
+            for (LWPathway p : c.getPathways())
+                if (p.isVisible())
+                    visiblePathMemberships++;
+        
+            //boolean offsetDash = 
+
             dc.g.setStroke(new BasicStroke(strokeWidth
                                            , BasicStroke.CAP_BUTT
                                            , BasicStroke.JOIN_BEVEL
                                            , 0f
-                                           , new float[] { dash_length, dash_length }
-                                           , dash_phase));
+                                           , visiblePathMemberships > 1 ? MultiSelectedDash : SelectedDash
+                                           , 0
+                                           //, offsetDash ? 8 : 0
+                                           ));
+        } else {
+            dc.g.setStroke(new BasicStroke(strokeWidth));
         }
         // we're already transformed into the local GC -- just draw the raw shape
         dc.g.draw(c.getLocalShape());
@@ -1232,7 +1262,7 @@ public class LWPathway extends LWContainer
         */
         //dc = new DrawContext(dc);
 
-        if (DEBUG.PATHWAY&&DEBUG.BOXES) System.out.println("Drawing " + this + " index=" + dc.getIndex() + " phase=" + dash_phase);
+        //if (DEBUG.PATHWAY&&DEBUG.BOXES) System.out.println("Drawing " + this + " index=" + dc.getIndex() + " phase=" + dash_phase);
         Line2D.Float connector = new Line2D.Float();
 
         /*

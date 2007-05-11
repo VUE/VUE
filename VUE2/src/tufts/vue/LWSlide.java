@@ -28,12 +28,13 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.30 $ / $Date: 2007-05-09 04:53:38 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
     public static final int SlideWidth = 800;
     public static final int SlideHeight = 600;
+    public static final float SlideAspect = ((float)SlideWidth) / ((float)SlideHeight);
     protected static final int SlideMargin = 30;
 
     private LWComponent mSourceNode; // the node this slide was created from -- todo: restore on persist
@@ -43,14 +44,8 @@ public class LWSlide extends LWContainer
     /** public only for persistance */
     public LWSlide() {
         disableProperty(LWKey.Label);
-        disableProperty(LWKey.TextColor);
-        disableProperty(LWKey.StrokeWidth);
-        disableProperty(LWKey.StrokeColor);
-        disableProperty(LWKey.StrokeStyle);
-        disableProperty(LWKey.Font);
-        disableProperty(LWKey.FontSize);
-        disableProperty(LWKey.FontName);
-        disableProperty(LWKey.FontStyle);
+        disablePropertyTypes(KeyType.STYLE);
+        enableProperty(LWKey.FillColor);
     }
 
     LWComponent getSourceNode() {
@@ -86,7 +81,7 @@ public class LWSlide extends LWContainer
         s.setStrokeColor(Color.black);
         s.setSize(SlideWidth, SlideHeight);
         //setAspect(((float)GUI.GScreenWidth) / ((float)GUI.GScreenHeight));
-        s.setAspect(s.getWidth() / s.getHeight());
+        s.setAspect(SlideAspect);
         return s;
     }
 

@@ -593,7 +593,7 @@ public class Actions implements VueConstants
         }
     };
     
-    public static final Action Rename =
+    public static final LWCAction Rename =
         new LWCAction("Rename", VueUtil.isWindowsPlatform() ? keyStroke(KeyEvent.VK_F2) : keyStroke(KeyEvent.VK_ENTER)) {
         boolean undoable() { return false; } // label editor handles the undo
         boolean enabledFor(LWSelection s) {

@@ -117,7 +117,11 @@ public class UndoManager
 
         void mark(String name) {
             this.name = name;
-            if (DEBUG.UNDO) System.out.println(this + " MARKED");
+            if (DEBUG.UNDO) {
+                System.out.println(this + " MARKED with [" + name + "]");
+                //tufts.Util.printStackTrace(this + " MARKED with [" + name + "]");
+            }
+                    
         }
 
         boolean isIncomplete() {

@@ -67,7 +67,8 @@ public class PathwayTableModel extends DefaultTableModel
     public PathwayTableModel()
     {
         VUE.addActiveListener(LWMap.class, this);
-        VUE.addActiveListener(LWPathway.class, this);
+        //VUE.addActiveListener(LWPathway.class, this);
+        VUE.addActiveListener(LWPathway.Entry.class, this);
         setMap(VUE.getActiveMap());
     }
 
@@ -86,6 +87,20 @@ public class PathwayTableModel extends DefaultTableModel
     /** LWComponent.Listener */
     public void LWCChanged(LWCEvent e)
     {
+        boolean fireChange = false;
+        if (e.key instanceof LWComponent.Key) {
+            if (e.getKey().type == LWComponent.KeyType.DATA)
+                fireChange = true;
+        } else {
+            // if we can't know the key type, just fire no matter what
+            fireChange = true;
+        }
+        if (fireChange) {
+            //System.out.println("TABLE DATA CHANGED: " + e);
+            fireTableDataChanged();
+        }
+
+        /*
         if (e.getSource() instanceof LWPathway) {
             // The events mainly of interest to us are either a structural event, or a LWPathway label/note event,
             // although if anything in the pathway changes, fire a change event just in case.
@@ -104,23 +119,33 @@ public class PathwayTableModel extends DefaultTableModel
             // single pathway will serve the purposes of the currently selected
             // pathway -- we should be able to get rid of this pathway.list.active event...
             
-            if (e.getName().equals("pathway.list.active"))
-                setCurrentPathway((LWPathway) e.getComponent());
+            if (false && e.getName().equals("pathway.list.active"))
+                ;//setCurrentPathway((LWPathway) e.getComponent());
             else
                 fireTableDataChanged();
         }
+        */
     }
 
     public void activeChanged(ActiveEvent e)
     {
         if (e.type == LWMap.class) {
             setMap((LWMap) e.active);
-        } else if (e.type == LWPathway.class) {
+        } else if (e.type == LWPathway.Entry.class) {
+            final LWPathway.Entry entry = (LWPathway.Entry) e.active;
+            final LWPathway pathway = (entry == null ? null : entry.pathway);
+            setCurrentPathway(pathway);
             if (getPathwayList() != null) {           
-                getPathwayList().setActivePathway((LWPathway) e.active);
+                getPathwayList().setActivePathway(pathway);
                 fireTableDataChanged();
             }
         }
+//         else if (e.type == LWPathway.class) {
+//             if (getPathwayList() != null) {           
+//                 getPathwayList().setActivePathway((LWPathway) e.active);
+//                 fireTableDataChanged();
+//             }
+//         }
             
     }
 
@@ -144,11 +169,11 @@ public class PathwayTableModel extends DefaultTableModel
         fireTableChanged(new DataEvent(invoker));
     }
 
-    void setCurrentPathway(LWPathway path) {
+    private void setCurrentPathway(LWPathway path) {
         if (getPathwayList() != null){           
             getPathwayList().setActivePathway(path);
             fireTableDataChanged();
-            VUE.setActive(LWPathway.class, this, path);
+            //VUE.setActive(LWPathway.class, this, path);
         }
     }
 
@@ -223,11 +248,9 @@ public class PathwayTableModel extends DefaultTableModel
     }
     */
 
-    /** for PathwayTable Returns the element at @param pRow, which
-     * will be either a LWPathway or an LWPathway.Entry memeber of a
-     * pathway.
+    /**
+     * @return the entry currently displayed in the given row.
      */
-    
     LWPathway.Entry getEntry(int pRow) {
         if (pRow < 0)
             return null;
@@ -390,9 +413,9 @@ public class PathwayTableModel extends DefaultTableModel
         } else {
             try {
                 if (col == COL_LABEL)                               	
-                		return entry.getLabel();  
+                    return entry.getLabel();  
                 else if (col == COL_MAPVIEW)
-                		return new Boolean(entry.isMapView());
+                    return new Boolean(entry.isMapView());
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("exception in the table model, setting pathway element cell:" + e);

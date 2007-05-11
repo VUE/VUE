@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.422 $ / $Date: 2007-05-10 17:47:20 $ / $Author: mike $ 
+ * @version $Revision: 1.423 $ / $Date: 2007-05-11 00:52:47 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -102,6 +102,7 @@ public class VUE
     private static MapInspectorPanel mapInspectorPanel = null;
 
 
+    /*
     private static final LWComponent.Listener PathwayListListener =
         new LWComponent.Listener() {
             public void LWCChanged(LWCEvent e) {            	
@@ -110,31 +111,49 @@ public class VUE
                 }
             }
         };
+    */
 
-    private static final ActiveChangeSupport<LWPathway> ActivePathwayHandler
-        = new ActiveChangeSupport<LWPathway>(LWPathway.class) {
+    private static final ActiveChangeSupport<LWPathway>
+        ActivePathwayHandler = new ActiveChangeSupport<LWPathway>(LWPathway.class) {
         protected void onChange(ActiveEvent<LWPathway> e) {
-            if (e.active == null)
-                VUE.setActive(LWPathway.Entry.class, e, null);
+            // Only run the update if this isn't already an auxillary sync update from ActivePathwayEntryHandler:
+            if (e.source instanceof ActiveEvent && ((ActiveEvent)e.source).type == LWPathway.Entry.class)
+                return;
+            
+            if (e.active != null)
+                ActivePathwayEntryHandler.setActive(e, e.active.getCurrentEntry());
+            else
+                ActivePathwayEntryHandler.setActive(e, null);
                 
         }
     };
 
 
-// Nothing special done with this: allow lazy creation:
-//     private static final ActiveChangeSupport<LWPathway.Entry> ActivePathwayEntryHandler
-//         = new ActiveChangeSupport<LWPathway.Entry>(LWPathway.Entry.class);
+    private static final ActiveChangeSupport<LWPathway.Entry>
+        ActivePathwayEntryHandler = new ActiveChangeSupport<LWPathway.Entry>(LWPathway.Entry.class) {
+        protected void onChange(ActiveEvent<LWPathway.Entry> e) {
+            // Only run the update if this isn't already an auxillary sync update from ActivePathwayHandler:
+            if (e.source instanceof ActiveEvent && ((ActiveEvent)e.source).type == LWPathway.class)
+                return;
+            if (e.active != null)
+                ActivePathwayHandler.setActive(e, e.active.pathway);
+            else
+                ActivePathwayHandler.setActive(e, null);
+        }
+    };
 
-    private static final ActiveChangeSupport<LWMap> ActiveMapHandler
-        = new ActiveChangeSupport<LWMap>(LWMap.class) {
+    private static final ActiveChangeSupport<LWMap>
+        ActiveMapHandler = new ActiveChangeSupport<LWMap>(LWMap.class) {
         protected void onChange(ActiveEvent<LWMap> e) {
             final LWPathwayList pathwayList = e.active == null ? null : e.active.getPathwayList();
             
+            /*
             if (e.oldActive != null && e.oldActive.getPathwayList() != null)
                 e.oldActive.getPathwayList().removeListener(PathwayListListener);
             
             if (pathwayList != null)
                 pathwayList.addListener(PathwayListListener);
+            */
 
             if (e.active != null)
                 ActivePathwayHandler.setActive(e, e.active.getActivePathway());

@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.257 $ / $Date: 2007-05-09 04:52:08 $ / $Author: sfraize $
+ * @version $Revision: 1.258 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -221,6 +221,13 @@ public class LWComponent
     protected void disableProperty(Key key) {
         mSupportedPropertyKeys &= ~key.bit;
     }
+    
+    protected void disablePropertyTypes(KeyType type) {
+        for (Key key : Key.AllKeys)
+            if (key.type == type || (type == KeyType.STYLE && key.type == KeyType.SUB_STYLE))
+                disableProperty(key);
+    }
+    
     
     protected void enableProperty(Key key) {
         mSupportedPropertyKeys |= key.bit;
@@ -536,7 +543,7 @@ u                    getSlot(c).setFromString((String)value);
             } else {
                 TValue curValue = getValue(c);
                 // handle a few special cases for standard java types, even if there's no slot (Property object) to parse the string
-                // FYI, this won't work if getValue returns null, as we'll have to class object to check for type information.
+                // FYI, this won't work if getValue returns null, as we'll have no class object to check for type information.
                      if (curValue instanceof String)    setValue(c, (TValue) stringValue);
                 else if (curValue instanceof Integer)   setValue(c, (TValue) new Integer(stringValue));
                 else if (curValue instanceof Long)      setValue(c, (TValue) new Long(stringValue));
@@ -821,6 +828,24 @@ u                    getSlot(c).setFromString((String)value);
             // we ignore key: assume that whatever it is is a color value
             setBy(value);
         }
+
+        /** @return a value between 0.0 and 1.0 representing brightness: the saturation % of the strongest channel
+         * e.g.: white returns 1, black returns 0
+         */
+        public float brightness() {
+            
+            if (value == null)
+                return 0;
+
+            final int r = value.getRed();
+            final int g = value.getGreen();
+            final int b = value.getBlue();
+
+            int max = (r > g) ? r : g;
+            if (b > max) max = b;
+            
+            return ((float) max) / 255f;
+         }
 
         String asString() {
             return ColorToString(get());
@@ -1250,6 +1275,14 @@ u                    getSlot(c).setFromString((String)value);
         else
             return this.parent.getMap();
     }
+
+    public UndoManager getUndoManager() {
+        if (this.parent == null)
+            return null;
+        else
+            return getMap().getUndoManager();
+    }
+    
     
     public UserMapType getUserMapType() { throw new UnsupportedOperationException("deprecated"); }
     public boolean hasMetaData() { return false; }
@@ -1498,8 +1531,9 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     /** does this support a user editable label? */
+    // TODO: resolve this with supportsProperty(LWKey.Label) (perhaps lose this method)
     public boolean supportsUserLabel() {
-        return false;
+        return supportsProperty(LWKey.Label);
     }
     /** does this support user resizing? */
     // TODO: change these "supports" calls to an arbitrary property list
@@ -1508,9 +1542,17 @@ u                    getSlot(c).setFromString((String)value);
         return false;
     }
     
-    /** @return false: subclasses (e.g. containers), override to return true if allows children dragged in and out */
-    public boolean supportsDragReparenting() {
+    /** @return false: subclasses (e.g. containers), override to return true if allows children dragged in and out
+     * by a user.
+     */
+    public boolean supportsChildren() {
         return false;
+    }
+    
+    /** @return true: subclasses (e.g. containers), override to return false if you never want this component
+        reparented by users */
+    public boolean supportsReparenting() {
+        return true;
     }
     
     public boolean hasLabel() {
@@ -3786,7 +3828,7 @@ u                    getSlot(c).setFromString((String)value);
      * are filtered.
      */
     public boolean isHidden() {
-        return mHideBits != 0;
+        return !isVisible();
     }
 
     public boolean isHidden(HideReason reason) {

@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.76 $ / $Date: 2007-05-09 16:30:23 $ / $Author: mike $
+ * @version $Revision: 1.77 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -57,7 +57,7 @@ public class PathwayPanel extends JPanel
     
     private VueButton btnAddSlide = new VueButton("presentationDialog.button.makeSlides",this);
     private VueButton btnMergeInto = new VueButton("presentationDialog.button.mergeInto",this);
-    private VueButton btnLiveMap = new VueButton("presentationDialog.button.liveMap");
+    private VueButton btnLiveMap = new VueButton("presentationDialog.button.liveMap", this);
     
     //edit
     private VueButton btnPreview = new VueButton("presentationDialog.button.preview", this);
@@ -131,7 +131,7 @@ public class PathwayPanel extends JPanel
     //	btnAnnotatePresentation.setEnabled(false);
     	btnMergeInto.setEnabled(false);
     	btnPlayMaps.setEnabled(false);
-    	btnLiveMap.setEnabled(false);
+    	//btnLiveMap.setEnabled(false);
     	btnPreviewFull.setEnabled(false);
     	btnShowSlides.setEnabled(true);
     	btnPlayMaps.setEnabled(false);
@@ -804,6 +804,12 @@ public class PathwayPanel extends JPanel
         }
         else if (btn == btnAddSlide)  { pathway.add(VUE.getSelection().iterator()); }
         else if (btn == btnMergeInto)  { pathway.addMergedSlide(VUE.getSelection()); }
+        else if (btn == btnLiveMap)  {
+            LWPortal portal = new LWPortal();
+            pathway.getMap().add(portal);
+            pathway.add(portal);
+            pathway.getUndoManager().mark("New Pathway Portal"); 
+        }
       //  else if (btn == btnElementUp)   { pathway.moveCurrentUp(); }
       //  else if (btn == btnElementDown) { pathway.moveCurrentDown(); }
 

@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.112 $ / $Date: 2007-04-15 23:43:01 $ / $Author: sfraize $
+ * @version $Revision: 1.113 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -64,7 +64,8 @@ public abstract class LWContainer extends LWComponent
     }
 
     /** @return true: default allows children dragged in and out */
-    public boolean supportsDragReparenting() {
+    @Override
+    public boolean supportsChildren() {
         return true;
     }
     

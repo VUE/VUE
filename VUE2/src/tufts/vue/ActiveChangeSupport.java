@@ -21,7 +21,7 @@ package tufts.vue;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.2 $ / $Date: 2007-05-07 03:48:11 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -31,8 +31,8 @@ public class ActiveChangeSupport<T>
     private static final java.util.Map<Class,ActiveChangeSupport> AllActiveHandlers = new java.util.HashMap();
         
     private final java.util.List<ActiveListener<T>> listenerList = new java.util.ArrayList();
-    private final Class type;
-    private final String typeName; // for debug
+    protected final Class type;
+    protected final String typeName; // for debug
 
     private T currentlyActive;
 

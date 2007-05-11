@@ -40,7 +40,7 @@ import java.awt.geom.AffineTransform;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.56 $ / $Date: 2007-04-25 18:28:44 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -48,22 +48,14 @@ public class LWGroup extends LWContainer
     private static final boolean AbsoluteChildren = false;
     
     public LWGroup() {
-        if (!FancyGroups) {
-            disableProperty(LWKey.FillColor);
-            disableProperty(LWKey.TextColor);
-            disableProperty(LWKey.StrokeWidth);
-            disableProperty(LWKey.StrokeColor);
-            disableProperty(LWKey.StrokeStyle);
-            disableProperty(LWKey.Font);
-            disableProperty(LWKey.FontSize);
-            disableProperty(LWKey.FontName);
-            disableProperty(LWKey.FontStyle);
-        }
+        if (!FancyGroups)
+            disablePropertyTypes(KeyType.STYLE);
     }
 
     //public boolean hasAbsoluteMapLocation() { return AbsoluteChildren; }
     
-    public boolean supportsDragReparenting() {
+    @Override
+    public boolean supportsChildren() {
         return FancyGroups;
     }
     

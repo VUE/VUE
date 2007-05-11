@@ -59,7 +59,7 @@ import java.util.ArrayList;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.25 $ / $Date: 2007-05-09 23:09:26 $ / $Author: sfraize $  
+ * @version $Revision: 1.26 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $  
  
  */
 
@@ -140,6 +140,14 @@ public class LWCEvent
             return ((LWComponent.Key)key).name;
         else
             return (String) this.key;
+    }
+
+    /** If the key is a proper Key, return it, otherwise, return null */
+    public LWComponent.Key getKey() {
+        if (this.key instanceof LWComponent.Key)
+            return (LWComponent.Key) key;
+        else
+            return null;
     }
 
     /**

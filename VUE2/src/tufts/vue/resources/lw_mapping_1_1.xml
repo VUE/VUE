@@ -194,9 +194,8 @@
 	<class name="tufts.vue.LWPathway$MasterSlide" extends="tufts.vue.LWSlide">
 		<map-to xml="masterSlide"/>
 	</class>
+
         
-	
-	
 	<class name="tufts.vue.LWNode" extends="tufts.vue.LWContainer">
 		<map-to xml="node"/>
 		<!-- field name="nodeShape">
@@ -206,6 +205,11 @@
 			<bind-xml name="shape" node="element"/>
 		</field>
 	</class>
+
+	<class name="tufts.vue.LWPortal" extends="tufts.vue.LWNode">
+		<map-to xml="portal"/>
+	</class>
+        
 	<class name="tufts.vue.LWImage" extends="tufts.vue.LWComponent">
 		<map-to xml="image"/>
 		<field name="offset">

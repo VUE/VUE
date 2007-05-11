@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.351 $ / $Date: 2007-05-09 23:09:35 $ / $Author: sfraize $ 
+ * @version $Revision: 1.352 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -873,7 +873,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     protected void zoomToContents() {
         if (zoomUnderway) {
-            out("ZOOM UNDERWAY");
+            //out("ZOOM UNDERWAY");
             return;
         }
         
@@ -1570,9 +1570,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         else
             pc.dropping = dropping;
         LWComponent hit = LWTraversal.PointPick.pick(pc);
-        if (hit != null && hit.supportsDragReparenting())
-            return hit;
-        else
+        if (hit != null && hit.supportsChildren()) {
+            if (dropping instanceof LWComponent)
+                return ((LWComponent)dropping).supportsReparenting() ? hit : null;
+            else
+                return hit;
+        } else
             return null;
     }
 
@@ -3605,9 +3608,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 break;
 
             case KeyEvent.VK_ENTER:
-                if (!(mFocal instanceof LWMap))
+                if (!(mFocal instanceof LWMap)) {
                     loadFocal(mFocal.getMap());
-                else
+                } else if (Actions.Rename.enabledFor(VueSelection)) {
+                    // since removing this action from any menu, we have to fire it manually:
+                    Actions.Rename.fire(this);
+                } else
                     handled = false;
                 break;
                 
@@ -4841,9 +4847,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     clearIndicated();
                 }
                 if (over != null) {
-                    if (isValidParentTarget(over))
+                    if (isValidParentTarget(VueSelection, over))
                         setIndicated(over);
-                    else if (isValidParentTarget(over.getParent()))
+                    else if (isValidParentTarget(VueSelection, over.getParent()))
                         setIndicated(over.getParent());
                         
                     //repaintRegion.add(over.getBounds());
@@ -5118,15 +5124,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             Collection<LWComponent> moveList = new java.util.ArrayList();
             for (LWComponent droppedChild : VueSelection) {
-                // don't reparent links
-                if (droppedChild instanceof LWLink)
+                if (!droppedChild.supportsReparenting())
                     continue;
                 // even tho the indication has already checked this via isValidParentTarget,
                 // if there's more than one item in the selection, we still need
                 // to do do this check against bad cases -- TODO: not allowing
                 // reparenting when child moving from the a group to become
                 // a child of another group member.
-                if (!droppedChild.getParent().supportsDragReparenting())
+                if (!droppedChild.getParent().supportsChildren())
                     continue;
                 //  continue; // not with new "page" groups
                 // don't do anything if parent might be reparenting
@@ -5307,7 +5312,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         /**
          * Make sure we don't create any loops
          */
-        public boolean isValidParentTarget(LWComponent parentTarget) {
+        public boolean isValidParentTarget(LWSelection s, LWComponent parentTarget) {
             if (parentTarget == null)
                 return false;
             //if (dragComponent == draggedSelectionGroup && parentTarget.isSelected())
@@ -5318,9 +5323,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 return false;
             if (parentTarget.getParent() == dragComponent)
                 return false;
-            if (parentTarget instanceof LWContainer == false || parentTarget instanceof LWMap)
+            if (parentTarget instanceof LWMap) // prob don't need this check, but just in case
                 return false;
-            return parentTarget.supportsDragReparenting(); // for LWGroup mainly
+            if (s.size() == 1 && !s.first().supportsReparenting())
+                return false;
+            return parentTarget.supportsChildren();
         }
     //} old InputHandler close
     
