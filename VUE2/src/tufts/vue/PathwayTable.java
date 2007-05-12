@@ -67,7 +67,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.67 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2007-05-12 19:07:00 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -563,11 +563,11 @@ public class PathwayTable extends JTable
 
          private void paintGradient(Graphics2D g)
          {       
-        	 if (VUE.getActivePathway().equals(path))
-        		 g.setPaint(Gradient);
-        	 else
-        		 g.setPaint(Gradient2);
-        	 
+             if (path != null && path == VUE.getActivePathway())
+                 g.setPaint(Gradient);
+             else
+                 g.setPaint(Gradient2);
+             
              g.fillRect(0, 0, getWidth(),20);
          }
     }
