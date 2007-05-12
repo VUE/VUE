@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.78 $ / $Date: 2007-05-11 17:24:19 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2007-05-12 19:13:39 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -923,12 +923,14 @@ public class PathwayPanel extends JPanel
         
         if (path == null || path.isLocked()) {
             btnAddSlide.setEnabled(false);
+            btnLiveMap.setEnabled(false);
            // btnDeleteSlide.setEnabled(false);
             btnPresentationDelete.setEnabled(false);
             notesArea.setEnabled(false);
             return;
         }
 
+        btnLiveMap.setEnabled(true);
         notesArea.setEnabled(true);
         btnPresentationDelete.setEnabled(true);
         
