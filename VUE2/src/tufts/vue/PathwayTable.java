@@ -67,14 +67,13 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.68 $ / $Date: 2007-05-12 19:07:00 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2007-05-12 19:09:43 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
     implements DropTargetListener,
                DragSourceListener,
-               DragGestureListener,
-               ActiveListener<LWPathway.Entry>
+               DragGestureListener
 {
 	
 	private DropTarget dropTarget = null;
@@ -283,10 +282,12 @@ public class PathwayTable extends JTable
     }
     
 
-    public void activeChanged(ActiveEvent<LWPathway.Entry> e) {
-        int row = getTableModel().getRow(e.active);
-        if (row >= 0)
-            changeSelection(row, -1, false, false);
+    public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
+        if (entry != null) {
+            int row = getTableModel().getRow(entry);
+            if (row >= 0)
+                changeSelection(row, -1, false, false);
+        }
     }
 
     /*
