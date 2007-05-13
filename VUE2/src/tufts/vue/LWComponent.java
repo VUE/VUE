@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.262 $ / $Date: 2007-05-13 21:12:01 $ / $Author: sfraize $
+ * @version $Revision: 1.263 $ / $Date: 2007-05-13 21:56:24 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2959,7 +2959,7 @@ u                    getSlot(c).setFromString((String)value);
         
         // if filtered, don't draw, unless has children, in which case
         // we need to draw just in case any of the children are NOT filtered.
-        if (!isVisible() || (isFiltered() && !hasChildren()))
+        if (isHidden() || (isFiltered() && !hasChildren()))
             return false;
 
         if (getLayer() > dc.getMaxLayer())
