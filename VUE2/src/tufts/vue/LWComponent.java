@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.259 $ / $Date: 2007-05-11 17:24:18 $ / $Author: sfraize $
+ * @version $Revision: 1.260 $ / $Date: 2007-05-13 20:59:45 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -86,23 +86,31 @@ public class LWComponent
     */
     
 
-    public enum HideReason {
-        DELETED (false), // special case bit for deleted objects in undo queue
+    public enum HideCause {
+        /** special case bit for deleted objects (which always remain in the undo queue) */
+        DELETED (),
             
-            DEFAULT (false), // each subclass of LWComponent can use this for it's own purposes.
-            FILTER (false), // we've been hidden by a filter
-            PRUNE (false), // we've been hidden via link pruning
-            PATH_TO_REVEAL (true), // we've been hidden by a pathway that is in the process of revealing
-            PATH_EXCLUDE_OTHERS (true); // we've been hidden because everything other than current pathway is hidden
+            /** each subclass of LWComponent can use this for it's own purposes */
+            DEFAULT (),
+            /** we've been hidden by a filter */
+            FILTER (), 
+            /** we've been hidden by link pruning */
+            PRUNE (),
+            /** we're a member of a pathway that hides when the pathway hides, and all pathways we're on are hidden */
+            HIDES_WITH_PATHWAY (true),
+            /** we've been hidden by a pathway that is in the process of revealing */
+            PATH_UNREVEALED (true),
+            /** we've been hidden because the current pathway is all we we want to see, and we're not on it */
+            NOT_ON_CURRENT_PATH (true); 
 
             
         final int bit = 1 << ordinal();
-        final boolean isPathReason;
+        final boolean isPathwayCause;
 
-        HideReason(boolean isPathMemberReason) {
-            isPathReason = isPathMemberReason;
-        }
+        HideCause(boolean isPathCause) { isPathwayCause = isPathCause; }
+        HideCause() { isPathwayCause = false; }
     }
+    
 
     //Static { for (Hide reason : Hide.values()) { System.out.println(reason + " bit=" + reason.bit); } }
 
@@ -1632,9 +1640,11 @@ u                    getSlot(c).setFromString((String)value);
             return;
         }
         pathwayRefs.remove(p);
-        if (p.isRevealer()) // if was a revealer, make sure we're not left invisible if it had us hidden
-            //setVisible(true);
-            clearHidden(HideReason.PATH_TO_REVEAL);
+        // clear any hidden bits that may be set as a result
+        // of the membership in the pathway.
+        for (HideCause cause : HideCause.values())
+            if (cause.isPathwayCause)
+                clearHidden(cause);
         layout();
         //notify("pathway.remove");
     }
@@ -2282,7 +2292,7 @@ u                    getSlot(c).setFromString((String)value);
         if (DEBUG.EVENTS||DEBUG.UNDO) out(this + " removing link ref to " + link);
         if (!mLinks.remove(link))
             throw new IllegalStateException("removeLinkRef: " + this + " didn't contain " + link);
-        clearHidden(HideReason.PRUNE);
+        clearHidden(HideCause.PRUNE);
         notify(LWKey.LinkRemoved, link); // informational only event
     }
     
@@ -3747,17 +3757,17 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     public boolean isDeleted() {
-        return isHidden(HideReason.DELETED);
+        return isHidden(HideCause.DELETED);
     }
     
     private void setDeleted(boolean deleted) {
         if (deleted) {
-            mHideBits |= HideReason.DELETED.bit; // direct set: don't trigger notify
+            mHideBits |= HideCause.DELETED.bit; // direct set: don't trigger notify
             if (DEBUG.PARENTING||DEBUG.UNDO||DEBUG.EVENTS)
                 if (parent != null) out("parent not yet null in setDeleted true (ok for undo of creates)");
             this.parent = null;
         } else
-            mHideBits &= ~HideReason.DELETED.bit; // direct set: don't trigger notify
+            mHideBits &= ~HideCause.DELETED.bit; // direct set: don't trigger notify
     }
 
     private void disconnectFromLinks()
@@ -3765,7 +3775,7 @@ u                    getSlot(c).setFromString((String)value);
         // iterate through copy of the list, as it may be modified concurrently during removals
         for (LWLink link : mLinks.toArray(new LWLink[mLinks.size()]))
             link.disconnectFrom(this);
-        clearHidden(HideReason.PRUNE);
+        clearHidden(HideCause.PRUNE);
      }
     
     public void setSelected(boolean selected) {
@@ -3787,17 +3797,14 @@ u                    getSlot(c).setFromString((String)value);
     private void setHideBits(int bits) {
         final boolean wasHidden = isHidden();
         mHideBits = bits;
-        if (wasHidden != isHidden()) {
-            if (isSelected()) // TODO: should probably be done in the viewer...
-                VUE.getSelection().remove(this);
+        if (wasHidden != isHidden())
             notify(LWKey.Hidden);
-        }
     }
 
     /** debug -- names of set HideBits */
     String getDescriptionOfSetBits() {
         StringBuffer buf = new StringBuffer();
-        for (HideReason reason : HideReason.values()) {
+        for (HideCause reason : HideCause.values()) {
             if (isHidden(reason)) {
                 if (buf.length() > 0)
                     buf.append(',');
@@ -3807,12 +3814,19 @@ u                    getSlot(c).setFromString((String)value);
         return buf.toString();
     }
     
-    public void setHidden(HideReason reason) {
-        setHideBits(mHideBits | reason.bit);
+    public void setHidden(HideCause cause, boolean hide) {
+        if (hide)
+            setHidden(cause);
+        else
+            clearHidden(cause);
     }
     
-    public void clearHidden(HideReason reason) {
-        setHideBits(mHideBits & ~reason.bit);
+    public void setHidden(HideCause cause) {
+        setHideBits(mHideBits | cause.bit);
+    }
+    
+    public void clearHidden(HideCause cause) {
+        setHideBits(mHideBits & ~cause.bit);
     }
 
 //     public void setHidden(boolean hidden)
@@ -3834,8 +3848,8 @@ u                    getSlot(c).setFromString((String)value);
         return !isVisible();
     }
 
-    public boolean isHidden(HideReason reason) {
-        return (mHideBits & reason.bit) != 0;
+    public boolean isHidden(HideCause cause) {
+        return (mHideBits & cause.bit) != 0;
     }
     
     public boolean isVisible() {
@@ -3844,9 +3858,9 @@ u                    getSlot(c).setFromString((String)value);
     
     public void setVisible(boolean visible) {
         if (visible)
-            clearHidden(HideReason.DEFAULT);
+            clearHidden(HideCause.DEFAULT);
         else
-            setHidden(HideReason.DEFAULT);
+            setHidden(HideCause.DEFAULT);
     }
     
     /** @return always null (false): subclasses can override to persist the DEFAULT

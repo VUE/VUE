@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.141 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $
+ * @version $Revision: 1.142 $ / $Date: 2007-05-13 20:59:45 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -254,7 +254,7 @@ public class LWLink extends LWComponent
 
     /** @return the component connected at the head end, or null if none or if it's pruned */
     public LWComponent getHead() {
-        if (head == null || head.isHidden(HideReason.PRUNE))
+        if (head == null || head.isHidden(HideCause.PRUNE))
             return null;
         else
             return head;
@@ -262,7 +262,7 @@ public class LWLink extends LWComponent
     }
     /** @return the component connected at the tail end, or null if none */
     public LWComponent getTail() {
-        if (tail == null || tail.isHidden(HideReason.PRUNE))
+        if (tail == null || tail.isHidden(HideCause.PRUNE))
             return null;
         else
             return tail;
@@ -270,10 +270,10 @@ public class LWLink extends LWComponent
     }
 
     private boolean headNodeIsPruned() {
-        return head != null && head.isHidden(HideReason.PRUNE);
+        return head != null && head.isHidden(HideCause.PRUNE);
     }
     private boolean tailNodeIsPruned() {
-        return tail != null && tail.isHidden(HideReason.PRUNE);
+        return tail != null && tail.isHidden(HideCause.PRUNE);
     }
     
 
@@ -320,9 +320,9 @@ public class LWLink extends LWComponent
             if (c == this)
                 continue; // never hide us: the source of the prune
             if (hide)
-                c.setHidden(HideReason.PRUNE);
+                c.setHidden(HideCause.PRUNE);
             else
-                c.clearHidden(HideReason.PRUNE);
+                c.clearHidden(HideCause.PRUNE);
         }
     }
 

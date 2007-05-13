@@ -31,7 +31,7 @@ import java.awt.Color;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.3 $ / $Date: 2007-05-11 21:37:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.4 $ / $Date: 2007-05-13 20:59:45 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -78,8 +78,8 @@ public class LWPortal extends LWNode
         return false;
     }
     
-    @Override protected void drawImpl(DrawContext dc) {
-
+    @Override protected void drawImpl(DrawContext dc)
+    {
         if (dc.focal != this && dc.isInteractive()) {
             dc.g.setColor(getRenderFillColor());
             dc.g.fill(getShape());
@@ -92,6 +92,7 @@ public class LWPortal extends LWNode
         }
     }
 
+    /*
     private boolean wasVisible = true;
     @Override public boolean isVisible() {
         // TODO: handle this in LWPathway and actually set a hidden bit...
@@ -111,6 +112,7 @@ public class LWPortal extends LWNode
         }
         return visible;
     }
+    */
     
 
     @Override public boolean hasLabel() { // so LWNode won't draw it

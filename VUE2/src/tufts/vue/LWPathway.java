@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.149 $ / $Date: 2007-05-11 17:24:18 $ / $Author: sfraize $
+ * @version $Revision: 1.150 $ / $Date: 2007-05-13 20:59:45 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -208,6 +208,13 @@ public class LWPathway extends LWContainer
             //return !isMergedSlide() && !(node instanceof LWPortal);
         }
 
+        /** @return true if there is a map node associated with this entry, and it should only
+         * be visible when the pathway is visible.
+         */
+        public boolean hidesWithPathway() {
+            return node instanceof LWPortal;
+        }
+
         public boolean hasNotes() {
             return notes != null && notes.length() > 0;
         }
@@ -315,7 +322,7 @@ public class LWPathway extends LWContainer
 
     /** pathways persist their hidden bit */
     public Boolean getXMLhidden() {
-        return isHidden(HideReason.DEFAULT) ? Boolean.TRUE : null;
+        return isHidden(HideCause.DEFAULT) ? Boolean.TRUE : null;
     }
     
 
@@ -323,13 +330,17 @@ public class LWPathway extends LWContainer
      * Is this a "reveal"-way?  Members start hidden and are made visible as you move
      * through the pathway.  This value managed by LWPathwayList, as only one Pathway
      * per map is allowed to be an revealer at a time.
+     *
+     * @deprecated -- this functionality has been removed, at least for now...
      */
     boolean isRevealer() {
-        return mRevealer;
+        return false;
+        //return mRevealer;
     }
     void setRevealer(boolean t) {
-        mRevealer = t;
-        updateMemberVisibility();
+        throw new UnsupportedOperationException("re-implement reveal functionality");
+//         mRevealer = t;
+//         updateMemberVisibility();
     }
     
     public boolean isDrawn() {
@@ -337,8 +348,15 @@ public class LWPathway extends LWContainer
     }
 
     public void setVisible(boolean visible) {
-        if (DEBUG.PATHWAY) System.out.println(this + " setVisible " + visible);
+        if (DEBUG.PATHWAY) out("setVisible " + visible);
         super.setVisible(visible);
+
+        updateMemberVisibility(visible);
+
+
+        /*
+         * Not currently using the reveal-way feature:
+         
         if (isRevealer()) {
             if (visible) {
                 // if "showing" a reveal pathway, we actually hide all the
@@ -347,16 +365,42 @@ public class LWPathway extends LWContainer
             } else {
                 if (DEBUG.PATHWAY) System.out.println(this + " setVisible: showing all items");
                 for (Entry e : mEntries) {
-                    if (e.node != null)
-                        e.node.setVisible(true);
+                    if (e.node != null) {
+                        e.node.clearHidden(HideCause.PATH_UNREVEALED);
+                    }
                 }
             }
         }
+        */
     }
 
-    /** for reveal-way's: show all members up to index, hide all post current index */
-    private void updateMemberVisibility()
+    /**
+     * Make sure any nodes that should hide/show with this pathway
+     * get a hidden bit set as needed.
+     */
+    // was: for reveal-way's: show all members up to index, hide all post current index
+    private void updateMemberVisibility(boolean visible)
     {
+        for (Entry e : mEntries) {
+            if (e.hidesWithPathway()) {
+                if (!visible) {
+                    boolean hideNode = true;
+                    // if this node is on any OTHER pathways, and they
+                    // are visible, still keep the node visible...
+                    for (LWPathway pathway : e.node.getPathways()) {
+                        if (pathway.isVisible()) {
+                            hideNode = false;
+                            break;
+                        }
+                    }
+                    e.node.setHidden(HideCause.HIDES_WITH_PATHWAY, hideNode);
+                } else {
+                    e.node.clearHidden(HideCause.HIDES_WITH_PATHWAY);
+                }
+            }
+        }
+
+        /*
         if (DEBUG.PATHWAY) System.out.println(this + " setVisible: hiding post-index items, showing all others");
         int index = 0;
         for (Entry e : mEntries) {
@@ -364,14 +408,15 @@ public class LWPathway extends LWContainer
                 continue;
             if (isRevealer()) {
                 if (index > mCurrentIndex)
-                    e.node.setVisible(false);
+                    e.node.setHidden(HideCause.PATH_UNREVEALED);
                 else
-                    e.node.setVisible(true);
+                    e.node.clearHidden(HideCause.PATH_UNREVEALED);
                 index++;
             } else {
-                e.node.setVisible(true);
+                e.node.clearHidden(HideCause.PATH_UNREVEALED);
             }
         }
+        */
     }
 
     private static Color[] ColorTable = {
@@ -520,8 +565,8 @@ public class LWPathway extends LWContainer
             return i;
 
         mCurrentIndex = i;
-        if (isRevealer() && isVisible())
-            updateMemberVisibility();
+//         if (isRevealer() && isVisible())
+//             updateMemberVisibility();
 
         broadcastCurrentEntry();
 
@@ -1162,6 +1207,8 @@ public class LWPathway extends LWContainer
                 e.setNotes(pep.getElementNotes());
             }
         }
+
+        updateMemberVisibility(isVisible());
         
         if (DEBUG.XML || DEBUG.PATHWAY) out("RESTORED");
         mXMLRestoreUnderway = false;
