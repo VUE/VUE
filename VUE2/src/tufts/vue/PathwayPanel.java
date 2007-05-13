@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.79 $ / $Date: 2007-05-12 19:13:39 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2007-05-13 21:56:58 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -846,7 +846,7 @@ public class PathwayPanel extends JPanel
         else if (btn == btnPresentationCreate)   { new PathwayDialog(mParentFrame, mTableModel, getLocationOnScreen()).setVisible(true); }
      //   else if (btn == btnLockPresentation)     { pathway.setLocked(!pathway.isLocked()); }
         else if (btn == btnPathwayOnly) {
-            toggleHideEverythingButCurrentPathway();
+            toggleHideEverythingButCurrentPathway(!btnPathwayOnly.isSelected());
         } else if (btn == btnShowSlides) {
             LWPathway.setShowSlides(btnShowSlides.isSelected());
             pathway.notify("pathway.showSlides");
@@ -858,59 +858,62 @@ public class PathwayPanel extends JPanel
     }
 
     private LWPathway exclusiveDisplay;
-    private synchronized void toggleHideEverythingButCurrentPathway()
+    private synchronized void toggleHideEverythingButCurrentPathway(boolean clearFilter)
     {
-        LWMap map = VUE.getActiveMap();
-        LWPathway pathway = VUE.getActivePathway();
+        final LWPathway pathway = VUE.getActivePathway();
+        final LWMap map = pathway.getMap();
         
         if (pathway == null || map == null)
             return;
 
+        // We have to use the FILTER flag, in case a pathway member
+        // is the child of another node (that isn't on the pathway),
+        // so that when the parent "hides" because it's not on the
+        // pathway, it doesn't also hide the child.
+
         // This code is a bit complicated, as it both sets a pathway
         // to be exclusively shown, or toggles it if it already is.
 
-        // To make this simple, first we de-filter (show) everything on the map.
+        // As we only support one global "filter" at a time,
+        // we first we de-filter (show) everything on the map.
+
         for (LWComponent c : map.getAllDescendents())
             c.setFiltered(false);
         
-        if (exclusiveDisplay == pathway) {
-            // We're toggling: just leave everything visible in the map
+        if (exclusiveDisplay == pathway || clearFilter) {
+            // We're toggling: just leave everything visible (de-filtered) in the map
             exclusiveDisplay = null;
+            clearFilter = true;
         } else {
 
             // We're exclusively showing the current pathway: hide (filter) everything
             // that isn't in it.  Currently, any child of an LWComponent that is on a
             // pathway, is also considered on that pathway for display purposes.
 
-            hideAllNotOnPathway(map.getChildIterator(), pathway);
+            filterAllOutsidePathway(map.getChildList(), pathway);
             exclusiveDisplay = pathway;
         }
 
         // Now we make sure the Pathway objects themselves
         // have their filter flag properly set.
 
-        Iterator<LWPathway> i = map.getPathwayList().iterator();
-        while (i.hasNext()) {
-            LWPathway p = i.next();
-            if (exclusiveDisplay == null)
-                p.setFiltered(false);
+        for (LWPathway path : map.getPathwayList()) {
+            if (clearFilter)
+                path.setFiltered(false);
             else
-                p.setFiltered(p != pathway);
+                path.setFiltered(path != pathway);
         }
         
-        //mTableModel.fireTableDataChanged(); // so will gray filtered items
-        //map.notify(this, "pathway.exclusive.display");
         pathway.notify(this, "pathway.exclusive.display");
     }
 
-    private void hideAllNotOnPathway(Iterator i, LWPathway pathway) {
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+    private void filterAllOutsidePathway(Iterable<LWComponent> iterable, LWPathway pathway) {
+        for (LWComponent c : iterable) {
             if (c.inPathway(pathway))
                 continue;
             c.setFiltered(true);
-            if (c instanceof LWContainer)
-                hideAllNotOnPathway(((LWContainer)c).getChildIterator(), pathway);
+            if (c.hasChildren())
+                filterAllOutsidePathway(c.getChildList(), pathway);
         }
     }
     
@@ -1007,7 +1010,7 @@ public class PathwayPanel extends JPanel
         // exclusively displayed, make sure to undo the filter.
         // TODO: handle for undo: is critical for undo of the pathway create!
         if (exclusiveDisplay != null)
-            toggleHideEverythingButCurrentPathway();
+            toggleHideEverythingButCurrentPathway(true);
         VUE.getActiveMap().getPathwayList().remove(p);
     }
 
