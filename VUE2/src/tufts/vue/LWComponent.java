@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.261 $ / $Date: 2007-05-13 21:06:23 $ / $Author: sfraize $
+ * @version $Revision: 1.262 $ / $Date: 2007-05-13 21:12:01 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1880,186 +1880,6 @@ u                    getSlot(c).setFromString((String)value);
     public void         setXMLfont(String xml)  { mFont.setFromString(xml); }
 
 
-
-    /*========================================================================================
-    public Color getFillColor()
-    {
-        return this.fillColor;
-    }
-    
-    public void setFillColor(Color color)
-    {
-        if (eq(color, fillColor))
-            return;
-        Object old = this.fillColor;
-        takeFillColor(color);
-        notify(KEY_FillColor, old);
-    }
-
-    public String getXMLfillColor()
-    {
-        return ColorToString(getFillColor());
-    }
-    public void setXMLfillColor(String xml)
-    {
-        setFillColor(StringToColor(xml));
-    }
-    
-    public Color getTextColor()
-    {
-        return this.textColor;
-    }
-    public void setTextColor(Color color)
-    {
-        if (eq(color, textColor))
-            return;
-        Object old = this.textColor;
-        this.textColor = color;
-        if (labelBox != null)
-            labelBox.copyStyle(this); // todo better: handle thru style.textColor notification?
-        notify(LWKey.TextColor, old);
-    }
-    public String getXMLtextColor()
-    {
-        return ColorToString(getTextColor());
-    }
-    public void setXMLtextColor(String xml)
-    {
-        setTextColor(StringToColor(xml));
-    }
-    public Color getStrokeColor()
-    {
-        return this.strokeColor;
-    }
-    public void setStrokeColor(Color color)
-    {
-        if (eq(color, strokeColor))
-            return;
-        Object old = this.strokeColor;
-        this.strokeColor = color;
-        notify(LWKey.StrokeColor, old);
-    }
-    public String getXMLstrokeColor()
-    {
-        return ColorToString(getStrokeColor());
-    }
-    public void setXMLstrokeColor(String xml)
-    {
-        setStrokeColor(StringToColor(xml));
-    }
-    //========================================================================================*/
-    
-    /*
-    static String ColorToString(Color c)
-    {
-        if (c == null || (c.getRGB() & 0xFFFFFF) == 0)
-            return null;
-        
-        //return "#" + Long.toHexString(c.getRGB() & 0xFFFFFFFF);
-        return "#" + Integer.toHexString(c.getRGB() & 0xFFFFFF);
-    }
-    static Color StringToColor(String xml)
-    {
-        if (xml.trim().length() < 1)
-            return null;
-        
-	Color c = null;
-        try {
-            c = VueResources.makeColor(xml);
-            //Integer intval = Integer.decode(xml);
-            //Long longval = Long.decode(xml); // transparency test -- works,just need gui
-            //c = new Color(longval.intValue(), true);
-            //c = new Color(intval.intValue());
-        } catch (NumberFormatException e) {
-            System.err.println("LWComponent.StringToColor[" + xml + "] " + e);
-        }
-        return c;
-    }
-    */
-     	
-    /*
-    public float getStrokeWidth() {
-        return this.strokeWidth;
-    }
-    void takeStrokeWidth(float w) {
-        this.strokeWidth = w;
-    }
-    public void setStrokeWidth(float w)
-    {
-        if (this.strokeWidth != w) {
-            float oldStrokeWidth = this.strokeWidth;
-            takeStrokeWidth(w);
-            if (w > 0)
-                this.stroke = new BasicStroke(w, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
-            else
-                this.stroke = STROKE_ZERO;
-            // todo: caching the stroke is kind of overkill
-            if (getParent() != null) {
-                // because stroke affects bounds-width, may need to re-layout parent
-                getParent().layout();
-            }
-            layout();
-            notify(LWKey.StrokeWidth, new Float(oldStrokeWidth));
-        }
-    }
-    */
-    /*    
-    public void setFont(Font font)
-    {
-        if (eq(font, this.font))
-            return;
-        Object old = this.font;
-        this.font = font;
-
-        if (!fontIsRebuilding) {
-            mFontSize.set(font.getSize());
-            mFontStyle.set(font.getStyle());
-            mFontName.set(font.getName());
-        }
-        
-        if (labelBox != null)
-            labelBox.copyStyle(this);
-        layout(LWKey.Font);
-        notify(LWKey.Font, old);
-    }
-    private boolean fontIsRebuilding; // hack till we cleanup the old font code
-    private void rebuildFont() {
-        // This so at least for now we have backward compat with the old font property (esp. for tools & persistance)
-        fontIsRebuilding = true;
-        try  {
-            setFont(new Font(mFontName.get(), mFontStyle.get(), mFontSize.get()));
-        } finally {
-            fontIsRebuilding = false;
-        }
-    }
-    public void setFontSize(int pointSize) {
-        Font newFont = getFont().deriveFont((float)pointSize);
-        setFont(newFont);
-    }
-    // to support XML persistance 
-    public String getXMLfont()
-    {
-        //if (this.font == null || this.font == getParent().getFont())
-        //return null;
-        
-	String strStyle;
-	if (font.isBold()) {
-	    strStyle = font.isItalic() ? "bolditalic" : "bold";
-	} else {
-	    strStyle = font.isItalic() ? "italic" : "plain";
-	}
-        return font.getName() + "-" + strStyle + "-" + font.getSize();
-      
-    }
-    // to support XML persistance
-    public void setXMLfont(String xml)
-    {
-        setFont(Font.decode(xml));
-    }
-    */
-    
-    
-    
     /** default label X position impl: center the label in the bounding box */
     public float getLabelX()
     {
@@ -3865,7 +3685,7 @@ u                    getSlot(c).setFromString((String)value);
 
     
     public boolean isDrawn() {
-        return !isHidden() && !isFiltered();
+        return isVisible() && !isFiltered();
     }
     
     public void setRollover(boolean tv)
@@ -3891,37 +3711,9 @@ u                    getSlot(c).setFromString((String)value);
         return isZoomedFocus;
     }
     
-    /*
-    public void setIndicated(boolean indicated)
-    {
-        if (this.indicated != indicated) {
-            this.indicated = indicated;
-        }
-    }
-    public boolean isIndicated() { return this.indicated; }
-    */
-    
     public boolean isRollover() {
         return this.rollover;
     }
-
-    /*
-    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded, boolean ignoreSelected)
-    {
-        if (ignoreSelected && isSelected())
-            return null;
-        else
-            return excluded == this ? null : this;
-    }
-
-
-    /** This only to be called once we  already know mapX / mapY are within this component 
-    protected LWComponent findChildAt(float mapX, float mapY)
-    {
-        return isFiltered() ? null : this;
-    }
-    */
-
 
     public void mouseEntered(MapMouseEvent e)
     {
