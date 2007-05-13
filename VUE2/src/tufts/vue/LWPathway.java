@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.150 $ / $Date: 2007-05-13 20:59:45 $ / $Author: sfraize $
+ * @version $Revision: 1.151 $ / $Date: 2007-05-13 21:06:23 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -320,7 +320,7 @@ public class LWPathway extends LWContainer
         return mEntries.size() > 0 ? mEntries.get(mEntries.size()-1) : null;
     }
 
-    /** pathways persist their hidden bit */
+    /** pathways persist their hidden bit -- this will only persist HideCause.DEFAULT */
     public Boolean getXMLhidden() {
         return isHidden(HideCause.DEFAULT) ? Boolean.TRUE : null;
     }

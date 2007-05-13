@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.260 $ / $Date: 2007-05-13 20:59:45 $ / $Author: sfraize $
+ * @version $Revision: 1.261 $ / $Date: 2007-05-13 21:06:23 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3814,6 +3814,10 @@ u                    getSlot(c).setFromString((String)value);
         return buf.toString();
     }
     
+    public void setVisible(boolean visible) {
+        setHidden(HideCause.DEFAULT, !visible);
+    }
+    
     public void setHidden(HideCause cause, boolean hide) {
         if (hide)
             setHidden(cause);
@@ -3829,22 +3833,13 @@ u                    getSlot(c).setFromString((String)value);
         setHideBits(mHideBits & ~cause.bit);
     }
 
-//     public void setHidden(boolean hidden)
-//     {
-//         if (this.hidden != hidden) {
-//             Object oldValue = hidden ? Boolean.TRUE : Boolean.FALSE;
-//             this.hidden = hidden;
-//             notify(LWKey.Hidden, oldValue);
-//         }
-//     }
-    
     /**
      * @return true if this component has been hidden.  Note that this
      * is different from isFiltered.  All children of a hidden component
      * are also hidden, but not all children of a filtered component
-     * are filtered.
+     * are hidden.
      */
-    public boolean isHidden() {
+    public final boolean isHidden() {
         return !isVisible();
     }
 
@@ -3856,12 +3851,6 @@ u                    getSlot(c).setFromString((String)value);
         return mHideBits == 0;
     }
     
-    public void setVisible(boolean visible) {
-        if (visible)
-            clearHidden(HideCause.DEFAULT);
-        else
-            setHidden(HideCause.DEFAULT);
-    }
     
     /** @return always null (false): subclasses can override to persist the DEFAULT
      * hidden bit if they wish.
