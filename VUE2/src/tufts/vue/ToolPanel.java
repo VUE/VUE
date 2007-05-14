@@ -7,7 +7,7 @@ import javax.swing.border.*;
  * Replacement for old LWCToolPanel, mainly for backward compat with some old code.
  * Ultimately, we probably don't need this class at all.  -- SMF 2007-04-30
  *
- * @version $Revision: 1.3 $ / $Date: 2007-05-01 21:20:00 $ / $Author: sfraize $  
+ * @version $Revision: 1.4 $ / $Date: 2007-05-14 16:42:29 $ / $Author: sfraize $  
  */
 
 public class ToolPanel extends JPanel
@@ -41,7 +41,7 @@ public class ToolPanel extends JPanel
     
     /** @deprecated */
     public boolean addComponent(java.awt.Component c) {
-        System.out.println("ToolPanel:addComponent IGNORED " + c);
+        tufts.Util.printStackTrace("ToolPanel:addComponent IGNORED " + c);
         return true;
     }
     

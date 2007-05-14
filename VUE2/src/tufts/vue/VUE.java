@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.427 $ / $Date: 2007-05-14 16:28:03 $ / $Author: sfraize $ 
+ * @version $Revision: 1.428 $ / $Date: 2007-05-14 16:42:29 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -609,7 +609,7 @@ public class VUE
 
         public static void registerEditor(LWEditor editor) {
             if (mEditors.add(editor)) {
-                System.out.println("REGISTERED EDITOR: " + editor);
+                if (DEBUG.TOOL || DEBUG.INIT) System.out.println("REGISTERED EDITOR: " + editor);
                 if (editor instanceof java.awt.Component)
                     ((java.awt.Component)editor).addPropertyChangeListener(singleton);
             } else
