@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.266 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
+ * @version $Revision: 1.267 $ / $Date: 2007-05-14 13:57:29 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -346,7 +346,7 @@ public class LWComponent
                 for (Class c = clazz; c != null; c = c.getSuperclass())
                     propMaskForClass |= PartialPropertyMaskForClass(c);
 
-                if (DEBUG.Enabled) System.out.format("CACHED PROPERTY BITS for %s: %d\n", clazz, Long.bitCount(propMaskForClass));
+                if (DEBUG.INIT) System.out.format("CACHED PROPERTY BITS for %s: %d\n", clazz, Long.bitCount(propMaskForClass));
                 ClassProperties.put(clazz, propMaskForClass);
 
                 return propMaskForClass;

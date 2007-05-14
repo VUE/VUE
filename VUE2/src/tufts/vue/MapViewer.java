@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.360 $ / $Date: 2007-05-14 13:48:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.361 $ / $Date: 2007-05-14 13:57:29 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1534,11 +1534,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected PickContext getPickContext(float x, float y) {
         PickContext pc = new PickContext(x, y);
         if (mFocal instanceof LWPortal) {
-            // be sure to pick right through the portal to the underlying map
-            pc.excluded = mFocal;
+            // we can pick right through the portal to the underlying map by using using
+            // the map as the pick root (instead of the portal which would be useless
+            // because they're always empty), and ensuring the portal is invisible to
+            // the the pick (excluded).
             pc.root = mFocal.getMap();
-        } else
+            pc.excluded = mFocal;
+        } else {
             pc.root = mFocal;
+        }
         pc.maxLayer = getMaxLayer();
         pc.pickDepth = (mFocal == mMap) ? 0 : 1;
         return activeTool.getPickContext(pc, x, y);

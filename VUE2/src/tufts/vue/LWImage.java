@@ -316,7 +316,7 @@ public class LWImage extends
         setImageSize(width, height);
 
         if (mUndoMarkForThread == null) {
-            if (DEBUG.Enabled) out("gotImageSize: no undo key");
+            if (DEBUG.IMAGE || DEBUG.UNDO || DEBUG.THREAD) out("gotImageSize: no undo key");
         }
             
         // For the events triggered by the setSize below, make sure they go

@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.5 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2007-05-14 13:57:29 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -55,7 +55,7 @@ public class ActiveChangeSupport<T>
             }
             AllActiveHandlers.put(type, this);
         }
-        if (DEBUG.Enabled) System.out.println("Created ActiveChangeSupport"  + typeName);
+        if (DEBUG.INIT || DEBUG.EVENTS) System.out.println("Created ActiveChangeSupport"  + typeName);
     }
 
     public static ActiveChangeSupport getHandler(Class type) {
