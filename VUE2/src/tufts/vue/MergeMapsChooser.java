@@ -28,7 +28,6 @@ package tufts.vue;
 
 import edu.tufts.vue.compare.ui.BaseMapChoiceSelector;
 import java.awt.geom.Point2D;
-import junit.extensions.ActiveTestSuite;
 import tufts.vue.action.ActionUtil;
 import tufts.vue.gui.VueButton;
 import tufts.vue.gui.DockWindow;
@@ -1189,7 +1188,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
              
              
              //$
-               List childList = node.getChildList();
+               /*List childList = node.getChildList();
                //node.removeChildren(childList.iterator());
                Iterator i = childList.iterator();
                while(i.hasNext())
@@ -1215,12 +1214,12 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
                      //System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
                      child.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
                    }
-               }
+               }*/
              //$
              
              //System.out.println("Weighted Merge: counts : " + Util.getMergeProperty(node) + ":" + weightAggregate.getNodeCount(Util.getMergeProperty(node)) +
              //                   " " + weightAggregate.getCount());
-             double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(node))/weightAggregate.getCount();
+             /*double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(node))/weightAggregate.getCount();
              if(score>100)
              {
                score = 100;
@@ -1233,7 +1232,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
              //System.out.println("mmc: getInterval(score): " + getInterval(score));
              Style currStyle = styles.get(getInterval(score)-1);
              //System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
-             node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
+             node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));*/
              if(!repeat)
              {    
                mergeMap.addNode(node);
@@ -1371,9 +1370,12 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         
         //compute and create links in Merge Map
         //Iterator children1 = map.getNodeIterator();
-        Iterator children1 = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+        Iterator<LWComponent> children1 = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
         while(children1.hasNext()) {
-           LWNode node1 = (LWNode)children1.next();
+           LWComponent comp1 = children1.next();
+           if(comp1 instanceof LWImage)
+               continue;
+           LWNode node1 = (LWNode)comp1;
            Iterator children2 = map.getNodeIterator();
            while(children2.hasNext()) {
                LWNode node2 = (LWNode)children2.next();

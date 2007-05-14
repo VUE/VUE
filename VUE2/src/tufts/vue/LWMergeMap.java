@@ -39,8 +39,7 @@ public class LWMergeMap extends LWMap {
     
     public static final int THRESHOLD_DEFAULT = 50;
     
-    private static int maps = 0;
-    
+    private static int numberOfMaps = 0;
     
     private int mapListSelectionType;
     private int baseMapSelectionType;
@@ -54,10 +53,13 @@ public class LWMergeMap extends LWMap {
     private boolean filterOnBaseMap;
     private List<File> fileList;
     private List<Boolean> activeFiles;
-    // without this next line it seems that Castor only reads back one element..
-    private List<LWMap> mapList = new ArrayList<LWMap>();
     
-    //private Stack<Integer> nodeThresholdValueStack;
+    // without this next line it seems that Castor library only reads back one element..
+    // however, for now not a big deal as
+    // this list will still be used as a failsafe (and for dynamic behavior?)
+    // but will only persist as a failsafe for now.. (users can dig into the file
+    // if not yet saved to get their temporary/since modified data)
+    private List<LWMap> mapList = new ArrayList<LWMap>();
     
     private File baseMapFile;
     
@@ -65,7 +67,7 @@ public class LWMergeMap extends LWMap {
     
     public static String getTitle()
     {
-        return "Merge Map" + (++maps); //+ "*";
+        return "Merge Map" + (++numberOfMaps); //+ "*";
     }
     
     public String getLabel()
@@ -223,11 +225,6 @@ public class LWMergeMap extends LWMap {
         return styleFile;
     }
     
-    /*public Stack<Integer> getNodeThresholdValueStack()
-    {
-        return nodeThresholdValueStack;
-    }*/
-    
     public void clearAllElements()
     {
         
@@ -339,161 +336,12 @@ public class LWMergeMap extends LWMap {
     // todo: change to-- reFillAsVoteMerge
     public void recreateVoteMerge()
     {
-    
-        //System.out.println("LWMergeMap: recreate vote merge");
         
         clearAllElements();
         
-        fillAsVoteMerge();
-        
-        // prior to 3/15/2007
-        /* 
-        //produces ConcurrentModificationException
-        //removeChildren(getChildIterator());
-        
-        //copied from Actions:
-        
-        //create own selection, not vueselection, actions.delete(selection)
-
-
-        Iterator li = getAllDescendents().iterator();
-        
-
-        //Iterator li = getAllLinks().iterator();
-        // concurrentModificationException unless do nodes and links seperately...
-        //Iterator si = VUE.getActiveMap().getChildIterator();
-        
-        // this deletion code is from LWComponent
-        while(li.hasNext())
-        {
-            LWComponent c = (LWComponent)li.next();
-            
-            
-            LWContainer parent = c.getParent();
-            if (parent == null) {
-                //System.out.println("DELETE: " + c + " skipping: null parent (already deleted)");
-            } else if (c.isDeleted()) {
-                //System.out.println("DELETE: " + c + " skipping (already deleted)");
-            } else if (parent.isDeleted()) { // after prior check, this case should be impossible now
-                //System.out.println("DELETE: " + c + " skipping (parent already deleted)"); // parent will call deleteChildPermanently
-            } else if (parent.isSelected()) { // if parent selected, it will delete it's children
-                //System.out.println("DELETE: " + c + " skipping - parent selected & will be deleting");
-            } else {
-                parent.deleteChildPermanently(c);
-            }
-        }
-                  
-        ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
-        //System.out.println("recreate merge: getMapList.size() " + getMapList().size());
-        Iterator<LWMap> i = getMapList().iterator();
-        //System.out.println("LWMergeMap: " + getMapList().size());
-        while(i.hasNext())
-        {
-          LWMap m = i.next();
-          
-          
-          
-          Iterator ni = m.getNodeIterator();
-          //System.out.println("node iterator: " + ni.hasNext());
-          
-          Iterator linki = m.getLinkIterator();
-          //System.out.println("link iterator: " + linki.hasNext());
-          
-          //System.out.println(m.getLabel());
-          ConnectivityMatrix cm = new ConnectivityMatrix(m);
-          //System.out.println(cm);
-          cms.add(cm);
-        }
-        VoteAggregate voteAggregate= new VoteAggregate(cms);
-        voteAggregate.setNodeThreshold((double)(getNodeThresholdSliderValue()/100.0));
-        voteAggregate.setLinkThreshold((double)(getLinkThresholdSliderValue()/100.0));
-        
-        //compute and create nodes in Merge Map
-        Iterator children = getBaseMap().getNodeIterator();
-        while(children.hasNext()) {
-           LWComponent comp = (LWComponent)children.next();
-           if(voteAggregate.isNodeVoteAboveThreshold(Util.getMergeProperty(comp)) ){
-                   LWNode node = (LWNode)comp.duplicate();
-                   addNode(node);
-           }
-        }
-        
-        //compute and create links in Merge Map
-        Iterator children1 = getNodeIterator();
-        while(children1.hasNext()) {
-           LWNode node1 = (LWNode)children1.next();
-           Iterator children2 = getNodeIterator();
-           while(children2.hasNext()) {
-               LWNode node2 = (LWNode)children2.next();
-               if(node2 != node1) {
-                  int c = voteAggregate.getConnection(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
-                  if(c >0) {
-                     addLink(new LWLink(node1,node2));
-                  }
-               }
-           }
-        } */
-        
+        fillAsVoteMerge();    
     }
     
-    /*
-    public void recalculateLinks()
-    {
-          
-        Iterator<LWMap> i = getMapList().iterator();
-        //System.out.println("LWMergeMap: " + getMapList().size());
-        while(i.hasNext())
-        {
-          LWMap m = i.next();
-        
-          //System.out.println(m.getChildList().size());
-          
-          List<LWComponent> chs = m.getChildList();
-          
-          
-          // adapted from private method in LWMap -- resolvePersistedLinks..
-          for (LWComponent currc : chs) {
-            if (!(currc instanceof LWLink))
-                continue;
-            LWLink l = (LWLink) currc;
-            try {
-                // was: final ep1ID
-                String ep1ID = l.getHead_ID();
-                //System.out.println("before setting components");
-                //System.out.println("l.getHead_ID(): " + l.getHead_ID());
-                //System.out.println("l.getHead(): " + l.getHead());
-                // was: final ep2ID
-                String ep2ID = l.getTail_ID();
-                //System.out.println("l.getTail_ID(): " + l.getTail_ID());
-                //System.out.println("l.getTail(): " + l.getTail());
-
-                if (ep1ID != null && l.getHead() == null) l.setHead(findByID(chs, ep1ID));
-                if (ep2ID != null && l.getTail() == null) l.setTail(findByID(chs, ep2ID));
-                if(l.getHead() != null && l.getTail() != null)
-                {
-                    //markAsSaved();
-                    //getUndoManager().mark("links recalculated");
-                    //getUndoManager().flush();
-                }
-                
-                ep1ID = l.getHead_ID();
-                //System.out.println("after setting components");
-                //System.out.println("l.getHead_ID(): " + l.getHead_ID());
-                //System.out.println("l.getHead(): " + l.getHead());
-                ep2ID = l.getTail_ID();
-                //System.out.println("l.getTail_ID(): " + l.getTail_ID());
-                //System.out.println("l.getTail(): " + l.getTail());
-                
-            } catch (Throwable e) {
-                tufts.Util.printStackTrace(e, "bad link? + l");
-            }
-          } // end for 
-        } // end while
-        
-        getUndoManager().mark("recalculate links");
-        getUndoManager().flush();
-
-    } */
     
     
     public boolean nodeAlreadyPresent(LWNode node)

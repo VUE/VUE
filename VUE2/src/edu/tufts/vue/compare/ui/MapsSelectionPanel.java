@@ -19,7 +19,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.4 $ / $Date: 2007-05-11 20:27:08 $ / $Author: dan $
+ * @version $Revision: 1.5 $ / $Date: 2007-05-14 17:35:47 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -50,7 +50,7 @@ import tufts.vue.action.ActionUtil;
 public class MapsSelectionPanel extends JPanel  {
     
     // probably should save settings when load LWMergeMap
-    // so perhaps a second instance is warranted dependent on 
+    // so perhaps a second instance is warranted depending on 
     // currently active map.
     private static MapsSelectionPanel singleton = new MapsSelectionPanel();
     
@@ -91,13 +91,13 @@ public class MapsSelectionPanel extends JPanel  {
         {
             public void componentAdded(java.awt.event.ContainerEvent e)
             {
-                System.out.println("MSP: VUE tabbed pane component added " + e);
+                //System.out.println("MSP: VUE tabbed pane component added " + e);
                 revalidate();
             }
             
             public void componentRemoved(java.awt.event.ContainerEvent e)
             {
-                System.out.println("MSP: VUE tabbed pane component removed " + e);
+                //System.out.println("MSP: VUE tabbed pane component removed " + e);
                 revalidate();
             }
         });
@@ -105,7 +105,7 @@ public class MapsSelectionPanel extends JPanel  {
         {
             public void stateChanged(javax.swing.event.ChangeEvent e)
             {
-                System.out.println("MSP: VUE tabbed pane change event " + e);
+                //System.out.println("MSP: VUE tabbed pane change event " + e);
             }
         });
         
@@ -115,7 +115,7 @@ public class MapsSelectionPanel extends JPanel  {
             {
                 revalidate();
                 repaint();
-                System.out.println("MSP: VUE tabbed pane property change event " + e.getPropertyName());
+                //System.out.println("MSP: VUE tabbed pane property change event " + e.getPropertyName());
             }
         });
 
@@ -180,11 +180,15 @@ public class MapsSelectionPanel extends JPanel  {
         int numberOfMaps = maps.getModel().getRowCount();
         for(int i=0;i<numberOfMaps;i++)
         {
-            if(model.getMapType(i) == OPEN_MAP && model.isSelected(i))
+            if(!model.isSelected(i))
+            {
+                continue;
+            }
+            if(model.getMapType(i) == OPEN_MAP)
             {
                 mapList.add(model.getMap(i));
             }
-            else
+            else if(model.getMapType(i) == LOCAL_FILE)
             {
                 File file = null;
                 LWMap map = null;

@@ -76,7 +76,30 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     private ArrayList<Style> nodeStyles = new ArrayList<Style>();
     private ArrayList<Style> linkStyles = new ArrayList<Style>();
     
-    /** Creates a new instance of WeightVisualizationSettingsPanel */
+    private JLabel parameterChoiceMessage;
+
+    public WeightVisualizationSettingsPanel() 
+    {
+        // too soon for all settings, so just load default styles here
+        loadDefaultStyles();
+        
+        //int b = mmc.TAB_BORDER_SIZE;
+        setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
+        
+        parameterChoiceMessage = new JLabel(parameterChoiceMessageString,JLabel.RIGHT)
+        {
+            public java.awt.Dimension getPreferredSize()
+            {
+              //if(mmc!=null)
+              //  return mmc.getVizLabelPreferredSize();    
+              //else
+                return new java.awt.Dimension(100,30);
+            }
+        };
+     
+        setUpGui();
+    }
+    
     public WeightVisualizationSettingsPanel(final tufts.vue.MergeMapsChooser mmc) 
     {
         // too soon for all settings, so just load default styles here
@@ -85,8 +108,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         int b = mmc.TAB_BORDER_SIZE;
         setBorder(javax.swing.BorderFactory.createEmptyBorder(b,b,b,b));
         
-        String[] parameterChoices = {"Nodes","Links"};
-        JLabel parameterChoiceMessage = new JLabel(parameterChoiceMessageString,JLabel.RIGHT)
+        parameterChoiceMessage = new JLabel(parameterChoiceMessageString,JLabel.RIGHT)
         {
             public java.awt.Dimension getPreferredSize()
             {
@@ -96,12 +118,20 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                 return new java.awt.Dimension(100,30);
             }
         };
+     
+        setUpGui();
+    }
         
+     public void setUpGui()
+     {
+     
+        setOpaque(false); 
+         
         //$
           //parameterChoiceMessage.setOpaque(true);
           //parameterChoiceMessage.setBackground(java.awt.Color.CYAN);
         //$
-        
+        String[] parameterChoices = {"Nodes","Links"};
         parameterChoice = new JComboBox(parameterChoices);
         //JLabel helpLabel = new JLabel(VueResources.getIcon("helpIcon.raw"),JLabel.LEFT);
         JLabel intervalNumberChoiceMessage = new JLabel(intervalChoiceMessageString,JLabel.RIGHT);
@@ -209,6 +239,8 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     
     public void loadDefaultStyles()
     {
+        StyleReader.readStyles("compare.weight.css");
+        
         // reading default number of styles from default style file
         // should default number be stored in css file or in VueResources?
         for(int si=0;si<DEFAULT_STYLE_CHOICES;si++)
@@ -300,7 +332,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                 Style s = StyleMap.getStyle(nodeOrLink+".w" + (i++));
                 s.setAttribute("background",Style.colorToHex(colors.next()).toString());
             }
-            loadDefaultStyles();
+           // loadDefaultStyles();
             loadDefaultSettings();
             repaint();
         }
