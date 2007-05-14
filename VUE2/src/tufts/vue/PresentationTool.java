@@ -69,7 +69,7 @@ public class PresentationTool extends VueTool
     //private int mPathwayIndex = 0;
     //private LWPathway.Entry mEntry;
 
-    private boolean mFadeEffect = false;
+    private boolean mFadeEffect = !DEBUG.Enabled;
     private boolean mShowNavigator = DEBUG.NAV;
     private boolean mShowNavNodes = false;
     private boolean mForceShowNavNodes = false;
@@ -727,16 +727,14 @@ private static int OverviewMapSizeIndex = 5;
     
     public boolean handleMousePressed(MapMouseEvent e)
     {
+        // First, check for hits on any nav nodes:
+
         for (NavNode nav : mNavNodes) {
             if (DEBUG.PRESENT) System.out.println("pickCheck " + nav + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
             if (nav.containsParentCoord(e.getX(), e.getY())) {
                 if (DEBUG.PRESENT) System.out.println("HIT " + nav);
-                //if (mVisited.peek() == nav.destination || mVisited.peekNode() == nav.destination) {
                 if (nav.page.equals(mVisited.prev())) {
                     revisitPrior();
-//                 } else if (nav.pathway != null) {
-//                      // jump to another pathway
-//                     setEntry(nav.pathway.getEntry(nav.pathway.firstIndexOf(nav.destination)));
                 } else {
                     setPage(nav.page);
                 }
@@ -747,47 +745,23 @@ private static int OverviewMapSizeIndex = 5;
         final LWComponent hit = e.getPicked();
         
         if (DEBUG.PRESENT) out("handleMousePressed " + e.paramString() + " hit on " + hit);
-        if (hit != null && !mCurrentPage.equals(hit)) {
-            Collection linked = hit.getLinkEndPoints();
-            if (mCurrentPage == NO_PAGE) {
-                // We have no current page, so just zoom to what's been clicked on and start there.
-                mVisited.clear();
-                setPage(hit);
-            } 
-            
-            /*if (mCurrentPage != null && mCurrentPage.getParent() == hit) {
-                // hack for clicking back up to parent group when had click-zoomed child image
-                setPage(hit);
-                } else*/
-            else if (mCurrentPage != null && linked.size() == 1/* && isPresenting()*/) {
-                // not good during nav: don't follow links during nav? could skip if link is mCurrentPage
-                // problem is case of nav'd to a link, then click on edge of node to right of link,
-                // where you'd want to go to that node, but instead if that's it's only link, it follows
-                // the link back to where you came from.  This is not a likely usage case tho.
-// followLink(hit, hit.getLinkTo((LWComponent) linked.get(0))); // NO LONGER A LIST...
-                /*
-                LWComponent linkingTo = 
-                mLastFollowed = mCurrentPage.getLinkTo(linkingTo);
-                setPage(linkingTo);
-                */
-            } else {
-                setPage(hit);
-            }
+
+        if (hit == null)
+            return false;
+        
+        if (mCurrentPage.equals(hit)) {
+            // hit on what what we just clicked on: backup,
+            // but only if it's not a full pathway entry
+            // (meant for intra-slide clicking)
+            if (mCurrentPage.entry == null)
+                revisitPrior();
+        } else {
+            setPage(hit);
         }
-//         else if (mCurrentPage.equals(hit) && mEntry != null && mEntry.getFocal() != mCurrentPage) {
-//             // what the hell we doing here???
-//             revisitPrior();
-//         }
         return true;
     }
 
-//     private LWComponent currentNode() {
-//         if (mCurrentPage instanceof LWSlide)
-//             return mEntry == null ? null : mEntry.node;
-//         else
-//             return mCurrentPage;
-//     }
-
+    
     public void startPresentation()
     {
         out(this + " startPresentation");
@@ -898,6 +872,13 @@ private static int OverviewMapSizeIndex = 5;
                 mVisited.rollBack();
         }
 
+        final boolean doSlideTransition;
+
+        if (mCurrentPage != null && mCurrentPage.entry != null && page.entry != null)
+            doSlideTransition = true;
+        else
+            doSlideTransition = false;
+
         //mLastPage = mCurrentPage;
         mCurrentPage = page;
 
@@ -913,7 +894,8 @@ private static int OverviewMapSizeIndex = 5;
         mNavNodes.clear();
         viewer.clearTip();
 
-        if (mFadeEffect) {
+
+        if (doSlideTransition && mFadeEffect) {
         
             // It case there was a tip visible, we need to make sure
             // we wait for it to finish clearing before we move on, so
@@ -925,7 +907,8 @@ private static int OverviewMapSizeIndex = 5;
                     public void run() {
                         if (mFadeEffect)
                             makeInvisible();
-                        zoomToFocal(page.getPresentationFocal(), !mFadeEffect);
+                        zoomToFocal(page.getPresentationFocal(), false);
+                        //zoomToFocal(page.getPresentationFocal(), !mFadeEffect);
                         if (mScreenBlanked)
                             makeVisibleLater();
                     }
@@ -937,11 +920,21 @@ private static int OverviewMapSizeIndex = 5;
     }
     
     private void zoomToFocal(LWComponent focal, boolean animate) {
-        VUE.getActiveViewer().loadFocal(focal);
+        final MapViewer viewer = VUE.getActiveViewer();
+        
+        if (animate) {
+            ZoomTool.setZoomFitRegion(viewer,
+                                      focal.getBounds(),
+                                      0,
+                                      animate);
+        }
+        
+        viewer.loadFocal(focal);
     }
     
 
-    @Override public void handlePreDraw(DrawContext dc, MapViewer viewer) {
+    @Override
+    public void handlePreDraw(DrawContext dc, MapViewer viewer) {
         if (mPathway != null) {
             if (mCurrentPage != null) {
                 final LWSlide master = mPathway.getMasterSlide();
@@ -961,7 +954,6 @@ private static int OverviewMapSizeIndex = 5;
             }
         }
     }
-    
     
     @Override
     public void handlePostDraw(DrawContext dc, MapViewer viewer)
@@ -1159,6 +1151,7 @@ private static int OverviewMapSizeIndex = 5;
     }
 
     
+    @Override
     public void handleToolSelection() {
         mCurrentPage = NO_PAGE;
         if (VUE.getSelection().size() == 1)
@@ -1171,6 +1164,14 @@ private static int OverviewMapSizeIndex = 5;
     }
 
     /*
+
+//     private LWComponent currentNode() {
+//         if (mCurrentPage instanceof LWSlide)
+//             return mEntry == null ? null : mEntry.node;
+//         else
+//             return mCurrentPage;
+//     }
+
     public void handleSelectionChange(LWSelection s) {
         out("SELECTION CHANGE");
         // TODO: if active map changes, need to be sure to clear current page!

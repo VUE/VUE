@@ -232,12 +232,12 @@ public class SlideViewer extends tufts.vue.MapViewer
             return "Empty";
     }
     
-    public void addNotify() {
+    @Override public void addNotify() {
         super.addNotify();
         getParent().add(new Toolbar(), BorderLayout.NORTH);
     }
 
-    public void grabVueApplicationFocus(String from, ComponentEvent event) {
+    @Override public void grabVueApplicationFocus(String from, ComponentEvent event) {
         final int id = event == null ? 0 : event.getID();
 
         if (id == MouseEvent.MOUSE_ENTERED)
@@ -247,7 +247,7 @@ public class SlideViewer extends tufts.vue.MapViewer
     }
     
 
-    public void LWCChanged(LWCEvent e) {
+    @Override public void LWCChanged(LWCEvent e) {
         if (DEBUG.PRESENT) out("SLIDEVIEWER LWCChanged " + e);
 
         if (e.getComponent() instanceof LWPathway) {
@@ -448,7 +448,7 @@ if (true) return;
     }
 
 
-    protected void drawSelection(DrawContext dc, LWSelection s) {
+    @Override protected void drawSelection(DrawContext dc, LWSelection s) {
         // Don't draw selection if its the focused component
         if (s.size() == 1 && s.first() == mFocal)
             return;
@@ -456,7 +456,7 @@ if (true) return;
     }
 
 
-    protected DrawContext getDrawContext(Graphics2D g) {
+    @Override protected DrawContext getDrawContext(Graphics2D g) {
         DrawContext dc = super.getDrawContext(g);
         dc.setEditMode(btnMaster.isSelected());
         /* dc.focal now handles this 
@@ -468,7 +468,7 @@ if (true) return;
         return dc;
     }
 
-    public void fireViewerEvent(int id) {
+    @Override public void fireViewerEvent(int id) {
         if (DEBUG.PRESENT) out("fireViewerEvent <" + id + "> skipped");
     }
 

@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.55 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2007-05-14 13:48:45 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -118,6 +118,8 @@ public class ZoomTool extends VueTool
     private LWComponent zoomedTo;
     private LWComponent oldFocal;
     private boolean ignoreRelease = false;
+    
+    @Override
     public boolean handleMousePressed(MapMouseEvent e) {
         super.handleMousePressed(e);
 
@@ -176,40 +178,6 @@ public class ZoomTool extends VueTool
             return false;
     }
 
-    @Override public DrawContext getDrawContext(DrawContext dc) {
-        if (zoomedTo instanceof LWSlide)
-            ;
-        else
-            dc.skipDraw = zoomedTo;
-        return dc;
-    }
-    
-    @Override public void handlePostDraw(DrawContext dc, MapViewer viewer) {
-        if (zoomedTo instanceof LWSlide) {
-            ;
-        } else if (zoomedTo != null) {
-            zoomedTo.draw(dc);
-        }
-    }
-
-    @Override public PickContext getPickContext(PickContext pc, float x, float y) {
-        if (zoomedTo != null)
-            pc.pickDepth++;
-        return pc;
-    }
-    
-
-//     private void loadSlideFocal(final MapViewer viewer, LWSlide slide)
-//     {
-//         tufts.vue.gui.GUI.invokeAfterAWT(new Runnable() {
-//                 public void run() {
-//                     viewer.loadFocal(slide);
-//                     //setZoomFitRegion(viewer, slide.getBounds(), 0, false);
-//                 }});
-//     }
-        
-                
-
     private void zoomToSlide(MapViewer viewer, final LWSlide slide) {
         
         // zoom-to for the map region of the slide icon:
@@ -223,6 +191,47 @@ public class ZoomTool extends VueTool
         
     }
     
+//     private void loadSlideFocal(final MapViewer viewer, LWSlide slide)
+//     {
+//         tufts.vue.gui.GUI.invokeAfterAWT(new Runnable() {
+//                 public void run() {
+//                     viewer.loadFocal(slide);
+//                     //setZoomFitRegion(viewer, slide.getBounds(), 0, false);
+//                 }});
+//     }
+        
+                
+
+    
+    
+
+    @Override
+    public DrawContext getDrawContext(DrawContext dc) {
+        if (zoomedTo instanceof LWSlide)
+            ;
+        else
+            dc.skipDraw = zoomedTo;
+        return dc;
+    }
+    
+    @Override
+    public void handlePostDraw(DrawContext dc, MapViewer viewer) {
+        if (zoomedTo instanceof LWSlide) {
+            ;
+        } else if (zoomedTo != null) {
+            zoomedTo.draw(dc);
+        }
+    }
+
+    @Override
+    public PickContext getPickContext(PickContext pc, float x, float y) {
+        if (zoomedTo != null)
+            pc.pickDepth++;
+        return pc;
+    }
+    
+
+    @Override
     public boolean handleMouseReleased(MapMouseEvent e)
     {
         if (DEBUG.TOOL) System.out.println(this + " handleMouseReleased " + e);

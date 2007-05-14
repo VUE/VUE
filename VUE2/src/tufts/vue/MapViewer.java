@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.359 $ / $Date: 2007-05-14 08:32:40 $ / $Author: sfraize $ 
+ * @version $Revision: 1.360 $ / $Date: 2007-05-14 13:48:45 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -103,9 +103,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         public void mapViewerEventRaised(MapViewerEvent e);
     }
 
-    protected LWMap mMap;                   // the map we're displaying & interacting with
-    protected LWComponent mFocal;          // The component we're currently displaying: usually mFocal == map
-    protected TextBox activeTextEdit;          // Current on-map text edit
+    /** The component we're currently displaying: usually an instanceof LWMap, unless presenting */
+    protected LWComponent mFocal;
+    /** The top-level map that owns the focal (usually the same as the focal) */
+    protected LWMap mMap;
+    /** The focal we just unloaded if any */
+    protected LWComponent mLastFocal;
+    /** Current on-map text edit, null if no edit active */
+    protected TextBox activeTextEdit;
     
     // todo make a "ResizeControl" -- a control abstraction that's
     // less than a whole VueTool -- it depends on the current selection,
@@ -908,21 +913,23 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         }
 
-        //final Rectangle2D zoomBounds = mFocal.getShapeBounds();
+        final boolean animate = false;
         final Rectangle2D zoomBounds = mFocal.getBounds();
 
         int margin = 30;
 
-        //if (VUE.inFullScreen() && mFocal instanceof LWSlide)
-        if (mFocal instanceof LWSlide || mFocal instanceof LWPortal)
+        if (mFocal instanceof LWSlide ||
+            mFocal instanceof LWPortal ||
+            mFocal instanceof LWImage
+            )
             margin = 0;
 
         if (DEBUG.PRESENT) out("zoomToContents " + mFocal);
         
-        tufts.vue.ZoomTool.setZoomFitRegion(this,
-                                            zoomBounds,
-                                            margin,
-                                            false);
+        ZoomTool.setZoomFitRegion(this,
+                                  zoomBounds,
+                                  margin,
+                                  animate);
         
     }
 
@@ -1009,15 +1016,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (mFocal == focal)
             return;
         boolean autoZoom = false;
+        mLastFocal = mFocal;
+
         if (mFocal != null) {
             unloadFocal();
             // If we are switching from another focal, automatically do a zoom-fit
             autoZoom = true;
         } else if (!(focal instanceof LWMap))
             autoZoom = true;
-        
+
         mOffset.x = mOffset.y = 0;
         mFocal = focal;
+
         if (mFocal != null) {
             mMap = mFocal.getMap();
             if (mMap == null)
@@ -1523,7 +1533,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     protected PickContext getPickContext(float x, float y) {
         PickContext pc = new PickContext(x, y);
-        pc.root = mFocal;
+        if (mFocal instanceof LWPortal) {
+            // be sure to pick right through the portal to the underlying map
+            pc.excluded = mFocal;
+            pc.root = mFocal.getMap();
+        } else
+            pc.root = mFocal;
         pc.maxLayer = getMaxLayer();
         pc.pickDepth = (mFocal == mMap) ? 0 : 1;
         return activeTool.getPickContext(pc, x, y);
