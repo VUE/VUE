@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.362 $ / $Date: 2007-05-14 16:28:02 $ / $Author: sfraize $ 
+ * @version $Revision: 1.363 $ / $Date: 2007-05-14 17:47:35 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1038,6 +1038,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (mMap == null)
                 tufts.Util.printStackTrace("no map in focal! " + mFocal);
             mFocal.addLWCListener(this);
+            
         } else
             mMap = null;
         
@@ -3710,13 +3711,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 return;
                 }*/
             
-            // If any modifier keys down, may be an action command.
-            // Is actually okay if a mouse is down while we do this tho.
-            if ((e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0 && (!sDragUnderway || isDraggingSelectorBox)) {
-                for (VueTool tool : VueToolbarController.getController().getTools()) {
-                    if (tool.getShortcutKey() == keyChar) {
-                        VueToolbarController.getController().setSelectedTool(tool);
-                        return;
+            if (!activeTool.isLockingActiveTool()) {
+            
+                // Check for shortcut-keys that would activate another tool:
+                
+                // If any modifier keys down, may be an action command.
+                // Is actually okay if a mouse is down while we do this tho.
+
+                if ((e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0 && (!sDragUnderway || isDraggingSelectorBox)) {
+                    for (VueTool tool : VueToolbarController.getController().getTools()) {
+                        if (tool.getShortcutKey() == keyChar) {
+                            VueToolbarController.getController().setSelectedTool(tool);
+                            return;
+                        }
                     }
                 }
             }

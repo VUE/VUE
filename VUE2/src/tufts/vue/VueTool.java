@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.57 $ / $Date: 2007-05-14 08:32:40 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2007-05-14 17:47:35 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -332,6 +332,11 @@ public abstract class VueTool extends AbstractAction
     public void handlePostDraw(DrawContext dc, MapViewer viewer) {}
     
     public void handleFullScreen(boolean fullScreen) {}
+
+    /** @return true if this tool is currently preventing changes to any other active tool */
+    public boolean isLockingActiveTool() {
+        return false;
+    }
     
     public void drawSelector(DrawContext dc, java.awt.Rectangle r)
     {

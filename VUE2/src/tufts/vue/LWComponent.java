@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.268 $ / $Date: 2007-05-14 16:28:02 $ / $Author: sfraize $
+ * @version $Revision: 1.269 $ / $Date: 2007-05-14 17:47:35 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2996,6 +2996,10 @@ u                    getSlot(c).setFromString((String)value);
     {
         if (dc.skipDraw == this)
             return false;
+
+        // always draw the focal
+        if (dc.focal == this)
+            return true;
         
         // if filtered, don't draw, unless has children, in which case
         // we need to draw just in case any of the children are NOT filtered.
@@ -3457,6 +3461,15 @@ u                    getSlot(c).setFromString((String)value);
     public synchronized void removeLWCListener(Listener listener) {
         mChangeSupport.removeListener(listener);
     }
+
+    /** convenince method for remove a (possible) old listener, and attaching a (possible) new listener */
+    public static void swapLWCListener(Listener listener, LWComponent oldSource, LWComponent newSource) {
+        if (oldSource != null)
+            oldSource.removeLWCListener(listener);
+        if (newSource != null)
+            newSource.addLWCListener(listener);
+    }
+    
     public synchronized void removeAllLWCListeners() {
         mChangeSupport.removeAllListeners();
     }

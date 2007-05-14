@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.82 $ / $Date: 2007-05-14 14:42:06 $ / $Author: sfraize $
+ * @version $Revision: 1.83 $ / $Date: 2007-05-14 17:47:35 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -55,24 +55,24 @@ public class PathwayPanel extends JPanel
 {    
     private Frame mParentFrame;
     
-    private VueButton btnAddSlide = new VueButton("presentationDialog.button.makeSlides",this);
-    private VueButton btnMergeInto = new VueButton("presentationDialog.button.mergeInto",this);
-    private VueButton btnLiveMap = new VueButton("presentationDialog.button.liveMap", this);
+    private final VueButton btnAddSlide = new VueButton("presentationDialog.button.makeSlides",this);
+    private final VueButton btnMergeInto = new VueButton("presentationDialog.button.mergeInto",this);
+    private final VueButton btnLiveMap = new VueButton("presentationDialog.button.liveMap", this);
     
     //edit
-    private VueButton btnPreview = new VueButton("presentationDialog.button.preview", this);
-    private VueButton btnPreviewFull = new VueButton("presentationDialog.button.previewFull", this);
+    private final VueButton btnPreview = new VueButton("presentationDialog.button.preview", this);
+    private final VueButton btnPreviewFull = new VueButton("presentationDialog.button.previewFull", this);
        
     //master slide
-    private VueButton btnMasterSlide = new VueButton("presentationDialog.button.masterSlide",this);
+    private final VueButton btnMasterSlide = new VueButton("presentationDialog.button.masterSlide",this);
     
     //new    
-    private VueButton btnPresentationCreate = new VueButton("presentationDialog.button.add",this);        
-    private VueButton btnPresentationDelete = new VueButton("presentationDialog.button.delete",this);
+    private final VueButton btnPresentationCreate = new VueButton("presentationDialog.button.add",this);        
+    private final VueButton btnPresentationDelete = new VueButton("presentationDialog.button.delete",this);
     
 
     //filter
-    private JToggleButton btnPathwayOnly = new VueButton.Toggle("presentationDialog.button.viewAll",this);
+    private final JToggleButton btnPathwayOnly = new VueButton.Toggle("presentationDialog.button.viewAll",this);
     
     
     //map view
@@ -84,11 +84,11 @@ public class PathwayPanel extends JPanel
     
     
     //playback mode
-    private ImageDropDown btnPlayMaps = new ImageDropDown(VueResources.getImageIcon("presentationDialog.button.playMap.raw"),
+    private final ImageDropDown btnPlayMaps = new ImageDropDown(VueResources.getImageIcon("presentationDialog.button.playMap.raw"),
                                                           VueResources.getImageIcon("presentationDialog.button.playSlides.raw"),
                                                           VueResources.getImageIcon("presentationDialog.button.playSlides.disabled"));
     
-    private VueButton btnPlay = new VueButton("presentationDialog.button.play",this);    
+    private final VueButton btnPlay = new VueButton("presentationDialog.button.play",this);    
                                             
     //Section Labels for the top
     private JLabel lblCreateSlides = new JLabel(VueResources.getString("presentationDialog.createslides.label"));
@@ -121,9 +121,13 @@ public class PathwayPanel extends JPanel
     private static final Action path_last = new PlayerAction("pathway.control.last");
 
     private final JTabbedPane tabbedPane = new JTabbedPane();
+
+    private static PathwayPanel Singleton;
     
     public PathwayPanel(Frame parent) 
-    {   
+    {
+        Singleton = this;
+            
     	//DISABLE THE NOTES BUTTONS FOR NOW UNTIL WE FIGURE OUT WHAT THEY DO -MK
     	Icon i =VueResources.getIcon("presentationDialog.button.viewAll.raw");
     	addToolTips();
@@ -784,6 +788,8 @@ public class PathwayPanel extends JPanel
         Object btn = e.getSource();
         LWPathway pathway = getSelectedPathway();
 
+        if (DEBUG.PATHWAY) System.out.println(this + " " + e);
+
         if (pathway == null && btn != btnPresentationCreate)
             return;
         if (btn == btnPreview)
@@ -856,6 +862,12 @@ public class PathwayPanel extends JPanel
         }
 
         VUE.getUndoManager().mark();
+    }
+
+    public static void TogglePathwayExclusiveFilter() {
+        boolean doFilter = !Singleton.btnPathwayOnly.isSelected();
+        Singleton.toggleHideEverythingButCurrentPathway(!doFilter);
+        Singleton.btnPathwayOnly.setSelected(doFilter);
     }
 
     private LWPathway exclusiveDisplay;
@@ -931,7 +943,8 @@ public class PathwayPanel extends JPanel
                 path.setFiltered(path != pathway);
         }
         
-        pathway.notify(this, "pathway.exclusive.display");
+        pathway.notify(this, LWKey.Repaint);
+        //pathway.notify(this, "pathway.exclusive.display");
     }
 
     private void filterAllOutsidePathway(Iterable<LWComponent> iterable, LWPathway pathway) {

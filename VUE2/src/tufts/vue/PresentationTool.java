@@ -45,7 +45,8 @@ import javax.swing.*;
  *
  */
 public class PresentationTool extends VueTool
-    implements ActiveListener<LWPathway.Entry>
+    implements ActiveListener<LWPathway.Entry>,
+               LWComponent.Listener
 {
     private static final String FORWARD = "FORWARD";
     private static final String BACKWARD = "BACKWARD";
@@ -558,6 +559,10 @@ public class PresentationTool extends VueTool
             mShowNavigator = !mShowNavigator;
             repaint();
             break;
+
+        case 'P':
+            PathwayPanel.TogglePathwayExclusiveFilter();
+            break;
             
         case '+':
         case '=': // allow "non-shift-plus"
@@ -578,6 +583,8 @@ public class PresentationTool extends VueTool
         default:
             handled = false;
         }
+
+        //if (handled && DEBUG.KEYS) out("HANDLED " + keyChar);
 
         return handled;
     }
@@ -768,12 +775,19 @@ private static int OverviewMapSizeIndex = 5;
         //mShowContext.setSelected(false);
         mVisited.clear();
 
-        if (VUE.getActivePathway() != null && VUE.getActivePathway().length() > 0) {
-            
-            setEntry(VUE.getActivePathway().getEntry(0));
+        final LWPathway pathway = VUE.getActivePathway();
+
+        if (pathway != null && pathway.length() > 0) {
+
+            final LWPathway.Entry entry = pathway.getCurrentEntry();
+            if (entry != null && !entry.isPathway()) {
+                setEntry(entry);
+            } else {
+                setEntry(pathway.getEntry(0));
+            }
             
         } else {
-            mPathway = null;
+            loadPathway(null);
             //mPathwayIndex = 0;
             if (VUE.getSelection().size() > 0)
                 setPage(VUE.getSelection().first());
@@ -854,6 +868,17 @@ private static int OverviewMapSizeIndex = 5;
         setPage(page, RECORD_BACKUP);
     }
 
+    private void loadPathway(LWPathway pathway) {
+        LWComponent.swapLWCListener(this, mPathway, pathway);
+        mPathway = pathway;
+    }
+
+    public void LWCChanged(LWCEvent e) {
+        // if the pathway changes it's filtering state, we'll get this event from it to know to repaint
+        if (e.key == LWKey.Repaint)
+            repaint();
+    }
+
     private void setPage(final Page page, boolean recordBackup)
     {
         final MapViewer viewer = VUE.getActiveViewer();
@@ -884,7 +909,7 @@ private static int OverviewMapSizeIndex = 5;
 
         if (page.onPathway()) {
             if (page.pathway() != mPathway)
-                mPathway = page.pathway();
+                loadPathway(page.pathway());
             VUE.setActive(LWPathway.Entry.class, this, page.entry);
             mLastPathwayPage = page;
             //mPathwayIndex = page.entry.index();
@@ -1058,7 +1083,7 @@ private static int OverviewMapSizeIndex = 5;
         final LWComponent mapNode = page.getOriginalMapNode();
         
         for (LWPathway otherPath : mapNode.getPathways()) {
-            if (otherPath != mPathway && otherPath.isVisible())
+            if (otherPath != mPathway && !otherPath.isFiltered())
                 mNavNodes.add(createNavNode(new Page(otherPath.getFirstEntry(mapNode))));
         }
 
@@ -1125,6 +1150,9 @@ private static int OverviewMapSizeIndex = 5;
 //         return new NavNode(src, pathway);
 //     }
     
+    @Override public boolean isLockingActiveTool() {
+         return VUE.inNativeFullScreen();
+    }
     
 
     @Override public DrawContext getDrawContext(DrawContext dc) {

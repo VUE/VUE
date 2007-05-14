@@ -89,7 +89,7 @@ public class FullScreen {
 
     private static void enterFullScreenMode(boolean goNative)
     {
-        NDC.push("[->FS]");
+        NDC.push("[FS->]");
 
         //goNative = false; // TODO: TEMP DEBUG
 
@@ -298,9 +298,10 @@ public class FullScreen {
                 public void run() {
                     //VUE.Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
                     VueToolbarController.getActiveTool().handleFullScreen(false);
+                    NDC.pop();
                 }});
 
-        NDC.pop();
+        //NDC.pop();
         
     }
 
