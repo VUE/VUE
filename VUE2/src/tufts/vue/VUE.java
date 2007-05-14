@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.426 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.427 $ / $Date: 2007-05-14 16:28:03 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1923,7 +1923,7 @@ public class VUE
      * Create a new viewer and display the given map in it.
      */
     public static MapViewer displayMap(LWMap pMap) {
-        NDC.push("displayMap");
+        NDC.push("[displayMap]");
         if (DEBUG.INIT) out(pMap.toString());
         MapViewer leftViewer = null;
         MapViewer rightViewer = null;

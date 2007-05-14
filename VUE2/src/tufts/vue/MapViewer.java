@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.361 $ / $Date: 2007-05-14 13:57:29 $ / $Author: sfraize $ 
+ * @version $Revision: 1.362 $ / $Date: 2007-05-14 16:28:02 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -262,7 +262,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     public void addNotify()
     {
+        VUE.Log.debug("addNotify(pre): " + this);
         super.addNotify();
+        VUE.Log.debug("addNotify(top): " + this + "; new parent=" + getParent());
 
         inScrollPane = (getParent() instanceof JViewport);
 
@@ -741,6 +743,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      * happen to be panned to and displaying at the moment.
      */
     public Rectangle2D getVisibleMapBounds() {
+        /*
         LWSlide slide;
         // TODO: temporary hack until / if slides actualy go on the map
         if (mFocal instanceof LWSlide)
@@ -757,7 +760,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             } else
                 return bounds;
         } else
-            return screenToMapRect(getVisibleBounds());
+        */
+        
+        return screenToMapRect(getVisibleBounds());
     }
     
     /**
@@ -2323,7 +2328,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             final Shape curClip = dc.g.getClip();
             dc.g.clip(mFocal.getMapShape());
             dc.setMasterClip(mFocal.getMapShape());
-            LWComponent parentSlide = mFocal.getAncestorOfType(LWSlide.class);
+            LWComponent parentSlide = mFocal.getParentOfType(LWSlide.class);
             // don't need to re-draw the focal itself, it's being
             // drawn in it's parent (slide or map)
             if (parentSlide != null) {

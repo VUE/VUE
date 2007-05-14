@@ -60,11 +60,11 @@ public class PresentationTool extends VueTool
     private final Page NO_PAGE = new Page((LWComponent)null);
     
     private Page mCurrentPage = NO_PAGE;
+    private Page mLastPage = NO_PAGE;
     private LWPathway mPathway;
     private Page mLastPathwayPage;
     
     private LWComponent mNextPage; // is this really "startPage"?
-    //private LWComponent mLastPage;
     //private LWLink mLastFollowed;
     //private int mPathwayIndex = 0;
     //private LWPathway.Entry mEntry;
@@ -879,7 +879,7 @@ private static int OverviewMapSizeIndex = 5;
         else
             doSlideTransition = false;
 
-        //mLastPage = mCurrentPage;
+        mLastPage = mCurrentPage;
         mCurrentPage = page;
 
         if (page.onPathway()) {
@@ -915,7 +915,27 @@ private static int OverviewMapSizeIndex = 5;
                 });
             
         } else {
-            zoomToFocal(page.getPresentationFocal(), true);
+            final boolean animate;
+
+            // Figure out if this transition is across a continuous coordinate
+            // region (so we can animate).  E.g., we're moving across the map,
+            // or within a single slide.  Slides and the map they're a part of
+            // exist in separate coordinate spaces, and we can't animate
+            // across that boundary.
+            
+            final LWComponent lastFocal = mLastPage.getPresentationFocal();
+            final LWComponent thisFocal = mCurrentPage.getPresentationFocal();
+            final LWComponent lastParent = lastFocal == null ? null : lastFocal.getParent();
+            final LWComponent thisParent = thisFocal.getParent();
+            final LWComponent lastSlideAncestor = lastFocal == null ? null : lastFocal.getAncestorOfType(LWPathway.class);
+            final LWComponent thisSlideAncestor = thisFocal.getAncestorOfType(LWPathway.class);
+            
+            if (lastParent == thisParent || lastSlideAncestor == thisSlideAncestor)
+                animate = true;
+            else
+                animate = false;
+            
+            zoomToFocal(thisFocal, animate);
         }
     }
     
@@ -1038,7 +1058,7 @@ private static int OverviewMapSizeIndex = 5;
         final LWComponent mapNode = page.getOriginalMapNode();
         
         for (LWPathway otherPath : mapNode.getPathways()) {
-            if (otherPath != mPathway)
+            if (otherPath != mPathway && otherPath.isVisible())
                 mNavNodes.add(createNavNode(new Page(otherPath.getFirstEntry(mapNode))));
         }
 
@@ -1065,7 +1085,7 @@ private static int OverviewMapSizeIndex = 5;
         NavNode nav;
         for (LWLink link : mapNode.getLinks()) {
             LWComponent farpoint = link.getFarNavPoint(mapNode);
-            if (farpoint != null) {
+            if (farpoint != null && farpoint.isDrawn()) {
                 if (false && link.hasLabel())
                     nav = createNavNode(new Page(link));
                 //nav = createNavNode(link, null); // just need to set syncSource to the farpoint

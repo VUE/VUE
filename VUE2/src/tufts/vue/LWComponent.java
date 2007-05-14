@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.267 $ / $Date: 2007-05-14 13:57:29 $ / $Author: sfraize $
+ * @version $Revision: 1.268 $ / $Date: 2007-05-14 16:28:02 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -92,8 +92,8 @@ public class LWComponent
             
             /** each subclass of LWComponent can use this for it's own purposes */
             DEFAULT (),
-            /** we've been hidden by a filter */
-            FILTER (), 
+            /* we've been hidden by a filter */
+            //FILTER (), 
             /** we've been hidden by link pruning */
             PRUNE (),
             /** we're a member of a pathway that hides when the pathway hides, and all pathways we're on are hidden */
@@ -1327,6 +1327,7 @@ u                    getSlot(c).setFromString((String)value);
      **/
     public void setFiltered(boolean filtered) {
     	isFiltered = filtered;
+        //setHidden(HideCause.FILTER, filtered);
     }
     
     /**
@@ -1334,6 +1335,7 @@ u                    getSlot(c).setFromString((String)value);
      **/
     public boolean isFiltered() {
     	return isFiltered;
+        //return (mHideBits & HideCause.FILTER.bit) != 0;
     }
 
     /**
@@ -2350,14 +2352,21 @@ u                    getSlot(c).setFromString((String)value);
             return parent.hasAncestor(c);
     }
 
-    public LWComponent getAncestorOfType(Class clazz) {
+    /** @return the first ancestor, EXCLUDING this component (starting with the parent), that is of the given type, or null if none found */
+    public LWComponent getParentOfType(Class clazz) {
         LWComponent parent = getParent();
         if (parent == null)
             return null;
-        else if (clazz.isInstance(parent))
-            return parent;
         else
             return parent.getAncestorOfType(clazz);
+    }
+    
+    /** @return the first ancestor, INCLUDING this component, that is of the given type, or null if none found */
+    public LWComponent getAncestorOfType(Class clazz) {
+        if (clazz.isInstance(this))
+            return this;
+        else
+            return getParentOfType(clazz);
     }
     
     void setScale(double scale)

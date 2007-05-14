@@ -5,6 +5,7 @@ import tufts.vue.gui.*;
 import java.awt.*;
 import javax.swing.JFrame;
 import javax.swing.JWindow;
+import org.apache.log4j.NDC;
 
 /**
  * Code for entering and exiting VUE full screen modes.
@@ -22,6 +23,7 @@ public class FullScreen {
     private static Container fullScreenOldParent = null;
     private static Point fullScreenOldVUELocation;
     private static Dimension fullScreenOldVUESize;
+    private static javax.swing.JComponent fullScreenContent;
 
     private static Window cachedFSW = null;
     private static Frame cachedFSWnative = null;
@@ -87,6 +89,7 @@ public class FullScreen {
 
     private static void enterFullScreenMode(boolean goNative)
     {
+        NDC.push("[->FS]");
 
         //goNative = false; // TODO: TEMP DEBUG
 
@@ -158,9 +161,15 @@ public class FullScreen {
 
                 
         if (fullScreenWindow != VUE.getMainWindow() && VUE.getMainWindow() != null) {
-            javax.swing.JComponent fullScreenContent = viewer;
+            //javax.swing.JComponent fullScreenContent = viewer;
+            fullScreenContent = viewer;
             //fullScreenContent = new JLabel("TEST");
             fullScreenOldParent = viewer.getParent();
+
+            VUE.Log.debug("adding content to FSW:"
+                          + "\n\tCONTENT: "+ fullScreenContent
+                          + "\n\t    FSW: "+ fullScreenWindow
+                          );
             
             if (fullScreenWindow instanceof DockWindow) {
                 ((DockWindow)fullScreenWindow).add(fullScreenContent);
@@ -227,6 +236,7 @@ public class FullScreen {
                 
         activeTool.handleFullScreen(true);
                     
+        /*
         if (false && fullScreenWindow != VUE.getMainWindow() && VUE.getMainWindow() != null) {
             VUE.getMainWindow().setVisible(false);
 
@@ -237,20 +247,27 @@ public class FullScreen {
             //VUE.getMainWindow().setLocation(3072,2048);
             //VUE.getMainWindow().setExtendedState(Frame.ICONIFIED);
         }
+        */
+
+        NDC.pop();
     }
     
     private static void exitFullScreenMode()
     {
+        NDC.push("[<-FS]");
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice device = ge.getDefaultScreenDevice();
         
         VUE.Log.debug("Exiting full screen mode, inNative=" + VUE.inNativeFullScreen());
 
-        javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+        //javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+        //javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(true);
         
         if (device.getFullScreenWindow() != null) {
             // this will take us out of true full screen mode
-            VUE.Log.debug("clearning native full screen window " + device.getFullScreenWindow());
+            VUE.Log.debug("clearing native full screen window:"
+                          + "\n\t  controlling device: " + device
+                          + "\n\tcur device FS window: " + device.getFullScreenWindow());
             device.setFullScreenWindow(null);
             // note that when coming out of full screen, the java impl
             // first restores the given  window to it's state before
@@ -261,17 +278,30 @@ public class FullScreen {
         fullScreenMode = false;
         fullScreenNative = false;
         if (fullScreenWindow != VUE.getMainWindow()) {
-            fullScreenOldParent.add(VUE.getActiveViewer());
+            VUE.Log.debug("re-attaching prior extracted viewer content " + fullScreenContent);
+            fullScreenOldParent.add(fullScreenContent);
+            //fullScreenOldParent.add(VUE.getActiveViewer());
         }
         if (VUE.getMainWindow() != null) {
-            if (fullScreenOldVUELocation != null)
-                VUE.getMainWindow().setLocation(fullScreenOldVUELocation); // mac window manger not allowing
-            if (fullScreenOldVUESize != null)
-                VUE.getMainWindow().setSize(fullScreenOldVUESize); // mac window manager won't go to 0
+//             if (fullScreenOldVUELocation != null)
+//                 VUE.getMainWindow().setLocation(fullScreenOldVUELocation); // mac window manger not allowing
+//             if (fullScreenOldVUESize != null)
+//                 VUE.getMainWindow().setSize(fullScreenOldVUESize); // mac window manager won't go to 0
             //VUE.getMainWindow.setExtendedState(Frame.NORMAL); // iconifies but only until an Option-TAB switch-back
-            VUE.getMainWindow().setVisible(true);
+            GUI.invokeAfterAWT(new Runnable() {
+                    public void run() {
+                        VUE.Log.debug("showing main window " + VUE.getMainWindow());
+                        VUE.getMainWindow().setVisible(true);
+                    }});
         }
-        VueToolbarController.getActiveTool().handleFullScreen(false);
+        GUI.invokeAfterAWT(new Runnable() {
+                public void run() {
+                    //VUE.Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
+                    VueToolbarController.getActiveTool().handleFullScreen(false);
+                }});
+
+        NDC.pop();
+        
     }
 
     private static void out(String s) {
