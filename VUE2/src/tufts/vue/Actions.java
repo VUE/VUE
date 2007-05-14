@@ -1039,7 +1039,7 @@ public class Actions implements VueConstants
     
     public static final VueAction NewNode =
     new NewItemAction("New Node", keyStroke(KeyEvent.VK_N, COMMAND)) {
-        LWComponent createNewItem(MapViewer viewer, Point2D newLocation) {
+        LWComponent createNewItem(final MapViewer viewer, Point2D newLocation) {
             final LWNode node = NodeModeTool.createNewNode();
             node.setLocation(newLocation);
             //node.setCenterAt(newLocation); // better but screws up NewItemAction's serial item creation positioning
@@ -1047,7 +1047,11 @@ public class Actions implements VueConstants
             // maybe: run a timer and do this if no activity (e.g., node creation)
             // for 250ms or something
             viewer.getFocal().addChild(node);
-            viewer.activateLabelEdit(node);
+            // Just in case:
+            GUI.invokeAfterAWT(new Runnable() {
+                    public void run() {
+                        viewer.activateLabelEdit(node);
+                    }});
             
             return node;
         }
@@ -1163,9 +1167,9 @@ public class Actions implements VueConstants
         }
         
         public void act() {
-            MapViewer viewer = VUE.getActiveViewer();
-            Point mousePress = viewer.getLastMousePoint();
-            Point2D newLocation = viewer.screenToMapPoint(mousePress);
+            final MapViewer viewer = VUE.getActiveViewer();
+            final Point mousePress = viewer.getLastMousePoint();
+            final Point2D newLocation = viewer.screenToMapPoint(mousePress);
             
             if (mousePress.equals(lastMousePress) && lastItem.getLocation().equals(lastLocation)) {
                 newLocation.setLocation(lastLocation.getX() + 10,

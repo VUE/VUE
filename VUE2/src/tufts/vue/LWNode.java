@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.152 $ / $Date: 2007-05-14 21:05:43 $ / $Author: sfraize $
+ * @version $Revision: 1.153 $ / $Date: 2007-05-14 23:04:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1903,8 +1903,6 @@ public class LWNode extends LWContainer
             // and we don't want to paint it here as AWT/Swing is handling
             // that at the moment (and at a possibly slightly different offset)
 
-            if (DEBUG.WORK) System.out.println("LABELBOX PARENT: " + labelBox.getParent() + " " + this);
-            
             drawLabel(dc);
         }
 
@@ -1915,7 +1913,7 @@ public class LWNode extends LWContainer
         float lx = relativeLabelX();
         float ly = relativeLabelY();
         dc.g.translate(lx, ly);
-        if (DEBUG.WORK||DEBUG.CONTAINMENT) System.out.println("*** " + this + " drawing label at " + lx + "," + ly);
+        //if (DEBUG.CONTAINMENT) System.out.println("*** " + this + " drawing label at " + lx + "," + ly);
         this.labelBox.draw(dc);
         dc.g.translate(-lx, -ly);
         

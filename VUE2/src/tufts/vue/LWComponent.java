@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.270 $ / $Date: 2007-05-14 21:05:43 $ / $Author: sfraize $
+ * @version $Revision: 1.271 $ / $Date: 2007-05-14 23:04:39 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -641,7 +641,7 @@ u                    getSlot(c).setFromString((String)value);
         /** This JUST changes the stored value: no notifications of any kind will be triggered, no undo recorded. */
         void take(T o) {
             this.value = o;
-            if (DEBUG.WORK) System.out.printf("     TAKING: %-30s -> %s\n", vtag(key, o, this), LWComponent.this);
+            if (DEBUG.TOOL) System.out.printf("     TAKING: %-30s -> %s\n", vtag(key, o, this), LWComponent.this);
         }
 
         /** impl's can override this to do something after the value has changed (after take() has been called),

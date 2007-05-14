@@ -87,7 +87,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.50 $ / $Date: 2007-05-14 21:05:43 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2007-05-14 23:04:39 $ / $Author: sfraize $
  *
  */
 
@@ -102,7 +102,7 @@ public class TextBox extends JTextPane
     private static final boolean WrapText = LWNode.WrapText;
     private static final Color SelectionColor = VueResources.getColor("mapViewer.textBox.selection.color");
     
-    private static boolean TestDebug = DEBUG.WORK;
+    private static boolean TestDebug = false;
     private static boolean TestHarness = false;
     
     private LWComponent lwc;
@@ -1026,8 +1026,12 @@ public class TextBox extends JTextPane
         }
     }
 
+    private String id() {
+        return Integer.toHexString(System.identityHashCode(this));
+    }
+
     private void out(String s) {
-        System.out.println("TextBox@" + Integer.toHexString(hashCode()) + " " + s);
+        System.out.println("TextBox@" + id() + " " + s);
     }
     private void out(String s, Dimension d) {
         out(VueUtil.pad(' ', 9, s, true) + " " + tufts.Util.out(d));
@@ -1038,7 +1042,7 @@ public class TextBox extends JTextPane
     }
     
     private void outc(String s) {
-        System.out.println(this + " " + Integer.toHexString(hashCode()) + " " + s);
+        System.out.println(this + " " + id() + " " + s);
     }
     
     

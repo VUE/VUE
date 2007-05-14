@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.364 $ / $Date: 2007-05-14 21:05:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.365 $ / $Date: 2007-05-14 23:04:39 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2046,9 +2046,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     /**
      * Java Swing JComponent.paintComponent -- paint the map on the map viewer canvas
      */
-    public void paintComponent(Graphics g)
+    public void paintComponent(final Graphics incomingGC)
     {
-        Graphics2D g2 = (Graphics2D) g;
+        final Graphics2D g = (Graphics2D) incomingGC.create();
         
         /*
         Rectangle cb = g.getClipBounds();
@@ -2060,18 +2060,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // debug: shows the repaint region
             if (DEBUG.PAINT && (RepaintRegion != null || paintingRegion)) {
                 paintingRegion = false;
-                g2.setColor(rrColor);
-                g2.fillRect(0, 0, getWidth(), getHeight());
-                g2.setColor(Color.black);
-                g2.setStroke(STROKE_ONE);
+                g.setColor(rrColor);
+                g.fillRect(0, 0, getWidth(), getHeight());
+                g.setColor(Color.black);
+                g.setStroke(STROKE_ONE);
                 Rectangle r = g.getClipBounds();
                 r.width--;
                 r.height--;
-                g2.draw(r);
+                g.draw(r);
             }
         }
         
-        final DrawContext dc = activeTool.getDrawContext(getDrawContext(g2));
+        final DrawContext dc = activeTool.getDrawContext(getDrawContext(g));
 
         //-------------------------------------------------------
         // DRAW THE THE CURRENT FOCAL (usually the MAP)
@@ -2090,14 +2090,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //g2.setStroke(STROKE_ONE);
             //g2.setColor(Color.lightGray);
             dc.setAbsoluteStroke(1);
-            g2.setColor(Color.black);
-            g2.draw(Xaxis);
-            g2.draw(Yaxis);
+            g.setColor(Color.black);
+            g.draw(Xaxis);
+            g.draw(Yaxis);
             if (false && mZoomFactor >= 6.0) {
                 dc.setAbsoluteStroke(1);
-                g2.setColor(Color.black);
-                g2.draw(Xaxis);
-                g2.draw(Yaxis);
+                g.setColor(Color.black);
+                g.draw(Xaxis);
+                g.draw(Yaxis);
             }
         }
         
@@ -2165,9 +2165,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         if (DEBUG.VIEWER) {
             dc.setRawDrawing();
-            g2.setColor(Color.red);
-            g2.setStroke(new java.awt.BasicStroke(1f));
-            g2.drawLine(_mouse.x,_mouse.y, _mouse.x+1,_mouse.y+1);
+            g.setColor(Color.red);
+            g.setStroke(new java.awt.BasicStroke(1f));
+            g.drawLine(_mouse.x,_mouse.y, _mouse.x+1,_mouse.y+1);
             
             int iX = (int) (screenToMapX(_mouse.x) * 100);
             int iY = (int) (screenToMapY(_mouse.y) * 100);
@@ -2179,18 +2179,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             Point2D screen = new Point2D.Float(_mouse.x + canvas.x, _mouse.y + canvas.y);
                                                      
             
-            g2.setFont(VueConstants.FixedFont);
+            g.setFont(VueConstants.FixedFont);
             int x = -getX() + 40;
             int y = -getY() + 100;
             //int x = dc.frame.x;
             //int y = dc.frame.y;
             //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
             if (true) {
-                g2.drawString(" origin offset: " + out(getOriginLocation()), x, y+=15);
-                g2.drawString("     map mouse: " + out(mapCoords), x, y+=15);
-                g2.drawString("  canvas mouse: " + out(_mouse), x, y+=15);
-                g2.drawString(" ~screen mouse: " + out(screen), x, y+=15);
-                g2.drawString("     canvas at: " + out(canvas), x, y+= 15);
+                g.drawString(" origin offset: " + out(getOriginLocation()), x, y+=15);
+                g.drawString("     map mouse: " + out(mapCoords), x, y+=15);
+                g.drawString("  canvas mouse: " + out(_mouse), x, y+=15);
+                g.drawString(" ~screen mouse: " + out(screen), x, y+=15);
+                g.drawString("     canvas at: " + out(canvas), x, y+= 15);
                 /*if (inScrollPane){
                 Point extent = viewportToCanvasPoint(mouse);
                 Point2D map = extentToMapPoint(extent);
@@ -2198,32 +2198,32 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 g2.drawString("     map point: " + out(map), x, y+=15);
                 }*/
                 if (inScrollPane){
-                g2.drawString("viewport----pos " + out(mViewport.getViewPosition()), x, y+=15);
+                g.drawString("viewport----pos " + out(mViewport.getViewPosition()), x, y+=15);
                 }
-                g2.drawString("map-canvas-size " + out(mapToScreenDim(getMap().getBounds())), x, y+=15);
-                g2.drawString("map-canvas-adju " + out(mapToScreenDim(getContentBounds())), x, y+=15);
-                g2.drawString("    canvas-size " + out(getSize()), x, y+=15);
-                g2.drawString("          frame " + out(dc.getFrame()), x, y+=15);
+                g.drawString("map-canvas-size " + out(mapToScreenDim(getMap().getBounds())), x, y+=15);
+                g.drawString("map-canvas-adju " + out(mapToScreenDim(getContentBounds())), x, y+=15);
+                g.drawString("    canvas-size " + out(getSize()), x, y+=15);
+                g.drawString("          frame " + out(dc.getFrame()), x, y+=15);
             }
             if (inScrollPane) {
-                g2.drawString("  viewport-size " + out(mViewport.getSize()), x, y+=15);
+                g.drawString("  viewport-size " + out(mViewport.getSize()), x, y+=15);
             }
-            g2.drawString("zoom " + getZoomFactor(), x, y+=15);
-            g2.drawString("anitAlias " + DEBUG_ANTI_ALIAS, x, y+=15);
-            g2.drawString("renderQuality " + DEBUG_RENDER_QUALITY, x, y+=15);
-            g2.drawString("fractionalMetrics " + DEBUG_FONT_METRICS, x, y+=15);
-            //g2.drawString("findParent " + !DEBUG_FINDPARENT_OFF, x, y+=15);
-            g2.drawString("optimizedRepaint " + OPTIMIZED_REPAINT, x, y+=15);
-            g2.drawString("Focal " + this.mFocal, x, y+=15);
-            g2.drawString("  MAP " + this.mMap, x, y+=15);
+            g.drawString("zoom " + getZoomFactor(), x, y+=15);
+            g.drawString("anitAlias " + DEBUG_ANTI_ALIAS, x, y+=15);
+            g.drawString("renderQuality " + DEBUG_RENDER_QUALITY, x, y+=15);
+            g.drawString("fractionalMetrics " + DEBUG_FONT_METRICS, x, y+=15);
+            //g.drawString("findParent " + !DEBUG_FINDPARENT_OFF, x, y+=15);
+            g.drawString("optimizedRepaint " + OPTIMIZED_REPAINT, x, y+=15);
+            g.drawString("Focal " + this.mFocal, x, y+=15);
+            g.drawString("  MAP " + this.mMap, x, y+=15);
 
             Point2D center = getVisibleCenter();
             dc.setAbsoluteStroke(1);
             // easily gets lost when way zoomed in because coords > MaxCoord
             //g2.draw(new Line2D.Double(center.getX(), MinCoord, center.getX(), MaxCoord));
             //g2.draw(new Line2D.Double(MinCoord, center.getY(), MaxCoord, center.getY());
-            g2.drawLine(-99999, (int) Math.round(center.getY()), 99999, (int) Math.round(center.getY()));
-            g2.drawLine((int) Math.round(center.getX()), -99999, (int) Math.round(center.getX()), 99999);
+            g.drawLine(-99999, (int) Math.round(center.getY()), 99999, (int) Math.round(center.getY()));
+            g.drawLine((int) Math.round(center.getX()), -99999, (int) Math.round(center.getX()), 99999);
         }
 
         /*
@@ -2263,7 +2263,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         //setOpaque(false);
         if (activeTextEdit != null)     // This is a real Swing JComponent
-            super.paintChildren(g2); // add to layered pane instead?
+            super.paintChildren(incomingGC); // add to layered pane instead?
         //setOpaque(true);
     }
 
@@ -2435,12 +2435,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // and thus we need to move it back up by a pixel.
         //activeTextEdit.setLocation(mapToScreenX(cx), mapToScreenY(cy)-1);
 
-        if (DEBUG.WORK||DEBUG.CONTAINMENT) out(String.format(" label X/Y: %.1f,%,1f", cx, cy));
+        //if (DEBUG.WORK||DEBUG.CONTAINMENT) out(String.format(" label X/Y: %.1f,%,1f", cx, cy));
 
         final int screenX = mapToScreenX(cx);
         final int screenY = mapToScreenY(cy);
         
-        if (DEBUG.WORK||DEBUG.CONTAINMENT) out(String.format("screen X/Y: %d,%d", screenX, screenY));
+        //if (DEBUG.WORK||DEBUG.CONTAINMENT) out(String.format("screen X/Y: %d,%d", screenX, screenY));
         
         activeTextEdit.setLocation(screenX, screenY);
         
