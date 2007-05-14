@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.428 $ / $Date: 2007-05-14 16:42:29 $ / $Author: sfraize $ 
+ * @version $Revision: 1.429 $ / $Date: 2007-05-14 21:05:43 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -605,6 +605,10 @@ public class VUE
             singleton = this;
             findEditors();
             VUE.getSelection().addListener(this);
+            VUE.addActiveListener(VueTool.class, this);
+        }
+
+        public void activeChanged(ActiveEvent e, VueTool tool) {
         }
 
         public static void registerEditor(LWEditor editor) {

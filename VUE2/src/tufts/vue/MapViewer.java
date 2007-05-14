@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.363 $ / $Date: 2007-05-14 17:47:35 $ / $Author: sfraize $ 
+ * @version $Revision: 1.364 $ / $Date: 2007-05-14 21:05:43 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2434,7 +2434,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // If a border is added to the TextBox (a JComponent), the text moves down
         // and thus we need to move it back up by a pixel.
         //activeTextEdit.setLocation(mapToScreenX(cx), mapToScreenY(cy)-1);
-        activeTextEdit.setLocation(mapToScreenX(cx), mapToScreenY(cy));
+
+        if (DEBUG.WORK||DEBUG.CONTAINMENT) out(String.format(" label X/Y: %.1f,%,1f", cx, cy));
+
+        final int screenX = mapToScreenX(cx);
+        final int screenY = mapToScreenY(cy);
+        
+        if (DEBUG.WORK||DEBUG.CONTAINMENT) out(String.format("screen X/Y: %d,%d", screenX, screenY));
+        
+        activeTextEdit.setLocation(screenX, screenY);
         
         activeTextEdit.selectAll();
         add(activeTextEdit);

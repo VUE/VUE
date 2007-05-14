@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.269 $ / $Date: 2007-05-14 17:47:35 $ / $Author: sfraize $
+ * @version $Revision: 1.270 $ / $Date: 2007-05-14 21:05:43 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1099,7 +1099,7 @@ u                    getSlot(c).setFromString((String)value);
 
     public void setProperty(final Object key, Object val)
     {
-        if (DEBUG.Enabled||DEBUG.UNDO) System.out.println("setProperty: " + vtag(key, val, null) + " on " + LWComponent.this);
+        if (DEBUG.TOOL||DEBUG.UNDO) System.out.println("setProperty: " + vtag(key, val, null) + " on " + LWComponent.this);
 
         if (key instanceof Key) {
             final Key k = (Key) key;
@@ -1403,7 +1403,7 @@ u                    getSlot(c).setFromString((String)value);
         notify(LWKey.Label, old);
     }
 
-    TextBox getLabelBox()
+    synchronized TextBox getLabelBox()
     {
         if (this.labelBox == null) {
             this.labelBox = new TextBox(this, this.label);

@@ -342,6 +342,7 @@ public class PresentationTool extends VueTool
         }
         
         // force label at left (non-centered)                
+        @Override
         protected float relativeLabelX() { return -NavNodeX + 10; }
 
     }
@@ -366,6 +367,7 @@ public class PresentationTool extends VueTool
         }
      }
     
+    @Override
     public JPanel createToolPanel() {
         //JPanel p = super.createToolPanel();
         JPanel p = new JPanel();
@@ -389,6 +391,7 @@ public class PresentationTool extends VueTool
         }
         return singleton;
     }
+    
     private void add(JPanel p, AbstractButton c) {
         c.setFocusable(false);
         c.setFont(VueConstants.FONT_SMALL);
@@ -488,7 +491,7 @@ public class PresentationTool extends VueTool
     }
     
     
-
+    @Override
     public boolean handleKeyPressed(java.awt.event.KeyEvent e) {
         //out("handleKeyPressed " + e);
         final int keyCode = e.getKeyCode();
@@ -589,6 +592,8 @@ public class PresentationTool extends VueTool
         return handled;
     }
 
+
+    @Override
     public boolean handleKeyReleased(java.awt.event.KeyEvent e) {
         return false;
     }
@@ -673,6 +678,7 @@ private static int OverviewMapSizeIndex = 5;
             
     }
 
+    @Override
     public boolean handleMouseMoved(MapMouseEvent e)
     {
         boolean handled = false;
@@ -732,6 +738,7 @@ private static int OverviewMapSizeIndex = 5;
             return false;
     }
     
+    @Override
     public boolean handleMousePressed(MapMouseEvent e)
     {
         // First, check for hits on any nav nodes:
@@ -769,6 +776,18 @@ private static int OverviewMapSizeIndex = 5;
     }
 
     
+    @Override
+    public void handleToolSelection() {
+        mCurrentPage = NO_PAGE;
+        if (VUE.getSelection().size() == 1)
+            mNextPage = VUE.getSelection().first();
+        else
+            mNextPage = null;
+
+        //handleSelectionChange(VUE.getSelection());
+        //mStartButton.requestFocus();
+    }
+
     public void startPresentation()
     {
         out(this + " startPresentation");
@@ -979,6 +998,21 @@ private static int OverviewMapSizeIndex = 5;
     
 
     @Override
+    public boolean isLockingActiveTool() {
+        return VUE.inNativeFullScreen();
+    }
+     
+
+    @Override
+    public DrawContext getDrawContext(DrawContext dc) {
+        dc.setPresenting(true);
+        if (false &&mShowNavNodes)
+            dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
+        return dc;
+    }
+        
+    
+    @Override
     public void handlePreDraw(DrawContext dc, MapViewer viewer) {
         if (mPathway != null) {
             if (mCurrentPage != null) {
@@ -1150,19 +1184,6 @@ private static int OverviewMapSizeIndex = 5;
 //         return new NavNode(src, pathway);
 //     }
     
-    @Override public boolean isLockingActiveTool() {
-         return VUE.inNativeFullScreen();
-    }
-    
-
-    @Override public DrawContext getDrawContext(DrawContext dc) {
-        dc.setPresenting(true);
-        if (false &&mShowNavNodes)
-            dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
-        return dc;
-    }
-        
-    
     private void makeInvisible() {
         if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
             //out("makeInvisible");
@@ -1199,18 +1220,6 @@ private static int OverviewMapSizeIndex = 5;
     }
 
     
-    @Override
-    public void handleToolSelection() {
-        mCurrentPage = NO_PAGE;
-        if (VUE.getSelection().size() == 1)
-            mNextPage = VUE.getSelection().first();
-        else
-            mNextPage = null;
-
-        //handleSelectionChange(VUE.getSelection());
-        //mStartButton.requestFocus();
-    }
-
     /*
 
 //     private LWComponent currentNode() {

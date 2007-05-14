@@ -1043,10 +1043,10 @@ public class Actions implements VueConstants
             final LWNode node = NodeModeTool.createNewNode();
             node.setLocation(newLocation);
             //node.setCenterAt(newLocation); // better but screws up NewItemAction's serial item creation positioning
-            viewer.getFocal().addChild(node);
             
             // maybe: run a timer and do this if no activity (e.g., node creation)
             // for 250ms or something
+            viewer.getFocal().addChild(node);
             viewer.activateLabelEdit(node);
             
             return node;

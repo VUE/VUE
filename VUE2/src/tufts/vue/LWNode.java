@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.151 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $
+ * @version $Revision: 1.152 $ / $Date: 2007-05-14 21:05:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -183,8 +183,10 @@ public class LWNode extends LWContainer
     }
     
     
-    public static final Key KEY_Shape = new Key<LWNode,Class<? extends RectangularShape>>("node.shape", "shape") {
-        @Override public boolean setValueFromCSS(LWNode c, String cssKey, String cssValue) {
+    public static final Key KEY_Shape =
+        new Key<LWNode,Class<? extends RectangularShape>>("node.shape", "shape") {
+        @Override
+        public boolean setValueFromCSS(LWNode c, String cssKey, String cssValue) {
             RectangularShape shape = NodeTool.getTool().getNamedShape(cssValue);
             if (shape == null) {
                 return false;
@@ -194,82 +196,39 @@ public class LWNode extends LWContainer
                 return true;
             }
         }
-        @Override public void setValue(LWNode c, Class<? extends RectangularShape> shapeClass) {
+        @Override
+        public void setValue(LWNode c, Class<? extends RectangularShape> shapeClass) {
             try {
                 c.setShape(shapeClass.newInstance());
             } catch (Throwable t) {
                 tufts.Util.printStackTrace(t);
             }
         }
-        @Override public Class<? extends RectangularShape> getValue(LWNode c) {
+        @Override
+        public Class<? extends RectangularShape> getValue(LWNode c) {
             return c.getShape().getClass();
         }
     };
 
-    /*
-    public static final Key KEY_Shape = new Key<LWNode,Shape>("node.shape", "shape") {
-        @Override public boolean setValueFromCSS(LWNode c, String cssKey, String cssValue) {
-            Shape shape = NodeTool.getTool().getNamedShape(cssValue);
-            if (shape == null) {
-                return false;
-            } else {
-                setValue(c, shape);
-                System.err.println("applied shape: " + this + "=" + getValue(c));
-                return true;
-            }
-        }
-        @Override public void setValue(LWNode c, Shape val) {
-            c._applyShape(val);
-        }
-        @Override public Shape getValue(LWNode c) {
-            return c.getShape();
-        }
-        @Override public boolean valueEquals(LWNode c, Shape otherValue) {
-            return IsSameShape(getValue(c), otherValue);
-        }
-    };
-    */
     
-    
+
     /*
-    public static final Key KEY_Shape = new StyleKey("node.shape") { Property getSlot(LWComponent c) { return ((LWNode)c).mShape; }};
-    public class ShapeProperty extends StyleProperty {
+    public static final Key KEY_Shape = new Key("node.shape", KeyType.STYLE) {
+            Property getSlot(LWComponent c) { return ((LWNode)c).mShape; }
+        };
+    public class ShapeProperty extends Property<RectangularShape> {
         ShapeProperty(Key key) {
             super(key);
             // leave as null?
             //value = new Rectangle2D.Float();
         }
         
-        final RectangularShape get() { return (RectangularShape) value; }
+        final RectangularShape get() { return value; }
     }
-    private final ShapeProperty mShape = new ShapeProperty(KEY_Shape) {
-            void set(Object newValue) {
-                final RectangularShape newShape = (RectangularShape) newValue;
-                if (isSameShape(boundsShape, newShape))
-                    return;
-                
-                this.value = newShape;
-                final RectangularShape oldShape = boundsShape;
-                //final Object old = oldShape;
-                mIsRectShape = (newShape instanceof Rectangle2D || newShape instanceof RoundRectangle2D);
-                boundsShape = newShape;
-                drawnShape = cloneShape(newShape);
-                adjustDrawnShape();
-                layout();
-                //LWNode.this.notify(KEY_Shape, oldShape);
-                // Any reason we're using an undable when it could just use the standard handler?
-                // YES: the old setProperty used _applyShape, not setShape -- what's the diff?
-                LWNode.this.notify(KEY_Shape, new Undoable(oldShape) { void undo() { setShape(oldShape); }} );
-                //notify(LWKey.Shape, new Undoable(old) { void undo() { setShape((RectangularShape)old); }} );
-            }
-            
-        };
-    public void setShape(RectangularShape shape) {
-        mShape.set(shape);
-    }
+    private final ShapeProperty mShape = new ShapeProperty(KEY_Shape); // { }
     */
+
         
-    
     
     private static RectangularShape cloneShape(Object shape) {
         return (RectangularShape) ((RectangularShape)shape).clone();
@@ -334,6 +293,7 @@ public class LWNode extends LWContainer
 
     /** Duplicate this node.
      * @return the new node -- will have the same style (visible properties) of the old node */
+    @Override
     public LWComponent duplicate(CopyContext cc)
     {
         LWNode newNode = (LWNode) super.duplicate(cc);
@@ -342,36 +302,12 @@ public class LWNode extends LWContainer
         return newNode;
     }
 
-    /*
-     * Get the named property value from this component.
-     * @param key property key (see LWKey)
-     * @return object representing appropriate value
-     *
-    public Object getPropertyValue(Object key)
-    {
-        if (key == LWKey.Shape.name) // TODO: shouldn't need this (old beans crap)
-            return getShape();
-        else
-            return super.getPropertyValue(key);
-    }
-    public void setProperty(final Object key, Object val)
-    {
-        if (key == LWKey.Shape.name) // TODO: shouldn't need this (old beans crap)
-            //mShape.set(val);
-            _applyShape(val);
-        else
-            super.setProperty(key, val);
-    }
-    /** Clone the given shape and call setShape.
-     * @param shape - an instance of RectangularShape *
-    private void _applyShape(Object shape) {
-        setShape(cloneShape(shape));
-    }
-    */
-
+    @Override
     public boolean supportsUserLabel() {
         return true;
     }
+    
+    @Override
     public boolean supportsUserResize() {
         return true;
     }
@@ -410,11 +346,7 @@ public class LWNode extends LWContainer
             cy <= ly + h;
     }
 
-    public void setNotes(String notes)
-    {
-        super.setNotes(notes);
-    }
-
+    @Override
     public void mouseOver(MapMouseEvent e)
     {
         //if (textBoxHit(cx, cy)) System.out.println("over label");
@@ -423,6 +355,7 @@ public class LWNode extends LWContainer
             mIconBlock.checkAndHandleMouseOver(e);
     }
 
+    @Override
     public boolean handleDoubleClick(MapMouseEvent e)
     {
         //System.out.println("*** handleDoubleClick " + e + " " + this);
@@ -454,6 +387,7 @@ public class LWNode extends LWContainer
         return true;
     }
 
+    @Override
     public boolean handleSingleClick(MapMouseEvent e)
     {
         //System.out.println("*** handleSingleClick " + e + " " + this);
@@ -487,6 +421,7 @@ public class LWNode extends LWContainer
     }
     
     /** If true, compute node size from label & children */
+    @Override
     public boolean isAutoSized() {
         if (WrapText)
             return false; // LAYOUT-NEW
@@ -507,6 +442,7 @@ public class LWNode extends LWContainer
      * set the bit.
      */
     
+    @Override
     public void setAutoSized(boolean makeAutoSized)
     {
         if (WrapText) return; // LAYOUT-NEW
@@ -668,6 +604,7 @@ public class LWNode extends LWContainer
     */
 
 
+    @Override
     public void addChildren(Iterator i)
     {
         // todo: should be able to do this generically
@@ -677,6 +614,7 @@ public class LWNode extends LWContainer
         layout();
     }
 
+    @Override
     public void setSize(float w, float h)
     {
         if (DEBUG.LAYOUT) out("*** setSize         " + w + "x" + h);
@@ -733,6 +671,7 @@ public class LWNode extends LWContainer
         this.drawnShape.setFrame(0, 0, getAbsoluteWidth(), getAbsoluteHeight());
     }
 
+    @Override
     public void setLocation(float x, float y)
     {
         //System.out.println("setLocation " + this);
@@ -752,6 +691,7 @@ public class LWNode extends LWContainer
     private boolean inLayout = false;
     private boolean isCenterLayout = false;// todo: get rid of this and use mChildPos, etc for boxed layout also
 
+    @Override
     protected void layoutImpl(Object triggerKey) {
         layout(triggerKey, new Size(getWidth(), getHeight()), null);
     }
@@ -869,6 +809,7 @@ public class LWNode extends LWContainer
     /** @return the current size of the label object, providing a margin of error
      * on the width given sometime java bugs in computing the accurate length of a
      * a string in a variable width font. */
+    
     protected Size getTextSize() {
 
         if (WrapText) {
@@ -1796,10 +1737,13 @@ public class LWNode extends LWContainer
         }
     }
 
+    @Override
     public float getLabelX()
     {
         return getMapX() + relativeLabelX() * getMapScaleF();
     }
+    
+    @Override
     public float getLabelY()
     {
         return getMapY() + relativeLabelY() * getMapScaleF();
@@ -1813,7 +1757,8 @@ public class LWNode extends LWContainer
 
     private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
 
-    @Override public Color getRenderFillColor(DrawContext dc)
+    @Override
+    public Color getRenderFillColor(DrawContext dc)
     {
         if (DEBUG.LAYOUT) if (!isAutoSized()) return Color.green; // LAYOUT-NEW
 
@@ -1836,6 +1781,7 @@ public class LWNode extends LWContainer
         return fillColor;
     }
     
+    @Override
     protected void drawImpl(DrawContext dc)
     {
         if (!isFiltered()) {
@@ -1858,8 +1804,6 @@ public class LWNode extends LWContainer
         
     protected void drawNode(DrawContext dc)
     {
-        Graphics2D g = dc.g;
-        
         //-------------------------------------------------------
         // Fill the shape (if it's not transparent)
         //-------------------------------------------------------
@@ -1873,28 +1817,28 @@ public class LWNode extends LWContainer
                 // transparent selection stroke on this node.  So we just
                 // do nothing here.
             } else {
-                g.setColor(COLOR_HIGHLIGHT);
-                g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
+                dc.g.setColor(COLOR_HIGHLIGHT);
+                dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
                 //g.setStroke(new BasicStroke(stroke.getLineWidth() + SelectionStrokeWidth));
-                g.draw(drawnShape);
+                dc.g.draw(drawnShape);
             }
         }
         
         if (imageIcon != null) {
             // experimental
             //imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
-            imageIcon.paintIcon(null, g, 0, 0);
+            imageIcon.paintIcon(null, dc.g, 0, 0);
         } else if (false && (dc.isPresenting() || isPresentationContext())) { // old-style "turn off the wrappers"
             ; // do nothing: no fill
         } else {
             Color fillColor = getRenderFillColor(dc);
             if (fillColor != null && fillColor.getAlpha() != 0) { // transparent if null
-                g.setColor(fillColor);
+                dc.g.setColor(fillColor);
                 if (isZoomedFocus())
-                    g.setComposite(ZoomTransparency);
-                g.fill(drawnShape);
+                    dc.g.setComposite(ZoomTransparency);
+                dc.g.fill(drawnShape);
                 if (isZoomedFocus())
-                    g.setComposite(AlphaComposite.Src);
+                    dc.g.setComposite(AlphaComposite.Src);
             }
         }
 
@@ -1917,9 +1861,9 @@ public class LWNode extends LWContainer
             //if (isSelected())
             //g.setColor(COLOR_SELECTION);
             //else
-                g.setColor(getStrokeColor());
-            g.setStroke(this.stroke);
-            g.draw(drawnShape);
+                dc.g.setColor(getStrokeColor());
+            dc.g.setStroke(this.stroke);
+            dc.g.draw(drawnShape);
         }
 
 
@@ -1954,21 +1898,30 @@ public class LWNode extends LWContainer
         // manually (and maybe labelBox also)
         
         if (hasLabel() && this.labelBox != null && this.labelBox.getParent() == null) {
+            
             // if parent is not null, this box is an active edit on the map
             // and we don't want to paint it here as AWT/Swing is handling
             // that at the moment (and at a possibly slightly different offset)
-            float lx = relativeLabelX();
-            float ly = relativeLabelY();
-            g.translate(lx, ly);
-            //if (DEBUG.LAYOUT) System.out.println("*** " + this + " drawing label at " + lx + "," + ly);
-            this.labelBox.draw(dc);
-            g.translate(-lx, -ly);
 
-            // todo: this (and in LWLink) is a hack -- can't we
-            // do this relative to the node?
-            //this.labelBox.setMapLocation(getX() + lx, getY() + ly);
+            if (DEBUG.WORK) System.out.println("LABELBOX PARENT: " + labelBox.getParent() + " " + this);
+            
+            drawLabel(dc);
         }
 
+    }
+
+    protected void drawLabel(DrawContext dc)
+    {
+        float lx = relativeLabelX();
+        float ly = relativeLabelY();
+        dc.g.translate(lx, ly);
+        if (DEBUG.WORK||DEBUG.CONTAINMENT) System.out.println("*** " + this + " drawing label at " + lx + "," + ly);
+        this.labelBox.draw(dc);
+        dc.g.translate(-lx, -ly);
+        
+        // todo: this (and in LWLink) is a hack -- can't we
+        // do this relative to the node?
+        //this.labelBox.setMapLocation(getX() + lx, getY() + ly);
     }
 
     /*
@@ -2020,7 +1973,7 @@ public class LWNode extends LWContainer
 
     private void drawNodeDecorations(DrawContext dc)
     {
-        Graphics2D g = dc.g;
+        final Graphics2D g = dc.g;
 
         /*
         if (DEBUG.BOXES && mIsRectShape) {

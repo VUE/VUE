@@ -87,7 +87,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.49 $ / $Date: 2007-05-14 05:08:50 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2007-05-14 21:05:43 $ / $Author: sfraize $
  *
  */
 
@@ -102,7 +102,7 @@ public class TextBox extends JTextPane
     private static final boolean WrapText = LWNode.WrapText;
     private static final Color SelectionColor = VueResources.getColor("mapViewer.textBox.selection.color");
     
-    private static boolean TestDebug = false;
+    private static boolean TestDebug = DEBUG.WORK;
     private static boolean TestHarness = false;
     
     private LWComponent lwc;
@@ -228,6 +228,7 @@ public class TextBox extends JTextPane
         saveCurrentState();
     }
     
+    @Override
     public void addNotify()
     {
         if (TestDebug||DEBUG.TEXT) out("*** ADDNOTIFY ***");
@@ -322,6 +323,7 @@ public class TextBox extends JTextPane
     /*
      * Return to the regular transparent state.
      */
+    @Override
     public void removeNotify()
     {
         if (TestDebug||DEBUG.TEXT) out("*** REMOVENOTIFY ***");
@@ -366,6 +368,7 @@ public class TextBox extends JTextPane
         setCaretPosition(getCaretPosition());
     }
 
+    @Override
     public void setText(String text)
     {
         if (getDocument() == null) {
@@ -706,10 +709,12 @@ public class TextBox extends JTextPane
     }
 
     /** do not use, or won't be able to get out actual text height */
+    @Override
     public void setPreferredSize(Dimension preferredSize) {
         if (true||TestDebug) out("setPreferred " + preferredSize);
         super.setPreferredSize(preferredSize);
     }
+    @Override
     public Dimension getPreferredSize() {
         Dimension s = super.getPreferredSize();
         //getMinimumSize();//debug
@@ -770,7 +775,6 @@ public class TextBox extends JTextPane
     }
 
 
-    
     public void setSize(float w, float h) {
         setSize(new Dimension((int)w, (int)h));
     }
@@ -804,6 +808,7 @@ public class TextBox extends JTextPane
         return s;
     }
 
+    @Override
     public void reshape(int x, int y, int w, int h) {
         if (TestDebug||DEBUG.TEXT) {
             boolean change = getX() != x || getY() != y || getWidth() != w || getHeight() != h;
@@ -872,7 +877,7 @@ public class TextBox extends JTextPane
     
     public void paintComponent(Graphics g)
     {
-        if (TestDebug||DEBUG.TEXT) out("paintComponent");
+        if (TestDebug||DEBUG.TEXT) out("paintComponent @ " + getX() + "," + getY() + " parent=" + getParent());
 
         MapViewer viewer = (MapViewer) javax.swing.SwingUtilities.getAncestorOfClass(MapViewer.class, this);
         if (viewer != null)
