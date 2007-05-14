@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.150 $ / $Date: 2007-05-11 17:40:05 $ / $Author: sfraize $
+ * @version $Revision: 1.151 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1813,14 +1813,19 @@ public class LWNode extends LWContainer
 
     private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
 
-    public Color getRenderFillColor()
+    @Override public Color getRenderFillColor(DrawContext dc)
     {
         if (DEBUG.LAYOUT) if (!isAutoSized()) return Color.green; // LAYOUT-NEW
 
-        Color fillColor = getFillColor();
+        if (dc == null) // TextBox
+            return super.getRenderFillColor(dc);
+        
+        // TODO: cleanup using new ColorProperty methods & super.getRenderFillColor with drawContext
+        // Also add/move Util.darkColor to ColorProperty
+        Color fillColor = super.getFillColor();
         if (getParent() instanceof LWNode) {
             if (fillColor != null) {
-                Color parentFill = getParent().getRenderFillColor();
+                Color parentFill = getParent().getRenderFillColor(dc);
                 if (parentFill != null && !parentFill.equals(Color.black) && parentFill.getAlpha() != 0 && fillColor.equals(parentFill)) {
                     // If our fill is the same as our parents, we darken it, unless our parent is already entirely black,
                     // or entirely transparent.
@@ -1882,7 +1887,7 @@ public class LWNode extends LWContainer
         } else if (false && (dc.isPresenting() || isPresentationContext())) { // old-style "turn off the wrappers"
             ; // do nothing: no fill
         } else {
-            Color fillColor = getRenderFillColor();
+            Color fillColor = getRenderFillColor(dc);
             if (fillColor != null && fillColor.getAlpha() != 0) { // transparent if null
                 g.setColor(fillColor);
                 if (isZoomedFocus())
@@ -2037,7 +2042,7 @@ public class LWNode extends LWContainer
             mIconBlock.draw(dc);
             // draw divider if there's a label
             if (hasLabel()) {
-                final Color renderFill = getRenderFillColor();
+                final Color renderFill = getRenderFillColor(dc);
                 final Color marginColor;
                 if (renderFill != null) {
                     if (renderFill.equals(Color.black))

@@ -31,7 +31,7 @@ import java.awt.Color;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.5 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.6 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -85,7 +85,7 @@ public class LWPortal extends LWNode
             dc.g.setColor(DebugFill);
             dc.g.fill(getShape());
         } else if (dc.focal != this && dc.isInteractive()) {
-            dc.g.setColor(getRenderFillColor());
+            dc.g.setColor(getRenderFillColor(dc));
             dc.g.fill(getShape());
         } else {
             if (false) {
@@ -122,8 +122,12 @@ public class LWPortal extends LWNode
     @Override public boolean hasLabel() { // so LWNode won't draw it
         return false;
     }
-    @Override public Color getRenderFillColor() {
-        return getMap().mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
+    
+    @Override public Color getRenderFillColor(DrawContext dc) {
+        if (dc != null)
+            return dc.focal.mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
+        else
+            return getMap().mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
     }
 
     @Override public boolean supportsChildren() {

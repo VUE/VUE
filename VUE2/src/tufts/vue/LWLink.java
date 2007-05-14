@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.142 $ / $Date: 2007-05-13 20:59:45 $ / $Author: sfraize $
+ * @version $Revision: 1.143 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -1858,6 +1858,16 @@ public class LWLink extends LWComponent
         
     }
 
+    @Override public Color getRenderFillColor(DrawContext dc) {
+        if (dc != null && dc.isInteractive() && isSelected())
+            return COLOR_HIGHLIGHT;
+        else {
+//             Color c = super.getRenderFillColor(dc);
+//             out("GOT SUPER RENDER FILL " + c);
+//             return c;
+            return super.getRenderFillColor(dc);
+        }
+    }
 
     //private static final Color ContrastFillColor = new Color(255,255,255,224);
     //private static final Color ContrastFillColor = new Color(255,255,255);
@@ -1873,6 +1883,7 @@ public class LWLink extends LWComponent
         //float textBoxHeight = 0;
         //boolean textBoxBeingEdited = false;
 
+        /*
         Color fillColor;
         if (dc.isDraftQuality() || DEBUG.BOXES) {
             fillColor = null;
@@ -1889,17 +1900,18 @@ public class LWLink extends LWComponent
                 fillColor = null;
             }
             
-            /*
-            if (!dc.isInteractive() || !isSelected())
-                fillColor = null;
-              //fillColor = getFillColor();
-            else
-                fillColor = COLOR_HIGHLIGHT;
-            if (fillColor == null && getParent() != null)
-                fillColor = getParent().getFillColor();
-            //fillColor = ContrastFillColor;
-            */
+
+//             if (!dc.isInteractive() || !isSelected())
+//                 fillColor = null;
+//               //fillColor = getFillColor();
+//             else
+//                 fillColor = COLOR_HIGHLIGHT;
+//             if (fillColor == null && getParent() != null)
+//                 fillColor = getParent().getFillColor();
+//             //fillColor = ContrastFillColor;
+
         }
+        */
         
         if (hasLabel()) {
             TextBox textBox = getLabelBox();
@@ -1923,12 +1935,15 @@ public class LWLink extends LWComponent
                 // todo perf: only set opaque-bit/background once/when it changes.
                 // (probably put a textbox factory on LWComponent and override in LWLink)
 
-                if (fillColor == null || !dc.isInteractive()) {
-                    textBox.setOpaque(false);
-                } else {
-                    textBox.setBackground(fillColor);
-                    textBox.setOpaque(true);
-                }
+//                 if (fillColor == null || !dc.isInteractive()) {
+//                     textBox.setOpaque(false);
+//                 } else {
+//                     textBox.setBackground(fillColor);
+//                     textBox.setOpaque(true);
+//                 }
+
+                textBox.setBackground(getRenderFillColor(dc));
+                textBox.setOpaque(true);
                 
                 dc.g.translate(lx, ly);
                 double scale = getMapScale();
@@ -1973,10 +1988,10 @@ public class LWLink extends LWComponent
             //dc.g.setStroke(STROKE_HALF);
             //dc.g.setColor(Color.gray);
             //dc.g.draw(mIconBlock);
-            if (fillColor != null) {
-                dc.g.setColor(fillColor);
-                dc.g.fill(mIconBlock);
-            }
+//             if (fillColor != null) {
+//                 dc.g.setColor(fillColor);
+//                 dc.g.fill(mIconBlock);
+//             }
             mIconBlock.draw(dc);
         }
         // todo perf: don't have to compute icon block location every time

@@ -87,7 +87,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.48 $ / $Date: 2007-05-11 17:21:20 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2007-05-14 05:08:50 $ / $Author: sfraize $
  *
  */
 
@@ -274,11 +274,11 @@ public class TextBox extends JTextPane
         }
             
         wasOpaque = isOpaque();
-        Color background = lwc.getRenderFillColor();
+        Color background = lwc.getRenderFillColor(null);
         //if (c == null && lwc.getParent() != null && lwc.getParent() instanceof LWNode)
         final LWContainer nodeParent = lwc.getParent();
         if (background == null && nodeParent != null)
-            background = nodeParent.getRenderFillColor(); // todo: only handles 1 level transparent embed!
+            background = nodeParent.getRenderFillColor(null); // todo: only handles 1 level transparent embed!
         // todo: could also consider using map background if the node itself
         // is transpatent (has no fill color)
 

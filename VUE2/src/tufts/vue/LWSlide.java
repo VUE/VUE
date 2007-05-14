@@ -28,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.33 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $
+ * @version $Revision: 1.34 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -57,7 +57,7 @@ public class LWSlide extends LWContainer
 
     
     /** implemented to return the bg color of the master slide (for proper on-slide text edit fill color) */
-    @Override public Color getRenderFillColor() {
+    @Override public Color getRenderFillColor(DrawContext dc) {
         if (mFillColor.isTransparent())
             return getMasterSlide().getFillColor();
         else
@@ -151,9 +151,9 @@ public class LWSlide extends LWContainer
     protected void drawImpl(DrawContext dc)
     {
         final LWSlide master = getMasterSlide();
-        final Color fillColor = getRenderFillColor();
+        final Color fillColor = getRenderFillColor(dc);
 
-        if (fillColor != dc.getFill() || !fillColor.equals(dc.getFill())) {
+        if (dc.focal != this || fillColor != dc.getFill() || !fillColor.equals(dc.getFill())) {
             dc.g.setColor(fillColor);
             dc.g.fill(getLocalShape());
         }

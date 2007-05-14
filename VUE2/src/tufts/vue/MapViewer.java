@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.356 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.357 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2251,7 +2251,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             final LWPathway.Entry entry = VUE.getActiveEntry();
 
             if (entry != null)
-                bgFill = entry.getFullScreenFillColor();
+                bgFill = entry.getFullScreenFillColor(dc);
             else
                 bgFill = Color.gray;
 

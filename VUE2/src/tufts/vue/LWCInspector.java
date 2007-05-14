@@ -344,7 +344,7 @@ class LWCInspector extends javax.swing.JPanel
     }
 
     private void loadLabel(LWComponent lwc) {
-        Color c = lwc.getRenderFillColor();
+        Color c = lwc.getRenderFillColor(null);
         if (c == null || c.getAlpha() != 255)
             c = Color.gray;
         labelField.setBackground(c);
@@ -417,7 +417,7 @@ class LWCInspector extends javax.swing.JPanel
         for (Map.Entry<JTextField,LWComponent.Key> e : fieldKeys.entrySet()) {
             final JTextField field = e.getKey();
             final LWComponent.Key key = e.getValue();
-            if (c.supportsProperty(key))
+            if (true||c.supportsProperty(key))
                 field.setText(key.getStringValue(c));
             else
                 field.setText("<unsupported for " + c.getClass().getName() + ">");

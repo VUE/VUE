@@ -613,7 +613,7 @@ public class LWImage extends
             if (!getParent().isTransparent()) {
                 dc.g.setStroke(STROKE_TWO);
                 //dc.g.setColor(IconBorderColor);
-                dc.g.setColor(getParent().getRenderFillColor().darker());
+                dc.g.setColor(getParent().getRenderFillColor(dc).darker());
                 dc.g.draw(shape);
             }
             

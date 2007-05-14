@@ -32,7 +32,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.39 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -279,7 +279,7 @@ public class DrawContext
             // just left it SRC, color values that had an alpha channel would end up
             // blowing away what's underneath them.
 
-            final Color fill = c.getRenderFillColor();
+            final Color fill = c.getRenderFillColor(this);
             
             // TODO: images with transparency in them may need special handling
             // At the moment, any time we draw with a global transparency,
@@ -471,6 +471,7 @@ public class DrawContext
         this.masterClipRect = dc.masterClipRect;
         this.skipDraw = dc.skipDraw;
         this.fillColor = dc.fillColor;
+        this.isClipOptimized = dc.isClipOptimized;
         //this.mAlpha = dc.mAlpha;
     }
 

@@ -40,7 +40,7 @@ import java.awt.geom.AffineTransform;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.58 $ / $Date: 2007-05-11 17:24:18 $ / $Author: sfraize $
+ * @version $Revision: 1.59 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -297,13 +297,15 @@ public class LWGroup extends LWContainer
         getParent().deleteChildPermanently(this);
     }
 
-    /** groups are transparent -- defer to parent for background fill color */
-    public java.awt.Color getRenderFillColor()
+    /* groups are always transparent -- defer to parent for background fill color */
+    @Override public java.awt.Color getRenderFillColor(DrawContext dc)
     {
         if (FancyGroups)
-            return super.getRenderFillColor();
+            return super.getRenderFillColor(dc);
+        else if (dc != null && (dc.focal == this || getParent() == null))
+            return dc.getFill();
         else
-            return getParent() == null ? null : getParent().getRenderFillColor();
+            return getParent().getRenderFillColor(dc);
     }
     
     public java.awt.Color getFillColor()

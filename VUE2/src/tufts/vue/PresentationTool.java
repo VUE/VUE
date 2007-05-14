@@ -947,7 +947,7 @@ private static int OverviewMapSizeIndex = 5;
                 final LWSlide master = mPathway.getMasterSlide();
                 boolean drawMaster = false;
                 if (mCurrentPage.entry != null) {
-                    dc.fill(mCurrentPage.entry.getFullScreenFillColor());
+                    dc.fill(mCurrentPage.entry.getFullScreenFillColor(dc));
                     if (mCurrentPage.entry.isMapView())
                         drawMaster = true;
                 } else {
@@ -956,45 +956,11 @@ private static int OverviewMapSizeIndex = 5;
                     // onto an arbitrary map node:
                     drawMaster = false;
                 }
-                if (drawMaster) {
+                if (drawMaster)
                     master.drawIntoFrame(dc);
-                    /*
-                    dc = dc.create();
-                    dc.setRawDrawing();
-                    final Point2D.Float offset = new Point2D.Float();
-                    final double zoom = ZoomTool.computeZoomFit(dc.frame.getSize(), 0, master.getBounds(), offset);
-                    dc.g.translate(-offset.x, -offset.y);
-                    dc.g.scale(zoom,zoom);
-                    if (DEBUG.BOXES || DEBUG.PRESENT || DEBUG.CONTAINMENT) {
-                        dc.g.setColor(Color.green);
-                        dc.g.setStroke(VueConstants.STROKE_TWO);
-                        dc.g.draw(master.getLocalShape());
-                    }
-                    master.draw(dc);
-                    */
-                }
             }
         }
     }
-
-    /*
-    public static void drawRawMasterSlideInto(DrawContext dc, LWSlide master)
-    {
-        dc = dc.create();
-        dc.setFrameDrawing();
-        final Point2D.Float offset = new Point2D.Float();
-        final double zoom = ZoomTool.computeZoomFit(dc.frame.getSize(), 0, master.getBounds(), offset);
-        dc.g.translate(-offset.x, -offset.y);
-        dc.g.scale(zoom, zoom);
-        if (DEBUG.BOXES || DEBUG.PRESENT || DEBUG.CONTAINMENT) {
-            dc.g.setColor(Color.green);
-            dc.g.setStroke(VueConstants.STROKE_TWO);
-            dc.g.draw(master.getLocalShape());
-        }
-        master.draw(dc);
-    }
-    */
-
     
     
     @Override
@@ -1194,7 +1160,6 @@ private static int OverviewMapSizeIndex = 5;
 
     
     public void handleToolSelection() {
-        out(this + " SELECTED");
         mCurrentPage = NO_PAGE;
         if (VUE.getSelection().size() == 1)
             mNextPage = VUE.getSelection().first();

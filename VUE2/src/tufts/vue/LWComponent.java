@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.264 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $
+ * @version $Revision: 1.265 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1852,8 +1852,14 @@ u                    getSlot(c).setFromString((String)value);
      * Color to use at draw time. LWNode overrides to provide darkening of children.
      * We also use this for the background color in active on-map text edits.
      */
-    public Color getRenderFillColor() {
-        return getFillColor();
+    public Color getRenderFillColor(DrawContext dc) {
+        if (mFillColor.isTransparent()) {
+            if (dc != null && dc.focal == this) {
+                return dc.getFill();
+            } else if (parent != null)
+                return parent.getRenderFillColor(dc);
+        } 
+        return mFillColor.get();
     }
     void takeFillColor(Color color) {
         mFillColor.take(color);
@@ -3374,7 +3380,7 @@ u                    getSlot(c).setFromString((String)value);
             slide.drawImpl(dc);
 
             Rectangle2D border = slide.getBounds();
-            dc.g.setColor(slide.getRenderFillColor().darker());
+            dc.g.setColor(slide.getRenderFillColor(dc).darker());
             dc.g.setStroke(VueConstants.STROKE_SEVEN);
             dc.g.draw(border);
 

@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.152 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $
+ * @version $Revision: 1.153 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -146,11 +146,11 @@ public class LWPathway extends LWContainer
         }
 
         
-        public Color getFullScreenFillColor() {
+        public Color getFullScreenFillColor(DrawContext dc) {
             if (isMapView())
                 return pathway.getMasterSlide().getFillColor();
             else
-                return getSlide().getRenderFillColor();
+                return getSlide().getRenderFillColor(dc);
         }
 
         public LWSlide getSlide() {
@@ -1082,14 +1082,9 @@ public class LWPathway extends LWContainer
         */
         
 
-        /*
-        public Color getRenderFillColor() {
-            // todo: should prevent the setting of colors with an translucence at all
-            // -- really need a VetoPropertyValue exception or seomthing
-            if (mFillColor.isTranslucent()) {
-            }
+        @Override public Color getRenderFillColor(DrawContext dc) {
+            return getFillColor();
         }
-        */
 
         // override LWSlide impl that tries to draw master slide -- only draw children -- no fill
         protected void drawImpl(DrawContext dc) {
@@ -1098,6 +1093,14 @@ public class LWPathway extends LWContainer
 
         // skip fancy LWComponent stuff, and draw background
         public void draw(DrawContext dc) {
+            
+            // TODO: this is now over-drawn when in presentation mode
+            // and even for node icons I think...  (because the master
+            // slide is never the focal, and because we can't just check
+            // the focal for being a slide or portal, as it could be
+            // a map-view node)
+            // Actually, totally recheck this.  Good enough for now tho.
+
             if (!getFillColor().equals(dc.getFill())) {
                 dc.g.setColor(getFillColor());
                 dc.g.fill(getLocalShape());
