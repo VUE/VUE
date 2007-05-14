@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.80 $ / $Date: 2007-05-13 21:56:58 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -134,6 +134,7 @@ public class PathwayPanel extends JPanel
     	//btnLiveMap.setEnabled(false);
     	btnPreviewFull.setEnabled(false);
     	btnShowSlides.setEnabled(true);
+    	btnShowSlides.setSelected(true);
     	btnPlayMaps.setEnabled(false);
     //	btnPlaySlides.setEnabled(false);
 //    	btnDisplayAsMap.setEnabled(false);
@@ -141,7 +142,7 @@ public class PathwayPanel extends JPanel
     	//END    	
 
         btnShowSlides.addActionListener(this);
-    
+        LWPathway.setShowSlides(btnShowSlides.isSelected());    
     	
         //Font defaultFont = new Font("Helvetica", Font.PLAIN, 12);
         //Font highlightFont = new Font("Helvetica", Font.BOLD, 12);

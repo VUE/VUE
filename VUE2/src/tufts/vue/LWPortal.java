@@ -31,13 +31,14 @@ import java.awt.Color;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.4 $ / $Date: 2007-05-13 20:59:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.5 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
 {
     private static final Color DarkFill = new Color(0,0,0,64);
     private static final Color LightFill = new Color(255,255,255,64);
+    private static final Color DebugFill = new Color(0,255,0,128);
     
     public LWPortal() {
         disablePropertyTypes(KeyType.STYLE);
@@ -80,12 +81,15 @@ public class LWPortal extends LWNode
     
     @Override protected void drawImpl(DrawContext dc)
     {
-        if (dc.focal != this && dc.isInteractive()) {
+        if (DEBUG.BOXES || DEBUG.CONTAINMENT) {
+            dc.g.setColor(DebugFill);
+            dc.g.fill(getShape());
+        } else if (dc.focal != this && dc.isInteractive()) {
             dc.g.setColor(getRenderFillColor());
             dc.g.fill(getShape());
         } else {
             if (false) {
-                dc.g.setColor(Color.gray);
+                dc.g.setColor(Color.blue);
                 dc.g.setStroke(VueConstants.STROKE_TWO);
                 dc.g.draw(getShape());
             }
@@ -120,7 +124,6 @@ public class LWPortal extends LWNode
     }
     @Override public Color getRenderFillColor() {
         return getMap().mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
-        //return Color.black.equals(getMap().getFillColor()) ? LightFill : DarkFill;
     }
 
     @Override public boolean supportsChildren() {

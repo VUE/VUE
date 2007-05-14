@@ -43,7 +43,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.12 $ / $Date: 2006-09-22 14:37:28 $ / $Author: mike $
+ * @version $Revision: 1.13 $ / $Date: 2007-05-14 03:31:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -111,10 +111,15 @@ public class Widget extends javax.swing.JPanel
 
         setBoolean(c, EXPANSION_KEY, expanded);
         
+        // We do NOT auto-display the containing window if startup is
+        // underway, otherwise all sorts of stuff will show while the
+        // windows are being pre-configed.
+        
         if (expanded && !tufts.vue.VUE.isStartupUnderway()) {
             if (isBooleanTrue(c, HIDDEN_KEY) || !c.isVisible())
                 setHidden(c, false);
-            GUI.makeVisibleOnScreen(c);
+            if (!DockWindow.AllWindowsHidden())
+                GUI.makeVisibleOnScreen(c);
         }
 
         //c.firePropertyChange("TESTPROPERTY", false, true);

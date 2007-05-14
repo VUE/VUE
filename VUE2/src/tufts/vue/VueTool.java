@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.54 $ / $Date: 2007-05-07 06:44:07 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2007-05-14 03:31:46 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -313,9 +313,8 @@ public abstract class VueTool extends AbstractAction
         return dc;
     }
 
-    public boolean handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {
-        return false;
-    }
+    public void handlePreDraw(DrawContext dc, MapViewer viewer) {}
+    public void handlePostDraw(DrawContext dc, MapViewer viewer) {}
     
     public void handleFullScreen(boolean fullScreen) {}
     
@@ -356,6 +355,14 @@ public abstract class VueTool extends AbstractAction
         if (DEBUG.TOOL) System.out.println(this + " handleSelectorRelease " + e);
         return false;
     }
+
+    public PickContext getPickContext(PickContext pc, float x, float y) {
+        return pc;
+    }
+    public PickContext getPickContext(PickContext pc, java.awt.geom.Rectangle2D.Float rect) {
+        return pc;
+    }
+    
 
     /*
     private static class SlideProxyMap extends LWMap {

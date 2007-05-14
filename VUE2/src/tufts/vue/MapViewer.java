@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.355 $ / $Date: 2007-05-11 21:37:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.356 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -81,7 +81,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                , FocusListener
                , LWComponent.Listener
                , LWSelection.Listener
-               , VueToolSelectionListener
+               //, VueToolSelectionListener
                //, DragGestureListener
                //, DragSourceListener
                , java.awt.event.KeyListener
@@ -152,7 +152,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //-------------------------------------------------------
     
     /** The currently selected tool **/
-    private VueTool activeTool;
+    protected VueTool activeTool;
     
     // todo: we should get rid of hard references to all the tools and handle functionality via tool API's
     //private final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
@@ -218,17 +218,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 setZoomFactor(getMap().getUserZoom(), false, null, false);
         }
 
+        // TODO: need to remove us as listeners for everything if this viewer is closed!
+        
         VUE.ModelSelection.addListener(this);
         VUE.addActiveListener(MapViewer.class, this);
+        VUE.addActiveListener(VueTool.class, this);
+        //VueToolbarController.getController().addToolSelectionListener(this);        
         
         // draggedSelectionGroup is always a selected component as
         // it's only used when it IS the selection
         // There was some reason we need to have the set -- what was it?
         draggedSelectionGroup.setSelected(true);
         
-        // TODO: need to remove us as listener for this & VUE selection this map is closed.
-        // listen to tool selection events
-        VueToolbarController.getController().addToolSelectionListener(this);        
         
         addKeyListener(inputHandler);
         addMouseListener(inputHandler);
@@ -309,31 +310,36 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     
+    public void activeChanged(ActiveEvent e, VueTool tool) {
+        activateTool(tool);
+    }
+
     /**
-     * Sets the current VueTool for the map viewer.
-     * Updates any selection or state issues pased on the tool
-     * @param pTool - the new tool
+     * Sets the current active VueTool in the MapViewer.
+     * E.g., will update the current cursor, allow the
+     * current tool to process mouse & key events, effect
+     * what's draw, etc.
      **/
-    
-    public void toolSelected(VueTool pTool) {
-        if (DEBUG.FOCUS && VUE.getActiveViewer() == this) out("toolSelected: " + pTool.getID());
+    private void activateTool(VueTool tool)
+    {
+        if (DEBUG.FOCUS && VUE.getActiveViewer() == this) out("activateTool: " + tool.getID());
         
-        if (pTool == null) {
+        if (tool == null) {
             System.err.println(this + " *** toolSelected: NULL TOOL");
             return;
         }
-        if (pTool.getID() == null) {
+        if (tool.getID() == null) {
             System.err.println(this + " *** toolSelected: NULL ID IN TOOL!");
             return;
         }
         
         VueTool oldTool = activeTool;
-        activeTool = pTool;
+        activeTool = tool;
         setMapCursor(activeTool.getCursor());
         
         if (isDraggingSelectorBox) // in case we change tool via kbd shortcut in the middle of a drag
             repaint();
-        else if (oldTool != null && oldTool.hasDecorations() || pTool.hasDecorations())
+        else if (oldTool != null && oldTool.hasDecorations() || tool.hasDecorations())
             repaint();
     }
     
@@ -906,7 +912,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         int margin = 30;
 
         //if (VUE.inFullScreen() && mFocal instanceof LWSlide)
-        if (mFocal instanceof LWSlide)
+        if (mFocal instanceof LWSlide || mFocal instanceof LWPortal)
             margin = 0;
 
         if (DEBUG.PRESENT) out("zoomToContents " + mFocal);
@@ -1517,8 +1523,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         PickContext pc = new PickContext(x, y);
         pc.root = mFocal;
         pc.maxLayer = getMaxLayer();
-        pc.pickDepth = getPickDepth();
-        return pc;
+        pc.pickDepth = (mFocal == mMap) ? 0 : 1;
+        return activeTool.getPickContext(pc, x, y);
     }
     
     protected PickContext getPickContext(Rectangle2D.Float rect) {
@@ -1526,26 +1532,26 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         pc.root = mFocal;
         pc.maxLayer = getMaxLayer();
         pc.excluded = mFocal; // never pick the focal for a dragged selection
-        pc.pickDepth = getPickDepth(); // todo: is overlap with pickDepth/maxDepth
+        pc.pickDepth = (mFocal == mMap) ? 0 : 1;
         //pc.pickDepth = 1; // for rectangular picks, only pick top-level items (no children)
         pc.maxDepth = 1; // for rectangular picks, only pick top-level items (no children)
-        return pc;
+        return activeTool.getPickContext(pc, rect);
     }
         
     protected int getMaxLayer() {
         return 0;
     }
 
-    protected int getPickDepth() {
-        if (activeTool == DirectSelectTool) // todo: hand to the tool for PickContext modifications
-            return 1; //Short.MAX_VALUE;
-        else if (mFocal != mMap)
-            return 1; //Short.MAX_VALUE; // auto-deep pick for any non-map focal
-        //else if (!inScrollPane())
-        //    return 1; // todo: temporary hack for presentations -- find a clearer way
-        else
-            return 0;
-    }
+//     protected int getPickDepth() {
+//         if (activeTool == DirectSelectTool) // todo: hand to the tool for PickContext modifications
+//             return 1; //Short.MAX_VALUE;
+//         else if (mFocal != mMap)
+//             return 1; //Short.MAX_VALUE; // auto-deep pick for any non-map focal
+//         //else if (!inScrollPane())
+//         //    return 1; // todo: temporary hack for presentations -- find a clearer way
+//         else
+//             return 0;
+//     }
 
 
     
@@ -1992,6 +1998,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     
+    /**
+     * @return a DrawContext which has adjusted the Graphics for current pan and zoom
+     */
     protected DrawContext getDrawContext(Graphics2D g) {
         DrawContext dc = new DrawContext(g, getZoomFactor(), -getOriginX(), -getOriginY(), getVisibleBounds(), mFocal, true);
         
@@ -2000,7 +2009,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         dc.setPrioritizeQuality(DEBUG_RENDER_QUALITY);
         dc.setFractionalFontMetrics(DEBUG_FONT_METRICS);
         dc.disableAntiAlias(DEBUG_ANTI_ALIAS == false);
-        dc.setActiveTool(getCurrentTool());
+        //dc.setActiveTool(getCurrentTool());
         dc.setMaxLayer(getMaxLayer());
         
         return dc;
@@ -2035,72 +2044,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
         
-        DrawContext dc = activeTool.tweakDrawContext(getDrawContext(g2));
-
-        // first, be sure to erase anything already in the GC,
-        // using the appropriate background fill.
-        
-        
-        /*
-          // moved to drawFocal
-          
-        final Color bgFill;
-        
-        if (dc.isPresenting() && !inScrollPane()) {
-            bgFill = VUE.getActivePathway().getMasterSlide().getFillColor();
-//             if (mFocal instanceof LWSlide)
-//                 bgFill = ((LWSlide)mFocal).getMasterSlide().getFillColor();
-//             else
-//                 bgFill = mMap.getFillColor();
-        } else {
-            if (mMap == null)
-                bgFill = Color.gray;
-            else
-                bgFill = mMap.getFillColor();
-        }
-
-        g2.setColor(bgFill);
-        g2.fill(g2.getClipBounds());
-        */
-        
-        /*
-        if (mFocal instanceof LWSlide && !inScrollPane()) {
-            // todo opt: don't have the master slide do it's fill,
-            // and do this non-scaled before drawFocal if we're not in a scroll pane, or maybe if just full-screen
-            dc.g.setColor(((LWSlide)mFocal).getMasterSlide().getFillColor());
-            dc.g.fill(dc.g.getClipBounds());
-        }
-
-        if (mFocal instanceof LWMap) {
-            // be sure to erase anything already in the GC
-            dc.g.setColor(mFocal.getFillColor());
-            dc.g.fill(dc.g.getClipBounds());
-            mFocal.draw(dc);
-            
-        } else
-        */
+        final DrawContext dc = activeTool.tweakDrawContext(getDrawContext(g2));
 
         //-------------------------------------------------------
-        // adjust GC for pan & zoom
-        //-------------------------------------------------------
-        
-        //setScaleDraw(g2);
-        //dc.setMapDrawing();
-
-        //-------------------------------------------------------
-        // DRAW THE MAP
-        //
-        // The active tool draws the map.  Most will use the default
-        // handleDraw of VueTtool, which fills the background and
-        // then just draws the map. Some, like PresentationTool,
-        // may do something dramatically different.
-        //
-        // That will draw all the nodes, links, etc.  LWContainer's
-        // such as LWNode's & LWGroup's are responsible for painting
-        // their children, etc down the line.
+        // DRAW THE THE CURRENT FOCAL (usually the MAP)
         //-------------------------------------------------------
 
         drawFocal(dc);
+        
+        //-------------------------------------------------------
         
         dc.setMapDrawing();
         if (DEBUG_SHOW_ORIGIN) {
@@ -2202,7 +2154,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             g2.setFont(VueConstants.FixedFont);
             int x = -getX() + 40;
-            int y = -getY() + 40;
+            int y = -getY() + 100;
             //int x = dc.frame.x;
             //int y = dc.frame.y;
             //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
@@ -2288,26 +2240,28 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //setOpaque(true);
     }
 
-    protected Color getBackgroundFillColor(DrawContext dc) {
+    protected Color getBackgroundFillColor(DrawContext dc)
+    {
         final Color bgFill;
 
-        // TODO TODO: put fill in the graphics context, so presentation tool can tweak it in
-        // something renamed from tweakDrawContext, for pathway entries that are
-        // map-view nodes, where we don't have a slide to guess that we want to use for
-        // a background fill!  And while we're doing that, can add fill flag to draw
-        // context to know if we've already been filled, and actually a method to do the
-        // filling, which will set the flag...
-        
-        //if (dc.isPresenting() && !inScrollPane()) {
-        if (dc.isPresenting()) {
-            //bgFill = VUE.getActivePathway().getMasterSlide().getFillColor();
-            if (mFocal instanceof LWSlide)
-                bgFill = ((LWSlide)mFocal).getMasterSlide().getFillColor();
+        if (dc.isPresenting() && !inScrollPane()) {
+            // if we're in a scroll-pane (standard non-full-screen map viewer),
+            // we don't want to fill everything: just let the slide fill itself
+
+            final LWPathway.Entry entry = VUE.getActiveEntry();
+
+            if (entry != null)
+                bgFill = entry.getFullScreenFillColor();
             else
-                bgFill = VUE.getActivePathway().getMasterSlide().getFillColor();
-            //bgFill = mMap.getFillColor();
+                bgFill = Color.gray;
+
+            // We CANNOT depend on looking to see if the focal is a slide
+            // to know if we need a presentation full-screen fill color,
+            // because if the pathway entry isn't a slide entry (e.g., a map-view
+            // item or a portal), we won't know what to use...
+            
         } else {
-            if (mMap == null)
+            if (mMap == null || mFocal != mMap)
                 bgFill = Color.gray;
             else
                 bgFill = mMap.getFillColor();
@@ -2320,18 +2274,25 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     protected void drawFocal(DrawContext dc)
     {
-        dc.g.setColor(getBackgroundFillColor(dc));
-        dc.g.fill(dc.g.getClipBounds());
+        activeTool.handlePreDraw(dc, this);
+
+        drawFocalRaw(dc);
+        
+        activeTool.handlePostDraw(dc, this);
+    }
+
+    protected void drawFocalRaw(DrawContext dc)
+    {
+        if (dc.getFill() == null) {
+            // unless the active tool has already done some kind
+            // of special fill, fill the entire background
+            // before drawing anything else (must to do this
+            // to clear out the prior graphics context).
+            dc.fill(getBackgroundFillColor(dc));
+        }
         
         if (mFocal == null)
             return;
-
-        // TODO: draw the master slide behind mapView entries...
-        //dc.g.setClip(master.getBounds());
-        //    master.draw(dc);
-        //    dc.g.setClip(curClip);
-            
-//dc.g.clip(getVisibleMapBounds());
         
         if (mFocal.isTranslucent() && mFocal != mMap) {
             // If our fill is in any way translucent, the underlying
@@ -2354,15 +2315,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // now draw the map / focal
             mFocal.draw(dc);
         }
-        
-        activeTool.handleDraw(dc, this, mFocal);
-
-        //if (activeTool.handleDraw(dc, this, mFocal))
-        //    return;
-        //dc.g.setColor(mFocal.getMap().getFillColor());
-        //dc.g.setColor(mFocal.getFillColor());
-        //dc.g.fill(dc.g.getClipBounds());
-        
     }
 
 
@@ -3407,7 +3359,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private void revertTemporaryTool() {
         if (tempToolKeyDown != 0) {
             tempToolKeyDown = 0;
-            toolSelected(tempToolWasActive); // restore prior cursor
+            activateTool(tempToolWasActive); // restore prior cursor
             tempToolWasActive = null;
         }
     }
@@ -3616,7 +3568,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             case KeyEvent.VK_ENTER:
                 if (!(mFocal instanceof LWMap) && !(this instanceof tufts.vue.ui.SlideViewer)) { // total SlideViewer hack...
-                    loadFocal(mFocal.getMap());
+                    LWComponent parent = mFocal.getParent();
+                    if (parent instanceof LWPathway)
+                        loadFocal(parent.getMap());
+                    else if (parent != null)
+                        loadFocal(parent);
                 } else if (Actions.Rename.enabledFor(VueSelection)) {
                     // since removing this action from the main menu, we have to fire it manually:
                     // todo: handle this kind of thing generically (make sure all action key bindings installed)
@@ -3760,7 +3716,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         // which is still the old special case link-tool code.
                         tempToolPendingActivation = tempTool;
                     } else
-                        toolSelected(tempTool);
+                        activateTool(tempTool);
                 }
             }
             
@@ -4083,7 +4039,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // key is down (ctrl) AND the left mouse has been
                 // pressed over a component to drag a link off.
                 if (tempToolPendingActivation != null) {
-                    toolSelected(tempToolPendingActivation);
+                    activateTool(tempToolPendingActivation);
                     tempToolPendingActivation = null;
                 }
                 
@@ -5071,6 +5027,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // SelectionGroup if we keep using it this way.
                 
             }
+//             else if (VueSelection.isEmpty() && e.isShiftDown()) {
+//                 selectionSet(mFocal);
+//             }
             
             VUE.getUndoManager().mark(); // in case anything happened
             

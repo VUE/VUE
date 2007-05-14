@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.76 $ / $Date: 2007-04-06 22:29:07 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2007-05-14 03:31:46 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -474,7 +474,13 @@ public class VueUtil extends tufts.Util
         return map;
     }
 
-
+    public static boolean isTransparent(Color c) {
+        return c == null || c.getAlpha() == 0;
+    }
+    public static boolean isTranslucent(Color c) {
+        return c == null || c.getAlpha() != 0xFF;
+    }
+    
     public static void alert(JComponent parent, String message, String title) {
         JOptionPane.showMessageDialog(parent,
                                       message,

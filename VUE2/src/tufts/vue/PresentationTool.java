@@ -941,19 +941,74 @@ private static int OverviewMapSizeIndex = 5;
     }
     
 
-    // todo: viewer & focal are already in the DrawContext!
-    public boolean handleDraw(DrawContext dc, MapViewer viewer, LWComponent focal) {
-
-        if (viewer instanceof tufts.vue.ui.SlideViewer) {
-            // TODO: Will need a set of nav nodes per-viewer if this is to work in both
-            // the main viewer and the slide viewer... for now, don't do them
-            // if we're in the slide viewer.
-            ;
-        } else {
-            if (mShowNavNodes) {
-                //dc.g.setComposite(AlphaComposite.Src);
-                drawNavNodes(dc.create());
+    @Override public void handlePreDraw(DrawContext dc, MapViewer viewer) {
+        if (mPathway != null) {
+            if (mCurrentPage != null) {
+                final LWSlide master = mPathway.getMasterSlide();
+                boolean drawMaster = false;
+                if (mCurrentPage.entry != null) {
+                    dc.fill(mCurrentPage.entry.getFullScreenFillColor());
+                    if (mCurrentPage.entry.isMapView())
+                        drawMaster = true;
+                } else {
+                    dc.fill(master.getFillColor());
+                    // current page has no entry: we've navigated off pathway
+                    // onto an arbitrary map node:
+                    drawMaster = false;
+                }
+                if (drawMaster) {
+                    master.drawIntoFrame(dc);
+                    /*
+                    dc = dc.create();
+                    dc.setRawDrawing();
+                    final Point2D.Float offset = new Point2D.Float();
+                    final double zoom = ZoomTool.computeZoomFit(dc.frame.getSize(), 0, master.getBounds(), offset);
+                    dc.g.translate(-offset.x, -offset.y);
+                    dc.g.scale(zoom,zoom);
+                    if (DEBUG.BOXES || DEBUG.PRESENT || DEBUG.CONTAINMENT) {
+                        dc.g.setColor(Color.green);
+                        dc.g.setStroke(VueConstants.STROKE_TWO);
+                        dc.g.draw(master.getLocalShape());
+                    }
+                    master.draw(dc);
+                    */
+                }
             }
+        }
+    }
+
+    /*
+    public static void drawRawMasterSlideInto(DrawContext dc, LWSlide master)
+    {
+        dc = dc.create();
+        dc.setFrameDrawing();
+        final Point2D.Float offset = new Point2D.Float();
+        final double zoom = ZoomTool.computeZoomFit(dc.frame.getSize(), 0, master.getBounds(), offset);
+        dc.g.translate(-offset.x, -offset.y);
+        dc.g.scale(zoom, zoom);
+        if (DEBUG.BOXES || DEBUG.PRESENT || DEBUG.CONTAINMENT) {
+            dc.g.setColor(Color.green);
+            dc.g.setStroke(VueConstants.STROKE_TWO);
+            dc.g.draw(master.getLocalShape());
+        }
+        master.draw(dc);
+    }
+    */
+
+    
+    
+    @Override
+    public void handlePostDraw(DrawContext dc, MapViewer viewer)
+    {
+        if (mShowNavNodes) {
+            
+            // TODO: Will need a set of nav nodes per-viewer if this is to work in both
+            // the main viewer and the slide viewer... for now, the slide viewer ignores
+            // all drawing effects of the active tool, so we don't have to worry about
+            // it.
+        
+            //dc.g.setComposite(AlphaComposite.Src);
+            drawNavNodes(dc.create());
         }
 
 
@@ -993,9 +1048,6 @@ private static int OverviewMapSizeIndex = 5;
             //dc.g.drawString("  Backup: " + mVisited.peek(), 10, y+=15);
             //dc.g.drawString("BackNode: " + mVisited.peekNode(), 10, y+=15);
         }
-
-        
-        return false;
     }
 
 

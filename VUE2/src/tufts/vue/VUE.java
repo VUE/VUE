@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.425 $ / $Date: 2007-05-11 17:37:52 $ / $Author: sfraize $ 
+ * @version $Revision: 1.426 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -87,7 +87,7 @@ public class VUE
     private static MapTabbedPane mMapTabsRight;
     public static JSplitPane mViewerSplit;
     
-    static ObjectInspectorPanel ObjectInspectorPanel;
+    //static ObjectInspectorPanel ObjectInspectorPanel;
     private static tufts.vue.ui.SlideViewer slideViewer;
     
     // TODO: get rid of this
@@ -169,6 +169,7 @@ public class VUE
 
     public static LWMap getActiveMap()          { return ActiveMapHandler.getActive(); }
     public static LWPathway getActivePathway()  { return ActivePathwayHandler.getActive(); }
+    public static LWPathway.Entry getActiveEntry()  { return ActivePathwayEntryHandler.getActive(); }
     public static MapViewer getActiveViewer()   { return ActiveViewerHandler.getActive(); }
     
     public static void setActive(Class clazz, Object source, Object newActive) {
@@ -751,8 +752,15 @@ public class VUE
                 PropertySettingUnderway = true;
                 try {
                     for (tufts.vue.LWComponent c : selection) {
-                        if (c.supportsProperty(key))
-                            c.setProperty(key, newValue);
+                        if (c.supportsProperty(key)) {
+                            try {
+                                c.setProperty(key, newValue);
+//                             } catch (LWComponent.PropertyValueVeto ex) {
+//                                 tufts.Util.printStackTrace(ex);
+                            } catch (Throwable t) {
+                                tufts.Util.printStackTrace(t, source + " failed to set property " + key + "; value=" + newValue + " on " + c);
+                            }
+                        }
                     }
                 } finally {
                     PropertySettingUnderway = false;

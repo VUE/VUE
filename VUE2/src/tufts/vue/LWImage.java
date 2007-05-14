@@ -699,11 +699,13 @@ public class LWImage extends
         //AffineTransform transform = AffineTransform.getTranslateInstance(mOffset.x, mOffset.y);
         AffineTransform transform = new AffineTransform();
         
-        if (isSelected() && dc.isInteractive() && dc.getActiveTool() instanceof ImageTool) {
-            dc.g.setComposite(MatteTransparency);
-            dc.g.drawImage(mImage, transform, null);
-            dc.g.setComposite(AlphaComposite.Src);
-        }
+
+// Todo: when/if put this back in, see if we can handle it in the ImageTool so we don't need active tool in the DrawContext
+//         if (isSelected() && dc.isInteractive() && dc.getActiveTool() instanceof ImageTool) {
+//             dc.g.setComposite(MatteTransparency);
+//             dc.g.drawImage(mImage, transform, null);
+//             dc.g.setComposite(AlphaComposite.Src);
+//         }
 
         Shape oldClip = dc.g.getClip();
         if (false && isCropped()) {

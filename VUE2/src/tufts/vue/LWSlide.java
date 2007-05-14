@@ -28,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.32 $ / $Date: 2007-05-11 17:21:58 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -58,7 +58,7 @@ public class LWSlide extends LWContainer
     
     /** implemented to return the bg color of the master slide (for proper on-slide text edit fill color) */
     @Override public Color getRenderFillColor() {
-        if (getFillColor() == null)
+        if (mFillColor.isTransparent())
             return getMasterSlide().getFillColor();
         else
             return getFillColor();
@@ -151,29 +151,51 @@ public class LWSlide extends LWContainer
     protected void drawImpl(DrawContext dc)
     {
         final LWSlide master = getMasterSlide();
+        final Color fillColor = getRenderFillColor();
 
-        // We only want to fill one background.  Normally use the
-        // master background, unless we have one.  Then draw the
-        // master children (no fill), then draw our children (no
-        // fill).
-        
-        if (isTransparent()) {
-            dc.g.setColor(master.getFillColor());
-        } else {
-            dc.g.setColor(getFillColor());
+        if (fillColor != dc.getFill() || !fillColor.equals(dc.getFill())) {
+            dc.g.setColor(fillColor);
+            dc.g.fill(getLocalShape());
         }
-        dc.g.fill(getLocalShape());
 
-            // When just filling the background with the master, only draw
-            // what's in the containment box
-            //dc.g.setClip(master.getBounds());
-            //master.drawChildren(dc);
-            //dc.g.setClip(curClip);
+        // When just filling the background with the master, only draw
+        // what's in the containment box
+        //dc.g.setClip(master.getBounds());
+        //master.drawChildren(dc);
+        //dc.g.setClip(curClip);
         
+        // We only draw the master's children, as we've already
+        // done our background fill:
         if (master != null)
             master.drawChildren(dc);
+
+        // Now draw the slide contents:
         drawChildren(dc);
     }
+
+
+    /**
+     * Special case for squeezing a slide into a particular
+     * frame draw context -- e.g., used for drawing a master
+     * slide as the background to an arbitrary context.
+     */
+    public void drawIntoFrame(DrawContext dc)
+    {
+        dc = dc.create();
+        dc.setFrameDrawing();
+        final Point2D.Float offset = new Point2D.Float();
+        final double zoom = ZoomTool.computeZoomFit(dc.frame.getSize(), 0, getBounds(), offset);
+        dc.g.translate(-offset.x, -offset.y);
+        dc.g.scale(zoom, zoom);
+        if (DEBUG.BOXES || DEBUG.PRESENT || DEBUG.CONTAINMENT) {
+            dc.g.setColor(Color.green);
+            dc.g.setStroke(VueConstants.STROKE_TWO);
+            dc.g.draw(getLocalShape());
+        }
+        draw(dc);
+    }
+
+    
     
     public void rebuild() {
         

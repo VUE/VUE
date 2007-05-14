@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.56 $ / $Date: 2007-05-09 20:21:51 $ / $Author: mike $
+ * @version $Revision: 1.57 $ / $Date: 2007-05-14 03:31:46 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -48,8 +48,9 @@ public class VueToolbarController
 	
     private VueToolPanel mToolPanel = null;
 	
-    /** a list of tool selection listeners **/
+    /* a list of tool selection listeners 
     private Vector mToolSelectionListeners = new Vector();
+    */
 	
     /** a list of available tools **/
     private VueTool[] mVueTools = null;
@@ -285,12 +286,12 @@ public class VueToolbarController
     }
 		
 
-    /**
+    /*
      * addToolSelectionListener
      * Adds a VueToolSelectionListener to receive notification when
      * a tool is activated.
      * @param VueToolSelectionListener the listener object
-     **/
+     *
     public void addToolSelectionListener( VueToolSelectionListener pListener) {
         mToolSelectionListeners.add( pListener);
     }
@@ -298,6 +299,7 @@ public class VueToolbarController
     public void removeToolSelectionListener( VueToolSelectionListener pListener) {
         mToolSelectionListeners.remove( pListener );
     }
+    */
 	  
 	  
     /**
@@ -340,16 +342,22 @@ public class VueToolbarController
             getToolbar().setContextualToolPanel( contextualPanel );
             END OLD CODE ****/
 		
+        mSelectedTool = rootTool;
+        
         // notify listeners
+        VUE.setActive(VueTool.class, this, rootTool);
+        
+        mSelectedTool.handleToolSelection();
+        
+        /*
         int size = mToolSelectionListeners.size();
         for (int i = 0; i < size; i++) {
             VueToolSelectionListener listener = (VueToolSelectionListener) mToolSelectionListeners.get(i);
             if (DEBUG.TOOL) System.out.println("\tVueToolbarController -> toolSelected " + listener);
             listener.toolSelected(rootTool);
         }
+        */
 
-        mSelectedTool = rootTool;
-        mSelectedTool.handleToolSelection();
     }
 	 
     /**

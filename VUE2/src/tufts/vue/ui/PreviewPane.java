@@ -34,7 +34,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.14 $ / $Date: 2006-10-27 17:09:56 $ / $Author: mike $
+ * @version $Revision: 1.15 $ / $Date: 2007-05-14 03:31:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -88,7 +88,7 @@ public class PreviewPane extends JPanel
                     }
                 }
             });
-        
+
     }
 
     private void showLoadingStatus() {
@@ -134,12 +134,8 @@ public class PreviewPane extends JPanel
             if (FirstPreview /*&& mPreviewData != null*/) {
                 FirstPreview = false;
                 Widget.setExpanded(PreviewPane.this, true);
-                // Exposing the panel will cause repaint, which
-                // will trigger a preview load.  However, NOT
-                // if startup is underway (otherwise all sorts
-                // of stuff will show while it's being pre-configed),
-                // so we do that manually here also.
-                GUI.makeVisibleOnScreen(PreviewPane.this);
+                // This now handled in Widget.java:
+                //GUI.makeVisibleOnScreen(PreviewPane.this);
             } else {
                 if (DEBUG.RESOURCE || DEBUG.IMAGE) out("not showing: no action");
             }

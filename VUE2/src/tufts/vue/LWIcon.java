@@ -964,7 +964,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         	}
 
         void doDoubleClickAction() {
-            VUE.ObjectInspectorPanel.setTab(ObjectInspectorPanel.INFO_TAB);
+            //VUE.ObjectInspectorPanel.setTab(ObjectInspectorPanel.INFO_TAB);
         }
         
         private JComponent ttBehavior;

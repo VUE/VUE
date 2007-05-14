@@ -426,6 +426,27 @@ if (true) return;
             return null;
     }
 
+    @Override protected Color getBackgroundFillColor(DrawContext dc) {
+        return Color.gray;
+// this code produces "filled" slide viewer look,
+// tho then we can't make out the edge of the slide:
+//         final LWPathway.Entry entry = VUE.getActiveEntry();
+//         if (entry != null)
+//             return entry.getFullScreenFillColor();
+//         else
+//             return Color.gray;
+    }
+
+    @Override protected void drawFocal(DrawContext dc) {
+        if (mLastLoad != null && mLastLoad.isMapView()) {
+            // have to fill first, or super.drawFocal will fill over us...
+            dc.fill(getBackgroundFillColor(dc));
+            mLastLoad.pathway.getMasterSlide().drawIntoFrame(dc);
+        }
+        super.drawFocalRaw(dc);
+            
+    }
+
 
     protected void drawSelection(DrawContext dc, LWSelection s) {
         // Don't draw selection if its the focused component

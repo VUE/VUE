@@ -32,7 +32,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.38 $ / $Date: 2007-05-09 04:51:02 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -56,20 +56,23 @@ public class DrawContext
     private boolean isEditMode = false;
     public final Rectangle frame; // if we have the pixel dimensions of the surface we're drawing on, they go here
 
-    public LWComponent focal;
+    public final LWComponent focal;
 
     private float alpha = 1f;
 
-    private VueTool activeTool;
+    //private VueTool activeTool;
 
     //private boolean inMapDraw = false;
     private final Shape rawClip;
     private final AffineTransform rawTransform;
     private final AffineTransform mapTransform;
+    
     private Rectangle2D masterClipRect; // for drawing map nodes
+    private Color fillColor;
 
     public LWComponent skipDraw;
-    
+
+    private boolean isClipOptimized = true;
 
     // todo: consider including a Conatiner arg in here, for
     // MapViewer, etc.  And replace zoom with a getZoom
@@ -111,6 +114,19 @@ public class DrawContext
         this(g, 1.0);
     }
 
+    public void fill(Color c) {
+        if (fillColor != null)
+            tufts.Util.printStackTrace(this + " already filled with " + fillColor);
+        fillColor = c;
+        g.setColor(c);
+        g.fill(g.getClipBounds());
+    }
+
+    public Color getFill() {
+        return fillColor;
+    }
+    
+
     /** set up for drawing a model: adjust to the current zoom and offset.
      * MapViewer, MapPanner, VueTool, etc, to use.*/
     // todo: change to single setMapDrawing(boolean)
@@ -150,15 +166,38 @@ public class DrawContext
     */
     
     public void setMapDrawing() {
+        isClipOptimized = true;
         g.setTransform(mapTransform);
     }
     public void setRawDrawing() {
+        isClipOptimized = false;
         g.setTransform(rawTransform);
     }
     
     public void setFrameDrawing() {
-        g.setTransform(rawTransform);
+        setRawDrawing();
         g.translate(frame.x, frame.y);
+    }
+
+    public void setClipOptimized(boolean clipOptimized) {
+        isClipOptimized = clipOptimized;
+    }
+
+    
+    /**
+       
+     * @return true if we can do clip bounds checking optimizations to
+     * know if we can skip drawing an LWComponent entirely.  Only
+     * works if we're drawing "proper" children of a current map.
+     * This is as opposed to special decorations that happened to be
+     * LWComponents that we want to draw no matter what what their
+     * current location is (often, always 0,0).  E.g., a master slide
+     * background, on-map slide icons, presentation navigation nodes,
+     * etc.
+     
+     */
+    public boolean isClipOptimized() {
+        return isClipOptimized;
     }
         
     public void setMasterClip(Shape clip)
@@ -204,12 +243,12 @@ public class DrawContext
         return new Rectangle(frame);
     }
 
-    public void setActiveTool(VueTool tool) {
-        activeTool = tool;
-    }
-    public VueTool getActiveTool() {
-        return activeTool;
-    }
+//     public void setActiveTool(VueTool tool) {
+//         activeTool = tool;
+//     }
+//     public VueTool getActiveTool() {
+//         return activeTool;
+//     }
 
     public void setAlpha(double p_alpha, int alphaRule) {
         this.alpha = (float) p_alpha;
@@ -418,7 +457,7 @@ public class DrawContext
         this.isDraftQuality = dc.isDraftQuality;
         this.isBlackWhiteReversed = dc.isBlackWhiteReversed;
         this.isPresenting = dc.isPresenting;
-        this.activeTool = dc.activeTool;
+        //this.activeTool = dc.activeTool;
         //this.inMapDraw = dc.inMapDraw;
         this.mapTransform = dc.mapTransform;
         this.frame = dc.frame;
@@ -431,6 +470,7 @@ public class DrawContext
         this.rawTransform = dc.rawTransform;
         this.masterClipRect = dc.masterClipRect;
         this.skipDraw = dc.skipDraw;
+        this.fillColor = dc.fillColor;
         //this.mAlpha = dc.mAlpha;
     }
 

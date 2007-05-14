@@ -55,7 +55,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.122 $ / $Date: 2007-05-09 23:09:01 $ / $Author: sfraize $
+ * @version $Revision: 1.123 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -101,11 +101,13 @@ public class LWMap extends LWContainer
     public LWMap() {
         setLabel("<map-during-XML-restoration>");
         mLWCFilter = new LWCFilter(this);
+        mFillColor.setAllowTranslucence(false);        
     }
     
     public LWMap(String label) {
         setID("0");
         setFillColor(java.awt.Color.white);
+        mFillColor.setAllowTranslucence(false);        
         setTextColor(COLOR_TEXT);
         setStrokeColor(COLOR_STROKE);
         setFont(FONT_DEFAULT);

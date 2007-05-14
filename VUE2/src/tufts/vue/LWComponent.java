@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.263 $ / $Date: 2007-05-13 21:56:24 $ / $Author: sfraize $
+ * @version $Revision: 1.264 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -681,7 +681,7 @@ u                    getSlot(c).setFromString((String)value);
 
         /** used for debugging */
         public String toString() {
-            return key + "[" + value.toString() + "]";
+            return key + "[" + value + "]";
         }
         
     }
@@ -723,6 +723,15 @@ u                    getSlot(c).setFromString((String)value);
         }
         
     }
+
+
+    static class PropertyValueVeto extends RuntimeException {
+        PropertyValueVeto(String msg) {
+            super(msg);
+        }
+    }
+
+    
     
     private static final Integer _DefaultInteger = new Integer(0);
     public class IntProperty extends NumberProperty<java.lang.Integer> {
@@ -813,6 +822,8 @@ u                    getSlot(c).setFromString((String)value);
     
     
     public class ColorProperty extends Property<java.awt.Color> {
+        private boolean allowTranslucence = true;
+        
         ColorProperty(Key key) { super(key); }
         ColorProperty(Key key, Color defaultValue) {
             this(key);
@@ -825,6 +836,19 @@ u                    getSlot(c).setFromString((String)value);
     
         public boolean isTranslucent() {
             return value == null || value.getAlpha() != 0xFF;
+        }
+
+        void setAllowTranslucence(boolean allow) {
+            allowTranslucence = allow;
+        }
+
+        void take(Color c) {
+            if (!allowTranslucence && (c == null || c.getAlpha() != 0xFF))
+                throw new PropertyValueVeto(key + "; color with translucence: "
+                                            + c
+                                            + " alpha=" + c.getAlpha()
+                                            + " not allowed on " + LWComponent.this);
+            super.take(c);
         }
 
         void setBy(String s) {
@@ -2965,6 +2989,15 @@ u                    getSlot(c).setFromString((String)value);
         if (getLayer() > dc.getMaxLayer())
             return false;
 
+        if (!dc.isClipOptimized()) {
+            // If we're drawing raw, always draw everything, don't
+            // check against the master "map" clip rect, as that's only
+            // for drawing map elements (e.g., we may be drawing
+            // a LWComponent that's a decoration or GUI element,
+            // like a navigation node, or a master slide background).
+            return true;
+        }
+
         if (intersects(dc.getMasterClipRect()))
             return true;
 
@@ -3333,6 +3366,7 @@ u                    getSlot(c).setFromString((String)value);
 
             Rectangle2D.Float slideFrame = getSlideIconBounds();
 
+            dc.setClipOptimized(false);
             dc.g.translate(slideFrame.x, slideFrame.y);
             dc.g.scale(SlideScale, SlideScale);
             //dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.9f));
@@ -3340,7 +3374,7 @@ u                    getSlot(c).setFromString((String)value);
             slide.drawImpl(dc);
 
             Rectangle2D border = slide.getBounds();
-            dc.g.setColor(Color.darkGray);
+            dc.g.setColor(slide.getRenderFillColor().darker());
             dc.g.setStroke(VueConstants.STROKE_SEVEN);
             dc.g.draw(border);
 

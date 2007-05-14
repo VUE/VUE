@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.151 $ / $Date: 2007-05-13 21:06:23 $ / $Author: sfraize $
+ * @version $Revision: 1.152 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -143,6 +143,14 @@ public class LWPathway extends LWContainer
 
         public LWComponent getFocal() {
             return isMapView() ? node : getSlide();
+        }
+
+        
+        public Color getFullScreenFillColor() {
+            if (isMapView())
+                return pathway.getMasterSlide().getFillColor();
+            else
+                return getSlide().getRenderFillColor();
         }
 
         public LWSlide getSlide() {
@@ -978,6 +986,8 @@ public class LWPathway extends LWContainer
             urlStyle.disableProperty(LWKey.Label);
             urlStyle.setMoveable(false);
             urlStyle.setLocation(45,180);
+
+            mFillColor.setAllowTranslucence(false);
         }
         
         private void createStyles() {
@@ -1058,8 +1068,28 @@ public class LWPathway extends LWContainer
             //titleStyle.translate(0, -100);
             //textStyle.translate(0, +50);
             */
-
         }
+
+        /*
+        public void setProperty(final Object key, Object val)
+        {
+            if (key == LWKey.FillColor && VueUtil.isTranslucent((Color)val))
+                throw new PropertyValueVeto("master slide can't have fill color with translucence: "
+                                            + val
+                                            + " alpha=" + ((Color)val).getAlpha());
+            super.setProperty(key, val);
+        }
+        */
+        
+
+        /*
+        public Color getRenderFillColor() {
+            // todo: should prevent the setting of colors with an translucence at all
+            // -- really need a VetoPropertyValue exception or seomthing
+            if (mFillColor.isTranslucent()) {
+            }
+        }
+        */
 
         // override LWSlide impl that tries to draw master slide -- only draw children -- no fill
         protected void drawImpl(DrawContext dc) {
@@ -1068,7 +1098,7 @@ public class LWPathway extends LWContainer
 
         // skip fancy LWComponent stuff, and draw background
         public void draw(DrawContext dc) {
-            if (!isTransparent()) {
+            if (!getFillColor().equals(dc.getFill())) {
                 dc.g.setColor(getFillColor());
                 dc.g.fill(getLocalShape());
             }
