@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.430 $ / $Date: 2007-05-14 21:55:20 $ / $Author: sfraize $ 
+ * @version $Revision: 1.431 $ / $Date: 2007-05-14 22:05:51 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -729,6 +729,9 @@ public class VUE
             
             if (supported && propertySource != null)
                 loadEditor(propertySource, editor);
+
+            if (StyleCache != null)
+                ApplyPropertyValue(this, editor.getPropertyKey(), editor.produceValue(), StyleCache);
             //if (editor instanceof Component) ((Component)editor).repaint(); // not helping ShapeIcon's repaint when disabled...
         }
         
