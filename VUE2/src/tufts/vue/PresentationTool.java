@@ -1115,7 +1115,7 @@ private static int OverviewMapSizeIndex = 5;
     
     
 
-    public DrawContext tweakDrawContext(DrawContext dc) {
+    @Override public DrawContext getDrawContext(DrawContext dc) {
         dc.setPresenting(true);
         if (false &&mShowNavNodes)
             dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));

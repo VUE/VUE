@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.4 $ / $Date: 2007-05-11 17:24:18 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -82,7 +82,7 @@ public class ActiveChangeSupport<T>
 
     protected void notifyListeners(ActiveEvent<T> e) {
         if (inNotify) {
-            tufts.Util.printStackTrace("notifyLoop in " + this);
+            tufts.Util.printStackTrace(this + ": event loop! aborting delivery of: " + e);
             return;
         }
 

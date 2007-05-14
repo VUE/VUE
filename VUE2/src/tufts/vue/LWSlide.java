@@ -28,7 +28,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.34 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -192,7 +192,7 @@ public class LWSlide extends LWContainer
             dc.g.setStroke(VueConstants.STROKE_TWO);
             dc.g.draw(getLocalShape());
         }
-        draw(dc);
+        drawRaw(dc);
     }
 
     

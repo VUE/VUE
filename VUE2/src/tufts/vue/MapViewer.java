@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.357 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $ 
+ * @version $Revision: 1.358 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2044,7 +2044,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
         
-        final DrawContext dc = activeTool.tweakDrawContext(getDrawContext(g2));
+        final DrawContext dc = activeTool.getDrawContext(getDrawContext(g2));
 
         //-------------------------------------------------------
         // DRAW THE THE CURRENT FOCAL (usually the MAP)
@@ -3776,6 +3776,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (c == 'X') { DEBUG.TEXT = !DEBUG.TEXT; }
                 else if (c == 'Z') { resetScrollRegion(); }
                 
+                else if (c == '@') { DEBUG.PRESENT = !DEBUG.PRESENT; }
                 else if (c == '&') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
                 else if (c == '^') { DEBUG.DR = !DEBUG.DR; }
                 else if (c == '+') { DEBUG.META = !DEBUG.META; }
@@ -4010,6 +4011,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     "\tparent " + hitComponent.getParent());
                 // if a LWSlide picked, animate zoom into it, and then load as focal
                 mme.setPicked(hitComponent);
+                
+                // this is a hack:
+                if (hitComponent instanceof LWSlide && mFocal instanceof LWMap) {
+                    LWComponent node = ((LWSlide)hitComponent).getSourceNode();
+                    if (node != null) {
+                        LWPathway.Entry entry = node.getEntryToDisplay();
+                        if (entry != null)
+                            VUE.setActive(LWPathway.Entry.class, this, entry);
+                    }
+                }                                  
             } else {
                 hitComponent = null;
             }

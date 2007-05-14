@@ -32,7 +32,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.40 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -62,7 +62,6 @@ public class DrawContext
 
     //private VueTool activeTool;
 
-    //private boolean inMapDraw = false;
     private final Shape rawClip;
     private final AffineTransform rawTransform;
     private final AffineTransform mapTransform;
@@ -105,6 +104,10 @@ public class DrawContext
         //disableAntiAlias(true);
     }
     
+    public DrawContext(Graphics g, LWComponent focal)
+    {
+        this(g, 1.0, 0, 0, (Rectangle) null, focal, false);
+    }
     public DrawContext(Graphics g, double zoom)
     {
         this(g, zoom, 0, 0, (Rectangle) null, (LWComponent) null, false);
@@ -197,7 +200,7 @@ public class DrawContext
      
      */
     public boolean isClipOptimized() {
-        return isClipOptimized;
+        return !DEBUG.CONTAINMENT && isClipOptimized;
     }
         
     public void setMasterClip(Shape clip)

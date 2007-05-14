@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.54 $ / $Date: 2007-05-07 03:48:11 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -115,59 +115,112 @@ public class ZoomTool extends VueTool
             (e.getButton() == MouseEvent.BUTTON1 || (e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0);
     }
     
-    private boolean pickedZoom = false;
+    private LWComponent zoomedTo;
+    private LWComponent oldFocal;
     private boolean ignoreRelease = false;
     public boolean handleMousePressed(MapMouseEvent e) {
         super.handleMousePressed(e);
 
-        final MapViewer viewer = e.getViewer();
-
-        System.out.println("isZoomInMode:" + isZoomInMode()+" isZoomOutMode():"+isZoomOutMode()+ " isZoomFullScreen:"+isZoomFullScreenMode()+" isZoomOutToMap:"+isZoomOutToMapMode());
+        System.out.println("isZoomInMode:" + isZoomInMode()
+                           +" isZoomOutMode():"+isZoomOutMode()
+                           +" isZoomFullScreen:"+isZoomFullScreenMode()
+                           +" isZoomOutToMap:"+isZoomOutToMapMode());
         
         if (isZoomInMode() || isZoomOutMode())
-        	return false;
+            return false;
         
         if (isZoomOutToMapMode())
-        	return false;
-        
-        if (pickedZoom && !e.isShiftDown()) {
-            setZoomFit(viewer, true);
-            pickedZoom = false;
+            return false;
+
+        final LWComponent picked = e.getPicked();
+        final MapViewer viewer = e.getViewer();
+
+        if (zoomedTo != null && !e.isShiftDown()) {
+            // already zoomed into something: un-zoom us
+            if (oldFocal != null) {
+                viewer.loadFocal(oldFocal);
+                oldFocal = null;
+            } else {
+                setZoomFit(viewer, true);
+            }
+            zoomedTo = null;
             ignoreRelease = true;
             return true;
-        } else if (e.getPicked() != null)  {
-            if (e.getPicked() instanceof LWSlide) {
-                final LWSlide slide = (LWSlide) e.getPicked();
+        } else if (picked != null)  {
 
-                if (VUE.inFullScreen()) {
-                    // animated zoom-to: only works in full-screen
-                    setZoomFitRegion(viewer,
-                                     slide.getSourceNode().getMapSlideIconBounds(),
-                                     0,
-                                     true);
+            // nothing zoomed into, or shift was down, meaning keep zooming in:
+
+            if (picked instanceof LWSlide) {
+
+                if (zoomedTo == picked) {
+                    // we're already zoomed to this slide: now load it as an editable focal
+                    // (slides only editable if they're the focal: not on map as slide icons)
+                    out("LOADING FOCAL");
+                    oldFocal = viewer.getFocal();
+                    viewer.loadFocal((LWSlide) zoomedTo);
+                } else {
+                    zoomToSlide(viewer, (LWSlide) picked);
                 }
 
-                tufts.vue.gui.GUI.invokeAfterAWT(new Runnable() {
-                        public void run() {
-                            viewer.loadFocal(slide);
-                            //setZoomFitRegion(viewer, slide.getBounds(), 0, false);
-                        }});
-                
-             pickedZoom = true;
-             ignoreRelease = true;
-             return true;
-            }
-             else {            	 
+            } else {            	 
+
                 setZoomFitRegion(viewer,
-                                 e.getPicked().getBounds(),
+                                 picked.getBounds(),
                                  0,
                                  true);
             }
-            pickedZoom = true;
+            zoomedTo = picked;
             ignoreRelease = true;
             return true;
         } else
             return false;
+    }
+
+    @Override public DrawContext getDrawContext(DrawContext dc) {
+        if (zoomedTo instanceof LWSlide)
+            ;
+        else
+            dc.skipDraw = zoomedTo;
+        return dc;
+    }
+    
+    @Override public void handlePostDraw(DrawContext dc, MapViewer viewer) {
+        if (zoomedTo instanceof LWSlide) {
+            ;
+        } else if (zoomedTo != null) {
+            zoomedTo.draw(dc);
+        }
+    }
+
+    @Override public PickContext getPickContext(PickContext pc, float x, float y) {
+        if (zoomedTo != null)
+            pc.pickDepth++;
+        return pc;
+    }
+    
+
+//     private void loadSlideFocal(final MapViewer viewer, LWSlide slide)
+//     {
+//         tufts.vue.gui.GUI.invokeAfterAWT(new Runnable() {
+//                 public void run() {
+//                     viewer.loadFocal(slide);
+//                     //setZoomFitRegion(viewer, slide.getBounds(), 0, false);
+//                 }});
+//     }
+        
+                
+
+    private void zoomToSlide(MapViewer viewer, final LWSlide slide) {
+        
+        // zoom-to for the map region of the slide icon:
+                
+        // animated zoom-to: only works in full-screen
+        final boolean animate = VUE.inFullScreen();
+        setZoomFitRegion(viewer,
+                         slide.getSourceNode().getMapSlideIconBounds(),
+                         0,
+                         animate);
+        
     }
     
     public boolean handleMouseReleased(MapMouseEvent e)

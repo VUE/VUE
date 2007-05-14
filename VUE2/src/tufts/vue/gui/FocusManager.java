@@ -146,7 +146,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.12 $ / $Date: 2007-05-11 22:23:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.13 $ / $Date: 2007-05-14 07:52:58 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -464,7 +464,13 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
     public boolean dispatchKeyEvent(KeyEvent e) {
 
-        if (DEBUG.FOCUS) { if (e.getKeyCode() == KeyEvent.VK_ESCAPE) System.exit(0); } // debug abort
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE &&
+            e.isAltDown() &&
+            e.isControlDown())
+        {
+            VUE.Log.info("Keyboard Abort Sequence");
+            System.exit(0);
+        } // debug abort
 
         // Note that KeyEvents typed while a forced focus is in place
         // will come in with a source of the currently active Frame,

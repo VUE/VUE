@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.57 $ / $Date: 2007-05-14 03:31:46 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -91,6 +91,7 @@ public class VueToolbarController
     protected VueToolbarController() {
         loadTools();
         mToolPanel = createDefaultToolbar();
+        VUE.addActiveListener(VueTool.class, this);
 		
     }
 
@@ -358,6 +359,10 @@ public class VueToolbarController
         }
         */
 
+    }
+
+    public void activeChanged(ActiveEvent e, VueTool tool) {
+        handleToolSelection(tool);
     }
 	 
     /**

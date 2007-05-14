@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.55 $ / $Date: 2007-05-14 03:31:46 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -309,7 +309,7 @@ public abstract class VueTool extends AbstractAction
     /** what to do, if anything, when the tool is selected */
     public void handleToolSelection() {}
 
-    public DrawContext tweakDrawContext(DrawContext dc) {
+    public DrawContext getDrawContext(DrawContext dc) {
         return dc;
     }
 

@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.265 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $
+ * @version $Revision: 1.266 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2029,8 +2029,9 @@ u                    getSlot(c).setFromString((String)value);
         // if we're a descendent of what's being dropped! (would be a parent/child loop)
         if (pc.dropping instanceof LWContainer && hasAncestor((LWContainer)pc.dropping))
             return null;
-        else if (isDrawingSlideIcon() && getMapSlideIconBounds().contains(pc.x, pc.y))
+        else if (isDrawingSlideIcon() && getMapSlideIconBounds().contains(pc.x, pc.y)) {
             return getEntryToDisplay().getSlide();
+        }
         else
             return defaultPickImpl(pc);
     }
@@ -3129,7 +3130,7 @@ u                    getSlot(c).setFromString((String)value);
         for (LWPathway path : pathwayRefs) {
             //if (!dc.isFocused && path.isDrawn()) {
             if (path.isDrawn()) {
-                path.drawComponentDecorations(new DrawContext(dc), this);
+                path.drawComponentDecorations(dc.create(), this);
             }
         }
         
@@ -3273,7 +3274,7 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     /** If there's a pathway entry we want to be showing, return it, otherwise, null */
-    protected LWPathway.Entry getEntryToDisplay()
+    LWPathway.Entry getEntryToDisplay()
     {
         LWPathway path = VUE.getActivePathway();
 
@@ -3304,9 +3305,11 @@ u                    getSlot(c).setFromString((String)value);
     
     /**
      * For every component, draw any needed pathway decorations and related slide icons,
-     * and then invoke drawImpl for the sub-component.
+     * and then invoke drawImpl for the sub-component.  Intended for use in LWContainer,
+     * where the parent has already been drawn, and already transformed the DrawContext
+     * to it's local region.
      */
-    public void draw(DrawContext dc)
+    public void drawInParent(DrawContext dc)
     {
         if (VUE.RELATIVE_COORDS) {
             if (hasAbsoluteMapLocation())
@@ -3346,9 +3349,30 @@ u                    getSlot(c).setFromString((String)value);
         
     }
 
+    /**
+     * for directly forcing the drawing or redrawing a single component at it's proper map location
+     * If you are going to use the passed in DrawContext after this call for other map drawing operations,
+     * be sure to pass in dc.create() from the caller, as this call leaves it in an undefined state.
+     **/
+    public void draw(DrawContext dc) {
+        dc.setClipOptimized(false); // ensure all children draw even if not inside clip
+        transformLocal(dc.g);
+        if (dc.focal == this) {
+            drawRaw(dc);
+        } else {
+            if (true) {
+                if (dc.drawPathways())
+                    drawPathwayDecorations(dc);
+                drawRaw(dc);
+            } else {
+                drawDecorated(dc); // to heavy for now: don't want slide icons
+            }
+        }
+    }
+    
     public void drawRaw(DrawContext dc) {
         dc.checkComposite(this);
-        drawImpl(dc);        
+        drawImpl(dc);
     }
     
     protected void drawDecorated(DrawContext dc)
@@ -4057,7 +4081,7 @@ u                    getSlot(c).setFromString((String)value);
         
         if (DEBUG.IMAGE && DEBUG.META) fillColor = Color.red;
 
-        DrawContext dc = new DrawContext(g);
+        DrawContext dc = new DrawContext(g, this);
 
         if (fillColor != null) {
             if (false && alpha != OPAQUE) {
