@@ -26,17 +26,29 @@ import javax.swing.*;
 
 public class TextTool extends VueTool
 {
-    /** the contextual tool panel **/
-    private static TextToolPanel sTextToolPanel;
+    /* the contextual tool panel **/
+    //private static TextToolPanel sTextToolPanel;
+
 	
-    public TextTool() {
-        super();
-    }
+    public TextTool() {}
+
+    @Override
+    public boolean supportsSelection() { return true; }
+    
 	
+    @Override
     public boolean handleKeyPressed(java.awt.event.KeyEvent e)  {
         return false;
     }
     
+
+    @Override
+    protected LWComponent createStyleCache() {
+        return NodeModeTool.createTextNode("StyleCache: " + getClass());
+    }
+    
+    
+    /*
     static TextToolPanel getTextToolPanel()
     {
         if (sTextToolPanel == null)
@@ -47,10 +59,8 @@ public class TextTool extends VueTool
     public JPanel getContextualPanel() {
         return getTextToolPanel();
     }
-    
-    
-    public boolean supportsSelection() { return true; }
-    
+    */
+
     //public boolean supportsClick() { return true; }
 
         /*

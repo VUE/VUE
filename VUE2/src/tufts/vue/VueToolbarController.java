@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.59 $ / $Date: 2007-05-14 08:32:40 $ / $Author: sfraize $
+ * @version $Revision: 1.60 $ / $Date: 2007-05-14 21:55:20 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -337,7 +337,7 @@ public class VueToolbarController
         //mCurSelectionID = selectionID;	  	
 
         // update contextual panel
-        updateContextualToolPanel();
+        //updateContextualToolPanel();
         /** OLD CODE
             JPanel contextualPanel = rootTool.getContextualPanel();
             if( contextualPanel == null) {
@@ -365,13 +365,13 @@ public class VueToolbarController
     }
 
 	 
-    /**
+    /*
      * This method checks to see if the current tool has
      * a contextual tool.  If so, it uses that panel.  If
      * not it uses the selection to get a panel.
-     **/
+     **
     private void updateContextualToolPanel() {
-        /*VueTool tool = getSelectedTool();
+        VueTool tool = getSelectedTool();
         if (tool.getParentTool() != null)
             tool = tool.getParentTool();
 
@@ -382,15 +382,17 @@ public class VueToolbarController
 
         if (panel != null)
             initContextualPanelFromSelection(panel);
-        */
+
    //     getToolbar().setContextualToolPanel(panel);
     }
+    */
 	 
+    public JPanel getSuggestedContextualPanel() { return null; }
 	 
-    /**
+    /*
      * @return the suggest tool panel to use based on the current state
      * of the controller (selected tool) and the map selection.
-     **/
+     **
     // todo: the tool itself should be able to specify this -- at least for single selection
     public JPanel getSuggestedContextualPanel() {
         JPanel panel = null;
@@ -457,7 +459,7 @@ public class VueToolbarController
             c = selection.first();
         } else 
             return;
-        */
+        *
         
         // Maybe better: interested tool panels should listen to selection themselves
         // The only value we get from this right now is that only the active tool panel
@@ -472,6 +474,7 @@ public class VueToolbarController
             if (DEBUG.TOOL) System.out.println(this + " IGNORING initContextualPanelFromSelection on non LWCToolPanel " + panel);
         }
     }
+    */
 	 
     /**
      * The implemenation of the LWSelection.Listener
@@ -496,7 +499,7 @@ public class VueToolbarController
             singleSelection = null;
         }
 
-        updateContextualToolPanel();
+        //updateContextualToolPanel();
         if (singleSelection != null)
             loadToolValue(null, singleSelection);
     }

@@ -56,6 +56,14 @@ public class LinkModeTool extends VueTool
     {
     	return (LinkTool)VueToolbarController.getController().getTool("linkTool");
     }
+
+    @Override
+    protected LWComponent createStyleCache() {
+        LWLink link = new LWLink();
+        link.setLabel("StyleCache: " + getClass());
+        return link;
+    }
+    
     
     /** @return an array of actions, with icon set, that will set the shape of selected
      * LinkTools */
@@ -88,8 +96,10 @@ public class LinkModeTool extends VueTool
         return (SubTool) getSelectedSubTool();
     }
     
+    @Override
     public boolean supportsSelection() { return true; }
 
+    @Override
     public boolean handleComponentPressed(MapMouseEvent e)
     {
         //System.out.println(this + " handleMousePressed " + e);
@@ -126,6 +136,7 @@ public class LinkModeTool extends VueTool
         return false;
     }
 
+    @Override
     public boolean handleMouseDragged(MapMouseEvent e)
     {
         if (linkSource == null)

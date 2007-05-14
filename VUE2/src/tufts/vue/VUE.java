@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.429 $ / $Date: 2007-05-14 21:05:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.430 $ / $Date: 2007-05-14 21:55:20 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -597,6 +597,10 @@ public class VUE
         private static boolean EditorLoadingUnderway; // editors are loading values from the selection
         private static boolean PropertySettingUnderway; // editor values are being applied to the selection
 
+        // TODO: need to load default style cache with saved preference values (or do per tool?)
+        private static final LWComponent DefaultStyleCache = NodeModeTool.createNode("DefaultStyleCache");
+        private static LWComponent StyleCache;
+        
         private LWComponent singleSelection;
 
         private LWToolManager() {
@@ -606,9 +610,18 @@ public class VUE
             findEditors();
             VUE.getSelection().addListener(this);
             VUE.addActiveListener(VueTool.class, this);
+            StyleCache = DefaultStyleCache;
         }
 
         public void activeChanged(ActiveEvent e, VueTool tool) {
+            StyleCache = tool.getStyleCache();
+            if (StyleCache == null)
+                StyleCache = DefaultStyleCache;
+            
+            // either need to know this is first time, so can load cache
+            // with current tool values, or we should expect it should
+            // already come with the desired default values
+            loadAllEditors(new LWSelection(StyleCache));
         }
 
         public static void registerEditor(LWEditor editor) {
@@ -755,23 +768,29 @@ public class VUE
                 // already have their state set to this.
                 PropertySettingUnderway = true;
                 try {
-                    for (tufts.vue.LWComponent c : selection) {
-                        if (c.supportsProperty(key)) {
-                            try {
-                                c.setProperty(key, newValue);
-//                             } catch (LWComponent.PropertyValueVeto ex) {
-//                                 tufts.Util.printStackTrace(ex);
-                            } catch (Throwable t) {
-                                tufts.Util.printStackTrace(t, source + " failed to set property " + key + "; value=" + newValue + " on " + c);
-                            }
-                        }
-                    }
+                    for (tufts.vue.LWComponent c : selection)
+                        ApplyPropertyValue(source, key, newValue, c);
                 } finally {
                     PropertySettingUnderway = false;
                 }
+                
+                if (StyleCache != null)
+                    ApplyPropertyValue(source, key, newValue, StyleCache);
             
                 if (VUE.getUndoManager() != null)
                     VUE.getUndoManager().markChangesAsUndo(key.toString());
+            }
+        }
+
+        private static void ApplyPropertyValue(Object source, Object key, Object newValue, LWComponent target) {
+            if (target.supportsProperty(key)) {
+                try {
+                    target.setProperty(key, newValue);
+                    //} catch (LWComponent.PropertyValueVeto ex) {
+                    //tufts.Util.printStackTrace(ex);
+                } catch (Throwable t) {
+                    tufts.Util.printStackTrace(t, source + " failed to set property " + key + "; value=" + newValue + " on " + target);
+                }
             }
         }
 
