@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.153 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $
+ * @version $Revision: 1.154 $ / $Date: 2007-05-14 14:42:06 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -202,6 +202,11 @@ public class LWPathway extends LWContainer
                 return true;
             else
                 return isMapView;
+        }
+
+        public boolean isPortal() {
+            return (node instanceof LWPortal)
+                || (node != null && node.isTranslucent());
         }
 
         public boolean isMergedSlide() {
@@ -627,8 +632,10 @@ public class LWPathway extends LWContainer
             LWComponent c = i.next();
             if (DEBUG.PATHWAY||DEBUG.PARENTING) out("adding " + c);
             Entry e = new Entry(this, c);
-            if (c instanceof LWGroup || c instanceof LWPortal)
-                e.setMapView(true); // default for groups
+            if (c instanceof LWGroup || c instanceof LWPortal || c.isTranslucent()) {
+                // these either require map view, or are likely to want to start that way
+                e.setMapView(true);
+            }
             newEntries.add(e);
             addCount++;
         }

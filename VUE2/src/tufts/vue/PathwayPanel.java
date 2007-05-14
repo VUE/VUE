@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.81 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $
+ * @version $Revision: 1.82 $ / $Date: 2007-05-14 14:42:06 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -878,22 +878,48 @@ public class PathwayPanel extends JPanel
         // As we only support one global "filter" at a time,
         // we first we de-filter (show) everything on the map.
 
-        for (LWComponent c : map.getAllDescendents())
+        final Collection<LWComponent> allNodes = map.getAllDescendents();
+
+        for (LWComponent c : allNodes)
             c.setFiltered(false);
         
         if (exclusiveDisplay == pathway || clearFilter) {
             // We're toggling: just leave everything visible (de-filtered) in the map
             exclusiveDisplay = null;
             clearFilter = true;
-        } else {
+        }
+
+        if (!clearFilter) {
 
             // We're exclusively showing the current pathway: hide (filter) everything
             // that isn't in it.  Currently, any child of an LWComponent that is on a
             // pathway, is also considered on that pathway for display purposes.
-
+            
             filterAllOutsidePathway(map.getChildList(), pathway);
             exclusiveDisplay = pathway;
+            
+            // Include anything that intersects a portal:
+            
+            for (LWPathway.Entry entry : pathway.getEntries()) {
+                if (entry.isPortal()) {
+                    final java.awt.geom.Rectangle2D portalRect = entry.node.getBounds();
+                    for (LWComponent c : allNodes) {
+                        // (portalShape.intersects(c.getBounds())
+                        if (c.intersects(portalRect)) {
+                            if (c instanceof LWLink && ((LWLink)c).isConnectedTo(entry.node)) {
+                                // a link connected to the portal will always intersect, but
+                                // we really don't want to see it as it's rare the shape of
+                                // the link is actually going to pass through the body of
+                                // the portal
+                                continue;
+                            }
+                            c.setFiltered(false);
+                        }
+                    }
+                }
+            }
         }
+
 
         // Now we make sure the Pathway objects themselves
         // have their filter flag properly set.
@@ -910,8 +936,11 @@ public class PathwayPanel extends JPanel
 
     private void filterAllOutsidePathway(Iterable<LWComponent> iterable, LWPathway pathway) {
         for (LWComponent c : iterable) {
-            if (c.inPathway(pathway))
+            if (c.inPathway(pathway)) {
+                // this means we will NOT filter all the children of this component also --
+                // they are considered part of the visible pathway.
                 continue;
+            }
             c.setFiltered(true);
             if (c.hasChildren())
                 filterAllOutsidePathway(c.getChildList(), pathway);
