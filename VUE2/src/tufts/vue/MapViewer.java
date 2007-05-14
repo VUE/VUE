@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.358 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $ 
+ * @version $Revision: 1.359 $ / $Date: 2007-05-14 08:32:40 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -157,9 +157,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // todo: we should get rid of hard references to all the tools and handle functionality via tool API's
     //private final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
     //private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("selectTool");
-    private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("directSelectionTool");
-    private final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
+    //private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("directSelectionTool");
     //private final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
+    private final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
     private final NodeTool NodeTool = (NodeTool) VueToolbarController.getController().getTool("nodeTool");
     private final VueTool LinkTool = VueToolbarController.getController().getTool("linkTool");
     private final VueTool TextTool = VueToolbarController.getController().getTool("textTool");
@@ -341,6 +341,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             repaint();
         else if (oldTool != null && oldTool.hasDecorations() || tool.hasDecorations())
             repaint();
+
+        VUE.setActive(VueTool.class, this, tool);
     }
     
     private void setMapCursor(Cursor cursor) {
@@ -3600,7 +3602,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     isDraggingSelectorBox = false;
                     repaint();
                 } else if (VUE.inFullScreen()) {
-                    VUE.toggleFullScreen(false,true);
+                    VUE.toggleFullScreen(false, true);
+                    if (activeTool instanceof PresentationTool) {
+                        loadFocal(mFocal.getMap());
+                        activateTool(VueTool.getInstance(SelectionTool.class));
+                    }
                 } else
                     handled = false;
                 break;

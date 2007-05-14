@@ -35,7 +35,7 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.58 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
+ * @version $Revision: 1.59 $ / $Date: 2007-05-14 08:32:40 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -266,6 +266,9 @@ public class VueToolbarController
         handleToolSelection( pTool);
     }
 	
+    public void activeChanged(ActiveEvent e, VueTool tool) {
+        setSelectedTool(tool);
+    }
 	
     /**
      * @return the instance of a known tool
@@ -361,9 +364,6 @@ public class VueToolbarController
 
     }
 
-    public void activeChanged(ActiveEvent e, VueTool tool) {
-        handleToolSelection(tool);
-    }
 	 
     /**
      * This method checks to see if the current tool has

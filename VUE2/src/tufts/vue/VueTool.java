@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.56 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2007-05-14 08:32:40 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -74,14 +74,29 @@ public abstract class VueTool extends AbstractAction
     /** the sub tool map with toolname as key **/       protected Map<String,VueTool> mSubToolMap = new HashMap();    
     /** the parent tool -- if this is a subtool **/     protected VueTool mParentTool = null;
     /** the currently active subtool name **/           protected VueTool mSelectedSubTool = null;
-    
+
+    private static final Map<Class<? extends VueTool>, VueTool> InstanceMap = new HashMap();
     
     public VueTool() {
         super();
+        VueTool old = InstanceMap.put(getClass(), this);
+        if (DEBUG.TOOL) {
+            if (old != null) {
+                System.out.println("already instanced: " + getClass() + "; was=" + old);
+                // need to permanently clear out this item for the multiple instance cases
+                //tufts.Util.printStackTrace("already instanced: " + getClass() + "; was=" + old);
+            } else
+                System.out.println("instanced " + this);
+        }
+
     }
 
     public boolean isActive() {
         return VueToolbarController.getActiveTool() == this;
+    }
+
+    public static VueTool getInstance(Class<? extends VueTool> clazz) {
+        return InstanceMap.get(clazz);
     }
 
 	
@@ -678,7 +693,7 @@ public abstract class VueTool extends AbstractAction
         String s = "VueTool[" + getID();
         if (getSelectedSubTool() != null)
             s += " subSelected=" + getSelectedSubTool();
-        s += "]";
+        s += "] of " + getClass();
         return s;
     }
 
