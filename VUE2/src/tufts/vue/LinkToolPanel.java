@@ -32,7 +32,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.47 $ / $Date: 2007-05-10 13:23:39 $ / $Author: mike $
+ * @version $Revision: 1.48 $ / $Date: 2007-05-14 16:42:18 $ / $Author: sfraize $
  * 
  */
 
@@ -234,8 +234,7 @@ public class LinkToolPanel extends ToolPanel
 		mBox.add(mStrokeStyleButton,gbc);
 		
 		       
-        if (addComponent(mStrokeButton))
-        {        	
+
         	//gbc.ipady=2;
         	//gbc.ipadx=4;
         	gbc.gridx = 1;
@@ -246,7 +245,7 @@ public class LinkToolPanel extends ToolPanel
     		gbc.anchor = GridBagConstraints.WEST;
     		mStrokeButton.setSelectedIndex(1);
     		mBox.add(mStrokeButton,gbc);
-        }                
+
     }
      
     //protected VueBeanState getDefaultState() { return VueBeans.getState(LWLink.setDefaults(new LWLink())); }
