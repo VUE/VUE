@@ -47,11 +47,11 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.84 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $
+ * @version $Revision: 1.85 $ / $Date: 2007-05-15 20:58:14 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
-    implements ActionListener, ActiveListener<LWPathway.Entry>
+    implements ActionListener
 {    
     private Frame mParentFrame;
     
@@ -268,6 +268,7 @@ public class PathwayPanel extends JPanel
         
         
         
+        VUE.addActiveListener(LWPathway.class, this);
         VUE.addActiveListener(LWPathway.Entry.class, this);
         
         VUE.getSelection().addListener(new LWSelection.Listener() {
@@ -716,11 +717,21 @@ public class PathwayPanel extends JPanel
     }
     
     
-    public void activeChanged(ActiveEvent<LWPathway.Entry> e) {
-    	updateTextAreas(e.active);
+    public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
+    	updateTextAreas(entry);
         updateEnabledStates();
     }
     
+    public void activeChanged(ActiveEvent e, LWPathway pathway) {
+
+        if (pathway == null)
+            return;
+
+        if (btnPathwayOnly.isSelected()) {
+            toggleHideEverythingButCurrentPathway(true);
+            toggleHideEverythingButCurrentPathway(false);
+        }
+    }
 
     private void ensureNotesSaved() {
         if (mNoteKeyWasPressed && mSelectedEntry != null) {
