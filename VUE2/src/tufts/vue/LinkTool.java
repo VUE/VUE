@@ -21,7 +21,7 @@ package tufts.vue;
 import java.util.*;
 import java.awt.event.KeyEvent;
 import javax.swing.*;
-
+import tufts.vue.NodeTool.NodeModeTool;
 import java.awt.geom.Point2D;
 //import tufts.vue.beans.VueBeanState;
 
@@ -35,27 +35,22 @@ public class LinkTool extends VueTool
     implements VueConstants//, LWEditor
 {
     /** link tool contextual tool panel **/
-    private static LinkToolPanel sLinkContextualPanel;
+//    private static LinkToolPanel sLinkContextualPanel;
     private static LinkTool singleton = null;
     
-    LWComponent linkSource; // for starting a link
-
-    private final LWComponent invisibleLinkEndpoint = new LWComponent();
-    private final LWLink creationLink = new LWLink(invisibleLinkEndpoint);
 
     public LinkTool()
     {
         super();
-        invisibleLinkEndpoint.addLinkRef(creationLink);
-        invisibleLinkEndpoint.setSize(0,0);
         //creationLink.setStrokeColor(java.awt.Color.blue);
         if (singleton != null) 
             new Throwable("Warning: mulitple instances of " + this).printStackTrace();
         singleton = this;
-
+        VueToolUtils.setToolProperties(this,"linkTool");
         // Mac overrides CONTROL-MOUSE to look like right-click (context menu popup) so we can't
         // use CTRL wih mouse drag on a mac.
         setActiveWhileDownKeyCode( KeyEvent.VK_ALT);
+        
         //setActiveWhileDownKeyCode(VueUtil.isMacPlatform() ? KeyEvent.VK_ALT : KeyEvent.VK_CONTROL);
     }
     
@@ -63,7 +58,7 @@ public class LinkTool extends VueTool
     public static LinkTool getTool()
     {
         if (singleton == null) {
-            new Throwable("Warning: LinkTool.getTool: class not initialized by VUE").printStackTrace();
+         //   new Throwable("Warning: LinkTool.getTool: class not initialized by VUE").printStackTrace();
             new LinkTool();
         }
         return singleton;
@@ -84,18 +79,18 @@ public class LinkTool extends VueTool
     }
     
     public JPanel getContextualPanel() {
-        return getLinkToolPanel();
+        return null;//getLinkToolPanel();
     }
 
     private static final Object LOCK = new Object();
-    static LinkToolPanel getLinkToolPanel() {
+  /*  static LinkToolPanel getLinkToolPanel() {
         synchronized (LOCK) {
             if (sLinkContextualPanel == null)
                 sLinkContextualPanel = new LinkToolPanel();
         }
         return sLinkContextualPanel;
     }
-
+*/
     /*
     public Class getSelectionType() { return LWLink.class; }
 
@@ -139,54 +134,7 @@ public class LinkTool extends VueTool
     
     public boolean supportsSelection() { return true; }
 
-    public boolean handleComponentPressed(MapMouseEvent e)
-    {
-        //System.out.println(this + " handleMousePressed " + e);
-        LWComponent hit = e.getPicked();
-        // TODO: handle LWGroup picking
-        //if (hit instanceof LWGroup)
-        //hit = ((LWGroup)hit).findDeepestChildAt(e.getMapPoint());
-
-        if (hit != null) {
-            linkSource = hit;
-            // todo: pick up current default stroke color & stroke width
-            // and apply to creationLink
-            creationLink.setTemporaryEndPoint1(linkSource);
-            /*
-            VueBeanState state = getLinkToolPanel().getCurrentState();
-            if (state != null) {
-            	state.applyState(creationLink);
-            }
-            */
-            // never let drawn creator link get less than 1 pixel wide on-screen
-            float minStrokeWidth = (float) (1 / e.getViewer().getZoomFactor());
-            if (creationLink.getStrokeWidth() < minStrokeWidth)
-                creationLink.setStrokeWidth(minStrokeWidth);
-            invisibleLinkEndpoint.setLocation(e.getMapPoint());
-            e.setDragRequest(invisibleLinkEndpoint);
-            // using a LINK as the dragComponent is a mess because geting the
-            // "location" of a link isn't well defined if any end is tied
-            // down, and so computing the relative movement of the link
-            // doesn't work -- thus we just use this invisible endpoint
-            // to move the link around.
-            return true;
-        }
-        
-        return false;
-    }
-
-    public boolean handleMouseDragged(MapMouseEvent e)
-    {
-        if (linkSource == null)
-            return false;
-        setMapIndicationIfOverValidTarget(linkSource, null, e);
-
-        //-------------------------------------------------------
-        // we're dragging a new link looking for an
-        // allowable endpoint
-        //-------------------------------------------------------
-        return true;
-    }
+   
 
     static void setMapIndicationIfOverValidTarget(LWComponent linkSource, LWLink link, MapMouseEvent e)
     {
@@ -205,34 +153,6 @@ public class LinkTool extends VueTool
         }
     }
 
-    public boolean handleMouseReleased(MapMouseEvent e)
-    {
-        //System.out.println(this + " " + e + " linkSource=" + linkSource);
-        if (linkSource == null)
-            return false;
-
-        //System.out.println("dx,dy=" + e.getDeltaPressX() + "," + e.getDeltaPressY());
-        if (Math.abs(e.getDeltaPressX()) > 10 ||
-            Math.abs(e.getDeltaPressY()) > 10)  // todo: config min dragout distance
-        {
-            //repaintMapRegionAdjusted(creationLink.getBounds());
-            LWComponent linkDest = e.getViewer().getIndication();
-            if (linkDest != linkSource)
-                makeLink(e, linkSource, linkDest, !e.isShiftDown());
-        }
-        this.linkSource = null;
-        return true;
-    }
-
-    public void handleDragAbort()
-    {
-        this.linkSource = null;
-    }
-
-    @Override public void handlePostDraw(DrawContext dc, MapViewer viewer) {
-        if (linkSource != null)
-            creationLink.draw(dc);
-    }
     
     private static LWComponent findLWLinkTargetAt(LWComponent linkSource, LWLink link, MapMouseEvent e)
     {
@@ -411,6 +331,181 @@ public class LinkTool extends VueTool
         }
     }
 
+    static class ComboModeTool extends LinkModeTool
+    {
+    	public ComboModeTool()
+    	{
+    		super();
+    		setComboMode(true);
+    		
+    	}
+    }
+    static class LinkModeTool extends VueTool
+    {
+    	private boolean comboMode = false;
+   	    LWComponent linkSource; // for starting a link
+   	    private final LWComponent invisibleLinkEndpoint = new LWComponent();
+  	    private final LWLink creationLink = new LWLink(invisibleLinkEndpoint);
+
+    	 public LinkModeTool()
+    	 {
+    		super();
+   	        invisibleLinkEndpoint.addLinkRef(creationLink);
+   	        invisibleLinkEndpoint.setSize(0,0);
+
+    		 VueToolUtils.setToolProperties(this,"linkModeTool");
+    	 }    	     
+
+    	    public void handleDragAbort()
+    	    {
+    	        this.linkSource = null;
+    	    }
+
+    	    @Override public void handlePostDraw(DrawContext dc, MapViewer viewer) {
+    	        if (linkSource != null)
+    	            creationLink.draw(dc);
+    	    }
+
+    	  public void setComboMode(boolean comboMode)
+    	   {
+    	    	this.comboMode = comboMode;
+    	   }
+
+    	  public boolean handleComponentPressed(MapMouseEvent e)
+    	    {
+    	        //System.out.println(this + " handleMousePressed " + e);
+    	        LWComponent hit = e.getPicked();
+    	        // TODO: handle LWGroup picking
+    	        //if (hit instanceof LWGroup)
+    	        //hit = ((LWGroup)hit).findDeepestChildAt(e.getMapPoint());
+
+    	        if (hit != null) {
+    	            linkSource = hit;
+    	            // todo: pick up current default stroke color & stroke width
+    	            // and apply to creationLink
+    	            creationLink.setTemporaryEndPoint1(linkSource);
+    	            /*
+    	            VueBeanState state = getLinkToolPanel().getCurrentState();
+    	            if (state != null) {
+    	            	state.applyState(creationLink);
+    	            }
+    	            */
+    	            // never let drawn creator link get less than 1 pixel wide on-screen
+    	            float minStrokeWidth = (float) (1 / e.getViewer().getZoomFactor());
+    	            if (creationLink.getStrokeWidth() < minStrokeWidth)
+    	                creationLink.setStrokeWidth(minStrokeWidth);
+    	            invisibleLinkEndpoint.setLocation(e.getMapPoint());
+    	            e.setDragRequest(invisibleLinkEndpoint);
+    	            // using a LINK as the dragComponent is a mess because geting the
+    	            // "location" of a link isn't well defined if any end is tied
+    	            // down, and so computing the relative movement of the link
+    	            // doesn't work -- thus we just use this invisible endpoint
+    	            // to move the link around.
+    	            return true;
+    	        }
+    	        
+    	        return false;
+    	    }
+
+    	    public boolean handleMouseDragged(MapMouseEvent e)
+    	    {
+    	        if (linkSource == null)
+    	            return false;
+    	        setMapIndicationIfOverValidTarget(linkSource, null, e);
+
+    	        //-------------------------------------------------------
+    	        // we're dragging a new link looking for an
+    	        // allowable endpoint
+    	        //-------------------------------------------------------
+    	        return true;
+    	    }
+    	   public boolean handleMouseReleased(MapMouseEvent e)
+    	    {
+    	        //System.out.println(this + " " + e + " linkSource=" + linkSource);
+    	        if (linkSource == null)
+    	            return false;
+
+    	        //System.out.println("dx,dy=" + e.getDeltaPressX() + "," + e.getDeltaPressY());
+    	        if (Math.abs(e.getDeltaPressX()) > 10 ||
+    	            Math.abs(e.getDeltaPressY()) > 10)  // todo: config min dragout distance
+    	        {
+    	            //repaintMapRegionAdjusted(creationLink.getBounds());
+    	            LWComponent linkDest = e.getViewer().getIndication();
+    	            if (linkDest != linkSource)
+    	                makeLink(e, linkSource, linkDest, !e.isShiftDown(),comboMode);
+    	        }
+    	        this.linkSource = null;
+    	        return true;
+    	    }
+    	   
+    	   public void drawSelector(DrawContext dc, java.awt.Rectangle r)
+    	    {
+    	        //g.setXORMode(java.awt.Color.blue);
+    	        dc.g.setColor(java.awt.Color.blue);
+    	        super.drawSelector(dc, r);
+    	    }
+
+    	    private void makeLink(MapMouseEvent e,
+    	                          LWComponent pLinkSource,
+    	                          LWComponent pLinkDest,
+    	                          boolean pMakeConnection,
+    	                          boolean comboMode)
+    	    {
+    	        LWLink existingLink = null;
+    	        if (pLinkDest != null)
+    	            existingLink = pLinkDest.getLinkTo(pLinkSource);
+    	        if (false && existingLink != null) {
+    	            // There's already a link tween these two -- increment the weight
+    	            // [ WE NOW ALLOW MULTIPLE LINKS BETWEEN NODES ]
+    	            existingLink.incrementWeight();
+    	        } else {
+
+    	            // TODO: don't create new node at end of new link inside
+    	            // parent of source node (e.g., content view/traditional node)
+    	            // unless mouse is over that node!  (E.g., should be able to
+    	            // drag link out from a node that is a child)
+    	            
+    	            LWContainer commonParent = e.getMap();
+    	            if (pLinkDest == null)
+    	                commonParent = pLinkSource.getParent();
+    	            else if (pLinkSource.getParent() == pLinkDest.getParent() &&
+    	                     pLinkSource.getParent() != commonParent) {
+    	                // todo: if parents different, add to the upper most parent
+    	                commonParent = pLinkSource.getParent();
+    	            }
+    	            boolean createdNode = false;
+    	            if (pLinkDest == null && (pMakeConnection && comboMode)) {
+    	                pLinkDest = NodeModeTool.createNewNode();
+    	                pLinkDest.setCenterAt(e.getMapPoint());
+    	                commonParent.addChild(pLinkDest);
+    	                createdNode = true;
+    	            }
+
+    	            LWLink link;
+    	            if (pMakeConnection && (comboMode || pLinkDest!=null)) {
+    	                link = new LWLink(pLinkSource, pLinkDest);
+    	            } else {
+    	                link = new LWLink(pLinkSource, null);
+    	                link.setTailPoint(e.getMapPoint()); // set to drop location
+    	            }
+    	     
+    	            
+    	            commonParent.addChild(link);
+    	            // We ensure a paint sequence here because a link to a link
+    	            // is currently drawn to it's center, which might paint over
+    	            // a label.
+    	            if (pLinkSource instanceof LWLink)
+    	                commonParent.ensurePaintSequence(link, pLinkSource);
+    	            if (pLinkDest instanceof LWLink)
+    	                commonParent.ensurePaintSequence(link, pLinkDest);
+    	            VUE.getSelection().setTo(link);
+    	            if (pMakeConnection && comboMode)
+    	                e.getViewer().activateLabelEdit(createdNode ? pLinkDest : link);
+    	        }
+    	    }
+
+
+    }
     /**
      * VueTool class for each of the specifc link styles (straight, curved, etc).  Knows how to generate
      * an action for setting the shape.
