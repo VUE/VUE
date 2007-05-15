@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.85 $ / $Date: 2007-05-15 20:58:14 $ / $Author: sfraize $
+ * @version $Revision: 1.86 $ / $Date: 2007-05-15 21:24:24 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -724,8 +724,11 @@ public class PathwayPanel extends JPanel
     
     public void activeChanged(ActiveEvent e, LWPathway pathway) {
 
-        if (pathway == null)
+        if (pathway == null) {
+            if (exclusiveDisplay != null)
+                ClearFilter(exclusiveDisplay.getMap());
             return;
+        }
 
         if (btnPathwayOnly.isSelected()) {
             toggleHideEverythingButCurrentPathway(true);
@@ -876,9 +879,43 @@ public class PathwayPanel extends JPanel
 
     public static void TogglePathwayExclusiveFilter() {
         boolean doFilter = !Singleton.btnPathwayOnly.isSelected();
+
+        // TODO: really, this combination of code wants to be in LWMap,
+        // using Filter objects -- we want to make sure an established
+        // filter is always tied to a map...  The LWPathway
+        // could provide a Filter instance that knows how
+        // to filter everything but it's contents
+
+        // Instead of remembering a pathway ("exclusiveDisplay"),
+        // we should remember the filter.
+
+        // Also, this should handle the undo of the deletion
+        // of a pathway that had a filter established: be 
+        // able to handle this case, and the architecture
+        // will be right.
+        
+//         if (doFilter)
+//             FilterForPathway(VUE.getActivePathway());
+//         else
+//             ClearFilter(VUE.getActiveMap(), null);
+        
         Singleton.toggleHideEverythingButCurrentPathway(!doFilter);
         Singleton.btnPathwayOnly.setSelected(doFilter);
     }
+
+    private static void ClearFilter(LWMap map) {
+        ClearFilter(map, map.getAllDescendents());
+    }
+    
+    private static void ClearFilter(LWMap map, Iterable<LWComponent> allNodes)
+    {
+        for (LWPathway pathway : map.getPathwayList()) 
+            pathway.setFiltered(false);
+
+        for (LWComponent c : allNodes)
+            c.setFiltered(false);
+    }
+    
 
     private LWPathway exclusiveDisplay;
     private synchronized void toggleHideEverythingButCurrentPathway(boolean clearFilter)
@@ -1063,7 +1100,7 @@ public class PathwayPanel extends JPanel
         // exclusively displayed, make sure to undo the filter.
         // TODO: handle for undo: is critical for undo of the pathway create!
         if (exclusiveDisplay != null)
-            toggleHideEverythingButCurrentPathway(true);
+            ClearFilter(exclusiveDisplay.getMap());
         VUE.getActiveMap().getPathwayList().remove(p);
     }
 
