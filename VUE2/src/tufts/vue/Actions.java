@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import java.util.Iterator;
+import tufts.vue.NodeTool.NodeModeTool;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;

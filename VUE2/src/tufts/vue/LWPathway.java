@@ -19,7 +19,7 @@
 package tufts.vue;
 
 import tufts.vue.DEBUG;
-
+import tufts.vue.NodeTool.NodeModeTool;
 import java.io.IOException;
 
 import java.util.*;
@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.154 $ / $Date: 2007-05-14 14:42:06 $ / $Author: sfraize $
+ * @version $Revision: 1.155 $ / $Date: 2007-05-15 23:03:57 $ / $Author: mike $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener

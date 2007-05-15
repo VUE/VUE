@@ -20,7 +20,7 @@ package tufts.vue;
 
 import tufts.Util;
 import tufts.vue.gui.GUI;
-
+import tufts.vue.NodeTool.NodeModeTool;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 
@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.67 $ / $Date: 2007-05-09 04:53:58 $ / $Author: sfraize $  
+ * @version $Revision: 1.68 $ / $Date: 2007-05-15 23:03:57 $ / $Author: mike $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener

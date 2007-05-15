@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import tufts.vue.gui.GUI;
+import tufts.vue.NodeTool.NodeModeTool;
 import java.util.*;
 import java.awt.Color;
 import java.awt.geom.*;
@@ -28,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.36 $ / $Date: 2007-05-14 13:48:45 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2007-05-15 23:03:57 $ / $Author: mike $
  */
 public class LWSlide extends LWContainer
 {

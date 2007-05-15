@@ -25,7 +25,7 @@ import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.FocusManager;
 import tufts.vue.gui.MapScrollPane;
 import tufts.vue.gui.TimedASComponent;
-
+import tufts.vue.NodeTool;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.366 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.367 $ / $Date: 2007-05-15 23:03:57 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -164,10 +164,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("selectTool");
     //private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("directSelectionTool");
     //private final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
-    private final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
-    private final NodeTool NodeTool = (NodeTool) VueToolbarController.getController().getTool("nodeTool");
-    private final VueTool LinkTool = VueToolbarController.getController().getTool("linkTool");
-    private final VueTool TextTool = VueToolbarController.getController().getTool("textTool");
+    private final VueTool HandTool = VueTool.getInstance(tufts.vue.HandTool.class);
+    private NodeTool NodeTool = (NodeTool)VueTool.getInstance(tufts.vue.NodeTool.class);
+    private VueTool LinkTool = VueTool.getInstance(tufts.vue.LinkTool.class);
+    private final VueTool TextTool = VueTool.getInstance(tufts.vue.TextTool.class);
     //private final VueTool PathwayTool = VueToolbarController.getController().getTool("pathwayTool");
 
     
@@ -5289,7 +5289,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                             (activeTool == TextTool || hitComponent.isSelected() && hitComponent != justSelected))
                             activateLabelEdit(hitComponent);
                         
-                    } else if (activeTool == TextTool || activeTool == NodeTool) {
+                    } else if (activeTool == TextTool || activeTool == tufts.vue.NodeTool.NodeModeTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class)) {
                         
                         // on mousePressed, we request focus, and if there
                         // was an activeTextEdit TextBox, it lost focus
@@ -5299,7 +5299,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         // the edit via the click on the map
                         
                         if (!mLabelEditWasActiveAtMousePress) {
-                            if (activeTool == NodeTool)
+                            if (activeTool == tufts.vue.NodeTool.NodeModeTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class))
                                 Actions.NewNode.fire(MapViewer.this);
                             else
                                 Actions.NewText.fire(MapViewer.this);
