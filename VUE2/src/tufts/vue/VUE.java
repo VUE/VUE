@@ -19,7 +19,7 @@
 package tufts.vue;
 
 import tufts.Util;
-
+import tufts.vue.NodeTool.NodeModeTool;
 import tufts.vue.action.*;
 import tufts.vue.gui.*;
 import tufts.vue.ui.InspectorPane;
@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.431 $ / $Date: 2007-05-14 22:05:51 $ / $Author: sfraize $ 
+ * @version $Revision: 1.432 $ / $Date: 2007-05-15 23:05:41 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -98,6 +98,7 @@ public class VUE
 
     private static InspectorPane inspectorPane = null;
     private static FormatPanel formattingPanel; 
+    private static FloatingZoomPanel floatingZoomPanel; 
     private static PathwayPanel pathwayPanel = null;
     private static MapInspectorPanel mapInspectorPanel = null;
 
@@ -532,7 +533,7 @@ public class VUE
         if (SKIP_DR == false) {
             Log.debug("caching tool panels...");
             NodeTool.getNodeToolPanel();
-            LinkTool.getLinkToolPanel();
+           // LinkTool.getLinkToolPanel();
         }
         
         new LWToolManager();
@@ -960,7 +961,7 @@ public class VUE
         //-----------------------------------------------------------------------------
 
         //formatDock = null;
-        FloatingZoomPanel floatingZoomPanel = new FloatingZoomPanel();
+        floatingZoomPanel = new FloatingZoomPanel();
         floatingZoomDock = GUI.createDockWindow("Floating Zoom",true);
         floatingZoomDock.setContent(floatingZoomPanel);
         floatingZoomDock.setFocusable(true);
@@ -1422,6 +1423,10 @@ public class VUE
     	return formattingPanel;
     }
         
+    public static FloatingZoomPanel getFloatingZoomPanel()
+    {
+    	return floatingZoomPanel;
+    }
     public static DockWindow getInfoDock()
     {
     	return ObjectInspector;
