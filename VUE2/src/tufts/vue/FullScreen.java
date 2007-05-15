@@ -71,12 +71,22 @@ public class FullScreen {
         if (fullScreenMode) {
             if (goNative && !inNativeFullScreen())
                 enterFullScreenMode(true);
-            else
+            else           
                 exitFullScreenMode();
         } else {
             enterFullScreenMode(goNative);
         }
 
+        if (!FullScreen.inFullScreen())
+        {
+        		tufts.vue.VueToolbarController.getController().setSelectedTool(tufts.vue.VueToolbarController.getController().getSelectedTool());
+
+        }
+        else
+        {
+        	tufts.vue.VueToolbarController.getController().setSelectedTool(VUE.getFloatingZoomPanel().getSelectedTool());
+        	
+        }
         VUE.getActiveViewer().requestFocus();
         //ToolWindow.adjustMacWindows();
         VueMenuBar.toggleFullScreenTools();

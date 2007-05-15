@@ -30,10 +30,11 @@ import javax.swing.border.*;
 
 public class FloatingZoomPanel extends JPanel
 {
-	private final VueTool ArrowTool = VueToolbarController.getController().getTool("selectionTool");
-	private final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
-    private final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
+	//private final VueTool ArrowTool = VueToolbarController.getController().getTool("selectionTool");
+	//private final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
+    //private final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
     
+	private String fullScreenTools = "fullScreenToolbarToolNames";
     /** the panel where the main tools are placed **/
     private JComponent mMainToolBar = null;	
 	
@@ -46,7 +47,9 @@ public class FloatingZoomPanel extends JPanel
     /** the current tool selection (TO DO:  remove this)  **/
     private VueTool mCurrentTool = null;
 	
-	
+    /** a list of available tools **/
+    private VueTool[] mVueTools = null;
+    
     /** a map of PaletteButtons keyed off of the tool ID **/
     private Map mToolButtons = new HashMap();
 	
@@ -67,28 +70,18 @@ public class FloatingZoomPanel extends JPanel
         mMainToolBar = new Box(BoxLayout.X_AXIS);
         
         //addTool();
-        addTool(ArrowTool);
-        addTool(HandTool);        
+            
        // addSubZoomTool(ZoomTool);
        //ZoomTool zt = new ZoomTool();
        //zt.setID("zoomTool.zoomIn");
        //zt.initFromResources();
-        VueTool zt = VueToolbarController.getController().getTool("zoomTool");
-      
-       VueTool zoomInTool= zt.getSubTool("zoomTool.zoomIn");
         
-       VueTool zoomOut = zt.getSubTool("zoomTool.zoomOut");
-       //zoomOut.setID("zoomTool.zoomOut");
-       //zoomOut.initFromResources();
-      
-       VueTool zoomFullScreen = zt.getSubTool("zoomTool.zoomFullScreen");
+        //The floating toolbar is a subset of the toolbar so load tools from the instance map..
+        mVueTools = VueToolUtils.loadTools(fullScreenTools);
        
-       VueTool zoomOutToMap = zt.getSubTool("zoomTool.zoomOutToMap");
+        for (int i = 0; i < mVueTools.length;i++)
+        	addTool(mVueTools[i]);
        
-       addTool(zoomInTool);
-       addTool(zoomOut);
-       addTool(zoomFullScreen);
-       addTool(zoomOutToMap);
         setAlignmentX( LEFT_ALIGNMENT);
         add(BorderLayout.WEST, mMainToolBar);
         
@@ -131,14 +124,39 @@ public class FloatingZoomPanel extends JPanel
         }
         mTools.add(pTool);
         if (pTool.hasToolbarButton()) {
-            PaletteButton button = createPaletteButton(pTool);
-            // save teh component in the button map
-            mToolButtons.put( pTool.getID(), button);
+        	 if (pTool.hasSubTools()) {
+        		 //create a button for each subtool
+        		 Vector names = pTool.getSubToolIDs();
+                 int numSubTools = names.size();
+
+                 for(int i=0; i<numSubTools; i++) {
+                     String name = (String) names.get(i);
+                     VueTool subTool = pTool.getSubTool( name);
+                     if( subTool != null) 
+                     {
+                    	 PaletteButton button = createPaletteButton(subTool);
+                		 // save teh component in the button map
+                		 mToolButtons.put( subTool.getID(), button);
+                        
+                		 // 	todo: setting this mnemonic doesn't appear to work
+                		 //if (pTool.getShortcutKey() != 0)
+                		 //button.setMnemonic(pTool.getShortcutKey());
+                		 addToolButton( button);
+                     }
+                 }
+                 
+        	 }
+        	 else
+        	 {
+        		 PaletteButton button = createPaletteButton(pTool);
+        		 // save teh component in the button map
+        		 mToolButtons.put( pTool.getID(), button);
                 
-            // todo: setting this mnemonic doesn't appear to work
-            //if (pTool.getShortcutKey() != 0)
-            //button.setMnemonic(pTool.getShortcutKey());
-            addToolButton( button);
+        		 // 	todo: setting this mnemonic doesn't appear to work
+        		 //if (pTool.getShortcutKey() != 0)
+        		 //button.setMnemonic(pTool.getShortcutKey());
+        		 addToolButton( button);
+        	 }
         }
     }
 	
@@ -176,9 +194,7 @@ public class FloatingZoomPanel extends JPanel
                 mButtonGroup.setSelected( button.getModel(), true);
             }
         }
-    }
-	
-	
+    }	
 	
     /**
      * setContextualToolPanel
@@ -217,7 +233,7 @@ public class FloatingZoomPanel extends JPanel
     protected PaletteButton createPaletteButton(VueTool pTool)
     {
         PaletteButton button = null;
-        
+        /*
         if (pTool.hasSubTools()) {
             // create button items
             Vector names = pTool.getSubToolIDs();
@@ -245,14 +261,16 @@ public class FloatingZoomPanel extends JPanel
                     subTool.setLinkedButton(item);
                 }
             }
+            
             button = new PaletteButton( items );
             button.setPropertiesFromItem( items[0]);
             button.setOverlayIcons (pTool.getOverlayUpIcon(), pTool.getOverlayDownIcon() );
-        } else  {  // just a radio-like button, no popup items 
+        } else  {  // just a radio-like button, no popup items
+        	*/
             button = new PaletteButton();
             button.setIcons( pTool.getIcon(), pTool.getDownIcon(), pTool.getSelectedIcon() ,
                              pTool.getDisabledIcon(), pTool.getRolloverIcon() );
-        }
+        //}
         
         button.setToolTipText( pTool.getToolTipText() );
         // set the user context to the VueTOol
