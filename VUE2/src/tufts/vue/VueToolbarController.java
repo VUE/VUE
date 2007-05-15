@@ -24,6 +24,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.util.*;
+import tufts.vue.LinkTool.LinkModeTool;
 
 
 /**
@@ -35,14 +36,14 @@ import java.util.*;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.60 $ / $Date: 2007-05-14 21:55:20 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2007-05-15 23:06:16 $ / $Author: mike $
  *
  **/
 public class VueToolbarController  
     implements LWSelection.Listener, LWComponent.Listener
 {
     /** the list of tool names is under this key in the resources **/
-    public static final String DefaultToolsKey = "defaultToolNames";
+    public static final String DefaultToolsKey = "mainToolbarToolNames";
     private static VueToolbarController sController;
 	
 	
@@ -89,7 +90,7 @@ public class VueToolbarController
      * create the VueToolPanel.
      **/
     protected VueToolbarController() {
-        loadTools();
+        mVueTools = VueToolUtils.loadTools(DefaultToolsKey);
         mToolPanel = createDefaultToolbar();
         VUE.addActiveListener(VueTool.class, this);
 		
@@ -111,106 +112,8 @@ public class VueToolbarController
             mLWCToolPanel = new LWCToolPanel();
         return mLWCToolPanel;
     }
-	
-	
-    /**
-     * Loads the default tools specified in a resource file
-     **/
-    protected synchronized void loadTools()
-    {
-        String[] names = VueResources.getStringArray(DefaultToolsKey);
-        if( names != null) {
-            mVueTools = new VueTool[names.length];
-            for (int i = 0; i < names.length; i++) {
-                debug("Loading tool " + names[i] );
-                mVueTools[i] = loadTool(names[i]);
-            }
-        }
-
-//         // add all top-level tools into list first, so they take priority
-//         // in shortcut-key searches
-//         for (VueTool t : mVueTools)
-//             mAllTools.add(t);
-//         for (VueTool t : mVueTools)
-//             // add sub-tools
-    }
-	
-    /**
-     * This method loads a VueTool with the given name from the
-     * vue properties file.
-     **/
-    public VueTool loadTool(String pName)
-    {
-        final String classKey = pName + ".class";
-        final String className = VueResources.getString(classKey);
-
-        if (className == null) {
-            System.err.println(this + " loadTool["
-                               + pName + "]; missing class key in resources: [" + classKey + "]");
-            return null;
-        }
-		
-        VueTool tool = null;
-
-        try {
-            //if (DEBUG.Enabled) System.out.println("Loading tool class " + className);
-            Class toolClass = getClass().getClassLoader().loadClass(className);
-
-            if (DEBUG.INIT) System.out.println("Loading tool " + pName + " " + toolClass);
-            tool = (VueTool) toolClass.newInstance();
-
-            // set the tool's properties...
-            
-            tool.setID(pName);
-            tool.initFromResources();
-
-            mAllTools.add(tool);
-
-            String subtools[];
-            String defaultTool = null;
-            subtools = VueResources.getStringArray( pName+".subtools");
-            if (subtools != null) {
-				
-                tool.setOverlayUpIcon( VueResources.getImageIcon( pName+".overlay"));
-                tool.setOverlayDownIcon( VueResources.getImageIcon( pName+".overlaydown") );
-			
-                for(int i=0; i<subtools.length; i++) {
-                    VueTool subTool = loadTool(pName+"."+subtools[i]); // recursion...
-                    subTool.setParentTool( tool);
-                    tool.addSubTool(subTool);
-                }
-                // load menu overlays (if any)
-				
-                // setup default tool (if any)
-                defaultTool = VueResources.getString( pName+".defaultsubtool");
-                if( defaultTool == null) {
-                    defaultTool = subtools[0];
-                }
-				
-                VueTool dst = tool.getSubTool( pName + "."+defaultTool );
-                if( dst != null) {
-                    tool.setIcon( dst.getIcon() );
-                    tool.setDownIcon( dst.getDownIcon() );
-                    tool.setSelectedIcon( dst.getSelectedIcon() );
-                    tool.setRolloverIcon( dst.getRolloverIcon() );
-                    tool.setDisabledIcon( dst.getDisabledIcon() );
-                    tool.setSelectedSubTool( dst);
-                }
-                else {
-                    // should never happen unless bad properties file
-                    debug("  !!! Error: missing subtool: "+defaultTool );
-					
-                }
-                // tool.set
-            }
-        } catch (Exception e) {
-            debug("loadTool() exception:");
-            e.printStackTrace();
-        }
-			
-        return tool;
-    }
-	
+		    	
+ 
     /**
      * A factory method to generate the toolbar.  Tools must already
      * be loaded before calling.
@@ -218,24 +121,7 @@ public class VueToolbarController
     private VueToolPanel createDefaultToolbar() {
         VueToolPanel toolbar = new VueToolPanel();
         toolbar.addTools(mVueTools);
-        Map btns = toolbar.getToolButtons();
-        //defaultToolNames=selectionTool,nodeTool,linkTool,textTool,zoomTool,handTool,pathwayTool,nodeModeTool,comboModeTool
-        toolbar.createToolButton((PaletteButton)btns.get("selectionTool"),true);
-        toolbar.createToolButton((PaletteButton)btns.get("directSelectionTool"),true);
-        toolbar.createToolButton((PaletteButton)btns.get("nodeModeTool"),true);
-        toolbar.createToolButton((PaletteButton)btns.get("linkModeTool"),true);
-        toolbar.createToolButton((PaletteButton)btns.get("comboModeTool"),true);
-        toolbar.createToolButton((PaletteButton)btns.get("textTool"),true);
-        toolbar.addSeparator();
-        toolbar.createToolButton((PaletteButton)btns.get("zoomTool"),true);
-        toolbar.createToolButton((PaletteButton)btns.get("handTool"),true);
-        toolbar.addSeparator();        
-        toolbar.createToolButton((PaletteButton)btns.get("pathwayTool"),true);
-        toolbar.addSeparator();
         
-        
-        LinkModeTool cmt = (LinkModeTool)this.getTool("linkModeTool");
-        cmt.setComboMode(false);
         return toolbar;
     }
 	
@@ -274,14 +160,14 @@ public class VueToolbarController
      * @return the instance of a known tool
      * @param pID id (name) of the tool
      **/
-    public VueTool getTool(String pID) {
+/*    public VueTool getTool(String pID) {
         for (VueTool t : mAllTools)
             if (t.getID().equals(pID))
                 return t;
         tufts.Util.printStackTrace("failed to find tool [" + pID + "]");
         return null;
     }
-	
+	*/
     /**
      * @return the VueToolPanel
      **/

@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.57 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2007-05-15 23:06:16 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -123,11 +123,11 @@ public class ZoomTool extends VueTool
     public boolean handleMousePressed(MapMouseEvent e) {
         super.handleMousePressed(e);
 
-        System.out.println("isZoomInMode:" + isZoomInMode()
+   /*     System.out.println("isZoomInMode:" + isZoomInMode()
                            +" isZoomOutMode():"+isZoomOutMode()
                            +" isZoomFullScreen:"+isZoomFullScreenMode()
                            +" isZoomOutToMap:"+isZoomOutToMapMode());
-        
+     */   
         if (isZoomInMode() || isZoomOutMode())
             return false;
         
