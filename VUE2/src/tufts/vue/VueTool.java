@@ -34,10 +34,11 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.59 $ / $Date: 2007-05-14 21:55:20 $ / $Author: sfraize $
+ * @version $Revision: 1.60 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
+    implements LWSelection.Acceptor
 {
     /** the tool's unique id **/        protected String mID = null;
     /** the tool name **/               protected String mToolName = null;
@@ -295,8 +296,19 @@ public abstract class VueTool extends AbstractAction
     
 
     /** if this returns non-null, only objects of the given type will be selected
-     * by the dragged selector */
+      * by the dragged selector */
     public Class getSelectionType() { return null; }
+
+    /**
+     * override this for subclasses to provide limits on what can be selected
+     * (interface LWSelection.Acceptor)
+     */
+    public boolean accept(LWComponent c) {
+        if (getSelectionType() != null)
+            return getSelectionType().isInstance(c);
+        else
+            return true;
+    }
 
     public void setLinkedButton(AbstractButton b) {
         mLinkedButton = b;

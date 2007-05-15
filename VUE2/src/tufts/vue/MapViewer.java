@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.365 $ / $Date: 2007-05-14 23:04:39 $ / $Author: sfraize $ 
+ * @version $Revision: 1.366 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -946,9 +946,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private void ensureMapVisible()
     {
         if (mMap == mFocal && mMap != null && mMap.hasChildren()) {
-            int count = computeSelection(getVisibleMapBounds(), null).size();
-            if (DEBUG.INIT || DEBUG.VIEWER) out("i see " + count + " components in visible map bounds " + getVisibleMapBounds());
-            if (count == 0)
+            final int visibleObjects = computeSelection(getVisibleMapBounds()).size();
+            if (DEBUG.INIT || DEBUG.VIEWER) out("i see " + visibleObjects + " components in visible map bounds " + getVisibleMapBounds());
+            if (visibleObjects == 0)
                 tufts.vue.ZoomTool.setZoomFit(this);
         }
     }
@@ -1413,11 +1413,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     */
 
-    private java.util.List computeSelection(final Rectangle2D mapRect, final Class selectionType)
+    //private java.util.List computeSelection(final Rectangle2D mapRect, final Class selectionType)
+    private java.util.List computeSelection(final Rectangle2D mapRect)
     {
         PickContext pc = getPickContext((Rectangle2D.Float) mapRect);
 
-        pc.pickType = selectionType;
+        //pc.pickType = selectionType;
 
         return LWTraversal.RegionPick.pick(pc);
     }
@@ -1549,6 +1550,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         } else {
             pc.root = mFocal;
         }
+        pc.acceptor = (Acceptor) activeTool;
         pc.maxLayer = getMaxLayer();
         pc.pickDepth = (mFocal == mMap) ? 0 : 1;
         return activeTool.getPickContext(pc, x, y);
@@ -1557,6 +1559,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected PickContext getPickContext(Rectangle2D.Float rect) {
         PickContext pc = new PickContext(rect);
         pc.root = mFocal;
+        pc.acceptor = (Acceptor) activeTool;
         pc.maxLayer = getMaxLayer();
         pc.excluded = mFocal; // never pick the focal for a dragged selection
         pc.pickDepth = (mFocal == mMap) ? 0 : 1;
@@ -5053,7 +5056,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     else
                         selectionType = activeTool.getSelectionType();
 
-                    List list = computeSelection(screenToMapRect(draggedSelectorBox), selectionType);
+                    List list = computeSelection(screenToMapRect(draggedSelectorBox));
                     
                     if (e.isShiftDown())
                         selectionToggle(list.iterator());

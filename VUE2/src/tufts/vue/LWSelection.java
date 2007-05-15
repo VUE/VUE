@@ -29,7 +29,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.62 $ / $Date: 2007-05-11 21:36:57 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -40,6 +40,10 @@ import java.awt.geom.RectangularShape;
 // instead of always adding and removing from the individual objects.
 public class LWSelection extends java.util.ArrayList<LWComponent>
 {
+    public interface Acceptor extends tufts.vue.Acceptor<LWComponent> {
+        /** @return true if the given object acceptable for selection  */
+        public boolean accept(LWComponent c);
+    }
     private List listeners = new java.util.ArrayList();
     private List controlListeners = new java.util.LinkedList();
     private Rectangle2D.Float mBounds = null;

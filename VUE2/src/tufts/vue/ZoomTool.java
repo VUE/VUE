@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.56 $ / $Date: 2007-05-14 13:48:45 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -390,7 +390,12 @@ public class ZoomTool extends VueTool
         if (viewer.inScrollPane())
             return;
         
-        final int frames = 4; // will do frame-1 intermediate frames: last is left to caller for the exact final value
+        //final int frames = 20;
+        final int frames = 8; 
+        //final int frames = 4;
+
+        // will paint (frame - 1) intermediate frames: the last frame is left so the caller
+        // can establish the exact final display coordinate
 
         double cz = viewer.getZoomFactor();
         double cx = viewer.getOriginX();

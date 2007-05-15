@@ -20,35 +20,30 @@
 
 package tufts.vue;
 
-import java.lang.*;
-import java.util.*;
-import javax.swing.*;
+// import java.util.*;
+// import javax.swing.*;
 
 public class TextTool extends VueTool
 {
-    /* the contextual tool panel **/
-    //private static TextToolPanel sTextToolPanel;
-
-	
     public TextTool() {}
-
-    @Override
-    public boolean supportsSelection() { return true; }
-    
-	
-    @Override
-    public boolean handleKeyPressed(java.awt.event.KeyEvent e)  {
-        return false;
-    }
-    
 
     @Override
     protected LWComponent createStyleCache() {
         return NodeModeTool.createTextNode("StyleCache: " + getClass());
     }
+
+    /*
+      // this prevents us from clicking on a regular node to immediately activate text edit...
+    public boolean accept(LWComponent c) {
+        return tufts.vue.LWNode.isTextNode(c);
+    }
+    */
     
     
     /*
+    /* the contextual tool panel 
+    //private static TextToolPanel sTextToolPanel;
+	
     static TextToolPanel getTextToolPanel()
     {
         if (sTextToolPanel == null)

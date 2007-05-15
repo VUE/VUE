@@ -974,12 +974,32 @@ private static int OverviewMapSizeIndex = 5;
             final LWComponent lastSlideAncestor = lastFocal == null ? null : lastFocal.getAncestorOfType(LWPathway.class);
             final LWComponent thisSlideAncestor = thisFocal.getAncestorOfType(LWPathway.class);
             
-            if (lastParent == thisParent || lastSlideAncestor == thisSlideAncestor)
+            if (lastParent == thisParent || lastSlideAncestor == thisSlideAncestor) {
+                
                 animate = true;
-            else
+                
+                if (lastParent == thisParent && thisParent instanceof LWMap) {
+                    // temporarily load the map as the focal so we can
+                    // see the animation across the map
+                    viewer.loadFocal(thisParent);
+                    /*
+                      // this just hosing us...
+                    GUI.invokeAfterAWT(new Runnable() {
+                            public void run() {
+                                ZoomTool.setZoomFitRegion(viewer,
+                                                          thisFocal.getBounds(),
+                                                          0,
+                                                          false);
+                            }});
+                    */
+                }
+            } else
                 animate = false;
             
-            zoomToFocal(thisFocal, animate);
+            GUI.invokeAfterAWT(new Runnable() {
+                    public void run() {
+                        zoomToFocal(thisFocal, animate);
+                    }});
         }
     }
     

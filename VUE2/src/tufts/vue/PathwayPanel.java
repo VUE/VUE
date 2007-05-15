@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.83 $ / $Date: 2007-05-14 17:47:35 $ / $Author: sfraize $
+ * @version $Revision: 1.84 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -80,7 +80,7 @@ public class PathwayPanel extends JPanel
 //                                                             VueResources.getImageIcon("presentationDialog.button.showNodes.raw"),
 //                                                             VueResources.getImageIcon("presentationDialog.button.showSlides.disabled"));
     // hack for now as single button just to get this working:
-    private final JToggleButton btnShowSlides = new VueButton.Toggle("presentationDialog.button.showSlides");
+    private final JToggleButton btnShowSlides = new VueButton.Toggle("presentationDialog.button.showSlides",this);
     
     
     //playback mode
@@ -145,7 +145,6 @@ public class PathwayPanel extends JPanel
   //  	btnDisplayAsText.setEnabled(false);
     	//END    	
 
-        btnShowSlides.addActionListener(this);
         LWPathway.setShowSlides(btnShowSlides.isSelected());    
     	
         //Font defaultFont = new Font("Helvetica", Font.PLAIN, 12);

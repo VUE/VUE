@@ -23,7 +23,7 @@ package tufts.vue;
  *
  * This class essentially just a parameter block for picking LWTraversals.
  *
- * @version $Revision: 1.5 $ / $Date: 2007-04-14 22:12:13 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -48,7 +48,8 @@ public class PickContext
     public LWComponent excluded = null;
 
     /** Only pick instances of this type (some LWComponent subclass) */
-    public Class pickType = null;
+    //public Class pickType = null;
+    public Acceptor acceptor = null;
 
     /** A modifier for how deep to allow the pick: mediated by the LWComponent hierarcy with pickChild/defaultPick */
     public int pickDepth = 0;
@@ -90,7 +91,8 @@ public class PickContext
             + " pickDepth=" + pickDepth
             + " maxLayer=" + maxLayer
             + " maxDepth=" + maxDepth
-            + " pickType=" + pickType
+            + " acceptor=" + acceptor
+            //+ " pickType=" + pickType
             + "]";
     }
 
