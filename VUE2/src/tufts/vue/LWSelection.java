@@ -29,7 +29,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.63 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2007-05-16 16:07:03 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -231,6 +231,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             inNotify = false;
         }
 
+        // special case: LWMap silently auto-removes itself from the selection after notification:
+        // (a map should never be in the selection with anything else)
+        if (first() instanceof LWMap)
+            clear0();
+
     }
 
     private boolean notifyUnderway() {
@@ -341,6 +346,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         if (DEBUG.SELECTION) System.out.println(this + " adding " + c);
 
         if (notifyUnderway())
+            return;
+
+        // special case: do NOT allow an instanceof LWMap to be added
+        // to the selection if there's anything else in it:
+        if (size() > 0 && c instanceof LWMap)
             return;
         
         if (!c.isSelected()) {

@@ -261,10 +261,15 @@ public class LWImage extends
     
     public void setResource(Resource r) {
         if (r == null) {
-            if (DEBUG.Enabled) out("nulling out LWImage resource: should only happen if it's creation is being undone");
-            return;
+            //if (DEBUG.Enabled) out("nulling out LWImage resource: should only happen if it's creation is being undone");
+            if (DEBUG.Enabled) out("resource set to null");
+            mImage = null;
+            mImageWidth = -1;
+            mImageHeight = -1;
+            super.setResource(r);
+        } else {
+            setResourceAndLoad(r, null);
         }
-        setResourceAndLoad(r, null);
     }
 
     // todo: find a better way to do this than passing in an undo manager, which is dead ugly

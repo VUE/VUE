@@ -55,7 +55,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.125 $ / $Date: 2007-05-16 15:17:03 $ / $Author: sfraize $
+ * @version $Revision: 1.126 $ / $Date: 2007-05-16 16:07:02 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -706,8 +706,8 @@ public class LWMap extends LWContainer
      */
     @Override
     protected LWComponent defaultPick(PickContext pc) {
-        //return this; // allow picking of the map
-        return null;
+        return this; // allow picking of the map
+        //return null;
     }
     
     
