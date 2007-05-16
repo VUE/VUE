@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.155 $ / $Date: 2007-05-15 23:03:57 $ / $Author: mike $
+ * @version $Revision: 1.156 $ / $Date: 2007-05-16 17:13:00 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -955,6 +955,12 @@ public class LWPathway extends LWContainer
 
         /** for castor persistance */
         public MasterSlide() {}
+
+        /** @return LWSlide.class -- don't create a special style type for master slides */
+        @Override
+        public Object getTypeToken() {
+            return LWSlide.class;
+        }
 
         void completeXMLRestore() {
             for (LWComponent c : children) {
