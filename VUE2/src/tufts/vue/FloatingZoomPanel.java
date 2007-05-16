@@ -77,7 +77,7 @@ public class FloatingZoomPanel extends JPanel
        //zt.initFromResources();
         
         //The floating toolbar is a subset of the toolbar so load tools from the instance map..
-        mVueTools = VueToolUtils.loadTools(fullScreenTools);
+        mVueTools = VueToolUtils.loadToolsFromMap(fullScreenTools);
        
         for (int i = 0; i < mVueTools.length;i++)
         	addTool(mVueTools[i]);
