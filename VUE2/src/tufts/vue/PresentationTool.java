@@ -354,6 +354,7 @@ public class PresentationTool extends VueTool
         if (singleton != null) 
             new Throwable("Warning: mulitple instances of " + this).printStackTrace();
         singleton = this;
+        VueToolUtils.setToolProperties(this,"viewTool");	
         VUE.addActiveListener(LWPathway.Entry.class, this);
     }
     
@@ -385,7 +386,7 @@ public class PresentationTool extends VueTool
     public static PresentationTool getTool()
     {
         if (singleton == null) {
-            new Throwable("Warning: PresentationTool.getTool: class not initialized by VUE").printStackTrace();
+           // new Throwable("Warning: PresentationTool.getTool: class not initialized by VUE").printStackTrace();
             //throw new IllegalStateException("NodeTool.getTool: class not initialized by VUE");
             new PresentationTool();
         }
