@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.23 $ / $Date: 2007-05-09 15:57:00 $ -->
+<!-- $Revision: 1.24 $ / $Date: 2007-05-16 17:11:46 $ -->
 
 <!-- 
 This ant build file:
@@ -354,6 +354,16 @@ This ant build file:
 		<arg value="edu.tufts.osidimpl.testing.repository.OsidTester"/>
 		<classpath refid="compile.classpath"/>
 		<sysproperty key="testProfile" value="sakai-pingProfile.xml"/>
+	</java>
+	</target>
+
+	<!--- =============  Test upload to Sakai =========-->
+	<target name="SakaiUpload" depends="compile" description="Test upload to Sakai">
+	<echo message="Sakai Upload Test"/>
+	<java classname="junit.textui.TestRunner" failonerror="true" fork="true">
+		<arg value="edu.tufts.osidimpl.testing.repository.OsidTester"/>
+		<classpath refid="compile.classpath"/>
+		<sysproperty key="testProfile" value="sakai-uploadProfile.xml"/>
 	</java>
 	</target>
 </project>

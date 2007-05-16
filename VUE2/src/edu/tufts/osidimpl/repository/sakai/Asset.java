@@ -30,7 +30,7 @@ implements org.osid.repository.Asset
     private org.osid.shared.Id assetId = null;
 	private String assetIdString = null;
 	private org.osid.shared.Type assetType = null;
-    private org.osid.shared.Type uploadAssetType =  new Type("org.sakaiproject","asset","upload");
+    private org.osid.shared.Type mimeType =  new Type("mit.edu","asset","MIME");
 	private org.osid.repository.Repository repository = null;
 	private org.osid.repository.Record record = null;
 	private org.osid.shared.Id recordStructureId = null;
@@ -53,7 +53,6 @@ implements org.osid.repository.Asset
 					String displayName,
 					String url)
     {
-		System.out.println("this constructor");
 		this.assetIdString = assetIdString;
 		this.assetType = assetType;
 		this.key = key;
@@ -86,13 +85,13 @@ implements org.osid.repository.Asset
 				String name = Utilities.expectedValue(resourceElement,NAME_TAG);
 				String type = Utilities.expectedValue(resourceElement,TYPE_TAG);
 				String url = Utilities.expectedValue(resourceElement,URL_TAG);
-				
+				/*
 				System.out.println("Next Resource");
 				System.out.println("\tId: " + id);
 				System.out.println("\tName: " + name);
 				System.out.println("\tType: " + type);
 				System.out.println("\tURL: " + url);
-				
+				*/
 				org.osid.shared.Type assetType = null;
 				if (type.equals("collection")) assetType = Utilities.getCollectionAssetType();
 				if (type.equals("resource")) assetType = Utilities.getResourceAssetType();
@@ -164,10 +163,6 @@ implements org.osid.repository.Asset
 		}
 		try {
 			// OBA assumes serializable is a byte array
-			String collectionId = "/group/27b63481-494f-42b0-00f1-a1048d26efb5/";
-			String name = this.displayName;
-			String resourceId = collectionId + name;
-			
 			Service  service = new Service();
 			Call call = (Call) service.createCall();
 			call = (Call) service.createCall();
@@ -175,11 +170,17 @@ implements org.osid.repository.Asset
 			String address = Utilities.getAddress();
 			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
 			call.setOperationName(new QName(address, "getContentData"));
+			String result = (String) call.invoke( new Object[] {sessionId, this.assetIdString} );
 			
-			String result = (String) call.invoke( new Object[] {sessionId, resourceId} );
-			return org.apache.axis.encoding.Base64.decode(result);
+			SakaiContentObject obj = new SakaiContent();
+			obj.setDisplayName(getDisplayName());
+			obj.setDescription(getDescription());
+			if (getAssetType().isEqual(this.mimeType)) {
+				obj.setMIMEType(getAssetType().getKeyword());
+			}
+			obj.setBytes(org.apache.axis.encoding.Base64.decode(result));
+			return obj;
 		} catch (Throwable t) {
-			t.printStackTrace();
 			throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
 		}
 	}	
@@ -191,9 +192,38 @@ implements org.osid.repository.Asset
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
 		}
 		if (!(this.assetType.isEqual(Utilities.getCollectionAssetType()))) {
+			System.out.println("Not a collection type " + Utilities.typeToString(this.assetType));
 			throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);
 		}
-		throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
+		if (!(content instanceof SakaiContentObject)) {
+			System.out.println("Not a Sakai Content Object");
+			throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);
+		}
+
+		try {
+			// OBA assumes serializable is a SakaiContentUploadObject
+			Service  service = new Service();
+			Call call = (Call) service.createCall();
+			call = (Call) service.createCall();
+			String endpoint = Utilities.getEndpoint();
+			String address = Utilities.getAddress();
+			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+			
+			SakaiContentObject upload = (SakaiContentObject)content;
+			String name = upload.getDisplayName();
+			String description = upload.getDescription();
+			String type = upload.getMIMEType();
+			byte[] bytes = upload.getBytes();
+			int sizeInBytes = bytes.length;
+			System.out.println("bytes before encode " + sizeInBytes);
+			String encodedContent = Base64.encode(bytes,0,sizeInBytes);
+			System.out.println("encoded " + encodedContent.length());
+			
+			call.setOperationName(new QName(address, "createContentItem"));			
+			String result = (String) call.invoke( new Object[] {sessionId, name, this.assetIdString, encodedContent, description, type, false} );
+		} catch (Throwable t) {
+			throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
+		}
 	}
 
     public void addAsset(org.osid.shared.Id assetId)

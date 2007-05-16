@@ -47,11 +47,11 @@ implements org.osid.repository.Repository
 		this.assetTypeVector.addElement(Utilities.getCollectionAssetType());
 		this.assetTypeVector.addElement(Utilities.getResourceAssetType());
 		this.repositoryId = Utilities.getRepositoryId();
-		try {
+/*		try {
 			System.out.println("Repository id is " + this.repositoryId.getIdString());
 		} catch (Throwable t) {
-			
 		}
+*/			
 	}
 
     public String getDisplayName()
@@ -274,23 +274,17 @@ implements org.osid.repository.Repository
         }
 		try {
 			String endpoint = Utilities.getEndpoint();
-			System.out.println("Endpoint " + endpoint);
+			//System.out.println("Endpoint " + endpoint);
 			String address = Utilities.getAddress();
-			System.out.println("Address " + address);
+			//System.out.println("Address " + address);
 			
 			Service  service = new Service();
 			Call call = (Call) service.createCall();
 			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
-			call.setOperationName(new QName(address, "getResources"));
+			call.setOperationName(new QName(address, "getInfo"));
 			String assetIdString = assetId.getIdString();
 			String siteString = (String) call.invoke( new Object[] {sessionId, assetIdString} );
-			System.out.println("Sent ContentHosting.getAllResources(sessionId,assetId), got '" + siteString + "'");
-			
-			System.out.println("getting info");
-			call.setOperationName(new QName(address, "getInfo"));
-			System.out.println((String) call.invoke( new Object[] {sessionId, assetIdString} ));
-			System.out.println("got info");
-			
+			//System.out.println("Sent ContentHosting.getInfo(sessionId,assetId), got '" + siteString + "'");
 			return new Asset(this.key,siteString);			
 		} catch (Throwable t) {
 			Utilities.log(t);
