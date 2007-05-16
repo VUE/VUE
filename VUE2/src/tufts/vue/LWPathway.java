@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.157 $ / $Date: 2007-05-16 18:37:39 $ / $Author: sfraize $
+ * @version $Revision: 1.158 $ / $Date: 2007-05-16 19:59:20 $ / $Author: mike $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -106,7 +106,7 @@ public class LWPathway extends LWContainer
         private Entry(LWPathway pathway, Iterable<LWComponent> contents) {
             this.pathway = pathway;
             this.node = null;
-            String titleText = "Untitled";
+            String titleText = "Untitled Slide";
             this.slide = LWSlide.CreateForPathway(pathway, titleText, null, contents, true);
             this.slide.enableProperty(LWKey.Label);
             this.setLabel(titleText);
