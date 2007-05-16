@@ -55,7 +55,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.124 $ / $Date: 2007-05-16 05:24:26 $ / $Author: sfraize $
+ * @version $Revision: 1.125 $ / $Date: 2007-05-16 15:17:03 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -704,10 +704,11 @@ public class LWMap extends LWContainer
     /** override of LWContainer: default hit component on the map
      * is nothing -- we just @return null.
      */
-//     @Override
-//     protected LWComponent defaultPick(PickContext pc) {
-//         return null;
-//     }
+    @Override
+    protected LWComponent defaultPick(PickContext pc) {
+        //return this; // allow picking of the map
+        return null;
+    }
     
     
     /* override of LWComponent: parent == null indicates deleted,
