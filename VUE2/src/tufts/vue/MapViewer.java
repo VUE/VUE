@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.368 $ / $Date: 2007-05-16 00:37:21 $ / $Author: sfraize $ 
+ * @version $Revision: 1.369 $ / $Date: 2007-05-16 01:10:31 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1536,7 +1536,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         pc.root = mFocal;
         pc.acceptor = (Acceptor) activeTool;
         //pc.maxLayer = getMaxLayer();
-        pc.excluded = mFocal; // never pick the focal for a dragged selection
         if (mFocal != null) {
             // always allow picking through to children of the focal
             pc.pickDepth = mFocal.getPickLevel();
@@ -1560,19 +1559,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             pc.root = mFocal;
         }
 
-        // TODO: only one of activeTool.pickNode and getPickContext??
-        return activeTool.getPickContext(pc, x, y);
+        return activeTool.initPick(pc, x, y);
     }
     
     protected PickContext getPickContext(Rectangle2D.Float rect)
     {
         final PickContext pc = initPickContext(new PickContext(rect));
         
+        // never pick the focal for a dragged selection -- it's the background
+        pc.excluded = mFocal;
         // for rectangular picks, only ever pick top-level items (no children)
         pc.maxDepth = 1;
         
-        // TODO: only one of activeTool.pickNode and getPickContext??
-        return activeTool.getPickContext(pc, rect);
+        return activeTool.initPick(pc, rect);
     }
         
     protected int getMaxLayer() {
@@ -2775,11 +2774,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //if (!sDragUnderway)
             //drawSelectionBoxHandles(g2, mapSelectionBounds);
             
-            // TODO: this a hack: see if can handle via PickContext/DrawContext
-//             final boolean deepSelection =
-//                 selection.allHaveSameParentOfType(LWGroup.class) ||
-//                 (selection.allHaveSameParentOfType(LWSlide.class) && first.getParent().isMoveable());
-            final boolean deepSelection = false;
+            // TODO: this a total hack: figure out via pickDepth / pickLevel, adding a getCurrentPickLevel to LWComponent
+            final boolean deepSelection =
+                selection.allHaveSameParentOfType(LWGroup.class) ||
+                (selection.allHaveSameParentOfType(LWSlide.class) && first.getParent().isMoveable());
             
             setSelectionBoxResizeHandles(mapSelectionBounds);
             resizeControl.active = true;
@@ -4065,7 +4063,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //if (activeTool.supportsSelection() || activeTool.supportsClick()) {
             // Change to supportsComponentSelection?
             if (activeTool.supportsSelection()) {
-                hitComponent = activeTool.pickNodeAt(getPickContext(mapX, mapY));
+                //hitComponent = activeTool.pickNodeAt(getPickContext(mapX, mapY));
+                hitComponent = pickNode(mapX, mapY);
                 if (DEBUG.MOUSE && hitComponent != null)
                     System.out.println("\t    on " + hitComponent + "\n" +
                     "\tparent " + hitComponent.getParent());
@@ -5155,10 +5154,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             LWContainer parentTarget;
             if (indication == null) {
-                if (mFocal instanceof LWContainer) {
+                if (mFocal instanceof LWContainer && mFocal.supportsChildren()) {
                     parentTarget = (LWContainer) mFocal;
                 } else {
-                    VUE.Log.debug("MapViewer: drag check of non-container focal " + mFocal);
+                    //VUE.Log.debug("MapViewer: drag check of non-container focal " + mFocal);
                     return;
                 }
             } else

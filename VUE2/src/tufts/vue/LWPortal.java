@@ -31,7 +31,7 @@ import java.awt.Color;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.6 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $ 
+ * @version $Revision: 1.7 $ / $Date: 2007-05-16 01:10:31 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -60,9 +60,11 @@ public class LWPortal extends LWNode
     //@Override protected void layoutImpl(Object triggerKey) {}
     //@Override protected void layout(Object triggerKey, Size curSize, Size request) {} // overkill: shrinks to nothing?
     /** override to so we aren't constrainted by LWNode's minimum size */
-    @Override protected Size getTextSize() { return Size.None; }
+    @Override
+    protected Size getTextSize() { return Size.None; }
 
-    @Override protected void userSetSize(float width, float height, MapMouseEvent e)
+    @Override
+    protected void userSetSize(float width, float height, MapMouseEvent e)
     {
         if (e.isShiftDown()) {
             // Allow constraining to slide aspect:
@@ -73,13 +75,13 @@ public class LWPortal extends LWNode
         }
     }
 
-    
-
-    @Override public boolean supportsUserLabel() {
+    @Override
+    public boolean supportsUserLabel() {
         return false;
     }
     
-    @Override protected void drawImpl(DrawContext dc)
+    @Override
+    protected void drawImpl(DrawContext dc)
     {
         if (DEBUG.BOXES || DEBUG.CONTAINMENT) {
             dc.g.setColor(DebugFill);
@@ -119,25 +121,30 @@ public class LWPortal extends LWNode
     */
     
 
-    @Override public boolean hasLabel() { // so LWNode won't draw it
+    @Override
+    public boolean hasLabel() { // so LWNode won't draw it
         return false;
     }
     
-    @Override public Color getRenderFillColor(DrawContext dc) {
+    @Override
+    public Color getRenderFillColor(DrawContext dc) {
         if (dc != null)
             return dc.focal.mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
         else
             return getMap().mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
     }
 
-    @Override public boolean supportsChildren() {
+    @Override
+    public boolean supportsChildren() {
         return false;
     }
-    @Override public boolean supportsReparenting() {
+    @Override
+    public boolean supportsReparenting() {
         return false;
     }
 
-    @Override protected boolean iconShowing() {
+    @Override
+    protected boolean iconShowing() {
         return false;
     }
 

@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.63 $ / $Date: 2007-05-16 00:41:06 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2007-05-16 01:10:32 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -411,10 +411,10 @@ public abstract class VueTool extends AbstractAction
         return false;
     }
 
-    public PickContext getPickContext(PickContext pc, float x, float y) {
+    public PickContext initPick(PickContext pc, float x, float y) {
         return pc;
     }
-    public PickContext getPickContext(PickContext pc, java.awt.geom.Rectangle2D.Float rect) {
+    public PickContext initPick(PickContext pc, java.awt.geom.Rectangle2D.Float rect) {
         return pc;
     }
     
@@ -524,9 +524,9 @@ public abstract class VueTool extends AbstractAction
 //     public LWComponent pickNodeAt(PickContext pc, float mapX, float mapY) {
 //         return LWTraversal.PointPick.pick(pc, mapX, mapY);
 //     }
-    public LWComponent pickNodeAt(PickContext pc) {
-        return LWTraversal.PointPick.pick(pc);
-    }
+//     public LWComponent pickNodeAt(PickContext pc) {
+//         return LWTraversal.PointPick.pick(pc);
+//     }
 
 	
     /**

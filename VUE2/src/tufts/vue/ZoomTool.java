@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.59 $ / $Date: 2007-05-16 00:37:21 $ / $Author: sfraize $
+ * @version $Revision: 1.60 $ / $Date: 2007-05-16 01:10:32 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -224,7 +224,7 @@ public class ZoomTool extends VueTool
     }
 
     @Override
-    public PickContext getPickContext(PickContext pc, float x, float y) {
+    public PickContext initPick(PickContext pc, float x, float y) {
         if (zoomedTo != null)
             pc.pickDepth = zoomedTo.getPickLevel();
         return pc;

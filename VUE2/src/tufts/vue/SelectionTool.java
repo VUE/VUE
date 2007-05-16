@@ -40,9 +40,9 @@ public class SelectionTool extends VueTool {
     public boolean supportsSelection() { return true; }
 
     static class Direct extends SelectionTool {
-        public LWComponent pickNodeAt(PickContext pc) {
+        public PickContext initPick(PickContext pc, float x, float y) {
             pc.pickDepth = 1;
-            return super.pickNodeAt(pc);
+            return pc;
         }
     }
     
