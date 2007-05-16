@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.435 $ / $Date: 2007-05-16 18:39:06 $ / $Author: sfraize $ 
+ * @version $Revision: 1.436 $ / $Date: 2007-05-16 22:23:29 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -484,14 +484,18 @@ public class VUE
             try {
                 Iterator i = FilesToOpen.iterator();
                 while (i.hasNext()) {
-                    String fileName = (String) i.next();
-                    VUE.activateWaitCursor();
-                    LWMap map = OpenAction.loadMap(fileName);
-                    if (DEBUG.INIT) out("opening map during startup " + map);
-                    if (map != null) {
-                        displayMap(map);
-                        openedUserMap = true;
-                    }
+                    final String fileName = (String) i.next();
+                    openedUserMap = true;
+                    GUI.invokeAfterAWT(new Runnable() {
+                            public void run() {
+                                VUE.activateWaitCursor();
+                                LWMap map = OpenAction.loadMap(fileName);
+                                if (DEBUG.INIT) out("opening map during startup " + map);
+                                if (map != null) {
+                                    displayMap(map);
+                                    //openedUserMap = true;
+                                }
+                            }});
                 }
             } finally {
                 VUE.clearWaitCursor();                
@@ -867,7 +871,7 @@ public class VUE
         public static void ApplyProperties(LWComponent c) {
             LWComponent styleForType = fetchStyleCache(c);
             if (styleForType != null) {
-                if (DEBUG.STYLE) out("COPY STYLE " + styleForType + " -> " + c);
+                //if (DEBUG.STYLE) out("COPY STYLE of " + styleForType + " -> " + c);
                 c.copyStyle(styleForType);
             }
         }
