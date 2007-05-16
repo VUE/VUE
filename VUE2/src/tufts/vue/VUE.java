@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.434 $ / $Date: 2007-05-16 16:05:40 $ / $Author: sfraize $ 
+ * @version $Revision: 1.435 $ / $Date: 2007-05-16 18:39:06 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -690,8 +690,8 @@ public class VUE
 
         private synchronized LWComponent getStyleCache(LWComponent c) {
             final Object token = c.getTypeToken();
-            LWComponent styleHolder = TypedStyleCache.get(token);
-            if (styleHolder == null) {
+            LWComponent styleHolder = token == null ? null : TypedStyleCache.get(token);
+            if (styleHolder == null && token != null) {
                 if (DEBUG.STYLE) out("creating style holder based on " + c);
 
                 // As any LWComponent can be used as a style source,
