@@ -77,6 +77,8 @@ public class LinkTool extends VueTool
         return null;//getLinkToolPanel();
     }
 
+    /** @return LWLink.class */
+    @Override
     public Class getSelectionType() { return LWLink.class; }
 
     private static final Object LOCK = new Object();
@@ -341,6 +343,10 @@ public class LinkTool extends VueTool
             setActiveWhileDownKeyCode(KeyEvent.VK_ALT);
             //setActiveWhileDownKeyCode(VueUtil.isMacPlatform() ? KeyEvent.VK_ALT : KeyEvent.VK_CONTROL);
         }    	     
+
+        /** @return LWLink.class */
+        @Override
+        public Class getSelectionType() { return LWLink.class; }
 
         @Override
         public void handleDragAbort()
