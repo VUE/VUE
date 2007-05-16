@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.6 $ / $Date: 2007-05-14 13:57:29 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2007-05-16 22:21:58 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -44,6 +44,7 @@ public class ActiveChangeSupport<T>
     public ActiveChangeSupport(Class clazz) {
         type = clazz;
         typeName = "<" + type.getName() + ">";
+        lock(null, "INIT");
         synchronized (AllActiveHandlers) {
             if (AllActiveHandlers.containsKey(type)) {
                 // tho this is an error, the safest thing to do is blow away the old one,
@@ -55,27 +56,35 @@ public class ActiveChangeSupport<T>
             }
             AllActiveHandlers.put(type, this);
         }
+        unlock(null, "INIT");
         if (DEBUG.INIT || DEBUG.EVENTS) System.out.println("Created ActiveChangeSupport"  + typeName);
     }
 
     public static ActiveChangeSupport getHandler(Class type) {
+        ActiveChangeSupport handler = null;
+        lock(null, "getHandler");
         synchronized (AllActiveHandlers) {
-            ActiveChangeSupport handler = AllActiveHandlers.get(type);
+            handler = AllActiveHandlers.get(type);
             if (handler == null)
                 handler = new ActiveChangeSupport(type);
-            return handler;
         }
+        unlock(null, "getHandler");
+        return handler;
     }
 
     public void setActive(Object source, T newActive) {
-        if (currentlyActive == newActive)
-            return;
-        if (DEBUG.EVENTS) System.out.format("ActiveInstance%s nowActive: %s  (source is %s)\n", typeName, newActive, source);
-        final T oldActive = currentlyActive;
-        currentlyActive = newActive;
-        final ActiveEvent e = new ActiveEvent(type, source, oldActive, newActive);
-        notifyListeners(e);
-        onChange(e);
+        lock(this, "setActive");
+        synchronized (this) {
+            if (currentlyActive == newActive)
+                return;
+            if (DEBUG.EVENTS) System.out.format("ActiveInstance%s nowActive: %s  (source is %s)\n", typeName, newActive, source);
+            final T oldActive = currentlyActive;
+            currentlyActive = newActive;
+            final ActiveEvent e = new ActiveEvent(type, source, oldActive, newActive);
+            notifyListeners(e);
+            onChange(e);
+        }
+        unlock(this, "setActive");
     }
 
     protected void onChange(ActiveEvent<T> e) {}
@@ -85,14 +94,20 @@ public class ActiveChangeSupport<T>
             tufts.Util.printStackTrace(this + ": event loop! aborting delivery of: " + e);
             return;
         }
-
-        // todo: synchronize or allow concurrent modification
         
+        final ActiveListener[] listeners;
+
+        lock(this, "NOTIFY " + listenerList.size());
+        synchronized (listenerList) {
+            listeners = listenerList.toArray(new ActiveListener[listenerList.size()]);
+        }
+        unlock(this, "NOTIFY " + listenerList.size());
+
         inNotify = true;
         try {
             Object target;
             Method method;
-            for (ActiveListener<T> listener : listenerList) {
+            for (ActiveListener listener : listeners) {
                 if (listener instanceof MethodProxy) {
                     target = ((MethodProxy)listener).target;
                     method = ((MethodProxy)listener).method;
@@ -126,9 +141,11 @@ public class ActiveChangeSupport<T>
     }
 
     public void addListener(ActiveListener listener) {
+        lock(this, "addListener");
         synchronized (listenerList) {
             listenerList.add(listener);
         }
+        unlock(this, "addListener");
     }
 
     public void addListener(Object listener) {
@@ -150,9 +167,18 @@ public class ActiveChangeSupport<T>
     
 
     public void removeListener(ActiveListener listener) {
+        lock(this, "removeListener");
         synchronized (listenerList) {
             listenerList.remove(listener);
         }
+        unlock(this, "removeListener");
+    }
+
+    private static void lock(ActiveChangeSupport o, String msg) {
+        if (DEBUG.THREAD) System.err.println((o == null ? "ACS" : o) + " " + msg + " LOCK");
+    }
+    private static void unlock(ActiveChangeSupport o, String msg) {
+        if (DEBUG.THREAD) System.err.println((o == null ? "ACS" : o) + " " + msg + " UNLOCK");
     }
     
     public void removeListener(Object listener) {
