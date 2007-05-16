@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.273 $ / $Date: 2007-05-16 04:41:01 $ / $Author: sfraize $
+ * @version $Revision: 1.274 $ / $Date: 2007-05-16 22:24:01 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -251,6 +251,7 @@ public class LWComponent
     
     /** Apply all style properties from styleSource to this component */
     public void copyStyle(LWComponent styleSource) {
+        if (DEBUG.STYLE) System.out.println("COPY STYLE of " + styleSource + " ==>> " + this);
         for (Key key : Key.AllKeys)
             if (key.isStyleProperty)
                 key.copyValue(styleSource, this);
@@ -604,9 +605,10 @@ u                    getSlot(c).setFromString((String)value);
             } else if (!target.supportsProperty(this)) {
                 if (DEBUG.STYLE && DEBUG.META) System.err.println(" COPY-VALUE: " + this + "; target doesn't support this property; " + target);
             } else {
-                if (DEBUG.STYLE) System.err.print(" COPY-VALUE: " + this + "(");
                 final TValue copyValue = getValue(source);
-                if (DEBUG.STYLE) System.err.println(copyValue + ") -> " + target);
+                if (DEBUG.STYLE) System.out.format("  COPY-VALUE: %s %-15s %-40s -> %s\n", source, name, "(" + copyValue + ")", target);
+                //if (DEBUG.STYLE) System.err.print(" COPY-VALUE: " + this + "(");
+                //if (DEBUG.STYLE) System.err.println(copyValue + ") -> " + target);
                 setValue(target, copyValue);
             }
         }
