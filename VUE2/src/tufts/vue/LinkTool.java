@@ -77,6 +77,8 @@ public class LinkTool extends VueTool
         return null;//getLinkToolPanel();
     }
 
+    public Class getSelectionType() { return LWLink.class; }
+
     private static final Object LOCK = new Object();
   /*  static LinkToolPanel getLinkToolPanel() {
         synchronized (LOCK) {
@@ -87,7 +89,6 @@ public class LinkTool extends VueTool
     }
 */
     /*
-    public Class getSelectionType() { return LWLink.class; }
 
     final public Object getPropertyKey() { return LWKey.LinkShape; }
     public Object produceValue() {
