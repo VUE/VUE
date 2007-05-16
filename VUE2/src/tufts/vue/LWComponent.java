@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.271 $ / $Date: 2007-05-14 23:04:39 $ / $Author: sfraize $
+ * @version $Revision: 1.272 $ / $Date: 2007-05-16 00:37:21 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1582,7 +1582,7 @@ u                    getSlot(c).setFromString((String)value);
     public boolean supportsChildren() {
         return false;
     }
-    
+
     /** @return true: subclasses (e.g. containers), override to return false if you never want this component
         reparented by users */
     public boolean supportsReparenting() {
@@ -2022,6 +2022,19 @@ u                    getSlot(c).setFromString((String)value);
         else
             return parent.getDepth() + 1;
     }
+
+    /**
+     * @return 0 by default
+     * the pick depth (in PickContext) must be >= what this returns for descdents of this component
+     * be picked (selected, etc).  Mostly meaningful when an LWContainer subclass implements
+     * and returns something > 0, tho a single component could use this to become a "background" item.
+     * You can think of this as establishing a "wall" in the depth hierarchy, past which pick
+     * traversals will not descend unless given a high enough pickDepth to jump the wall.
+     */
+    public int getPickLevel() {
+        return 0;
+    }
+
 
     //private static LWComponent ProxySlideComponent = new LWComponent("<global-slide-proxy>");
 

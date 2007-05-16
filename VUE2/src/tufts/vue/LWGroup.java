@@ -40,7 +40,7 @@ import java.awt.geom.AffineTransform;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.59 $ / $Date: 2007-05-14 05:08:49 $ / $Author: sfraize $
+ * @version $Revision: 1.60 $ / $Date: 2007-05-16 00:37:21 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -59,11 +59,18 @@ public class LWGroup extends LWContainer
         return FancyGroups;
     }
     
+    @Override
     public boolean supportsUserResize() {
         if (FancyGroups)
             return !isTransparent();
         else
             return false;
+    }
+
+    /** @return 1 */
+    @Override
+    public int getPickLevel() {
+        return 1;
     }
 
     // atttempt to disable relative coords

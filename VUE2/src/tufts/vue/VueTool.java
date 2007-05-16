@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.61 $ / $Date: 2007-05-16 00:25:34 $ / $Author: sfraize $
+ * @version $Revision: 1.62 $ / $Date: 2007-05-16 00:37:21 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -78,6 +78,9 @@ public abstract class VueTool extends AbstractAction
 
     private static final Map<Class<? extends VueTool>, VueTool> InstanceMap = new HashMap();
 
+    /** for storing all the tools by name, including sub-tools */
+    private static final java.util.List<VueTool> mAllTools = new java.util.ArrayList();
+	
     private LWComponent mStyleCache;
     
     public VueTool() {
@@ -92,6 +95,12 @@ public abstract class VueTool extends AbstractAction
                 System.out.println("instanced " + this);
         }
         mStyleCache = createStyleCache();
+        mAllTools.add(this);
+    }
+
+    /** @return list of all tool instances  */
+    public static java.util.List<VueTool> getTools() {
+        return mAllTools;
     }
 
     public boolean isActive() {

@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.367 $ / $Date: 2007-05-15 23:03:57 $ / $Author: mike $ 
+ * @version $Revision: 1.368 $ / $Date: 2007-05-16 00:37:21 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -160,17 +160,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected VueTool activeTool;
     
     // todo: we should get rid of hard references to all the tools and handle functionality via tool API's
-    //private final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
-    //private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("selectTool");
-    //private final VueTool DirectSelectTool = VueToolbarController.getController().getTool("directSelectionTool");
-    //private final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
     private final VueTool HandTool = VueTool.getInstance(tufts.vue.HandTool.class);
-    private NodeTool NodeTool = (NodeTool)VueTool.getInstance(tufts.vue.NodeTool.class);
-    private VueTool LinkTool = VueTool.getInstance(tufts.vue.LinkTool.class);
+    private final VueTool LinkTool = VueTool.getInstance(tufts.vue.LinkTool.class);
     private final VueTool TextTool = VueTool.getInstance(tufts.vue.TextTool.class);
-    //private final VueTool PathwayTool = VueToolbarController.getController().getTool("pathwayTool");
+    private final NodeTool NodeTool = (NodeTool) VueTool.getInstance(tufts.vue.NodeTool.class);
 
-    
     //-------------------------------------------------------
     // Scroll-pane support
     //-------------------------------------------------------
@@ -197,7 +191,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         this.activeTool = VueToolbarController.getActiveTool();
         if (activeTool == null) {
             // default tool is first in list
-            activeTool = VueToolbarController.getController().getTools().get(0);
+            activeTool = VueTool.getTools().get(0);
         }
         this.mapDropTarget = new MapDropTarget(this); // new CanvasDropHandler
         this.setDropTarget(new java.awt.dnd.DropTarget(this,
@@ -1495,7 +1489,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (indication == c)
             return;
 
-        if (c instanceof LWSlide) { 
+        if (c instanceof LWSlide && !c.isMoveable()) { 
             //if (c instanceof LWSlide && mFocal != c) {
 
             // We never want to indicate the slide-icon on the main map for any reason,
@@ -1538,8 +1532,23 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return getPickContext((float)p.getX(), (float)p.getY());
     }
     
-    protected PickContext getPickContext(float x, float y) {
-        PickContext pc = new PickContext(x, y);
+    private PickContext initPickContext(PickContext pc) {
+        pc.root = mFocal;
+        pc.acceptor = (Acceptor) activeTool;
+        //pc.maxLayer = getMaxLayer();
+        pc.excluded = mFocal; // never pick the focal for a dragged selection
+        if (mFocal != null) {
+            // always allow picking through to children of the focal
+            pc.pickDepth = mFocal.getPickLevel();
+        }
+        //pc.pickDepth = (mFocal == mMap) ? 0 : 1;
+        return pc;
+    }
+
+    protected PickContext getPickContext(float x, float y)
+    {
+        final PickContext pc = initPickContext(new PickContext(x, y));
+        
         if (mFocal instanceof LWPortal) {
             // we can pick right through the portal to the underlying map by using using
             // the map as the pick root (instead of the portal which would be useless
@@ -1550,21 +1559,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         } else {
             pc.root = mFocal;
         }
-        pc.acceptor = (Acceptor) activeTool;
-        pc.maxLayer = getMaxLayer();
-        pc.pickDepth = (mFocal == mMap) ? 0 : 1;
+
+        // TODO: only one of activeTool.pickNode and getPickContext??
         return activeTool.getPickContext(pc, x, y);
     }
     
-    protected PickContext getPickContext(Rectangle2D.Float rect) {
-        PickContext pc = new PickContext(rect);
-        pc.root = mFocal;
-        pc.acceptor = (Acceptor) activeTool;
-        pc.maxLayer = getMaxLayer();
-        pc.excluded = mFocal; // never pick the focal for a dragged selection
-        pc.pickDepth = (mFocal == mMap) ? 0 : 1;
-        //pc.pickDepth = 1; // for rectangular picks, only pick top-level items (no children)
-        pc.maxDepth = 1; // for rectangular picks, only pick top-level items (no children)
+    protected PickContext getPickContext(Rectangle2D.Float rect)
+    {
+        final PickContext pc = initPickContext(new PickContext(rect));
+        
+        // for rectangular picks, only ever pick top-level items (no children)
+        pc.maxDepth = 1;
+        
+        // TODO: only one of activeTool.pickNode and getPickContext??
         return activeTool.getPickContext(pc, rect);
     }
         
@@ -2632,7 +2639,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         boolean atLeastOneVisible = false;
         for (LWComponent c : selection) {
 
-            if (c instanceof LWSlide) {
+            if (c instanceof LWSlide && !c.isMoveable()) {
                 // hack for slides, which are currently not proper children of anyone
                 // (prevents selection of a slide icon from drawing a selection
                 // drag frame for the 0,0 based slide, which isn't really on
@@ -2732,9 +2739,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //             selection.allOfType(LWLink.class)
 //             ) {
 
-        if (!selection.first().isMoveable() || !selection.first().supportsUserResize()) { // todo: check all, not any
-            resizeControl.active = false;
-        } if (selection.size() == 1 && !selection.first().supportsUserResize()) {
+        final LWComponent only = selection.only();
+        final LWComponent first = selection.first();
+
+        //if (!selection.first().isMoveable() || !selection.first().supportsUserResize()) { // todo: check all, not any
+        if (selection.size() == 1 && (!only.isMoveable() || !only.supportsUserResize())) {
             resizeControl.active = false;
         } else if (selection.allOfType(LWLink.class)) {
             // todo: this check is a hack: need to check if any in selection return true for supportsUserResize (change to merge w/isMoveable -- a dynamic property)
@@ -2752,7 +2761,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // Only one in selection:
                 // SPECIAL CASE to keep control handles out of way of node icons
                 // when node is scaled way down:
-                if (false && selection.first().getScale() < 0.6) {
+                if (false && only.getScale() < 0.6) {
                     final float grow = SelectionHandleSize/2;
                     mapSelectionBounds.x -= grow;
                     mapSelectionBounds.y -= grow;
@@ -2767,7 +2776,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //drawSelectionBoxHandles(g2, mapSelectionBounds);
             
             // TODO: this a hack: see if can handle via PickContext/DrawContext
-            boolean groupies = selection.allHaveSameParentOfType(LWGroup.class);
+//             final boolean deepSelection =
+//                 selection.allHaveSameParentOfType(LWGroup.class) ||
+//                 (selection.allHaveSameParentOfType(LWSlide.class) && first.getParent().isMoveable());
+            final boolean deepSelection = false;
             
             setSelectionBoxResizeHandles(mapSelectionBounds);
             resizeControl.active = true;
@@ -2776,7 +2788,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 drawSelectionHandleCentered(dc.g,
                                             (float)cp.x,
                                             (float)cp.y,
-                                            groupies ? COLOR_SELECTION : cp.getColor(),
+                                            deepSelection ? COLOR_SELECTION : cp.getColor(),
                                             i);
             }
         }
@@ -3730,7 +3742,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // Is actually okay if a mouse is down while we do this tho.
 
                 if ((e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0 && (!sDragUnderway || isDraggingSelectorBox)) {
-                    for (VueTool tool : VueToolbarController.getController().getTools()) {
+                    for (VueTool tool : VueTool.getTools()) {
                         if (tool.getShortcutKey() == keyChar) {
                             VueToolbarController.getController().setSelectedTool(tool);
                             return;
@@ -3742,7 +3754,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             if (tempToolKeyDown == 0 && !isDraggingSelectorBox && !sDragUnderway && keyCode != 0) {
                 VueTool tempTool = null;
-                for (VueTool tool : VueToolbarController.getController().getTools()) {
+                for (VueTool tool : VueTool.getTools()) {
                     if (tool.getActiveWhileDownKeyCode() == keyCode) {
                         tempTool = tool;
                         break;
@@ -4645,6 +4657,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                              new LWTransfer(toDrag));
         }
 
+    private boolean isDropRequest(MouseEvent e) {
+        return !e.isShiftDown();
+    }
+
         //private int drags=0;
         public void mouseDragged(MouseEvent e) {
 
@@ -4869,14 +4885,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     //repaintRegion.add(indication.getBounds());
                     clearIndicated();
                 }
-                if (over != null) {
+                if (over != null && isDropRequest(e)) { 
                     if (isValidParentTarget(VueSelection, over))
                         setIndicated(over);
                     else if (isValidParentTarget(VueSelection, over.getParent()))
                         setIndicated(over.getParent());
-                        
                     //repaintRegion.add(over.getBounds());
-                }
+                } else
+                    clearIndicated();
             }
             
             if (dragComponent == null && dragControl == null)
@@ -5014,7 +5030,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
             else if (mouseWasDragged && (indication == null || indication instanceof LWContainer)) {
                 // this allows dropping into a group
-                if (dragComponent == null || e.isShiftDown())
+                if (dragComponent == null || !isDropRequest(e))
                     ; // nothing dragged, or shift requst to skip reparenting
                 else
                     checkAndHandleDroppedReparenting();

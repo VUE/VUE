@@ -31,7 +31,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.30 $ / $Date: 2007-05-09 22:47:36 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2007-05-16 00:37:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -555,7 +555,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             String text = new String();
             
             // get tool short-cuts
-            for (VueTool t : VueToolbarController.getController().getTools()) {
+            for (VueTool t : VueTool.getTools()) {
                 if (DEBUG.TOOL) {
                     text += String.format(" %-25s (%c) %-12s %-20s \n",
                                           t.getID()+":",

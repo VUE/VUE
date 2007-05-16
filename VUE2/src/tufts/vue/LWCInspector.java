@@ -30,8 +30,7 @@ class LWCInspector extends javax.swing.JPanel
     implements VueConstants,
                LWSelection.Listener,
                LWComponent.Listener,
-               ActionListener,
-               ActiveListener<LWPathway.Entry>
+               ActionListener
 {
     private JLabel idField = new JLabel();
     private JLabel locationField = new JLabel();
@@ -127,12 +126,12 @@ class LWCInspector extends javax.swing.JPanel
         //add(metadataPane,BorderLayout.SOUTH);
 
         VUE.ModelSelection.addListener(this);
-        VUE.addActiveListener(LWPathway.Entry.class, this);
+        VUE.addActiveListener(LWPathway.class, this);
     }
 
-    public void activeChanged(ActiveEvent<LWPathway.Entry> e) {
-        if (e.active.isPathway())
-            loadItem(e.active.pathway);
+    public void activeChanged(ActiveEvent e, LWPathway path) {
+        if (path != null)
+            loadItem(path);
     }
 
     private void setUpMetadataPane() {

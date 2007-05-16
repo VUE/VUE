@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.37 $ / $Date: 2007-05-15 23:03:57 $ / $Author: mike $
+ * @version $Revision: 1.38 $ / $Date: 2007-05-16 00:37:21 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -38,9 +38,9 @@ public class LWSlide extends LWContainer
     public static final float SlideAspect = ((float)SlideWidth) / ((float)SlideHeight);
     protected static final int SlideMargin = 30;
 
-    private LWComponent mSourceNode; // the node this slide was created from -- todo: restore on persist
+    private LWComponent mSourceNode;
 
-    int mLayer = 0;
+    //    int mLayer = 0;
     
     /** public only for persistance */
     public LWSlide() {
@@ -48,6 +48,33 @@ public class LWSlide extends LWContainer
         disablePropertyTypes(KeyType.STYLE);
         enableProperty(LWKey.FillColor);
     }
+    
+    @Override
+    public boolean supportsUserResize() {
+        return isMoveable();
+    }
+    
+    @Override
+    public boolean isMoveable() {
+        // at moment, if no master, this is an on-map slide (functionality being tested...)
+        return getMasterSlide() == null;
+    }
+
+    /** @return false -- slides themseleves never have slide icons: only nodes that own them */
+    @Override
+    public final boolean isDrawingSlideIcon() {
+        return false;
+    }
+    
+    @Override
+    void setParent(LWContainer parent) {
+        super.setParent(parent);
+        if (parent instanceof LWPathway)
+            ; // default
+        else
+            ; // testing -- can renable some properties
+    }
+
 
     LWComponent getSourceNode() {
         return mSourceNode;
@@ -58,17 +85,19 @@ public class LWSlide extends LWContainer
 
     
     /** implemented to return the bg color of the master slide (for proper on-slide text edit fill color) */
-    @Override public Color getRenderFillColor(DrawContext dc) {
+    @Override
+    public Color getRenderFillColor(DrawContext dc) {
          if (mFillColor.isTransparent()) {
              final LWSlide master = getMasterSlide();
              if (master == null)
-                 return Color.red;
+                 return DEBUG.Enabled ? getFillColor() : Color.red;
              else
                  return master.getFillColor();
          } else
             return getFillColor();
     }
 
+    @Override
     public String getLabel() {
 
         if (supportsProperty(LWKey.Label))
@@ -97,10 +126,6 @@ public class LWSlide extends LWContainer
         //setAspect(((float)GUI.GScreenWidth) / ((float)GUI.GScreenHeight));
         s.setAspect(SlideAspect);
         return s;
-    }
-
-    public boolean isMoveable() {
-        return false;
     }
 
     public static LWSlide CreatePathwaySlide()
@@ -149,10 +174,12 @@ public class LWSlide extends LWContainer
     }
 
     /** slides never considered translucent: they're not on the map needing backfill when they're the focal */
+    @Override
     public boolean isTranslucent() {
         return false;
     }
 
+    @Override
     protected void drawImpl(DrawContext dc)
     {
         final LWSlide master = getMasterSlide();
@@ -252,6 +279,7 @@ public class LWSlide extends LWContainer
     }
 
     
+    @Override
     protected void addChildImpl(LWComponent c)
     {
         super.addChildImpl(c);
@@ -354,32 +382,30 @@ public class LWSlide extends LWContainer
     }
     */
 
-    public void setLayer(int layer) {
-        mLayer = layer;
-    }
+//     public void setLayer(int layer) {
+//         mLayer = layer;
+//         throw new Error();
+//     }
     
-    public int getLayer() {
-        //out("returning layer " + mLayer);
-        return mLayer;
-    }
+//     public int getLayer() {
+//         //out("returning layer " + mLayer);
+//         if(true)throw new Error();
+//         return mLayer;
+//     }
 
     public boolean isPresentationContext() {
         return true;
     }
     
 
-    /** @return false -- slides themseleves never have slide icons: only nodes that own them */
     @Override
-    public final boolean isDrawingSlideIcon() {
-        return false;
-    }
-
     protected LWComponent pickChild(PickContext pc, LWComponent c) {
         if (DEBUG.PRESENT) out("PICKING CHILD: " + c);
         return c;
     }
 
-    /** @return the slide */
+    /** @return this slide */
+    @Override
     protected LWComponent defaultPick(PickContext pc) {
         //if (DEBUG.PRESENT) out("DEFAULT PICK: THIS");
         return this;
@@ -388,6 +414,7 @@ public class LWSlide extends LWContainer
 //         return dp;
     }
 
+    @Override
     protected LWComponent defaultDropTarget(PickContext pc) {
         LWComponent c = super.defaultDropTarget(pc);
         if (DEBUG.PRESENT) out("DEFAULT DROP TARGET: " + c);

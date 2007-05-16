@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.11 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2007-05-16 00:37:21 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -69,13 +69,19 @@ public class LWTraversal {
             
         if (acceptTraversal(c)) {
             if (DEBUG.PICK) eoutln("Accepted traversal: " + c);
-            depth++;
-            traverseChildren(c.getChildList());
-            depth--;
+            if (acceptChildren(c)) {
+                depth++;
+                traverseChildren(c.getChildList());
+                depth--;
+            }
             if (done) return;
             if (!preOrder && accept(c))
                 visit(c);
         }
+    }
+
+    public boolean acceptChildren(LWComponent c) {
+        return true;
     }
         
     public void traverseChildren(java.util.List<LWComponent> children)
@@ -134,25 +140,31 @@ public class LWTraversal {
     
         
         /** If we reject traversal, we are also rejecting all children of this object */
+        @Override
         public boolean acceptTraversal(LWComponent c) {
             if (c == pc.dropping)
                 return false;
-            else if (c.isHidden())
+            else if (!c.isDrawn())
                 return false;
             else if (depth > pc.maxDepth)
                 return false;
-            //else if (depth > pc.pickDepth)
-            //    return false;
             else if (c.getLayer() > pc.maxLayer)
                 return false;
             //else return strayChildren || c.contains(mapX, mapY); // for now, ALWAYS work as if strayChildren was true
             else
                 return true;
         }
+
+        @Override
+        public boolean acceptChildren(LWComponent c) {
+            return pc.pickDepth >= c.getPickLevel();
+        }
         
+
         /** Should we visit the given LWComponent to see if we might have picked it?
          * This is in effect a fast-reject.
          */
+        @Override
         public boolean accept(LWComponent c) {
             if (c == pc.excluded)
                 return false;
