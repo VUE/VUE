@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.375 $ / $Date: 2007-05-16 18:09:10 $ / $Author: sfraize $ 
+ * @version $Revision: 1.376 $ / $Date: 2007-05-16 18:17:23 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3636,9 +3636,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     handled = false;
                 break;
                 
-            case KeyEvent.VK_BACK_SLASH:
+                //case KeyEvent.VK_BACK_SLASH: // need to not do if apple-\ is firing!
             case KeyEvent.VK_F11:
-                VUE.toggleFullScreen(e.isShiftDown(), true);
+                if (!e.isConsumed())
+                    VUE.toggleFullScreen(e.isShiftDown(), true);
                 break;
             default:
                 handled = false;
