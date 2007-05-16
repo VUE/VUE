@@ -31,7 +31,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.31 $ / $Date: 2007-05-16 00:37:22 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2007-05-16 05:11:12 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -557,11 +557,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
             // get tool short-cuts
             for (VueTool t : VueTool.getTools()) {
                 if (DEBUG.TOOL) {
-                    text += String.format(" %-25s (%c) %-12s %-20s \n",
+                    text += String.format(" %-25s (%c) %-12s %-23s %s \n",
                                           t.getID()+":",
                                           t.getShortcutKey() == 0 ? ' ' : t.getShortcutKey(),
                                           "("+keyCodeName(t.getActiveWhileDownKeyCode()) + ")",
-                                          t.getToolName());
+                                          t.getToolName(),
+                                          t.getClass().getName()
+                                          );
                 } else if (t.getShortcutKey() != 0) {
                     text += String.format(" (%c) %s \n", t.getShortcutKey(), t.getToolName());
                 }
