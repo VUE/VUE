@@ -703,7 +703,7 @@ public class Actions implements VueConstants
     //-------------------------------------------------------
     
     public static final LWCAction FontSmaller =
-    new LWCAction("Font Smaller", keyStroke(KeyEvent.VK_MINUS, COMMAND)) {
+    new LWCAction("Font Smaller", keyStroke(KeyEvent.VK_MINUS, COMMAND+SHIFT)) {
         void act(LWComponent c) {
             int size = c.mFontSize.get();
             if (size > 1) {
@@ -716,7 +716,7 @@ public class Actions implements VueConstants
         }
     };
     public static final LWCAction FontBigger =
-    new LWCAction("Font Bigger", keyStroke(KeyEvent.VK_EQUALS, COMMAND)) {
+    new LWCAction("Font Bigger", keyStroke(KeyEvent.VK_EQUALS, COMMAND+SHIFT)) {
         void act(LWComponent c) {
             int size = c.mFontSize.get();
             if (size >= 12 && size % 2 == 0)
@@ -1133,13 +1133,13 @@ public class Actions implements VueConstants
     
     public static final VueAction ZoomIn =
     //new VueAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, COMMAND)) {
-    new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, COMMAND+SHIFT), ":general/ZoomIn") {
+    new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, COMMAND), ":general/ZoomIn") {
         public void act() {
             ZoomTool.setZoomBigger(null);
         }
     };
     public static final VueAction ZoomOut =
-    new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, COMMAND+SHIFT), ":general/ZoomOut") {
+    new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, COMMAND), ":general/ZoomOut") {
         public void act() {
             ZoomTool.setZoomSmaller(null);
         }
