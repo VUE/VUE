@@ -29,7 +29,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.64 $ / $Date: 2007-05-16 16:07:03 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2007-05-16 16:28:01 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -230,12 +230,6 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         } finally {
             inNotify = false;
         }
-
-        // special case: LWMap silently auto-removes itself from the selection after notification:
-        // (a map should never be in the selection with anything else)
-        if (first() instanceof LWMap)
-            clear0();
-
     }
 
     private boolean notifyUnderway() {
@@ -260,7 +254,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             return;
         if (notifyUnderway())
             return;
-        clear0();
+        clearSilent();
         add(c);
         if (VUE.getResourceSelection().get() != c.getResource())
             VUE.getResourceSelection().setTo(null, this);
@@ -275,7 +269,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     {
         if (notifyUnderway())
             return;
-        clear0();
+        clearSilent();
         add(i);
     }
     
@@ -284,8 +278,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         if (notifyUnderway())
             return false;
         if (!c.isSelected()) {
-            add0(c);
-            if (!isClone) notifyListeners();
+            if (addSilent(c) && !isClone)
+                notifyListeners();
         } else {
             if (DEBUG.SELECTION) System.out.println(this + " addToSelection(already): " + c);
             return false;
@@ -314,8 +308,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         while (i.hasNext()) {
             c = (LWComponent) i.next();
             if (!c.isSelected() && c.isDrawn()) {
-                add0(c);
-                changed = true;
+                if (addSilent(c))
+                    changed = true;
             }
         }
         if (changed)
@@ -323,35 +317,44 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     }
     
     /** Change the selection status of all LWComponents in iterator */
-    synchronized void toggle(Iterator i)
+    synchronized void toggle(Iterable<LWComponent> iterable)
     {
         if (notifyUnderway())
             return;
         
-        LWComponent c;
-        boolean changed = i.hasNext();
-        while (i.hasNext()) {
-            c = (LWComponent) i.next();
-            if (c.isSelected())
-                remove0(c);
-            else
-                add0(c);
+        boolean changed = false;
+        for (LWComponent c : iterable) {
+            if (c.isSelected()) {
+                changed = true;
+                removeSilent(c);
+            } else {
+                if (addSilent(c))
+                    changed = true;
+            }
         }
         if (changed)
             notifyListeners();
     }
     
-    private synchronized void add0(LWComponent c)
+    private synchronized boolean addSilent(LWComponent c)
     {
-        if (DEBUG.SELECTION) System.out.println(this + " adding " + c);
+        if (DEBUG.SELECTION && DEBUG.META) System.out.println(this + " addSilent " + c);
 
         if (notifyUnderway())
-            return;
+            return false;
 
-        // special case: do NOT allow an instanceof LWMap to be added
-        // to the selection if there's anything else in it:
-        if (size() > 0 && c instanceof LWMap)
-            return;
+        if (size() > 0) {
+            // special case: do NOT allow an instanceof LWMap to be added to the
+            // selection if there's anything else in it, and if there's already a map in
+            // the selection, clear it out if we add anything else.  (a map should never
+            // be in the selection with anything else)
+            if (first() instanceof LWMap)
+                clearSilent();
+            else if (c instanceof LWMap)
+                return false; // don't add
+        }
+
+        if (DEBUG.SELECTION) System.out.println(this + " add " + c);
         
         if (!c.isSelected()) {
             if (!isClone) c.setSelected(true);
@@ -360,19 +363,20 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             super.add(c);
             if (!isClone && c instanceof ControlListener)
                 addControlListener((ControlListener)c);
+            return true;
         } else
             throw new RuntimeException(this + " attempt to add already selected component " + c);
     }
     
     public synchronized void remove(LWComponent c)
     {
-        remove0(c);
+        removeSilent(c);
         notifyListeners();
     }
 
-    private synchronized void remove0(LWComponent c)
+    private synchronized void removeSilent(LWComponent c)
     {
-        if (DEBUG.SELECTION) System.out.println(this + " removing " + c);
+        if (DEBUG.SELECTION) System.out.println(this + " remove " + c);
         if (notifyUnderway())
             return;
         if (!isClone) c.setSelected(false);
@@ -391,25 +395,25 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
      *
      **/
     public synchronized void clearAndNotify() {
-    	clear0();
+    	clearSilent();
         if (DEBUG.SELECTION) System.out.println(this + " clearAndNotify: forced notification after clear");
     	notifyListeners();
     }
     
     public synchronized void clear()
     {
-        if (clear0())
+        if (clearSilent())
             notifyListeners();
     }
 
-    private synchronized boolean clear0()
+    private synchronized boolean clearSilent()
     {
         if (isEmpty())
             return false;
         if (notifyUnderway())
             return false;
 
-        if (DEBUG.SELECTION) System.out.println(this + " clear0");
+        if (DEBUG.SELECTION) System.out.println(this + " clearSilent");
 
         if (!isClone) {
             java.util.Iterator i = iterator();
@@ -436,7 +440,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             LWComponent c = elements[i];
             if (c.isDeleted()) {
                 if (DEBUG.SELECTION) System.out.println(this + " clearDeleted: clearing " + c);
-                remove0(c);
+                removeSilent(c);
                 removed = true;
             }
         }

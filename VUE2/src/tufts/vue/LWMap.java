@@ -55,7 +55,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.126 $ / $Date: 2007-05-16 16:07:02 $ / $Author: sfraize $
+ * @version $Revision: 1.127 $ / $Date: 2007-05-16 16:28:01 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -695,6 +695,12 @@ public class LWMap extends LWContainer
         return 0;
     }
 
+    /** @return false -- maps aren't moveable objects */
+    @Override
+    public boolean isMoveable() {
+        return false;
+    }
+    
     /** @return true -- maps contain all points (can be point-picked anywhere) */
     @Override
     protected boolean containsImpl(float x, float y) {
@@ -709,6 +715,8 @@ public class LWMap extends LWContainer
         return this; // allow picking of the map
         //return null;
     }
+
+    
     
     
     /* override of LWComponent: parent == null indicates deleted,

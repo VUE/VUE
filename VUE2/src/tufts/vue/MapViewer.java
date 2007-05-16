@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.372 $ / $Date: 2007-05-16 14:44:33 $ / $Author: mike $ 
+ * @version $Revision: 1.373 $ / $Date: 2007-05-16 16:28:01 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3089,7 +3089,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         else
             selectionAdd(c);
     }
-    protected void selectionToggle(java.util.Iterator i) {
+    //protected void selectionToggle(java.util.Iterator i) {
+    protected void selectionToggle(Iterable<LWComponent> i) {
         VueSelection.setSource(this);
         VueSelection.setFocal(getFocal());
         VueSelection.toggle(i);
@@ -5052,9 +5053,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     List list = computeSelection(screenToMapRect(draggedSelectorBox));
                     
                     if (e.isShiftDown())
-                        selectionToggle(list.iterator());
+                        selectionToggle(list);
                     else
-                        selectionSet(list.iterator());
+                        selectionSet(list);
                     
                 }
                 
