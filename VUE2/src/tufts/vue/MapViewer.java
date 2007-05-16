@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.370 $ / $Date: 2007-05-16 04:41:01 $ / $Author: sfraize $ 
+ * @version $Revision: 1.371 $ / $Date: 2007-05-16 05:24:26 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1407,12 +1407,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     */
 
-    //private java.util.List computeSelection(final Rectangle2D mapRect, final Class selectionType)
     private java.util.List computeSelection(final Rectangle2D mapRect)
     {
         PickContext pc = getPickContext((Rectangle2D.Float) mapRect);
-
-        //pc.pickType = selectionType;
 
         return LWTraversal.RegionPick.pick(pc);
     }
@@ -1555,8 +1552,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // the the pick (excluded).
             pc.root = mFocal.getMap();
             pc.excluded = mFocal;
-        } else {
-            pc.root = mFocal;
         }
 
         return activeTool.initPick(pc, x, y);
@@ -2127,7 +2122,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // DRAW THE CURRENT INDICATION, if any (for targeting during drags)
         //-------------------------------------------------------
 
-        if (indication != null)
+        if (indication != null && indication != mFocal)
             drawIndication(dc);
 
         //-------------------------------------------------------
@@ -2687,6 +2682,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //-------------------------------------------------------
             //if (sDragUnderway || c.getStrokeWidth() == 0 || c instanceof LWLink) {
             if (true||sDragUnderway) {
+                if (c instanceof LWMap && !DEBUG.CONTAINMENT)
+                    continue;
                 drawSelectionGhost(dc, c);
                 dc.g.setTransform(rawMapTransform);
             }
@@ -5167,20 +5164,26 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             for (LWComponent droppedChild : VueSelection) {
                 if (!droppedChild.supportsReparenting())
                     continue;
+
+                final LWContainer currentParent = droppedChild.getParent();
+
+                if (currentParent == null) // must have grabbed the LWMap
+                    continue;
+                
                 // even tho the indication has already checked this via isValidParentTarget,
                 // if there's more than one item in the selection, we still need
                 // to do do this check against bad cases -- TODO: not allowing
                 // reparenting when child moving from the a group to become
                 // a child of another group member.
-                if (!droppedChild.getParent().supportsChildren())
+                if (!currentParent.supportsChildren())
                     continue;
                 //  continue; // not with new "page" groups
                 // don't do anything if parent might be reparenting
-                if (droppedChild.getParent().isSelected())
+                if (currentParent.isSelected())
                     continue;
                 // todo: actually re-do drop if anything other than map so will re-layout
                 if (
-                    (droppedChild.getParent() != parentTarget || parentTarget instanceof LWNode) &&
+                    (currentParent != parentTarget || parentTarget instanceof LWNode) &&
                     droppedChild != parentTarget) {
                     //-------------------------------------------------------
                     // we were over a valid NEW parent -- reparent

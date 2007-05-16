@@ -55,7 +55,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.123 $ / $Date: 2007-05-14 03:31:45 $ / $Author: sfraize $
+ * @version $Revision: 1.124 $ / $Date: 2007-05-16 05:24:26 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -99,12 +99,14 @@ public class LWMap extends LWContainer
     
     // only to be used during a restore from persisted
     public LWMap() {
+        init();
         setLabel("<map-during-XML-restoration>");
         mLWCFilter = new LWCFilter(this);
-        mFillColor.setAllowTranslucence(false);        
+        mFillColor.setAllowTranslucence(false);
     }
     
     public LWMap(String label) {
+        init();
         setID("0");
         setFillColor(java.awt.Color.white);
         mFillColor.setAllowTranslucence(false);        
@@ -122,13 +124,19 @@ public class LWMap extends LWContainer
 
     /** create a temporary, uneditable map that contains just the given component */
     LWMap(LWComponent c) {
-
         this(c.getDisplayLabel());
         if (c instanceof LWGroup && c.getFillColor() != null)
             setFillColor(c.getFillColor());
         children.add(c);
         // todo: listen to child for events & pass up
     }
+
+    protected void init() {
+        disablePropertyTypes(KeyType.STYLE);
+        enableProperty(LWKey.FillColor);
+        disableProperty(LWKey.Label);
+    }
+    
 
     public final int getCurrentModelVersion() {
         return VUE.RELATIVE_COORDS ? 1 : 0;
@@ -143,9 +151,13 @@ public class LWMap extends LWContainer
         mModelVersion = version;
     }
     
+    @Override
     public float getX() { return 0; }
+    @Override
     public float getY() { return 0; }
+    @Override
     public float getMapX() { return 0; }
+    @Override
     public float getMapY() { return 0; }
     
     private void markDate() {
@@ -157,6 +169,7 @@ public class LWMap extends LWContainer
     }
     
     private UndoManager mUndoManager;
+    @Override
     public UndoManager getUndoManager() {
         return mUndoManager;
     }
@@ -583,7 +596,8 @@ public class LWMap extends LWContainer
     // do nothing
     //void setScale(float scale) { }
     
-    public void draw(DrawContext dc){
+    @Override
+    public void draw(DrawContext dc) {
         if (DEBUG.SCROLL || DEBUG.CONTAINMENT) {
             dc.g.setColor(java.awt.Color.green);
             dc.setAbsoluteStroke(1);
@@ -672,6 +686,7 @@ public class LWMap extends LWContainer
         return this.userZoom;
     }
     
+    @Override
     public LWMap getMap() {
         return this;
     }
@@ -679,13 +694,20 @@ public class LWMap extends LWContainer
     public int getLayer() {
         return 0;
     }
+
+    /** @return true -- maps contain all points (can be point-picked anywhere) */
+    @Override
+    protected boolean containsImpl(float x, float y) {
+        return true;
+    }
     
     /** override of LWContainer: default hit component on the map
      * is nothing -- we just @return null.
      */
-    protected LWComponent defaultPick(PickContext pc) {
-        return null;
-    }
+//     @Override
+//     protected LWComponent defaultPick(PickContext pc) {
+//         return null;
+//     }
     
     
     /* override of LWComponent: parent == null indicates deleted,
@@ -702,6 +724,7 @@ public class LWMap extends LWContainer
      * events, but this is normal for the LWMap which as no parent,
      * so this always returns false.
      */
+    @Override
     public boolean isOrphan() {
         return false;
     }
@@ -756,6 +779,7 @@ public class LWMap extends LWContainer
      * Every single event anywhere in the map will ultimately end up
      * calling this notifyLWCListners.
      */
+    @Override
     protected void notifyLWCListeners(LWCEvent e) {
         if (mChangeSupport.eventsDisabled()) {
             if (DEBUG.EVENTS) System.out.println(e + " SKIPPING (events disabled)");
@@ -799,6 +823,7 @@ public class LWMap extends LWContainer
         mChanges++;
     }
     
+    @Override
     public java.awt.geom.Rectangle2D.Float getBounds() {
         return getBounds(Short.MAX_VALUE);
     }
