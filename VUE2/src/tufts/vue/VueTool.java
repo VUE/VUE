@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.62 $ / $Date: 2007-05-16 00:37:21 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2007-05-16 00:41:06 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -730,10 +730,10 @@ public abstract class VueTool extends AbstractAction
 
     public String toString()
     {
-        String s = "VueTool[" + getID();
+        String s = "VueTool:" + getClass().getName() + "[" + getID();
         if (getSelectedSubTool() != null)
             s += " subSelected=" + getSelectedSubTool();
-        s += "] of " + getClass();
+        s += "]";
         return s;
     }
 
