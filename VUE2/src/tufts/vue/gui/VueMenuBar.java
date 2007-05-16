@@ -31,7 +31,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.32 $ / $Date: 2007-05-16 05:11:12 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2007-05-16 14:45:11 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -282,10 +282,15 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         //toolsMenu.add(fooa);
      //   windowMenu = add(new VueMenu("Window"));
+        windowMenu.add(Actions.KeywordAction);
+        windowMenu.add(Actions.InfoAction);
         if (VUE.getInfoDock() !=null)
         	windowMenu.add(createWindowItem(VUE.getInfoDock(),KeyEvent.VK_2, "Info"));
         if (VUE.getMapInfoDock() !=null)
         	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, "Map Info"));
+        
+        windowMenu.add(Actions.NotesAction);
+        
         if (VUE.getOutlineDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_7, "Outline"));
         if (VUE.getPannerDock() !=null)	
