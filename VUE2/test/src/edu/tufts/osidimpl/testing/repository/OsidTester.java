@@ -33,6 +33,8 @@ public class OsidTester extends TestCase
 	public static final String ASSETS_BY_TYPE_TAG = "assetsbytype";
 	public static final String ASSETS_TAG = "assets";
 	public static final String CONFIGURATION_TAG = "configuration";
+	public static final String CONTENT_GET_TAG = "contentget";
+	public static final String CONTENT_UPDATE_TAG = "contentupdate";
 	public static final String CONTEXT_TAG = "context";
 	public static final String CRITERIA_TAG = "criteria";	
 	public static final String DESCRIPTION_TAG = "description";
@@ -58,6 +60,7 @@ public class OsidTester extends TestCase
 	public static final String ANY_ATTR = "any";
 	public static final String ASSET_ID_ATTR = "assetid";
 	public static final String AUTO_ATTR = "auto";
+	public static final String CLASS_ATTR = "class";
 	public static final String ID_ATTR = "id";	
 	public static final String KEY_ATTR = "key";
 	public static final String NAME_ATTR = "name";
@@ -229,6 +232,26 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new SupportsUpdateTest(_repositoryManager,_document);
+		} catch (Throwable t) {
+			//t.printStackTrace();
+			fail(t.getMessage());
+		}
+	}
+	
+	public void testGetContent()
+	{
+		try {
+			new GetContentTest(_repositoryManager,_document);
+		} catch (Throwable t) {
+			//t.printStackTrace();
+			fail(t.getMessage());
+		}
+	}
+	
+	public void testUpdateContent()
+	{
+		try {
+			new UpdateContentTest(_repositoryManager,_document);
 		} catch (Throwable t) {
 			//t.printStackTrace();
 			fail(t.getMessage());

@@ -104,7 +104,6 @@ implements org.osid.repository.Asset
 					this.assetId = Utilities.getIdManager().getId(assetIdString);
 				} catch (Throwable t) {
 				}
-				System.out.println("setting display name to " + name);
 				this.displayName = name;
 			}
 		} catch (Throwable t) {
@@ -215,9 +214,9 @@ implements org.osid.repository.Asset
 			String type = upload.getMIMEType();
 			byte[] bytes = upload.getBytes();
 			int sizeInBytes = bytes.length;
-			System.out.println("bytes before encode " + sizeInBytes);
+			//System.out.println("bytes before encode " + sizeInBytes);
 			String encodedContent = Base64.encode(bytes,0,sizeInBytes);
-			System.out.println("encoded " + encodedContent.length());
+			//System.out.println("encoded " + encodedContent.length());
 			
 			call.setOperationName(new QName(address, "createContentItem"));			
 			String result = (String) call.invoke( new Object[] {sessionId, name, this.assetIdString, encodedContent, description, type, false} );
@@ -243,13 +242,13 @@ implements org.osid.repository.Asset
     throws org.osid.repository.RepositoryException
     {
 		// only site collection assets can have sub-assets
-		if (!this.assetType.isEqual(Utilities.getCollectionAssetType())) {
+		if (this.assetType.isEqual(Utilities.getCollectionAssetType())) {
 
 			try {
 				String endpoint = Utilities.getEndpoint();
-				System.out.println("Endpoint " + endpoint);
+				//System.out.println("Endpoint " + endpoint);
 				String address = Utilities.getAddress();
-				System.out.println("Address " + address);
+				//System.out.println("Address " + address);
 				
 				Service  service = new Service();
 				
@@ -259,7 +258,7 @@ implements org.osid.repository.Asset
 				call.setTargetEndpointAddress (new java.net.URL(endpoint) );
 				call.setOperationName(new QName(address, "getResources"));
 				String siteString = (String) call.invoke( new Object[] {sessionId, assetIdString} );
-				System.out.println("Sent ContentHosting.getAllResources(sessionId,collectionId), got '" + siteString + "'");
+				//System.out.println("Sent ContentHosting.getAllResources(sessionId,collectionId), got '" + siteString + "'");
 				
 				return new AssetIterator(siteString,this.key,siteString);			
 			} catch (Throwable t) {
