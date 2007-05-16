@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.154 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $
+ * @version $Revision: 1.155 $ / $Date: 2007-05-16 04:41:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -402,13 +402,20 @@ public class LWNode extends LWContainer
 
     //public void setIcon(javax.swing.ImageIcon icon) {}
     //public javax.swing.ImageIcon getIcon() { return null; }
+
+    @Override
+    public Object getTypeToken() {
+        return isTextNode() ? "textNode" : super.getTypeToken();
+    }
     
-    
-    public void setIsTextNode(boolean asText) {
+    public void setAsTextNode(boolean asText)
+    {
+        setAutoSized(true);
         if (asText)
-            setFillColor(null);
+            setFillColor(COLOR_TRANSPARENT);
         else
-            setFillColor(getParent().getFillColor());
+            setFillColor(DEFAULT_NODE_FILL);
+        //setFillColor(getParent().getFillColor());
     	//mIsTextNode = pState;
     }
     
@@ -424,8 +431,10 @@ public class LWNode extends LWContainer
         // Just what a text node is is a bit confusing right now, but it's useful
         // guess for now.
     	//return (mIsTextNode || (getFillColor() == null && mIsRectShape)) && !hasChildren();
-    	//return getFillColor() == null && mIsRectShape && !hasChildren();
-    	return isTranslucent() && !hasChildren();
+
+        return getClass() == LWNode.class // sub-classes don't count
+            && isTranslucent()
+            && !hasChildren();
     }
     
     /** If true, compute node size from label & children */

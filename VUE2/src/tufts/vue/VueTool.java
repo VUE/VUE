@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.64 $ / $Date: 2007-05-16 01:10:32 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2007-05-16 04:41:01 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -81,7 +81,7 @@ public abstract class VueTool extends AbstractAction
     /** for storing all the tools by name, including sub-tools */
     private static final java.util.List<VueTool> mAllTools = new java.util.ArrayList();
 	
-    private LWComponent mStyleCache;
+    //private LWComponent mStyleCache;
     
     public VueTool() {
         super();
@@ -94,7 +94,7 @@ public abstract class VueTool extends AbstractAction
             } else
                 System.out.println("instanced " + this);
         }
-        mStyleCache = createStyleCache();
+        //mStyleCache = createStyleCache();
         mAllTools.add(this);
     }
 
@@ -364,14 +364,14 @@ public abstract class VueTool extends AbstractAction
         return false;
     }
 
-    /** if returls non-null, the object is used for saving style information that is active with this tool */
-    public LWComponent getStyleCache() {
-        return mStyleCache;
-    }
+//     /** if returls non-null, the object is used for saving style information that is active with this tool */
+//     public LWComponent getStyleCache() {
+//         return mStyleCache;
+//     }
     
-    protected LWComponent createStyleCache() {
-        return null;
-    }
+//     protected LWComponent createStyleCache() {
+//         return null;
+//     }
     
     public void drawSelector(DrawContext dc, java.awt.Rectangle r)
     {

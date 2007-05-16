@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.272 $ / $Date: 2007-05-16 00:37:21 $ / $Author: sfraize $
+ * @version $Revision: 1.273 $ / $Date: 2007-05-16 04:41:01 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -227,7 +227,19 @@ public class LWComponent
     }
 
     protected void disableProperty(Key key) {
-        mSupportedPropertyKeys &= ~key.bit;
+        disablePropertyBits(key.bit);
+    }
+    
+    protected void enableProperty(Key key) {
+        enablePropertyBits(key.bit);
+    }
+
+    protected void disablePropertyBits(long bits) {
+        mSupportedPropertyKeys &= ~bits;
+    }
+    
+    protected void enablePropertyBits(long bits) {
+        mSupportedPropertyKeys |= bits;
     }
     
     protected void disablePropertyTypes(KeyType type) {
@@ -237,10 +249,6 @@ public class LWComponent
     }
     
     
-    protected void enableProperty(Key key) {
-        mSupportedPropertyKeys |= key.bit;
-    }
-
     /** Apply all style properties from styleSource to this component */
     public void copyStyle(LWComponent styleSource) {
         for (Key key : Key.AllKeys)
@@ -1229,7 +1237,7 @@ u                    getSlot(c).setFromString((String)value);
         }
 
         c.mSupportedPropertyKeys = this.mSupportedPropertyKeys;
-        c.mParentStyle = this.mParentStyle;
+        //c.mParentStyle = this.mParentStyle;
         
         c.x = this.x;
         c.y = this.y;
@@ -2380,6 +2388,15 @@ u                    getSlot(c).setFromString((String)value);
             return this;
         else
             return getParentOfType(clazz);
+    }
+
+    /** @return by default, return the class object as returned by getClass().  Subclasses can override to provide differentiation between runtime sub-types.
+     * E.g., a node class could return getClass() by default, but the constant string "textNode" for runtime instances that we
+     * want the tool code to treat is coming from a different class.  Also note that supported property bits for
+     * all instances with a given type token should be the same.
+     */
+    public Object getTypeToken() {
+        return getClass();
     }
     
     void setScale(double scale)

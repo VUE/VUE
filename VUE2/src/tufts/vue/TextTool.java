@@ -28,10 +28,10 @@ public class TextTool extends VueTool
 {
     public TextTool() {}
 
-    @Override
-    protected LWComponent createStyleCache() {
-        return NodeModeTool.createTextNode("StyleCache: " + getClass());
-    }
+//     @Override
+//     protected LWComponent createStyleCache() {
+//         return NodeModeTool.createTextNode("StyleCache: " + getClass());
+//     }
 
     /*
       // this prevents us from clicking on a regular node to immediately activate text edit...

@@ -299,55 +299,50 @@ public class NodeTool extends VueTool
     
     static class NodeModeTool extends VueTool
     {
-    	private LWNode creationNode = new LWNode();
-   	    private boolean creationNodeCurrent = false;
+    	private LWNode creationNode = new LWNode("");
+    	//private LWNode creationNode = new LWNode("New Node");
 
     	public NodeModeTool()
     	{
-    		super();
+            super();
+            creationNode.setAutoSized(false);
     	}
     	
+        @Override
+        public boolean handleMousePressed(MapMouseEvent e) {
+            //out("MOUSE PRESSED");
+            VUE.LWToolManager.ApplyProperties(creationNode);            
+            return false;
+        }
+        
+        @Override
     	public boolean handleSelectorRelease(MapMouseEvent e)
         {
-        	LWNode node = createNode(VueResources.getString("newnode.html"), true);
+            //LWNode node = createNode(VueResources.getString("newnode.html"), true);
+            final LWNode node = (LWNode) creationNode.duplicate();
             node.setAutoSized(false);
             node.setFrame(e.getMapSelectorBox());
+            node.setLabel(VueResources.getString("newnode.html"));
             MapViewer viewer = e.getViewer();
             viewer.getFocal().addChild(node);
             VUE.getUndoManager().mark("New Node");
             VUE.getSelection().setTo(node);
             viewer.activateLabelEdit(node);
-            creationNodeCurrent = false;
+            //creationNodeCurrent = false;
             return true;
         }
     	
-    	 public void drawSelector(DrawContext dc, java.awt.Rectangle r)
-    	    {
-    	        dc.g.draw(r);
-
-    	        /*
-    	        // faster to pull directly from the known editor object, but this works, and is more general.
-    	        RectangularShape currentShape = (RectangularShape) VUE.LWToolManager.GetPropertyValue(LWKey.Shape);
-    	v        Stroke currentStroke = (Stroke) VUE.LWToolManager.GetPropertyValue(LWKey.StrokeStyle);
-    	        currentShape.setFrame(r);
-    	        g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,  java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
-    	        g.setColor(COLOR_SELECTION);
-    	        g.draw(currentShape);
-    	        */
-
-    	        if (true||!creationNodeCurrent) {
-    	            VUE.LWToolManager.ApplyProperties(creationNode);
-    	            creationNodeCurrent = true;
-    	        }
-
-    	        // TODO: doesn't handle zoom
-    	        // Also, handleSelectorRelease can now just dupe the creationNode
-    	        
-    	        //dc.setMapDrawing();
-    	        creationNode.setFrame(r);
-    	        creationNode.draw(dc);
-    	        
-    	    }
+        @Override
+        public void drawSelector(DrawContext dc, java.awt.Rectangle r)
+        {
+            dc.g.draw(r);
+            
+            // TODO: doesn't handle zoom
+            // Also, handleSelectorRelease can now just dupe the creationNode
+            
+            creationNode.setFrame(r);
+            creationNode.draw(dc);
+        }
     	
     	 /**
          * Create a new node with the current default properties
@@ -371,16 +366,18 @@ public class NodeTool extends VueTool
         
         public static LWNode initAsTextNode(LWNode node)
         {
-            node.setIsTextNode(true);
-            node.setAutoSized(true);
-            node.setShape(new java.awt.geom.Rectangle2D.Float());
-            node.setStrokeWidth(0f);
-            //node.setFillColor(COLOR_TRANSPARENT);
+            node.setAsTextNode(true);
+            
+//             node.setAutoSized(true);
+//             node.setShape(new java.awt.geom.Rectangle2D.Float());
+//             node.setStrokeWidth(0f);
+//             node.setFillColor(COLOR_TRANSPARENT);
+//             Font font = (Font) VUE.LWToolManager.GetPropertyValue(LWKey.Font);
+//             if (font == null)
+//                 font = LWNode.DEFAULT_TEXT_FONT;
+//             node.setFont(font);
 
-            Font font = (Font) VUE.LWToolManager.GetPropertyValue(LWKey.Font);
-            if (font == null)
-                font = LWNode.DEFAULT_TEXT_FONT;
-            node.setFont(font);
+            VUE.LWToolManager.ApplyProperties(node);
             
             return node;
         }
@@ -419,14 +416,14 @@ public class NodeTool extends VueTool
         public static LWNode createTextNode(String text)
         {
             LWNode node = buildTextNode(text);
-            if (VUE.getActiveViewer() != null) {
-                // Okay, for now this completely overrides the font size from the text toolbar...
-                final Font font = node.getFont();
-                final float curZoom = (float) VUE.getActiveViewer().getZoomFactor();
-                final int minSize = LWNode.DEFAULT_TEXT_FONT.getSize();
-                //if (curZoom * font.getSize() < minSize)
-                    node.setFont(font.deriveFont(minSize / curZoom));
-            }
+//             if (VUE.getActiveViewer() != null) {
+//                 // Okay, for now this completely overrides the font size from the text toolbar...
+//                 final Font font = node.getFont();
+//                 final float curZoom = (float) VUE.getActiveViewer().getZoomFactor();
+//                 final int minSize = LWNode.DEFAULT_TEXT_FONT.getSize();
+//                 if (curZoom * font.getSize() < minSize)
+//                     node.setFont(font.deriveFont(minSize / curZoom));
+//             }
                 
             return node;
         }

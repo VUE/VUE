@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.432 $ / $Date: 2007-05-15 23:05:41 $ / $Author: mike $ 
+ * @version $Revision: 1.433 $ / $Date: 2007-05-16 04:41:01 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -599,8 +599,10 @@ public class VUE
         private static boolean PropertySettingUnderway; // editor values are being applied to the selection
 
         // TODO: need to load default style cache with saved preference values (or do per tool?)
-        private static final LWComponent DefaultStyleCache = NodeModeTool.createNode("DefaultStyleCache");
-        private static LWComponent StyleCache;
+        //private final LWComponent DefaultStyleCache;// = new LWNode("Multi-Selection Style Cache");
+        private static LWComponent CurrentTypedStyle;
+
+        private static final Map<Object,LWComponent> TypedStyleCache = new HashMap();
         
         private LWComponent singleSelection;
 
@@ -610,44 +612,28 @@ public class VUE
             singleton = this;
             findEditors();
             VUE.getSelection().addListener(this);
-            VUE.addActiveListener(VueTool.class, this);
-            StyleCache = DefaultStyleCache;
-        }
+//             DefaultStyleCache = new LWComponent() {{
+//                         setLabel("<disabled styled>");
+//                         disablePropertyBits(~0L);// disable all properties
 
-        public void activeChanged(ActiveEvent e, VueTool tool) {
-            StyleCache = tool.getStyleCache();
-            if (StyleCache == null)
-                StyleCache = DefaultStyleCache;
+//                     }};
+            //= new LWNode("Multi-Selection Style Cache");
             
-            // either need to know this is first time, so can load cache
-            // with current tool values, or we should expect it should
-            // already come with the desired default values
-            loadAllEditors(new LWSelection(StyleCache));
+            //VUE.addActiveListener(VueTool.class, this);
+            //StyleCache = DefaultStyleCache;
         }
 
-        public static void registerEditor(LWEditor editor) {
-            if (mEditors.add(editor)) {
-                if (DEBUG.TOOL || DEBUG.INIT) System.out.println("REGISTERED EDITOR: " + editor);
-                if (editor instanceof java.awt.Component)
-                    ((java.awt.Component)editor).addPropertyChangeListener(singleton);
-            } else
-                System.out.println(" REGISTERED AGAIN: " + editor);
-        }
+//         public void activeChanged(ActiveEvent e, VueTool tool) {
+//             StyleCache = tool.getStyleCache();
+//             if (StyleCache == null)
+//                 StyleCache = DefaultStyleCache;
+            
+//             // either need to know this is first time, so can load cache
+//             // with current tool values, or we should expect it should
+//             // already come with the desired default values
+//             loadAllEditors(new LWSelection(StyleCache));
+//         }
 
-        public void findEditors() {
-            new EventRaiser<LWEditor>(this, LWEditor.class) {
-                public void dispatch(LWEditor editor) {
-                    registerEditor(editor);
-                }
-            }.raise();
-            new EventRaiser<JLabel>(this, JLabel.class) {
-                public void dispatch(JLabel label) {
-                    Component gui = label.getLabelFor();
-                    if (gui != null && gui instanceof LWEditor)
-                        mLabels.put((LWEditor)gui, label);
-                }
-            }.raise();
-        }
 
         public void propertyChange(PropertyChangeEvent e) {
             if (!EditorLoadingUnderway && e instanceof LWPropertyChangeEvent) {
@@ -657,20 +643,66 @@ public class VUE
         }
 
         public void selectionChanged(LWSelection s) {
-            loadAllEditors(s);
 
             if (s.size() == 1) {
                 if (singleSelection != null)
                     singleSelection.removeLWCListener(this);
                 singleSelection = s.first();
                 singleSelection.addLWCListener(this);
-                
-            } else if (singleSelection != null) {
-                singleSelection.removeLWCListener(this);
-                singleSelection = null;
+                CurrentTypedStyle = getStyleCache(singleSelection);
+            } else {
+                //StyleCache = DefaultStyleCache;
+                // TODO: it will be easy for the selection to keep a hash of contents based
+                // on typeToken, so we can at least know in multi-selection cases if
+                // they're all of the same type, and update the right style holder,
+                // as opposed to requiring a single selection to update it.
+                CurrentTypedStyle = null;
+                if (singleSelection != null) {
+                    singleSelection.removeLWCListener(this);
+                    singleSelection = null;
+                }
             }
+
+            loadAllEditors(s);
         }
 
+        private final LWComponent.CopyContext DUPE_WITHOUT_CHILDREN = new LWComponent.CopyContext(false);
+
+        private synchronized LWComponent getStyleCache(LWComponent c) {
+            final Object token = c.getTypeToken();
+            LWComponent styleHolder = TypedStyleCache.get(token);
+            if (styleHolder == null) {
+                if (DEBUG.STYLE) out("creating style holder based on " + c);
+                styleHolder = c.duplicate(DUPE_WITHOUT_CHILDREN);
+                
+                //-----------------------------------------------------------------------------
+                // for clear debugging info only:
+                styleHolder.enableProperty(LWKey.Label); // in case it's override getLabel like LWSlide
+                // note: property bits are duplicated, so if we ever change from a model of
+                // just copying the style from the styleHolder to using it as a base for
+                // duplication, we have to leave the original bits in place.
+                styleHolder.setLabel("<style:" + token + ">"); 
+                styleHolder.setResource((Resource)null); // clear out any resource if it had it
+                styleHolder.setNotes(null);
+                //-----------------------------------------------------------------------------
+                
+                
+                //out("created new styleHolder for type token [" + token + "]: " + styleHolder); 
+                //out("created " + styleHolder);
+                TypedStyleCache.put(token, styleHolder);
+            }
+            if (DEBUG.STYLE) out("got styleHolder for type token (" + token + "): " + styleHolder); 
+            return styleHolder;
+        }
+        
+        private static LWComponent fetchStyleCache(LWComponent c) {
+            if (TypedStyleCache == null) {
+                tufts.Util.printStackTrace("circular static initializer dependency");
+                return null;
+            }
+            return c == null ? null : TypedStyleCache.get(c.getTypeToken());
+        }
+        
         /** If the single object in the selection has a property change that was NOT due to an editor,
          * (e.g., a menu) we detect this here, and re-load the editors as needed.
          */
@@ -688,9 +720,16 @@ public class VUE
 
         private void loadAllEditors(LWSelection selection)
         {
-            final LWComponent propertySource = selection.only(); // will be null if selection size > 1
+            //final LWComponent propertySource = selection.only(); // will be null if selection size > 1
+            final LWComponent propertySource;
+
+            if (selection.size() == 1)
+                propertySource = selection.first();
+            else
+                propertySource = null;
+            //propertySource = DefaultStyleCache;
         
-            if (DEBUG.TOOL) out("\nloadAllEditors " + propertySource);
+            if (DEBUG.TOOL||DEBUG.STYLE) out("\nloadAllEditors " + propertySource);
 
             // While the editors are loading, we want to ignore any change events that
             // loading may produce in the editors (otherwise, we'd then set the selected
@@ -701,7 +740,7 @@ public class VUE
             try {
                 for (LWEditor editor : mEditors) {
                     try {
-                        processEditor(editor, selection, propertySource);
+                        setEditorState(editor, selection, propertySource);
                     } catch (Throwable t) {
                         tufts.Util.printStackTrace(t, this + ": general failure processing LWEditor: " + editor);
                     }
@@ -711,12 +750,14 @@ public class VUE
             }
         }
 
-        private void processEditor(LWEditor editor, LWSelection selection, LWComponent propertySource) {
-            boolean supported;
-            if (selection.isEmpty())
-                supported = true;
-            else
+        private void setEditorState(LWEditor editor, LWSelection selection, LWComponent propertySource) {
+            final boolean supported;
+            
+            if (selection.isEmpty()) {
+                supported = false;
+            } else {
                 supported = selection.hasEditableProperty(editor.getPropertyKey());
+            }
             if (DEBUG.TOOL) out("SET-ENABLED " + (supported?"YES":" NO") + ": " + editor);
             
             try {
@@ -728,23 +769,25 @@ public class VUE
             if (mLabels.containsKey(editor))
                 mLabels.get(editor).setEnabled(supported);
             
+            //if (supported && propertySource != null && propertySource.supportsProperty(editor.getPropertyKey()))
             if (supported && propertySource != null)
-                loadEditor(propertySource, editor);
+                loadEditorValue(propertySource, editor);
 
-            if (StyleCache != null)
-                ApplyPropertyValue(this, editor.getPropertyKey(), editor.produceValue(), StyleCache);
+            if (CurrentTypedStyle != null)
+                ApplyPropertyValue(this, editor.getPropertyKey(), editor.produceValue(), CurrentTypedStyle);
+            
             //if (editor instanceof Component) ((Component)editor).repaint(); // not helping ShapeIcon's repaint when disabled...
         }
         
-        private void loadEditor(LWComponent source, LWEditor editor) {
+        private void loadEditorValue(LWComponent source, LWEditor editor) {
             if (DEBUG.TOOL&&DEBUG.META) out("loadEditor: " + editor + " loading " + editor.getPropertyKey() + " from " + source);
 
-            final Object value;
             final Object key = editor.getPropertyKey();
-            if (source.supportsProperty(key))
-                value = source.getPropertyValue(key);
-            else
-                value = null;
+            final Object value = source.getPropertyValue(key);
+//             if (source.supportsProperty(key))
+//                 value = source.getPropertyValue(key);
+//             else
+//                 value = null;
             //if (value != null) {
             if (DEBUG.TOOL) out("     loadEditor: " + editor + " <- value[" + value + "]");
             try {
@@ -764,7 +807,7 @@ public class VUE
                 return;
             }
         
-            if (DEBUG.TOOL) System.out.println("ApplyPropertyChangeToSelection: " + key + " " + newValue);
+            if (DEBUG.TOOL||DEBUG.STYLE) System.out.println("ApplyPropertyChangeToSelection: " + key + " " + newValue);
         
             if (!selection.isEmpty()) {
                 // As setting these properties in the model will trigger notify events from the selected objects
@@ -778,8 +821,8 @@ public class VUE
                     PropertySettingUnderway = false;
                 }
                 
-                if (StyleCache != null)
-                    ApplyPropertyValue(source, key, newValue, StyleCache);
+                if (CurrentTypedStyle != null)
+                    ApplyPropertyValue("<syncCurrentTypedStyle>", key, newValue, CurrentTypedStyle);
             
                 if (VUE.getUndoManager() != null)
                     VUE.getUndoManager().markChangesAsUndo(key.toString());
@@ -787,7 +830,9 @@ public class VUE
         }
 
         private static void ApplyPropertyValue(Object source, Object key, Object newValue, LWComponent target) {
+            //if (DEBUG.STYLE) System.out.println("APPLY " + source + " " + key + "[" + newValue + "] -> " + target);
             if (target.supportsProperty(key)) {
+                if (DEBUG.STYLE) System.out.format("APPLY %s %-15s %-40s -> %s\n", source, key, "(" + newValue + ")", target);
                 try {
                     target.setProperty(key, newValue);
                     //} catch (LWComponent.PropertyValueVeto ex) {
@@ -805,20 +850,27 @@ public class VUE
             }
             return null;
         }
+
+
+        public static void ApplyProperties(LWComponent c) {
+            LWComponent styleForType = fetchStyleCache(c);
+            if (styleForType != null) {
+                if (DEBUG.STYLE) out("COPY STYLE " + styleForType + " -> " + c);
+                c.copyStyle(styleForType);
+            }
+        }
         
+        
+        /*
         public static void ApplyProperties(LWComponent c) {
             ApplyProperties(c, ~0L);
         }
 
-        public String toString() {
-            return getClass().getName();
-        }
-        
-        /**
+        /*
          * Apply the current value of all selected tools that are applicable to the given component.
          * E.g., used for setting the properties of newly created objects.
          * @param keyBits -- only apply keys whose bit is represented in keyBits (@see LWComonent.Key.bit)
-         */
+         *
         public static void ApplyProperties(LWComponent c, long keyBits) {
             for (LWEditor editor : mEditors) {
                 final Object k = editor.getPropertyKey();
@@ -834,7 +886,36 @@ public class VUE
                 if (c.supportsProperty(key) && (key.bit & keyBits) != 0)
                     c.setProperty(key, editor.produceValue());
             }
-        }        
+        }
+        */
+
+        static void registerEditor(LWEditor editor) {
+            if (mEditors.add(editor)) {
+                if (DEBUG.TOOL || DEBUG.INIT) System.out.println("REGISTERED EDITOR: " + editor);
+                if (editor instanceof java.awt.Component)
+                    ((java.awt.Component)editor).addPropertyChangeListener(singleton);
+            } else
+                System.out.println(" REGISTERED AGAIN: " + editor);
+        }
+
+        private void findEditors() {
+            new EventRaiser<LWEditor>(this, LWEditor.class) {
+                public void dispatch(LWEditor editor) {
+                    registerEditor(editor);
+                }
+            }.raise();
+            new EventRaiser<JLabel>(this, JLabel.class) {
+                public void dispatch(JLabel label) {
+                    Component gui = label.getLabelFor();
+                    if (gui != null && gui instanceof LWEditor)
+                        mLabels.put((LWEditor)gui, label);
+                }
+            }.raise();
+        }
+
+        public String toString() {
+            return getClass().getName();
+        }
         
         
     }

@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.369 $ / $Date: 2007-05-16 01:10:31 $ / $Author: sfraize $ 
+ * @version $Revision: 1.370 $ / $Date: 2007-05-16 04:41:01 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3536,11 +3536,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected void setToDrag(LWSelection s) {
         //if (s.only() instanceof LWSlide) s.clear(); // okay, this stopped us from picking up the slide, but too soon: can't change BG color
         if (s.size() > 0 && s.first().isMoveable()) {
-            if (DEBUG.Enabled) out("set to drag " + s);
+            if (DEBUG.WORK) out("set to drag " + s);
             draggedSelectionGroup.useSelection(s);
             setDragger(draggedSelectionGroup);
         } else {
-            if (DEBUG.Enabled) out("drag not allowed for " + s);
+            if (DEBUG.WORK) out("drag not allowed for " + s);
             setDragger(null);
         }
     }

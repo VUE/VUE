@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.144 $ / $Date: 2007-05-14 14:42:06 $ / $Author: sfraize $
+ * @version $Revision: 1.145 $ / $Date: 2007-05-16 04:41:01 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -147,6 +147,15 @@ public class LWLink extends LWComponent
         disableProperty(KEY_FillColor);
     }
     
+    static LWLink SetDefaults(LWLink l)
+    {
+        l.setFont(DEFAULT_FONT);
+        l.setTextColor(DEFAULT_LABEL_COLOR);
+        l.setStrokeWidth(1f); //todo config: default link width
+        return l;
+    }
+
+    
     // FYI: javac (mac java version "1.5.0_07") complains about an incompatible return
     // type in getSlot here if we don't compile this file at the same time as
     // LWCopmonent.java... (this is a javac bug)
@@ -221,14 +230,6 @@ public class LWLink extends LWComponent
         else if (key == Key_Control_1)          setCtrlPoint1((Point2D)val);
         else
             super.setProperty(key, val);
-    }
-
-    static LWLink SetDefaults(LWLink l)
-    {
-        l.setFont(DEFAULT_FONT);
-        l.setTextColor(DEFAULT_LABEL_COLOR);
-        l.setStrokeWidth(1f); //todo config: default link width
-        return l;
     }
 
     @Override
