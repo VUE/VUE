@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.155 $ / $Date: 2007-05-16 04:41:01 $ / $Author: sfraize $
+ * @version $Revision: 1.156 $ / $Date: 2007-05-16 17:25:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -434,7 +434,8 @@ public class LWNode extends LWContainer
 
         return getClass() == LWNode.class // sub-classes don't count
             && isTranslucent()
-            && !hasChildren();
+            && !hasChildren()
+            && !inPathway(); // heuristic to exclude LWNode portals (not likely to just put a piece of text alone on a pathway)
     }
     
     /** If true, compute node size from label & children */
