@@ -387,7 +387,7 @@ public class PresentationTool extends VueTool
         if (singleton == null) {
             new Throwable("Warning: PresentationTool.getTool: class not initialized by VUE").printStackTrace();
             //throw new IllegalStateException("NodeTool.getTool: class not initialized by VUE");
-            new NodeTool();
+            new PresentationTool();
         }
         return singleton;
     }
