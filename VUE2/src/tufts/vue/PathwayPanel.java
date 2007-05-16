@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.86 $ / $Date: 2007-05-15 21:24:24 $ / $Author: sfraize $
+ * @version $Revision: 1.87 $ / $Date: 2007-05-16 20:51:31 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -61,7 +61,7 @@ public class PathwayPanel extends JPanel
     
     //edit
     private final VueButton btnPreview = new VueButton("presentationDialog.button.preview", this);
-    private final VueButton btnPreviewFull = new VueButton("presentationDialog.button.previewFull", this);
+  //  private final VueButton btnPreviewFull = new VueButton("presentationDialog.button.previewFull", this);
        
     //master slide
     private final VueButton btnMasterSlide = new VueButton("presentationDialog.button.masterSlide",this);
@@ -81,7 +81,7 @@ public class PathwayPanel extends JPanel
 //                                                             VueResources.getImageIcon("presentationDialog.button.showSlides.disabled"));
     // hack for now as single button just to get this working:
     private final JToggleButton btnShowSlides = new VueButton.Toggle("presentationDialog.button.showSlides",this);
-    
+    private final JToggleButton btnShowSlides2 = new VueButton.Toggle("presentationDialog.button.showSlides",this);    
     
     //playback mode
     private final ImageDropDown btnPlayMaps = new ImageDropDown(VueResources.getImageIcon("presentationDialog.button.playMap.raw"),
@@ -128,6 +128,7 @@ public class PathwayPanel extends JPanel
     {
         Singleton = this;
             
+        
     	//DISABLE THE NOTES BUTTONS FOR NOW UNTIL WE FIGURE OUT WHAT THEY DO -MK
     	Icon i =VueResources.getIcon("presentationDialog.button.viewAll.raw");
     	addToolTips();
@@ -136,9 +137,11 @@ public class PathwayPanel extends JPanel
     	btnMergeInto.setEnabled(false);
     	btnPlayMaps.setEnabled(false);
     	//btnLiveMap.setEnabled(false);
-    	btnPreviewFull.setEnabled(false);
+    	//btnPreviewFull.setEnabled(false);
     	btnShowSlides.setEnabled(true);
     	btnShowSlides.setSelected(true);
+    	btnShowSlides2.setEnabled(true);
+    	btnShowSlides2.setSelected(true);
     	btnPlayMaps.setEnabled(false);
     //	btnPlaySlides.setEnabled(false);
 //    	btnDisplayAsMap.setEnabled(false);
@@ -300,7 +303,7 @@ public class PathwayPanel extends JPanel
         
         //edit
         btnPreview.setToolTipText(VueResources.getString(baseProp+"preview.tooltip"));
-        btnPreviewFull.setToolTipText(VueResources.getString(baseProp+"previewFull.tooltip"));
+    //    btnPreviewFull.setToolTipText(VueResources.getString(baseProp+"previewFull.tooltip"));
            
         //master slide
         btnMasterSlide.setToolTipText(VueResources.getString(baseProp+"masterSlide.tooltip"));
@@ -315,7 +318,7 @@ public class PathwayPanel extends JPanel
         
         // hack for now as single button just to get this working:
         btnShowSlides.setToolTipText(VueResources.getString(baseProp+"showNodes.tooltip"));
-        
+        btnShowSlides2.setToolTipText(VueResources.getString(baseProp+"showNodes.tooltip"));
         
         //playback mode
         btnPlayMaps.setToolTipText(VueResources.getString(baseProp+"playSlides.tooltip"));
@@ -392,15 +395,15 @@ public class PathwayPanel extends JPanel
         gbConstraints.fill=GridBagConstraints.NONE;        
         editPanel.add(lblEditSlides,gbConstraints);
         
-        gbConstraints.gridx=0;
-        gbConstraints.gridy=1;
-        gbConstraints.gridwidth = 1;
-        gbConstraints.gridheight = 1;
-        gbConstraints.fill=GridBagConstraints.NONE;
-        gbConstraints.anchor=GridBagConstraints.WEST;
-        editPanel.add(btnPreviewFull,gbConstraints);
+     //   gbConstraints.gridx=0;
+     //   gbConstraints.gridy=1;
+     //   gbConstraints.gridwidth = 1;
+     //   gbConstraints.gridheight = 1;
+     //   gbConstraints.fill=GridBagConstraints.NONE;
+     //   gbConstraints.anchor=GridBagConstraints.WEST;
+     //   editPanel.add(btnPreviewFull,gbConstraints);
     
-        gbConstraints.gridx=1;
+        gbConstraints.gridx=0;
         gbConstraints.gridy=1;       
         gbConstraints.gridwidth = 1;
         gbConstraints.gridheight = 1;
@@ -409,21 +412,29 @@ public class PathwayPanel extends JPanel
         //END EDIT PANEL
         
         //START MASTER PANEL        
-        gbConstraints.gridx = 0;
-        gbConstraints.gridy = 0;
-        gbConstraints.gridwidth = 0;
-        gbConstraints.gridheight = 1;
-        gbConstraints.fill=GridBagConstraints.NONE;
-        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
-        masterPanel.add(lblMasterSlide,gbConstraints);
+       // gbConstraints.gridx = 0;
+       // gbConstraints.gridy = 0;
+       // gbConstraints.gridwidth = 0;
+       // gbConstraints.gridheight = 1;
+       // gbConstraints.fill=GridBagConstraints.NONE;
+       // gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+       // masterPanel.add(lblMasterSlide,gbConstraints);
         
-        gbConstraints.gridx=0;
+        gbConstraints.gridx=1;
         gbConstraints.gridy=1;
         gbConstraints.gridwidth = 1;
         gbConstraints.gridheight = 1;
         gbConstraints.fill=GridBagConstraints.NONE;
         gbConstraints.anchor=GridBagConstraints.WEST;
-        masterPanel.add(btnMasterSlide,gbConstraints);
+        editPanel.add(btnMasterSlide,gbConstraints);
+        
+        gbConstraints.gridx=2;
+        gbConstraints.gridy=1;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.anchor=GridBagConstraints.WEST;
+        editPanel.add(btnShowSlides2,gbConstraints);        
         //END MASTER PANEL
         
         //START NEW PANEL
@@ -434,7 +445,7 @@ public class PathwayPanel extends JPanel
         gbConstraints.fill=GridBagConstraints.NONE;
         gbConstraints.insets = new Insets(5,0,0,0);
         gbConstraints.anchor=GridBagConstraints.NORTHWEST;
-        newPanel.add(lblNew,gbConstraints);
+        newPanel.add(new JLabel(" "),gbConstraints);
         
         gbConstraints.gridx=0;
         gbConstraints.gridy=1;
@@ -447,20 +458,20 @@ public class PathwayPanel extends JPanel
         //END NEW PANEL
         
         //START DELETE PANEL
-        gbConstraints.gridx = 0;
-        gbConstraints.gridy = 0;
-        gbConstraints.gridwidth = 1;
-        gbConstraints.gridheight = 1;
-        gbConstraints.insets = new Insets(0,0,0,0);
-        gbConstraints.fill=GridBagConstraints.NONE;
-        deletePanel.add(new JPanel(),gbConstraints);
+        //gbConstraints.gridx = 0;
+        //gbConstraints.gridy = 0;
+        //gbConstraints.gridwidth = 1;
+        //gbConstraints.gridheight = 1;
+        //gbConstraints.insets = new Insets(0,0,0,0);
+        //gbConstraints.fill=GridBagConstraints.NONE;
+        //deletePanel.add(new JPanel(),gbConstraints);
         
         
-        gbConstraints.gridx=0;
+        gbConstraints.gridx=1;
         gbConstraints.gridy=1;
         gbConstraints.fill=GridBagConstraints.NONE;
-        gbConstraints.insets = new Insets(2,0,0,0);
-        deletePanel.add(btnPresentationDelete,gbConstraints);
+        gbConstraints.insets = new Insets(3,5,6,0);
+        newPanel.add(btnPresentationDelete,gbConstraints);
         //END DELETE PANEL        
         
         slidePanel.add(Box.createHorizontalStrut(1));
@@ -470,16 +481,16 @@ public class PathwayPanel extends JPanel
         slidePanel.add(Box.createHorizontalStrut(1));
         slidePanel.add(editPanel);                
         slidePanel.add(Box.createHorizontalStrut(1));
-        slidePanel.add(p3);
-        slidePanel.add(Box.createHorizontalStrut(5));
-        slidePanel.add(masterPanel);        
-        slidePanel.add(p4);
+        //slidePanel.add(p3);
+        //slidePanel.add(Box.createHorizontalStrut(5));
+        //slidePanel.add(masterPanel);        
+        //slidePanel.add(p4);
         slidePanel.add(Box.createHorizontalStrut(5));                
         slidePanel.add(newPanel);        
-        slidePanel.add(p2);
-        slidePanel.add(Box.createHorizontalStrut(1));
-        slidePanel.add(deletePanel);
-        slidePanel.add(Box.createHorizontalStrut(1));        
+        //slidePanel.add(p2);
+        //slidePanel.add(Box.createHorizontalStrut(1));
+       // slidePanel.add(deletePanel);
+       // slidePanel.add(Box.createHorizontalStrut(1));        
        
        
         return;
@@ -807,8 +818,13 @@ public class PathwayPanel extends JPanel
             return;
         if (btn == btnPreview)
         {
-        	VUE.getSlideDock().setVisible(true);
-        	VUE.getSlideViewer().showSlideMode();
+        	if (VUE.getSlideDock().isShowing())
+        		VUE.getSlideDock().setVisible(false);
+        	else
+        	{
+        		VUE.getSlideDock().setVisible(true);
+        		VUE.getSlideViewer().showSlideMode();
+        	}
         }    
         else if (btn == btnPlay)
         {
@@ -819,8 +835,13 @@ public class PathwayPanel extends JPanel
         }
         else if (btn == btnMasterSlide)
         {
-        	VUE.getSlideDock().setVisible(true);
-        	VUE.getSlideViewer().showMasterSlideMode();
+        	if (VUE.getSlideDock().isShowing())
+        		VUE.getSlideDock().setVisible(false);
+        	else
+        	{
+        		VUE.getSlideDock().setVisible(true);
+        		VUE.getSlideViewer().showMasterSlideMode();
+        	}
         }
         else if (btn == btnAddSlide)  { pathway.add(VUE.getSelection().iterator()); }
         else if (btn == btnMergeInto)  { pathway.addMergedSlide(VUE.getSelection()); }
@@ -870,7 +891,13 @@ public class PathwayPanel extends JPanel
         } else if (btn == btnShowSlides) {
             LWPathway.setShowSlides(btnShowSlides.isSelected());
             pathway.notify("pathway.showSlides");
-        } else {
+            btnShowSlides2.setSelected(btnShowSlides.isSelected());
+        } else if (btn == btnShowSlides2) {
+            LWPathway.setShowSlides(btnShowSlides2.isSelected());
+            pathway.notify("pathway.showSlides");
+            btnShowSlides.setSelected(btnShowSlides2.isSelected());
+        }
+        else {
             System.out.println(this + ": Unhandled action: " + e);
         }
 
