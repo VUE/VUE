@@ -43,6 +43,7 @@ import tufts.vue.*;
 
 public class ConnectivityMatrix {
     public static final int SIZE = 1000;
+    public static final int TRUNCATE_LENGTH = 8;
     protected List labels = new  ArrayList(); // these labels need not be node labels
     protected int c[][] = new int[SIZE][SIZE];
     protected int size;
@@ -178,7 +179,9 @@ public class ConnectivityMatrix {
         //       output = "\t";   //leave the first cell empty;
         Iterator iterator = labels.iterator();
         while(iterator.hasNext()){
-            output += (String)iterator.next()+"\t";
+            String label = (String)iterator.next();
+            int endIndex = Math.min(TRUNCATE_LENGTH,label.length());
+            output += label.substring(0,endIndex)+"\t";
         }
         output +="\n";
         for(int i=0;i<size;i++){
