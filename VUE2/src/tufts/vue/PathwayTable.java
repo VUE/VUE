@@ -67,7 +67,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.69 $ / $Date: 2007-05-12 19:09:43 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2007-05-16 19:39:09 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -312,32 +312,22 @@ public class PathwayTable extends JTable
 
     private class ColorEditor extends AbstractCellEditor
                          implements TableCellEditor,
-			            ActionListener
+			             MouseListener
     {
         Color currentColor;
-        JButton button;
+        JPanel button;
 
         public ColorEditor() {
             button = new ColorRenderer();
-            button.addActionListener(this);
+            //button.addActionListener(this);
+            button.addMouseListener(this);
             button.setBorder(null);
             //button.setBorder(new LineBorder(BGColor, 3));
         }
 
-        public void actionPerformed(ActionEvent e) {
-            if (VUE.getActivePathway().isLocked())
-                return;
-            Color c = VueUtil.runColorChooser("Pathway Color Selection", currentColor, VUE.getDialogParent());
-            fireEditingStopped();
-            if (c != null) {
-                // why the row checking here?
-                int row = getSelectedRow();
-                if (row == -1)
-                    row = lastSelectedRow;
-                if (row != -1)
-                    getTableModel().setValueAt(currentColor = c, row, 6);
-            }
-        }
+//        public void actionPerformed(ActionEvent e) {
+    
+  //      }
 
         public Object getCellEditorValue() {
             return currentColor;
@@ -352,21 +342,89 @@ public class PathwayTable extends JTable
             button.setBackground(currentColor);
             return button;
         }
+
+		public void mouseClicked(MouseEvent arg0) {
+			
+		}
+
+		public void mouseEntered(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mouseExited(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mousePressed(MouseEvent e) {
+//			 TODO Auto-generated method stub
+	        if (VUE.getActivePathway().isLocked())
+                return;
+            Color c = VueUtil.runColorChooser("Pathway Color Selection", currentColor, VUE.getDialogParent());
+            fireEditingStopped();
+            if (c != null) {
+                // why the row checking here?
+                int row = getSelectedRow();
+                if (row == -1)
+                    row = lastSelectedRow;
+                if (row != -1)
+                    getTableModel().setValueAt(currentColor = c, row, 6);
+            }		
+		}
+
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
     }
     
-    private class ColorRenderer extends JButton implements TableCellRenderer {
-        public ColorRenderer() {
+    private class ColorRenderer extends JPanel implements TableCellRenderer {
+        private final Color
+        TopGradient1 = new Color(179,166,121),
+        BottomGradient1 = new Color(142,129,82);
+        private final Color TopGradient2 = new Color(195,193,186);
+        private final Color BottomGradient2 = new Color(162,161,156);
+        private GradientPaint Gradient = null;
+        private GradientPaint Gradient2 = null;
+        private int curRow =0;
+    	public ColorRenderer() {
             setOpaque(true);
-            setBorder(new LineBorder(BGColor, 3)); // fyi: empty border no good: won't paint over
+            
+         //   setBorder(new LineBorder(BGColor, 1)); // fyi: empty border no good: won't paint over
+        	Gradient = new GradientPaint(0,           0, TopGradient1,
+                    0, 20, BottomGradient1);
+        	Gradient2 = new GradientPaint(0,           0, TopGradient2,
+                    0, 20, BottomGradient2);
+        	
             setToolTipText("Select Color");
         }
+        
+        protected void paintComponent(Graphics g)
+        {
+        	paintGradient((Graphics2D)g);
+        	g.setClip(2, 2, getWidth()-4, getHeight()-4);
+        	super.paintComponent(g);
+        }
+        
+        private void paintGradient(Graphics2D g)
+        {       
+        	final LWPathway.Entry entry = getTableModel().getEntry(curRow);
+            if (entry.pathway != null && entry.pathway == VUE.getActivePathway())
+                g.setPaint(Gradient);
+            else
+                g.setPaint(Gradient2);
+            
+            g.fillRect(0, 0, getWidth(),20);
+        }
+        
         public java.awt.Component getTableCellRendererComponent(
                                     JTable table, Object color, 
                                     boolean isSelected, boolean hasFocus, 
                                     int row, int col)
         {
             final LWPathway.Entry entry = getTableModel().getEntry(row);
-            
+            curRow=row;
             if (entry == null) {
             	{
             		setBackground((Color) color);
@@ -376,6 +434,7 @@ public class PathwayTable extends JTable
             } else if (entry.isPathway()) {
                 setBackground((Color) color);
                 setForeground((Color) color);
+               
                 return this;
             } else
             {
@@ -721,8 +780,8 @@ public class PathwayTable extends JTable
 	    */
 			
 	}
-	
 	public void drop(DropTargetDropEvent arg0) {
+	
 		 Transferable transferable = arg0.getTransferable();				
 	      LWPathway.Entry entry =null;
 	      
