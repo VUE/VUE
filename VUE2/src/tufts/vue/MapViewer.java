@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.376 $ / $Date: 2007-05-16 18:17:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.377 $ / $Date: 2007-05-16 19:40:01 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3636,7 +3636,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     handled = false;
                 break;
                 
-                //case KeyEvent.VK_BACK_SLASH: // need to not do if apple-\ is firing!
+            case KeyEvent.VK_BACK_SLASH:
+                if (anyModifierKeysDown(e)) {
+                    // do NOT fire this internal shortcut of '\' for fullscreen
+                    // if the actual action (Command-\) was fired.
+                    handled = false;
+                    break;
+                }
+                // fallthru:
             case KeyEvent.VK_F11:
                 if (!e.isConsumed())
                     VUE.toggleFullScreen(e.isShiftDown(), true);
@@ -5201,8 +5208,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
 
-        private final boolean noModifierKeysDown(MouseEvent e) {
-            return (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
+        private final boolean noModifierKeysDown(InputEvent e) {
+            return !anyModifierKeysDown(e);
+        }
+    
+        private final boolean anyModifierKeysDown(InputEvent e) {
+            return (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) != 0;
         }
         
         /*
