@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.373 $ / $Date: 2007-05-16 16:28:01 $ / $Author: sfraize $ 
+ * @version $Revision: 1.374 $ / $Date: 2007-05-16 16:34:37 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4200,7 +4200,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 return;
             }
             
-            if (VueSelection.isEmpty()) {
+            if (VueSelection.isEmpty() || VueSelection.only() instanceof LWMap) {
                 getMapPopup().show(e.getComponent(), e.getX(), e.getY());
             } else if (VueSelection.size() == 1) {
                 getSingleSelectionPopup(hitComponent).show(e.getComponent(), e.getX(), e.getY());
