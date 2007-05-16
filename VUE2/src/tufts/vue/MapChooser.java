@@ -126,7 +126,7 @@ public class MapChooser extends JDialog implements ActionListener{
         info.setToolTipText("Create Connectivity Matrix Help Here - TBD");
         JLabel chooseLabel = new JLabel(generateMessage,JLabel.RIGHT);
         browseLabel = new JLabel(browseMessage,JLabel.CENTER);
-        String[] choices = {"selected map","map in a local folder"};
+        String[] choices = {"active map","map in a local folder"};
         choice = new JComboBox(choices);
         file = new JTextField(2);
         PolygonIcon lineIcon = new PolygonIcon(new Color(153,153,153));
