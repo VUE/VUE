@@ -36,7 +36,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.62 $ / $Date: 2007-05-16 00:37:21 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2007-05-16 16:23:48 $ / $Author: mike $
  *
  **/
 public class VueToolbarController  
@@ -55,7 +55,7 @@ public class VueToolbarController
 	
     /** a list of available tools **/
     private VueTool[] mVueTools = null;
-
+    private int[] separatorPositions = null;
     /* current contextual panel **/
     //private JPanel mContextualPanel = null;
 	
@@ -88,6 +88,7 @@ public class VueToolbarController
      **/
     protected VueToolbarController() {
         mVueTools = VueToolUtils.loadTools(DefaultToolsKey);
+        separatorPositions = VueToolUtils.getSeparatorPositions(DefaultToolsKey);
         mToolPanel = createDefaultToolbar();
         VUE.addActiveListener(VueTool.class, this);
 		
@@ -112,7 +113,7 @@ public class VueToolbarController
      **/
     private VueToolPanel createDefaultToolbar() {
         VueToolPanel toolbar = new VueToolPanel();
-        toolbar.addTools(mVueTools);
+        toolbar.addTools(mVueTools,separatorPositions);
         
         return toolbar;
     }

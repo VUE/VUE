@@ -82,7 +82,7 @@ public class VueToolUtils
 //                	if (names[i].contains("."))                		
                 		mVueTools[count++] = VueToolUtils.loadToolFromMap(names[i]);
                 	
-                }
+                }                
             }
     	}
     	
@@ -103,6 +103,23 @@ public class VueToolUtils
         return toolCount;
         
     }
+    
+    public static int[] getSeparatorPositions(String DefaultToolsKey)
+    {
+    	String[] names = VueResources.getStringArray(DefaultToolsKey);
+    	
+    	int separatorCount = names.length - getToolCount(names);
+    	int[] separatorPositions = new int[separatorCount];
+    	
+    	separatorCount=0;
+    	for (int i=0;i < names.length;i++)
+    	{
+    		if (names[i].equals("separator"))
+    			separatorPositions[separatorCount++] = i;
+    	}
+    	return separatorPositions;
+    }
+    
     /**
      * Loads the default tools specified in a resource file
      **/
