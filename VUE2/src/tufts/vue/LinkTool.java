@@ -379,7 +379,7 @@ public class LinkTool extends VueTool
                 // todo: pick up current default stroke color & stroke width
                 // and apply to creationLink
                 creationLink.setTemporaryEndPoint1(linkSource);
-                VUE.LWToolManager.ApplyProperties(creationLink);
+                EditorManager.applyCurrentProperties(creationLink);
                 // never let drawn creator link get less than 1 pixel wide on-screen
                 float minStrokeWidth = (float) (1 / e.getViewer().getZoomFactor());
                 if (creationLink.getStrokeWidth() < minStrokeWidth)
@@ -482,7 +482,7 @@ public class LinkTool extends VueTool
                     link = new LWLink(pLinkSource, null);
                     link.setTailPoint(e.getMapPoint()); // set to drop location
                 }
-                VUE.LWToolManager.ApplyProperties(link);
+                EditorManager.applyCurrentProperties(link);
     	            
                 commonParent.addChild(link);
                 // We ensure a paint sequence here because a link to a link

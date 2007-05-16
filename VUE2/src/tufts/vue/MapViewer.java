@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.377 $ / $Date: 2007-05-16 19:40:01 $ / $Author: sfraize $ 
+ * @version $Revision: 1.378 $ / $Date: 2007-05-16 23:39:14 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5720,7 +5720,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // for print testing & scroll testing
         LWNode n = new LWNode("+origin");
         n.setAutoSized(false);
-        n.setShape(new Rectangle2D.Float());
+        n.setShape(Rectangle2D.Float.class);
         n.setStrokeWidth(0);
         n.setFrame(0,0, 100,25);
         n.setFillColor(Color.darkGray);
@@ -5758,7 +5758,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         */
 
         LWNode end = new LWNode("400x300");
-        end.setShape(new Rectangle2D.Float());
+        end.setShape(Rectangle2D.Float.class);
         end.setStrokeWidth(0);
         end.setAutoSized(false);
         end.setFrame(300,250, 100,50);

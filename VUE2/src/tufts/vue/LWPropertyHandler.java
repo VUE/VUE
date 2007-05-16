@@ -30,7 +30,7 @@ import java.awt.event.ActionListener;
  * Subclass implementors must provide produceValue/displayValue from LWEditor.
  */
 
-// rename LWEditorChangeHandler
+// LWEditorChangeHandler?
 public abstract class LWPropertyHandler<T>
     implements LWEditor<T>, java.awt.event.ActionListener
 {
@@ -43,7 +43,9 @@ public abstract class LWPropertyHandler<T>
         this.key = propertyKey;
         //this.changeListener = listener;
         this.gui = gui;
-        VUE.LWToolManager.registerEditor(this);
+        // as this may not be in the AWT hierarchy to be found by the manager,
+        // we register it manually:
+        EditorManager.registerEditor(this);
     }
 
     /*
@@ -55,7 +57,6 @@ public abstract class LWPropertyHandler<T>
         this(propertyKey, (java.awt.Component) null);
         //this(propertyKey, null, null);
     }
-
     
     public Object getPropertyKey() { return key; }
 
@@ -72,18 +73,7 @@ public abstract class LWPropertyHandler<T>
     //public void itemStateChanged(java.awt.event.ItemEvent e) {
     public void actionPerformed(java.awt.event.ActionEvent e) {
         if (DEBUG.TOOL) System.out.println(this + " actionPerformed " + e.paramString());
-        VUE.LWToolManager.ApplyPropertyChangeToSelection(VUE.getSelection(), key, produceValue(), e.getSource());
-        
-        /*
-        // TODO: we want to skip doing this if we're in the middle of LWEditor.displayValue...
-        // this is prob why we don't want this class being the action listener...  so we can
-        // handle that all in once place.
-        if (DEBUG.TOOL) System.out.println(this + ": " + e);
-        if (changeListener == null)
-            LWCToolPanel.ApplyPropertyChangeToSelection(VUE.getSelection(), key, produceValue(), e.getSource());
-        else
-            changeListener.propertyChange(new LWPropertyChangeEvent(e.getSource(), key, produceValue()));
-        */
+        EditorManager.firePropertyChange(this, e.getSource());
     }
 
     public String toString() {

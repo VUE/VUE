@@ -201,8 +201,8 @@
 		<!-- field name="nodeShape">
 			<bind-xml name="nodeShape" node="element"/>
 		</field -->
-		<field name="shape">
-			<bind-xml name="shape" node="element"/>
+		<field name="XMLshape">
+                  <bind-xml name="shape" node="element"/>
 		</field>
 	</class>
 

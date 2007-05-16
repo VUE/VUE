@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.36 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $ 
+ * @version $Revision: 1.37 $ / $Date: 2007-05-16 23:39:14 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -52,6 +52,8 @@ public class MapTabbedPane extends JTabbedPane
         setFocusable(false);
         BgColor = GUI.getToolbarColor();
         setTabPlacement(javax.swing.SwingConstants.TOP);
+        //if (DEBUG.Enabled)
+        //setTabLayoutPolicy(JTabbedPane.WRAP_TAB_LAYOUT); // appears to have no effect in Aqua on Mac
         setPreferredSize(new Dimension(300,400));
 
         /*//getModel().
@@ -109,6 +111,13 @@ public class MapTabbedPane extends JTabbedPane
 
     public MapViewer getSelectedViewer() {
         return getViewerAt(getSelectedIndex());
+    }
+
+    public void advanceToNextTab() {
+        if (getSelectedIndex() >= getTabCount() - 1)
+            setSelectedIndex(0);
+        else
+            setSelectedIndex(getSelectedIndex() + 1);
     }
 
     public void focusGained(FocusEvent e) {

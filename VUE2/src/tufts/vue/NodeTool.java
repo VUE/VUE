@@ -312,7 +312,7 @@ public class NodeTool extends VueTool
         @Override
         public boolean handleMousePressed(MapMouseEvent e) {
             //out("MOUSE PRESSED");
-            VUE.LWToolManager.ApplyProperties(creationNode);            
+            EditorManager.applyCurrentProperties(creationNode);            
             return false;
         }
         
@@ -378,7 +378,7 @@ public class NodeTool extends VueTool
 //                 font = LWNode.DEFAULT_TEXT_FONT;
 //             node.setFont(font);
 
-            VUE.LWToolManager.ApplyProperties(node);
+            EditorManager.applyCurrentProperties(node);
             
             return node;
         }
@@ -401,7 +401,8 @@ public class NodeTool extends VueTool
         public static LWNode createNode(String name, boolean useToolShape)
         {
             LWNode node = new LWNode(name);
-            VUE.LWToolManager.ApplyProperties(node);
+            EditorManager.applyCurrentProperties(node);
+
             /*
             if (useToolShape) {
                 node.setShape(getActiveSubTool().getShape());
@@ -480,7 +481,7 @@ public class NodeTool extends VueTool
         public VueAction getShapeSetterAction() {
             if (shapeSetterAction == null) {
                 shapeSetterAction = new Actions.LWCAction(getToolName(), new ShapeIcon(getShapeInstance())) {
-                        void act(LWNode n) { n.setShape(getShapeInstance()); }
+                        void act(LWNode n) { n.setShapeInstance(getShapeInstance()); }
                     };
                 //shapeSetterAction.putValue("property.key", LWKey.Shape);
                 shapeSetterAction.putValue("property.value", getShape()); // this may be handy

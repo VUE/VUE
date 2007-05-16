@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.158 $ / $Date: 2007-05-16 18:09:10 $ / $Author: sfraize $
+ * @version $Revision: 1.159 $ / $Date: 2007-05-16 23:39:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -143,10 +143,10 @@ public class LWNode extends LWContainer
         super.label = label; // todo: this for debugging
         setFillColor(DEFAULT_NODE_FILL);
         if (shape == null)
-            setShape(new tufts.vue.shape.RoundRect2D());
+            setShape(tufts.vue.shape.RoundRect2D.class);
           //setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20));
-        else
-            setShape(shape);
+        else if (shape != null)
+            setShapeInstance(shape);
         setStrokeWidth(DEFAULT_NODE_STROKE_WIDTH);
         setStrokeColor(DEFAULT_NODE_STROKE_COLOR);
         setLocation(x, y);
@@ -200,15 +200,15 @@ public class LWNode extends LWContainer
         }
         @Override
         public void setValue(LWNode c, Class<? extends RectangularShape> shapeClass) {
-            try {
-                c.setShape(shapeClass.newInstance());
-            } catch (Throwable t) {
-                tufts.Util.printStackTrace(t);
-            }
+            c.setShape(shapeClass);
         }
         @Override
         public Class<? extends RectangularShape> getValue(LWNode c) {
-            return c.getShape().getClass();
+            try {
+                return c.getShape().getClass();
+            } catch (NullPointerException e) {
+                return null;
+            }
         }
     };
 
@@ -237,12 +237,24 @@ public class LWNode extends LWContainer
     }
 
     /**
+     * @param shapeClass -- a class object this is a subclass of RectangularShape
+     */
+    public void setShape(Class<? extends RectangularShape> shapeClass) {
+
+        if (boundsShape != null && IsSameShape(boundsShape.getClass(), shapeClass))
+            return;
+
+        try {
+            setShapeInstance(shapeClass.newInstance());
+        } catch (Throwable t) {
+            tufts.Util.printStackTrace(t);
+        }
+    }
+    
+    /**
      * @param shape a new instance of a shape for us to use: should be a clone and not an original
      */
-    // todo: should probably just force a clone of this shape every time for safety
-    // and just eat the wasted shape objects built when doing castor XML restores.
-
-    public void setShape(RectangularShape shape)
+    protected void setShapeInstance(RectangularShape shape)
     {
         if (DEBUG.CASTOR) System.out.println("SETSHAPE " + shape.getClass() + " in " + this + " " + shape);
         //System.out.println("SETSHAPE bounds " + shape.getBounds());
@@ -260,8 +272,17 @@ public class LWNode extends LWContainer
         this.drawnShape = cloneShape(shape);
         adjustDrawnShape();
         layout();
-        notify(LWKey.Shape, new Undoable(old) { void undo() { setShape((RectangularShape)old); }} );
+        notify(LWKey.Shape, new Undoable(old) { void undo() { setShapeInstance((RectangularShape)old); }} );
     }
+
+    public void setXMLshape(RectangularShape shape) {
+        setShapeInstance(shape);
+    }
+                                                     
+    public RectangularShape getXMLshape() {
+        return getShape();
+    }
+                                                     
     
     /** @return shape object with map coordinates -- can be used for hit testing, drawing, etc */
     public RectangularShape getShape() {
@@ -300,6 +321,7 @@ public class LWNode extends LWContainer
     {
         LWNode newNode = (LWNode) super.duplicate(cc);
         // make sure shape get's set with old size:
+        if (DEBUG.STYLE) out("re-adjusting size during duplicate to set shape size");
         newNode.setSize(super.getWidth(), super.getHeight()); 
         return newNode;
     }
@@ -506,11 +528,25 @@ public class LWNode extends LWContainer
     }
     
 
+    private static boolean IsSameShape(
+                                       Class<? extends RectangularShape> c1,
+                                       Class<? extends RectangularShape> c2) {
+        if (c1 == null || c2 == null)
+            return false;
+        if (c1 == c2) {
+            if (java.awt.geom.RoundRectangle2D.class.isAssignableFrom(c1))
+                return false; // just in case arc's are different
+            else
+                return true;
+        } else
+            return false;
+    }
+
     private static boolean IsSameShape(Shape s1, Shape s2) {
         if (s1 == null || s2 == null)
             return false;
         if (s1.getClass() == s2.getClass()) {
-            if (s1 instanceof RoundRectangle2D) {
+            if (s1 instanceof java.awt.geom.RoundRectangle2D) {
                 RoundRectangle2D rr1 = (RoundRectangle2D) s1;
                 RoundRectangle2D rr2 = (RoundRectangle2D) s2;
                 return
@@ -2135,7 +2171,7 @@ public class LWNode extends LWContainer
     {
         imageIcon = new ImageIcon(image, "Image Description");
         setAutoSized(false);
-        setShape(new Rectangle2D.Float());
+        setShape(Rectangle2D.Float.class);
         setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
     }
     
