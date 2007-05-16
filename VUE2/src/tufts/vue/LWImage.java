@@ -170,9 +170,18 @@ public class LWImage extends
     
     
     /** @return true unless this is a node icon image */
+    @Override
     public boolean supportsUserResize() {
         return !isNodeIcon;
     }
+
+    /** @return false -- no on-map editing of image labels */
+    @Override
+    public boolean supportsUserLabel() {
+        return false;
+    }
+
+    
 
     /** this for backward compat with old save files to establish the image as a special "node" image */
     public void XML_addNotify(String name, Object parent) {
