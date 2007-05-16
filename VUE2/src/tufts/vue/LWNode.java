@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.157 $ / $Date: 2007-05-16 17:26:56 $ / $Author: sfraize $
+ * @version $Revision: 1.158 $ / $Date: 2007-05-16 18:09:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -81,6 +81,8 @@ Okay, this issue with getting rid of auto-sized is this:
 
 public class LWNode extends LWContainer
 {
+    public static final Object TYPE_TEXT = "textNode";
+    
     final static boolean WrapText = false; // under development
     
     public static final Font  DEFAULT_NODE_FONT = VueResources.getFont("node.font");
@@ -404,7 +406,7 @@ public class LWNode extends LWContainer
 
     @Override
     public Object getTypeToken() {
-        return isTextNode() ? "textNode" : super.getTypeToken();
+        return isTextNode() ? TYPE_TEXT : super.getTypeToken();
     }
     
     public void setAsTextNode(boolean asText)

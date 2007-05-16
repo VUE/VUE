@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.374 $ / $Date: 2007-05-16 16:34:37 $ / $Author: sfraize $ 
+ * @version $Revision: 1.375 $ / $Date: 2007-05-16 18:09:10 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1531,7 +1531,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private PickContext initPickContext(PickContext pc) {
         pc.root = mFocal;
-        pc.acceptor = (Acceptor) activeTool;
+        pc.acceptor = activeTool;
         //pc.maxLayer = getMaxLayer();
         if (mFocal != null) {
             // always allow picking through to children of the focal
@@ -5043,12 +5043,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     //                                     e.isControlDown()
                     //                                     || activeTool == LinkTool);
 
-                    Class selectionType;
-
-                    if (e.isAltDown())
-                        selectionType = LWNode.class;
-                    else
-                        selectionType = activeTool.getSelectionType();
+//                     Class selectionType;
+//                     if (e.isAltDown())
+//                         selectionType = LWNode.class;
+//                     else
+//                         selectionType = activeTool.getSelectionType();
 
                     List list = computeSelection(screenToMapRect(draggedSelectorBox));
                     

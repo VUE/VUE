@@ -23,12 +23,17 @@ package tufts.vue;
  *
  * This class essentially just a parameter block for picking LWTraversals.
  *
- * @version $Revision: 1.6 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2007-05-16 18:09:10 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
 public class PickContext
 {
+    public interface Acceptor {
+        public boolean accept(PickContext pc, LWComponent c);
+    }
+        
+    
     /** Where in the tree to start picking (usually the top-level LWMap, but sometimes a sub-focal) */
     public LWComponent root;
 
@@ -80,6 +85,14 @@ public class PickContext
         y = (float) r.getY();
         width = (float) r.getWidth();
         height = (float) r.getHeight();
+    }
+
+    public boolean isPointPick() {
+        return width <= 0 || height <= 0;
+    }
+    
+    public boolean isRegionPick() {
+        return width > 0 && height > 0;
     }
 
     public String toString() {

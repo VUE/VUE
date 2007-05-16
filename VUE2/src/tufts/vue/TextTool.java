@@ -28,6 +28,14 @@ public class TextTool extends VueTool
 {
     public TextTool() {}
 
+
+    /** @return LWNode.TYPE_TEXT */
+    @Override
+    public Object getSelectionType() {
+        return LWNode.TYPE_TEXT;
+    }
+    
+
 //     @Override
 //     protected LWComponent createStyleCache() {
 //         return NodeModeTool.createTextNode("StyleCache: " + getClass());

@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.13 $ / $Date: 2007-05-16 05:24:26 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2007-05-16 18:09:10 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -173,7 +173,7 @@ public class LWTraversal {
             else if (pc.ignoreSelected && c.isSelected())
                 return false;
             //else if (pc.pickType != null && !pc.pickType.isInstance(c))
-            else if (pc.acceptor != null && !pc.acceptor.accept(c))
+            else if (pc.acceptor != null && !pc.acceptor.accept(pc, c))
                 return false;
             else
                 return true;

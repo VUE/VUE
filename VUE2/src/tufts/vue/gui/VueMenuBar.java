@@ -31,7 +31,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.33 $ / $Date: 2007-05-16 14:45:11 $ / $Author: mike $
+ * @version $Revision: 1.34 $ / $Date: 2007-05-16 18:09:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -546,6 +546,15 @@ public class VueMenuBar extends javax.swing.JMenuBar
         }
 
         private static String keyCodeName(int keyCode) {
+            return keyCodeName(keyCode, false);
+        }
+        
+        private static String keyCodeName(int keyCode, boolean lowerCase) {
+            
+            if (lowerCase && keyCode >= KeyEvent.VK_A && keyCode <= KeyEvent.VK_Z) {
+                return String.valueOf((char)keyCode).toLowerCase();
+            }
+            
             if (keyCode == KeyEvent.VK_OPEN_BRACKET)
                 return "[";
             else if (keyCode == KeyEvent.VK_CLOSE_BRACKET)
@@ -561,16 +570,20 @@ public class VueMenuBar extends javax.swing.JMenuBar
             
             // get tool short-cuts
             for (VueTool t : VueTool.getTools()) {
+                final int downKey = t.getActiveWhileDownKeyCode();
                 if (DEBUG.TOOL) {
                     text += String.format(" %-25s (%c) %-12s %-23s %s \n",
                                           t.getID()+":",
                                           t.getShortcutKey() == 0 ? ' ' : t.getShortcutKey(),
-                                          "("+keyCodeName(t.getActiveWhileDownKeyCode()) + ")",
+                                          "("+keyCodeName(downKey) + ")",
                                           t.getToolName(),
                                           t.getClass().getName()
                                           );
                 } else if (t.getShortcutKey() != 0) {
-                    text += String.format(" (%c) %s \n", t.getShortcutKey(), t.getToolName());
+                    text += String.format(" (%c) %-12s %s \n",
+                                          t.getShortcutKey(),
+                                          downKey == 0 ? "" : "(" + keyCodeName(downKey, true) + ")",
+                                          t.getToolName());
                 }
             }
             

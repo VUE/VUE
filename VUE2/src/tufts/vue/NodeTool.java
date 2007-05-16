@@ -306,6 +306,7 @@ public class NodeTool extends VueTool
     	{
             super();
             creationNode.setAutoSized(false);
+            setActiveWhileDownKeyCode(KeyEvent.VK_X);            
     	}
     	
         @Override

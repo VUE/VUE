@@ -319,7 +319,7 @@ public class LinkTool extends VueTool
     	{
     		super();
     		setComboMode(true);
-    		
+                setActiveWhileDownKeyCode(0); // disable
     	}
     }
     static class LinkModeTool extends VueTool

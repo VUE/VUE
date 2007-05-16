@@ -563,7 +563,7 @@ public class PresentationTool extends VueTool
             repaint();
             break;
 
-        case 'P':
+        case 'p':
             PathwayPanel.TogglePathwayExclusiveFilter();
             break;
             
