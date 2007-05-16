@@ -20,7 +20,7 @@
  *
  * Created on May 8, 2007, 1:31 PM
  *
- * @version $Revision: 1.2 $ / $Date: 2007-05-14 17:35:47 $ / $Author: dan $
+ * @version $Revision: 1.3 $ / $Date: 2007-05-16 02:14:14 $ / $Author: dan $
  * @author dhelle01
  *
  * 
@@ -40,16 +40,20 @@ import tufts.vue.gui.*;
 public class MergeMapsControlPanel extends JPanel {
     
     private MapsSelectionPanel mapSelectionPanel;
+    private VisualizationSettingsPanel visualizationSettingsPanel;
     private JButton generateButton;
     
     public MergeMapsControlPanel(final DockWindow dw) 
     {
         setLayout(new BorderLayout());
         mapSelectionPanel = MapsSelectionPanel.getMapSelectionPanel();
+        visualizationSettingsPanel = new VisualizationSettingsPanel();
         final JTabbedPane tabs = new JTabbedPane();
         //mapSelectionPanel.setBackground(tabs..getBackground());
         tabs.addTab("Select Maps",mapSelectionPanel);
-        tabs.addTab("Visualization Settings",new WeightVisualizationSettingsPanel());
+        //tabs.addTab("Visualization Settings",new WeightVisualizationSettingsPanel());
+        //tabs.addTab("Visualization Settings",new VoteVisualizationSettingsPanel());
+        tabs.addTab("Visualization Settings",visualizationSettingsPanel);
         
         /*tabs.addPropertyChangeListener(new PropertyChangeListener()
         {
@@ -90,7 +94,14 @@ public class MergeMapsControlPanel extends JPanel {
                LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
                merge.setMapList(mapSelectionPanel.getMapList());
                merge.setBaseMap(mapSelectionPanel.getBaseMap());
-               merge.fillAsVoteMerge();
+               //merge.setNodeThresholdSliderValue(VoteVisualizationSettingsPanel.getSharedPanel().getNodeThresholdSlider());
+               
+               setMergeMapSettings(merge);
+               
+               if(visualizationSettingsPanel.getVisualizationSettingsType() == VisualizationSettingsPanel.VOTE)
+                 merge.fillAsVoteMerge();
+               else
+                 merge.fillAsWeightMerge();
                MapViewer v = VUE.displayMap(merge);
                
                tufts.vue.LWCEvent event = new tufts.vue.LWCEvent(v,merge,new LWComponent.Key("Merge Map Displayed"));
@@ -109,6 +120,11 @@ public class MergeMapsControlPanel extends JPanel {
           getRootPane().setDefaultButton(generateButton);
         }
         dw.setVisible(true);
+    }
+    
+    public void setMergeMapSettings(LWMergeMap map)
+    {
+        map.setIntervalBoundaries(); 
     }
     
     /*public java.awt.Dimension getPreferredSize()

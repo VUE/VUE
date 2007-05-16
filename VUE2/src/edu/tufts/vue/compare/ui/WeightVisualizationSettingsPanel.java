@@ -77,6 +77,13 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     private ArrayList<Style> linkStyles = new ArrayList<Style>();
     
     private JLabel parameterChoiceMessage;
+    
+    private static WeightVisualizationSettingsPanel panel = new WeightVisualizationSettingsPanel();
+    
+    public static WeightVisualizationSettingsPanel getSharedPanel()
+    {
+        return panel;
+    }
 
     public WeightVisualizationSettingsPanel() 
     {
@@ -127,13 +134,8 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
      
         setOpaque(false); 
          
-        //$
-          //parameterChoiceMessage.setOpaque(true);
-          //parameterChoiceMessage.setBackground(java.awt.Color.CYAN);
-        //$
         String[] parameterChoices = {"Nodes","Links"};
         parameterChoice = new JComboBox(parameterChoices);
-        //JLabel helpLabel = new JLabel(VueResources.getIcon("helpIcon.raw"),JLabel.LEFT);
         JLabel intervalNumberChoiceMessage = new JLabel(intervalChoiceMessageString,JLabel.RIGHT);
         Integer[] intervalNumberChoices = {3,4,5,6,7,8,9,10};
         intervalNumberChoice = new JComboBox(intervalNumberChoices)

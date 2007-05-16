@@ -28,6 +28,7 @@
 package tufts.vue;
 
 import edu.tufts.vue.compare.*;
+import edu.tufts.vue.style.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -64,6 +65,8 @@ public class LWMergeMap extends LWMap {
     private File baseMapFile;
     
     private String styleFile;
+    
+    private List<Double> intervalBoundaries;
     
     public static String getTitle()
     {
@@ -378,5 +381,161 @@ public class LWMergeMap extends LWMap {
         }
         return false;
     }
+    
+        
+    public void setIntervalBoundaries()
+    {
+        intervalBoundaries = new ArrayList<Double>();
+        for(int vai = 0;vai<6;vai++)
+        {
+            double va =  20*vai + 0.5;
+            intervalBoundaries.add(new Double(va));
+        } 
+    }
+    
+    public int getInterval(double score)
+    {
+        Iterator<Double> i = intervalBoundaries.iterator();
+        int count = 0;
+        while(i.hasNext())
+        {
+            if(score < i.next().doubleValue())
+                return count;
+            count ++;
+        }
+        return 0;
+    }
+    
+    
+    public void addMergeNodesForMap(LWMap map,WeightAggregate weightAggregate,List<Style> styles)
+    {       
+         
+           Iterator children = map.getNodeIterator();
+           //Iterator children = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+           
+           while(children.hasNext()) {
+             LWNode comp = (LWNode)children.next();
+             boolean repeat = false;
+             //if(map.findByID(comp.getChildList(),Util.getMergeProperty(comp)) != null)
+             if(nodeAlreadyPresent(comp))
+             {
+               repeat = true;
+             }
+             LWNode node = (LWNode)comp.duplicate();
+             
+             
+             if(!repeat)
+             {    
+               addNode(node);
+             }     
+             
+           }
+    }
+        
+    public void fillAsWeightMerge()
+    {
+    
+        ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
+        Iterator<LWMap> i = getMapList().iterator();
+        while(i.hasNext())
+        {
+          cms.add(new ConnectivityMatrix(i.next()));
+        }
+        
+        ArrayList<Style> nodeStyles = new ArrayList<Style>();
+        ArrayList<Style> linkStyles = new ArrayList<Style>();
+        
+        for(int si=0;si<5;si++)
+        {
+            nodeStyles.add(StyleMap.getStyle("node.w" + (si +1)));
+        }
+        
+        for(int lsi=0;lsi<5;lsi++)
+        {
+            linkStyles.add(StyleMap.getStyle("link.w" + (lsi +1)));
+        }
+        
+        WeightAggregate weightAggregate = new WeightAggregate(cms);
+        
+        addMergeNodesForMap(getBaseMap(),weightAggregate,nodeStyles);
+        
+        if(!getFilterOnBaseMap())
+        {
+          Iterator<LWMap> maps = getMapList().iterator();
+          while(maps.hasNext())
+          {
+            LWMap m = maps.next();
+            if(m!=baseMap)
+            {
+                addMergeNodesForMap(m,weightAggregate,nodeStyles);
+            }
+          }
+        }
+        
+        // todo: use applyCSS(style) -- need to plug in formatting panel
+        Iterator children = getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+        
+        while(children.hasNext())
+        {
+             LWComponent comp = (LWComponent)children.next();
+             if(comp instanceof LWNode)
+             {
+                  LWNode node = (LWNode)comp;
+                  double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(node))/weightAggregate.getCount();
+                  if(score>100)
+                  {
+                    score = 100;
+                  }
+                  if(score<0)
+                  {
+                    score = 0;
+                  }
+                  Style currStyle = nodeStyles.get(getInterval(score)-1);
+                  node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
+             }
+        }
+       
+        //compute and create links in Merge Map
+        //Iterator children1 = map.getNodeIterator();
+        //need case for LWLink as well for sub links?
+        Iterator<LWComponent> children1 = getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+        while(children1.hasNext()) {
+           LWComponent comp1 = children1.next();
+           if(comp1 instanceof LWImage)
+               continue;
+           LWNode node1 = (LWNode)comp1;
+           Iterator children2 = getNodeIterator();
+           while(children2.hasNext()) {
+               LWNode node2 = (LWNode)children2.next();
+               if(node2 != node1) {
+                  int c = weightAggregate.getConnection(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
+                  
+                  //$
+                    // don't know if link already drawn.. need to keep track or explicitly check for link..
+                    //int c2 = weightAggregate.getConnection(Util.getMergeProperty(node2),Util.getMergeProperty(node2));
+                  //$
+                  
+                  if(c >0) {
+                    double score = 100*c/weightAggregate.getCount();
+                    if(score > 100)
+                    {
+                        score = 100;
+                    }
+                    if(score < 0)
+                    {
+                        score = 0;
+                    }
+                    Style currLinkStyle = linkStyles.get(getInterval(score)-1);
+                    //System.out.println("Weighted Merge Demo: " + currLinkStyle + " score: " + score);
+                    LWLink link = new LWLink(node1,node2);
+                    link.setStrokeColor(Style.hexToColor(currLinkStyle.getAttribute("background")));
+                    //also add label to link if present? (will be nonunique perhaps.. might make sense for voting?)
+                    addLink(link);
+                  }
+               }
+           }
+        }
+    }
+
         
 }
