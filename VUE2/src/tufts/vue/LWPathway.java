@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.156 $ / $Date: 2007-05-16 17:13:00 $ / $Author: sfraize $
+ * @version $Revision: 1.157 $ / $Date: 2007-05-16 18:37:39 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -304,6 +304,7 @@ public class LWPathway extends LWContainer
 
     /** Creates a new instance of LWPathway with the specified label */
     public LWPathway(LWMap map, String label) {
+        disablePropertyTypes(KeyType.STYLE);
         setMap(map);
         setLabel(label);
         setStrokeColor(getNextColor());
@@ -1427,6 +1428,7 @@ public class LWPathway extends LWContainer
     
     /** @deprecated - default constructor used for marshalling ONLY */
     public LWPathway() {
+        disablePropertyTypes(KeyType.STYLE);
     }
 
 
