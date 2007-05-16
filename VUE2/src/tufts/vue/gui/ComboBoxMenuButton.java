@@ -32,7 +32,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 /**
- * @version $Revision: 1.8 $ / $Date: 2007-05-02 22:54:53 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2007-05-16 22:47:57 $ / $Author: sfraize $
  */
 
 // as this class is now specialized to handle vue LWKey properties,
@@ -242,10 +242,12 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
         // set in them, we could search thru them every time to figure out which icon
         // to set as a default...)
 
-        if (e.getStateChange() != ItemEvent.SELECTED) // ignore de-selections
+        if (e.getStateChange() != ItemEvent.SELECTED) {// ignore de-selections
+            if (DEBUG.TOOL) System.out.println("\n" + this + " handleMenuSelection " + e + " (IGNORED)");
             return;
+        }
 
-        if (DEBUG.TOOL) System.out.println("\n" + this + " handleMenuSelection " + e);
+        if (DEBUG.TOOL) System.out.println(this + " handleMenuSelection " + e);
         if (e.getItem() instanceof Action)
             handleValueSelection((T) ((Action)e.getItem()).getValue(VALUE_KEY));
         else
