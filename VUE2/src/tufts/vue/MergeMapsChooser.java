@@ -896,7 +896,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane: no maps loaded?: " + noMapsLoaded);
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane, getTabCount: " + vueTabbedPane.getTabCount());
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane, VUE.getActiveMap().getLabel() " + VUE.getActiveMap().getLabel());
-            System.out.println("MergeMapsChooser, state changed on vueTabbedPane: e: " + e);
+            //System.out.println("MergeMapsChooser, state changed on vueTabbedPane: e: " + e);
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane, getTitleAt(0): " + vueTabbedPane.getTitleAt(0));
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane, VUE.openMapCount(): " + VUE.openMapCount());
             //System.out.println("MergeMapsChooser, state changed on vueTabbedPane, VUE.getActiveViewer(): " + VUE.getActiveViewer());
@@ -1002,9 +1002,9 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
                 vizPane.add(weightPanel);
                 validate();
                 repaint();
-                if(p!=null)
+                if(p!=null && !p.isRolledUp())
                 {
-                    p.pack();
+                   p.pack();
                 }
             }
             else
@@ -1013,7 +1013,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
                 vizPane.add(votePanel);
                 validate();
                 repaint();
-                if(p!=null)
+                if(p!=null && !p.isRolledUp())
                 {
                     p.pack();
                 }
@@ -1550,7 +1550,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
                 vizPane.remove(votePanel);
                 vizPane.add(weightPanel);
                 validate();
-                if(p!=null)
+                if(p!=null && !p.isRolledUp())
                 {
                     p.pack();
                 }
@@ -1560,7 +1560,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
                 vizPane.remove(weightPanel);
                 vizPane.add(votePanel);
                 validate();
-                if(p!=null)
+                if(p!=null && !p.isRolledUp())
                 {
                     p.pack();
                 }
@@ -1843,7 +1843,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
                 {
                     remove(bottomPanel);
                     remove(browsePanel);
-                    if(p!=null)
+                    if(p!=null && !p.isRolledUp())
                     {
                         p.pack();
                     }
@@ -1853,7 +1853,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
                 {
                     remove(bottomPanel);
                     add(browsePanel);
-                    if(p!=null)
+                    if(p!=null && !p.isRolledUp())
                     {
                         p.pack();
                     }
@@ -1894,7 +1894,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
                generate();
             }*/
             validate();
-            if(p!=null)
+            if(p!=null && !p.isRolledUp())
             {
                 p.pack();
             }
