@@ -84,7 +84,8 @@ public class FloatingZoomPanel extends JPanel
        
         setAlignmentX( LEFT_ALIGNMENT);
         add(BorderLayout.WEST, mMainToolBar);
-        
+
+        VUE.addActiveListener(VueTool.class, this);
     }
 
     public JComponent getMainToolbar() {
@@ -194,7 +195,14 @@ public class FloatingZoomPanel extends JPanel
                 mButtonGroup.setSelected( button.getModel(), true);
             }
         }
-    }	
+    }
+
+
+    public void activeChanged(ActiveEvent e, VueTool tool) {
+        setSelectedTool(tool);
+    }
+
+    
 	
     /**
      * setContextualToolPanel
