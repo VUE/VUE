@@ -55,7 +55,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.128 $ / $Date: 2007-05-16 16:54:36 $ / $Author: sfraize $
+ * @version $Revision: 1.129 $ / $Date: 2007-05-16 22:49:18 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -690,10 +690,16 @@ public class LWMap extends LWContainer
     public LWMap getMap() {
         return this;
     }
-    
+
     public int getLayer() {
         return 0;
     }
+
+    /** @return false: maps can't be selected with anything else */
+    public boolean supportsMultiSelection() {
+        return false;
+    }
+    
 
     /** @return false -- maps aren't moveable objects */
     @Override

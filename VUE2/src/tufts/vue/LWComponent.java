@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.274 $ / $Date: 2007-05-16 22:24:01 $ / $Author: sfraize $
+ * @version $Revision: 1.275 $ / $Date: 2007-05-16 22:49:18 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1598,6 +1598,12 @@ u                    getSlot(c).setFromString((String)value);
     public boolean supportsReparenting() {
         return true;
     }
+
+    /** @return true: by default, all objects can be selected with other objects at the same time */
+    public boolean supportsMultiSelection() {
+        return true;
+    }
+    
     
     public boolean hasLabel() {
         return this.label != null && this.label.length() > 0;
