@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.371 $ / $Date: 2007-05-16 05:24:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.372 $ / $Date: 2007-05-16 14:44:33 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3205,28 +3205,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         sPathRemoveItem = m.add(Actions.RemovePathwayItem);
         sPathSeparator = m.add(new JPopupMenu.Separator());
         
-        m.add(new VueAction(VueResources.getString("mapViewer.componentMenu.info.label")) {
-            public void act() { 
-            	VUE.getInspectorPane().showInfoView();
-            	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class); 
-            	}
-            //public void act() { VUE.ObjectInspector.setVisible(true); }
-        });
-        m.add(new VueAction(VueResources.getString("mapViewer.componentMenu.notes.label")) {
-            public void act() { 
-            	VUE.getInspectorPane().showNotesView();
-            	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class); 
-            	}
-            //public void act() { VUE.ObjectInspector.setVisible(true); }
-        });
-        m.add(new VueAction(VueResources.getString("mapViewer.componentMenu.keywords.label")) {
-            public void act() {
-            	VUE.getInspectorPane().showKeywordView();
-            	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class);
-            	
-            }
-            //public void act() { VUE.ObjectInspector.setVisible(true); }
-        });
+        m.add(Actions.InfoAction);
+        m.add(Actions.NotesAction);
+        m.add(Actions.KeywordAction);
         m.addSeparator();
         m.add(Actions.HierarchyView);
         //m.add(GUI.buildMenu("Nudge", Actions.ARRANGE_SINGLE_MENU_ACTIONS));
