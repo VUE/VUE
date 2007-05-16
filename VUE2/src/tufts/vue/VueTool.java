@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.60 $ / $Date: 2007-05-15 20:43:45 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2007-05-16 00:25:34 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -99,7 +99,10 @@ public abstract class VueTool extends AbstractAction
     }
 
     public static VueTool getInstance(Class<? extends VueTool> clazz) {
-        return InstanceMap.get(clazz);
+        final VueTool tool = InstanceMap.get(clazz);
+        if (tool == null)
+            tufts.Util.printStackTrace("failed to find tool instance of type: " + clazz);
+        return tool;
     }
 
 	
