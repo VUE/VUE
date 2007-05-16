@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.156 $ / $Date: 2007-05-16 17:25:50 $ / $Author: sfraize $
+ * @version $Revision: 1.157 $ / $Date: 2007-05-16 17:26:56 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -320,9 +320,8 @@ public class LWNode extends LWContainer
      */
     protected boolean iconShowing()
     {    	
-        //if (getParent() instanceof LWSlide) // put in LWComponent so LWImage can use also (adjusting scale factor)
-        if (isPresentationContext())
-             return false;
+        if (isPresentationContext() || isTextNode())
+            return false;
          else
             return mIconBlock.isShowing(); // remember not current till after a layout
     }
