@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.433 $ / $Date: 2007-05-16 04:41:01 $ / $Author: sfraize $ 
+ * @version $Revision: 1.434 $ / $Date: 2007-05-16 16:05:40 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -666,6 +666,26 @@ public class VUE
             loadAllEditors(s);
         }
 
+        /** If the single object in the selection has a property change that was NOT due to an editor,
+         * (e.g., a menu) we detect this here, and re-load the editors as needed.
+         */
+        public void LWCChanged(LWCEvent e) {
+            if (EditorLoadingUnderway || PropertySettingUnderway)
+                ; // ignore
+//             else if (e.getKey() != null && e.getKey().type == LWComponent.KeyType.STYLE) {
+//                 // above assumes LWEditors only handle style types...  
+            else if (e.getKey() != null) { // only listen for real Key's
+                loadAllEditors(VUE.getSelection());
+            }
+            // TODO performance:
+            // really, we only need to load the one editor for the key in LWCEvent
+            // Doing this ways will constantly load all the editors, even tho
+            // they don't need it.  (We could make a hash of all the keys
+            // the editors listen for, and check that here).
+        }
+        
+        
+
         private final LWComponent.CopyContext DUPE_WITHOUT_CHILDREN = new LWComponent.CopyContext(false);
 
         private synchronized LWComponent getStyleCache(LWComponent c) {
@@ -673,6 +693,10 @@ public class VUE
             LWComponent styleHolder = TypedStyleCache.get(token);
             if (styleHolder == null) {
                 if (DEBUG.STYLE) out("creating style holder based on " + c);
+
+                // As any LWComponent can be used as a style source,
+                // we can just dupe whatever we've got (a handy
+                // way to instance another component with the same typeToken)
                 styleHolder = c.duplicate(DUPE_WITHOUT_CHILDREN);
                 
                 //-----------------------------------------------------------------------------
@@ -684,6 +708,8 @@ public class VUE
                 styleHolder.setLabel("<style:" + token + ">"); 
                 styleHolder.setResource((Resource)null); // clear out any resource if it had it
                 styleHolder.setNotes(null);
+                styleHolder.takeLocation(0,0);
+                styleHolder.takeSize(100,100);
                 //-----------------------------------------------------------------------------
                 
                 
@@ -701,20 +727,6 @@ public class VUE
                 return null;
             }
             return c == null ? null : TypedStyleCache.get(c.getTypeToken());
-        }
-        
-        /** If the single object in the selection has a property change that was NOT due to an editor,
-         * (e.g., a menu) we detect this here, and re-load the editors as needed.
-         */
-        public void LWCChanged(LWCEvent e) {
-            if (EditorLoadingUnderway || PropertySettingUnderway)
-                ; // ignore
-            else
-                loadAllEditors(VUE.getSelection());
-            // todo performance:
-            // really, we only need to load the one editor for the key in LWCEvent
-            // Doing this ways will constantly load all the editors, e.g., while
-            // the component is being dragged...
         }
         
 
