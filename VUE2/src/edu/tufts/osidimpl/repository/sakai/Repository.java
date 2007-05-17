@@ -127,9 +127,9 @@ implements org.osid.repository.Repository
 		
 		try {
 			String endpoint = Utilities.getEndpoint();
-			System.out.println("Endpoint " + endpoint);
+			//System.out.println("Endpoint " + endpoint);
 			String address = Utilities.getAddress();
-			System.out.println("Address " + address);
+			//System.out.println("Address " + address);
 			
 			Service  service = new Service();
 			
@@ -138,14 +138,14 @@ implements org.osid.repository.Repository
 			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
 			call.setOperationName(new QName(address, "getVirtualRoot"));
 			String virtualRootId = (String) call.invoke( new Object[] {sessionId} );
-			System.out.println("Sent ContentHosting.getVirtualRoot(sessionId), got '" + virtualRootId + "'");
+			//System.out.println("Sent ContentHosting.getVirtualRoot(sessionId), got '" + virtualRootId + "'");
 			
 			//	Get the list of root collections from virtual root.
 			call = (Call) service.createCall();
 			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
 			call.setOperationName(new QName(address, "getResources"));
 			String siteString = (String) call.invoke( new Object[] {sessionId, virtualRootId} );
-			System.out.println("Sent ContentHosting.getAllResources(sessionId,virtualRootId), got '" + siteString + "'");
+			//System.out.println("Sent ContentHosting.getAllResources(sessionId,virtualRootId), got '" + siteString + "'");
 
 			return new AssetIterator(siteString,this.key,siteString);			
 		} catch (Throwable t) {
@@ -347,7 +347,18 @@ implements org.osid.repository.Repository
 				if (asset.getDisplayName().toLowerCase().indexOf(criteria) != -1) {
 					result.addElement(asset);
 				}
+				// descend to resources, if appropriate
+				if (asset.getAssetType().isEqual(Utilities.getCollectionAssetType())) {
+					org.osid.repository.AssetIterator subAssetIterator = asset.getAssets();
+					while (subAssetIterator.hasNextAsset()) {
+						org.osid.repository.Asset subAsset = subAssetIterator.nextAsset();
+						if (subAsset.getDisplayName().toLowerCase().indexOf(criteria) != -1) {
+							result.addElement(subAsset);
+						}
+					}
+				}
 			}
+			
 		} catch (Throwable t) {
             Utilities.log(t);
             throw new org.osid.repository.RepositoryException(t.getMessage());

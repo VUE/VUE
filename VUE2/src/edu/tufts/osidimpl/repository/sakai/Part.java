@@ -45,7 +45,7 @@ implements org.osid.repository.Part
         this.partStructureId = partStructureId;
 		
         this.value = value;
-/*
+
 		try
         {
 			if (partStructureId.isEqual(URLPartStructure.getInstance().getId())) {
@@ -58,7 +58,7 @@ implements org.osid.repository.Part
             Utilities.log(t.getMessage());
             throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.OPERATION_FAILED);
         }
-*/
+
     }
 
     public org.osid.repository.Part createPart(org.osid.shared.Id partStructureId

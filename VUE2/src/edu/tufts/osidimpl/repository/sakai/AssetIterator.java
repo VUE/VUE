@@ -68,11 +68,11 @@ implements org.osid.repository.AssetIterator
 				String type = Utilities.expectedValue(resourceElement,TYPE_TAG);
 				String url = Utilities.expectedValue(resourceElement,URL_TAG);
 				
-				System.out.println("Next Resource");
-				System.out.println("\tId: " + id);
-				System.out.println("\tName: " + name);
-				System.out.println("\tType: " + type);
-				System.out.println("\tURL: " + url);
+				//System.out.println("Next Resource");
+				//System.out.println("\tId: " + id);
+				//System.out.println("\tName: " + name);
+				//System.out.println("\tType: " + type);
+				//System.out.println("\tURL: " + url);
 				
 				org.osid.shared.Type assetType = null;
 				if (type.equals("collection")) assetType = Utilities.getCollectionAssetType();

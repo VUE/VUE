@@ -25,7 +25,7 @@ implements org.osid.repository.RecordStructure
     private String description = "Holds Sakai Site Collection or Resource Metadata";
     private String format = "";
     private String schema = "";
-    private org.osid.shared.Type type = new Type("org.sakaiproject","recordStructure","contentHosting");
+    private org.osid.shared.Type type = new Type("sakaiproject.org","recordStructure","contentHosting");
     private boolean repeatable = false;
 	private static RecordStructure recordStructure = new RecordStructure();
     private org.osid.shared.Id id = null;
@@ -101,7 +101,7 @@ implements org.osid.repository.RecordStructure
         java.util.Vector results = new java.util.Vector();
         try
         {
-            //results.addElement(URLPartStructure.getInstance());
+            results.addElement(URLPartStructure.getInstance());
         }
         catch (Throwable t)
         {

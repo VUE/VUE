@@ -59,6 +59,11 @@ implements org.osid.repository.Asset
 		try {
 			this.sessionId = Utilities.getSessionId(key);
 			this.assetId = Utilities.getIdManager().getId(assetIdString);
+			this.recordStructureId = RecordStructure.getInstance().getId();
+			if (url != null) {
+				org.osid.repository.Record record = createRecord(this.recordStructureId);
+				record.createPart(URLPartStructure.getInstance().getId(),url);
+			}
 		} catch (Throwable t) {
 		}
 		this.displayName = displayName;
@@ -68,6 +73,7 @@ implements org.osid.repository.Asset
 					String xml)
 	{
 		try {
+			this.recordStructureId = RecordStructure.getInstance().getId();
 			javax.xml.parsers.DocumentBuilderFactory dbf = null;
 			javax.xml.parsers.DocumentBuilder db = null;
 			
@@ -85,6 +91,10 @@ implements org.osid.repository.Asset
 				String name = Utilities.expectedValue(resourceElement,NAME_TAG);
 				String type = Utilities.expectedValue(resourceElement,TYPE_TAG);
 				String url = Utilities.expectedValue(resourceElement,URL_TAG);
+				if (url != null) {
+					org.osid.repository.Record record = createRecord(this.recordStructureId);
+					record.createPart(URLPartStructure.getInstance().getId(),url);
+				}
 				/*
 				System.out.println("Next Resource");
 				System.out.println("\tId: " + id);
