@@ -55,7 +55,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.129 $ / $Date: 2007-05-16 22:49:18 $ / $Author: sfraize $
+ * @version $Revision: 1.130 $ / $Date: 2007-05-17 22:14:52 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -564,34 +564,46 @@ public class LWMap extends LWContainer
     /** for use during restore */
     private int findGreatestID(final Collection<LWComponent> allRestored)
     {
-        int maxID = -1;
+        LWComponent mostRecent = findMostRecentlyCreated(allRestored, null);
 
-        for (LWComponent c : allRestored) {
+        if (mostRecent != null)
+            return mostRecent.getNumericID();
+        else
+            return -1;
+    }
+
+    public LWComponent findMostRecentlyCreated(final Collection<LWComponent> components, Object typeToken)
+    {
+        int maxID = -1;
+        LWComponent mostRecent = null;
+
+        for (LWComponent c : components) {
             if (c.getID() == null) {
-                System.err.println("*** FOUND LWC WITH NULL ID " + c + " (reparent to fix)");
+                out("*** FOUND LWC WITH NULL ID " + c + " (reparent to fix)");
                 continue;
             }
-            int curID = idStringToInt(c.getID());
-            if (curID > maxID)
+            if (typeToken != null && c.getTypeToken() != typeToken)
+                continue;
+            int curID = c.getNumericID();
+            if (curID > maxID) {
                 maxID = curID;
+                mostRecent = c;
+            }
             
         }
+        return mostRecent;
+    }
 
-        return maxID;
+    public LWComponent findMostRecentlyCreated() {
+        return findMostRecentlyCreated(getAllDescendents(ChildKind.ANY), null);
     }
     
-    /** for use during restore */
-    private int idStringToInt(String idStr)
-    {
-        int id = -1;
-        try {
-            id = Integer.parseInt(idStr);
-        } catch (Exception e) {
-            System.err.println(e + " invalid ID: '" + idStr + "'");
-            e.printStackTrace();
-        }
-        return id;
+    public LWComponent findMostRecentlyCreatedType(Object typeToken) {
+        return findMostRecentlyCreated(getAllDescendents(ChildKind.ANY), typeToken);
     }
+    
+    
+    
     
     // do nothing
     //void setScale(float scale) { }

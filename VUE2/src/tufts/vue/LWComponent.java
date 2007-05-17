@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.275 $ / $Date: 2007-05-16 22:49:18 $ / $Author: sfraize $
+ * @version $Revision: 1.276 $ / $Date: 2007-05-17 22:14:52 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1493,9 +1493,28 @@ u                    getSlot(c).setFromString((String)value);
     {
         return this.resource;
     }
+    
     public String getID() {
         return this.ID;
     }
+
+    public int getNumericID() {
+        return idStringToInt(getID());
+    }
+
+    /** for use during restore */
+    protected final int idStringToInt(String idStr)
+    {
+        int id = -1;
+        try {
+            id = Integer.parseInt(idStr);
+        } catch (Exception e) {
+            System.err.println(e + " invalid ID: '" + idStr + "'");
+            e.printStackTrace();
+        }
+        return id;
+    }
+    
     
   /*  public String getStyledLabel()
     {
