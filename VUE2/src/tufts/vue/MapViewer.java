@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.379 $ / $Date: 2007-05-17 16:54:22 $ / $Author: sfraize $ 
+ * @version $Revision: 1.380 $ / $Date: 2007-05-17 22:13:43 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -294,6 +294,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         requestFocus();
         //VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
+    }
+
+    public LWSelection getSelection() {
+        return VueSelection;
     }
 
     MapDropTarget getMapDropTarget() {
@@ -5273,7 +5277,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             //if (activeTool != ArrowTool && activeTool != TextTool)
             //return;  check supportsClick, and add such to node tool
-            
+
+            // TODO: we want to refactor the below very confusing code
+            // and delegate to the tools w/out naming them directly.
+            // To do this tho, the tools will need access to
+            // mLabelEditWasActiveAtMousePress, for dealing with the
+            // incredible subtlety of what happens when you click the
+            // mouse.
             
             if (!hitOnSelectionHandle) {
                 
@@ -5303,11 +5313,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         
                     } else if (activeTool == TextTool || activeTool == tufts.vue.NodeTool.NodeModeTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class)) {
                         
-                        // on mousePressed, we request focus, and if there
-                        // was an activeTextEdit TextBox, it lost focus
-                        // and closed itself out -- treat this click as an
-                        // edit-cancel in case of node/text tool so doesn't
-                        // create a new item if they were just finishing
+                        // on mousePressed, we request focus, and if there was an
+                        // activeTextEdit TextBox, it lost focus and closed itself out
+                        // -- treat this click as an edit-cancel in case of node/text
+                        // tool so doesn't create a new item if they were just finishing
                         // the edit via the click on the map
                         
                         if (!mLabelEditWasActiveAtMousePress) {
@@ -5369,7 +5378,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     //} old InputHandler close
     
-    private Runnable focusIndicatorRepaint = new Runnable() { public void run() { mFocusIndicator.repaint(); }};
+    private final Runnable focusIndicatorRepaint = new Runnable() { public void run() { mFocusIndicator.repaint(); }};
     
     public void activeChanged(ActiveEvent e, MapViewer v) {
         // We delay the repaint request for the focus indicator on this event because normally, it
