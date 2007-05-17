@@ -128,6 +128,7 @@ public class NodeTool extends VueTool
         return (SubTool) getTool().getSelectedSubTool();
     }
 
+    @Override
     public Class getSelectionType() { return LWNode.class; }
     
     public boolean supportsSelection() { return true; }
@@ -308,6 +309,9 @@ public class NodeTool extends VueTool
             creationNode.setAutoSized(false);
             setActiveWhileDownKeyCode(KeyEvent.VK_X);            
     	}
+        
+        @Override
+        public Class getSelectionType() { return LWNode.class; }
     	
         @Override
         public boolean handleMousePressed(MapMouseEvent e) {

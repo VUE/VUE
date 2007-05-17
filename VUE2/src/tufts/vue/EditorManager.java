@@ -43,34 +43,7 @@ public class EditorManager
 
     private EditorManager() {
         VUE.getSelection().addListener(this);
-        //             DefaultStyleCache = new LWComponent() {{
-        //                         setLabel("<disabled styled>");
-        //                         disablePropertyBits(~0L);// disable all properties
-
-        //                     }};
-        //= new LWNode("Multi-Selection Style Cache");
-            
-        //VUE.addActiveListener(VueTool.class, this);
-        //StyleCache = DefaultStyleCache;
-    }
-
-    //         public void activeChanged(ActiveEvent e, VueTool tool) {
-    //             StyleCache = tool.getStyleCache();
-    //             if (StyleCache == null)
-    //                 StyleCache = DefaultStyleCache;
-            
-    //             // either need to know this is first time, so can load cache
-    //             // with current tool values, or we should expect it should
-    //             // already come with the desired default values
-    //             loadAllEditors(new LWSelection(StyleCache));
-    //         }
-
-
-    public void propertyChange(PropertyChangeEvent e) {
-        if (!EditorLoadingUnderway && e instanceof LWPropertyChangeEvent) {
-            if (DEBUG.TOOL) out("propertyChange: " + e);
-            ApplyPropertyChangeToSelection(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
-        }
+        VUE.addActiveListener(VueTool.class, this);
     }
 
     public void selectionChanged(LWSelection s) {
@@ -80,7 +53,7 @@ public class EditorManager
                 singleSelection.removeLWCListener(this);
             singleSelection = s.first();
             singleSelection.addLWCListener(this);
-            CurrentTypedStyle = getStyleCache(singleSelection);
+            CurrentTypedStyle = getStyleForType(singleSelection);
         } else {
             //StyleCache = DefaultStyleCache;
             // TODO: it will be easy for the selection to keep a hash of contents based
@@ -95,6 +68,23 @@ public class EditorManager
         }
 
         loadAllEditors(s);
+    }
+
+    public void activeChanged(ActiveEvent e, VueTool tool)
+    {
+        out("activeChanged: " + e);
+        if (tool == null)
+            return;
+
+        final Object typeToken = tool.getSelectionType();
+
+        if (typeToken == null)
+            return;
+        
+        CurrentTypedStyle = TypedStyleCache.get(typeToken);
+
+        if (CurrentTypedStyle != null)
+            loadAllEditors(new LWSelection(CurrentTypedStyle));
     }
 
     /** If the single object in the selection has a property change that was NOT due to an editor,
@@ -115,11 +105,19 @@ public class EditorManager
         // the editors listen for, and check that here).
     }
         
+
+    public void propertyChange(PropertyChangeEvent e) {
+        if (!EditorLoadingUnderway && e instanceof LWPropertyChangeEvent) {
+            if (DEBUG.TOOL) out("propertyChange: " + e);
+            ApplyPropertyChangeToSelection(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
+        }
+    }
+
         
 
     private final LWComponent.CopyContext DUPE_WITHOUT_CHILDREN = new LWComponent.CopyContext(false);
 
-    private synchronized LWComponent getStyleCache(LWComponent c) {
+    private synchronized LWComponent getStyleForType(LWComponent c) {
         final Object token = c.getTypeToken();
         LWComponent styleHolder = token == null ? null : TypedStyleCache.get(token);
         if (styleHolder == null && token != null) {
@@ -152,7 +150,9 @@ public class EditorManager
         return styleHolder;
     }
         
-    private static LWComponent fetchStyleCache(LWComponent c) {
+    /** @return the current style for type type of the given component only if we already have one
+     * -- do not auto-create a new style for the type if we don't already have one */
+    private static LWComponent fetchStyleForType(LWComponent c) {
         if (TypedStyleCache == null) {
             tufts.Util.printStackTrace("circular static initializer dependency");
             return null;
@@ -172,7 +172,7 @@ public class EditorManager
             propertySource = null;
         //propertySource = DefaultStyleCache;
         
-        if (DEBUG.TOOL||DEBUG.STYLE) out("\nloadAllEditors " + propertySource);
+        if (DEBUG.TOOL||DEBUG.STYLE) out("loadAllEditors " + propertySource + " currentTypedStyle: " + CurrentTypedStyle);
 
         // While the editors are loading, we want to ignore any change events that
         // loading may produce in the editors (otherwise, we'd then set the selected
@@ -277,7 +277,7 @@ public class EditorManager
     }
 
     public static void applyCurrentProperties(LWComponent c) {
-        LWComponent styleForType = fetchStyleCache(c);
+        LWComponent styleForType = fetchStyleForType(c);
         if (styleForType != null) {
             //if (DEBUG.STYLE) out("COPY STYLE of " + styleForType + " -> " + c);
             c.copyStyle(styleForType);
