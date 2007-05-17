@@ -45,4 +45,10 @@ public class UpdateContentHelper implements edu.tufts.osidimpl.testing.repositor
 		}
 		return null;
 	}
+
+	public boolean testAssetAfterUpload(org.osid.repository.RepositoryManager repositoryManager,org.osid.repository.Asset asset)
+	{
+		// we could check something, but for now do nothing
+		return true;
+	}
 }

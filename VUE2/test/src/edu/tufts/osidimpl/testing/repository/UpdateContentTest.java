@@ -44,7 +44,12 @@ public class UpdateContentTest extends TestCase
 					ContentUpdater cu = (ContentUpdater)c.newInstance();
 					
 					asset.updateContent(cu.getSerializableObject());
-					System.out.println("PASSED Update Content " + assetIdString);
+					
+					// now test the asset
+					boolean passed = cu.testAssetAfterUpload(repositoryManager,asset);
+					if (passed) {
+						System.out.println("PASSED Update Content " + assetIdString);
+					}
 				}
 			}
 		} catch (Throwable t) {

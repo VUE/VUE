@@ -21,4 +21,7 @@ package edu.tufts.osidimpl.testing.repository;
 public interface ContentUpdater
 {
 	public java.io.Serializable getSerializableObject();
+
+	public boolean testAssetAfterUpload(org.osid.repository.RepositoryManager repositoryManager,
+										org.osid.repository.Asset asset);
 }
