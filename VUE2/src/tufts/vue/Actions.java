@@ -523,7 +523,7 @@ public class Actions implements VueConstants
     public static final Action NotesAction = new VueAction(VueResources.getString("mapViewer.componentMenu.notes.label")) {
         public void act() { 
         	VUE.getInspectorPane().showNotesView();
-        	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class); 
+        	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class);
         	}
         //public void act() { VUE.ObjectInspector.setVisible(true); }
     };
@@ -1089,7 +1089,7 @@ public class Actions implements VueConstants
         }
     };
     public static final VueAction ZoomFit =
-        new VueAction("Map Fit Window", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT), ":general/Zoom") {
+        new VueAction("Fit Window", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT), ":general/Zoom") {
         public void act() {
             ZoomTool.setZoomFit();
         }
