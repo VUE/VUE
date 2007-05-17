@@ -40,10 +40,11 @@ import java.awt.geom.*;
 import java.util.*;
 
 import javax.swing.*;
-
+import edu.tufts.vue.preferences.implementations.BooleanPreference;
 import edu.tufts.vue.preferences.PreferencesManager;
 import edu.tufts.vue.preferences.VuePrefEvent;
 import edu.tufts.vue.preferences.VuePrefListener;
+import edu.tufts.vue.preferences.implementations.ColorPreference;
 
 import tufts.oki.dr.fedora.*;
 import tufts.vue.shape.*;
@@ -66,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.380 $ / $Date: 2007-05-17 22:13:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.381 $ / $Date: 2007-05-17 22:50:09 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -180,6 +181,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private final MapViewer inputHandler; // == this
     private final MapViewer viewer;  // == this: for old InputHandler references
 
+    //1 click node creation preference
+    private final static BooleanPreference oneClickNodePref = BooleanPreference.create(
+			edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
+			"oneClickCreation", 
+			"Node Creation", 
+			"Enable one click node creation?",
+			Boolean.FALSE,
+			true);
+    
     public MapViewer(LWMap map) {
         this(map, "");
     }
@@ -5320,9 +5330,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         // the edit via the click on the map
                         
                         if (!mLabelEditWasActiveAtMousePress) {
-                            if (activeTool == tufts.vue.NodeTool.NodeModeTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class))
+                            if (activeTool == tufts.vue.NodeTool.NodeModeTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class) && (oneClickNodePref.getValue() == Boolean.TRUE))
                                 Actions.NewNode.fire(MapViewer.this);
-                            else
+                            else if (activeTool == TextTool)
                                 Actions.NewText.fire(MapViewer.this);
                         }
                     }
