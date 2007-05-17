@@ -29,7 +29,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.66 $ / $Date: 2007-05-16 22:49:18 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2007-05-17 16:53:59 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -105,7 +105,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     public LWSelection(LWComponent c) {
         //if (DEBUG.Enabled) tufts.Util.printStackTrace("selection singleton for " + c);
         isClone = true;
-        super.add(c);
+        addSilent(c);
     }
 
     /** create a temporary selection that contains just the given components */
@@ -339,6 +339,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     private synchronized boolean addSilent(LWComponent c)
     {
         if (DEBUG.SELECTION && DEBUG.META) System.out.println(this + " addSilent " + c);
+
+        if (c == null) {
+            tufts.Util.printStackTrace("can't add null to a selection");
+            return false;
+        }
 
         if (notifyUnderway())
             return false;
