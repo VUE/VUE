@@ -19,8 +19,7 @@ package tufts.vue;
 
 public class SakaiExport
 {
-//	private org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
-	private org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("com.harvestroad","asset","category");
+	private org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
 	private org.osid.shared.Type _sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
 	private edu.tufts.vue.dsm.DataSourceManager _dsm = null;
 
@@ -41,7 +40,9 @@ public class SakaiExport
 			if (dataSources[i].supportsUpdate()) {
 				System.out.println("Supports Update, Now Checking Type");
 				org.osid.repository.Repository repository = dataSources[i].getRepository();
+				System.out.println("checking type " + repository.getType().getAuthority() );
 				if (repository.getType().isEqual(_sakaiRepositoryType)) {
+					System.out.println("checking type worked" );
 					dataSourceVector.addElement(dataSources[i]);
 				}
 			}

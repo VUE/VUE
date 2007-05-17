@@ -172,6 +172,7 @@ implements org.osid.repository.Repository
 			org.osid.repository.AssetIterator ai = getAssets();
 			while (ai.hasNextAsset()) {
 				org.osid.repository.Asset a = ai.nextAsset();
+				//System.out.println("getting asset ... " + a.getDisplayName());
 				if (a.getAssetType().isEqual(assetType)) {
 					result.addElement(a);
 				}

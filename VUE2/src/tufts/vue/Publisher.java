@@ -47,7 +47,7 @@ import tufts.vue.action.*;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.41 $ / $Date: 2007-05-09 18:52:57 $ / $Author: anoop $
+ * @version $Revision: 1.42 $ / $Date: 2007-05-17 14:53:25 $ / $Author: jeff $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
     
@@ -446,10 +446,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
 			System.out.println("Sakai Data Sources:");
 			try {
 				SakaiExport sakaiExport = new SakaiExport(DataSourceViewer.dataSourceManager);
-				edu.tufts.vue.dsm.DataSource dataSources[] = sakaiExport.getSakaiDataSources();
-				for (int i=0; i < dataSources.length; i++) {
-					System.out.println("Fund: " + dataSources[i].getRepositoryDisplayName());
-				}
+				SakaiCollectionDialog scd = new SakaiCollectionDialog(sakaiExport.getSakaiDataSources());
 			} catch (Throwable t) {
 				
 			}
