@@ -35,10 +35,15 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.14 $ / $Date: 2007-05-16 18:09:10 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2007-05-17 22:00:28 $ / $Author: sfraize $
  * @author Scott Fraize
  *
+ * TODO: add capability for handling LWComponent.ChildKind, so we have the option
+ * of traversing ChildKind.ANY, as opposed to the current impl, which does
+ * a traversal that gives us all the same components that ChildKind.PROPER does.
+ *
  */
+
 public class LWTraversal {
 
     protected static final boolean PRE_ORDER = true;
