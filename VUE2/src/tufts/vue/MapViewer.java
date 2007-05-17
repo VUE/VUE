@@ -66,7 +66,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.378 $ / $Date: 2007-05-16 23:39:14 $ / $Author: sfraize $ 
+ * @version $Revision: 1.379 $ / $Date: 2007-05-17 16:54:22 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4007,9 +4007,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
             
             dragStart.setLocation(e.getX(), e.getY());
-            if (DEBUG.MOUSE) System.out.println("dragStart set to " + dragStart);
+            if (DEBUG.MOUSE) System.out.println("dragStart location set to " + dragStart);
             
             if (activeTool == HandTool) {
+                if (DEBUG.MOUSE) out("HandTool grabbing mouse");
                 originAtDragStart = getOriginLocation();
                 if (inScrollPane)
                     viewportAtDragStart = mViewport.getViewPosition();
@@ -5279,7 +5280,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (isSingleClickEvent(e)) {
                     if (DEBUG.MOUSE) System.out.println("\tSINGLE-CLICK on: " + hitComponent);
                     
-                    if (hitComponent != null && !(hitComponent instanceof LWGroup)) {
+                    if (hitComponent != null && hitComponent != mFocal && !(hitComponent instanceof LWGroup)) {
                         
                         boolean handled = false;
                         // move to arrow tool?
