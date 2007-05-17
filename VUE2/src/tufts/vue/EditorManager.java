@@ -109,7 +109,7 @@ public class EditorManager
         // style holders.
 
         for (Map.Entry<Object,LWComponent> e : StylesByType.entrySet())
-            e.setValue(makeIntoStyle(e.getValue(), e.getKey()));
+            e.setValue(createStyle(e.getValue(), e.getKey()));
     }
     
     public void activeChanged(ActiveEvent e, VueTool tool)
@@ -314,14 +314,14 @@ public class EditorManager
         final Object token = c.getTypeToken();
         LWComponent styleHolder = token == null ? null : StylesByType.get(token);
         if (styleHolder == null && token != null) {
-            styleHolder = makeIntoStyle(c, token);
+            styleHolder = createStyle(c, token);
             StylesByType.put(token, styleHolder);
         }
         if (DEBUG.STYLE) out("got styleHolder for type token (" + token + "): " + styleHolder); 
         return styleHolder;
     }
 
-    private LWComponent makeIntoStyle(LWComponent styleSource, Object typeToken)
+    private LWComponent createStyle(LWComponent styleSource, Object typeToken)
     {
         if (DEBUG.STYLE || DEBUG.WORK) out("creating style holder based on " + styleSource + " for type (" + typeToken + ")");
 
