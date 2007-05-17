@@ -33,7 +33,7 @@ import javax.swing.border.*;
  * The VueToolPanel is the component that holds the main VUE toolbar
  * and the contextual properties tools.
  *
- * @version $Revision: 1.33 $ / $Date: 2007-05-16 16:23:48 $ / $Author: mike $ 
+ * @version $Revision: 1.34 $ / $Date: 2007-05-17 21:55:18 $ / $Author: mike $ 
  *
  **/
 public class VueToolPanel extends JPanel
@@ -186,6 +186,15 @@ public class VueToolPanel extends JPanel
         if (pTool.hasToolbarButton()) {
             PaletteButton button = createPaletteButton(pTool);
             // save teh component in the button map
+            if (pTool.hasSubTools())
+            {
+            	Vector v = pTool.getSubToolIDs();
+            	for (int i = 0; i < v.size(); i++)
+            	{
+            		VueTool tool = pTool.getSubTool((String)v.get(i));
+            		addTool(tool,false);
+            	}
+            }
             mToolButtons.put( pTool.getID(), button);
                 
             // todo: setting this mnemonic doesn't appear to work
@@ -223,10 +232,31 @@ public class VueToolPanel extends JPanel
      * @param VueTool - the new tool to select
      **/
     public void setSelectedTool( VueTool pTool) {
-        if( pTool != null) {
-            PaletteButton button = (PaletteButton) mToolButtons.get( pTool.getID() );
-            if( button != null) {
-                mButtonGroup.setSelected( button.getModel(), true);
+        if( pTool != null) {      
+        	if (pTool.getParentTool() != null)
+        	{        		
+        		//you've selected a subtool...do somethign else.
+        		//select the parent.
+        		VueTool parentTool = pTool.getParentTool();
+        		PaletteButton button = (PaletteButton) mToolButtons.get( parentTool.getID() );
+        		
+        		
+        		//PaletteButtonItem[] items = button.getPaletteButtonItems();
+        		button.setPropertiesFromItem((PaletteButton) mToolButtons.get(pTool.getID()));
+        		parentTool.setSelectedSubTool(pTool);
+        		//button.setContext( pTool);
+        		if( button != null) 
+        			mButtonGroup.setSelected( button.getModel(), true);
+        		
+        		//button.addActionListener( pTool);
+        		//button.setSelectedIcon(pTool.getSelectedIcon());        		
+        		//button.setIcon(pTool.getIcon());        		
+        	}
+        	else
+        	{        		
+        		PaletteButton button = (PaletteButton) mToolButtons.get( pTool.getID() );
+        		if( button != null) 
+        			mButtonGroup.setSelected( button.getModel(), true);
             }
         }
     }

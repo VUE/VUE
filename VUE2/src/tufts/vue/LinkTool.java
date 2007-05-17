@@ -336,7 +336,7 @@ public class LinkTool extends VueTool
             invisibleLinkEndpoint.setSize(0,0);
             creationLink.setArrowState(LWLink.ARROW_TAIL); // should be coming from defaults...
 
-            VueToolUtils.setToolProperties(this,"linkModeTool");
+        //    VueToolUtils.setToolProperties(this,"linkModeTool");
             
             // Mac overrides CONTROL-MOUSE to look like right-click (context menu popup) so we can't
             // use CTRL wih mouse drag on a mac.

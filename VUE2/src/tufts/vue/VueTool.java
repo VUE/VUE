@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.67 $ / $Date: 2007-05-17 00:02:52 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2007-05-17 21:55:18 $ / $Author: mike $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -769,8 +769,10 @@ public abstract class VueTool extends AbstractAction
 
         if (parent != null)
             parent.handleToolSelection();
-
-        VueToolbarController.getController().handleToolSelection(this);
+        if (this.hasSubTools())
+        	VueToolbarController.getController().handleToolSelection(this.getSelectedSubTool());
+        else
+        	VueToolbarController.getController().handleToolSelection(this);
     }
 	
     

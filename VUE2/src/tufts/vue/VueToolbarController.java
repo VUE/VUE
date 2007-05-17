@@ -36,7 +36,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.64 $ / $Date: 2007-05-17 21:06:27 $ / $Author: mike $
+ * @version $Revision: 1.65 $ / $Date: 2007-05-17 21:55:18 $ / $Author: mike $
  *
  **/
 public class VueToolbarController  
@@ -195,10 +195,10 @@ public class VueToolbarController
         
         VueTool rootTool = pTool;
 		
-        if (pTool.getParentTool() != null)
+        if (pTool.getParentTool() != null && pTool.getClass() == tufts.vue.VueSimpleTool.class)
             rootTool = pTool.getParentTool();
 		
-        String selectionID = pTool.getSelectionID();
+    //    String selectionID = pTool.getSelectionID();
         
         /*
         // check to see if it is the same selection...
