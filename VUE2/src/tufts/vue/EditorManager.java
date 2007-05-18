@@ -205,7 +205,11 @@ public class EditorManager
     public void propertyChange(PropertyChangeEvent e) {
         if (!EditorLoadingUnderway && e instanceof LWPropertyChangeEvent) {
             if (DEBUG.TOOL) out("propertyChange: " + e);
-            applyPropertyChange(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
+            try {
+                applyPropertyChange(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t, this + ": failed to handle property change event: " + e);
+            }
         }
     }
     
@@ -299,7 +303,11 @@ public class EditorManager
     }
 
     public static void firePropertyChange(LWEditor editor, Object source) {
-        applyPropertyChange(VUE.getSelection(), editor.getPropertyKey(), editor.produceValue(), source);
+        try {
+            applyPropertyChange(VUE.getSelection(), editor.getPropertyKey(), editor.produceValue(), source);
+        } catch (Throwable t) {
+            tufts.Util.printStackTrace(t, "failed to fire property for LWEditor " + editor + " for source " + source);
+        }
     }
 
 
@@ -355,9 +363,16 @@ public class EditorManager
     public static void applyCurrentProperties(LWComponent c) {
         if (c == null)
             return;
-        StyleType styleType = StylesByType.get(c.getTypeToken());
-        if (styleType != null)
-            c.copyStyle(styleType.provisional);
+
+        try {
+            
+            StyleType styleType = StylesByType.get(c.getTypeToken());
+            if (styleType != null)
+                c.copyStyle(styleType.provisional);
+            
+        } catch (Throwable t) {
+            tufts.Util.printStackTrace(t, "failed to apply current properties to: " + c);
+        }
     }
 
     /**
@@ -369,9 +384,16 @@ public class EditorManager
      
      */
     public static void targetAndApplyCurrentProperties(LWComponent c) {
-        LWComponent styleForType = resolveProvisionalStyleForType(c);
-        if (styleForType != null)
-            c.copyStyle(styleForType);
+        try {
+            
+            LWComponent styleForType = resolveProvisionalStyleForType(c);
+            if (styleForType != null)
+                c.copyStyle(styleForType);
+            
+        } catch (Throwable t) {
+            tufts.Util.printStackTrace(t, "failed to target and apply current properties to: " + c);
+        }
+        
     }
     
         
