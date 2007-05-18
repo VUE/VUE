@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.1 $ / $Date: 2007-05-18 22:34:35 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2007-05-18 22:37:22 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -70,7 +70,7 @@ public class ActiveInstance<T>
     }
 
 
-    public ActiveInstance(Class clazz) {
+    protected ActiveInstance(Class clazz) {
         itemType = clazz;
         itemTypeName = "<" + itemType.getName() + ">";
         itemIsMarkable = clazz.isInstance(Markable.class);
@@ -87,7 +87,7 @@ public class ActiveInstance<T>
             AllActiveHandlers.put(itemType, this);
         }
         unlock(null, "INIT");
-        if (DEBUG.INIT || DEBUG.EVENTS) System.out.println("Created ActiveInstance"  + itemTypeName);
+        if (DEBUG.INIT || DEBUG.EVENTS) System.out.println("Created " + this);
     }
 
     public static ActiveInstance getHandler(Class type) {
