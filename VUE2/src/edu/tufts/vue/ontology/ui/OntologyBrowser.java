@@ -19,7 +19,11 @@
 package edu.tufts.vue.ontology.ui;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import tufts.vue.*;
 import tufts.vue.gui.*;
 
@@ -41,7 +45,11 @@ public class OntologyBrowser extends JPanel {
     final DockWindow ontologyDock;
     final DockWindow typeDock;
     
+    private ArrayList<OntologySelectionListener> ontologySelectionListenerList = new ArrayList<OntologySelectionListener>();
+    
     private OntologyViewer ontologyViewer;
+    
+    private static OntologyBrowser singleton;
     
     // corresponds (roughly) to searchPane from DRBrowser (the original inspiration for OntologyBrowser
     // implementation architecture)
@@ -54,8 +62,23 @@ public class OntologyBrowser extends JPanel {
     
     private WidgetStack resultsStack = new WidgetStack("types stack");
     
-    public Widget addTypeList(edu.tufts.vue.ontology.ui.TypeList list,String name)
+    private static edu.tufts.vue.ontology.ui.TypeList selectedOntology = null;
+    
+    public static TypeList getSelectedList()
     {
+        return selectedOntology;
+    }
+    
+    public Widget addTypeList(final edu.tufts.vue.ontology.ui.TypeList list,String name)
+    {
+        list.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent listSelectionEvent)
+            {
+                selectedOntology = list;
+                fireOntologySelectionChanged(list);
+            }
+        });
+        
         Widget w = new Widget(name);
         w.add(list);
         resultsStack.addPane(w);
@@ -66,6 +89,10 @@ public class OntologyBrowser extends JPanel {
         return w;
     }
     
+    public static OntologyBrowser getBrowser()
+    {
+        return singleton;
+    }
     
     public OntologyBrowser(boolean delayedLoading, DockWindow ontologyDock,DockWindow typeDock) 
     {
@@ -162,6 +189,7 @@ public class OntologyBrowser extends JPanel {
                     // can just get the component at that location in the viewer?
                 }    
             }
+            
         };
           
         Action[] actions = {
@@ -174,6 +202,8 @@ public class OntologyBrowser extends JPanel {
         };
         tufts.vue.gui.Widget.setMenuActions(this,actions);
           
+        singleton = this;
+        
     }
     
     public void loadOntologyViewer()
@@ -188,6 +218,12 @@ public class OntologyBrowser extends JPanel {
     public OntologyViewer getViewer()
     {
         return ontologyViewer;
+    }
+    
+    public static Object getSelectedOntology()
+    {
+        Object value =  getBrowser().getViewer().getList().getSelectedValue();
+        return value + ":" + value.getClass();
     }
     
     public void buildSingleDockWindow()
@@ -208,4 +244,25 @@ public class OntologyBrowser extends JPanel {
         return populatePane;
     }*/
     
+    public void addOntologySelectionListener(OntologySelectionListener osl)
+    {
+        ontologySelectionListenerList.add(osl);
+    }
+    
+    public void removeOntologySelectionListener(OntologySelectionListener osl)
+    {
+        ontologySelectionListenerList.remove(osl);
+    }
+    
+    private void fireOntologySelectionChanged(TypeList selection)
+    {
+        Iterator<OntologySelectionListener> i = ontologySelectionListenerList.iterator();
+        while(i.hasNext())
+        {
+            OntologySelectionListener osl = i.next();
+            osl.ontologySelected(new OntologySelectionEvent(selection));
+        }
+    }
+    
 }
+

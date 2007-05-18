@@ -432,7 +432,7 @@ public class TypeList extends JList {
      * style get applied for now.
      *
      **/
-    private static boolean isNode(OntType type)
+    public static boolean isNode(OntType type)
     {        
         //return type.getType().equals(edu.tufts.vue.style.SelectorType.getNodeType());
         
