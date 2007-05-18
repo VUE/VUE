@@ -168,8 +168,10 @@ public class SlideViewer extends tufts.vue.MapViewer
      
     
     public SlideViewer(LWMap map) {
-        super(null, "Viewer");
+        super(null, "SLIDE");
         //super(map == null ? new LWMap("empty") : map, "SlideViewer");
+
+        setName("Viewer"); // for DockWindow title and backward compat with window saved location
 
         btnLocked = new JCheckBox("Lock");
         //btnLocked = makeButton("Lock");
@@ -232,12 +234,14 @@ public class SlideViewer extends tufts.vue.MapViewer
             return "Empty";
     }
     
-    @Override public void addNotify() {
+    @Override
+    public void addNotify() {
         super.addNotify();
         getParent().add(new Toolbar(), BorderLayout.NORTH);
     }
 
-    @Override public void grabVueApplicationFocus(String from, ComponentEvent event) {
+    @Override
+    public void grabVueApplicationFocus(String from, ComponentEvent event) {
         final int id = event == null ? 0 : event.getID();
 
         if (id == MouseEvent.MOUSE_ENTERED)
@@ -247,7 +251,8 @@ public class SlideViewer extends tufts.vue.MapViewer
     }
     
 
-    @Override public void LWCChanged(LWCEvent e) {
+    @Override
+    public void LWCChanged(LWCEvent e) {
         if (DEBUG.PRESENT) out("SLIDEVIEWER LWCChanged " + e);
 
         if (e.getComponent() instanceof LWPathway) {
@@ -364,6 +369,9 @@ if (true) return;
 
     protected void load(LWPathway.Entry entry)
     {
+        if (VUE.inNativeFullScreen())
+            return;
+        
         if (DEBUG.PRESENT) out("SlideViewer: loading " + entry);
         mLastLoad = entry;
 
@@ -426,7 +434,8 @@ if (true) return;
             return null;
     }
 
-    @Override protected Color getBackgroundFillColor(DrawContext dc) {
+    @Override
+    protected Color getBackgroundFillColor(DrawContext dc) {
         return Color.gray;
 // this code produces "filled" slide viewer look,
 // tho then we can't make out the edge of the slide:
@@ -437,7 +446,8 @@ if (true) return;
 //             return Color.gray;
     }
 
-    @Override protected void drawFocal(DrawContext dc) {
+    @Override
+    protected void drawFocal(DrawContext dc) {
         if (mLastLoad != null && mLastLoad.isMapView()) {
             // have to fill first, or super.drawFocal will fill over us...
             dc.fill(getBackgroundFillColor(dc));
@@ -448,7 +458,8 @@ if (true) return;
     }
 
 
-    @Override protected void drawSelection(DrawContext dc, LWSelection s) {
+    @Override
+    protected void drawSelection(DrawContext dc, LWSelection s) {
         // Don't draw selection if its the focused component
         if (s.size() == 1 && s.first() == mFocal)
             return;
@@ -456,7 +467,8 @@ if (true) return;
     }
 
 
-    @Override protected DrawContext getDrawContext(Graphics2D g) {
+    @Override
+    protected DrawContext getDrawContext(Graphics2D g) {
         DrawContext dc = super.getDrawContext(g);
         dc.setEditMode(btnMaster.isSelected());
         /* dc.focal now handles this 
@@ -468,7 +480,8 @@ if (true) return;
         return dc;
     }
 
-    @Override public void fireViewerEvent(int id) {
+    @Override
+    public void fireViewerEvent(int id) {
         if (DEBUG.PRESENT) out("fireViewerEvent <" + id + "> skipped");
     }
 

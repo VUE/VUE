@@ -413,7 +413,7 @@ public class PresentationTool extends VueTool
     }
 
     private void repaint() {
-        //out("repaint");
+        if (DEBUG.WORK) out("repaint");
         VUE.getActiveViewer().repaint();
     }
 
@@ -639,7 +639,7 @@ private static int OverviewMapSizeIndex = 5;
         final LWComponent focused = mCurrentPage.getOriginalMapNode();
 
 
-        final MapViewer viewer = VUE.getActiveViewer();
+        final MapViewer viewer = VUE.getActiveViewer(); // TODO: pull from somewhere safer
         
         dc.skipDraw = focused;
         mNavMapDC = MapPanner.paintViewerIntoRectangle(null,
@@ -666,13 +666,16 @@ private static int OverviewMapSizeIndex = 5;
                 // redraw the reticle at full brightness:
                 mNavMapDC.g.setColor(mCurrentPage.getPresentationFocal().getMap().getFillColor());
                 mNavMapDC.setAlpha(0.333);
-                mNavMapDC.g.fill(viewer.getVisibleMapBounds());
+                final java.awt.geom.Rectangle2D bounds = viewer.getVisibleMapBounds();
+                if (DEBUG.WORK) out("overview showing map bounds for: " + mCurrentPage + " in " + viewer + " bounds " + bounds);
+                mNavMapDC.g.fill(bounds);
                 mNavMapDC.setAlpha(1);
                 mNavMapDC.g.setColor(Color.red);
                 mNavMapDC.g.setStroke(VueConstants.STROKE_THREE);
-                mNavMapDC.g.draw(viewer.getVisibleMapBounds());
+                mNavMapDC.g.draw(bounds);
             }
             
+            if (DEBUG.WORK) out("overview drawing focused: " + focused);
             focused.draw(mNavMapDC.create());
             
         }
@@ -899,11 +902,19 @@ private static int OverviewMapSizeIndex = 5;
             repaint();
     }
 
+    public void out(String s) {
+        System.out.println("PRESENTATION: " + s);
+    }
+    
+
     private void setPage(final Page page, boolean recordBackup)
     {
         final MapViewer viewer = VUE.getActiveViewer();
         
-        if (DEBUG.PRESENT) out("setPage " + page);
+        if (DEBUG.WORK||DEBUG.PRESENT) {
+            System.out.println("\n-----------------------------------------------------------------------------");
+            out("setPage " + page);
+        }
 
         if (page == null) // for now
             return;
@@ -968,27 +979,29 @@ private static int OverviewMapSizeIndex = 5;
             // exist in separate coordinate spaces, and we can't animate
             // across that boundary.
             
-            final LWComponent lastFocal = mLastPage.getPresentationFocal();
-            final LWComponent thisFocal = mCurrentPage.getPresentationFocal();
-            final LWComponent lastParent = lastFocal == null ? null : lastFocal.getParent();
-            final LWComponent thisParent = thisFocal.getParent();
-            final LWComponent lastSlideAncestor = lastFocal == null ? null : lastFocal.getAncestorOfType(LWPathway.class);
-            final LWComponent thisSlideAncestor = thisFocal.getAncestorOfType(LWPathway.class);
+            final LWComponent oldFocal = mLastPage.getPresentationFocal();
+            final LWComponent newFocal = mCurrentPage.getPresentationFocal();
+            final LWComponent oldParent = oldFocal == null ? null : oldFocal.getParent();
+            final LWComponent newParent = newFocal.getParent();
+            final LWComponent lastSlideAncestor = oldFocal == null ? null : oldFocal.getAncestorOfType(LWPathway.class);
+            final LWComponent thisSlideAncestor = newFocal.getAncestorOfType(LWPathway.class);
             
-            if (lastParent == thisParent || lastSlideAncestor == thisSlideAncestor) {
+            if (oldParent == newParent || lastSlideAncestor == thisSlideAncestor) {
                 
                 animate = true;
                 
-                if (lastParent == thisParent && thisParent instanceof LWMap) {
+                //if (oldParent == newParent && newParent instanceof LWMap && !(newFocal instanceof LWPortal)) {
+                if (false && oldParent == newParent && newParent instanceof LWMap && !(newFocal instanceof LWPortal)) {
                     // temporarily load the map as the focal so we can
                     // see the animation across the map
-                    viewer.loadFocal(thisParent);
+                    if (DEBUG.WORK) out("loadFocal of parent for x-zoom: " + newParent);
+                    viewer.loadFocal(newParent);
                     /*
                       // this just hosing us...
                     GUI.invokeAfterAWT(new Runnable() {
                             public void run() {
                                 ZoomTool.setZoomFitRegion(viewer,
-                                                          thisFocal.getBounds(),
+                                                          newFocal.getBounds(),
                                                           0,
                                                           false);
                             }});
@@ -997,10 +1010,10 @@ private static int OverviewMapSizeIndex = 5;
             } else
                 animate = false;
             
-            GUI.invokeAfterAWT(new Runnable() {
-                    public void run() {
-                        zoomToFocal(thisFocal, animate);
-                    }});
+            //GUI.invokeAfterAWT(new Runnable() { public void run() {
+            // don't invoke later: is allowing an overview map repaint in an intermediate state
+            zoomToFocal(newFocal, animate);
+            //}});
         }
     }
     
@@ -1008,12 +1021,13 @@ private static int OverviewMapSizeIndex = 5;
         final MapViewer viewer = VUE.getActiveViewer();
         
         if (animate) {
+            if (DEBUG.WORK) out("zoomToFocal: animating to " + focal);
             ZoomTool.setZoomFitRegion(viewer,
                                       focal.getBounds(),
                                       0,
                                       animate);
         }
-        
+        if (DEBUG.WORK) out("zoomToFocal: final viewer load: " + focal);
         viewer.loadFocal(focal);
     }
     

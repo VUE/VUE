@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.382 $ / $Date: 2007-05-18 04:44:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.383 $ / $Date: 2007-05-18 10:04:44 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -384,6 +384,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     public void fireViewerEvent(int id) {
+        // TODO: REALLY need to change this from using EventRaiser -- esp given
+        // how often this has to fire during animations!
         if (/*!sDragUnderway &&*/ (id == MapViewerEvent.HIDDEN || VUE.getActiveViewer() == this)
             || (id == MapViewerEvent.ZOOM && VUE.multipleMapsVisible())) // todo: good enough for presentation mode viewer
             new MapViewerEvent(this, id).raise();
@@ -942,7 +944,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             )
             margin = 0;
 
-        if (DEBUG.PRESENT) out("zoomToContents " + mFocal);
+        if (DEBUG.PRESENT || DEBUG.WORK) out("zoomToContents " + mFocal + " at " + zoomBounds);
         
         ZoomTool.setZoomFitRegion(this,
                                   zoomBounds,
@@ -1029,7 +1031,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     public void loadFocal(LWComponent focal) {
-        if (DEBUG.PRESENT || DEBUG.VIEWER) out("loadFocal " + focal);
+        if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("loadFocal " + focal);
         //if (focal == null) throw new IllegalArgumentException(this + " loadFocal: focal is null");
         if (mFocal == focal)
             return;
@@ -5674,8 +5676,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     
     public String toString() {
-        return "MapViewer<" + instanceName + "> "
-            + "\'" + (mFocal==null?"nil":mFocal.getLabel()) + "\'";
+        return "MapViewer<" + instanceName + ">"
+            + "[" + (mFocal==null?"nil":mFocal.getDiagnosticLabel()) + "]";
+        //+ "\'" + (mFocal==null?"nil":mFocal.getDiagnosticLabel()) + "\'";
     }
     
     //-------------------------------------------------------

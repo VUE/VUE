@@ -52,7 +52,7 @@ import java.awt.Frame;
  *
  * Does not currently traverse into children of popup menus.
  *
- * @version $Revision: 1.11 $ / $Date: 2007-05-01 04:29:19 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2007-05-18 10:04:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -113,7 +113,7 @@ public abstract class EventRaiser<T>
 
         // startTime = System.nanoTime(); // java 1.5
             
-        if (DEBUG.EVENTS) {
+        if (DEBUG.EVENTS && DEBUG.META) {
             startTime = System.currentTimeMillis();
             out("raising " + this + " "
                 + (start == null ? "everywhere" : ("starting at: " + GUI.name(start))));
@@ -129,7 +129,7 @@ public abstract class EventRaiser<T>
             if (DEBUG.EVENTS) out("traversal stopped; done dispatching events");
         }
 
-        if (DEBUG.EVENTS) {
+        if (DEBUG.EVENTS && DEBUG.META) {
             long delta = System.currentTimeMillis() - startTime;
             //double delta = (System.nanoTime() - startTime) / 1000000.0; // java 1.5
             out(this + " " + delta + "ms delivery");
@@ -141,14 +141,14 @@ public abstract class EventRaiser<T>
     {
         Frame frames[] = Frame.getFrames();
 
-        if (DEBUG.EVENTS) out("FRAMES: " + java.util.Arrays.asList(frames));
+        if (DEBUG.EVENTS && DEBUG.META) out("FRAMES: " + java.util.Arrays.asList(frames));
 
         traverseChildren(frames);
     }
 
     protected void dispatchSafely(Component target)
     {
-        if (DEBUG.EVENTS) out("DISPATCHING " + this + " to " + target);
+        if (DEBUG.EVENTS && DEBUG.VIEWER) out("DISPATCHING " + this + " to " + target);
         try {
             dispatch((T) target);
         } catch (Completion e) {
@@ -182,7 +182,7 @@ public abstract class EventRaiser<T>
             Window[] owned = ((Window)parent).getOwnedWindows();
 
             if (owned.length > 0) {
-                if (DEBUG.EVENTS)
+                if (DEBUG.EVENTS && DEBUG.META)
                     eoutln("    OWNED by " + GUI.name(parent) + ": " + java.util.Arrays.asList(owned));
                 traverseChildren(owned);
             }

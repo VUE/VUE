@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.60 $ / $Date: 2007-05-11 17:24:19 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2007-05-18 10:04:44 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -98,6 +98,9 @@ public class MapPanner extends javax.swing.JPanel
      */
     public void mapViewerEventRaised(MapViewerEvent e)
     {
+        if (VUE.inNativeFullScreen())
+            return;
+        
         if (e.isActivationEvent() && mapViewer == null) {
             setViewer(e.getMapViewer());
         } else if (e.getSource() == this.mapViewer
@@ -122,6 +125,9 @@ public class MapPanner extends javax.swing.JPanel
     
     private void setViewer(MapViewer mapViewer)
     {
+        if (VUE.inNativeFullScreen())
+            return;
+        
         if (DEBUG.FOCUS) out("setViewer " + mapViewer);
         if (this.mapViewer != mapViewer) {
             this.mapViewer = mapViewer;
@@ -276,6 +282,9 @@ public class MapPanner extends javax.swing.JPanel
     
     public void paintComponent(Graphics g)
     {
+        if (VUE.inNativeFullScreen())
+            return;
+        
         if (DEBUG.PAINT) System.out.println("\nPANNER PAINTING");
         super.paintComponent(g);
         
