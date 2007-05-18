@@ -399,8 +399,8 @@ public class NodeTool extends VueTool
 
         public static LWNode buildTextNode(String text) {
             LWNode node = new LWNode();
-            initAsTextNode(node);
             node.setLabel(text);
+            initAsTextNode(node);
             return node;
         }
     }

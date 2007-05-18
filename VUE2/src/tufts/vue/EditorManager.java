@@ -16,17 +16,51 @@ public class EditorManager
     private static boolean PropertySettingUnderway; // editor values are being applied to the selection
 
     private static class StyleType {
-        final LWComponent style;
-        final LWComponent provisional;
+        private final Object token;
+        private final LWComponent style;
+        private final LWComponent provisional;
 
-        StyleType(LWComponent s, LWComponent p) {
+        StyleType(Object t, LWComponent s, LWComponent p) {
+            token = t;
             style = s;
             provisional = p;
         }
 
         void resolveToProvisional() {
             if (DEBUG.STYLE && (DEBUG.META || DEBUG.WORK)) tufts.Util.printStackTrace(this + " RESOLVING TO " + provisional);
-            style.copyStyle(provisional);
+            
+            if (token == LWNode.TYPE_TEXT) {
+                // special case for "text" nodes:
+                // don't assume shape or fill was pre-ordained for the text object
+                // -- these can only be set after the object is created.  (And as it
+                // stands at the moment changing the fill color to will actually
+                // change it's type from "textNode" back to LWNode.class).
+                style.copyStyle(provisional, ~ (LWKey.FillColor.bit | LWKey.Shape.bit) );
+
+            } else
+                style.copyStyle(provisional);
+        }
+
+        /** @return the style ready for use to be applied to something -- does sanity checking
+         * on the style before returning it.
+         */
+        LWComponent produceStyle()
+        {
+            if (token == LWNode.TYPE_TEXT) {
+                // special case for "text" nodes:
+                if (style.isTransparent() &&
+                    style.getStrokeWidth() <= 0 &&
+                    style.getPropertyValue(LWKey.Shape) != java.awt.geom.Rectangle2D.Float.class)
+                {
+                        // If completely transparent, assume no point in having a shape that's non-rectangular
+                        style.setProperty(LWKey.Shape, java.awt.geom.Rectangle2D.Float.class);
+
+                        // just in case, make sure synced with provisional:
+                        provisional.setProperty(LWKey.Shape, java.awt.geom.Rectangle2D.Float.class);
+                }
+            }
+
+            return style;
         }
 
         void discardProvisional() {
@@ -122,7 +156,7 @@ public class EditorManager
     private boolean extractedDefaultTypesFromMap = false;
     public void activeChanged(ActiveEvent e, LWMap map)
     {
-        if (map != null && !extractedDefaultTypesFromMap) {
+        if (map != null && map.hasChildren() && !extractedDefaultTypesFromMap) {
             extractedDefaultTypesFromMap = true;
             extractMostRecentlyUsedStyles(map);
         }
@@ -350,7 +384,8 @@ public class EditorManager
     }
 
     private static StyleType putStyle(Object token, LWComponent style) {
-        StyleType newType = new StyleType(style,
+        StyleType newType = new StyleType(token,
+                                          style,
                                           createStyle(style, token, "provi"));
         StylesByType.put(token, newType);
         return newType;
@@ -405,9 +440,10 @@ public class EditorManager
 
         // move the provisional style (unselected tool state style) to the actual
         // style for this type:
-        resolver.resolveToProvisional();
-
-        if (DEBUG.STYLE || DEBUG.WORK) out("Resolved provisional type to final applied type: " + resolver);
+        if (resolver != null) {
+            resolver.resolveToProvisional();
+            if (DEBUG.STYLE || DEBUG.WORK) out("Resolved provisional type to final applied type: " + resolver);
+        }
 
         // new reset all other provisional styles: the tool state change has been
         // resolved to been have meant for an object of the type just created
@@ -416,7 +452,7 @@ public class EditorManager
             if (styleType != resolver)
                 styleType.discardProvisional();
 
-        return resolver.style;
+        return resolver == null ? null : resolver.produceStyle();
 
     }
     

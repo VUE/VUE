@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.160 $ / $Date: 2007-05-18 04:44:44 $ / $Author: sfraize $
+ * @version $Revision: 1.161 $ / $Date: 2007-05-18 05:59:41 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -244,6 +244,11 @@ public class LWNode extends LWContainer
         if (boundsShape != null && IsSameShape(boundsShape.getClass(), shapeClass))
             return;
 
+        // todo: could skip instancing unless we actually go to draw ourselves (lazy
+        // create the instance) -- it's completely useless for LWNodes serving as style
+        // holders to create the instance, tho then we would need to keep a ref
+        // to the class object...
+
         try {
             setShapeInstance(shapeClass.newInstance());
         } catch (Throwable t) {
@@ -333,8 +338,19 @@ public class LWNode extends LWContainer
     
     @Override
     public boolean supportsUserResize() {
-        return true;
+        return !isTextNode();
     }
+
+//     /** @return true if the given property is currently supported on this component
+//      * Overriden to disable fill support if current a text node */
+//     @Override
+//     public boolean supportsProperty(Key key) {
+//         if (isTextNode() && key == LWKey.FillColor)
+//             return false;
+//         else
+//             return super.supportsProperty(key);
+//     }
+    
     
     /**
      * This is consulted during LAYOUT, which can effect the size of the node.
@@ -442,6 +458,7 @@ public class LWNode extends LWContainer
             //setShape(java.awt.geom.Rectangle2D.Float.class); // just a default, not enforced
             //setStrokeWidth(0f); // just a default, not enforced
             setFillColor(COLOR_TRANSPARENT);
+            setFont(DEFAULT_TEXT_FONT);
         } else {
             setFillColor(DEFAULT_NODE_FILL);
         }
@@ -2088,9 +2105,9 @@ public class LWNode extends LWContainer
         //return mLabelPos.x;
         if (isCenterLayout) { // non-rectangular shapes
             return mLabelPos.x;
-        } else if (isTextNode() && mStrokeWidth.get() == 0) {
-            return 1;
-            //return 1 + (strokeWidth == 0 ? 0 : strokeWidth / 2);
+//         } else if (isTextNode() && mStrokeWidth.get() == 0) {
+//             return 1;
+//             //return 1 + (strokeWidth == 0 ? 0 : strokeWidth / 2);
         } else if (iconShowing()) {
             //offset = (float) (PadX*1.5 + genIcon.getWidth());
             //offset = (float) genIcon.getWidth() + 7;
