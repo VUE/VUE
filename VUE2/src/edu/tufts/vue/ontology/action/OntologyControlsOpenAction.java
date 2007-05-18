@@ -18,6 +18,8 @@
 
 package edu.tufts.vue.ontology.action;
 
+import edu.tufts.vue.ontology.ui.*;
+
 /*
  * OntologyControlsOpenAction.java
  *
@@ -37,11 +39,21 @@ public class OntologyControlsOpenAction extends tufts.vue.VueAction {
     
     public void actionPerformed(java.awt.event.ActionEvent e)
     {
-        ontologyDock = tufts.vue.gui.GUI.createDockWindow("Constraint Mapping");
-        tufts.vue.gui.DockWindow searchDock = null;
+        browser = OntologyBrowser.getBrowser();
+        if(browser!=null)
+        {
+          ontologyDock = OntologyBrowser.getBrowser().getDockWindow();
+        }
+        else
+        {
+            ontologyDock = tufts.vue.gui.GUI.createDockWindow("Ontologies");
+            tufts.vue.gui.DockWindow searchDock = null;
         //browser = new edu.tufts.vue.ontology.ui.OntologyBrowser(true, ontologyDock, searchDock);
-        browser = new edu.tufts.vue.ontology.ui.OntologyBrowser(false, ontologyDock, searchDock);
-        ontologyDock.setSize(300, (int) (tufts.vue.gui.GUI.GScreenHeight * 0.75));
+            browser = OntologyBrowser.createBrowser(false,ontologyDock,searchDock);
+        //browser = new edu.tufts.vue.ontology.ui.OntologyBrowser(false, ontologyDock, searchDock);
+            ontologyDock.setBounds(100,100,300, (int) (tufts.vue.gui.GUI.GScreenHeight * 0.75));
+        }
+
         ontologyDock.setVisible(true);
     }
     

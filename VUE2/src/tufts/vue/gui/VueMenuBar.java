@@ -31,7 +31,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.36 $ / $Date: 2007-05-17 23:05:43 $ / $Author: mike $
+ * @version $Revision: 1.37 $ / $Date: 2007-05-18 19:42:17 $ / $Author: dan $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -258,8 +258,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         //compareAction.add(createCMAction);
         //compareAction.add(analyzeCMAction);
         RDFOpenAction rdfOpen = new RDFOpenAction();
-        OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction("Constraint Mapping");
-        FedoraOntologyOpenAction fooa = new FedoraOntologyOpenAction("Fedora Ontology Types");
+        OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction("Ontologies");
+        //FedoraOntologyOpenAction fooa = new FedoraOntologyOpenAction("Fedora Ontology Types");
         //toolsMenu.add(Actions.AddResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
         toolsMenu.add(Actions.AddResource);
         toolsMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
@@ -275,8 +275,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         toolsMenu.add(analyzeCMAction);
         toolsMenu.addSeparator();
         toolsMenu.add(rdfOpen);
-        toolsMenu.add(fooa);
+        //toolsMenu.add(fooa);
         toolsMenu.add(ontcontrls);
+        
         toolsMenu.addSeparator();
         toolsMenu.add(Actions.SearchFilterAction);
         

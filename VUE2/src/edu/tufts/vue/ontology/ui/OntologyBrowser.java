@@ -99,7 +99,20 @@ public class OntologyBrowser extends JPanel {
         return singleton;
     }
     
-    public OntologyBrowser(boolean delayedLoading, DockWindow ontologyDock,DockWindow typeDock) 
+    public static OntologyBrowser createBrowser(boolean delayedLoading,DockWindow ontologyDock,DockWindow typeDock)
+    {
+        return new OntologyBrowser(delayedLoading,ontologyDock,typeDock);
+    }
+    
+    private OntologyBrowser()
+    {
+        ontologiesPanel = this;
+        dockWindow = null;
+        ontologyDock = null;
+        typeDock = null;
+    }
+    
+    private OntologyBrowser(boolean delayedLoading, DockWindow ontologyDock,DockWindow typeDock) 
     {
         //super(new BorderLayout());
         //super(new java.awt.GridLayout(0,1));
