@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.278 $ / $Date: 2007-05-18 05:59:41 $ / $Author: sfraize $
+ * @version $Revision: 1.279 $ / $Date: 2007-05-18 07:26:59 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -418,7 +418,8 @@ public class LWComponent
             
             ClassProperties.put(clazz, propMaskForClass);
 
-            System.out.printf("KEY %-20s %-11s %-22s bit#%2d; %25s now has %2d properties\n", 
+            if (DEBUG.Enabled)
+                System.out.printf("KEY %-20s %-11s %-22s bit#%2d; %25s now has %2d properties\n", 
                               name,
                               //isStyleProperty ? "STYLE;" : "",
                               keyType,
