@@ -17,7 +17,7 @@ package tufts.vue;
  * -----------------------------------------------------------------------------
  */
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.14 2006-04-21 03:32:09 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.15 2007-05-18 15:18:56 anoop Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -37,7 +37,7 @@ import tufts.vue.action.*;
 
 
 /**
- * @version $Revision: 1.14 $ / $Date: 2006-04-21 03:32:09 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2007-05-18 15:18:56 $ / $Author: anoop $
  * @author  rsaigal
  */
 
@@ -192,7 +192,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
     }
     
     public int[] getPublishableModes() {
-        int modes[] = {Publishable.PUBLISH_MAP,Publishable.PUBLISH_CMAP};
+        int modes[] = {Publishable.PUBLISH_MAP,Publishable.PUBLISH_CMAP,Publishable.PUBLISH_ZIP};
         return modes;
     }
     
@@ -209,6 +209,8 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
             publishCMap(map);
         else if(mode == Publishable.PUBLISH_ALL)
             publishAll(map);
+        else if(mode == Publishable.PUBLISH_ZIP)
+            publishZip(map);
     }
     
     private void publishMap(LWMap map) throws IOException {
@@ -243,6 +245,26 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
             System.out.println(ex);
             JOptionPane.showMessageDialog(VUE.getDialogParent(), "Map cannot be exported "+ex.getMessage(),"Export Error",JOptionPane.ERROR_MESSAGE);
             
+        }
+    }
+    private void publishZip(LWMap map) throws IOException {
+        try {
+            File savedCMap = PublishUtil.createIMSCP(Publisher.resourceVector);
+            InputStream istream = new BufferedInputStream(new FileInputStream(savedCMap));
+            OutputStream ostream = new BufferedOutputStream(new FileOutputStream(ActionUtil.selectFile("IMSCP","zip")));
+            
+            int fileLength = (int)savedCMap.length();
+            byte bytes[] = new  byte[fileLength];
+            while (istream.read(bytes,0,fileLength) != -1)
+                ostream.write(bytes,0,fileLength);
+            istream.close();
+            ostream.close();
+        } catch (IOException ex) {
+          throw ex;  
+        } catch(Exception ex) {
+            System.out.println(ex);
+             JOptionPane.showMessageDialog(VUE.getDialogParent(), "Map cannot be exported "+ex.getMessage(),"Export Error",JOptionPane.ERROR_MESSAGE);
+         
         }
     }
     private void publishAll(LWMap map) {

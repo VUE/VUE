@@ -47,7 +47,7 @@ import tufts.vue.action.*;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.42 $ / $Date: 2007-05-17 14:53:25 $ / $Author: jeff $
+ * @version $Revision: 1.43 $ / $Date: 2007-05-18 15:18:37 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
     
@@ -58,6 +58,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final int PUBLISH_CMAP = 2; // the map with selected resources in IMSCP format
     public static final int PUBLISH_SAKAI = 4; // an IMSCP to Sakai
     public static final int PUBLISH_ALL = 3; // all resources published to fedora and map published with pointers to resources.
+    public static final int PUBLISH_ZIP = 5; 
     public static final int PUBLISH_ALL_MODES = 10; // this means that datasource can publish to any mode.
     //todo: create a pubishable interface for Datatasources. Create an interface for datasources and have separate implementations for each type of datasource.
     
@@ -74,7 +75,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     " “Export Map” saves only the map. Digital resources are not attached, but the resources’ paths are maintained. “Export Map” is the equivalent of the “Save” function for a registered digital repository.",
     "“Export IMSCP Map” embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a “zip” file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
     "“Export All” creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resources are accessible to all users viewing the map.",
-	"“Export IMSCP Map to Sakai” saves concept map in Sakai content hosting system."
+	"“Export IMSCP Map to Sakai” saves concept map in Sakai content hosting system.","Zips map with local resources."
     };
     
     private int publishMode = PUBLISH_MAP;
@@ -96,8 +97,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     JButton backButton;
     JButton finishButton;
     JRadioButton publishMapRButton;
-    JRadioButton publishCMapRButton;
+   // JRadioButton publishCMapRButton;
     JRadioButton publishSakaiRButton;
+    JRadioButton publishZipRButton;
    // JRadioButton publishAllRButton;
     JTextArea informationArea;
     public static Vector resourceVector;
@@ -120,7 +122,6 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         setUpModeSelectionPanel();
         getContentPane().setLayout(new FlowLayout(FlowLayout.LEFT));
         getContentPane().add(modeSelectionPanel);
-        
         stage = 1;
         setLocation(X_LOCATION,Y_LOCATION);
         setModal(true);
@@ -162,24 +163,29 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         BoxLayout buttonLayout = new BoxLayout(buttonPanel, BoxLayout.Y_AXIS);
         buttonPanel.setLayout(buttonLayout);
         publishMapRButton = new JRadioButton("Export Map");
-        publishCMapRButton = new JRadioButton("Export IMSCP Map");
-		publishSakaiRButton = new JRadioButton("Export IMSCP Map to Sakai");
+        publishZipRButton = new JRadioButton("Export to Zip File");
+        //publishCMapRButton = new JRadioButton("Export IMSCP Map");
+	publishSakaiRButton = new JRadioButton("Export IMSCP Map to Sakai");
  //       publishAllRButton = new JRadioButton("Export All");
         publishMapRButton.setToolTipText("Export map only without local resource files.");
-        publishCMapRButton.setToolTipText("Export IMS content package that include local resource files.");
+        publishZipRButton.setToolTipText("Export map and local resources to a zip file");
+  //    publishCMapRButton.setToolTipText("Export IMS content package that include local resource files.");
         publishSakaiRButton.setToolTipText("Export alreday saved IMS content package to Sakai content hosting.");
 //        publishAllRButton.setToolTipText("Export map and local resources as separate files.");
         publishMapRButton.addActionListener(this);
-        publishCMapRButton.addActionListener(this);
+        publishZipRButton.addActionListener(this);
+       // publishCMapRButton.addActionListener(this);
         publishSakaiRButton.addActionListener(this);
      //   publishAllRButton.addActionListener(this);
         modeSelectionGroup.add(publishMapRButton);
-        modeSelectionGroup.add(publishCMapRButton);
+        modeSelectionGroup.add(publishZipRButton);
+       // modeSelectionGroup.add(publishCMapRButton);
         modeSelectionGroup.add(publishSakaiRButton);
       //  modeSelectionGroup.add(publishAllRButton);
         //buttonPanel.add(modeLabel);
         buttonPanel.add(publishMapRButton);
-        buttonPanel.add(publishCMapRButton);
+        buttonPanel.add(publishZipRButton);
+       // buttonPanel.add(publishCMapRButton);
         buttonPanel.add(publishSakaiRButton);
      //   buttonPanel.add(publishAllRButton);
         JPanel bottomPanel = new JPanel();
@@ -350,6 +356,15 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         }
     }
     
+    public void publishZip() {
+        try {
+            ((Publishable)dataSourceComboBox.getSelectedItem()).publish(Publishable.PUBLISH_ZIP,tufts.vue.VUE.getActiveMap());
+     this.dispose();
+        } catch (Exception ex) {
+             alert(VUE.getDialogParent(), "Export Not Supported:"+ex.getMessage(), "Export Error");
+             ex.printStackTrace();
+        }
+    }
     public void publishMap() {
         try {
             publishMap((LWMap)VUE.getActiveMap().clone());
@@ -359,8 +374,6 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         }
         
     }
-    
-    
     
     public void publishCMap() {
         try {
@@ -401,14 +414,18 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 if(publishMapRButton.isSelected())
                     publishMap();
             }else {
-                if(publishCMapRButton.isSelected())
-                    publishCMap();
+                if(publishZipRButton.isSelected())
+                    publishZip();
+        //        if(publishCMapRButton.isSelected())
+        //            publishCMap();
         //        if(publishAllRButton.isSelected())
          //           publishAll();
             }
         }
         if(e.getSource() == nextButton) {
             this.getContentPane().remove(modeSelectionPanel);
+            this.getContentPane().validate();
+            this.validateTree();
             if(stage == 1) {
                 setUpResourceSelectionPanel();
                 this.getContentPane().add(resourceSelectionPanel);
@@ -423,6 +440,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             modeSelectionPanel.validate();
             this.getContentPane().add(modeSelectionPanel);
             this.getContentPane().validate();
+            this.validateTree();   
             stage--;
         }
         
@@ -432,12 +450,20 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             publishMode = PUBLISH_MAP;
             updatePublishPanel();
         }
-        if(e.getSource() == publishCMapRButton /*|| e.getSource() == publishAllRButton*/) {
+        if(e.getSource() == publishZipRButton) {
+            finishButton.setEnabled(false);
+            nextButton.setEnabled(true);
+            publishMode = PUBLISH_ZIP;
+            updatePublishPanel();
+        }
+        /*
+        if(e.getSource() == publishCMapRButton ) {
             finishButton.setEnabled(false);
             nextButton.setEnabled(true);
             publishMode = PUBLISH_CMAP;
             updatePublishPanel();
         }
+        */
         if(e.getSource() == publishSakaiRButton) {
             finishButton.setEnabled(false);
             nextButton.setEnabled(true);
@@ -464,10 +490,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 publishMapRButton.setEnabled(true);
             else 
                 publishMapRButton.setEnabled(false);
-            if(p.supportsMode(Publishable.PUBLISH_CMAP))
-                publishCMapRButton.setEnabled(true);
-            else 
-                publishCMapRButton.setEnabled(false);
+          //  if(p.supportsMode(Publishable.PUBLISH_CMAP))
+          //      publishCMapRButton.setEnabled(true);
+          //  else 
+          //     publishCMapRButton.setEnabled(false);
            /* if(p.supportsMode(Publishable.PUBLISH_ALL))
                 publishAllRButton.setEnabled(true);
             else 
