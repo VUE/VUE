@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.40 $ / $Date: 2007-05-18 23:10:53 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2007-05-18 23:26:23 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -226,8 +226,6 @@ public class LWSlide extends LWContainer
         }
         drawRaw(dc);
     }
-
-    
     
     public void rebuild() {
         
@@ -250,6 +248,29 @@ public class LWSlide extends LWContainer
         setFillColor(null); // this is how we revert a slide's bg color to that of the master slide
     }
 
+    @Override
+    protected void addChildImpl(LWComponent c)
+    {
+        // TODO: need to apply proper style w/generic code
+        
+        if (this instanceof LWPathway.MasterSlide) {
+            super.addChildImpl(c);
+            return;
+        }
+        
+        if (DEBUG.PRESENT || DEBUG.STYLE) out("addChildImpl " + c);
+        if (c.getStyle() == null)
+            applyMasterStyle(c);
+
+        super.addChildImpl(c);
+
+        /*
+        LWPathway pathway = (LWPathway) getParent();
+        if (pathway != null && c.getStyle() == null)
+            c.setStyle(pathway.getMasterSlide().textStyle);
+        */
+    }
+
     private void applyMasterStyle(LWComponent c) {
         applyMasterStyle(getMasterSlide(), c);
     }
@@ -261,7 +282,7 @@ public class LWSlide extends LWContainer
         }
         if (c.hasResource())
             c.setStyle(master.urlStyle);
-        else
+        else if (c instanceof LWNode && ((LWNode)c).isTextNode())
             c.setStyle(master.textStyle);
     }
 
@@ -279,32 +300,6 @@ public class LWSlide extends LWContainer
     }
 
     
-    @Override
-    protected void addChildImpl(LWComponent c)
-    {
-        // TODO: need to apply proper style w/generic code
-        
-        if (this instanceof LWPathway.MasterSlide) {
-            super.addChildImpl(c);
-            return;
-        }
-        
-        if (DEBUG.PRESENT || DEBUG.STYLE) out("addChildImpl " + c);
-        if (c.getStyle() == null)
-            applyMasterStyle(c);
-
-
-        super.addChildImpl(c);
-
-        
-        
-        /*
-        LWPathway pathway = (LWPathway) getParent();
-        if (pathway != null && c.getStyle() == null)
-            c.setStyle(pathway.getMasterSlide().textStyle);
-        */
-    }
-
     // This will prevent the object from ever being drawn on the map.
     // But this bit isn't checked at the top level if this is the top
     // level object requested to draw, so it will still work on the slide viewer.

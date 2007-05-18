@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.162 $ / $Date: 2007-05-18 07:06:28 $ / $Author: sfraize $
+ * @version $Revision: 1.163 $ / $Date: 2007-05-18 23:26:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -343,6 +343,13 @@ public class LWNode extends LWContainer
         else
             return true;
     }
+
+    /** @return false if this is a text node */
+    @Override
+    public boolean supportsChildren() {
+        return !isTextNode();
+    }
+    
 
 //     /** @return true if the given property is currently supported on this component
 //      * Overriden to disable fill support if current a text node */
