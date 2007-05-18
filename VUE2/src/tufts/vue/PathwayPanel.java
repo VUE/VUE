@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.88 $ / $Date: 2007-05-17 21:06:28 $ / $Author: mike $
+ * @version $Revision: 1.89 $ / $Date: 2007-05-18 08:58:12 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -828,12 +828,18 @@ public class PathwayPanel extends JPanel
         }    
         else if (btn == btnPlay)
         {
-        	 PresentationTool tool= PresentationTool.getTool();//VueToolbarController.getController().getTool("viewTool");
+            final PresentationTool tool = PresentationTool.getTool();//VueToolbarController.getController().getTool("viewTool");
+            //final PresentationTool tool = VueTool.getInstance(PresentationTool.class);
         
-        	((PresentationTool)tool).startPresentation();
-        	VUE.toggleFullScreen(true);
-         	 VueToolbarController.getController().setSelectedTool(tool);
-             
+                 VUE.toggleFullScreen(true);
+                 GUI.invokeAfterAWT(new Runnable() { public void run() {
+                     VueToolbarController.getController().setSelectedTool(tool);
+                 }});
+                 GUI.invokeAfterAWT(new Runnable() { public void run() {
+                     ((PresentationTool)tool).startPresentation();
+
+                 }});
+                                  
         }
         else if (btn == btnMasterSlide)
         {
