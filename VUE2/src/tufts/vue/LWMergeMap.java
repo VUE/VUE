@@ -52,8 +52,10 @@ public class LWMergeMap extends LWMap {
     private int nodeThresholdSliderValue = THRESHOLD_DEFAULT;
     private int linkThresholdSliderValue = THRESHOLD_DEFAULT;
     private boolean filterOnBaseMap;
-    private List<File> fileList;
-    private List<Boolean> activeFiles;
+    
+    // see note for mapList below
+    private List<String> fileList = new ArrayList<String>();
+    private List<Boolean> activeFiles = new ArrayList<Boolean>();
     
     // without this next line it seems that Castor library only reads back one element..
     // however, for now not a big deal as
@@ -66,7 +68,8 @@ public class LWMergeMap extends LWMap {
     
     private String styleFile;
     
-    private List<Double> intervalBoundaries;
+    // see notes above for mapList,fileList and activeFiles;
+    private List<Double> intervalBoundaries = new ArrayList<Double>();
     
     public static String getTitle()
     {
@@ -88,12 +91,13 @@ public class LWMergeMap extends LWMap {
         super(label);
     }
     
-    public void setMapFileList(List<File> mapList)
+    public void setMapFileList(List<String> mapList)
     {
-        fileList = mapList;
+        if(mapList != null)
+          fileList = mapList;
     }
     
-    public List<File> getMapFileList()
+    public List<String> getMapFileList()
     {
         return fileList;
     }
@@ -216,6 +220,23 @@ public class LWMergeMap extends LWMap {
     public void setBaseMapFile(File file)
     {
         baseMapFile = file;
+    }
+    
+    /**
+     *
+     * todo: rename no-arg version below to be default boundary
+     *       setup
+     * This method and the next are for persistence 
+     *
+     **/
+    public void setIntervalBoundaries(List<Double> intervalBoundaries)
+    {
+        this.intervalBoundaries = intervalBoundaries;
+    }
+    
+    public List<Double> getIntervalBoundaries()
+    {
+        return intervalBoundaries;
     }
     
     public void setStyleMapFile(String file)
