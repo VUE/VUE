@@ -108,7 +108,10 @@ public class PresentationTool extends VueTool
         }
 
         public boolean isMapView() {
-            return entry == null ? true : entry.isMapView();
+            if (entry == null)
+                return node != null && node.getAncestorOfType(LWSlide.class) == null;
+            else
+                return entry.isMapView();
         }
 
         public boolean onPathway() {
@@ -615,7 +618,7 @@ private static int OverviewMapSizeIndex = 5;
         //DrawContext dc = sourceDC.create();
         //dc.setRawDrawing();
         //final DrawContext dc = sourceDC;
-        
+
         dc.setFrameDrawing();
 
         float overviewMapFraction = OverviewMapScales[OverviewMapSizeIndex];
@@ -636,11 +639,14 @@ private static int OverviewMapSizeIndex = 5;
         dc.g.clipRect(0,0, panner.width, panner.height);
         
         //final LWComponent focused = mCurrentPage.isMapView() ? null : mCurrentPage.getOriginalMapNode();
-        final LWComponent focused = mCurrentPage.getOriginalMapNode();
+        LWComponent focused = mCurrentPage.getOriginalMapNode();
+        final LWSlide slide = (LWSlide) focused.getAncestorOfType(LWSlide.class);
 
+        if (slide != null)
+            focused = slide.getSourceNode();
 
         final MapViewer viewer = VUE.getActiveViewer(); // TODO: pull from somewhere safer
-        
+
         dc.skipDraw = focused;
         mNavMapDC = MapPanner.paintViewerIntoRectangle(null,
                                                        dc.g.create(),
