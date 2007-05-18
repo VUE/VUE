@@ -16,9 +16,9 @@ public class EditorManager
     private static boolean PropertySettingUnderway; // editor values are being applied to the selection
 
     private static class StyleType {
-        private final Object token;
-        private final LWComponent style;
-        private final LWComponent provisional;
+        final Object token;
+        final LWComponent style;
+        final LWComponent provisional;
 
         StyleType(Object t, LWComponent s, LWComponent p) {
             token = t;
@@ -355,9 +355,9 @@ public class EditorManager
     public static void applyCurrentProperties(LWComponent c) {
         if (c == null)
             return;
-        LWComponent styleForType = StylesByType.get(c.getTypeToken()).provisional;
-        if (styleForType != null)
-            c.copyStyle(styleForType);
+        StyleType styleType = StylesByType.get(c.getTypeToken());
+        if (styleType != null)
+            c.copyStyle(styleType.provisional);
     }
 
     /**
