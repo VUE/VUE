@@ -1193,8 +1193,9 @@ private static int OverviewMapSizeIndex = 5;
         
         NavNode nav;
         for (LWLink link : mapNode.getLinks()) {
-            LWComponent farpoint = link.getFarNavPoint(mapNode);
-            if (DEBUG.WORK) out("found farpoint " + farpoint);
+            // LWComponent farpoint = link.getFarNavPoint(mapNode); // adjust for arrow directionality
+            LWComponent farpoint = link.getFarPoint(mapNode);
+            if (DEBUG.WORK) out(mapNode + " found farpoint " + farpoint);
             if (farpoint != null && farpoint.isDrawn()) {
                 if (false && link.hasLabel())
                     nav = createNavNode(new Page(link));
