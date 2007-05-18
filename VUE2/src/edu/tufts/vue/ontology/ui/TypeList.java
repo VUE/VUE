@@ -123,6 +123,11 @@ public class TypeList extends JList {
         return comp.duplicate();
     }
     
+    public LWComponent getSelectedComponent()
+    {
+        return comp;
+    }
+    
     public void setModel(ListModel m)
     {
         super.setModel(m);
