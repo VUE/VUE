@@ -27,7 +27,7 @@ public class EditorManager
         }
 
         void resolveToProvisional() {
-            if (DEBUG.STYLE && (DEBUG.META || DEBUG.WORK)) tufts.Util.printStackTrace(this + " RESOLVING TO " + provisional);
+            if (DEBUG.STYLE && (DEBUG.META /*|| DEBUG.WORK*/)) tufts.Util.printStackTrace(this + " RESOLVING TO " + provisional);
             
             if (token == LWNode.TYPE_TEXT) {
                 // special case for "text" nodes:
@@ -229,7 +229,7 @@ public class EditorManager
                 + "; currentTypedStyle: " + CurrentStyle
                 + " updateEnabled=" + setEnabledStates
                 + " " + selection;
-            if (DEBUG.META||DEBUG.WORK)
+            if (DEBUG.META/*||DEBUG.WORK*/)
                 tufts.Util.printStackTrace(msg);
             else
                 out(msg);

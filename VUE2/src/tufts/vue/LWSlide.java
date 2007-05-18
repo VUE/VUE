@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.39 $ / $Date: 2007-05-18 07:40:57 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2007-05-18 23:10:53 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -282,15 +282,21 @@ public class LWSlide extends LWContainer
     @Override
     protected void addChildImpl(LWComponent c)
     {
-        super.addChildImpl(c);
-
         // TODO: need to apply proper style w/generic code
         
-        if (this instanceof LWPathway.MasterSlide)
+        if (this instanceof LWPathway.MasterSlide) {
+            super.addChildImpl(c);
             return;
+        }
+        
         if (DEBUG.PRESENT || DEBUG.STYLE) out("addChildImpl " + c);
         if (c.getStyle() == null)
             applyMasterStyle(c);
+
+
+        super.addChildImpl(c);
+
+        
         
         /*
         LWPathway pathway = (LWPathway) getParent();

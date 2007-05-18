@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.280 $ / $Date: 2007-05-18 22:34:35 $ / $Author: sfraize $
+ * @version $Revision: 1.281 $ / $Date: 2007-05-18 23:10:53 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -610,17 +610,17 @@ u                    getSlot(c).setFromString((String)value);
             } else if (!target.supportsProperty(this)) {
                 if (DEBUG.STYLE && DEBUG.META) System.err.println(" COPY-VALUE: " + this + "; target doesn't support this property; " + target);
             } else {
-                final TValue copyValue = getValue(source);
-                final TValue currentValue = getValue(target);
+                final TValue newValue = getValue(source);
+                final TValue oldValue = getValue(target);
 
-                if (copyValue != null && !copyValue.equals(currentValue)) {
+                if (newValue != oldValue && (newValue == null || !newValue.equals(oldValue))) {
                     if (DEBUG.STYLE) System.out.format("  COPY-VALUE: %s %-15s %-40s -> %s over (%s)\n",
                                                        source,
                                                        name,
-                                                       "(" + copyValue + ")",
+                                                       "(" + newValue + ")",
                                                        target,
-                                                       currentValue);
-                    setValue(target, copyValue);
+                                                       oldValue);
+                    setValue(target, newValue);
                 }
 
 

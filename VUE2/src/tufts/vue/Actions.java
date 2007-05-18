@@ -1204,7 +1204,11 @@ public class Actions implements VueConstants
             // maybe: run a timer and do this if no activity (e.g., node creation)
             // for 250ms or something
             viewer.getFocal().addChild(newItem);
-            viewer.getSelection().setTo(newItem);
+
+            //GUI.invokeAfterAWT(new Runnable() { public void run() {
+                viewer.getSelection().setTo(newItem);
+            //}});
+            
 
             if (newItem.supportsUserLabel()) {
                 // Just in case, do this later:

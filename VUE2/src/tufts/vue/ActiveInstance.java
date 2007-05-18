@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.2 $ / $Date: 2007-05-18 22:37:22 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2007-05-18 23:10:53 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -77,12 +77,12 @@ public class ActiveInstance<T>
         lock(null, "INIT");
         synchronized (AllActiveHandlers) {
             if (AllActiveHandlers.containsKey(itemType)) {
-                // tho this is an error, the safest thing to do is blow away the old one,
+                // tho this is not ideal, the safest thing to do is blow away the old one,
                 // as it's likely this accidentally happened by a request for a generic
                 // listener before a specialized side-effecting type-handler was initiated.
-                // Listeners registered to the old handler will never get updates.
-                // todo: could just copy over listener list from old handler
-                tufts.Util.printStackTrace("blowing away prior active change handler for " + getClass());
+                // We copy over the listeners from the old handler if there were any.
+                tufts.Util.printStackTrace("ignoring prior active change handler for " + getClass() + " and taking over listeners");
+                listenerList.addAll(getHandler(itemType).listenerList);
             }
             AllActiveHandlers.put(itemType, this);
         }
@@ -154,11 +154,11 @@ public class ActiveInstance<T>
         
         final ActiveListener[] listeners;
 
-        lock(this, "NOTIFY " + listenerList.size());
+        if (DEBUG.Enabled) lock(this, "NOTIFY " + listenerList.size());
         synchronized (listenerList) {
             listeners = listenerList.toArray(new ActiveListener[listenerList.size()]);
         }
-        unlock(this, "NOTIFY " + listenerList.size());
+        if (DEBUG.Enabled) unlock(this, "NOTIFY " + listenerList.size());
 
         inNotify = true;
         try {
