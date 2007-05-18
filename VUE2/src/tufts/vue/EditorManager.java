@@ -563,14 +563,8 @@ public class EditorManager
             }
         }
 
-        // now that we've found all the most recent objects of each type,
-        // we need get the direct references to them OUT of the style type cache,
-        // and replace them as duplicates, so that can serve as standalone
-        // style holders.
-
         for (Map.Entry<Object,LWComponent> e : foundStyles.entrySet())
             putStyle(e.getKey(), createStyle(e.getValue(), e.getKey()));
-        //e.setValue(createStyle(e.getValue(), e.getKey()));
     }
     
     static void registerEditor(LWEditor editor) {
