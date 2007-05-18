@@ -62,7 +62,12 @@ public class OntologyBrowser extends JPanel {
     
     private WidgetStack resultsStack = new WidgetStack("types stack");
     
-    private static edu.tufts.vue.ontology.ui.TypeList selectedOntology = null;
+    private static TypeList selectedOntology = null;
+    
+    public DockWindow getDockWindow()
+    {
+        return dockWindow;
+    }
     
     public static TypeList getSelectedList()
     {

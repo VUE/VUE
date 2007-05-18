@@ -118,6 +118,11 @@ public class TypeList extends JList {
     
     }
     
+    public LWComponent getSelectedComponentCopy()
+    {
+        return comp.duplicate();
+    }
+    
     public void setModel(ListModel m)
     {
         super.setModel(m);
