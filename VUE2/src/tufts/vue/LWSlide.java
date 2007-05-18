@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.38 $ / $Date: 2007-05-16 00:37:21 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2007-05-18 07:40:57 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -51,7 +51,7 @@ public class LWSlide extends LWContainer
     
     @Override
     public boolean supportsUserResize() {
-        return isMoveable();
+        return isMoveable() && DEBUG.Enabled;
     }
     
     @Override
