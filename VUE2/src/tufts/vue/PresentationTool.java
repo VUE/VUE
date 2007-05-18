@@ -639,11 +639,22 @@ private static int OverviewMapSizeIndex = 5;
         dc.g.clipRect(0,0, panner.width, panner.height);
         
         //final LWComponent focused = mCurrentPage.isMapView() ? null : mCurrentPage.getOriginalMapNode();
-        LWComponent focused = mCurrentPage.getOriginalMapNode();
-        final LWSlide slide = (LWSlide) focused.getAncestorOfType(LWSlide.class);
 
-        if (slide != null)
-            focused = slide.getSourceNode();
+        // the "focused" node is the node on the map we're going to show highlighted
+        // -- it's the node our current slide belongs to
+        
+        LWComponent focused = mCurrentPage.getOriginalMapNode();
+
+        // if we're nav-clicking within a slide, the original map node
+        // is totally uninteresting: it's just the node (e.g., an image)
+        // on the slide -- if slides we're really on the map tho, we could
+        // in fact zoom to it normally.
+        
+        if (focused != null) {
+            final LWSlide slide = (LWSlide) focused.getAncestorOfType(LWSlide.class);
+            if (slide != null)
+                focused = slide.getSourceNode();
+        }
 
         final MapViewer viewer = VUE.getActiveViewer(); // TODO: pull from somewhere safer
 
@@ -1180,11 +1191,10 @@ private static int OverviewMapSizeIndex = 5;
             y += 30;
 
         
-        
-        
         NavNode nav;
         for (LWLink link : mapNode.getLinks()) {
             LWComponent farpoint = link.getFarNavPoint(mapNode);
+            if (DEBUG.WORK) out("found farpoint " + farpoint);
             if (farpoint != null && farpoint.isDrawn()) {
                 if (false && link.hasLabel())
                     nav = createNavNode(new Page(link));
@@ -1219,6 +1229,7 @@ private static int OverviewMapSizeIndex = 5;
     }
 
     private NavNode createNavNode(Page page) {
+        if (DEBUG.WORK) out("creating nav node for page " + page);
         return new NavNode(page);
     }
 //     private NavNode createNavNode(LWComponent src, LWPathway pathway) {
