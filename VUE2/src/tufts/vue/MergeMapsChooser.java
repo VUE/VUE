@@ -1033,17 +1033,6 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
      * creates LWMergeMap and saves setting data appropriate to GUI
      * choices then calls appropriate Merge Creation method
      * new LWMergeMap is currently displayed by merge creation method.
-     * 3/3/2007: looking for bug where map list is not getting saved
-     *           with merge map as it was before (or perhaps is later
-     *           getting overridden? seems pretty clearly to be getting
-     *           set here..)
-     *
-     *           Generally should make 
-     *           sure that data from merge map only is being used whereever 
-     *           possible in merge map generation and try as much as possible
-     *           to only modify map data through a few limited methods (such
-     *           as this method and recreate methods in LWMergeMap eventually
-     *           creation methods should move to that class as well)
      *
      */
     public void generateMergeMap()
@@ -1637,7 +1626,11 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         
         if(map instanceof LWMergeMap)
         {
-            generate.setEnabled(false);
+           //disable for now (this is confusing in term of base map set
+           //to non active map, now that it is no longer dynamically set)
+           // also: a bug(?) in tab selection still sometimes refuses to reenable
+           // the button without a click in a non merge map
+           // generate.setEnabled(false);
         }
         else
         {
@@ -1927,9 +1920,26 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
             return mapList;
         }
         
-        public List<File> getMapFileList()
+        /**
+         *
+         * todo: files should not be loaded until
+         *       generate button is pressed
+         *       (new interface already works this way)
+         *
+         **/
+        public List<String> getMapFileList()
         {
-            return mapFileList;
+            ArrayList<String> stringMapFileList = new ArrayList<String>();
+            if(mapFileList != null)
+            {    
+              Iterator i = mapFileList.iterator();
+              while(i.hasNext())
+              {
+                File file = (File)i.next();
+                stringMapFileList.add(file.getAbsolutePath());
+              }
+            }
+            return stringMapFileList;
         }
         
         public void fillMapList()
