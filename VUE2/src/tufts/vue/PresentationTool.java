@@ -410,13 +410,16 @@ public class PresentationTool extends VueTool
             startPresentation();
             VUE.toggleFullScreen(true);
         } else if (ae.getSource() instanceof JCheckBox) {
-            repaint();
+            repaint("checkBox");
         } else
             super.actionPerformed(ae);
     }
 
     private void repaint() {
-        if (DEBUG.WORK) out("repaint");
+        repaint("");
+    }
+    private void repaint(String msg) {
+        if (DEBUG.WORK) out("repaint " + msg);
         VUE.getActiveViewer().repaint();
     }
 
@@ -487,7 +490,7 @@ public class PresentationTool extends VueTool
             if (guessing) {
                 // if we hit space and there's nowhere to go, show them their options:
                 mForceShowNavNodes = mShowNavNodes = true;
-                repaint();
+                repaint("guessForward");
             } else
                 revisitNext(allTheWay); 
         }
@@ -513,7 +516,7 @@ public class PresentationTool extends VueTool
         case KeyEvent.VK_BACK_QUOTE:
             // toggle showing the non-linear nav options:
             mForceShowNavNodes = mShowNavNodes = !mForceShowNavNodes;
-            repaint();
+            repaint("toggleNav");
             break;
             
         case KeyEvent.VK_RIGHT:
@@ -564,7 +567,7 @@ public class PresentationTool extends VueTool
 //             break;
         case 'm':
             mShowNavigator = !mShowNavigator;
-            repaint();
+            repaint("showOverview");
             break;
 
         case 'p':
@@ -575,7 +578,7 @@ public class PresentationTool extends VueTool
         case '=': // allow "non-shift-plus"
             if (mShowNavigator && OverviewMapSizeIndex < OverviewMapScales.length-1) {
                 OverviewMapSizeIndex++;
-                repaint();
+                repaint("overviewBigger");
             } else
                 handled = false;
             break;
@@ -583,7 +586,7 @@ public class PresentationTool extends VueTool
         case '_': // allow "shift-minus" also
             if (mShowNavigator && OverviewMapSizeIndex > 0) {
                 OverviewMapSizeIndex--;
-                repaint();
+                repaint("overviewSmaller");
             } else
                 handled = false;
             break;
@@ -723,7 +726,8 @@ private static int OverviewMapSizeIndex = 5;
         }
 
         if (oldShowNav != mShowNavNodes)
-            e.getViewer().repaint();
+            repaint("mouseMove nav display change");
+        //e.getViewer().repaint();
 
         return handled;
     }
@@ -915,8 +919,8 @@ private static int OverviewMapSizeIndex = 5;
 
     public void LWCChanged(LWCEvent e) {
         // if the pathway changes it's filtering state, we'll get this event from it to know to repaint
-        if (e.key == LWKey.Repaint)
-            repaint();
+        if (e.key == LWKey.Repaint || e.source instanceof LWMap)
+            repaint(e.toString());
     }
 
     public void out(String s) {

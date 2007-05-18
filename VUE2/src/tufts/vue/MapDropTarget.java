@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.68 $ / $Date: 2007-05-15 23:03:57 $ / $Author: mike $  
+ * @version $Revision: 1.69 $ / $Date: 2007-05-18 22:34:36 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -925,6 +925,16 @@ class MapDropTarget
         }
 
         final String host = url.getHost();
+        final String s = url.toString();
+        final String urlWithoutQuery;
+
+        final int questionMarkIndex = s.indexOf('?');
+
+        if (questionMarkIndex > 0)
+            urlWithoutQuery = s.substring(0, questionMarkIndex);
+        else
+            urlWithoutQuery = s;
+
                 
         String imageURL = (String) data.get("imgurl"); // google & yahoo
         if (imageURL == null)
@@ -937,15 +947,29 @@ class MapDropTarget
         if (imageURL == null && host.endsWith(".ask.com"))
             imageURL = (String) data.get("u"); // ask jeeves, but only from their context page
 
+        URL redirectURL = null;
+
+        if (imageURL == null && host.endsWith(".flickr.com")) {
+            // TODO: can try this trick with any URL: strip off the query and see if what's
+            // left is an image url (e.g., file has an image extension, or could even
+            // just try grabbing content to see if it has an image type: that would
+            // be most reliable and generic version)
+            try {
+                return new URL(urlWithoutQuery);
+            } catch (Throwable t) {
+                return url;
+            }
+        }
+
+
+        if (imageURL == null)
+            imageURL = (String) data.get("url");
+
         // TODO: ask.com now has multiple levels of indirection of query pair sets
         // to get through...
         
         // Attempt a default
-        if (imageURL == null)
-            imageURL = (String) data.get("url");
             
-        URL redirectURL = null;
-
         if (imageURL != null &&
             ("images.google.com".equals(host)
              || "rds.yahoo.com".equals(host)

@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.438 $ / $Date: 2007-05-17 23:04:12 $ / $Author: mike $ 
+ * @version $Revision: 1.439 $ / $Date: 2007-05-18 22:34:36 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -103,8 +103,8 @@ public class VUE
     private static MapInspectorPanel mapInspectorPanel = null;
 
 
-    private static final ActiveChangeSupport<LWPathway>
-        ActivePathwayHandler = new ActiveChangeSupport<LWPathway>(LWPathway.class) {
+    private static final ActiveInstance<LWPathway>
+        ActivePathwayHandler = new ActiveInstance<LWPathway>(LWPathway.class) {
         protected void onChange(ActiveEvent<LWPathway> e) {
             // Only run the update if this isn't already an auxillary sync update from ActivePathwayEntryHandler:
             if (e.source instanceof ActiveEvent && ((ActiveEvent)e.source).type == LWPathway.Entry.class)
@@ -119,8 +119,8 @@ public class VUE
     };
 
 
-    private static final ActiveChangeSupport<LWPathway.Entry>
-        ActivePathwayEntryHandler = new ActiveChangeSupport<LWPathway.Entry>(LWPathway.Entry.class) {
+    private static final ActiveInstance<LWPathway.Entry>
+        ActivePathwayEntryHandler = new ActiveInstance<LWPathway.Entry>(LWPathway.Entry.class) {
         protected void onChange(ActiveEvent<LWPathway.Entry> e) {
             // Only run the update if this isn't already an auxillary sync update from ActivePathwayHandler:
             if (e.source instanceof ActiveEvent && ((ActiveEvent)e.source).type == LWPathway.class)
@@ -136,8 +136,8 @@ public class VUE
     };
 
 
-    private static final ActiveChangeSupport<LWMap>
-        ActiveMapHandler = new ActiveChangeSupport<LWMap>(LWMap.class) {
+    private static final ActiveInstance<LWMap>
+        ActiveMapHandler = new ActiveInstance<LWMap>(LWMap.class) {
         protected void onChange(ActiveEvent<LWMap> e) {
             if (e.active != null)
                 ActivePathwayHandler.setActive(e, e.active.getActivePathway());
@@ -153,8 +153,8 @@ public class VUE
      * The active viewer can be null, which happens when we close the active viewer
      * and until another grabs the application focus (unles it was the last viewer).
      */
-    private static final ActiveChangeSupport<MapViewer> ActiveViewerHandler
-        = new ActiveChangeSupport<MapViewer>(MapViewer.class) {
+    private static final ActiveInstance<MapViewer> ActiveViewerHandler
+        = new ActiveInstance<MapViewer>(MapViewer.class) {
         protected void notifyListeners(ActiveEvent<MapViewer> e) {
             if (!(e.active instanceof tufts.vue.ui.SlideViewer)) {
                 // SlideViewer not treated as application-level viewer: ignore when gets selected
@@ -175,24 +175,24 @@ public class VUE
     
     public static void setActive(Class clazz, Object source, Object newActive) {
         if (newActive == null || clazz.isInstance(newActive))
-            ActiveChangeSupport.getHandler(clazz).setActive(source, newActive);
+            ActiveInstance.getHandler(clazz).setActive(source, newActive);
         else
             tufts.Util.printStackTrace("not an instance of " + clazz + ": " + newActive);
     }
 
     public static Object getActive(Class clazz) {
         // todo: if a handler doesn't already exist for this class, just return null
-        return ActiveChangeSupport.getHandler(clazz).getActive();
+        return ActiveInstance.getHandler(clazz).getActive();
     }
     
     public static void addActiveListener(Class clazz, ActiveListener listener) {
-        ActiveChangeSupport.getHandler(clazz).addListener(listener);
+        ActiveInstance.addListener(clazz, listener);
     }
     public static void addActiveListener(Class clazz, Object reflectedListener) {
-        ActiveChangeSupport.getHandler(clazz).addListener(reflectedListener);
+        ActiveInstance.addListener(clazz, reflectedListener);
     }
     public static void removeActiveListener(Class clazz, ActiveListener listener) {
-        ActiveChangeSupport.getHandler(clazz).removeListener(listener);
+        ActiveInstance.removeListener(clazz, listener);
     }
     
     public static void setAppletContext(AppletContext ac) {

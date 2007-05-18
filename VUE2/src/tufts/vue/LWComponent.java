@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.279 $ / $Date: 2007-05-18 07:26:59 $ / $Author: sfraize $
+ * @version $Revision: 1.280 $ / $Date: 2007-05-18 22:34:35 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -4254,7 +4254,7 @@ u                    getSlot(c).setFromString((String)value);
 
         if (getID() == null) {
             s = String.format("%-17s[",
-                              typeName + "@" + Integer.toHexString(hashCode())
+                              typeName + "." + Integer.toHexString(hashCode())
                               );
             //s += tufts.Util.pad(9, Integer.toHexString(hashCode()));
         } else {

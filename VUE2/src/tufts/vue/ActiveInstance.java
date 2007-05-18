@@ -23,30 +23,60 @@ import java.lang.reflect.Method;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.7 $ / $Date: 2007-05-16 22:21:58 $ / $Author: sfraize $
+ * @version $Revision: 1.1 $ / $Date: 2007-05-18 22:34:35 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
 // as we stay with only a singly selected resource object at a time.
-public class ActiveChangeSupport<T>
+public class ActiveInstance<T>
 {
-    private static final java.util.Map<Class,ActiveChangeSupport> AllActiveHandlers = new java.util.HashMap();
+    private static final java.util.Map<Class,ActiveInstance> AllActiveHandlers = new java.util.HashMap();
         
     private final java.util.List<ActiveListener<T>> listenerList = new java.util.ArrayList();
-    protected final Class type;
-    protected final String typeName; // for debug
+    
+    protected final Class itemType;
+    protected final String itemTypeName; // for debug
+    protected final boolean itemIsMarkable;
 
-    private T currentlyActive;
-
+    private T nowActive;
+    private ActiveEvent lastEvent;
     private boolean inNotify;
 
+    /** The active item itself wants to be told when it's been set to active or has lost it's active status */
+    public interface Markable {
+        public void markActive(boolean active);
+    }
 
-    public ActiveChangeSupport(Class clazz) {
-        type = clazz;
-        typeName = "<" + type.getName() + ">";
+
+    public static void addListener(Class clazz, ActiveListener listener) {
+        getHandler(clazz).addListener(listener);
+    }
+    public static void addListener(Class clazz, Object reflectedListener) {
+        getHandler(clazz).addListener(reflectedListener);
+    }
+    public static void removeListener(Class clazz, ActiveListener listener) {
+        getHandler(clazz).removeListener(listener);
+    }
+    public static void removeListener(Class clazz, Object reflectedListener) {
+        getHandler(clazz).removeListener(reflectedListener);
+    }
+
+    public static void set(Class clazz, Object source, Object item) {
+        getHandler(clazz).setActive(source, item);
+    }
+
+    public static void get(Class clazz) {
+        getHandler(clazz).getActive();
+    }
+
+
+    public ActiveInstance(Class clazz) {
+        itemType = clazz;
+        itemTypeName = "<" + itemType.getName() + ">";
+        itemIsMarkable = clazz.isInstance(Markable.class);
         lock(null, "INIT");
         synchronized (AllActiveHandlers) {
-            if (AllActiveHandlers.containsKey(type)) {
+            if (AllActiveHandlers.containsKey(itemType)) {
                 // tho this is an error, the safest thing to do is blow away the old one,
                 // as it's likely this accidentally happened by a request for a generic
                 // listener before a specialized side-effecting type-handler was initiated.
@@ -54,44 +84,71 @@ public class ActiveChangeSupport<T>
                 // todo: could just copy over listener list from old handler
                 tufts.Util.printStackTrace("blowing away prior active change handler for " + getClass());
             }
-            AllActiveHandlers.put(type, this);
+            AllActiveHandlers.put(itemType, this);
         }
         unlock(null, "INIT");
-        if (DEBUG.INIT || DEBUG.EVENTS) System.out.println("Created ActiveChangeSupport"  + typeName);
+        if (DEBUG.INIT || DEBUG.EVENTS) System.out.println("Created ActiveInstance"  + itemTypeName);
     }
 
-    public static ActiveChangeSupport getHandler(Class type) {
-        ActiveChangeSupport handler = null;
+    public static ActiveInstance getHandler(Class type) {
+        ActiveInstance handler = null;
         lock(null, "getHandler");
         synchronized (AllActiveHandlers) {
             handler = AllActiveHandlers.get(type);
             if (handler == null)
-                handler = new ActiveChangeSupport(type);
+                handler = new ActiveInstance(type);
         }
         unlock(null, "getHandler");
         return handler;
     }
 
-    public void setActive(Object source, T newActive) {
+    public void refreshListeners() {
+        notifyListeners(lastEvent);
+    }
+
+    public void setActive(final Object source, final T newActive)
+    {
+        if (newActive != null && !itemType.isInstance(newActive)) {
+            tufts.Util.printStackTrace(this + ": setActive(" + newActive + ") by " + source + "; not an instance of " + itemType);
+            return;
+        }
+        
         lock(this, "setActive");
         synchronized (this) {
-            if (currentlyActive == newActive)
+            if (nowActive == newActive)
                 return;
-            if (DEBUG.EVENTS) System.out.format("ActiveInstance%s nowActive: %s  (source is %s)\n", typeName, newActive, source);
-            final T oldActive = currentlyActive;
-            currentlyActive = newActive;
-            final ActiveEvent e = new ActiveEvent(type, source, oldActive, newActive);
+            if (DEBUG.EVENTS) System.out.format(this + " == %s (source is %s)\n", newActive, source);
+            final T oldActive = nowActive;
+            this.nowActive = newActive;
+            if (itemIsMarkable) {
+                markActive( (Markable) oldActive, false);
+                markActive( (Markable) newActive, true);
+            }
+            final ActiveEvent e = new ActiveEvent(itemType, source, oldActive, newActive);
             notifyListeners(e);
-            onChange(e);
+            try {
+                onChange(e);
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t, this + " onChange failed in implementation subclass: " + getClass());
+            }
+            this.lastEvent = e;
         }
         unlock(this, "setActive");
+    }
+
+    private void markActive(Markable markableItem, boolean active) {
+        try {
+            markableItem.markActive(active);
+        } catch (Throwable t) {
+            tufts.Util.printStackTrace(t, this + " marking active state to " + active + " on " + markableItem);
+        }
     }
 
     protected void onChange(ActiveEvent<T> e) {}
 
     protected void notifyListeners(ActiveEvent<T> e) {
         if (inNotify) {
-            tufts.Util.printStackTrace(this + ": event loop! aborting delivery of: " + e);
+            tufts.Util.printStackTrace(this + " event loop! aborting delivery of: " + e);
             return;
         }
         
@@ -119,7 +176,7 @@ public class ActiveChangeSupport<T>
                 if (target == e.source)
                     continue;
                 
-                if (DEBUG.EVENTS) System.out.println("\tnotify" + typeName + " -> " + target);
+                if (DEBUG.EVENTS) System.out.println("\tnotify" + itemTypeName + " -> " + target);
                 try {
                     if (method != null)
                         method.invoke(target, e, e.active);
@@ -137,7 +194,7 @@ public class ActiveChangeSupport<T>
     }
 
     public T getActive() {
-        return currentlyActive;
+        return nowActive;
     }
 
     public void addListener(ActiveListener listener) {
@@ -154,12 +211,12 @@ public class ActiveChangeSupport<T>
             // We could cache the method for the class of the given listener
             // so future instance's of the class don't have to do the method lookup,
             // but this type of listener is not frequently added.
-            method = listener.getClass().getMethod("activeChanged", ActiveEvent.class, this.type);
+            method = listener.getClass().getMethod("activeChanged", ActiveEvent.class, itemType);
         } catch (Throwable t) {
             tufts.Util.printStackTrace(t, this + ": "
                                        + listener.getClass()
-                                       + " must implement activeChanged(ActiveEvent, " + type + ")"
-                                       + " to be a listener for the active instance of " + type);
+                                       + " must implement activeChanged(ActiveEvent, " + itemType + ")"
+                                       + " to be a listener for the active instance of " + itemType);
             return;
         }
         addListener(new MethodProxy(listener, method));
@@ -174,11 +231,11 @@ public class ActiveChangeSupport<T>
         unlock(this, "removeListener");
     }
 
-    private static void lock(ActiveChangeSupport o, String msg) {
-        if (DEBUG.THREAD) System.err.println((o == null ? "ACS" : o) + " " + msg + " LOCK");
+    private static void lock(ActiveInstance o, String msg) {
+        if (DEBUG.THREAD) System.err.println((o == null ? "ActiveInstance" : o) + " " + msg + " LOCK");
     }
-    private static void unlock(ActiveChangeSupport o, String msg) {
-        if (DEBUG.THREAD) System.err.println((o == null ? "ACS" : o) + " " + msg + " UNLOCK");
+    private static void unlock(ActiveInstance o, String msg) {
+        if (DEBUG.THREAD) System.err.println((o == null ? "ActiveInstance" : o) + " " + msg + " UNLOCK");
     }
     
     public void removeListener(Object listener) {
@@ -186,7 +243,7 @@ public class ActiveChangeSupport<T>
     }
 
     public String toString() {
-        return "ActiveChangeSupport" + typeName;
+        return "ActiveInstance" + itemTypeName;
         
     }
 

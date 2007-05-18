@@ -130,6 +130,8 @@ class LWCInspector extends javax.swing.JPanel
     }
 
     public void activeChanged(ActiveEvent e, LWPathway path) {
+        if (lockBtn.isSelected())
+            return;
         if (path != null)
             loadItem(path);
     }
@@ -406,7 +408,7 @@ class LWCInspector extends javax.swing.JPanel
             sizeText += " userSize";
         sizeField.setText(sizeText);
         transLocField.setText(c.getLocalTransform().toString());
-        bitsField.setText(c.getDescriptionOfSetBits());
+        bitsField.setText(c.getDescriptionOfSetBits() + (c.isFiltered() ? " +FILTERED" : ""));
         widthField.setText(String.format("%5.1f map(%5.1f)", c.getWidth(), c.getMapWidth()));
         heightField.setText(String.format("%5.1f map(%5.1f)", c.getHeight(), c.getMapHeight()));
         xField.setText(String.format("%5.1f map(%5.1f)", c.getX(), c.getMapX()));
