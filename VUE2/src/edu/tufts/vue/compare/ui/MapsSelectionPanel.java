@@ -19,7 +19,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.5 $ / $Date: 2007-05-14 17:35:47 $ / $Author: dan $
+ * @version $Revision: 1.6 $ / $Date: 2007-05-18 13:51:10 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -62,6 +62,10 @@ public class MapsSelectionPanel extends JPanel  {
     public static final int OPEN_MAP = 0;
     public static final int LOCAL_FILE = 1;
     
+    public static final String stepOneMessage = "1. Create a set of maps from currently open maps and/or from maps stored on your computer";
+    public static final String stepTwoMessage = "2. Pick a \"guide\" map to define the layout of the new merged map";
+    
+    private JScrollPane scroll;
     private JTable maps;
     private JTextField fileName;
     private JButton browseButton;
@@ -85,6 +89,7 @@ public class MapsSelectionPanel extends JPanel  {
                ((MapTableModel)maps.getModel()).addRow(name);
                fileName.setText(name);
                revalidate();
+               scroll.getViewport().revalidate();
            }
         });
         VUE.getTabbedPane().addContainerListener(new java.awt.event.ContainerListener()
@@ -119,10 +124,30 @@ public class MapsSelectionPanel extends JPanel  {
             }
         });
 
+        JLabel stepOneLabel = new JLabel(stepOneMessage);
+        gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        gridBag.setConstraints(stepOneLabel,gridBagConstraints);
+        stepOneLabel.setBorder(BorderFactory.createEmptyBorder(15,0,0,0));
+        add(stepOneLabel);
+        
+        JLabel stepTwoLabel = new JLabel(stepTwoMessage);
+        //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        gridBag.setConstraints(stepTwoLabel,gridBagConstraints);
+        stepTwoLabel.setBorder(BorderFactory.createEmptyBorder(0,0,15,0));
+        add(stepTwoLabel);
+        
+        JLabel selectMapsLabel = new JLabel("Select maps:");
+        selectMapsLabel.setBorder(BorderFactory.createEmptyBorder(0,0,0,8));
+        gridBagConstraints.gridwidth = 1;
+        gridBag.setConstraints(selectMapsLabel,gridBagConstraints);
+        add(selectMapsLabel);
+        
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 0.0;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
         gridBag.setConstraints(fileName,gridBagConstraints);
+        //fileName.setBorder(BorderFactory.createEmptyBorder(0,0,5,5));
         add(fileName);
         gridBagConstraints.weightx = 0.0;
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -148,11 +173,16 @@ public class MapsSelectionPanel extends JPanel  {
           }
         });
         maps.setDefaultRenderer(Object.class,new MapTableCellRenderer());
+        maps.getColumnModel().getColumn(0).setMaxWidth(50);
+        maps.getColumnModel().getColumn(2).setMaxWidth(100);
+        maps.getColumnModel().getColumn(3).setMaxWidth(100);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.anchor = GridBagConstraints.NORTH;
-        gridBag.setConstraints(maps,gridBagConstraints);
-        add(maps);
+        gridBagConstraints.fill = gridBagConstraints.BOTH;
+        scroll = new JScrollPane(maps);
+        gridBag.setConstraints(scroll,gridBagConstraints);
+        add(scroll);
     }
     
     /**
@@ -532,8 +562,17 @@ public class MapsSelectionPanel extends JPanel  {
        
        public String getColumnName(int col)
        {
-           return null;
-       }
+           if(col == 0)
+               return "Set";
+           if(col == 1)
+               return "Name";
+           if(col == 2)
+               return "Guide";
+           if(col == 3)
+               return "Location";
+           else
+               return "";
+        }
        
        public int getColumnCount()
        {

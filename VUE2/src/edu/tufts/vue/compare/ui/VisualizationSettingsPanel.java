@@ -38,9 +38,10 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     // visualization types
     public final static int VOTE = 0;
     public final static int WEIGHT = 1;
+    
     public final static String VOTE_STRING = "Vote";
     public final static String WEIGHT_STRING = "Weight";
-    
+    public final static String visualizationSettingsChoiceMessage = "Which type of visualization would you like to use?";
     public final static String filterOnBaseMapMessageString = "Only include items found on the guide map";
     
     private JComboBox visualizationChoice;
@@ -65,6 +66,11 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         String[] choices = {"Vote","Weight"};
         visualizationChoice = new JComboBox(choices);
         visualizationChoice.addActionListener(this);
+        
+        JLabel visualizationSettingsChoiceLabel = new JLabel(visualizationSettingsChoiceMessage);
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBag.setConstraints(visualizationSettingsChoiceLabel,gridBagConstraints);
+        add(visualizationSettingsChoiceLabel);
         
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(visualizationChoice,gridBagConstraints);
