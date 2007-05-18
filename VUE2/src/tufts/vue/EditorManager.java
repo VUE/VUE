@@ -351,7 +351,7 @@ public class EditorManager
                     applyPropertyValue("<" + source + ":provSync>", key, newValue, styleType.style);
             }
         } else if (CurrentStyle == null) {
-            out("NO CURRENT STYLE");
+            if (DEBUG.Enabled) out("NO CURRENT STYLE FOR " + source + " " + key + " " + newValue);
         } else {
             CurrentStyle.takeProperty(source, key, newValue);
         }
