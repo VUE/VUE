@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.161 $ / $Date: 2007-05-18 05:59:41 $ / $Author: sfraize $
+ * @version $Revision: 1.162 $ / $Date: 2007-05-18 07:06:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -338,7 +338,10 @@ public class LWNode extends LWContainer
     
     @Override
     public boolean supportsUserResize() {
-        return !isTextNode();
+        if (isTextNode())
+            return !isAutoSized(); // could be confusing, as once is shrunk down, can't resize again w/out undo
+        else
+            return true;
     }
 
 //     /** @return true if the given property is currently supported on this component

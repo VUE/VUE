@@ -63,6 +63,16 @@ public class EditorManager
             return style;
         }
 
+        void takeProperty(String source, Object key, Object newValue) {
+            // if current token is LWNode.class, and we're going transparent,
+            // that will switch us to "textNode", so we may not want to update
+            // in that case -- no easy way around this if you can convert back
+            // and forth between textNode and regular node by switching the fill color
+            applyPropertyValue("<" + source + ":typeSync>", key, newValue, style);
+            applyPropertyValue("<" + source + ":provSync>", key, newValue, provisional);
+        }
+        
+
         void discardProvisional() {
             provisional.copyStyle(style);
         }
@@ -157,8 +167,18 @@ public class EditorManager
     public void activeChanged(ActiveEvent e, LWMap map)
     {
         if (map != null && map.hasChildren() && !extractedDefaultTypesFromMap) {
+            // performance: might be alot to do every time we switch the active map...
             extractedDefaultTypesFromMap = true;
             extractMostRecentlyUsedStyles(map);
+            // Update the active style types and tool states with any newly
+            // extracted default styles:
+            if (CurrentStyle != null)
+                CurrentStyle = StylesByType.get(CurrentStyle.token);
+            if (CurrentToolStyle != null)
+                CurrentToolStyle = StylesByType.get(CurrentToolStyle.token);
+            if (CurrentStyle != null)
+                loadAllEditorValues(CurrentStyle.style);            
+
         }
     }
 
@@ -325,8 +345,7 @@ public class EditorManager
         } else if (CurrentStyle == null) {
             out("NO CURRENT STYLE");
         } else {
-            applyPropertyValue("<" + source + ":typeSync>", key, newValue, CurrentStyle.style);
-            applyPropertyValue("<" + source + ":provSync>", key, newValue, CurrentStyle.provisional);
+            CurrentStyle.takeProperty(source, key, newValue);
         }
     }
 
