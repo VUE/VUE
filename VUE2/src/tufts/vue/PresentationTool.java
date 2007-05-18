@@ -513,16 +513,16 @@ public class PresentationTool extends VueTool
             repaint();
             break;
             
-        case KeyEvent.VK_DOWN:
+        case KeyEvent.VK_RIGHT:
             goForward(amplified);
             break;
-        case KeyEvent.VK_UP:
+        case KeyEvent.VK_LEFT:
             goBackward(amplified);
             break;
-        case KeyEvent.VK_LEFT:
+        case KeyEvent.VK_UP:
             revisitPrior(amplified);
             break;
-        case KeyEvent.VK_RIGHT:
+        case KeyEvent.VK_DOWN:
             if (mVisited.hasNext())
                 revisitNext(amplified);
             else
