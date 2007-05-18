@@ -294,6 +294,12 @@
             <field name="mapList" type="tufts.vue.LWMap" collection="arraylist">
                 <bind-xml name="mapList"/>
             </field>
+            <field name="mapFileList" type="java.lang.String" collection="arraylist">
+                <bind-xml name="mapFileList" />
+            </field>
+            <field name="activeFileList" type="java.lang.Boolean" collection="arraylist">
+                <bind-xml name="activeFileList" />
+            </field>
             <field name="baseMapSelectionType">
                 <bind-xml name="baseMapSelectionType" node="element"/>
             </field>
@@ -312,12 +318,14 @@
             <field name="linkThresholdSliderValue">
                 <bind-xml name="linkSliderValue"/>
             </field>
+            <field name="intervalBoundaries" type="java.lang.Double" collection="arraylist">
+                <bind-xml name="intervalBoundaries"/>
+            </field>
             <field name="styleMapFile">
                 <bind-xml name="styleMapFile" node="element"/>
             </field>
         </class>
-
-
+        
 	<class name="tufts.vue.LWPathwayList">
 		<map-to xml="PathwayList"/>
 		<field name="currentIndex" type="integer">
