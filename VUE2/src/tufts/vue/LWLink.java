@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.145 $ / $Date: 2007-05-16 04:41:01 $ / $Author: sfraize $
+ * @version $Revision: 1.146 $ / $Date: 2007-05-18 04:44:44 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -168,10 +168,12 @@ public class LWLink extends LWComponent
 
 
     public static final Key KEY_LinkShape = new Key<LWLink,Integer>("link.shape") { // do we want this to be a KeyType.STYLE? could argue either way...
-        @Override public void setValue(LWLink link, Integer linkStyle) {
+        @Override
+        public void setValue(LWLink link, Integer linkStyle) {
             link.setControlCount(linkStyle);
         }
-        @Override public Integer getValue(LWLink link) {
+        @Override
+        public Integer getValue(LWLink link) {
             return link.getControlCount();
         }
     };
@@ -197,12 +199,16 @@ public class LWLink extends LWComponent
     
     
     public static final Key KEY_LinkHeadPoint = new Key<LWLink,Point2D>("link.head.location") {
-        @Override public void setValue(LWLink l, Point2D val) { l.setHeadPoint(val); }
-        @Override public Point2D getValue(LWLink l) { return l.getHeadPoint(); }
+        @Override
+        public void setValue(LWLink l, Point2D val) { l.setHeadPoint(val); }
+        @Override
+        public Point2D getValue(LWLink l) { return l.getHeadPoint(); }
     };
     public static final Key KEY_LinkTailPoint = new Key<LWLink,Point2D>("link.tail.location") {
-        @Override public void setValue(LWLink l, Point2D val) { l.setTailPoint(val); }
-        @Override public Point2D getValue(LWLink l) { return l.getTailPoint(); }
+        @Override
+        public void setValue(LWLink l, Point2D val) { l.setTailPoint(val); }
+        @Override
+        public Point2D getValue(LWLink l) { return l.getTailPoint(); }
     };
 
     private final static String Key_Control_0 = "link.control.0";
@@ -1043,7 +1049,8 @@ public class LWLink extends LWComponent
         notify("link.tail.connect", new Undoable(oldTail) { void undo() { setTail(oldTail); }} );
     }
 
-    
+
+
     public boolean isOrdered()
     {
         return this.ordered;
@@ -1139,13 +1146,30 @@ public class LWLink extends LWComponent
         final AffineTransform centerLeft = AffineTransform.getTranslateInstance(centerX, centerY);
         //double deltaX = Math.abs(headX - tailX);
         //double deltaY = Math.abs(headY - tailY);
-        if (tailX > headX)
+
+        int existingCurveCount = 0;
+        if (head != null) {
+            // subtract one so we don't count us -- the new curved link
+            existingCurveCount = head.countCurvedLinksTo(tail) - 1;
+        }
+
+
+        boolean reverse = existingCurveCount % 2 == 1;
+        final int further = 1 + existingCurveCount / 2;
+        
+        if (tailX > headX) {
             centerLeft.rotate(mRotationTail);
-        //centerLeft.rotate(mCurveControls == 2 ? mRotationHead : mRotationTail);
-        else
+            //centerLeft.rotate(mCurveControls == 2 ? mRotationTail : mRotationHead);
+        } else {
             centerLeft.rotate(mRotationHead);
-        //centerLeft.rotate(mCurveControls == 2 ? mRotationTail : mRotationHead);
-        centerLeft.translate(-axisOffset,0);
+            //centerLeft.rotate(mCurveControls == 2 ? mRotationTail : mRotationHead);
+        }
+        
+        if (reverse)
+            centerLeft.translate(+axisOffset * further, 0);
+        else
+            centerLeft.translate(-axisOffset * further, 0);
+        
         final AffineTransform centerRight = new AffineTransform(centerLeft);
         centerRight.translate(axisOffset*2,0);
         final Point2D.Float p = new Point2D.Float();
@@ -2163,7 +2187,7 @@ public class LWLink extends LWComponent
 
         //s += "\n\t" + head + "\n\t" + tail;
         
-        return s;
+        return s + " " + mStrokeStyle.get();
     }
 
     /** @deprecated -- use getHead */ public LWComponent getComponent1() { return getHead(); }

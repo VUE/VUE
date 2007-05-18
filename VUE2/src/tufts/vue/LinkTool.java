@@ -256,6 +256,8 @@ public class LinkTool extends VueTool
         super.drawSelector(dc, r);
     }
 
+
+    /*
     private void makeLink(MapMouseEvent e,
                           LWComponent pLinkSource,
                           LWComponent pLinkDest,
@@ -307,11 +309,12 @@ public class LinkTool extends VueTool
                 commonParent.ensurePaintSequence(link, pLinkSource);
             if (pLinkDest instanceof LWLink)
                 commonParent.ensurePaintSequence(link, pLinkDest);
-            VUE.getSelection().setTo(link);
+            //VUE.getSelection().setTo(link);
             if (pMakeConnection)
                 e.getViewer().activateLabelEdit(createdNode ? pLinkDest : link);
         }
     }
+    */
 
     static class ComboModeTool extends LinkModeTool
     {
@@ -335,6 +338,7 @@ public class LinkTool extends VueTool
             invisibleLinkEndpoint.addLinkRef(creationLink);
             invisibleLinkEndpoint.setSize(0,0);
             creationLink.setArrowState(LWLink.ARROW_TAIL); // should be coming from defaults...
+            creationLink.setID("<creationLink>"); // can't use label or it will draw one
 
         //    VueToolUtils.setToolProperties(this,"linkModeTool");
             
@@ -445,57 +449,58 @@ public class LinkTool extends VueTool
                               boolean pMakeConnection,
                               boolean comboMode)
         {
-            LWLink existingLink = null;
-            if (pLinkDest != null)
-                existingLink = pLinkDest.getLinkTo(pLinkSource);
-            if (false && existingLink != null) {
-                // There's already a link tween these two -- increment the weight
-                // [ WE NOW ALLOW MULTIPLE LINKS BETWEEN NODES ]
-                existingLink.incrementWeight();
-            } else {
-
-                // TODO: don't create new node at end of new link inside
-                // parent of source node (e.g., content view/traditional node)
-                // unless mouse is over that node!  (E.g., should be able to
-                // drag link out from a node that is a child)
-    	            
-                LWContainer commonParent = e.getMap();
-                if (pLinkDest == null)
-                    commonParent = pLinkSource.getParent();
-                else if (pLinkSource.getParent() == pLinkDest.getParent() &&
-                         pLinkSource.getParent() != commonParent) {
-                    // todo: if parents different, add to the upper most parent
-                    commonParent = pLinkSource.getParent();
-                }
-                boolean createdNode = false;
-                if (pLinkDest == null && (pMakeConnection && comboMode)) {
-                    pLinkDest = NodeModeTool.createNewNode();
-                    pLinkDest.setCenterAt(e.getMapPoint());
-                    commonParent.addChild(pLinkDest);
-                    createdNode = true;
-                }
-
-                LWLink link;
-                if (pMakeConnection && (comboMode || pLinkDest!=null)) {
-                    link = new LWLink(pLinkSource, pLinkDest);
-                } else {
-                    link = new LWLink(pLinkSource, null);
-                    link.setTailPoint(e.getMapPoint()); // set to drop location
-                }
-                EditorManager.applyCurrentProperties(link);
-    	            
-                commonParent.addChild(link);
-                // We ensure a paint sequence here because a link to a link
-                // is currently drawn to it's center, which might paint over
-                // a label.
-                if (pLinkSource instanceof LWLink)
-                    commonParent.ensurePaintSequence(link, pLinkSource);
-                if (pLinkDest instanceof LWLink)
-                    commonParent.ensurePaintSequence(link, pLinkDest);
-                VUE.getSelection().setTo(link);
-                if (pMakeConnection && comboMode)
-                    e.getViewer().activateLabelEdit(createdNode ? pLinkDest : link);
+            int existingLinks = 0;
+            int existingCurvedLinks = 0;
+            if (pLinkDest != null) {
+                existingLinks = pLinkDest.countLinksTo(pLinkSource);
+                existingCurvedLinks = pLinkDest.countCurvedLinksTo(pLinkSource);
             }
+            final int existingStraightLinks = existingLinks - existingCurvedLinks;
+            
+            // TODO: don't create new node at end of new link inside
+            // parent of source node (e.g., content view/traditional node)
+            // unless mouse is over that node!  (E.g., should be able to
+            // drag link out from a node that is a child)
+    	            
+            LWContainer commonParent = e.getMap();
+            if (pLinkDest == null)
+                commonParent = pLinkSource.getParent();
+            else if (pLinkSource.getParent() == pLinkDest.getParent() &&
+                     pLinkSource.getParent() != commonParent) {
+                // todo: if parents different, add to the upper most parent
+                commonParent = pLinkSource.getParent();
+            }
+            boolean createdNode = false;
+            if (pLinkDest == null && (pMakeConnection && comboMode)) {
+                pLinkDest = NodeModeTool.createNewNode();
+                pLinkDest.setCenterAt(e.getMapPoint());
+                commonParent.addChild(pLinkDest);
+                createdNode = true;
+            }
+
+            LWLink link;
+            if (pMakeConnection && (comboMode || pLinkDest!=null)) {
+                link = new LWLink(pLinkSource, pLinkDest);
+                if (existingStraightLinks > 0)
+                    link.setControlCount(1);
+            } else {
+                link = new LWLink(pLinkSource, null);
+                link.setTailPoint(e.getMapPoint()); // set to drop location
+            }
+            EditorManager.targetAndApplyCurrentProperties(link);
+    	            
+            commonParent.addChild(link);
+            // We ensure a paint sequence here because a link to a link
+            // is currently drawn to it's center, which might paint over
+            // a label.
+            if (pLinkSource instanceof LWLink)
+                commonParent.ensurePaintSequence(link, pLinkSource);
+            if (pLinkDest instanceof LWLink)
+                commonParent.ensurePaintSequence(link, pLinkDest);
+            VUE.getSelection().setTo(link);
+            if (pMakeConnection && comboMode)
+                e.getViewer().activateLabelEdit(createdNode ? pLinkDest : link);
+            
         }
     }
     /**

@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.381 $ / $Date: 2007-05-17 22:50:09 $ / $Author: mike $ 
+ * @version $Revision: 1.382 $ / $Date: 2007-05-18 04:44:44 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -326,16 +326,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     
     public void activeChanged(ActiveEvent e, VueTool tool) {
-        activateTool(tool);
+        activateTool(tool, tool.isTemporary());
     }
 
+    private void activateTool(VueTool tool) {
+        activateTool(tool, false);
+    }
+    
     /**
      * Sets the current active VueTool in the MapViewer.
      * E.g., will update the current cursor, allow the
      * current tool to process mouse & key events, effect
      * what's draw, etc.
      **/
-    private void activateTool(VueTool tool)
+    private void activateTool(VueTool tool, boolean temporary)
     {
         if (DEBUG.FOCUS && VUE.getActiveViewer() == this) out("activateTool: " + tool.getID());
         
@@ -348,8 +352,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         }
         
-        VueTool oldTool = activeTool;
+        VueTool oldTool = activeTool; // might be safer to pull this from the ActiveEvent
         activeTool = tool;
+        activeTool.setTemporary(temporary);
         setMapCursor(activeTool.getCursor());
         
         if (isDraggingSelectorBox) // in case we change tool via kbd shortcut in the middle of a drag
@@ -3775,7 +3780,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         // which is still the old special case link-tool code.
                         tempToolPendingActivation = tempTool;
                     } else
-                        activateTool(tempTool);
+                        activateTool(tempTool, true);
                 }
             }
             
@@ -4111,7 +4116,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // key is down (ctrl) AND the left mouse has been
                 // pressed over a component to drag a link off.
                 if (tempToolPendingActivation != null) {
-                    activateTool(tempToolPendingActivation);
+                    activateTool(tempToolPendingActivation, true);
                     tempToolPendingActivation = null;
                 }
                 

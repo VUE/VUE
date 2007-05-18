@@ -316,6 +316,8 @@ public class NodeTool extends VueTool
         @Override
         public boolean handleMousePressed(MapMouseEvent e) {
             //out("MOUSE PRESSED");
+            // Get the creation node ready in case we're about to do a drag:
+            // (todo: VueTool.handleDragBegin)
             EditorManager.applyCurrentProperties(creationNode);            
             return false;
         }
@@ -349,79 +351,33 @@ public class NodeTool extends VueTool
             creationNode.draw(dc);
         }
     	
-    	 /**
-         * Create a new node with the current default properties
-         * @param name the name for the new node, can be null
-         * @return the newly constructed node
-         */
-        public static LWNode createNode(String name) {
-            return createNode(name, false);
-        }
-
-        
-        /** @return a new default node with no label */
-        public static LWNode createNode() {
-            return createNode(null);
-        }
-        /** @return a new default node with the default new node label */
+        /** @return a new node with the default VUE new-node label, initialized with a style from the current editor property states */
         public static LWNode createNewNode() {
-            return createNode(VueResources.getString("newnode.html"));
+            LWNode node = createDefaultNode(VueResources.getString("newnode.html"));
+            EditorManager.targetAndApplyCurrentProperties(node);
+            return node;
         }
-            
-        
-        public static LWNode initAsTextNode(LWNode node)
+
+                
+        /** @return a new node with the given label initialized to internal VUE defaults -- ignore tool states */
+        public static LWNode createNode(String label)
         {
-            node.setAsTextNode(true);
-            
-//             node.setAutoSized(true);
-//             node.setShape(new java.awt.geom.Rectangle2D.Float());
-//             node.setStrokeWidth(0f);
-//             node.setFillColor(COLOR_TRANSPARENT);
-//             Font font = (Font) VUE.LWToolManager.GetPropertyValue(LWKey.Font);
-//             if (font == null)
-//                 font = LWNode.DEFAULT_TEXT_FONT;
-//             node.setFont(font);
-
-            EditorManager.applyCurrentProperties(node);
-            
-            return node;
-        }
-
-        public static LWNode buildTextNode(String text) {
-            LWNode node = new LWNode();
-            initAsTextNode(node);
-            node.setLabel(text);
-            return node;
-        }
-
-        
-        
-        /**
-         * Create a new node with the current default properties.
-         * @param name the name for the new node, can be null
-         * @param [deprecated - ignored] useToolShape if true, shape of node is shape of node tool, otherwise, shape in contextual toolbar
-         * @return the newly constructed node
-         */
-        public static LWNode createNode(String name, boolean useToolShape)
-        {
-            LWNode node = new LWNode(name);
-            EditorManager.applyCurrentProperties(node);
-
-            /*
-            if (useToolShape) {
-                node.setShape(getActiveSubTool().getShape());
-                VUE.LWToolManager.ApplyProperties(node, ~LWKey.Shape.bit);
-            } else {
-                VUE.LWToolManager.ApplyProperties(node);
-            }
-            */
-            return node;
+            return createDefaultNode(label);
         }
         
-        /** For creating text nodes through the tools and on the map: will adjust text size for current zoom level */
+        /** @return a new node initialized to internal VUE defaults -- ignore tool states */
+        private static LWNode createDefaultNode(String label) {
+            return new LWNode(label);
+        }
+           
+        /** @return a "text" node initialized to the current style in the VUE editors.
+            [old: Will adjust text size for current zoom level]
+        */
         public static LWNode createTextNode(String text)
         {
             LWNode node = buildTextNode(text);
+            EditorManager.targetAndApplyCurrentProperties(node);
+            
 //             if (VUE.getActiveViewer() != null) {
 //                 // Okay, for now this completely overrides the font size from the text toolbar...
 //                 final Font font = node.getFont();
@@ -434,6 +390,19 @@ public class NodeTool extends VueTool
             return node;
         }
         
+        private static LWNode initAsTextNode(LWNode node)
+        {
+            if (node != null)
+                node.setAsTextNode(true);
+            return node;
+        }
+
+        public static LWNode buildTextNode(String text) {
+            LWNode node = new LWNode();
+            initAsTextNode(node);
+            node.setLabel(text);
+            return node;
+        }
     }
 
     public Class<? extends Shape>[] getAllShapeClasses() {

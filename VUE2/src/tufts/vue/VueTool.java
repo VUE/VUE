@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.68 $ / $Date: 2007-05-17 21:55:18 $ / $Author: mike $
+ * @version $Revision: 1.69 $ / $Date: 2007-05-18 04:44:45 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -69,6 +69,7 @@ public abstract class VueTool extends AbstractAction
 
     protected AbstractButton mLinkedButton;
 
+    private boolean isTemporary;
     private JPanel mToolPanel;
 
     /** tool display order by keyname **/               protected Vector mSubToolIDs = new Vector();
@@ -383,6 +384,15 @@ public abstract class VueTool extends AbstractAction
 //     protected LWComponent createStyleCache() {
 //         return null;
 //     }
+
+    /** mark this tool as temporarily activated */
+    public void setTemporary(boolean t) {
+        isTemporary = t;
+    }
+    
+    public boolean isTemporary() {
+        return isTemporary;
+    }
     
     public void drawSelector(DrawContext dc, java.awt.Rectangle r)
     {
@@ -746,6 +756,8 @@ public abstract class VueTool extends AbstractAction
             s += " subSelected=" + getSelectedSubTool();
         if (getSelectionType() != null)
             s += " type=" + getSelectionType();
+        if (isTemporary())
+            s += " TEMPORARY";
         s += "]";
         return s;
     }

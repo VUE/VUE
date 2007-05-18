@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.160 $ / $Date: 2007-05-16 22:49:18 $ / $Author: sfraize $
+ * @version $Revision: 1.161 $ / $Date: 2007-05-18 04:44:44 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -964,10 +964,12 @@ public class LWPathway extends LWContainer
         /** for castor persistance */
         public MasterSlide() {}
 
-        /** @return LWSlide.class -- don't create a special style type for master slides */
+        /* @return LWSlide.class -- don't create a special style type for master slides -- treat as an LWSlide */
+        /** @return null -- don't create a style type for master slides */
         @Override
         public Object getTypeToken() {
-            return LWSlide.class;
+            return null;
+            //return LWSlide.class;
         }
 
         void completeXMLRestore() {
@@ -1013,7 +1015,7 @@ public class LWPathway extends LWContainer
         
         private void createStyles() {
             if (titleStyle == null) {
-                titleStyle = NodeModeTool.initAsTextNode(new LWNode(TitleLabel));
+                titleStyle = NodeModeTool.buildTextNode(TitleLabel);
                 titleStyle.setFont(new Font("Gill Sans", Font.PLAIN, 36));
                 titleStyle.setTextColor(Color.white);
             }

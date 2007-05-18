@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.159 $ / $Date: 2007-05-16 23:39:14 $ / $Author: sfraize $
+ * @version $Revision: 1.160 $ / $Date: 2007-05-18 04:44:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -431,13 +431,22 @@ public class LWNode extends LWContainer
         return isTextNode() ? TYPE_TEXT : super.getTypeToken();
     }
     
+    /**
+     * if asText is true, make this a text node, and isTextNode should return true.
+     * If asText is false, do the minimum to this node such that isTextNode will
+     * no longer return true.
+     */
     public void setAsTextNode(boolean asText)
     {
-        setAutoSized(true);
-        if (asText)
+        if (asText) {
+            //setShape(java.awt.geom.Rectangle2D.Float.class); // just a default, not enforced
+            //setStrokeWidth(0f); // just a default, not enforced
             setFillColor(COLOR_TRANSPARENT);
-        else
+        } else {
             setFillColor(DEFAULT_NODE_FILL);
+        }
+        if (asText)
+            setAutoSized(true);
         //setFillColor(getParent().getFillColor());
     	//mIsTextNode = pState;
     }

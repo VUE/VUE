@@ -15,16 +15,36 @@ public class EditorManager
     private static boolean EditorLoadingUnderway; // editors are loading values from the selection
     private static boolean PropertySettingUnderway; // editor values are being applied to the selection
 
-    // TODO: need to load default style cache with saved preference values (or do per tool?)
-    //private final LWComponent DefaultStyleCache;// = new LWNode("Multi-Selection Style Cache");
-    private static LWComponent CurrentStyleType;
+    private static class StyleType {
+        final LWComponent style;
+        final LWComponent provisional;
 
-    private static final Map<Object,LWComponent> StylesByType = new HashMap();
-    private static final Map<Object,LWComponent> ProvisionalStylesByType = new HashMap();
+        StyleType(LWComponent s, LWComponent p) {
+            style = s;
+            provisional = p;
+        }
+
+        void resolveToProvisional() {
+            if (DEBUG.STYLE && (DEBUG.META || DEBUG.WORK)) tufts.Util.printStackTrace(this + " RESOLVING TO " + provisional);
+            style.copyStyle(provisional);
+        }
+
+        void discardProvisional() {
+            provisional.copyStyle(style);
+        }
+
+        public String toString() {
+            return style.toString();
+        }
+    }
+
+    private static StyleType CurrentStyle;
+    private static StyleType CurrentToolStyle;
+
+    private static final Map<Object,StyleType> StylesByType = new HashMap();
+    //private static final Map<Object,LWComponent> ProvisionalStylesByType = new HashMap();
         
     private LWComponent singleSelection;
-
-    private boolean extractedDefaultTypesFromMap = false;
 
     /**
      * Only LWEditors created and put in the AWT hierarchy before this
@@ -57,9 +77,8 @@ public class EditorManager
                 singleSelection.removeLWCListener(this);
             singleSelection = s.first();
             singleSelection.addLWCListener(this);
-            CurrentStyleType = getStyleForType(singleSelection);
+            CurrentStyle = getStyleForType(singleSelection);
         } else {
-            //StyleCache = DefaultStyleCache;
             // TODO: it will be easy for the selection to keep a hash of contents based
             // on typeToken, so we can at least know in multi-selection cases if
             // they're all of the same type, and update the right style holder,
@@ -74,6 +93,33 @@ public class EditorManager
         loadAllEditors(s);
     }
 
+    public void activeChanged(ActiveEvent e, VueTool tool)
+    {
+        
+        //out("ACTIVE TOOL temp=" + tool.isTemporary() + " " + tool);
+        if (tool == null || VUE.getSelection().size() > 0 || tool.isTemporary()) {
+            if (tool == null)
+                CurrentToolStyle = null;
+            return;
+        }
+
+        CurrentToolStyle = null;
+        
+        final Object typeToken = tool.getSelectionType();
+
+        if (typeToken == null)
+            return;
+
+        final StyleType oldStyle = CurrentStyle;
+        
+        CurrentStyle = CurrentToolStyle = StylesByType.get(typeToken);
+
+        if (CurrentStyle != null && CurrentStyle != oldStyle)
+            loadAllEditorValues(CurrentStyle.style);
+
+    }
+    
+    private boolean extractedDefaultTypesFromMap = false;
     public void activeChanged(ActiveEvent e, LWMap map)
     {
         if (map != null && !extractedDefaultTypesFromMap) {
@@ -82,55 +128,6 @@ public class EditorManager
         }
     }
 
-    private void extractMostRecentlyUsedStyles(LWMap map) {
-        final Collection<LWComponent> allNodes = map.getAllDescendents(LWMap.ChildKind.ANY);
-
-        Object typeToken;
-        LWComponent curStyle;
-        for (LWComponent c : allNodes) {
-            typeToken = c.getTypeToken();
-            curStyle = StylesByType.get(typeToken);
-            
-            if (curStyle == null) {
-                // first type we've seen this type: just load it up
-                StylesByType.put(typeToken, c);
-            } else {
-                if (c.getNumericID() > curStyle.getNumericID()) {
-                    // the object of this type is more recent than any we've seen before:
-                    // stash away a reference to it.
-                    StylesByType.put(typeToken, c);
-                }
-            }
-        }
-
-        // now that we've found all the most recent objects of each type,
-        // we need get the direct references to them OUT of the style type cache,
-        // and replace them as duplicates, so that can serve as standalone
-        // style holders.
-
-        for (Map.Entry<Object,LWComponent> e : StylesByType.entrySet())
-            e.setValue(createStyle(e.getValue(), e.getKey()));
-    }
-    
-    public void activeChanged(ActiveEvent e, VueTool tool)
-    {
-        if (DEBUG.TOOL) out("activeChanged: " + e);
-        if (tool == null || VUE.getSelection().size() > 0)
-            return;
-
-        final Object typeToken = tool.getSelectionType();
-
-        if (typeToken == null)
-            return;
-
-        final LWComponent oldStyle = CurrentStyleType;
-        
-        CurrentStyleType = StylesByType.get(typeToken);
-
-        if (CurrentStyleType != oldStyle && CurrentStyleType != null)
-            loadAllEditorValues(CurrentStyleType);
-
-    }
 
     /** If the single object in the selection has a property change that was NOT due to an editor,
      * (e.g., a menu) we detect this here, and re-load the editors as needed.
@@ -154,32 +151,31 @@ public class EditorManager
     public void propertyChange(PropertyChangeEvent e) {
         if (!EditorLoadingUnderway && e instanceof LWPropertyChangeEvent) {
             if (DEBUG.TOOL) out("propertyChange: " + e);
-            ApplyPropertyChangeToSelection(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
+            applyPropertyChange(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
         }
     }
+    
     private void loadAllEditorValues(LWComponent style) {
-        loadAllEditors(new LWSelection(style), false);
+        loadAllEditors(new LWSelection(style), style, false);
     }
 
     private void loadAllEditors(LWSelection selection) {
-        loadAllEditors(selection, true);
+        loadAllEditors(selection, selection.only(), true);
     }
         
-    private void loadAllEditors(LWSelection selection, boolean setEnabledStates)
+    // TODO: can get rid of passing in selection: only need editable property bits
+    private void loadAllEditors(LWSelection selection, LWComponent propertyValueSource, boolean setEnabledStates)
     {
-        //final LWComponent propertySource = selection.only(); // will be null if selection size > 1
-        final LWComponent propertySource;
-
-        if (selection.size() == 1)
-            propertySource = selection.first();
-        else
-            propertySource = null;
-        //propertySource = DefaultStyleCache;
-        
-        if (DEBUG.TOOL||DEBUG.STYLE) out("loadAllEditors from: " + propertySource
-                                         + "; currentTypedStyle: " + CurrentStyleType
-                                         + " updateEnabled=" + setEnabledStates
-                                         + " " + selection);
+        if (DEBUG.TOOL||DEBUG.STYLE) {
+            String msg = "loadAllEditors from: " + propertyValueSource
+                + "; currentTypedStyle: " + CurrentStyle
+                + " updateEnabled=" + setEnabledStates
+                + " " + selection;
+            if (DEBUG.META||DEBUG.WORK)
+                tufts.Util.printStackTrace(msg);
+            else
+                out(msg);
+        }
 
         // While the editors are loading, we want to ignore any change events that
         // loading may produce in the editors (otherwise, we'd then set the selected
@@ -190,7 +186,7 @@ public class EditorManager
         try {
             for (LWEditor editor : mEditors) {
                 try {
-                    setEditorState(editor, selection, propertySource, setEnabledStates);
+                    setEditorState(editor, selection, propertyValueSource, setEnabledStates);
                 } catch (Throwable t) {
                     tufts.Util.printStackTrace(t, this + ": general failure processing LWEditor: " + editor);
                 }
@@ -207,6 +203,7 @@ public class EditorManager
             supported = true;
         } else {
             supported = selection.hasEditableProperty(editor.getPropertyKey());
+            //supported = (supportedPropertyBits & editor.getPropertyKey().bit) != 0;
         }
         if (DEBUG.TOOL) out("SET-ENABLED " + (supported?"YES":" NO") + ": " + editor);
             
@@ -220,27 +217,24 @@ public class EditorManager
             if (mLabels.containsKey(editor))
                 mLabels.get(editor).setEnabled(supported);
         }
+
+        final Object key = editor.getPropertyKey();
+        //final Object value = propertySource.getPropertyValue(key);
             
+        //if (DEBUG.TOOL&&DEBUG.META) out("loadEditor: " + editor + " loading " + editor.getPropertyKey() + " from " + source);
+
         //if (supported && propertySource != null && propertySource.supportsProperty(editor.getPropertyKey()))
         if (supported && propertySource != null)
-            loadEditorValue(propertySource, editor);
+            loadEditorWithValue(editor, propertySource.getPropertyValue(key));
 
-        if (CurrentStyleType != null)
-            ApplyPropertyValue("<editor:typeSync>", editor.getPropertyKey(), editor.produceValue(), CurrentStyleType);
-            
+        // TODO: a bit overkill to do this no matter what -- do we need to if no property source?
+        if (propertySource != null)
+            applyPropertyToStyles("loadEditor", editor.getPropertyKey(), editor.produceValue(), selection.isEmpty());
+        
         //if (editor instanceof Component) ((Component)editor).repaint(); // not helping ShapeIcon's repaint when disabled...
     }
         
-    private void loadEditorValue(LWComponent source, LWEditor editor) {
-        if (DEBUG.TOOL&&DEBUG.META) out("loadEditor: " + editor + " loading " + editor.getPropertyKey() + " from " + source);
-
-        final Object key = editor.getPropertyKey();
-        final Object value = source.getPropertyValue(key);
-        //             if (source.supportsProperty(key))
-        //                 value = source.getPropertyValue(key);
-        //             else
-        //                 value = null;
-        //if (value != null) {
+    private void loadEditorWithValue(LWEditor editor, Object value) {
         if (DEBUG.TOOL) out("     loadEditor: " + editor + " <- value[" + value + "]");
         try {
             editor.displayValue(value);
@@ -251,12 +245,12 @@ public class EditorManager
     }
 
     public static void firePropertyChange(LWEditor editor, Object source) {
-        ApplyPropertyChangeToSelection(VUE.getSelection(), editor.getPropertyKey(), editor.produceValue(), source);
+        applyPropertyChange(VUE.getSelection(), editor.getPropertyKey(), editor.produceValue(), source);
     }
 
 
     /** Will either modifiy the active selection, or if it's empty, modify the default state (creation state) for this tool panel */
-    public static void ApplyPropertyChangeToSelection(final LWSelection selection, final Object key, final Object newValue, Object source)
+    private static void applyPropertyChange(final Collection<LWComponent> components, final Object key, final Object newValue, Object source)
     {
         if (EditorLoadingUnderway) {
             if (DEBUG.TOOL) System.out.println("ApplyPropertyChangeToSelection: " + key + " " + newValue + " (skipping)");
@@ -265,36 +259,71 @@ public class EditorManager
         
         if (DEBUG.TOOL||DEBUG.STYLE) System.out.println("ApplyPropertyChangeToSelection: " + key + " " + newValue);
         
-        if (!selection.isEmpty()) {
+        if (!components.isEmpty()) {
             // As setting these properties in the model will trigger notify events from the selected objects
             // back up to the tools, we want to ignore those events while this is underway -- the tools
             // already have their state set to this.
             PropertySettingUnderway = true;
             try {
-                for (tufts.vue.LWComponent c : selection)
-                    ApplyPropertyValue(source, key, newValue, c);
+                for (tufts.vue.LWComponent c : components)
+                    applyPropertyValue(source, key, newValue, c);
             } finally {
                 PropertySettingUnderway = false;
             }
                 
-            if (CurrentStyleType != null)
-                ApplyPropertyValue("<apply:typeSync>", key, newValue, CurrentStyleType);
-            
             if (VUE.getUndoManager() != null)
                 VUE.getUndoManager().markChangesAsUndo(key.toString());
+
+            applyPropertyToStyles("apply", key, newValue, false);
+        } else
+            applyPropertyToStyles("apply", key, newValue, true);
+        
+    }
+
+    private static void applyPropertyToStyles(String source, Object key, Object newValue, boolean provisionals) {
+        // provisionals should be true when there is no selection, and the tools are all enabled in their "free" state
+        if (provisionals) {
+            for (StyleType styleType : StylesByType.values()) {
+                applyPropertyValue("<" + source + ":provSync>", key, newValue, styleType.provisional);
+                if (CurrentToolStyle == styleType)
+                    applyPropertyValue("<" + source + ":provSync>", key, newValue, styleType.style);
+            }
+        } else if (CurrentStyle == null) {
+            out("NO CURRENT STYLE");
+        } else {
+            applyPropertyValue("<" + source + ":typeSync>", key, newValue, CurrentStyle.style);
+            applyPropertyValue("<" + source + ":provSync>", key, newValue, CurrentStyle.provisional);
         }
     }
 
+    /**
+     * Apply the current appropriate properties to the given newly created object based on it's type.
+     */
     public static void applyCurrentProperties(LWComponent c) {
-        LWComponent styleForType = fetchStyleForType(c);
-        if (styleForType != null) {
-            //if (DEBUG.STYLE) out("COPY STYLE of " + styleForType + " -> " + c);
+        if (c == null)
+            return;
+        LWComponent styleForType = StylesByType.get(c.getTypeToken()).provisional;
+        if (styleForType != null)
             c.copyStyle(styleForType);
-        }
     }
+
+    /**
+
+     * Apply the current appropriate properties to the given newly created object based
+     * on it's type.  If nothing was selected, and the the editors were all enabled in
+     * their "free" state (not tied to the property of something selected) resolve that
+     * any changes to their free state were meant for the type of the given node.
+     
+     */
+    public static void targetAndApplyCurrentProperties(LWComponent c) {
+        LWComponent styleForType = resolveProvisionalStyleForType(c);
+        if (styleForType != null)
+            c.copyStyle(styleForType);
+    }
+    
         
         
-    private static void ApplyPropertyValue(Object source, Object key, Object newValue, LWComponent target) {
+    private static void applyPropertyValue(Object source, Object key, Object newValue, LWComponent target) {
         //if (DEBUG.STYLE) System.out.println("APPLY " + source + " " + key + "[" + newValue + "] -> " + target);
         if (target.supportsProperty(key)) {
             if (DEBUG.STYLE) System.out.format(singleton + ": APPLY %s %-15s %-40s -> %s\n", source, key, "(" + newValue + ")", target);
@@ -308,22 +337,34 @@ public class EditorManager
         }
     }
 
-    private final LWComponent.CopyContext DUPE_WITHOUT_CHILDREN = new LWComponent.CopyContext(false);
-
-    private synchronized LWComponent getStyleForType(LWComponent c) {
+    private synchronized StyleType getStyleForType(LWComponent c) {
         final Object token = c.getTypeToken();
-        LWComponent styleHolder = token == null ? null : StylesByType.get(token);
-        if (styleHolder == null && token != null) {
-            styleHolder = createStyle(c, token);
-            StylesByType.put(token, styleHolder);
+        StyleType styleType = token == null ? null : StylesByType.get(token);
+        if (styleType == null && token != null) {
+            styleType = putStyle(token, createStyle(c, token));
+            //styleHolder = createStyle(c, token, "style");
+            //StylesByType.put(token, styleHolder);
         }
-        if (DEBUG.STYLE) out("got styleHolder for type token (" + token + "): " + styleHolder); 
-        return styleHolder;
+        if (DEBUG.STYLE) out("got styleHolder for type token (" + token + "): " + styleType); 
+        return styleType;
     }
 
-    private LWComponent createStyle(LWComponent styleSource, Object typeToken)
+    private static StyleType putStyle(Object token, LWComponent style) {
+        StyleType newType = new StyleType(style,
+                                          createStyle(style, token, "provi"));
+        StylesByType.put(token, newType);
+        return newType;
+    }
+
+    private static final LWComponent.CopyContext DUPE_WITHOUT_CHILDREN = new LWComponent.CopyContext(false);
+
+    private static LWComponent createStyle(LWComponent styleSource, Object typeToken) {
+        return createStyle(styleSource, typeToken, "style");
+    }
+    
+    private static LWComponent createStyle(LWComponent styleSource, Object typeToken, String version)
     {
-        if (DEBUG.STYLE || DEBUG.WORK) out("creating style holder based on " + styleSource + " for type (" + typeToken + ")");
+        //if (DEBUG.STYLE || DEBUG.WORK) out("creating style holder based on " + styleSource + " for type (" + typeToken + ")");
 
         // As any LWComponent can be used as a style source,
         // we can just dupe whatever we've got (a handy
@@ -336,7 +377,7 @@ public class EditorManager
         // note: property bits are duplicated, so if we ever change from a model of
         // just copying the style from the style to using it as a base for
         // duplication, we have to leave the original bits in place.
-        style.setLabel("<style:" + typeToken + ">"); 
+        style.setLabel("<" + version + ":" + typeToken + ">"); 
         style.setResource((Resource)null); // clear out any resource if it had it
         style.setNotes(null);
         style.takeLocation(0,0);
@@ -346,17 +387,37 @@ public class EditorManager
         //out("created new styleHolder for type token [" + token + "]: " + styleHolder); 
         //out("created " + styleHolder);
 
+        if (DEBUG.STYLE || DEBUG.WORK) out("created style holder " + style + "\t based on " + styleSource);
         return style;
     }
         
     /** @return the current style for type type of the given component only if we already have one
      * -- do not auto-create a new style for the type if we don't already have one */
-    private static LWComponent fetchStyleForType(LWComponent c) {
+    private static LWComponent resolveProvisionalStyleForType(LWComponent c) {
         if (StylesByType == null) {
             tufts.Util.printStackTrace("circular static initializer dependency");
             return null;
         }
-        return c == null ? null : StylesByType.get(c.getTypeToken());
+        if (c == null)
+            return null;
+
+        StyleType resolver = StylesByType.get(c.getTypeToken());
+
+        // move the provisional style (unselected tool state style) to the actual
+        // style for this type:
+        resolver.resolveToProvisional();
+
+        if (DEBUG.STYLE || DEBUG.WORK) out("Resolved provisional type to final applied type: " + resolver);
+
+        // new reset all other provisional styles: the tool state change has been
+        // resolved to been have meant for an object of the type just created
+
+        for (StyleType styleType : StylesByType.values())
+            if (styleType != resolver)
+                styleType.discardProvisional();
+
+        return resolver.style;
+
     }
     
 //     public static Object GetPropertyValue(LWComponent.Key key) {
@@ -398,6 +459,43 @@ public class EditorManager
     */
 
 
+    private void extractMostRecentlyUsedStyles(LWMap map) {
+        final Collection<LWComponent> allNodes = map.getAllDescendents(LWMap.ChildKind.ANY);
+
+        final Map<Object,LWComponent> foundStyles = new HashMap();
+
+        Object typeToken;
+        LWComponent curStyle;
+        for (LWComponent c : allNodes) {
+            typeToken = c.getTypeToken();
+
+            if (typeToken == null)
+                continue;
+            
+            curStyle = foundStyles.get(typeToken);
+            
+            if (curStyle == null) {
+                // first type we've seen this type: just load it up
+                foundStyles.put(typeToken, c);
+            } else {
+                if (c.getNumericID() > curStyle.getNumericID()) {
+                    // the object of this type is more recent than any we've seen before:
+                    // stash away a reference to it.
+                    foundStyles.put(typeToken, c);
+                }
+            }
+        }
+
+        // now that we've found all the most recent objects of each type,
+        // we need get the direct references to them OUT of the style type cache,
+        // and replace them as duplicates, so that can serve as standalone
+        // style holders.
+
+        for (Map.Entry<Object,LWComponent> e : foundStyles.entrySet())
+            putStyle(e.getKey(), createStyle(e.getValue(), e.getKey()));
+        //e.setValue(createStyle(e.getValue(), e.getKey()));
+    }
+    
     static void registerEditor(LWEditor editor) {
         if (mEditors.add(editor)) {
             if (DEBUG.TOOL || DEBUG.INIT) System.out.println("REGISTERED EDITOR: " + editor);

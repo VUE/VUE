@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.276 $ / $Date: 2007-05-17 22:14:52 $ / $Author: sfraize $
+ * @version $Revision: 1.277 $ / $Date: 2007-05-18 04:44:44 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -253,7 +253,7 @@ public class LWComponent
     public void copyStyle(LWComponent styleSource) {
         if (DEBUG.STYLE) System.out.println("COPY STYLE of " + styleSource + " ==>> " + this);
         for (Key key : Key.AllKeys)
-            if (key.isStyleProperty)
+            if (key.isStyleProperty && styleSource.supportsProperty(key))
                 key.copyValue(styleSource, this);
     }
 
@@ -606,10 +606,21 @@ u                    getSlot(c).setFromString((String)value);
                 if (DEBUG.STYLE && DEBUG.META) System.err.println(" COPY-VALUE: " + this + "; target doesn't support this property; " + target);
             } else {
                 final TValue copyValue = getValue(source);
-                if (DEBUG.STYLE) System.out.format("  COPY-VALUE: %s %-15s %-40s -> %s\n", source, name, "(" + copyValue + ")", target);
+                final TValue currentValue = getValue(target);
+
+                if (copyValue != null && !copyValue.equals(currentValue)) {
+                    if (DEBUG.STYLE) System.out.format("  COPY-VALUE: %s %-15s %-40s -> %s over (%s)\n",
+                                                       source,
+                                                       name,
+                                                       "(" + copyValue + ")",
+                                                       target,
+                                                       currentValue);
+                    setValue(target, copyValue);
+                }
+
+
                 //if (DEBUG.STYLE) System.err.print(" COPY-VALUE: " + this + "(");
                 //if (DEBUG.STYLE) System.err.println(copyValue + ") -> " + target);
-                setValue(target, copyValue);
             }
         }
 
@@ -2360,26 +2371,38 @@ u                    getSlot(c).setFromString((String)value);
         return getLinks();
     }
 
-    /*
-      why was this here??
-    public void setLinks(List links){
-        mLinks = links;
-    }
-    */
-
-    public LWLink getLinkTo(LWComponent c)
+    public int countLinksTo(LWComponent c)
     {
-        for (LWLink l : mLinks) {
-            if (l.getHead() == c || l.getTail() == c)
-                return l;
-        }
-        return null;
+        if (c == null)
+            return 0;
+        
+        int count = 0;
+        for (LWLink link : mLinks)
+            if (link.isConnectedTo(c))
+                count++;
+        return count;
     }
-    
+
     public boolean hasLinkTo(LWComponent c)
     {
-        return getLinkTo(c) != null;
+        if (c == null)
+            return false;
+        
+        for (LWLink link : mLinks)
+            if (link.isConnectedTo(c))
+                return true;
+        return false;
     }
+        
+    public int countCurvedLinksTo(LWComponent c)
+    {
+        int count = 0;
+        for (LWLink link : mLinks)
+            if (link.isConnectedTo(c) && link.isCurved())
+                count++;
+        return count;
+    }
+    
     /** supports ensure link paint order code */
     protected  LWComponent getParentWithParent(LWContainer parent)
     {
@@ -2423,6 +2446,11 @@ u                    getSlot(c).setFromString((String)value);
      * all instances with a given type token should be the same.
      */
     public Object getTypeToken() {
+        // todo: should really return null if we detect this is an instance of an anonymous class
+        // -- we don't want to be duplicating and using a style holder an instance of an anon
+        // glass that might be overriding god knows what and affecting property setting/getting
+        // Not that this will probably hurt anything: it'll never be referenced by a VueTool,
+        // so we'll never see it even if it winds up in the typed style cache.
         return getClass();
     }
     
@@ -4209,18 +4237,26 @@ u                    getSlot(c).setFromString((String)value);
     public String toString()
     {
         String cname = getClass().getName();
-        String s = cname.substring(cname.lastIndexOf('.')+1);
-        s += "[";
-        if (getID() == null)
-            s += tufts.Util.pad(9, Integer.toHexString(hashCode()));
-        else
-            s += tufts.Util.pad(4, getID());
+        String typeName = cname.substring(cname.lastIndexOf('.')+1);
+        String label = "";
+        String s;
         if (getLabel() != null) {
-            if (isAutoSized())
-                s += "\"" + getDisplayLabel() + "\" ";
+            if (true||isAutoSized())
+                label = "\"" + getDisplayLabel() + "\" ";
             else
-                s += "(" + getDisplayLabel() + ") ";
+                label = "(" + getDisplayLabel() + ") ";
         }
+
+        if (getID() == null) {
+            s = String.format("%-17s[",
+                              typeName + "@" + Integer.toHexString(hashCode())
+                              );
+            //s += tufts.Util.pad(9, Integer.toHexString(hashCode()));
+        } else {
+            s = String.format("%-17s", typeName + "[" + getID());
+            //s += tufts.Util.pad(4, getID());
+        }
+        s += label;
         //if (getScale() != 1f) s += "z" + getScale() + " ";
         if (this.scale != 1f) s += "z" + this.scale + " ";
         s += paramString();
