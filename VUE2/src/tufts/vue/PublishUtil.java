@@ -36,7 +36,7 @@ import java.io.*;
 import java.net.*;
 import org.apache.commons.net.ftp.*;
 import java.util.*;
-
+import java.util.zip.*;
 
 import fedora.server.management.FedoraAPIM;
 import fedora.server.utilities.StreamUtility;
@@ -52,7 +52,7 @@ public class PublishUtil implements  tufts.vue.DublinCoreConstants  {
     public static final String IMSCP_MANIFEST_ORGANIZATION = "%organization%";
     public static final String IMSCP_MANIFEST_METADATA = "%metadata%";
     public static final String IMSCP_MANIFEST_RESOURCES = "%resources%";
-    
+    public static final String RESOURCE_FOLDER = "resources"+File.separator;
     public static File activeMapFile;
     public static String IMSManifest; // the string is written to manifest file;
   
@@ -60,6 +60,31 @@ public class PublishUtil implements  tufts.vue.DublinCoreConstants  {
     public PublishUtil() {
     }
     
+    public static File createZip(LWMap map, Vector resourceVector) throws IOException, URISyntaxException, CloneNotSupportedException, ZipException {
+        IMSCP imscp = new IMSCP();
+        String saveEntry = VueUtil.getDefaultUserFolder()+File.separator+map.getFile().getName();
+        File saveMapFile = new File(saveEntry);
+        ActionUtil.marshallMap(saveMapFile,map);
+        LWMap saveMap = tufts.vue.action.OpenAction.loadMap(saveEntry);
+        Iterator i = resourceVector.iterator();
+        while(i.hasNext()) {
+            Vector vector = (Vector)i.next();
+            Boolean b = (Boolean)(vector.elementAt(0));
+            if(b.booleanValue()) {
+                Resource r = (Resource)(vector.elementAt(1));
+                File rFile = new File(new URL(r.getSpec()).getFile());
+                String entry = RESOURCE_FOLDER+rFile.getName();
+                imscp.putEntry(entry,rFile);  
+                replaceResource(saveMap,r,new MapResource(RESOURCE_FOLDER+rFile.getName()));
+            }
+        }
+        
+        ActionUtil.marshallMap(saveMapFile,saveMap);
+        imscp.putEntry(saveMap.getFile().getName(),saveMapFile);
+        saveMapFile.deleteOnExit();
+        imscp.closeZOS();
+        return imscp.getFile();
+    }
    public static File createIMSCP(Vector resourceVector) throws IOException,URISyntaxException,CloneNotSupportedException {
         String IMSCPMetadata = "";
         String IMSCPOrganization ="";
