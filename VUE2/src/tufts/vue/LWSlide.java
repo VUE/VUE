@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.41 $ / $Date: 2007-05-18 23:26:23 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2007-05-19 18:43:24 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -249,7 +249,7 @@ public class LWSlide extends LWContainer
     }
 
     @Override
-    protected void addChildImpl(LWComponent c)
+    protected void addChildImpl(final LWComponent c)
     {
         // TODO: need to apply proper style w/generic code
         
@@ -259,11 +259,22 @@ public class LWSlide extends LWContainer
         }
         
         if (DEBUG.PRESENT || DEBUG.STYLE) out("addChildImpl " + c);
+
         if (c.getStyle() == null)
             applyMasterStyle(c);
 
         super.addChildImpl(c);
 
+        // TODO: need a size request for LWImage, as the image itself
+        // may not be loaded yet (or just auto-handle this in userSetSize,
+        // or setSize or something.
+        if (c instanceof LWImage) {
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    ((LWImage)c).userSetSize(SlideWidth / 3, SlideWidth / 3, null); // more forgiving when image aspect close to slide aspect
+                  //((LWImage)c).userSetSize(SlideWidth / 3, SlideHeight / 3, null);
+            }});
+        }
+        
         /*
         LWPathway pathway = (LWPathway) getParent();
         if (pathway != null && c.getStyle() == null)
