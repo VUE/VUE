@@ -17,7 +17,7 @@ package tufts.vue;
  * -----------------------------------------------------------------------------
  */
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.15 2007-05-18 15:18:56 anoop Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.16 2007-05-19 21:13:21 anoop Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -37,7 +37,7 @@ import tufts.vue.action.*;
 
 
 /**
- * @version $Revision: 1.15 $ / $Date: 2007-05-18 15:18:56 $ / $Author: anoop $
+ * @version $Revision: 1.16 $ / $Date: 2007-05-19 21:13:21 $ / $Author: anoop $
  * @author  rsaigal
  */
 
@@ -203,6 +203,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
             return true;
     }
     public void publish(int mode,LWMap map) throws IOException{
+         System.out.println("ZIP File: "+map.getFile()+ ","+map+", mode:"+mode);            
         if(mode == Publishable.PUBLISH_MAP)
             publishMap(map);
         else if(mode == Publishable.PUBLISH_CMAP)
@@ -247,24 +248,25 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
             
         }
     }
-    private void publishZip(LWMap map) throws IOException {
+    private void publishZip(LWMap map){
         try {
-            File savedCMap = PublishUtil.createIMSCP(Publisher.resourceVector);
+            if(map.getFile() == null) {
+                VueUtil.alert("The map is not saved. Please save the map first and export it.","Zip Save Alert");
+                return;
+            }
+            File savedCMap = PublishUtil.createZip(map,Publisher.resourceVector);
             InputStream istream = new BufferedInputStream(new FileInputStream(savedCMap));
-            OutputStream ostream = new BufferedOutputStream(new FileOutputStream(ActionUtil.selectFile("IMSCP","zip")));
-            
+            OutputStream ostream = new BufferedOutputStream(new FileOutputStream(ActionUtil.selectFile("IMSCP","zip"))); 
             int fileLength = (int)savedCMap.length();
             byte bytes[] = new  byte[fileLength];
             while (istream.read(bytes,0,fileLength) != -1)
                 ostream.write(bytes,0,fileLength);
             istream.close();
             ostream.close();
-        } catch (IOException ex) {
-          throw ex;  
         } catch(Exception ex) {
             System.out.println(ex);
              JOptionPane.showMessageDialog(VUE.getDialogParent(), "Map cannot be exported "+ex.getMessage(),"Export Error",JOptionPane.ERROR_MESSAGE);
-         
+             ex.printStackTrace();
         }
     }
     private void publishAll(LWMap map) {
