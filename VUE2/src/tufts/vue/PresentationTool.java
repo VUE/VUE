@@ -31,6 +31,7 @@ import java.awt.Shape;
 import java.awt.Dimension;
 import java.awt.AlphaComposite;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.event.*;
 import javax.swing.*;
@@ -726,7 +727,7 @@ private static int OverviewMapSizeIndex = 5;
                         nav.page.node.draw(mNavMapDC.create());
             }
 
-            java.awt.geom.Rectangle2D bounds = null;
+            Rectangle2D bounds = null;
             
             if (viewer.getFocal() instanceof LWSlide) {
                 if (focused != null)
@@ -1154,9 +1155,10 @@ private static int OverviewMapSizeIndex = 5;
         */
     }
 
-    private java.awt.geom.Rectangle2D.Float getFocalBounds(LWComponent c) {
+    private Rectangle2D.Float getFocalBounds(LWComponent c) {
         if (c instanceof LWSlide &&
             c.getParent() instanceof LWPathway
+            //&& mFocal != c
             && (mFocal == null || !mFocal.hasAncestor(c))) // use the real bounds if we're within the slide
         {
             // hack for slide icons, as long as we're not the focal
@@ -1241,11 +1243,12 @@ private static int OverviewMapSizeIndex = 5;
 //         if (lastSlideAncestor == thisSlideAncestor && thisSlideAncestor != null) 
 //             animatingFocal = thisSlideAncestor;
 //         else
-        if (oldFocal.hasAncestor(newFocal)) 
+
+        if (oldFocal.hasAncestor(newFocal)) {
             animatingFocal = newFocal;
-        else if (newFocal.hasAncestor(oldFocal)) 
+        } else if (newFocal.hasAncestor(oldFocal)) {
             animatingFocal = oldFocal;
-        else if (oldFocal instanceof LWSlide || newFocal instanceof LWSlide)
+        } else if (oldFocal instanceof LWSlide || newFocal instanceof LWSlide)
             animatingFocal = newFocal.getMap();
         
 //         if (oldFocal instanceof LWSlide || newFocal instanceof LWSlide)
@@ -1263,7 +1266,7 @@ private static int OverviewMapSizeIndex = 5;
             mFocal = newFocal;
             if (animatingFocal == newFocal)
                 loaded = true;
-            
+
             // now zoom to the current focal within the new parent focal: this should
             // have the effect of making the parent focal visible, while the viewer is
             // actually in the same place on the old focal within the new focal: (todo:
@@ -1287,7 +1290,10 @@ private static int OverviewMapSizeIndex = 5;
 //          if (oldFocal instanceof LWSlide)
 //             ; // NO ANIMATION -- slides don't really exist on the map
 //         else
-            animateToFocal(viewer, newFocal);
+        if (animatingFocal instanceof LWSlide && newFocal == animatingFocal)
+            animateToFocal(viewer, newFocal, true);
+        else
+            animateToFocal(viewer, newFocal, false);
             
         //if (oldParent == newParent || lastSlideAncestor == thisSlideAncestor)
 
@@ -1325,16 +1331,22 @@ private static int OverviewMapSizeIndex = 5;
     }
     
     
-    private void animateToFocal(MapViewer viewer, LWComponent focal) {
-        if (DEBUG.WORK) out("zoomToFocal: animating to " + focal);
+    private void animateToFocal(MapViewer viewer, LWComponent newFocal, boolean forceRawSlideBounds) {
+        if (DEBUG.WORK) out("zoomToFocal: animating to " + newFocal);
 
-//         if (focal instanceof LWMap)
-//             ZoomTool.setZoomFit(viewer, true);
-//         else
-            ZoomTool.setZoomFitRegion(viewer,
-                                      getFocalBounds(focal),
-                                      focal.getFocalMargin(),
-                                      true);
+        Rectangle2D focalBounds;
+
+        //if (newFocal instanceof LWSlide && mFocal == newFocal)
+        if (forceRawSlideBounds)
+            focalBounds = newFocal.getBounds();
+        else
+            focalBounds = getFocalBounds(newFocal);
+
+        ZoomTool.setZoomFitRegion(viewer,
+                                  //getFocalBounds(newFocal),
+                                  focalBounds,
+                                  newFocal.getFocalMargin(),
+                                  true);
     }
 
     /*
