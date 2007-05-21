@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.384 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $ 
+ * @version $Revision: 1.385 $ / $Date: 2007-05-21 07:20:13 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -927,6 +927,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private void doFitToFocal()
     {
+        if (DEBUG.PRESENT || DEBUG.VIEWER) out("doFitToFocal: " + mFocal);
         mFitToFocalRequested = false;
 
         if (mFocal == null) {
@@ -1047,10 +1048,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     /** actualy load the new focal */
     public void loadFocal(LWComponent focal, boolean fitToFocal) {
-        if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("loadFocal " + focal);
+        if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("loadFocal " + focal + "; autoFit=" + fitToFocal);
         //if (focal == null) throw new IllegalArgumentException(this + " loadFocal: focal is null");
-        if (mFocal == focal)
+        if (mFocal == focal) {
+            if (fitToFocal)
+                fitToFocal();
             return;
+        }
 
         mLastFocal = mFocal;
 
@@ -1085,7 +1089,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         //if (AutoZoomToMapOnLoad || autoZoom) {
         if (fitToFocal) {
-            if (DEBUG.PRESENT || DEBUG.VIEWER) out("auto-fit to focal");
             fitToFocal();
         }
         

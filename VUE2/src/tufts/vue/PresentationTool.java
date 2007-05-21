@@ -159,7 +159,16 @@ public class PresentationTool extends VueTool
                 return true;
             } else if (o instanceof Page) {
                 final Page other = (Page) o;
+
                 return entry == other.entry && node == other.node;
+                           
+                //return (entry != null && entry == other.entry) || (node != null && node == other.node);
+                
+//                 if (entry == other.entry && node == other.node)
+//                     return true;
+//                 else
+//                     return node == other.node && isMapView() == other.entry.isMapView();
+                
             } else if (o instanceof LWComponent) {
                 final LWComponent c= (LWComponent) o;
                 return node == c || (entry != null && entry.node == c);
@@ -1216,22 +1225,33 @@ private static int OverviewMapSizeIndex = 5;
             
         
         
-//         // Figure out if this transition is across a continuous coordinate
-//         // region (so we can animate).  E.g., we're moving across the map,
-//         // or within a single slide.  Slides and the map they're a part of
-//         // exist in separate coordinate spaces, and we can't animate
-//         // across that boundary.
+        // Figure out if this transition is across a continuous coordinate
+        // region (so we can animate).  E.g., we're moving across the map,
+        // or within a single slide.  Slides and the map they're a part of
+        // exist in separate coordinate spaces, and we can't animate
+        // across that boundary.
 //         final LWComponent oldParent = oldFocal == null ? null : oldFocal.getParent();
 //         final LWComponent newParent = newFocal.getParent();
-//         final LWComponent lastSlideAncestor = oldFocal == null ? null : oldFocal.getAncestorOfType(LWPathway.class);
-//         final LWComponent thisSlideAncestor = newFocal.getAncestorOfType(LWPathway.class);
+//         final LWComponent lastSlideAncestor = oldFocal == null ? null : oldFocal.getAncestorOfType(LWSlide.class);
+//         final LWComponent thisSlideAncestor = newFocal.getAncestorOfType(LWSlide.class);
+
 
         LWComponent animatingFocal = null; // a TEMPORARY focal to animate across
 
-        if (oldFocal instanceof LWSlide || newFocal instanceof LWSlide)
-            animatingFocal = newFocal.getMap();
-        else if (oldFocal.hasAncestor(newFocal))
+//         if (lastSlideAncestor == thisSlideAncestor && thisSlideAncestor != null) 
+//             animatingFocal = thisSlideAncestor;
+//         else
+        if (oldFocal.hasAncestor(newFocal)) 
             animatingFocal = newFocal;
+        else if (newFocal.hasAncestor(oldFocal)) 
+            animatingFocal = oldFocal;
+        else if (oldFocal instanceof LWSlide || newFocal instanceof LWSlide)
+            animatingFocal = newFocal.getMap();
+        
+//         if (oldFocal instanceof LWSlide || newFocal instanceof LWSlide)
+//             animatingFocal = newFocal.getMap();
+//         else if (oldFocal.hasAncestor(newFocal))
+//             animatingFocal = newFocal;
         
 
         boolean loaded = false;
@@ -1239,7 +1259,6 @@ private static int OverviewMapSizeIndex = 5;
             // if the new focal is a parent of old focal, first
             // load it (without auto-zooming), so we can pan across
             // it while we animate
-            if (DEBUG.PRESENT) out("animating focal: " + animatingFocal);
             viewer.loadFocal(animatingFocal, false);
             mFocal = newFocal;
             if (animatingFocal == newFocal)
@@ -1260,6 +1279,10 @@ private static int OverviewMapSizeIndex = 5;
 
         }
 
+        if (DEBUG.PRESENT) out("  animating focal: " + animatingFocal);
+        if (DEBUG.PRESENT) out("destination focal: " + newFocal);
+        
+
 //         if (newFocal instanceof LWSlide || oldFocal instanceof LWSlide)
 //          if (oldFocal instanceof LWSlide)
 //             ; // NO ANIMATION -- slides don't really exist on the map
@@ -1268,7 +1291,8 @@ private static int OverviewMapSizeIndex = 5;
             
         //if (oldParent == newParent || lastSlideAncestor == thisSlideAncestor)
 
-        if (!loaded) {
+        //if (!loaded) {
+            if (true) { // just in case...
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 mFocal = newFocal;
                 viewer.loadFocal(newFocal, true);

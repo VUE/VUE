@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.43 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $
+ * @version $Revision: 1.44 $ / $Date: 2007-05-21 07:20:13 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -418,7 +418,7 @@ public class LWSlide extends LWContainer
 
     @Override
     protected LWComponent pickChild(PickContext pc, LWComponent c) {
-        if (DEBUG.PRESENT) out("PICKING CHILD: " + c);
+        if (DEBUG.PICK) out("PICKING CHILD: " + c);
         return c;
     }
 
