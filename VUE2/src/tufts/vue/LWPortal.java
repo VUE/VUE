@@ -31,7 +31,7 @@ import java.awt.Color;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.7 $ / $Date: 2007-05-16 01:10:31 $ / $Author: sfraize $ 
+ * @version $Revision: 1.8 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -79,6 +79,12 @@ public class LWPortal extends LWNode
     public boolean supportsUserLabel() {
         return false;
     }
+
+    @Override
+    public int getFocalMargin() {
+        return 0;
+    }
+    
     
     @Override
     protected void drawImpl(DrawContext dc)

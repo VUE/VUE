@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.42 $ / $Date: 2007-05-19 18:43:24 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -65,6 +65,12 @@ public class LWSlide extends LWContainer
     public final boolean isDrawingSlideIcon() {
         return false;
     }
+
+    @Override
+    public int getFocalMargin() {
+        return 0;
+    }
+    
     
     @Override
     void setParent(LWContainer parent) {

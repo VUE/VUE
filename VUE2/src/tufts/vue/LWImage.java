@@ -150,6 +150,11 @@ public class LWImage extends
         }
     }
 
+    @Override
+    public int getFocalMargin() {
+        return 0;
+    }
+    
     public boolean isNodeIcon() {
         return isNodeIcon;
     }
@@ -429,7 +434,7 @@ public class LWImage extends
     {
         if (DEBUG.IMAGE) out("userSetSize");
 
-        if (e.isShiftDown()) {
+        if (e != null && e.isShiftDown()) {
             // Unconstrained aspect ration scaling
             super.userSetSize(width, height, e);
         } else {
@@ -621,7 +626,7 @@ public class LWImage extends
         final Shape shape = getClipShape();
 
 
-        if (isNodeIcon) {
+        if (isNodeIcon && dc.focal != this) {
 
             drawImage(dc);
             if (!getParent().isTransparent()) {

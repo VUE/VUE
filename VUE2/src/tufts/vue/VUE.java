@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.439 $ / $Date: 2007-05-18 22:34:36 $ / $Author: sfraize $ 
+ * @version $Revision: 1.440 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1982,7 +1982,7 @@ public class VUE
     public static void toggleFullScreen(boolean goNative,boolean showFloatingToolbar) {
     	
     	FullScreen.toggleFullScreen(goNative);
-        VUE.getActiveViewer().zoomToContents();
+        VUE.getActiveViewer().fitToFocal();
         
     	if (showFloatingToolbar)
         	floatingZoomDock.setVisible(FullScreen.inFullScreen());                	

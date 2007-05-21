@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.383 $ / $Date: 2007-05-18 10:04:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.384 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -95,6 +95,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     static final float RolloverMinZoomDeltaTrigger = RolloverMinZoomDeltaTrigger_int > 0 ? RolloverMinZoomDeltaTrigger_int / 100f : 0f;
     private static boolean autoZoomEnabled = PreferencesManager.getBooleanPrefValue(edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance());
 
+    /** automatically zoom-fit to map contents on new map load */
     private static final boolean AutoZoomToMapOnLoad = true;
     
     private Rectangle2D.Float RepaintRegion = null; // could handle in DrawContext
@@ -175,7 +176,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private boolean isFirstReshape = true;
     private boolean didReshapeZoomFit = false;
     private Component mFocusIndicator = new java.awt.Canvas(); // make sure is never null
-    private boolean mMapAutoZoomRequested = false;
+    private boolean mFitToFocalRequested = false;
 
     //private InputHandler inputHandler = new InputHandler(this);
     private final MapViewer inputHandler; // == this
@@ -894,39 +895,39 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected void reshapeImpl(int x, int y, int w, int h)
     {
         if (DEBUG.VIEWER) out("reshapeImpl");
-        if (!mMapAutoZoomRequested && (mFocal == null || mFocal instanceof LWMap)) {
+        if (!mFitToFocalRequested && (mFocal == null || mFocal instanceof LWMap)) {
             //if (DEBUG.PRESENT) out("reshapeImpl: skipped");
             //Util.printStackTrace("reshapeImpl");
             return;
         }
-        mMapAutoZoomRequested = false;
-        zoomToContents();
+        mFitToFocalRequested = false;
+        fitToFocal();
     }
 
-    protected void zoomToContents() {
-        if (zoomUnderway) {
+    private boolean zoomFitUnderway = false;
+    protected void fitToFocal() {
+        if (zoomFitUnderway) {
             //out("ZOOM UNDERWAY");
             return;
         }
         
         if (getVisibleWidth() == 0 || getVisibleHeight() == 0) {
             if (DEBUG.PRESENT) out("requesting delayed autoZoom; visSize=" + getVisibleSize());
-            mMapAutoZoomRequested = true;
+            mFitToFocalRequested = true;
             return;
         }
             
-        zoomUnderway = true;
+        zoomFitUnderway = true;
         try {
-            doZoomToContents();
+            doFitToFocal();
         } finally {
-            zoomUnderway = false;
+            zoomFitUnderway = false;
         }
     }
     
-    private boolean zoomUnderway = false;
-    private void doZoomToContents()
+    private void doFitToFocal()
     {
-        mMapAutoZoomRequested = false;
+        mFitToFocalRequested = false;
 
         if (mFocal == null) {
             // can happen if no maps open
@@ -936,19 +937,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         final boolean animate = false;
         final Rectangle2D zoomBounds = mFocal.getBounds();
 
-        int margin = 30;
+//         int margin = 30;
+//         if (mFocal instanceof LWSlide ||
+//             mFocal instanceof LWPortal ||
+//             mFocal instanceof LWImage
+//             )
+//             margin = 0;
 
-        if (mFocal instanceof LWSlide ||
-            mFocal instanceof LWPortal ||
-            mFocal instanceof LWImage
-            )
-            margin = 0;
-
-        if (DEBUG.PRESENT || DEBUG.WORK) out("zoomToContents " + mFocal + " at " + zoomBounds);
+        if (DEBUG.PRESENT || DEBUG.WORK) out("fitToFocal " + mFocal + " at " + zoomBounds);
         
         ZoomTool.setZoomFitRegion(this,
                                   zoomBounds,
-                                  margin,
+                                  mFocal.getFocalMargin(),
                                   animate);
         
     }
@@ -1030,22 +1030,40 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         mOffset.x = mOffset.y = 0;
     }
     
+    /** let the active tool handle the focal transition if it wants */
+    public void switchFocal(LWComponent newFocal) {
+
+        if (activeTool != null && activeTool.handleFocalSwitch(this, mFocal, newFocal))
+            ; // the active tool has handled the focal loading and any desired auto-fit
+        else
+            loadFocal(newFocal);
+        
+    }
+        
+    /** actualy load the new focal */
     public void loadFocal(LWComponent focal) {
+        loadFocal(focal, true);
+    }
+    
+    /** actualy load the new focal */
+    public void loadFocal(LWComponent focal, boolean fitToFocal) {
         if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("loadFocal " + focal);
         //if (focal == null) throw new IllegalArgumentException(this + " loadFocal: focal is null");
         if (mFocal == focal)
             return;
-        boolean autoZoom = false;
+
         mLastFocal = mFocal;
 
         if (mFocal != null) {
             unloadFocal();
             // If we are switching from another focal, automatically do a zoom-fit
-            autoZoom = true;
+            //autoZoom = true;
         } else if (!(focal instanceof LWMap))
-            autoZoom = true;
+            ;//autoZoom = true;
 
-        mOffset.x = mOffset.y = 0;
+        // todo: we should adjust offset to leave view position at same location
+        // within the whole map (if we're moving up the heirarchy within a single map)
+        //mOffset.x = mOffset.y = 0;
         mFocal = focal;
 
         if (mFocal != null) {
@@ -1065,13 +1083,35 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             mMap.setUndoManager(new UndoManager(mMap));
         }
 
-        if (AutoZoomToMapOnLoad || autoZoom) {
-            if (DEBUG.PRESENT || DEBUG.VIEWER) out("Auto ZoomFit");
-            zoomToContents();
+        //if (AutoZoomToMapOnLoad || autoZoom) {
+        if (fitToFocal) {
+            if (DEBUG.PRESENT || DEBUG.VIEWER) out("auto-fit to focal");
+            fitToFocal();
         }
         
-        repaint();
+        //repaint();
     }
+
+    /** refocus the viewer on the parent of the curent focal
+     * @return true if we were able to change the focal
+     */
+    protected boolean popFocal()
+    {
+        if (DEBUG.WORK) out("popFocal up from " + mFocal);
+        if (mFocal == null)
+            return false;
+        
+        LWComponent parent = mFocal.getParent();
+        if (parent instanceof LWPathway)
+            switchFocal(parent.getMap());
+        else if (parent != null)
+            switchFocal(parent);
+        else
+            return false;
+        
+        return true;
+    }
+    
 
     /*
     void setFocal(LWComponent focal) {
@@ -2398,7 +2438,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 } finally {
                     // make absolutely certian no matter what
                     // that we re-enable actions.
-                    VueAction.setAllIgnored(false);
+                    VueAction.setAllActionsIgnored(false);
                 }
             }
         }
@@ -2443,7 +2483,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // closed map viewer, or all actions will go off and never
         // come back on again, because the textbox will never get
         // focus so it can lose it and turn them back on.
-        VueAction.setAllIgnored(true);
+        VueAction.setAllActionsIgnored(true);
         activeTextEdit = lwc.getLabelBox();
         activeTextEdit.saveCurrentText();
         if (activeTextEdit.getText().length() < 1)
@@ -3608,7 +3648,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             case KeyEvent.VK_DELETE:
             case KeyEvent.VK_BACK_SPACE:
                 // todo: can't we add this to a keymap for the MapViewer JComponent?
-                if (!e.isConsumed())
+                // (Why doesn't the entry for this in the Edit menu auto-provide this mapping?)
+                if (!e.isConsumed() && Actions.Delete.enabled())
                     Actions.Delete.fire(this);
                 else
                     handled = false;
@@ -3616,13 +3657,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             case KeyEvent.VK_ENTER:
                 if (!(mFocal instanceof LWMap) && !(this instanceof tufts.vue.ui.SlideViewer)) { // total SlideViewer hack...
-                    LWComponent parent = mFocal.getParent();
-                    if (parent instanceof LWPathway)
-                        loadFocal(parent.getMap());
-                    else if (parent != null)
-                        loadFocal(parent);
-                } else if (Actions.Rename.enabledFor(VueSelection)) {
-                    // since removing this action from the main menu, we have to fire it manually:
+                    handled = popFocal();
+                } else if (Actions.Rename.isUserEnabled()) {
+                    // since removing this action from the main menu, we have to fire it manually
                     // todo: handle this kind of thing generically (make sure all action key bindings installed)
                     Actions.Rename.fire(this);
                 } else
@@ -3649,10 +3686,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     repaint();
                 } else if (VUE.inFullScreen()) {
                     VUE.toggleFullScreen(false, true);
-                    if (activeTool instanceof PresentationTool) {
-                        loadFocal(mFocal.getMap());
+                    loadFocal(mFocal.getMap()); // make sure top-level map is displayed
+                    if (activeTool instanceof PresentationTool)
                         activateTool(VueTool.getInstance(SelectionTool.class));
-                    }
                 } else
                     handled = false;
                 break;
@@ -3853,6 +3889,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (c == '=') { DEBUG.THREAD = !DEBUG.THREAD; }
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
+                else if (c == '|') { VUE.toggleFullScreen(true); }
                 //else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(this); }
                 //else if (c == '&') { tufts.macosx.Screen.fadeFromBlack(); }
                 //else if (c == '@') { tufts.macosx.Screen.setMainAlpha(.5f); }
@@ -3863,14 +3900,22 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 //else if (c == '\\') { VUE.toggleFullScreen(); }
                 //else if (c == '|') { VUE.toggleFullScreen(true); // native full screen mode }
                 else if (c == '!') {
+                    DockWindow introspector = null;
                     if (true||debugInspector == null) {
-                        debugInspector = new DockWindow("Inspector",
-                                                        SwingUtilities.getWindowAncestor(MapViewer.this),
-                                                        new LWCInspector(),
-                                                        false);
+                        debugInspector
+                            = new DockWindow("Inspector",
+                                             SwingUtilities.getWindowAncestor(MapViewer.this),
+                                             new LWCInspector(),
+                                             false);
+                        introspector
+                            = new DockWindow("Introspector",
+                                             SwingUtilities.getWindowAncestor(MapViewer.this),
+                                             new LWCInspector.Introspector(),
+                                             false);
                         debugInspector.setWidth(500);
                     }
                     debugInspector.setVisible(true);
+                    introspector.setVisible(true);
                 } else if (c == '@') {
                     if (debugPanner == null)
                         debugPanner = new DockWindow("Panner", new MapPanner());

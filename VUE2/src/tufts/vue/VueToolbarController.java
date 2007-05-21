@@ -36,7 +36,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.65 $ / $Date: 2007-05-17 21:55:18 $ / $Author: mike $
+ * @version $Revision: 1.66 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -225,12 +225,16 @@ public class VueToolbarController
             getToolbar().setContextualToolPanel( contextualPanel );
             END OLD CODE ****/
 		
-        mSelectedTool = rootTool;
+        final VueTool oldActive = mSelectedTool;
         
+        mSelectedTool = rootTool;
+
         // notify listeners
         VUE.setActive(VueTool.class, this, rootTool);
         
-        mSelectedTool.handleToolSelection();
+        if (oldActive != null && oldActive != mSelectedTool)
+            oldActive.handleToolSelection(false);
+        mSelectedTool.handleToolSelection(true);
         
         /*
         int size = mToolSelectionListeners.size();

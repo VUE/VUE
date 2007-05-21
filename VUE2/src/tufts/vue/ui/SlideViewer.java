@@ -265,7 +265,7 @@ public class SlideViewer extends tufts.vue.MapViewer
         } else {
             super.LWCChanged(e);
             if (true||e.getComponent() == mFocal) {
-                zoomToContents();
+                fitToFocal();
             }
         }
     }

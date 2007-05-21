@@ -28,12 +28,9 @@ public class VueSimpleTool extends VueTool
         super();
     }
     
+    @Override
     public boolean handleKeyPressed(java.awt.event.KeyEvent e)  {
         return false;
-    }
-    
-    public void handleToolSelection() {
-        // getMapViewer().setCurrentTool( this);
     }
 
 

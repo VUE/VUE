@@ -32,7 +32,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.23 $ / $Date: 2007-05-09 04:58:20 $ / $Author: sfraize $ 
+ * @version $Revision: 1.24 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -42,18 +42,36 @@ public class VueAction extends javax.swing.AbstractAction
     private static List<VueAction> AllActionList = new ArrayList();
 
     private static boolean allIgnored = false;
+    private static boolean allEditIgnored = false;
 
     private final String permanentName;
-    
+
     /** Set's all action events to be temporarily ignored.
         E.g., used while a TextBox edit is active */
     // todo: may want to allow NewItem actions as they automatically
     // activate an edit, thus preventing a quick series of NewItem
     // actions to be done.
-    static void setAllIgnored(boolean tv)
+    static void setAllActionsIgnored(boolean tv)
     {
+        if (DEBUG.Enabled) {
+            System.out.println("VueAction: allIgnored=" + tv);
+            if (DEBUG.META) tufts.Util.printStackTrace("ALL ACTIONS IGNORED: " + tv);
+        }
+        
         allIgnored = tv;
     }
+
+//     // todo: need to update Actions.java for all actions
+//     static void setAllEditActionsIgnored(boolean tv)
+//     {
+//         if (DEBUG.Enabled) {
+//             System.out.println("VueAction: allIEditgnored=" + tv);
+//             if (DEBUG.META) tufts.Util.printStackTrace("ALL EDIT ACTIONS ENABLED: " + tv);
+//         }
+        
+//         allEditIgnored = tv;
+//     }
+    
 
     public VueAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon)
     {
@@ -129,6 +147,13 @@ public class VueAction extends javax.swing.AbstractAction
      */
     boolean undoable() { return true; }
 
+    /** @return false (the default) if this is an editing action - overide and return false
+     * to enable as a non-editing action
+     */
+    boolean isEditAction() {
+        return false;
+    }
+
     public String getActionName()
     {
         return (String) getValue(Action.NAME);
@@ -157,7 +182,11 @@ public class VueAction extends javax.swing.AbstractAction
                                + ae.paramString()
                                + " src=" + ae.getSource());
         if (allIgnored && !overrideIgnoreAllActions()) {
-            if (DEBUG.EVENTS) System.out.println("ACTIONS DISABLED.");
+            if (DEBUG.Enabled) System.out.println("ALL ACTIONS DISABLED; " + this + "; " + ae);
+            return;
+        }
+        if (allEditIgnored && isEditAction()) {
+            if (DEBUG.Enabled) System.out.println("ALL EDIT ACTIONS DISABLED; " + this + "; " + ae);
             return;
         }
         boolean hadException = false;
@@ -246,7 +275,15 @@ public class VueAction extends javax.swing.AbstractAction
      * that, the action will need it's own listener for whatever event
      * it's interested in.
      */
-    public boolean enabled() { return VUE.getActiveViewer() != null; }
+    boolean enabled() { return VUE.getActiveViewer() != null; }
+
+    /** public access enabled checker that also checks master action enabled states */
+    public boolean isUserEnabled() {
+        if (allIgnored && !overrideIgnoreAllActions())
+            return false;
+        else
+            return enabled();
+    }
 
     public void act() {
         System.err.println("Unhandled VueAction: " + getActionName());

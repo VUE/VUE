@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.3 $ / $Date: 2007-05-18 23:10:53 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2007-05-21 04:30:45 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -31,8 +31,10 @@ import java.lang.reflect.Method;
 public class ActiveInstance<T>
 {
     private static final java.util.Map<Class,ActiveInstance> AllActiveHandlers = new java.util.HashMap();
-        
-    private final java.util.List<ActiveListener<T>> listenerList = new java.util.ArrayList();
+    private static final java.util.List<ActiveListener> ListenersForAllActiveEvents = new java.util.ArrayList();
+    
+    private final java.util.List<ActiveListener> listenerList = new java.util.ArrayList();
+    //private final java.util.List<ActiveListener<T>> listenerList = new java.util.ArrayList();
     
     protected final Class itemType;
     protected final String itemTypeName; // for debug
@@ -45,6 +47,11 @@ public class ActiveInstance<T>
     /** The active item itself wants to be told when it's been set to active or has lost it's active status */
     public interface Markable {
         public void markActive(boolean active);
+    }
+
+    /** Add's a lister for ALL active item events */
+    public static void addAllActiveListener(ActiveListener l) {
+        ListenersForAllActiveEvents.add(l);
     }
 
 
@@ -112,7 +119,7 @@ public class ActiveInstance<T>
             tufts.Util.printStackTrace(this + ": setActive(" + newActive + ") by " + source + "; not an instance of " + itemType);
             return;
         }
-        
+
         lock(this, "setActive");
         synchronized (this) {
             if (nowActive == newActive)
@@ -152,44 +159,56 @@ public class ActiveInstance<T>
             return;
         }
         
-        final ActiveListener[] listeners;
-
-        if (DEBUG.Enabled) lock(this, "NOTIFY " + listenerList.size());
-        synchronized (listenerList) {
-            listeners = listenerList.toArray(new ActiveListener[listenerList.size()]);
-        }
-        if (DEBUG.Enabled) unlock(this, "NOTIFY " + listenerList.size());
-
         inNotify = true;
         try {
-            Object target;
-            Method method;
-            for (ActiveListener listener : listeners) {
-                if (listener instanceof MethodProxy) {
-                    target = ((MethodProxy)listener).target;
-                    method = ((MethodProxy)listener).method;
-                } else {
-                    target = listener;
-                    method = null;
-                }
-
-                if (target == e.source)
-                    continue;
-                
-                if (DEBUG.EVENTS) System.out.println("\tnotify" + itemTypeName + " -> " + target);
-                try {
-                    if (method != null)
-                        method.invoke(target, e, e.active);
-                    else
-                        listener.activeChanged(e);
-                } catch (java.lang.reflect.InvocationTargetException ex) {
-                    tufts.Util.printStackTrace(ex.getCause(), this + " exception notifying " + target + " with " + e);
-                } catch (Throwable t) {
-                    tufts.Util.printStackTrace(t, this + " exception notifying " + target + " with " + e);
-                }
-            }
+            if (listenerList.size() > 0)
+                notifyListeners(this, e, listenerList);
+            if (ListenersForAllActiveEvents.size() > 0)
+                notifyListeners(this, e, ListenersForAllActiveEvents);
         } finally {
             inNotify = false;
+        }
+        
+    }
+            
+    protected static void notifyListeners(ActiveInstance handler, ActiveEvent e, java.util.List<ActiveListener> listenerList)
+    {
+        final ActiveListener[] listeners;
+
+        if (DEBUG.Enabled) lock(handler, "NOTIFY " + listenerList.size());
+        synchronized (listenerList) {
+            // Allow concurrent modifiation w/out synchronization:
+            // (todo performance: keep an array in the handler to write this into instead
+            // of having to construct if every time).
+            listeners = listenerList.toArray(new ActiveListener[listenerList.size()]);
+        }
+        if (DEBUG.Enabled) unlock(handler, "NOTIFY " + listenerList.size());
+
+        Object target;
+        Method method;
+        for (ActiveListener listener : listeners) {
+            if (listener instanceof MethodProxy) {
+                target = ((MethodProxy)listener).target;
+                method = ((MethodProxy)listener).method;
+            } else {
+                target = listener;
+                method = null;
+            }
+
+            if (target == e.source)
+                continue;
+                
+            if (DEBUG.EVENTS) System.out.println("\tnotify" + handler.itemTypeName + " -> " + target);
+            try {
+                if (method != null)
+                    method.invoke(target, e, e.active);
+                else
+                    listener.activeChanged(e);
+            } catch (java.lang.reflect.InvocationTargetException ex) {
+                tufts.Util.printStackTrace(ex.getCause(), handler + " exception notifying " + target + " with " + e);
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t, handler + " exception notifying " + target + " with " + e);
+            }
         }
     }
 

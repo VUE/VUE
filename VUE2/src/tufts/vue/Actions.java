@@ -624,6 +624,7 @@ public class Actions implements VueConstants
     public static final LWCAction Rename =
         new LWCAction("Rename", VueUtil.isWindowsPlatform() ? keyStroke(KeyEvent.VK_F2) : keyStroke(KeyEvent.VK_ENTER)) {
         boolean undoable() { return false; } // label editor handles the undo
+            
         boolean enabledFor(LWSelection s) {
             return s.size() == 1 && s.first().supportsUserLabel();
         }
@@ -1021,7 +1022,7 @@ public class Actions implements VueConstants
     new VueAction("New", keyStroke(KeyEvent.VK_N, COMMAND+SHIFT), ":general/New") {
         private int count = 1;
         boolean undoable() { return false; }
-        public boolean enabled() { return true; }
+        boolean enabled() { return true; }
         public void act() {
             VUE.displayMap(new LWMap("New Map " + count++));
         }
@@ -1029,7 +1030,7 @@ public class Actions implements VueConstants
     public static final Action Revert =
         new VueAction("Revert", keyStroke(KeyEvent.VK_R, COMMAND+SHIFT), ":general/Revert") {            
             boolean undoable() { return false; }
-            public boolean enabled() { return true; }
+            boolean enabled() { return true; }
             public void act() {
                 if (tufts.vue.VUE.getActiveMap().getFile() == null)
                 {
@@ -1172,9 +1173,13 @@ public class Actions implements VueConstants
             super(name, null, keyStroke, null);
         }
         
-        // why did we want this enabled even if all actions are disabled?
+        /** @return true -- while there's an on-map label edit active, all
+         * actions are disabled, however, we want to permit repeated
+         * new-item actions, and new item actions auto-activate a label
+         * edit, so we allow this even if everything is disabled */
+        @Override
         public boolean overrideIgnoreAllActions() { return true; }
-        
+
         public void act() {
             final MapViewer viewer = VUE.getActiveViewer();
             final Point mousePress = viewer.getLastMousePoint();
@@ -1288,8 +1293,15 @@ public class Actions implements VueConstants
             System.out.println(this + " enabled=" + tv);
         }
          */
-        
-        public boolean enabled() { return VUE.getActiveViewer() != null && enabledFor(VUE.getSelection()); }
+
+        /** @return true -- the default for LWCAction's */
+        @Override
+        boolean isEditAction() {
+            return true;
+        }
+
+        @Override
+        boolean enabled() { return VUE.getActiveViewer() != null && enabledFor(VUE.getSelection()); }
         
         public void selectionChanged(LWSelection selection) {
             if (VUE.getActiveViewer() == null)

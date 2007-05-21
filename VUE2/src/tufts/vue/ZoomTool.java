@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.60 $ / $Date: 2007-05-16 01:10:32 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -140,9 +140,11 @@ public class ZoomTool extends VueTool
         if (zoomedTo != null && !e.isShiftDown()) {
             // already zoomed into something: un-zoom us
             if (oldFocal != null) {
+                // we were focused into a slide: pop the focal
                 viewer.loadFocal(oldFocal);
                 oldFocal = null;
             } else {
+                // zoom out to the whole map
                 setZoomFit(viewer, true);
             }
             zoomedTo = null;
@@ -391,6 +393,7 @@ public class ZoomTool extends VueTool
             return;
         
         //final int frames = 20;
+        //final int frames = 16; 
         final int frames = 8; 
         //final int frames = 4;
 

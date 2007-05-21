@@ -29,17 +29,12 @@ public class SelectionTool extends VueTool {
         super();
     }
 
-    public boolean handleKeyPressed(java.awt.event.KeyEvent e)  {
-        return false;
-    }
-	
-    public JPanel getContextualPanel() {
-        return VueToolbarController.getController().getSuggestedContextualPanel();
-    }
-
-    public boolean supportsSelection() { return true; }
+//     public JPanel getContextualPanel() {
+//         return VueToolbarController.getController().getSuggestedContextualPanel();
+//     }
 
     static class Direct extends SelectionTool {
+        @Override
         public PickContext initPick(PickContext pc, float x, float y) {
             pc.pickDepth = 1;
             return pc;

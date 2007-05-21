@@ -64,6 +64,7 @@ public class PresentationTool extends VueTool
     private Page mLastPage = NO_PAGE;
     private LWPathway mPathway;
     private Page mLastPathwayPage;
+    private LWComponent mFocal; // sync'd with MapViewer focal
     
     private LWComponent mNextPage; // is this really "startPage"?
     //private LWLink mLastFollowed;
@@ -129,6 +130,10 @@ public class PresentationTool extends VueTool
                 return entry.pathway == p;
             else
                 return false;
+        }
+
+        public boolean insideSlide() {
+            return node != null && node.getParentOfType(LWSlide.class) != null;
         }
 
         public String getDisplayLabel() {
@@ -496,7 +501,14 @@ public class PresentationTool extends VueTool
         }
 
     }
-    
+
+    @Override
+    public PickContext initPick(PickContext pc, float x, float y) {
+        // allow picking of node icons, group contents, etc as long as not a at top level map
+        if (mFocal instanceof LWMap == false)
+            pc.pickDepth = 1;
+        return pc;
+    }
     
     @Override
     public boolean handleKeyPressed(java.awt.event.KeyEvent e) {
@@ -509,9 +521,16 @@ public class PresentationTool extends VueTool
         final boolean amplified = e.isShiftDown();
 
         switch (keyCode) {
+        case KeyEvent.VK_ENTER:
+            // MapViewer popFocal must have failed -- focal should be the map:
+            // todo: all our VueTool handled calls that come from the MapViewer
+            // should take a viewer as an argument...
+            setPage(mLastPathwayPage);
+            break;
+
         case KeyEvent.VK_SPACE:
             goForward(SINGLE_STEP, GUESSING);
-            break;
+            break;            
 
         case KeyEvent.VK_BACK_QUOTE:
             // toggle showing the non-linear nav options:
@@ -646,6 +665,14 @@ private static int OverviewMapSizeIndex = 5;
         // the "focused" node is the node on the map we're going to show highlighted
         // -- it's the node our current slide belongs to
         
+//         // This more or less allows panning to the node icon:
+//         LWComponent focused = null;
+//         if (mFocal instanceof LWSlide)
+//             focused = ((LWSlide)mFocal).getSourceNode();
+//         else if (mFocal instanceof LWMap == false)
+//             focused = mFocal;
+
+        
         LWComponent focused = mCurrentPage.getOriginalMapNode();
 
         // if we're nav-clicking within a slide, the original map node
@@ -659,14 +686,22 @@ private static int OverviewMapSizeIndex = 5;
                 focused = slide.getSourceNode();
         }
 
-        final MapViewer viewer = VUE.getActiveViewer(); // TODO: pull from somewhere safer
+//         if (focused instanceof LWSlide) {
+//             tufts.Util.printStackTrace("FOCUSED IS FUCKING SLIDE");
+//             focused = null;
+//         }
 
         dc.skipDraw = focused;
+
+
+        final MapViewer viewer = VUE.getActiveViewer(); // TODO: pull from somewhere safer
         mNavMapDC = MapPanner.paintViewerIntoRectangle(null,
                                                        dc.g.create(),
                                                        viewer,
                                                        panner,
-                                                       false); //mCurrentPage.isMapView());
+                                                       false);
+                                                       //focused == null); // for panning to slide icon
+                                                       //false); //mCurrentPage.isMapView());
 
         if (focused != null) {
             dc.g.setColor(Color.black);
@@ -682,12 +717,23 @@ private static int OverviewMapSizeIndex = 5;
                         nav.page.node.draw(mNavMapDC.create());
             }
 
-            if (mCurrentPage.isMapView()) {
+            java.awt.geom.Rectangle2D bounds = null;
+            
+            if (viewer.getFocal() instanceof LWSlide) {
+                if (focused != null)
+                    bounds = focused.getBounds(); // could grab node icon bounds if they're drawing...
+            } else {
+                bounds = viewer.getVisibleMapBounds();
+            }
+                  
+            
+            if (mCurrentPage.isMapView() && bounds != null) {
                 // redraw the reticle at full brightness:
+                
+                if (DEBUG.WORK) out("overview showing map bounds for: " + mCurrentPage + " in " + viewer + " bounds " + bounds);
+                
                 mNavMapDC.g.setColor(mCurrentPage.getPresentationFocal().getMap().getFillColor());
                 mNavMapDC.setAlpha(0.333);
-                final java.awt.geom.Rectangle2D bounds = viewer.getVisibleMapBounds();
-                if (DEBUG.WORK) out("overview showing map bounds for: " + mCurrentPage + " in " + viewer + " bounds " + bounds);
                 mNavMapDC.g.fill(bounds);
                 mNavMapDC.setAlpha(1);
                 mNavMapDC.g.setColor(Color.red);
@@ -703,6 +749,7 @@ private static int OverviewMapSizeIndex = 5;
     }
 
     @Override
+    /** @return true to disable rollovers on the map */
     public boolean handleMouseMoved(MapMouseEvent e)
     {
         boolean handled = false;
@@ -729,7 +776,7 @@ private static int OverviewMapSizeIndex = 5;
             repaint("mouseMove nav display change");
         //e.getViewer().repaint();
 
-        return handled;
+        return true;
     }
 
     private boolean debugTrackNavMapMouseOver(MapMouseEvent e)
@@ -766,8 +813,46 @@ private static int OverviewMapSizeIndex = 5;
     @Override
     public boolean handleMousePressed(MapMouseEvent e)
     {
-        // First, check for hits on any nav nodes:
+        if (checkForNavNodeClick(e))
+            return true;
 
+        final LWComponent hit = e.getPicked();
+        
+        if (DEBUG.PRESENT) out("handleMousePressed " + e.paramString() + " hit on " + hit);
+
+        // TODO: currently optimized for random nav: totally screwing slides for the moment...
+
+        if (hit == null) {
+            e.getViewer().popFocal();
+            return true;
+            //return false;
+        }
+        
+        if (mCurrentPage.equals(hit)) {
+            // hit on what what we just clicked on: backup,
+            // but only if it's not a full pathway entry
+            // (meant for intra-slide clicking)
+            //if (mCurrentPage.entry == null) {
+
+            // if we're non-linear nav off a pathway, revisit prior,
+            // OTHERWISE, if general "browse", pop the focal
+            if (mCurrentPage.insideSlide() || mLastPathwayPage == null) {
+                e.getViewer().popFocal();
+            } else {
+                revisitPrior();
+            }
+        } else {
+            setPage(hit);
+        }
+        return true;
+    }
+
+        
+    private boolean checkForNavNodeClick(MapMouseEvent e) {
+
+        if (!mShowNavNodes)
+            return false;
+        
         for (NavNode nav : mNavNodes) {
             if (DEBUG.PRESENT) System.out.println("pickCheck " + nav + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
             if (nav.containsParentCoord(e.getX(), e.getY())) {
@@ -781,28 +866,30 @@ private static int OverviewMapSizeIndex = 5;
             }
         }
 
-        final LWComponent hit = e.getPicked();
-        
-        if (DEBUG.PRESENT) out("handleMousePressed " + e.paramString() + " hit on " + hit);
-
-        if (hit == null)
-            return false;
-        
-        if (mCurrentPage.equals(hit)) {
-            // hit on what what we just clicked on: backup,
-            // but only if it's not a full pathway entry
-            // (meant for intra-slide clicking)
-            if (mCurrentPage.entry == null)
-                revisitPrior();
-        } else {
-            setPage(hit);
-        }
-        return true;
+        return false;
     }
 
     
+//     @Override
+//     public void handleFullScreen(boolean entering, boolean nativeMode) {
+//         out("handleFullScreen: " + entering + " native=" + nativeMode);
+//         if (entering) {
+//             //if (nativeMode)
+//                 VueAction.setAllActionsIgnored(true);
+//         } else
+//             VueAction.setAllActionsIgnored(false);
+//     }
+    
     @Override
-    public void handleToolSelection() {
+    public void handleToolSelection(boolean selected)
+    {
+        //handleFullScreen(selected && VUE.inFullScreen(), VUE.inNativeFullScreen());
+
+        VueAction.setAllActionsIgnored(selected);
+        
+        if (!selected)
+            return;
+
         mCurrentPage = NO_PAGE;
         if (VUE.getSelection().size() == 1)
             mNextPage = VUE.getSelection().first();
@@ -926,15 +1013,13 @@ private static int OverviewMapSizeIndex = 5;
     public void out(String s) {
         System.out.println("PRESENTATION: " + s);
     }
-    
 
-    private void setPage(final Page page, boolean recordBackup)
+
+    private void recordPageTransition(final Page page, boolean recordBackup)
     {
-        final MapViewer viewer = VUE.getActiveViewer();
-        
         if (DEBUG.WORK||DEBUG.PRESENT) {
             System.out.println("\n-----------------------------------------------------------------------------");
-            out("setPage " + page);
+            out("pageTransition " + page);
         }
 
         if (page == null) // for now
@@ -949,13 +1034,6 @@ private static int OverviewMapSizeIndex = 5;
                 mVisited.rollBack();
         }
 
-        final boolean doSlideTransition;
-
-        if (mCurrentPage != null && mCurrentPage.entry != null && page.entry != null)
-            doSlideTransition = true;
-        else
-            doSlideTransition = false;
-
         mLastPage = mCurrentPage;
         mCurrentPage = page;
 
@@ -969,9 +1047,42 @@ private static int OverviewMapSizeIndex = 5;
         
         mNextPage = null;
         mNavNodes.clear();
-        viewer.clearTip();
+    }
+    
+    
+
+    private boolean pageLoadingUnderway = false;
+    private void setPage(final Page page, boolean recordBackup)
+    {
+        if (page == null) { // for now
+            tufts.Util.printStackTrace("null page!");
+            return;
+        }
+        
+        recordPageTransition(page, recordBackup);
+        
+        
+//         final boolean doSlideTransition;
+
+//         if (mCurrentPage != null && mCurrentPage.entry != null && page.entry != null)
+//             doSlideTransition = true;
+//         else
+//             doSlideTransition = false;
+
+        final MapViewer viewer = VUE.getActiveViewer();
+        
+        viewer.clearTip(); // just in case
+
+        pageLoadingUnderway = true;
+        try {
+            // the viewer will shortly call us right back with handleFocalLoading:
+            viewer.switchFocal(page.getPresentationFocal());
+        } finally {
+            pageLoadingUnderway = false;
+        }
 
 
+        /*
         if (doSlideTransition && mFadeEffect) {
         
             // It case there was a tip visible, we need to make sure
@@ -1017,16 +1128,6 @@ private static int OverviewMapSizeIndex = 5;
                     // see the animation across the map
                     if (DEBUG.WORK) out("loadFocal of parent for x-zoom: " + newParent);
                     viewer.loadFocal(newParent);
-                    /*
-                      // this just hosing us...
-                    GUI.invokeAfterAWT(new Runnable() {
-                            public void run() {
-                                ZoomTool.setZoomFitRegion(viewer,
-                                                          newFocal.getBounds(),
-                                                          0,
-                                                          false);
-                            }});
-                    */
                 }
             } else
                 animate = false;
@@ -1036,8 +1137,178 @@ private static int OverviewMapSizeIndex = 5;
             zoomToFocal(newFocal, animate);
             //}});
         }
+        */
+    }
+
+    private java.awt.geom.Rectangle2D.Float getFocalBounds(LWComponent c) {
+        if (c instanceof LWSlide &&
+            c.getParent() instanceof LWPathway
+            && (mFocal == null || !mFocal.hasAncestor(c))) // use the real bounds if we're within the slide
+        {
+            // hack for slide icons, as long as we're not the focal
+            // (in which case, we need our REAL bounds to animate
+            // amongst our contents: the slide contents)
+            
+            LWComponent node = ((LWSlide)c).getSourceNode();
+
+            if (node != null && node.isDrawingSlideIcon())
+                return ((LWSlide)c).getSourceNode().getMapSlideIconBounds();
+            else if (node != null)
+                return node.getBounds();
+            else {
+                // We're presumably on a "combo" node that's not on the map:
+                out("fallback to map bounds for focal bounds for " + c);
+                return c.getMap().getBounds();
+            }
+        } else {
+            return c.getBounds();
+        }
+    }
+
+    @Override
+    public boolean handleFocalSwitch(final MapViewer viewer,
+                                     final LWComponent oldFocal,
+                                     final LWComponent newFocal)
+    {
+        if (DEBUG.PRESENT) out("handleFocalSwitch in " + viewer
+                               + "\n\tfrom: " + oldFocal
+                               + "\n\t  to: " + newFocal);
+        
+        if (!pageLoadingUnderway)
+            recordPageTransition(new Page(newFocal), true);
+        
+        final boolean isSlideTransition;
+
+        if (mCurrentPage != null && mLastPage.entry != null && mCurrentPage.entry != null)
+            isSlideTransition = true;
+        else
+            isSlideTransition = false;
+
+        if (isSlideTransition && mFadeEffect) {
+        
+            // It case there was a tip visible, we need to make sure
+            // we wait for it to finish clearing before we move on, so
+            // we need to put the rest of this in the queue.  (if we
+            // don't do this, the screen fades out & comes back before
+            // the map has panned)
+            
+            VUE.invokeAfterAWT(new Runnable() {
+                    public void run() {
+                        if (mFadeEffect)
+                            makeInvisible();
+                        mFocal = mCurrentPage.getPresentationFocal();
+                        viewer.loadFocal(mFocal, true);
+                        //zoomToFocal(page.getPresentationFocal(), false);
+                        //zoomToFocal(page.getPresentationFocal(), !mFadeEffect);
+                        if (mScreenBlanked)
+                            makeVisibleLater();
+                    }
+                });
+
+            return true;
+        }
+            
+            
+        
+        
+//         // Figure out if this transition is across a continuous coordinate
+//         // region (so we can animate).  E.g., we're moving across the map,
+//         // or within a single slide.  Slides and the map they're a part of
+//         // exist in separate coordinate spaces, and we can't animate
+//         // across that boundary.
+//         final LWComponent oldParent = oldFocal == null ? null : oldFocal.getParent();
+//         final LWComponent newParent = newFocal.getParent();
+//         final LWComponent lastSlideAncestor = oldFocal == null ? null : oldFocal.getAncestorOfType(LWPathway.class);
+//         final LWComponent thisSlideAncestor = newFocal.getAncestorOfType(LWPathway.class);
+
+        LWComponent animatingFocal = null; // a TEMPORARY focal to animate across
+
+        if (oldFocal instanceof LWSlide || newFocal instanceof LWSlide)
+            animatingFocal = newFocal.getMap();
+        else if (oldFocal.hasAncestor(newFocal))
+            animatingFocal = newFocal;
+        
+
+        boolean loaded = false;
+        if (animatingFocal != null) {
+            // if the new focal is a parent of old focal, first
+            // load it (without auto-zooming), so we can pan across
+            // it while we animate
+            if (DEBUG.PRESENT) out("animating focal: " + animatingFocal);
+            viewer.loadFocal(animatingFocal, false);
+            mFocal = newFocal;
+            if (animatingFocal == newFocal)
+                loaded = true;
+            
+            // now zoom to the current focal within the new parent focal: this should
+            // have the effect of making the parent focal visible, while the viewer is
+            // actually in the same place on the old focal within the new focal: (todo:
+            // this would actually be good default MapViewer behavior: if load the focal
+            // of any ancestor, leave is looking at the same absolute map location,
+            // which means adjusting our offset within the new focal)
+            
+            ZoomTool.setZoomFitRegion(viewer,
+                                      getFocalBounds(oldFocal),
+                                      oldFocal.getFocalMargin(),
+                                      false);
+            
+
+        }
+
+//         if (newFocal instanceof LWSlide || oldFocal instanceof LWSlide)
+//          if (oldFocal instanceof LWSlide)
+//             ; // NO ANIMATION -- slides don't really exist on the map
+//         else
+            animateToFocal(viewer, newFocal);
+            
+        //if (oldParent == newParent || lastSlideAncestor == thisSlideAncestor)
+
+        if (!loaded) {
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                mFocal = newFocal;
+                viewer.loadFocal(newFocal, true);
+            }});
+        }
+
+
+        return true;
+        
+            
+//         if (oldParent == newParent || lastSlideAncestor == thisSlideAncestor) {
+                
+//             animate = true;
+            
+//             //if (oldParent == newParent && newParent instanceof LWMap && !(newFocal instanceof LWPortal)) {
+//             if (false && oldParent == newParent && newParent instanceof LWMap && !(newFocal instanceof LWPortal)) {
+//                 // temporarily load the map as the focal so we can
+//                 // see the animation across the map
+//                 if (DEBUG.WORK) out("loadFocal of parent for x-zoom: " + newParent);
+//                 viewer.loadFocal(newParent);
+//             }
+//         } else
+//             animate = false;
+        
+//         //GUI.invokeAfterAWT(new Runnable() { public void run() {
+//         // don't invoke later: is allowing an overview map repaint in an intermediate state
+//         animateToFocal(viewer, newFocal);
+//         //}});
+//        return false;
     }
     
+    
+    private void animateToFocal(MapViewer viewer, LWComponent focal) {
+        if (DEBUG.WORK) out("zoomToFocal: animating to " + focal);
+
+//         if (focal instanceof LWMap)
+//             ZoomTool.setZoomFit(viewer, true);
+//         else
+            ZoomTool.setZoomFitRegion(viewer,
+                                      getFocalBounds(focal),
+                                      focal.getFocalMargin(),
+                                      true);
+    }
+
+    /*
     private void zoomToFocal(LWComponent focal, boolean animate) {
         final MapViewer viewer = VUE.getActiveViewer();
         
@@ -1051,6 +1322,8 @@ private static int OverviewMapSizeIndex = 5;
         if (DEBUG.WORK) out("zoomToFocal: final viewer load: " + focal);
         viewer.loadFocal(focal);
     }
+    */
+    
     
 
     @Override
@@ -1118,13 +1391,14 @@ private static int OverviewMapSizeIndex = 5;
             //dc.g.setFont(VueConstants.FixedFont);
             dc.g.setFont(new Font("Lucida Sans Typewriter", Font.BOLD, 10));
             //dc.g.setColor(new Color(128,128,128,192));
-            dc.g.setColor(Color.gray);
+            dc.g.setColor(Color.green);
             int y = 10;
-            dc.g.drawString("  Frame: " + tufts.Util.out(dc.frame), 10, y+=15);
-            dc.g.drawString("Pathway: " + mPathway, 10, y+=15);
-            dc.g.drawString("   Page: " + mCurrentPage, 10, y+=15);
-            dc.g.drawString("  Focal: " + mCurrentPage.getPresentationFocal(), 10, y+=15);
-            dc.g.drawString(" OnPath: " + inCurrentPathway(), 10, y+=15);
+            dc.g.drawString("       Frame: " + tufts.Util.out(dc.frame), 10, y+=15);
+            dc.g.drawString("        Page: " + mCurrentPage, 10, y+=15);
+            dc.g.drawString("      OnPath: " + inCurrentPathway(), 10, y+=15);
+            dc.g.drawString("     Pathway: " + mPathway, 10, y+=15);
+            dc.g.drawString("LastPathPage: " + mLastPathwayPage, 10, y+=15);
+            dc.g.drawString("CurPageFocal: " + mCurrentPage.getPresentationFocal(), 10, y+=15);
             y+=5;
 
             dc.g.setFont(new Font("Lucida Sans Typewriter", Font.BOLD, 10));

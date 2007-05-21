@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.281 $ / $Date: 2007-05-18 23:10:53 $ / $Author: sfraize $
+ * @version $Revision: 1.282 $ / $Date: 2007-05-21 04:30:45 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2418,7 +2418,7 @@ u                    getSlot(c).setFromString((String)value);
         return getParent().getParentWithParent(parent);
     }
 
-    public boolean hasAncestor(LWContainer c) {
+    public boolean hasAncestor(LWComponent c) {
         LWComponent parent = getParent();
         if (parent == null)
             return false;
@@ -2457,6 +2457,11 @@ u                    getSlot(c).setFromString((String)value);
         // Not that this will probably hurt anything: it'll never be referenced by a VueTool,
         // so we'll never see it even if it winds up in the typed style cache.
         return getClass();
+    }
+
+    /** @return the viewer margin in pixels when we're the focal -- default is 30 */
+    public int getFocalMargin() {
+        return 30;
     }
     
     void setScale(double scale)
@@ -3499,6 +3504,8 @@ u                    getSlot(c).setFromString((String)value);
 
             Rectangle2D.Float slideFrame = getSlideIconBounds();
 
+            //slide.setLocation(slideFrame.x, slideFrame.y);
+
             dc.setClipOptimized(false);
             dc.g.translate(slideFrame.x, slideFrame.y);
             dc.g.scale(SlideScale, SlideScale);
@@ -3507,6 +3514,7 @@ u                    getSlot(c).setFromString((String)value);
             slide.drawImpl(dc);
 
             Rectangle2D border = slide.getBounds();
+            //Rectangle2D border = slideFrame;
             dc.g.setColor(slide.getRenderFillColor(dc).darker());
             dc.g.setStroke(VueConstants.STROKE_SEVEN);
             dc.g.draw(border);

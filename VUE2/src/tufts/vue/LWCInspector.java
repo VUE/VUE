@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import java.lang.reflect.*;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -84,7 +85,7 @@ class LWCInspector extends javax.swing.JPanel
     private java.util.Map<JTextField,LWComponent.Key> fieldKeys = new java.util.HashMap();
 
     private JCheckBox lockBtn = new JCheckBox("Lock");
-    
+
     public LWCInspector()
     {
         //extraPanel.setLayout(new BorderLayout());
@@ -569,5 +570,104 @@ class LWCInspector extends javax.swing.JPanel
         return "LWCInspector@" + Integer.toHexString(hashCode());
     }
 
+
+    static class Introspector extends javax.swing.JPanel
+        implements ActiveListener
+    {
+        final StringBuffer text = new StringBuffer();
+        final JTextArea textArea = new JTextArea();
+
+        final Map<Class,Object> allActive = new HashMap();
+        // todo: keep sorted so we can see order of active items
+
+        public Introspector() {
+            setLayout(new BorderLayout());
+            setBorder(new EmptyBorder(2,2,2,2));
+            ActiveInstance.addAllActiveListener(this);
+            textArea.setFont(VueConstants.LargeFixedFont);
+            add(new JScrollPane(textArea,
+                                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+                                ));
+        }
+
+        public synchronized void activeChanged(ActiveEvent e) {
+            allActive.put(e.type, e.active);
+            updateText();
+        }
+
+        private void updateText() {
+            text.setLength(0);
+            for (Map.Entry<Class,Object> e : allActive.entrySet()) {
+
+                
+                //text.append(String.format("%30s: %s\n",
+                text.append(String.format("\n%s: %s\n",
+                                          e.getKey().getName(),
+                                          e.getValue()));
+
+                addMethodData(e.getValue());
+                
+                
+                //text.append(e.getKey().getName() + ": " + e.getValue() + "\n");
+            }
+            textArea.setText(text.toString());
+        }
+
+        private void addMethodData(Object instance) {
+
+            if (instance == null)
+                return;
+
+            final Class clazz = instance.getClass();
+            final Method[] methods;
+
+            if (LWComponent.class.isInstance(instance) ||
+                VueTool.class.isInstance(instance)
+                )
+                methods = clazz.getMethods();
+            else
+                methods = clazz.getDeclaredMethods(); // includes private's, excludes super-class methods
+
+            for (Method m : methods) {
+                if (m.getReturnType() == void.class || m.getParameterTypes().length > 0)
+                    continue;
+                //text.append("\t" + m.getName() + "\n");
+                //text.append(String.format("\t%32-s %-30s %s\n",
+
+                Object value = null;
+
+                if ("duplicate".equals(m.getName()) || "clone".equals(m.getName()))
+                    value = "not invoked:" + m.getName();
+                
+                try {
+                    if (value == null)
+                        value = m.invoke(instance);
+                } catch (java.lang.reflect.InvocationTargetException t) {
+                    value = t.getCause();
+                } catch (Throwable t) {
+                    //tufts.Util.printStackTrace(t, m + ": " + instance);
+                    value = t;
+                }                    
+                    
+                if (false)
+                    text.append("\t" + m + "\n");
+                else
+                    text.append(String.format("%-23s %-30s %s\n",
+                                              shortTypeName(m.getReturnType()),
+                                              m.getName(),
+                                              value));
+            }
+
+        }
+
+        private static String shortTypeName(Class type) {
+            String name = type.getName();
+            if (name.indexOf('.') > 0)
+                return name.substring(name.lastIndexOf('.')+1, name.length());
+            else
+                return name;
+        }
+    }
 
 }

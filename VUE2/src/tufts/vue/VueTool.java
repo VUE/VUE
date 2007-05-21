@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.69 $ / $Date: 2007-05-18 04:44:45 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -360,7 +360,7 @@ public abstract class VueTool extends AbstractAction
     }
 
     /** what to do, if anything, when the tool is selected */
-    public void handleToolSelection() {}
+    public void handleToolSelection(boolean selected) {}
 
     public DrawContext getDrawContext(DrawContext dc) {
         return dc;
@@ -369,7 +369,12 @@ public abstract class VueTool extends AbstractAction
     public void handlePreDraw(DrawContext dc, MapViewer viewer) {}
     public void handlePostDraw(DrawContext dc, MapViewer viewer) {}
     
-    public void handleFullScreen(boolean fullScreen) {}
+    /**
+     * called upon entering/exiting full screen
+     * @param entering -- true if entering full screen, false if exiting
+     * @param nativeMode -- true if entering or exiting native (non-working) full screen mode
+     */
+    public void handleFullScreen(boolean entering, boolean nativeMode) {}
 
     /** @return true if this tool is currently preventing changes to any other active tool */
     public boolean isLockingActiveTool() {
@@ -403,6 +408,9 @@ public abstract class VueTool extends AbstractAction
     public boolean handleKeyPressed(java.awt.event.KeyEvent e) { return false; }
     public boolean handleKeyReleased(java.awt.event.KeyEvent e) { return false; }
     
+    /** @return false by default: returning true will have the effect of disabling the tool-tip style
+     * node rollovers on the map.
+     */
     public boolean handleMouseMoved(MapMouseEvent e) {
         if (DEBUG.MOUSE && DEBUG.META) System.out.println(this + " handleMouseMoved " + e);
         return false;
@@ -425,7 +433,15 @@ public abstract class VueTool extends AbstractAction
     public void handleMouseClicked(MapMouseEvent e) {
         if (DEBUG.TOOL) System.out.println(this + " handleMouseClicked " + e);
     }
+
     public void handleDragAbort() {}
+    
+    /** @return false by default: impl's can return true if they don't
+     * want the viewer to change the display on focal load (e.g., do a zoom fit)
+     */
+    public boolean handleFocalSwitch(MapViewer viewer, LWComponent oldFocal, LWComponent newFocal) {
+        return false;
+    }
 
     public boolean handleSelectorRelease(MapMouseEvent e) {
         if (DEBUG.TOOL) System.out.println(this + " handleSelectorRelease " + e);
@@ -574,7 +590,8 @@ public abstract class VueTool extends AbstractAction
      * @param pTool - the selected subtool
      **/
     public void setSelectedSubTool( VueTool pTool) {
-        if (DEBUG.TOOL) out("setSelectedSubTool: " + pTool);
+        //if (DEBUG.TOOL) out("setSelectedSubTool: " + pTool);
+        if (DEBUG.TOOL) tufts.Util.printStackTrace("setSelectedSubTool: " + pTool);
         mSelectedSubTool = pTool;
     }
 	
@@ -780,7 +797,7 @@ public abstract class VueTool extends AbstractAction
             parent.setSelectedSubTool(this);
 
         if (parent != null)
-            parent.handleToolSelection();
+            parent.handleToolSelection(true);
         if (this.hasSubTools())
         	VueToolbarController.getController().handleToolSelection(this.getSelectedSubTool());
         else

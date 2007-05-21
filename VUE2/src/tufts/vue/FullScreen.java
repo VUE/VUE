@@ -79,12 +79,17 @@ public class FullScreen {
 
         if (!FullScreen.inFullScreen())
         {
-        		tufts.vue.VueToolbarController.getController().setSelectedTool(tufts.vue.VueToolbarController.getController().getSelectedTool());
+            tufts.vue.VueToolbarController.getController()
+                .setSelectedTool(tufts.vue.VueToolbarController.getController().getSelectedTool());
 
         }
-        else
+        else if (!goNative)
         {
-        	tufts.vue.VueToolbarController.getController().setSelectedTool(VUE.getFloatingZoomPanel().getSelectedTool());
+            tufts.vue.VueToolbarController.getController()
+                .setSelectedTool(VUE.getFloatingZoomPanel().getSelectedTool());
+            // Is causing event loop:
+            //VUE.setActive(VueTool.class, FullScreen.class, VUE.getFloatingZoomPanel().getSelectedTool());
+            
         	
         }
         VUE.getActiveViewer().requestFocus();
@@ -244,7 +249,7 @@ public class FullScreen {
             GUI.setFullScreenVisible(fullScreenWindow);
         }
                 
-        activeTool.handleFullScreen(true);
+        activeTool.handleFullScreen(true, goNative);
                     
         /*
         if (false && fullScreenWindow != VUE.getMainWindow() && VUE.getMainWindow() != null) {
@@ -267,8 +272,9 @@ public class FullScreen {
         NDC.push("[<-FS]");
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice device = ge.getDefaultScreenDevice();
+        final boolean wasNative = inNativeFullScreen();
         
-        VUE.Log.debug("Exiting full screen mode, inNative=" + VUE.inNativeFullScreen());
+        VUE.Log.debug("Exiting full screen mode, inNative=" + wasNative);
 
         //javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(false);
         //javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(true);
@@ -307,7 +313,7 @@ public class FullScreen {
         GUI.invokeAfterAWT(new Runnable() {
                 public void run() {
                     //VUE.Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
-                    VueToolbarController.getActiveTool().handleFullScreen(false);
+                    VueToolbarController.getActiveTool().handleFullScreen(false, wasNative);
                     NDC.pop();
                 }});
 
