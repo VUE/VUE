@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.386 $ / $Date: 2007-05-21 16:27:50 $ / $Author: sfraize $ 
+ * @version $Revision: 1.387 $ / $Date: 2007-05-21 20:49:49 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1095,14 +1095,23 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //repaint();
     }
 
+    protected boolean popFocal() {
+        return popFocal(false);
+    }
+    
     /** refocus the viewer on the parent of the curent focal
      * @return true if we were able to change the focal
      */
-    protected boolean popFocal()
+    protected boolean popFocal(boolean toTopLevel)
     {
         if (DEBUG.WORK) out("popFocal up from " + mFocal);
         if (mFocal == null)
             return false;
+
+        if (toTopLevel) {
+            switchFocal(mFocal.getMap());
+            return true;
+        }
         
         LWComponent parent = mFocal.getParent();
         if (parent instanceof LWPathway)
@@ -3660,7 +3669,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             case KeyEvent.VK_ENTER:
                 if (!(mFocal instanceof LWMap) && !(this instanceof tufts.vue.ui.SlideViewer)) { // total SlideViewer hack...
-                    handled = popFocal();
+                    handled = popFocal(e.isShiftDown());
                 } else if (Actions.Rename.isUserEnabled()) {
                     // since removing this action from the main menu, we have to fire it manually
                     // todo: handle this kind of thing generically (make sure all action key bindings installed)
@@ -3700,7 +3709,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // too easy to accidentally hit this instead of the return
                 // key while in presentation mode, so only allow if
                 // debug is enabled.
-                if (anyModifierKeysDown(e) || !DEBUG.Enabled) {
+                if (anyModifierKeysDown(e) || !DEBUG.Enabled || VUE.inFullScreen()) {
                     // do NOT fire this internal shortcut of '\' for fullscreen
                     // if the actual action (Command-\) was fired.
                     handled = false;
