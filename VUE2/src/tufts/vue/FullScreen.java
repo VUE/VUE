@@ -311,16 +311,17 @@ public class FullScreen {
 //             if (fullScreenOldVUESize != null)
 //                 VUE.getMainWindow().setSize(fullScreenOldVUESize); // mac window manager won't go to 0
             //VUE.getMainWindow.setExtendedState(Frame.NORMAL); // iconifies but only until an Option-TAB switch-back
-            GUI.invokeAfterAWT(new Runnable() {
-                    public void run() {
-                        VUE.Log.debug("showing main window " + VUE.getMainWindow());
-                        VUE.getMainWindow().setVisible(true);
-                    }});
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                VUE.Log.debug("showing main window " + VUE.getMainWindow());
+                VUE.getMainWindow().setVisible(true);
+            }});
         }
 
         if (nativeModeHidAllDockWindows) {
-            DockWindow.ToggleAllVisible();
-            nativeModeHidAllDockWindows = false;
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                DockWindow.ToggleAllVisible();
+                nativeModeHidAllDockWindows = false;
+            }});
         }
 
         
