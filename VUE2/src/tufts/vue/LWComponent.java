@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.282 $ / $Date: 2007-05-21 04:30:45 $ / $Author: sfraize $
+ * @version $Revision: 1.283 $ / $Date: 2007-05-21 20:51:34 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -891,25 +891,30 @@ u                    getSlot(c).setFromString((String)value);
          * e.g.: white returns 1, black returns 0
          */
         public float brightness() {
-            
-            if (value == null)
-                return 0;
-
-            final int r = value.getRed();
-            final int g = value.getGreen();
-            final int b = value.getBlue();
-
-            int max = (r > g) ? r : g;
-            if (b > max) max = b;
-            
-            return ((float) max) / 255f;
+            return LWComponent.brightness(value);
          }
+
 
         String asString() {
             return ColorToString(get());
         }
     }
     
+    public static float brightness(java.awt.Color c) {
+            
+        if (c == null)
+            return 0;
+
+        final int r = c.getRed();
+        final int g = c.getGreen();
+        final int b = c.getBlue();
+
+        int max = (r > g) ? r : g;
+        if (b > max) max = b;
+            
+        return ((float) max) / 255f;
+    }
+        
     public static Color StringToColor(final String s)
     {
         if (s.trim().length() < 1)
@@ -2262,27 +2267,58 @@ u                    getSlot(c).setFromString((String)value);
         return bag;
     }
 
+    public Rectangle2D.Float getFanBounds() {
+        return getFanBounds(null);
+
+    }
+
+    /** @return the union of the bounds of the current component, all connected links, and all far endpoints
+     * of those links.
+     */
+    public Rectangle2D.Float getFanBounds(Rectangle2D.Float rect) {
+
+        if (rect == null)
+            rect = getBounds();
+        else
+            rect.setRect(getBounds());
+            
+        for (LWLink link : getLinks()) {
+            final LWComponent head = link.getHead();
+            final LWComponent tail = link.getTail();
+
+            rect.add(link.getBounds());
+            
+            if (head != this) {
+                if (head != null)
+                    rect.add(head.getBounds());
+            } else if (tail != this) {
+                if (tail != null)
+                    rect.add(tail.getBounds());
+            } 
+        }
+        return rect;
+        
+    }
+
     
     /** @return a list of all LWComponents at the far end of any links that are connected to us */
     public Collection<LWComponent> getLinkEndPoints() {
         // default uses a set, in case there are multiple links to the same endpoint
         return getLinkEndPoints(new HashSet(getLinks().size()));
     }
-    
+
     public Collection<LWComponent> getLinkEndPoints(Collection bag)
     {
         for (LWLink link : getLinks()) {
-            LWComponent head = link.getHead();
-            LWComponent tail = link.getTail();
+            final LWComponent head = link.getHead();
+            final LWComponent tail = link.getTail();
             if (head != this) {
                 if (head != null)
                     bag.add(head);
             } else if (tail != this) {
                 if (tail != null)
                     bag.add(tail);
-            } else
-                throw new IllegalStateException("link to self on " + this);
-            
+            }
         }
         return bag;
     }
@@ -3513,9 +3549,21 @@ u                    getSlot(c).setFromString((String)value);
             //entry.pathway.getMasterSlide().drawImpl(dc);
             slide.drawImpl(dc);
 
-            Rectangle2D border = slide.getBounds();
             //Rectangle2D border = slideFrame;
-            dc.g.setColor(slide.getRenderFillColor(dc).darker());
+            // todo: move to LWSlide.drawImpl:
+            Rectangle2D border = slide.getBounds();
+            final Color slideFill = slide.getRenderFillColor(dc);
+            final Color iconBorder;
+            // todo: create a contrastColor, which node icon border's can also use
+            if (brightness(slideFill) == 0)
+                iconBorder = Color.gray;
+            else if (brightness(slideFill) > 0.5)
+                iconBorder = slideFill.darker();
+            else
+                iconBorder = slideFill.brighter();
+            //out("slideFillr: " + slideFill);
+            //out("iconBorder: " + iconBorder);
+            dc.g.setColor(iconBorder);
             dc.g.setStroke(VueConstants.STROKE_SEVEN);
             dc.g.draw(border);
 
