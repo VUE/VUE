@@ -19,7 +19,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.8 $ / $Date: 2007-05-21 18:58:49 $ / $Author: dan $
+ * @version $Revision: 1.9 $ / $Date: 2007-05-21 20:19:12 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -36,6 +36,7 @@ import java.awt.event.ActionListener;
 import java.beans.*;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -90,12 +91,46 @@ public class MapsSelectionPanel extends JPanel  {
            public void actionPerformed(ActionEvent e)
            {
                JFileChooser choose = new JFileChooser();
+               VueFileFilter vff = new VueFileFilter("vue");
+               choose.setFileFilter(vff);
+               choose.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
                choose.showOpenDialog(MapsSelectionPanel.this);
-               String name = choose.getSelectedFile().getAbsolutePath();//.getName();
-               ((MapTableModel)maps.getModel()).addRow(name);
-               fileName.setText(name);
-               revalidate();
-               scroll.getViewport().revalidate();
+               File choice = choose.getSelectedFile();
+               if(choice.isDirectory())
+               {
+                  java.io.FileFilter iff = new java.io.FileFilter()
+                  {
+                      public boolean accept(File file)
+                      {
+                          if(file.getName().substring(file.getName().lastIndexOf(".")+1,file.getName().length()).equals("vue"))
+                            return true;
+                          else 
+                            return false;
+                      }
+                      
+                      public String getDescrption()
+                      {
+                          return "VUE FILE";
+                      }
+                  };
+                  File[] files =  choice.listFiles(iff);
+                  for(int i=0;i<files.length;i++)
+                  {
+                      String name = files[files.length-1-i].getAbsolutePath();
+                      ((MapTableModel)maps.getModel()).addRow(name);
+                      fileName.setText(name);
+                      revalidate();
+                      scroll.getViewport().revalidate();
+                  }
+               }
+               else
+               {    
+                  String name = choice.getAbsolutePath();//.getName();
+                  ((MapTableModel)maps.getModel()).addRow(name);
+                  fileName.setText(name);
+                  revalidate();
+                  scroll.getViewport().revalidate();
+               }
            }
         });
         VUE.getTabbedPane().addContainerListener(new java.awt.event.ContainerListener()
@@ -126,6 +161,7 @@ public class MapsSelectionPanel extends JPanel  {
             {
                 revalidate();
                 repaint();
+                scroll.getViewport().revalidate();
                 //System.out.println("MSP: VUE tabbed pane property change event " + e.getPropertyName());
             }
         });
