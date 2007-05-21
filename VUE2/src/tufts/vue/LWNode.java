@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.163 $ / $Date: 2007-05-18 23:26:23 $ / $Author: sfraize $
+ * @version $Revision: 1.164 $ / $Date: 2007-05-21 20:52:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1853,7 +1853,7 @@ public class LWNode extends LWContainer
     {
         if (DEBUG.LAYOUT) if (!isAutoSized()) return Color.green; // LAYOUT-NEW
 
-        if (dc == null) // TextBox
+        if (dc == null || dc.focal == this) // TextBox or presentation focal
             return super.getRenderFillColor(dc);
         
         // TODO: cleanup using new ColorProperty methods & super.getRenderFillColor with drawContext
