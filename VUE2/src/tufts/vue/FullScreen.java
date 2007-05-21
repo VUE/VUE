@@ -248,7 +248,7 @@ public class FullScreen {
 
             if (!DockWindow.AllWindowsHidden()) {
                 nativeModeHidAllDockWindows = true;
-                DockWindow.ToggleAllVisible();
+                DockWindow.HideAllWindows();
             }
             
                             
@@ -318,9 +318,9 @@ public class FullScreen {
         }
 
         if (nativeModeHidAllDockWindows) {
+            nativeModeHidAllDockWindows = false;
             GUI.invokeAfterAWT(new Runnable() { public void run() {
-                DockWindow.ToggleAllVisible();
-                nativeModeHidAllDockWindows = false;
+                DockWindow.ShowPreviouslyHiddenWindows();
             }});
         }
 

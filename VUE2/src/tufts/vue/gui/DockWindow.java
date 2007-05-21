@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.101 $ / $Date: 2007-05-21 16:31:27 $ / $Author: sfraize $
+ * @version $Revision: 1.102 $ / $Date: 2007-05-21 16:36:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -851,8 +851,7 @@ public class DockWindow extends javax.swing.JWindow
     }
 
     public static void ToggleAllVisible() {
-        AllVisible = !AllVisible;
-        if (AllVisible)
+        if (!AllVisible)
             ShowPreviouslyHiddenWindows();
         else
             HideAllWindows();
@@ -862,15 +861,17 @@ public class DockWindow extends javax.swing.JWindow
         return !AllVisible;
     }
 
-    private static void HideAllWindows() {
+    public synchronized static void HideAllWindows() {
+        AllVisible = false;
         for (DockWindow dw : AllWindows) {
             dw.mWasVisible = dw.isVisible();
             if (dw.mWasVisible)
                 dw.superSetVisible(false);
         }
     }
-    private static void ShowPreviouslyHiddenWindows() {
+    public synchronized static void ShowPreviouslyHiddenWindows() {
         if (VUE.inNativeFullScreen()) {
+            System.out.println(DockWindow.class + ": Ignoring show all windows: in native full screen");
             // don't touch windows if in native full screen, as can
             // completely hang us on Mac OS X
             return;
@@ -884,6 +885,7 @@ public class DockWindow extends javax.swing.JWindow
         // it when they go visible:
         if (VUE.getActiveViewer() != null)
             VUE.getActiveViewer().requestFocus();
+        AllVisible = true;
     }
     
 
