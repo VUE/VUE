@@ -120,7 +120,13 @@ public class Ontology {
             }
             type.setBase(base);
             type.setComment(c.getComment(null));
+            Style style;
+            if(c instanceof OntClass) 
+               style = NodeStyle.DEFAULT_NODE_STYLE;
+            else
+                style = edu.tufts.vue.style.LinkStyle.DEFAULT_LINK_STYLE;
             types.add(type);
+            
         }
         
     }
