@@ -19,6 +19,7 @@ public class FullScreen {
     
     private static boolean fullScreenMode = false;
     private static boolean fullScreenNative = false; // using native full-screen mode, that hides even mac menu bar?
+    private static boolean nativeModeHidAllDockWindows;
     private static Window fullScreenWindow = null;
     private static Container fullScreenOldParent = null;
     private static Point fullScreenOldVUELocation;
@@ -39,7 +40,7 @@ public class FullScreen {
         toggleFullScreen(false);
     }
     
-    static void toggleFullScreen(final boolean goNative)
+    static synchronized void toggleFullScreen(final boolean goNative)
     {
         // TODO: getMapAt in MapTabbedPane fails returning null when, of course, MapViewer is parented out!
                 
@@ -244,6 +245,12 @@ public class FullScreen {
             // allowed in mac full-screen, and it apparently auto-switches context somehow for you,
             // but just leaves you at a fully blank screen that you can sometimes never recover from
             // without powering off!  This true as of java version "1.4.2_05-141.3", Mac OS X 10.3.5/6.
+
+            if (!DockWindow.AllWindowsHidden()) {
+                nativeModeHidAllDockWindows = true;
+                DockWindow.ToggleAllVisible();
+            }
+            
                             
         } else {
             GUI.setFullScreenVisible(fullScreenWindow);
@@ -310,6 +317,13 @@ public class FullScreen {
                         VUE.getMainWindow().setVisible(true);
                     }});
         }
+
+        if (nativeModeHidAllDockWindows) {
+            DockWindow.ToggleAllVisible();
+            nativeModeHidAllDockWindows = false;
+        }
+
+        
         GUI.invokeAfterAWT(new Runnable() {
                 public void run() {
                     //VUE.Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
