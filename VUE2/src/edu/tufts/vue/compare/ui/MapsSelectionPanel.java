@@ -19,7 +19,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.6 $ / $Date: 2007-05-18 13:51:10 $ / $Author: dan $
+ * @version $Revision: 1.7 $ / $Date: 2007-05-21 18:02:45 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -65,10 +65,16 @@ public class MapsSelectionPanel extends JPanel  {
     public static final String stepOneMessage = "1. Create a set of maps from currently open maps and/or from maps stored on your computer";
     public static final String stepTwoMessage = "2. Pick a \"guide\" map to define the layout of the new merged map";
     
+    // originally from Visualization Settings Panel:
+    public final static String filterOnBaseMapMessageString = "Only include items found on the layout map";
+    
     private JScrollPane scroll;
     private JTable maps;
     private JTextField fileName;
     private JButton browseButton;
+    
+    private JPanel bottomPanel;
+    private JCheckBox filterOnBaseMap;
     
     private MapsSelectionPanel() 
     {
@@ -135,7 +141,18 @@ public class MapsSelectionPanel extends JPanel  {
         //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(stepTwoLabel,gridBagConstraints);
         stepTwoLabel.setBorder(BorderFactory.createEmptyBorder(0,0,15,0));
-        add(stepTwoLabel);
+        add(stepTwoLabel);  
+               
+        bottomPanel = new JPanel();
+        filterOnBaseMap = new JCheckBox();
+        JLabel filterOnBaseMapMessage = new JLabel(filterOnBaseMapMessageString);
+        bottomPanel.add(filterOnBaseMap);
+        bottomPanel.add(filterOnBaseMapMessage);
+        gridBagConstraints.weighty = 0.0;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        gridBag.setConstraints(bottomPanel,gridBagConstraints);
+        add(bottomPanel);
         
         JLabel selectMapsLabel = new JLabel("Select maps:");
         selectMapsLabel.setBorder(BorderFactory.createEmptyBorder(0,0,0,8));
@@ -183,6 +200,7 @@ public class MapsSelectionPanel extends JPanel  {
         scroll = new JScrollPane(maps);
         gridBag.setConstraints(scroll,gridBagConstraints);
         add(scroll);
+        
     }
     
     /**
@@ -268,6 +286,14 @@ public class MapsSelectionPanel extends JPanel  {
            return map;
         }      
         
+    }
+    
+    public boolean getFilterOnBaseMap()
+    {
+        if(filterOnBaseMap.isSelected())
+            return true;
+        else
+            return false;
     }
     
     /* class MapTableModelRow
@@ -526,7 +552,7 @@ public class MapsSelectionPanel extends JPanel  {
            {
                if(getBaseMapIndex() == row)
                {
-                   return "Guide";
+                  return "Guide";
                }
                else
                {
@@ -567,7 +593,7 @@ public class MapsSelectionPanel extends JPanel  {
            if(col == 1)
                return "Name";
            if(col == 2)
-               return "Guide";
+               return "Layout";
            if(col == 3)
                return "Location";
            else

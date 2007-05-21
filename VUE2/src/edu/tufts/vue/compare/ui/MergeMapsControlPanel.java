@@ -20,7 +20,7 @@
  *
  * Created on May 8, 2007, 1:31 PM
  *
- * @version $Revision: 1.5 $ / $Date: 2007-05-21 15:07:05 $ / $Author: dan $
+ * @version $Revision: 1.6 $ / $Date: 2007-05-21 18:02:45 $ / $Author: dan $
  * @author dhelle01
  *
  * 
@@ -127,7 +127,9 @@ public class MergeMapsControlPanel extends JPanel {
         map.setIntervalBoundaries(); 
         map.setNodeThresholdSliderValue(visualizationSettingsPanel.getNodeThresholdSliderValue());
         map.setLinkThresholdSliderValue(visualizationSettingsPanel.getLinkThresholdSliderValue());
-        map.setFilterOnBaseMap(visualizationSettingsPanel.getFilterOnBaseMap());
+        //moved from Visualization panel to Maps Panel:
+        //map.setFilterOnBaseMap(visualizationSettingsPanel.getFilterOnBaseMap());
+        map.setFilterOnBaseMap(mapSelectionPanel.getFilterOnBaseMap());
     }
     
     /*public java.awt.Dimension getPreferredSize()

@@ -42,7 +42,8 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     public final static String VOTE_STRING = "Vote";
     public final static String WEIGHT_STRING = "Weight";
     public final static String visualizationSettingsChoiceMessage = "Which type of visualization would you like to use?";
-    public final static String filterOnBaseMapMessageString = "Only include items found on the guide map";
+    //moving to Select Maps Panel (and changing to "layout")
+    //public final static String filterOnBaseMapMessageString = "Only include items found on the guide map";
     
     private JComboBox visualizationChoice;
     
@@ -52,8 +53,9 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     private VoteVisualizationSettingsPanel votePanel = VoteVisualizationSettingsPanel.getSharedPanel();
     private WeightVisualizationSettingsPanel weightPanel = WeightVisualizationSettingsPanel.getSharedPanel();
    
-    private JPanel bottomPanel;
-    private JCheckBox filterOnBaseMap;
+    //moved to Maps Selection Panel
+    //private JPanel bottomPanel;
+    //private JCheckBox filterOnBaseMap;
     
     public VisualizationSettingsPanel() 
     {
@@ -83,14 +85,14 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         gridBag.setConstraints(weightPanel,gridBagConstraints);
         add(votePanel);
         
-        bottomPanel = new JPanel();
-        filterOnBaseMap = new JCheckBox();
-        JLabel filterOnBaseMapMessage = new JLabel(filterOnBaseMapMessageString);
-        bottomPanel.add(filterOnBaseMap);
-        bottomPanel.add(filterOnBaseMapMessage);
-        gridBagConstraints.weighty = 0.0;
-        gridBag.setConstraints(bottomPanel,gridBagConstraints);
-        add(bottomPanel);
+        //bottomPanel = new JPanel();
+        //filterOnBaseMap = new JCheckBox();
+        //JLabel filterOnBaseMapMessage = new JLabel(filterOnBaseMapMessageString);
+        //bottomPanel.add(filterOnBaseMap);
+        //bottomPanel.add(filterOnBaseMapMessage);
+        //gridBagConstraints.weighty = 0.0;
+        //gridBag.setConstraints(bottomPanel,gridBagConstraints);
+        //add(bottomPanel);
     }
     
     public int getVisualizationSettingsType()
@@ -112,24 +114,25 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
             if(getVisualizationSettingsType() == VOTE)
             {
                 remove(weightPanel);
-                remove(bottomPanel);
+                //moved bottonPanel to Maps Selection Panel
+                //remove(bottomPanel);
                 gridBagConstraints.weighty = 1.0;
                 gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
                 gridBag.setConstraints(votePanel,gridBagConstraints);
                 add(votePanel);
-                add(bottomPanel);
+                //add(bottomPanel);
                 revalidate();
                 repaint();
             }
             if(getVisualizationSettingsType() == WEIGHT)
             {
                 remove(votePanel);
-                remove(bottomPanel);
+                //remove(bottomPanel);
                 gridBagConstraints.weighty = 1.0;
                 gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
                 gridBag.setConstraints(weightPanel,gridBagConstraints);
                 add(weightPanel);
-                add(bottomPanel);
+                //add(bottomPanel);
                 revalidate();
                 repaint();
             }
@@ -146,12 +149,15 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         return votePanel.getLinkThresholdSliderValue();
     }
     
+    
+    /*
+     *moved to SelectMapsPanel
     public boolean getFilterOnBaseMap()
     {
         if(filterOnBaseMap.isSelected())
             return true;
         else
             return false;
-    }
+    }*/
     
 }
