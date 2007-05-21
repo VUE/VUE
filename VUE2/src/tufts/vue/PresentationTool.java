@@ -819,6 +819,33 @@ private static int OverviewMapSizeIndex = 5;
         } else
             return false;
     }
+
+    // todo: really, a total refocus, that handles the transition,
+    // and knowing if a new focal needs loading
+    private void focusUp(MapMouseEvent e) 
+    {
+        final boolean toMap = e.isShiftDown();
+        final boolean toLinks = e.isAltDown();
+        final MapViewer viewer = e.getViewer();
+
+        final LWComponent focal = viewer.getFocal();
+        
+
+        //if (toMap)
+        viewer.popFocal(toMap);
+
+        if (false && toLinks && focal.getLinks().size() > 0) {
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                ZoomTool.setZoomFitRegion(viewer,
+                                          focal.getFanBounds(),
+                                          30,
+                                          true);
+            }});
+
+        }
+        
+    }
+    
     
     @Override
     public boolean handleMousePressed(MapMouseEvent e)
@@ -833,7 +860,7 @@ private static int OverviewMapSizeIndex = 5;
         // TODO: currently optimized for random nav: totally screwing slides for the moment...
 
         if (hit == null) {
-            e.getViewer().popFocal();
+            focusUp(e);
             return true;
             //return false;
         }
@@ -847,7 +874,7 @@ private static int OverviewMapSizeIndex = 5;
             // if we're non-linear nav off a pathway, revisit prior,
             // OTHERWISE, if general "browse", pop the focal
             if (mCurrentPage.insideSlide() || mLastPathwayPage == null) {
-                e.getViewer().popFocal();
+                focusUp(e);
             } else {
                 revisitPrior();
             }
@@ -1180,6 +1207,10 @@ private static int OverviewMapSizeIndex = 5;
             return c.getBounds();
         }
     }
+
+    // TODO: if we're currently animating a focal swith,
+    // abort it -- and sycnrhonized as needed so as to
+    // never have the focal be in an intermediate state
 
     @Override
     public boolean handleFocalSwitch(final MapViewer viewer,
