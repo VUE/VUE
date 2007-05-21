@@ -34,6 +34,8 @@ public class AnalyzeCM extends VueAction {
     
     private MergeMapsChooser mmc = null;
     
+    private tufts.vue.gui.DockWindow w = null;
+    
     /** Creates a new instance of AnalyzeCM */
     public AnalyzeCM(String label) {
         super(label);
@@ -86,7 +88,17 @@ public class AnalyzeCM extends VueAction {
             ex.printStackTrace();
         }*/
         
-        tufts.vue.gui.DockWindow w = MergeMapsChooser.getDockWindow();
+        
+        if(w==null)
+        {
+          w = tufts.vue.gui.GUI.createDockWindow("Merge Maps");
+          w.setLocation(200,200);
+          edu.tufts.vue.compare.ui.MergeMapsControlPanel mmcp = new edu.tufts.vue.compare.ui.MergeMapsControlPanel(w);
+        }
+        else
+          w.setVisible(true);
+        
+     /*   tufts.vue.gui.DockWindow w = MergeMapsChooser.getDockWindow();
         
         if(w==null)
         {
@@ -108,7 +120,7 @@ public class AnalyzeCM extends VueAction {
           w.setLocation(200,200);
           w.pack();
           w.setVisible(true);
-        }
+        } */
                 
     }
     
