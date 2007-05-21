@@ -19,7 +19,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.7 $ / $Date: 2007-05-21 18:02:45 $ / $Author: dan $
+ * @version $Revision: 1.8 $ / $Date: 2007-05-21 18:58:49 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -146,6 +146,8 @@ public class MapsSelectionPanel extends JPanel  {
         bottomPanel = new JPanel();
         filterOnBaseMap = new JCheckBox();
         JLabel filterOnBaseMapMessage = new JLabel(filterOnBaseMapMessageString);
+        //filterOnBaseMapMessage.setOpaque(false);
+        bottomPanel.setOpaque(false);
         bottomPanel.add(filterOnBaseMap);
         bottomPanel.add(filterOnBaseMapMessage);
         gridBagConstraints.weighty = 0.0;
