@@ -146,7 +146,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.13 $ / $Date: 2007-05-14 07:52:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.14 $ / $Date: 2007-05-21 06:34:42 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -469,6 +469,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             e.isControlDown())
         {
             VUE.Log.info("Keyboard Abort Sequence");
+            System.err.println("VUE: key sequence abort");
             System.exit(0);
         } // debug abort
 

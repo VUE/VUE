@@ -903,6 +903,10 @@ private static int OverviewMapSizeIndex = 5;
     public void startPresentation()
     {
         out(this + " startPresentation");
+        new Throwable("startPresentation").printStackTrace();
+        
+        //if (DEBUG.PRESENT && DEBUG.META) tufts.Util.printStackTrace("startPresentation");
+        
         //mShowContext.setSelected(false);
         mVisited.clear();
 
@@ -1040,7 +1044,8 @@ private static int OverviewMapSizeIndex = 5;
         if (page.onPathway()) {
             if (page.pathway() != mPathway)
                 loadPathway(page.pathway());
-            VUE.setActive(LWPathway.Entry.class, this, page.entry);
+            if (!VUE.inNativeFullScreen()) // don't send any events just in case
+                VUE.setActive(LWPathway.Entry.class, this, page.entry);
             mLastPathwayPage = page;
             //mPathwayIndex = page.entry.index();
         }

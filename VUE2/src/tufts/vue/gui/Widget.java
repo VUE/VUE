@@ -43,7 +43,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.13 $ / $Date: 2007-05-14 03:31:46 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2007-05-21 06:34:42 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -118,7 +118,7 @@ public class Widget extends javax.swing.JPanel
         if (expanded && !tufts.vue.VUE.isStartupUnderway()) {
             if (isBooleanTrue(c, HIDDEN_KEY) || !c.isVisible())
                 setHidden(c, false);
-            if (!DockWindow.AllWindowsHidden())
+            if (!DockWindow.AllWindowsHidden() && !tufts.vue.VUE.inNativeFullScreen())
                 GUI.makeVisibleOnScreen(c);
         }
 
