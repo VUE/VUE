@@ -227,11 +227,12 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         c.insets = new Insets(0,0,0,5);
         gridBag.setConstraints(paletteChoiceMessage,c);
         add(paletteChoiceMessage);
-        c.insets = new Insets(0,0,0,0);
+        c.insets = new Insets(0,0,0,150);
         c.gridwidth = GridBagConstraints.REMAINDER;
         c.anchor = GridBagConstraints.WEST;
         gridBag.setConstraints(paletteChoice,c);
         add(paletteChoice);
+        c.insets = new Insets(0,0,0,0);
         
         //table
         //c.fill = GridBagConstraints.NONE;

@@ -58,14 +58,9 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     public VisualizationSettingsPanel() 
     {
         setOpaque(false);
-        //setOpaque(true);
-        //setBackground(java.awt.Color.RED);
-        
-        //BoxLayout boxLayout = new BoxLayout(this,BoxLayout.Y_AXIS);
         gridBag = new GridBagLayout();
         gridBagConstraints = new GridBagConstraints();
         setLayout(gridBag);
-       // setLayout(boxLayout);
         
         String[] choices = {"Vote","Weight"};
         visualizationChoice = new JComboBox(choices);
@@ -73,11 +68,13 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         
         JLabel visualizationSettingsChoiceLabel = new JLabel(visualizationSettingsChoiceMessage);
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(15,0,15,0);
         gridBag.setConstraints(visualizationSettingsChoiceLabel,gridBagConstraints);
         add(visualizationSettingsChoiceLabel);
+        gridBagConstraints.insets = new java.awt.Insets(0,0,0,0);
         
-        //gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.anchor = GridBagConstraints.NORTH;
+        gridBagConstraints.weightx = 0.0;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(visualizationChoice,gridBagConstraints);
         add(visualizationChoice);
@@ -89,10 +86,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         bottomPanel = new JPanel();
         filterOnBaseMap = new JCheckBox();
         JLabel filterOnBaseMapMessage = new JLabel(filterOnBaseMapMessageString);
-        //gridBagConstraints.gridwidth = 1;
-        //gridBag.setConstraints(filterOnBaseMap,gridBagConstraints);
         bottomPanel.add(filterOnBaseMap);
-        //gridBag.setConstraints(filterOnBaseMapMessage,gridBagConstraints);
         bottomPanel.add(filterOnBaseMapMessage);
         gridBagConstraints.weighty = 0.0;
         gridBag.setConstraints(bottomPanel,gridBagConstraints);
