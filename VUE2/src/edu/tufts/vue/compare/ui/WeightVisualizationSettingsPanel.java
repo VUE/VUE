@@ -132,9 +132,23 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
      public void setUpGui()
      {
      
-        setOpaque(false); 
+         setOpaque(false); 
+         //setOpaque(true);
+         //setBackground(java.awt.Color.BLUE);
          
         String[] parameterChoices = {"Nodes","Links"};
+        
+       tufts.vue.PolygonIcon lineIcon = new tufts.vue.PolygonIcon(new Color(153,153,153));
+       /*{
+           public java.awt.Dimension getPreferredSize()
+           {
+               return new java.awt.Dimension(getParent().getWidth(),1);
+           }
+       };*/
+        // tufts.vue.PolygonIcon lineIcon = new tufts.vue.PolygonIcon(Color.BLACK);
+        lineIcon.setIconWidth(500);
+        lineIcon.setIconHeight(1);
+        
         parameterChoice = new JComboBox(parameterChoices);
         JLabel intervalNumberChoiceMessage = new JLabel(intervalChoiceMessageString,JLabel.RIGHT);
         Integer[] intervalNumberChoices = {3,4,5,6,7,8,9,10};
@@ -189,6 +203,12 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         //add(helpLabel);
         
         
+        
+        JLabel lineLabel = new JLabel(lineIcon);
+        c.insets = new Insets(15,0,15,0);
+        gridBag.setConstraints(lineLabel,c);
+        add(lineLabel);
+        
         //second row
         //c.weightx = 0.0;
         //c.gridwidth = 1;
@@ -217,9 +237,9 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         //c.fill = GridBagConstraints.NONE;
         intervalList.setPreferredScrollableViewportSize(new java.awt.Dimension(200,150));
         JScrollPane scroll = new JScrollPane(intervalList);
-        c.gridx = 0;
-        c.gridy = 2;
-        c.gridwidth = 3;
+        //c.gridx = 0;
+        //c.gridy = 2;
+        //c.gridwidth = 3;
         //$
           c.weightx = 1.0;
         //$

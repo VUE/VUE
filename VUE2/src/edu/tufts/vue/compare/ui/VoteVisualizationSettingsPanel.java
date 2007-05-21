@@ -25,6 +25,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import javax.swing.*;
+import javax.swing.event.*;
 
 /*
  * VoteVisualizationSettingsPanel.java
@@ -56,9 +57,21 @@ public class VoteVisualizationSettingsPanel extends JPanel {
     
     public VoteVisualizationSettingsPanel() 
     {
+        setOpaque(false);
+        
         GridBagLayout voteLayout = new GridBagLayout();
         GridBagConstraints voteConstraints = new GridBagConstraints();
         setLayout(voteLayout);
+        
+        tufts.vue.PolygonIcon lineIcon = new tufts.vue.PolygonIcon(new java.awt.Color(153,153,153));
+        lineIcon.setIconWidth(500);
+        lineIcon.setIconHeight(1);
+        JLabel iconLabel = new JLabel(lineIcon);
+        voteConstraints.insets = new Insets(35,0,0,0);
+        voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        voteLayout.setConstraints(iconLabel,voteConstraints);
+        add(iconLabel);
+        
         JLabel defineThresholdMessageLabel = new JLabel(defineThresholdMessage);
         //defineThresholdMessageLabel.setBorder(BorderFactory.createEmptyBorder(0,0,20,0));
         
@@ -83,12 +96,29 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         //moreLessLabel.add(BorderLayout.EAST,lessLabel);
         
         nodeThresholdSlider = new JSlider(0,100,50);
+        nodeThresholdSlider.addChangeListener(new ChangeListener()
+        {
+            public void stateChanged(ChangeEvent e)
+            {
+                //if(!nodeThresholdSlider.getValueIsAdjusting())
+                //{
+                    //System.out.println("vvsp: node slider value change:" + nodeThresholdSlider.getValue() );
+                    percentageDisplay.setText("Nodes that are on at least " + nodeThresholdSlider.getValue() + "% of the maps will be included");
+                    percentageDisplay.repaint();
+                //}
+            }
+        });
+        
+        
+        // this was for undo with panel - may be moving to LWMergeMap
         nodeThresholdSlider.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent me)
             {
                 mousePressed = true;
             }
         });
+        
+        
         nodeThresholdSlider.setPaintTicks(true);
         nodeThresholdSlider.setMajorTickSpacing(10);
         nodeThresholdSlider.setPaintLabels(true);
@@ -112,12 +142,13 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         
         //voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
         //$
-          voteConstraints.gridwidth = 2;
-          voteConstraints.gridx = 0;
-          voteConstraints.gridy = 0;
+          //voteConstraints.gridwidth = 2;
+          //voteConstraints.gridx = 0;
+          //voteConstraints.gridy = 0;
         //$
-        voteConstraints.insets = new Insets(0,0,20,0);
-        voteConstraints.anchor = GridBagConstraints.NORTHWEST;
+        voteConstraints.anchor = GridBagConstraints.WEST;
+        voteConstraints.insets = new Insets(40,0,20,0);
+       // voteConstraints.anchor = GridBagConstraints.NORTHWEST;
         //voteConstraints.weightx = 1.0;
         voteLayout.setConstraints(defineThresholdMessageLabel,voteConstraints);
         add(defineThresholdMessageLabel);
@@ -128,15 +159,15 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         voteConstraints.insets = new Insets(0,0,0,0);
         //$
           voteConstraints.gridwidth = 1;
-          voteConstraints.gridx = 1;
-          voteConstraints.gridy = 1;
+          //voteConstraints.gridx = 1;
+          //voteConstraints.gridy = 1;
         //$
        // voteLayout.setConstraints(moreLessLabel,voteConstraints);
         //xvotePanel.add(moreLessLabel);
         
         //$
-          voteConstraints.gridx = 0;
-          voteConstraints.gridy = 2;
+          //voteConstraints.gridx = 0;
+          //voteConstraints.gridy = 2;
         //$
         voteConstraints.fill = GridBagConstraints.NONE;
         voteConstraints.anchor = GridBagConstraints.WEST;
@@ -147,19 +178,20 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         //$
            //nodeLabel.setOpaque(true);
            //nodeLabel.setBackground(Color.YELLOW);
-           voteConstraints.gridx = 0;
-           voteConstraints.gridy = 2;
+           //voteConstraints.gridx = 0;
+           //voteConstraints.gridy = 2;
         //$
+        voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
         voteLayout.setConstraints(nodeLabel,voteConstraints);
         add(nodeLabel);
-        voteConstraints.insets = new java.awt.Insets(0,0,0,0);
+        //voteConstraints.insets = new java.awt.Insets(0,0,0,0);
         //$
-          voteConstraints.gridx = 1;
-          voteConstraints.gridy = 2;
+          //voteConstraints.gridx = 1;
+          //voteConstraints.gridy = 2;
         //$
         voteLayout.setConstraints(nodeThresholdSlider,voteConstraints);
 
-        add(nodeThresholdSlider);
+        //add(nodeThresholdSlider);
         /*String nodePercentageText = "";
         if(nodeThresholdSlider.getValue()<10)
         {
@@ -175,32 +207,47 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         }
         percentageDisplay = new JLabel("");
         percentageDisplay.setText(nodePercentageText);*/
-        percentageDisplay = new JLabel(nodeThresholdSlider.getValue() + "%")
-        {
+        percentageDisplay = new JLabel("Nodes that are on at least " + nodeThresholdSlider.getValue() + "% of the maps will be included");
+        /*{
            public Dimension getPreferredSize()
            {
                return (new JLabel("100%").getPreferredSize());
            }
-        };
+        };*/
         //have created methods below to turn this on and off (so that changes during setup don't affect the map)
         //boolean method could be used to turn this on (if not already on) from outside this constructor
         //nodeThresholdSlider.addChangeListener(this);
         //voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
         //$
-          voteConstraints.gridx = 2;
-          voteConstraints.gridy = 2;
+          //voteConstraints.gridx = 2;
+          //voteConstraints.gridy = 2;
         //$
-        voteConstraints.insets = new java.awt.Insets(0,0,0,40);
+        //voteConstraints.insets = new java.awt.Insets(0,0,0,40);
         voteLayout.setConstraints(percentageDisplay,voteConstraints);
         add(percentageDisplay);
+        add(nodeThresholdSlider);
+
+        JLabel linkPanel = new JLabel("Links:");
+        //voteConstraints.gridwidth = 1;
+        voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        voteConstraints.insets= new java.awt.Insets(0,40,0,0);
+        //$
+          // voteConstraints.gridx = 0;
+          // voteConstraints.gridy = 3;
+        //$
+        voteLayout.setConstraints(linkPanel,voteConstraints);
+        add(linkPanel);
         
         linkThresholdSlider = new JSlider(0,100,50);
+        
+               // this was for undo handling within panel - may move to LWMergeMap
+        /*
         linkThresholdSlider.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent me)
             {
                 mousePressed = true;
             }
-        });
+        });*/
         linkThresholdSlider.setPaintTicks(true);
         linkThresholdSlider.setMajorTickSpacing(10);
         linkThresholdSlider.setPaintLabels(true);
@@ -219,43 +266,48 @@ public class VoteVisualizationSettingsPanel extends JPanel {
            linkThresholdSlider.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
         //$
         
-        JLabel linkPanel = new JLabel("Links:");
-        voteConstraints.gridwidth = 1;
-        voteConstraints.insets= new java.awt.Insets(0,40,0,0);
-        //$
-           voteConstraints.gridx = 0;
-           voteConstraints.gridy = 3;
-        //$
-        voteLayout.setConstraints(linkPanel,voteConstraints);
-        add(linkPanel);
-        voteConstraints.insets= new java.awt.Insets(0,0,0,0);
-        //$
-           voteConstraints.gridx = 1;
-           voteConstraints.gridy = 3;
-        //$
-        voteLayout.setConstraints(linkThresholdSlider,voteConstraints);
-        add(linkThresholdSlider);
-        linkPercentageDisplay = new JLabel(linkThresholdSlider.getValue()+"%")
-        {
+        //add(linkThresholdSlider);
+        linkPercentageDisplay = new JLabel("Links that are on at least " + linkThresholdSlider.getValue()+"% of the maps will be included");
+        /*{
            public Dimension getPreferredSize()
            {
                return (new JLabel("100%").getPreferredSize());
            }
-        };
+        };*/
         //linkThresholdSlider.addChangeListener(this);
-        voteConstraints.insets = new java.awt.Insets(0,0,0,40);
+        //voteConstraints.insets = new java.awt.Insets(0,40,100,0);
         //voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
         //$
-           voteConstraints.gridx = 2;
-           voteConstraints.gridy = 3;
+           //voteConstraints.gridx = 2;
+           //voteConstraints.gridy = 3;
         //$
         voteLayout.setConstraints(linkPercentageDisplay,voteConstraints);
         add(linkPercentageDisplay);
+        voteConstraints.insets= new java.awt.Insets(0,40,0,0);
+        //$
+           //voteConstraints.gridx = 1;
+           //voteConstraints.gridy = 3;
+        //$
+        voteConstraints.anchor = GridBagConstraints.NORTHWEST;
+        voteLayout.setConstraints(linkThresholdSlider,voteConstraints);
+        add(linkThresholdSlider);
         
-        voteConstraints.gridx = 0;
-        voteConstraints.gridy = 4;
-        filterChoice = new JCheckBox();
-        voteLayout.setConstraints(filterChoice,voteConstraints);
+        
+        linkThresholdSlider.addChangeListener(new ChangeListener()
+        {
+           public void stateChanged(ChangeEvent e)
+           {
+              linkPercentageDisplay.setText("Links that are on at least " + linkThresholdSlider.getValue()+"% of the maps will be included");
+           }
+        });
+        
+ 
+       
+        
+        //voteConstraints.gridx = 0;
+        //voteConstraints.gridy = 4;
+        //filterChoice = new JCheckBox();
+        //voteLayout.setConstraints(filterChoice,voteConstraints);
         
     }
     

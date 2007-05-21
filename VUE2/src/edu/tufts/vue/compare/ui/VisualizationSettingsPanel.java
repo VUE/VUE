@@ -57,7 +57,11 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     
     public VisualizationSettingsPanel() 
     {
-        BoxLayout boxLayout = new BoxLayout(this,BoxLayout.Y_AXIS);
+        setOpaque(false);
+        //setOpaque(true);
+        //setBackground(java.awt.Color.RED);
+        
+        //BoxLayout boxLayout = new BoxLayout(this,BoxLayout.Y_AXIS);
         gridBag = new GridBagLayout();
         gridBagConstraints = new GridBagConstraints();
         setLayout(gridBag);
@@ -72,9 +76,12 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         gridBag.setConstraints(visualizationSettingsChoiceLabel,gridBagConstraints);
         add(visualizationSettingsChoiceLabel);
         
+        //gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.anchor = GridBagConstraints.NORTH;
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(visualizationChoice,gridBagConstraints);
         add(visualizationChoice);
+        gridBagConstraints.weighty = 1.0;
         gridBag.setConstraints(votePanel,gridBagConstraints);
         gridBag.setConstraints(weightPanel,gridBagConstraints);
         add(votePanel);
@@ -87,6 +94,8 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         bottomPanel.add(filterOnBaseMap);
         //gridBag.setConstraints(filterOnBaseMapMessage,gridBagConstraints);
         bottomPanel.add(filterOnBaseMapMessage);
+        gridBagConstraints.weighty = 0.0;
+        gridBag.setConstraints(bottomPanel,gridBagConstraints);
         add(bottomPanel);
     }
     
@@ -110,6 +119,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
             {
                 remove(weightPanel);
                 remove(bottomPanel);
+                gridBagConstraints.weighty = 1.0;
                 gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
                 gridBag.setConstraints(votePanel,gridBagConstraints);
                 add(votePanel);
@@ -121,6 +131,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
             {
                 remove(votePanel);
                 remove(bottomPanel);
+                gridBagConstraints.weighty = 1.0;
                 gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
                 gridBag.setConstraints(weightPanel,gridBagConstraints);
                 add(weightPanel);
