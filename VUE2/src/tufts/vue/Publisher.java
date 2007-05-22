@@ -47,7 +47,7 @@ import tufts.vue.action.*;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.43 $ / $Date: 2007-05-18 15:18:37 $ / $Author: anoop $
+ * @version $Revision: 1.44 $ / $Date: 2007-05-22 18:04:17 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
     
@@ -416,11 +416,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             }else {
                 if(publishZipRButton.isSelected())
                     publishZip();
-        //        if(publishCMapRButton.isSelected())
-        //            publishCMap();
-        //        if(publishAllRButton.isSelected())
-         //           publishAll();
             }
+            this.dispose();
         }
         if(e.getSource() == nextButton) {
             this.getContentPane().remove(modeSelectionPanel);
