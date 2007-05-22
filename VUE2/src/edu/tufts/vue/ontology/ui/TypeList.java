@@ -102,10 +102,13 @@ public class TypeList extends JList {
                     // the try/catch produces an infinite loops of placements on the Viewer
                     //try
                     //{        
-                      GUI.startLWCDrag(TypeList.this,
+                      if(comp!=null)
+                        GUI.startLWCDrag(TypeList.this,
                                      me,
                                      comp,
                                       VUE.getActiveViewer().getTransferableHelper(comp));
+                      else
+                        comp = createLWComponent(getSelectedValue());
                     //}
                     //catch(java.awt.dnd.InvalidDnDOperationException dnde)
                     //{
