@@ -19,7 +19,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.9 $ / $Date: 2007-05-21 20:19:12 $ / $Author: dan $
+ * @version $Revision: 1.10 $ / $Date: 2007-05-22 18:08:23 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -71,7 +71,7 @@ public class MapsSelectionPanel extends JPanel  {
     
     private JScrollPane scroll;
     private JTable maps;
-    private JTextField fileName;
+    private JTextField fileNameField;
     private JButton browseButton;
     
     private JPanel bottomPanel;
@@ -84,14 +84,14 @@ public class MapsSelectionPanel extends JPanel  {
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
         setLayout(gridBag);
         
-        fileName = new JTextField(20);
+        fileNameField = new JTextField(20);
         browseButton = new JButton("Browse");
         browseButton.addActionListener(new ActionListener()
         {
            public void actionPerformed(ActionEvent e)
            {
                JFileChooser choose = new JFileChooser();
-               VueFileFilter vff = new VueFileFilter("vue");
+               VueFileFilter vff = new VueFileFilter(VueFileFilter.VUE_DESCRIPTION);
                choose.setFileFilter(vff);
                choose.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
                choose.showOpenDialog(MapsSelectionPanel.this);
@@ -116,9 +116,11 @@ public class MapsSelectionPanel extends JPanel  {
                   File[] files =  choice.listFiles(iff);
                   for(int i=0;i<files.length;i++)
                   {
-                      String name = files[files.length-1-i].getAbsolutePath();
+                      File file = files[files.length-1-i];
+                      String name = file.getAbsolutePath();
                       ((MapTableModel)maps.getModel()).addRow(name);
-                      fileName.setText(name);
+                      String shortName = getShortNameForFile(name); 
+                      fileNameField.setText(shortName);
                       revalidate();
                       scroll.getViewport().revalidate();
                   }
@@ -127,7 +129,7 @@ public class MapsSelectionPanel extends JPanel  {
                {    
                   String name = choice.getAbsolutePath();//.getName();
                   ((MapTableModel)maps.getModel()).addRow(name);
-                  fileName.setText(name);
+                  fileNameField.setText(getShortNameForFile(name));
                   revalidate();
                   scroll.getViewport().revalidate();
                }
@@ -201,9 +203,8 @@ public class MapsSelectionPanel extends JPanel  {
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 0.0;
         gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBag.setConstraints(fileName,gridBagConstraints);
-        //fileName.setBorder(BorderFactory.createEmptyBorder(0,0,5,5));
-        add(fileName);
+        gridBag.setConstraints(fileNameField,gridBagConstraints);
+        add(fileNameField);
         gridBagConstraints.weightx = 0.0;
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(browseButton,gridBagConstraints);
@@ -334,52 +335,22 @@ public class MapsSelectionPanel extends JPanel  {
             return false;
     }
     
-    /* class MapTableModelRow
+    public static String getShortNameForFile(String absolutePath)
     {
-        private int type;
-        private boolean selected;
-        private LWMap map;
-        private String file;
-        private boolean isBaseMap;
-       
-        public MapTableModelRow(int type,boolean selected,LWMap map,String file,boolean isBaseMap)
-        {
-            this.type = type;
-            this.selected = selected;
-            this.map = map;
-            this.file = file;
-            this.isBaseMap = isBaseMap;
-        }
-        
-        public void setSelected(boolean value)
-        {
-            selected = value;
-        }
-        
-        public void toggleSelected()
-        {
-            if(selected)
-                selected = false;
-            else
-                selected = true;
-        }
-        
-        /**
-         *
-         * Loads map, if needed
-         *
-         **/
-       /* public LWMap getMap()
-        {
-           
-        }
-        
-        public int getType()
-        {
-            
-        }
-        
-    }*/
+       int lastDot = absolutePath.lastIndexOf(".");
+       int lastSlash = absolutePath.lastIndexOf("/");
+       int endIndex = absolutePath.length();
+       if(lastSlash!=-1 && (lastSlash < (absolutePath.length() - 1) ))
+       {
+          if(lastDot > lastSlash)
+          {
+             endIndex = lastDot;
+          }
+          return absolutePath.substring(lastSlash+1,endIndex);
+       }
+       else
+          return absolutePath;
+    }
     
     class MapTableModel implements TableModel
     {
@@ -515,16 +486,10 @@ public class MapsSelectionPanel extends JPanel  {
        public LWMap getMap(int row)
        {
            LWMap map = null;
-           //int openMapIndex = row-getFirstOpenMapRow()-1;
            int openMapIndex = row-getFirstOpenMapRow();
            if(openMapIndex < VUE.getLeftTabbedPane().getTabCount() && openMapIndex > -1)
                 map =  VUE.getLeftTabbedPane().getMapAt(openMapIndex);
-                // ****need list here, not iterator? ***** //map =  VUE.getLeftTabbedPane().getAllMaps().get(openMapIndex);
-           // messing up selection?
-           //if(map instanceof LWMergeMap)
-           //    map = null;
            return map;
-           //return null;
        }
        
        /**
@@ -578,11 +543,6 @@ public class MapsSelectionPanel extends JPanel  {
                {
                    int mapRow = row-getFirstOpenMapRow();
                    LWMap map = VUE.getLeftTabbedPane().getMapAt(mapRow);
-                   // creates exceptions - can't set row height to 0 to hide'
-                   /*if(map instanceof LWMergeMap)
-                   {
-                       maps.setRowHeight(mapRow,0);
-                   }*/
                    return VUE.getLeftTabbedPane().getMapAt(row-getFirstOpenMapRow()).getLabel();
                }
            }
@@ -667,6 +627,12 @@ public class MapsSelectionPanel extends JPanel  {
                 else
                     checkBox.setSelected(false);
                 return checkBox;
+            }
+            if(col == 1)
+            {
+                String name = value.toString();
+                label.setText(getShortNameForFile(name));
+                return label;
             }
             if(col == 2)
             {
