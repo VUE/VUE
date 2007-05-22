@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.60 $ / $Date: 2007-03-23 20:47:14 $ / $Author: mike $
+ * @version $Revision: 1.61 $ / $Date: 2007-05-22 17:41:07 $ / $Author: anoop $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -500,6 +500,9 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                                 ds.setAddress(p.getProperty("address")); // this must be set last
                                 ds.setPassword(p.getProperty("password"));
                             } catch (Exception ex) {
+                                proceed = false;
+                                VueUtil.alert("Cannot connect to FTP server with information provided","FTP Connection Error");
+                                ex.printStackTrace();
                                 // ignore any error for now
                             }
                             
