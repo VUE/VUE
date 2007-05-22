@@ -387,7 +387,12 @@ public class TypeList extends JList {
          public void run()
          {
            
-          JLabel loadingLabel = new JLabel("loading...");   
+          JLabel loadingLabelText = new JLabel("loading..."); 
+          JLabel loadingLabelImage = new JLabel(tufts.vue.VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
+          JPanel loadingLabel = new JPanel();
+          loadingLabel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+          loadingLabel.add(loadingLabelText);
+          loadingLabel.add(loadingLabelImage);
              
           widget.add(loadingLabel,java.awt.BorderLayout.NORTH);
              
