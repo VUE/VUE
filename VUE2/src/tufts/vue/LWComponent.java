@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.283 $ / $Date: 2007-05-21 20:51:34 $ / $Author: sfraize $
+ * @version $Revision: 1.284 $ / $Date: 2007-05-23 03:49:49 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1643,7 +1643,22 @@ u                    getSlot(c).setFromString((String)value);
     public boolean supportsMultiSelection() {
         return true;
     }
+
+
+    /** @return true if we allow a link to the target, and the target allows a link to us.
+     * Eventually we can use this to check ontology information.
+     * @param target -- the target to check.  If null, tells is if this component allows
+     * link to nothing / allows links at all.
+     */
+    public boolean canLinkTo(LWComponent target) {
+        return canLinkToImpl(target) && (target == null || target.canLinkToImpl(this));
+    }
     
+    
+    /** @return true -- subclass impl's can override */
+    protected boolean canLinkToImpl(LWComponent target) {
+        return true;
+    }
     
     public boolean hasLabel() {
         return this.label != null && this.label.length() > 0;
@@ -1656,6 +1671,9 @@ u                    getSlot(c).setFromString((String)value);
     }
     public boolean hasResource() {
         return this.resource != null;
+    }
+    public boolean hasLinks() {
+        return mLinks.size() > 0;
     }
     /*
     public String getMetaData()
@@ -2275,8 +2293,8 @@ u                    getSlot(c).setFromString((String)value);
     /** @return the union of the bounds of the current component, all connected links, and all far endpoints
      * of those links.
      */
-    public Rectangle2D.Float getFanBounds(Rectangle2D.Float rect) {
-
+    public Rectangle2D.Float getFanBounds(Rectangle2D.Float rect)
+    {
         if (rect == null)
             rect = getBounds();
         else
@@ -2297,7 +2315,44 @@ u                    getSlot(c).setFromString((String)value);
             } 
         }
         return rect;
-        
+    }
+
+    public Rectangle2D.Float getCenteredFanBounds() {
+        return expandToCenteredBounds(getFanBounds());
+    }
+    
+
+    /** get bounds that are centered on this node that fully include the given bounds */
+    public Rectangle2D.Float expandToCenteredBounds(Rectangle2D.Float r) {
+        // expand the given rectangle in all directions such that the distance
+        // from our center point of this component to each edge is the same.
+
+        final float cx = getCenterX();
+        final float cy = getCenterY();
+
+        final float topDiff = cy - r.y;
+        final float botDiff = (r.y + r.height) - cy;
+        final float leftDiff = cx - r.x;
+        final float rightDiff = (r.x + r.width) - cx;
+
+        if (topDiff > botDiff) {
+            // expand below us
+            r.height = topDiff * 2;
+        } else if (botDiff > topDiff) {
+            // expand above us
+            r.y = cy - botDiff;
+            r.height = botDiff * 2;
+        }
+        if (leftDiff > rightDiff) {
+            // expand to the right
+            r.width = leftDiff * 2;
+        } else if (rightDiff > leftDiff) {
+            // expand to the left
+            r.x = cx - rightDiff;
+            r.width = rightDiff * 2;
+        }
+
+        return r;
     }
 
     
@@ -3301,13 +3356,17 @@ u                    getSlot(c).setFromString((String)value);
         }
     }
     
-    public final boolean contains(Point2D p) {
-        return contains((float)p.getX(), (float)p.getY());
+    public final boolean contains(Point2D p, float zoom) {
+        return contains((float)p.getX(), (float)p.getY(), zoom);
     }
 
     /** @return true if the given x/y (already transformed to our local coordinate space), is within our shape */
     public final boolean contains(float x, float y) {
-        if (containsImpl(x, y))
+        return contains(x, y, 1f);
+    }
+    
+    public final boolean contains(float x, float y, float zoom) {
+        if (containsImpl(x, y, zoom))
             return true;
         else if (isDrawingSlideIcon()) {
             if (DEBUG.PICK) out("Checking slide icon bounds " + getSlideIconBounds());
@@ -3320,7 +3379,7 @@ u                    getSlot(c).setFromString((String)value);
      * Default implementation: checks bounding box
      * Subclasses should override for more accurate hit detection.
      */
-    protected boolean containsImpl(float x, float y)
+    protected boolean containsImpl(float x, float y, float zoom)
     {
         if (VUE.RELATIVE_COORDS)
             return x >= 0
@@ -3488,6 +3547,27 @@ u                    getSlot(c).setFromString((String)value);
                 //dc.setAbsoluteStroke(1);
                 dc.g.setStroke(STROKE_ONE);
                 dc.g.draw(new Line2D.Float(new Point2D.Float(getWidth()/2, getHeight()/2), getCorner()));
+
+                if (isSelected() && getLinks().size() > 0) {
+                    final Rectangle2D.Float pureFan = getFanBounds();
+                    final Rectangle2D.Float fan = getCenteredFanBounds();
+                    final float cx = getCenterX();
+                    final float cy = getCenterY();
+                    final Line2D xaxis = new Line2D.Float(fan.x, cy, fan.x + fan.width, cy);
+                    final Line2D yaxis = new Line2D.Float(cx, fan.y, cx, fan.y + fan.height);
+                    dc.setMapDrawing();
+                    dc.setAbsoluteStroke(4);
+                    //dc.g.setColor(getRenderFillColor(dc));
+                    dc.g.setColor(Color.blue);
+                    dc.g.draw(pureFan);
+
+                    dc.setAbsoluteStroke(2);
+                    dc.g.setColor(Color.red);
+                    dc.g.draw(fan);
+                    dc.g.draw(xaxis);
+                    dc.g.draw(yaxis);
+                    
+                }
             }
         }
         
