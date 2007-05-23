@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.393 $ / $Date: 2007-05-23 22:54:50 $ / $Author: sfraize $ 
+ * @version $Revision: 1.394 $ / $Date: 2007-05-23 23:30:12 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1093,7 +1093,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             fitToFocal();
         }
         
-        //repaint();
+        if (focal == null)
+            repaint();
     }
 
     protected boolean popFocal() {

@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.443 $ / $Date: 2007-05-23 22:08:03 $ / $Author: sfraize $ 
+ * @version $Revision: 1.444 $ / $Date: 2007-05-23 23:30:12 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -489,10 +489,10 @@ public class VUE
                     GUI.invokeAfterAWT(new Runnable() {
                             public void run() {
                                 VUE.activateWaitCursor();
-                                LWMap map = OpenAction.loadMap(fileName);
-                                if (DEBUG.INIT) out("opening map during startup " + map);
-                                if (map != null) {
-                                    displayMap(map);
+                                //LWMap map = OpenAction.loadMap(fileName);
+                                if (DEBUG.INIT) out("opening map during startup " + fileName);
+                                if (fileName != null) {
+                                    displayMap(new File(fileName));
                                     //openedUserMap = true;
                                 }
                             }});
@@ -500,7 +500,15 @@ public class VUE
             } finally {
                 VUE.clearWaitCursor();                
             }
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                // ensure first item gets select                
+                mMapTabsLeft.setSelectedIndex(0); 
+                // above would normally focus grab, but it skips these during startup,
+                // so do it manually here: (so the pathway panel loads, etc)
+                mMapTabsLeft.getViewerAt(0).grabVueApplicationFocus("startup", null);
+            }});
         }
+
 
         if (DEBUG.Enabled && !openedUserMap) {
         
@@ -1764,10 +1772,11 @@ public class VUE
             mMapTabsLeft.addViewer(leftViewer);
         }
         
-        if (isActiveViewerOnLeft())
+        if (isActiveViewerOnLeft()) {
             mMapTabsLeft.setSelectedComponent(leftViewer);
-        else
+        } else {
             mMapTabsRight.setSelectedComponent(rightViewer);
+        }
 
         NDC.pop();
         return leftViewer;
