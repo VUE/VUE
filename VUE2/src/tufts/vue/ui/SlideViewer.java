@@ -210,6 +210,10 @@ public class SlideViewer extends tufts.vue.MapViewer
     }
 
     public void activeChanged(tufts.vue.ActiveEvent e, LWPathway.Entry entry) {
+        // todo: if entry is null, leave the current contents, but NOT
+        // if this is because the map has been closed (will want
+        // to be tracking all active instances of LWMap to make this easy --
+        // e.g., if this entry's map is in the set, we're good).
         load(entry);
     }
     
