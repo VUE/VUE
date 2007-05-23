@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.37 $ / $Date: 2007-05-16 23:39:14 $ / $Author: sfraize $ 
+ * @version $Revision: 1.38 $ / $Date: 2007-05-23 03:46:38 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -91,9 +91,10 @@ public class MapTabbedPane extends JTabbedPane
         
         mWasSelected = selected;
         MapViewer viewer = getSelectedViewer();
-        if (viewer != null) {
-            if (DEBUG.FOCUS) out("REQUESTING FOCUS FOR " + viewer);
-            viewer.requestFocus();
+        if (viewer != null && !VUE.isStartupUnderway()) {
+            //if (DEBUG.FOCUS) out("REQUESTING FOCUS FOR " + viewer);
+            //viewer.requestFocus();
+            viewer.grabVueApplicationFocus(toString() + ".fireStateChanged="+viewer, null);
         }
     }
         
