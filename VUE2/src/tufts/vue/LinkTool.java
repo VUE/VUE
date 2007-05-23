@@ -222,16 +222,21 @@ public class LinkTool extends VueTool
         if (linkTarget == linkSource && linkSource != null)
             return false;
         // TODO: allow loop-back link if it's a CURVED link...
-        
+
         // don't allow links between parents & children
         if (linkSource != null) {
             if (linkTarget.getParent() == linkSource ||
                 linkSource.getParent() == linkTarget)
                 return false;
+            if (linkTarget != null)
+                if (!linkSource.canLinkTo(linkTarget))
+                    return false;
         }
 
         if (link != null && linkTarget == link.getParent()) // if a link is inside something, don't link to it
             return false;
+
+
 
         boolean ok = true;
         if (linkTarget instanceof LWLink) {
@@ -378,7 +383,7 @@ public class LinkTool extends VueTool
             //if (hit instanceof LWGroup)
             //hit = ((LWGroup)hit).findDeepestChildAt(e.getMapPoint());
 
-            if (hit != null) {
+            if (hit != null && hit.canLinkTo(null)) {
                 linkSource = hit;
                 // todo: pick up current default stroke color & stroke width
                 // and apply to creationLink
