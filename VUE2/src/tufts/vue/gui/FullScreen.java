@@ -14,16 +14,16 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.1 $ / $Date: 2007-05-23 03:57:07 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2007-05-23 06:51:31 $ / $Author: sfraize $
  *
  */
 
-// This code is pretty messy as it's full of experimental workarounds for java
-// limitations relating to window parentage, visibility & z-order.  The current code
-// seems to be the only thing that actually works, but lots of old code is left in all
-// over the place in case we have problems with this again.  I've submitted an RFC for
-// Java with Sun Micro on this, which was accepted, but the desired clean functionality
-// won't be in there till Java 6 at the earliest, maybe not till Java 7.
+// This code is pretty messy as it's full of old commented out experimental workarounds
+// for java limitations relating to window parentage, visibility & z-order.  The current
+// code seems to be the only thing that actually works, but lots of old code is left in
+// all over the place in case we have problems with this again.  I've submitted an RFC
+// for Java with Sun Micro on this, which was accepted, but the desired clean
+// functionality won't be in there till Java 6 at the earliest, maybe not till Java 7.
 // -- SMF 2007-05-22
 
 public class FullScreen
@@ -31,7 +31,10 @@ public class FullScreen
     private static boolean fullScreenMode = false;
     private static boolean fullScreenNative = false; // using native full-screen mode, that hides even mac menu bar?
     private static boolean nativeModeHidAllDockWindows;
-    private static Window fullScreenWindow = null;
+    //private static Window fullScreenWindow;
+    //private static Window cachedFSW;
+    private static FSWindow FullScreenWindow;
+    private static MapViewer FullScreenViewer;
     private static Container fullScreenOldParent = null;
     private static Point fullScreenOldVUELocation;
     private static Dimension fullScreenOldVUESize;
@@ -39,7 +42,6 @@ public class FullScreen
 
     private static final String FULLSCREEN_NAME = "*FULLSCREEN*";
 
-    private static Window cachedFSW = null;
     //private static Frame cachedFSWnative = null;
 
 
@@ -69,6 +71,12 @@ public class FullScreen
                 setVisible(false);
             }
             setBackground(Color.black);
+            VUE.addActiveListener(tufts.vue.LWMap.class, FSWindow.this);
+        }
+
+        public void activeChanged(tufts.vue.ActiveEvent e, tufts.vue.LWMap map) {
+            if (fullScreenMode)
+                FullScreenViewer.loadFocal(map);
         }
 
         private javax.swing.JMenuBar getMainMenuBar() {
@@ -215,12 +223,10 @@ public class FullScreen
                 });
     }
 
-    private static void enterFullScreenMode(boolean goNative)
+    private synchronized static void enterFullScreenMode(boolean goNative)
     {
         NDC.push("[FS->]");
-
-        //goNative = false; // TODO: TEMP DEBUG
-
+        
         if (goNative) {
             // Can't use heavy weights, as they're windows that can't be seen,
             // and actually the screen goes blank on Mac OS X trying to handle this.
@@ -229,134 +235,33 @@ public class FullScreen
             // to have it property take effect?
         }
 
-        
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice device = ge.getDefaultScreenDevice();
-        final MapViewer viewer = VUE.getActiveViewer();
         final VueTool activeTool = VueToolbarController.getActiveTool();
         
         //out("Native full screen support available: " + device.isFullScreenSupported());
-        //  setFullScreenWindow(SwingUtilities.getWindowAncestor(this));
-        //VUE.frame.setVisible(false); // this also hids all children of the frame, including the new fs window.
-        // mac bug: if don't create window every time, subsequent full-screen
-        // modes won't extend to the the bottom of the screen (probably related to mac dock being there)
-        // Very odd even if not running as a native window...  The window reports proper location, but it
-        // show's up placed at a negative y.
-
         // todo: crap: if the screen resolution changes, we'll need to resize the full-screen window
 
 
-        VUE.Log.debug("enterFullScreenMode: goingNative=" + goNative);
-//         if (false&&goNative) {
-//             if (VueUtil.isMacPlatform() || cachedFSWnative == null) {
-//                 // have to create full screen native win on mac every time or it comes
-//                 // back trying to avoid the dock??
-//                 if (cachedFSWnative != null)
-//                     cachedFSWnative.setTitle("_old-mac-full-native"); // '_' important for macosx hacks
-//                 cachedFSWnative = GUI.createFrame("VUE-FULL-NATIVE");
-//                 cachedFSWnative.setUndecorated(true);
-//                 cachedFSWnative.setLocation(0,0);
-//             }
-//             fullScreenWindow = cachedFSWnative;
-//         } else {
-        if (cachedFSW == null) {
-            cachedFSW = GUI.getFullScreenWindow();
-            //cachedFSW = GUI.createFrame("VUE-FULL-WORKING");
-            //cachedFSW.setUndecorated(true);
-        }
-        fullScreenWindow = cachedFSW;
-            //}
-            
-        /*
-          if (false) {
-          fullScreenWindow = VUE.getMainWindow();
-          } else if (VueUtil.isMacPlatform() || fullScreenWindow == null) {
-          //} else if (fullScreenWindow == null) {
-          // Terribly wasteful to have to re-create this on the mac all the time..
-          if (false) {
-          fullScreenWindow = VUE.createWindow(); // if VUE.frame is parent, it will stay on top of it
-          } else {
-          if (fullScreenWindow != null)
-          ((Frame)fullScreenWindow).setTitle("OLD-FULL-FRAME");
-          fullScreenWindow = VUE.createFrame("VUE-FULL-FRAME");
-          // but we need a Frame in order to have the menu-bar on the mac!
-          ((Frame)fullScreenWindow).setUndecorated(true);
-          }
-          //fullScreenWindow.setName("VUE-FULL-SCREEN");
-          //fullScreenWindow.setBackground(Color.RED);
-          }
-        */
-
-                
-        if (fullScreenWindow != VUE.getMainWindow() && VUE.getMainWindow() != null) {
-            //javax.swing.JComponent fullScreenContent = viewer;
-            fullScreenContent = viewer;
-            //fullScreenContent = new JLabel("TEST");
-            fullScreenOldParent = viewer.getParent();
-
-            VUE.Log.debug("adding content to FSW:"
-                          + "\n\tCONTENT: "+ fullScreenContent
-                          + "\n\t    FSW: "+ fullScreenWindow
-                          );
-            
-            if (fullScreenWindow instanceof DockWindow) {
-                ((DockWindow)fullScreenWindow).add(fullScreenContent);
-            } else if (fullScreenWindow instanceof JFrame) {
-                //((JFrame)fullScreenWindow).setContentPane(fullScreenContent);
-                ((JFrame)fullScreenWindow).getContentPane().add(fullScreenContent);
-            } else if (fullScreenWindow instanceof JWindow) {
-                //((JWindow)fullScreenWindow).setContentPane(fullScreenContent);
-                // adding to the contentPane instead of setting as allows
-                // a JMenuBar to be added to the top and the viewer then
-                // appears under it (instead of the menu overlapping it at the top)
-                ((JWindow)fullScreenWindow).getContentPane().add(fullScreenContent);
-            } else // is Window
-                fullScreenWindow.add(fullScreenContent);
-
-            fullScreenWindow.pack();
-
-            //getMap().setFillColor(Color.BLACK);
-            //fullScreenWindow.getContentPane().add(MapViewer.this.getParent().getParent()); // add with scroll bars
+        VUE.Log.debug("Entering full screen mode; goNative=" + goNative);
+        if (FullScreenWindow == null) {
+            FullScreenWindow = (FSWindow) GUI.getFullScreenWindow();
+            FullScreenWindow.getContentPane().add(FullScreenViewer = new MapViewer(null, "FULL"));
+            //fullScreenWindow.pack();
         }
                 
+        FullScreenWindow.setMenuBarEnabled(!goNative);
+        FullScreenViewer.loadFocal(VUE.getActiveMap());
         fullScreenMode = true; // we're in the mode as soon as the add completes (no going back then)
         fullScreenNative = goNative;
-        
-//         if (VUE.getMainWindow() != null) {
-//             //fullScreenOldVUELocation = VUE.getMainWindow().getLocation();
-//             //fullScreenOldVUESize = VUE.getMainWindow().getSize();
-//             //if (fullScreenWindow != VUE.getMainWindow())
-//             //VUE.getMainWindow().setVisible(false);
-//         }
-
-        if (fullScreenWindow instanceof FSWindow) {
-            ((FSWindow)fullScreenWindow).setMenuBarEnabled(!goNative);
-        }
 
         if (goNative) {
 
             // On Mac, must use native full-screen to get the window over
             // the mac menu bar.
                     
-            //tufts.macosx.Screen.goBlack();
+            device.setFullScreenWindow(FullScreenWindow);
 
-            device.setFullScreenWindow(fullScreenWindow);
-            /*
-                
-            if (VueUtil.isMacPlatform()) {
-            try {
-            tufts.macosx.Screen.makeMainInvisible();
-            } catch (Exception e) {
-            System.err.println(e);
-            }
-            }
-            */
-            //if (DEBUG.Enabled) out("fsw=" + fullScreenWindow.getPeer().getClass());
-                    
-            //fullScreenWindow.addKeyListener(inputHandler);
-            //w.enableInputMethods(true);
-            //enableInputMethods(true);
-                            
             // We run into a serious problem using the special java full-screen mode on the mac: if
             // you right-click, it attemps to pop-up a menu over the full screen window, which is not
             // allowed in mac full-screen, and it apparently auto-switches context somehow for you,
@@ -367,30 +272,63 @@ public class FullScreen
                 nativeModeHidAllDockWindows = true;
                 DockWindow.HideAllWindows();
             }
-            
-                            
+
         } else {
-            GUI.setFullScreenVisible(fullScreenWindow);
+            
+            GUI.setFullScreenVisible(FullScreenWindow);
         }
                 
         activeTool.handleFullScreen(true, goNative);
-                    
-        /*
-        if (false && fullScreenWindow != VUE.getMainWindow() && VUE.getMainWindow() != null) {
-            VUE.getMainWindow().setVisible(false);
-
-            //VUE.getMainWindow().setSize(0,0);
-            //tufts.Util.setOffScreen(VUE.getMainWindow());
-                
-            //VUE.getMainWindow().setLocation(0,0);
-            //VUE.getMainWindow().setLocation(3072,2048);
-            //VUE.getMainWindow().setExtendedState(Frame.ICONIFIED);
-        }
-        */
-
         NDC.pop();
     }
+
     
+    
+    private synchronized static void exitFullScreenMode()
+    {
+        NDC.push("[<-FS]");
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice device = ge.getDefaultScreenDevice();
+        final boolean wasNative = inNativeFullScreen();
+        
+        VUE.Log.debug("Exiting full screen mode; inNative=" + wasNative);
+
+        //javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(true);
+        
+        if (device.getFullScreenWindow() != null) {
+            // this will take us out of true full screen mode
+            VUE.Log.debug("clearing native full screen window:"
+                          + "\n\t  controlling device: " + device
+                          + "\n\tcur device FS window: " + device.getFullScreenWindow());
+            device.setFullScreenWindow(null);
+            // note that when coming out of full screen, the java impl
+            // first restores the given  window to it's state before
+            // we made it the FSW, which is annoying on the mac cause
+            // it flashes a small window briefly in the upper left.
+        }
+        FullScreenWindow.setVisible(false);
+        FullScreenViewer.loadFocal(null);
+        fullScreenMode = false;
+        fullScreenNative = false;
+
+        if (nativeModeHidAllDockWindows) {
+            nativeModeHidAllDockWindows = false;
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                DockWindow.ShowPreviouslyHiddenWindows();
+            }});
+        }
+        
+        GUI.invokeAfterAWT(new Runnable() {
+                public void run() {
+                    //VUE.Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
+                    VueToolbarController.getActiveTool().handleFullScreen(false, wasNative);
+                    NDC.pop();
+                }});
+
+    }
+
+
+    /*
     private static void exitFullScreenMode()
     {
         NDC.push("[<-FS]");
@@ -452,6 +390,181 @@ public class FullScreen
         //NDC.pop();
         
     }
+    */      
+
+
+    /*
+    private static void enterFullScreenMode(boolean goNative)
+    {
+        NDC.push("[FS->]");
+
+        //goNative = false; // TODO: TEMP DEBUG
+
+        if (goNative) {
+            // Can't use heavy weights, as they're windows that can't be seen,
+            // and actually the screen goes blank on Mac OS X trying to handle this.
+            javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(true);
+            // also: appear to need to do this before anything else
+            // to have it property take effect?
+        }
+
+        
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice device = ge.getDefaultScreenDevice();
+        final MapViewer viewer = VUE.getActiveViewer();
+        final VueTool activeTool = VueToolbarController.getActiveTool();
+        
+        //out("Native full screen support available: " + device.isFullScreenSupported());
+        //  setFullScreenWindow(SwingUtilities.getWindowAncestor(this));
+        //VUE.frame.setVisible(false); // this also hids all children of the frame, including the new fs window.
+        // mac bug: if don't create window every time, subsequent full-screen
+        // modes won't extend to the the bottom of the screen (probably related to mac dock being there)
+        // Very odd even if not running as a native window...  The window reports proper location, but it
+        // show's up placed at a negative y.
+
+        // todo: crap: if the screen resolution changes, we'll need to resize the full-screen window
+
+
+        VUE.Log.debug("enterFullScreenMode: goingNative=" + goNative);
+//         if (false&&goNative) {
+//             if (VueUtil.isMacPlatform() || cachedFSWnative == null) {
+//                 // have to create full screen native win on mac every time or it comes
+//                 // back trying to avoid the dock??
+//                 if (cachedFSWnative != null)
+//                     cachedFSWnative.setTitle("_old-mac-full-native"); // '_' important for macosx hacks
+//                 cachedFSWnative = GUI.createFrame("VUE-FULL-NATIVE");
+//                 cachedFSWnative.setUndecorated(true);
+//                 cachedFSWnative.setLocation(0,0);
+//             }
+//             fullScreenWindow = cachedFSWnative;
+//         } else {
+        if (cachedFSW == null) {
+            cachedFSW = GUI.getFullScreenWindow();
+            //cachedFSW = GUI.createFrame("VUE-FULL-WORKING");
+            //cachedFSW.setUndecorated(true);
+        }
+        fullScreenWindow = cachedFSW;
+            //}
+            
+//         if (false) {
+//             fullScreenWindow = VUE.getMainWindow();
+//         } else if (VueUtil.isMacPlatform() || fullScreenWindow == null) {
+//             //} else if (fullScreenWindow == null) {
+//             // Terribly wasteful to have to re-create this on the mac all the time..
+//             if (false) {
+//                 fullScreenWindow = VUE.createWindow(); // if VUE.frame is parent, it will stay on top of it
+//             } else {
+//                 if (fullScreenWindow != null)
+//                     ((Frame)fullScreenWindow).setTitle("OLD-FULL-FRAME");
+//                 fullScreenWindow = VUE.createFrame("VUE-FULL-FRAME");
+//                 // but we need a Frame in order to have the menu-bar on the mac!
+//                 ((Frame)fullScreenWindow).setUndecorated(true);
+//             }
+//             //fullScreenWindow.setName("VUE-FULL-SCREEN");
+//             //fullScreenWindow.setBackground(Color.RED);
+//         }
+
+                
+        if (fullScreenWindow != VUE.getMainWindow() && VUE.getMainWindow() != null) {
+            //javax.swing.JComponent fullScreenContent = viewer;
+            fullScreenContent = viewer;
+            //fullScreenContent = new JLabel("TEST");
+            fullScreenOldParent = viewer.getParent();
+
+            VUE.Log.debug("adding content to FSW:"
+                          + "\n\tCONTENT: "+ fullScreenContent
+                          + "\n\t    FSW: "+ fullScreenWindow
+                          );
+            
+            if (fullScreenWindow instanceof DockWindow) {
+                ((DockWindow)fullScreenWindow).add(fullScreenContent);
+            } else if (fullScreenWindow instanceof JFrame) {
+                //((JFrame)fullScreenWindow).setContentPane(fullScreenContent);
+                ((JFrame)fullScreenWindow).getContentPane().add(fullScreenContent);
+            } else if (fullScreenWindow instanceof JWindow) {
+                //((JWindow)fullScreenWindow).setContentPane(fullScreenContent);
+                // adding to the contentPane instead of setting as allows
+                // a JMenuBar to be added to the top and the viewer then
+                // appears under it (instead of the menu overlapping it at the top)
+                ((JWindow)fullScreenWindow).getContentPane().add(fullScreenContent);
+            } else // is Window
+                fullScreenWindow.add(fullScreenContent);
+
+            fullScreenWindow.pack();
+
+            //getMap().setFillColor(Color.BLACK);
+            //fullScreenWindow.getContentPane().add(MapViewer.this.getParent().getParent()); // add with scroll bars
+        }
+                
+        fullScreenMode = true; // we're in the mode as soon as the add completes (no going back then)
+        fullScreenNative = goNative;
+        
+//         if (VUE.getMainWindow() != null) {
+//             //fullScreenOldVUELocation = VUE.getMainWindow().getLocation();
+//             //fullScreenOldVUESize = VUE.getMainWindow().getSize();
+//             //if (fullScreenWindow != VUE.getMainWindow())
+//             //VUE.getMainWindow().setVisible(false);
+//         }
+
+        if (fullScreenWindow instanceof FSWindow) {
+            ((FSWindow)fullScreenWindow).setMenuBarEnabled(!goNative);
+        }
+
+        if (goNative) {
+
+            // On Mac, must use native full-screen to get the window over
+            // the mac menu bar.
+                    
+            //tufts.macosx.Screen.goBlack();
+
+            device.setFullScreenWindow(fullScreenWindow);
+                
+//             if (VueUtil.isMacPlatform()) {
+//             try {
+//             tufts.macosx.Screen.makeMainInvisible();
+//             } catch (Exception e) {
+//             System.err.println(e);
+//             }
+//             }
+
+            //if (DEBUG.Enabled) out("fsw=" + fullScreenWindow.getPeer().getClass());
+                    
+            //fullScreenWindow.addKeyListener(inputHandler);
+            //w.enableInputMethods(true);
+            //enableInputMethods(true);
+                            
+            // We run into a serious problem using the special java full-screen mode on the mac: if
+            // you right-click, it attemps to pop-up a menu over the full screen window, which is not
+            // allowed in mac full-screen, and it apparently auto-switches context somehow for you,
+            // but just leaves you at a fully blank screen that you can sometimes never recover from
+            // without powering off!  This true as of java version "1.4.2_05-141.3", Mac OS X 10.3.5/6.
+
+            if (!DockWindow.AllWindowsHidden()) {
+                nativeModeHidAllDockWindows = true;
+                DockWindow.HideAllWindows();
+            }
+            
+                            
+        } else {
+            GUI.setFullScreenVisible(fullScreenWindow);
+        }
+                
+        activeTool.handleFullScreen(true, goNative);
+                    
+//         if (false && fullScreenWindow != VUE.getMainWindow() && VUE.getMainWindow() != null) {
+//             VUE.getMainWindow().setVisible(false);
+
+//             //VUE.getMainWindow().setSize(0,0);
+//             //tufts.Util.setOffScreen(VUE.getMainWindow());
+                
+//             //VUE.getMainWindow().setLocation(0,0);
+//             //VUE.getMainWindow().setLocation(3072,2048);
+//             //VUE.getMainWindow().setExtendedState(Frame.ICONIFIED);
+//         }
+
+        NDC.pop();
+    }
+*/      
 
     private static void out(String s) {
         System.out.println("VUE FullScreen: " + s);

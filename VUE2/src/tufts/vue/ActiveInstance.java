@@ -1,6 +1,7 @@
 package tufts.vue;
 
 import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * This provides for tracking the single selection of a given typed
@@ -23,22 +24,24 @@ import java.lang.reflect.Method;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.4 $ / $Date: 2007-05-21 04:30:45 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2007-05-23 06:51:30 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
 // as we stay with only a singly selected resource object at a time.
 public class ActiveInstance<T>
 {
-    private static final java.util.Map<Class,ActiveInstance> AllActiveHandlers = new java.util.HashMap();
-    private static final java.util.List<ActiveListener> ListenersForAllActiveEvents = new java.util.ArrayList();
+    private static final Map<Class,ActiveInstance> AllActiveHandlers = new HashMap();
+    private static final List<ActiveListener> ListenersForAllActiveEvents = new ArrayList();
+    private static int depth; // event delivery depth
     
-    private final java.util.List<ActiveListener> listenerList = new java.util.ArrayList();
-    //private final java.util.List<ActiveListener<T>> listenerList = new java.util.ArrayList();
+    private final List<ActiveListener> listenerList = new ArrayList();
+    private Set<T> allInstances;
     
     protected final Class itemType;
     protected final String itemTypeName; // for debug
     protected final boolean itemIsMarkable;
+    protected final boolean itemsAreTracked;
 
     private T nowActive;
     private ActiveEvent lastEvent;
@@ -78,9 +81,14 @@ public class ActiveInstance<T>
 
 
     protected ActiveInstance(Class clazz) {
+        this(clazz, false);
+    }
+    
+    protected ActiveInstance(Class clazz, boolean trackInstances) {
         itemType = clazz;
         itemTypeName = "<" + itemType.getName() + ">";
         itemIsMarkable = clazz.isInstance(Markable.class);
+        itemsAreTracked = trackInstances;
         lock(null, "INIT");
         synchronized (AllActiveHandlers) {
             if (AllActiveHandlers.containsKey(itemType)) {
@@ -113,6 +121,31 @@ public class ActiveInstance<T>
         notifyListeners(lastEvent);
     }
 
+    public int instanceCount() {
+        return allInstances == null ? -1 : allInstances.size();
+    }
+    
+    public Set<T> getAllInstances() {
+        if (allInstances == null)
+            return null; // Collections.EMPTY_SET; // actually, an NPE would be better to know they're not tracked
+        else
+            return Collections.unmodifiableSet(allInstances);
+    }
+
+    /** @return true if the item was being tracked */
+    public boolean stopTracking(T instance) {
+        return allInstances.remove(instance);
+    }
+
+    private static String sourceName(Object s) {
+        if (s == null)
+            return "null";
+        else if (s instanceof ActiveEvent || s instanceof ActiveInstance)
+            return s.toString();
+        else
+            return s.getClass().getName() + ":" + s;
+    }
+
     public void setActive(final Object source, final T newActive)
     {
         if (newActive != null && !itemType.isInstance(newActive)) {
@@ -120,13 +153,32 @@ public class ActiveInstance<T>
             return;
         }
 
+        if (nowActive == newActive)
+            return;
+
         lock(this, "setActive");
         synchronized (this) {
-            if (nowActive == newActive)
+            if (nowActive == newActive) {
+                unlock(this, "setActive");
                 return;
-            if (DEBUG.EVENTS) System.out.format(this + " == %s (source is %s)\n", newActive, source);
+            }
+        
+            if (DEBUG.EVENTS) {
+                System.err.format(this + " == %s (source is %s) listeners=%d in %s\n",
+                                  newActive,
+                                  sourceName(source),
+                                  listenerList.size(),
+                                  Thread.currentThread().getName());
+            }
             final T oldActive = nowActive;
             this.nowActive = newActive;
+
+            if (itemsAreTracked) {
+                if (allInstances == null)
+                    allInstances = new HashSet();
+                allInstances.add(newActive);
+            }
+            
             if (itemIsMarkable) {
                 markActive( (Markable) oldActive, false);
                 markActive( (Markable) newActive, true);
@@ -175,6 +227,7 @@ public class ActiveInstance<T>
     {
         final ActiveListener[] listeners;
 
+        int count = 0;
         if (DEBUG.Enabled) lock(handler, "NOTIFY " + listenerList.size());
         synchronized (listenerList) {
             // Allow concurrent modifiation w/out synchronization:
@@ -195,10 +248,16 @@ public class ActiveInstance<T>
                 method = null;
             }
 
-            if (target == e.source)
+            // checking the deep source might prevent us from uncovering a loop where
+            // the active item is cycling -- actually, we could only get here again if
+            // the active item IS cycling, because setActive of something already active
+            // does nothing...
+            //if (e.hasSource(target))
+            
+            if (e.source == target)
                 continue;
                 
-            if (DEBUG.EVENTS) System.out.println("\tnotify" + handler.itemTypeName + " -> " + target);
+            if (DEBUG.EVENTS) System.err.format("    %2d notify %s -> %s\n", ++count, handler.itemTypeName, target);
             try {
                 if (method != null)
                     method.invoke(target, e, e.active);

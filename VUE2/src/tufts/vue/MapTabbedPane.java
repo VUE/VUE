@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.38 $ / $Date: 2007-05-23 03:46:38 $ / $Author: sfraize $ 
+ * @version $Revision: 1.39 $ / $Date: 2007-05-23 06:51:30 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -43,11 +43,13 @@ import java.util.ArrayList;
 public class MapTabbedPane extends JTabbedPane
     implements LWComponent.Listener, FocusListener, MapViewer.Listener
 {
+    private final String name;
+    private final boolean isLeftViewer;
     private Color BgColor;
-    private String name;
     
-    MapTabbedPane(String name) {
+    MapTabbedPane(String name, boolean isLeft) {
         this.name = name;
+        this.isLeftViewer = isLeft;
         setName("mapTabs-" + name);
         setFocusable(false);
         BgColor = GUI.getToolbarColor();
@@ -55,6 +57,7 @@ public class MapTabbedPane extends JTabbedPane
         //if (DEBUG.Enabled)
         //setTabLayoutPolicy(JTabbedPane.WRAP_TAB_LAYOUT); // appears to have no effect in Aqua on Mac
         setPreferredSize(new Dimension(300,400));
+        VUE.addActiveListener(LWMap.class, this);
 
         /*//getModel().
         addChangeListener(new javax.swing.event.ChangeListener() {
@@ -62,6 +65,16 @@ public class MapTabbedPane extends JTabbedPane
                     if (DEBUG.Enabled) out("stateChanged: selectedIndex=" + getSelectedIndex());
                 }
                 });*/
+    }
+
+    public void activeChanged(ActiveEvent e, LWMap map) {
+        if (!isLeftViewer || e.hasSourceOfType(MapTabbedPane.class)) {
+            // ignore change events from the other tab-pane
+            return;
+        }
+        int mapIndex = findTabWithMap(map);
+        if (mapIndex >= 0)
+            setSelectedIndex(mapIndex);
     }
         
     private int mWasSelected = -1;
@@ -94,7 +107,8 @@ public class MapTabbedPane extends JTabbedPane
         if (viewer != null && !VUE.isStartupUnderway()) {
             //if (DEBUG.FOCUS) out("REQUESTING FOCUS FOR " + viewer);
             //viewer.requestFocus();
-            viewer.grabVueApplicationFocus(toString() + ".fireStateChanged="+viewer, null);
+            //viewer.grabVueApplicationFocus(toString() + ".fireStateChanged="+viewer, null);
+            VUE.setActive(MapViewer.class, this, viewer);
         }
     }
         
@@ -301,8 +315,8 @@ public class MapTabbedPane extends JTabbedPane
     public LWMap getMapAt(int index) {
         MapViewer viewer = getViewerAt(index);
         LWMap map = null;
-        if (viewer == null && VUE.inFullScreen()) // hack, but works for now: todo: cleaner
-            return VUE.getActiveMap();
+//         if (viewer == null && VUE.inFullScreen()) // hack, but works for now: todo: cleaner
+//             return VUE.getActiveMap();
         if (viewer != null)
             map = viewer.getMap();
         //System.out.println(this + " map at index " + index + " is " + map);
@@ -332,7 +346,7 @@ public class MapTabbedPane extends JTabbedPane
                 return i;
             }
         }
-        out("failed to find map " + map);
+        VUE.Log.error(this + ": failed to find map " + map + " at any index");
         return -1;
     }
 

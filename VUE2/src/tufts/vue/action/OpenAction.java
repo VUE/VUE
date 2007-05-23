@@ -72,6 +72,8 @@ public class OpenAction extends VueAction {
     }
     
     public static void displayMap(File file) {
+        VUE.displayMap(file);
+        /*
         if (file != null) {
         	RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
             rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
@@ -85,6 +87,7 @@ public class OpenAction extends VueAction {
                 
             }            
         }
+        */
     }
 
     public static boolean isVueIMSCPArchive(File file) {

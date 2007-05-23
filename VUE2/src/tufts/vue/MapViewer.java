@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.390 $ / $Date: 2007-05-23 04:06:15 $ / $Author: sfraize $ 
+ * @version $Revision: 1.391 $ / $Date: 2007-05-23 06:51:30 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -195,8 +195,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         this(map, "");
     }
     
-    private String instanceName;
-    protected MapViewer(LWMap map, String instanceName)
+    private final String instanceName;
+    public MapViewer(LWMap map, String instanceName)
     {
         this.instanceName = instanceName;
         this.activeTool = VueToolbarController.getActiveTool();
@@ -232,7 +232,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         VUE.ModelSelection.addListener(this);
         VUE.addActiveListener(MapViewer.class, this);
-        VUE.addActiveListener(LWMap.class, this);
+        //VUE.addActiveListener(LWMap.class, this);
         VUE.addActiveListener(VueTool.class, this);
         //VueToolbarController.getController().addToolSelectionListener(this);        
         
@@ -3703,10 +3703,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     draggedSelectorBox = null;
                     isDraggingSelectorBox = false;
                     repaint();
-                } else if (VUE.inFullScreen()) {
+                } else if (VUE.inFullScreen()) { // todo: can now more cleanly just handle this in FullScreen.FSWindow
                     VUE.toggleFullScreen(false, true);
-                    loadFocal(mFocal.getMap()); // make sure top-level map is displayed
-                    if (activeTool instanceof PresentationTool)
+                    if (mFocal != null)
+                        loadFocal(mFocal.getMap()); // make sure top-level map is displayed
+                    if (activeTool instanceof PresentationTool) // todo: need to do this in a more centralized location...
                         activateTool(VueTool.getInstance(SelectionTool.class));
                 } else
                     handled = false;
@@ -5466,7 +5467,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private final Runnable focusIndicatorRepaint = new Runnable() { public void run() { mFocusIndicator.repaint(); }};
     
-    public void activeChanged(ActiveEvent e, MapViewer v) {
+    public void activeChanged(ActiveEvent e, MapViewer viewer) {
         // We delay the repaint request for the focus indicator on this event because normally, it
         // happens while we're grabbing focus, which means it happens twice: once here on active
         // viewer change, and once later when we get the focusGained event.  Since the focus
@@ -5476,13 +5477,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // which cases we're the active viewer, but do NOT have keyboard focus), and then you mouse
         // over to another map, which then grabs the VUE application focus and becomes the active viewer.
         VUE.invokeAfterAWT(focusIndicatorRepaint);
+
+        if (viewer == this)
+            grabVueApplicationFocus(e.toString(), null);
     }
 
-    public void activeChanged(ActiveEvent e, LWMap map) {
-        if (getParent() == GUI.getFullScreenWindow())
-            loadFocal(map);
-    }
-    
     
     /*
      * Make this viewer the active viewer (and thus our map the active map.
@@ -5532,7 +5531,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     public void grabVueApplicationFocus(String from, ComponentEvent event) {
-        if (DEBUG.FOCUS) {
+        if (DEBUG.FOCUS || DEBUG.VIEWER) {
             // Util.printStackTrace();
             out("-------------------------------------------------------");
             out("GVAF: grabVueApplicationFocus triggered via " + from);

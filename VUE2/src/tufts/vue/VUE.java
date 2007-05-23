@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.441 $ / $Date: 2007-05-23 03:57:07 $ / $Author: sfraize $ 
+ * @version $Revision: 1.442 $ / $Date: 2007-05-23 06:51:30 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -137,7 +137,7 @@ public class VUE
 
 
     private static final ActiveInstance<LWMap>
-        ActiveMapHandler = new ActiveInstance<LWMap>(LWMap.class) {
+        ActiveMapHandler = new ActiveInstance<LWMap>(LWMap.class, true) {
         protected void onChange(ActiveEvent<LWMap> e) {
             if (e.active != null)
                 ActivePathwayHandler.setActive(e, e.active.getActivePathway());
@@ -641,8 +641,8 @@ public class VUE
         // Create the tabbed panes for the viewers
         //-------------------------------------------------------
         
-        mMapTabsLeft = new MapTabbedPane("*left");
-        mMapTabsRight = new MapTabbedPane("right");
+        mMapTabsLeft = new MapTabbedPane("*left", true);
+        mMapTabsRight = new MapTabbedPane("right", false);
         
         //-------------------------------------------------------
         // Create the split pane
@@ -894,12 +894,7 @@ public class VUE
         if (DEBUG.INIT) out("setting JMenuBar...");
         ApplicationFrame.setJMenuBar(VueMenuBar.RootMenuBar = new VueMenuBar(/*VUE.ToolWindows*/));
         if (DEBUG.INIT) out("VueMenuBar installed.");;
-//         if (GUI.isMacAqua()) {
-//             // We can set this once on Mac as in native full screen,
-//             // the mac won't display it.
-//             GUI.setFullScreenMenuBar(new VueMenuBar());
-//         }
-
+        
         if (true)
             ApplicationFrame.addComp(mViewerSplit, BorderLayout.CENTER);
         else
@@ -1497,10 +1492,12 @@ public class VUE
         }
     }
 
-*/            
-    public static int openMapCount() {
-        return mMapTabsLeft == null ? 0 : mMapTabsLeft.getTabCount();
-    }
+*/
+    
+//     public static int openMapCount() {
+//         return ActiveMapHandler.instanceCount();
+//         //return mMapTabsLeft == null ? 0 : mMapTabsLeft.getTabCount();
+//     }
 
     
     public static boolean multipleMapsVisible() {
@@ -1633,35 +1630,18 @@ public class VUE
              );
         
      
-        if (!Util.isMacPlatform())
-        {
-        	switch (response)
-        	{
-        	case 0:
-        		response = 1;
-        		break;
-        	case 1:
-        		response = 2;
-        		break;
-        	case 2:
-        		response = 0;
-        		break;
-        	}
-        }
-        else
-        {
-        	switch (response)
-        	{
-        	case 0:
-        		response = 0;
-        		break;
-        	case 1:
-        		response = 2;
-        		break;
-        	case 2:
-        		response = 1;
-        		break;
-        	}
+        if (!Util.isMacPlatform()) {
+            switch (response) {
+            case 0: response = 1; break;
+            case 1: response = 2; break;
+            case 2: response = 0; break;
+            }
+        } else {
+            switch (response) {
+            case 0: response = 0; break;
+            case 1: response = 2; break;
+            case 2: response = 1; break;
+            }
         }
         
         // If they change focus to another button, then hit "return"
@@ -1694,20 +1674,46 @@ public class VUE
      * If we already have open a map tied to the given file, display it.
      * Otherwise, open it anew and display it.
      */
-    public static void displayMap(File mapFile) {
-        if (DEBUG.INIT || DEBUG.IO) out("displayMap " + mapFile);
-        for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
-            LWMap map = mMapTabsLeft.getMapAt(i);
-            if (map == null)
-                continue;
+    public static void displayMap(File file) {
+        if (DEBUG.INIT || DEBUG.IO) out("displayMap " + file);
+
+        if (file == null)
+            return;
+
+//         // TODO: this is problematic given our current full-screen implementation,
+//         // which plucks the viewer right out of the tab-pane, so we can't see it
+//         // if it's in the full-screen window...
+//         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
+//             LWMap map = mMapTabsLeft.getMapAt(i);
+//             if (map == null)
+//                 continue;
+//             File existingFile = map.getFile();
+//             if (existingFile != null && existingFile.equals(file)) {
+//                 if (DEBUG.Enabled) out("displayMap found existing open map " + map + " matching file " + file);
+//                 //mMapTabsLeft.setSelectedIndex(i);
+//                 return;
+//             }
+//         }
+        
+        for (LWMap map : ActiveMapHandler.getAllInstances()) {
             File existingFile = map.getFile();
-            if (existingFile != null && existingFile.equals(mapFile)) {
-                out("displayMap found existing open map " + map);
-                mMapTabsLeft.setSelectedIndex(i);
+            if (existingFile != null && existingFile.equals(file)) {
+                if (DEBUG.Enabled) out("displayMap found existing open map " + map + " matching file " + file);
+                ActiveMapHandler.setActive(file, map);
+                //mMapTabsLeft.setSelectedIndex(i);
                 return;
             }
         }
-        OpenAction.displayMap(mapFile);
+
+        final RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
+        rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
+        VUE.activateWaitCursor();
+        try {
+            LWMap loadedMap = OpenAction.loadMap(file.getAbsolutePath());
+            VUE.displayMap(loadedMap);
+        } finally {
+            VUE.clearWaitCursor();
+        }
     }
     
     /**
@@ -1725,7 +1731,8 @@ public class VUE
                 continue;
             File existingFile = map.getFile();
             if (existingFile != null && existingFile.equals(pMap.getFile())) {
-                Log.error("** found open map with same file! " + map);
+                Util.printStackTrace("warning: found open map with same file: " + map);
+                //Log.error("** found open map with same file! " + map);
                 // TODO: pop dialog asking to revert existing if there any changes.
                 //break;
             }
