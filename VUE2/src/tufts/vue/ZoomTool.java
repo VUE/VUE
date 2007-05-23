@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.62 $ / $Date: 2007-05-23 03:56:27 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2007-05-23 21:18:39 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -134,7 +134,7 @@ public class ZoomTool extends VueTool
     
     
     // Classic simple version:
-    /*    
+
     @Override
     public boolean handleMousePressed(MapMouseEvent e) {
         super.handleMousePressed(e);
@@ -195,9 +195,9 @@ public class ZoomTool extends VueTool
         } else
             return false;
     }
-    */
 
-    
+
+    /*    
     // Experimental fancy version:
     @Override
     public boolean handleMousePressed(MapMouseEvent e) {
@@ -275,7 +275,13 @@ public class ZoomTool extends VueTool
                     picked = null; // so zoomed-to stays null
                 } else {
                     zoomedToFull = null;
-                    bounds = picked.getCenteredFanBounds();
+                    if (VUE.inFullScreen()) {
+                        // this means we can animate
+                        bounds = picked.getCenteredFanBounds();
+                    } else {
+                        // when can't animate, more likely to get lost with centering
+                        bounds = picked.getFanBounds();
+                    }
                     margin = 0;
                 }
 
@@ -290,6 +296,7 @@ public class ZoomTool extends VueTool
         } else
             return false;
     }
+    */
 
     private void zoomToSlide(MapViewer viewer, final LWSlide slide) {
         
