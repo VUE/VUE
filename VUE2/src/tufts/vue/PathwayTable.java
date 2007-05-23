@@ -67,7 +67,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.70 $ / $Date: 2007-05-16 19:39:09 $ / $Author: mike $
+ * @version $Revision: 1.71 $ / $Date: 2007-05-23 03:44:14 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -189,16 +189,20 @@ public class PathwayTable extends JTable
                     final LWPathway pathway = VUE.getActivePathway();
                     if (pathway == null)
                         return;
-                    int key = e.getKeyCode();
-                    if (key == KeyEvent.VK_UP) {
+                    switch (e.getKeyCode()) {
+                    case KeyEvent.VK_UP:
+                    case KeyEvent.VK_LEFT:
                         if (pathway.atFirst())
                             pathway.setIndex(-1);
                         else
                             pathway.setPrevious();
                         e.consume();
-                    } else if (key == KeyEvent.VK_DOWN) {
+                        break;
+                    case KeyEvent.VK_DOWN:
+                    case KeyEvent.VK_RIGHT:
                         pathway.setNext();
                         e.consume();
+                        break;
                     }
                 }
             });
