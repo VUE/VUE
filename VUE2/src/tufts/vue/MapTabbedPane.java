@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.39 $ / $Date: 2007-05-23 06:51:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.40 $ / $Date: 2007-05-23 22:08:03 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -44,12 +44,19 @@ public class MapTabbedPane extends JTabbedPane
     implements LWComponent.Listener, FocusListener, MapViewer.Listener
 {
     private final String name;
-    private final boolean isLeftViewer;
-    private Color BgColor;
+    private final Color BgColor;
+
+//     //private final boolean isLeftViewer;
+//     private static MapTabbedPane leftTabs;
+//     private static MapTabbedPane rightTabs;
     
     MapTabbedPane(String name, boolean isLeft) {
         this.name = name;
-        this.isLeftViewer = isLeft;
+//         //this.isLeftViewer = isLeft;
+//         if (isLeft)
+//             leftTabs = this;
+//         else
+//             rightTabs = this;
         setName("mapTabs-" + name);
         setFocusable(false);
         BgColor = GUI.getToolbarColor();
@@ -57,7 +64,7 @@ public class MapTabbedPane extends JTabbedPane
         //if (DEBUG.Enabled)
         //setTabLayoutPolicy(JTabbedPane.WRAP_TAB_LAYOUT); // appears to have no effect in Aqua on Mac
         setPreferredSize(new Dimension(300,400));
-        VUE.addActiveListener(LWMap.class, this);
+        //VUE.addActiveListener(LWMap.class, this);
 
         /*//getModel().
         addChangeListener(new javax.swing.event.ChangeListener() {
@@ -67,20 +74,21 @@ public class MapTabbedPane extends JTabbedPane
                 });*/
     }
 
-    public void activeChanged(ActiveEvent e, LWMap map) {
-        if (!isLeftViewer || e.hasSourceOfType(MapTabbedPane.class)) {
-            // ignore change events from the other tab-pane
-            return;
-        }
-        int mapIndex = findTabWithMap(map);
-        if (mapIndex >= 0)
-            setSelectedIndex(mapIndex);
-    }
+//     public void activeChanged(ActiveEvent e, LWMap map) {
+//         if (!isLeftViewer || e.hasSourceOfType(MapTabbedPane.class)) {
+//             // ignore change events from the other tab-pane
+//             return;
+//         }
+//         int mapIndex = findTabWithMap(map);
+//         if (mapIndex >= 0)
+//             setSelectedIndex(mapIndex);
+//     }
         
-    private int mWasSelected = -1;
+    private int mWasSelected = -1; // non-aqua use only
+    @Override
     protected void fireStateChanged() {
         try {
-            if (DEBUG.FOCUS) out("fireStateChanged, selectedIndex=" +getSelectedIndex());
+            if (DEBUG.FOCUS) out("fireStateChanged, selectedIndex=" +getSelectedIndex() + "; viewerAtIndex=" + getViewerAt(getSelectedIndex()));;
             super.fireStateChanged();
         } catch (ArrayIndexOutOfBoundsException e) {
             // this is happening after we close everything and then
@@ -89,9 +97,11 @@ public class MapTabbedPane extends JTabbedPane
             System.err.println(this + " JTabbedPane.fireStateChanged: " + e);
         }
         
-        int selected = getModel().getSelectedIndex();
         
-        if (!GUI.isMacAqua()) { // don't mess w/aqua colors
+        if (GUI.isMacAqua() == false) { 
+            int selected = getModel().getSelectedIndex();
+
+            // for non-aqua UI's, we change the selected tab color
             
             if (mWasSelected >= 0)
                 setForegroundAt(mWasSelected, Color.darkGray);
@@ -100,17 +110,48 @@ public class MapTabbedPane extends JTabbedPane
                 setForegroundAt(selected, Color.black);
                 setBackgroundAt(selected, BgColor);
             }
-        }
-        
-        mWasSelected = selected;
-        MapViewer viewer = getSelectedViewer();
-        if (viewer != null && !VUE.isStartupUnderway()) {
-            //if (DEBUG.FOCUS) out("REQUESTING FOCUS FOR " + viewer);
-            //viewer.requestFocus();
-            //viewer.grabVueApplicationFocus(toString() + ".fireStateChanged="+viewer, null);
-            VUE.setActive(MapViewer.class, this, viewer);
+
+            mWasSelected = selected;
+            
         }
     }
+
+    @Override
+    public void setSelectedIndex(final int index) {
+	super.setSelectedIndex(index);
+        
+        final MapViewer viewer = getViewerAt(index);
+        if (viewer != null && !VUE.isStartupUnderway()) {
+            if (DEBUG.FOCUS) out("ATTEMPTING FOCUS TRANSFER TO " + viewer);
+            
+            // For some reason, that I think has to do with having lots of maps open and
+            // using the drop-down menu for selected an open map (on the mac), focus
+            // diagnostics show what is presumably the menu going hidden (a pop-up
+            // heavy-weight window anyway) after a menu item is selected, and then after
+            // this, the OLD viewer in the de-activating tab-pane first gets the focus
+            // back, even if we have the newly selected viewer request focus here.  By
+            // putting the focus request at the end of the AWT event queue, all this
+            // crap can happen, and then we can change the focus like we want.
+
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                if (DEBUG.FOCUS) out("after AWT focus jibber-jabber (now at end of AWT event queue), focus is being demanded by: " + viewer);
+
+                //viewer.requestFocus(); // do NOT use this, as the viewers may be temporaily, deliberately, unfocusable while we re-route focus
+
+                // this can work (viewer can listen for itself going active and grab), but
+                // we'd need to disable focusability on the viewer in the non active tab
+                // pane first, as it's still grabbing focus back.
+                //VUE.setActive(MapViewer.class, this, viewer); 
+
+                // We must call this directly as it will ensure focusability has been restored
+                // on the viewer, as new viewers have this turned off by default initially,
+                // so we can direct focus as desired (even non-visible right-viewers will
+                // delightfully grab the focus when created if you let them).
+                viewer.grabVueApplicationFocus(toString() + ".setSelectedIndex="+index + " " + viewer, null);
+            }});
+        }
+    }
+    
         
     public void reshape(int x, int y, int w, int h) {
         boolean ignore =

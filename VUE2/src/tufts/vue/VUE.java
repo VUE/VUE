@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.442 $ / $Date: 2007-05-23 06:51:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.443 $ / $Date: 2007-05-23 22:08:03 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -137,7 +137,7 @@ public class VUE
 
 
     private static final ActiveInstance<LWMap>
-        ActiveMapHandler = new ActiveInstance<LWMap>(LWMap.class, true) {
+        ActiveMapHandler = new ActiveInstance<LWMap>(LWMap.class) {
         protected void onChange(ActiveEvent<LWMap> e) {
             if (e.active != null)
                 ActivePathwayHandler.setActive(e, e.active.getActivePathway());
@@ -1581,6 +1581,7 @@ public class VUE
         if (mMapTabsLeft == null) // so debug harnesses can quit (no maps displayed)
             return true;
         
+        // TODO: use active map instances
         int tabs = mMapTabsLeft.getTabCount();
         LWMap ensureChecked = getActiveMap(); // in case of full-screen
         for (int i = 0; i < tabs; i++) {
@@ -1658,11 +1659,6 @@ public class VUE
     }
     
     public static void closeMap(LWMap map) {
-        // for now, we don't let them close the last open map as we get NPE's
-        // all over the place if there's isn't an active map (we could have
-        // a dummy map as a reasonable hack to solve the problem so everybody
-        // doesn't have to check for a null active map)
-        //if (mMapTabsLeft.getTabCount() > 1 && askSaveIfModified(map)) {
         if (askSaveIfModified(map)) {
             mMapTabsLeft.closeMap(map);
             mMapTabsRight.closeMap(map);
@@ -1680,30 +1676,31 @@ public class VUE
         if (file == null)
             return;
 
-//         // TODO: this is problematic given our current full-screen implementation,
-//         // which plucks the viewer right out of the tab-pane, so we can't see it
-//         // if it's in the full-screen window...
-//         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
-//             LWMap map = mMapTabsLeft.getMapAt(i);
-//             if (map == null)
-//                 continue;
+        for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
+            LWMap map = mMapTabsLeft.getMapAt(i);
+            if (map == null)
+                continue;
+            File existingFile = map.getFile();
+            if (existingFile != null && existingFile.equals(file)) {
+                if (DEBUG.Enabled) out("displayMap found existing open map " + map + " matching file " + file);
+                if (isActiveViewerOnLeft())
+                    mMapTabsLeft.setSelectedIndex(i);
+                else
+                    mMapTabsRight.setSelectedIndex(i);
+                return;
+            }
+        }
+        
+//         for (LWMap map : ActiveMapHandler.getAllInstances()) {
 //             File existingFile = map.getFile();
 //             if (existingFile != null && existingFile.equals(file)) {
 //                 if (DEBUG.Enabled) out("displayMap found existing open map " + map + " matching file " + file);
+//                 ActiveMapHandler.setActive(file, map);
+//                 // TODO: sanity check this... (oh, and I supposed we can use the tab panes again... don't need active instances tracking!)
 //                 //mMapTabsLeft.setSelectedIndex(i);
 //                 return;
 //             }
 //         }
-        
-        for (LWMap map : ActiveMapHandler.getAllInstances()) {
-            File existingFile = map.getFile();
-            if (existingFile != null && existingFile.equals(file)) {
-                if (DEBUG.Enabled) out("displayMap found existing open map " + map + " matching file " + file);
-                ActiveMapHandler.setActive(file, map);
-                //mMapTabsLeft.setSelectedIndex(i);
-                return;
-            }
-        }
 
         final RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
         rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
@@ -1743,16 +1740,28 @@ public class VUE
             leftViewer = new MapViewer(pMap, "*LEFT");
             rightViewer = new MapViewer(pMap, "right");
 
-            if (rightViewer != null && isActiveViewerOnLeft())
-                rightViewer.setFocusable(false); // so doesn't grab focus till we're ready
+            // Start them both off unfocusable, so we get no
+            // focus transfers until we're ready to decide what
+            // wants to get the focus.
+            leftViewer.setFocusable(false);
+            rightViewer.setFocusable(false);
+
+//             if (rightViewer != null && isActiveViewerOnLeft()) {
+//                 // so doesn't grab focus till we're ready
+//                 // NOTE: grabVueApplicationFocus restore's focusability
+//                 // when called directly -- which is why it must
+//                 // be called directly to ensure focus grabs
+//                 // in right viewers.
+//                 rightViewer.setFocusable(false); 
+//             }
 
             if (DEBUG.FOCUS) {
                 out("currently active viewer: " + getActiveViewer());
                 out("created new left viewer: " + leftViewer);
             }
 
-            mMapTabsLeft.addViewer(leftViewer);
             mMapTabsRight.addViewer(rightViewer);
+            mMapTabsLeft.addViewer(leftViewer);
         }
         
         if (isActiveViewerOnLeft())
