@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.387 $ / $Date: 2007-05-21 20:49:49 $ / $Author: sfraize $ 
+ * @version $Revision: 1.388 $ / $Date: 2007-05-23 03:46:26 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -882,7 +882,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             } else {
                 reshapeUnderway = true;
                 try {
-                    fireViewerEvent(MapViewerEvent.PAN);
+                    //fireViewerEvent(MapViewerEvent.PAN); // fire AFTER reshapeImpl, and better, IN reshapeImpl
                     reshapeImpl(x,y,w,h);
                 } finally {
                     reshapeUnderway = false;
@@ -1559,6 +1559,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (indication == c)
             return;
 
+        if (c == null) {
+            clearIndicated();
+            return;
+        }
+
         if (c instanceof LWSlide && !c.isMoveable()) { 
             //if (c instanceof LWSlide && mFocal != c) {
 
@@ -1603,6 +1608,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     private PickContext initPickContext(PickContext pc) {
+        pc.zoom = (float) mZoomFactor;
         pc.root = mFocal;
         pc.acceptor = activeTool;
         //pc.maxLayer = getMaxLayer();
@@ -3713,13 +3719,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // do NOT fire this internal shortcut of '\' for fullscreen
                     // if the actual action (Command-\) was fired.
                     handled = false;
-                    break;
-                }
-                // fallthru:
-            case KeyEvent.VK_F11:
-                if (!e.isConsumed())
+                } else
                     VUE.toggleFullScreen(false, true);
                 break;
+                // fallthru:
+//             case KeyEvent.VK_F11:
+//                 if (!e.isConsumed())
+//                     VUE.toggleFullScreen(false, true);
+//                 break;
             default:
                 handled = false;
             }
@@ -3901,6 +3908,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (c == '{') { DEBUG.PATHWAY = !DEBUG.PATHWAY; }
                 else if (c == '}') { DEBUG.PARENTING = !DEBUG.PARENTING; }
                 else if (c == '>') { DEBUG.DND = !DEBUG.DND; }
+                else if (c == '<') { DEBUG.PICK = !DEBUG.PICK; }
                 else if (c == '=') { DEBUG.THREAD = !DEBUG.THREAD; }
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
@@ -5618,6 +5626,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     public void focusGained(FocusEvent e) {
         if (DEBUG.FOCUS) out("focusGained (from " + GUI.name(e.getOppositeComponent()) + ")");
+        // TODO: mac bug, tho maybe only when loading maps from command line:
+        // FIRST map selected in tab other than the one showing, properly
+        // grabs focus from the MapTabbedPane notification, but then LOSES focus
+        // to a DIFFERENT map in the RIGHT viewer (probably the first one there).
+        // After this happens once, we no longer seem to have this problem.
+        // To workaround, if the opposite component here is a right viewer,
+        // and we're a left viewer, and the right viewers aren't showing,
+        // do NOT grab the VUE application focus.
         repaintFocusIndicator();
         grabVueApplicationFocus("focusGained", e);
         fireViewerEvent(MapViewerEvent.FOCUSED);
