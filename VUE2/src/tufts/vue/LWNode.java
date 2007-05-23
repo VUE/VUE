@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.164 $ / $Date: 2007-05-21 20:52:02 $ / $Author: sfraize $
+ * @version $Revision: 1.165 $ / $Date: 2007-05-23 03:47:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -648,8 +648,9 @@ public class LWNode extends LWContainer
     }
     */
 
-    protected boolean containsImpl(float x, float y) {
-        if (super.containsImpl(x, y)) // fast-reject
+    @Override
+    protected boolean containsImpl(float x, float y, float zoom) {
+        if (super.containsImpl(x, y, zoom)) // fast-reject
             return boundsShape.contains(x, y);
         else
             return false;
