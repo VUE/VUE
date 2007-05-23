@@ -40,7 +40,7 @@ import java.awt.geom.AffineTransform;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.60 $ / $Date: 2007-05-16 00:37:21 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2007-05-23 03:48:51 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -400,10 +400,10 @@ public class LWGroup extends LWContainer
     }
     */
 
-    protected boolean containsImpl(final float x, final float y)
+    protected boolean containsImpl(final float x, final float y, float zoom)
     {
         if (hasDecoratedFeatures()) {
-            return super.containsImpl(x, y);
+            return super.containsImpl(x, y, zoom);
         } else {
             // x/y have already been translated into the groups coordinate space
             // (including compressed if the group is scaled).
