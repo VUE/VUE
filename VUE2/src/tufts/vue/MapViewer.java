@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.388 $ / $Date: 2007-05-23 03:46:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.389 $ / $Date: 2007-05-23 04:05:21 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -232,6 +232,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         VUE.ModelSelection.addListener(this);
         VUE.addActiveListener(MapViewer.class, this);
+        VUE.addActiveListener(LWMap.class, this);
         VUE.addActiveListener(VueTool.class, this);
         //VueToolbarController.getController().addToolSelectionListener(this);        
         
@@ -5476,6 +5477,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // over to another map, which then grabs the VUE application focus and becomes the active viewer.
         VUE.invokeAfterAWT(focusIndicatorRepaint);
     }
+
+    public void activeChanged(ActiveEvent e, LWMap map) {
+        if (VUE.inFullScreen())
+            loadFocal(map);
+    }
+    
     
     /*
      * Make this viewer the active viewer (and thus our map the active map.
