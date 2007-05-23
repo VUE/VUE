@@ -23,7 +23,7 @@ package tufts.vue;
  *
  * This class essentially just a parameter block for picking LWTraversals.
  *
- * @version $Revision: 1.7 $ / $Date: 2007-05-16 18:09:10 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2007-05-23 03:45:52 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -59,6 +59,9 @@ public class PickContext
     /** A modifier for how deep to allow the pick: mediated by the LWComponent hierarcy with pickChild/defaultPick */
     public int pickDepth = 0;
 
+    /** An optional zoom scale can be provided for more accurately adjusting for slop (near misses), etc. */
+    public float zoom = 1f;
+    
     /** The location being picked, or start of region for region pick. */
     public final float x, y;
 
