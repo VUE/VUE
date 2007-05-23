@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.44 $ / $Date: 2007-05-21 07:20:13 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2007-05-23 03:47:22 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -59,6 +59,13 @@ public class LWSlide extends LWContainer
         // at moment, if no master, this is an on-map slide (functionality being tested...)
         return getMasterSlide() == null;
     }
+
+    /** @return false */
+    @Override
+    public boolean canLinkToImpl(LWComponent target) {
+        return false;
+    }
+    
 
     /** @return false -- slides themseleves never have slide icons: only nodes that own them */
     @Override
