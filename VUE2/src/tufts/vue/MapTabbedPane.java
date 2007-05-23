@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.40 $ / $Date: 2007-05-23 22:08:03 $ / $Author: sfraize $ 
+ * @version $Revision: 1.41 $ / $Date: 2007-05-23 22:54:50 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -440,7 +440,8 @@ public class MapTabbedPane extends JTabbedPane
 
         if (forceFocusTransfer) {
             int selectedIndex = getSelectedIndex();
-            if (DEBUG.FOCUS) out("FORCE FOCUS TRANSFER TO selected tab index: " + selectedIndex);
+            // the newly selected tab doesn't always get the focus:
+            if (DEBUG.FOCUS) out("closeMap force focus transfer to new selected tab index: " + selectedIndex);
             if (selectedIndex >= 0)
                 getViewerAt(selectedIndex).grabVueApplicationFocus("closeMap", null);
         }

@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.392 $ / $Date: 2007-05-23 22:08:03 $ / $Author: sfraize $ 
+ * @version $Revision: 1.393 $ / $Date: 2007-05-23 22:54:50 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5505,7 +5505,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (activeViewer != null)
                 oldActiveMap = activeViewer.getMap();
             VUE.setActive(MapViewer.class, this, this);
-                
             mFocal.getChangeSupport().setPriorityListener(this);
             // TODO: VUE.getSelection().setPriorityListener(this);
                 
@@ -5631,7 +5630,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     public void focusGained(FocusEvent e) {
-        if (DEBUG.FOCUS) out("focusGained (from " + GUI.name(e.getOppositeComponent()) + ")");
+        Window parentWindow = SwingUtilities.getWindowAncestor(this);
+        if (DEBUG.FOCUS) out("focusGained (from " + GUI.name(e.getOppositeComponent()) + ") parentWindow=" + parentWindow);
+
+        if (parentWindow == null) {
+            // We've been closed -- don't ask me why java will still hand us
+            // the focus if we've been removed from the AWT component hierarchy...
+            return;
+        }
+        
         // TODO: mac bug, tho maybe only when loading maps from command line:
         // FIRST map selected in tab other than the one showing, properly
         // grabs focus from the MapTabbedPane notification, but then LOSES focus
