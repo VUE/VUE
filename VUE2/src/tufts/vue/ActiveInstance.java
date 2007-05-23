@@ -24,7 +24,7 @@ import java.util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.5 $ / $Date: 2007-05-23 06:51:30 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2007-05-23 22:01:18 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -33,7 +33,7 @@ public class ActiveInstance<T>
 {
     private static final Map<Class,ActiveInstance> AllActiveHandlers = new HashMap();
     private static final List<ActiveListener> ListenersForAllActiveEvents = new ArrayList();
-    private static int depth; // event delivery depth
+    private static int depth = -1; // event delivery depth
     
     private final List<ActiveListener> listenerList = new ArrayList();
     private Set<T> allInstances;
@@ -164,11 +164,11 @@ public class ActiveInstance<T>
             }
         
             if (DEBUG.EVENTS) {
-                System.err.format(this + " == %s (source is %s) listeners=%d in %s\n",
-                                  newActive,
-                                  sourceName(source),
-                                  listenerList.size(),
-                                  Thread.currentThread().getName());
+                outf(this + " == %s (source is %s) listeners=%d in %s\n",
+                     newActive,
+                     sourceName(source),
+                     listenerList.size(),
+                     Thread.currentThread().getName());
             }
             final T oldActive = nowActive;
             this.nowActive = newActive;
@@ -213,11 +213,13 @@ public class ActiveInstance<T>
         
         inNotify = true;
         try {
+            depth++;
             if (listenerList.size() > 0)
                 notifyListeners(this, e, listenerList);
             if (ListenersForAllActiveEvents.size() > 0)
                 notifyListeners(this, e, ListenersForAllActiveEvents);
         } finally {
+            depth--;
             inNotify = false;
         }
         
@@ -247,6 +249,7 @@ public class ActiveInstance<T>
                 target = listener;
                 method = null;
             }
+            count++;
 
             // checking the deep source might prevent us from uncovering a loop where
             // the active item is cycling -- actually, we could only get here again if
@@ -254,10 +257,15 @@ public class ActiveInstance<T>
             // does nothing...
             //if (e.hasSource(target))
             
-            if (e.source == target)
+            if (e.source == target) {
+                if (DEBUG.EVENTS) outf("    %2d (skipSrc) %s -- %s\n", count, handler.itemTypeName, target);
                 continue;
+            } else {
+                if (DEBUG.EVENTS) outf("    %2d notifying %s -> %s\n", count, handler.itemTypeName, target);
+            }
                 
-            if (DEBUG.EVENTS) System.err.format("    %2d notify %s -> %s\n", ++count, handler.itemTypeName, target);
+            //if (DEBUG.EVENTS) System.err.format("    %2d notify %s -> %s\n", ++count, handler.itemTypeName, target);
+            //if (DEBUG.EVENTS) outf("    %2d notify %s -> %s\n", ++count, handler.itemTypeName, target);
             try {
                 if (method != null)
                     method.invoke(target, e, e.active);
@@ -319,6 +327,13 @@ public class ActiveInstance<T>
     public void removeListener(Object listener) {
         throw new UnsupportedOperationException("implement MethodProxy removal");
     }
+
+    private static void outf(String fmt, Object... args) {
+        for (int x = 0; x < depth; x++) System.err.print("    ");
+        //for (int x = 0; x < depth; x++) System.err.print("----");
+        System.out.format(fmt, args);
+    }
+    
 
     public String toString() {
         return "ActiveInstance" + itemTypeName;
