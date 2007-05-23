@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.61 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $
+ * @version $Revision: 1.62 $ / $Date: 2007-05-23 03:56:27 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -116,18 +116,34 @@ public class ZoomTool extends VueTool
     }
     
     private LWComponent zoomedTo;
+    private LWComponent zoomedToFull;
     private LWComponent oldFocal;
     private boolean ignoreRelease = false;
+
+    @Override
+    public boolean handleMouseMoved(MapMouseEvent e) {
+        if (isZoomFullScreenMode()) {
+            if (e.getPicked() != null) {
+                e.getViewer().setIndicated(e.getPicked());
+            } else {
+                e.getViewer().setIndicated(null);
+            }
+        }
+        return false;
+    }
     
+    
+    // Classic simple version:
+    /*    
     @Override
     public boolean handleMousePressed(MapMouseEvent e) {
         super.handleMousePressed(e);
 
-   /*     System.out.println("isZoomInMode:" + isZoomInMode()
-                           +" isZoomOutMode():"+isZoomOutMode()
-                           +" isZoomFullScreen:"+isZoomFullScreenMode()
-                           +" isZoomOutToMap:"+isZoomOutToMapMode());
-     */   
+//         System.out.println("isZoomInMode:" + isZoomInMode()
+//                            +" isZoomOutMode():"+isZoomOutMode()
+//                            +" isZoomFullScreen:"+isZoomFullScreenMode()
+//                            +" isZoomOutToMap:"+isZoomOutToMapMode());
+
         if (isZoomInMode() || isZoomOutMode())
             return false;
         
@@ -171,6 +187,101 @@ public class ZoomTool extends VueTool
                 setZoomFitRegion(viewer,
                                  picked.getBounds(),
                                  0,
+                                 true);
+            }
+            zoomedTo = picked;
+            ignoreRelease = true;
+            return true;
+        } else
+            return false;
+    }
+    */
+
+    
+    // Experimental fancy version:
+    @Override
+    public boolean handleMousePressed(MapMouseEvent e) {
+        super.handleMousePressed(e);
+
+        if (isZoomInMode() || isZoomOutMode())
+            return false;
+        
+        if (isZoomOutToMapMode())
+            return false;
+
+        LWComponent picked = e.getPicked();
+        final MapViewer viewer = e.getViewer();
+
+        // TODO: now that we've got this tweaked the way we want,
+        // refactor so this code is actually clear
+
+        //if (zoomedTo != null && !e.isShiftDown() && !e.isMetaDown()) {
+        //if (picked == null || (picked == zoomedToFull && !picked.hasLinks())) {
+        if (picked == null || (picked == zoomedToFull && e.isShiftDown())) {
+            // already zoomed into something: un-zoom us
+            if (oldFocal != null) {
+                // we were focused into a slide: pop the focal
+                viewer.loadFocal(oldFocal);
+                oldFocal = null;
+            } else {
+                // zoom out to the whole map
+                setZoomFit(viewer, true);
+            }
+            zoomedTo = null;
+            zoomedToFull = null;
+            ignoreRelease = true;
+            return true;
+        } else if (picked != null)  {
+
+            // nothing zoomed into, or shift was down, meaning keep zooming in:
+
+            if (picked instanceof LWSlide) {
+
+                if (zoomedTo == picked) {
+                    // we're already zoomed to this slide: now load it as an editable focal
+                    // (slides only editable if they're the focal: not on map as slide icons)
+                    out("LOADING FOCAL");
+                    oldFocal = viewer.getFocal();
+                    viewer.loadFocal((LWSlide) zoomedTo);
+                } else {
+                    zoomToSlide(viewer, (LWSlide) picked);
+                }
+
+            } else {
+
+                final Rectangle2D bounds;
+                final int margin;
+                
+                if (picked instanceof LWLink) {
+                    bounds = picked.getFanBounds();
+                    margin = 30;
+                    zoomedToFull = null;
+                    //} else if (e.isMetaDown()) {
+                } else if (e.isShiftDown() ||
+                           (!picked.hasLinks() && zoomedToFull != picked) ||
+                           (zoomedTo == picked && zoomedToFull != picked)) {
+                    // if no links, no fan, so default to this with a margin
+                    bounds = picked.getBounds();
+                    margin = picked.getFocalMargin();
+                    zoomedToFull = picked;
+                } else if (picked == zoomedToFull && !picked.hasLinks()) {
+                    LWComponent parent = picked.getParent();
+                    bounds = parent.getBounds();
+                    margin = parent.getFocalMargin();
+                    if (parent instanceof LWMap)
+                        zoomedTo = zoomedToFull = null;
+                    else
+                        zoomedTo = zoomedToFull = parent;
+                    picked = null; // so zoomed-to stays null
+                } else {
+                    zoomedToFull = null;
+                    bounds = picked.getCenteredFanBounds();
+                    margin = 0;
+                }
+
+                setZoomFitRegion(viewer,
+                                 bounds,
+                                 margin,
                                  true);
             }
             zoomedTo = picked;
@@ -228,7 +339,7 @@ public class ZoomTool extends VueTool
     @Override
     public PickContext initPick(PickContext pc, float x, float y) {
         if (zoomedTo != null)
-            pc.pickDepth = zoomedTo.getPickLevel();
+            pc.pickDepth = zoomedTo.getPickLevel() + 1;
         return pc;
     }
     
