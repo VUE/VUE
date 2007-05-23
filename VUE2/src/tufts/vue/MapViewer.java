@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.394 $ / $Date: 2007-05-23 23:30:12 $ / $Author: sfraize $ 
+ * @version $Revision: 1.395 $ / $Date: 2007-05-23 23:55:18 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5629,14 +5629,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
     }
-    
+
     public void focusGained(FocusEvent e) {
-        Window parentWindow = SwingUtilities.getWindowAncestor(this);
+        final Window parentWindow = SwingUtilities.getWindowAncestor(this);
         if (DEBUG.FOCUS) out("focusGained (from " + GUI.name(e.getOppositeComponent()) + ") parentWindow=" + parentWindow);
 
-        if (parentWindow == null) {
-            // We've been closed -- don't ask me why java will still hand us
-            // the focus if we've been removed from the AWT component hierarchy...
+        if (parentWindow == null || !isDisplayed()) {
+            
+            // If parentWindow is null, we've been closed -- don't ask me why java will
+            // still hand us the focus if we've been removed from the AWT component
+            // hierarchy...  Also, if we're not display (e..g, a right viewer when the
+            // split-pane is closed), ignore also.  Why we get the focus even if we're
+            // not displayed is also quite the java mystery.
+            
             return;
         }
         

@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.41 $ / $Date: 2007-05-23 22:54:50 $ / $Author: sfraize $ 
+ * @version $Revision: 1.42 $ / $Date: 2007-05-23 23:55:18 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -278,7 +278,7 @@ public class MapTabbedPane extends JTabbedPane
     public void addViewer(MapViewer viewer) {
         
         Component c = new tufts.vue.gui.MapScrollPane(viewer);
-        
+
         if (false) {
             String tabTitle = viewerToTabTitle(viewer);
             if (tabTitle == null)
@@ -427,7 +427,7 @@ public class MapTabbedPane extends JTabbedPane
                 forceFocusTransfer = true;
                 
             // Immediately make sure nothing can refer this this viewer.
-            VUE.setActive(MapViewer.class, this, null);
+            //VUE.setActive(MapViewer.class, this, null);
 
             // we might want to force notification even if selection is already empty:
             // we want all listeners, particularly the actions, to
@@ -444,6 +444,9 @@ public class MapTabbedPane extends JTabbedPane
             if (DEBUG.FOCUS) out("closeMap force focus transfer to new selected tab index: " + selectedIndex);
             if (selectedIndex >= 0)
                 getViewerAt(selectedIndex).grabVueApplicationFocus("closeMap", null);
+            else
+                VUE.setActive(MapViewer.class, this, null); // no open viewers
+                
         }
     }
         

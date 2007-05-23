@@ -24,7 +24,7 @@ import java.util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.7 $ / $Date: 2007-05-23 23:30:12 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2007-05-23 23:55:18 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -259,10 +259,10 @@ public class ActiveInstance<T>
             //if (e.hasSource(target))
             
             if (e.source == target) {
-                if (DEBUG.EVENTS) outf("   %2dskipSrc %s -- %s\n", count, handler.itemTypeName, target);
+                if (DEBUG.EVENTS) outf("    %2dskipSrc %s -- %s\n", count, handler.itemTypeName, target);
                 continue;
             } else {
-                if (DEBUG.EVENTS) outf("   %2d notify %s -> %s\n", count, handler.itemTypeName, target);
+                if (DEBUG.EVENTS) outf("    %2d notify %s -> %s\n", count, handler.itemTypeName, target);
             }
                 
             //if (DEBUG.EVENTS) System.err.format("    %2d notify %s -> %s\n", ++count, handler.itemTypeName, target);

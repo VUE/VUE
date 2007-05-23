@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.444 $ / $Date: 2007-05-23 23:30:12 $ / $Author: sfraize $ 
+ * @version $Revision: 1.445 $ / $Date: 2007-05-23 23:55:18 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1768,8 +1768,8 @@ public class VUE
                 out("created new left viewer: " + leftViewer);
             }
 
-            mMapTabsRight.addViewer(rightViewer);
             mMapTabsLeft.addViewer(leftViewer);
+            mMapTabsRight.addViewer(rightViewer);
         }
         
         if (isActiveViewerOnLeft()) {
