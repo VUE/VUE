@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.74 $ / $Date: 2007-05-21 04:30:47 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2007-05-23 03:57:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -768,63 +768,6 @@ public class GUI
         return HiddenDialogParent;
     }
 
-    private static class FullScreenWindow extends JWindow
-    {
-        private static final String FULLSCREEN_NAME = "*FULLSCREEN*";
-        
-        FullScreenWindow() {
-            super(VUE.getApplicationFrame());
-            if (isMacBrushedMetal())
-                setName(OVERRIDE_REDIRECT); // so no background flashing of the texture
-            else
-                setName(FULLSCREEN_NAME);
-
-            GUI.setRootPaneNames(this, FULLSCREEN_NAME);
-
-            // mac already has the menu bar at the top of the screen
-            if (!isMacAqua())
-                getRootPane().setJMenuBar(new VueMenuBar());
-            
-            setOffScreen(this);
-
-            
-            if (Util.isMacPlatform()) {
-                // On the Mac, this must be shown before any DockWindows display,
-                // or they won't stay on top of their parents (this is a mac bug).
-                setVisible(true);
-                setVisible(false);
-            }
-
-            setBackground(Color.black);
-        }
-        public void setMenuBar(JMenuBar bar)
-        {
-        	if (!isMacAqua())
-                getRootPane().setJMenuBar(bar);
-            
-        }
-        public void setVisible(boolean show) {
-
-            setFocusableWindowState(show);
-            
-            // if set we allow it to actually go invisible
-            // all children will hide (hiding all the DockWindow's)
-            
-            if (show)
-                super.setVisible(true);
-            else 
-                setOffScreen(this);
-
-            if (show) // just in case
-                DockWindow.raiseAll();
-        }
-        
-    }
-
-    public static void setFullScreenMenuBar(JMenuBar bar)
-    {
-    	((FullScreenWindow)FullScreenWindow).setMenuBar(bar);
-    }
     public static Window getFullScreenWindow() {
         if (FullScreenWindow == null) {
 
@@ -832,13 +775,13 @@ public class GUI
             //FullScreenWindow = new JWindow(VUE.getRootFrame());
             //FullScreenWindow = new DockWindow("***VUE-FULLSCREEN***", VUE.getRootFrame());
 
-            FullScreenWindow = new FullScreenWindow();
+            FullScreenWindow = new FullScreen.FSWindow();
         }
         return FullScreenWindow;
     }
 
     public static Window getCurrentRootWindow() {
-        if (tufts.vue.FullScreen.inFullScreen())
+        if (FullScreen.inFullScreen())
             return FullScreenWindow;
         else
             return VUE.getRootWindow();

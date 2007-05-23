@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.440 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $ 
+ * @version $Revision: 1.441 $ / $Date: 2007-05-23 03:57:07 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -893,8 +893,12 @@ public class VUE
         // adding the menus and toolbars
         if (DEBUG.INIT) out("setting JMenuBar...");
         ApplicationFrame.setJMenuBar(VueMenuBar.RootMenuBar = new VueMenuBar(/*VUE.ToolWindows*/));
-        GUI.setFullScreenMenuBar(new VueMenuBar());
         if (DEBUG.INIT) out("VueMenuBar installed.");;
+//         if (GUI.isMacAqua()) {
+//             // We can set this once on Mac as in native full screen,
+//             // the mac won't display it.
+//             GUI.setFullScreenMenuBar(new VueMenuBar());
+//         }
 
         if (true)
             ApplicationFrame.addComp(mViewerSplit, BorderLayout.CENTER);

@@ -1,6 +1,10 @@
-package tufts.vue;
+package tufts.vue.gui;
 
-import tufts.vue.gui.*;
+import tufts.Util;
+import tufts.vue.VUE;
+import tufts.vue.MapViewer;
+import tufts.vue.VueTool;
+import tufts.vue.VueToolbarController;
 
 import java.awt.*;
 import javax.swing.JFrame;
@@ -8,15 +12,22 @@ import javax.swing.JWindow;
 import org.apache.log4j.NDC;
 
 /**
- * Code for entering and exiting VUE full screen modes.
+ * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.315 $ / $Date: 2005/12/02 15:50:23 $ / $Author: sfraize $
+ * @version $Revision: 1.1 $ / $Date: 2007-05-23 03:57:07 $ / $Author: sfraize $
  *
  */
-// move this to package gui / code to GUI
-public class FullScreen {
-    // Full-screen handling code
-    
+
+// This code is pretty messy as it's full of experimental workarounds for java
+// limitations relating to window parentage, visibility & z-order.  The current code
+// seems to be the only thing that actually works, but lots of old code is left in all
+// over the place in case we have problems with this again.  I've submitted an RFC for
+// Java with Sun Micro on this, which was accepted, but the desired clean functionality
+// won't be in there till Java 6 at the earliest, maybe not till Java 7.
+// -- SMF 2007-05-22
+
+public class FullScreen
+{
     private static boolean fullScreenMode = false;
     private static boolean fullScreenNative = false; // using native full-screen mode, that hides even mac menu bar?
     private static boolean nativeModeHidAllDockWindows;
@@ -26,8 +37,109 @@ public class FullScreen {
     private static Dimension fullScreenOldVUESize;
     private static javax.swing.JComponent fullScreenContent;
 
+    private static final String FULLSCREEN_NAME = "*FULLSCREEN*";
+
     private static Window cachedFSW = null;
-    private static Frame cachedFSWnative = null;
+    //private static Frame cachedFSWnative = null;
+
+
+    /**
+     * The special full-screen window for VUE -- overrides setVisible for special handling
+     */
+    public static class FSWindow extends javax.swing.JWindow
+    {
+        private VueMenuBar mainMenuBar;
+        
+        FSWindow() {
+            super(VUE.getApplicationFrame());
+            if (GUI.isMacBrushedMetal())
+                setName(GUI.OVERRIDE_REDIRECT); // so no background flashing of the texture
+            else
+                setName(FULLSCREEN_NAME);
+
+            GUI.setRootPaneNames(this, FULLSCREEN_NAME);
+            GUI.setOffScreen(this);
+            
+            if (Util.isMacPlatform()) {
+                // On the Mac, this must be shown before any DockWindows display,
+                // or they won't stay on top of their parents (this is a mac bug;
+                // as of 2006 anyway -- don't know if we still need this,
+                // but best to leave it in -- SMF 2007-05-22).
+                setVisible(true);
+                setVisible(false);
+            }
+            setBackground(Color.black);
+        }
+
+        private javax.swing.JMenuBar getMainMenuBar() {
+            if (mainMenuBar == null) {
+                // fyi, if this is ever called before all the DockWindow's have
+                // been constructed, the Windows menu in the VueMenuBar
+                // will be awfully sparse...
+                mainMenuBar = new VueMenuBar();
+            }
+            return mainMenuBar;
+        }
+
+        /**
+           
+         * Allow a menu bar at the top for full-screen working mode on non-mac
+         * platforms.  (Mac always has a menu bar at the top in any working mode, as
+         * opposed to full-screen native mode).  For Windows full-screen "native" mode,
+         * we need to make sure this is NOT enabled, or it will show up at the top of
+         * the full-screen window during a presentation.
+         
+         */
+        
+        private void setMenuBarEnabled(boolean enabled) {
+            if (GUI.isMacAqua()) {
+                // we never need to do this in Mac Aqua, as the application
+                // always has the Mac menu bar at the top of the screen
+                return;
+            }
+            
+            if (enabled)
+                getRootPane().setJMenuBar(getMainMenuBar());
+            else
+                getRootPane().setJMenuBar(null);
+        }
+        
+        /**
+           
+         * When set to hide, this instead sets us off-screen and forces us to be
+         * non-focusable (we don't want an "invisible" window accidentally having the
+         * focus).
+         
+         * We need to do this because all the DockWindows are children of this window,
+         * (so they always stay on top of it in full-screen working mode, which is
+         * currently the only way to ensure this), and as children, if we actually hid
+         * this window, they'd all hide with it.
+
+         * And when shown, we prophylacticly raise all the DockWindows, in case one of
+         * the various window hierarchy display bugs in the various java platform
+         * implementations left them behind something.
+         
+         */
+        
+        @Override
+        public void setVisible(boolean show)
+        {
+            setFocusableWindowState(show);
+            
+            // if set we allow it to actually go invisible
+            // all children will hide (hiding all the DockWindow's)
+            
+            if (show)
+                super.setVisible(true);
+            else 
+                GUI.setOffScreen(this);
+
+            if (show) // just in case
+                DockWindow.raiseAll();
+        }
+        
+    }
+    
 
     public static boolean inFullScreen() {
         return fullScreenMode;
@@ -40,7 +152,7 @@ public class FullScreen {
         toggleFullScreen(false);
     }
     
-    static synchronized void toggleFullScreen(final boolean goNative)
+    public static synchronized void toggleFullScreen(final boolean goNative)
     {
         // TODO: getMapAt in MapTabbedPane fails returning null when, of course, MapViewer is parented out!
                 
@@ -135,25 +247,25 @@ public class FullScreen {
 
 
         VUE.Log.debug("enterFullScreenMode: goingNative=" + goNative);
-        if (false&&goNative) {
-            if (VueUtil.isMacPlatform() || cachedFSWnative == null) {
-                // have to create full screen native win on mac every time or it comes
-                // back trying to avoid the dock??
-                if (cachedFSWnative != null)
-                    cachedFSWnative.setTitle("_old-mac-full-native"); // '_' important for macosx hacks
-                cachedFSWnative = GUI.createFrame("VUE-FULL-NATIVE");
-                cachedFSWnative.setUndecorated(true);
-                cachedFSWnative.setLocation(0,0);
-            }
-            fullScreenWindow = cachedFSWnative;
-        } else {
-            if (cachedFSW == null) {
-                cachedFSW = GUI.getFullScreenWindow();
-                //cachedFSW = GUI.createFrame("VUE-FULL-WORKING");
-                //cachedFSW.setUndecorated(true);
-            }
-            fullScreenWindow = cachedFSW;
+//         if (false&&goNative) {
+//             if (VueUtil.isMacPlatform() || cachedFSWnative == null) {
+//                 // have to create full screen native win on mac every time or it comes
+//                 // back trying to avoid the dock??
+//                 if (cachedFSWnative != null)
+//                     cachedFSWnative.setTitle("_old-mac-full-native"); // '_' important for macosx hacks
+//                 cachedFSWnative = GUI.createFrame("VUE-FULL-NATIVE");
+//                 cachedFSWnative.setUndecorated(true);
+//                 cachedFSWnative.setLocation(0,0);
+//             }
+//             fullScreenWindow = cachedFSWnative;
+//         } else {
+        if (cachedFSW == null) {
+            cachedFSW = GUI.getFullScreenWindow();
+            //cachedFSW = GUI.createFrame("VUE-FULL-WORKING");
+            //cachedFSW.setUndecorated(true);
         }
+        fullScreenWindow = cachedFSW;
+            //}
             
         /*
           if (false) {
@@ -209,11 +321,16 @@ public class FullScreen {
                 
         fullScreenMode = true; // we're in the mode as soon as the add completes (no going back then)
         fullScreenNative = goNative;
-        if (VUE.getMainWindow() != null) {
-            //fullScreenOldVUELocation = VUE.getMainWindow().getLocation();
-            //fullScreenOldVUESize = VUE.getMainWindow().getSize();
-            //if (fullScreenWindow != VUE.getMainWindow())
-            //VUE.getMainWindow().setVisible(false);
+        
+//         if (VUE.getMainWindow() != null) {
+//             //fullScreenOldVUELocation = VUE.getMainWindow().getLocation();
+//             //fullScreenOldVUESize = VUE.getMainWindow().getSize();
+//             //if (fullScreenWindow != VUE.getMainWindow())
+//             //VUE.getMainWindow().setVisible(false);
+//         }
+
+        if (fullScreenWindow instanceof FSWindow) {
+            ((FSWindow)fullScreenWindow).setMenuBarEnabled(!goNative);
         }
 
         if (goNative) {
