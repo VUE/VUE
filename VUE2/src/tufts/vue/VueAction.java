@@ -32,7 +32,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.24 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $ 
+ * @version $Revision: 1.25 $ / $Date: 2007-05-23 22:29:16 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -178,10 +178,10 @@ public class VueAction extends javax.swing.AbstractAction
         if (DEBUG.EVENTS)
             System.out.println("\n-----------------------------------------------------------------------------\n"
                                + this
-                               + " START OF actionPerformed: ActionEvent="
-                               + ae.paramString()
-                               + " src=" + ae.getSource());
-        if (allIgnored && !overrideIgnoreAllActions()) {
+                               + " START OF actionPerformed: " + getClass().getName()
+                               + ";\n\tActionEvent: (" + ae.paramString()
+                               + ")\n\t     source: " + ae.getSource());
+        if (allIgnored && !isUserEnabled()) {
             if (DEBUG.Enabled) System.out.println("ALL ACTIONS DISABLED; " + this + "; " + ae);
             return;
         }
@@ -198,7 +198,7 @@ public class VueAction extends javax.swing.AbstractAction
               msg += " n=" + VUE.getSelection().size();
               System.out.println(msg);
             */
-            if (enabled()) {
+            if (isUserEnabled()) {
                 act();
             } else {
                 java.awt.Toolkit.getDefaultToolkit().beep();

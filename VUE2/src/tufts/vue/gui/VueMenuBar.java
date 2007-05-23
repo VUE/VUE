@@ -31,7 +31,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.37 $ / $Date: 2007-05-18 19:42:17 $ / $Author: dan $
+ * @version $Revision: 1.38 $ / $Date: 2007-05-23 22:29:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -521,7 +521,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
     		file = f;
     	}
 
-        public boolean enabled() { return true; }
+        @Override
+        public boolean isUserEnabled() { return true; }
     	
     	public void act()
     	{
