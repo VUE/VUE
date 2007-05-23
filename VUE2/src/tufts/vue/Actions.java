@@ -1178,7 +1178,7 @@ public class Actions implements VueConstants
          * new-item actions, and new item actions auto-activate a label
          * edit, so we allow this even if everything is disabled */
         @Override
-        public boolean overrideIgnoreAllActions() { return true; }
+        public boolean overrideIgnoreAllActions() { return VUE.getActiveViewer() != null; }
 
         public void act() {
             final MapViewer viewer = VUE.getActiveViewer();
