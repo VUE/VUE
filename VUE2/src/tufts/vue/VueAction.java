@@ -32,7 +32,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.25 $ / $Date: 2007-05-23 22:29:16 $ / $Author: sfraize $ 
+ * @version $Revision: 1.26 $ / $Date: 2007-05-23 22:53:31 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -185,10 +185,10 @@ public class VueAction extends javax.swing.AbstractAction
             if (DEBUG.Enabled) System.out.println("ALL ACTIONS DISABLED; " + this + "; " + ae);
             return;
         }
-        if (allEditIgnored && isEditAction()) {
-            if (DEBUG.Enabled) System.out.println("ALL EDIT ACTIONS DISABLED; " + this + "; " + ae);
-            return;
-        }
+//         if (allEditIgnored && isEditAction()) {
+//             if (DEBUG.Enabled) System.out.println("ALL EDIT ACTIONS DISABLED; " + this + "; " + ae);
+//             return;
+//         }
         boolean hadException = false;
         try {
             /*
