@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.15 $ / $Date: 2007-05-17 22:00:28 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2007-05-23 03:47:10 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  * TODO: add capability for handling LWComponent.ChildKind, so we have the option
@@ -91,7 +91,7 @@ public class LWTraversal {
         
     public void traverseChildren(java.util.List<LWComponent> children)
     {
-        // default behaviour of traversals is to traverse list in reverse so as 
+        // default behaviour of traversals is to traverse list in reverse so
         // that top-most components are seen first
             
         for (java.util.ListIterator<LWComponent> i = children.listIterator(children.size()); i.hasPrevious();) {
@@ -246,7 +246,7 @@ public class LWTraversal {
                 p = mapPoint;
             }
 
-            if (c.contains(p)) {
+            if (c.contains(p, pc.zoom)) {
                 // If we expand impl to handle the contained children optimization (non-strayChildren):
                 //      Since we're POST_ORDER, if strayChildren is false, we already know this
                 //      object contains the point, because acceptTraversal had to accept it.
