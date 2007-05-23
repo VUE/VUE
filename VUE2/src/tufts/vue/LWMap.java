@@ -55,7 +55,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.130 $ / $Date: 2007-05-17 22:14:52 $ / $Author: sfraize $
+ * @version $Revision: 1.131 $ / $Date: 2007-05-23 03:47:52 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -721,7 +721,7 @@ public class LWMap extends LWContainer
     
     /** @return true -- maps contain all points (can be point-picked anywhere) */
     @Override
-    protected boolean containsImpl(float x, float y) {
+    protected boolean containsImpl(float x, float y, float zoom) {
         return true;
     }
     
