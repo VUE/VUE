@@ -535,7 +535,17 @@ public class PresentationTool extends VueTool
             // MapViewer popFocal must have failed -- focal should be the map:
             // todo: all our VueTool handled calls that come from the MapViewer
             // should take a viewer as an argument...
-            setPage(mLastPathwayPage);
+            if (mLastPathwayPage != null) {
+                setPage(mLastPathwayPage);
+            } else {
+                // non-pathway navigation: just zoom back out to entire map
+                VUE.getActiveViewer().fitToFocal(); // TODO: viewer should be passed in..
+                // TODO: want to animate zoom!
+                // Really need that Page object, probably at the MapViewer level,
+                // that knows if we've EVER been zoomed and/or panned off the main focal,
+                // so that we could "reload" the focal by zoom-fitting to it even
+                // if it's the same focal
+            }
             break;
 
         case KeyEvent.VK_SPACE:
@@ -834,15 +844,15 @@ private static int OverviewMapSizeIndex = 5;
         //if (toMap)
         viewer.popFocal(toMap);
 
-        if (false && toLinks && focal.getLinks().size() > 0) {
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                ZoomTool.setZoomFitRegion(viewer,
-                                          focal.getFanBounds(),
-                                          30,
-                                          true);
-            }});
+//         if (toLinks && focal.hasLinks()) {
+//             GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                 ZoomTool.setZoomFitRegion(viewer,
+//                                           focal.getCenteredFanBounds(),
+//                                           30,
+//                                           true);
+//             }});
 
-        }
+//         }
         
     }
     
@@ -879,6 +889,8 @@ private static int OverviewMapSizeIndex = 5;
                 revisitPrior();
             }
         } else {
+            // todo: use tobe refocus code, which ZoomTool should also
+            // use (hell, maybe this should all go in the MapViewer)
             setPage(hit);
         }
         return true;
@@ -940,7 +952,7 @@ private static int OverviewMapSizeIndex = 5;
     public void startPresentation()
     {
         out(this + " startPresentation");
-        new Throwable("startPresentation").printStackTrace();
+        new Throwable("FYI: startPresentation (debug)").printStackTrace();
         
         //if (DEBUG.PRESENT && DEBUG.META) tufts.Util.printStackTrace("startPresentation");
         
