@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.146 $ / $Date: 2007-05-18 04:44:44 $ / $Author: sfraize $
+ * @version $Revision: 1.147 $ / $Date: 2007-05-23 03:48:43 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -333,6 +333,17 @@ public class LWLink extends LWComponent
         }
     }
 
+    /** @return same as super class impl, but by default add our own two endpoints */
+    @Override
+    public Rectangle2D.Float getFanBounds(Rectangle2D.Float r)
+    {
+        final Rectangle2D.Float rect = super.getFanBounds(r);
+        if (head != null)
+            rect.add(head.getBounds());
+        if (tail != null)
+            rect.add(tail.getBounds());
+        return rect;
+    }
     
     public Collection<LWComponent> getEndpointChain(LWComponent endpoint) {
         HashSet set = new HashSet();
@@ -923,7 +934,9 @@ public class LWLink extends LWComponent
         
     }
 
-    protected boolean containsImpl(float x, float y)
+    // TODO: need a PickContect or zoom for contains impl
+    @Override
+    protected boolean containsImpl(float x, float y, float zoom)
     {
         if (endpointMoved)
             computeLink();
@@ -933,13 +946,15 @@ public class LWLink extends LWComponent
         // Can't: bounding box doesn't currently include the label,
         // which on a small link could be well outside the stroked path.
 
-        float maxDist = getStrokeWidth() / 2;
-        final int slop = 4; // near miss on line still hits it
+        //final float slop = 4; // near miss this number of on-screen pixels still hits it
+        //final float maxDist = (getStrokeWidth() / 2f + slop) / zoom;
         
+        final float slop = 7; // near miss this number of on-screen pixels still hits it
+        float maxDist = getStrokeWidth() / 2f;
         if (maxDist < slop)
             maxDist = slop;
 
-        float maxDistSq = maxDist * maxDist + 1;
+        final float maxDistSq = maxDist * maxDist + 1;
 
         // TODO: can make slop bigger if implement a two-pass hit detection process that
         // does absolute on first pass, and slop hits on second pass (otherwise, if this
@@ -1565,7 +1580,7 @@ public class LWLink extends LWComponent
 
         // diagnostics
         if (DEBUG.BOXES) {
-            out("normalizing rotation " + radians);
+            if (DEBUG.LINK) out("normalizing rotation " + radians);
             if (DEBUG.META) {
                 this.label =
                     Util.oneDigitDecimal(xdiff) + "/" + Util.oneDigitDecimal(ydiff) + "=" + (float) slope
