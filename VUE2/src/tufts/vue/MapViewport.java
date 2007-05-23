@@ -353,11 +353,14 @@ public class MapViewport extends JViewport
             getWidth() == w &&
             getHeight() == h;
         if (DEBUG.SCROLL||DEBUG.PAINT||DEBUG.EVENTS||DEBUG.FOCUS)
-            out("reshape: "
-                + w + " x " + h
-                + " "
-                + x + "," + y
-                + (ignore?" (no change)":""));
+            System.out.println("reshape: "
+                               + (ignore?"(no change) ":"")
+                               + w + " x " + h
+                               + " "
+                               + x + "," + y
+                               + " " + this);
+                               
+
         super.reshape(x, y, w, h);
         // This is a workaround for repaint bugs in TextBox/JTextPane when it get's taller
         // (when you insert newlines).  Why we get reshapes on the parent (ignoreable ones)
