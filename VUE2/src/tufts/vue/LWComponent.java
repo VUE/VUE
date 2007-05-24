@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.286 $ / $Date: 2007-05-24 21:45:22 $ / $Author: sfraize $
+ * @version $Revision: 1.287 $ / $Date: 2007-05-24 22:24:42 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -260,6 +260,14 @@ public class LWComponent
             if (key.isStyleProperty && styleSource.supportsProperty(key) && (permittedPropertyBits & key.bit) != 0)
                 key.copyValue(styleSource, this);
     }
+
+    public void copyProperties(LWComponent source, long propertyBits) {
+        if (DEBUG.STYLE) System.out.println("COPY PROPS of " + source + " ==>> " + this + " bits=" + Long.bitCount(propertyBits));
+        for (Key key : Key.AllKeys)
+            if ((propertyBits & key.bit) != 0 && source.supportsProperty(key))
+                key.copyValue(source, this);
+    }
+    
 
     public void applyCSS(edu.tufts.vue.style.Style cssStyle)
     {

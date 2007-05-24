@@ -17,7 +17,8 @@ public class EditorManager
     private static boolean PropertySettingUnderway; // editor values are being applied to the selection
     
     //private static boolean UnappliedPropertyChanges = true; // so preference pre-load is unapplied
-    private static boolean UnappliedPropertyChanges = false; // but NOT with auto-selection apply
+    //private static boolean UnappliedPropertyChanges = false; // but NOT with auto-selection apply
+    private static long FreePropertyBits;
 
     private static class StyleType {
         final Object token;
@@ -30,19 +31,30 @@ public class EditorManager
             provisional = p;
         }
 
-        void resolveToProvisional() {
+        void resolveToProvisional(long freeBits) {
             if (DEBUG.STYLE && (DEBUG.META /*|| DEBUG.WORK*/)) tufts.Util.printStackTrace(this + " RESOLVING TO " + provisional);
             
             if (token == LWNode.TYPE_TEXT) {
+
                 // special case for "text" nodes:
                 // don't assume shape or fill was pre-ordained for the text object
                 // -- these can only be set after the object is created.  (And as it
                 // stands at the moment changing the fill color to will actually
                 // change it's type from "textNode" back to LWNode.class).
-                style.copyStyle(provisional, ~ (LWKey.FillColor.bit | LWKey.Shape.bit) );
+                
+                if (freeBits != 0) {
+                    freeBits &= ~ (LWKey.FillColor.bit | LWKey.Shape.bit);
+                    style.copyProperties(provisional, freeBits);
+                } else {
+                    style.copyStyle(provisional, ~ (LWKey.FillColor.bit | LWKey.Shape.bit) );
+                }
 
-            } else
-                style.copyStyle(provisional);
+            } else {
+                if (freeBits != 0)
+                    style.copyProperties(provisional, freeBits);
+                else
+                    style.copyStyle(provisional);
+            }
         }
 
         /** @return the style ready for use to be applied to something -- does sanity checking
@@ -129,25 +141,16 @@ public class EditorManager
 
             singleSelection = s.first();
             
-            // Not good enough: to really handle this, we need track the actual property
-            // bits that have been changed in the free state, and ONLY uses those --
-            // either change provisionals to always work this way (will it break
-            // everything else? probably) -- we'll need a separate tracking for the
-            // auto-apply on selection (which is very agressive, so we need to be
-            // careful) E.g., this is a problem at startup, where the type for node has
-            // been fully loaded from the last node created, but even if we just change
-            // the fill color, then select, it's applying ALL the old properties.
-            
-//             if (UnappliedPropertyChanges) {
-//                 // if we select something with unapplied changes,
-//                 // apply them to the selection.  We should
-//                 // be moving from a nothing selected to a new
-//                 // selection state, as we should only ever have
-//                 // unapplied changes if there wasn't a selection
-//                 // to apply them to.
-//                 resolveToProvisionalStyle(singleSelection);
-//                 applyCurrentProperties(singleSelection);
-//             }
+            if (FreePropertyBits != 0) {
+                
+                // if we select something with unapplied changes (free properties),
+                // apply them to the selection.  We should be moving from a nothing
+                // selected to a new selection state, as we should only ever have
+                // unapplied changes if there wasn't a selection to apply them to.
+                
+                resolveToProvisionalStyle(singleSelection, FreePropertyBits);
+                applyCurrentProperties(singleSelection, FreePropertyBits);
+            }
 
             // add the listener after auto-applying any free style info
             singleSelection.addLWCListener(this);
@@ -185,11 +188,11 @@ public class EditorManager
         if (typeToken == null)
             return;
 
-        if (UnappliedPropertyChanges) {
+        if (FreePropertyBits != 0) {
             // if we switch to a new tool, and there were editor
             // changes that had been unused, target them for the new
             // tool type if there is one.
-            resolveToProvisionalStyle(typeToken);
+            resolveToProvisionalStyle(typeToken, FreePropertyBits);
         }
 
 
@@ -354,14 +357,14 @@ public class EditorManager
     private static void applySinglePropertyChange(final Collection<LWComponent> components, final Object key, final Object newValue, Object source)
     {
         if (EditorLoadingUnderway) {
-            if (DEBUG.TOOL) System.out.println("ApplyPropertyChangeToSelection: " + key + " " + newValue + " (skipping)");
+            if (DEBUG.TOOL) out("applySinglePropertyChange: " + key + " " + newValue + " (skipping)");
             return;
         }
         
-        if (DEBUG.TOOL||DEBUG.STYLE) System.out.println("ApplyPropertyChangeToSelection: " + key + " " + newValue);
+        if (DEBUG.TOOL||DEBUG.STYLE) out("applySinglePropertyChange: " + key + " " + newValue);
         
         if (!components.isEmpty()) {
-            delcareUnusedProperties(false);
+            consumeFreeProperties();
             // As setting these properties in the model will trigger notify events from the selected objects
             // back up to the tools, we want to ignore those events while this is underway -- the tools
             // already have their state set to this.
@@ -378,21 +381,27 @@ public class EditorManager
 
             recordPropertyChangeInStyles("apply", key, newValue, false);
         } else {
-            delcareUnusedProperties(true);
             recordPropertyChangeInStyles("apply", key, newValue, true);
         }
     }
 
-    private static void delcareUnusedProperties(boolean free) {
-        UnappliedPropertyChanges = free;
-        if (DEBUG.STYLE) out("declaring free (unused) property changes: " + free);
-        //Util.printStackTrace("HELLO");
+    private static void declareFreeProperty(Object key) {
+        if (key instanceof LWComponent.Key) {
+            FreePropertyBits |= ((LWComponent.Key)key).bit;
+            if (DEBUG.STYLE) out("declaring free (unused) property change: " + key);
+        }
     }
+
+    private static void consumeFreeProperties() {
+        if (DEBUG.STYLE) out("consuming free property bits: " + Long.bitCount(FreePropertyBits));
+        FreePropertyBits = 0;
+    }
+        
 
     private static void recordPropertyChangeInStyles(String source, Object key, Object newValue, boolean provisionals) {
         // provisionals should be true when there is no selection, and the tools are all enabled in their "free" state
         if (provisionals) {
-            delcareUnusedProperties(true);
+            declareFreeProperty(key);
             for (StyleType styleType : StylesByType.values()) {
                 applyPropertyValue("<" + source + ":provSync>", key, newValue, styleType.provisional);
                 if (CurrentToolStyle == styleType)
@@ -409,14 +418,22 @@ public class EditorManager
      * Apply the current appropriate properties to the given newly created object based on it's type.
      */
     public static void applyCurrentProperties(LWComponent c) {
+        applyCurrentProperties(c, 0L);
+    }
+            
+    public static void applyCurrentProperties(LWComponent c, long freeBits) {
         if (c == null)
             return;
 
         try {
             
             StyleType styleType = StylesByType.get(c.getTypeToken());
-            if (styleType != null)
-                c.copyStyle(styleType.provisional);
+            if (styleType != null) {
+                if (freeBits != 0)
+                    c.copyProperties(styleType.provisional, freeBits);
+                else
+                    c.copyStyle(styleType.provisional);
+            }
             
         } catch (Throwable t) {
             tufts.Util.printStackTrace(t, "failed to apply current properties to: " + c);
@@ -435,7 +452,7 @@ public class EditorManager
         try {
             
             LWComponent styleForType = resolveToProvisionalStyle(c);
-            delcareUnusedProperties(false);
+            consumeFreeProperties();
             if (styleForType != null)
                 c.copyStyle(styleForType);
             
@@ -523,9 +540,13 @@ public class EditorManager
 //             return null;
 //     }
     
+    private static LWComponent resolveToProvisionalStyle(Object typeToken) {
+        return resolveToProvisionalStyle(typeToken, 0L);
+    }
+    
     /** @return the current style for type type of the given component only if we already have one
      * -- do not auto-create a new style for the type if we don't already have one */
-    private static LWComponent resolveToProvisionalStyle(Object typeToken)
+    private static LWComponent resolveToProvisionalStyle(Object typeToken, long freeBits)
     {
         if (DEBUG.STYLE) out("resolveToProvisionalStyle: " + typeToken);
         
@@ -548,9 +569,9 @@ public class EditorManager
         // move the provisional style (unselected tool state style) to the actual
         // style for this type:
         if (resolver != null) {
-            resolver.resolveToProvisional();
+            resolver.resolveToProvisional(freeBits);
             if (DEBUG.STYLE || DEBUG.WORK) out("Resolved provisional type to final applied type: " + resolver);
-            delcareUnusedProperties(false);
+            consumeFreeProperties();
 
         }
 
