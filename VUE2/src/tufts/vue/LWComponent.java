@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.285 $ / $Date: 2007-05-24 21:01:35 $ / $Author: sfraize $
+ * @version $Revision: 1.286 $ / $Date: 2007-05-24 21:45:22 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1000,7 +1000,8 @@ u                    getSlot(c).setFromString((String)value);
                 return new BasicStroke(width
                                        , BasicStroke.CAP_BUTT // anything else will mess with the dash pattern
                                        , BasicStroke.JOIN_BEVEL
-                                       , 0f //10.0f // miter-limit
+                                       , 10f // miter-limit
+                                       //, 0f // miter-limit
                                        , dashPattern
                                        , 0f); // dash-phase (offset to start of pattern -- apparently pixels, not index)
         }
