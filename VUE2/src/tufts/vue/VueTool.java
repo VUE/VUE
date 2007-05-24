@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.71 $ / $Date: 2007-05-24 17:25:58 $ / $Author: mike $
+ * @version $Revision: 1.72 $ / $Date: 2007-05-24 21:00:04 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -381,15 +381,6 @@ public abstract class VueTool extends AbstractAction
         return false;
     }
 
-//     /** if returls non-null, the object is used for saving style information that is active with this tool */
-//     public LWComponent getStyleCache() {
-//         return mStyleCache;
-//     }
-    
-//     protected LWComponent createStyleCache() {
-//         return null;
-//     }
-
     /** mark this tool as temporarily activated */
     public void setTemporary(boolean t) {
         isTemporary = t;
@@ -398,6 +389,15 @@ public abstract class VueTool extends AbstractAction
     public boolean isTemporary() {
         return isTemporary;
     }
+
+//     // possible: default true, but zoom / pres tool / hand tool return false.
+//     // Tools that aren't editors should not allow temporary
+//     // activation to other tools that are editors
+//     // e.g., zoom tool can use ctrl/alt for zoom modifiers w/out activating link tool on accidental drag
+//     public boolean isEditor() {
+//         return true;
+//     }
+    
     
     public void drawSelector(DrawContext dc, java.awt.Rectangle r)
     {
