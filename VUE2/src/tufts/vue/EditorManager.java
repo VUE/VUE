@@ -1,5 +1,6 @@
 package tufts.vue;
 
+import tufts.Util;
 import java.beans.*;
 import java.util.*;
 import javax.swing.JLabel;
@@ -14,6 +15,9 @@ public class EditorManager
     private static EditorManager singleton;
     private static boolean EditorLoadingUnderway; // editors are loading values from the selection
     private static boolean PropertySettingUnderway; // editor values are being applied to the selection
+    
+    //private static boolean UnappliedPropertyChanges = true; // so preference pre-load is unapplied
+    private static boolean UnappliedPropertyChanges = false; // but NOT with auto-selection apply
 
     private static class StyleType {
         final Object token;
@@ -116,11 +120,29 @@ public class EditorManager
 
     public void selectionChanged(LWSelection s) {
 
+        if (DEBUG.STYLE) out("selectionChanged: " + s);
+
         if (s.size() == 1) {
+            
             if (singleSelection != null)
                 singleSelection.removeLWCListener(this);
+
             singleSelection = s.first();
+            
+            if (UnappliedPropertyChanges) {
+                // if we select something with unapplied changes,
+                // apply them to the selection.  We should
+                // be moving from a nothing selected to a new
+                // selection state, as we should only ever have
+                // unapplied changes if there wasn't a selection
+                // to apply them to.
+                resolveToProvisionalStyle(singleSelection);
+                applyCurrentProperties(singleSelection);
+            }
+
+            // add the listener after auto-applying any free style info
             singleSelection.addLWCListener(this);
+            
             CurrentStyle = getStyleForType(singleSelection);
         } else {
             // TODO: it will be easy for the selection to keep a hash of contents based
@@ -153,6 +175,14 @@ public class EditorManager
 
         if (typeToken == null)
             return;
+
+        if (UnappliedPropertyChanges) {
+            // if we switch to a new tool, and there were editor
+            // changes that had been unused, target them for the new
+            // tool type if there is one.
+            resolveToProvisionalStyle(typeToken);
+        }
+
 
         final StyleType oldStyle = CurrentStyle;
         
@@ -322,6 +352,7 @@ public class EditorManager
         if (DEBUG.TOOL||DEBUG.STYLE) System.out.println("ApplyPropertyChangeToSelection: " + key + " " + newValue);
         
         if (!components.isEmpty()) {
+            declareFreeProps(false);
             // As setting these properties in the model will trigger notify events from the selected objects
             // back up to the tools, we want to ignore those events while this is underway -- the tools
             // already have their state set to this.
@@ -337,14 +368,22 @@ public class EditorManager
                 VUE.getUndoManager().markChangesAsUndo(key.toString());
 
             applyPropertyToStyles("apply", key, newValue, false);
-        } else
+        } else {
+            declareFreeProps(true);
             applyPropertyToStyles("apply", key, newValue, true);
-        
+        }
+    }
+
+    private static void declareFreeProps(boolean free) {
+        UnappliedPropertyChanges = free;
+        if (DEBUG.STYLE) out("declaring free (unused) property changes: " + free);
+        //Util.printStackTrace("HELLO");
     }
 
     private static void applyPropertyToStyles(String source, Object key, Object newValue, boolean provisionals) {
         // provisionals should be true when there is no selection, and the tools are all enabled in their "free" state
         if (provisionals) {
+            declareFreeProps(true);
             for (StyleType styleType : StylesByType.values()) {
                 applyPropertyValue("<" + source + ":provSync>", key, newValue, styleType.provisional);
                 if (CurrentToolStyle == styleType)
@@ -386,7 +425,8 @@ public class EditorManager
     public static void targetAndApplyCurrentProperties(LWComponent c) {
         try {
             
-            LWComponent styleForType = resolveProvisionalStyleForType(c);
+            LWComponent styleForType = resolveToProvisionalStyle(c);
+            declareFreeProps(false);
             if (styleForType != null)
                 c.copyStyle(styleForType);
             
@@ -467,23 +507,42 @@ public class EditorManager
         return style;
     }
         
+//     private static LWComponent resolveToProvisionalStyleFor(LWComponent c) {
+//         if (c != null)
+//             return resolveToProvisionalStyle(c.getTypeToken());
+//         else
+//             return null;
+//     }
+    
     /** @return the current style for type type of the given component only if we already have one
      * -- do not auto-create a new style for the type if we don't already have one */
-    private static LWComponent resolveProvisionalStyleForType(LWComponent c) {
+    private static LWComponent resolveToProvisionalStyle(Object typeToken)
+    {
+        if (DEBUG.STYLE) out("resolveToProvisionalStyle: " + typeToken);
+        
+        if (typeToken == null)
+            return null;
+        
+        if (typeToken instanceof LWComponent) {
+            //Util.printStackTrace("oops; passed LWComponent as type-token: " + typeToken);
+            typeToken = ((LWComponent)typeToken).getTypeToken();
+            if (DEBUG.STYLE) out("resolveToProvisionalStyle: " + typeToken);
+        }
+        
         if (StylesByType == null) {
             tufts.Util.printStackTrace("circular static initializer dependency");
             return null;
         }
-        if (c == null)
-            return null;
 
-        StyleType resolver = StylesByType.get(c.getTypeToken());
+        StyleType resolver = StylesByType.get(typeToken);
 
         // move the provisional style (unselected tool state style) to the actual
         // style for this type:
         if (resolver != null) {
             resolver.resolveToProvisional();
             if (DEBUG.STYLE || DEBUG.WORK) out("Resolved provisional type to final applied type: " + resolver);
+            declareFreeProps(false);
+
         }
 
         // new reset all other provisional styles: the tool state change has been
