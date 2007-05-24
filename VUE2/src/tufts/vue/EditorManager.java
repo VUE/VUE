@@ -1,5 +1,7 @@
 package tufts.vue;
 
+import static tufts.vue.LWComponent.*;
+
 import tufts.Util;
 import java.beans.*;
 import java.util.*;
@@ -16,9 +18,15 @@ public class EditorManager
     private static boolean EditorLoadingUnderway; // editors are loading values from the selection
     private static boolean PropertySettingUnderway; // editor values are being applied to the selection
     
-    //private static boolean UnappliedPropertyChanges = true; // so preference pre-load is unapplied
-    //private static boolean UnappliedPropertyChanges = false; // but NOT with auto-selection apply
+    /** Property bits for any editor state changes in the "free" state (nothing is
+     * selected, all editors are enabled -- property changes are not being
+     * applied directly to any LWComponents in a selection).
+     */
     private static long FreePropertyBits;
+    // now that we're tracking these, we may be able to do away with the provisionals:
+    // resolution becomes asking the editors to produce the value for the recorded
+    // free bits, and applying those to the typed style (ignoring/tossing free bits
+    // not supported on the target style).
 
     private static class StyleType {
         final Object token;
@@ -385,10 +393,23 @@ public class EditorManager
         }
     }
 
-    private static void declareFreeProperty(Object key) {
-        if (key instanceof LWComponent.Key) {
-            FreePropertyBits |= ((LWComponent.Key)key).bit;
-            if (DEBUG.STYLE) out("declaring free (unused) property change: " + key);
+    private static void declareFreeProperty(Object k) {
+        if (k instanceof Key) {
+            final Key key = (Key) k;
+            
+            // Note that if any LWEditors are created that are handling non KeyType.STYLE properties,
+            // we could get some odd effects (e.g., we wouldn't want label or notes being
+            // tagged as having been free property bit, then applying it to newly created objects!)
+
+            if (key.type != KeyType.STYLE && key.type != KeyType.SUB_STYLE) {
+                tufts.Util.printStackTrace("Warning: free property of non-style type being ignored: " + key + "; type=" + key.type);
+                // we can safely ignore this, but I'm dumping a stack trace for now so we know if we get into this situation
+                return;
+            }
+            
+            FreePropertyBits |= key.bit;
+            
+            if (DEBUG.STYLE) out("declaring free (unused) property change: " + key + "; type=" + key.type);
         }
     }
 
