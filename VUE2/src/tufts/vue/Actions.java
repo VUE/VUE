@@ -1028,7 +1028,8 @@ public class Actions implements VueConstants
         }
     };
     public static final Action Revert =
-        new VueAction("Revert", keyStroke(KeyEvent.VK_R, COMMAND+SHIFT), ":general/Revert") {            
+        //new VueAction("Revert", keyStroke(KeyEvent.VK_R, COMMAND+SHIFT), ":general/Revert") { // conflicts w/align centers in row
+        new VueAction("Revert", null, ":general/Revert") {            
             boolean undoable() { return false; }
             boolean enabled() { return true; }
             public void act() {
