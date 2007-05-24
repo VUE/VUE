@@ -442,7 +442,7 @@ public class EditorManager
         applyCurrentProperties(c, 0L);
     }
             
-    public static void applyCurrentProperties(LWComponent c, long freeBits) {
+    private static void applyCurrentProperties(LWComponent c, long freeBits) {
         if (c == null)
             return;
 
