@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.53 $ / $Date: 2007-05-11 17:35:58 $ / $Author: mike $
+ * @version $Revision: 1.54 $ / $Date: 2007-05-24 20:59:27 $ / $Author: sfraize $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -104,11 +104,13 @@ public class FontEditorPanel extends JPanel
 
         mFontCombo.setMaximumRowCount(30);
         mFontCombo.setOpaque(false);
+        // Set selected items BEFORE adding action listeners, or during startup
+        // we think a user has actually selected this item!
+        mFontCombo.setSelectedItem("Arial");
         mFontCombo.addActionListener(new LWPropertyHandler<String>(LWKey.FontName, mFontCombo) {
                 public String produceValue() { return (String) mFontCombo.getSelectedItem(); }
                 public void displayValue(String value) { mFontCombo.setSelectedItem(value); }
             });
-        mFontCombo.setSelectedItem("Arial");
 //         We don't appear to get any events here!
 //         mFontCombo.addItemListener(new ItemListener() {
 //                 public void itemStateChanged(ItemEvent e) {
