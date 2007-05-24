@@ -33,7 +33,7 @@ import java.awt.image.BufferedImage;
 
 import java.util.*;
 
-import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
+//import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
 
 import edu.tufts.vue.style.Style;
@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.284 $ / $Date: 2007-05-23 03:49:49 $ / $Author: sfraize $
+ * @version $Revision: 1.285 $ / $Date: 2007-05-24 21:01:35 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */

@@ -19,7 +19,6 @@
 package tufts.vue;
 
 import tufts.vue.gui.*;
-import tufts.vue.beans.*;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -42,7 +41,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.56 $ / $Date: 2007-05-11 15:35:24 $ / $Author: mike $
+ * @version $Revision: 1.57 $ / $Date: 2007-05-24 21:01:36 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends ToolPanel

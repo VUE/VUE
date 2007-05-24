@@ -27,7 +27,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import javax.swing.*;
-import tufts.vue.beans.VueBeanState;
 
 /**
  * VueTool for creating LWNodes.  Methods for creating default new nodes based on

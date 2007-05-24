@@ -19,7 +19,6 @@
 package tufts.vue;
 
 import tufts.vue.gui.*;
-import tufts.vue.beans.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -32,7 +31,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.6 $ / $Date: 2007-05-10 13:23:39 $ / $Author: mike $
+ * @version $Revision: 1.7 $ / $Date: 2007-05-24 21:01:35 $ / $Author: sfraize $
  * 
  */
 

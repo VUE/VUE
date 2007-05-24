@@ -19,7 +19,6 @@
 package tufts.vue;
 
 import tufts.vue.gui.*;
-import tufts.vue.beans.*;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -51,7 +50,7 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.8 $ / $Date: 2007-05-11 20:12:14 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2007-05-24 21:01:35 $ / $Author: sfraize $
  */
  
 public class FillToolPanel extends ToolPanel

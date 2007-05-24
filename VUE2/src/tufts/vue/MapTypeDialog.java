@@ -27,10 +27,10 @@ import javax.swing.table.*;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
-import tufts.vue.beans.*;
+import tufts.vue.filter.*;
 
 /**
- * @version $Revision: 1.6 $ / $Date: 2006-01-20 19:42:11 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2007-05-24 21:01:36 $ / $Author: sfraize $
  */
 public class MapTypeDialog extends JPanel  implements ActionListener, ListSelectionListener {
 

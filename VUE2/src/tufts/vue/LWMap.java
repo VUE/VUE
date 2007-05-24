@@ -27,7 +27,6 @@ import java.awt.Graphics2D;
 import java.awt.print.Printable;
 import java.awt.print.PageFormat;
 import java.io.File;
-import tufts.vue.beans.*;
 import tufts.vue.filter.*;
 
 /**
@@ -55,7 +54,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.131 $ / $Date: 2007-05-23 03:47:52 $ / $Author: sfraize $
+ * @version $Revision: 1.132 $ / $Date: 2007-05-24 21:01:36 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
