@@ -14,7 +14,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.2 $ / $Date: 2007-05-23 06:51:31 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2007-05-24 21:00:17 $ / $Author: sfraize $
  *
  */
 
@@ -279,7 +279,12 @@ public class FullScreen
         }
                 
         activeTool.handleFullScreen(true, goNative);
-        NDC.pop();
+
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            FullScreenViewer.grabVueApplicationFocus("enterFullScreen", null);
+            NDC.pop();
+        }});
+        
     }
 
     
