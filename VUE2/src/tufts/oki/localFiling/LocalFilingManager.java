@@ -52,7 +52,7 @@ import tufts.oki.shared.*;
 public class LocalFilingManager extends tufts.oki.OsidManager implements osid.filing.FilingManager {
     private static final int BUFFER_SIZE = 1024;    //  Size of buffer to use.
     public boolean trace = false;       //  Set this to true to trace operations.
-    private Vector rootCabinets = null;
+    private SortedSet rootCabinets = null;
     //private LocalCabinet root = null;  //  The root cabinet for a client-session.
     private LocalCabinet cwd = null;   //  The current working directory.
     
@@ -61,7 +61,21 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
      */
     public LocalFilingManager() throws osid.filing.FilingException {
         super();
-        rootCabinets = new Vector(100);
+        rootCabinets = new TreeSet(new Comparator() {
+            public int compare(Object o1,Object o2) {
+                if(o1 instanceof LocalCabinetEntry && o2 instanceof LocalCabinetEntry) {
+                    try {
+                         return ((LocalCabinetEntry) o1).getDisplayName().compareToIgnoreCase(((LocalCabinetEntry) o2).getDisplayName());
+                    } catch(Exception ex) {
+                        ex.printStackTrace();
+                        return -1;
+                    }
+                } else {
+                    return o1.toString().compareToIgnoreCase(o2.toString());
+                }
+            }
+            
+        });
         initializeRoots();
     }
     
@@ -175,7 +189,7 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
         
         //  If the current working directory has not been set, set it to the first root.
         if ((cwd == null) && rootCabinets.size() > 0)
-            cwd = (LocalCabinet) rootCabinets.elementAt(0);
+            cwd = (LocalCabinet) rootCabinets.first();
     }
 
     /**
@@ -250,8 +264,9 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
      */
     public osid.filing.CabinetEntryIterator oldlistRoots() throws osid.filing.FilingException {
         Vector vect = new Vector(10);
+        SortedSet set = new TreeSet();
         //vect.add (root);
-        osid.filing.CabinetEntryIterator it = (osid.filing.CabinetEntryIterator) new LocalCabinetEntryIterator(vect);
+        osid.filing.CabinetEntryIterator it = (osid.filing.CabinetEntryIterator) new LocalCabinetEntryIterator(set);
         return it;
     }
     public osid.filing.CabinetEntryIterator listRoots() throws osid.filing.FilingException {

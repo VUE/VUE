@@ -41,7 +41,7 @@ import osid.OsidException;
 public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabinet {
     
     /* parent is inherited from Cabinet Entry.  */
-    private Vector children = null;
+    private SortedSet children = null;
     private tufts.oki.shared.Properties properties = null;
     private boolean initialized = false;    //  True if expanded to include entries.
     private boolean open = false;           //  Indicates open or closed status for UI. 
@@ -55,10 +55,24 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
       * @author Mark Norton
       *
       */
-    public LocalCabinet(String displayName, osid.shared.Agent agentOwner, osid.filing.Cabinet parent) {
+    public LocalCabinet(String displayName, osid.shared.Agent agentOwner, osid.filing.Cabinet parent){
         super (displayName, agentOwner, parent);
 
-        children = new Vector(100);
+        children = new TreeSet(new Comparator() {
+            public int compare(Object o1,Object o2) {
+                if(o1 instanceof LocalCabinetEntry && o2 instanceof LocalCabinetEntry) {
+                    try {
+                         return ((LocalCabinetEntry) o1).getDisplayName().compareToIgnoreCase(((LocalCabinetEntry) o2).getDisplayName());
+                    } catch(Exception ex) {
+                        ex.printStackTrace();
+                        return -1;
+                    }
+                } else {
+                    return o1.toString().compareToIgnoreCase(o2.toString());
+                }
+            }
+            
+        });
         //FilingCabinetType type = new FilingCabinetType();
         //properties = new Properties(type);
 
@@ -84,7 +98,7 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
         entry.updateDisplayName (name);
         
         /*  Add the element to the Vector array.  */
-        children.addElement (entry);
+        children.add(entry);
     }
 
    /**
@@ -94,7 +108,7 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
     */
     public void add(osid.filing.CabinetEntry entry) throws osid.filing.FilingException {  
         /*  Add the element to the Vector array.  */
-        children.addElement (entry);
+        children.add(entry);
     }
 
     /*  
@@ -108,13 +122,17 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
             System.out.println ("The Cabinet is empty.");
         }
         int len = children.size();
-        for (int i = 0; i < len; i++) {
-            LocalCabinetEntry entry = (LocalCabinetEntry) children.elementAt(i);
+ //       for (int i = 0; i < len; i++) {
+        Iterator i = children.iterator();
+        while(i.hasNext()) {
+            LocalCabinetEntry entry = (LocalCabinetEntry) i.next();
             if (entry instanceof LocalCabinet)
                 System.out.println ("Cabinet " + i + ":  " + entry.getDisplayName());
             else if (entry instanceof LocalByteStore)
                 System.out.println ("Byte Store " + i + ":  " + entry.getDisplayName());
         }
+  //      }
+            
     }
     
     /**  
@@ -200,7 +218,7 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
              //entry.updateDisplayName(displayName);
             
             /*  Add the element to the Vector array.  */
-            children.addElement(entry);
+            children.add(entry);
             return (osid.filing.Cabinet) entry;
          }
          catch (OsidException e1) {
@@ -275,9 +293,10 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
      *  @return The cabinet entry with the desired display name.  Throws ITEM_DOES_NOT_EXIST if name is unknown.
      */
     public osid.filing.CabinetEntry getCabinetEntryByName(String name) throws osid.filing.FilingException {
-
-        for (int i = 0; i < children.size(); i++) {
-            LocalCabinetEntry entry = (LocalCabinetEntry) children.elementAt(i);
+         Iterator i = children.iterator();
+        while(i.hasNext()) {
+//        for (int i = 0; i < children.size(); i++) {
+            LocalCabinetEntry entry = (LocalCabinetEntry) i.next();
             //System.out.println ("getCabinetEntryByName - scan: " + entry.getDisplayName());
             if (name.compareTo (entry.getDisplayName()) == 0) {
                 return (osid.filing.CabinetEntry) entry;
@@ -295,9 +314,10 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
      *  @return The cabinet entry corresponding to the identifier passed.
      */
     public osid.filing.CabinetEntry getCabinetEntryById(osid.shared.Id id) throws osid.filing.FilingException {
-
-        for (int i = 0; i < children.size(); i++) {
-            LocalCabinetEntry entry = (LocalCabinetEntry) children.elementAt(i);
+ Iterator i = children.iterator();
+        while(i.hasNext()) {
+     //   for (int i = 0; i < children.size(); i++) {
+            LocalCabinetEntry entry = (LocalCabinetEntry) i.next();
             try {
                 if (id.isEqual (entry.getId())) {
                     return (osid.filing.CabinetEntry) entry;
@@ -403,8 +423,10 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
     public void remove(osid.filing.CabinetEntry entry) throws osid.filing.FilingException {
 
         osid.shared.Id entry_id = entry.getId();
-        for (int i = 0; i < children.size(); i++) {
-            LocalCabinetEntry ent = (LocalCabinetEntry)children.elementAt (i);
+         Iterator i = children.iterator();
+        while(i.hasNext()) {
+//        for (int i = 0; i < children.size(); i++) {
+            LocalCabinetEntry ent = (LocalCabinetEntry)i.next();
             try {
                 if (entry_id.isEqual (ent.getId())) {
                     children.remove (entry);

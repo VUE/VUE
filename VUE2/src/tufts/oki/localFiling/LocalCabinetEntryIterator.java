@@ -36,12 +36,12 @@ import java.util.*;
  */
 public class LocalCabinetEntryIterator implements osid.filing.CabinetEntryIterator{
     
-    private Vector cabinet_vector = null;
+    private SortedSet cabinet_vector = null;
     
     private int offset = 0;
     
     /** Creates a new instance of CabinetEntryIterator  given a vector of CabinetEntry.  */
-    public LocalCabinetEntryIterator(Vector vect) {
+    public LocalCabinetEntryIterator(SortedSet vect) {
 
         cabinet_vector = vect;
     }
@@ -53,7 +53,7 @@ public class LocalCabinetEntryIterator implements osid.filing.CabinetEntryIterat
     
     /**  Get the next entry and increment offset.  */
     public osid.filing.CabinetEntry next() throws osid.filing.FilingException {
-        osid.filing.CabinetEntry ce = (osid.filing.CabinetEntry) cabinet_vector.elementAt(offset);
+        osid.filing.CabinetEntry ce = (osid.filing.CabinetEntry) cabinet_vector.toArray()[offset];
         offset++;
         return ce;
     }
