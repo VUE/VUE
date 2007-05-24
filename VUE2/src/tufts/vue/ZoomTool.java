@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.63 $ / $Date: 2007-05-23 21:18:39 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2007-05-24 00:16:25 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -120,17 +120,18 @@ public class ZoomTool extends VueTool
     private LWComponent oldFocal;
     private boolean ignoreRelease = false;
 
-    @Override
-    public boolean handleMouseMoved(MapMouseEvent e) {
-        if (isZoomFullScreenMode()) {
-            if (e.getPicked() != null) {
-                e.getViewer().setIndicated(e.getPicked());
-            } else {
-                e.getViewer().setIndicated(null);
-            }
-        }
-        return false;
-    }
+//     /** Enabled rollover indication highlighting */
+//     @Override
+//     public boolean handleMouseMoved(MapMouseEvent e) {
+//         if (isZoomFullScreenMode()) {
+//             if (e.getPicked() != null) {
+//                 e.getViewer().setIndicated(e.getPicked());
+//             } else {
+//                 e.getViewer().setIndicated(null);
+//             }
+//         }
+//         return false;
+//     }
     
     
     // Classic simple version:
