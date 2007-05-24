@@ -448,6 +448,17 @@ public class EditorManager
 
         try {
             
+            // TODO: we can fix the problem of all font properties coming along if you
+            // change any one of them (because copyStyle currently copies the entire
+            // font property at once -- it doesn't do it by sub-property) by dumping the
+            // provisionals code -- we just have to extract any free properties from the
+            // LWEditors whenever we do this, and apply them to type typed style,
+            // creating a temporary style to use without having to resolve it to a
+            // target (a transient resolve).  E.g.: the creation node / creation link:
+            // we want to use the current properties for drawing the newly drag-created
+            // object, but we don't want to target them until / unless they actually
+            // create the node/link, which can be aborted during the drag operation.
+            
             StyleType styleType = StylesByType.get(c.getTypeToken());
             if (styleType != null) {
                 if (freeBits != 0)
