@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.445 $ / $Date: 2007-05-23 23:55:18 $ / $Author: sfraize $ 
+ * @version $Revision: 1.446 $ / $Date: 2007-05-24 00:12:10 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -501,11 +501,12 @@ public class VUE
                 VUE.clearWaitCursor();                
             }
             GUI.invokeAfterAWT(new Runnable() { public void run() {
-                // ensure first item gets select                
+                // ensure first item gets selected
                 mMapTabsLeft.setSelectedIndex(0); 
                 // above would normally focus grab, but it skips these during startup,
                 // so do it manually here: (so the pathway panel loads, etc)
-                mMapTabsLeft.getViewerAt(0).grabVueApplicationFocus("startup", null);
+                // [re-enabled focus grabs even during startup -- was mainly for command line debug loads]
+                //mMapTabsLeft.getViewerAt(0).grabVueApplicationFocus("startup", null);
             }});
         }
 
