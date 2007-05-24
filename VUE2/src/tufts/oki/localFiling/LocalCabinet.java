@@ -58,21 +58,7 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
     public LocalCabinet(String displayName, osid.shared.Agent agentOwner, osid.filing.Cabinet parent){
         super (displayName, agentOwner, parent);
 
-        children = new TreeSet(new Comparator() {
-            public int compare(Object o1,Object o2) {
-                if(o1 instanceof LocalCabinetEntry && o2 instanceof LocalCabinetEntry) {
-                    try {
-                         return ((LocalCabinetEntry) o1).getDisplayName().compareToIgnoreCase(((LocalCabinetEntry) o2).getDisplayName());
-                    } catch(Exception ex) {
-                        ex.printStackTrace();
-                        return -1;
-                    }
-                } else {
-                    return o1.toString().compareToIgnoreCase(o2.toString());
-                }
-            }
-            
-        });
+        children = new TreeSet(new LocalCabinetEntryComparator());
         //FilingCabinetType type = new FilingCabinetType();
         //properties = new Properties(type);
 
