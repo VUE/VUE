@@ -129,16 +129,25 @@ public class EditorManager
 
             singleSelection = s.first();
             
-            if (UnappliedPropertyChanges) {
-                // if we select something with unapplied changes,
-                // apply them to the selection.  We should
-                // be moving from a nothing selected to a new
-                // selection state, as we should only ever have
-                // unapplied changes if there wasn't a selection
-                // to apply them to.
-                resolveToProvisionalStyle(singleSelection);
-                applyCurrentProperties(singleSelection);
-            }
+            // Not good enough: to really handle this, we need track the actual property
+            // bits that have been changed in the free state, and ONLY uses those --
+            // either change provisionals to always work this way (will it break
+            // everything else? probably) -- we'll need a separate tracking for the
+            // auto-apply on selection (which is very agressive, so we need to be
+            // careful) E.g., this is a problem at startup, where the type for node has
+            // been fully loaded from the last node created, but even if we just change
+            // the fill color, then select, it's applying ALL the old properties.
+            
+//             if (UnappliedPropertyChanges) {
+//                 // if we select something with unapplied changes,
+//                 // apply them to the selection.  We should
+//                 // be moving from a nothing selected to a new
+//                 // selection state, as we should only ever have
+//                 // unapplied changes if there wasn't a selection
+//                 // to apply them to.
+//                 resolveToProvisionalStyle(singleSelection);
+//                 applyCurrentProperties(singleSelection);
+//             }
 
             // add the listener after auto-applying any free style info
             singleSelection.addLWCListener(this);
@@ -236,7 +245,7 @@ public class EditorManager
         if (!EditorLoadingUnderway && e instanceof LWPropertyChangeEvent) {
             if (DEBUG.TOOL) out("propertyChange: " + e);
             try {
-                applyPropertyChange(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
+                applySinglePropertyChange(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
             } catch (Throwable t) {
                 tufts.Util.printStackTrace(t, this + ": failed to handle property change event: " + e);
             }
@@ -317,7 +326,7 @@ public class EditorManager
 
         // TODO: a bit overkill to do this no matter what -- do we need to if no property source?
         if (propertySource != null)
-            applyPropertyToStyles("loadEditor", editor.getPropertyKey(), editor.produceValue(), selection.isEmpty());
+            recordPropertyChangeInStyles("loadEditor", editor.getPropertyKey(), editor.produceValue(), selection.isEmpty());
         
         //if (editor instanceof Component) ((Component)editor).repaint(); // not helping ShapeIcon's repaint when disabled...
     }
@@ -334,7 +343,7 @@ public class EditorManager
 
     public static void firePropertyChange(LWEditor editor, Object source) {
         try {
-            applyPropertyChange(VUE.getSelection(), editor.getPropertyKey(), editor.produceValue(), source);
+            applySinglePropertyChange(VUE.getSelection(), editor.getPropertyKey(), editor.produceValue(), source);
         } catch (Throwable t) {
             tufts.Util.printStackTrace(t, "failed to fire property for LWEditor " + editor + " for source " + source);
         }
@@ -342,7 +351,7 @@ public class EditorManager
 
 
     /** Will either modifiy the active selection, or if it's empty, modify the default state (creation state) for this tool panel */
-    private static void applyPropertyChange(final Collection<LWComponent> components, final Object key, final Object newValue, Object source)
+    private static void applySinglePropertyChange(final Collection<LWComponent> components, final Object key, final Object newValue, Object source)
     {
         if (EditorLoadingUnderway) {
             if (DEBUG.TOOL) System.out.println("ApplyPropertyChangeToSelection: " + key + " " + newValue + " (skipping)");
@@ -352,7 +361,7 @@ public class EditorManager
         if (DEBUG.TOOL||DEBUG.STYLE) System.out.println("ApplyPropertyChangeToSelection: " + key + " " + newValue);
         
         if (!components.isEmpty()) {
-            declareFreeProps(false);
+            delcareUnusedProperties(false);
             // As setting these properties in the model will trigger notify events from the selected objects
             // back up to the tools, we want to ignore those events while this is underway -- the tools
             // already have their state set to this.
@@ -367,23 +376,23 @@ public class EditorManager
             if (VUE.getUndoManager() != null)
                 VUE.getUndoManager().markChangesAsUndo(key.toString());
 
-            applyPropertyToStyles("apply", key, newValue, false);
+            recordPropertyChangeInStyles("apply", key, newValue, false);
         } else {
-            declareFreeProps(true);
-            applyPropertyToStyles("apply", key, newValue, true);
+            delcareUnusedProperties(true);
+            recordPropertyChangeInStyles("apply", key, newValue, true);
         }
     }
 
-    private static void declareFreeProps(boolean free) {
+    private static void delcareUnusedProperties(boolean free) {
         UnappliedPropertyChanges = free;
         if (DEBUG.STYLE) out("declaring free (unused) property changes: " + free);
         //Util.printStackTrace("HELLO");
     }
 
-    private static void applyPropertyToStyles(String source, Object key, Object newValue, boolean provisionals) {
+    private static void recordPropertyChangeInStyles(String source, Object key, Object newValue, boolean provisionals) {
         // provisionals should be true when there is no selection, and the tools are all enabled in their "free" state
         if (provisionals) {
-            declareFreeProps(true);
+            delcareUnusedProperties(true);
             for (StyleType styleType : StylesByType.values()) {
                 applyPropertyValue("<" + source + ":provSync>", key, newValue, styleType.provisional);
                 if (CurrentToolStyle == styleType)
@@ -426,7 +435,7 @@ public class EditorManager
         try {
             
             LWComponent styleForType = resolveToProvisionalStyle(c);
-            declareFreeProps(false);
+            delcareUnusedProperties(false);
             if (styleForType != null)
                 c.copyStyle(styleForType);
             
@@ -541,7 +550,7 @@ public class EditorManager
         if (resolver != null) {
             resolver.resolveToProvisional();
             if (DEBUG.STYLE || DEBUG.WORK) out("Resolved provisional type to final applied type: " + resolver);
-            declareFreeProps(false);
+            delcareUnusedProperties(false);
 
         }
 
@@ -622,8 +631,13 @@ public class EditorManager
             }
         }
 
-        for (Map.Entry<Object,LWComponent> e : foundStyles.entrySet())
-            putStyle(e.getKey(), createStyle(e.getValue(), e.getKey()));
+        for (Map.Entry<Object,LWComponent> e : foundStyles.entrySet()) {
+            final Object token = e.getKey();
+            final LWComponent lastCreated = e.getValue();
+            if (DEBUG.STYLE || DEBUG.INIT) out("extracted style for " + token + " from " + lastCreated);
+            final LWComponent extractedStyle = createStyle(lastCreated, token);
+            putStyle(token, extractedStyle);
+        }
     }
     
     static void registerEditor(LWEditor editor) {
