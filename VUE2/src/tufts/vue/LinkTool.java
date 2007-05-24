@@ -388,7 +388,7 @@ public class LinkTool extends VueTool
                 // todo: pick up current default stroke color & stroke width
                 // and apply to creationLink
                 creationLink.setTemporaryEndPoint1(linkSource);
-                EditorManager.applyCurrentProperties(creationLink);
+                EditorManager.applyCurrentProperties(creationLink); // don't target until / unless link actually created
                 // never let drawn creator link get less than 1 pixel wide on-screen
                 float minStrokeWidth = (float) (1 / e.getViewer().getZoomFactor());
                 if (creationLink.getStrokeWidth() < minStrokeWidth)

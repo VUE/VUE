@@ -34,7 +34,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.72 $ / $Date: 2007-05-24 21:00:04 $ / $Author: sfraize $
+ * @version $Revision: 1.73 $ / $Date: 2007-05-24 23:40:36 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -590,8 +590,8 @@ public abstract class VueTool extends AbstractAction
      * @param pTool - the selected subtool
      **/
     public void setSelectedSubTool( VueTool pTool) {
-        //if (DEBUG.TOOL) out("setSelectedSubTool: " + pTool);
-        if (DEBUG.TOOL) tufts.Util.printStackTrace("setSelectedSubTool: " + pTool);
+        if (DEBUG.TOOL) out("setSelectedSubTool: " + pTool);
+        if (DEBUG.TOOL && DEBUG.META) tufts.Util.printStackTrace("setSelectedSubTool: " + pTool);
         mSelectedSubTool = pTool;
         
         if (VUE.getActiveViewer() !=null)
