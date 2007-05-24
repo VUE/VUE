@@ -142,6 +142,11 @@ public class EditorManager
 
         if (DEBUG.STYLE) out("selectionChanged: " + s);
 
+        // todo: if selection goes from 1 to 0, and we have an active
+        // tool, we might want to revert the editor states to the
+        // provisional for the active tool, so you can again see
+        // the props for what you'd be about to create.
+
         if (s.size() == 1) {
             
             if (singleSelection != null)
@@ -149,16 +154,15 @@ public class EditorManager
 
             singleSelection = s.first();
             
-            if (FreePropertyBits != 0) {
-                
-                // if we select something with unapplied changes (free properties),
-                // apply them to the selection.  We should be moving from a nothing
-                // selected to a new selection state, as we should only ever have
-                // unapplied changes if there wasn't a selection to apply them to.
-                
-                resolveToProvisionalStyle(singleSelection, FreePropertyBits);
-                applyCurrentProperties(singleSelection, FreePropertyBits);
-            }
+//             // This seems a bit agressive:
+//             if (FreePropertyBits != 0) {
+//                 // if we select something with unapplied changes (free properties),
+//                 // apply them to the selection.  We should be moving from a nothing
+//                 // selected to a new selection state, as we should only ever have
+//                 // unapplied changes if there wasn't a selection to apply them to.
+//                 resolveToProvisionalStyle(singleSelection, FreePropertyBits);
+//                 applyCurrentProperties(singleSelection, FreePropertyBits);
+//             }
 
             // add the listener after auto-applying any free style info
             singleSelection.addLWCListener(this);
@@ -458,7 +462,11 @@ public class EditorManager
             // we want to use the current properties for drawing the newly drag-created
             // object, but we don't want to target them until / unless they actually
             // create the node/link, which can be aborted during the drag operation.
-            
+
+            // Currently tho, this is actually NOT a problem, as neither the creation
+            // node or link draw text and (using the font) while being dragged,
+            // so unless that happens, we won't be hit by the font limitation.
+
             StyleType styleType = StylesByType.get(c.getTypeToken());
             if (styleType != null) {
                 if (freeBits != 0)
