@@ -80,6 +80,7 @@ implements org.osid.repository.RepositoryManager
 			this.searchTypeVector.addElement(new Type("mit.edu","search","title"));
 			this.searchTypeVector.addElement(new Type("mit.edu","search","author"));
 			this.searchTypeVector.addElement(new Type("mit.edu","search","keyword"));
+                        this.searchTypeVector.addElement(new Type("mit.edu","search","multiField"));
 			this.searchTypeVector.addElement(new Type("tufts.edu","search","artifact"));
 			this.repository = new Repository("Artifact",
 											 "Tufts University Libraries Artifact Content",
