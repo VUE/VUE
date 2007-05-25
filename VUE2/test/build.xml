@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.24 $ / $Date: 2007-05-16 17:11:46 $ -->
+<!-- $Revision: 1.25 $ / $Date: 2007-05-25 13:28:14 $ -->
 
 <!-- 
 This ant build file:
@@ -366,6 +366,22 @@ This ant build file:
 		<sysproperty key="testProfile" value="sakai-uploadProfile.xml"/>
 	</java>
 	</target>
+
+<!-- ==================== Jar test code ================================ -->
+  <target name="jar-testsupport"  
+          depends="compile"
+          description="Create OSIDTest.jar containing all supporting files">
+
+    <mkdir dir="dist/lib/osid"/>    
+    <delete file="dist/lib/osid/OSIDTest-1.0.jar"/>
+    <jar jarfile="dist/lib/osid/OSIDTest-1.0.jar"
+         basedir="${build.class}" 
+         includes="edu/tufts/osidimpl/testing/*.*"/>
+    <jar jarfile="dist/lib/osid/OSIDTest-1.0.jar"
+         basedir="${build.class}" 
+		 update="true"
+         includes="edu/tufts/osidimpl/testing/repository/*.*"/>
+  </target>
 </project>
 
 
