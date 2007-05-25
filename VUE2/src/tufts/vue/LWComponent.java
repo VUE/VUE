@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.288 $ / $Date: 2007-05-24 23:40:36 $ / $Author: sfraize $
+ * @version $Revision: 1.289 $ / $Date: 2007-05-25 03:52:33 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3232,20 +3232,20 @@ u                    getSlot(c).setFromString((String)value);
         return hit;
     }
     
-    /**
-     * Does x,y fall within the selection target for this component.
-     * This default impl adds a 30 pixel swath to bounding box.
-     */
-    public boolean targetContains(float x, float y)
-    {
-        final int swath = 30; // todo: preference
-        float sx = this.x - swath;
-        float sy = this.y - swath;
-        float ex = this.x + getWidth() + swath;
-        float ey = this.y + getHeight() + swath;
+//     /**
+//      * Does x,y fall within the selection target for this component.
+//      * This default impl adds a 30 pixel swath to bounding box.
+//      */
+//     public boolean targetContains(float x, float y)
+//     {
+//         final int swath = 30; // todo: preference
+//         float sx = this.x - swath;
+//         float sy = this.y - swath;
+//         float ex = this.x + getWidth() + swath;
+//         float ey = this.y + getHeight() + swath;
         
-        return x >= sx && x <= ex && y >= sy && y <= ey;
-    }
+//         return x >= sx && x <= ex && y >= sy && y <= ey;
+//     }
 
     /**
      * We divide area around the bounding box into 8 regions -- directly
@@ -3383,6 +3383,11 @@ u                    getSlot(c).setFromString((String)value);
             return getSlideIconBounds().contains(x, y);
         } else
             return false;
+    }
+
+    /** @return 0 means a hit, -1 a completely miss, > 0 means distance, to be sorted out by caller  */
+    protected float pickDistance(float x, float y, float zoom) {
+        return contains(x, y, zoom) ? 0 : -1;
     }
 
     /**

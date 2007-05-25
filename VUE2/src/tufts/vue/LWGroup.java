@@ -40,7 +40,7 @@ import java.awt.geom.AffineTransform;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.62 $ / $Date: 2007-05-24 20:59:44 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2007-05-25 03:52:33 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -408,6 +408,7 @@ public class LWGroup extends LWContainer
     }
     */
 
+    @Override
     protected boolean containsImpl(final float x, final float y, float zoom)
     {
         if (hasDecoratedFeatures()) {
@@ -423,6 +424,7 @@ public class LWGroup extends LWContainer
         }
     }
     
+    @Override
     protected boolean intersectsImpl(final Rectangle2D rect)
     {
         if (hasDecoratedFeatures()) {
@@ -465,6 +467,7 @@ public class LWGroup extends LWContainer
      * A hit on any component in the group finds the whole group,
      * not that component.
      */
+    @Override
     protected LWComponent pickChild(PickContext pc, LWComponent c) {
 
         //if (pc.pickDepth > 0 || pc.dropping != null)
@@ -489,12 +492,6 @@ public class LWGroup extends LWContainer
             return c;
         else
             return this;
-    }
-
-    /** use the raw bounds: don't add a target swath */
-    public boolean targetContains(float x, float y)
-    {
-        return contains(x, y);
     }
 
 
@@ -575,6 +572,7 @@ public class LWGroup extends LWContainer
 //         super.layout();
 //         setFrame(computeBounds());
 //     }
+    @Override
     protected void layoutImpl(Object trigger) {
         updateConnectedLinks();
         updateBounds();
@@ -619,6 +617,7 @@ public class LWGroup extends LWContainer
     }
 
 
+    @Override
     protected void drawImpl(DrawContext dc)
     {
         if (DEBUG.CONTAINMENT) {

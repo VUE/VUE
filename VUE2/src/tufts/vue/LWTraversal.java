@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.16 $ / $Date: 2007-05-23 03:47:10 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2007-05-25 03:52:33 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  * TODO: add capability for handling LWComponent.ChildKind, so we have the option
@@ -197,6 +197,8 @@ public class LWTraversal {
         final Point2D.Float mapPoint = new Point2D.Float();
             
         private LWComponent hit;
+        private LWComponent closeHit;
+        private float closestDistSq = Float.POSITIVE_INFINITY;
 
         public PointPick(PickContext pc) {
             super(pc);
@@ -246,33 +248,49 @@ public class LWTraversal {
                 p = mapPoint;
             }
 
-            if (c.contains(p, pc.zoom)) {
-                // If we expand impl to handle the contained children optimization (non-strayChildren):
-                //      Since we're POST_ORDER, if strayChildren is false, we already know this
-                //      object contains the point, because acceptTraversal had to accept it.
-                //if (VUE.RELATIVE_COORDS) System.out.println("hit with " + p);
+            final float hitResult = c.pickDistance((float) p.getX(),
+                                                   (float) p.getY(),
+                                                   pc.zoom);
+
+            if (hitResult == 0) {
+                // zero distance means direct hit within the visible bounds of the object
                 hit = c;
                 done = true;
-                return;
+            } else if (hitResult < 0) {
+                // distance result -1: do nothing -- a complete miss
+            } else if (hitResult < closestDistSq) {
+                // the result is the square of the distance from the object
+                closeHit = c;
+                closestDistSq = hitResult;
             }
+
+//             if (c.contains(p, pc.zoom)) {
+//                 // If we expand impl to handle the contained children optimization (non-strayChildren):
+//                 //      Since we're POST_ORDER, if strayChildren is false, we already know this
+//                 //      object contains the point, because acceptTraversal had to accept it.
+//                 //if (VUE.RELATIVE_COORDS) System.out.println("hit with " + p);
+//                 hit = c;
+//                 done = true;
+//                 return;
+//             }
         }
         
-        private void OLD_visitAbsolute(LWComponent c) {
+//         private void OLD_visitAbsolute(LWComponent c) {
 
-            if (DEBUG.PICK && DEBUG.META) eoutln("PointPick VISITED: " + c);
+//             if (DEBUG.PICK && DEBUG.META) eoutln("PointPick VISITED: " + c);
 
-            final float x = mapX;
-            final float y = mapY;
+//             final float x = mapX;
+//             final float y = mapY;
             
-            if (c.contains(x, y)) {
-                // If we expand impl to handle the contained children optimization (non-strayChildren):
-                //      Since we're POST_ORDER, if strayChildren is false, we already know this
-                //      object contains the point, because acceptTraversal had to accept it.
-                hit = c;
-                done = true;
-                return;
-            }
-        }
+//             if (c.contains(x, y)) {
+//                 // If we expand impl to handle the contained children optimization (non-strayChildren):
+//                 //      Since we're POST_ORDER, if strayChildren is false, we already know this
+//                 //      object contains the point, because acceptTraversal had to accept it.
+//                 hit = c;
+//                 done = true;
+//                 return;
+//             }
+//         }
 
 
         /*protected boolean validPick(LWComponent c) {
@@ -298,8 +316,33 @@ public class LWTraversal {
         private static final java.util.List<LWComponent> otherLinks = new java.util.ArrayList();
         private static final java.util.List<LWComponent> looseHits = new java.util.ArrayList();
         public LWComponent getPicked() {
-            LWComponent picked = null;
 
+            if (DEBUG.PICK) {
+                            eoutln("PointPick: DIRECT-HIT: " + hit);
+                eout(String.format("PointPick:  CLOSE-HIT: %s; distance=%.2f", closeHit, Math.sqrt(closestDistSq)));
+            }
+
+            if (hit == null) {
+                final float closeEnoughSq;
+                if (pc.zoom < 1) {
+                    // allow more slop if zoomed way out (links are very small and hard to hit)
+                    closeEnoughSq = (8 / pc.zoom) * (8 / pc.zoom);
+                } else
+                    closeEnoughSq = 8 * 8;
+                if (hit == null && closestDistSq < closeEnoughSq) {
+                    if (DEBUG.PICK) System.out.format(" (CHOSEN) closeEnough=%.2f\n", Math.sqrt(closeEnoughSq));
+                    //if (DEBUG.PICK) eoutln("PointPick: closeHit: " + closeHit + " distance: " + Math.sqrt(closestDistSq));
+                    hit = closeHit;
+                } else {
+                    if (DEBUG.PICK) System.out.println("");
+                }
+                
+            } else {
+                if (DEBUG.PICK) System.out.println("");
+            }
+
+            LWComponent picked = null;
+            
             if (hit != null) {
                 LWContainer parent = hit.getParent();
                 if (parent != null)
@@ -319,78 +362,8 @@ public class LWTraversal {
             
             }
 
-            // The old loose picking of links had some very confusing cases: if there
-            // were two curved links, one concave inside the other, and we get a loose
-            // hit on the outer link because of the links special hit on it's concave
-            // region, we may actually have been closer to the inside link, but we
-            // missed it just because we weren't inside the smaller concave region.
-            // Also, a straight link moving through a concave region, even if it was on
-            // the other side of the straight link from the curve (much further from the
-            // curve), we'd ignore the straight link, and loose-hit the curve.
-
-            // To fix this, if there were ANY curve-interior hits, we need to then
-            // compute the distance to every single link on the map, and pick the
-            // closest.
-
-            // Tho better, this does have ultimate odd effect of basically saying that
-            // when clicking within the curved region of ANY link, selection slop for
-            // links becomes infinite (as long as it's within the region).
-
-            // Anyway, for better or worse, we are now implemented this way.  It's also
-            // not ideal in that specifically dealing with LWLinks specially in the pick
-            // code is a bit messy -- would be cleaner if handled via pure calls to some
-            // set of containment & distance methods on LWComponent, tho this is faster.
-
-            // It might just be cleaner to ignore the concave region containment hack
-            // completely, and just compute link containment by distance to the curve,
-            // and as long as there are no other direct hits on nodes, etc (so a link,
-            // except for the text box, would never be a direct hit), any hit within a
-            // certain max distance of a link is considered loose-successful.  A good
-            // solution, tho a bit of a performance hog, as we have to traverse the
-            // segments of every curve, and compute a distance^2 for *each* segment.
-
-            
-            if (false && picked == null) {
-                if (DEBUG.PICK) eoutln("PointPick: NO DEFINITIVE HITS; looking for loose hits");
-
-                // First past didn't turn anything up: try a second pass, looking for loose hits.
-                // (E.g., the concave region of curved links, or just near-link hits)
-                
-                otherLinks.clear();
-                looseHits.clear();
-                Picker loosePick = 
-                    new Picker(pc) {
-                        public void visit(LWComponent c) {
-                            if (c.looseContains(mapX, mapY)) {
-                                if (DEBUG.PICK) eoutln("         LOOSE-HIT: " + c);
-                                looseHits.add(c);
-                            } else if (c instanceof LWLink) // TODO: c.hasLooseContainment or some such
-                                otherLinks.add(c);
-                        }
-                    };
-                loosePick.traverse(pc.root);
-
-                if (DEBUG.PICK) System.out.println("PointPick: loose hits: " + looseHits.size());
-                if (looseHits.size() > 0) {
-                    // We had a loose hit, find the closest...
-                    float minDist = Float.MAX_VALUE;
-                    looseHits.addAll(otherLinks); // hack: depends on knowing how looseHits works for LWLinks
-                    for (LWComponent c : looseHits) {
-                        float dist = c.distanceToEdgeSq(mapX, mapY);
-                        if (DEBUG.PICK) eoutln("DISTANCE: " + ((float)Math.sqrt(dist)) + " " + c);
-                        if (dist < minDist) {
-                            minDist = dist;
-                            picked = c;
-                        }
-                    }
-                }// else if (looseHits.size() == 1)
-                //picked = looseHits.get(0);
-            }
-            
-            if (DEBUG.PICK) eoutln("PointPick: HIT: " + hit + " PICKED: " + picked + "\n");
-            
+            if (DEBUG.PICK) eoutln("PointPick:     PICKED: " + picked + "\n");
             return picked;
-            
         }
         
     }

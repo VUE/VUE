@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.147 $ / $Date: 2007-05-23 03:48:43 $ / $Author: sfraize $
+ * @version $Revision: 1.148 $ / $Date: 2007-05-25 03:52:33 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -934,9 +934,14 @@ public class LWLink extends LWComponent
         
     }
 
-    // TODO: need a PickContect or zoom for contains impl
+    protected boolean containsImpl(float x, float y, float zoom) {
+        return pickDistance(x, y, zoom) == 0 ? true : false;
+    }
+    
+
+    /** @return 0 means a hit, -1 a completely miss, > 0 means distance, to be sorted out by caller  */
     @Override
-    protected boolean containsImpl(float x, float y, float zoom)
+    protected float pickDistance(float x, float y, float zoom)
     {
         if (endpointMoved)
             computeLink();
@@ -948,13 +953,22 @@ public class LWLink extends LWComponent
 
         //final float slop = 4; // near miss this number of on-screen pixels still hits it
         //final float maxDist = (getStrokeWidth() / 2f + slop) / zoom;
-        
-        final float slop = 7; // near miss this number of on-screen pixels still hits it
-        float maxDist = getStrokeWidth() / 2f;
-        if (maxDist < slop)
-            maxDist = slop;
 
-        final float maxDistSq = maxDist * maxDist + 1;
+        // Change contains / containsImpl to return a distance: 0 means full-hit, -1 full miss, any positive value is a near-miss distance
+        // perhaps create a new "hit" with contains defaults for everyone else, as only link really needs this
+        
+        //final float slop = 7; // too much -- intrudes into small nodes -
+        //final float slop = 4; // near miss this number of on-screen pixels still hits it
+
+        //final float hitDist = (getStrokeWidth() / 2f) / zoom;
+
+        // ZOOM ONLY NEEDED FOR COMPUTING SLOP (if we handle that centrally in Picker, we can get rid of zoom arg)
+        
+        final float hitDist = getStrokeWidth() / 2f; 
+        final float hitDistSq = hitDist * hitDist;
+
+        float minDistSq = Float.MAX_VALUE;
+        //float slopDistSq = -1;
 
         // TODO: can make slop bigger if implement a two-pass hit detection process that
         // does absolute on first pass, and slop hits on second pass (otherwise, if this
@@ -965,26 +979,34 @@ public class LWLink extends LWComponent
         // as effective slop becomes zero in that case.
         
         if (mCurve != null) {
-
             // todo: fast reject: false if outside bounding box of end points and control points
+            float distSq;
 
             // Check the distance from all the segments in the flattened curve
-            for (Line2D seg : new SegIterator())
-                if (seg.ptSegDistSq(x, y) <= maxDistSq)
-                        return true;
+            for (Line2D seg : new SegIterator()) {
+                distSq = (float) seg.ptSegDistSq(x, y);
+                if (distSq <= hitDistSq)
+                    return 0;
+                else if (distSq < minDistSq)
+                    minDistSq = distSq;
+            }
             
         } else {
-            if (mLine.ptSegDistSq(x, y) <= maxDistSq)
-                return true;
+            final float distSq = (float) mLine.ptSegDistSq(x, y);
+            if (distSq <= hitDistSq)
+                return 0;
+            else
+                minDistSq = distSq;
         }
         
         if (!isNestedLink()) {
             if (mIconBlock.contains(x, y))
-                return true;
-            else if (hasLabel())
-                return labelBox.containsMapLocation(x, y); // bit of a hack to do this way
+                return 0;
+            else if (hasLabel() && labelBox.containsMapLocation(x, y)) // bit of a hack to do this way
+                return 0;
         }
-        return false;
+        
+        return minDistSq;
     }
     
     private static final int LooseSlopSq = 15*15;
@@ -1004,24 +1026,6 @@ public class LWLink extends LWComponent
             // for straight links:
             return mLine.ptSegDistSq(x, y) < LooseSlopSq;
         }
-    }
-    
-    
-    /**
-     * Does x,y fall within the selection target for this component.
-     * For links, we need to get within 20 pixels of the center.
-     */
-    public boolean targetContains(float x, float y)
-    {
-        if (endpointMoved)
-            computeLink();
-        float swath = getStrokeWidth() / 2 + 20; // todo: config/preference
-        float sx = this.centerX - swath;
-        float sy = this.centerY - swath;
-        float ex = this.centerX + swath;
-        float ey = this.centerY + swath;
-        
-        return x >= sx && x <= ex && y >= sy && y <= ey;
     }
     
     void disconnectFrom(LWComponent c)

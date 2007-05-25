@@ -54,7 +54,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.132 $ / $Date: 2007-05-24 21:01:36 $ / $Author: sfraize $
+ * @version $Revision: 1.133 $ / $Date: 2007-05-25 03:52:33 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -718,11 +718,18 @@ public class LWMap extends LWContainer
         return false;
     }
     
-    /** @return true -- maps contain all points (can be point-picked anywhere) */
+//     @Override
+//     protected boolean containsImpl(float x, float y, float zoom) {
+//         return true;
+//     }
+    
+    /** @return Float.MAX_VALUE - 1: map contains all points, but any contents take priority */
     @Override
-    protected boolean containsImpl(float x, float y, float zoom) {
-        return true;
+    protected float pickDistance(float x, float y, float zoom) {
+        //return 100;
+        return Float.MAX_VALUE;
     }
+
     
     /** override of LWContainer: default hit component on the map
      * is nothing -- we just @return null.
