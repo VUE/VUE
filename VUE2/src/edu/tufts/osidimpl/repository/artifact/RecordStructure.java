@@ -115,6 +115,7 @@ implements org.osid.repository.RecordStructure
             results.addElement(ThumbnailPartStructure.getInstance());
             results.addElement(URLPartStructure.getInstance());
             results.addElement(ViewPartStructure.getInstance());
+            results.addElement(CoursePartStructure.getInstance());
         }
         catch (Throwable t)
         {
