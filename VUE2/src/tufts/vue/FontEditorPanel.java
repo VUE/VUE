@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.54 $ / $Date: 2007-05-24 20:59:27 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2007-05-25 04:01:06 $ / $Author: sfraize $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -53,12 +53,10 @@ public class FontEditorPanel extends JPanel
     private final AbstractButton mBoldButton;
     private final AbstractButton mItalicButton;
     private final AbstractButton mUnderlineButton;
- 	private final AlignmentDropDown alignmentButton;
-	private AbstractButton orderedListButton = new VueButton(
-	"list.button.ordered");
-	private final ColorMenuButton mTextColorButton;
-	private AbstractButton unorderedListButton = new VueButton(
-	"list.button.unordered");
+    private final AlignmentDropDown alignmentButton;
+    private final ColorMenuButton mTextColorButton;
+    private final AbstractButton orderedListButton = new VueButton("list.button.ordered");
+    private final AbstractButton unorderedListButton = new VueButton("list.button.unordered");
 	
     /** the property name **/
     private final Object mPropertyKey;
@@ -236,7 +234,21 @@ public class FontEditorPanel extends JPanel
 		JLabel textLabel = new JLabel("Text :");
                 textLabel.setLabelFor(mFontCombo);
 		textLabel.setForeground(new Color(51,51,51));
-		textLabel.setFont(tufts.vue.VueConstants.SmallFont);		
+		textLabel.setFont(tufts.vue.VueConstants.SmallFont);
+
+
+        textLabel.addMouseListener(new MouseAdapter() {
+                // double-click on text color label swaps in with fill color
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (e.getClickCount() > 1 && e.getClickCount() % 2 == 0) {
+                        final Color fill = FillToolPanel.mFillColorButton.getColor();
+                        final Color text = mTextColorButton.getColor();
+                        FillToolPanel.mFillColorButton.selectValue(text);
+                        mTextColorButton.selectValue(fill);
+                    }
+                }
+            });
+                
 		//Done With Labels..
          
         GridBagConstraints gbc = new GridBagConstraints();

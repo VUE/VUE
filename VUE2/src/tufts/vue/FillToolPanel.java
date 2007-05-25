@@ -50,14 +50,17 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.10 $ / $Date: 2007-05-25 03:51:35 $ / $Author: sfraize $
- */
+ * @version $Revision: 1.11 $ / $Date: 2007-05-25 04:01:06 $ / $Author: sfraize $
+< */
  
 public class FillToolPanel extends ToolPanel
 {
-	 /** fill button **/                 protected ColorMenuButton mFillColorButton;
-	 /** stroke color editor button **/  protected ColorMenuButton mStrokeColorButton;
-	 private final Color [] fillColors = VueResources.getColorArray("fillColorValues");
+    /** fill button **/
+    //protected ColorMenuButton mFillColorButton;
+    static ColorMenuButton mFillColorButton; // static hack till all the format tool code in once place
+    /** stroke color editor button **/
+    protected ColorMenuButton mStrokeColorButton;
+    private final Color [] fillColors = VueResources.getColorArray("fillColorValues");
      private final String [] fillColorNames = VueResources.getStringArray("fillColorNames");
      private final Color[] strokeColors = VueResources.getColorArray("strokeColorValues");
      private final String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
@@ -118,6 +121,7 @@ public class FillToolPanel extends ToolPanel
         });
 
         lineLabel.addMouseListener(new MouseAdapter() {
+                // double-click on stroke color label swaps in with fill color
                 public void mouseClicked(java.awt.event.MouseEvent e) {
                     if (e.getClickCount() > 1 && e.getClickCount() % 2 == 0) {
                         final Color fill = mFillColorButton.getColor();
