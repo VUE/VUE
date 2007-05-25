@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.25 $ / $Date: 2007-05-25 13:28:14 $ -->
+<!-- $Revision: 1.26 $ / $Date: 2007-05-25 16:48:10 $ -->
 
 <!-- 
 This ant build file:
@@ -313,7 +313,7 @@ This ant build file:
 
 <!--- =============  Repository Implementation Tests =========-->
 <target name="OsidTester" depends="compile" description="Tests Repository OSID Implementations via OsidTester tool">
-	<echo message="Blackships Ping Test"/>
+	<echo message="Blackships Ping Test"/>	
 	<java classname="junit.textui.TestRunner" failonerror="true" fork="true">
 		<arg value="edu.tufts.osidimpl.testing.repository.OsidTester"/>
 		<classpath refid="compile.classpath"/>
@@ -358,7 +358,7 @@ This ant build file:
 	</target>
 
 	<!--- =============  Test upload to Sakai =========-->
-	<target name="SakaiUpload" depends="compile" description="Test upload to Sakai">
+	<target name="SakaiUpload" depends="compile-VUE, compile" description="Test upload to Sakai">
 	<echo message="Sakai Upload Test"/>
 	<java classname="junit.textui.TestRunner" failonerror="true" fork="true">
 		<arg value="edu.tufts.osidimpl.testing.repository.OsidTester"/>
@@ -382,6 +382,16 @@ This ant build file:
 		 update="true"
          includes="edu/tufts/osidimpl/testing/repository/*.*"/>
   </target>
+  
+<!-- ==================== Compile VUE target ================================ -->
+  <target name="compile-VUE"  
+          description="Crun the compile target of the VUE src build script">
+	<!-- This is a poor solution but seems to work.  There are dependencies on
+		products of the VUE build among the test sources. -->
+	<echo message="  Compiling VUE source tree"/>
+    <ant dir="../src" target="compile" />
+  </target>
+
 </project>
 
 
