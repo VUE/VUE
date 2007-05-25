@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.9 $ / $Date: 2007-05-24 21:01:35 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2007-05-25 03:51:35 $ / $Author: sfraize $
  */
  
 public class FillToolPanel extends ToolPanel
@@ -116,6 +116,18 @@ public class FillToolPanel extends ToolPanel
                         strokePrefColor.setValue(mStrokeColorButton.getColor());							
                 }        	
         });
+
+        lineLabel.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (e.getClickCount() > 1 && e.getClickCount() % 2 == 0) {
+                        final Color fill = mFillColorButton.getColor();
+                        final Color stroke = mStrokeColorButton.getColor();
+                        mFillColorButton.selectValue(stroke);
+                        mStrokeColorButton.selectValue(fill);
+                        
+                    }
+                }
+            });
         
         fillLabel.setLabelFor(mFillColorButton);
  		fillLabel.setForeground(new Color(51,51,51));
