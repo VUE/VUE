@@ -40,9 +40,13 @@ public class SupportsBrowseTest extends TestCase
 						expected = repositoryElement.getFirstChild().getNodeValue();
 						expected = expected.trim().toLowerCase();
 						if (expected.equals("true")) {
-							org.osid.repository.AssetIterator ai = repository.getAssets();
-							assertTrue(ai.hasNextAsset());
-							System.out.println("PASSED: Supports Browse for Repository " + idString);
+							try {
+								org.osid.repository.AssetIterator ai = repository.getAssets();
+								assertTrue(ai.hasNextAsset());
+								System.out.println("PASSED: Supports Browse for Repository " + idString);
+							} catch (org.osid.OsidException oex) {
+								fail("FAILED: Supports Search for Repository " + idString);
+							}
 						} else {
 							try {
 								org.osid.repository.AssetIterator ai = repository.getAssets();

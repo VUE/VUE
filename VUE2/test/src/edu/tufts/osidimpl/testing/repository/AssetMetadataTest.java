@@ -101,7 +101,7 @@ public class AssetMetadataTest extends TestCase
 			// test the next part returned by the OSID against ANY part in the test
 			for (int p=0; p < numParts; p++) {
 				org.w3c.dom.Element partElement = (org.w3c.dom.Element)partNodeList.item(p);
-				String expectedType = Utilities.expectedValue(partElement,OsidTester.TYPE_TAG);
+				String expectedType = Utilities.expectedValue(partElement,OsidTester.PART_TYPE_TAG);
 				if (expectedType != null) {
 					// test there is at least one type match
 					if (typeVector.contains(expectedType)) {

@@ -40,19 +40,23 @@ public class SupportsSearchTest extends TestCase
 						expected = repositoryElement.getFirstChild().getNodeValue();
 						expected = expected.trim().toLowerCase();
 						if (expected.equals("true")) {
-							org.osid.repository.AssetIterator ai = repository.getAssets();
-							assertTrue(ai.hasNextAsset());
-							System.out.println("PASSED: Supports Search for Repository " + idString);
+							try {
+								org.osid.shared.TypeIterator typeIterator = repository.getSearchTypes();
+								assertTrue(typeIterator.hasNextType());
+								System.out.println("PASSED: Supports Search for Repository " + idString);
+							} catch (org.osid.OsidException oex) {
+								fail("FAILED: Supports Search for Repository " + idString);
+							}
 						} else {
 							try {
-								org.osid.repository.AssetIterator ai = repository.getAssets();
-								if (ai.hasNextAsset()) {
+								org.osid.shared.TypeIterator typeIterator = repository.getSearchTypes();
+								if (typeIterator.hasNextType()) {
 									fail("FAILED: Supports Search for Repository " + idString);
 								} else {
 									System.out.println("PASSED: Supports Search for Repository " + idString);
 								}
-							} catch (org.osid.repository.RepositoryException rex) {
-								if (rex.getMessage().equals(org.osid.OsidException.UNIMPLEMENTED)) {
+							} catch (org.osid.OsidException oex) {
+								if (oex.getMessage().equals(org.osid.OsidException.UNIMPLEMENTED)) {
 									System.out.println("PASSED: Supports Search for Repository " + idString);
 								} else {
 									fail("FAILED: Supports Search for Repository " + idString);
@@ -63,7 +67,7 @@ public class SupportsSearchTest extends TestCase
 					}
 				} catch (Throwable t) {
 					t.printStackTrace();
-					fail("ID Manager Failed");
+					fail("Support Search Test Failed");
 				}
 			}
 		}
