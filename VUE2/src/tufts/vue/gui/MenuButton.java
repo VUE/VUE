@@ -40,7 +40,7 @@ import javax.swing.border.*;
  *
  * Subclasses must implement LWEditor produce/display
  *
- * @version $Revision: 1.28 $ / $Date: 2007-05-02 22:04:14 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2007-05-25 03:50:48 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -322,6 +322,11 @@ public abstract class MenuButton<T> extends JButton
 
         if (DEBUG.TOOL) System.out.println("\n" + this + " handleMenuSelection " + e);
         handleValueSelection(((JComponent)e.getSource()).getClientProperty(ValueKey));
+    }
+
+    /** Simulate a user value selection */
+    public void selectValue(Object value) {
+        handleValueSelection(value);
     }
     
     protected void handleValueSelection(Object newPropertyValue) {
