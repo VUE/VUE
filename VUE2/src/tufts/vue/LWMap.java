@@ -54,7 +54,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.133 $ / $Date: 2007-05-25 03:52:33 $ / $Author: sfraize $
+ * @version $Revision: 1.134 $ / $Date: 2007-05-25 21:47:55 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -660,6 +660,13 @@ public class LWMap extends LWContainer
     public java.awt.image.BufferedImage createImage(double alpha, java.awt.Dimension maxSize, java.awt.Color fillColor, double mapZoom) {
         return super.createImage(alpha, maxSize, fillColor == null ? getFillColor() : fillColor, mapZoom);
     }
+
+    /** Override default image getter to double the scale on the rendered map */
+    @Override
+    public java.awt.image.BufferedImage getAsImage() {
+        return getAsImage(OPAQUE, null, 2.0);
+    }
+    
 
     
     

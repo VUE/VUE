@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.289 $ / $Date: 2007-05-25 03:52:33 $ / $Author: sfraize $
+ * @version $Revision: 1.290 $ / $Date: 2007-05-25 21:49:09 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -4169,7 +4169,7 @@ u                    getSlot(c).setFromString((String)value);
         //layout(); need to wait till scale values are all set: so the LWMap needs to trigger this
     }
 
-    private static final double OPAQUE = 1.0;
+    protected static final double OPAQUE = 1.0;
 
 
     /**
@@ -4177,7 +4177,7 @@ u                    getSlot(c).setFromString((String)value);
      * @param maxSize -- if non-null, the max width/height of the produced image (may be smaller)
      * @param zoom -- a zoom for the map size in producing the image (currently ignored if maxSize is provided)
      */
-    private BufferedImage getAsImage(double alpha, Dimension maxSize, double zoom) {
+    protected BufferedImage getAsImage(double alpha, Dimension maxSize, double zoom) {
         return createImage(alpha, maxSize, (Color) null, zoom);
     }
     
