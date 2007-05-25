@@ -341,7 +341,7 @@ public class LinkTool extends VueTool
         {
             super();
             invisibleLinkEndpoint.addLinkRef(creationLink);
-            invisibleLinkEndpoint.setSize(0,0);
+            invisibleLinkEndpoint.takeSize(0,0);
             creationLink.setArrowState(LWLink.ARROW_TAIL); // should be coming from defaults...
             creationLink.setID("<creationLink>"); // can't use label or it will draw one
 
