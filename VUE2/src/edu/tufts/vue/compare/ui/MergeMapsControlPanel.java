@@ -20,7 +20,7 @@
  *
  * Created on May 8, 2007, 1:31 PM
  *
- * @version $Revision: 1.6 $ / $Date: 2007-05-21 18:02:45 $ / $Author: dan $
+ * @version $Revision: 1.7 $ / $Date: 2007-05-25 16:10:02 $ / $Author: dan $
  * @author dhelle01
  *
  * 
@@ -41,6 +41,7 @@ public class MergeMapsControlPanel extends JPanel {
     
     private MapsSelectionPanel mapSelectionPanel;
     private VisualizationSettingsPanel visualizationSettingsPanel;
+    private JButton closeButton;
     private JButton generateButton;
     
     public MergeMapsControlPanel(final DockWindow dw) 
@@ -49,10 +50,7 @@ public class MergeMapsControlPanel extends JPanel {
         mapSelectionPanel = MapsSelectionPanel.getMapSelectionPanel();
         visualizationSettingsPanel = new VisualizationSettingsPanel();
         final JTabbedPane tabs = new JTabbedPane();
-        //mapSelectionPanel.setBackground(tabs..getBackground());
         tabs.addTab("Select Maps",mapSelectionPanel);
-        //tabs.addTab("Visualization Settings",new WeightVisualizationSettingsPanel());
-        //tabs.addTab("Visualization Settings",new VoteVisualizationSettingsPanel());
         tabs.addTab("Visualization Settings",visualizationSettingsPanel);
         
         /*tabs.addPropertyChangeListener(new PropertyChangeListener()
@@ -86,6 +84,14 @@ public class MergeMapsControlPanel extends JPanel {
         
         
         add(tabs);
+        closeButton = new JButton("Close");
+        closeButton.addActionListener(new ActionListener()
+        {
+           public void actionPerformed(ActionEvent e)
+           {
+               dw.setVisible(false);
+           }
+        });
         generateButton = new JButton("Generate");
         generateButton.addActionListener(new ActionListener()
         {
@@ -94,7 +100,6 @@ public class MergeMapsControlPanel extends JPanel {
                LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
                merge.setMapList(mapSelectionPanel.getMapList());
                merge.setBaseMap(mapSelectionPanel.getBaseMap());
-               //merge.setNodeThresholdSliderValue(VoteVisualizationSettingsPanel.getSharedPanel().getNodeThresholdSlider());
                
                setMergeMapSettings(merge);
                
@@ -110,15 +115,17 @@ public class MergeMapsControlPanel extends JPanel {
         });
         
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.add(closeButton);
         buttonPanel.add(generateButton);
         add(buttonPanel,BorderLayout.SOUTH);
         dw.setContent(this);
         dw.setSize(650,550);
         dw.setResizeEnabled(false);
-        if(getRootPane()!=null)
-        {    
-          getRootPane().setDefaultButton(generateButton);
-        }
+        // unfortunately setting the default button conflicts with the enter key in main VUE window:
+        // if(getRootPane()!=null)
+        //{    
+        //  getRootPane().setDefaultButton(generateButton);
+        //}
         dw.setVisible(true);
     }
     
@@ -132,8 +139,4 @@ public class MergeMapsControlPanel extends JPanel {
         map.setFilterOnBaseMap(mapSelectionPanel.getFilterOnBaseMap());
     }
     
-    /*public java.awt.Dimension getPreferredSize()
-    {
-        return new Dimension(650,550);
-    }*/
 }
