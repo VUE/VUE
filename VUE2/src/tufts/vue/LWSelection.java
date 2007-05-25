@@ -29,7 +29,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.68 $ / $Date: 2007-05-25 04:50:45 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2007-05-25 04:57:17 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -418,6 +418,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     public synchronized void reselect() {
         if (lastSelection != null) {
             LWSelection reselecting = lastSelection;
+            lastSelection = null;
             clearSilent();
             add(reselecting);
         } else 
@@ -426,7 +427,6 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     private synchronized boolean clearSilent()
     {
-        lastSelection = null;
         if (isEmpty())
             return false;
         if (notifyUnderway())
