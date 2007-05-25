@@ -29,7 +29,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.67 $ / $Date: 2007-05-17 16:53:59 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2007-05-25 04:50:45 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -47,7 +47,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     private List listeners = new java.util.ArrayList();
     private List controlListeners = new java.util.LinkedList();
     private Rectangle2D.Float mBounds = null;
-
+    private LWSelection lastSelection;
+    
     private boolean isClone = false;
 
     private int mWidth = -1, mHeight = -1;  // only used for manually created selections
@@ -414,8 +415,18 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             notifyListeners();
     }
 
+    public synchronized void reselect() {
+        if (lastSelection != null) {
+            LWSelection reselecting = lastSelection;
+            clearSilent();
+            add(reselecting);
+        } else 
+            clear();
+    }
+
     private synchronized boolean clearSilent()
     {
+        lastSelection = null;
         if (isEmpty())
             return false;
         if (notifyUnderway())
@@ -429,6 +440,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                 LWComponent c = (LWComponent) i.next();
                 c.setSelected(false);
             }
+            lastSelection = clone();
         }
         controlListeners.clear();
         mEditablePropertyKeys = 0;
@@ -597,6 +609,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             return true;
     }
 
+    @Override
     public LWSelection clone()
     {
         LWSelection copy = (LWSelection) super.clone();

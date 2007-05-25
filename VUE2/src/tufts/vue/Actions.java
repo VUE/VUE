@@ -118,6 +118,14 @@ public class Actions implements VueConstants
             VUE.getSelection().clear();
         }
     };
+
+    public static final Action Reselect =
+        new VueAction("Reselect", keyStroke(KeyEvent.VK_R, COMMAND)) {
+            public void act() {
+                VUE.getSelection().reselect();
+            }
+        };
+    
     
     public static final Action AddPathwayItem =
     new LWCAction("Add to Pathway") {

@@ -31,7 +31,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.38 $ / $Date: 2007-05-23 22:29:17 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2007-05-25 04:50:45 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -189,6 +189,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.SelectAll);
         editMenu.add(Actions.SelectAllNodes);
         editMenu.add(Actions.SelectAllLinks);
+        editMenu.add(Actions.Reselect);
         editMenu.add(Actions.DeselectAll);
         if (!tufts.Util.isMacPlatform())
         {   editMenu.addSeparator();
