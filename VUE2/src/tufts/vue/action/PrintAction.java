@@ -39,7 +39,7 @@ import java.awt.event.ActionEvent;
  * means that VUE can't repaint itself while the print dialogs are
  * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
- * @version $Revision: 1.36 $ / $Date: 2007-04-15 23:36:10 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2007-05-25 21:48:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -225,7 +225,7 @@ public class PrintAction extends tufts.vue.VueAction
 
             Graphics2D g = (Graphics2D) gc;
 
-            if (DEBUG.Enabled) {
+            if (DEBUG.CONTAINMENT) {
                 g.setColor(Color.lightGray);
                 g.fillRect(0,0, 9999,9999);
             }
@@ -237,7 +237,7 @@ public class PrintAction extends tufts.vue.VueAction
             //if (!isPrintingView())
             //g.clipRect(0, 0, page.width, page.height);
                         
-            if (DEBUG.Enabled) {
+            if (DEBUG.CONTAINMENT) {
                 //g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
                 // draw border outline of page
                 g.setColor(Color.gray);
@@ -250,7 +250,8 @@ public class PrintAction extends tufts.vue.VueAction
             Point2D.Float offset = new Point2D.Float();
             // center vertically only if landscape mode
             //if (format.getOrientation() == PageFormat.LANDSCAPE)
-            double scale = ZoomTool.computeZoomFit(page, 5, bounds, offset, false);
+            // TODO: allow horizontal centering, but not vertical centering (handle in computeZoomFit)
+            double scale = ZoomTool.computeZoomFit(page, 5, bounds, offset, true);
             out("rendering at scale " + scale);
             // set up the DrawContext
             DrawContext dc = new DrawContext(g,
@@ -269,7 +270,7 @@ public class PrintAction extends tufts.vue.VueAction
                            (int) Math.ceil(bounds.getWidth()),
                            (int) Math.ceil(bounds.getHeight()));
         
-            if (DEBUG.Enabled) {
+            if (DEBUG.CONTAINMENT) {
                 g.setColor(Color.red);
                 g.setStroke(VueConstants.STROKE_TWO);
                 g.draw(bounds);
