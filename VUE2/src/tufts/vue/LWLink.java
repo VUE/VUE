@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.148 $ / $Date: 2007-05-25 03:52:33 $ / $Author: sfraize $
+ * @version $Revision: 1.149 $ / $Date: 2007-05-25 21:48:04 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -1006,7 +1006,7 @@ public class LWLink extends LWComponent
                 return 0;
         }
         
-        return minDistSq;
+        return minDistSq - hitDistSq;
     }
     
     private static final int LooseSlopSq = 15*15;
