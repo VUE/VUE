@@ -599,14 +599,16 @@ class LWCInspector extends javax.swing.JPanel
         private void updateText() {
             text.setLength(0);
             for (Map.Entry<Class,Object> e : allActive.entrySet()) {
+                final Class implClass = e.getValue() == null ? null : e.getValue().getClass();
+                //final String className = (e.getValue() == null ? "" : e.getValue().getClass.getName());
 
-                
-                //text.append(String.format("%30s: %s\n",
-                text.append(String.format("\n%s: %s\n",
+                text.append(String.format("\n%25s: %s%s\n",
                                           e.getKey().getName(),
+                                          (implClass == e.getKey() || implClass == null) ? "" : ("(" + implClass.getName() + ") "),
                                           e.getValue()));
 
-                addMethodData(e.getValue());
+                if (DEBUG.META)
+                    addMethodData(e.getValue());
                 
                 
                 //text.append(e.getKey().getName() + ": " + e.getValue() + "\n");
