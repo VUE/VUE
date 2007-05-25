@@ -32,6 +32,7 @@ import edu.tufts.vue.style.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
@@ -39,6 +40,7 @@ import java.util.Stack;
 public class LWMergeMap extends LWMap {
     
     public static final int THRESHOLD_DEFAULT = 50;
+    public static final boolean RECORD_SOURCE_NODES = false;
     
     private static int numberOfMaps = 0;
     
@@ -53,22 +55,27 @@ public class LWMergeMap extends LWMap {
     private int linkThresholdSliderValue = THRESHOLD_DEFAULT;
     private boolean filterOnBaseMap;
     
-    // see note for mapList below
     private List<String> fileList = new ArrayList<String>();
     private List<Boolean> activeFiles = new ArrayList<Boolean>();
-    
-    // without this next line it seems that Castor library only reads back one element..
-    // however, for now not a big deal as
-    // this list will still be used as a failsafe (and for dynamic behavior?)
-    // but will only persist as a failsafe for now.. (users can dig into the file
-    // if not yet saved to get their temporary/since modified data)
+ 
+    //todo: recover only file names back into the GUI
+    // this list will continue to persist to provide
+    // a record of actual map data used for merge
+    // (will be overwritten on re-save of file as merge
+    // will be recalculated on GUI load)
+    // note: this initializer seems to be required for Castor
+    // libary to actually persist the list.
+    /**
+     *
+     * Actual maps used to generate the most recent merge.
+     *
+     **/
     private List<LWMap> mapList = new ArrayList<LWMap>();
     
     private File baseMapFile;
     
     private String styleFile;
-    
-    // see notes above for mapList,fileList and activeFiles;
+
     private List<Double> intervalBoundaries = new ArrayList<Double>();
     
     public static String getTitle()
@@ -90,7 +97,18 @@ public class LWMergeMap extends LWMap {
     {
         super(label);
     }
-    
+
+    /**
+     *
+     * No guarantee that these filenames
+     * were generated from *saved* maps
+     * todo: document here the current behavior of
+     * VUE in this case.
+     * GUI should correctly handle any current or
+     * future nulls or otherwise invalid file names
+     * that might be stored here.
+     *
+     **/ 
     public void setMapFileList(List<String> mapList)
     {
         if(mapList != null)
@@ -102,11 +120,27 @@ public class LWMergeMap extends LWMap {
         return fileList;
     }
     
+    /**
+     *
+     * no longer relevant. This was for old gui with
+     * separation between options to load from file
+     * or from all open maps
+     * todo: deprecate and/or remove
+     *
+     **/
     public void setMapListSelectionType(int choice)
     {
         mapListSelectionType = choice;
     }
     
+    /**
+     *
+     * no longer relevant. This was for old gui with
+     * separation between options to load from file
+     * or from all open maps
+     * todo: deprecate and/or remove
+     *
+     **/
     public int getMapListSelectionType()
     {
         return mapListSelectionType;
@@ -132,6 +166,7 @@ public class LWMergeMap extends LWMap {
         return mapList;
     }
     
+    /*
     public String getSelectionText()
     {
         return selectionText;
@@ -140,13 +175,17 @@ public class LWMergeMap extends LWMap {
     public void setSelectionText(String text)
     {
         selectionText = text;
-    }
+    } */
     
+    // todo: deprecate and/or remove
+    // this was for old GUI
     public String getSelectChoice()
     {
         return selectChoice;
     }
     
+    // todo: deprecate and/or remove
+    // this was for old GUI
     public void setSelectChoice(String choice)
     {
         selectChoice = choice;
@@ -192,11 +231,15 @@ public class LWMergeMap extends LWMap {
         return linkThresholdSliderValue;
     }
     
+    // todo: deprecate and/or remove
+    // this was for old GUI
     public void setBaseMapSelectionType(int choice)
     {
         baseMapSelectionType = choice;
     }
     
+    // todo: deprecate and/or remove
+    // this was for old GUI
     public int getBaseMapSelectionType()
     {
         return baseMapSelectionType;
@@ -224,8 +267,7 @@ public class LWMergeMap extends LWMap {
     
     /**
      *
-     * todo: rename no-arg version below to be default boundary
-     *       setup
+     * todo: rename no-arg version below as "default" setup method.
      * This method and the next are for persistence 
      *
      **/
@@ -252,9 +294,8 @@ public class LWMergeMap extends LWMap {
     public void clearAllElements()
     {
         
-       // this deletion code is copied from (an old version of?) LWComponent code fragment
-       // todo: see if other code can be leveraged through public or protected method.
-       // (probably go back and look at Action code to find the proper methodology
+       // this deletion code was copied from an old version of LWComponent deletion code
+       // todo: probably should sync this up with whatever the menu action does.
         
         Iterator li = getAllDescendents().iterator();
                 
@@ -279,22 +320,45 @@ public class LWMergeMap extends LWMap {
     }
     
     
-    public void addMergeNodesFromSourceMap(LWMap map,VoteAggregate voteAggregate)
+    public void addMergeNodesFromSourceMap(LWMap map,VoteAggregate voteAggregate,HashMap<String,LWNode> nodes)
     {
            Iterator children = map.getNodeIterator();    
            while(children.hasNext()) {
              LWNode comp = (LWNode)children.next();
              boolean repeat = false;
-             //if(map.findByID(comp.getChildList(),Util.getMergeProperty(comp)) != null)
              if(nodeAlreadyPresent(comp))
              {
                repeat = true;
+               if(RECORD_SOURCE_NODES)
+               {
+                 LWNode node = nodes.get(Util.getMergeProperty(comp));
+                 if(node.getNotes() !=null)
+                 {
+                   node.setNotes(node.getNotes()+"\n" + map.getLabel());
+                 }
+                 else
+                 {
+                   node.setNotes(map.getLabel());
+                 }
+               }
              }
              
              if(voteAggregate.isNodeVoteAboveThreshold(Util.getMergeProperty(comp)) ){
                    LWNode node = (LWNode)comp.duplicate();
                    if(!repeat)
                    {
+                     if(RECORD_SOURCE_NODES)
+                     {
+                       if(node.getNotes() !=null)
+                       {
+                         node.setNotes(node.getNotes()+"\n" + map.getLabel());
+                       }
+                       else
+                       {
+                         node.setNotes(map.getLabel());
+                       }
+                       nodes.put(Util.getMergeProperty(comp),node);
+                     }
                      addNode(node);
                    }
              }         
@@ -305,24 +369,24 @@ public class LWMergeMap extends LWMap {
     
     public void fillAsVoteMerge()
     {
+        
+        HashMap<String,LWNode> nodes = new HashMap<String,LWNode>();
+        
         ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
         
-        // why not map.getMapList()? is something wrong here?... 3/15/2007-- lets try it
-        // (beware the ides of march!)
-        Iterator<LWMap> i = getMapList().iterator(); // /*map.getMapList()*/mapList.iterator();
+        Iterator<LWMap> i = getMapList().iterator(); 
         while(i.hasNext())
         {
           cms.add(new ConnectivityMatrix(i.next()));
         }
         VoteAggregate voteAggregate= new VoteAggregate(cms);
         
-        
         voteAggregate.setNodeThreshold((double)getNodeThresholdSliderValue()/100.0);
         voteAggregate.setLinkThreshold((double)getLinkThresholdSliderValue()/100.0);
         
         //compute and create nodes in Merge Map
         
-        addMergeNodesFromSourceMap(baseMap,voteAggregate);
+        addMergeNodesFromSourceMap(baseMap,voteAggregate,nodes);
         
         if(!getFilterOnBaseMap())
         {
@@ -332,12 +396,11 @@ public class LWMergeMap extends LWMap {
             LWMap m = maps.next();
             if(m!=baseMap)
             {
-                addMergeNodesFromSourceMap(m,voteAggregate);
+                addMergeNodesFromSourceMap(m,voteAggregate,nodes);
             }
           }
         }
 
-        
         //compute and create links in Merge Map
         Iterator children1 = getNodeIterator();
         while(children1.hasNext()) {
@@ -357,8 +420,17 @@ public class LWMergeMap extends LWMap {
     }
 
     
-    // todo: change to-- reFillAsVoteMerge
+    // todo: deprecate and/or remove
+    // replace with refillAsVoteMerge
     public void recreateVoteMerge()
+    {
+        
+        clearAllElements();
+        
+        fillAsVoteMerge();    
+    }
+    
+    public void refillAsVoteMerge()
     {
         
         clearAllElements();
@@ -391,19 +463,20 @@ public class LWMergeMap extends LWMap {
               }
               else
               {
-                  System.out.println("LWMergeMap: nodeAlreadyPresent, merge property is null for " + node + " or " + c );
-                  System.out.println("node: " + Util.getMergeProperty(node) + "c: (current) " + Util.getMergeProperty(c));
+                  //System.out.println("LWMergeMap: nodeAlreadyPresent, merge property is null for " + node + " or " + c );
+                  //System.out.println("node: " + Util.getMergeProperty(node) + "c: (current) " + Util.getMergeProperty(c));
               }
             }
             else
             {
-                System.out.println("LWMergeMap-nodeAlreadyPresent: node or c is null: (node,c) (" + node + "," + c + ")" );
+                //System.out.println("LWMergeMap-nodeAlreadyPresent: node or c is null: (node,c) (" + node + "," + c + ")" );
             }
         }
         return false;
     }
     
-        
+    // todo: this should become the default initialization method
+    // for interval boundaries only (see above)
     public void setIntervalBoundaries()
     {
         intervalBoundaries = new ArrayList<Double>();
@@ -427,17 +500,14 @@ public class LWMergeMap extends LWMap {
         return 0;
     }
     
-    
     public void addMergeNodesForMap(LWMap map,WeightAggregate weightAggregate,List<Style> styles)
     {       
          
            Iterator children = map.getNodeIterator();
-           //Iterator children = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
            
            while(children.hasNext()) {
              LWNode comp = (LWNode)children.next();
              boolean repeat = false;
-             //if(map.findByID(comp.getChildList(),Util.getMergeProperty(comp)) != null)
              if(nodeAlreadyPresent(comp))
              {
                repeat = true;
@@ -512,13 +582,12 @@ public class LWMergeMap extends LWMap {
                     score = 0;
                   }
                   Style currStyle = nodeStyles.get(getInterval(score)-1);
+                  //todo: applyCss here instead.
                   node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
              }
         }
        
         //compute and create links in Merge Map
-        //Iterator children1 = map.getNodeIterator();
-        //need case for LWLink as well for sub links?
         Iterator<LWComponent> children1 = getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
         while(children1.hasNext()) {
            LWComponent comp1 = children1.next();
@@ -530,13 +599,7 @@ public class LWMergeMap extends LWMap {
                LWNode node2 = (LWNode)children2.next();
                if(node2 != node1) {
                   int c = weightAggregate.getConnection(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
-                  
-                  //$
-                    // don't know if link already drawn.. need to keep track or explicitly check for link..
-                    //int c2 = weightAggregate.getConnection(Util.getMergeProperty(node2),Util.getMergeProperty(node2));
-                  //$
-                  
-                  if(c >0) {
+                  if(c > 0) {
                     double score = 100*c/weightAggregate.getCount();
                     if(score > 100)
                     {
@@ -547,10 +610,9 @@ public class LWMergeMap extends LWMap {
                         score = 0;
                     }
                     Style currLinkStyle = linkStyles.get(getInterval(score)-1);
-                    //System.out.println("Weighted Merge Demo: " + currLinkStyle + " score: " + score);
                     LWLink link = new LWLink(node1,node2);
+                    //todo: applyCSS here
                     link.setStrokeColor(Style.hexToColor(currLinkStyle.getAttribute("background")));
-                    //also add label to link if present? (will be nonunique perhaps.. might make sense for voting?)
                     addLink(link);
                   }
                }
