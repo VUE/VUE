@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.395 $ / $Date: 2007-05-23 23:55:18 $ / $Author: sfraize $ 
+ * @version $Revision: 1.396 $ / $Date: 2007-05-25 03:50:28 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3717,8 +3717,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             case KeyEvent.VK_BACK_SLASH:
                 // too easy to accidentally hit this instead of the return
                 // key while in presentation mode, so only allow if
-                // debug is enabled.
-                if (anyModifierKeysDown(e) || !DEBUG.Enabled || VUE.inFullScreen()) {
+                // not already in full-screen mode.
+                //if (anyModifierKeysDown(e) || !DEBUG.Enabled || VUE.inFullScreen()) {
+                if (anyModifierKeysDown(e) || VUE.inFullScreen()) {
                     // do NOT fire this internal shortcut of '\' for fullscreen
                     // if the actual action (Command-\) was fired.
                     handled = false;
