@@ -29,7 +29,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.69 $ / $Date: 2007-05-25 04:57:17 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2007-05-25 21:47:47 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -293,13 +293,13 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     //throw new RuntimeException(this + " can't add " + o.getClass() + ": " + o);
     //}
     
-    /** Make sure all in Collection are in selection & do a single change notify at the end */
-    public void add(Collection c) {
-        add(c.iterator());
+    /** Make sure all in Iterable are in selection & do a single change notify at the end */
+    public void add(Iterable<LWComponent> iterable) {
+        add(iterable.iterator());
     }
         
     /** Make sure all in iterator are in selection & do a single change notify at the end */
-    synchronized void add(Iterator i)
+    synchronized void add(Iterator<LWComponent> i)
     {
         if (notifyUnderway())
             return;
@@ -307,7 +307,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         LWComponent c;
         boolean changed = false;
         while (i.hasNext()) {
-            c = (LWComponent) i.next();
+            c = i.next();
             if (!c.isSelected() && c.isDrawn()) {
                 if (addSilent(c))
                     changed = true;
@@ -435,11 +435,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         if (DEBUG.SELECTION) System.out.println(this + " clearSilent");
 
         if (!isClone) {
-            java.util.Iterator i = iterator();
-            while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
+            for (LWComponent c : this)
                 c.setSelected(false);
-            }
             lastSelection = clone();
         }
         controlListeners.clear();
