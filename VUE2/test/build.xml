@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.26 $ / $Date: 2007-05-25 16:48:10 $ -->
+<!-- $Revision: 1.27 $ / $Date: 2007-05-25 17:23:18 $ -->
 
 <!-- 
 This ant build file:
@@ -208,7 +208,7 @@ This ant build file:
   into object files in the appropriate location in the build directory.
 -->
 
-  <target name="compile" depends="prepare"
+  <target name="compile" depends="prepare, compile-VUE"
     description="Compile Java sources">
     <mkdir dir="${build.class}"/>
 
@@ -358,7 +358,7 @@ This ant build file:
 	</target>
 
 	<!--- =============  Test upload to Sakai =========-->
-	<target name="SakaiUpload" depends="compile-VUE, compile" description="Test upload to Sakai">
+	<target name="SakaiUpload" depends="compile" description="Test upload to Sakai">
 	<echo message="Sakai Upload Test"/>
 	<java classname="junit.textui.TestRunner" failonerror="true" fork="true">
 		<arg value="edu.tufts.osidimpl.testing.repository.OsidTester"/>
