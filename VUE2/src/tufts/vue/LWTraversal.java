@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.17 $ / $Date: 2007-05-25 03:52:33 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2007-05-25 21:47:42 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  * TODO: add capability for handling LWComponent.ChildKind, so we have the option
@@ -319,7 +319,7 @@ public class LWTraversal {
 
             if (DEBUG.PICK) {
                             eoutln("PointPick: DIRECT-HIT: " + hit);
-                eout(String.format("PointPick:  CLOSE-HIT: %s; distance=%.2f", closeHit, Math.sqrt(closestDistSq)));
+                eout(String.format("PointPick:  CLOSE-HIT: %s; distance=%.2f;", closeHit, Math.sqrt(closestDistSq)));
             }
 
             if (hit == null) {
@@ -327,10 +327,14 @@ public class LWTraversal {
                 if (pc.zoom < 1) {
                     // allow more slop if zoomed way out (links are very small and hard to hit)
                     closeEnoughSq = (8 / pc.zoom) * (8 / pc.zoom);
+                } else if (pc.zoom >= 4) {
+                    final float zf = pc.zoom / 2;
+                    closeEnoughSq = 8/zf * 8/zf;
                 } else
                     closeEnoughSq = 8 * 8;
+                if (DEBUG.PICK) System.out.format(" closeEnough=%.2f;", Math.sqrt(closeEnoughSq));
                 if (hit == null && closestDistSq < closeEnoughSq) {
-                    if (DEBUG.PICK) System.out.format(" (CHOSEN) closeEnough=%.2f\n", Math.sqrt(closeEnoughSq));
+                    if (DEBUG.PICK) System.out.println(" (CHOSEN)");
                     //if (DEBUG.PICK) eoutln("PointPick: closeHit: " + closeHit + " distance: " + Math.sqrt(closestDistSq));
                     hit = closeHit;
                 } else {
