@@ -19,7 +19,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.11 $ / $Date: 2007-05-25 20:15:48 $ / $Author: dan $
+ * @version $Revision: 1.12 $ / $Date: 2007-05-28 16:03:31 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -225,13 +225,23 @@ public class MapsSelectionPanel extends JPanel  {
             {
                 ((MapTableModel)maps.getModel()).setBaseMapIndex(maps.getSelectedRow());
             }
-            if(maps.getSelectedColumn() == 3 && ((MapTableModel)maps.getModel()).getMapType(maps.getSelectedRow()) == LOCAL_FILE)
-            {
-                ((MapTableModel)maps.getModel()).localFiles.remove(maps.getSelectedRow());
-            }
+            //if(maps.getSelectedColumn() == 3 && ((MapTableModel)maps.getModel()).getMapType(maps.getSelectedRow()) == LOCAL_FILE)
+            //{
+                //((MapTableModel)maps.getModel()).localFiles.remove(maps.getSelectedRow());
+            //}
             repaint();
             
           }
+          
+          public void mouseReleased(java.awt.event.MouseEvent e)
+          {
+            if(maps.getSelectedColumn() == 3 && ((MapTableModel)maps.getModel()).getMapType(maps.getSelectedRow()) == LOCAL_FILE)
+            {
+                ((MapTableModel)maps.getModel()).localFiles.remove(maps.getSelectedRow());
+            }     
+            repaint();
+          }
+          
         });
         maps.setDefaultRenderer(Object.class,new MapTableCellRenderer());
         maps.getColumnModel().getColumn(0).setMinWidth(50);
@@ -669,7 +679,10 @@ public class MapsSelectionPanel extends JPanel  {
                 {
                    //JLabel imageLabel = new JLabel(VueResources.getImageIcon("merge.selectmaps.delete.up"));
                    //imageLabel.setIcon(VueResources.getImageIcon("presentationDialog.button.delete.up"));
-                   imageLabel.setIcon(VueResources.getImageIcon("merge.selectmaps.delete.up"));
+                   if(!isSelected)
+                     imageLabel.setIcon(VueResources.getImageIcon("merge.selectmaps.delete.up"));
+                   else
+                     imageLabel.setIcon(VueResources.getImageIcon("merge.selectmaps.delete.down"));
                    deletePanel.add(imageLabel,java.awt.BorderLayout.EAST);
                    //return imageLabel;
                 }
