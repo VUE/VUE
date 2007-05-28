@@ -504,23 +504,25 @@ public class Util
     	{
     		process = Runtime.getRuntime().exec(new String[] { "firefox", url});
     	}
-    	catch(java.io.IOException ioe)
+    	catch (java.io.IOException ioe)
     	{
     		//firefox not available try netscape instead.
     		process = Runtime.getRuntime().exec(new String[] { "netscape",
                     "-remove",
                     "'openURL('" + url + "')" });
     	}
+        out("process: " + process);
         
-        try {
-            int exitCode = process.waitFor();
-            if (exitCode != 0)	// if Netscape was not open
-                Runtime.getRuntime().exec(new String[] { "netscape", url });
-        } catch (InterruptedException e) {
-            java.io.IOException ioe =  new java.io.IOException();
-            ioe.initCause(e);
-            throw ioe;
-        }
+// Can't wait for process to complete!  Browser is left running...
+//         try {
+//             int exitCode = process.waitFor();
+//             if (exitCode != 0)	// if Netscape was not open
+//                 Runtime.getRuntime().exec(new String[] { "netscape", url });
+//         } catch (InterruptedException e) {
+//             java.io.IOException ioe =  new java.io.IOException();
+//             ioe.initCause(e);
+//             throw ioe;
+//         }
     }
 
 
@@ -1043,7 +1045,7 @@ public class Util
     }
 
     public static String out(java.awt.geom.Rectangle2D r) {
-        return String.format("[%7.1f,%-7.1f %5.0fx%-5.0f]", r.getX(), r.getY(), r.getWidth(), r.getHeight());
+        return String.format("[%7.1f,%-7.1f %5.1fx%-5.1f]", r.getX(), r.getY(), r.getWidth(), r.getHeight());
 //         return ""
 //             + (float)r.getX() + "," + (float)r.getY()
 //             + " "
