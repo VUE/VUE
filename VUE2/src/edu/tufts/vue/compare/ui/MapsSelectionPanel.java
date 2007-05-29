@@ -19,7 +19,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.13 $ / $Date: 2007-05-29 14:48:11 $ / $Author: dan $
+ * @version $Revision: 1.14 $ / $Date: 2007-05-29 15:16:15 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -27,6 +27,7 @@
 
 package edu.tufts.vue.compare.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -212,6 +213,7 @@ public class MapsSelectionPanel extends JPanel  {
         gridBag.setConstraints(browseButton,gridBagConstraints);
         add(browseButton);
         maps = new JTable(new MapTableModel());
+        maps.setRowHeight(maps.getRowHeight()+6);
         maps.getTableHeader().setReorderingAllowed(false);
         maps.addMouseListener(new java.awt.event.MouseAdapter() {
           public void mousePressed(java.awt.event.MouseEvent e)
@@ -640,9 +642,11 @@ public class MapsSelectionPanel extends JPanel  {
     class MapTableCellRenderer extends DefaultTableCellRenderer
     {
         private JCheckBox checkBox = new JCheckBox();
+        private JPanel checkBoxPanel = new JPanel(new BorderLayout());
         private JLabel label = new JLabel();
         private JRadioButton button = new JRadioButton();
-        private JPanel deletePanel = new JPanel(new java.awt.BorderLayout());
+        private JPanel baseButtonPanel = new JPanel(new BorderLayout());
+        private JPanel deletePanel = new JPanel(new BorderLayout());
         private JLabel imageLabel = new JLabel();
         private JLabel typeLabel = new JLabel();
         
@@ -652,23 +656,27 @@ public class MapsSelectionPanel extends JPanel  {
             
             if(col == 0)
             {
-                checkBox.setBackground(java.awt.Color.WHITE);
+                checkBox.setBackground(Color.WHITE);
+                checkBoxPanel.setBackground(Color.WHITE);
                 if(model.isSelected(row))
                     checkBox.setSelected(true);
                 else
                     checkBox.setSelected(false);
-                return checkBox;
+                checkBoxPanel.add(checkBox);
+                checkBoxPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0,new Color(229,229,229)));
+                return checkBoxPanel;
             }
             if(col == 1)
             {
                 String name = value.toString();
                 label.setText(getShortNameForFile(name));
-                //label.setBorder(BorderFactory.createMatteBorder(0,0,1,0,new Color(229,229,229)));
+                label.setBorder(BorderFactory.createMatteBorder(0,0,1,0,new Color(229,229,229)));
                 return label;
             }
             if(col == 2)
             {
-                button.setBackground(java.awt.Color.WHITE);
+                baseButtonPanel.setBackground(Color.WHITE);
+                button.setBackground(Color.WHITE);
                 if(model.getBaseMapIndex() == row)
                 {
                     button.setSelected(true);
@@ -677,28 +685,31 @@ public class MapsSelectionPanel extends JPanel  {
                 {
                     button.setSelected(false);
                 }
-                return button;
+                baseButtonPanel.add(button,BorderLayout.WEST);
+                baseButtonPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0,new Color(229,229,229)));
+                return baseButtonPanel;
             }
             else
             if(col == 3)
             {
                 typeLabel.setText(value.toString());
-                typeLabel.setBackground(java.awt.Color.WHITE);
+                typeLabel.setBackground(Color.WHITE);
                 deletePanel.setOpaque(true);
-                deletePanel.setBackground(java.awt.Color.WHITE);
-                deletePanel.add(typeLabel,java.awt.BorderLayout.WEST);
+                deletePanel.setBackground(Color.WHITE);
+                deletePanel.add(typeLabel,BorderLayout.WEST);
                 if(model.getMapType(row)==LOCAL_FILE)
                 {
                    if(isSelected && deleteDown)
                      imageLabel.setIcon(VueResources.getImageIcon("merge.selectmaps.delete.down"));
                    else
                      imageLabel.setIcon(VueResources.getImageIcon("merge.selectmaps.delete.up"));
-                   deletePanel.add(imageLabel,java.awt.BorderLayout.EAST);
+                   deletePanel.add(imageLabel,BorderLayout.EAST);
                 }
                 else
                 {
                     deletePanel.remove(imageLabel);
                 }
+                deletePanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0,new Color(229,229,229)));
                 return deletePanel;
             }
             else
