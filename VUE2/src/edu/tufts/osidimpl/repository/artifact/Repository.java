@@ -18,6 +18,10 @@
 
 package edu.tufts.osidimpl.repository.artifact;
 
+import javax.xml.parsers.*;
+import org.w3c.dom.*;
+import java.io.*;
+
 public class Repository
 implements org.osid.repository.Repository
 {
@@ -25,6 +29,8 @@ implements org.osid.repository.Repository
 	private org.osid.shared.Type repositoryType = null;
 	private org.osid.shared.Type assetType = new Type("tufts.edu","asset","artifact");
 	private org.osid.shared.Type artifactSearchType = new Type("tufts.edu","search","artifact");
+        private org.osid.shared.Type keywordSearchType = new Type("mit.edu","search","keyword");
+        private org.osid.shared.Type artifactMultiFieldSearchType = new Type("tufts.edu","search","artifact-multifield");
     private String displayName = null;
     private String description = null;
     private java.util.Vector searchTypeVector = null;
@@ -270,10 +276,15 @@ implements org.osid.repository.Repository
         {
             String criteria = (String)searchCriteria;
 			String query = null;
+                        System.out.println("Artifact Search: Type "+ searchType.getKeyword()+" auth ="+searchType.getAuthority());
+                        System.out.println(criteria);
 			if (searchType.isEqual(this.artifactSearchType)) {
 				query = criteria;
-			} else {
-				query = SEARCH_URL_PREFIX + criteria + SEARCH_URL_SUFFIX;
+			} else if(searchType.isEqual(this.keywordSearchType)) {
+                                query = SEARCH_URL_PREFIX+criteria+SEARCH_URL_SUFFIX;
+                        }  else {
+                        
+				query = SEARCH_URL_PREFIX + xmlCriteriaToStringUrl(criteria) + SEARCH_URL_SUFFIX;
 			}
 			Utilities.log("Artifact Query " + query);
 			return new AssetIterator(query,this.repositoryId);
@@ -287,6 +298,33 @@ implements org.osid.repository.Repository
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
         }
     }
+    
+    private String xmlCriteriaToStringUrl(String criteria) throws Exception {
+        String urlPart = new String();
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        Document doc = factory.newDocumentBuilder().parse(new StringBufferInputStream(criteria));
+        NodeList list = doc.getElementsByTagName("field");
+        for(int i =0; i <list.getLength(); i++) {
+             Element fieldElement = (Element)list.item(i);
+                 Node typeNode =  fieldElement.getElementsByTagName("type").item(0);
+                 Node valueNode  = fieldElement.getElementsByTagName("value").item(0);
+                 String key  =  new String();
+                 String value = new String();
+                 if(typeNode.getFirstChild() instanceof Text) {
+                     String s = typeNode.getFirstChild().getNodeValue();
+                     key = s.substring(s.indexOf("/")+1,s.indexOf("@"));
+                     if(key.equalsIgnoreCase("keywords")) key = "";
+                     else if (key.equalsIgnoreCase("course")) key="&class_num=";
+                     else key = "&"+key+"=";
+                             }
+                 if(valueNode.getFirstChild() instanceof Text) {
+                     value = valueNode.getFirstChild().getNodeValue();
+                         }
+                 urlPart = key+value;
+        }
+        
+        return urlPart;
+    } 
 
     public org.osid.shared.Id copyAsset(org.osid.repository.Asset asset)
     throws org.osid.repository.RepositoryException
