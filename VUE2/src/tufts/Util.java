@@ -1032,12 +1032,19 @@ public class Util
     }
     */
     public static String out(Object[] o) {
-        return Arrays.asList(o).toString();
+        if (o == null)
+            return "<null Object[]>";
+        else
+            return Arrays.asList(o).toString();
     }
     
     public static String out(java.awt.geom.Point2D p) {
+        if (p == null)
+            return "<null Point2D>";
+        else
+            return oneDigitDecimal(p.getX()) + "," + oneDigitDecimal(p.getY());
+            
         //return (float)p.getX() + "," + (float)p.getY();
-        return oneDigitDecimal(p.getX()) + "," + oneDigitDecimal(p.getY());
     }
     
     public static String out(java.awt.Dimension d) {
@@ -1057,7 +1064,10 @@ public class Util
     }
 
     public static String out(java.awt.Rectangle r) {
-        return String.format("[%4d,%4d %-5dx%4d]", r.x, r.y, r.width, r.height);
+        if (r == null)
+            return "<null Rectangle>";
+        else
+            return String.format("[%4d,%4d %-5dx%4d]", r.x, r.y, r.width, r.height);
 //         return ""
 //             + r.width + "x" + r.height
 //             + " "
@@ -1066,6 +1076,10 @@ public class Util
     }
     
     public static String out(java.awt.geom.RectangularShape r) {
+        
+        if (r == null)
+            return "<null RectangularShape>";
+        
         String name = r.getClass().getName();
         name = name.substring(name.lastIndexOf('.') + 1);
         return name + "["
@@ -1077,11 +1091,14 @@ public class Util
     }
     
     public static String out(java.awt.geom.Line2D l) {
-        return ""
-            + (float)l.getX1() + "," + (float)l.getY1()
-            + " -> "
-            + (float)l.getX2() + "," + (float)l.getY2()
-            ;
+        if (l == null)
+            return "<null Line2D>";
+        else
+            return ""
+                + (float)l.getX1() + "," + (float)l.getY1()
+                + " -> "
+                + (float)l.getX2() + "," + (float)l.getY2()
+                ;
     }
     
     public static String oneDigitDecimal(double x) {
