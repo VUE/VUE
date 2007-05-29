@@ -477,8 +477,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		try {
 			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
 			for (int i=0; i < repositories.length; i++) {
-
-				// not all these methods may be implemented -- in which case we are out of luck
+                            	// not all these methods may be implemented -- in which case we are out of luck
 				try {
 					org.osid.shared.TypeIterator typeIterator = repositories[i].getAssetTypes();
 					while (typeIterator.hasNextType()) {
@@ -524,16 +523,20 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		try {
 			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
 			for (int i=0; i < repositories.length; i++) {
-				
+//				 System.out.println("QueryEditor: Respository:"+repositories[i].getDisplayName());
+						
 				java.util.Vector intersection = new java.util.Vector();		
 				// not all these methods may be implemented -- in which case we are out of luck
 				try {
 					// must support the multi-field search type
 					boolean supportsMultiField = false;
 					org.osid.shared.TypeIterator typeIterator = repositories[i].getSearchTypes();
+                                       
 					while ( (!supportsMultiField) && typeIterator.hasNextType() ) {
 						org.osid.shared.Type nextSearchType = typeIterator.nextType();
-						if (nextSearchType.isEqual(this.multiFieldSearchType)) {
+//                                                  System.out.println("QueryEditor: Respository:"+repositories[i].getDisplayName()+" search type:"+nextSearchType.getKeyword()+" check:"+nextSearchType.isEqual(this.multiFieldSearchType));
+				
+                                               if (nextSearchType.isEqual(this.multiFieldSearchType)) {
 							supportsMultiField = true;
 						}
 					}
@@ -545,15 +548,18 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 					typeIterator = repositories[i].getAssetTypes();
 					while (typeIterator.hasNextType()) {
 						org.osid.shared.Type nextAssetType = typeIterator.nextType();
-						
+//						 System.out.println("QueryEditor(AssetTypes): Respository:"+repositories[i].getDisplayName()+" asset type:"+nextAssetType.getKeyword());
+				
 						org.osid.repository.RecordStructureIterator recordStructureIterator = repositories[i].getMandatoryRecordStructures(nextAssetType);
 						while (recordStructureIterator.hasNextRecordStructure()) {
 							org.osid.repository.PartStructureIterator partStructureIterator = recordStructureIterator.nextRecordStructure().getPartStructures();
 							while (partStructureIterator.hasNextPartStructure()) {
 								org.osid.shared.Type nextType = partStructureIterator.nextPartStructure().getType();
 								String nextTypeString = edu.tufts.vue.util.Utilities.typeToString(nextType);
+                                                                
 								int index = advancedSearchUniverseOfTypeStringsVector.indexOf(nextTypeString);
-								if (index != -1) {
+//								System.out.println("QueryEditor(PartType): Respository:"+repositories[i].getDisplayName()+" part type:"+nextTypeString+" index: "+index);
+                                                                if (index != -1) {
 									String prompt = (String)advancedSearchPromptsVector.elementAt(index);
 									if (!intersection.contains(prompt)) {
 										intersection.addElement(prompt);
@@ -565,6 +571,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 					intersections.addElement(intersection);
 				} catch (Throwable t) {
 					edu.tufts.vue.util.Logger.log(t);
+                                        t.printStackTrace();
 				}
 			}
 			// now find what is common accross intersections
@@ -611,8 +618,9 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/subject@mit.edu");
 		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/title@mit.edu");
 		advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/type@mit.edu");
-		
-		advancedSearchFieldsText = new String[15];
+                advancedSearchUniverseOfTypeStringsVector.addElement("partStructure/course@mit.edu");
+                 
+		advancedSearchFieldsText = new String[16];
 		int index = 0;
 		advancedSearchPromptsVector.addElement("Contributor");
 		advancedSearchFieldsText[index++] = null;
@@ -644,6 +652,8 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Type");
 		advancedSearchFieldsText[index++] = null;
+                advancedSearchPromptsVector.addElement("Course");
+                advancedSearchFieldsText[index++] = null;
 	}
 	
 	private String multiFieldXML()
