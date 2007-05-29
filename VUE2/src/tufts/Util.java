@@ -1045,7 +1045,10 @@ public class Util
     }
 
     public static String out(java.awt.geom.Rectangle2D r) {
-        return String.format("[%7.1f,%-7.1f %5.1fx%-5.1f]", r.getX(), r.getY(), r.getWidth(), r.getHeight());
+        if (r == null)
+            return "<null Rectangle2D>";
+        else
+            return String.format("[%7.1f,%-7.1f %5.1fx%-5.1f]", r.getX(), r.getY(), r.getWidth(), r.getHeight());
 //         return ""
 //             + (float)r.getX() + "," + (float)r.getY()
 //             + " "
