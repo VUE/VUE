@@ -19,7 +19,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.12 $ / $Date: 2007-05-28 16:03:31 $ / $Author: dan $
+ * @version $Revision: 1.13 $ / $Date: 2007-05-29 14:48:11 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -27,6 +27,7 @@
 
 package edu.tufts.vue.compare.ui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -65,8 +66,7 @@ public class MapsSelectionPanel extends JPanel  {
     
     public static final String stepOneMessage = "1. Create a set of maps from currently open maps and/or from maps stored on your computer";
     public static final String stepTwoMessage = "2. Pick a \"guide\" map to define the layout of the new merged map";
-    
-    // originally from Visualization Settings Panel:
+
     public final static String filterOnBaseMapMessageString = "Only include items found on the layout map";
     
     private JScrollPane scroll;
@@ -76,6 +76,8 @@ public class MapsSelectionPanel extends JPanel  {
     
     private JPanel bottomPanel;
     private JCheckBox filterOnBaseMap;
+    
+    private boolean deleteDown = false;
     
     private MapsSelectionPanel() 
     {
@@ -127,7 +129,7 @@ public class MapsSelectionPanel extends JPanel  {
                }
                else
                {    
-                  String name = choice.getAbsolutePath();//.getName();
+                  String name = choice.getAbsolutePath();
                   ((MapTableModel)maps.getModel()).addRow(name);
                   fileNameField.setText(getShortNameForFile(name));
                   revalidate();
@@ -210,25 +212,31 @@ public class MapsSelectionPanel extends JPanel  {
         gridBag.setConstraints(browseButton,gridBagConstraints);
         add(browseButton);
         maps = new JTable(new MapTableModel());
+        maps.getTableHeader().setReorderingAllowed(false);
         maps.addMouseListener(new java.awt.event.MouseAdapter() {
           public void mousePressed(java.awt.event.MouseEvent e)
           {
-            System.out.println("MSP mouse pressed, row column: " + maps.getSelectedRow() + "," + maps.getSelectedColumn());
+            MapTableModel model = (MapTableModel)maps.getModel();
+            //System.out.println("MSP mouse pressed, row column: " + maps.getSelectedRow() + "," + maps.getSelectedColumn());
             if(maps.getSelectedColumn() == 0)
             {
-                if(((MapTableModel)maps.getModel()).isSelected(maps.getSelectedRow()))
-                    ((MapTableModel)maps.getModel()).setSelected(false,maps.getSelectedRow());
+                if(model.isSelected(maps.getSelectedRow()))
+                    model.setSelected(false,maps.getSelectedRow());
                 else
-                    ((MapTableModel)maps.getModel()).setSelected(true,maps.getSelectedRow());
+                    model.setSelected(true,maps.getSelectedRow());
             }
             if(maps.getSelectedColumn() == 2)
             {
-                ((MapTableModel)maps.getModel()).setBaseMapIndex(maps.getSelectedRow());
+                model.setBaseMapIndex(maps.getSelectedRow());
             }
-            //if(maps.getSelectedColumn() == 3 && ((MapTableModel)maps.getModel()).getMapType(maps.getSelectedRow()) == LOCAL_FILE)
-            //{
-                //((MapTableModel)maps.getModel()).localFiles.remove(maps.getSelectedRow());
-            //}
+            if(maps.getSelectedColumn() == 3)
+            {
+                deleteDown = true;
+            }
+            else
+            {
+                deleteDown = false;
+            }
             repaint();
             
           }
@@ -238,6 +246,7 @@ public class MapsSelectionPanel extends JPanel  {
             if(maps.getSelectedColumn() == 3 && ((MapTableModel)maps.getModel()).getMapType(maps.getSelectedRow()) == LOCAL_FILE)
             {
                 ((MapTableModel)maps.getModel()).localFiles.remove(maps.getSelectedRow());
+                deleteDown = false;
             }     
             repaint();
           }
@@ -245,9 +254,9 @@ public class MapsSelectionPanel extends JPanel  {
         });
         maps.setDefaultRenderer(Object.class,new MapTableCellRenderer());
         maps.getColumnModel().getColumn(0).setMinWidth(50);
-        maps.getColumnModel().getColumn(1).setMinWidth(380);
+        maps.getColumnModel().getColumn(1).setMinWidth(360);
         maps.getColumnModel().getColumn(2).setMinWidth(50);
-        maps.getColumnModel().getColumn(3).setMinWidth(60);
+        maps.getColumnModel().getColumn(3).setMinWidth(80);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.anchor = GridBagConstraints.NORTH;
@@ -328,8 +337,6 @@ public class MapsSelectionPanel extends JPanel  {
            LWMap map = null;
            try
            {
-             //file = new File((String)model.getValueAt(1,i));
-             //map = ActionUtil.unmarshallMap(file);
              String fileName ="file:///" + (String)model.localFiles.get(i);
              map = ActionUtil.unmarshallMap(new java.net.URL(fileName));
            }
@@ -645,6 +652,7 @@ public class MapsSelectionPanel extends JPanel  {
             
             if(col == 0)
             {
+                checkBox.setBackground(java.awt.Color.WHITE);
                 if(model.isSelected(row))
                     checkBox.setSelected(true);
                 else
@@ -655,10 +663,12 @@ public class MapsSelectionPanel extends JPanel  {
             {
                 String name = value.toString();
                 label.setText(getShortNameForFile(name));
+                //label.setBorder(BorderFactory.createMatteBorder(0,0,1,0,new Color(229,229,229)));
                 return label;
             }
             if(col == 2)
             {
+                button.setBackground(java.awt.Color.WHITE);
                 if(model.getBaseMapIndex() == row)
                 {
                     button.setSelected(true);
@@ -673,29 +683,23 @@ public class MapsSelectionPanel extends JPanel  {
             if(col == 3)
             {
                 typeLabel.setText(value.toString());
+                typeLabel.setBackground(java.awt.Color.WHITE);
                 deletePanel.setOpaque(true);
+                deletePanel.setBackground(java.awt.Color.WHITE);
                 deletePanel.add(typeLabel,java.awt.BorderLayout.WEST);
                 if(model.getMapType(row)==LOCAL_FILE)
                 {
-                   //JLabel imageLabel = new JLabel(VueResources.getImageIcon("merge.selectmaps.delete.up"));
-                   //imageLabel.setIcon(VueResources.getImageIcon("presentationDialog.button.delete.up"));
-                   if(!isSelected)
-                     imageLabel.setIcon(VueResources.getImageIcon("merge.selectmaps.delete.up"));
-                   else
+                   if(isSelected && deleteDown)
                      imageLabel.setIcon(VueResources.getImageIcon("merge.selectmaps.delete.down"));
+                   else
+                     imageLabel.setIcon(VueResources.getImageIcon("merge.selectmaps.delete.up"));
                    deletePanel.add(imageLabel,java.awt.BorderLayout.EAST);
-                   //return imageLabel;
                 }
                 else
                 {
                     deletePanel.remove(imageLabel);
                 }
-               // deletePanel.setBackground(java.awt.Color.RED);
                 return deletePanel;
-                //return label;
-                //imageLabel.setIcon((ImageIcon)value);
-                //deletePanel.add(imageLabel,java.awt.BorderLayout.WEST);
-                //return deletePanel;
             }
             else
             {
