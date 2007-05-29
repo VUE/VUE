@@ -59,7 +59,9 @@ public class Utilities
 			org.w3c.dom.Element e = (org.w3c.dom.Element)nameNodeList.item(0);
 			try {
 				expected = e.getFirstChild().getNodeValue();
-			} catch (java.lang.NullPointerException npe) {
+				//System.out.println("before decode " + expected + " after " + java.net.URLDecoder.decode(expected,"ISO-8859-1"));
+				expected = java.net.URLDecoder.decode(expected,"ISO-8859-1");
+			} catch (Exception ex) {
 			}
 		}
 		return expected;

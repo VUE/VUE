@@ -30,6 +30,7 @@ public class OsidTester extends TestCase
 	public static final String ASSET_VIA_MANAGER_TAG = "assetbyidviamanager";	
 	public static final String ASSET_VIA_REPOSITORY_TAG = "assetbyidviarepository";
 	public static final String ASSETS_BY_SEARCH_TAG = "assetsbysearch";
+	public static final String ASSETS_BY_SEARCH_VIA_MANAGER_TAG = "assetsbysearchviamanager";
 	public static final String ASSETS_BY_TYPE_TAG = "assetsbytype";
 	public static final String ASSETS_TAG = "assets";
 	public static final String CONFIGURATION_TAG = "configuration";

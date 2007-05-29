@@ -31,13 +31,13 @@ public class AssetMetadataTest extends TestCase
 		String expected = Utilities.expectedValue(assetElement,OsidTester.DISPLAY_NAME_TAG);
 		if (expected != null) {
 			System.out.println(expected);
-			assertEquals(expected,nextAsset.getDisplayName());
+			assertEquals("seeking display name " + expected,expected,nextAsset.getDisplayName());
 			System.out.println("PASSED: Asset's Display Name " + index + " " + expected);
 		}
 		
 		expected = Utilities.expectedValue(assetElement,OsidTester.DESCRIPTION_TAG);
 		if (expected != null) {
-			assertEquals(expected,nextAsset.getDescription());
+			assertEquals("seeking description " + expected,expected,nextAsset.getDescription());
 			System.out.println("PASSED: Asset's Description " + index + " " + expected);
 		}
 		
@@ -46,7 +46,7 @@ public class AssetMetadataTest extends TestCase
 			org.osid.shared.Id id = nextAsset.getId();
 			try {
 				String idString = id.getIdString();
-				assertEquals(expected,idString);
+				assertEquals("seeking identifier " + expected,expected,idString);
 				System.out.println("PASSED: Asset's Id " + index + " " + expected);
 			} catch (org.osid.shared.SharedException iex) {
 				// ignore since this means something is amiss with Id
@@ -55,7 +55,7 @@ public class AssetMetadataTest extends TestCase
 		
 		expected = Utilities.expectedValue(assetElement,OsidTester.TYPE_TAG);
 		if (expected != null) {
-			assertEquals(expected,Utilities.typeToString(nextAsset.getAssetType()));
+			assertEquals("seeking type " + expected,expected,Utilities.typeToString(nextAsset.getAssetType()));
 			System.out.println("PASSED: Asset's Type " + index + " " + expected);
 		}
 		
@@ -107,7 +107,7 @@ public class AssetMetadataTest extends TestCase
 					if (typeVector.contains(expectedType)) {
 						System.out.println("PASSED: Metadata for Asset " + index + " Part Type " + p + " " + expectedType);
 					} else {
-						fail("No Type matches");
+						fail("No match for Type " + expectedType + " in profile");
 					}
 				}
 				
@@ -126,7 +126,7 @@ public class AssetMetadataTest extends TestCase
 						}
 					}
 					if (!found) {
-						fail("No Type and Value Matches");
+						fail("No match for Type(" + expectedType + ") and Value(" + expected + ") in profile");
 					}
 				}
 			}
