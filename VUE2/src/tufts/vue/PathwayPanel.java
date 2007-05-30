@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.91 $ / $Date: 2007-05-30 15:41:23 $ / $Author: mike $
+ * @version $Revision: 1.92 $ / $Date: 2007-05-30 18:23:02 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -831,12 +831,14 @@ public class PathwayPanel extends JPanel
             final PresentationTool presTool = PresentationTool.getTool();
             //final PresentationTool tool = VueTool.getInstance(PresentationTool.class);
 
+            //VUE.setActive(VueTool.class, this, presTool);
+            
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                VUE.toggleFullScreen(true);
+            }});
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 //VueToolbarController.getController().setSelectedTool(presTool);
                 VUE.setActive(VueTool.class, this, presTool);
-            }});
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                VUE.toggleFullScreen(true);
             }});
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 presTool.startPresentation();
