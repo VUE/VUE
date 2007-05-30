@@ -70,7 +70,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         
         JLabel visualizationSettingsChoiceLabel = new JLabel(visualizationSettingsChoiceMessage);
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(15,0,15,0);
+        gridBagConstraints.insets = new java.awt.Insets(15,10,15,8);
         gridBag.setConstraints(visualizationSettingsChoiceLabel,gridBagConstraints);
         add(visualizationSettingsChoiceLabel);
         gridBagConstraints.insets = new java.awt.Insets(0,0,0,0);

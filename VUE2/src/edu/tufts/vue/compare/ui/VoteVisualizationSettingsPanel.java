@@ -113,7 +113,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         JLabel nodeLabel = new JLabel("Nodes:");
         
         voteConstraints.anchor = GridBagConstraints.WEST;
-        voteConstraints.insets = new Insets(40,0,20,0);
+        voteConstraints.insets = new Insets(40,15,20,0);
         voteLayout.setConstraints(defineThresholdMessageLabel,voteConstraints);
         add(defineThresholdMessageLabel);
         
