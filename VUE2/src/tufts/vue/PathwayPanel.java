@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.90 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $
+ * @version $Revision: 1.91 $ / $Date: 2007-05-30 15:41:23 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -84,9 +84,9 @@ public class PathwayPanel extends JPanel
     private final JToggleButton btnShowSlides2 = new VueButton.Toggle("presentationDialog.button.showSlides",this);    
     
     //playback mode
-    private final ImageDropDown btnPlayMaps = new ImageDropDown(VueResources.getImageIcon("presentationDialog.button.playMap.raw"),
-                                                          VueResources.getImageIcon("presentationDialog.button.playSlides.raw"),
-                                                          VueResources.getImageIcon("presentationDialog.button.playSlides.disabled"));
+    //private final ImageDropDown btnPlayMaps = new ImageDropDown(VueResources.getImageIcon("presentationDialog.button.playMap.raw"),
+    //                                                      VueResources.getImageIcon("presentationDialog.button.playSlides.raw"),
+    //                                                      VueResources.getImageIcon("presentationDialog.button.playSlides.disabled"));
     
     private final VueButton btnPlay = new VueButton("presentationDialog.button.play",this);    
                                             
@@ -135,14 +135,14 @@ public class PathwayPanel extends JPanel
     //	btnAnnotateSlide.setEnabled(false);
     //	btnAnnotatePresentation.setEnabled(false);
     	btnMergeInto.setEnabled(false);
-    	btnPlayMaps.setEnabled(false);
+    	//btnPlayMaps.setEnabled(false);
     	//btnLiveMap.setEnabled(false);
     	//btnPreviewFull.setEnabled(false);
     	btnShowSlides.setEnabled(true);
     	btnShowSlides.setSelected(true);
     	btnShowSlides2.setEnabled(true);
     	btnShowSlides2.setSelected(true);
-    	btnPlayMaps.setEnabled(false);
+    	//btnPlayMaps.setEnabled(false);
     //	btnPlaySlides.setEnabled(false);
 //    	btnDisplayAsMap.setEnabled(false);
   //  	btnDisplayAsText.setEnabled(false);
@@ -321,7 +321,7 @@ public class PathwayPanel extends JPanel
         btnShowSlides2.setToolTipText(VueResources.getString(baseProp+"showNodes.tooltip"));
         
         //playback mode
-        btnPlayMaps.setToolTipText(VueResources.getString(baseProp+"playSlides.tooltip"));
+        //btnPlayMaps.setToolTipText(VueResources.getString(baseProp+"playSlides.tooltip"));
         btnPlay.setToolTipText(VueResources.getString(baseProp+"play.tooltip"));               	
     }
     
@@ -570,15 +570,15 @@ public class PathwayPanel extends JPanel
         gbConstraints.weighty=0;
         playBackPanel.add(lblPlayback,gbConstraints);
         
-        gbConstraints.gridx=0;
-        gbConstraints.gridy=1;
-        gbConstraints.gridwidth = 1;
-        gbConstraints.gridheight = 1;
-        gbConstraints.fill=GridBagConstraints.NONE;
-        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
-        playBackPanel.add(btnPlayMaps,gbConstraints);
+       // gbConstraints.gridx=0;
+       // gbConstraints.gridy=1;
+       // gbConstraints.gridwidth = 1;
+       // gbConstraints.gridheight = 1;
+       // gbConstraints.fill=GridBagConstraints.NONE;
+       // gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+      //  playBackPanel.add(btnPlayMaps,gbConstraints);
         
-        gbConstraints.gridx=1;
+        gbConstraints.gridx=0;
         gbConstraints.gridy=1;
         gbConstraints.gridwidth = 1;
         gbConstraints.gridheight = 1;
