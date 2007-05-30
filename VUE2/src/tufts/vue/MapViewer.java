@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.396 $ / $Date: 2007-05-25 03:50:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.397 $ / $Date: 2007-05-30 18:23:34 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -796,11 +796,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     /** @return the bounds of all the objects in the map this viewer is currently
-     * configured to be able to display (takes into account layers)
+     * configured to be able to display 
      */
     public Rectangle2D getDisplayableMapBounds() {
         if (mFocal == mMap)
-            return mMap.getBounds(getMaxLayer());
+            return mMap.getBounds();
+        //return mMap.getBounds(getMaxLayer());
         else
             return mFocal.getShapeBounds();
     }
@@ -853,8 +854,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // in size, yet are crucial for repaint update (thus: no ignore if activeTextEdit)
         
         if (DEBUG.SCROLL||DEBUG.PAINT||DEBUG.EVENTS||DEBUG.FOCUS||DEBUG.VIEWER) {
-            out("     reshape: "
-                + w + " x " + h
+            out("reshape",
+                w + " x " + h
                 + " "
                 + x + "," + y
                 + (ignore?" (IGNORING)":""));
@@ -928,7 +929,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private void doFitToFocal()
     {
-        if (DEBUG.PRESENT || DEBUG.VIEWER) out("doFitToFocal: " + mFocal);
+        if (DEBUG.PRESENT || DEBUG.VIEWER) out("fitToFocal", mFocal);
         mFitToFocalRequested = false;
 
         if (mFocal == null) {
@@ -946,7 +947,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //             )
 //             margin = 0;
 
-        if (DEBUG.PRESENT || DEBUG.WORK) out("fitToFocal " + mFocal + " at " + zoomBounds);
+        if (DEBUG.PRESENT || DEBUG.VIEWER) out("fitToFocal", mFocal + " at " + zoomBounds);
         
         ZoomTool.setZoomFitRegion(this,
                                   zoomBounds,
@@ -1034,11 +1035,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     /** let the active tool handle the focal transition if it wants */
     public void switchFocal(LWComponent newFocal) {
-
-        if (activeTool != null && activeTool.handleFocalSwitch(this, mFocal, newFocal))
+        if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("switchFocal", newFocal);
+        if (activeTool != null && activeTool.handleFocalSwitch(this, mFocal, newFocal)) {
+            if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("switchFocal", "activeTool handled: " + activeTool);
             ; // the active tool has handled the focal loading and any desired auto-fit
-        else
+        } else {
+            if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("switchFocal", "vanilla load " + newFocal);
             loadFocal(newFocal);
+        }
         
     }
         
@@ -1049,7 +1053,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     /** actualy load the new focal */
     public void loadFocal(LWComponent focal, boolean fitToFocal) {
-        if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("loadFocal " + focal + "; autoFit=" + fitToFocal);
+        if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("loadFocal", focal + "; autoFit=" + fitToFocal);
         //if (focal == null) throw new IllegalArgumentException(this + " loadFocal: focal is null");
         if (mFocal == focal) {
             if (fitToFocal)
@@ -1097,6 +1101,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             repaint();
     }
 
+    public void popToMapFocal() {
+        popFocal(true);
+    }
+
     protected boolean popFocal() {
         return popFocal(false);
     }
@@ -1106,7 +1114,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      */
     protected boolean popFocal(boolean toTopLevel)
     {
-        if (DEBUG.WORK) out("popFocal up from " + mFocal);
+        if (DEBUG.PRESENT || DEBUG.WORK) out("popFocal", "up from " + mFocal + "; toTop=" + toTopLevel);
         if (mFocal == null)
             return false;
 
@@ -1650,9 +1658,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return activeTool.initPick(pc, rect);
     }
         
-    protected int getMaxLayer() {
-        return 0;
-    }
+//     protected int getMaxLayer() {
+//         return 0;
+//     }
 
 //     protected int getPickDepth() {
 //         if (activeTool == DirectSelectTool) // todo: hand to the tool for PickContext modifications
@@ -2122,7 +2130,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         dc.setFractionalFontMetrics(DEBUG_FONT_METRICS);
         dc.disableAntiAlias(DEBUG_ANTI_ALIAS == false);
         //dc.setActiveTool(getCurrentTool());
-        dc.setMaxLayer(getMaxLayer());
+        //dc.setMaxLayer(getMaxLayer());
         
         return dc;
     }
@@ -2746,13 +2754,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     drawSelectorBoxInThisViewer = false;
                     break;
                 }
-            } else if (c.getLayer() > getMaxLayer()) {
-                // Something in selection is not from a layer visible in this viewer,
-                // so don't draw the selection box here.
-                out("layer " + c.getLayer() + " for " + c + " >maxLayer=" + getMaxLayer());
-                drawSelectorBoxInThisViewer = false;
-                break;
             }
+//             else if (c.getLayer() > getMaxLayer()) {
+//                 // Something in selection is not from a layer visible in this viewer,
+//                 // so don't draw the selection box here.
+//                 out("layer " + c.getLayer() + " for " + c + " >maxLayer=" + getMaxLayer());
+//                 drawSelectorBoxInThisViewer = false;
+//                 break;
+//             }
 
             if (c.isDrawn())
                 atLeastOneVisible = true;
@@ -2928,7 +2937,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
         
-        if (DEBUG.VIEWER||DEBUG.LAYOUT) resizeControl.draw(dc); // debug
+        if (DEBUG.VIEWER||DEBUG.LAYOUT||DEBUG.CONTAINMENT) resizeControl.draw(dc); // debug
         
         /*
         it = selection.iterator();
@@ -5507,7 +5516,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (activeViewer != null)
                 oldActiveMap = activeViewer.getMap();
             VUE.setActive(MapViewer.class, this, this);
-            mFocal.getChangeSupport().setPriorityListener(this);
+            if (mFocal != null)
+                mFocal.getChangeSupport().setPriorityListener(this);
+            else
+                VUE.Log.warn("Active viewer has no focal: " + this);
             // TODO: VUE.getSelection().setPriorityListener(this);
                 
             // hierarchy view switching: TODO: make an active map listener instead of this(?)
@@ -5894,6 +5906,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     protected void out(Object o) {
         System.out.println(this + " " + (o==null?"null":o.toString()));
+    }
+    
+    protected void out(String method, Object msg) {
+        if (method.charAt(0) == '@')
+            tufts.Util.printStackTrace(method);
+        System.out.format("%s %12s: %s\n", this, method, msg);
     }
 
     private String out(Point2D p) { return p==null?"<null Point2D>":(float)p.getX() + ", " + (float)p.getY(); }
