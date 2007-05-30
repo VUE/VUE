@@ -140,10 +140,11 @@ public class VoteVisualizationSettingsPanel extends JPanel {
 
         JLabel linkPanel = new JLabel("Links:");
         voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
-        voteConstraints.insets= new java.awt.Insets(0,40,0,0);
+        voteConstraints.insets= new java.awt.Insets(30,40,0,0);
 
         voteLayout.setConstraints(linkPanel,voteConstraints);
         add(linkPanel);
+        voteConstraints.insets = new Insets(0,40,0,0);
         
         linkThresholdSlider = new JSlider(0,100,50);
         

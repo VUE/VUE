@@ -81,6 +81,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         gridBag.setConstraints(visualizationChoice,gridBagConstraints);
         add(visualizationChoice);
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0,0,60,0);
         gridBag.setConstraints(votePanel,gridBagConstraints);
         gridBag.setConstraints(weightPanel,gridBagConstraints);
         add(votePanel);
@@ -117,6 +118,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
                 //moved bottonPanel to Maps Selection Panel
                 //remove(bottomPanel);
                 gridBagConstraints.weighty = 1.0;
+                gridBagConstraints.insets = new java.awt.Insets(0,0,60,0);
                 gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
                 gridBag.setConstraints(votePanel,gridBagConstraints);
                 add(votePanel);
@@ -129,6 +131,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
                 remove(votePanel);
                 //remove(bottomPanel);
                 gridBagConstraints.weighty = 1.0;
+                gridBagConstraints.insets = new java.awt.Insets(0,0,60,0);
                 gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
                 gridBag.setConstraints(weightPanel,gridBagConstraints);
                 add(weightPanel);

@@ -242,6 +242,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         //c.gridy = 2;
         //c.gridwidth = 3;
         //$
+          c.insets = new Insets(25,0,25,0);
           c.weightx = 1.0;
         //$
         gridBag.setConstraints(scroll,c);
