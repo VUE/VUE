@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.75 $ / $Date: 2007-05-23 03:57:08 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2007-05-30 18:22:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1026,13 +1026,8 @@ public class GUI
         return VueResources.getIcon(GUI.class, "icons/" + name);
     }
 
-    /**
-     * In case window is off screen, size it, then set visible on screen, then place it.
-     * This avoids reshape flashing -- when a window is setVisible, it sometimes
-     * displays for a moment before it's taken it's new size and been re-validated.
-     */
-    
-    public static void setFullScreenVisible(Window window)
+
+    public static Rectangle getFullScreenWindowBounds()
     {
         Rectangle bounds = getFullScreenBounds();
 
@@ -1050,13 +1045,39 @@ public class GUI
             bounds.width /= 3;
             bounds.height /= 3;
         }
-        
         //out("FSBounds: " + bounds);
+        return bounds;
+    }
+    
+
+    /**
+     * In case window is off screen, size it, then set visible on screen, then place it.
+     * This avoids reshape flashing -- when a window is setVisible, it sometimes
+     * displays for a moment before it's taken it's new size and been re-validated.
+     */
+    
+    public static void setFullScreenVisible(Window window)
+    {
+        final Rectangle bounds = getFullScreenWindowBounds();
 
         window.setSize(bounds.width, bounds.height);
         window.setVisible(true);
         window.setLocation(bounds.x, bounds.y);
     }
+
+    public static void setFullScreen(Window window) {
+        final Rectangle bounds = getFullScreenWindowBounds();
+
+        window.setSize(bounds.width, bounds.height);
+        window.setLocation(bounds.x, bounds.y);
+    }
+    
+    
+//     public static void setFullScreenVisible(Window window) {
+//         setFullScreenSize(window);
+//         setFullScreen
+//     }
+    
 
     
     /** set window to be as off screen as possible */

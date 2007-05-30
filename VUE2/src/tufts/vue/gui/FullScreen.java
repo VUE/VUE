@@ -2,6 +2,8 @@ package tufts.vue.gui;
 
 import tufts.Util;
 import tufts.vue.VUE;
+import tufts.vue.LWMap;
+import tufts.vue.DEBUG;
 import tufts.vue.MapViewer;
 import tufts.vue.VueTool;
 import tufts.vue.VueToolbarController;
@@ -14,7 +16,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.3 $ / $Date: 2007-05-24 21:00:17 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2007-05-30 18:22:32 $ / $Author: sfraize $
  *
  */
 
@@ -35,10 +37,11 @@ public class FullScreen
     //private static Window cachedFSW;
     private static FSWindow FullScreenWindow;
     private static MapViewer FullScreenViewer;
-    private static Container fullScreenOldParent = null;
-    private static Point fullScreenOldVUELocation;
-    private static Dimension fullScreenOldVUESize;
-    private static javax.swing.JComponent fullScreenContent;
+    private static MapViewer FullScreenLastActiveViewer;
+    //private static Container fullScreenOldParent = null;
+    //private static Point fullScreenOldVUELocation;
+    //private static Dimension fullScreenOldVUESize;
+    //private static javax.swing.JComponent fullScreenContent;
 
     private static final String FULLSCREEN_NAME = "*FULLSCREEN*";
 
@@ -213,8 +216,9 @@ public class FullScreen
             
         	
         }
-        VUE.getActiveViewer().requestFocus();
-        //ToolWindow.adjustMacWindows();
+        
+        //VUE.getActiveViewer().requestFocus();
+        ////ToolWindow.adjustMacWindows();
         VueMenuBar.toggleFullScreenTools();
 
         if (doBlack)
@@ -223,9 +227,14 @@ public class FullScreen
                 });
     }
 
-    private synchronized static void enterFullScreenMode(boolean goNative)
+    private synchronized static void enterFullScreenMode(final boolean goNative)
     {
         NDC.push("[FS->]");
+
+        final LWMap activeMap = VUE.getActiveMap();
+
+        FullScreenLastActiveViewer = VUE.getActiveViewer();
+        FullScreenLastActiveViewer.setFocusable(false);
         
         if (goNative) {
             // Can't use heavy weights, as they're windows that can't be seen,
@@ -251,12 +260,18 @@ public class FullScreen
         }
                 
         FullScreenWindow.setMenuBarEnabled(!goNative);
-        FullScreenViewer.loadFocal(VUE.getActiveMap());
+        // FullScreenViewer.loadFocal(VUE.getActiveMap()); // can't do till we're sure it has a size!
         fullScreenMode = true; // we're in the mode as soon as the add completes (no going back then)
         fullScreenNative = goNative;
 
+
         if (goNative) {
 
+            // Try and prevent us from flashing a big white screen while we load.
+            // Tho immediately loading the focal below will quickly override this...
+            FullScreenWindow.setBackground(Color.black);
+            FullScreenViewer.setBackground(Color.black);
+            
             // On Mac, must use native full-screen to get the window over
             // the mac menu bar.
                     
@@ -278,10 +293,32 @@ public class FullScreen
             GUI.setFullScreenVisible(FullScreenWindow);
         }
                 
-        activeTool.handleFullScreen(true, goNative);
-
+        FullScreenViewer.loadFocal(activeMap);
+        FullScreenViewer.grabVueApplicationFocus("FullScreen.enter", null);
+        
+//         GUI.invokeAfterAWT(new Runnable() { public void run() {
+//             FullScreenViewer.grabVueApplicationFocus("FullScreen.enter", null);
+//         }});
+        
+//         GUI.invokeAfterAWT(new Runnable() { public void run() {
+//             FullScreenViewer.loadFocal(activeMap);
+//         }});
+        
+        //FullScreenViewer.grabVueApplicationFocus("FullScreen.enter", null);
+//         GUI.invokeAfterAWT(new Runnable() { public void run() {
+//             FullScreenViewer.grabVueApplicationFocus("FullScreen.enter", null);
+//             //FullScreenViewer.popToMapFocal();
+//         }});
+        
+        
         GUI.invokeAfterAWT(new Runnable() { public void run() {
-            FullScreenViewer.grabVueApplicationFocus("enterFullScreen", null);
+            if (DEBUG.PRESENT) VUE.Log.debug("AWT thread full-screen viewer loading map " + activeMap);
+            FullScreenViewer.loadFocal(activeMap);
+        }});
+        
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            if (DEBUG.PRESENT) VUE.Log.debug("AWT thread activeTool.handleFullScreen for " + activeTool);
+            activeTool.handleFullScreen(true, goNative);
             NDC.pop();
         }});
         
@@ -322,13 +359,16 @@ public class FullScreen
                 DockWindow.ShowPreviouslyHiddenWindows();
             }});
         }
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            FullScreenLastActiveViewer.grabVueApplicationFocus("FullScreen.exit", null);
+        }});
         
-        GUI.invokeAfterAWT(new Runnable() {
-                public void run() {
-                    //VUE.Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
-                    VueToolbarController.getActiveTool().handleFullScreen(false, wasNative);
-                    NDC.pop();
-                }});
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            VueToolbarController.getActiveTool().handleFullScreen(false, wasNative);
+            //VUE.Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
+            //VUE.getActiveViewer().popToMapFocal(); // old active viewer shouldn't have changed...
+            NDC.pop();
+        }});
 
     }
 
