@@ -38,12 +38,13 @@ public class OntologyBrowser extends JPanel {
     
     //public static final Object POPULATE_TYPES = java.awt.BorderLayout.CENTER;
     
-    final JPanel ontologiesPanel;
+    JPanel ontologiesPanel;
     //final Widget typesPane = new Widget("types");
     
-    final DockWindow dockWindow;
-    final DockWindow ontologyDock;
-    final DockWindow typeDock;
+    //DockWindow dockWindow;
+    final static DockWindow ontologyDock = tufts.vue.gui.GUI.createDockWindow("Ontologies");;
+    DockWindow typeDock;
+    private static boolean initialized = false;
     
     private ArrayList<OntologySelectionListener> ontologySelectionListenerList = new ArrayList<OntologySelectionListener>();
     
@@ -66,7 +67,7 @@ public class OntologyBrowser extends JPanel {
     
     public DockWindow getDockWindow()
     {
-        return dockWindow;
+        return ontologyDock;
     }
     
     public static TypeList getSelectedList()
@@ -96,31 +97,39 @@ public class OntologyBrowser extends JPanel {
     
     public static OntologyBrowser getBrowser()
     {
+    	if (singleton == null)
+    		singleton = new OntologyBrowser();
+    	
         return singleton;
     }
     
-    public static OntologyBrowser createBrowser(boolean delayedLoading,DockWindow ontologyDock,DockWindow typeDock)
+   /* public static OntologyBrowser createBrowser(boolean delayedLoading,DockWindow ontologyDock,DockWindow typeDock)
     {
-        return new OntologyBrowser(delayedLoading,ontologyDock,typeDock);
+    	if (singleton == null)
+    		return new OntologyBrowser(delayedLoading,ontologyDock,typeDock);
+    	else
+    	{
+    		
+    	}
     }
+    */
     
     private OntologyBrowser()
     {
         ontologiesPanel = this;
-        dockWindow = null;
-        ontologyDock = null;
+     //   dockWindow = null;
+      //  ontologyDock = null;
         typeDock = null;
     }
     
-    private OntologyBrowser(boolean delayedLoading, DockWindow ontologyDock,DockWindow typeDock) 
+    public void initializeBrowser(boolean delayedLoading, DockWindow typeDock) 
     {
         //super(new BorderLayout());
         //super(new java.awt.GridLayout(0,1));
         setLayout(new javax.swing.BoxLayout(this,javax.swing.BoxLayout.Y_AXIS));
         setName("Ontologies");
         
-        this.dockWindow = ontologyDock;
-        this.ontologyDock = ontologyDock;
+       // this.dockWindow = ontologyDock;     
         this.typeDock = typeDock;
         this.ontologiesPanel = this;
         
@@ -220,8 +229,14 @@ public class OntologyBrowser extends JPanel {
         };
         tufts.vue.gui.Widget.setMenuActions(this,actions);
           
-        singleton = this;
+    //    singleton = this;
+        initialized = true;
         
+    }
+    			
+    public static boolean isInitialized()
+    {
+    	return initialized;
     }
     
     public void loadOntologyViewer()
@@ -254,7 +269,7 @@ public class OntologyBrowser extends JPanel {
         stack.addPane(ontologiesPanel, 0f);
         stack.addPane(populatePane,0f);
         
-        this.dockWindow.setContent(stack);
+        ontologyDock.setContent(stack);
     }
     
     /*public JComponent getPopulatePane()

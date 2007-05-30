@@ -40,17 +40,19 @@ public class OntologyControlsOpenAction extends tufts.vue.VueAction {
     public void actionPerformed(java.awt.event.ActionEvent e)
     {
         browser = OntologyBrowser.getBrowser();
-        if(browser!=null)
+        if(browser.isInitialized())
         {
           ontologyDock = OntologyBrowser.getBrowser().getDockWindow();
         }
         else
         {
-            ontologyDock = tufts.vue.gui.GUI.createDockWindow("Ontologies");
+            //ontologyDock = tufts.vue.gui.GUI.createDockWindow("Ontologies");
             tufts.vue.gui.DockWindow searchDock = null;
         //browser = new edu.tufts.vue.ontology.ui.OntologyBrowser(true, ontologyDock, searchDock);
-            browser = OntologyBrowser.createBrowser(false,ontologyDock,searchDock);
+           // browser = OntologyBrowser.createBrowser(false,ontologyDock,searchDock);
+            browser.initializeBrowser(false,searchDock);
         //browser = new edu.tufts.vue.ontology.ui.OntologyBrowser(false, ontologyDock, searchDock);
+            ontologyDock = OntologyBrowser.getBrowser().getDockWindow();
             ontologyDock.setBounds(100,100,300, (int) (tufts.vue.gui.GUI.GScreenHeight * 0.75));
         }
 
