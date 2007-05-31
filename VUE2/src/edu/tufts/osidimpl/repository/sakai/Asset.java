@@ -211,25 +211,20 @@ implements org.osid.repository.Asset
 
 		try {
 			// OBA assumes serializable is a SakaiContentUploadObject
-			Service  service = new Service();
-			Call call = (Call) service.createCall();
-			call = (Call) service.createCall();
-			String endpoint = Utilities.getEndpoint();
-			String address = Utilities.getAddress();
-			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
-			
 			SakaiContentObject upload = (SakaiContentObject)content;
 			String name = upload.getDisplayName();
 			String description = upload.getDescription();
 			String type = upload.getMIMEType();
-			byte[] bytes = upload.getBytes();
-			int sizeInBytes = bytes.length;
-			//System.out.println("bytes before encode " + sizeInBytes);
-			String encodedContent = Base64.encode(bytes,0,sizeInBytes);
-			//System.out.println("encoded " + encodedContent.length());
+			byte[] data = upload.getBytes();
+			String encodedContent = Base64.encode(data);
 			
-			call.setOperationName(new QName(address, "createContentItem"));			
-			String result = (String) call.invoke( new Object[] {sessionId, name, this.assetIdString, encodedContent, description, type, false} );
+			Service  service = new Service();
+			Call call = (Call) service.createCall();
+			String endpoint = Utilities.getEndpoint();
+			String address = Utilities.getAddress();
+			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+			call.setOperationName(new QName(address, "createContentItem"));
+			String result = (String) call.invoke( new Object[] {sessionId, name, this.assetIdString, encodedContent, description, type, new Boolean(true)} );
 		} catch (Throwable t) {
 			throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
 		}

@@ -25,18 +25,19 @@ public class UpdateContentHelper implements edu.tufts.osidimpl.testing.repositor
 			// upload an object
 			System.out.println("Preparing to upload");
 			edu.tufts.osidimpl.repository.sakai.SakaiContentObject obj = new edu.tufts.osidimpl.repository.sakai.SakaiContent();
-			obj.setDisplayName("bss jpegX");
-			obj.setDescription("bss image");
+			obj.setDisplayName("Giunti Image");
+			obj.setDescription("Giunti Logo JPEG");
 			obj.setMIMEType("image/jpg");
 			
 			// convert file to byte array so it can later be converted to a Base64 String for Sakai to accept via web service
-			java.io.File file = new java.io.File("giunti_logo.jpg");
-			java.io.FileInputStream inStream = new java.io.FileInputStream(file);
-			java.io.DataInputStream inData = new java.io.DataInputStream(inStream);
+			java.io.File testFile= new java.io.File ("./giunti_logo.jpg");
+			java.io.FileInputStream inStream = new java.io.FileInputStream (testFile);
+			java.io.DataInputStream inData = new java.io.DataInputStream (inStream);
 			int size = inData.available();
 			byte[] data = new byte[size];
 			if (inData.read(data) != size) {
-				throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
+				 System.out.println ("Error on reading file ");
+				 return null;
 			}
 			obj.setBytes(data);
 			return obj;
