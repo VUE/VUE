@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.61 $ / $Date: 2007-05-22 17:41:07 $ / $Author: anoop $
+ * @version $Revision: 1.62 $ / $Date: 2007-05-31 19:07:13 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -524,7 +524,9 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                                 }
                             }});
                             
-                        } catch (Throwable t2) {                   
+                        } catch (Throwable t2) {
+                        	proceed=false;
+                        	VueUtil.alert("There was an unexpected error while adding the resource, please try again.","Resource Configuration Error");
                             t2.printStackTrace();
                         } finally {
                             GUI.clearWaitCursor();
