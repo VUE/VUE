@@ -14,6 +14,17 @@
  * Tufts University. All rights reserved.</p>
  *
  *
+ ******************************************
+ *
+ * VoteVisualizationSettingsPanel.java
+ *
+ * Created on May 14, 2007, 2:08 PM
+ *
+ * @version $Revision: 1.6 $ / $Date: 2007-05-31 15:15:03 $ / $Author: dan $
+ * @author dhelle01
+ *
+ * 
+ *
  */
 
 package edu.tufts.vue.compare.ui;
@@ -27,13 +38,6 @@ import java.awt.GridBagLayout;
 import javax.swing.*;
 import javax.swing.event.*;
 
-/*
- * VoteVisualizationSettingsPanel.java
- *
- * Created on May 14, 2007, 2:08 PM
- *
- * @author dhelle01
- */
 public class VoteVisualizationSettingsPanel extends JPanel {
     
     public final static String defineThresholdMessage = "Define threshold for nodes and links:";
@@ -70,7 +74,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         add(iconLabel);
         
         JLabel defineThresholdMessageLabel = new JLabel(defineThresholdMessage);
-        nodeThresholdSlider = new JSlider(0,100,50);
+        nodeThresholdSlider = new JSlider(0,100,tufts.vue.LWMergeMap.THRESHOLD_DEFAULT);
         nodeThresholdSlider.addChangeListener(new ChangeListener()
         {
             public void stateChanged(ChangeEvent e)
@@ -146,7 +150,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         add(linkPanel);
         voteConstraints.insets = new Insets(0,40,0,0);
         
-        linkThresholdSlider = new JSlider(0,100,50);
+        linkThresholdSlider = new JSlider(0,100,tufts.vue.LWMergeMap.THRESHOLD_DEFAULT);
         
         linkThresholdSlider.setPaintTicks(true);
         linkThresholdSlider.setMajorTickSpacing(10);
@@ -183,9 +187,19 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         
     }
     
+    public void setNodeThresholdSliderValue(int value)
+    {
+        nodeThresholdSlider.setValue(value);
+    }
+    
     public int getNodeThresholdSliderValue()
     {
         return nodeThresholdSlider.getValue();
+    }
+    
+    public void setLinkThresholdSliderValue(int value)
+    {
+        linkThresholdSlider.setValue(value);
     }
     
     public int getLinkThresholdSliderValue()

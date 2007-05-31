@@ -20,7 +20,7 @@
  *
  * Created on May 8, 2007, 1:31 PM
  *
- * @version $Revision: 1.7 $ / $Date: 2007-05-25 16:10:02 $ / $Author: dan $
+ * @version $Revision: 1.8 $ / $Date: 2007-05-31 15:15:03 $ / $Author: dan $
  * @author dhelle01
  *
  * 
@@ -29,20 +29,24 @@
 
 package edu.tufts.vue.compare.ui;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.*;
+import javax.swing.event.*;
 import tufts.vue.*;
 import tufts.vue.gui.*;
 
-public class MergeMapsControlPanel extends JPanel {
+public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMap> {
     
     private MapsSelectionPanel mapSelectionPanel;
     private VisualizationSettingsPanel visualizationSettingsPanel;
     private JButton closeButton;
     private JButton generateButton;
+    private boolean dynamic = true;
     
     public MergeMapsControlPanel(final DockWindow dw) 
     {
@@ -63,9 +67,9 @@ public class MergeMapsControlPanel extends JPanel {
             }
         });*/
         
-        tabs.addChangeListener(new javax.swing.event.ChangeListener()
+        tabs.addChangeListener(new ChangeListener()
         {
-            public void stateChanged(javax.swing.event.ChangeEvent e)
+            public void stateChanged(ChangeEvent e)
             {
                 //System.out.println("MMCP: tabbed pane change event " + e);
                 if(tabs.getSelectedIndex() == 0)
@@ -109,8 +113,8 @@ public class MergeMapsControlPanel extends JPanel {
                  merge.fillAsWeightMerge();
                MapViewer v = VUE.displayMap(merge);
                
-               tufts.vue.LWCEvent event = new tufts.vue.LWCEvent(v,merge,new LWComponent.Key("Merge Map Displayed"));
-               v.LWCChanged(event);
+               //tufts.vue.LWCEvent event = new tufts.vue.LWCEvent(v,merge,new LWComponent.Key("Merge Map Displayed"));
+               //v.LWCChanged(event);
            }
         });
         
@@ -126,17 +130,40 @@ public class MergeMapsControlPanel extends JPanel {
         //{    
         //  getRootPane().setDefaultButton(generateButton);
         //}
+        
+        if(dynamic)
+        {    
+          VUE.addActiveListener(LWMap.class, this);
+        }
+        
         dw.setVisible(true);
     }
     
     public void setMergeMapSettings(LWMergeMap map)
     {
+        map.setMapList(mapSelectionPanel.getMapList());
+        map.setBaseMap(mapSelectionPanel.getBaseMap());
         map.setIntervalBoundaries(); 
         map.setNodeThresholdSliderValue(visualizationSettingsPanel.getNodeThresholdSliderValue());
         map.setLinkThresholdSliderValue(visualizationSettingsPanel.getLinkThresholdSliderValue());
         //moved from Visualization panel to Maps Panel:
         //map.setFilterOnBaseMap(visualizationSettingsPanel.getFilterOnBaseMap());
         map.setFilterOnBaseMap(mapSelectionPanel.getFilterOnBaseMap());
+    }
+    
+    public void adjustGUIToMergeMap(LWMergeMap map)
+    {
+        visualizationSettingsPanel.setNodeThresholdSliderValue(map.getNodeThresholdSliderValue());
+        visualizationSettingsPanel.setLinkThresholdSliderValue(map.getLinkThresholdSliderValue());
+    }
+    
+    public void activeChanged(ActiveEvent<LWMap> e)
+    {
+        //System.out.println("Merge Maps Control Panel: active changed - " + e.active);
+        if(e.active instanceof LWMergeMap)
+        {
+            adjustGUIToMergeMap((LWMergeMap)e.active);
+        }
     }
     
 }

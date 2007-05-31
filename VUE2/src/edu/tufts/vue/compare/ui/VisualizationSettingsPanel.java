@@ -13,6 +13,15 @@
  * <p>The entire file consists of original code.  Copyright &copy; 2003-2007
  * Tufts University. All rights reserved.</p>
  *
+ *******************************************
+ *
+ * VisualizationSettingsPanel.java
+ *
+ * Created on May 14, 2007, 2:45 PM
+ *
+ * @version $Revision: 1.8 $ / $Date: 2007-05-31 15:15:03 $ / $Author: dan $
+ * @author dhelle01
+ *
  *
  */
 
@@ -27,9 +36,7 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 
 /*
- * VisualizationSettingsPanel.java
- *
- * Created on May 14, 2007, 2:45 PM
+
  *
  * @author dhelle01
  */
@@ -64,7 +71,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         gridBagConstraints = new GridBagConstraints();
         setLayout(gridBag);
         
-        String[] choices = {"Vote","Weight"};
+        String[] choices = {"Weight","Vote"};
         visualizationChoice = new JComboBox(choices);
         visualizationChoice.addActionListener(this);
         
@@ -84,7 +91,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         gridBagConstraints.insets = new java.awt.Insets(0,0,60,0);
         gridBag.setConstraints(votePanel,gridBagConstraints);
         gridBag.setConstraints(weightPanel,gridBagConstraints);
-        add(votePanel);
+        add(weightPanel);
         
         //bottomPanel = new JPanel();
         //filterOnBaseMap = new JCheckBox();
@@ -100,11 +107,11 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     {
         if(visualizationChoice.getSelectedIndex() == 0)
         {
-            return VOTE;
+            return WEIGHT;
         }
         else
         {
-            return WEIGHT;
+            return VOTE;
         }
     }
     
@@ -142,9 +149,19 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         }
     }
     
+    public void setNodeThresholdSliderValue(int value)
+    {
+        votePanel.setNodeThresholdSliderValue(value);
+    }
+    
     public int getNodeThresholdSliderValue()
     {
         return votePanel.getNodeThresholdSliderValue();
+    }
+    
+    public void setLinkThresholdSliderValue(int value)
+    {
+        votePanel.setLinkThresholdSliderValue(value);
     }
     
     public int getLinkThresholdSliderValue()

@@ -39,7 +39,7 @@ import java.util.Stack;
 
 public class LWMergeMap extends LWMap {
     
-    public static final int THRESHOLD_DEFAULT = 50;
+    public static final int THRESHOLD_DEFAULT = 20;
     public static final boolean RECORD_SOURCE_NODES = false;
     
     private static int numberOfMaps = 0;
