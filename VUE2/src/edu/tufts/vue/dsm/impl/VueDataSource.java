@@ -422,7 +422,8 @@ public class VueDataSource
         }
     }
     
-    public void setConfiguration(java.util.Properties properties) {
+    public void setConfiguration(java.util.Properties properties)
+		throws org.osid.repository.RepositoryException {
         _propertyList  = new Vector();
         if (this.repositoryManager != null) {
             try {
@@ -436,7 +437,10 @@ public class VueDataSource
                 }
                 this.repositoryManager.assignConfiguration(properties);
                 setRelatedValues();
-            } catch (Throwable t) {
+            } catch (org.osid.repository.RepositoryException rex) {
+                edu.tufts.vue.util.Logger.log(rex);
+				throw new org.osid.repository.RepositoryException(rex.getMessage());
+			} catch (Throwable t) {
                 edu.tufts.vue.util.Logger.log(t);
             }
         }

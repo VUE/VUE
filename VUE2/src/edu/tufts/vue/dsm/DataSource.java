@@ -83,7 +83,8 @@ public interface DataSource
 	
 	public String getConfigurationUIHints();
 	
-	public void setConfiguration(java.util.Properties properties);	
+	public void setConfiguration(java.util.Properties properties)
+		throws org.osid.repository.RepositoryException;	
 
 	public java.util.Properties getConfiguration();
 	
