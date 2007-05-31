@@ -41,7 +41,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.57 $ / $Date: 2007-05-24 21:01:36 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2007-05-31 21:52:51 $ / $Author: mike $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -80,7 +80,7 @@ public class NodeToolPanel extends ToolPanel
  		gbc.gridheight=1;
  		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
  		gbc.anchor = GridBagConstraints.EAST;
- 		JLabel strokeLabel = new JLabel("Line: ");
+ 		JLabel strokeLabel = new JLabel("Link: ");
  		strokeLabel.setLabelFor(mLinkButton);
  		strokeLabel.setForeground(new Color(51,51,51));
  		strokeLabel.setFont(tufts.vue.VueConstants.SmallFont);
