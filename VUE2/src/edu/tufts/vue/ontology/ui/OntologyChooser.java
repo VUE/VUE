@@ -310,8 +310,10 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
                                                                 readOntology(ontURL,getOntType(ontURL));
                        //ontology.applyStyle(OntManager.getOntManager().) // need default style for any ontology here...
                        list.setModel(new TypeList.OntologyTypeListModel(ontology));
+                       browser.getViewer().getList().clearSelection();
+                       browser.getViewer().getList().setSelectedIndex(-1);
                        browser.getViewer().getList().updateUI();
-                       browser.getViewer().getList().setSelectedValue(ontology,true);
+                       //browser.getViewer().getList().setSelectedValue(ontology,true);
                }
                if(ontURL != null && cssURL!=null)
                {

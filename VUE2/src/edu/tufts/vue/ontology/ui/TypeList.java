@@ -134,8 +134,8 @@ public class TypeList extends JList {
     public void setModel(ListModel m)
     {
         super.setModel(m);
-        if(getModel().getSize()!=0)
-          setSelectedIndex(0);
+       // if(getModel().getSize()!=0)
+       //   setSelectedIndex(0);
     }
     
     public LWComponent createLWComponent(Object type)
