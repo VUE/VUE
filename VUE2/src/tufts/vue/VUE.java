@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.447 $ / $Date: 2007-05-30 18:23:02 $ / $Author: sfraize $ 
+ * @version $Revision: 1.448 $ / $Date: 2007-05-31 21:48:40 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -758,7 +758,7 @@ public class VUE
         // DRBrowser class initializes the DockWindow itself.
         //-----------------------------------------------------------------------------
         
-        DR_BROWSER_DOCK = GUI.createDockWindow("Resource");
+        DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
         //DockWindow searchDock = GUI.createDockWindow("Search");
         DockWindow searchDock = null;
         DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK, searchDock);

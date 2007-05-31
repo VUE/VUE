@@ -31,7 +31,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.39 $ / $Date: 2007-05-25 04:50:45 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2007-05-31 21:48:41 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -82,7 +82,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         JMenu editMenu = new VueMenu("Edit");
         JMenu viewMenu = new VueMenu("View");
         JMenu formatMenu = new VueMenu("Format");
-        JMenu transformMenu = new VueMenu("Transform");
+        JMenu transformMenu = new VueMenu("Font");
         JMenu arrangeMenu = new VueMenu("Arrange");
         JMenu windowMenu = new VueMenu("Windows");
         JMenu alignMenu = new VueMenu("Align");        
@@ -272,8 +272,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	toolsMenu.addSeparator();
         }
         
-        toolsMenu.add(createCMAction);
         toolsMenu.add(analyzeCMAction);
+        toolsMenu.add(createCMAction);        
         toolsMenu.addSeparator();
         toolsMenu.add(rdfOpen);
         //toolsMenu.add(fooa);
@@ -293,13 +293,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         windowMenu.add(Actions.NotesAction);
         if (VUE.getFormatDock() != null)        
-        	windowMenu.add(createWindowItem(VUE.getFormatDock(),KeyEvent.VK_4,"Format"));                
+        	windowMenu.add(createWindowItem(VUE.getFormatDock(),KeyEvent.VK_4,"Formatting Palette"));                
         if (VUE.getOutlineDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_7, "Outline"));
         if (VUE.getPannerDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_5, "Panner"));
         if (VUE.getContentDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_1, "Resource"));    
+        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_1, "Resources"));    
         if (VUE.getSlideDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getSlideDock(),KeyEvent.VK_8, "Slide Viewer"));
         if (VUE.getFloatingZoomDock()!=null)

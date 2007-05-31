@@ -36,9 +36,7 @@ import javax.swing.Action;
 import javax.swing.KeyStroke;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
-
 import edu.tufts.vue.preferences.ui.PreferencesDialog;
-
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.WindowDisplayAction;
 
@@ -1130,9 +1128,27 @@ public class Actions implements VueConstants
         new VueAction("Full Screen", VueUtil.isMacPlatform() ?
                       keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND) :
                       keyStroke(KeyEvent.VK_F11)) {
+    	
+    	//AbstractButton mlinkedButton = null;
+    	
         public void act() {
             VUE.toggleFullScreen(false,true);
         }
+        
+        /*public void setLinkedButton(AbstractButton b) {
+            mLinkedButton = b;         
+        }
+        private void setButtonState(boolean checked) {
+            if (DEBUG.DOCK) out("setButtonState " + checked);
+            if (mLinkedButton != null)
+                mLinkedButton.setSelected(checked);
+            else
+                if (DEBUG.DOCK) out("setButtonState: NO LINKED BUTTON");
+        }
+
+        private boolean isConsideredShown() {
+        	return tufts.vue.gui.FullScreen.inFullScreen();
+        }*/    
     };
     
     public static final Action ToggleSplitScreen =
