@@ -403,9 +403,16 @@ public class TypeList extends JList {
              
           widget.add(loadingLabel,java.awt.BorderLayout.NORTH);
              
-          ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
+          if(cssURL !=null)
+          {
+            ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
                                                       cssURL,
                                                       ontType);
+          }
+          else
+          {
+            ontology = edu.tufts.vue.ontology.OntManager.getOntManager().readOntology(ontologyURL,ontType);
+          }
                     
           setModel(new OntologyTypeListModel(ontology));
           
