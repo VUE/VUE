@@ -202,6 +202,10 @@ public class TypeList extends JList {
               r.setLabel(ontType.getLabel());
               compFor = r;
             }
+            if(style == null)
+            {
+                style = new NodeStyle("Default");
+            }
             compFor.applyCSS(style);
           }
           else
