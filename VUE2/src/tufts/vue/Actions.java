@@ -1043,13 +1043,17 @@ public class Actions implements VueConstants
             public void act() {
                 if (tufts.vue.VUE.getActiveMap().getFile() == null)
                 {
-                	VUE.closeMap(tufts.vue.VUE.getActiveMap());
-                	VUE.displayMap(new LWMap(tufts.vue.VUE.getActiveMap().getDisplayLabel()));
+                	LWMap map = tufts.vue.VUE.getActiveMap();
+                	VUE.closeMap(map);
+                	VUE.displayMap(new LWMap(map.getDisplayLabel()));
+                	map = null;
                 }
                 else
                 {
-                	VUE.closeMap(tufts.vue.VUE.getActiveMap());
-                	tufts.vue.action.OpenAction.reloadActiveMap();
+                	LWMap map = tufts.vue.VUE.getActiveMap();
+                	VUE.closeMap(map);
+                	tufts.vue.action.OpenAction.reloadMap(map);
+                	map=null;
                 }
                 //VueUtil.alert("This feature is not yet implemented.", "Feature unavailable");
             }

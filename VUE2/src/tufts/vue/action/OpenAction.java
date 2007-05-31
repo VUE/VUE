@@ -66,9 +66,9 @@ public class OpenAction extends VueAction {
         }
     }
     
-    public static void reloadActiveMap()
+    public static void reloadMap(LWMap map)
     {
-    	displayMap(tufts.vue.VUE.getActiveMap().getFile());
+    	displayMap(map.getFile());
     }
     
     public static void displayMap(File file) {
