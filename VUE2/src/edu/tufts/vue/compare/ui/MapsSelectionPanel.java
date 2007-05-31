@@ -13,14 +13,16 @@
  * <p>The entire file consists of original code.  Copyright &copy; 2003-2007
  * Tufts University. All rights reserved.</p>
  *
+ *
  **********************************************
  *
  * MapsSelectionPanel.java
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.14 $ / $Date: 2007-05-29 15:16:15 $ / $Author: dan $
+ * @version $Revision: 1.15 $ / $Date: 2007-05-31 16:14:30 $ / $Author: dan $
  * @author dhelle01
+ *
  *
  *
  */
@@ -32,6 +34,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -65,17 +68,17 @@ public class MapsSelectionPanel extends JPanel  {
     public static final int OPEN_MAP = 0;
     public static final int LOCAL_FILE = 1;
     
-    public static final String stepOneMessage = "1. Create a set of maps from currently open maps and/or from maps stored on your computer";
+    public static final String stepOneMessage = "1. Create a set of maps from open maps and/or from maps stored on your computer";
     public static final String stepTwoMessage = "2. Pick a \"guide\" map to define the layout of the new merged map";
 
-    public final static String filterOnBaseMapMessageString = "Only include items found on the layout map";
+    public final static String filterOnBaseMapMessageString = "Only include items found on the base map";
     
     private JScrollPane scroll;
     private JTable maps;
-    private JTextField fileNameField;
+    //private JTextField fileNameField;
     private JButton browseButton;
     
-    private JPanel bottomPanel;
+    //private JPanel bottomPanel;
     private JCheckBox filterOnBaseMap;
     
     private boolean deleteDown = false;
@@ -87,8 +90,8 @@ public class MapsSelectionPanel extends JPanel  {
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
         setLayout(gridBag);
         
-        fileNameField = new JTextField(20);
-        browseButton = new JButton("Browse");
+        //fileNameField = new JTextField(20);
+        browseButton = new JButton("Add Maps");
         browseButton.addActionListener(new ActionListener()
         {
            public void actionPerformed(ActionEvent e)
@@ -111,7 +114,7 @@ public class MapsSelectionPanel extends JPanel  {
                             return false;
                       }
                       
-                      public String getDescrption()
+                      public String getDescription()
                       {
                           return "VUE FILE";
                       }
@@ -122,8 +125,8 @@ public class MapsSelectionPanel extends JPanel  {
                       File file = files[files.length-1-i];
                       String name = file.getAbsolutePath();
                       ((MapTableModel)maps.getModel()).addRow(name);
-                      String shortName = getShortNameForFile(name); 
-                      fileNameField.setText(shortName);
+                      //String shortName = getShortNameForFile(name); 
+                      //fileNameField.setText(shortName);
                       revalidate();
                       scroll.getViewport().revalidate();
                   }
@@ -132,7 +135,7 @@ public class MapsSelectionPanel extends JPanel  {
                {    
                   String name = choice.getAbsolutePath();
                   ((MapTableModel)maps.getModel()).addRow(name);
-                  fileNameField.setText(getShortNameForFile(name));
+                  //fileNameField.setText(getShortNameForFile(name));
                   revalidate();
                   scroll.getViewport().revalidate();
                }
@@ -184,34 +187,50 @@ public class MapsSelectionPanel extends JPanel  {
         stepTwoLabel.setBorder(BorderFactory.createEmptyBorder(0,0,15,0));
         add(stepTwoLabel);  
                
-        bottomPanel = new JPanel();
+        //bottomPanel = new JPanel();
         filterOnBaseMap = new JCheckBox();
         JLabel filterOnBaseMapMessage = new JLabel(filterOnBaseMapMessageString);
-        //filterOnBaseMapMessage.setOpaque(false);
-        bottomPanel.setOpaque(false);
-        bottomPanel.add(filterOnBaseMap);
-        bottomPanel.add(filterOnBaseMapMessage);
-        gridBagConstraints.weighty = 0.0;
-        gridBagConstraints.anchor = GridBagConstraints.WEST;
-        gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
-        gridBag.setConstraints(bottomPanel,gridBagConstraints);
-        add(bottomPanel);
+        ////filterOnBaseMapMessage.setOpaque(false);
+        //bottomPanel.setOpaque(false);
+        //bottomPanel.add(filterOnBaseMap);
+        //bottomPanel.add(filterOnBaseMapMessage);
+        //gridBagConstraints.weighty = 0.0;
+        //gridBagConstraints.anchor = GridBagConstraints.WEST;
+        //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        //gridBag.setConstraints(bottomPanel,gridBagConstraints);
+        //add(bottomPanel);
         
-        JLabel selectMapsLabel = new JLabel("Select maps:");
-        selectMapsLabel.setBorder(BorderFactory.createEmptyBorder(0,0,0,8));
-        gridBagConstraints.gridwidth = 1;
-        gridBag.setConstraints(selectMapsLabel,gridBagConstraints);
-        add(selectMapsLabel);
         
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 0.0;
-        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBag.setConstraints(fileNameField,gridBagConstraints);
-        add(fileNameField);
+        //JLabel selectMapsLabel = new JLabel("Select maps:");
+        //selectMapsLabel.setBorder(BorderFactory.createEmptyBorder(0,0,0,8));
+        //gridBagConstraints.gridwidth = 1;
+        //gridBag.setConstraints(selectMapsLabel,gridBagConstraints);
+        //add(selectMapsLabel);
+        
+        //gridBagConstraints.weightx = 1.0;
+        //gridBagConstraints.weighty = 0.0;
+        //gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        //gridBag.setConstraints(fileNameField,gridBagConstraints);
+        //add(fileNameField);
         gridBagConstraints.weightx = 0.0;
-        gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        gridBagConstraints.gridwidth = 1;
+        //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(browseButton,gridBagConstraints);
+        browseButton.setOpaque(false);
         add(browseButton);
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.anchor = GridBagConstraints.EAST;
+        gridBag.setConstraints(filterOnBaseMap,gridBagConstraints);
+        filterOnBaseMap.setOpaque(false);
+        add(filterOnBaseMap);
+        gridBagConstraints.weightx = 0.0;
+        gridBagConstraints.insets = new Insets(0,0,0,5);
+        gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        filterOnBaseMapMessage.setForeground(new Color(77,109,109));
+        gridBag.setConstraints(filterOnBaseMapMessage,gridBagConstraints);
+        add(filterOnBaseMapMessage);
+        gridBagConstraints.insets = new Insets(0,0,0,0);
         maps = new JTable(new MapTableModel());
         maps.setRowHeight(maps.getRowHeight()+6);
         maps.getTableHeader().setReorderingAllowed(false);
