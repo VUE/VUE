@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.16 $ / $Date: 2007-05-31 17:11:00 $ / $Author: dan $
+ * @version $Revision: 1.17 $ / $Date: 2007-05-31 23:19:38 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -240,6 +240,9 @@ public class MapsSelectionPanel extends JPanel  {
         maps = new JTable(new MapTableModel());
         maps.setRowHeight(maps.getRowHeight()+6);
         maps.getTableHeader().setReorderingAllowed(false);
+        
+        ((DefaultTableCellRenderer)(maps.getTableHeader().getDefaultRenderer())).setHorizontalAlignment(SwingConstants.LEFT);
+                
         maps.addMouseListener(new java.awt.event.MouseAdapter() {
           public void mousePressed(java.awt.event.MouseEvent e)
           {
