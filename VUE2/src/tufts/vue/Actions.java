@@ -152,14 +152,18 @@ public class Actions implements VueConstants
     public static final Action AddResource =
         new VueAction("Add Resource") {
             public void act() {
-            	DataSourceViewer.getAddLibraryAction().actionPerformed(null);             
+            	
+            	DataSourceViewer.getAddLibraryAction().actionPerformed(null);
+            	GUI.makeVisibleOnScreen(this, VUE.getContentDock().getClass());
             }                       
         };
         
     public static final Action UpdateResource =
     new VueAction("Update Resource") {
         public void act() {
+        	
         	DataSourceViewer.getUpdateLibraryAction().actionPerformed(null);
+        	GUI.makeVisibleOnScreen(this, VUE.getContentDock().getClass());
         }
     };
 
