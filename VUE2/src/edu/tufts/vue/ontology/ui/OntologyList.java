@@ -90,7 +90,7 @@ public class OntologyList extends javax.swing.JList {
             panel.setOpaque(true);
             if(value == list.getSelectedValue())
             {
-                panel.setBackground(new java.awt.Color(200,200,200));
+                panel.setBackground(tufts.vue.gui.GUI.getTextHighlightColor());
             }
             else
             {
