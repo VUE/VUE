@@ -23,6 +23,7 @@ import tufts.vue.gui.GUI;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
@@ -34,7 +35,7 @@ import javax.swing.border.*;
  * It is used for the main tool bar tool
  *
  * @author csb
- * @version $Revision: 1.18 $ / $Date: 2006-01-27 03:05:06 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2007-05-31 18:07:06 $ / $Author: mike $
  **/
 public class PaletteButton extends JRadioButton
 {
@@ -161,6 +162,14 @@ public class PaletteButton extends JRadioButton
         return false;
     }
 
+    public void removePopupComponent(Component c)
+    {
+    	mPopup.remove(c);
+    }
+    public void addPopupComponent(Component c)
+    {
+    	mPopup.add(c);
+    }
     /**
      * This method adds a new PaleeteButtonItem to the PaletteButton's
      * menu.
@@ -286,9 +295,9 @@ public class PaletteButton extends JRadioButton
 		
         //JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 
-        mPopup = new PBPopupMenu(rows, cols);
+        mPopup = new JPopupMenu();//PBPopupMenu(rows, cols);
         
-        new GUI.PopupMenuHandler(this, mPopup); // installs mouse & popup listeners
+        new PalettePopupMenuHandler(this, mPopup); // installs mouse & popup listeners
 
         for (int i = 0; i < numItems; i++) {
             mPopup.add(mItems[i]);
@@ -302,6 +311,59 @@ public class PaletteButton extends JRadioButton
                                + " layout=" + mPopup.getLayout()
                                );
 	
+    }
+    
+    /**
+     * Given a trigger component (such as a label), when mouse is
+     * pressed on it, pop the given menu.  Default location is below
+     * the given trigger.
+     */
+    public static class PalettePopupMenuHandler extends tufts.vue.MouseAdapter
+        implements javax.swing.event.PopupMenuListener
+    {
+        private long mLastHidden;
+        private JPopupMenu mMenu;
+        
+        public PalettePopupMenuHandler(Component trigger, JPopupMenu menu)
+        {
+            trigger.addMouseListener(this);
+            menu.addPopupMenuListener(this);
+            mMenu = menu;
+        }
+
+        public void mousePressed(MouseEvent e) {
+            long now = System.currentTimeMillis();
+            if ((now - mLastHidden > 100) && (mMenu.getComponentCount() > 1))
+                showMenu(e.getComponent());
+        }
+
+        /** show the menu relative to the given trigger that activated it */
+        public void showMenu(Component trigger) {
+            mMenu.show(trigger, getMenuX(trigger), getMenuY(trigger));
+        }
+
+        /** get menu X location relative to trigger: default is 0 */
+        public int getMenuX(Component trigger) { return 0; }
+        /** get menu Y location relative to trigger: default is trigger height (places below trigger) */
+        public int getMenuY(Component trigger) { return trigger.getHeight(); }
+
+        public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+            mLastHidden = System.currentTimeMillis();
+            //out("HIDING");
+        }
+        
+        public void popupMenuWillBecomeVisible(PopupMenuEvent e) { /*out("SHOWING");*/ }
+        public void popupMenuCanceled(PopupMenuEvent e) { /*out("CANCELING");*/ }
+        
+        // One gross thing about a pop-up menu is that there's no way to know that it
+        // was just hidden by a click on the component that popped it.  That is, if you
+        // click on the menu launcher once, you want to pop it, and if you click again,
+        // you want to hide it.  But the AWT system autmatically cancels the pop-up as
+        // soon as the mouse-press happens ANYWYERE, and even before we'd get a
+        // processMouseEvent, so by the time we get this MOUSE_PRESSED, the menu is
+        // already hidden, and it looks like we should show it again!  So we have to use
+        // a simple timer.
+        
     }
 	
     /**
@@ -375,7 +437,7 @@ public class PaletteButton extends JRadioButton
         // either from an icon or by brute painting
         if( !isPopupIconIndicatorEnabled()
             && mPopup != null 
-            && !mPopup.isVisible()
+            && !mPopup.isVisible() && mPopup.getComponentCount() >1
             ) {
             // draw popup arrow
             Color saveColor = g.getColor();

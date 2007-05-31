@@ -22,6 +22,7 @@ import java.lang.*;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import java.util.*;
 import tufts.vue.LinkTool.LinkModeTool;
@@ -36,7 +37,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.66 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2007-05-31 18:07:06 $ / $Author: mike $
  *
  **/
 public class VueToolbarController  
@@ -85,28 +86,113 @@ public class VueToolbarController
     /**
      * Load the tools as defined in the resource properties file, and
      * create the VueToolPanel.
-     **/
+     **/    
     protected VueToolbarController() {
         mVueTools = VueToolUtils.loadTools(DefaultToolsKey);
         separatorPositions = VueToolUtils.getSeparatorPositions(DefaultToolsKey);
         mToolPanel = createDefaultToolbar();
         VUE.addActiveListener(VueTool.class, this);
-		
-    }
+
+        configureOntologyTools();
+        }
 
     /** @return array of all the top-level VueTool's */
     public VueTool[] getTopLevelTools() {
         return mVueTools;
     }
     
-    private LWCToolPanel getLWCToolPanel()
+   /* private LWCToolPanel getLWCToolPanel()
     {
         if (mLWCToolPanel == null)
             mLWCToolPanel = new LWCToolPanel();
         return mLWCToolPanel;
     }
-		    	
- 
+	*/	    	
+
+    /**
+     * There's no good way to dynamically control tools, and if there's a real case for doing this, 
+     * there probably needs to be a better way.  But I'm not even sure this will stay around so this
+     * is a bit of hack to allow it.
+     */
+    private void configureOntologyTools()
+    {
+    	final VueTool nodeTool = VueTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class);
+        final VueTool linkTool = VueTool.getInstance(tufts.vue.LinkTool.LinkModeTool.class);
+        final VueTool ontologyNodeTool = VueTool.getInstance(tufts.vue.NodeTool.OntologyNodeTool.class);
+        final VueTool ontologyLinkTool = VueTool.getInstance(tufts.vue.LinkTool.OntologyLinkModeTool.class);
+        final Component ontologyNodeComponent;
+        final Component ontologyLinkComponent;
+        final int ONTOLOGY_NODE_POSITION=1;
+        final int ONTOLOGY_LINK_POSITION=2;
+        
+        Map buttons = getToolbar().getToolButtons();
+        PaletteButton parentButton = (PaletteButton)buttons.get(nodeTool.getParentTool().getID());
+        PaletteButton parentLinkButton = (PaletteButton)buttons.get(linkTool.getParentTool().getID());
+        Component[] c = parentButton.mPopup.getComponents();
+        ontologyNodeComponent = c[ONTOLOGY_NODE_POSITION];
+        
+        c = parentLinkButton.mPopup.getComponents();
+        ontologyLinkComponent = c[ONTOLOGY_LINK_POSITION];
+        
+        parentButton.removePopupComponent(ontologyNodeComponent);
+        parentLinkButton.removePopupComponent(ontologyLinkComponent);
+     
+        edu.tufts.vue.ontology.ui.OntologyBrowser.getBrowser().getDockWindow().addComponentListener(new ComponentAdapter()
+        {
+
+			public void componentHidden(ComponentEvent arg0) {
+				Map buttons = getToolbar().getToolButtons();
+		        PaletteButton parentButton = (PaletteButton)buttons.get(nodeTool.getParentTool().getID());		
+		        PaletteButton parentLinkButton = (PaletteButton)buttons.get(linkTool.getParentTool().getID());
+
+		        parentButton.removePopupComponent(ontologyNodeComponent);
+		        parentLinkButton.removePopupComponent(ontologyLinkComponent);
+		        
+		        VueTool tool = getToolbar().getSelectedTool();
+		        //System.out.println(nodeTool.getID());
+		        if (tool.getID().equals(nodeTool.getParentTool().getID()))
+		        {
+		        	getToolbar().setSelectedTool(linkTool);
+		        	getToolbar().setSelectedTool(nodeTool);
+		        	nodeTool.setSelectedSubTool(nodeTool);
+		        	setSelectedTool(nodeTool);		        
+		        }
+		        else if (tool.getID().equals(linkTool.getParentTool().getID()))
+		        {
+		        	getToolbar().setSelectedTool(nodeTool);
+		        	getToolbar().setSelectedTool(linkTool);
+		        	nodeTool.setSelectedSubTool(linkTool);
+		        	setSelectedTool(linkTool);
+		        }
+		        else
+		        {
+		        	getToolbar().setSelectedTool(nodeTool);
+		        	getToolbar().setSelectedTool(linkTool);
+		        	getToolbar().setSelectedTool(tool);
+		        }
+		        
+		        
+		        
+		        parentButton.repaint();
+		        parentLinkButton.repaint();
+			}
+
+			public void componentShown(ComponentEvent arg0) {				
+				Map buttons = getToolbar().getToolButtons();
+		        PaletteButton parentButton = (PaletteButton)buttons.get(nodeTool.getParentTool().getID());		        
+		        PaletteButton parentLinkButton = (PaletteButton)buttons.get(linkTool.getParentTool().getID());
+
+		        parentButton.addPopupComponent(ontologyNodeComponent);
+		        parentLinkButton.addPopupComponent(ontologyLinkComponent);
+		        parentButton.repaint();
+		        parentLinkButton.repaint();
+
+				
+			}
+        	
+        });
+
+    }
     /**
      * A factory method to generate the toolbar.  Tools must already
      * be loaded before calling.
@@ -195,8 +281,8 @@ public class VueToolbarController
         
         VueTool rootTool = pTool;
 		
-        if (pTool.getParentTool() != null && pTool.getClass() == tufts.vue.VueSimpleTool.class)
-            rootTool = pTool.getParentTool();
+       if (pTool.getParentTool() != null && pTool.getClass() == tufts.vue.VueSimpleTool.class)          
+        		rootTool = pTool.getParentTool();
 		
     //    String selectionID = pTool.getSelectionID();
         
