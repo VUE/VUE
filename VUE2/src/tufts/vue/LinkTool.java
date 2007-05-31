@@ -21,6 +21,8 @@ package tufts.vue;
 import java.util.*;
 import java.awt.event.KeyEvent;
 import javax.swing.*;
+
+import edu.tufts.vue.ontology.ui.OntologySelectionEvent;
 import tufts.vue.NodeTool.NodeModeTool;
 import java.awt.geom.Point2D;
 //import tufts.vue.beans.VueBeanState;
@@ -330,12 +332,172 @@ public class LinkTool extends VueTool
                 setActiveWhileDownKeyCode(0); // disable
     	}
     }
+    
+    public static class OntologyLinkModeTool extends LinkModeTool implements edu.tufts.vue.ontology.ui.OntologySelectionListener
+    {
+    //	private final LWComponent invisibleLinkEndpoint = new LWComponent();
+     //   private LWLink creationLink = new LWLink(invisibleLinkEndpoint);
+    	
+        public OntologyLinkModeTool()
+    	{
+        	edu.tufts.vue.ontology.ui.OntologyBrowser.getBrowser().addOntologySelectionListener(this);
+        	//creationLink.setID("<creationLink>"); // can't use label or it will draw one         
+        	//invisibleLinkEndpoint.addLinkRef(creationLink);
+        	creationLink=null;
+            invisibleLinkEndpoint.setSize(0,0);
+            
+    	}
+
+        public boolean handleMousePressed(MapMouseEvent e)
+        {
+        	if (creationLink == null)
+        	{
+        		VueUtil.alert(VueResources.getString("ontologyLinkError.message"), VueResources.getString("ontologyLinkError.title"));
+        		return true;
+        	}
+        	else
+        		return false;
+        }
+        
+        @Override
+        public boolean handleMouseReleased(MapMouseEvent e)
+        {
+            //System.out.println(this + " " + e + " linkSource=" + linkSource);
+            if (linkSource == null)
+                return false;
+
+            //System.out.println("dx,dy=" + e.getDeltaPressX() + "," + e.getDeltaPressY());
+            if (Math.abs(e.getDeltaPressX()) > 10 ||
+                Math.abs(e.getDeltaPressY()) > 10)  // todo: config min dragout distance
+    	        {
+    	            //repaintMapRegionAdjusted(creationLink.getBounds());
+    	            LWComponent linkDest = e.getViewer().getIndication();
+    	            if (linkDest != linkSource)
+    	                makeLink(e, linkSource, linkDest, !e.isShiftDown(),false);
+    	        }
+            this.linkSource = null;
+            return true;
+        }
+    	   
+        
+        private void makeLink(MapMouseEvent e,
+                LWComponent pLinkSource,
+                LWComponent pLinkDest,
+                boolean pMakeConnection,
+                boolean comboMode)
+        {
+        	int existingLinks = 0;
+        	int existingCurvedLinks = 0;
+        	if (pLinkDest != null) {
+        		existingLinks = pLinkDest.countLinksTo(pLinkSource);
+        		existingCurvedLinks = pLinkDest.countCurvedLinksTo(pLinkSource);
+        	}
+        	final int existingStraightLinks = existingLinks - existingCurvedLinks;
+
+        	// TODO: don't create new node at end of new link inside
+        	// parent of source node (e.g., content view/traditional node)
+        	// unless mouse is over that node!  (E.g., should be able to
+        	// drag link out from a node that is a child)
+      
+        	LWContainer commonParent = e.getMap();
+        	if (pLinkDest == null)
+        		commonParent = pLinkSource.getParent();
+        	else if (pLinkSource.getParent() == pLinkDest.getParent() &&
+        			pLinkSource.getParent() != commonParent) {
+        	// todo: if parents different, add to the upper most parent
+        		commonParent = pLinkSource.getParent();
+        	}
+        	boolean createdNode = false;
+        	if (pLinkDest == null && (pMakeConnection && comboMode)) {
+        		pLinkDest = NodeModeTool.createNewNode();
+        		pLinkDest.setCenterAt(e.getMapPoint());
+        		commonParent.addChild(pLinkDest);
+        		createdNode = true;
+        	}
+
+        	LWLink link;
+        	if (pMakeConnection && (comboMode || pLinkDest!=null)) {
+        		//link = new LWLink(pLinkSource, pLinkDest);
+        		link = (LWLink)creationLink.duplicate();
+        		link.setHead(pLinkSource);
+        		link.setTail(pLinkDest);
+        		if (existingStraightLinks > 0)
+        			link.setControlCount(1);
+        	} else {
+        		link = (LWLink)creationLink.duplicate();//new LWLink(pLinkSource, null);
+        		link.setTailPoint(e.getMapPoint()); // set to drop location
+        	}
+   //     	EditorManager.targetAndApplyCurrentProperties(link);
+      
+        	commonParent.addChild(link);
+        	// 	We ensure a paint sequence here because a link to a link
+        	// is currently drawn to it's center, which might paint over
+        	// a label.
+        	if (pLinkSource instanceof LWLink)
+        		commonParent.ensurePaintSequence(link, pLinkSource);
+        	if (pLinkDest instanceof LWLink)
+        		commonParent.ensurePaintSequence(link, pLinkDest);
+        	VUE.getSelection().setTo(link);
+        	if (pMakeConnection && comboMode)
+        		e.getViewer().activateLabelEdit(createdNode ? pLinkDest : link);
+
+        }
+        @Override
+        public boolean handleComponentPressed(MapMouseEvent e)
+        {
+            //System.out.println(this + " handleMousePressed " + e);
+            LWComponent hit = e.getPicked();
+            // TODO: handle LWGroup picking
+            //if (hit instanceof LWGroup)
+            //hit = ((LWGroup)hit).findDeepestChildAt(e.getMapPoint());
+
+            if (hit != null && hit.canLinkTo(null)) {
+                linkSource = hit;
+                // todo: pick up current default stroke color & stroke width
+                // and apply to creationLink
+                creationLink.setTemporaryEndPoint1(linkSource);
+          //      EditorManager.applyCurrentProperties(creationLink);
+                // never let drawn creator link get less than 1 pixel wide on-screen
+                float minStrokeWidth = (float) (1 / e.getViewer().getZoomFactor());
+                if (creationLink.getStrokeWidth() < minStrokeWidth)
+                    creationLink.setStrokeWidth(minStrokeWidth);
+                invisibleLinkEndpoint.setLocation(e.getMapPoint());
+                e.setDragRequest(invisibleLinkEndpoint);
+                // using a LINK as the dragComponent is a mess because geting the
+                // "location" of a link isn't well defined if any end is tied
+                // down, and so computing the relative movement of the link
+                // doesn't work -- thus we just use this invisible endpoint
+                // to move the link around.
+                return true;
+            }
+    	        
+            return false;
+        }
+        public void ontologySelected(OntologySelectionEvent e) {
+			edu.tufts.vue.ontology.ui.TypeList l = e.getSelection();
+			LWComponent c = l.getSelectedComponent();
+			if (c != null)
+			{
+				if (c instanceof LWLink)
+				{
+					creationLink = (LWLink)c;
+					
+				//	creationLink.setID("<creationLink>"); // can't use label or it will draw one
+					invisibleLinkEndpoint.addLinkRef(creationLink);
+		            invisibleLinkEndpoint.setSize(0,0);
+		            creationLink.setTail(invisibleLinkEndpoint);//		          
+		        	
+				}
+			}						
+		}
+    }
+    
     static class LinkModeTool extends VueTool
     {
     	private boolean comboMode = false;
         LWComponent linkSource; // for starting a link
-        private final LWComponent invisibleLinkEndpoint = new LWComponent();
-        private final LWLink creationLink = new LWLink(invisibleLinkEndpoint);
+        protected LWComponent invisibleLinkEndpoint = new LWComponent();
+        protected LWLink creationLink = new LWLink(invisibleLinkEndpoint);
 
         public LinkModeTool()
         {

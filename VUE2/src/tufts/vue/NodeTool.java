@@ -28,6 +28,8 @@ import java.awt.event.*;
 import java.awt.geom.*;
 import javax.swing.*;
 
+import edu.tufts.vue.ontology.ui.OntologySelectionEvent;
+
 /**
  * VueTool for creating LWNodes.  Methods for creating default new nodes based on
  * tool states, and for handling the drag-create of new nodes.
@@ -297,7 +299,7 @@ public class NodeTool extends VueTool
         return values;
     }
     
-    static class NodeModeTool extends VueTool
+    public static class NodeModeTool extends VueTool
     {
     	private LWNode creationNode = new LWNode("");
     	//private LWNode creationNode = new LWNode("New Node");
@@ -610,8 +612,95 @@ public class NodeTool extends VueTool
             public String toString() {
                 return "ShapeIcon[" + sWidth + "x" + sHeight + " " + mShape + "]";
             }
-        }
-
-        
+        }       
     }
+    public static class OntologyNodeTool extends VueTool implements edu.tufts.vue.ontology.ui.OntologySelectionListener
+    {
+    	LWNode creationNode = null;
+
+    	private static OntologyNodeTool singleton = null;
+    	
+    	public OntologyNodeTool()
+    	{
+            super();
+            edu.tufts.vue.ontology.ui.OntologyBrowser.getBrowser().addOntologySelectionListener(this);
+            setActiveWhileDownKeyCode(KeyEvent.VK_X); 
+            VueToolUtils.setToolProperties(this,"ontologyNodeModeTool");
+            singleton=this;
+    	}
+    	 
+    	public static OntologyNodeTool getTool()
+    	{
+    	        if (singleton == null) {
+    	          //  new Throwable("Warning: NodeTool.getTool: class not initialized by VUE").printStackTrace();
+    	            //throw new IllegalStateException("NodeTool.getTool: class not initialized by VUE");
+    	            new OntologyNodeTool();
+    	        }
+    	        return singleton;
+    	}
+        
+        @Override
+        public Class getSelectionType() { return LWNode.class; }
+    	
+        @Override
+        public boolean handleMousePressed(MapMouseEvent e) {
+            //out("MOUSE PRESSED");
+            // Get the creation node ready in case we're about to do a drag:
+            // (todo: VueTool.handleDragBegin)
+     //       EditorManager.applyCurrentProperties(creationNode);
+        	if (creationNode == null)
+        	{
+        		VueUtil.alert(VueResources.getString("ontologyNodeError.message"), VueResources.getString("ontologyNodeError.title"));
+        		return true;
+        	}
+        	else
+        		return false;
+        }
+        
+        @Override
+    	public boolean handleSelectorRelease(MapMouseEvent e)
+        {
+            //LWNode node = createNode(VueResources.getString("newnode.html"), true);
+        	if (creationNode == null)
+        		return false;
+        	
+            final LWNode node = (LWNode) creationNode.duplicate();
+            node.setAutoSized(false);
+            node.setFrame(e.getMapSelectorBox());          
+            MapViewer viewer = e.getViewer();
+            viewer.getFocal().addChild(node);
+            VUE.getUndoManager().mark("New Node");
+            VUE.getSelection().setTo(node);
+            viewer.activateLabelEdit(node);
+            //creationNodeCurrent = false;
+            return true;
+        }
+    	
+        @Override
+        public void drawSelector(DrawContext dc, java.awt.Rectangle r)
+        {
+            dc.g.draw(r);
+            
+            // TODO: doesn't handle zoom
+            // Also, handleSelectorRelease can now just dupe the creationNode
+            
+            creationNode.setFrame(r);
+            creationNode.draw(dc);
+        }
+    	
+		public void ontologySelected(OntologySelectionEvent e) {
+			edu.tufts.vue.ontology.ui.TypeList l = e.getSelection();
+			LWComponent c = l.getSelectedComponent();
+			if (c != null)
+			{
+				if (c instanceof LWNode)
+				{
+					creationNode = (LWNode)c;
+				//	 EditorManager.targetAndApplyCurrentProperties(creationNode);
+					//EditorManager.targetAndApplyCurrentProperties(creationNode);
+				}
+			}						
+		}
+    }   
+    
 }
