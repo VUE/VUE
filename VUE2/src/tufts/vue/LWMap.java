@@ -54,7 +54,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.135 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
+ * @version $Revision: 1.136 $ / $Date: 2007-06-01 07:54:09 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -144,13 +144,13 @@ public class LWMap extends LWContainer
         disableProperty(LWKey.Label);
     }
 
-    /** @return true -- absolute means absolute map location, so all children of a map by definition
-     * have absolute position.  We'll want to change this if we ever implement embedding of maps
-     * within maps.
-     */
-    public boolean hasAbsoluteChildren() {
-        return true;
-    }
+//     /** @return true -- absolute means absolute map location, so all children of a map by definition
+//      * have absolute position.  We'll want to change this if we ever implement embedding of maps
+//      * within maps.
+//      */
+//     public boolean hasAbsoluteChildren() {
+//         return true;
+//     }
 
     /** Override LWContainer draw to always call drawInParent (even tho we have absolute children, we
      * don't want to just call draw, as LWContainer would).
