@@ -54,7 +54,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.136 $ / $Date: 2007-06-01 07:54:09 $ / $Author: sfraize $
+ * @version $Revision: 1.137 $ / $Date: 2007-06-01 20:32:40 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -182,6 +182,14 @@ public class LWMap extends LWContainer
     public float getMapX() { return 0; }
     @Override
     public float getMapY() { return 0; }
+
+    // TODO: fix LWComponent.getMapX/YPrecise to factor in map / supposed hasAbsoluteChildren    
+//     // Performance
+//     @Override
+//     protected double getMapXPrecise() { return 0; }
+//     @Override
+//     protected double getMapYPrecise() { return 0; }
+    
 
     @Override
     String getDiagnosticLabel() {
@@ -777,11 +785,15 @@ public class LWMap extends LWContainer
         return super.createImage(alpha, maxSize, fillColor == null ? getFillColor() : fillColor, mapZoom);
     }
 
-    /** Override default image getter to double the scale on the rendered map */
-    @Override
-    public java.awt.image.BufferedImage getAsImage() {
-        return getAsImage(OPAQUE, null, 2.0);
-    }
+//     /** Override default image getter to double the scale on the rendered map */
+//     @Override
+//     public java.awt.image.BufferedImage getAsImage() {
+//         return getAsImage(OPAQUE, null, 2.0);
+//     }
+// Actually, as dragged images produce highest-res RAW image data (converted to TIFF if, e.g., dropped
+// into the Apple Mail application), we don't really need to double-up the resolution here.  (And
+// doing so can produce HUGE 20MB+ tiff attachments)
+    
     
 
     
