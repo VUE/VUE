@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.18 $ / $Date: 2007-05-25 21:47:42 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  * TODO: add capability for handling LWComponent.ChildKind, so we have the option
@@ -162,7 +162,14 @@ public class LWTraversal {
 
         @Override
         public boolean acceptChildren(LWComponent c) {
-            return pc.pickDepth >= c.getPickLevel();
+            // NEED TO ALLOW THIS FOR GROUPS, so can
+            // use our new clean pickDistance for finding
+            // the children first, then letting the group's
+            // pickChild choose itself or the child depending
+            // on pickDepth -- can we integrate with our
+            // getPickLevel() feature?  Just throw it out if we gotta..
+            //return pc.pickDepth >= c.getPickLevel();
+            return true;
         }
         
 
@@ -349,10 +356,34 @@ public class LWTraversal {
             
             if (hit != null) {
                 LWContainer parent = hit.getParent();
-                if (parent != null)
-                    picked = parent.pickChild(pc, hit);
-                else
-                    picked = hit; // would normally only get here for an LWMap
+                if (parent != null) {
+
+                    // This is a hack for groups to replace our getPickLevel functionality:
+                    
+                    final LWGroup topGroupAncestor = (LWGroup) parent.getTopMostAncestorOfType(LWGroup.class);
+                    if (pc.pickDepth > 0) {
+                        // DEEP PICK:
+                        // Even if deep picking, only pick the deepest group we can find,
+                        // not the contents.  TODO: Really, we should be picking the second
+                        // top-most (that is, only penetrate through the top-level group when
+                        // deep picking, not straight to the bottom.)
+                        final LWGroup groupAncestor = (LWGroup) parent.getAncestorOfType(LWGroup.class);
+                        if (groupAncestor != topGroupAncestor)
+                            picked = groupAncestor;
+                    } else {
+                        // SHALLOW PICK:
+                        if (topGroupAncestor != null)
+                            picked = topGroupAncestor;
+                    }
+                    
+                    if (picked == null)
+                        picked = parent.pickChild(pc, hit);
+                    
+                } else {
+                    // would normally only get here for an LWMap                    
+                    picked = hit; 
+                }
+
 
                 if (picked == hit) {
                     // only make use of defaultPick if pickChild didn't

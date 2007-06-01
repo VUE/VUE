@@ -581,55 +581,75 @@ public class Actions implements VueConstants
             }
         }
     };
-    /** handle dispersing groups, or removing selected elements from groups */
+    /**
+     * If there are any groups in the selection, those groups will be dispersed, and
+     * everything else in selection is ignored.
+     * Otherwise, if everything in the selection has the same parent group,
+     * they'll all be removed from that group.
+     * If neither of the above conditions are met, the action is disabled.
+     *
+     * If groups were dispersed, the selection will be set to the contents of the
+     * dispersed groups.
+     */
     public static final Action Ungroup =
         //new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/GroupGC.png") {
         //new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/GroupUnGC.png") {
         new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/xUngroup.png") {
-        boolean mayModifySelection() { return true; }
-        boolean enabledFor(LWSelection s) {
-            return s.countTypes(LWGroup.class) > 0 || s.allHaveSameParentOfType(LWGroup.class);
-        }
-        void act(LWSelection s) {
-            boolean removing = s.allHaveSameParentOfType(LWGroup.class);
-            if (removing)
-                removeFromGroup(s.iterator());
-            else
-                disperse(s.iterator());
-        }
+            boolean mayModifySelection() { return true; }
+            boolean enabledFor(LWSelection s) {
+                return s.countTypes(LWGroup.class) > 0 || s.allHaveSameParentOfType(LWGroup.class);
+            }
+            void act(LWSelection s) {
+                final List<LWComponent> toSelect = new ArrayList();
+                if (s.countTypes(LWGroup.class) > 0) {
+                    if (DEBUG.EVENTS) out("Ungroup: dispersing any selected groups");
+                    disperse(s, toSelect);
+                } else {
+                    if (DEBUG.EVENTS) out("Ungroup: de-grouping any selected inside a group");
+                    degroup(s, toSelect);
+                }
+                
+                if (toSelect.size() > 0)
+                    VUE.getSelection().setTo(toSelect);
+            }
 
-        private void disperse(Iterator i) {
-            List dispersedChildren = new ArrayList();
-            while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
-                if (c instanceof LWGroup) {
-                    LWGroup group = (LWGroup) c;
-                    dispersedChildren.addAll(group.getChildList());
-                    group.disperse();
+            private void degroup(Iterable<LWComponent> iterable, List toSelect)
+            {
+                final List<LWComponent> removing = new ArrayList();
+                
+                for (LWComponent c : iterable)
+                    if (c.getParent() instanceof LWGroup)
+                        removing.add(c);
+
+                // This action only enabled if all the selected components have
+                // exactly the same parent group.
+                
+                if (removing.size() > 0) {
+                    final LWComponent first = (LWComponent) removing.get(0);
+                    final LWGroup group = (LWGroup) first.getParent(); // the group losing children
+                    final LWContainer newParent = group.getParent();
+                    group.removeChildren(removing); // more control & efficient events
+                    newParent.addChildren(removing);
+                    toSelect.addAll(removing);
+
+                    // LWGroups now handle auto-dispersal themseleves if all children are removed,
+                    // so we don't ened to worry about auto-dispersing any groups that end up
+                    // up with less than two children in them.
+                }
+
+                VUE.getSelection().setTo(toSelect);
+                
+            }
+
+            private void disperse(Iterable<LWComponent> iterable, List toSelect) {
+                for (LWComponent c : iterable) {
+                    if (c instanceof LWGroup) {
+                        toSelect.addAll(c.getChildList());
+                        ((LWGroup)c).disperse();
+                    }
                 }
             }
-            VUE.getSelection().setTo(dispersedChildren.iterator());
-        }
-            
-        private void removeFromGroup(Iterator i) {
-            List removed = new ArrayList();
-            while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
-                if (c.getParent() instanceof LWGroup)
-                    removed.add(c);
-            }
-            if (removed.size() > 0) {
-                LWComponent first = (LWComponent) removed.get(0);
-                LWGroup group = (LWGroup) first.getParent();
-                LWContainer newParent = group.getParent();
-                newParent.addChildren(removed.iterator());
-                VUE.getSelection().setTo(removed.iterator());
-                // if we've removed them all, disperse the group
-                if (!group.hasChildren())
-                    group.disperse();
-            }
-        }
-    };
+        };
     
     public static final LWCAction Rename =
         new LWCAction("Rename", VueUtil.isWindowsPlatform() ? keyStroke(KeyEvent.VK_F2) : keyStroke(KeyEvent.VK_ENTER)) {
@@ -1385,7 +1405,7 @@ public class Actions implements VueConstants
          * to apply the action to any nodes that are children of
          * other nodes. If the child is already in selection (e.g.
          * a select all was done) be sure NOT to act on it, otherwise
-         * the action will be done twice).
+         * the action will be done twice). [ Why was this? -- disabled 2007-05-30 -- SMF ]
          */
         void act(Iterator i) {
             while (i.hasNext()) {
@@ -1396,16 +1416,16 @@ public class Actions implements VueConstants
                     continue;
                 }
                 act(c);
-                // it's possible c was deleted by above action,
-                // so make sure we don't proceed if that's the case.
-                if (c instanceof LWGroup && !hierarchicalAction() && !c.isDeleted()) {
-                    Iterator gi = ((LWGroup)c).getChildIterator();
-                    while (gi.hasNext()) {
-                        LWComponent gc = (LWComponent) gi.next();
-                        if (!gc.isSelected())
-                            act(gc);
-                    }
-                }
+//                 // it's possible c was deleted by above action,
+//                 // so make sure we don't proceed if that's the case.
+//                 if (c instanceof LWGroup && !hierarchicalAction() && !c.isDeleted()) {
+//                     Iterator gi = ((LWGroup)c).getChildIterator();
+//                     while (gi.hasNext()) {
+//                         LWComponent gc = (LWComponent) gi.next();
+//                         if (!gc.isSelected())
+//                             act(gc);
+//                     }
+//                 }
             }
         }
         void act(LWComponent c) {

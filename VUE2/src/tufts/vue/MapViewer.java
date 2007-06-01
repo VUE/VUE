@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.397 $ / $Date: 2007-05-30 18:23:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.398 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -268,9 +268,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     public void addNotify()
     {
-        VUE.Log.debug("addNotify(pre): " + this);
+        //VUE.Log.debug("addNotify(pre): " + this);
         super.addNotify();
-        VUE.Log.debug("addNotify(top): " + this + "; new parent=" + getParent());
+        //VUE.Log.debug("addNotify(top): " + this + "; new parent=" + getParent());
 
         inScrollPane = (getParent() instanceof JViewport);
 
@@ -984,7 +984,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (!isShowing())
             return false;
         if (inScrollPane) {
-            System.out.println("parent=" + getParent());
             return getParent().getWidth() > 0 && getParent().getHeight() > 0;
         } else
             return getWidth() > 0 && getHeight() > 0;
@@ -2771,10 +2770,28 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // draw ghost shapes
             //-------------------------------------------------------
             //if (sDragUnderway || c.getStrokeWidth() == 0 || c instanceof LWLink) {
+
+            Set parentGroups = null;
+            
             if (true||sDragUnderway) {
                 if (c instanceof LWMap && !DEBUG.CONTAINMENT)
                     continue;
                 drawSelectionGhost(dc, c);
+
+                // Hack for groups in groups: show the parent group:
+                final LWComponent parent = c.getParent();
+                
+                if (parent instanceof LWGroup && !parent.isSelected() && (parentGroups == null || !parentGroups.contains(parent))) {
+                    dc.g.setTransform(rawMapTransform);
+                    drawSelectionGhost(dc, c.getParent());
+
+                    if (parentGroups == null) {
+                        // todo: performance
+                        parentGroups = new HashSet();
+                        parentGroups.add(parent);
+                    }
+                }
+                    
                 dc.g.setTransform(rawMapTransform);
             }
                 

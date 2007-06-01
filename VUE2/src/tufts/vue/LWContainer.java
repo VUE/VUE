@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.115 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
+ * @version $Revision: 1.116 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -61,6 +61,11 @@ public abstract class LWContainer extends LWComponent
     }
     public int numChildren() {
         return children == null ? 0 : children.size();
+    }
+
+    /** @return false -- default impl is child coordinates are relatve to the parent -- overide if subclass impl changes this */
+    public boolean hasAbsoluteChildren() {
+        return false;
     }
 
     /** @return true: default allows children dragged in and out */
@@ -98,20 +103,20 @@ public abstract class LWContainer extends LWComponent
     }
 
 
-    /**
-     * return first ancestor of type clazz, or if no matching ancestor
-     * is found, return the upper most ancestor (one that has no
-     * parent, which is normally the LWMap)
-     */
-    public LWContainer getFirstAncestor(Class clazz)
-    {
-        if (getParent() == null)
-            return this;
-        else if (clazz.isInstance(getParent()))
-            return getParent();
-        else
-            return getParent().getFirstAncestor(clazz);
-    }
+//     /**
+//      * return first ancestor of type clazz, or if no matching ancestor
+//      * is found, return the upper most ancestor (one that has no
+//      * parent, which is normally the LWMap)
+//      */
+//     public LWContainer getFirstAncestor(Class clazz)
+//     {
+//         if (getParent() == null)
+//             return this;
+//         else if (clazz.isInstance(getParent()))
+//             return getParent();
+//         else
+//             return getParent().getFirstAncestor(clazz);
+//     }
 
     
     public Iterator getNodeIterator()    { return getNodeList().iterator(); }
@@ -176,7 +181,7 @@ public abstract class LWContainer extends LWComponent
             if (c.getParent() == this)
                 reparenting.add(c);
         }
-        removeChildren(reparenting.iterator());
+        removeChildren(reparenting);
         /*
         for (LWComponent c : reparenting) {
             float x = c.getX();
@@ -190,6 +195,7 @@ public abstract class LWContainer extends LWComponent
     public final void addChild(LWComponent c) {
         addChildren(new VueUtil.SingleIterator(c));
     }
+    
     final void removeChild(LWComponent c) {
         removeChildren(new VueUtil.SingleIterator(c));
     }
@@ -279,13 +285,12 @@ public abstract class LWContainer extends LWComponent
     /**
      * Remove any children in this iterator from this container.
      */
-    protected void removeChildren(Iterator i)
+    protected void removeChildren(Iterable<LWComponent> iterable)
     {
         notify(LWKey.HierarchyChanging);
 
         ArrayList removedChildren = new ArrayList();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        for (LWComponent c : iterable) {
             if (c.getParent() == this) {
                 removeChildImpl(c);
                 removedChildren.add(c);
@@ -336,17 +341,23 @@ public abstract class LWContainer extends LWComponent
         // bounds are immediatley correct for anyone listening to the location event).
         c.setParent(this);
         
-        if (oldParent != null && !hasAbsoluteMapLocation()) // if it didn't have a parent, assume coords we're local (e.g., from a duplication)
+        if (!hasAbsoluteChildren() && oldParent != null && !oldParent.hasAbsoluteChildren()) {
+            // todo: if we have abs children, but OLD parent had relative children, we need to
+            // translate back to absolute map coords
+            // if it didn't have a parent, assume coords we're local (e.g., from a duplication)
             translateLocationToLocalCoordinates(c, oldMapX, oldMapY);
+        }
         //c.reparentNotify(this);
         ensureID(c);
     }
 
     // TODO: only works when moving from higher to lower nesting -- not reverse (e.g., group dispersal)
     protected void translateLocationToLocalCoordinates(LWComponent c, float oldMapX, float oldMapY) {
-        if (VUE.RELATIVE_COORDS && !c.hasAbsoluteMapLocation())
+        if (VUE.RELATIVE_COORDS && !c.hasAbsoluteMapLocation()) {
+            if (DEBUG.PARENTING || DEBUG.CONTAINMENT) out("translateToLocal " + c);
             c.setLocation((oldMapX - getMapX()) / getMapScale(),
                           (oldMapY - getMapY()) / getMapScale());
+        }
     }
 
     protected void removeChildImpl(LWComponent c)
@@ -395,7 +406,7 @@ public abstract class LWContainer extends LWComponent
 
         // We did the "deleting" notification first, so anybody listening can still see
         // the node in it's full current state before anything changes.  But children
-        // now keep their parent reference until their removed from the model, so the
+        // now keep their parent reference until they're removed from the model, so the
         // only thing different when removeFromModel issues it's LWKey.Deleting event is
         // the parent won't list it as a child, but since it still has the parent ref,
         // event up-notification will still work, which is good enough.  (It's probably
@@ -1145,8 +1156,11 @@ public abstract class LWContainer extends LWComponent
         }
         */
 
-        
-        child.drawInParent(dc);
+        if (hasAbsoluteChildren()) {
+            child.draw(dc);
+        } else {
+            child.drawInParent(dc);
+        }
     }
 
     /**

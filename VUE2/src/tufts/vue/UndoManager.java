@@ -659,8 +659,79 @@ public class UndoManager
         markChangesAsUndo(name);
     }
 
+    private final Map<Object,Runnable> mCleanupTasks = new java.util.HashMap();
+    
+    /**
+
+     * Add a task to be run just before the next mark.  If code
+     * somewhere has decided it needs to check that state at the end
+     * of all current user operations (which is when we create
+     * undo-marks, explicitly throughout the code at the end of known
+     * user action control points), it can add a task, which will run
+     * (possibly generating more events and adding to the undo queue)
+     * just before the current undo event queue is collected into an
+     * undo action as the mark is established.
+
+     * E.g., LWGroup's add a task any time children are removed, so it
+     * can run at the end to find out if it should auto-disperse
+     * itself (if it has only 0 or 1 members, and hasn't already been
+     * deleted).  This is because many different operations may remove
+     * children from a group, and we don't want to track them all and
+     * don't care how they operate -- we just want to know what state
+     * we're left in when the dust settles.
+
+     * @param taskKey - a key that can be used to check to see 
+     * if something with the same key is already waiting to be
+     * run at the next mark.
+
+     * @param task -- a Runnable
+     
+     */
+    
+    public void addCleanupTask(Object taskKey, Runnable task) {
+        mCleanupTasks.put(taskKey, task);
+    }
+
+    /**
+     * @see addCleanupTask(Object taskKey, Runnable task)
+     * This defaults the taskKey to the task object itself.
+     **/
+    public void addCleanupTask(Runnable task) {
+        mCleanupTasks.put(task, task);
+    }
+    
+    /** @return true if there are already any cleanup tasks with the given key */
+    public boolean hasCleanupTask(Object taskKey) {
+        return mCleanupTasks.containsKey(taskKey);
+    }
+
     public synchronized void markChangesAsUndo(String name)
     {
+        // Can we skip running the cleanup tasks if there's nothing in the undo queue?
+        // Do we NEED to do that, in case of multiple "just in case" marks,
+        // where only the last one actually had anything, and we DON'T
+        // want to run the cleanup tasks till then?
+        if (mCleanupTasks.size() > 0) {
+            final boolean debug;
+            if (mCurrentUndo.size() == 0) {
+                VUE.Log.warn("Running cleanup tasks with an empty undo queue: " + this);
+                debug = true;
+            } else
+                debug = DEBUG.EVENTS || DEBUG.UNDO;
+            for (Map.Entry<Object,Runnable> e : mCleanupTasks.entrySet()) {
+                final Runnable task = e.getValue();
+                final Object key = e.getKey();
+                if (debug) {
+                    if (DEBUG.Enabled) System.out.println("");
+                    VUE.Log.debug("RUNNING CLEANUP TASK in " + this
+                                  + "\n\ttask: " + task
+                                  + "\n\t key: " + key);
+                }
+                task.run();
+            }
+            mCleanupTasks.clear();
+        }
+        
         if (mCurrentUndo.size() == 0) // if nothing changed, don't bother adding an UndoAction
             return;
         if (name == null) {
@@ -668,6 +739,7 @@ public class UndoManager
                 return;
             name = mLastEvent.getName();
         }
+        
         UndoList.add(collectChangesAsUndoAction(name));
         RedoList.clear();
         mMap.notify(this, LWKey.UserActionCompleted);

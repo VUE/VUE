@@ -38,11 +38,15 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.149 $ / $Date: 2007-05-25 21:48:04 $ / $Author: sfraize $
+ * @version $Revision: 1.150 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
 {
+    // Ideally, we want this to be false: it's a more accurate representation of
+    // what's displayed: the control points only show up when selected.
+    private static final boolean IncludeControlPointsInBounds = false;
+    
     public final static Font DEFAULT_FONT = VueResources.getFont("link.font");
     public final static Color DEFAULT_LABEL_COLOR = java.awt.Color.darkGray;
     
@@ -332,7 +336,26 @@ public class LWLink extends LWComponent
                 c.clearHidden(HideCause.PRUNE);
         }
     }
-
+    
+    @Override
+    public Rectangle2D.Float getBounds() {
+        
+        if (endpointMoved)
+            computeLink();
+        
+        // todo: would be better to just include this in the width via computeLink,
+        // tho then we'd need to invalidate the link if the label changes.
+        if (hasLabel()) {
+            // TODO: getPaintBounds is adding stroke width of link
+            // to the edge of the label box, which isn't right...
+            final Rectangle2D.Float bounds = super.getBounds();
+            bounds.add(getLabelBox().getMapBounds());
+            return bounds;
+        } else {
+            return super.getBounds();
+        }
+    }
+    
     /** @return same as super class impl, but by default add our own two endpoints */
     @Override
     public Rectangle2D.Float getFanBounds(Rectangle2D.Float r)
@@ -1109,6 +1132,7 @@ public class LWLink extends LWComponent
      * setLocation will have absolutely no effect on it.
      */
 
+    @Override
     public void translate(float dx, float dy)
     {
         if (head == null)
@@ -1128,12 +1152,20 @@ public class LWLink extends LWComponent
         }
     }
 
+    @Override
     public void setLocation(float x, float y) {
         float dx = x - getX();
         float dy = y - getY();
 
         translate(dx, dy);
     }
+
+    @Override
+    protected void takeLocation(float x, float y) {
+        VUE.Log.warn("takeLocation on Link: " + this);
+        setLocation(x, y);
+    }
+    
 
     private void initCurveControlPoints()
     {
@@ -1393,12 +1425,37 @@ public class LWLink extends LWComponent
         //----------------------------------------------------------------------------------------
         
         if (mCurveControls > 0) {
+
+//            final Rectangle2D.Float curBounds = getBounds(); // todo: optimize this
             
             // Set a size & location w/out triggering update events:
             setX(curveBounds.x);
             setY(curveBounds.y);
             takeSize(curveBounds.width,
                      curveBounds.height);
+            
+//             if (!curBounds.equals(getBounds())) {
+//                 // adding this so if member of a group, group knows to update bounds,
+//                 // otherwise LWGroup would have to check for link.control and head/tail move events.
+//                 // Yet another reason to have an isBoundsEvent bit in the keys.
+//                 // We could get rid of this completely if LWGroups always dynamically
+//                 // computed their bounds.
+//                 // This is a bit of overkill at the moment, as group's only show
+//                 // their bounds with debug (FancyGroups not enabled), and ignore
+//                 // their bounds for picking, so it's actually okay if they
+//                 // get out of date at the moment.
+//                 notify(LWKey.Location); // better LWKey.Frame, tho really need that bounds bit in the Key class
+//             }
+                
+
+//             else {
+//                 // We recurse if we do this:
+//                 setLocation(curveBounds.x, curveBounds.y);
+//                 setSize(curveBounds.width,
+//                         curveBounds.height);
+//             }
+
+            
 
         } else {
             Rectangle2D.Float bounds = new Rectangle2D.Float();
@@ -1407,11 +1464,18 @@ public class LWLink extends LWComponent
             bounds.x = centerX - bounds.width/2;
             bounds.y = centerY - bounds.height/2;
             
-            // Set a size & location w/out triggering update events:
-            takeSize(Math.abs(headX - tailX),
-                     Math.abs(headY - tailY));
-            setX(this.centerX - getWidth()/2);
-            setY(this.centerY - getHeight()/2);
+            if (true) {
+                // Set a size & location w/out triggering update events:
+                takeSize(Math.abs(headX - tailX),
+                         Math.abs(headY - tailY));
+                setX(this.centerX - getWidth()/2);
+                setY(this.centerY - getHeight()/2);
+            } else {
+                setSize(Math.abs(headX - tailX),
+                        Math.abs(headY - tailY));
+                setLocation(this.centerX - getWidth()/2,
+                            this.centerY - getHeight()/2);
+            }
         }
 
         layout();
@@ -1461,7 +1525,9 @@ public class LWLink extends LWComponent
             mCurveCenterX = (ctrlx1 + ctrlx2) / 2;
             mCurveCenterY = (ctrly1 + ctrly2) / 2;
 
-            bounds.add(mQuad.ctrlx, mQuad.ctrly);
+
+            if (IncludeControlPointsInBounds)
+                bounds.add(mQuad.ctrlx, mQuad.ctrly);
 
         } else if (mCurveControls == 2) {
             mCubic.x1 = headX;
@@ -1484,11 +1550,13 @@ public class LWLink extends LWComponent
             mCurveCenterX = (ctrlx12 + ctrlx21) / 2;
             mCurveCenterY = (ctrly12 + ctrly21) / 2;
 
-            // Add the centers of the two control lines, where we put the controllers.
-            bounds.add((mCubic.ctrlx1 + headX) / 2,
-                       (mCubic.ctrly1 + headY) / 2);
-            bounds.add((mCubic.ctrlx2 + tailX) / 2,
-                       (mCubic.ctrly2 + tailY) / 2);
+            if (IncludeControlPointsInBounds) {
+                // Add the centers of the two control lines, where we put the controllers.
+                bounds.add((mCubic.ctrlx1 + headX) / 2,
+                           (mCubic.ctrly1 + headY) / 2);
+                bounds.add((mCubic.ctrlx2 + tailX) / 2,
+                           (mCubic.ctrly2 + tailY) / 2);
+            }
                 
             
         }
@@ -1899,14 +1967,15 @@ public class LWLink extends LWComponent
         if (DEBUG.CONTAINMENT) {
             dc.setAbsoluteStroke(0.5);
             dc.g.setColor(COLOR_SELECTION);
-            g.draw(getBounds());
+            g.draw(getPaintBounds());
         }
 
         //if (dc.drawAbsoluteLinks) dc.setAbsoluteDrawing(false);
         
     }
 
-    @Override public Color getRenderFillColor(DrawContext dc) {
+    @Override
+    public Color getRenderFillColor(DrawContext dc) {
         if (dc != null && dc.isInteractive() && isSelected())
             return COLOR_HIGHLIGHT;
         else {

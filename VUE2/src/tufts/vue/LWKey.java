@@ -50,14 +50,7 @@ public interface LWKey {
     public LWComponent.Key Shape = LWNode.KEY_Shape;
 
     public LWComponent.Key Label = LWComponent.KEY_Label;
-    public LWComponent.Key Notes = LWComponent.KEY_Notes;;
-    
-    //public String FillColor = "fill.color"; 
-    //public String TextColor = "text.color"; 
-    //public String StrokeColor = "stroke.color"; 
-    //public String StrokeWidth = "stroke.width"; 
-    //public String Font = "font";
-    //public String Shape = "node.shape"; 
+    public LWComponent.Key Notes = LWComponent.KEY_Notes;
     
     // a handy hack: if we want a "key" type more specific than object, but
     // can also refer to a String (which is a final class), String implements
@@ -68,8 +61,6 @@ public interface LWKey {
     public String Size = "size";
     public String Frame = "frame"; // location & size
     
-    //public String Label = "label"; 
-    //public String Notes = "notes"; 
     public String Scale = "scale"; 
     public String Resource = "resource"; 
     public String Hidden = "hidden";

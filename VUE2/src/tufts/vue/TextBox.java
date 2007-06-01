@@ -87,7 +87,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.51 $ / $Date: 2007-05-14 23:04:39 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
  *
  */
 
@@ -832,6 +832,10 @@ public class TextBox extends JTextPane
     public float getMapY() { return this.mapY; }
     public float getMapWidth() { return mapWidth * lwc.getMapScaleF(); }
     public float getMapHeight() { return mapHeight * lwc.getMapScaleF(); }
+
+    public Rectangle2D.Float getMapBounds() {
+        return new Rectangle2D.Float(mapX, mapY, getMapWidth(), getMapHeight());
+    }
 
     public void setMapLocation(float x, float y)
     {

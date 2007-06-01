@@ -37,7 +37,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.67 $ / $Date: 2007-05-31 18:07:06 $ / $Author: mike $
+ * @version $Revision: 1.68 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -474,7 +474,7 @@ public class VueToolbarController
     }
 
     public void LWCChanged(LWCEvent e) {
-        loadToolValue(e.key, e.getComponent());
+        loadToolValue(e.key, e.component);
     }
 
     /**
@@ -485,6 +485,9 @@ public class VueToolbarController
     // todo: cache the property producers
     private void loadToolValue(Object propertyKey, LWComponent src)
     {
+        if (src == null)
+            return;
+        
         for (VueTool tool : mVueTools) {
             if (tool instanceof LWEditor) {
                 LWEditor editor = (LWEditor) tool;

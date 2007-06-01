@@ -54,11 +54,19 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.134 $ / $Date: 2007-05-25 21:47:55 $ / $Author: sfraize $
+ * @version $Revision: 1.135 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
 {
+    /**
+     * Model version 0: pre-model versions / unknown (assumed all absolute coordinates)
+     * Model version 1: relative children, including groups (excepting link members)
+     * Model version 2: relative children, groups back to absolute (excepting link members)
+     */
+    public static final int CurrentModelVersion = 2;
+
+    
     /** file we were opened from of saved to, if any */
     private File file;
     
@@ -135,12 +143,28 @@ public class LWMap extends LWContainer
         enableProperty(LWKey.FillColor);
         disableProperty(LWKey.Label);
     }
-    
 
-    public final int getCurrentModelVersion() {
-        return VUE.RELATIVE_COORDS ? 1 : 0;
+    /** @return true -- absolute means absolute map location, so all children of a map by definition
+     * have absolute position.  We'll want to change this if we ever implement embedding of maps
+     * within maps.
+     */
+    public boolean hasAbsoluteChildren() {
+        return true;
     }
 
+    /** Override LWContainer draw to always call drawInParent (even tho we have absolute children, we
+     * don't want to just call draw, as LWContainer would).
+     */
+    // todo: something cleaner than draw/drawInParent in LWComponent would be nice so
+    // we wouldn't have to deal with this kind of issue.  This is all because of the
+    // slide icon hack -- if we can get rid of that, these issues would go away.
+    @Override
+    protected void drawChild(LWComponent child, DrawContext dc)
+    {
+        child.drawInParent(dc);
+    }
+    
+    
     /** for persistance */
     public int getModelVersion() {
         return mModelVersion;
@@ -158,6 +182,11 @@ public class LWMap extends LWContainer
     public float getMapX() { return 0; }
     @Override
     public float getMapY() { return 0; }
+
+    @Override
+    String getDiagnosticLabel() {
+        return "Map: " + getLabel();
+    }
     
     private void markDate() {
         long time = System.currentTimeMillis();
@@ -422,22 +451,55 @@ public class LWMap extends LWContainer
         return Integer.toString(nextID++, 10);
     }
 
-    private static void changeAbsoluteToRelativeCoords(LWContainer container, HashSet<LWComponent> processed) {
-        LWContainer parent = container.getParent();
-        if ((parent instanceof LWGroup || parent instanceof LWSlide) && !processed.contains(parent)) {
-            changeAbsoluteToRelativeCoords(parent, processed);
-        }
+//     private static void changeAbsoluteToRelativeCoords(LWContainer container, HashSet<LWComponent> processed) {
+// //         LWContainer parent = container.getParent();
+// //         //if ((parent instanceof LWGroup || parent instanceof LWSlide) && !processed.contains(parent)) {
+// //         if (parent instanceof LWSlide && !processed.contains(parent)) {
+// //             // we should never see this (slide in a slide?) -- this was in case
+// //             // we had a group inside a slide, which we saw before the slide itself,
+// //             // and it never would have worked for something more than one level below
+// //             // the slide!
+// //             changeAbsoluteToRelativeCoords(parent, processed);
+// //         }
+//         for (LWComponent c : container.getChildList()) {
+//             c.takeLocation(c.getX() - container.getX(),
+//                            c.getY() - container.getY());
+//         }
+//         processed.add(container);
+//     }
+
+    private static void changeAbsoluteToRelativeCoords(LWSlide container) {
+        if (DEBUG.Enabled) System.out.println("CONVERTING TO RELATIVE " + container);
         for (LWComponent c : container.getChildList()) {
             c.takeLocation(c.getX() - container.getX(),
                            c.getY() - container.getY());
         }
-        processed.add(container);
     }
+
+    private static void changeRelativeToAbsoluteCoords(LWGroup container) {
+        if (DEBUG.Enabled) System.out.println("CONVERTING TO ABSOLUTE " + container);
+        for (LWComponent c : container.getChildList()) {
+            if (c instanceof LWLink) // always have had absolute coords
+                continue;
+            c.takeLocation(c.getX() + container.getX(),
+                           c.getY() + container.getY());
+        }
+    }
+    
 
     public void completeXMLRestore() {
 
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
             System.out.println(getLabel() + ": completing restore...");
+
+        final Collection<LWComponent> allRestored = getAllDescendents(ChildKind.ANY);
+
+        for (LWComponent c : allRestored) {
+            if (DEBUG.IO) System.out.println("RESTORED: " + c);
+            // turn this back on until we're done here:
+            c.mXMLRestoreUnderway = true;
+        }
+        
 
         if (mPathways != null) {
             try {
@@ -447,20 +509,7 @@ public class LWMap extends LWContainer
             }
         }
 
-        final Collection<LWComponent> allRestored = getAllDescendents(ChildKind.ANY);
-
         //resolvePersistedLinks(allRestored);
-        
-        for (LWComponent c : allRestored) {
-            if (DEBUG.XML) System.out.println("RESTORED: " + c);
-            // LWContainers handle recursively setting scale on children via special
-            // means to make sure everything happens properly and at the right time,
-            // using a setScaleOnChild call.
-            // E.g., LWNode overrides setScaleOnChild to apply proper scaling to all generations of children
-            // TODO: this should probably be done depth-first...
-            if (c instanceof LWContainer)
-                c.setScale(c.getScale());
-        }
         
         if (mPathways == null)
             mPathways = new LWPathwayList(this);
@@ -479,20 +528,86 @@ public class LWMap extends LWContainer
         // Now update the model the the most recent data version
         //----------------------------------------------------------------------------------------
         
-        if (getModelVersion() < getCurrentModelVersion()) {
+        if (getModelVersion() < CurrentModelVersion) {
             
-            if (getModelVersion() < 1) { // changeover to relative coords
-                HashSet<LWComponent> processed = new HashSet();
+            if (getModelVersion() < 1) {
+                //-----------------------------------------------------------------------------
+                // Upgrade from model version 0:
+                //-----------------------------------------------------------------------------
+                
+                // Upgrade old save file to current state of relative coordinates (all but LWGroup's)
                 for (LWComponent c : allRestored) {
-                    if (c instanceof LWGroup || c instanceof LWSlide) {
-                        changeAbsoluteToRelativeCoords((LWContainer)c, processed);
+                    if (c instanceof LWSlide) {
+
+                        // LWSlides are the only thing we need to upgrade now (as
+                        // opposed to slides and groups, which were both upgraded for a
+                        // while) Anyway, slides are the only objects left that have
+                        // children with free layout.  LWNodes can also have children,
+                        // but they enforce a particular layout location for their
+                        // children, so no matter what the current model, LWNode child
+                        // coordinates automatically get updated.  Of course, there
+                        // shouldn't be many of these encountered, as VUE with slide
+                        // supports was only around as an early mostly internal alpha
+                        // before the default coordinate system went relative.
+                        
+                        changeAbsoluteToRelativeCoords((LWSlide)c);
+                    }
+                }
+
+                // Might want to auto-check in case the problem Bryce experienced pops
+                // up again...  (e.g., somehow the model version got set to 0 (original
+                // absolute), even tho the coordinate system was in fact relative (model
+                // version 1).  This may have happened by opening the map in a prior
+                // version of VUE which didn't understand the relative coordinates,
+                // assumed they were absolute, reformed the groups at the child
+                // coordinates as if they were absolute, then saved out the map with
+                // those moved groups, and no model version recorded at all -- actually
+                // that could only have happened on one of our internal versions that
+                // temporarily went back to model 0?  Anyway...
+                
+// Ff ANY group has contents that are outside it's bounds (perhaps only if significantly so),
+// we may want to assume we've got a model version problem, and just "upgrade" automatically.
+//                 for (LWComponent c : allRestored) {
+//                     if (c instanceof LWGroup) {
+//                         // check for relative children...
+//                         changeRelativeToAbsoluteCoords((LWGroup)c);
+//                     }
+//                 }
+                
+            } else if (getModelVersion() == 1) {
+                
+                //-----------------------------------------------------------------------------
+                // Upgrade from model version 1:
+                //-----------------------------------------------------------------------------
+
+                // Change relative coords of LWGroup children back to absolute coords:
+                
+                for (LWComponent c : allRestored) {
+                    if (c instanceof LWGroup) {
+                        changeRelativeToAbsoluteCoords((LWGroup)c);
                     }
                 }
             }
 
-            VUE.Log.info(this + " Updated from model version " + getModelVersion() + " to " + getCurrentModelVersion());
-            mModelVersion = getCurrentModelVersion();
+
+            VUE.Log.info(this + " Updated from model version " + getModelVersion() + " to " + CurrentModelVersion);
+            mModelVersion = CurrentModelVersion;
         }
+
+        for (LWComponent c : allRestored) {
+            //if (DEBUG.XML || DEBUG.WORK) System.out.println("RESTORED: " + c);
+            // LWContainers handle recursively setting scale on children via special
+            // means to make sure everything happens properly and at the right time,
+            // using a setScaleOnChild call.
+            // E.g., LWNode overrides setScaleOnChild to apply proper scaling to all generations of children
+            // TODO: this should probably be done depth-first...
+            if (c instanceof LWContainer) {
+                if (DEBUG.WORK) System.out.println("SET-SCALE: " + c);
+                c.setScale(c.getScale());
+            }
+        }
+        
+        
         
         //----------------------------------------------------------------------------------------
         
@@ -515,7 +630,8 @@ public class LWMap extends LWContainer
         */
         
         for (LWComponent c : allRestored) {
-            if (DEBUG.LAYOUT) System.out.println("LAYOUT: " + c + " parent=" + c.getParent());
+            c.mXMLRestoreUnderway = false;            
+            if (DEBUG.LAYOUT||DEBUG.WORK) System.out.println("LAYOUT: " + c + " parent=" + c.getParent());
             // ideally, this should be done depth-first, but it appears to be
             // working for the moment...
             try {
@@ -844,8 +960,9 @@ public class LWMap extends LWContainer
         }
         */
         
+        flushBounds(); // TODO: optimize: need a bounds event yet again
         super.notifyLWCListeners(e);
-        flushBounds();
+
     }
     
     private void flushBounds() {
@@ -863,14 +980,28 @@ public class LWMap extends LWContainer
         mChanges++;
     }
     
-    @Override
-    public java.awt.geom.Rectangle2D.Float getBounds() {
-        return getBounds(Short.MAX_VALUE);
-    }
+//     @Override
+//     public java.awt.geom.Rectangle2D.Float getBounds() {
+//         return getBounds(Short.MAX_VALUE);
+//     }
     
-    public java.awt.geom.Rectangle2D.Float getBounds(int maxLayer) {
-        if (true||mCachedBounds == null) {
-            mCachedBounds = getBounds(getChildIterator(), maxLayer);
+//    public java.awt.geom.Rectangle2D.Float getBounds(int maxLayer) {
+
+    @Override
+    public Rectangle2D.Float getBounds() {
+
+        // TODO: OPTIMIZE!  This is getting called EIGHT (8) times per event --
+        // e.g. computing the entire bounds of the map 8 times per mouse drag when
+        // moving a component around.  All of them seem to be coming from
+        // adjustCanvasSize in MapViewer, which is being called every time we get an
+        // event.  We may finally want that isBoundsEvent flag in LWComponent.Key,
+        // either that, or have a special info-only bounds event delivered any time the
+        // bounds change, so parties interested in bounds changes (MapViewer's,
+        // LWGroup's) could pay attention to just that event.
+        
+        if (mCachedBounds == null) {
+            //mCachedBounds = getBounds(getChildIterator(), maxLayer);
+            mCachedBounds = getPaintBounds(getChildIterator());
             takeSize(mCachedBounds.width, mCachedBounds.height);
             //takeLocation(mCachedBounds.x, mCachedBounds.y);
             /*
@@ -884,10 +1015,12 @@ public class LWMap extends LWContainer
             //System.out.println(getLabel() + " cachedBounds: " + mCachedBounds);
             //if (!DEBUG.SCROLL && !DEBUG.CONTAINMENT)
             //mCachedBoundsOld = false;
+            //if (DEBUG.CONTAINMENT && DEBUG.META)
+            if (DEBUG.CONTAINMENT)
+                System.out.println("COMPUTED BOUNDS: " + mCachedBounds + " " + this);
         }
         //setSize((float)bounds.getWidth(), (float)bounds.getHeight());
-        if (DEBUG.CONTAINMENT && DEBUG.META)
-            out("computed bounds: " + mCachedBounds);
+            //new Throwable("computedBounds").printStackTrace();
         return mCachedBounds;
     }
     
@@ -898,21 +1031,25 @@ public class LWMap extends LWContainer
     }
      */
     
-    public static Rectangle2D.Float getBounds(java.util.Iterator<LWComponent> i) {
-        return getBounds(i, Short.MAX_VALUE);
-    }
+//     public static Rectangle2D.Float getBounds(Iterator<LWComponent> i) {
+//         return getBounds(i, Short.MAX_VALUE);
+//     }
+
+    /** this object returned if getBounds result had no contents / produced no actual bounds */
+    public static final Rectangle2D.Float EmptyBounds = new Rectangle2D.Float();
     
     /**
      * return the bounds for all LWComponents in the iterator
-     * (includes shape stroke widhts)
      */
-    public static Rectangle2D.Float getBounds(java.util.Iterator<LWComponent> i, int maxLayer) {
+    //public static Rectangle2D.Float getBounds(Iterator<LWComponent> i, int maxLayer)
+    public static Rectangle2D.Float getBounds(Iterator<LWComponent> i)
+    {
         Rectangle2D.Float rect = null;
         
         while (i.hasNext()) {
-            LWComponent c = i.next();
-            if (c.getLayer() > maxLayer)
-                continue;
+            final LWComponent c = i.next();
+//             if (c.getLayer() > maxLayer)
+//                 continue;
             if (c.isDrawn()) {
                 if (rect == null) {
                     rect = new Rectangle2D.Float();
@@ -921,15 +1058,35 @@ public class LWMap extends LWContainer
                     rect.add(c.getBounds());
             }
         }
-        return rect == null ? new Rectangle2D.Float() : rect;
+        return rect == null ? EmptyBounds : rect;
+        //return rect == null ? new Rectangle2D.Float() : rect;
     }
+
+    public static Rectangle2D.Float getPaintBounds(Iterator<LWComponent> i)
+    {
+        Rectangle2D.Float rect = null;
+        
+        while (i.hasNext()) {
+            final LWComponent c = i.next();
+            if (c.isDrawn()) {
+                if (rect == null) {
+                    rect = new Rectangle2D.Float();
+                    rect.setRect(c.getPaintBounds());
+                } else
+                    rect.add(c.getPaintBounds());
+            }
+        }
+        return rect == null ? EmptyBounds : rect;
+        //return rect == null ? new Rectangle2D.Float() : rect;
+    }
+    
     
     /**
      * return the shape bounds for all LWComponents in the iterator
      * (does NOT include stroke widths) -- btw -- would make
      * more sense to put these in the LWContainer class.
      */
-    public static Rectangle2D getShapeBounds(java.util.Iterator<LWComponent> i) {
+    public static Rectangle2D getShapeBounds(Iterator<LWComponent> i) {
         Rectangle2D rect = new Rectangle2D.Float();
         
         if (i.hasNext()) {

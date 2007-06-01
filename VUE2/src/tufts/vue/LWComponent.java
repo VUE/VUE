@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.290 $ / $Date: 2007-05-25 21:49:09 $ / $Author: sfraize $
+ * @version $Revision: 1.291 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -198,7 +198,7 @@ public class LWComponent
     public LWComponent()
     {
         if (DEBUG.PARENTING)
-            System.out.println("LWComponent construct of " + getClass().getName() + Integer.toHexString(hashCode()));
+            System.out.println("LWComponent construct of " + getClass().getName() + "." + Integer.toHexString(hashCode()));
         // TODO: shouldn't have to create a node filter for every one of these constructed...
         nodeFilter = new NodeFilter();
         mSupportedPropertyKeys = Key.PropertyMaskForClass(getClass());
@@ -2227,7 +2227,7 @@ u                    getSlot(c).setFromString((String)value);
     /** for tracking who's linked to us */
     void addLinkRef(LWLink link)
     {
-        if (DEBUG.EVENTS||DEBUG.UNDO) out(this + " adding link ref to " + link);
+        if (DEBUG.UNDO) out(this + " adding link ref to " + link);
         if (mLinks.contains(link)) {
             //tufts.Util.printStackTrace("addLinkRef: " + this + " already contains " + link);
             if (DEBUG.Enabled) VUE.Log.warn("addLinkRef: " + this + " already contains " + link);
@@ -2546,6 +2546,25 @@ u                    getSlot(c).setFromString((String)value);
             return getParentOfType(clazz);
     }
 
+    public LWComponent getTopMostAncestorOfType(Class clazz) {
+        LWComponent topAncestor = getAncestorOfType(clazz);
+        LWComponent nextAncestor = topAncestor;
+
+        if (nextAncestor != null) {
+            for (;;) {
+                nextAncestor = nextAncestor.getParentOfType(clazz);
+                if (nextAncestor != null)
+                    topAncestor = nextAncestor;
+                else
+                    break;
+                //if (DEBUG.PICK) out("nextAncestor of type " + clazz + ": " + topAncestor);
+            }
+        }
+        
+        return topAncestor;
+    }
+    
+
     /** @return by default, return the class object as returned by getClass().  Subclasses can override to provide differentiation between runtime sub-types.
      * E.g., a node class could return getClass() by default, but the constant string "textNode" for runtime instances that we
      * want the tool code to treat is coming from a different class.  Also note that supported property bits for
@@ -2573,9 +2592,13 @@ u                    getSlot(c).setFromString((String)value);
         if (DEBUG.LAYOUT) out("setScale " + scale);
         if (DEBUG.LAYOUT) tufts.Util.printClassTrace("tufts.vue", "setScale " + scale);
         this.scale = scale;
-        if (VUE.RELATIVE_COORDS) {
-            notify(LWKey.Scale, oldScale); // todo: make scale a real property
-        }
+        
+//         // can only do this via debug inspector right now, and is causing lots of
+//         // suprious events during init:
+//         if (VUE.RELATIVE_COORDS) { 
+//             notify(LWKey.Scale, oldScale); // todo: make scale a real property
+//         }
+        
         updateConnectedLinks();
         //System.out.println("Scale set to " + scale + " in " + this);
     }
@@ -2906,13 +2929,13 @@ u                    getSlot(c).setFromString((String)value);
 
     protected double getMapXPrecise()
     {
-        if (parent == null || parent.hasAbsoluteMapLocation())
+        if (parent == null || parent.hasAbsoluteChildren())
             return getX();
         else
             return parent.getMapXPrecise() + getX() * parent.getMapScale();
     }
     protected double getMapYPrecise() {
-        if (parent == null || parent.hasAbsoluteMapLocation())
+        if (parent == null || parent.hasAbsoluteChildren())
             return getY();
         else
             return parent.getMapYPrecise() + getY() * parent.getMapScale();
@@ -3049,8 +3072,8 @@ u                    getSlot(c).setFromString((String)value);
             strokeWidth += LWPathway.PathwayStrokeWidth;
 
         if (VUE.RELATIVE_COORDS) {
-            b = new Rectangle2D.Float(getMapX(), getMapY(), getMapWidth(), getMapHeight());
-            strokeWidth *= getMapScale();
+            //b = new Rectangle2D.Float(getMapX(), getMapY(), getMapWidth(), getMapHeight());
+            b = getBounds();
         } else {
             b = new Rectangle2D.Float(this.x, this.y, getMapWidth(), getMapHeight());
         }
@@ -3063,6 +3086,8 @@ u                    getSlot(c).setFromString((String)value);
         //    strokeWidth = STROKE_INDICATION.getLineWidth();
 
         if (strokeWidth > 0) {
+            if (VUE.RELATIVE_COORDS)
+                strokeWidth *= getMapScale();
             final float adj = strokeWidth / 2;
             b.x -= adj;
             b.y -= adj;
@@ -3622,7 +3647,7 @@ u                    getSlot(c).setFromString((String)value);
 
         if (dc.drawPathways() && dc.focal != this)
             drawPathwayDecorations(dc);
-        
+
         if (drawSlide) {
 
             drawRaw(dc);
