@@ -581,7 +581,7 @@ public class Util
         };
 
     /** Convenience class: provides a single element iterator */
-    public static class SingleIterator implements java.util.Iterator {
+    public static class SingleIterator implements java.util.Iterator, Iterable {
         private Object object;
         public SingleIterator(Object o) {
             object = o;
@@ -589,10 +589,11 @@ public class Util
         public boolean hasNext() { return object != null; }
         public Object next() { if (object == null) throw new NoSuchElementException(); Object o = object; object = null; return o; }
         public void remove() { throw new UnsupportedOperationException(); }
+        public Iterator iterator() { return this; }
     };
     
     /** Convenience class: provides an array iterator */
-    public static class ArrayIterator implements java.util.Iterator {
+    public static class ArrayIterator implements java.util.Iterator, Iterable {
         private Object[] array;
         private int index;
         public ArrayIterator(Object[] a) {
@@ -602,6 +603,7 @@ public class Util
         public boolean hasNext() { return index < array.length; }
         public Object next() { return array[index++]; }
         public void remove() { throw new UnsupportedOperationException(); }
+        public Iterator iterator() { return this; }
     };
 
     /** GroupIterator allows you to construct a new iterator that
@@ -1042,8 +1044,9 @@ public class Util
         if (p == null)
             return "<null Point2D>";
         else
-            return oneDigitDecimal(p.getX()) + "," + oneDigitDecimal(p.getY());
-            
+            return String.format("%.1f,%.1f", p.getX(), p.getY());
+
+        //return oneDigitDecimal(p.getX()) + "," + oneDigitDecimal(p.getY());
         //return (float)p.getX() + "," + (float)p.getY();
     }
     
@@ -1182,8 +1185,16 @@ public class Util
     }
 
     private final static String NO_CLASS_FILTER = "";
-    private final static String TERM_RED = "\033[1;31m";        // common terminal code for the color red
-    private final static String TERM_CLEAR = "\033[m";
+
+    // Common escape codes for terminal text colors:
+    public static final String TERM_RED = "\033[1;31m";        
+    public static final String TERM_GREEN = "\033[1;32m";
+    public static final String TERM_YELLOW = "\033[1;33m";
+    public static final String TERM_BLUE = "\033[1;34m";
+    public static final String TERM_PURPLE = "\033[1;35m";
+    public static final String TERM_CYAN = "\033[1;36m";
+    public static final String TERM_CLEAR = "\033[m";
+        
 
     /** print stack trace items only from fully qualified class names that match the given prefix */
     public static void printClassTrace(Throwable t, String prefix, String message, java.io.PrintStream s) {
@@ -1466,7 +1477,5 @@ public class Util
     }
 
     
-    
-        
     
 }
