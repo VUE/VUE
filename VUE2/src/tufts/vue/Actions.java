@@ -462,8 +462,8 @@ public class Actions implements VueConstants
             Collection pasted = duplicatePreservingLinks(ScratchBuffer.iterator());
             Point2D.Float pasteLocation = VUE.getActiveViewer().getLastMousePressMapPoint();
             MapDropTarget.setCenterAt(pasted, pasteLocation);
-            parent.addChildren(pasted.iterator());
-            VUE.getSelection().setTo(pasted.iterator());
+            parent.addChildren(pasted);
+            VUE.getSelection().setTo(pasted);
         }
 
         
@@ -1219,7 +1219,7 @@ public class Actions implements VueConstants
     
     static class NewItemAction extends VueAction {
         static LWComponent lastItem = null;
-        static Point lastMousePress = null;
+        static Point lastMouse = null;
         static Point2D lastLocation = null;
         
         NewItemAction(String name, KeyStroke keyStroke) {
@@ -1235,17 +1235,20 @@ public class Actions implements VueConstants
 
         public void act() {
             final MapViewer viewer = VUE.getActiveViewer();
-            final Point mousePress = viewer.getLastMousePoint();
-            final Point2D newLocation = viewer.screenToMapPoint(mousePress);
+            final Point currentMouse = viewer.getLastMousePoint();
+            final Point2D newLocation = viewer.screenToMapPoint(currentMouse);
             
-            if (mousePress.equals(lastMousePress) && lastItem.getLocation().equals(lastLocation)) {
+            if (currentMouse.equals(lastMouse) && lastItem.getLocation().equals(lastLocation)) {
+                // would it be better to just put in a column instead of staggering?
+                // staggering (the x adjustment) does give them more flexibility on future
+                // arrange actions tho.
                 newLocation.setLocation(lastLocation.getX() + 10,
-                lastLocation.getY() + lastItem.getBoundsHeight());
+                                        lastLocation.getY() + lastItem.getBoundsHeight());
             }
-            
+
             lastItem = createNewItem(viewer, newLocation);
             lastLocation = newLocation;
-            lastMousePress = mousePress;
+            lastMouse = currentMouse;
         }
         
         /**

@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.92 $ / $Date: 2007-05-30 18:23:02 $ / $Author: sfraize $
+ * @version $Revision: 1.93 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -856,7 +856,12 @@ public class PathwayPanel extends JPanel
         	}
         }
         else if (btn == btnAddSlide)  { pathway.add(VUE.getSelection().iterator()); }
-        else if (btn == btnMergeInto)  { pathway.addMergedSlide(VUE.getSelection()); }
+        else if (btn == btnMergeInto)  {
+            final LWComponent node = pathway.createMergedNode(VUE.getSelection());
+            node.setLocation(VUE.getActiveViewer().getLastMousePressMapPoint());
+            VUE.getActiveViewer().getMap().add(node);
+            pathway.add(node);
+        }
         else if (btn == btnLiveMap)  {
             LWPortal portal = LWPortal.create();
             pathway.getMap().add(portal);

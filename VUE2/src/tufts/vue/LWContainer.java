@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.116 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
+ * @version $Revision: 1.117 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -200,37 +200,29 @@ public abstract class LWContainer extends LWComponent
         removeChildren(new VueUtil.SingleIterator(c));
     }
 
-    /**
-     * This will add the given list of children to the LWContainer, and
-     * will sort the add list by Y value first in case this container has
-     * a controlled layout that is vertical.
-     */
-
-    public void addChildren(List addList)
-    {
-        LWComponent[] toAdd = (LWComponent[]) addList.toArray(new LWComponent[addList.size()]);
-        if (this instanceof LWGroup) {
-            if (toAdd[0].getParent() == null) {
-                // if first item in list has no parent, we assume none do (they're
-                // system drag or paste orphans), and we can't sort them based
-                // on layer, so we leave them alone for now until all nodes have a z-order
-                // value.
-            } else {
-                java.util.Arrays.sort(toAdd, LayerSorter);
-            }
-        } else {
-            java.util.Arrays.sort(toAdd, LWComponent.YSorter);
-        }
-        addChildren(toAdd);
-    }
+//     public void addChildrenPreservingOrder(List addList)
+//     {
+//         LWComponent[] toAdd = (LWComponent[]) addList.toArray(new LWComponent[addList.size()]);
+//         if (this instanceof LWGroup) {
+//             if (toAdd[0].getParent() == null) {
+//                 // if first item in list has no parent, we assume none do (they're
+//                 // system drag or paste orphans), and we can't sort them based
+//                 // on layer, so we leave them alone for now until all nodes have a z-order
+//                 // value.
+//             } else {
+//                 java.util.Arrays.sort(toAdd, LayerSorter);
+//             }
+//         } else {
+//             java.util.Arrays.sort(toAdd, LWComponent.YSorter);
+//         }
+//         addChildren(toAdd);
+//     }
     
     /** If all the children do not have the same parent, the sort order won't be 100% correct. */
-    private static final java.util.Comparator LayerSorter = new java.util.Comparator() {
-            public int compare(Object o1, Object o2) {
-                LWComponent c1 = (LWComponent) o1;
-                LWComponent c2 = (LWComponent) o2;
-                LWContainer parent1 = c1.getParent();
-                LWContainer parent2 = c2.getParent();
+    private static final Comparator<LWComponent> LayerSorter = new Comparator<LWComponent>() {
+            public int compare(LWComponent c1, LWComponent c2) {
+                final LWContainer parent1 = c1.getParent();
+                final LWContainer parent2 = c2.getParent();
 
                 // We can't get z-order on a node if it's an orphan (no
                 // parent), which is what any paste's or system drags
@@ -246,31 +238,70 @@ public abstract class LWContainer extends LWComponent
             }
         };
     
-    protected void addIterable(Iterable<LWComponent> iterable)
-    {
-        addChildren(iterable.iterator());
-    }
+    // public void addChildren(Iterator<LWComponent> i) {}
+
     
+    /** Add the given LWComponents to us as children, using the order they appear in the array
+     * for child order (z-order and/or visual order, depending on component impl) */
     protected void addChildren(LWComponent[] toAdd)
     {
+        // note: as ArrayIterator is not a collection, it won't
+        // be re-sorted below.
         addChildren(new tufts.Util.ArrayIterator(toAdd));
     }
     
-    public void addChildren(Iterator<LWComponent> i)
+    /**
+     * This will add the contents of the iterable as children to the LWContainer.  If
+     * the iterable is a Collection of size greater than 1, we will sort the add list
+     * by Y value first to preserve any visual ordering that may be present as best
+     * we can (e.g., a vertical arrangement of nodes on a map, if dropped into a node,
+     * should keep that order in the node's vertical layout.  So we apply the
+     * on-map Y-ordering to the natural order).
+
+     * Special case: if we're a Group, we sort by z-order to preserve visual layer.
+     */
+    @Override
+    public void addChildren(Iterable<LWComponent> iterable)
     {
         notify(LWKey.HierarchyChanging);
+
+        if (iterable instanceof Collection && ((Collection)iterable).size() > 1) {
+
+            // Do what we can to preserve any meaninful order already
+            // present in the new incoming children.
+
+            final Collection<LWComponent> bag = (Collection) iterable;
+            final LWComponent[] sorted = bag.toArray(new LWComponent[bag.size()]);
+
+            // If we're a group, use the LayerSorted if we can for the add order,
+            // otherwise, everything else uses the YSorter
+            
+            if (this instanceof LWGroup) {
+                if (sorted[0].getParent() == null) {
+                    // if first item in list has no parent, we assume none do (they're
+                    // system drag or paste orphans), and we can't sort them based
+                    // on layer, so we leave them alone for now until all nodes have a z-order
+                    // value.
+                } else {
+                    java.util.Arrays.sort(sorted, LayerSorter);
+                }
+            } else {
+                java.util.Arrays.sort(sorted, LWComponent.YSorter);
+            }
+            iterable = new tufts.Util.ArrayIterator(sorted);
+        }
         
-        ArrayList<LWComponent> addedChildren = new ArrayList();
-        while (i.hasNext()) {
-            LWComponent c = i.next();
+        final List<LWComponent> addedChildren = new ArrayList();
+
+        for (LWComponent c : iterable) {
             addChildImpl(c);
             addedChildren.add(c);
         }
 
         // need to do this afterwords so everyone has a parent to check
-        Iterator<LWComponent> in = addedChildren.iterator();
-        while (in.hasNext())
-            ensureLinksPaintOnTopOfAllParents(in.next());
+        for (LWComponent c : addedChildren)
+            ensureLinksPaintOnTopOfAllParents(c);
+        
         
         if (addedChildren.size() > 0) {
             notify(LWKey.ChildrenAdded, addedChildren);
@@ -280,7 +311,7 @@ public abstract class LWContainer extends LWComponent
             layout();
         }
     }
-    
+
     
     /**
      * Remove any children in this iterator from this container.
@@ -970,11 +1001,15 @@ public abstract class LWContainer extends LWComponent
 
     void setScaleOnChild(double scale, LWComponent c)
     {
-        // vanilla containers don't scale down their children -- only nodes do
-        if (VUE.RELATIVE_COORDS)
-            ; //throw new Error("relative coordinate impl doesn't apply parent scale to child scale");
-        else
-            c.setScale(scale);
+        // need this for undo of dropping a node into another node: when re-parented
+        // back to the map, it needs to get it's default scale back.
+        c.setScale(scale);
+        
+//         // vanilla containers don't scale down their children -- only nodes do
+//         if (VUE.RELATIVE_COORDS)
+//             ; //throw new Error("relative coordinate impl doesn't apply parent scale to child scale");
+//         else
+//             c.setScale(scale);
     }
 
     /**

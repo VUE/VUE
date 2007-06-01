@@ -354,10 +354,16 @@ public class NodeTool extends VueTool
     	
         /** @return a new node with the default VUE new-node label, initialized with a style from the current editor property states */
         public static LWNode createNewNode() {
-            LWNode node = createDefaultNode(VueResources.getString("newnode.html"));
+            return createNewNode(VueResources.getString("newnode.html"));
+        }
+
+        /** @return a new node with the given label, initialized with a style from the current editor property states */
+        public static LWNode createNewNode(String label) {
+            LWNode node = createDefaultNode(label);
             EditorManager.targetAndApplyCurrentProperties(node);
             return node;
         }
+        
 
                 
         /** @return a new node with the given label initialized to internal VUE defaults -- ignore tool states */

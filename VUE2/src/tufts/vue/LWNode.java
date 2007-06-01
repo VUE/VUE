@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.165 $ / $Date: 2007-05-23 03:47:34 $ / $Author: sfraize $
+ * @version $Revision: 1.166 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -697,7 +697,8 @@ public class LWNode extends LWContainer
 
 
     @Override
-    public void addChildren(Iterator i)
+    //public void addChildren(Iterator i)
+    public void addChildren(Iterable i)
     {
         // todo: should be able to do this generically
         // in LWContainer and not have to override this here.

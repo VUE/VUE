@@ -72,7 +72,7 @@ public class PresentationTool extends VueTool
     //private int mPathwayIndex = 0;
     //private LWPathway.Entry mEntry;
 
-    private boolean mFadeEffect = !DEBUG.Enabled;
+    private boolean mFadeEffect = true;
     private boolean mShowNavigator = DEBUG.NAV;
     private boolean mShowNavNodes = false;
     private boolean mForceShowNavNodes = false;

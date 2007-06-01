@@ -42,7 +42,7 @@ import java.awt.geom.AffineTransform;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.64 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -266,7 +266,7 @@ public class LWGroup extends LWContainer
             // as this group will be dissapeared at the end of this operation anyway
             // TODO: this is probably screwing up UNDO tho...
             //this.children.clear();
-            newParent.addChildren(tmpChildren.iterator());
+            newParent.addChildren(tmpChildren);
         }
         getParent().deleteChildPermanently(this);
     }

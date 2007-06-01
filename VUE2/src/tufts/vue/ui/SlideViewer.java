@@ -415,7 +415,7 @@ if (true) return;
 
             isMapView = entry.isMapView();
             btnMapView.setSelected(isMapView);
-            btnRebuild.setEnabled(!entry.isMergedSlide());
+            btnRebuild.setEnabled(!entry.isOffMapSlide());
             btnRevert.setEnabled(true);
             btnRevert.setText(lblRevertOnSlide);
             focal = entry.getFocal();

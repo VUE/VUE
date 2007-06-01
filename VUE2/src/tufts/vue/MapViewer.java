@@ -67,7 +67,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.398 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.399 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1004,7 +1004,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return new Point(lastMousePressX, lastMousePressY);
     }
     /** last place mouse pressed in map coords */
-    Point2D.Float getLastMousePressMapPoint() {
+    public Point2D.Float getLastMousePressMapPoint() {
         return screenToMapPoint(lastMousePressX, lastMousePressY);
     }
     
@@ -1012,9 +1012,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         lastMouseX = x;
         lastMouseY = y;
     }
-    /** last place mouse was either pressed or released */
-    Point getLastMousePoint() {
+    
+    /** last place mouse was either pressed or released (canvas coordinates) */
+    public Point getLastMousePoint() {
         return new Point(lastMouseX, lastMouseY);
+    }
+
+    /** last place mouse was either pressed or released (map coordinates) */
+    public Point2D.Float getLastMapMousePoint() {
+        return screenToMapPoint(getLastMousePoint());
     }
     
     public LWMap getMap() {// TODO: make PRIVATE and then clean up to use focals instead as needed (e.g., for drops)
@@ -2783,7 +2789,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 
                 if (parent instanceof LWGroup && !parent.isSelected() && (parentGroups == null || !parentGroups.contains(parent))) {
                     dc.g.setTransform(rawMapTransform);
-                    drawSelectionGhost(dc, c.getParent());
+                    drawSelectionGhost(dc, parent);
 
                     if (parentGroups == null) {
                         // todo: performance

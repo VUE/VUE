@@ -723,9 +723,9 @@ public class UndoManager
                 final Object key = e.getKey();
                 if (debug) {
                     if (DEBUG.Enabled) System.out.println("");
-                    VUE.Log.debug("RUNNING CLEANUP TASK in " + this
-                                  + "\n\ttask: " + task
-                                  + "\n\t key: " + key);
+                    VUE.Log.info("RUNNING CLEANUP TASK in " + this
+                                 + "\n\ttask: " + task
+                                 + "\n\t key: " + key);
                 }
                 task.run();
             }

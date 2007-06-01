@@ -44,7 +44,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.291 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
+ * @version $Revision: 1.292 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2175,13 +2175,25 @@ u                    getSlot(c).setFromString((String)value);
         return true;
     }
 
-    void addChild(LWComponent c) {
-        throw new UnsupportedOperationException(this + ": can't take children. ignored=" + c);
+    /**
+     * Although unsupported on LWComponents (must be an LWContainer subclass to support children),
+     * this method appears here for typing convenience and debug.  If a non LWContainer subclass
+     * calls this, it's a no-op, and a diagnostic stack trace is dumped to the console.
+     */
+    public void addChild(LWComponent c) {
+        Util.printStackTrace(this + ": can't take children; ignored new child: " + c);
     }
 
-    void addChildren(java.util.List children) {
-        throw new UnsupportedOperationException(this + ": can't take children. ignored=" + children);
+    /**
+     * Although unsupported on LWComponents (must be an LWContainer subclass to support children),
+     * this method appears here for typing convenience and debug.  If a non LWContainer subclass
+     * calls this, it's a no-op, and a diagnostic stack trace is dumped to the console.
+     */
+    public void addChildren(Iterable<LWComponent> iterable) {
+        Util.printStackTrace(this + ": can't take children; ignored iterable: " + iterable);
     }
+
+    
 
     /** return true if this component is only a "virutal" member of the map:
      * It may report that it's parent is in the map, but that parent doesn't
@@ -3882,7 +3894,7 @@ u                    getSlot(c).setFromString((String)value);
     /**a notify with an array of components
        added by Daisuke Fujiwara
      */
-    protected void notify(String what, ArrayList componentList)
+    protected void notify(String what, List<LWComponent> componentList)
     {
         notifyLWCListeners(new LWCEvent(this, componentList, what));
     }

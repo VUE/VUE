@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.70 $ / $Date: 2007-05-21 04:30:46 $ / $Author: sfraize $  
+ * @version $Revision: 1.71 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -175,7 +175,7 @@ class MapDropTarget
         final Transferable transfer;
         final Point2D.Float location;   // map location of the drop
         final Collection items;         // bag of Objects in the drop
-        final List list;                // convience reference to items if it is a List
+        final List<LWComponent> list;   // convience reference to items if it is a List
         final String text;              // only one of items+list or text
         final LWComponent hit;          // we dropped into this component
         final LWContainer hitParent;    // we dropped into this component, and it can take children
@@ -223,6 +223,9 @@ class MapDropTarget
 
         Point2D nextDropLocation() {
             Point2D p = new Point.Float(nextX, nextY);
+            // todo: either track height of last item created on drop,
+            // so can adjust for actual height, or just "make-column"
+            // on the whole drop after it's done.
             nextX += 15;
             nextY += 15;
             return p;

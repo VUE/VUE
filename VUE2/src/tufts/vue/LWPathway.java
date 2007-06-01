@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.161 $ / $Date: 2007-05-18 04:44:44 $ / $Author: sfraize $
+ * @version $Revision: 1.162 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -119,7 +119,7 @@ public class LWPathway extends LWContainer
             this.slide = partial.slide;
             this.isMapView = partial.isMapView;
             this.notes = partial.notes;
-            if (isMergedSlide() && slide != null)
+            if (isOffMapSlide() && slide != null)
                 slide.enableProperty(LWKey.Label);
         }
         
@@ -190,7 +190,7 @@ public class LWPathway extends LWContainer
             
 // During restores, until node is set, we always think we're a merged slide, and isMapView never gets restored!
 // This is just a redundancy check anyway for runtime testing.
-//             if (asMapView && isMergedSlide()) {
+//             if (asMapView && isOffMapSlide()) {
 //                 tufts.Util.printStackTrace("merged slide can't have map view");
 //             } else {
 //                 isMapView = asMapView;
@@ -209,16 +209,18 @@ public class LWPathway extends LWContainer
                 || (node != null && node.isTranslucent());
         }
 
-        public boolean isMergedSlide() {
-            return node == null;
+        /** @return false for now: merged slides are not super-special at the moment -- they always have a node behind on the map */
+        public boolean isOffMapSlide() {
+            return false;
+            //return node == null;
         }
 
         /** @return true if this entry can support more than one presentation display mode
          * (e.g., a map view v.s. a slide view)
          */
         public boolean hasVariableDisplayMode() {
-            return !isMergedSlide();
-            //return !isMergedSlide() && !(node instanceof LWPortal);
+            return !isOffMapSlide();
+            //return !isOffMapSlide() && !(node instanceof LWPortal);
         }
 
         /** @return true if there is a map node associated with this entry, and it should only
@@ -656,28 +658,38 @@ public class LWPathway extends LWContainer
          }
     }
 
+    /*
     public void addMergedSlide(LWSelection selection)
     {
-        // Could use a HashSet to force unique, but we want to
-        // keep the order.
-        Collection<LWComponent> allContents = new ArrayList<LWComponent>() {
-                public boolean add(LWComponent c) {
-                    if (contains(c)) {
-                        return false;
-                    } else {
-                        return super.add(c);
-                    }
-                }
-            };
+        final Collection<LWComponent> mergedContents = new LinkedHashSet(); // preserve's insertion order
+        
         for (LWComponent c : selection) {
-            allContents.add(c);
-            c.getAllDescendents(ChildKind.PROPER, allContents);
+            mergedContents.add(c);
+            c.getAllDescendents(ChildKind.PROPER, mergedContents);
         }
-        Entry e = new Entry(this, allContents);
+        Entry e = new Entry(this, mergedContents);
         List<Entry> newEntries = cloneEntries();
         newEntries.add(e);
         setEntries("pathway.add", newEntries, newEntries.size() - 1);
     }
+    */
+
+    public LWComponent createMergedNode(Collection<LWComponent> selection)
+    {
+        final Collection<LWComponent> mergedContents = new LinkedHashSet(); // preserve's insertion order
+        
+        for (LWComponent c : selection) {
+            mergedContents.add(c);
+            c.getAllDescendents(ChildKind.PROPER, mergedContents);
+        }
+
+        final LWNode node = NodeModeTool.createNewNode("Merged Node"); // why can't we just use "NodeTool" here?
+
+        node.addChildren(Actions.duplicatePreservingLinks(mergedContents.iterator()));
+
+        return node;
+    }
+    
 
 
     /** @param index is ignored if toRemove is non-null */

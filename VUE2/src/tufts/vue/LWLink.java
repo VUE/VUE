@@ -38,7 +38,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.150 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
+ * @version $Revision: 1.151 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
@@ -1162,7 +1162,7 @@ public class LWLink extends LWComponent
 
     @Override
     protected void takeLocation(float x, float y) {
-        VUE.Log.warn("takeLocation on Link: " + this);
+        VUE.Log.debug("takeLocation on Link: " + this);
         setLocation(x, y);
     }
     
