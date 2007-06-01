@@ -13,15 +13,17 @@
  * <p>The entire file consists of original code.  Copyright &copy; 2003-2007
  * Tufts University. All rights reserved.</p>
  *
+ * *****************************************
  *
- */
-
-/*
  * WeightVisualizationSettingsPanel.java
  *
  * Created on February 2, 2007, 3:47 PM
  *
+ * @version $Revision: 1.23 $ / $Date: 2007-06-01 18:44:49 $ / $Author: dan $
  * @author dhelle01
+ *
+ *
+ *
  */
 
 package edu.tufts.vue.compare.ui;
@@ -79,6 +81,11 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     private JLabel parameterChoiceMessage;
     
     private static WeightVisualizationSettingsPanel panel = new WeightVisualizationSettingsPanel();
+    
+    private int nodePaletteChoice = 0;
+    private int linkPaletteChoice = 0;
+    
+    private boolean skipPaletteApplication = false;
     
     public static WeightVisualizationSettingsPanel getSharedPanel()
     {
@@ -340,6 +347,20 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         if(e.getSource() == parameterChoice)
         {
             setModel();
+            if(parameterChoice.getSelectedIndex() == 0)
+            {
+                nodePaletteChoice = paletteChoice.getSelectedIndex();
+                skipPaletteApplication = true;
+                paletteChoice.setSelectedIndex(linkPaletteChoice);
+                skipPaletteApplication = false;
+            }
+            else
+            {
+                linkPaletteChoice = paletteChoice.getSelectedIndex();
+                skipPaletteApplication = true;
+                paletteChoice.setSelectedIndex(nodePaletteChoice); 
+                skipPaletteApplication = false;
+            }
             validate();
         }
         if(e.getSource() == paletteChoice)
@@ -349,6 +370,8 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             {
                 nodeOrLink = "link";
             }
+            if(skipPaletteApplication)
+                return;
             int i = 1;
             Iterator<Color> colors = ((Colors)(paletteChoice.getSelectedItem())).getColors().iterator();
             while(colors.hasNext())
