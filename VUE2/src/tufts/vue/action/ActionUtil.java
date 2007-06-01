@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.56 $ / $Date: 2007-06-01 23:07:49 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2007-06-01 23:20:06 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -697,27 +697,29 @@ public class ActionUtil {
             }
             
             reader.close();
+
+            final File file = new File(url.getFile());
+            final String fileName = file.getName();
             
-            //map.setSavingVersion(savingVersion);
-
-            // This setFile also sets the label name, so it appears as a modification in the map.
-            // So be sure to do completeXMLRestore last, as it will reset the modification count.
-            map.setFile(new File(url.getFile()));
-
             if (map.getModelVersion() > LWMap.CurrentModelVersion) {
                 VueUtil.alert(String.format("The file %s was saved in a newer version of VUE than is currently running.\n"
                                             + "\nThe data model in this file is #%d, and this version of VUE only understands up to model #%d.\n",
-                                            map.getFile(), map.getModelVersion(), LWMap.CurrentModelVersion)
+                                            file, map.getModelVersion(), LWMap.CurrentModelVersion)
                               + "\nVersion of VUE that saved this file:\n        " + savingVersion
                               + "\nCurrent running version of VUE:\n        " + "VUE: built " + tufts.vue.Version.AllInfo
                                 + " (public v" + VueResources.getString("vue.version") + ")"
                               + "\n"
-                              + "\nThis version of VUE may not display this map properly.  If the"
-                              + "\nmap doesn't look correct, do not save this map in this version"
-                              + "\nof VUE, as it may result in data loss."
+                              + "\nThis version of VUE may not display this map properly.  Saving"
+                              + "\nthis map in this version of VUE may result in a corrupted map."
                               ,
-                              String.format("Version Warning: %s", map.getLabel()));
-                
+                              String.format("Version Warning: %s", fileName));
+
+                map.setLabel(fileName + " (as available)");
+                // Skip setting the file: this will force save-as if they try to save.
+            } else {
+                // This setFile also sets the label name, so it appears as a modification in the map.
+                // So be sure to do completeXMLRestore last, as it will reset the modification count.
+                map.setFile(file);
             }
 
             map.completeXMLRestore();
