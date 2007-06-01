@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.55 $ / $Date: 2007-04-16 06:06:08 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2007-06-01 23:07:49 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -281,6 +281,7 @@ public class ActionUtil {
     
 
     private static Mapping getMapping(URL mappingSource) {
+        if (DEBUG.IO) System.out.println("Fetching mapping: " + mappingSource);
         Object result = _loadMapping(mappingSource);
         if (result instanceof Mapping)
             return (Mapping) result;
@@ -502,6 +503,8 @@ public class ActionUtil {
         // we must guess an encoding, and re-open the file using an InputStreamReader with the
         // proper encoding.
 
+        String savingVersion = "unknown VUE version";
+
         for (;;) {
             reader.mark(2048); // a single comment line can't be longer than this...
             String line = reader.readLine();
@@ -535,7 +538,15 @@ public class ActionUtil {
                     if (DEBUG.IO) System.out.println(url + " was saved in the Mac environment");
                     savedOnMacPlatform = true;
                 }
+            } else if (line.startsWith(VUE_COMMENT_START + " Saving version")) {
+                if (DEBUG.IO) System.out.println("Found saving version line: " + line);
+                savingVersion = line.substring(line.indexOf("VUE"), line.length());
+                if (savingVersion.indexOf("-->") > 10)
+                    savingVersion = savingVersion.substring(0, savingVersion.indexOf("-->"));
+                savingVersion = savingVersion.trim();
+                if (DEBUG.IO) System.out.println("Saving version: [" + savingVersion + "]");
             }
+                
             
             
             // Scan the comment line for a version tag to base our mapping on:
@@ -631,13 +642,13 @@ public class ActionUtil {
         if (mapping == null)
             mapping = getDefaultMapping();        
 
-        String encoding = guessedEncoding == null ? DEFAULT_INPUT_ENCODING : guessedEncoding;
+        final String encoding = guessedEncoding == null ? DEFAULT_INPUT_ENCODING : guessedEncoding;
 
-        return unmarshallMap(url, mapping, encoding, oldFormat);
+        return unmarshallMap(url, mapping, encoding, oldFormat, savingVersion);
     }
 
 
-    private static LWMap unmarshallMap(final java.net.URL url, Mapping mapping, String charsetEncoding, boolean allowOldFormat)
+    private static LWMap unmarshallMap(final java.net.URL url, Mapping mapping, String charsetEncoding, boolean allowOldFormat, String savingVersion)
         throws java.io.IOException
     {
         LWMap map = null;
@@ -680,14 +691,36 @@ public class ActionUtil {
                     System.err.println("ActionUtil.unmarshallMap: " + me);
                     System.err.println("Attempting specialized MapResource mapping for old format.");
                     // NOTE: delicate recursion here: won't loop as long as we pass in a non-null mapping.
-                    return unmarshallMap(url, getMapping(XML_MAPPING_OLD_RESOURCES), charsetEncoding, false);
+                    return unmarshallMap(url, getMapping(XML_MAPPING_OLD_RESOURCES), charsetEncoding, false, savingVersion);
                 } else
                     throw me;
             }
             
-            map.setFile(new File(url.getFile()));// appears as a modification, so be sure to do completeXMLRestore last.
-            map.completeXMLRestore();
             reader.close();
+            
+            //map.setSavingVersion(savingVersion);
+
+            // This setFile also sets the label name, so it appears as a modification in the map.
+            // So be sure to do completeXMLRestore last, as it will reset the modification count.
+            map.setFile(new File(url.getFile()));
+
+            if (map.getModelVersion() > LWMap.CurrentModelVersion) {
+                VueUtil.alert(String.format("The file %s was saved in a newer version of VUE than is currently running.\n"
+                                            + "\nThe data model in this file is #%d, and this version of VUE only understands up to model #%d.\n",
+                                            map.getFile(), map.getModelVersion(), LWMap.CurrentModelVersion)
+                              + "\nVersion of VUE that saved this file:\n        " + savingVersion
+                              + "\nCurrent running version of VUE:\n        " + "VUE: built " + tufts.vue.Version.AllInfo
+                                + " (public v" + VueResources.getString("vue.version") + ")"
+                              + "\n"
+                              + "\nThis version of VUE may not display this map properly.  If the"
+                              + "\nmap doesn't look correct, do not save this map in this version"
+                              + "\nof VUE, as it may result in data loss."
+                              ,
+                              String.format("Version Warning: %s", map.getLabel()));
+                
+            }
+
+            map.completeXMLRestore();
         }
         catch (Exception e) 
         {
