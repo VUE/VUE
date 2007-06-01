@@ -18,7 +18,7 @@
 
 package tufts.vue;
 
-import java.util.ArrayList;
+import java.util.List;
 import static tufts.Util.*;
 
 /**
@@ -60,7 +60,7 @@ import static tufts.Util.*;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.27 $ / $Date: 2007-06-01 07:11:30 $ / $Author: sfraize $  
+ * @version $Revision: 1.28 $ / $Date: 2007-06-01 20:31:31 $ / $Author: sfraize $  
  
  */
 
@@ -81,7 +81,7 @@ public class LWCEvent
     public final Object source;
     
     /** a LWCevent can either hold a single component or an array of components: one of them is always null */
-    private ArrayList components = null;
+    private List<LWComponent> components = null;
     public final LWComponent component;
     
     // todo: we still using both src & component?
@@ -97,7 +97,7 @@ public class LWCEvent
         this (source, c, key, NO_OLD_VALUE);
     }
 
-    public LWCEvent(Object source, ArrayList components, Object key)
+    public LWCEvent(Object source, List<LWComponent> components, Object key)
     {
         this.source = source;
         this.components = components;
@@ -131,7 +131,7 @@ public class LWCEvent
     }
     
     
-    public ArrayList getComponents() {
+    public List<LWComponent> getComponents() {
         return this.components;
     }
 
