@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import java.util.ArrayList;
+import static tufts.Util.*;
 
 /**
 
@@ -59,7 +60,7 @@ import java.util.ArrayList;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.26 $ / $Date: 2007-05-11 00:52:46 $ / $Author: sfraize $  
+ * @version $Revision: 1.27 $ / $Date: 2007-06-01 07:11:30 $ / $Author: sfraize $  
  
  */
 
@@ -180,16 +181,32 @@ public class LWCEvent
     
     public String paramString() 
     {
-        String s =  key + " " + source;
+        //final StringBuffer buf = new StringBuffer(key + " " + source);
+        final StringBuffer buf = new StringBuffer(TERM_PURPLE + key + TERM_CLEAR + " " + source);
         
-        if (component != null && component != source)
-            s += " c:" + component;
-        //basic information.. if more information wants to be stringfied, need to code this part
-        else if (components != null)
-            s += " l:" + components;
-        //s += " ArrayList";
+        if (component != null && component != source) {
+            buf.append(" c=" + component);
+            //basic information.. if more information wants to be stringfied, need to code this part
+        } else if (components != null) {
+            buf.append(" list(" + components.size() + ": ");
+
+            if (components.size() == 1) {
+                buf.append(components.get(0));
+            } else {
+                java.util.Iterator<LWComponent> iter = components.iterator();
+                while (iter.hasNext()) {
+                    LWComponent c = iter.next();
+                    buf.append(c.getUniqueComponentTypeLabel());
+                    if (iter.hasNext())
+                        buf.append(", ");
+                }
+            }
+            buf.append(')');
+        }
+        if (oldValue != null && oldValue != NO_OLD_VALUE)
+            buf.append(" (" + oldValue + ")");
               
-        return s;
+        return buf.toString();
     }
 
 
