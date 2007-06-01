@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.449 $ / $Date: 2007-06-01 23:05:10 $ / $Author: sfraize $ 
+ * @version $Revision: 1.450 $ / $Date: 2007-06-01 23:49:42 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1715,12 +1715,24 @@ public class VUE
         final RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
         rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
         VUE.activateWaitCursor();
+        LWMap loadedMap = null;
+        boolean alerted = false;
         try {
-            LWMap loadedMap = OpenAction.loadMap(file.getAbsolutePath());
-            VUE.displayMap(loadedMap);
+            loadedMap = OpenAction.loadMap(file.getAbsolutePath());
+            if (loadedMap != null)
+                VUE.displayMap(loadedMap);
+        } catch (Throwable t) {
+            VUE.clearWaitCursor();
+            alerted = true;
+            VueUtil.alert("Failed to load map: " + file + "  \n"
+                          + (t.getCause() == null ? t : t.getCause()),
+                          "Map error: " + file);
         } finally {
             VUE.clearWaitCursor();
         }
+        if (loadedMap == null && !alerted)
+            VueUtil.alert("Failed to load map: " + file + "  \n", "Map error: " + file);
+        
     }
     
     /**

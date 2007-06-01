@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.57 $ / $Date: 2007-06-01 23:20:06 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2007-06-01 23:49:42 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -443,7 +443,7 @@ public class ActionUtil {
 
     /** Unmarshall a LWMap from the given file (XML map data) */
     public static LWMap unmarshallMap(File file)
-        throws java.io.IOException
+        throws IOException
     {
         return unmarshallMap(file.toURL());
         //return unmarshallMap(file.toURI().toURL());
@@ -469,7 +469,7 @@ public class ActionUtil {
     */
     
     public static LWMap unmarshallMap(java.net.URL url)
-        throws java.io.IOException
+        throws IOException
     {
         // We scan for lines at top of file that are comments.  If there are NO comment lines, the
         // file is of one of our original save formats that is not versioned, and that may need
@@ -649,7 +649,8 @@ public class ActionUtil {
 
 
     private static LWMap unmarshallMap(final java.net.URL url, Mapping mapping, String charsetEncoding, boolean allowOldFormat, String savingVersion)
-        throws java.io.IOException
+      //throws IOException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException
+        throws IOException
     {
         LWMap map = null;
 
@@ -724,15 +725,10 @@ public class ActionUtil {
 
             map.completeXMLRestore();
         }
-        catch (Exception e) 
-        {
-            System.err.println("ActionUtil.unmarshallMap: url=" + url);
-            System.err.println("\texception: " + e.getClass());
-            System.err.println("\tcause: " + e.getCause());
-            System.err.println("\t" + e);
-            //System.err.println("\tmessage=" + e.getLocalizedMessage());
-            e.printStackTrace();
+        catch (Exception e) {
+            tufts.Util.printStackTrace(e, "Exception restoring map from [" + url + "]: " + e.getClass().getName());
             map = null;
+            throw new Error("Exception restoring map from [" + url + "]", e);
         }
         
         return map;
