@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.166 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $
+ * @version $Revision: 1.167 $ / $Date: 2007-06-02 01:50:15 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1684,13 +1684,15 @@ public class LWNode extends LWContainer
         float baseY = 0;
 
         if (!sizeOnly) {
-            if (VUE.RELATIVE_COORDS) {
-                baseX = childOffsetX();
-                baseY = childOffsetY();
-            } else {
-                baseX = getX() + childOffsetX() * getScaleF();
-                baseY = getY() + childOffsetY() * getScaleF();
-            }
+            baseX = childOffsetX();
+            baseY = childOffsetY();
+//             if (VUE.RELATIVE_COORDS) {
+//                 baseX = childOffsetX();
+//                 baseY = childOffsetY();
+//             } else {
+//                 baseX = getX() + childOffsetX() * getScaleF();
+//                 baseY = getY() + childOffsetY() * getScaleF();
+//             }
         }
 
         return layoutChildren(baseX, baseY, minWidth, result);
@@ -1705,9 +1707,9 @@ public class LWNode extends LWContainer
         if (DEBUG.LAYOUT) out("*** layoutChildren at " + baseX + "," + baseY);
         if (DEBUG.LAYOUT && DEBUG.META) Util.printClassTrace("tufts.vue.LW", "*** layoutChildren");
         //if (baseX > 0) new Throwable("LAYOUT-CHILDREN").printStackTrace();
-        if (isPresentationContext())
-            layoutChildrenGrid(baseX, baseY, result, 1, minWidth);
-        else
+//         if (isPresentationContext())
+//             layoutChildrenGrid(baseX, baseY, result, 1, minWidth);
+//         else
             layoutChildrenSingleColumn(baseX, baseY, result);
 
         if (result != null) {
@@ -1727,7 +1729,7 @@ public class LWNode extends LWContainer
         float y = baseY;
         float maxWidth = 0;
         boolean first = true;
-        
+
         for (LWComponent c : getChildList()) {
             if (c instanceof LWLink) // todo: don't allow adding of links into a manged layout node!
                 continue;
@@ -1735,7 +1737,13 @@ public class LWNode extends LWContainer
                 first = false;
             else
                 y += ChildVerticalGap * getScale();
-            c.setLocation(baseX, y);
+            if (c.hasAbsoluteMapLocation()) {
+                // this is a hack only for old maps that might have groups inside of nodes --
+                // try and do something reasonable...  this isn't all there tho.
+                c.setLocation(baseX + getX(),
+                              y + getY());
+            } else
+                c.setLocation(baseX, y);
             y += c.getScaledHeight();
 
             if (result != null) {

@@ -42,7 +42,7 @@ import java.awt.geom.AffineTransform;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.65 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2007-06-02 01:50:15 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -61,7 +61,10 @@ public class LWGroup extends LWContainer
 
     @Override
     public boolean supportsReparenting() {
-        return !AbsoluteChildren;
+        //return !AbsoluteChildren;
+        // for now, allow reparenting to the map, but not to anything else
+        // TODO: boolean canParentTo(parentTarget ...
+        return getParent() instanceof LWMap == false;
     }
     
     @Override
@@ -317,6 +320,7 @@ public class LWGroup extends LWContainer
         } else {
             //translateChildrenSilently(dx, dy); // so UNDO works
             translateChildren(dx, dy); // so UNDO works
+            super.takeLocation(x, y); // helps for any old groups inside nodes maps
             //updateBounds("setLocation");
         }
     }

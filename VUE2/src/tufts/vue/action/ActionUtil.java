@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.58 $ / $Date: 2007-06-01 23:49:42 $ / $Author: sfraize $
+ * @version $Revision: 1.59 $ / $Date: 2007-06-02 01:50:15 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -445,6 +445,8 @@ public class ActionUtil {
     public static LWMap unmarshallMap(File file)
         throws IOException
     {
+//         if (file.isDirectory())
+//             throw new Error("Is a directory, not a map: " + file);
         return unmarshallMap(file.toURL());
         //return unmarshallMap(file.toURI().toURL());
     }
