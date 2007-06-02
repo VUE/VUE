@@ -38,7 +38,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.32 $ / $Date: 2007-01-03 05:26:05 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2007-06-02 20:23:12 $ / $Author: dan $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -319,7 +319,7 @@ public class WidgetStack extends Widget
             //All the results Panes have different names so to group the category
             //I did this, maybe Widget should be rewritten so it has a type? instead of using
             //name for this.
-            if (localName.startsWith("Searching "))
+            if (localName.startsWith("Searching ") || localName.startsWith("Loading "))
             	localName = "resultsPane";
             
             if (localName != null) {

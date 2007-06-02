@@ -416,6 +416,8 @@ public class TypeList extends JList {
                     
           setModel(new OntologyTypeListModel(ontology));
           
+          widget.setName(widget.getName().substring(7,widget.getName().length()));
+          
           widget.remove(loadingLabel);
           //repaint();
           //browser.addTypeList(TypeList.this,ontologyURL.getFile());

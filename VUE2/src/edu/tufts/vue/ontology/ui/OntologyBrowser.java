@@ -85,7 +85,7 @@ public class OntologyBrowser extends JPanel {
             }
         });
         
-        Widget w = new Widget(name);
+        Widget w = new Widget("Loading " + name);
         w.add(list);
         resultsStack.addPane(w);
         list.revalidate();
