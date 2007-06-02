@@ -18,6 +18,7 @@
 
 package edu.tufts.vue.ontology.ui;
 
+
 /*
  * OntologyList.java
  *
@@ -63,15 +64,29 @@ public class OntologyList extends javax.swing.JList {
     
     public static class OntologyListRenderer extends javax.swing.DefaultListCellRenderer
     {
+        //private javax.swing.JLabel mLabel = new javax.swing.DefaultListCellRenderer();
+        private javax.swing.border.Border dividerBorder = new tufts.vue.gui.DashBorder(java.awt.Color.LIGHT_GRAY,false,true,false,false);
+        private javax.swing.JLabel importLabel = new javax.swing.JLabel("Import Style Sheet");
+        
         public java.awt.Component getListCellRendererComponent(javax.swing.JList list,Object value,int index,boolean isSelected,boolean hasFocus)
         {
             //javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
             //javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout());
-            javax.swing.JPanel panel = new javax.swing.JPanel();
+            javax.swing.JPanel panel = new javax.swing.JPanel()
+            {
+               public java.awt.Dimension getPreferredSize()
+               {
+                   return new java.awt.Dimension(100,23);
+               }
+            };
+           // panel.setPreferredSize(new javax.swing.DefaultListCellRenderer().getPreferredSize());
             panel.setLayout(new javax.swing.BoxLayout(panel,javax.swing.BoxLayout.X_AXIS));
-            panel.setBorder(javax.swing.BorderFactory.createMatteBorder(0,0,1,0,new java.awt.Color(200,200,200)));
+            
+            //panel.setBorder(javax.swing.BorderFactory.createMatteBorder(0,0,1,0,new java.awt.Color(200,200,200)));
+            panel.setBorder(dividerBorder);
+            
             //panel.setOpaque(true);
-           // panel.setBackground(java.awt.Color.BLUE);
+            // panel.setBackground(java.awt.Color.BLUE);
             
             edu.tufts.vue.ontology.Ontology ontology = (edu.tufts.vue.ontology.Ontology)value;
          /*   
@@ -85,6 +100,12 @@ public class OntologyList extends javax.swing.JList {
                 displayString = baseWithoutFileType;
           */
             javax.swing.JLabel label = new javax.swing.JLabel(ontology.getLabel());
+            
+            //mLabel.setText(ontology.getLabel());
+            //mLabel.setMinimumSize(new java.awt.Dimension(10, mLabel.getHeight()));
+            //mLabel.setPreferredSize(new java.awt.Dimension(Short.MAX_VALUE, mLabel.getHeight()));
+            
+            label.setBorder(javax.swing.BorderFactory.createEmptyBorder(0,10,0,0));
             panel.add(label);
             
             panel.setOpaque(true);
@@ -100,7 +121,8 @@ public class OntologyList extends javax.swing.JList {
             if(ontology.getStyle() == null)
             {   
                 panel.add(javax.swing.Box.createHorizontalGlue());
-                panel.add(new javax.swing.JLabel("Import Style Sheet"));
+                importLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0,0,0,5));
+                panel.add(importLabel);
             }
             return panel;
         }
