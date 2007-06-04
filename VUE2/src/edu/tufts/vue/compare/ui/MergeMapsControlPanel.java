@@ -20,7 +20,7 @@
  *
  * Created on May 8, 2007, 1:31 PM
  *
- * @version $Revision: 1.8 $ / $Date: 2007-05-31 15:15:03 $ / $Author: dan $
+ * @version $Revision: 1.9 $ / $Date: 2007-06-04 14:14:55 $ / $Author: dan $
  * @author dhelle01
  *
  * 
@@ -134,6 +134,9 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
         if(dynamic)
         {    
           VUE.addActiveListener(LWMap.class, this);
+          LWMap currentlyLoadedMap = VUE.getActiveMap();
+          if(currentlyLoadedMap != null && (currentlyLoadedMap instanceof LWMergeMap))
+              adjustGUIToMergeMap((LWMergeMap)currentlyLoadedMap);
         }
         
         dw.setVisible(true);
