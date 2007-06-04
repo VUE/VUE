@@ -374,10 +374,19 @@ public class LWMergeMap extends LWMap {
         
         ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
         
-        Iterator<LWMap> i = getMapList().iterator(); 
+        Iterator<LWMap> i = getMapList().iterator();
+        Iterator<Boolean> ci = null; 
+        if(getActiveFileList()!=null)
+            ci = getActiveFileList().iterator();
         while(i.hasNext())
         {
-          cms.add(new ConnectivityMatrix(i.next()));
+          Boolean b = Boolean.TRUE;
+          if(ci!=null && ci.hasNext())
+          {    
+             b = ci.next();
+          }
+          if(b.booleanValue())
+            cms.add(new ConnectivityMatrix(i.next()));
         }
         VoteAggregate voteAggregate= new VoteAggregate(cms);
         
@@ -391,10 +400,18 @@ public class LWMergeMap extends LWMap {
         if(!getFilterOnBaseMap())
         {
           Iterator<LWMap> maps = getMapList().iterator();
+          ci = null; 
+          if(getActiveFileList()!=null)
+            ci = getActiveFileList().iterator();
           while(maps.hasNext())
           {
             LWMap m = maps.next();
-            if(m!=baseMap)
+            Boolean b = Boolean.TRUE;
+            if(ci!=null && ci.hasNext())
+            {    
+               b = ci.next();
+            }
+            if(m!=baseMap && b.booleanValue())
             {
                 addMergeNodesFromSourceMap(m,voteAggregate,nodes);
             }
@@ -528,9 +545,18 @@ public class LWMergeMap extends LWMap {
     
         ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
         Iterator<LWMap> i = getMapList().iterator();
+        Iterator<Boolean> ci = null; 
+        if(getActiveFileList()!=null)
+          ci = getActiveFileList().iterator();
         while(i.hasNext())
         {
-          cms.add(new ConnectivityMatrix(i.next()));
+          Boolean b = Boolean.TRUE;
+          if(ci!=null && ci.hasNext())
+          {    
+             b = ci.next();
+          }
+          if(b.booleanValue())
+            cms.add(new ConnectivityMatrix(i.next()));
         }
         
         ArrayList<Style> nodeStyles = new ArrayList<Style>();
@@ -553,10 +579,18 @@ public class LWMergeMap extends LWMap {
         if(!getFilterOnBaseMap())
         {
           Iterator<LWMap> maps = getMapList().iterator();
+          ci = null; 
+          if(getActiveFileList()!=null)
+            ci = getActiveFileList().iterator();
           while(maps.hasNext())
           {
             LWMap m = maps.next();
-            if(m!=baseMap)
+            Boolean b = Boolean.TRUE;
+            if(ci!=null && ci.hasNext())
+            {    
+               b = ci.next();
+            }
+            if(m!=baseMap && b.booleanValue())
             {
                 addMergeNodesForMap(m,weightAggregate,nodeStyles);
             }

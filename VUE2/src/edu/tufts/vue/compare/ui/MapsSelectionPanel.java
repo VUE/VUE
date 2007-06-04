@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.17 $ / $Date: 2007-05-31 23:19:38 $ / $Author: dan $
+ * @version $Revision: 1.18 $ / $Date: 2007-06-04 14:45:26 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -313,19 +313,22 @@ public class MapsSelectionPanel extends JPanel  {
      *
      * Perhaps consider a way to clone and "freeze" the model
      * for the duration of this method call?
+     * (threadsafe model will likely have to be contain clones
+     *  of current model elements and regularly synched with
+     *  actual file list)
      *
      **/
     public List<LWMap> getMapList()
     {
-        ArrayList mapList = new ArrayList();
+        ArrayList<LWMap> mapList = new ArrayList<LWMap>();
         MapTableModel model = (MapTableModel)maps.getModel();
         int numberOfMaps = maps.getModel().getRowCount();
         for(int i=0;i<numberOfMaps;i++)
         {
-            if(!model.isSelected(i))
-            {
-                continue;
-            }
+            //if(!model.isSelected(i))
+            //{
+            //    continue;
+            //}
             if(model.getMapType(i) == OPEN_MAP)
             {
                 mapList.add(model.getMap(i));
@@ -351,6 +354,25 @@ public class MapsSelectionPanel extends JPanel  {
             }
         }
         return mapList;
+    }
+    
+    public List<Boolean> getCheckList()
+    {
+        ArrayList<Boolean> checkList = new ArrayList<Boolean>();
+        MapTableModel model = (MapTableModel)maps.getModel();
+        int numberOfMaps = maps.getModel().getRowCount();
+        for(int i=0;i<numberOfMaps;i++)
+        {
+            if(!model.isSelected(i))
+            {
+               checkList.add(Boolean.FALSE);
+            }
+            else
+            {
+               checkList.add(Boolean.TRUE);
+            }
+        }
+        return checkList;
     }
     
     public LWMap getBaseMap()

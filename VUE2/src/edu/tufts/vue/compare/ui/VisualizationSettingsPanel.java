@@ -13,14 +13,16 @@
  * <p>The entire file consists of original code.  Copyright &copy; 2003-2007
  * Tufts University. All rights reserved.</p>
  *
+ *
  *******************************************
  *
  * VisualizationSettingsPanel.java
  *
  * Created on May 14, 2007, 2:45 PM
  *
- * @version $Revision: 1.8 $ / $Date: 2007-05-31 15:15:03 $ / $Author: dan $
+ * @version $Revision: 1.9 $ / $Date: 2007-06-04 14:45:26 $ / $Author: dan $
  * @author dhelle01
+ *
  *
  *
  */

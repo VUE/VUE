@@ -20,7 +20,7 @@
  *
  * Created on May 8, 2007, 1:31 PM
  *
- * @version $Revision: 1.9 $ / $Date: 2007-06-04 14:14:55 $ / $Author: dan $
+ * @version $Revision: 1.10 $ / $Date: 2007-06-04 14:45:26 $ / $Author: dan $
  * @author dhelle01
  *
  * 
@@ -102,8 +102,8 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
            public void actionPerformed(ActionEvent e)
            {
                LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
-               merge.setMapList(mapSelectionPanel.getMapList());
-               merge.setBaseMap(mapSelectionPanel.getBaseMap());
+               //merge.setMapList(mapSelectionPanel.getMapList());
+               //merge.setBaseMap(mapSelectionPanel.getBaseMap());
                
                setMergeMapSettings(merge);
                
@@ -146,6 +146,7 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
     {
         map.setMapList(mapSelectionPanel.getMapList());
         map.setBaseMap(mapSelectionPanel.getBaseMap());
+        map.setActiveMapList(mapSelectionPanel.getCheckList());
         map.setIntervalBoundaries(); 
         map.setNodeThresholdSliderValue(visualizationSettingsPanel.getNodeThresholdSliderValue());
         map.setLinkThresholdSliderValue(visualizationSettingsPanel.getLinkThresholdSliderValue());
