@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.18 $ / $Date: 2007-06-04 14:45:26 $ / $Author: dan $
+ * @version $Revision: 1.19 $ / $Date: 2007-06-04 15:11:43 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -104,7 +104,9 @@ public class MapsSelectionPanel extends JPanel  {
                VueFileFilter vff = new VueFileFilter(VueFileFilter.VUE_DESCRIPTION);
                choose.setFileFilter(vff);
                choose.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-               choose.showOpenDialog(MapsSelectionPanel.this);
+               int cancel = choose.showOpenDialog(MapsSelectionPanel.this);
+               if(cancel == JFileChooser.CANCEL_OPTION)
+                   return;
                File choice = choose.getSelectedFile();
                if(choose.getSelectedFile().getParentFile().isDirectory())
                  lastDirectory = choose.getSelectedFile().getParentFile();
