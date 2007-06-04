@@ -220,6 +220,13 @@ public class OntologyBrowser extends JPanel {
        // singleton = this;
         initialized = true;
         
+        TypeList list = new TypeList();
+        java.net.URL ontURL = VueResources.getURL("fedora.ontology.rdf");
+        java.net.URL cssURL = VueResources.getURL("fedora.ontology.css");
+        tufts.vue.gui.Widget w = addTypeList(list,"Fedora Ontology");//edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ontURL.getFile()));
+        getViewer().getList().updateUI();
+        list.loadOntology(ontURL,cssURL,OntologyChooser.getOntType(ontURL),this,w); 
+        
     }
     			
     public static boolean isInitialized()
