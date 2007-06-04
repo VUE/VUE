@@ -83,7 +83,8 @@ public class OntologyList extends javax.swing.JList {
             panel.setLayout(new javax.swing.BoxLayout(panel,javax.swing.BoxLayout.X_AXIS));
             
             //panel.setBorder(javax.swing.BorderFactory.createMatteBorder(0,0,1,0,new java.awt.Color(200,200,200)));
-            panel.setBorder(dividerBorder);
+            if(index!=0)
+              panel.setBorder(dividerBorder);
             
             //panel.setOpaque(true);
             // panel.setBackground(java.awt.Color.BLUE);

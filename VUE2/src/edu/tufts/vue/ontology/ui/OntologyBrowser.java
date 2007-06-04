@@ -224,8 +224,15 @@ public class OntologyBrowser extends JPanel {
         java.net.URL ontURL = VueResources.getURL("fedora.ontology.rdf");
         java.net.URL cssURL = VueResources.getURL("fedora.ontology.css");
         tufts.vue.gui.Widget w = addTypeList(list,"Fedora Ontology");//edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ontURL.getFile()));
-        getViewer().getList().updateUI();
+        //getViewer().getList().updateUI();
         list.loadOntology(ontURL,cssURL,OntologyChooser.getOntType(ontURL),this,w); 
+        
+        TypeList nodeList = new TypeList();
+        ontURL = VueResources.getURL("fedora.support.ontology.rdf");
+        cssURL = VueResources.getURL("fedora.support.ontology.css");
+        tufts.vue.gui.Widget wForNode = addTypeList(nodeList,"Fedora Node Ontology");//edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ontURL.getFile()));
+        //getViewer().getList().updateUI();
+        nodeList.loadOntology(ontURL,cssURL,OntologyChooser.getOntType(ontURL),this,wForNode); 
         
     }
     			

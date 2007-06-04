@@ -312,17 +312,20 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
                                                                 
                        browser.getViewer().getList().clearSelection();
                        browser.getViewer().getList().setSelectedIndex(-1);
-                       browser.getViewer().getList().updateUI();
+                       //browser.getViewer().getList().updateUI();
                        //browser.getViewer().getList().setSelectedValue(ontology,true);
                }
                if(ontURL != null && cssURL!=null)
                {
                        tufts.vue.gui.Widget w = browser.addTypeList(list,edu.tufts.vue.ontology.Ontology. getLabelFromUrl(ontURL.getFile()));
-                       browser.getViewer().getList().updateUI();
+                      // browser.getViewer().getList().updateUI();
                        list.loadOntology(ontURL,cssURL,getOntType(ontURL),browser,w); 
                }
                setVisible(false);
                }
+               
+               //browser.getViewer().getList().updateUI();
+               
                //System.out.println("end 2 finish");
             }
         }

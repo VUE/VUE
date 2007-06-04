@@ -425,9 +425,9 @@ public class TypeList extends JList {
           widget.remove(loadingLabel);
           //repaint();
           //browser.addTypeList(TypeList.this,ontologyURL.getFile());
-          //browser.getViewer().getList().setSelectedValue(ontology,true);
-          clearSelection();
-          setSelectedIndex(-1);
+          browser.getViewer().getList().setSelectedValue(ontology,true);
+          //clearSelection();
+          //setSelectedIndex(-1);
           browser.getViewer().getList().updateUI();
           //browser.getViewer().repaint();
           //browser.revalidate();
