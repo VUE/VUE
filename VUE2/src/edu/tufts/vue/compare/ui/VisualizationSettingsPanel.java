@@ -20,7 +20,7 @@
  *
  * Created on May 14, 2007, 2:45 PM
  *
- * @version $Revision: 1.9 $ / $Date: 2007-06-04 14:45:26 $ / $Author: dan $
+ * @version $Revision: 1.10 $ / $Date: 2007-06-04 21:14:04 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -45,8 +45,8 @@ import javax.swing.*;
 public class VisualizationSettingsPanel extends JPanel implements ActionListener {
 
     // visualization types
-    public final static int VOTE = 0;
-    public final static int WEIGHT = 1;
+    public final static int VOTE = 1;
+    public final static int WEIGHT = 0;
     
     public final static String VOTE_STRING = "Vote";
     public final static String WEIGHT_STRING = "Weight";
@@ -103,6 +103,11 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         //gridBagConstraints.weighty = 0.0;
         //gridBag.setConstraints(bottomPanel,gridBagConstraints);
         //add(bottomPanel);
+    }
+    
+    public void setVisualizationSettingsType(int type)
+    {
+        visualizationChoice.setSelectedIndex(type);
     }
     
     public int getVisualizationSettingsType()

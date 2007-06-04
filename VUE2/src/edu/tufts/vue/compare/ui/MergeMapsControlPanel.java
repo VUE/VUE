@@ -20,7 +20,7 @@
  *
  * Created on May 8, 2007, 1:31 PM
  *
- * @version $Revision: 1.10 $ / $Date: 2007-06-04 14:45:26 $ / $Author: dan $
+ * @version $Revision: 1.11 $ / $Date: 2007-06-04 21:14:04 $ / $Author: dan $
  * @author dhelle01
  *
  * 
@@ -46,10 +46,17 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
     private VisualizationSettingsPanel visualizationSettingsPanel;
     private JButton closeButton;
     private JButton generateButton;
-    private boolean dynamic = true;
+    private boolean dynamic = false;
     
     public MergeMapsControlPanel(final DockWindow dw) 
     {
+        
+        String dynamicString = VueResources.getString("merge.view.settings.dynamic");
+        if(dynamicString.equals("true"))
+        {
+            dynamic = true;
+        }
+        
         setLayout(new BorderLayout());
         mapSelectionPanel = MapsSelectionPanel.getMapSelectionPanel();
         visualizationSettingsPanel = new VisualizationSettingsPanel();
@@ -153,12 +160,14 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
         //moved from Visualization panel to Maps Panel:
         //map.setFilterOnBaseMap(visualizationSettingsPanel.getFilterOnBaseMap());
         map.setFilterOnBaseMap(mapSelectionPanel.getFilterOnBaseMap());
+        map.setVisualizationSelectionType(visualizationSettingsPanel.getVisualizationSettingsType());
     }
     
     public void adjustGUIToMergeMap(LWMergeMap map)
     {
         visualizationSettingsPanel.setNodeThresholdSliderValue(map.getNodeThresholdSliderValue());
         visualizationSettingsPanel.setLinkThresholdSliderValue(map.getLinkThresholdSliderValue());
+        visualizationSettingsPanel.setVisualizationSettingsType(map.getVisualizationSelectionType());
     }
     
     public void activeChanged(ActiveEvent<LWMap> e)
