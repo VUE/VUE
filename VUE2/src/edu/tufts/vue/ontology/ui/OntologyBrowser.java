@@ -36,12 +36,9 @@ import tufts.vue.gui.*;
  */
 public class OntologyBrowser extends JPanel {
     
-    //public static final Object POPULATE_TYPES = java.awt.BorderLayout.CENTER;
     
     JPanel ontologiesPanel;
-    //final Widget typesPane = new Widget("types");
-    
-    //DockWindow dockWindow;
+
     final static DockWindow ontologyDock = tufts.vue.gui.GUI.createDockWindow("Ontologies");;
     DockWindow typeDock;
     private static boolean initialized = false;
@@ -51,9 +48,7 @@ public class OntologyBrowser extends JPanel {
     private OntologyViewer ontologyViewer;
     
     private static OntologyBrowser singleton;
-    
-    // corresponds (roughly) to searchPane from DRBrowser (the original inspiration for OntologyBrowser
-    // implementation architecture)
+
     final JComponent populatePane = new Widget("Populate Types") {
             private Component editor, result;
             {
@@ -117,19 +112,16 @@ public class OntologyBrowser extends JPanel {
     private OntologyBrowser()
     {
         ontologiesPanel = this;
-     //   dockWindow = null;
-      //  ontologyDock = null;
         typeDock = null;
+        ontologyDock.setResizeEnabled(false);
     }
     
     public void initializeBrowser(boolean delayedLoading, DockWindow typeDock) 
     {
-        //super(new BorderLayout());
-        //super(new java.awt.GridLayout(0,1));
+        
         setLayout(new javax.swing.BoxLayout(this,javax.swing.BoxLayout.Y_AXIS));
         setName("Ontologies");
-        
-       // this.dockWindow = ontologyDock;     
+     
         this.typeDock = typeDock;
         this.ontologiesPanel = this;
         
@@ -190,10 +182,6 @@ public class OntologyBrowser extends JPanel {
             
             public void actionPerformed(java.awt.event.ActionEvent e)
             {
-                // apply modified OntologyOpenAction for next step-- 
-                // load the wizard with current file and move to step 2 - instead of the filechooser..
-                // maybe change the button to "edit ontology?"
-                // requires singleton for ontology though?
                 javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
                 chooser.showOpenDialog(OntologyBrowser.this);
                 if(chooser.getSelectedFile()!=null)
@@ -229,7 +217,7 @@ public class OntologyBrowser extends JPanel {
         };
         tufts.vue.gui.Widget.setMenuActions(this,actions);
           
-    //    singleton = this;
+       // singleton = this;
         initialized = true;
         
     }

@@ -153,6 +153,12 @@ public class TypeList extends JList {
           if(ontType !=null)
           {
             Style style = ontType.getStyle();
+            
+            if(style == null)
+            {
+                style = new DefaultStyle("Default");
+            }
+            
             if(isNode(ontType))  
             {
               String image = style.getAttribute("background-image");
@@ -201,10 +207,6 @@ public class TypeList extends JList {
               r.setTailPoint(80,30);
               r.setLabel(ontType.getLabel());
               compFor = r;
-            }
-            if(style == null)
-            {
-                style = new NodeStyle("Default");
             }
             compFor.applyCSS(style);
           }
@@ -349,7 +351,7 @@ public class TypeList extends JList {
     
     class TypeCellRenderer implements ListCellRenderer
     { 
-        private JLabel label = new JLabel();
+        //private JLabel label = new JLabel();
         
         private LWComponentView lwcv = new LWComponentView();
         
@@ -365,12 +367,14 @@ public class TypeList extends JList {
             
             lwcv.setType((OntType)value);
             
+            lwcv.setToolTipText(((OntType)value).getLabel());
+            
             return lwcv;
         }
     }
     
     // actually only needed for RDF and OWL Ontology open actions which are not currently used in the main GUI
-    // needs update to used threads/etc if returned to regular operation (see alternative method above)
+    // avoid using this method as it does not create its own thread.
     public void loadOntology(URL ontologyURL,URL cssURL,org.osid.shared.Type ontType,boolean fromFile)
     {
         ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
@@ -431,9 +435,6 @@ public class TypeList extends JList {
          }
        };
        
-       //setModel(new OntologyTypeListModel(ontology));
-       // fillList(ontology);
-       
        t.start();
        
         
@@ -467,11 +468,16 @@ public class TypeList extends JList {
      **/
     public static boolean isNode(OntType type)
     {        
-        //return type.getType().equals(edu.tufts.vue.style.SelectorType.getNodeType());
+        Style style = type.getStyle();
+        
+        if(style !=null)
+          return style.getType().equals(SelectorType.getNodeType());
+        else
+          return SelectorType.getDefaultType().equals(SelectorType.getNodeType());
         
         //System.out.println("tl: type.getStyle.getClass() " + type.getStyle().getClass());
                
-        return (type.getStyle() instanceof NodeStyle);    
+        //return (type.getStyle() instanceof NodeStyle);    
     }
     
     /*
