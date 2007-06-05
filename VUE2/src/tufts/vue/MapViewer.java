@@ -25,6 +25,7 @@ import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.FocusManager;
 import tufts.vue.gui.MapScrollPane;
 import tufts.vue.gui.TimedASComponent;
+import tufts.vue.gui.WindowDisplayAction;
 import tufts.vue.NodeTool;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,7 @@ import java.awt.geom.*;
 import java.util.*;
 
 import javax.swing.*;
+
 import edu.tufts.vue.preferences.implementations.BooleanPreference;
 import edu.tufts.vue.preferences.PreferencesManager;
 import edu.tufts.vue.preferences.VuePrefEvent;
@@ -67,7 +69,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.400 $ / $Date: 2007-06-05 12:58:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.401 $ / $Date: 2007-06-05 19:41:19 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3294,42 +3296,60 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return m;
     }
     
-    private static JMenuItem sNodeMenuItem;
-    private static JMenuItem sLinkMenuItem;
+    //private static JMenuItem sNodeMenuItem;
+    //private static JMenuItem sLinkMenuItem;
     private static JMenuItem sUngroupItem;
     private static Component sPathAddItem;
     private static Component sPathRemoveItem;
-    private static Component sPathSeparator;
+  //  private static Component sPathSeparator;
     private JPopupMenu buildSingleSelectionPopup() {
         JPopupMenu m = new JPopupMenu("Component Menu");
         
-        sNodeMenuItem = getNodeMenu("Node");
-        sLinkMenuItem = getLinkMenu("Link");
+      //  sNodeMenuItem = getNodeMenu("Node");
+      //  sLinkMenuItem = getLinkMenu("Link");
         sUngroupItem = new JMenuItem(Actions.Ungroup);
         
-        m.add(sNodeMenuItem);
-        m.add(sLinkMenuItem);
+       // m.add(sNodeMenuItem);
+       // m.add(sLinkMenuItem);
         m.add(sUngroupItem);
-        m.add(Actions.Rename);
         m.add(Actions.Duplicate);
-        m.addSeparator();
-        m.add(Actions.BringToFront);
-        m.add(Actions.BringForward);
-        m.add(Actions.SendToBack);
-        m.add(Actions.SendBackward);
-        m.addSeparator();
-        m.add(Actions.DeselectAll);
+        m.add(Actions.Rename);
         m.add(Actions.Delete);
+        m.add(Actions.DeselectAll);        
         m.addSeparator();
-        sPathAddItem = m.add(Actions.AddPathwayItem);
-        sPathRemoveItem = m.add(Actions.RemovePathwayItem);
-        sPathSeparator = m.add(new JPopupMenu.Separator());
         
-        m.add(Actions.InfoAction);
         m.add(Actions.NotesAction);
         m.add(Actions.KeywordAction);
+        sPathAddItem = m.add(Actions.AddPathwayItem);
+        sPathRemoveItem = m.add(Actions.RemovePathwayItem);
+        
+        JMenu arrangeMenu = new JMenu("Arrange");
+        arrangeMenu.add(Actions.BringToFront);
+        arrangeMenu.add(Actions.BringForward);
+        arrangeMenu.add(Actions.SendToBack);
+        arrangeMenu.add(Actions.SendBackward);
         m.addSeparator();
-        m.add(Actions.HierarchyView);
+        
+        
+        WindowDisplayAction infoAction = new WindowDisplayAction(VUE.getInfoDock());
+        infoAction.setTitle("About this node");
+        JCheckBoxMenuItem infoCheckBox = new JCheckBoxMenuItem(infoAction);
+        
+        WindowDisplayAction outlineAction = new WindowDisplayAction(VUE.getOutlineDock());
+        JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(outlineAction);
+        outlineAction.setTitle("Outline View");
+        
+        m.add(infoCheckBox);
+        m.add(checkBox);
+        m.addSeparator();
+        m.add(arrangeMenu);
+        m.addSeparator();
+        
+        //sPathSeparator = m.add(new JPopupMenu.Separator());
+        
+        
+        //m.addSeparator();
+        //m.add(Actions.HierarchyView);
         //m.add(GUI.buildMenu("Nudge", Actions.ARRANGE_SINGLE_MENU_ACTIONS));
         sAssetMenu = new JMenu("Disseminators");
         // todo: special add-to selection action that adds
@@ -3353,9 +3373,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             sSinglePopup = buildSingleSelectionPopup();
         
         if (c instanceof LWNode) {
-            sNodeMenuItem.setVisible(!((LWNode)c).isTextNode());
-            sLinkMenuItem.setVisible(false);
-            Actions.HierarchyView.setEnabled(true);
+            //sNodeMenuItem.setVisible(!((LWNode)c).isTextNode());
+            //sLinkMenuItem.setVisible(false);
+            //Actions.HierarchyView.setEnabled(true);
             
             LWNode n = (LWNode) c;
             Resource r = n.getResource();
@@ -3375,20 +3395,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     sSinglePopup.remove(sAssetMenu);
             }
             
-        } else {
+        } /*else {
             sLinkMenuItem.setVisible(c instanceof LWLink);
             sNodeMenuItem.setVisible(false);
             Actions.HierarchyView.setEnabled(false);
-        }
+        }*/
         
         if (getMap().getPathwayList().getActivePathway() == null) {
             sPathAddItem.setVisible(false);
             sPathRemoveItem.setVisible(false);
-            sPathSeparator.setVisible(false);
+          //  sPathSeparator.setVisible(false);
         } else {
             sPathAddItem.setVisible(true);
             sPathRemoveItem.setVisible(true);
-            sPathSeparator.setVisible(true);
+     //       sPathSeparator.setVisible(true);
         }
         
         if (c instanceof LWGroup) {
