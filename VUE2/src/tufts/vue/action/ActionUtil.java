@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.59 $ / $Date: 2007-06-02 01:50:15 $ / $Author: sfraize $
+ * @version $Revision: 1.60 $ / $Date: 2007-06-05 20:22:22 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -171,7 +171,7 @@ public class ActionUtil {
     {
         File file = null;
         
-        JFileChooser chooser = new JFileChooser();
+        JFileChooser chooser = new JFileChooser();        
         chooser.setDialogTitle(title);
         chooser.setFileFilter(new VueFileFilter(extension));
         
@@ -212,6 +212,64 @@ public class ActionUtil {
         return file;
     }
     
+    /**A static method which displays a file chooser for the user to choose which file to open.
+    It returns the selected file or null if the process didn't complete
+ 	TODO BUG: do not allow more than one dialog open at a time -- two "Ctrl-O" in quick succession
+ 	will open two open file dialogs. */
+ 
+    public static File[] openMultipleFiles(String title, String extension)
+    {
+    	File file = null;
+     
+    	JFileChooser chooser = new JFileChooser();        
+    	chooser.setDialogTitle(title);
+    	chooser.setMultiSelectionEnabled(true);
+    	chooser.setFileFilter(new VueFileFilter(extension));
+     
+    	if (VueUtil.isCurrentDirectoryPathSet()) 
+         chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
+     
+    	int option = chooser.showDialog(VUE.getDialogParent(), "Open");
+     
+    	if (option == JFileChooser.APPROVE_OPTION) {
+         final File[] chooserFile = chooser.getSelectedFiles();
+         if (chooserFile == null)
+             return null;
+         final String fileName;
+         
+         if (chooserFile.length == 1)
+         {
+        	 //this scenario can only happen if there's only 1 file in the array...
+         
+        	 final String chosenPath = chooserFile[0].getAbsolutePath();
+         
+        	 // if they type a file name w/out an extension
+        	 if (chooserFile[0].getName().indexOf('.') < 0)
+        		 fileName = chosenPath + "." + extension;
+        	 else
+        		 fileName = chosenPath;
+
+        	 chooserFile[0] = new File(fileName);
+
+        	 if (chooserFile[0].exists()) {
+        		 VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
+        	 } else {
+        		 File dir = new File(chosenPath);
+        		 if (dir.exists() && dir.isDirectory()) {
+                 //System.out.println("chdir " + chosenPath);
+        			 VueUtil.setCurrentDirectoryPath(chosenPath);
+        		 } else {
+        			 VUE.Log.debug("File '" + chosenPath + "' " + file + " can't  be found.");
+        			 tufts.vue.VueUtil.alert(chooser, "Could not find " + file, "File Not Found");
+        		 }
+        		 chooserFile[0] = null;
+        	 }
+         	}
+         return chooserFile;
+    	}
+    	return null;
+    }
+
     
     /**
      * Return the current mapping used for saving new VUE data.
