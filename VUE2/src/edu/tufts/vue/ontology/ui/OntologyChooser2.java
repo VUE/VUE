@@ -51,19 +51,17 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
     public static final int URL = 1;
     
     public static final int ONT_CHOOSER_WIDTH = 500;
-    public static final int ONT_CHOOSER_HEIGHT = 400;
+    public static final int ONT_CHOOSER_HEIGHT = 420;
     public static final int ONT_CHOOSER_X_LOCATION = 300;
     public static final int ONT_CHOOSER_Y_LOCATION = 300;
     
-    //public static final String stepOneMessage = "<html> Step 1 of 2 - Add an <b>ontology</b> </html>";
-    //public static final String stepTwoMessage = "<html> Step 2 of 2 - Select a <b>style sheet</b> for the ontology</html>";
-    public static final String ontTitle = "Ontology";
-    public static final String cssTitle = "Ontology Style Sheet*";
+    public static final String ontTitle = "<html><b>Ontology</b><html>";
+    //public static final String cssTitle = "<html><b>Ontology Style Sheet*</b></html>";
+    public static final String cssTitle = "<html><b>Ontology Style Sheet</b></html>";
     public static final String browseFileMessage = "Select file:";
     public static final String cssFileMessage = "Select file:";
-    //public static final String orMessage = "or";
     public static final String typeURLMessage = "Type in a URL:";
-    public static final String styleSheetMessage = "<html>The style sheet can be added later using<br> the \"x\" window </html>";
+    public static final String styleSheetMessage = "(*can be added later)";
     
     private int ontologySelectionType;
     private int cssSelectionType;
@@ -183,8 +181,10 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         
         c.anchor = GridBagConstraints.WEST;
         c.weightx = 1.0;
+        c.insets = new Insets(5,5,5,5);
         gridBag.setConstraints(ontChoicePanel,c);
         mainPanel.add(ontChoicePanel);
+        c.insets = new Insets(10,10,10,10);
         /*c.gridwidth = 2;
         JLabel fileLabel = new JLabel("File location: ");
         c.insets = new Insets(10,30,10,10);
@@ -244,6 +244,10 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         
         gridBag.setConstraints(cssURLPanel,c);
         mainPanel.add(cssURLPanel);
+        
+        //styleSheetMessageLabel.setText(styleSheetMessage);
+        //gridBag.setConstraints(styleSheetMessageLabel,c);
+        //mainPanel.add(styleSheetMessageLabel);
         
         c.fill = GridBagConstraints.HORIZONTAL;
         gridBag.setConstraints(lineLabel2,c);
