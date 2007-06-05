@@ -67,7 +67,7 @@ public class Actions implements VueConstants
     static final private KeyStroke keyStroke(int vk) {
         return keyStroke(vk, 0);
     }
-    
+
     
     //-------------------------------------------------------
     // Selection actions
@@ -289,29 +289,43 @@ public class Actions implements VueConstants
     //-------------------------------------------------------
 
     
-    private static final List ScratchBuffer = new ArrayList();
-    private static LWContainer ScratchMap;
+    private static final List<LWComponent> ScratchBuffer = new ArrayList();
+    //private static LWContainer ScratchMap;
     private static LWComponent StyleBuffer; // this holds the style copied by "Copy Style"
     
-    //    private static final LWComponent.LinkPatcher _LinkPatcher = 
     private static final LWComponent.CopyContext CopyContext = new LWComponent.CopyContext(new LWComponent.LinkPatcher(), true);
     private static final List<LWComponent> DupeList = new ArrayList(); // cache for dupe'd items
     
     private static final int CopyOffset = 10;
     
-    public static Collection duplicatePreservingLinks(Iterator i) {
+    public static Collection<LWComponent> duplicatePreservingLinks(Iterable<LWComponent> iterable) {
         CopyContext.reset();
         DupeList.clear();
+
+        // TODO: preserve z-order layering of duplicated elements.
+        // probably merge LinkPatcher into CopyContext, and
+        // while at it change dupe action to add all the
+        // children to the new parent with a single addChildren event.
         
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.getParent() != null && c.getParent().isSelected()) {
-                // Duplicate is hierarchical action: don't dupe if
-                // parent is going to do it for us.  Note that when we
-                // call this on paste, c.getParent() will always be
-                // null as these are orphans in the cut buffer, but we
-                // culled them here when we put them in, so we're all
-                // set.
+        for (LWComponent c : iterable) {
+
+            // TODO: all users of this method may not be depending on items being
+            // selected!  CopyContext should sort out duped items with a HashSet, only
+            // invoking duplicate on items in set who don't have an ancestor in the set.
+            // Can we use a TreeSet to track & preserve z-order?  When duping a whole
+            // node w/children, z-order is already preserved -- it's only the order
+            // amongst the top-level selected items we need to preserve (e.g., don't
+            // just rely on the random selection order, unless we want to change the
+            // selection to a SortedSet (TreeSet)).
+            
+            if (c.isAncestorSelected()) {
+                
+                // Duplicate is hierarchical action: don't dupe if parent is going to do
+                // it for us.  Note that when we call this on paste, parent will always
+                // be null as these are orphans in the cut buffer, and thus
+                // isAncestorSelected will always be false, but we culled them here when
+                // we put them in, so we're all set.
+                
                 continue;
             }
             LWComponent copy = c.duplicate(CopyContext);
@@ -330,9 +344,9 @@ public class Actions implements VueConstants
         // hierarchicalAction set to true: if parent being duplicated, don't duplicate
         // any selected children, creating extra siblings.
         boolean hierarchicalAction() { return true; }
-        
+
         // TODO: preserve layering order of components -- don't
-        // just leave in the arbitrary selection order!
+        // just leave in the arbitrary selection order.
         void act(Iterator i) {
             DupeList.clear();
             CopyContext.reset();
@@ -363,24 +377,22 @@ public class Actions implements VueConstants
         void act(LWSelection selection) {
             Copy.act(selection);
             Delete.act(selection);
-            ScratchMap = null;  // okay to paste back in same location
+            //ScratchMap = null;  // okay to paste back in same location
         }
     };
     
     public static final LWCAction Copy =
     new LWCAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
         boolean enabledFor(LWSelection s) { return s.size() > 0; }
-        void act(Iterator iSelection) {
+        void act(LWSelection selection) {
             ScratchBuffer.clear();
-            ScratchBuffer.addAll(duplicatePreservingLinks(iSelection));
-            ScratchMap = VUE.getActiveMap();
+            ScratchBuffer.addAll(duplicatePreservingLinks(selection));
+            //ScratchMap = VUE.getActiveMap();
             // paste differs from duplicate in that the new parent is
             // always the top level map -- not the old parent -- so a node
             // that was a child has to have it's scale set back to 1.0
             // todo: do this automatically in removeChild?
-            Iterator i = ScratchBuffer.iterator();
-            while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
+            for (LWComponent c : ScratchBuffer) {
                 if (c.getScale() != 1f)
                     c.setScale(1f);
             }
@@ -414,56 +426,35 @@ public class Actions implements VueConstants
         void act(LWComponent c) {
             c.copyStyle(StyleBuffer);
         }
-        /*
-        void act(LWComponent c) {
-            // TODO: when we re-do styles, we can keep a style bag which
-            // will also be better in case the style of the object changes
-            // after we "copy" it!
-            //System.out.println("Pasting style from " + StyleHolder);
-            if (c == StyleHolder)
-                return;
-            c.setFont(StyleHolder.getFont());
-            c.setFillColor(StyleHolder.getFillColor());
-            c.setStrokeWidth(StyleHolder.getStrokeWidth());
-            c.setStrokeColor(StyleHolder.getStrokeColor());
-            c.setTextColor(StyleHolder.getTextColor());
-            if (c instanceof LWNode && StyleHolder instanceof LWNode)
-                ((LWNode)c).setShape((java.awt.geom.RectangularShape) ((LWNode)StyleHolder).getShape());
-        }
-        */
     };
     
-    public static final Action Paste =
+    public static final VueAction Paste =
     new VueAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
         //public boolean isEnabled() //would need to listen for scratch buffer fills
         
+        private Point2D.Float lastMouseLocation;
+        private Point2D.Float lastPasteLocation;
         public void act() {
-            // if (StyleHolder != null) {
-//                 super.act(); // will call act(LWComponent)
-//                 return;
-            //}
             
-            LWContainer parent = VUE.getActiveMap();
-            if (parent == ScratchMap) {
+            final MapViewer viewer = VUE.getActiveViewer();
+            final Collection pasted = duplicatePreservingLinks(ScratchBuffer);
+            final Point2D.Float mouseLocation = viewer.getLastMapMousePoint();
+            final Point2D.Float pasteLocation;
 
-                // unless this was from a cut or it came from a different map, or we
-                // already pasted this, offset the location.  This is conveniently
-                // cumulative since we're translating the actual components in the cut
-                // buffer, which are then duplicated each time we paste.
-
-                Iterator i = ScratchBuffer.iterator();
-                while (i.hasNext()) {
-                    LWComponent c = (LWComponent) i.next();
-                    c.translate(CopyOffset, CopyOffset);
-                }
-            } else
-                ScratchMap = parent; // pastes again to this map will be offset
+            if (mouseLocation.equals(lastMouseLocation) && lastPasteLocation != null) {
+                pasteLocation = lastPasteLocation;
+                // translate both current and last paste location:
+                pasteLocation.x += CopyOffset;
+                pasteLocation.y += CopyOffset;
+            } else {
+                pasteLocation = mouseLocation;
+                lastPasteLocation = pasteLocation;
+            }
             
-            Collection pasted = duplicatePreservingLinks(ScratchBuffer.iterator());
-            Point2D.Float pasteLocation = VUE.getActiveViewer().getLastMousePressMapPoint();
             MapDropTarget.setCenterAt(pasted, pasteLocation);
-            parent.addChildren(pasted);
-            VUE.getSelection().setTo(pasted);
+            viewer.getFocal().addChildren(pasted);
+            viewer.getSelection().setTo(pasted);
+            lastMouseLocation = mouseLocation;
         }
 
         
@@ -581,6 +572,8 @@ public class Actions implements VueConstants
             }
         }
     };
+
+
     /**
      * If there are any groups in the selection, those groups will be dispersed, and
      * everything else in selection is ignored.
@@ -591,7 +584,7 @@ public class Actions implements VueConstants
      * If groups were dispersed, the selection will be set to the contents of the
      * dispersed groups.
      */
-    public static final Action Ungroup =
+    public static final LWCAction Ungroup =
         //new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/GroupGC.png") {
         //new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/GroupUnGC.png") {
         new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/xUngroup.png") {
@@ -1413,7 +1406,7 @@ public class Actions implements VueConstants
         void act(Iterator i) {
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
-                if (hierarchicalAction() && (c.getParent() == null || c.getParent().isSelected())) {
+                if (hierarchicalAction() && c.isAncestorSelected()) {
                     // If has no parent, must already have been acted on to get that way.
                     // If parent is selected, action will happen via it's parent.
                     continue;
@@ -1448,7 +1441,7 @@ public class Actions implements VueConstants
         }
         void actOn(LWComponent c) { act(c); } // for manual init calls from internal code
         
-        public String toString() { return "LWCAction[" + getActionName() + "]"; }
+        //public String toString() { return "LWCAction[" + getActionName() + "]"; }
     }
     
 }
