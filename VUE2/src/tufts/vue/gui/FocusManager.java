@@ -1,6 +1,7 @@
 package tufts.vue.gui;
 
 import tufts.Util;
+import static tufts.Util.*;
 import tufts.macosx.MacOSX;
 
 import tufts.vue.VUE;
@@ -146,7 +147,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.14 $ / $Date: 2007-05-21 06:34:42 $ / $Author: sfraize $ 
+ * @version $Revision: 1.15 $ / $Date: 2007-06-05 12:59:40 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -197,15 +198,6 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         
     private static final boolean UseForcedFocus = false;
 
-    private static boolean isJavaVersion_15_orLater = Util.getJavaVersion() >= 1.5f;
-    
-    
-    // common terminal codes for some colors for debugging
-    private static String TERM_RED = "\033[1;31m";        
-    private static String TERM_GREEN = "\033[1;32m";
-    private static String TERM_YELLOW = "\033[1;33m";
-    private static String TERM_CLEAR = "\033[m";
-
     private final static boolean LieImpl = true; // impl style: lying v.s. setting (setting probably not possible)
 
 
@@ -219,14 +211,6 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             KeyboardFocusManager.setCurrentKeyboardFocusManager(Singleton);
             if (DEBUG.INIT) System.out.println(Singleton + ": installed.");
             if (DEBUG.FOCUS && DEBUG.META) enableAWTFocusLogging();
-            if (isJavaVersion_15_orLater) {
-                String term = (String) Util.invoke(System.class, "getenv", "TERM");
-                if (term == null || term.indexOf("color") < 0) {
-                    TERM_RED = TERM_GREEN = TERM_YELLOW = TERM_CLEAR = "";
-                }
-            }
-
-
             //UseForcedFocus = GUI.UseAlwaysOnTop
             //    || true; // Turn on for now so toolbars can have false focusableWindowState
             
@@ -441,7 +425,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
     private void ensureDialogStaysOnTop(Dialog dialog) {
         if (DEBUG.FOCUS) out("DIALOG PARENT: " + dialog.getParent());
-        if (isJavaVersion_15_orLater && dialog.getParent() == GUI.HiddenDialogParent) {
+        if (dialog.getParent() == GUI.HiddenDialogParent) {
             GUI.setAlwaysOnTop(dialog, true);
         }
     }
