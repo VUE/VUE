@@ -126,7 +126,7 @@ public class Actions implements VueConstants
     
     
     public static final Action AddPathwayItem =
-    new LWCAction("Add to Pathway") {
+    new LWCAction("Add to Presentation/Pathway") {
         public void act(Iterator i) {
             VUE.getActivePathway().add(i);
             GUI.makeVisibleOnScreen(VUE.getActiveViewer(), PathwayPanel.class);

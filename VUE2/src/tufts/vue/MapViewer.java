@@ -69,7 +69,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.401 $ / $Date: 2007-06-05 19:41:19 $ / $Author: mike $ 
+ * @version $Revision: 1.402 $ / $Date: 2007-06-05 19:43:11 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3332,7 +3332,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         
         WindowDisplayAction infoAction = new WindowDisplayAction(VUE.getInfoDock());
-        infoAction.setTitle("About this node");
+        infoAction.setTitle("Node Info");
         JCheckBoxMenuItem infoCheckBox = new JCheckBoxMenuItem(infoAction);
         
         WindowDisplayAction outlineAction = new WindowDisplayAction(VUE.getOutlineDock());
