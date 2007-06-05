@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.162 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $
+ * @version $Revision: 1.163 $ / $Date: 2007-06-05 13:00:20 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -685,7 +685,7 @@ public class LWPathway extends LWContainer
 
         final LWNode node = NodeModeTool.createNewNode("Merged Node"); // why can't we just use "NodeTool" here?
 
-        node.addChildren(Actions.duplicatePreservingLinks(mergedContents.iterator()));
+        node.addChildren(Actions.duplicatePreservingLinks(mergedContents));
 
         return node;
     }
