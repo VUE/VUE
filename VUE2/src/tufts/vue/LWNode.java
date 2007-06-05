@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.167 $ / $Date: 2007-06-02 01:50:15 $ / $Author: sfraize $
+ * @version $Revision: 1.168 $ / $Date: 2007-06-05 13:02:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -465,11 +465,13 @@ public class LWNode extends LWContainer
     public void setAsTextNode(boolean asText)
     {
         if (asText) {
-            //setShape(java.awt.geom.Rectangle2D.Float.class); // just a default, not enforced
+            setShape(java.awt.geom.Rectangle2D.Float.class); // now enforced
             //setStrokeWidth(0f); // just a default, not enforced
+            disableProperty(LWKey.Shape);
             setFillColor(COLOR_TRANSPARENT);
             setFont(DEFAULT_TEXT_FONT);
         } else {
+            enableProperty(LWKey.Shape);
             setFillColor(DEFAULT_NODE_FILL);
         }
         if (asText)
@@ -650,9 +652,23 @@ public class LWNode extends LWContainer
 
     @Override
     protected boolean containsImpl(float x, float y, float zoom) {
-        if (super.containsImpl(x, y, zoom)) // fast-reject
+        if (mIsRectShape) {
+            // won't be perfect for round-rect at big scales, but good
+            // enough, and takes into account stroke width
+            return super.containsImpl(x, y, zoom);
+        } else if (super.containsImpl(x, y, zoom)) {
+            
+            // above was a fast-reject check on the bounding box, now check the actual shape:
+            
+            // TODO: need to figure out a way to compenstate for stroke width on
+            // arbitrary shapes.  (This is only noticable when zoomed up to massive
+            // scales with large stroke widths). We could compute a connector and check
+            // the distance^2 against the (strokeWidth/2)^2, and in that case we could
+            // override pickDistance if we want near picking of nodes, tho I don't think
+            // we need that.
+            
             return boundsShape.contains(x, y);
-        else
+        } else
             return false;
     }
     
@@ -797,7 +813,7 @@ public class LWNode extends LWContainer
     protected void layout(Object triggerKey, Size curSize, Size request)
     {
         if (inLayout) {
-            new Throwable("ALREADY IN LAYOUT " + this).printStackTrace();
+            if (DEBUG.Enabled) new Throwable("ALREADY IN LAYOUT " + this).printStackTrace();
             return;
         }
         inLayout = true;
