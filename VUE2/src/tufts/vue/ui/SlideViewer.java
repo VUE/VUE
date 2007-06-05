@@ -259,7 +259,7 @@ public class SlideViewer extends tufts.vue.MapViewer
     public void LWCChanged(LWCEvent e) {
         if (DEBUG.PRESENT) out("SLIDEVIEWER LWCChanged " + e);
 
-        if (e.getComponent() instanceof LWPathway) {
+        if (e.component instanceof LWPathway) {
             // If we're displaying a slide for a node, and
             // the pathway has changed, it may be that the
             // node was just added to the pathway and we
