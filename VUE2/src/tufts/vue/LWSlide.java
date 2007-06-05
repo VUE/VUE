@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.47 $ / $Date: 2007-06-05 15:09:57 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2007-06-05 15:11:55 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -375,7 +375,7 @@ public class LWSlide extends LWContainer
         // now re-distribute with space between components:
         Rectangle2D bounds = selection.getBounds();
         selection.setSize((int) bounds.getWidth(),
-                          (int) bounds.getHeight() + 10 * selection.size());
+                          (int) bounds.getHeight() + 15 * selection.size());
         Actions.DistributeVertically.act(selection);
 
 
