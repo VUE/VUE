@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.46 $ / $Date: 2007-06-01 20:24:41 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2007-06-05 15:09:57 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -282,10 +282,14 @@ public class LWSlide extends LWContainer
         // may not be loaded yet (or just auto-handle this in userSetSize,
         // or setSize or something.
         if (c instanceof LWImage) {
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                    ((LWImage)c).userSetSize(SlideWidth / 3, SlideWidth / 3, null); // more forgiving when image aspect close to slide aspect
-                  //((LWImage)c).userSetSize(SlideWidth / 3, SlideHeight / 3, null);
-            }});
+            ((LWImage)c).userSetSize(SlideWidth / 3, SlideWidth / 3, null); // more forgiving when image aspect close to slide aspect
+//             addCleanupTask(new Runnable() { public void run() {
+//                 ((LWImage)c).userSetSize(SlideWidth / 3, SlideWidth / 3, null); // more forgiving when image aspect close to slide aspect
+//             }});
+//             GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                     ((LWImage)c).userSetSize(SlideWidth / 3, SlideWidth / 3, null); // more forgiving when image aspect close to slide aspect
+//                   //((LWImage)c).userSetSize(SlideWidth / 3, SlideHeight / 3, null);
+//             }});
         }
         
         /*
@@ -364,16 +368,15 @@ public class LWSlide extends LWContainer
 
         setSize(SlideWidth, SlideHeight);
         
-        selection.setSize(SlideWidth - SlideMargin*2, SlideHeight - SlideMargin*4);
-        Actions.DistributeVertically.act(selection);
-        //Actions.MakeColumn.act(selection);
+        Actions.MakeColumn.act(selection);
+        Actions.AlignLeftEdges.act(selection); // make column centers -- align left
+        //selection.setSize(SlideWidth - SlideMargin*2, SlideHeight - SlideMargin*4);
 
-        /*
-        Rectangle2D bounds = LWMap.getBounds(getChildIterator());
-        out("slide content bounds: " + bounds);
-        setSize((float)bounds.getWidth(),
-                (float)bounds.getHeight());
-        */
+        // now re-distribute with space between components:
+        Rectangle2D bounds = selection.getBounds();
+        selection.setSize((int) bounds.getWidth(),
+                          (int) bounds.getHeight() + 10 * selection.size());
+        Actions.DistributeVertically.act(selection);
 
 
         // 640/480 == 1024/768 == 1.333...
