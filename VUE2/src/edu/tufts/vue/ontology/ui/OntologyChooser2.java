@@ -59,7 +59,8 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
     //public static final String stepTwoMessage = "<html> Step 2 of 2 - Select a <b>style sheet</b> for the ontology</html>";
     public static final String ontTitle = "Ontology";
     public static final String cssTitle = "Ontology Style Sheet*";
-    public static final String browseFileMessage = "Browse to file:";
+    public static final String browseFileMessage = "Select file:";
+    public static final String cssFileMessage = "Select file:";
     //public static final String orMessage = "or";
     public static final String typeURLMessage = "Type in a URL:";
     public static final String styleSheetMessage = "<html>The style sheet can be added later using<br> the \"x\" window </html>";
@@ -97,6 +98,15 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
     
     private JComboBox ontChoice;
     private JComboBox cssChoice;
+    
+    private GridBagLayout gridBag;
+    private GridBagConstraints c;
+    
+    private JLabel lineLabel;
+    private JLabel lineLabel2;
+    
+    private JPanel cssChoicePanel;
+    private JPanel ontChoicePanel;
     
     public OntologyChooser2(java.awt.Frame owner,String title,OntologyBrowser browser) 
     {
@@ -143,15 +153,15 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         tufts.vue.PolygonIcon lineIcon = new tufts.vue.PolygonIcon(new java.awt.Color(153,153,153));
         lineIcon.setIconWidth(ONT_CHOOSER_WIDTH-40);
         lineIcon.setIconHeight(1);
-        JLabel lineLabel = new JLabel(lineIcon);
+        /*JLabel*/ lineLabel = new JLabel(lineIcon);
         tufts.vue.PolygonIcon lineIcon2 = new tufts.vue.PolygonIcon(new java.awt.Color(153,153,153));
         lineIcon2.setIconWidth(ONT_CHOOSER_WIDTH-40);
         lineIcon2.setIconHeight(1);
-        JLabel lineLabel2 = new JLabel(lineIcon2);
+        lineLabel2 = new JLabel(lineIcon2);
         
         mainPanel = new JPanel();
-        GridBagLayout gridBag = new GridBagLayout();
-        GridBagConstraints c = new GridBagConstraints();
+        /*GridBagLayout*/ gridBag = new GridBagLayout();
+        /*GridBagConstraints*/ c = new GridBagConstraints();
         mainPanel.setLayout(gridBag);
         
         setUpOntBrowsePanel();
@@ -160,6 +170,9 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         setUpCssURLPanel();
         setUpButtonPanel();
         
+        setUpOntChoicePanel();
+        setUpCssChoicePanel();
+        
         c.insets = new Insets(10,10,10,10);
         gridBag.setConstraints(ontLabel,c);
         mainPanel.add(ontLabel);
@@ -167,21 +180,33 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         c.anchor = GridBagConstraints.EAST;
         gridBag.setConstraints(info,c);
         mainPanel.add(info);
-        c.gridwidth = 2;
+        
+        c.anchor = GridBagConstraints.WEST;
+        c.weightx = 1.0;
+        gridBag.setConstraints(ontChoicePanel,c);
+        mainPanel.add(ontChoicePanel);
+        /*c.gridwidth = 2;
         JLabel fileLabel = new JLabel("File location: ");
         c.insets = new Insets(10,30,10,10);
         gridBag.setConstraints(fileLabel,c);
         mainPanel.add(fileLabel);
         c.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(ontChoice,c);
-        mainPanel.add(ontChoice);
-        c.gridwidth = 2;
+        mainPanel.add(ontChoice);*/
+        
+        //gridBag.setConstraints(ontBrowsePanel,c);
+        //mainPanel.add(ontBrowsePanel);
+        
+        /*c.gridwidth = 2;
         JLabel typeLabel = new JLabel("Type in a URL: ");
         gridBag.setConstraints(typeLabel,c);
         mainPanel.add(typeLabel,c);
         c.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(typeOntURLField,c);
-        mainPanel.add(typeOntURLField,c);
+        mainPanel.add(typeOntURLField,c);*/
+        gridBag.setConstraints(ontURLPanel,c);
+        mainPanel.add(ontURLPanel);
+        
         c.fill = GridBagConstraints.HORIZONTAL;
         //gridBag.setConstraints(browsePanel,c);
         //mainPanel.add(browsePanel);
@@ -189,30 +214,78 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         c.insets = new Insets(10,10,10,10);
         gridBag.setConstraints(lineLabel,c);
         mainPanel.add(lineLabel);
+        
+        
         gridBag.setConstraints(cssLabel,c);
         mainPanel.add(cssLabel);
         c.fill = GridBagConstraints.NONE;
-        c.gridwidth = 2;
+        /*c.gridwidth = 2;
         JLabel fileLabel2 = new JLabel("File location: ");
         c.insets = new Insets(10,30,10,10);
         gridBag.setConstraints(fileLabel2,c);
         mainPanel.add(fileLabel2);
         c.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(cssChoice,c);
-        mainPanel.add(cssChoice);
-        c.gridwidth = 2;
+        mainPanel.add(cssChoice);*/
+        
+        //gridBag.setConstraints(cssBrowsePanel,c);
+        //mainPanel.add(cssBrowsePanel);
+        
+        /*c.gridwidth = 2;
         JLabel typeLabel2 = new JLabel("Type in a URL: ");
         gridBag.setConstraints(typeLabel2,c);
         mainPanel.add(typeLabel2,c);
         c.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(typeCssURLField,c);
-        mainPanel.add(typeCssURLField,c);
+        mainPanel.add(typeCssURLField,c);*/
+        
+        gridBag.setConstraints(cssChoicePanel,c);
+        mainPanel.add(cssChoicePanel);
+        
+        gridBag.setConstraints(cssURLPanel,c);
+        mainPanel.add(cssURLPanel);
+        
         c.fill = GridBagConstraints.HORIZONTAL;
         gridBag.setConstraints(lineLabel2,c);
         mainPanel.add(lineLabel2);
+        
         c.anchor = GridBagConstraints.WEST;
         gridBag.setConstraints(buttonPanel,c);
         mainPanel.add(buttonPanel);
+    }
+    
+    public void setUpOntChoicePanel()
+    {
+        ontChoicePanel = new JPanel();
+        GridBagLayout ontChoiceGrid = new GridBagLayout();
+        GridBagConstraints ontChoiceConstraints = new GridBagConstraints();
+        //c.gridwidth = 2;
+        JLabel fileLabel = new JLabel("File location: ");
+        c.anchor = GridBagConstraints.WEST;
+        //ontChoiceConstraints.insets = new Insets(10,30,10,10);
+        ontChoiceGrid.setConstraints(fileLabel,ontChoiceConstraints);
+        ontChoicePanel.add(fileLabel);
+        ontChoiceConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        ontChoiceGrid.setConstraints(ontChoice,ontChoiceConstraints);
+        ontChoicePanel.add(ontChoice);
+    }
+    
+    public void setUpCssChoicePanel()
+    {
+        cssChoicePanel = new JPanel();
+        //c.gridwidth = 2;
+        GridBagLayout cssChoiceGrid = new GridBagLayout();
+        GridBagConstraints cssChoiceConstraints = new GridBagConstraints();
+        cssChoicePanel.setLayout(cssChoiceGrid);
+        cssChoiceConstraints.anchor = GridBagConstraints.WEST;
+        JLabel fileLabel2 = new JLabel("File location: ");
+        //cssChoiceConstraints.insets = new Insets(10,30,10,10);
+        cssChoiceGrid.setConstraints(fileLabel2,cssChoiceConstraints);
+        cssChoicePanel.add(fileLabel2);
+        cssChoiceConstraints.weightx = 1.0;
+        cssChoiceConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        cssChoiceGrid.setConstraints(cssChoice,cssChoiceConstraints);
+        cssChoicePanel.add(cssChoice);
     }
     
     public void setUpOntBrowsePanel()
@@ -249,22 +322,116 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
        browseConstraints.gridwidth = GridBagConstraints.REMAINDER;
        browseGrid.setConstraints(typeURLField,browseConstraints);
        browsePanel.add(typeURLField); */
+        
+        
+       JLabel ontBrowseLabel = new JLabel(browseFileMessage);
+       //JLabel orLabel = new JLabel(orMessage);
+       //JLabel urlLabel = new JLabel(typeURLMessage);
+       ontBrowseFileField = new JTextField(20);
+       //typeURLField = new JTextField(10);
+       ontBrowsePanel = new JPanel(); 
+       GridBagLayout ontBrowseGrid = new GridBagLayout();
+       GridBagConstraints ontBrowseConstraints = new GridBagConstraints();
+       ontBrowsePanel.setLayout(ontBrowseGrid);
+       
+       ontBrowseConstraints.insets = new Insets(5,5,5,5);
+       ontBrowseGrid.setConstraints(ontBrowseLabel,ontBrowseConstraints);
+       ontBrowsePanel.add(ontBrowseLabel);
+       ontBrowseConstraints.weightx = 0.0;
+       ontBrowseConstraints.anchor = GridBagConstraints.WEST;
+       //ontBrowseConstraints.fill = GridBagConstraints.HORIZONTAL;
+       ontBrowseGrid.setConstraints(ontBrowseFileField,ontBrowseConstraints);
+       ontBrowsePanel.add(ontBrowseFileField);
+       ontBrowseConstraints.weightx = 1.0;
+       ontBrowseConstraints.gridwidth = GridBagConstraints.REMAINDER;
+       ontBrowseGrid.setConstraints(ontBrowseButton,ontBrowseConstraints);
+       ontBrowsePanel.add(ontBrowseButton);
+       //browseConstraints.gridwidth = GridBagConstraints.REMAINDER;
+       //browseGrid.setConstraints(attachButton,browseConstraints);
+       //browsePanel.add(attachButton);
+       /*browseGrid.setConstraints(orLabel,browseConstraints);
+       browsePanel.add(orLabel);
+       browseConstraints.gridwidth = 1;
+       browseGrid.setConstraints(urlLabel,browseConstraints);
+       browsePanel.add(urlLabel);
+       browseConstraints.gridwidth = GridBagConstraints.REMAINDER;
+       browseGrid.setConstraints(typeURLField,browseConstraints);
+       browsePanel.add(typeURLField); */
                
     }
     
     public void setUpCssBrowsePanel()
     {
-        
+       JLabel cssBrowseLabel = new JLabel(cssFileMessage);
+       //JLabel orLabel = new JLabel(orMessage);
+       //JLabel urlLabel = new JLabel(typeURLMessage);
+       cssBrowseFileField = new JTextField(20);
+       //typeURLField = new JTextField(10);
+       cssBrowsePanel = new JPanel(); 
+       GridBagLayout cssBrowseGrid = new GridBagLayout();
+       GridBagConstraints cssBrowseConstraints = new GridBagConstraints();
+       cssBrowsePanel.setLayout(cssBrowseGrid);
+       
+       cssBrowseConstraints.insets = new Insets(5,5,5,5);
+       cssBrowseGrid.setConstraints(cssBrowseLabel,cssBrowseConstraints);
+       cssBrowsePanel.add(cssBrowseLabel);
+       cssBrowseConstraints.weightx = 0.0;
+       cssBrowseConstraints.anchor = GridBagConstraints.WEST;
+       //cssBrowseConstraints.fill = GridBagConstraints.HORIZONTAL;
+       cssBrowseGrid.setConstraints(cssBrowseFileField,cssBrowseConstraints);
+       cssBrowsePanel.add(cssBrowseFileField);
+       cssBrowseConstraints.weightx = 1.0;
+       cssBrowseConstraints.gridwidth = GridBagConstraints.REMAINDER;
+       cssBrowseGrid.setConstraints(cssBrowseButton,cssBrowseConstraints);
+       cssBrowsePanel.add(cssBrowseButton);
     }
     
     public void setUpOntURLPanel()
     {
-        
+        ontURLPanel = new JPanel()
+        {
+            public java.awt.Dimension getPreferredSize()
+            {
+                return ontBrowsePanel.getPreferredSize();
+            }
+        };
+        GridBagLayout ontURLGrid = new GridBagLayout();
+        GridBagConstraints ontURLConstraints = new GridBagConstraints();
+        ontURLPanel.setLayout(ontURLGrid);
+        ontURLConstraints.insets = new Insets(5,5,5,5);
+        ontURLConstraints.anchor = GridBagConstraints.WEST;
+        ontURLConstraints.weightx = 0.0;
+        JLabel typeLabel = new JLabel("Type in a URL: ");
+        ontURLGrid.setConstraints(typeLabel,ontURLConstraints);
+        ontURLPanel.add(typeLabel,ontURLConstraints);
+        ontURLConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        ontURLConstraints.weightx = 1.0;
+        ontURLGrid.setConstraints(typeOntURLField,ontURLConstraints);
+        ontURLPanel.add(typeOntURLField); 
     }
     
     public void setUpCssURLPanel()
     {
-        
+        cssURLPanel = new JPanel()
+        {
+           public java.awt.Dimension getPreferredSize()
+           {
+               return cssBrowsePanel.getPreferredSize();
+           }
+        };
+        GridBagLayout cssURLGrid = new GridBagLayout();
+        GridBagConstraints cssURLConstraints = new GridBagConstraints();
+        cssURLPanel.setLayout(cssURLGrid);
+        cssURLConstraints.insets = new Insets(5,5,5,5);
+        cssURLConstraints.anchor = GridBagConstraints.WEST;
+        cssURLConstraints.weightx = 0.0;
+        JLabel typeLabel = new JLabel("Type in a URL: ");
+        cssURLGrid.setConstraints(typeLabel,cssURLConstraints);
+        cssURLPanel.add(typeLabel,cssURLConstraints);
+        cssURLConstraints.weightx = 1.0;
+        cssURLConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        cssURLGrid.setConstraints(typeCssURLField,cssURLConstraints);
+        cssURLPanel.add(typeCssURLField); 
     }
     
     public void setUpButtonPanel()
@@ -299,10 +466,234 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
             return edu.tufts.vue.ontology.OntologyType.OWL_TYPE;
     }
     
+    public void reLayoutStartingAtCSS(boolean keep)
+    {
+            if(cssChoice.getSelectedIndex() == 0)
+            {
+                if(!keep)
+                {
+                  mainPanel.remove(buttonPanel);
+                  mainPanel.remove(lineLabel2);
+                  mainPanel.remove(cssBrowsePanel);
+                  invalidate();
+                  validate();
+                }
+                c.gridwidth = GridBagConstraints.REMAINDER;
+                //c.fill = GridBagConstraints.HORIZONTAL;
+                c.weightx = 1.0;
+                //setUpCssURLPanel();
+                gridBag.setConstraints(cssURLPanel,c);
+                mainPanel.add(cssURLPanel);
+                gridBag.setConstraints(lineLabel2,c);
+                mainPanel.add(lineLabel2);
+                gridBag.setConstraints(buttonPanel,c);
+                mainPanel.add(buttonPanel);
+                //invalidate();
+                validate();
+                //repaint();
+            }
+            if(cssChoice.getSelectedIndex() == 1)
+            {
+                if(!keep)
+                {
+                  mainPanel.remove(buttonPanel);
+                  mainPanel.remove(lineLabel2);
+                  mainPanel.remove(cssURLPanel);
+                  invalidate();
+                  validate();
+                }
+                c.gridwidth = GridBagConstraints.REMAINDER;
+                //c.fill = GridBagConstraints.HORIZONTAL;
+                c.weightx = 1.0;
+                gridBag.setConstraints(cssBrowsePanel,c);
+                mainPanel.add(cssBrowsePanel);
+                gridBag.setConstraints(lineLabel2,c);
+                mainPanel.add(lineLabel2);
+                gridBag.setConstraints(buttonPanel,c);
+                mainPanel.add(buttonPanel);
+                //invalidate();
+                validate();
+                //repaint();
+            }
+    }
+    
     public void actionPerformed(java.awt.event.ActionEvent e)
     {
+        if(e.getSource() == ontChoice)
+        {
+            c.anchor = GridBagConstraints.WEST;
+            if(ontChoice.getSelectedIndex() == 0)
+            {
+                mainPanel.remove(buttonPanel);
+                mainPanel.remove(lineLabel2);
+                mainPanel.remove(cssBrowsePanel);
+                mainPanel.remove(cssURLPanel);
+                mainPanel.remove(cssChoicePanel);
+                mainPanel.remove(cssLabel);
+                mainPanel.remove(lineLabel);
+                mainPanel.remove(ontBrowsePanel);
+                
+                mainPanel.remove(ontURLPanel);
+                
+                invalidate();
+                validate();
+                
+                c.gridwidth = GridBagConstraints.REMAINDER;
+                //c.weightx = 1.0;
+                //c.fill = GridBagConstraints.HORIZONTAL;
+                gridBag.setConstraints(ontURLPanel,c);
+                mainPanel.add(ontURLPanel);
+                gridBag.setConstraints(lineLabel,c);
+                mainPanel.add(lineLabel);
+                gridBag.setConstraints(cssLabel,c);
+                mainPanel.add(cssLabel);
+                c.weightx = 1.0;
+                
+                c.anchor = GridBagConstraints.WEST;
+                //cssChoicePanel.setOpaque(true);
+                //cssChoicePanel.setBackground(java.awt.Color.BLUE);
+                
+                gridBag.setConstraints(cssChoicePanel,c);
+                mainPanel.add(cssChoicePanel);
+                reLayoutStartingAtCSS(true);
+                //invalidate();
+                validate();
+                //repaint();
+            }
+            if(ontChoice.getSelectedIndex() == 1)
+            {
+                mainPanel.remove(buttonPanel);
+                mainPanel.remove(lineLabel2);
+                mainPanel.remove(cssBrowsePanel);
+                mainPanel.remove(cssURLPanel);
+                mainPanel.remove(cssChoicePanel);
+                mainPanel.remove(cssLabel);
+                mainPanel.remove(lineLabel);
+                mainPanel.remove(ontURLPanel);
+                
+                mainPanel.remove(ontBrowsePanel);
+                
+                invalidate();
+                validate();
+                
+                c.gridwidth = GridBagConstraints.REMAINDER;
+                c.fill = GridBagConstraints.HORIZONTAL;
+                gridBag.setConstraints(ontBrowsePanel,c);
+                mainPanel.add(ontBrowsePanel);
+                gridBag.setConstraints(lineLabel,c);
+                mainPanel.add(lineLabel);
+                gridBag.setConstraints(cssLabel,c);
+                mainPanel.add(cssLabel);
+                c.weightx = 1.0;
+                gridBag.setConstraints(cssChoicePanel,c);
+                mainPanel.add(cssChoicePanel);
+                reLayoutStartingAtCSS(true);
+                //invalidate();
+                validate();
+                //repaint();
+            }  
+        }
+        if(e.getSource() == cssChoice)
+        {
+            reLayoutStartingAtCSS(false);
+            validate();
+            /*
+            if(cssChoice.getSelectedIndex() == 0)
+            {
+                mainPanel.remove(buttonPanel);
+                mainPanel.remove(lineLabel2);
+                mainPanel.remove(cssBrowsePanel);
+                c.gridwidth = GridBagConstraints.REMAINDER;
+                //c.fill = GridBagConstraints.HORIZONTAL;
+                gridBag.setConstraints(cssURLPanel,c);
+                mainPanel.add(cssURLPanel);
+                gridBag.setConstraints(lineLabel2,c);
+                mainPanel.add(lineLabel2);
+                gridBag.setConstraints(buttonPanel,c);
+                mainPanel.add(buttonPanel);
+                //invalidate();
+                validate();
+                //repaint();
+            }
+            if(cssChoice.getSelectedIndex() == 1)
+            {
+                mainPanel.remove(buttonPanel);
+                mainPanel.remove(lineLabel2);
+                mainPanel.remove(cssURLPanel);
+                c.gridwidth = GridBagConstraints.REMAINDER;
+                //c.fill = GridBagConstraints.HORIZONTAL;
+                gridBag.setConstraints(cssBrowsePanel,c);
+                mainPanel.add(cssBrowsePanel);
+                gridBag.setConstraints(lineLabel2,c);
+                mainPanel.add(lineLabel2);
+                gridBag.setConstraints(buttonPanel,c);
+                mainPanel.add(buttonPanel);
+                //invalidate();
+                validate();
+                //repaint();
+            } */
+        }
         if(e.getSource() == nextButton)
         {
+            
+            //ontURLText = typeOntURLField.getText();    
+        
+            if(ontChoice.getSelectedIndex() == 0)
+            {
+                   try
+                   {
+                       ontURL = new URL(typeOntURLField.getText());
+                   }
+                   catch(MalformedURLException mue)
+                   {
+                      System.out.println("OntologyChooser: Improper URL" + mue);// aborting ontology file load");
+                      //dispose();
+                   }
+            }
+            
+            if(ontChoice.getSelectedIndex() == 1)
+            {
+                   try
+                   {
+                        if(ontFile!=null)
+                        {
+                            ontURL = ontFile.toURL();
+                        }
+                   }
+                   catch(MalformedURLException mue2)
+                   {
+                          System.out.println("OntologyChooser: File load produced Malformed URL for ontology " + mue2);
+                   }
+            }
+            
+            if(cssChoice.getSelectedIndex() == 0)
+            {
+                   try
+                   {
+                       cssURL = new URL(typeCssURLField.getText());
+                   }
+                   catch(MalformedURLException mue)
+                   {
+                      System.out.println("OntologyChooser: Improper URL for css" + mue); //, aborting ontology file load");
+                      //dispose();
+                   }
+            }
+            
+            if(ontChoice.getSelectedIndex() == 1)
+            {
+                   try
+                   {
+                        if(cssFile!=null)
+                        {
+                            cssURL = cssFile.toURL();
+                        }
+                   }
+                   catch(MalformedURLException mue2)
+                   {
+                          System.out.println("OntologyChooser: File load produced Malformed URL for css " + mue2);
+                   }
+            }
+            
             //if(step == STEP_ONE)
             //{  
                //System.out.println("1--->2");
@@ -311,7 +702,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                //styleSheetMessageLabel.setText(styleSheetMessage);
                //cancelButton.setText("Back");
                //nextButton.setText("Finish");
-               ontURLText = typeOntURLField.getText();
+               ////ontURLText = typeOntURLField.getText();
                //typeURLField.setText("");
                //browseFileField.setText("");
                //System.out.println("end 1---->2");
@@ -321,8 +712,9 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
             //{
                //System.out.println("2 finish");
                TypeList list = new TypeList();
-               if(ontURLText != null)
-               {
+               ////if(ontURLText != null)
+               //if(ontChoice.getSelectedIndex() == 0)
+               /*{
                    boolean fromURL = true;
                    try
                    {
@@ -384,7 +776,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                        {
                            System.out.println("Malformed URL from file choice: " + mue);
                        }
-               }
+               } */
                    
                if(ontURL!=null && (cssURL == null))
                {
@@ -413,7 +805,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                //browser.getViewer().getList().updateUI();
                
                //System.out.println("end 2 finish");
-            }
+            //}
         }
         if(e.getSource() == cancelButton)
         {
