@@ -139,7 +139,7 @@ public class Actions implements VueConstants
     };
     
     public static final Action RemovePathwayItem =
-    new LWCAction("Remove from Pathway") {
+    new LWCAction("Remove from active Pathway") {
         public void act(Iterator i) {
             VUE.getActivePathway().remove(i);
         }
