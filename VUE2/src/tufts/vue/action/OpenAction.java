@@ -165,6 +165,8 @@ public class OpenAction extends VueAction {
                     Resource r = (Resource)i.next();
                     replaceResource(map,r,new URLResource(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+r.getSpec()));
                 }
+
+                map.markAsSaved();
                 
                 return map;
             } else {
