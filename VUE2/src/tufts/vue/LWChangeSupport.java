@@ -18,9 +18,12 @@
 
 package tufts.vue;
 
+import static tufts.Util.*;
+
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Handle dispatching of LWCEvents, mainly for LWComponents, but any client
@@ -208,6 +211,7 @@ public class LWChangeSupport
         return mEventsDisabled;
     }
 
+
     /**
      * This method for clients that are LWComponent's ONLY.  Otherwise call dispatchLWCEvent
      * directly.
@@ -226,11 +230,23 @@ public class LWChangeSupport
             // this situation not so serious at this point: we may have no listeners
             if (DEBUG.Enabled) new Throwable("ZOMBIE EVENT").printStackTrace();
         }
+
+        if (DEBUG.EVENTS && (DEBUG.META || !DEBUG.THREAD)) {
+            final String ldesc = (listeners == null
+                                  ? " -> <no listeners>"
+                                  : (TERM_GREEN + " -> " + TERM_CLEAR + "(" + listeners.size() + " listeners)"));
+            if (client != e.getSource())
+                eoutln(e + " => " + client + ldesc);
+            else
+                eoutln(e + ldesc);
+        }
         
         if (listeners != null && listeners.size() > 0) {
+            if (DEBUG.EVENTS && DEBUG.META) eoutln(e + " dispatching for client " + client + " to listeners " + Arrays.asList(listeners));
             dispatchLWCEvent(client, listeners, e);
         } else {
-            if (DEBUG.EVENTS && DEBUG.META)
+            //if (DEBUG.EVENTS && DEBUG.THREAD && (DEBUG.META || DEBUG.CONTAINMENT))
+            if (DEBUG.EVENTS && DEBUG.THREAD)
                 eoutln(e + " -> " + "<NO LISTENERS>" + (client.isOrphan() ? " (orphan)":""));
         }
 
@@ -264,14 +280,18 @@ public class LWChangeSupport
     }
 
     private static void eout(String s) {
-        for (int x = 0; x < sEventDepth; x++) System.out.print("    ");
-        System.out.print(s);
+        synchronized (System.err) {
+            if (DEBUG.THREAD) System.err.format("%-27s", Thread.currentThread().toString().substring(6));
+            for (int x = 0; x < sEventDepth; x++) System.err.print("--->");
+            System.err.print(s);
+        }
     }
+    
     private static void eoutln(String s) {
         eout(s + "\n");
     }
     private static void outln(String s) {
-        System.out.println(s);
+        System.err.println(s);
     }
     
     public void dispatchEvent(LWCEvent e) {
@@ -282,7 +302,6 @@ public class LWChangeSupport
     /**
      * Deliver LWCEvent @param e to all the @param listeners
      */
-    //private static Listener[] listener_buf = new Listener[16];
     static synchronized void dispatchLWCEvent(Object source, List listeners, LWCEvent e)
     {
         if (sEventDepth > 5) // guestimate max based on current architecture -- increase if you need to
@@ -321,59 +340,61 @@ public class LWChangeSupport
         for (int i = 0; i < listener_array.length; i++) {
             if (DEBUG.EVENTS && DEBUG.META) {
                 if (e.getSource() != source)
-                    eout(e + " => " + source + " >> ");
+                    eout(e + " " + i + " => " + source + " >> ");
                 else
-                    eout(e + " >> ");
+                    eout(e + " " + i + " >> ");
             }
-            LWComponent.Listener l = listener_array[i];
+            LWComponent.Listener target = listener_array[i];
             //-------------------------------------------------------
             // If a listener proxy, extract the real listener
             //-------------------------------------------------------
-            if (l instanceof LWCListenerProxy) {
-                LWCListenerProxy lp = (LWCListenerProxy) l;
+            if (target instanceof LWCListenerProxy) {
+                LWCListenerProxy lp = (LWCListenerProxy) target;
                 if (!lp.isListeningFor(e)) {
                     if (DEBUG.EVENTS && DEBUG.META)
-                        outln(l + " (filtered)");
+                        outln(target + " (filtered)");
                     continue;
                 }
-                l = lp.listener;
+                target = lp.listener;
             }
             //-------------------------------------------------------
             // now we know we have the real listener
             //-------------------------------------------------------
-            if (DEBUG.EVENTS) {
+            if (DEBUG.EVENTS && DEBUG.THREAD) {
                 if (DEBUG.META) {
-                    if (e.getSource() == l)
-                        outln(l + " (SKIPPED: source)");
-                } else if (e.getSource() != l) {
+                    if (e.getSource() == target)
+                        outln(target + " (SKIPPED: source)");
+                } else if (e.getSource() != target) {
                     if (e.getSource() != source)
                         eout(e + " => " + source + " -> ");
                     else
                         eout(e + " -> ");
                 }
             }
-            if (e.getSource() == l) // this prevents events from going back to their source
+            if (e.getSource() == target) // this prevents events from going back to their source
                 continue;
             sEventDepth++;
             try {
-                if (DEBUG.EVENTS)
-                    outln(l + "");
+                if (DEBUG.EVENTS && DEBUG.THREAD)
+                    outln(target + "");
+
                 //-------------------------------------------------------
                 // deliver the event
                 //-------------------------------------------------------
 
-                l.LWCChanged(e);
+                target.LWCChanged(e);
 
             } catch (Throwable t) {
                 tufts.Util.printStackTrace
                     (t,
-                     "LWComponent.dispatchLWCEvent: exception during LWCEvent notification:"
+                     "dispatchLWCEvent: exception during LWCEvent notification:"
                      + "\n\tnotifying component: " + source
-                     + "\n\tevent was: " + e
-                     + "\n\tfailing listener: " + l);
+                     + "\n\t          event was: " + e
+                     + "\n\t   failing listener: " + target);
             } finally {
                 sEventDepth--;
             }
+            if (DEBUG.EVENTS && DEBUG.META) eoutln(e + " disptach returned from: " + target);
         }
     }
 }

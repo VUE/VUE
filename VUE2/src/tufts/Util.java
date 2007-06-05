@@ -111,7 +111,7 @@ public class Util
             TERM_CYAN   = "\033[1;36m";
             TERM_CLEAR  = "\033[m";
         }
-        printStackTrace("TERM[" + term + "]");
+        //printStackTrace("TERM[" + term + "]");
     }
     
     /** Common escape codes for terminal text colors.  Set to empty string unless on a color terminal */

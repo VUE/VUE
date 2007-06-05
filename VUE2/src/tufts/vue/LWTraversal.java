@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.19 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2007-06-05 13:02:11 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  * TODO: add capability for handling LWComponent.ChildKind, so we have the option
@@ -415,11 +415,13 @@ public class LWTraversal {
         }
 
         public void visit(LWComponent c) {
-            if (DEBUG.PICK) c.out("REGION VISITED");
+            if (DEBUG.PICK) System.out.println("VISIT " + c);
             // region picks should never select the root object the region is
             // being dragged inside
-            if (c != pc.root && c != pc.excluded && c.intersects(mapRect))
+            if (c != pc.root && c != pc.excluded && c.intersects(mapRect)) {
+                if (DEBUG.PICK) System.out.println("  HIT " + c);
                 hits.add(c);
+            }
 
         }
 

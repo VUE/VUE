@@ -70,12 +70,13 @@ abstract class Undoable {
     }
 
     public String toString() {
-        String s = getClass().getName() + "<undoable>[";
+        java.lang.reflect.Method m = getClass().getEnclosingMethod();
+        String s = "Undoable:" + getClass().getName() + (m==null?"":("/"+m.getName()));
         if (old instanceof Object[])
-            s += java.util.Arrays.asList((Object[])old);
-        else
-            s += old;
-        return s + "]";
+            s += "{" + java.util.Arrays.asList((Object[])old) + "}";
+        else if (old != null)
+            s += "[" + old + "]";
+        return s;
     }
     
     /*
