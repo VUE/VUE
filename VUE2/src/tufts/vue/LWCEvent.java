@@ -60,7 +60,7 @@ import static tufts.Util.*;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.28 $ / $Date: 2007-06-01 20:31:31 $ / $Author: sfraize $  
+ * @version $Revision: 1.29 $ / $Date: 2007-06-05 12:59:06 $ / $Author: sfraize $  
  
  */
 
@@ -175,14 +175,16 @@ public class LWCEvent
     }
     
     public String toString() {
-        return "LWCEvent[" + paramString() + "]";
+        //return "LWCEvent[" + paramString() + "]";
+        return "[" + paramString() + "]";
         
     }
     
     public String paramString() 
     {
-        //final StringBuffer buf = new StringBuffer(key + " " + source);
-        final StringBuffer buf = new StringBuffer(TERM_PURPLE + key + TERM_CLEAR + " " + source);
+        final StringBuffer buf = new StringBuffer(TERM_PURPLE
+                                                  + String.format("%-19s", key)
+                                                  + TERM_CLEAR + " " + source);
         
         if (component != null && component != source) {
             buf.append(" c=" + component);

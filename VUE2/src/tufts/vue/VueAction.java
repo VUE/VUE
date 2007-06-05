@@ -19,6 +19,8 @@
 
 package tufts.vue;
 
+import tufts.Util;
+
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -32,7 +34,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.26 $ / $Date: 2007-05-23 22:53:31 $ / $Author: sfraize $ 
+ * @version $Revision: 1.27 $ / $Date: 2007-06-05 13:01:32 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -293,6 +295,12 @@ public class VueAction extends javax.swing.AbstractAction
         System.out.println(this + ": " + s);
     }
 
-    public String toString() { return "VueAction[" + getActionName() + "]"; }
+    public String toString() {
+        Class c = getClass();
+        return Util.TERM_GREEN
+            + (c.isAnonymousClass() ? c.getSuperclass().getSimpleName() : c.getSimpleName())
+            + "[" + getActionName() +  "]"
+            + Util.TERM_CLEAR;
+    }
 }
 

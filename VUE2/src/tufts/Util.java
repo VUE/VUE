@@ -98,7 +98,24 @@ public class Util
         } else {
             UnixPlatform = true;
         }
+
+        final String term = System.getenv("TERM");
+        if (term == null || term.indexOf("color") < 0) {
+            TERM_RED = TERM_GREEN = TERM_YELLOW = TERM_BLUE = TERM_PURPLE = TERM_CYAN = TERM_CLEAR = "";
+        } else {
+            TERM_RED    = "\033[1;31m";  
+            TERM_GREEN  = "\033[1;32m";
+            TERM_YELLOW = "\033[1;33m";
+            TERM_BLUE   = "\033[1;34m";
+            TERM_PURPLE = "\033[1;35m";
+            TERM_CYAN   = "\033[1;36m";
+            TERM_CLEAR  = "\033[m";
+        }
+        printStackTrace("TERM[" + term + "]");
     }
+    
+    /** Common escape codes for terminal text colors.  Set to empty string unless on a color terminal */
+    public static final String TERM_RED, TERM_GREEN, TERM_YELLOW, TERM_BLUE, TERM_PURPLE, TERM_CYAN, TERM_CLEAR;
 
     private static void out(String s) {
         System.out.println("tufts.Util: " + s);
@@ -1186,15 +1203,6 @@ public class Util
 
     private final static String NO_CLASS_FILTER = "";
 
-    // Common escape codes for terminal text colors:
-    public static final String TERM_RED = "\033[1;31m";        
-    public static final String TERM_GREEN = "\033[1;32m";
-    public static final String TERM_YELLOW = "\033[1;33m";
-    public static final String TERM_BLUE = "\033[1;34m";
-    public static final String TERM_PURPLE = "\033[1;35m";
-    public static final String TERM_CYAN = "\033[1;36m";
-    public static final String TERM_CLEAR = "\033[m";
-        
 
     /** print stack trace items only from fully qualified class names that match the given prefix */
     public static void printClassTrace(Throwable t, String prefix, String message, java.io.PrintStream s) {
