@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.77 $ / $Date: 2007-05-14 03:31:46 $ / $Author: sfraize $
+ * @version $Revision: 1.78 $ / $Date: 2007-06-05 13:00:51 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -177,14 +177,20 @@ public class VueUtil extends tufts.Util
         // We are defining a line here using the formula:
         // y = mx + b  -- m is slope, b is y-intercept (where crosses x-axis)
         
-        boolean m1vertical = (s1x1 == s1x2);
-        boolean m2vertical = (s2x1 == s2x2);
-        float m1 = Float.NaN;
-        float m2 = Float.NaN;
+        final boolean m1vertical = (s1x1 == s1x2);
+        final boolean m2vertical = (s2x1 == s2x2);
+        final float m1;
+        final float m2;
+
         if (!m1vertical)
             m1 = (s1y1 - s1y2) / (s1x1 - s1x2);
+        else
+            m1 = Float.NaN;
+        
         if (!m2vertical)
             m2 = (s2y1 - s2y2) / (s2x1 - s2x2);
+        else
+            m2 = Float.NaN;
         
         // Solve for b using any two points from each line.
         // to solve for b:
