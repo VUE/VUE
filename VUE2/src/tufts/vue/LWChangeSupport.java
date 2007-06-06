@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import tufts.Util;
 import static tufts.Util.*;
 
 import java.util.List;
@@ -211,6 +212,8 @@ public class LWChangeSupport
         return mEventsDisabled;
     }
 
+    private static final String DELIVERY_ARROW = TERM_GREEN + " => " + TERM_CLEAR;
+
 
     /**
      * This method for clients that are LWComponent's ONLY.  Otherwise call dispatchLWCEvent
@@ -224,17 +227,28 @@ public class LWChangeSupport
         }
         
         if (client.isDeleted()) {
-            System.err.println("ZOMBIE EVENT: deleted component attempting event notification:"
-                               + "\n\tdeleted=" + mClient
-                               + "\n\tattempted notification=" + e);
+            String msg =
+                "FYI, ZOMBIE EVENT: notifyListeners; deleted component attempting event notification:"
+                + "\n\t        deleted client: " + client
+                + "\n\tattempting delivery of: " + e
+                + "\n\t     current listeners: " + listeners
+                + "\n\tparent (ought be null): " + client.getParent()
+                + "\n"
+                ;
             // this situation not so serious at this point: we may have no listeners
-            if (DEBUG.Enabled) new Throwable("ZOMBIE EVENT").printStackTrace();
+            if (DEBUG.Enabled)
+                Util.printStackTrace(msg);
+            else
+                VUE.Log.warn(msg);
         }
 
         if (DEBUG.EVENTS && (DEBUG.META || !DEBUG.THREAD)) {
             final String ldesc = (listeners == null
                                   ? " -> <no listeners>"
-                                  : (TERM_GREEN + " -> " + TERM_CLEAR + "(" + listeners.size() + " listeners)"));
+                                  : ((listeners.size()>0?TERM_GREEN:"") + " => (" + listeners.size() + " listeners)" + TERM_CLEAR
+                                     //+ " " + Arrays.asList(listeners)
+                                     ));
+                                //: (DELIVERY_ARROW + "(" + listeners.size() + " listeners)"));a
             if (client != e.getSource())
                 eoutln(e + " => " + client + ldesc);
             else
@@ -366,9 +380,9 @@ public class LWChangeSupport
                         outln(target + " (SKIPPED: source)");
                 } else if (e.getSource() != target) {
                     if (e.getSource() != source)
-                        eout(e + " => " + source + " -> ");
+                        eout(e + " => " + source + DELIVERY_ARROW);
                     else
-                        eout(e + " -> ");
+                        eout(e + DELIVERY_ARROW);
                 }
             }
             if (e.getSource() == target) // this prevents events from going back to their source
