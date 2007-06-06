@@ -18,6 +18,9 @@
 
 package tufts.vue;
 
+import tufts.Util;
+import static tufts.Util.*;
+
 import java.util.*;
 import java.awt.Point;
 import java.awt.Color;
@@ -276,7 +279,21 @@ public class UndoManager
                         e.printStackTrace();
                     }
                 }
-                component.setProperty(propKey, oldValue);
+
+                if (component.getParent() == null) {
+                    
+                    // For the hairy event's that LWGroups produce when created inside groups.
+                    // we'd be getting a zombie event complaint if we did this.  Turns out if we
+                    // skip the property value completely, this is actually something we want to do
+                    // to help group inside group undo/redo (zombie complaint shows up on undo, and
+                    // then on redo, a location event goes thru that we actually don't want -- this
+                    // was the conversion to local coordinates.
+                    
+                    if (DEBUG.Enabled) System.err.println("SKIPPING undo item for deleted (parentless) component: "
+                                                          + component + "; " + this);
+                } else 
+                    component.setProperty(propKey, oldValue);
+                
             }
         }
 
@@ -469,7 +486,7 @@ public class UndoManager
             }
             return "UndoItem["
                 + order + (order<10?" ":"")
-                + " " + propKey
+                + " " + TERM_CYAN + propKey + TERM_CLEAR
                 + " " + component
                 + " old=" + old
                 + "]";
@@ -659,7 +676,7 @@ public class UndoManager
         markChangesAsUndo(name);
     }
 
-    private final Map<Object,Runnable> mCleanupTasks = new java.util.HashMap();
+    private final Map<Object,Runnable> mCleanupTasks = new java.util.LinkedHashMap(); // maintain insertion order
     
     /**
 
