@@ -69,7 +69,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.402 $ / $Date: 2007-06-05 19:43:11 $ / $Author: mike $ 
+ * @version $Revision: 1.403 $ / $Date: 2007-06-06 18:18:54 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -132,7 +132,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected LWSelection VueSelection = null;
     /** a group that contains everything in the current selection.
      *  Used for doing operations on the entire group (selection) at once */
-    protected LWGroup draggedSelectionGroup = LWGroup.createTemporary(VUE.ModelSelection);
+    protected final LWGroup draggedSelectionGroup = LWGroup.createTemporary(VUE.ModelSelection);
     /** the currently dragged selection box */
     protected Rectangle draggedSelectorBox;
     /** the last selector box drawn -- for repaint optimization */
@@ -5519,8 +5519,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 return false;
             if (parentTarget instanceof LWMap) // prob don't need this check, but just in case
                 return false;
-            if (s.size() == 1 && !s.first().supportsReparenting())
-                return false;
+            if (s.size() == 1) {
+                if (!s.first().supportsReparenting())
+                    return false;
+                //if (s.first().getParent() == parentTarget) // it's already the parent: don't bother indicating a parent change
+                      //return false; // oops -- is leading to DE-parenting
+                // todo: rework so can get away with not indicating the existing parent
+            }
             return parentTarget.supportsChildren();
         }
     //} old InputHandler close
