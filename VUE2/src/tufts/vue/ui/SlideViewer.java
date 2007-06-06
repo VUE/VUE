@@ -181,8 +181,8 @@ public class SlideViewer extends tufts.vue.MapViewer
         btnMaster = makeButton("Master Slide");
         btnMapView = new JCheckBox("Map View");
         btnFill = new JCheckBox("Fill");
-        btnRebuild = new JButton("Rebuid Slide");
-        btnRevert = new JButton("Revert Slide Style");
+        btnRebuild = new JButton("Rebuild");
+        btnRevert = new JButton("Revert Style");
         //btnPresent = makeButton("Present");
 
         btnSlide.setSelected(true);
