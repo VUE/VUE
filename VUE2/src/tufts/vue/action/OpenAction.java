@@ -57,6 +57,10 @@ public class OpenAction extends VueAction {
         }
         try {
             File[] file = ActionUtil.openMultipleFiles("Open Map", VueFileFilter.VUE_DESCRIPTION);
+            
+            if (file == null)
+            	return;
+            
             for (int i=0;i<file.length;i++)
             	displayMap(file[i]);            
             System.out.println("Action["+e.getActionCommand()+"] completed.");

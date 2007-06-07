@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.60 $ / $Date: 2007-06-05 20:22:22 $ / $Author: mike $
+ * @version $Revision: 1.61 $ / $Date: 2007-06-07 13:32:46 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -178,7 +178,7 @@ public class ActionUtil {
         if (VueUtil.isCurrentDirectoryPathSet()) 
             chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
         
-        int option = chooser.showDialog(VUE.getDialogParent(), "Open");
+        int option = chooser.showOpenDialog(VUE.getDialogParent());
         
         if (option == JFileChooser.APPROVE_OPTION) {
             final File chooserFile = chooser.getSelectedFile();
@@ -229,7 +229,7 @@ public class ActionUtil {
     	if (VueUtil.isCurrentDirectoryPathSet()) 
          chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
      
-    	int option = chooser.showDialog(VUE.getDialogParent(), "Open");
+    	int option = chooser.showOpenDialog(VUE.getDialogParent());
      
     	if (option == JFileChooser.APPROVE_OPTION) {
          final File[] chooserFile = chooser.getSelectedFiles();
