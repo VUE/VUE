@@ -39,7 +39,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.36 $ / $Date: 2007-02-16 02:34:43 $ / $Author: mike $
+ * @version $Revision: 1.37 $ / $Date: 2007-06-08 18:24:43 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -182,7 +182,15 @@ public class InspectorPane extends JPanel
     	if (!Widget.isHidden(mSummaryPane) && !Widget.isExpanded(mSummaryPane))    		
     		Widget.setExpanded(mSummaryPane, true);
     	if (!Widget.isHidden(mNotePanel) && !Widget.isExpanded(mNotePanel))
-    		Widget.setExpanded(mNotePanel, true);    	
+    		Widget.setExpanded(mNotePanel, true);
+    	
+    	SwingUtilities.invokeLater(new Runnable() { 
+            public void run() { 
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                mNotePanel.getTextPane().requestFocusInWindow();
+            } 
+    	} );
+        return;
     }
     
     public void showInfoView()

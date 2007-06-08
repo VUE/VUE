@@ -19,7 +19,7 @@
 /** 
  * Provides an editable note panel for an LWComponents notes.
  *
- * @version $Revision: 1.15 $ / $Date: 2007-05-11 20:31:44 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2007-06-08 18:24:43 $ / $Author: mike $
  */
 
 package tufts.vue;
@@ -53,6 +53,11 @@ public class NotePanel extends JPanel
         VUE.addActiveListener(LWComponent.class, this);
     }
 	
+    public VueTextPane getTextPane()
+    {
+    	return mTextPane;
+    }
+    
     public void activeChanged(ActiveEvent e, LWComponent c) {
         load(c);
     }

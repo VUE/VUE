@@ -523,9 +523,11 @@ public class Actions implements VueConstants
     
     public static final Action NotesAction = new VueAction(VueResources.getString("mapViewer.componentMenu.notes.label")) {
         public void act() {        	
-        	VUE.getInspectorPane().showNotesView();
+        	
         	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class);
         	VUE.getInfoDock().setRolledUp(false,true);
+        	VUE.getInfoDock().toFront();
+        	VUE.getInspectorPane().showNotesView();
         	}
         //public void act() { VUE.ObjectInspector.setVisible(true); }
     };
