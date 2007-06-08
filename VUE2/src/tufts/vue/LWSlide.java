@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.49 $ / $Date: 2007-06-06 18:18:29 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2007-06-08 19:28:05 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -367,6 +367,9 @@ public class LWSlide extends LWContainer
         if (DEBUG.PRESENT || DEBUG.STYLE) out("LAYING OUT CHILDREN, parent=" + getParent());
 
         setSize(SlideWidth, SlideHeight);
+
+        if (nodes.size() == 1)
+            return;
         
         Actions.MakeColumn.act(selection);
         Actions.AlignLeftEdges.act(selection); // make column centers -- align left
