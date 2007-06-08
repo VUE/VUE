@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.62 $ / $Date: 2007-06-07 15:53:18 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2007-06-08 16:40:02 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -459,8 +459,7 @@ public class ActionUtil {
             writer.flush();
             writer.close();
 
-            if (map.getModelVersion() > 0)
-                map.setFile(file);
+            map.setFile(file);
             map.markAsSaved();
 
             if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote " + file);
