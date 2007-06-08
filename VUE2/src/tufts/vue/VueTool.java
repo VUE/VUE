@@ -20,6 +20,8 @@ package tufts.vue;
 
 import tufts.vue.gui.*;
 
+import tufts.Util;
+
 import java.util.*;
 import java.lang.*;
 import javax.swing.*;
@@ -34,7 +36,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.73 $ / $Date: 2007-05-24 23:40:36 $ / $Author: sfraize $
+ * @version $Revision: 1.74 $ / $Date: 2007-06-08 19:40:17 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -360,7 +362,9 @@ public abstract class VueTool extends AbstractAction
     }
 
     /** what to do, if anything, when the tool is selected */
-    public void handleToolSelection(boolean selected) {}
+    public void handleToolSelection(boolean selected, VueTool otherTool) {
+        if (DEBUG.Enabled) out("handleToolSelection: selected=" + selected + "; otherTool=" + otherTool);
+    }
 
     public DrawContext getDrawContext(DrawContext dc) {
         return dc;
@@ -546,7 +550,7 @@ public abstract class VueTool extends AbstractAction
             // TEST ONLY FOR NOW.
             //-----------------------------------------------------------------------------
             
-        if (DEBUG.Enabled &&
+        if (false &&
             !s.isEmpty() &&
             VUE.multipleMapsVisible() &&
             VUE.isActiveViewerOnLeft() &&
@@ -799,12 +803,14 @@ public abstract class VueTool extends AbstractAction
         if (parent != null)
             parent.setSelectedSubTool(this);
 
-        if (parent != null)
-            parent.handleToolSelection(true);
+        if (parent != null) {
+            //if (DEBUG.Enabled) Util.printStackTrace("actionPerformed tool switch to " + parent + " from " + VueToolbarController.getController().getActiveTool());
+            parent.handleToolSelection(true, VueToolbarController.getController().getActiveTool());
+        }
         if (this.hasSubTools())
-        	VueToolbarController.getController().handleToolSelection(this.getSelectedSubTool());
+            VueToolbarController.getController().handleToolSelection(this.getSelectedSubTool());
         else
-        	VueToolbarController.getController().handleToolSelection(this);
+            VueToolbarController.getController().handleToolSelection(this);
     }
 	
     
