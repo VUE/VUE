@@ -47,7 +47,7 @@ import tufts.vue.action.*;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.45 $ / $Date: 2007-05-22 18:20:49 $ / $Author: anoop $
+ * @version $Revision: 1.46 $ / $Date: 2007-06-08 19:13:03 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
     
@@ -319,14 +319,17 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         Iterator i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
         while(i.hasNext()) {
             LWComponent component = (LWComponent) i.next();
-            //System.out.println("Component:"+component+" has resource:"+component.hasResource());
-            if(component.hasResource()){
-                Resource resource = component.getResource();
+            System.out.println("Component:"+component+" has resource:"+component.hasResource());
+            if(component.hasResource() && (component.getResource() instanceof URLResource)){
+                
+                URLResource resource = (URLResource) component.getResource();
+                System.out.println("Component:"+component+"file:" +resource.getSpec()+" has file:"+resource.getSpec().startsWith(FILE_PREFIX));
+            
                 //   if(resource.getType() == Resource.URL) {
                 try {
                     // File file = new File(new URL(resource.getSpec()).getFile());
-                    if(resource.getSpec().startsWith(FILE_PREFIX)) {
-                        File file = new File(new URL(resource.getSpec()).getFile());
+                    if(resource.isLocalFile()) {
+                        File file = new File(resource.getSpec());
                         System.out.println("LWComponent:"+component.getLabel() + "Resource: "+resource.getSpec()+"File:"+file+" exists:"+file.exists());
                         Vector row = new Vector();
                         row.add(new Boolean(true));
