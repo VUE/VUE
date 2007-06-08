@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.71 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $  
+ * @version $Revision: 1.72 $ / $Date: 2007-06-08 17:55:02 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -81,6 +81,10 @@ class MapDropTarget
     private boolean CenterNodesOnDrop = true;
     
     private final MapViewer mViewer;
+
+    /** for Windows, track the last dropAction we got during dragOver, as it can somehow be reverted by
+     * the time we get the drop event */
+    private int dropActionOverride = 0;
 
     public MapDropTarget(MapViewer viewer) {
        mViewer = viewer;
@@ -119,6 +123,14 @@ class MapDropTarget
         else
             mViewer.clearIndicated();
 
+        if (Util.isWindowsPlatform()) {
+            // this is being "forgot" on WinXP sometimes between now
+            // and when they let go of the mouse!
+            dropActionOverride = e.getDropAction();
+        } else {
+            dropActionOverride = 0;
+        }
+
         /*
           // HANDLE IN TRAVERSAL!
           
@@ -139,9 +151,10 @@ class MapDropTarget
     public void drop(DropTargetDropEvent e)
     {
         if (DEBUG.DND) out("DROP " + e
-                           + "\n\t   dropAction: " + dropName(e.getDropAction())
-                           + "\n\tsourceActions: " + dropName(e.getSourceActions())
-                           + "\n\t     location: " + e.getLocation()
+                           + "\n\t        dropAction: " + dropName(e.getDropAction())
+                           + "\n\tdropActionOverride: " + dropName(dropActionOverride)
+                           + "\n\t     sourceActions: " + dropName(e.getSourceActions())
+                           + "\n\t          location: " + e.getLocation()
                            );
 
         /* UnsupportedOperation (tring to discover key's being held down ourselves) try {
@@ -300,11 +313,16 @@ class MapDropTarget
         
         if (e != null) {
             dropLocation = e.getLocation();
-            dropAction = e.getDropAction();
+            if (dropActionOverride != 0)
+                dropAction = dropActionOverride;
+            else
+                dropAction = e.getDropAction();
             mapLocation = dropToMapLocation(dropLocation);
             if (DEBUG.DND) out("processTransferable: " + GUI.dropName(e)
-                               + "\n\tdropScreenLoc: " + dropLocation
-                               + "\n\t   dropMapLoc: " + mapLocation
+                               + "\n\t        dropAction: " + dropName(e.getDropAction())                               
+                               + "\n\tdropActionOverride: " + dropName(dropActionOverride)
+                               + "\n\t     dropScreenLoc: " + dropLocation
+                               + "\n\t        dropMapLoc: " + mapLocation
                                );
         } else {
             if (DEBUG.DND) out("processTransferable: (no drop event) transfer=" + transfer);
