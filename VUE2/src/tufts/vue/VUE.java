@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.450 $ / $Date: 2007-06-01 23:49:42 $ / $Author: sfraize $ 
+ * @version $Revision: 1.451 $ / $Date: 2007-06-08 20:13:06 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1686,6 +1686,31 @@ public class VUE
         if (file == null)
             return;
 
+		/*
+		* If there is 1 map open, and it has no content and hasn't been saved yet close it.
+		* requested in vue-520 
+		*/
+        if (isActiveViewerOnLeft())
+        {
+        	if ((mMapTabsLeft != null) && 
+        			mMapTabsLeft.getTabCount() == 1 && 
+        			(getActiveMap() != null) && 
+        			!getActiveMap().hasContent() && 
+        			getActiveMap().getFile() == null)
+        		closeMap(getActiveMap());
+        	
+        } else 
+        {
+            	if ((mMapTabsRight != null) && 
+            			mMapTabsRight.getTabCount() == 1 && 
+            			(getActiveMap() != null) && 
+            			!getActiveMap().hasContent() && 
+            			getActiveMap().getFile() == null)
+            		closeMap(getActiveMap());
+            	
+        }
+
+        
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
             if (map == null)
