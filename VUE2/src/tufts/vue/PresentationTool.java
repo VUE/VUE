@@ -930,7 +930,7 @@ private static int OverviewMapSizeIndex = 5;
 //     }
     
     @Override
-    public void handleToolSelection(boolean selected)
+    public void handleToolSelection(boolean selected, VueTool fromTool)
     {
         //handleFullScreen(selected && VUE.inFullScreen(), VUE.inNativeFullScreen());
 
