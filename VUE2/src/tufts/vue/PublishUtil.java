@@ -72,7 +72,7 @@ public class PublishUtil implements  tufts.vue.DublinCoreConstants  {
             Boolean b = (Boolean)(vector.elementAt(0));
             if(b.booleanValue()) {
                 Resource r = (Resource)(vector.elementAt(1));
-                File rFile = new File(new URL(r.getSpec()).getFile());
+                File rFile = new File(r.getSpec());
                 String entry = RESOURCE_FOLDER+rFile.getName();
                 imscp.putEntry(entry,rFile);  
                 replaceResource(saveMap,r,new MapResource(RESOURCE_FOLDER+rFile.getName()));
