@@ -23,15 +23,32 @@ import java.util.*;
 import javax.swing.*;
 import java.awt.*;
 
-public class SelectionTool extends VueTool {
-
+public class SelectionTool extends VueTool
+{
     public SelectionTool() {
         super();
     }
 
-//     public JPanel getContextualPanel() {
-//         return VueToolbarController.getController().getSuggestedContextualPanel();
-//     }
+    @Override
+    public void handleToolSelection(boolean selected, VueTool otherTool) {
+        super.handleToolSelection(selected, otherTool); // for debug
+        if (selected) {
+            if (otherTool instanceof ZoomTool) {
+                ZoomTool zoomTool = (ZoomTool) otherTool;
+                if (zoomTool.getZoomedTo() != null && zoomTool.getZoomedTo() instanceof LWSlide) {
+                    final MapViewer viewer = VUE.getActiveViewer();
+                    if (viewer == null)
+                        return;
+                    final LWSlide editingFocal = (LWSlide) zoomTool.getZoomedTo();
+                    final LWComponent oldFocal = viewer.getFocal();
+                    // not sure if we need oldFocal.
+                    // anyway, this is a total hack that will be going away...
+                    zoomTool.setEditingFocal(editingFocal, oldFocal);
+                    viewer.loadFocal(editingFocal);
+                }
+            }
+        }
+    }    
 
     static class Direct extends SelectionTool {
         @Override

@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.65 $ / $Date: 2007-05-24 00:49:27 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2007-06-08 19:19:00 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -118,6 +118,7 @@ public class ZoomTool extends VueTool
     private LWComponent zoomedTo;
     private LWComponent zoomedToFull;
     private LWComponent oldFocal;
+    private LWSlide editingFocal; // for now, should only ever be an LWSlide
     private boolean ignoreRelease = false;
 
 //     /** Enabled rollover indication highlighting */
@@ -132,6 +133,34 @@ public class ZoomTool extends VueTool
 //         }
 //         return false;
 //     }
+
+    public LWComponent getZoomedTo() {
+        return zoomedTo;
+    }
+    
+    /** called by SelectionTool */
+    void setEditingFocal(LWSlide editFocal, LWComponent oldFocal) {
+        this.editingFocal = editFocal;
+        //this.oldFocal = oldFocal;
+    }
+
+    public void handleToolSelection(boolean selected, VueTool otherTool) {
+        super.handleToolSelection(selected, otherTool); // for debug
+
+        // TODO: this is by no means perfect yet, and has confusing cases
+        // if you switch to full screen and back, etc.
+        
+        if (selected && editingFocal != null) {
+            final MapViewer viewer = VUE.getActiveViewer();
+            if (viewer == null)
+                return;
+            viewer.popFocal();
+            zoomToSlide(viewer, editingFocal, false);
+        }
+        
+        editingFocal = null;
+        
+    }
     
     
     // Classic simple version:
@@ -307,11 +336,13 @@ public class ZoomTool extends VueTool
     */
 
     private void zoomToSlide(MapViewer viewer, final LWSlide slide) {
+        // animated zoom-to: only works in full-screen
+        zoomToSlide(viewer, slide, VUE.inFullScreen());
+    }
+    private void zoomToSlide(MapViewer viewer, final LWSlide slide, boolean animate) {
         
         // zoom-to for the map region of the slide icon:
                 
-        // animated zoom-to: only works in full-screen
-        final boolean animate = VUE.inFullScreen();
         setZoomFitRegion(viewer,
                          slide.getSourceNode().getMapSlideIconBounds(),
                          0,
@@ -520,8 +551,7 @@ public class ZoomTool extends VueTool
         
         //final int frames = 20;
         //final int frames = 16; 
-        final int frames = 8; 
-        //final int frames = 4;
+        final int frames = 4;
 
         // will paint (frame - 1) intermediate frames: the last frame is left so the caller
         // can establish the exact final display coordinate
