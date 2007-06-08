@@ -522,9 +522,10 @@ public class Actions implements VueConstants
     };
     
     public static final Action NotesAction = new VueAction(VueResources.getString("mapViewer.componentMenu.notes.label")) {
-        public void act() { 
+        public void act() {        	
         	VUE.getInspectorPane().showNotesView();
         	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class);
+        	VUE.getInfoDock().setRolledUp(false,true);
         	}
         //public void act() { VUE.ObjectInspector.setVisible(true); }
     };
@@ -532,7 +533,8 @@ public class Actions implements VueConstants
     public static final Action InfoAction = new VueAction(VueResources.getString("mapViewer.componentMenu.info.label")) {
         public void act() { 
         	VUE.getInspectorPane().showInfoView();
-        	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class); 
+        	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class);
+        	VUE.getInfoDock().setRolledUp(false,true);
         	}
         //public void act() { VUE.ObjectInspector.setVisible(true); }
     };
