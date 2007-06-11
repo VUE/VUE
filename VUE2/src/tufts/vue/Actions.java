@@ -20,10 +20,7 @@ package tufts.vue;
 
 import java.util.Iterator;
 import tufts.vue.NodeTool.NodeModeTool;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Collection;
+import java.util.*;
 import java.awt.Event;
 import java.awt.Point;
 import java.awt.Font;
@@ -361,9 +358,10 @@ public class Actions implements VueConstants
         void act(LWComponent c) {
             LWComponent copy = c.duplicate(CopyContext);
             DupeList.add(copy);
-            // set location before adding
-            copy.setLocation(c.getX()+CopyOffset,
-                             c.getY()+CopyOffset);
+            final float x = c.getX();
+            final float y = c.getY();
+            copy.setLocation(x+CopyOffset,
+                             y+CopyOffset);
             c.getParent().addChild(copy);
         }
         
@@ -451,7 +449,7 @@ public class Actions implements VueConstants
                 lastPasteLocation = pasteLocation;
             }
             
-            MapDropTarget.setCenterAt(pasted, pasteLocation);
+            MapDropTarget.setCenterAt(pasted, pasteLocation); // only works on un-parented nodes
             viewer.getFocal().addChildren(pasted);
             viewer.getSelection().setTo(pasted);
             lastMouseLocation = mouseLocation;
@@ -597,7 +595,7 @@ public class Actions implements VueConstants
                 return s.countTypes(LWGroup.class) > 0 || s.allHaveSameParentOfType(LWGroup.class);
             }
             void act(LWSelection s) {
-                final List<LWComponent> toSelect = new ArrayList();
+                final Collection<LWComponent> toSelect = new HashSet(); // ensure no duplicates
                 if (s.countTypes(LWGroup.class) > 0) {
                     if (DEBUG.EVENTS) out("Ungroup: dispersing any selected groups");
                     disperse(s, toSelect);
@@ -608,9 +606,11 @@ public class Actions implements VueConstants
                 
                 if (toSelect.size() > 0)
                     VUE.getSelection().setTo(toSelect);
+                else
+                    VUE.getSelection().clear();
             }
 
-            private void degroup(Iterable<LWComponent> iterable, List toSelect)
+            private void degroup(Iterable<LWComponent> iterable, Collection toSelect)
             {
                 final List<LWComponent> removing = new ArrayList();
                 
@@ -638,7 +638,7 @@ public class Actions implements VueConstants
                 
             }
 
-            private void disperse(Iterable<LWComponent> iterable, List toSelect) {
+            private void disperse(Iterable<LWComponent> iterable, Collection toSelect) {
                 for (LWComponent c : iterable) {
                     if (c instanceof LWGroup) {
                         toSelect.addAll(c.getChildList());
