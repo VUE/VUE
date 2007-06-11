@@ -79,9 +79,11 @@ public class SaveAction extends VueAction
 
         try {
             inSave = true;
-            System.out.println("Action["+e.getActionCommand()+"] invoked...");
-            saveMap(tufts.vue.VUE.getActiveMap(), isSaveAs());
-            System.out.println("Action["+e.getActionCommand()+"] completed.");
+            tufts.vue.VUE.Log.info("Action["+e.getActionCommand()+"] invoked...");
+            if (saveMap(tufts.vue.VUE.getActiveMap(), isSaveAs()))
+                tufts.vue.VUE.Log.info("Action["+e.getActionCommand()+"] completed.");
+            else
+                tufts.vue.VUE.Log.info("Action["+e.getActionCommand()+"] aborted.");
         } finally {
             inSave = false;
         }
@@ -99,6 +101,15 @@ public class SaveAction extends VueAction
             return false;
         
         File file = map.getFile();
+
+        if (map.getSaveFileModelVersion() == 0) {
+            VueUtil.alert(String.format("Saving %s in this version of VUE will prevent older versions of VUE"
+                                        + "\nfrom displaying it properly.  You may wish to save this map under a new name.",
+                                        map.getLabel()),
+                          "Version Notice: " + map.getLabel());
+            
+        }
+        
         
         if (saveAs || file == null)
             //file = ActionUtil.selectFile("Save Map", "vue");
@@ -112,12 +123,11 @@ public class SaveAction extends VueAction
             String name = file.getName().toLowerCase();
 
             if (name.endsWith(".rli.xml")) {
-				new IMSResourceList().convert(map,file);
-			}
-            
-			else if (name.endsWith(".xml") || name.endsWith(".vue"))
+                new IMSResourceList().convert(map,file);
+            }
+            else if (name.endsWith(".xml") || name.endsWith(".vue")) {
                 ActionUtil.marshallMap(file, map);
-            
+            }
             else if (name.endsWith(".jpeg") || name.endsWith(".jpg"))
                 ImageConversion.createActiveMapJpeg(file);
             
