@@ -42,7 +42,7 @@ import java.awt.geom.AffineTransform;
  * lets try that.
  *
  * @author Scott Fraize
- * @version $Revision: 1.66 $ / $Date: 2007-06-02 01:50:15 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2007-06-11 11:02:42 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -493,15 +493,17 @@ public class LWGroup extends LWContainer
     */
     
 
-    /** children of groups have absolute map locations -- this is overriden to a noop */
-    @Override
-    protected void translateLocationToLocalCoordinates(LWComponent c, float oldMapX, float oldMapY) {
-        if (AbsoluteChildren)
-            //; // do nothing: leave them absolute
-            tufts.Util.printStackTrace("should not be called if children are absolute");
-        else
-            super.translateLocationToLocalCoordinates(c, oldMapX, oldMapY);
-    }
+//     /** children of groups have absolute map locations -- this is overriden to a noop */
+//     @Override
+//     protected void translateLocationToLocalCoordinates(LWComponent c, float oldMapX, float oldMapY) {
+//         if (AbsoluteChildren)
+//             //; // do nothing: leave them absolute
+//             tufts.Util.printStackTrace("should not be called if children are absolute");
+//         else
+//             super.translateLocationToLocalCoordinates(c, oldMapX, oldMapY);
+//     }
+
+    void normalize(){}
 
     protected void translateRelativeChildren(float dx, float dy, LWComponent exclude) {
         for (LWComponent c : getChildList()) {
