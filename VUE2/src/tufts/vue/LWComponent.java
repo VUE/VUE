@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import tufts.Util;
+import static tufts.Util.*;
 
 import java.awt.Shape;
 import java.awt.Color;
@@ -44,7 +45,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.292 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $
+ * @version $Revision: 1.293 $ / $Date: 2007-06-11 10:53:45 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -73,6 +74,16 @@ public class LWComponent
 
        // VIRTUAL -- would be *just* what ANY currently adds, and exclude PROPER -- currently unsupported
     }
+
+    /** order of result set for getAllDescendents -- not applicable if collection passed in isn't ordered */
+    public enum Order {
+            /** default traversal order: parents before children */
+            TREE,
+            /** order for layout operations; children before parents */
+            DEPTH
+    };
+
+    
 
     /*
     // need an IntegerPreference and/or an IntegerRangePreference (that ImagePreference could also use)
@@ -138,6 +149,10 @@ public class LWComponent
 
     private String ID = null;
 
+    // todo: next major re-architecting: instead of x/y width/height,
+    // keep a Point2D.Float bounds up to date (and can skip creating
+    // a rectangles constantly).  (Might also keep a mapBounds?)
+
     private float x;
     private float y;
     // TODO: if we want to support some kind of keep-relative alignment for an object
@@ -171,12 +186,12 @@ public class LWComponent
     protected transient boolean isStyle;
 
     // list of LWLinks that contain us as an endpoint
-    private transient List<LWLink> mLinks = new ArrayList<LWLink>();
+    private transient final List<LWLink> mLinks = new ArrayList<LWLink>(4);
     protected transient List<LWPathway> pathwayRefs;
     private transient long mSupportedPropertyKeys;
     private transient boolean isMoveable = true;
 
-    protected transient double scale = 1.0;
+    private transient double scale = 1.0;
 
     protected transient LWChangeSupport mChangeSupport = new LWChangeSupport(this);
     protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore? (todo: eliminate this as a member variable)
@@ -1154,7 +1169,19 @@ u                    getSlot(c).setFromString((String)value);
         //else if (key == LWKey.Hidden)        setHidden( ((Boolean)val).booleanValue());
         else if (key == LWKey.Scale)         setScale((Double) val);
         else if (key == LWKey.Resource)      setResource( (Resource) val);
-        else if (key == LWKey.Location)      setLocation( (Point2D) val);
+        else if (key == LWKey.Location) {
+
+            // This is a bit of a hack, in that we're relying on the fact that the only
+            // thing to call setProperty with a Location key right now is the
+            // UndoManager.  In any case, on undo, we do NOT want to additionally make
+            // mapLocationChanged calls on all descendents (for absolute map location
+            // objects; e.g. LWLink's).  Location changes as a result of these calls
+            // were already recorded as events and will be undone on their own.
+            
+            final Point2D.Float loc = (Point2D.Float) val;
+            setLocation(loc.x, loc.y, this, false);
+            //setLocation( (Point2D) val);
+        }
         else if (key == LWKey.Size) {
             Size s = (Size) val;
             setSize(s.width, s.height);
@@ -1350,11 +1377,37 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     public UndoManager getUndoManager() {
-        if (this.parent == null)
+        final LWMap map = getMap();
+        if (map == null)
             return null;
         else
-            return getMap().getUndoManager();
+            return map.getUndoManager();
     }
+
+    protected void addCleanupTask(Runnable task) {
+        addCleanupTask(task, this, null);
+    }
+    
+    protected void addCleanupTask(Runnable task, Object taskKey, Object srcMsg) {
+        final UndoManager um = getUndoManager();
+
+        if (um != null) {
+            if (um.isUndoing()) {
+                if (DEBUG.Enabled) System.out.println("Ignoring cleanup task during undo: " + task + " for " + this);
+            } else if (um.hasCleanupTask(taskKey)) {
+                if (DEBUG.Enabled) System.out.println("Ignoring duplicate cleanup task: " + task + " for " + this);
+            } else {
+                if (DEBUG.Enabled) {
+                    System.out.println(TERM_RED + "ADDING CLEANUP TASK: " + task 
+                                       + (srcMsg==null?"":("on " + srcMsg))
+                                       + " for " + this
+                                       + TERM_CLEAR);
+                }
+                um.addCleanupTask(this, task);
+            }
+        }
+    }
+    
     
     
     public UserMapType getUserMapType() { throw new UnsupportedOperationException("deprecated"); }
@@ -1646,7 +1699,7 @@ u                    getSlot(c).setFromString((String)value);
     /** @return true: subclasses (e.g. containers), override to return false if you never want this component
         reparented by users */
     public boolean supportsReparenting() {
-        return true;
+        return parent instanceof LWGroup == false; // todo: handle via API that LWGroup can declare
     }
 
     /** @return true: by default, all objects can be selected with other objects at the same time */
@@ -1904,16 +1957,6 @@ u                    getSlot(c).setFromString((String)value);
 
     protected void layoutImpl(Object triggerKey) {}
     
-    public String OLD_toString()
-    {
-        String s = getClass().getName() + "[id=" + getID();
-        if (getLabel() != null)
-            s += " \"" + getLabel() + "\"";
-        s += "]";
-        return s;
-    }
-
-    
     /** @return true: default is always autoSized */
     //public boolean isAutoSized() { return true; }
     public boolean isAutoSized() { return false; } // LAYOUT-NEW
@@ -2026,7 +2069,11 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     void setParent(LWContainer parent) {
+        final boolean linkNotify = (parent != null);
         this.parent = parent;
+        if (linkNotify && mLinks.size() > 0)
+            for (LWLink link : mLinks)
+                link.notifyEndpointReparented();
     }
     
     //protected void reparentNotify(LWContainer parent) {}
@@ -2167,7 +2214,11 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     public boolean isManagedLocation() {
-        return getParent() instanceof LWNode || (isSelected() && isAncestorSelected());
+        return getParent().isManagingChildLocations() || (isSelected() && isAncestorSelected());
+    }
+
+    public boolean isManagingChildLocations() {
+        return false;
     }
 
     /** @return true - A single component always "has content" -- subclasses override to provide varying semantics */
@@ -2228,10 +2279,14 @@ u                    getSlot(c).setFromString((String)value);
         if (kind == ChildKind.PROPER)
             return java.util.Collections.EMPTY_LIST;
         else
-            return getAllDescendents(kind, new java.util.ArrayList());
+            return getAllDescendents(kind, new java.util.ArrayList(), Order.TREE);
     }
     
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection<LWComponent> bag) {
+        return getAllDescendents(kind, bag, Order.TREE);
+    }
+    
+    public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection<LWComponent> bag, Order order) {
         return bag;
     }
     
@@ -2326,14 +2381,14 @@ u                    getSlot(c).setFromString((String)value);
             final LWComponent head = link.getHead();
             final LWComponent tail = link.getTail();
 
-            rect.add(link.getBounds());
+            rect.add(link.getPaintBounds());
             
             if (head != this) {
                 if (head != null)
-                    rect.add(head.getBounds());
+                    rect.add(head.getPaintBounds());
             } else if (tail != this) {
                 if (tail != null)
-                    rect.add(tail.getBounds());
+                    rect.add(tail.getPaintBounds());
             } 
         }
         return rect;
@@ -2531,6 +2586,19 @@ u                    getSlot(c).setFromString((String)value);
         return getParent().getParentWithParent(parent);
     }
 
+    /** @return a collection of our ancestors.  default impl returns a list with nearest ancestor first */
+    public List<LWComponent> getAncestors() {
+        return (List) getAncestors(new ArrayList());
+    }
+
+    protected Collection<LWComponent> getAncestors(Collection bag) {
+        if (parent != null) {
+            bag.add(parent);
+            return parent.getAncestors(bag);
+        } else
+            return bag;
+    }
+
     public boolean hasAncestor(LWComponent c) {
         LWComponent parent = getParent();
         if (parent == null)
@@ -2631,14 +2699,19 @@ u                    getSlot(c).setFromString((String)value);
     /** @return the on-map scale at 100% map scale -- only different from getScale() for VUE.RELATIVE_COORDS == true */
     public double getMapScale()
     {
-        if (VUE.RELATIVE_COORDS) {
-            if (getParent() == null)
-                return getScale();
-            else
-                return getParent().getMapScale() * getScale();
-        } else {
+        if (getParent() == null)
             return getScale();
-        }
+        else
+            return getParent().getMapScale() * getScale();
+        
+//         if (VUE.RELATIVE_COORDS) {
+//             if (getParent() == null)
+//                 return getScale();
+//             else
+//                 return getParent().getMapScale() * getScale();
+//         } else {
+//             return getScale();
+//         }
     }
 
     /** Convenience for returning float */ public final float getScaleF() { return (float) getScale(); }
@@ -2657,8 +2730,9 @@ u                    getSlot(c).setFromString((String)value);
      */
     protected void updateConnectedLinks()
     {
-        for (LWLink l : mLinks) 
-            l.setEndpointMoved(true);
+        if (mLinks.size() > 0)
+            for (LWLink link : mLinks) 
+                link.setEndpointMoved();
     }
     
     public void setFrame(Rectangle2D r)
@@ -2718,21 +2792,150 @@ u                    getSlot(c).setFromString((String)value);
         this.y = y;
     }
     
-    public void setLocation(float x, float y)
+//     public void userTranslate(float dx, float dy) {
+//         translate(dx, dy);
+//     }
+    
+    /** Translate this component within it's parent by the given amount */
+    public void translate(float dx, float dy) {
+        setLocation(this.x + dx,
+                    this.y + dy);
+    }
+
+    /** Translate this component within it's parent by the given amount -- quietly w/out generating events */
+    public void takeTranslation(float dx, float dy) {
+        takeLocation(this.x + dx,
+                     this.y + dy);
+    }
+    
+
+    /** translate across the map in absolute map coordinates */
+    public void translateOnMap(double dx, double dy)
+    {
+        if (hasAbsoluteMapLocation()) {
+            translate((float) dx, (float) dy);
+            return;
+        }
+        
+        // If this node exists in a scaled context, which means it's parent is scaled or
+        // the parent itself is in a scaled context, we need to adjust the dx/dy for
+        // that scale. The scale of this object being "dragged" by the call to
+        // translateOnMap is irrelevant -- here we're concerned with it's location in
+        // it's parent, not it's contents.  So we need to beef up the translation amount
+        // by the context scale so drags across the map will actually stay with the
+        // mouse.  E.g., if this object exists in a parent scaled down 50% (scale=0.5),
+        // to move this object 2 pixels to the right in absolute top-level map
+        // coordinates, we need to change it's internal location within it's parent by 4
+        // pixels (2 / 0.5 = 4) to have that show up on the map (when itself displayed
+        // at 100% scale) as a movement of 4 pixels.
+
+        final double scale = getParent().getMapScale();
+        if (scale != 1.0) {
+            dx /= scale;
+            dy /= scale;
+        }
+        
+        translate((float) dx, (float) dy);
+        
+    }
+    
+    /** set the absolute map location -- meant to be overriden for special cases (e.g., the special selection group) */
+    public void setMapLocation(double x, double y) {
+        throw new UnsupportedOperationException("unimplemented in " + this);
+//         final double scale = getMapScale();
+//         out("map scale: " + scale);
+//         if (scale != 1.0) {
+//             final double oldMapX = getMapX();
+//             final double oldMapY = getMapY();
+//             final double dx = (x - oldMapX) * scale;
+//             final double dy = (y - oldMapY) * scale;
+//             setLocation((float) (oldMapX + dx),
+//                         (float) (oldMapY + dy));
+//         } else
+//             setLocation((float) x, (float) y);
+    }
+    
+    /**
+     * Set the location of this object within it's parent. E.g., if the parent is a group or a slide,
+     * setLocation(0,0) would move the component to the upper left corner of it's parent.  If the
+     * parent is a map, (0,0) has no special meaning as the origin of Maps, while it does exist,
+     * has no special meaning when they draw.
+     */
+    public void setLocation(float x, float y) {
+        setLocation(x, y, this, true);
+    }
+
+    
+    /** Special setLocation to permit event notification during coordinate system changes for objects not yet added to the map */
+    protected void setLocation(float x, float y, LWComponent hearableEventSource, boolean issueMapLocationChangeCalls)
     {
         if (this.x == x && this.y == y)
             return;
-        Object old = new Point2D.Float(this.x, this.y);
+        
+        final Point2D.Float oldValue = new Point2D.Float(this.x, this.y);
         takeLocation(x, y);
-        if (!linkNotificationDisabled)
-            updateConnectedLinks();
-        notify(LWKey.Location, old);
-        // todo: setX/getX should either handle undo or throw exception if used while not during restore
+        
+        //if (!linkNotificationDisabled)
+        //    updateConnectedLinks();
+        
+        if (hearableEventSource != this)
+            hearableEventSource.notifyProxy(new LWCEvent(hearableEventSource, this, LWKey.Location, oldValue));
+        else //if (hearableEventSource != null) // if null, skip event delivery
+            notify(LWKey.Location, oldValue);
+
+        //        if (issueMapLocationChangeCalls && parent != null) {
+        if (issueMapLocationChangeCalls) {
+
+            // NEED TO DEAL WITH COORDINATE SYSTEM CHANGES
+            // And need to be able to capture old map location from our OLD parent
+            // during reparenting....
+
+            // reparenting may want to force a location in the new parent, at it's
+            // current map location, but relative to the new parent's location,
+            // even if it's about to be moved/laid-out elsewhere, so that once
+            // we get here, the below code should always work.  Or, we could
+            // even have establishLocalCoordinates call us here with extra info... (oldMapX/oldMapY)
+            // or, we could implement the general setMapLocation and have establishLocalCoords call that...
+            
+            // This code only works if we're moving within a single parent: no coordinate system changes!
+
+            // Would be better to merge this somehow with notifyHierarchChanged?
+            
+            final double scale;
+            if (parent != null)
+                scale = parent.getMapScale(); // we move within the scale of our parent
+            else
+                scale = 1.0;
+            if (DEBUG.WORK) out("notifyMapLocationChanged: using scale " + scale);
+            notifyMapLocationChanged((x - oldValue.x) * scale,
+                                     (y - oldValue.y) * scale);
+        } else {
+            // this always needs to happen no matter what, even during undo
+            // (e.g., the shape of curves isn't stored anywhere -- always needs to be recomputed)
+            if (!linkNotificationDisabled)
+                updateConnectedLinks();
+        }
     }
-    public void setLocation(double x, double y) {
+
+    /** a notification to the component that it's absolute map location has changed by the given absolute map dx / dy */
+    // todo: may be better named ancestorMoved or ancestorTranslated or some such
+    protected void notifyMapLocationChanged(double mdx, double mdy) {
+        if (!linkNotificationDisabled) // todo: if still end up using this feature, need to pass this bit on down to children
+            updateConnectedLinks();
+    }
+
+    protected void notifyMapScaleChanged(double oldParentMapScale, double newParentMapScale) {}
+
+    /** A notification to the component that it or some ancestor is about to change parentage */
+    public void notifyHierarchyChanging() {}
+    
+    /** A notification to the component that it or some ancestor changed parentage */
+    public void notifyHierarchyChanged() {}
+    
+    public final void setLocation(double x, double y) {
         setLocation((float) x, (float) y);
     }
-    public void setLocation(Point2D p) {
+    public final void setLocation(Point2D p) {
         setLocation((float) p.getX(), (float) p.getY());
     }
 
@@ -2741,21 +2944,14 @@ u                    getSlot(c).setFromString((String)value);
         setLocation(x, y);
     }
     
-    public void userTranslate(float dx, float dy) {
-        translate(dx, dy);
-    }
-    
-    public void translate(float dx, float dy) {
-        setLocation(this.x + dx,
-                    this.y + dy);
-    }
-
     public void setCenterAt(Point2D p) {
         setLocation((float) p.getX() - getWidth()/2,
                     (float) p.getY() - getHeight()/2);
     }
 
-    // special case for mapviewer rollover zooming to skip calling updateConnectedLinks
+    /** special case for mapviewer rollover zooming to skip calling updateConnectedLinks
+     * If the component is temporarily zoomed, we don't want/need to update all the connected links.
+     */
     void setCenterAtQuietly(Point2D p)
     {
         linkNotificationDisabled = true;
@@ -2966,6 +3162,41 @@ u                    getSlot(c).setFromString((String)value);
         } else
             return getY();
     }
+
+    //-----------------------------------------------------------------------------
+    // experimental relatve-to-a-given-ancestor coord fetchers
+    //-----------------------------------------------------------------------------
+    
+    public double getX(LWContainer ancestor) {
+        if (ancestor == parent) // quick check for the common case
+            return getX();
+        else if (parent == null)
+             throw new Error("wasn't shared parent");
+        else
+            return parent.getX(ancestor) + getX() * parent.getMapScale();
+    }
+    
+    public double getY(LWContainer ancestor) {
+        if (ancestor == parent) // quick check for the common case
+            return getY();
+        else if (parent == null)
+            throw new Error("wasn't shared parent");
+        else
+            return parent.getY(ancestor) + getY() * parent.getMapScale();
+    }
+
+    // these two don't handle scale propertly yet
+    public float getCenterX(LWContainer ancestor) {
+        return (float) getX(ancestor) + getScaledWidth() / 2;
+    }
+    public float getCenterY(LWContainer ancestor) {
+        return (float) getY(ancestor) + getScaledHeight() / 2;
+    }
+    
+    
+    //-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
     
 
 
@@ -2975,8 +3206,11 @@ u                    getSlot(c).setFromString((String)value);
     /** for persistance ONLY */
     public void setAbsoluteHeight(float h) { this.height = h; }
     
-    /** @return true if when this this component draws, it draws on the map as a whole, not relative to it's coordinate space (default is false) */
+    /** @return true if when this this component draws, it draws and picks on the map as a whole, not relative to it's coordinate space (default is false) */
     public boolean hasAbsoluteMapLocation() { return false; }
+    
+    /** @return true if when this this component draws, it draws and picks relative to it's parent's coordinate space (default is false) */
+    public boolean hasParentLocation() { return false; }
     
     /*
     public void setShape(Shape shape)
@@ -3036,7 +3270,7 @@ u                    getSlot(c).setFromString((String)value);
     // -- needs borders, but NO room for selection strokes (wait, but pathway strokes???)
     // screw it: we can get by with getPaintedBounds for this...
     
-    /** @DEPRECATED */
+    /** @DEPRECATED -- TODO: remove*/
     public Rectangle2D.Float getShapeBounds() { return getBounds(); }
 
     /** return border shape of this object.  If VUE.RELATIVE_COORDS, it's raw and zero based,
@@ -3060,11 +3294,44 @@ u                    getSlot(c).setFromString((String)value);
             return new Rectangle2D.Float(0, 0, getAbsoluteWidth(), getAbsoluteHeight());
     }
     
+//     /** @return the parent based, non-scaled bounds.  If the this component has absolute map location, we return getBounds() */
+//     public Rectangle2D.Float getParentLocalBounds() {
+//         if (hasAbsoluteMapLocation())
+//             return getBounds();
+//         else
+//             return new Rectangle2D.Float(getX(), getY(), getMapWidth(), getMapHeight());
+//     }
+
+//     public Rectangle2D.Float getParentLocalPaintBounds() {
+//         if (hasAbsoluteMapLocation())
+//             return getBounds();
+//         else
+//             return addStrokeToBounds(getParentLocalBounds(), 0);
+//     }
+
+    
+    
+    
     /** @return map-coord (absolute) bounds of the stroke shape (not including any stroke width) */
     public Rectangle2D.Float getBounds()
     {
         return new Rectangle2D.Float(getMapX(), getMapY(), getMapWidth(), getMapHeight());
         //return getPaintBounds();
+    }
+
+    protected Rectangle2D.Float addStrokeToBounds(Rectangle2D.Float r, float extra)
+    {
+        float strokeWidth = getStrokeWidth();
+        
+        if (strokeWidth > 0) {
+            strokeWidth *= getMapScale();
+            final float exteriorStroke = strokeWidth / 2;
+            r.x -= exteriorStroke;
+            r.y -= exteriorStroke;
+            r.width += strokeWidth;
+            r.height += strokeWidth;
+        }
+        return r;
     }
     
     /**
@@ -3074,40 +3341,49 @@ u                    getSlot(c).setFromString((String)value);
      */
     public Rectangle2D.Float getPaintBounds()
     {
-        //if (VUE.RELATIVE_COORDS) return new Rectangle2D.Float(0, 0, getWidth(), getHeight());
-        
-        // todo opt: cache this object?
-        final Rectangle2D.Float b;
-        float strokeWidth = getStrokeWidth();
-        
         if (inDrawnPathway())
-            strokeWidth += LWPathway.PathwayStrokeWidth;
-
-        if (VUE.RELATIVE_COORDS) {
-            //b = new Rectangle2D.Float(getMapX(), getMapY(), getMapWidth(), getMapHeight());
-            b = getBounds();
-        } else {
-            b = new Rectangle2D.Float(this.x, this.y, getMapWidth(), getMapHeight());
-        }
-
-
-        // we need this adjustment for repaint optimzation to
-        // work properly -- would be a bit cleaner to compensate
-        // for this in the viewer
-        //if (isIndicated() && STROKE_INDICATION.getLineWidth() > strokeWidth)
-        //    strokeWidth = STROKE_INDICATION.getLineWidth();
-
-        if (strokeWidth > 0) {
-            if (VUE.RELATIVE_COORDS)
-                strokeWidth *= getMapScale();
-            final float adj = strokeWidth / 2;
-            b.x -= adj;
-            b.y -= adj;
-            b.width += strokeWidth;
-            b.height += strokeWidth;
-        }
-        return b;
+            return addStrokeToBounds(getBounds(), LWPathway.PathwayStrokeWidth);
+        else
+            return addStrokeToBounds(getBounds(), 0);
     }
+
+//     public Rectangle2D.Float getPaintBounds()
+//     {
+//         //if (VUE.RELATIVE_COORDS) return new Rectangle2D.Float(0, 0, getWidth(), getHeight());
+        
+//         // todo opt: cache this object?
+//         final Rectangle2D.Float b = getBounds();
+//         float strokeWidth = getStrokeWidth();
+        
+//         if (inDrawnPathway())
+//             strokeWidth += LWPathway.PathwayStrokeWidth;
+
+// //         if (VUE.RELATIVE_COORDS) {
+// //             //b = new Rectangle2D.Float(getMapX(), getMapY(), getMapWidth(), getMapHeight());
+// //             b = getBounds();
+// //         } else {
+// //             b = new Rectangle2D.Float(this.x, this.y, getMapWidth(), getMapHeight());
+// //         }
+
+
+//         // we need this adjustment for repaint optimzation to
+//         // work properly -- would be a bit cleaner to compensate
+//         // for this in the viewer
+//         //if (isIndicated() && STROKE_INDICATION.getLineWidth() > strokeWidth)
+//         //    strokeWidth = STROKE_INDICATION.getLineWidth();
+
+//         if (strokeWidth > 0) {
+//             if (VUE.RELATIVE_COORDS)
+//                 strokeWidth *= getMapScale();
+//             final float adj = strokeWidth / 2;
+//             b.x -= adj;
+//             b.y -= adj;
+//             b.width += strokeWidth;
+//             b.height += strokeWidth;
+//         }
+//         return b;
+//     }
+    
 
     protected static final AffineTransform IDENTITY_TRANSFORM = new AffineTransform();
     
@@ -3190,16 +3466,6 @@ u                    getSlot(c).setFromString((String)value);
         }
     }
     
-    
-    /**
-     * Default implementation: returns false;
-     * For "do-what-I-mean" hit detection, when all the more strict contains calls failed.
-     */
-    public boolean looseContains(float x, float y)
-    {
-        return false;
-    }
-    
     /**
      * Default implementation: checks bounding box
      * Subclasses should override and compute via shape.
@@ -3208,17 +3474,13 @@ u                    getSlot(c).setFromString((String)value);
     public final boolean intersects(Rectangle2D rect)
     {
         // TODO: intersection wants to use render-bounds (with stroke) for paint testing,
-        // but just shape bounds for picking....
-        // ACTUALLY, paint testing uses MAP BOUNDS!  Picking uses
-        // raw local bounds!  Crap...  No, wait... the GC is
-        // scaled during drawing, so we're local -- it's just LWTraversal that needs updating...
         
         //boolean hit = intersectsImpl(rect);
         //if (DEBUG.Enabled) System.out.println("INTERSECTS " + Util.out(rect) + " " + (hit?"YES":"NO ") + " for " + Util.out(bounds) + " " + this);
         
         if (intersectsImpl(rect))
             return true;
-        else if (isDrawingSlideIcon() && getSlideIconBounds().intersects(rect))
+        else if (isDrawingSlideIcon() && getMapSlideIconBounds().intersects(rect))
             return true;
         else
             return false;
@@ -3433,11 +3695,13 @@ u                    getSlot(c).setFromString((String)value);
      */
     protected boolean containsImpl(float x, float y, float zoom)
     {
+        final float stroke = getStrokeWidth() / 2;
+        
         if (VUE.RELATIVE_COORDS)
-            return x >= 0
-                && y >= 0
-                && x <= getWidth()
-                && y <= getHeight();
+            return x >= -stroke
+                && y >= -stroke
+                && x <= getWidth() + stroke
+                && y <= getHeight() + stroke;
         else
             return containsParentCoord(x, y);
     }
@@ -3677,6 +3941,11 @@ u                    getSlot(c).setFromString((String)value);
             dc.setClipOptimized(false);
             dc.g.translate(slideFrame.x, slideFrame.y);
             dc.g.scale(SlideScale, SlideScale);
+
+            // A hack so that when LWLinks (hasAbsoluteMapLocation) pop to map drawing, they
+            // don't pop up beyond this point.
+            dc.mapTransform = dc.g.getTransform();
+            
             //dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.9f));
             //entry.pathway.getMasterSlide().drawImpl(dc);
             slide.drawImpl(dc);
@@ -4135,13 +4404,13 @@ u                    getSlot(c).setFromString((String)value);
      (return super.paramString() + new info) */
     public String paramString()
     {
-        return String.format(" %.0f,%.0f %.0fx%.0f", getX(), getY(), width, height);
+        return String.format(" %+.0f,%+.0f %.0fx%.0f", getX(), getY(), width, height);
     }
 
     protected void out(String s) {
         if (DEBUG.THREAD) {
             String thread = Thread.currentThread().toString().substring(6);
-            System.err.println(thread + " " + this + " " + s);
+            System.err.format("%-32s%s %s\n", thread, this, s);
         } else {
             System.err.println(this + " " + s);
         }
@@ -4450,8 +4719,8 @@ u                    getSlot(c).setFromString((String)value);
             //s += tufts.Util.pad(4, getID());
         }
         s += label;
-        //if (getScale() != 1f) s += "z" + getScale() + " ";
-        if (this.scale != 1f) s += "z" + this.scale + " ";
+        //if (this.scale != 1f) s += "z" + this.scale + " ";
+        if (getScale() != 1f) s += String.format("z%.2f ", getScale());
         s += paramString();
         if (mHideBits != 0)
             s += " " + getDescriptionOfSetBits();
