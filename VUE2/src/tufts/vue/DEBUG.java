@@ -134,6 +134,7 @@ public class DEBUG
             else if (a.equals("scroll"))     DEBUG.SCROLL = true;
             else if (a.equals("pick"))       DEBUG.PICK = true;
             else if (a.startsWith("parent")) DEBUG.PARENTING = true;
+            else if (a.startsWith("contain"))DEBUG.CONTAINMENT = true;
             else if (a.startsWith("path"))   DEBUG.PATHWAY = true;
             else if (a.startsWith("edge"))   DEBUG.EDGE = true;
             else if (a.startsWith("event"))  DEBUG.EVENTS = true;
