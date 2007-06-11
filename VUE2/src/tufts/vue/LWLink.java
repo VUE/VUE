@@ -38,11 +38,13 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.151 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $
+ * @version $Revision: 1.152 $ / $Date: 2007-06-11 10:56:17 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener
 {
+    private static final boolean LOCAL_LINKS = false;
+    
     // Ideally, we want this to be false: it's a more accurate representation of
     // what's displayed: the control points only show up when selected.
     private static final boolean IncludeControlPointsInBounds = false;
@@ -117,7 +119,8 @@ public class LWLink extends LWComponent
     
     private boolean ordered = false; // not doing anything with this yet
     
-    private transient boolean endpointMoved = true; // has an endpoint moved since we last computed shape?
+    /** has an endpoint moved since we last computed shape? */
+    private transient boolean endpointMoved = true;
 
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -168,7 +171,9 @@ public class LWLink extends LWComponent
             return l.mArrowState; // if getting a type-mismatch on mLine, feed this file to javac with LWComponent.java at the same time
         }
     };
-    private final IntProperty mArrowState = new IntProperty(KEY_LinkArrows, ARROW_TAIL) { void onChange() { endpointMoved = true; layout(); } };
+    private final IntProperty mArrowState = new IntProperty(KEY_LinkArrows, ARROW_TAIL) {
+            void onChange() { endpointMoved = true; layout(); }
+        };
 
 
     public static final Key KEY_LinkShape = new Key<LWLink,Integer>("link.shape") { // do we want this to be a KeyType.STYLE? could argue either way...
@@ -336,25 +341,61 @@ public class LWLink extends LWComponent
                 c.clearHidden(HideCause.PRUNE);
         }
     }
+
+//     /** @return 1 -- The text-box actually queries this, so it must be accurate */ NO LONGER: it now compenstates
+//     @Override
+//     public double getMapScale() {
+//         return 1;
+//     }
+//     /** @return 1 -- links never scaled by themselves */
+//     @Override
+//     public double getScale() {
+//         return 1;
+//     }
+
+    @Override
+    void setScale(double scale) {
+        ; // do nothing: links don't take on a scale of their own
+    }
+    
+    @Override
+    public Shape getLocalShape() { return getShape(); }
+    
+    // links are absolute in their parent: nothing to add to the transforms or local(raw) v.s. map shapes
+    //@Override public Shape getMapShape() { return getShape(); }
+    
     
     @Override
     public Rectangle2D.Float getBounds() {
         
         if (endpointMoved)
             computeLink();
-        
+
+        // as we currently always have absolute map location, we can just use getX/getY
+        // tho we use getMapWidth/getMapHeight just in case we're in a scaled context
+        // (tho we're trying to avoid this for now...)
+        final Rectangle2D.Float bounds =
+            addStrokeToBounds(new Rectangle2D.Float(getX(), getY(), getWidth(), getHeight()),
+                              0);
+        // do NOT want map-width / map-height: even if in a scaled parent, links are always pure on-map objects,
+        // and the width/height is computed by our endpoints and controlpoints, set in computeLink --
+        // there's never any scale to appeal to with links.
+        //addStrokeToBounds(new Rectangle2D.Float(getX(), getY(), getMapWidth(), getMapHeight()),0);
+                                                    
         // todo: would be better to just include this in the width via computeLink,
         // tho then we'd need to invalidate the link if the label changes.
-        if (hasLabel()) {
-            // TODO: getPaintBounds is adding stroke width of link
-            // to the edge of the label box, which isn't right...
-            final Rectangle2D.Float bounds = super.getBounds();
+        if (hasLabel())
             bounds.add(getLabelBox().getMapBounds());
-            return bounds;
-        } else {
-            return super.getBounds();
-        }
+        
+        return bounds;
     }
+
+    @Override
+    public Rectangle2D.Float getPaintBounds()
+    {
+        return getBounds();
+    }
+    
     
     /** @return same as super class impl, but by default add our own two endpoints */
     @Override
@@ -628,10 +669,17 @@ public class LWLink extends LWComponent
      * us know something we're connected to has moved,
      * and thus we need to recompute our drawn shape.
      */
-    void setEndpointMoved(boolean tv)
+    void setEndpointMoved()
     {
-        this.endpointMoved = tv;
+        this.endpointMoved = true;
     }
+
+    void notifyEndpointReparented()
+    {
+        //this.endpointReparented = true;
+    }
+    
+    
 
     public boolean isCurved()
     {
@@ -1032,24 +1080,20 @@ public class LWLink extends LWComponent
         return minDistSq - hitDistSq;
     }
     
-    private static final int LooseSlopSq = 15*15;
-    public boolean looseContains(float x, float y)
-    {
-        // return true; // let the picker sort out who's closest -- not good enough: will always pick *some* link!
-        
-        if (endpointMoved)
-            computeLink();
-        
-        if (mCurve != null) {
-            // Java curve shapes check the entire concave region for containment.
-            // This is a quick way to check for loose-picks on curves.
-            // (Could also use distanceToEdgeSq, but this hits more area).
-            return mCurve.contains(x, y);
-        }  else {
-            // for straight links:
-            return mLine.ptSegDistSq(x, y) < LooseSlopSq;
-        }
-    }
+//     private static final int LooseSlopSq = 15*15;
+//     public boolean looseContains(float x, float y) {
+//         if (endpointMoved)
+//             computeLink();
+//         if (mCurve != null) {
+//             // Java curve shapes check the entire concave region for containment.
+//             // This is a quick way to check for loose-picks on curves.
+//             // (Could also use distanceToEdgeSq, but this hits more area).
+//             return mCurve.contains(x, y);
+//         }  else {
+//             // for straight links:
+//             return mLine.ptSegDistSq(x, y) < LooseSlopSq;
+//         }
+//     }
     
     void disconnectFrom(LWComponent c)
     {
@@ -1123,18 +1167,21 @@ public class LWLink extends LWComponent
         return getWeight();
     }
 
-
     /**
-     * Any free (unattached) endpoints get translated by
-     * how much we're moving, as well as any control points.
-     * If both ends of this link are connected and it has
-     * no control points (it's straight, not curved) calling
-     * setLocation will have absolutely no effect on it.
+
+     * Any free points on the link get translated by the given dx/dy.  This means as any
+     * unattached endpoints, as well as any control points if it's a curved link.  If
+     * both ends of this link are connected and it has no control points (it's straight,
+     * not curved) this call has no effect.
+     
      */
 
     @Override
     public void translate(float dx, float dy)
     {
+        if (DEBUG.CONTAINMENT) out(String.format("               translate %+.1f,%+.1f", dx, dy));
+        //if (DEBUG.CONTAINMENT) Util.printStackTrace(String.format("translate %+.1f,%+.1f", dx, dy));
+        
         if (head == null)
             setHeadPoint(headX + dx, headY + dy);
 
@@ -1151,6 +1198,119 @@ public class LWLink extends LWComponent
                           mCubic.ctrly2 + dy);
         }
     }
+
+//     private LWComponent firstScaledParent() {
+//         for (LWComponent c : getAncestors()) { // TODO: this is slow
+//             if (c.getScale() != 1.0)
+//                 return c;
+//         }
+//         //Util.printStackTrace("found no scaled parent " + this);
+//         return getParent();
+//     }
+
+    private void scaleCoordinatesRelativeToParent(final float scale)
+    {
+        if (scale == 1.0)
+            return;
+
+        if (Float.isNaN(scale) || Float.isInfinite(scale)) {
+            Util.printStackTrace("bad scale: " + scale + " in " + this);
+        }
+
+        if (oldParent == this) {
+            // this means we were just created: we can ignore this
+            oldParent = null;
+            return;
+        }
+        
+        if (oldParent == null) {
+            if (DEBUG.WORK) Util.printStackTrace("scaleCoords: no old parent (ok on creates): " + this);
+            return;
+        }
+
+        //final LWComponent scaledParent = firstScaledParent();
+        final LWComponent scaledParent = oldParent;
+        final float px = scaledParent.getMapX();
+        final float py = scaledParent.getMapY();
+
+        if (DEBUG.WORK) out("scaleCoords: deltaScale=" + scale + "; scaledParent=" + scaledParent);
+        
+        //out("px=" + px + ". py=" + py);
+        
+        if (head == null)
+            setHeadPoint(px + (headX - px) * scale,
+                         py + (headY - py) * scale);
+
+        if (tail == null)
+            setTailPoint(px + (tailX - px) * scale,
+                         py + (tailY - py) * scale);
+
+        if (mCurveControls == 1) {
+            setCtrlPoint0(px + (mQuad.ctrlx - px) * scale,
+                          py + (mQuad.ctrly - py) * scale);
+            
+        } else if (mCurveControls == 2) {
+            setCtrlPoint0(px + (mCubic.ctrlx1 - px) * scale,
+                          py + (mCubic.ctrly1 - py) * scale);
+            setCtrlPoint1(px + (mCubic.ctrlx2 - px) * scale,
+                          py + (mCubic.ctrly2 - py) * scale);
+        }
+        
+    }
+
+    
+
+    private double oldMapScale = 1.0;
+    private LWComponent oldParent = this;
+    @Override
+    public void notifyHierarchyChanging()
+    {
+        super.notifyHierarchyChanging();
+        oldParent = getParent();
+        oldMapScale = getMapScale();
+        if (DEBUG.WORK )out("NH CHANGING:  curScale=" + oldMapScale);
+    }
+    
+    @Override
+    public void notifyHierarchyChanged() {
+        super.notifyHierarchyChanged();
+        final double newScale = getMapScale();
+        final double deltaScale = newScale / oldMapScale;
+        if (DEBUG.WORK) {
+            out("NH  CHANGED:   oldScale=" + oldMapScale);
+            out("NH  CHANGED:   newScale=" + newScale);
+            out("NH  CHANGED: deltaScale=" + deltaScale);
+            out("NH  CHANGED: ANCESTORS:");
+            for (LWComponent c : getAncestors())
+                System.out.format("\tscale %.2f %.2f in %s\n", c.getScale(), c.getMapScale(), c);
+        }
+        scaleCoordinatesRelativeToParent( (float) deltaScale );
+            
+        
+    }
+    
+//     @Override
+//     protected void notifyMapScaleChanged(double oldParentMapScale, double newParentMapScale) {
+//         final double deltaScale = newParentMapScale / oldParentMapScale;
+//         out("mapScaleChanged: " + deltaScale);
+//         // wait for setLocations...
+// //         addCleanupTask(new Runnable() { public void run() {
+// //         }});
+        
+//     }
+    
+
+    /** We've been notified that our absolute location should change by the given map dx/dy */
+    @Override
+    protected void notifyMapLocationChanged(double mdx, double mdy) {
+        super.notifyMapLocationChanged(mdx, mdy);
+
+        if (LOCAL_LINKS) return;
+        
+        if (DEBUG.CONTAINMENT) out(String.format("notifyMapLocationChanged %+.1f,%+.1f", mdx, mdy));
+        translate((float)mdx, (float)mdy);
+    }
+    
 
     @Override
     public void setLocation(float x, float y) {
@@ -1247,37 +1407,109 @@ public class LWLink extends LWComponent
             }
         }
     }
-
-
-    // links are absolute in their parent: nothing to add to the transforms or local(raw) v.s. map shapes
-
-//     @Override public AffineTransform getLocalTransform() { return IDENTITY_TRANSFORM; }
-//     @Override public AffineTransform transformLocal(AffineTransform a) { return a; }
-//     @Override public void transformLocal(Graphics2D g) {}
-//     @Override public void transformRelative(Graphics2D g) {}
-    @Override public Shape getLocalShape() { return getShape(); }
-    //@Override public Shape getMapShape() { return getShape(); }
-    //@Override /** @return 1 -- links never scaled */ public final double getMapScale() { return 1; }
-    @Override /** @return 1 -- links never scaled by themselves */ public final double getScale() { return 1; }
     
-    /** @return getX() -- links coords are always map/absolute */
+    @Override
+    public boolean hasAbsoluteMapLocation() { return !LOCAL_LINKS; }
+
+
+    @Override
+    public void transformRelative(final Graphics2D g) {
+        if (LOCAL_LINKS)
+            ;
+//         if (LOCAL_LINKS && parent != null)
+//             parent.transformRelative(g);
+        else
+            super.transformRelative(g);
+    }
+    @Override
+    public void transformLocal(Graphics2D g) {
+        if (LOCAL_LINKS && parent != null)
+            ;
+//         if (LOCAL_LINKS && parent != null)
+//             parent.transformLocal(g);
+        else
+            super.transformLocal(g);
+    }
+    @Override
+    public AffineTransform transformLocal(AffineTransform a) {
+        return LOCAL_LINKS ? a : super.transformLocal(a);
+        //return LOCAL_LINKS ? parent.transformLocal(a) : super.transformLocal(a);
+    }
+    @Override
+    public AffineTransform getLocalTransform() {
+        return LOCAL_LINKS ? parent.getLocalTransform() : super.getLocalTransform();
+    }
+
+    // TODO: for performance, get rid of the hasAbsoluteLocation checks in LWComponent,
+    // and just provide the empty absolute impls here.
+    
+
+    // if we DON'T do the below, when a slide-icon draws on the map,
+    // the link pops up to the map at full-size...
+
+    /*
+    
+    @Override
+    public boolean hasParentLocation() { return true; }
+
+    // do nothing for these: leave us in the parent context: we may want a new bool: hasParentDrawingContext or hasNoDrawContext or something
+    @Override
+    public void transformRelative(final Graphics2D g) {}
+    @Override
+    public void transformLocal(Graphics2D g) {
+        //getParent().transformLocal(g);
+    }
+    @Override
+    public AffineTransform transformLocal(AffineTransform a) {
+        //return getParent().transformLocal(a);
+        return a;
+    }
+    @Override
+    public AffineTransform getLocalTransform() {
+        //return getParent().getLocalTransform();
+        return (AffineTransform) IDENTITY_TRANSFORM.clone();
+    }
+
+    @Override
     public float getMapX() {
-        if (VUE.RELATIVE_COORDS)
-            return getX();
-        else
-            return super.getMapX();
+        return getX(); // always initialized from computeLink
+        //return parent == null ? getX() : parent.getMapX() + getX();
     }
     
-    /** @return getY() -- links coords are always map/absolute */
+    @Override
     public float getMapY() {
-        if (VUE.RELATIVE_COORDS)
-            return getY();
-        else
-            return super.getMapY();
+        return getY(); // always initialized from computeLink
+        //return parent == null ? getY() : parent.getMapY() + getY();
     }
 
+    @Override
+    public void drawInParent(DrawContext dc)
+    {
+        dc.setMapDrawing();
+        drawImpl(dc);
+    }
+    */
+    
+    
 
-    private float[] intersection = new float[2]; // result cache for intersection coords
+//     /** @return getX() -- links coords are always map/absolute */
+//     public float getMapX() {
+//         if (VUE.RELATIVE_COORDS)
+//             return getX();
+//         else
+//             return super.getMapX();
+//     }
+    
+//     /** @return getY() -- links coords are always map/absolute */
+//     public float getMapY() {
+//         if (VUE.RELATIVE_COORDS)
+//             return getY();
+//         else
+//             return super.getMapY();
+//     }
+
+
+    private final float[] intersection = new float[2]; // result cache for intersection coords
 
     /**
      * Compute the endpoints of this link based on the edges of the shapes we're
@@ -1299,30 +1531,64 @@ public class LWLink extends LWComponent
         if (mCurveControls > 0 && mCurve == null)
             initCurveControlPoints();
 
-        // Start with head & tail locations at center of the object at
-        // each endpoint:
+        // Start with head & tail locations at center of the object at each endpoint.
+        // Note that links are computed in entirely absolute map coordinates.  To
+        // compute the actual connection point, we pass the local transform for the
+        // endpoint to computeIntersection, which uses that to produce a traversable
+        // flattened path transformed down to the local scale of that endpoint.
         
-        if (head != null) {
-            headX = head.getCenterX();
-            headY = head.getCenterY();
-        }
-        if (tail != null) {
-            tailX = tail.getCenterX();
-            tailY = tail.getCenterY();
+        if (LOCAL_LINKS) {
+            
+            if (head != null) {
+                headX = head.getCenterX(parent);
+                headY = head.getCenterY(parent);
+            }
+            if (tail != null) {
+                tailX = tail.getCenterX(parent);
+                tailY = tail.getCenterY(parent);
+            }
+            
+        } else {
+
+            if (head != null) {
+                headX = head.getCenterX();
+                headY = head.getCenterY();
+            }
+            if (tail != null) {
+                tailX = tail.getCenterX();
+                tailY = tail.getCenterY();
+            }
         }
 
-        float srcX, srcY;
-        final Shape shapeAtHead = (head == null ? null : head.getLocalShape()); // use raw shape mecause we use the local transform below
-        // if either endpoint shape is a straight line, we don't need to
-        // bother computing the shape intersection -- it will just
-        // be the default connection point -- the center point.
-        
-        // todo bug: if it's a CURVED LINK we're connect to, a floating
-        // connection point works out if the link approaches from
-        // the convex side, but from the concave side, it winds
-        // up at the center point for a regular straight link.
+        // Note, if what's at the endpoint we're connecting to is a LWLink, we do NOT
+        // bother to establish a connection at the nearest point -- we leave the
+        // connection at the center point of LWLink. (For curves this is defined by the
+        // midpoint of the first sub-division -- the same place we put the label if
+        // there is one).
 
-        if (shapeAtHead != null && !(shapeAtHead instanceof Line2D)) {
+        final Shape shapeAtHead;
+        AffineTransform headTransform = null;
+        if (head == null || head instanceof LWLink) {
+            shapeAtHead = null;
+        } else if (LOCAL_LINKS) {
+            if (false) {
+                ; // leave at center for now
+                out("head: " + headX + ", " + headY);
+                shapeAtHead = null;
+            } else
+                // experiment: try and get rect in parent coords, leave head transform null
+                shapeAtHead = new Rectangle2D.Float((float) head.getX(parent),
+                                                    (float) head.getY(parent),
+                                                    head.getScaledWidth(),
+                                                    head.getScaledHeight());
+        } else {
+            shapeAtHead = head.getLocalShape(); // use raw shape because we use the local transform below
+            headTransform = head.getLocalTransform();
+        }
+        
+        //if (shapeAtHead != null && !(shapeAtHead instanceof Line2D)) {
+        if (shapeAtHead != null) {
+            final float srcX, srcY;
             if (mCurveControls == 1) {
                 srcX = mQuad.ctrlx;
                 srcY = mQuad.ctrly;
@@ -1333,16 +1599,24 @@ public class LWLink extends LWComponent
                 srcX = tailX;
                 srcY = tailY;
             }
-            float[] result = VueUtil.computeIntersection(headX, headY, srcX, srcY, shapeAtHead, head.getLocalTransform(), intersection, 1);
-            // If intersection fails for any reason, leave endpoint as center
-            // of object at the head.
+            final float[] result =
+                VueUtil.computeIntersection(headX, headY, srcX, srcY, shapeAtHead, headTransform, intersection, 1);
+            // If intersection fails for any reason, leave endpoint as center of object at the head.
             if (result != VueUtil.NoIntersection) {
                  headX = intersection[0];
                  headY = intersection[1];
             }
         }
-        final Shape shapeAtTail = (tail == null ? null : tail.getLocalShape());
-        if (shapeAtTail != null && !(shapeAtTail instanceof Line2D)) {
+        
+        final Shape shapeAtTail;
+        if (tail == null || tail instanceof LWLink)
+            shapeAtTail = null;
+        else
+            shapeAtTail = tail.getLocalShape(); // use raw shape because we use the local transform below
+        
+        //if (shapeAtTail != null && !(shapeAtTail instanceof Line2D)) {
+        if (shapeAtTail != null && !LOCAL_LINKS) {
+            final float srcX, srcY;
             if (mCurveControls == 1) {
                 srcX = mQuad.ctrlx;
                 srcY = mQuad.ctrly;
@@ -1353,9 +1627,9 @@ public class LWLink extends LWComponent
                 srcX = headX;
                 srcY = headY;
             }
-            float[] result = VueUtil.computeIntersection(srcX, srcY, tailX, tailY, shapeAtTail, tail.getLocalTransform(), intersection, 1);
-            // If intersection fails for any reason, leave endpoint as center
-            // of object at tail.
+            final float[] result =
+                VueUtil.computeIntersection(srcX, srcY, tailX, tailY, shapeAtTail, tail.getLocalTransform(), intersection, 1);
+            // If intersection fails for any reason, leave endpoint as center of object at tail.
             if (result != VueUtil.NoIntersection) {
                  tailX = intersection[0];
                  tailY = intersection[1];
@@ -1367,7 +1641,7 @@ public class LWLink extends LWComponent
         
         mLine.setLine(headX, headY, tailX, tailY);
 
-        // length is currently always set to the length of the straight line: curve length not compute
+        // length is currently always set to the length of the straight line: curve length not currently computed
         mLength = lineLength(mLine);
 
         Rectangle2D.Float curveBounds = null;
@@ -1708,6 +1982,8 @@ public class LWLink extends LWComponent
         //-------------------------------------------------------
 
         AffineTransform savedTransform = dc.g.getTransform();
+
+        final double scale = getMapScale();
         
         // we currently use the stroke width drawn around the arrows
         // to keep them reasonably sized relative to the line, but
@@ -1722,6 +1998,9 @@ public class LWLink extends LWComponent
             dc.g.translate(headX, headY);
             dc.g.rotate(mRotationHead);
 
+            if (scale != 1)
+                dc.g.scale(scale, scale);
+        
             // Now we're operating in a coordinate space where the line is vertical.
             // Adjust the y value moves us up and down the line, whereas adjusting
             // the x value moves us horizontally off the line.  Positive y values
@@ -1743,6 +2022,10 @@ public class LWLink extends LWComponent
             //dc.g.translate(line.getX2(), line.getY2());
             dc.g.translate(tailX, tailY);
             dc.g.rotate(mRotationTail);
+            
+            if (scale != 1)
+                dc.g.scale(scale, scale);
+
             dc.g.translate(-TailShape.getWidth() / 2, 0); // center shape on point 
             dc.g.fill(TailShape);
             dc.g.draw(TailShape);
@@ -1750,8 +2033,6 @@ public class LWLink extends LWComponent
             dc.g.setTransform(savedTransform);
         }
     }
-
-    public boolean hasAbsoluteMapLocation() { return true; }
 
     
     protected void drawImpl(DrawContext dc)
@@ -1965,7 +2246,7 @@ public class LWLink extends LWComponent
         */
                 
         if (DEBUG.CONTAINMENT) {
-            dc.setAbsoluteStroke(0.5);
+            dc.setAbsoluteStroke(0.75);
             dc.g.setColor(COLOR_SELECTION);
             g.draw(getPaintBounds());
         }
@@ -2071,6 +2352,9 @@ public class LWLink extends LWComponent
                 // and patch contains to understand a scaled label box...
                 textBox.draw(dc);
                 
+                if (scale != 1)
+                    dc.g.scale(1/scale, 1/scale);
+                
                 /* draw border
                 if (isSelected()) {
                     Dimension s = textBox.getSize();
@@ -2137,10 +2421,11 @@ public class LWLink extends LWComponent
     }
 
 
+    @Override
     protected void layoutImpl(Object triggerKey)
     {
-        float cx;
-        float cy;
+        final float cx;
+        final float cy;
 
         if (mCurveControls > 0) {
             cx = mCurveCenterX;
@@ -2231,9 +2516,11 @@ public class LWLink extends LWComponent
         }
     }
 
+    @Override
     public float getCenterX() {
         return mCurveControls > 0 ? mCurveCenterX : (headX + tailX) / 2;
     }
+    @Override
     public float getCenterY() {
         return mCurveControls > 0 ? mCurveCenterY : (headY + tailY) / 2;
     }
@@ -2241,6 +2528,7 @@ public class LWLink extends LWComponent
 
     /** Create a duplicate LWLink.  The new link will
      * not be connected to any endpoints */
+    @Override
     public LWComponent duplicate(CopyContext cc)
     {
         //todo: make sure we've got everything (styles, etc)
@@ -2263,19 +2551,16 @@ public class LWLink extends LWComponent
         return link;
     }
     
+    @Override
     public String paramString()
     {
-        String s =
-            " " + (int)headX+","+(int)headY
-            + " -> " + (int)tailX+","+(int)tailY;
+        String s = String.format("%.0f,%.0f-->%.0f,%.0f", headX, headY, tailX, tailY);
         if (getControlCount() == 1)
-            s += " cc1"; // quadratic
+            s += String.format(" (%.0f,%.0f)", mQuad.ctrlx,  mQuad.ctrly);
         else if (getControlCount() == 2)
-            s += " cc2"; // cubic
-
-        //s += "\n\t" + head + "\n\t" + tail;
-        
-        return s + " " + mStrokeStyle.get();
+            s += String.format(" (%.0f,%.0f & %.0f,%.0f)",
+                               mCubic.ctrlx1,  mCubic.ctrly1, mCubic.ctrlx2,  mCubic.ctrly2);
+        return s + " " + mStrokeStyle.get();            
     }
 
     /** @deprecated -- use getHead */ public LWComponent getComponent1() { return getHead(); }
