@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.20 $ / $Date: 2007-06-05 13:02:11 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2007-06-11 10:12:49 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  * TODO: add capability for handling LWComponent.ChildKind, so we have the option
@@ -329,7 +329,15 @@ public class LWTraversal {
                 eout(String.format("PointPick:  CLOSE-HIT: %s; distance=%.2f;", closeHit, Math.sqrt(closestDistSq)));
             }
 
-            if (hit == null) {
+            if (hit == null
+                || (closeHit != null && closeHit.getParent() instanceof LWGroup && hit.getParent() != closeHit.getParent())
+                ) {
+                
+                // parent group check is for links in groups in nodes: don't want to
+                // pick past a close link to the node below, tho don't want to SKIP
+                // picking a node in the same group we're actually over just because
+                // a link is nearby.
+                
                 final float closeEnoughSq;
                 if (pc.zoom < 1) {
                     // allow more slop if zoomed way out (links are very small and hard to hit)
@@ -340,8 +348,9 @@ public class LWTraversal {
                 } else
                     closeEnoughSq = 8 * 8;
                 if (DEBUG.PICK) System.out.format(" closeEnough=%.2f;", Math.sqrt(closeEnoughSq));
-                if (hit == null && closestDistSq < closeEnoughSq) {
-                    if (DEBUG.PICK) System.out.println(" (CHOSEN)");
+                //if (hit == null && closestDistSq < closeEnoughSq) {
+                if (closestDistSq < closeEnoughSq) {
+                    if (DEBUG.PICK) System.out.println(" (CLOSE ENOUGH)");
                     //if (DEBUG.PICK) eoutln("PointPick: closeHit: " + closeHit + " distance: " + Math.sqrt(closestDistSq));
                     hit = closeHit;
                 } else {
