@@ -16,7 +16,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.4 $ / $Date: 2007-05-30 18:22:32 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2007-06-11 10:08:03 $ / $Author: sfraize $
  *
  */
 
@@ -311,10 +311,10 @@ public class FullScreen
 //         }});
         
         
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
-            if (DEBUG.PRESENT) VUE.Log.debug("AWT thread full-screen viewer loading map " + activeMap);
-            FullScreenViewer.loadFocal(activeMap);
-        }});
+//         GUI.invokeAfterAWT(new Runnable() { public void run() {
+//             if (DEBUG.PRESENT) VUE.Log.debug("AWT thread full-screen viewer loading map " + activeMap);
+//             FullScreenViewer.loadFocal(activeMap);
+//         }});
         
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             if (DEBUG.PRESENT) VUE.Log.debug("AWT thread activeTool.handleFullScreen for " + activeTool);
