@@ -54,7 +54,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.137 $ / $Date: 2007-06-01 20:32:40 $ / $Author: sfraize $
+ * @version $Revision: 1.138 $ / $Date: 2007-06-11 10:58:51 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -62,9 +62,10 @@ public class LWMap extends LWContainer
     /**
      * Model version 0: pre-model versions / unknown (assumed all absolute coordinates)
      * Model version 1: relative children, including groups (excepting link members)
-     * Model version 2: relative children, groups back to absolute (excepting link members)
+     * Model version 2: relative children, groups back to absolute (excepting link members -- only a few days this version)
+     * Model version 3: relative children, groups back to relative with crude node-embedding support
      */
-    public static final int CurrentModelVersion = 2;
+    public static final int CurrentModelVersion = 3;
 
     
     /** file we were opened from of saved to, if any */
@@ -152,6 +153,24 @@ public class LWMap extends LWContainer
 //         return true;
 //     }
 
+    // if/when we support maps embedded in maps, we'll want to have these return something real
+    @Override
+    public float getX() { return 0; }
+    @Override
+    public float getY() { return 0; }
+    @Override
+    public float getMapX() { return 0; }
+    @Override
+    public float getMapY() { return 0; }
+
+    // TODO: fix LWComponent.getMapX/YPrecise to factor in map / supposed hasAbsoluteChildren    
+//     // Performance
+//     @Override
+//     protected double getMapXPrecise() { return 0; }
+//     @Override
+//     protected double getMapYPrecise() { return 0; }
+    
+
     /** Override LWContainer draw to always call drawInParent (even tho we have absolute children, we
      * don't want to just call draw, as LWContainer would).
      */
@@ -174,23 +193,6 @@ public class LWMap extends LWContainer
         mModelVersion = version;
     }
     
-    @Override
-    public float getX() { return 0; }
-    @Override
-    public float getY() { return 0; }
-    @Override
-    public float getMapX() { return 0; }
-    @Override
-    public float getMapY() { return 0; }
-
-    // TODO: fix LWComponent.getMapX/YPrecise to factor in map / supposed hasAbsoluteChildren    
-//     // Performance
-//     @Override
-//     protected double getMapXPrecise() { return 0; }
-//     @Override
-//     protected double getMapYPrecise() { return 0; }
-    
-
     @Override
     String getDiagnosticLabel() {
         return "Map: " + getLabel();
@@ -443,12 +445,13 @@ public class LWMap extends LWContainer
         mPathways.setMap(this);
     }
 
-    public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag) {
-        super.getAllDescendents(kind, bag);
+    @Override
+    public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag, Order order) {
+        super.getAllDescendents(kind, bag, order);
         if (kind == ChildKind.ANY && mPathways != null) {
             for (LWPathway pathway : mPathways) {
                 bag.add(pathway);
-                pathway.getAllDescendents(kind, bag);
+                pathway.getAllDescendents(kind, bag, order);
             }
         }
         return bag;
@@ -476,16 +479,43 @@ public class LWMap extends LWContainer
 //         processed.add(container);
 //     }
 
-    private static void changeAbsoluteToRelativeCoords(LWSlide container) {
-        if (DEBUG.Enabled) System.out.println("CONVERTING TO RELATIVE " + container);
+    private void changeAbsoluteToRelativeCoords(Collection<LWComponent> children)
+    {
+        // We must process the components top-down: adjust parent, then adjust children
+        // Start by calling this on the map itself.
+
+        for (LWComponent c : children) {
+            if (c instanceof LWContainer && c.hasChildren()) {
+                // CRAP: still need to process the damn children of the freakin group...
+                // need to go back to our prior method...
+                if (getModelVersion() == 1 && c instanceof LWGroup) {
+                    if (DEBUG.Enabled) System.out.println(" DM#1 ALREADY RELATIVE: " + c);
+                    // groups were relative in model version 1
+                    //((LWGroup)c).normalize();
+                    continue;
+                }
+                
+                changeAbsoluteToRelativeCoords((LWContainer) c);
+                changeAbsoluteToRelativeCoords(c.getChildList());
+//                 if (c instanceof LWGroup)
+//                     ((LWGroup)c).normalize(); // TODO: may need to wait till everything is laid out? see test-pathway.vue
+            }
+        }
+    }
+    
+
+    private void changeAbsoluteToRelativeCoords(LWContainer container) {
+        if (DEBUG.Enabled) System.out.println("CONVERTING TO RELATIVE in " + this + "; container: " + container);
         for (LWComponent c : container.getChildList()) {
+            if (c.hasAbsoluteMapLocation())
+                continue;
             c.takeLocation(c.getX() - container.getX(),
                            c.getY() - container.getY());
         }
     }
 
     private static void changeRelativeToAbsoluteCoords(LWGroup container) {
-        if (DEBUG.Enabled) System.out.println("CONVERTING TO ABSOLUTE " + container);
+        if (DEBUG.Enabled) System.out.println("CONVERTING TO ABSOLUTE: " + container);
         for (LWComponent c : container.getChildList()) {
             if (c instanceof LWLink) // always have had absolute coords
                 continue;
@@ -500,7 +530,7 @@ public class LWMap extends LWContainer
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
             System.out.println(getLabel() + ": completing restore...");
 
-        final Collection<LWComponent> allRestored = getAllDescendents(ChildKind.ANY);
+        final Collection<LWComponent> allRestored = getAllDescendents(ChildKind.ANY, new ArrayList(), Order.DEPTH);
 
         for (LWComponent c : allRestored) {
             if (DEBUG.IO) System.out.println("RESTORED: " + c);
@@ -538,40 +568,40 @@ public class LWMap extends LWContainer
         
         if (getModelVersion() < CurrentModelVersion) {
             
-            if (getModelVersion() < 1) {
+            if (true||getModelVersion() < 1) {
                 //-----------------------------------------------------------------------------
-                // Upgrade from model version 0:
+                // Upgrade from model version 0 -- make everything relative
                 //-----------------------------------------------------------------------------
+
+                changeAbsoluteToRelativeCoords(getChildList());
                 
-                // Upgrade old save file to current state of relative coordinates (all but LWGroup's)
-                for (LWComponent c : allRestored) {
-                    if (c instanceof LWSlide) {
+//                 // Upgrade old save file to current state of relative coordinates (all but LWGroup's)
+//                 for (LWComponent c : allRestored) {
+//                     if (c instanceof LWSlide) {
 
-                        // LWSlides are the only thing we need to upgrade now (as
-                        // opposed to slides and groups, which were both upgraded for a
-                        // while) Anyway, slides are the only objects left that have
-                        // children with free layout.  LWNodes can also have children,
-                        // but they enforce a particular layout location for their
-                        // children, so no matter what the current model, LWNode child
-                        // coordinates automatically get updated.  Of course, there
-                        // shouldn't be many of these encountered, as VUE with slide
-                        // supports was only around as an early mostly internal alpha
-                        // before the default coordinate system went relative.
+//                         // LWSlides are the only thing we need to upgrade now (as opposed to slides
+//                         // and groups, which were both upgraded for a while) Anyway, slides are the
+//                         // only objects left that have children with free layout.  LWNodes can also
+//                         // have children, but they enforce a particular layout location for their
+//                         // children, so no matter what the current model, LWNode child coordinates
+//                         // automatically get updated.  Of course, there shouldn't be many of these
+//                         // encountered, as VUE with slide supports was only around as an early
+//                         // mostly internal alpha before the default coordinate system went
+//                         // relative.
                         
-                        changeAbsoluteToRelativeCoords((LWSlide)c);
-                    }
-                }
+//                         changeAbsoluteToRelativeCoords((LWSlide)c);
+//                     }
+//                 }
 
-                // Might want to auto-check in case the problem Bryce experienced pops
-                // up again...  (e.g., somehow the model version got set to 0 (original
-                // absolute), even tho the coordinate system was in fact relative (model
-                // version 1).  This may have happened by opening the map in a prior
-                // version of VUE which didn't understand the relative coordinates,
-                // assumed they were absolute, reformed the groups at the child
-                // coordinates as if they were absolute, then saved out the map with
-                // those moved groups, and no model version recorded at all -- actually
-                // that could only have happened on one of our internal versions that
-                // temporarily went back to model 0?  Anyway...
+                // Might want to auto-check in case the problem Bryce experienced pops up again...
+                // (e.g., somehow the model version got set to 0 (original absolute), even tho the
+                // coordinate system was in fact relative (model version 1).  This may have
+                // happened by opening the map in a prior version of VUE which didn't understand
+                // the relative coordinates, assumed they were absolute, reformed the groups at the
+                // child coordinates as if they were absolute, then saved out the map with those
+                // moved groups, and no model version recorded at all -- actually that could only
+                // have happened on one of our internal versions that temporarily went back to
+                // model 0?  Anyway...
                 
 // Ff ANY group has contents that are outside it's bounds (perhaps only if significantly so),
 // we may want to assume we've got a model version problem, and just "upgrade" automatically.
@@ -601,6 +631,9 @@ public class LWMap extends LWContainer
             VUE.Log.info(this + " Updated from model version " + getModelVersion() + " to " + CurrentModelVersion);
             mModelVersion = CurrentModelVersion;
         }
+
+        // TODO: REALLY need a depth-first ordered list for these
+        // containment operations...
 
         for (LWComponent c : allRestored) {
             //if (DEBUG.XML || DEBUG.WORK) System.out.println("RESTORED: " + c);
@@ -638,16 +671,26 @@ public class LWMap extends LWContainer
         */
         
         for (LWComponent c : allRestored) {
-            c.mXMLRestoreUnderway = false;            
             if (DEBUG.LAYOUT||DEBUG.WORK) System.out.println("LAYOUT: " + c + " parent=" + c.getParent());
             // ideally, this should be done depth-first, but it appears to be
             // working for the moment...
+            c.mXMLRestoreUnderway = false;
             try {
                 c.layout("completeXMLRestore");
             } catch (Throwable t) {
-                tufts.Util.printStackTrace(new Throwable(t), "RESTORE LAYOUT " + c);
+                tufts.Util.printStackTrace(t, "RESTORE LAYOUT " + c);
             }
         }
+
+        for (LWComponent c : allRestored) {
+            try {
+                if (c instanceof LWGroup)
+                    ((LWGroup)c).normalize();
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t, "RESTORE NORMALIZE " + c);
+            }
+        }
+        
         
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) out("RESTORE COMPLETED; nextID=" + nextID + "\n");
         
@@ -922,6 +965,7 @@ public class LWMap extends LWContainer
             return null;
     }
     
+    @Override
     protected void addChildImpl(LWComponent c) {
         if (c instanceof LWPathway)
             throw new IllegalArgumentException("LWPathways not added as direct children of map: use addPathway " + c);
@@ -1028,8 +1072,8 @@ public class LWMap extends LWContainer
             //if (!DEBUG.SCROLL && !DEBUG.CONTAINMENT)
             //mCachedBoundsOld = false;
             //if (DEBUG.CONTAINMENT && DEBUG.META)
-            if (DEBUG.CONTAINMENT)
-                System.out.println("COMPUTED BOUNDS: " + mCachedBounds + " " + this);
+            if (DEBUG.CONTAINMENT && DEBUG.META)
+                System.out.println("COMPUTED BOUNDS: " + mCachedBounds + " for map " + this);
         }
         //setSize((float)bounds.getWidth(), (float)bounds.getHeight());
             //new Throwable("computedBounds").printStackTrace();
@@ -1142,10 +1186,17 @@ public class LWMap extends LWContainer
     }
     
     public String toString() {
-        return "LWMap[" + getLabel()
-        + " n=" + children.size()
-        + (file==null?"":" <" + this.file + ">")
-        + "]";
+        StringBuffer buf = new StringBuffer("LWMap[");
+        buf.append(getLabel());
+        buf.append(" n=" + children.size());
+        if (DEBUG.DATA && file != null)
+            buf.append(" <" + file + ">");
+//         return "LWMap[" + getLabel()
+//             + " n=" + children.size()
+//             + (file==null?"":" <" + this.file + ">")
+//             + "]";
+        buf.append(']');
+        return buf.toString();
     }
     //todo: this method must be re-written. not to save and restore
     public Object clone() throws CloneNotSupportedException{
@@ -1158,21 +1209,6 @@ public class LWMap extends LWContainer
         }catch(Exception ex) {
             throw new CloneNotSupportedException(ex.getMessage());
         }
-    }
-    
-    
-    public String X_paramString() {
-        if (this.file == null)
-            return " n=" + children.size();
-        else
-            return " n=" + children.size() + " <" + this.file + ">";
-        
-        /*
-        if (this.file == null)
-            return super.paramString();
-        else
-            return super.paramString() + " <" + this.file + ">";
-         */
     }
     
     
