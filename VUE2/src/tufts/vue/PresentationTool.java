@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import tufts.Util;
 import tufts.macosx.MacOSX;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.TextRow;
@@ -549,7 +550,10 @@ public class PresentationTool extends VueTool
             break;
 
         case KeyEvent.VK_SPACE:
-            goForward(SINGLE_STEP, GUESSING);
+            if (mLastPathwayPage != null && mCurrentPage.node instanceof LWMap)
+                setPage(mLastPathwayPage);
+            else
+                goForward(SINGLE_STEP, GUESSING);
             break;            
 
         case KeyEvent.VK_BACK_QUOTE:
@@ -564,15 +568,15 @@ public class PresentationTool extends VueTool
         case KeyEvent.VK_LEFT:
             goBackward(amplified);
             break;
-        case KeyEvent.VK_UP:
-            revisitPrior(amplified);
-            break;
-        case KeyEvent.VK_DOWN:
-            if (mVisited.hasNext())
-                revisitNext(amplified);
-            else
-                goForward(amplified);
-            break;
+//         case KeyEvent.VK_UP:
+//             revisitPrior(amplified);
+//             break;
+//         case KeyEvent.VK_DOWN:
+//             if (mVisited.hasNext())
+//                 revisitNext(amplified);
+//             else
+//                 goForward(amplified);
+//             break;
             
         default:
             handled = false;
@@ -595,7 +599,8 @@ public class PresentationTool extends VueTool
 //             break;
             
         case 'F':
-            mFadeEffect = !mFadeEffect;
+            if (DEBUG.Enabled)
+                mFadeEffect = !mFadeEffect;
             break;
 //         case 'C':
 //         case 'N':
@@ -869,6 +874,11 @@ private static int OverviewMapSizeIndex = 5;
 
         // TODO: currently optimized for random nav: totally screwing slides for the moment...
 
+//         if (hit instanceof LWLink && !(hit.getParent() instanceof LWMap)) {
+//             // do nothing for links inside slide or group for now (display is jumpy/messy for groups)
+//             return true;
+//         }
+
         if (hit == null) {
             focusUp(e);
             return true;
@@ -949,6 +959,7 @@ private static int OverviewMapSizeIndex = 5;
         //mStartButton.requestFocus();
     }
 
+    private boolean startUnderway;
     public void startPresentation()
     {
         out(this + " startPresentation");
@@ -961,24 +972,31 @@ private static int OverviewMapSizeIndex = 5;
 
         final LWPathway pathway = VUE.getActivePathway();
 
-        if (pathway != null && pathway.length() > 0) {
+        startUnderway = true;
 
-            final LWPathway.Entry entry = pathway.getCurrentEntry();
-            if (entry != null && !entry.isPathway()) {
-                setEntry(entry);
+        try {
+        
+            if (pathway != null && pathway.length() > 0) {
+
+                final LWPathway.Entry entry = pathway.getCurrentEntry();
+                if (entry != null && !entry.isPathway()) {
+                    setEntry(entry);
+                } else {
+                    setEntry(pathway.getEntry(0));
+                }
+                
             } else {
-                setEntry(pathway.getEntry(0));
+                loadPathway(null);
+                //mPathwayIndex = 0;
+                if (VUE.getSelection().size() > 0)
+                    setPage(VUE.getSelection().first());
+                //             else if (mCurrentPage != NO_PAGE) // won't have any effect!
+                //                 setPage(mCurrentPage);
+                //             else
+                //                 setPage(mNextPage);
             }
-            
-        } else {
-            loadPathway(null);
-            //mPathwayIndex = 0;
-            if (VUE.getSelection().size() > 0)
-                setPage(VUE.getSelection().first());
-//             else if (mCurrentPage != NO_PAGE) // won't have any effect!
-//                 setPage(mCurrentPage);
-//             else
-//                 setPage(mNextPage);
+        } finally {
+            startUnderway = false;
         }
     }
 
@@ -1053,6 +1071,7 @@ private static int OverviewMapSizeIndex = 5;
     }
 
     private void loadPathway(LWPathway pathway) {
+        if (DEBUG.PRESENT) Util.printStackTrace("loadPathway: " + pathway);
         LWComponent.swapLWCListener(this, mPathway, pathway);
         mPathway = pathway;
     }
@@ -1114,6 +1133,8 @@ private static int OverviewMapSizeIndex = 5;
         }
         
         recordPageTransition(page, recordBackup);
+
+        
         
         
 //         final boolean doSlideTransition;
@@ -1216,7 +1237,8 @@ private static int OverviewMapSizeIndex = 5;
                 return c.getMap().getBounds();
             }
         } else {
-            return c.getBounds();
+            return MapViewer.getFocalBounds(c);
+            //return c.getBounds();
         }
     }
 
@@ -1264,6 +1286,13 @@ private static int OverviewMapSizeIndex = 5;
                     }
                 });
 
+            return true;
+        }
+
+        if (startUnderway) {
+            mFocal = newFocal;
+            if (DEBUG.PRESENT) out("handleFocalSwitch: starting focal " + newFocal);
+            viewer.loadFocal(newFocal, true);
             return true;
         }
             
