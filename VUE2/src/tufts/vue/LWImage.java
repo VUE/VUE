@@ -268,9 +268,17 @@ public class LWImage extends
     // how me might redo image support in maps tho, so
     // wait on that...
     public void setSelected(boolean selected) {
+        boolean wasSelected = this.selected;
         super.setSelected(selected);
-        if (selected && mImageError && hasResource())
-            loadResourceImage(getResource(), null);
+        if (selected && !wasSelected && mImageError && hasResource()) {
+            //Util.printStackTrace("ADD SELCTED IMAGE CLEANUP " + this);
+            // don't know if this really needs to be a cleanup task,
+            // or just an after-AWT task, but safer to do one of them:
+            addCleanupTask(new Runnable() { public void run() {
+                if (VUE.getSelection().only() == LWImage.this)
+                    loadResourceImage(getResource(), null);
+            }});
+        }
     }
     
     public void setResource(Resource r) {
