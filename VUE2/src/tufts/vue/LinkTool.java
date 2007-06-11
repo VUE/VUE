@@ -140,7 +140,7 @@ public class LinkTool extends VueTool
     {
         LWComponent indication = e.getViewer().getIndication();
         LWComponent over = findLWLinkTargetAt(linkSource, link, e);
-        if (DEBUG.CONTAINMENT) System.out.println("LINK-TARGET: " + over);
+        if (DEBUG.CONTAINMENT || DEBUG.PICK) System.out.println("LINK-TARGET: " + over);
         if (indication != null && indication != over) {
             //repaintRegion.add(indication.getBounds());
             e.getViewer().clearIndicated();
@@ -495,17 +495,24 @@ public class LinkTool extends VueTool
     static class LinkModeTool extends VueTool
     {
     	private boolean comboMode = false;
-        LWComponent linkSource; // for starting a link
-        protected LWComponent invisibleLinkEndpoint = new LWComponent();
+        protected LWComponent linkSource; // for starting a link
+        
+        protected final LWComponent invisibleLinkEndpoint = new LWComponent() {
+                @Override
+                public void setMapLocation(double x, double y) {
+                    super.takeLocation((float)x, (float)y);
+                    creationLink.setEndpointMoved();
+                }
+            };
         protected LWLink creationLink = new LWLink(invisibleLinkEndpoint);
 
         public LinkModeTool()
         {
             super();
-            invisibleLinkEndpoint.addLinkRef(creationLink);
             invisibleLinkEndpoint.takeSize(0,0);
-            creationLink.setArrowState(LWLink.ARROW_TAIL); // should be coming from defaults...
-            creationLink.setID("<creationLink>"); // can't use label or it will draw one
+            invisibleLinkEndpoint.setID("<invisibleLinkEndpoint>"); // can't use label or it will have a size > 0, offsetting the creationLink endpoint
+            creationLink.setArrowState(LWLink.ARROW_TAIL);
+            creationLink.setID("<creationLink>"); // can't use label or it will draw one as it's being dragged around
 
         //    VueToolUtils.setToolProperties(this,"linkModeTool");
             
