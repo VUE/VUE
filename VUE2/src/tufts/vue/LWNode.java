@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.168 $ / $Date: 2007-06-05 13:02:36 $ / $Author: sfraize $
+ * @version $Revision: 1.169 $ / $Date: 2007-06-11 10:57:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -349,6 +349,19 @@ public class LWNode extends LWContainer
     public boolean supportsChildren() {
         return !isTextNode();
     }
+
+    /** @return true -- a node is always considered to have content */
+    @Override
+    public boolean hasContent() {
+        return true;
+    }
+    
+
+    @Override
+    public boolean isManagingChildLocations() {
+        return true;
+    }
+    
     
 
 //     /** @return true if the given property is currently supported on this component
@@ -703,25 +716,30 @@ public class LWNode extends LWContainer
     }
     */
 
-    /*
-    protected void addChildImpl(LWComponent c) {
-        super.addChildImpl(c);
-        if (c instanceof LWNode)
-            c.setScale(getScale() * LWNode.ChildScale);
-    }
-    */
-
 
     @Override
-    //public void addChildren(Iterator i)
-    public void addChildren(Iterable i)
+    protected void addChildImpl(LWComponent c)
     {
-        // todo: should be able to do this generically
-        // in LWContainer and not have to override this here.
-        super.addChildren(i);
-        setScale(getScale()); // make sure children get shrunk
-        layout();
+
+        // must set the scale before calling the super
+        // handler, as scale must be in place before
+        // notifyHierarchyChanging/Changed calls.
+        if (c instanceof LWNode)
+            c.setScale(LWNode.ChildScale);
+        super.addChildImpl(c);
     }
+
+
+
+//     @Override
+//     public void addChildren(Iterable i)
+//     {
+//         // todo: should be able to do this generically
+//         // in LWContainer and not have to override this here.
+//         super.addChildren(i);
+//         setScale(getScale()); // make sure children get shrunk
+//         layout();
+//     }
 
     @Override
     public void setSize(float w, float h)
