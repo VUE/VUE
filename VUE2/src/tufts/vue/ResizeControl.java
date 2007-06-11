@@ -196,7 +196,8 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
      */
     private void dragReshape(final int controlPoint, final LWComponent c, final Rectangle2D.Float request, MapMouseEvent e)
     {
-        final boolean lockedLocation = c.getParent() instanceof LWNode; // todo: have a locked flag
+        //final boolean lockedLocation = c.getParent() instanceof LWNode; // todo: have a locked flag
+        final boolean lockedLocation = c.isManagedLocation(); // todo: this also checks selection, which we may not want...
 
         final float requestWidth = request.width / c.getMapScaleF();
         final float requestHeight = request.height / c.getMapScaleF();
@@ -219,8 +220,8 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
 
             final float oldWidth = c.getWidth();
             final float oldHeight = c.getHeight();
-            final float oldX = c.getX();
-            final float oldY = c.getY();
+            final float oldX = c.getMapX();
+            final float oldY = c.getMapY();
 
             // First set size and find out what size was actually
             // taken before adjusting location.  Would be better
@@ -232,7 +233,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
 
             final float newWidth = c.getWidth();
             final float newHeight = c.getHeight();
-            final float newX, newY;
+            float newX, newY;
 
             boolean moved = false;
             if (newWidth != requestWidth) {
@@ -269,8 +270,17 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                 moved = true;
             }
 
-            if (moved)
-                c.setLocation(newX, newY);
+            if (moved) {
+                
+                if (!c.hasAbsoluteMapLocation()) {
+                    System.out.format("RC: new absolute loc: %6.1f,%-6.1f; %s\n", newX, newY, c);
+                    newX -= c.getParent().getMapX();
+                    newY -= c.getParent().getMapY();
+                    System.out.format("RC: new relative loc: %6.1f,%-6.1f; %s\n", newX, newY, c);
+                }
+                
+                c.setLocation(newX, newY); // todo: setAbsoluteLocation would be nice
+            }
                 
             // TODO: get rid of getMinumumSize unless we fix layout floating_text
             // to really return minimum
@@ -414,6 +424,12 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                     }
                 }
                 repositioned = true;
+            }
+
+            if (repositioned && !c.hasAbsoluteMapLocation()) {
+                c_new_x -= c.getParent().getMapX();
+                c_new_y -= c.getParent().getMapY();
+                System.out.println("new relative loc: " + c_new_x + "," + c_new_y + " for " + c);
             }
 
 
