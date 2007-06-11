@@ -47,7 +47,7 @@ import java.util.ArrayList;
  * Todo: render right from the node labels so all we have to do is repaint to refresh.
  * (still need to modify tree for hierarchy changes tho).
  *
- * @version $Revision: 1.45 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2007-06-11 10:10:06 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  */
 
@@ -122,11 +122,10 @@ public class OutlineViewTree extends JTree
                     {
                         valueChangedState = true;
                         
-                        if(selectedComponents.size() != 0)
-                          VUE.getSelection().setTo(selectedComponents.iterator());
-                    
-                        else
-                          VUE.getSelection().clear();
+//                         if(selectedComponents.size() != 0)
+//                           VUE.getSelection().setTo(selectedComponents.iterator());
+//                         else
+//                           VUE.getSelection().clear();
                     }
                     
                     valueChangedState = false;
