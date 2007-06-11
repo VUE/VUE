@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.64 $ / $Date: 2007-06-11 10:08:45 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2007-06-11 12:12:43 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -386,6 +386,7 @@ public class ActionUtil {
     {
         Marshaller marshaller = null;
 
+        map.setModelVersion(LWMap.CurrentModelVersion);
         try {  
             final String path = file.getAbsolutePath().replaceAll("%20"," ");
             final Writer writer;
@@ -781,14 +782,15 @@ public class ActionUtil {
                 // This setFile also sets the label name, so it appears as a modification in the map.
                 // So be sure to do completeXMLRestore last, as it will reset the modification count.
                 if (map.getModelVersion() < 1) {
-                    map.setLabel("[old] " + file.getName());
+                    map.setLabel(file.getName());
                     // force save as for old maps as they will no longer work in old stable versions of VUE (1.5 & prior)
                     // if they're saved in this new version of VUE.
                 } else {
                     map.setFile(file);
-                    if (DEBUG.Enabled)
-                        map.setLabel("|" + map.getModelVersion() + "| " + map.getLabel());
                 }
+                if (DEBUG.Enabled)
+                    map.setLabel("|" + map.getModelVersion() + "| " + map.getLabel());
+                
             }
 
             map.completeXMLRestore();
