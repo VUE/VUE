@@ -54,7 +54,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.139 $ / $Date: 2007-06-11 12:12:26 $ / $Author: sfraize $
+ * @version $Revision: 1.140 $ / $Date: 2007-06-11 12:21:15 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -102,7 +102,7 @@ public class LWMap extends LWContainer
     private float userOriginY;
     private double userZoom = 1;
 
-    private transient int mSaveFileModelVersion = 0;
+    private transient int mSaveFileModelVersion = -1;
     private transient int mModelVersion = CurrentModelVersion;
     
     
