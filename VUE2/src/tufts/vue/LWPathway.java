@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.163 $ / $Date: 2007-06-05 13:00:20 $ / $Author: sfraize $
+ * @version $Revision: 1.164 $ / $Date: 2007-06-11 10:57:18 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -680,7 +680,7 @@ public class LWPathway extends LWContainer
         
         for (LWComponent c : selection) {
             mergedContents.add(c);
-            c.getAllDescendents(ChildKind.PROPER, mergedContents);
+            c.getAllDescendents(ChildKind.PROPER, mergedContents, Order.TREE);
         }
 
         final LWNode node = NodeModeTool.createNewNode("Merged Node"); // why can't we just use "NodeTool" here?
@@ -1117,7 +1117,8 @@ public class LWPathway extends LWContainer
         */
         
 
-        @Override public Color getRenderFillColor(DrawContext dc) {
+        @Override
+        public Color getRenderFillColor(DrawContext dc) {
             return getFillColor();
         }
 
@@ -1172,23 +1173,31 @@ public class LWPathway extends LWContainer
 
     
     // we don't support standard children: we shouldn't be calling any of these
-    public void addChildren(Iterator i) { throw new UnsupportedOperationException(); }
-    protected void addChildImpl(LWComponent c) { throw new UnsupportedOperationException(); }
-    public void removeChildren(Iterator i) { throw new UnsupportedOperationException(); }
+    @Override
+    public void addChildren(Iterable i) { throw new UnsupportedOperationException(); }
     
-    @Override void setScale(double scale) {}
+    @Override
+    protected void addChildImpl(LWComponent c) { throw new UnsupportedOperationException(); }
+    
+    @Override
+    public void removeChildren(Iterable i) { throw new UnsupportedOperationException(); }
+    
+    @Override
+    void setScale(double scale) {}
 
     /**
      * for persistance: override of LWContainer: pathways never save their children
      * as they don't own them -- they only save ID references to them.  Pathways
      * are only "virtual" containers, not proper parents of their children.
      */
+    @Override
     public java.util.List<LWComponent> getChildList() {
         if (DEBUG.XML || DEBUG.PATHWAY) out("getChildList returning EMPTY, as always");
         return java.util.Collections.EMPTY_LIST;
     }
 
     /** hide children from hierarchy as per getChildList */
+    @Override
     public Iterator<LWComponent> getChildIterator() {
         return VueUtil.EmptyIterator;
     }
@@ -1201,29 +1210,47 @@ public class LWPathway extends LWContainer
     public java.util.List<Entry> getPersistEntries() {
         return mEntries;
     }
+    @Override
     public LWComponent getChild(int index) {
         throw new UnsupportedOperationException("pathways don't have proper children");
     }
 
-    /* for castor only -- apparently castor's claim to implement this type of access to collections is bogus
-    public Iterator iterateEntries() {
-        return mEntries;
-    }
-    public void castorAddEntry(Entry e) {
-        out("CASTOR ADD ENTRY: " + e);
-    }
-    */
-        
-    public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag) {
+
+
+
+//     /* for castor only -- apparently castor's claim to implement this type of access to collections is bogus
+//     public Iterator iterateEntries() {
+//         return mEntries;
+//     }
+//     public void castorAddEntry(Entry e) {
+//         out("CASTOR ADD ENTRY: " + e);
+//     }
+
+
+    @Override
+    public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag, Order order)
+    {
         if (kind == ChildKind.ANY) {
-            if (mMasterSlide != null)
-                bag.add(mMasterSlide);
-            if (mMasterSlide != null)
-                mMasterSlide.getAllDescendents(kind, bag);
+            if (mMasterSlide != null) {
+                if (order == Order.TREE) {
+                    bag.add(mMasterSlide);
+                    mMasterSlide.getAllDescendents(kind, bag, order);
+                } else {
+                    // Order.DEPTH
+                    mMasterSlide.getAllDescendents(kind, bag, order);
+                    bag.add(mMasterSlide);
+                }
+            }
             for (Entry e : mEntries) {
                 if (e.slide != null) {
-                    bag.add(e.slide);
-                    e.slide.getAllDescendents(kind, bag);
+                    if (order == Order.TREE) {
+                        bag.add(e.slide);
+                        e.slide.getAllDescendents(kind, bag, order);
+                    } else {
+                        e.slide.getAllDescendents(kind, bag, order);
+                        bag.add(e.slide);
+                        // Order.DEPTH
+                    }
                 }
             }
         }
