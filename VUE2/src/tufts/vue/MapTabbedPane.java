@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.43 $ / $Date: 2007-05-24 00:12:10 $ / $Author: sfraize $ 
+ * @version $Revision: 1.44 $ / $Date: 2007-06-11 10:11:33 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -207,7 +207,10 @@ public class MapTabbedPane extends JTabbedPane
 
     private String viewerToTabTitle(MapViewer viewer) {
 
-        return mapToTabTitle(viewer.getMap()) + " (" + ZoomTool.prettyZoomPercent(viewer.getZoomFactor()) + ")";
+        if (DEBUG.WORK)
+            return mapToTabTitle(viewer.getMap());
+        else
+            return mapToTabTitle(viewer.getMap()) + " (" + ZoomTool.prettyZoomPercent(viewer.getZoomFactor()) + ")";
         /*
         
         String title = mapToTabTitle(viewer.getMap());
