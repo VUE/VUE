@@ -54,7 +54,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.138 $ / $Date: 2007-06-11 10:58:51 $ / $Author: sfraize $
+ * @version $Revision: 1.139 $ / $Date: 2007-06-11 12:12:26 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -102,7 +102,8 @@ public class LWMap extends LWContainer
     private float userOriginY;
     private double userZoom = 1;
 
-    private transient int mModelVersion = 0;
+    private transient int mSaveFileModelVersion = 0;
+    private transient int mModelVersion = CurrentModelVersion;
     
     
     // only to be used during a restore from persisted
@@ -111,6 +112,9 @@ public class LWMap extends LWContainer
         setLabel("<map-during-XML-restoration>");
         mLWCFilter = new LWCFilter(this);
         mFillColor.setAllowTranslucence(false);
+        // on restore, set to 0 initially: if has a model version in the save file,
+        // it will be overwritten
+        setModelVersion(0); 
     }
     
     public LWMap(String label) {
@@ -188,10 +192,18 @@ public class LWMap extends LWContainer
     public int getModelVersion() {
         return mModelVersion;
     }
+    
     /** for persistance */
     public void setModelVersion(int version) {
         mModelVersion = version;
+        mSaveFileModelVersion = version;
     }
+
+    public int getSaveFileModelVersion() {
+        return mSaveFileModelVersion;
+    }
+    
+    
     
     @Override
     String getDiagnosticLabel() {
