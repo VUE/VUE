@@ -87,7 +87,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.52 $ / $Date: 2007-06-01 07:40:45 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2007-06-11 10:56:37 $ / $Author: sfraize $
  *
  */
 
@@ -849,14 +849,19 @@ public class TextBox extends JTextPane
         return rect.intersects(mapX, mapY, mapWidth, mapHeight);
     }
 
-    // todo: this doesn't account for scaling if laid
-    // out in a child...
+    // todo: this currently only makes sense for use by LWLink,
+    // as it scales the size based on current map scale
+    // (if a regular component were to use this, it would
+    // be testing an x/y that had already been transformed
+    // into it's local coordinate space)
     public boolean containsMapLocation(float x, float y)
     {
+        final float scale = lwc.getMapScaleF();
         return
-            x >= mapX && y >= mapY &&
-            x <= mapX + mapWidth &&
-            y <= mapY + mapHeight;
+            x >= mapX &&
+            y >= mapY &&
+            x <= mapX + (mapWidth * scale) &&
+            y <= mapY + (mapHeight * scale);
     }
 
     /*
