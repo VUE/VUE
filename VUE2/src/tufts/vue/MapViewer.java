@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import tufts.Util;
+import static tufts.Util.*;
 
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.DockWindow;
@@ -69,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.403 $ / $Date: 2007-06-06 18:18:54 $ / $Author: sfraize $ 
+ * @version $Revision: 1.404 $ / $Date: 2007-06-11 10:11:22 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -801,11 +802,32 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      * configured to be able to display 
      */
     public Rectangle2D getDisplayableMapBounds() {
-        if (mFocal == mMap)
-            return mMap.getBounds();
-        //return mMap.getBounds(getMaxLayer());
+        return getFocalBounds();
+//         if (mFocal == mMap)
+//             return mMap.getBounds();
+//         //return mMap.getBounds(getMaxLayer());
+//         else
+//             return mFocal.getShapeBounds();
+    }
+
+    public static Rectangle2D.Float getFocalBounds(LWComponent c) {
+        // TODO: add a getFocalBounds to LWComponent, and override in LWLink
+        if (c instanceof LWLink)
+            return c.getFanBounds();
         else
-            return mFocal.getShapeBounds();
+            return c.getBounds();
+    }
+    
+    private Rectangle2D.Float getFocalBounds() {
+        return getFocalBounds(mFocal);
+    }
+
+    private Shape getFocalClip() {
+        if (mFocal instanceof LWLink) {
+            Util.printStackTrace("Warning: use of link focal clip in " + this + "; focal=" + mFocal);
+            return mFocal.getParent().getBounds();
+        } else
+            return mFocal.getMapShape();
     }
 
     /**
@@ -817,7 +839,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private final static float SelectionStrokeMargin = SelectionStrokeWidth/2;
     public Rectangle2D.Float getContentBounds() {
-        Rectangle2D.Float r = (Rectangle2D.Float) mFocal.getBounds().clone();
+        //Rectangle2D.Float r = (Rectangle2D.Float) mFocal.getBounds().clone();
+        Rectangle2D.Float r = (Rectangle2D.Float) getFocalBounds().clone();
         // because the selection stroke is rendered at scale (gets bigger
         // as we zoom in) we account for it here in the total bounds
         // needed to see everything on the map.
@@ -940,7 +963,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
 
         final boolean animate = false;
-        final Rectangle2D zoomBounds = mFocal.getBounds();
+        final Rectangle2D zoomBounds = getFocalBounds();
 
 //         int margin = 30;
 //         if (mFocal instanceof LWSlide ||
@@ -2432,9 +2455,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // map can show thru, thus we have to draw the whole map
             // to see the real result -- we just set the clip to
             // the shape of the focal.
-            final Shape curClip = dc.g.getClip();
-            dc.g.clip(mFocal.getMapShape());
-            dc.setMasterClip(mFocal.getMapShape());
+
+            final Shape curClip;
+
+            if (mFocal instanceof LWLink) {
+                // Don't clip if it's a link: still draw entire map
+                curClip = null;
+            } else {
+                curClip = dc.g.getClip();                
+                final Shape focalClip = getFocalClip();
+                dc.g.clip(focalClip);
+                dc.setMasterClip(focalClip);
+            }
             LWComponent parentSlide = mFocal.getParentOfType(LWSlide.class);
             // don't need to re-draw the focal itself, it's being
             // drawn in it's parent (slide or map)
@@ -2443,7 +2475,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             } else {
                 mFocal.getMap().draw(dc);
             }
-            dc.setMasterClip(curClip);
+            if (curClip != null)
+                dc.setMasterClip(curClip);
         } else {
             // now draw the map / focal
             mFocal.draw(dc);
@@ -3749,7 +3782,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (dragComponent != null) {
                     double oldX = viewer.screenToMapX(dragStart.x) + dragOffset.x;
                     double oldY = viewer.screenToMapY(dragStart.y) + dragOffset.y;
-                    dragComponent.setLocation(oldX, oldY);
+                    dragComponent.setMapLocation(oldX, oldY);
                     //dragPosition.setLocation(oldX, oldY);
                     setDragger(null);
                     activeTool.handleDragAbort();
@@ -4939,8 +4972,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // Reposition the component due to mouse drag
                 //-------------------------------------------------------
                 
-                dragComponent.setLocation(mapX + dragOffset.x,
-                                          mapY + dragOffset.y);
+                dragComponent.setMapLocation(mapX + dragOffset.x,
+                                             mapY + dragOffset.y);
                 //dragPosition.setLocation(mapX + dragOffset.x,mapY + dragOffset.y);
                 
                 if (inScrollPane)
@@ -5171,6 +5204,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (dragComponent == null || !isDropRequest(e))
                     ; // nothing dragged, or shift requst to skip reparenting
                 else
+                    if (DEBUG.EVENTS) System.out.println(TERM_GREEN + "\nINTERNAL MAP MOUSE DROP EVENT in " + this
+                                                         + "\n\t     event: " + e
+                                                         + "\n\tindication: " + indication
+                                                         + TERM_CLEAR);
                     checkAndHandleDroppedReparenting();
             }
             
@@ -5281,8 +5318,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         /**
          * Take what's in the selection and drop it on the current indication,
          * or on the map if no current indication.
+         *
+         * @return true if we did anything
          */
-        private void checkAndHandleDroppedReparenting() {
+        private boolean checkAndHandleDroppedReparenting() {
             //-------------------------------------------------------
             // check to see if any things could be dropped on a new parent
             // This got alot more complicated adding support for
@@ -5296,7 +5335,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     parentTarget = (LWContainer) mFocal;
                 } else {
                     //VUE.Log.debug("MapViewer: drag check of non-container focal " + mFocal);
-                    return;
+                    return false;
                 }
             } else
                 parentTarget = (LWContainer) indication;
@@ -5357,7 +5396,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 }
                 
                 selectionSet(moveList);
+                return true;
             }
+            return false;
         }
 
         private final boolean noModifierKeysDown(InputEvent e) {
