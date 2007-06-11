@@ -42,10 +42,11 @@ import javax.swing.Action;
  */
 
 public class UndoManager
-    implements LWComponent.Listener, ActiveListener<LWMap>
+    implements LWComponent.Listener
 {
-    private static boolean sUndoUnderway = false;
-    private static boolean sRedoUnderway = false;
+    private boolean mUndoUnderway = false;
+    private boolean mRedoUnderway = false;
+    private boolean mCleanupUnderway = false;
 
     /** The list of undo actions (named groups of property changes) */
     private UndoActionList UndoList = new UndoActionList("Undo"); 
@@ -75,8 +76,8 @@ public class UndoManager
         mMap = map;
         mCurrentUndo = new UndoAction();
         map.addLWCListener(this);
-        VUE.addActiveListener(LWMap.class, this);
-        updateActionLabels(); // make sure actions disabled at start
+        //VUE.addActiveListener(LWMap.class, this);
+        updateGlobalActionLabels(); // make sure actions disabled at start
     }
 
     
@@ -134,18 +135,19 @@ public class UndoManager
             return name != null;
         }
         
-        synchronized void undo() {
-            try {
-                sUndoUnderway = true;
-                run_undo();
-            } finally {
-                sUndoUnderway = false;
-            }
-        }
+//         synchronized void undo() {
+//             try {
+//                 sUndoUnderway = true;
+//                 run_undo();
+//             } finally {
+//                 sUndoUnderway = false;
+//             }
+//         }
 
         // todo: if there are any UndoableThread's attached to us, they should
         // ideally be interrupted.
-        private synchronized void run_undo() {
+        //private synchronized void run_undo() {
+        synchronized void undoAggregateUserAction() {
             if (DEBUG.UNDO) System.out.println(this + " undoing sequence of size " + changeCount());
 
             if (attachedThreads != null) {
@@ -554,20 +556,18 @@ public class UndoManager
         public Object remove(int index) { throw new UnsupportedOperationException(); }
     }
 
-    public void activeChanged(ActiveEvent<LWMap> e)
-    {
+//     public void activeChanged(ActiveEvent<LWMap> e)
+//     {
+//         // We really don't need every undo manager listening for
+//         // active map changes -- a single listener for the active map
+//         // that then tells the active map's undo manager, if it has
+//         // one, to update the menu labels in the global VUE would
+//         // suffice, tho this works just fine with minimal overhead.
+//         if (e.active == mMap)
+//             updateGlobalActionLabels();
+//     }
 
-        // We really don't need every undo manager listening for
-        // active map changes -- a single listener for the active map
-        // that then tells the active map's undo manager, if it has
-        // one, to update the menu labels in the global VUE would
-        // suffice, tho this works just fine with minimal overhead.
-        
-        if (e.active == mMap)
-            updateActionLabels();
-    }
-
-    private void updateActionLabels() {
+    public void updateGlobalActionLabels() {
         setActionLabel(Actions.Undo, UndoList);
         setActionLabel(Actions.Redo, RedoList);
     }
@@ -577,7 +577,7 @@ public class UndoManager
         RedoList.clear();
         mComponentChanges.clear();
         if (VUE.getActiveMap() == mMap)
-            updateActionLabels();
+            updateGlobalActionLabels();
     }
 
     /* If we are asked to do an undo (or redo), and find modifications
@@ -614,15 +614,17 @@ public class UndoManager
         if (DEBUG.UNDO) System.out.println(this + " redoing " + redoAction);
         if (redoAction != null) {
             try {
-                sRedoUnderway = true;
-                redoAction.undo();
+                mRedoUnderway = true;
+                mUndoUnderway = true;
+                redoAction.undoAggregateUserAction();
             } finally {
-                sRedoUnderway = false;
+                mUndoUnderway = false;
+                mRedoUnderway = false;
             }
             UndoList.advance();
             mMap.notify(this, LWKey.UserActionCompleted);
         }
-        updateActionLabels();
+        updateGlobalActionLabels();
     }
     
     public synchronized void undo()
@@ -633,11 +635,16 @@ public class UndoManager
         if (DEBUG.UNDO) System.out.println("\n" + this + " undoing " + undoAction);
         if (undoAction != null) {
             mRedoCaptured = false;
-            undoAction.undo();
+            try {
+                mUndoUnderway = true;
+                undoAction.undoAggregateUserAction();
+            } finally {
+                mUndoUnderway = false;
+            }
             RedoList.add(collectChangesAsUndoAction(undoAction.name));
             mMap.notify(this, LWKey.UserActionCompleted);
         }
-        updateActionLabels();
+        updateGlobalActionLabels();
         // We've undo everything: we can mark the map as having no modifications
         if (UndoList.peek() == null)
             mMap.markAsSaved();
@@ -680,22 +687,24 @@ public class UndoManager
     
     /**
 
-     * Add a task to be run just before the next mark.  If code
-     * somewhere has decided it needs to check that state at the end
-     * of all current user operations (which is when we create
-     * undo-marks, explicitly throughout the code at the end of known
-     * user action control points), it can add a task, which will run
-     * (possibly generating more events and adding to the undo queue)
-     * just before the current undo event queue is collected into an
-     * undo action as the mark is established.
+     * Add a task to be run just before the next mark.  If code somewhere has decided it
+     * needs to check that state at the end of all current user operations (which is
+     * when we create undo-marks, explicitly throughout the code at the end of known
+     * user action control points), it can add a task, which will run (possibly
+     * generating more events and adding to the undo queue) just before the current undo
+     * event queue is collected into an undo action as the mark is established.
 
-     * E.g., LWGroup's add a task any time children are removed, so it
-     * can run at the end to find out if it should auto-disperse
-     * itself (if it has only 0 or 1 members, and hasn't already been
-     * deleted).  This is because many different operations may remove
-     * children from a group, and we don't want to track them all and
-     * don't care how they operate -- we just want to know what state
-     * we're left in when the dust settles.
+     * E.g., LWGroup's add a task any time children are removed, so it can run at the
+     * end to find out if it should auto-disperse itself (if it has only 0 or 1 members,
+     * and hasn't already been deleted).  This is because many different operations may
+     * remove children from a group, and we don't want to track them all and don't care
+     * how they operate -- we just want to know what state we're left in when the dust
+     * settles.
+
+     * Tasks are NOT RUN during Undo/Redo -- they are "one-way" operations intended to
+     * maintain model integrity / transactional integrity.  Once they've run and made
+     * changes to the model, the events generated by these changes are sufficient for
+     * what needs to happen during undo/redo -- the task is no longer needed.
 
      * @param taskKey - a key that can be used to check to see 
      * if something with the same key is already waiting to be
@@ -704,18 +713,43 @@ public class UndoManager
      * @param task -- a Runnable
      
      */
-    
     public void addCleanupTask(Object taskKey, Runnable task) {
-        mCleanupTasks.put(taskKey, task);
+        if (mUndoUnderway) {
+            Util.printStackTrace(this + "; ignoring task during undo/redo in "
+                                 + "\n\ttaskKey: " + taskKey
+                                 + "\n\t   task: " + task);
+            return;
+        }
+        synchronized (mCleanupTasks) {
+            if (mCleanupUnderway) {
+                // This might actually be allowable, but it's dangerious and
+                // could easily create loops, which I'd rather not have to detect.
+                Util.printStackTrace("CASCADING CLEANUP TASKS; IGNORED by " + this
+                                     + "\n\ttaskKey: " + taskKey
+                                     + "\n\t   task: " + task);
+            } else {
+                final Runnable prior =
+                    mCleanupTasks.put(taskKey, task);
+                
+                if (prior != null)
+                    Util.printStackTrace("over-wrote existing cleanup task (won't be run): " + prior + " taskKey: " + taskKey);
+            }
+        }
     }
-
+    
     /**
      * @see addCleanupTask(Object taskKey, Runnable task)
      * This defaults the taskKey to the task object itself.
      **/
     public void addCleanupTask(Runnable task) {
-        mCleanupTasks.put(task, task);
+        addCleanupTask(task, task);
     }
+
+    /** @return true if we're undoing or redoing */
+    public boolean isUndoing() {
+        return mUndoUnderway;
+    }
+
     
     /** @return true if there are already any cleanup tasks with the given key */
     public boolean hasCleanupTask(Object taskKey) {
@@ -724,29 +758,15 @@ public class UndoManager
 
     public synchronized void markChangesAsUndo(String name)
     {
-        // Can we skip running the cleanup tasks if there's nothing in the undo queue?
-        // Do we NEED to do that, in case of multiple "just in case" marks,
-        // where only the last one actually had anything, and we DON'T
-        // want to run the cleanup tasks till then?
-        if (mCleanupTasks.size() > 0) {
-            final boolean debug;
-            if (mCurrentUndo.size() == 0) {
-                VUE.Log.warn("Running cleanup tasks with an empty undo queue: " + this);
-                debug = true;
-            } else
-                debug = DEBUG.EVENTS || DEBUG.UNDO;
-            for (Map.Entry<Object,Runnable> e : mCleanupTasks.entrySet()) {
-                final Runnable task = e.getValue();
-                final Object key = e.getKey();
-                if (debug) {
-                    if (DEBUG.Enabled) System.out.println("");
-                    VUE.Log.info("RUNNING CLEANUP TASK in " + this
-                                 + "\n\ttask: " + task
-                                 + "\n\t key: " + key);
-                }
-                task.run();
-            }
-            mCleanupTasks.clear();
+        synchronized (mCleanupTasks) {
+
+            // Can we skip running the cleanup tasks if there's nothing in the undo
+            // queue?  Do we NEED to do that, in case of multiple "just in case" marks,
+            // where only the last one actually had anything, and we DON'T want to run
+            // the cleanup tasks till then?
+        
+            if (mCleanupTasks.size() > 0)
+                runCleanupTasks(false);
         }
         
         if (mCurrentUndo.size() == 0) // if nothing changed, don't bother adding an UndoAction
@@ -760,7 +780,49 @@ public class UndoManager
         UndoList.add(collectChangesAsUndoAction(name));
         RedoList.clear();
         mMap.notify(this, LWKey.UserActionCompleted);
-        updateActionLabels();
+        updateGlobalActionLabels();
+    }
+
+    private void runCleanupTasks(boolean debug) {
+        synchronized (mCleanupTasks) {
+            if (mCleanupUnderway) {
+                Util.printStackTrace("serious problem: cleanup already underway!");
+                return;
+            } 
+            try {
+                mCleanupUnderway = true;
+                runAndPurgeCleanupTasks(debug);
+            } finally {
+                mCleanupUnderway = false;
+            }
+        }
+    }
+    
+    // should be run inside a synchronized block against mCleanupTasks
+    private void runAndPurgeCleanupTasks(boolean debug) {
+        if (mCurrentUndo.size() == 0) {
+            if (DEBUG.Enabled)
+                Util.printStackTrace("Running cleanup tasks with an empty undo queue: " + this);
+            else
+                VUE.Log.info("Running cleanup tasks with an empty undo queue: " + this);
+            
+            debug = true;
+        } else if (!debug)
+            debug = DEBUG.Enabled;
+        //debug = DEBUG.EVENTS || DEBUG.UNDO;
+        
+        for (Map.Entry<Object,Runnable> e : mCleanupTasks.entrySet()) {
+            final Runnable task = e.getValue();
+            final Object key = e.getKey();
+            if (debug) {
+                if (DEBUG.Enabled) System.out.println("");
+                VUE.Log.debug("RUNNING CLEANUP TASK in " + this
+                              + "\n\ttask: " + task
+                              + "\n\t key: " + key);
+            }
+            task.run();
+        }
+        mCleanupTasks.clear();
     }
 
     private synchronized UndoAction collectChangesAsUndoAction(String name)
@@ -875,6 +937,8 @@ public class UndoManager
     
     static void detachCurrentThread(Object undoActionKey) {
         if (undoActionKey != null) {
+            if (DEBUG.THREAD) Util.printStackTrace("detachCurrentThread: " + Thread.currentThread());
+            
             UndoMark mark = (UndoMark) undoActionKey;
             mark.manager.mThreadsWithMark.remove(Thread.currentThread());
 
@@ -933,16 +997,35 @@ public class UndoManager
 
     public void LWCChanged(LWCEvent e) {
 
-        if (sRedoUnderway) // ignore everything during redo
+        if (mRedoUnderway) // ignore everything during redo
             return;
 
-        if (sUndoUnderway) {
-            if (!mRedoCaptured && mCurrentUndo.size() > 0) 
-                throw new Error("Undo Error: have changes at start of redo record: " + mCurrentUndo.size() + " " + mComponentChanges + " " + e);
+        if (mUndoUnderway) {
+            if (!mRedoCaptured && mCurrentUndo.size() > 0)  {
+                Util.printStackTrace("Undo Error: have changes at start of redo record:"
+                                     + "\n\t  current UndoAction: " + mCurrentUndo
+                                     + "\n\tcurrent change count: " + mComponentChanges
+                                     + "\n\t         UndoManager: " + this
+                                     + "\n\t      incoming event: " + e
+                                     );
+            }
             mRedoCaptured = true;
             if (DEBUG.UNDO) System.out.print("\tredo: " + e);
-        } else {
+        } else if (!mCleanupUnderway) {
             if (DEBUG.UNDO) System.out.print(this + " " + e);
+            if (mCurrentUndo.size() == 0 && mCleanupTasks.size() > 0) {
+                Util.printStackTrace("Undo Warning: have un-run cleanup tasks on first incoming event (running now):"
+                                     + "\n\t       UndoManager: " + this
+                                     + "\n\t# of cleanup tasks: " + mCleanupTasks.size()
+                                     + "\n\t     cleanup tasks: " + mCleanupTasks
+                                     + "\n\t    incoming event: " + e
+                                     );
+                // Fallback:
+                // Run them now, to at least ensure as much model integrity as we can.
+                // We defintely don't want to run them after more model changes take place,
+                // they either need to be run or purged now.
+                runCleanupTasks(true);
+            }
         }
         processEvent(e);
     }
@@ -1037,22 +1120,22 @@ public class UndoManager
     }
 
     private static final Object HIERARCHY_CHANGE_TAG = "hierarchy.change";
-    private void XrecordHierarchyChangingEvent(LWCEvent e, UndoAction undoAction, Map perComponentChanges)
-    {
-        LWContainer parent = (LWContainer) e.getSource();
-        //recordUndoableChangeEvent(mHierarchyChanges, LWKey.HierarchyChanging, parent, HIERARCHY_CHANGE);
-        //recordUndoableChangeEvent(um.mUndoSequence, um.mComponentChanges, LWKey.HierarchyChanging, parent, HIERARCHY_CHANGE);
-        recordUndoableChangeEvent(undoAction, perComponentChanges, LWKey.HierarchyChanging, parent, HIERARCHY_CHANGE_TAG);
-        mLastEvent = e;
-    }
+//     private void XrecordHierarchyChangingEvent(LWCEvent e, UndoAction undoAction, Map perComponentChanges)
+//     {
+//         LWContainer parent = (LWContainer) e.getSource();
+//         //recordUndoableChangeEvent(mHierarchyChanges, LWKey.HierarchyChanging, parent, HIERARCHY_CHANGE);
+//         //recordUndoableChangeEvent(um.mUndoSequence, um.mComponentChanges, LWKey.HierarchyChanging, parent, HIERARCHY_CHANGE);
+//         recordUndoableChangeEvent(undoAction, perComponentChanges, LWKey.HierarchyChanging, parent, HIERARCHY_CHANGE_TAG);
+//         mLastEvent = e;
+//     }
     
-    private void XrecordPropertyChangeEvent(LWCEvent e, UndoAction undoAction, Map perComponentChanges)
-    {
-        // e.getComponent can really be list... todo: warn us if list (should only be for hier events)
-        //recordUndoableChangeEvent(mPropertyChanges, e.getKey(), e.getComponent(), e.getOldValue());
-        recordUndoableChangeEvent(undoAction, perComponentChanges, e.key, e.getComponent(), e.getOldValue());
-        mLastEvent = e;
-    }
+//     private void XrecordPropertyChangeEvent(LWCEvent e, UndoAction undoAction, Map perComponentChanges)
+//     {
+//         // e.getComponent can really be list... todo: warn us if list (should only be for hier events)
+//         //recordUndoableChangeEvent(mPropertyChanges, e.getKey(), e.getComponent(), e.getOldValue());
+//         recordUndoableChangeEvent(undoAction, perComponentChanges, e.key, e.getComponent(), e.getOldValue());
+//         mLastEvent = e;
+//     }
 
     /**
      * Record a property change to a given component with the given property key.  Our
