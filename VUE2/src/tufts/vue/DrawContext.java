@@ -32,7 +32,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.41 $ / $Date: 2007-05-14 07:52:57 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2007-06-11 10:59:07 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -64,7 +64,8 @@ public class DrawContext
 
     private final Shape rawClip;
     private final AffineTransform rawTransform;
-    private final AffineTransform mapTransform;
+    //private final AffineTransform mapTransform;
+    AffineTransform mapTransform; // tmp hack
     
     private Rectangle2D masterClipRect; // for drawing map nodes
     private Color fillColor;
@@ -217,7 +218,7 @@ public class DrawContext
                 //System.out.println("MASTER CLIP RECT2D: " + Util.out(masterClipRect));
             }
         }
-        if (DEBUG.PAINT || DEBUG.CONTAINMENT)
+        if (DEBUG.PAINT || (DEBUG.CONTAINMENT&&DEBUG.META) || DEBUG.PRESENT)
             System.out.println("MASTER CLIP RECT2D=" + tufts.Util.out(masterClipRect));
     }
 
