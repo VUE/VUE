@@ -102,7 +102,7 @@ public class SaveAction extends VueAction
         
         File file = map.getFile();
 
-        if (map.getSaveFileModelVersion() == 0) {
+        if (map.getSaveFileModelVersion() <= 0) {
             VueUtil.alert(String.format("Saving %s in this version of VUE will prevent older versions of VUE"
                                         + "\nfrom displaying it properly.  You may wish to save this map under a new name.",
                                         map.getLabel()),
