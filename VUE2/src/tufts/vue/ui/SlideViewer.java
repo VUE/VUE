@@ -92,8 +92,8 @@ public class SlideViewer extends tufts.vue.MapViewer
     private final AbstractButton btnRevert;
     //private final AbstractButton btnPresent;
 
-    private static final String lblRevertOnSlide = "Revert Slide Style";
-    private static final String lblRevertOnMaster = "Revert All Slide Styles";
+    private static final String lblRevertOnSlide = "Reset Style";
+    private static final String lblRevertOnMaster = "Reset All Slide Styles";
 
     private boolean masterJustPressed;
     private boolean slideJustPressed;
@@ -181,8 +181,8 @@ public class SlideViewer extends tufts.vue.MapViewer
         btnMaster = makeButton("Master Slide");
         btnMapView = new JCheckBox("Map View");
         btnFill = new JCheckBox("Fill");
-        btnRebuild = new JButton("Rebuild");
-        btnRevert = new JButton("Revert Style");
+        btnRebuild = new JButton("Revert");
+        btnRevert = new JButton("Reset Style");
         //btnPresent = makeButton("Present");
 
         btnSlide.setSelected(true);
