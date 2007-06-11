@@ -31,7 +31,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.40 $ / $Date: 2007-05-31 21:48:41 $ / $Author: mike $
+ * @version $Revision: 1.41 $ / $Date: 2007-06-11 10:07:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -610,6 +610,14 @@ public class VueMenuBar extends javax.swing.JMenuBar
             }
             
             javax.swing.JTextArea t = new javax.swing.JTextArea();
+//             javax.swing.JTextArea t = new javax.swing.JTextArea() {
+//                     public void paint(java.awt.Graphics g) {
+//                         ((java.awt.Graphics2D)g).setRenderingHint
+//                             (java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+//                              java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+//                         super.paint(g);
+//                     }};
+            
             t.setFont(VueConstants.SmallFixedFont);
             t.setEditable(false);
           //  t.setFocusable(false);
