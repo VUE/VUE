@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.451 $ / $Date: 2007-06-08 20:13:06 $ / $Author: mike $ 
+ * @version $Revision: 1.452 $ / $Date: 2007-06-11 10:07:28 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -139,9 +139,11 @@ public class VUE
     private static final ActiveInstance<LWMap>
         ActiveMapHandler = new ActiveInstance<LWMap>(LWMap.class) {
         protected void onChange(ActiveEvent<LWMap> e) {
-            if (e.active != null)
+            if (e.active != null) {
                 ActivePathwayHandler.setActive(e, e.active.getActivePathway());
-            else
+                if (e.active.getUndoManager() != null)
+                    e.active.getUndoManager().updateGlobalActionLabels();
+            } else
                 ActivePathwayHandler.setActive(e, null);
         }
     };
@@ -1544,6 +1546,11 @@ public class VUE
     
     
     public static UndoManager getUndoManager() {
+        
+        // todo: eventually, way may want to ask the active viewer for
+        // it's undo manager, e.g. -- if we want the slide viewer to
+        // have it's own undo queue.
+        
         LWMap map = getActiveMap();
         if (map != null)
             return map.getUndoManager();
