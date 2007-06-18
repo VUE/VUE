@@ -49,16 +49,16 @@ public class PathwayTableModel extends DefaultTableModel
 {
     private LWMap mMap;
 
-    final static String[] ColumnNames = {"A", "B", "C", "D", "E", "F", "G"};
+    final static String[] ColumnNames = {"A", "B", "C", "D", "E", "F"};
 
-    public static final int COL_VISIBLE = 0;
-    public static final int COL_OPEN = 1;
-    public static final int COL_MAPVIEW = 2;
-    public static final int COL_LABEL = 3; // Applies to pathway's and pathway members
-    public static final int COL_NOTES = 4; // Applies to pathway's and pathway members
+    public static final int COL_VISIBLEnMAPVIEW = 1;
+    public static final int COL_OPEN = 0;
+    //public static final int COL_MAPVIEW = 6;
+    public static final int COL_LABEL = 2; // Applies to pathway's and pathway members
+    public static final int COL_NOTES = 3; // Applies to pathway's and pathway members
     
-    public static final int COL_LOCKED = 5;
-    public static final int COL_COLOR = 6;
+    public static final int COL_LOCKED = 4;
+    public static final int COL_COLOR = 5;
     
     
     
@@ -344,7 +344,7 @@ public class PathwayTableModel extends DefaultTableModel
     public Class getColumnClass(int col){
         if (col == COL_COLOR)
             return Color.class;
-        else if (col == COL_VISIBLE || col == COL_NOTES || col == COL_LOCKED || col == COL_MAPVIEW)
+        else if (col == COL_VISIBLEnMAPVIEW || col == COL_NOTES || col == COL_LOCKED)// || col == COL_MAPVIEW)
             return ImageIcon.class;
         else if (col == COL_LABEL || col == COL_OPEN)
             return Object.class;
@@ -397,7 +397,7 @@ public class PathwayTableModel extends DefaultTableModel
             LWPathway p = entry.pathway;
             try {
                 switch (col) {
-                case COL_VISIBLE: return new Boolean(p.isVisible());
+                case COL_VISIBLEnMAPVIEW: return new Boolean(p.isVisible());
                 case COL_COLOR: return p.getStrokeColor();
                 case COL_OPEN: return new Boolean(p.isOpen());
                 case COL_LABEL: return p.getDisplayLabel();
@@ -414,7 +414,7 @@ public class PathwayTableModel extends DefaultTableModel
             try {
                 if (col == COL_LABEL)                               	
                     return entry.getLabel();  
-                else if (col == COL_MAPVIEW)
+                else if (col == COL_VISIBLEnMAPVIEW)
                     return new Boolean(entry.isMapView());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -436,14 +436,14 @@ public class PathwayTableModel extends DefaultTableModel
             if (aValue instanceof Boolean)
                 bool = ((Boolean)aValue).booleanValue();
 
-                 if (col == COL_VISIBLE) { p.setVisible(!p.isVisible()); }        // not proper (must use aValue to be proper)
+                 if (col == COL_VISIBLEnMAPVIEW) { p.setVisible(!p.isVisible()); }        // not proper (must use aValue to be proper)
             else if (col == COL_COLOR)   { p.setStrokeColor((Color)aValue); }     // proper
             else if (col == COL_OPEN)    { p.setOpen(!p.isOpen()); }              // not proper
             else if (col == COL_LABEL)   { entry.setLabel((String)aValue); }      // proper
             else if (col == COL_LOCKED)  { p.setLocked(!p.isLocked()); }          // not proper
-            else if (col == COL_MAPVIEW)
-        	{entry.setMapView(((Boolean)aValue).booleanValue());        	
-        	}
+            //else if (col == COL_MAPVIEW)
+        	//{entry.setMapView(((Boolean)aValue).booleanValue());        	
+        	//}
            /* else if (col == COL_REVEALER) {
                 if (bool)
                     getPathwayList().setRevealer(p);
@@ -452,7 +452,7 @@ public class PathwayTableModel extends DefaultTableModel
             }*/
         } else {
             if (col == COL_LABEL) entry.setLabel((String)aValue);
-            else if (col == COL_MAPVIEW)
+            else if (col == COL_VISIBLEnMAPVIEW)
             	{
                     if (!entry.isOffMapSlide()) {
                         entry.setMapView(!entry.isMapView());

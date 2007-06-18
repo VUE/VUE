@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.93 $ / $Date: 2007-06-01 20:34:05 $ / $Author: sfraize $
+ * @version $Revision: 1.94 $ / $Date: 2007-06-18 20:28:45 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -93,7 +93,7 @@ public class PathwayPanel extends JPanel
     //Section Labels for the top
     private JLabel lblCreateSlides = new JLabel(VueResources.getString("presentationDialog.createslides.label"));
     private JLabel lblEditSlides = new JLabel(VueResources.getString("presentationDialog.editslides.label"));
-    private JLabel lblMasterSlide = new JLabel(VueResources.getString("presentationDialog.masterslide.label"));
+    private JLabel lblViewSlide = new JLabel(VueResources.getString("presentationDialog.viewslide.label"));
     private JLabel lblNew = new JLabel(VueResources.getString("presentationDialog.new.label"));    
     private JLabel lblFilter = new JLabel(VueResources.getString("presentationDialog.filter.label"));
     //private JLabel lblMapView = new JLabel(VueResources.getString("presentationDialog.mapview.label"));
@@ -120,7 +120,7 @@ public class PathwayPanel extends JPanel
     private static final Action path_forward = new PlayerAction("pathway.control.forward");
     private static final Action path_last = new PlayerAction("pathway.control.last");
 
-    private final JTabbedPane tabbedPane = new JTabbedPane();
+  //  private final JTabbedPane tabbedPane = new JTabbedPane();
 
     private static PathwayPanel Singleton;
     
@@ -217,9 +217,13 @@ public class PathwayPanel extends JPanel
         GridBagConstraints c = new GridBagConstraints();
 
         setLayout(bag);
+        c.insets = new Insets(1,1,1,1);        
         c.gridwidth = GridBagConstraints.REMAINDER; // put everything in one column
         c.weightx = 1.0; // make sure everything can fill to width
+        c.anchor=GridBagConstraints.EAST;
+        add(btnPlay,c);
         
+        c.anchor=GridBagConstraints.CENTER;
         //-------------------------------------------------------
         // add pathway create/delete/lock control panel
         //-------------------------------------------------------
@@ -227,16 +231,23 @@ public class PathwayPanel extends JPanel
         c.fill = GridBagConstraints.HORIZONTAL;
         //bag.setConstraints(pathwayMasterPanel, c);
         //add(pathwayMasterPanel);        
-        JPanel playbackPanel = new JPanel();
+        //JPanel playbackPanel = new JPanel();
         JPanel slidePanel = new JPanel();
         
-        buildPlaybackPanel(playbackPanel);
+        //buildPlaybackPanel(playbackPanel);
         buildSlidePanel(slidePanel);
-        tabbedPane.add(VueResources.getString("presentationDialog.slideTab.title"), slidePanel);
-        tabbedPane.add(VueResources.getString("presentationDialog.playbackTab.title"), playbackPanel);
+        //tabbedPane.add(VueResources.getString("presentationDialog.slideTab.title"), slidePanel);
+        //tabbedPane.add(VueResources.getString("presentationDialog.playbackTab.title"), playbackPanel);
   
     //    setLayout(new BorderLayout());
-        add(tabbedPane,c);
+        JPanel p = new JPanel();
+        p.setLayout(new BorderLayout());
+        p.add(slidePanel);
+        p.setBorder(new RoundedBorder());
+        c.insets = new Insets(1,0,0,4);
+        
+        add(p,c);
+        c.insets = new Insets(8,1,1,1);
         //-------------------------------------------------------
         // add the PathwayTable
         //-------------------------------------------------------
@@ -251,10 +262,9 @@ public class PathwayPanel extends JPanel
         //-------------------------------------------------------
         // Add the notes panel
         //-------------------------------------------------------
-        
+        c.insets = new Insets(1,1,1,1);
         c.fill = GridBagConstraints.BOTH;
-        c.weighty = 1.0;
-        c.insets = new Insets(0,0,0,0);
+        c.weighty = 1.0;        
         notesPanel.setPreferredSize(new Dimension(getWidth(), 80));
         bag.setConstraints(notesPanel, c);
         add(notesPanel);
@@ -293,6 +303,25 @@ public class PathwayPanel extends JPanel
     	System.out.println("new panel :" + newPanel.getSize().toString());
     }*/
     
+    class RoundedBorder extends AbstractBorder {
+    	private final static int MARGIN = 4;
+     
+    	public void paintBorder( Component c, Graphics g, int x, int y, int width, int height ) {
+    		g.setColor(Color.gray);
+    		g.drawRoundRect( x, y, width - 1, height - 1, MARGIN*2, MARGIN*2);
+    	}
+     
+    	public Insets getBorderInsets( Component c ) {
+    		return new Insets( 2,2,2,2);
+    	}
+     
+    	public Insets getBorderInsets( Component c, Insets insets ) {
+    		insets.left = insets.top = insets.right = insets.bottom = MARGIN;
+    		return insets;
+    	}
+         
+    }
+    
     private void addToolTips()
     {
     	String baseProp = "presentationDialog.button.";    	
@@ -330,7 +359,7 @@ public class PathwayPanel extends JPanel
     	slidePanel.setLayout(new BoxLayout(slidePanel,BoxLayout.X_AXIS));
     	JPanel createSlidePanel = new JPanel();
     	JPanel editPanel = new JPanel();
-    	JPanel masterPanel = new JPanel();
+    	JPanel viewPanel = new JPanel();
     	JPanel newPanel = new JPanel();	
     	JPanel deletePanel = new JPanel();
     	
@@ -344,13 +373,13 @@ public class PathwayPanel extends JPanel
         
         createSlidePanel.setLayout(new GridBagLayout());
         editPanel.setLayout(new GridBagLayout());
-        masterPanel.setLayout(new GridBagLayout());
+        viewPanel.setLayout(new GridBagLayout());
         newPanel.setLayout(new GridBagLayout());
         deletePanel.setLayout(new GridBagLayout());
         
         lblCreateSlides.setFont(VueResources.getFont("node.icon.font"));
         lblEditSlides.setFont(VueResources.getFont("node.icon.font"));
-        lblMasterSlide.setFont(VueResources.getFont("node.icon.font"));
+        lblViewSlide.setFont(VueResources.getFont("node.icon.font"));
         lblNew.setFont(VueResources.getFont("node.icon.font"));
         
         
@@ -394,31 +423,13 @@ public class PathwayPanel extends JPanel
         gbConstraints.anchor=GridBagConstraints.NORTHWEST;
         gbConstraints.fill=GridBagConstraints.NONE;        
         editPanel.add(lblEditSlides,gbConstraints);
-        
-     //   gbConstraints.gridx=0;
-     //   gbConstraints.gridy=1;
-     //   gbConstraints.gridwidth = 1;
-     //   gbConstraints.gridheight = 1;
-     //   gbConstraints.fill=GridBagConstraints.NONE;
-     //   gbConstraints.anchor=GridBagConstraints.WEST;
-     //   editPanel.add(btnPreviewFull,gbConstraints);
-    
+         
         gbConstraints.gridx=0;
         gbConstraints.gridy=1;       
         gbConstraints.gridwidth = 1;
         gbConstraints.gridheight = 1;
         gbConstraints.anchor=GridBagConstraints.WEST;
         editPanel.add(btnPreview,gbConstraints);
-        //END EDIT PANEL
-        
-        //START MASTER PANEL        
-       // gbConstraints.gridx = 0;
-       // gbConstraints.gridy = 0;
-       // gbConstraints.gridwidth = 0;
-       // gbConstraints.gridheight = 1;
-       // gbConstraints.fill=GridBagConstraints.NONE;
-       // gbConstraints.anchor=GridBagConstraints.NORTHWEST;
-       // masterPanel.add(lblMasterSlide,gbConstraints);
         
         gbConstraints.gridx=1;
         gbConstraints.gridy=1;
@@ -427,24 +438,45 @@ public class PathwayPanel extends JPanel
         gbConstraints.fill=GridBagConstraints.NONE;
         gbConstraints.anchor=GridBagConstraints.WEST;
         editPanel.add(btnMasterSlide,gbConstraints);
+        //END EDIT PANEL
         
-        gbConstraints.gridx=2;
+        //START VIEW PANEL        
+        gbConstraints.gridx = 0;
+        gbConstraints.gridy = 0;
+        gbConstraints.gridwidth = 0;
+        gbConstraints.gridheight = 1;
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+        viewPanel.add(lblViewSlide,gbConstraints);
+        
+        
+        gbConstraints.gridx=0;
+        gbConstraints.gridy=1;
+        gbConstraints.gridwidth = 1;
+        gbConstraints.gridheight = 1;        
+        gbConstraints.fill=GridBagConstraints.NONE;
+        gbConstraints.anchor=GridBagConstraints.WEST;
+        viewPanel.add(btnPathwayOnly,gbConstraints);     
+        
+        
+        gbConstraints.gridx=1;
         gbConstraints.gridy=1;
         gbConstraints.gridwidth = 1;
         gbConstraints.gridheight = 1;
         gbConstraints.fill=GridBagConstraints.NONE;
         gbConstraints.anchor=GridBagConstraints.WEST;
-        editPanel.add(btnShowSlides2,gbConstraints);        
+        viewPanel.add(btnShowSlides2,gbConstraints);        
         //END MASTER PANEL
         
-        //START NEW PANEL
-        gbConstraints.gridx = 0;
-        gbConstraints.gridy = 0;
+        //START NEW PANEL        
+        
+        gbConstraints.gridx=0;
+        gbConstraints.gridy=0;
         gbConstraints.gridwidth = 1;
         gbConstraints.gridheight = 1;
         gbConstraints.fill=GridBagConstraints.NONE;
-        gbConstraints.insets = new Insets(5,0,0,0);
-        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+        //gbConstraints.insets = new Insets(3,0,6,0);
+        gbConstraints.anchor=GridBagConstraints.WEST;
         newPanel.add(new JLabel(" "),gbConstraints);
         
         gbConstraints.gridx=0;
@@ -454,18 +486,7 @@ public class PathwayPanel extends JPanel
         gbConstraints.fill=GridBagConstraints.NONE;
         gbConstraints.insets = new Insets(3,0,6,0);
         gbConstraints.anchor=GridBagConstraints.WEST;
-        newPanel.add(btnPresentationCreate,gbConstraints);
-        //END NEW PANEL
-        
-        //START DELETE PANEL
-        //gbConstraints.gridx = 0;
-        //gbConstraints.gridy = 0;
-        //gbConstraints.gridwidth = 1;
-        //gbConstraints.gridheight = 1;
-        //gbConstraints.insets = new Insets(0,0,0,0);
-        //gbConstraints.fill=GridBagConstraints.NONE;
-        //deletePanel.add(new JPanel(),gbConstraints);
-        
+        newPanel.add(btnPresentationCreate,gbConstraints);                
         
         gbConstraints.gridx=1;
         gbConstraints.gridy=1;
@@ -481,10 +502,11 @@ public class PathwayPanel extends JPanel
         slidePanel.add(Box.createHorizontalStrut(1));
         slidePanel.add(editPanel);                
         slidePanel.add(Box.createHorizontalStrut(1));
-        //slidePanel.add(p3);
+        slidePanel.add(p3);
+        slidePanel.add(viewPanel);
         //slidePanel.add(Box.createHorizontalStrut(5));
         //slidePanel.add(masterPanel);        
-        //slidePanel.add(p4);
+        slidePanel.add(p4);
         slidePanel.add(Box.createHorizontalStrut(5));                
         slidePanel.add(newPanel);        
         //slidePanel.add(p2);

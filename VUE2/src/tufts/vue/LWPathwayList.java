@@ -27,7 +27,7 @@ import java.util.*;
  * their contents, and rebroadcasting them to interested parties, such
  * as the PathwayTableModel.
  *
- * @version $Revision: 1.27 $ / $Date: 2007-03-20 21:53:48 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2007-06-18 20:28:45 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -44,6 +44,7 @@ public class LWPathwayList implements LWComponent.Listener, Iterable<LWPathway>
         setMap(map);
         // Always include an untitled example pathway for new maps
         LWPathway defaultPath = new LWPathway(map, "Untitled Presentation");
+        VUE.setActive(LWPathway.class, this, defaultPath);
         //defaultPath.setVisible(false);
         add(defaultPath);
     }
