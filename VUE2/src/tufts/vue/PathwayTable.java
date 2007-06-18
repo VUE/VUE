@@ -59,7 +59,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.72 $ / $Date: 2007-06-18 20:28:45 $ / $Author: mike $
+ * @version $Revision: 1.73 $ / $Date: 2007-06-18 20:37:19 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -100,7 +100,7 @@ public class PathwayTable extends JTable
    // private LWPathway.Entry lastSelectedEntry;
 
     private static final boolean showHeaders = true; // sets whether or not table column headers are shown
-    private final int[] colWidths = {25,20,240,30,30,20};
+    private final int[] colWidths = {30,20,200,30,30,20};
 
     private static Color selectedColor;
 
@@ -151,7 +151,7 @@ public class PathwayTable extends JTable
         for (int i = 0; i < colWidths.length; i++){
             TableColumn col = getColumn(PathwayTableModel.ColumnNames[i]);
             if (i == PathwayTableModel.COL_OPEN)
-                col.setMaxWidth(20);
+                col.setMaxWidth(26);
             else if (i == PathwayTableModel.COL_LABEL)
                 {//col.setMaxWidth(colWidths[i]);
                 col.setMinWidth(160);
