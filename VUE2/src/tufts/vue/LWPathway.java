@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.166 $ / $Date: 2007-06-19 18:06:34 $ / $Author: mike $
+ * @version $Revision: 1.167 $ / $Date: 2007-06-19 19:53:35 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -109,6 +109,7 @@ public class LWPathway extends LWContainer
             String titleText = "Untitled Slide";
             this.slide = LWSlide.CreateForPathway(pathway, titleText, null, contents, true);
             this.slide.enableProperty(LWKey.Label);
+            this.slide.setEntry(this);
             this.setLabel(titleText);
         }
 
@@ -117,6 +118,8 @@ public class LWPathway extends LWContainer
             this.pathway = pathway;
             this.node = partial.node;
             this.slide = partial.slide;
+            if (slide != null)
+                slide.setEntry(this);
             this.isMapView = partial.isMapView;
             this.notes = partial.notes;
             if (isOffMapSlide() && slide != null)
@@ -160,9 +163,10 @@ public class LWPathway extends LWContainer
         }
 
         public void rebuildSlide() {
-            // TODO: not undoable...
+            // TODO: check/test undo -- is it working / the mark happening at the right time?
             final LWSlide oldSlide = slide;
             slide = LWSlide.CreateForPathway(pathway, node);
+            slide.setEntry(this);
             pathway.notify("slide.rebuild", new Undoable() { void undo() {
                 slide = oldSlide;
             }});
@@ -255,7 +259,10 @@ public class LWPathway extends LWContainer
         public boolean isPathway() { return false; }
 
         public String toString() {
-            return "Entry[" + pathway.getLabel() + "#" + index() + "; " + node + " isMapView=" + isMapView + "]";
+            return "Entry["
+                + (pathway == null ? "<null pathway>" : pathway.getLabel())
+                + "#" + (pathway == null ? -9 : index())
+                + "; " + node + " isMapView=" + isMapView + "]";
         }
 
 		public Object getTransferData(java.awt.datatransfer.DataFlavor arg0) throws UnsupportedFlavorException, IOException {
@@ -684,7 +691,7 @@ public class LWPathway extends LWContainer
             c.getAllDescendents(ChildKind.PROPER, mergedContents, Order.TREE);
         }
 
-        final LWNode node = NodeModeTool.createNewNode("Merged Node"); // why can't we just use "NodeTool" here?
+        final LWNode node = NodeModeTool.createNewNode("Untitled"); // why can't we just use "NodeTool" here?
 
         node.addChildren(Actions.duplicatePreservingLinks(mergedContents));
 
