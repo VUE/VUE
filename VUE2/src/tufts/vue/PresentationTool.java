@@ -137,21 +137,32 @@ public class PresentationTool extends VueTool
             return entry == null ? null : entry.pathway;
         }
 
-        public boolean inPathway(LWPathway p) {
-            if (node != null) {
+        /** @return true of this page is directly on the given pathway */
+        public boolean onPathway(LWPathway p) {
+            if (p == null)
+                return false;
+            else if (node != null)
                 return node.inPathway(p);
-//                 if (node.inPathway(p))
-//                     return true;
-//                 else {
-//                     // If the node for this page is embedded in a slide, and that slide
-//                     // is in the pathway, consider us in-pathway.  We actually may NOT
-//                     // want to do this, as it's a bit complicating...
-//                     final LWSlide slide = (LWSlide) node.getAncestorOfType(LWSlide.class);
-//                     return slide != null && slide.inPathway(p);
-//                 }
-            } else if (entry != null)
+            else if (entry != null)
                 return entry.pathway == p;
             else
+                return false;
+        }
+        
+        /** @return true of this page is inside something on the current
+         * pathway (e.g., inside a slide on the pathway).  Items ON the current pathway are excluded. */
+        public boolean inPathway(LWPathway p) {
+            if (p == null)
+                return false;
+            else if (node != null && !node.inPathway(p)) {
+                // If the node for this page is embedded in a slide, and that slide
+                // is in the pathway, consider us in-pathway.  We actually may NOT
+                // want to do this, as it's a bit complicating...
+                // TODO: handle map-nodes (groups) -- technically, we want
+                // to check every ancestor for the path membership...
+                final LWSlide slide = (LWSlide) node.getAncestorOfType(LWSlide.class);
+                return slide != null && slide.inPathway(p);
+            } else
                 return false;
         }
 
@@ -461,16 +472,25 @@ public class PresentationTool extends VueTool
     }
 
     
-    private boolean inCurrentPathway() {
+    private boolean onCurrentPathway() {
         final Page p = mCurrentPage;
         if (p == null || p == NO_PAGE || mPathway == null)
             return false;
-
-        return p.inPathway(mPathway);
+        else
+            return p.onPathway(mPathway);
 
         // This appears to be checking if we've descended into the contents of a pathway page...
         //|| (p.node != null && page.node.getParent() == mPathway); // page.node != entry.node !!
     }
+
+    private boolean inCurrentPathway() {
+        final Page page = mCurrentPage;
+        if (page == null || page == NO_PAGE || mPathway == null)
+            return false;
+        else
+            return page.inPathway(mPathway);
+    }
+    
 
     private void revisitPrior() { revisitPrior(false); }
     private void revisitPrior(boolean allTheWay) {
@@ -490,7 +510,7 @@ public class PresentationTool extends VueTool
     
     private void goBackward(boolean allTheWay)
     {
-        if (inCurrentPathway()) {
+        if (onCurrentPathway()) {
             if (allTheWay) {
                 // todo: skip to start of queue if been there instead
                 // adding more to the end!
@@ -513,7 +533,7 @@ public class PresentationTool extends VueTool
             
             startPresentation();
             
-        } else if (inCurrentPathway()) {
+        } else if (onCurrentPathway()) {
             if (false && allTheWay) {
                 // todo: skip to end of queue if been here instead
                 // of blowing it away!
@@ -525,8 +545,16 @@ public class PresentationTool extends VueTool
             }
         } else {
             if (guessing) {
-                // if we hit space and there's nowhere to go, show them their options:
-                if (!mForceShowNavNodes) {
+
+                if (false && inCurrentPathway()) {
+                    // This too hairy for now: we're attempting to allow "space"
+                    // to auto-pop back up to a slide whose contents we've delved into,
+                    // tho we really need to be checking the back-list to make sure
+                    // the prior member is also either inside the current pathway,
+                    // or is the item on the pathway itself.
+                    revisitPrior();
+                } else if (!mForceShowNavNodes) {
+                    // if we hit space and there's nowhere to go, at leasts how them their options:
                     mForceShowNavNodes = mShowNavNodes = true;
                     mDidAutoShowNavNodes = true;
                     repaint("guessForward");
@@ -1554,7 +1582,7 @@ private static int OverviewMapSizeIndex = 5;
             int y = 10;
             dc.g.drawString("       Frame: " + tufts.Util.out(dc.frame), 10, y+=15);
             dc.g.drawString("        Page: " + mCurrentPage, 10, y+=15);
-            dc.g.drawString("      OnPath: " + inCurrentPathway(), 10, y+=15);
+            dc.g.drawString("      OnPath: " + onCurrentPathway(), 10, y+=15);
             dc.g.drawString("     Pathway: " + mPathway, 10, y+=15);
             dc.g.drawString("LastPathPage: " + mLastPathwayPage, 10, y+=15);
             dc.g.drawString("CurPageFocal: " + mCurrentPage.getPresentationFocal(), 10, y+=15);
@@ -1600,7 +1628,7 @@ private static int OverviewMapSizeIndex = 5;
     {
         // always add the current pathway at the top
         //if (node.inPathway(mPathway))
-        if (page.inPathway(mPathway))
+        if (page.onPathway(mPathway))
             mNavNodes.add(createNavNode(page));
 
         final LWComponent mapNode = page.getOriginalMapNode();
