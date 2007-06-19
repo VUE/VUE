@@ -89,8 +89,19 @@ public class PresentationTool extends VueTool
             node = null;
         }
         Page(LWComponent c) {
-            entry = null;
-            node = c;
+            if (c instanceof LWSlide) {
+                if (((LWSlide)c).getEntry() != null) {
+                    entry = ((LWSlide)c).getEntry();
+                    node = null;
+                } else {
+                    if (DEBUG.Enabled) Util.printStackTrace("creating page for slide w/out entry: " + c);
+                    entry = null;
+                    node = c;
+                }
+            } else {
+                entry = null;
+                node = c;
+            }
         }
 
         /** @return the object we're actually going to draw on screen for this presentation moment */
@@ -126,9 +137,18 @@ public class PresentationTool extends VueTool
         }
 
         public boolean inPathway(LWPathway p) {
-            if (node != null)
+            if (node != null) {
                 return node.inPathway(p);
-            else if (entry != null)
+//                 if (node.inPathway(p))
+//                     return true;
+//                 else {
+//                     // If the node for this page is embedded in a slide, and that slide
+//                     // is in the pathway, consider us in-pathway.  We actually may NOT
+//                     // want to do this, as it's a bit complicating...
+//                     final LWSlide slide = (LWSlide) node.getAncestorOfType(LWSlide.class);
+//                     return slide != null && slide.inPathway(p);
+//                 }
+            } else if (entry != null)
                 return entry.pathway == p;
             else
                 return false;
