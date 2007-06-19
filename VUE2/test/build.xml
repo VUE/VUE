@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.27 $ / $Date: 2007-05-25 17:23:18 $ -->
+<!-- $Revision: 1.28 $ / $Date: 2007-06-19 18:06:34 $ -->
 
 <!-- 
 This ant build file:
@@ -80,6 +80,7 @@ This ant build file:
     <pathelement location="${lib.home}/commons-discovery.jar" />
     <pathelement location="${lib.home}/jaxrpc-api-unsigned.jar" />
     <pathelement location="${lib.home}/smeteclient.jar" />
+    <pathelement location="${lib.home}/VUE-MacOSX.jar"/>
     <pathelement location="${lib.home}/axis-ant.jar" />
     <pathelement location="${lib.home}/commons-logging.jar" />	
     <pathelement location="${lib.home}/${osid2.name}.jar" />	

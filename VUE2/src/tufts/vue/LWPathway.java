@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.165 $ / $Date: 2007-06-19 15:46:48 $ / $Author: mike $
+ * @version $Revision: 1.166 $ / $Date: 2007-06-19 18:06:34 $ / $Author: mike $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -310,7 +310,7 @@ public class LWPathway extends LWContainer
         setMap(map);
         setLabel(label);
         setStrokeColor(getNextColor());
-        VUE.setActive(LWPathway.class, this, this);
+       
     }
 
     /** @return false: pathways can't be selected with anything else */
