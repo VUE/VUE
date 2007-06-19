@@ -77,6 +77,7 @@ public class PresentationTool extends VueTool
     private boolean mShowNavigator = DEBUG.NAV;
     private boolean mShowNavNodes = false;
     private boolean mForceShowNavNodes = false;
+    private boolean mDidAutoShowNavNodes = false;
     private boolean mScreenBlanked = false;
 
     /** a presentation moment (data for producing a single presentation screen) */
@@ -525,8 +526,11 @@ public class PresentationTool extends VueTool
         } else {
             if (guessing) {
                 // if we hit space and there's nowhere to go, show them their options:
-                mForceShowNavNodes = mShowNavNodes = true;
-                repaint("guessForward");
+                if (!mForceShowNavNodes) {
+                    mForceShowNavNodes = mShowNavNodes = true;
+                    mDidAutoShowNavNodes = true;
+                    repaint("guessForward");
+                }
             } else
                 revisitNext(allTheWay); 
         }
@@ -588,15 +592,21 @@ public class PresentationTool extends VueTool
         case KeyEvent.VK_LEFT:
             goBackward(amplified);
             break;
-//         case KeyEvent.VK_UP:
-//             revisitPrior(amplified);
-//             break;
-//         case KeyEvent.VK_DOWN:
-//             if (mVisited.hasNext())
-//                 revisitNext(amplified);
-//             else
-//                 goForward(amplified);
-//             break;
+        case KeyEvent.VK_UP:
+            if (DEBUG.Enabled) 
+                revisitPrior(amplified);
+            else
+                handled = false;
+            break;
+        case KeyEvent.VK_DOWN:
+            if (DEBUG.Enabled) {
+                if (mVisited.hasNext())
+                    revisitNext(amplified);
+                else
+                    goForward(amplified);
+            } else
+                handled = false;
+            break;
             
         default:
             handled = false;
@@ -1117,14 +1127,26 @@ private static int OverviewMapSizeIndex = 5;
         if (page == null) // for now
             return;
         
-        if (recordBackup) {
+        // we're backing up:
+
+        
+        if (page.equals(mVisited.prev())) {
+            // ANY time we record a page transtion to what's one back on
+            // the queue, treat it as a rollback, even if recordBackup is true.
+            // This may be too agressive, but it's worth a try for now.
+            mVisited.rollBack();
+        } else if (recordBackup) {
             mVisited.push(page);
-        } else {
-            // we're backing up:
-            //System.out.println("\nCOMPARING:\n\t" + page + "\n\t" + mVisited.prev());
-            if (page.equals(mVisited.prev()))
-                mVisited.rollBack();
         }
+
+//         if (recordBackup) {
+//             mVisited.push(page);
+//         } else {
+//             // we're backing up:
+//             //System.out.println("\nCOMPARING:\n\t" + page + "\n\t" + mVisited.prev());
+//             if (page.equals(mVisited.prev()))
+//                 mVisited.rollBack();
+//         }
 
         mLastPage = mCurrentPage;
         mCurrentPage = page;
@@ -1508,6 +1530,10 @@ private static int OverviewMapSizeIndex = 5;
         
             //dc.g.setComposite(AlphaComposite.Src);
             drawNavNodes(dc.create());
+            if (mDidAutoShowNavNodes) {
+                mShowNavNodes = mForceShowNavNodes = false;
+                mDidAutoShowNavNodes = false;
+            }
         }
 
 
