@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.50 $ / $Date: 2007-06-08 19:28:05 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2007-06-19 19:52:47 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -40,6 +40,8 @@ public class LWSlide extends LWContainer
 
     private LWComponent mSourceNode;
 
+    private transient LWPathway.Entry mEntry;
+
     //    int mLayer = 0;
     
     /** public only for persistance */
@@ -47,6 +49,15 @@ public class LWSlide extends LWContainer
         disableProperty(LWKey.Label);
         disablePropertyTypes(KeyType.STYLE);
         enableProperty(LWKey.FillColor);
+    }
+
+    /** set a runtime entry marker for this slide for use in presentation navigation */
+    void setEntry(LWPathway.Entry e) {
+        mEntry = e;
+    }
+    /** get the LWPathway.Entry for this slide if it is a pathway slide, otherwise null */
+    LWPathway.Entry getEntry() {
+        return mEntry;
     }
     
     @Override
@@ -153,7 +164,7 @@ public class LWSlide extends LWContainer
         return CreateForPathway(pathway, node.getDisplayLabel(), node, node.getAllDescendents(), false);
     }
         
-    public static LWSlide CreateForPathway(LWPathway pathway, String titleText, LWComponent sourceNode, Iterable<LWComponent> contents, boolean syncTitle) 
+    public static LWSlide CreateForPathway(LWPathway pathway, String titleText, LWComponent mapNode, Iterable<LWComponent> contents, boolean syncTitle) 
     {
         final LWSlide slide = CreatePathwaySlide();
         final LWNode title = NodeModeTool.buildTextNode(titleText);
@@ -161,11 +172,15 @@ public class LWSlide extends LWContainer
         final CopyContext cc = new CopyContext(false);
         final LinkedList<LWComponent> toLayout = new java.util.LinkedList();
 
-        slide.mSourceNode = sourceNode;
+        slide.mSourceNode = mapNode;
         title.setStyle(master.titleStyle);
         // if (syncTitle) title.setSyncSource(slide); doesn't seem to work in this direction (reverse is okay, but not what we want)
-        if (sourceNode != null)
-            title.setSyncSource(sourceNode);
+        if (mapNode != null) {
+            if (mapNode.isImageNode())
+                ; // don't sync titles of images
+            else
+                title.setSyncSource(mapNode);
+        }
 
         for (LWComponent c : contents) {
             final LWComponent slideCopy = c.duplicate(cc);
@@ -298,6 +313,19 @@ public class LWSlide extends LWContainer
             c.setStyle(pathway.getMasterSlide().textStyle);
         */
     }
+
+    /** Return true if our parent is the given pathway (as slides are currently owned by the pathway).
+     * If our parent is NOT a pathway, use the default impl.
+     */
+    @Override
+    public boolean inPathway(LWPathway p)
+    {
+        if (getParent() instanceof LWPathway)
+            return getParent() == p;
+        else
+            return super.inPathway(p);
+    }
+    
 
     private void applyMasterStyle(LWComponent c) {
         applyMasterStyle(getMasterSlide(), c);
