@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.169 $ / $Date: 2007-06-11 10:57:57 $ / $Author: sfraize $
+ * @version $Revision: 1.170 $ / $Date: 2007-06-20 00:48:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -464,6 +464,11 @@ public class LWNode extends LWContainer
 
     //public void setIcon(javax.swing.ImageIcon icon) {}
     //public javax.swing.ImageIcon getIcon() { return null; }
+
+    @Override
+    public boolean isImageNode() {
+        return hasChildren() && getChild(0) instanceof LWImage;
+    }
 
     @Override
     public Object getTypeToken() {
@@ -1902,6 +1907,8 @@ public class LWNode extends LWContainer
         
         // TODO: cleanup using new ColorProperty methods & super.getRenderFillColor with drawContext
         // Also add/move Util.darkColor to ColorProperty
+        // TODO: need a getFirstAncestorFillColor, which will ignore transparents (groups, transparent colors)
+        // and return the first color found -- then can skip check of getparent being an instanceof LWNode
         Color fillColor = super.getFillColor();
         if (getParent() instanceof LWNode) {
             if (fillColor != null) {
@@ -1959,11 +1966,12 @@ public class LWNode extends LWContainer
             }
         }
         
-        if (imageIcon != null) {
-            // experimental
-            //imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
-            imageIcon.paintIcon(null, dc.g, 0, 0);
-        } else if (false && (dc.isPresenting() || isPresentationContext())) { // old-style "turn off the wrappers"
+//         if (imageIcon != null) { // experimental
+//             //imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
+//             imageIcon.paintIcon(null, dc.g, 0, 0);
+//         } else
+        
+        if (false && (dc.isPresenting() || isPresentationContext())) { // old-style "turn off the wrappers"
             ; // do nothing: no fill
         } else {
             Color fillColor = getRenderFillColor(dc);
@@ -2244,16 +2252,16 @@ public class LWNode extends LWContainer
     }
     
 
-    // experimental
-    private transient ImageIcon imageIcon = null;
-    // experimental
-    void setImage(Image image)
-    {
-        imageIcon = new ImageIcon(image, "Image Description");
-        setAutoSized(false);
-        setShape(Rectangle2D.Float.class);
-        setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
-    }
+//     // experimental
+//     private transient ImageIcon imageIcon = null;
+//     // experimental
+//     void setImage(Image image)
+//     {
+//         imageIcon = new ImageIcon(image, "Image Description");
+//         setAutoSized(false);
+//         setShape(Rectangle2D.Float.class);
+//         setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
+//     }
     
 
     //------------------------------------------------------------------
