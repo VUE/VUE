@@ -684,6 +684,24 @@ public class UndoManager
     }
 
     private final Map<Object,Runnable> mCleanupTasks = new java.util.LinkedHashMap(); // maintain insertion order
+    private final Map<Object,Runnable> mLastTasks = new java.util.LinkedHashMap(); // maintain insertion order
+
+//     private static int defaultPriority = 0;
+//     private static class Task implements Comparable<Task> {
+//         final Runnable target;
+//         //final Object key;
+//         final int priority;
+
+//         Task(Runnable r) {
+//             target = r;
+//         }
+
+//         public int compareTo(Task t) {
+//             return priority - t.priority;
+//         }
+//     }
+    
+//     private final Map<Object,Task> mCleanupTasks = new java.util.HashMap();
     
     /**
 
@@ -714,28 +732,63 @@ public class UndoManager
      
      */
     public void addCleanupTask(Object taskKey, Runnable task) {
+
+        addTask(mCleanupTasks, taskKey, task);
+        
+//         if (mUndoUnderway) {
+//             Util.printStackTrace(this + "; ignoring task during undo/redo in "
+//                                  + "\n\ttaskKey: " + taskKey
+//                                  + "\n\t   task: " + task);
+//             return;
+//         }
+//         synchronized (mCleanupTasks) {
+//             if (mCleanupUnderway) {
+//                 // This might actually be allowable, but it's dangerious and
+//                 // could easily create loops, which I'd rather not have to detect.
+//                 Util.printStackTrace("CASCADING CLEANUP TASKS; IGNORED by " + this
+//                                      + "\n\ttaskKey: " + taskKey
+//                                      + "\n\t   task: " + task);
+//             } else {
+//                 final Runnable prior =
+//                     mCleanupTasks.put(taskKey, task);
+                
+//                 if (prior != null)
+//                     Util.printStackTrace("over-wrote existing cleanup task (won't be run): " + prior + " taskKey: " + taskKey);
+//             }
+//         }
+    }
+
+    public void addLastTask(Object taskKey, Runnable task) {
+        if (DEBUG.Enabled) System.out.println(TERM_RED + "addLastTask " + taskKey + " " + task + TERM_CLEAR);
+        addTask(mLastTasks, taskKey, task);
+    }
+    
+
+    private void addTask(Map<Object,Runnable> taskMap, Object taskKey, Runnable task) {
         if (mUndoUnderway) {
             Util.printStackTrace(this + "; ignoring task during undo/redo in "
                                  + "\n\ttaskKey: " + taskKey
                                  + "\n\t   task: " + task);
             return;
         }
-        synchronized (mCleanupTasks) {
+        synchronized (taskMap) {
             if (mCleanupUnderway) {
                 // This might actually be allowable, but it's dangerious and
                 // could easily create loops, which I'd rather not have to detect.
-                Util.printStackTrace("CASCADING CLEANUP TASKS; IGNORED by " + this
-                                     + "\n\ttaskKey: " + taskKey
-                                     + "\n\t   task: " + task);
+                if (DEBUG.Enabled)
+                    Util.printStackTrace("CASCADING CLEANUP TASKS; IGNORED by " + this
+                                         + "\n\ttaskKey: " + taskKey
+                                         + "\n\t   task: " + task);
             } else {
                 final Runnable prior =
-                    mCleanupTasks.put(taskKey, task);
+                    taskMap.put(taskKey, task);
                 
                 if (prior != null)
                     Util.printStackTrace("over-wrote existing cleanup task (won't be run): " + prior + " taskKey: " + taskKey);
             }
         }
     }
+    
     
     /**
      * @see addCleanupTask(Object taskKey, Runnable task)
@@ -755,18 +808,30 @@ public class UndoManager
     public boolean hasCleanupTask(Object taskKey) {
         return mCleanupTasks.containsKey(taskKey);
     }
+    
+    /** @return true if there are already any cleanup tasks with the given key */
+    public boolean hasLastTask(Object taskKey) {
+        return mLastTasks.containsKey(taskKey);
+    }
+    
+    public boolean hasCleanupTasks() {
+        return mCleanupTasks.size() > 0 || mLastTasks.size() > 0;
+    }
+    
 
     public synchronized void markChangesAsUndo(String name)
     {
         synchronized (mCleanupTasks) {
+            synchronized (mLastTasks) {
 
-            // Can we skip running the cleanup tasks if there's nothing in the undo
-            // queue?  Do we NEED to do that, in case of multiple "just in case" marks,
-            // where only the last one actually had anything, and we DON'T want to run
-            // the cleanup tasks till then?
-        
-            if (mCleanupTasks.size() > 0)
-                runCleanupTasks(false);
+                // Can we skip running the cleanup tasks if there's nothing in the undo
+                // queue?  Do we NEED to do that, in case of multiple "just in case" marks,
+                // where only the last one actually had anything, and we DON'T want to run
+                // the cleanup tasks till then?
+                
+                if (mCleanupTasks.size() > 0 || mLastTasks.size() > 0)
+                    runCleanupTasks(false);
+            }
         }
         
         if (mCurrentUndo.size() == 0) // if nothing changed, don't bother adding an UndoAction
@@ -785,20 +850,22 @@ public class UndoManager
 
     private void runCleanupTasks(boolean debug) {
         synchronized (mCleanupTasks) {
-            if (mCleanupUnderway) {
-                Util.printStackTrace("serious problem: cleanup already underway!");
-                return;
-            } 
-            try {
-                mCleanupUnderway = true;
-                runAndPurgeCleanupTasks(debug);
-            } finally {
-                mCleanupUnderway = false;
+            synchronized (mLastTasks) {
+                if (mCleanupUnderway) {
+                    Util.printStackTrace("serious problem: cleanup already underway!");
+                    return;
+                } 
+                try {
+                    mCleanupUnderway = true;
+                    runAndPurgeCleanupTasks(debug);
+                } finally {
+                    mCleanupUnderway = false;
+                }
             }
         }
     }
     
-    // should be run inside a synchronized block against mCleanupTasks
+    // should be run inside a synchronized block against mCleanupTasks & mLastTasks
     private void runAndPurgeCleanupTasks(boolean debug) {
         if (mCurrentUndo.size() == 0) {
             if (DEBUG.Enabled)
@@ -810,19 +877,47 @@ public class UndoManager
         } else if (!debug)
             debug = DEBUG.Enabled;
         //debug = DEBUG.EVENTS || DEBUG.UNDO;
+
+        if (DEBUG.Enabled) System.out.println(TERM_CYAN + "\nRUNNING "
+                                              + (mCleanupTasks.size() + mLastTasks.size())
+                                              + " CLEANUP TASKS in "
+                                              + this + TERM_CLEAR);
         
         for (Map.Entry<Object,Runnable> e : mCleanupTasks.entrySet()) {
             final Runnable task = e.getValue();
             final Object key = e.getKey();
-            if (debug) {
-                if (DEBUG.Enabled) System.out.println("");
-                VUE.Log.debug("RUNNING CLEANUP TASK in " + this
-                              + "\n\ttask: " + task
-                              + "\n\t key: " + key);
-            }
+            
+            if (debug) System.out.println(TERM_CYAN + "\nRUNNING CLEANUP TASK "
+                                          + "\n\ttask: " + task
+                                          + "\n\t key: " + key
+                                          + TERM_CLEAR
+                                          );
+
             task.run();
         }
+        
+        for (Map.Entry<Object,Runnable> e : mLastTasks.entrySet()) {
+            final Runnable task = e.getValue();
+            final Object key = e.getKey();
+
+            if (debug) System.out.println(TERM_CYAN + "\nRUNNING LAST TASK "
+                                          + "\n\ttask: " + task
+                                          + "\n\t key: " + key
+                                          + TERM_CLEAR
+                                          );
+
+            task.run();
+        }
+
+        // When we clear this out has very complex semantics.  Theoretically
+        // each list should be cleaned out as run, tho practically, doing 
+        // mCleanupTasks now as opposed to before running last tasks prevents
+        // the queueing of new tasks during the last task that already
+        // ran as cleanup tasks.  This may not be what we want it the end,
+        // tho it suits us for now.
+        
         mCleanupTasks.clear();
+        mLastTasks.clear();
     }
 
     private synchronized UndoAction collectChangesAsUndoAction(String name)
