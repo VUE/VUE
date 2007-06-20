@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import java.util.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -35,14 +36,15 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.21 $ / $Date: 2007-06-11 10:12:49 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2007-06-20 00:46:04 $ / $Author: sfraize $
  * @author Scott Fraize
  *
- * TODO: add capability for handling LWComponent.ChildKind, so we have the option
- * of traversing ChildKind.ANY, as opposed to the current impl, which does
- * a traversal that gives us all the same components that ChildKind.PROPER does.
- *
  */
+
+// todo for core traversal functionality: add capability for handling
+// LWComponent.ChildKind, so we have the option of traversing ChildKind.ANY, as opposed
+// to the current impl, which does a traversal that gives us all the same components
+// that ChildKind.PROPER does.
 
 public class LWTraversal {
 
@@ -73,8 +75,9 @@ public class LWTraversal {
         }
             
         if (acceptTraversal(c)) {
-            if (DEBUG.PICK) eoutln("Accepted traversal: " + c);
+            //if (DEBUG.PICK) eoutln("Traverse: " + c);
             if (acceptChildren(c)) {
+                if (DEBUG.PICK) eoutln("Traverse: " + c);
                 depth++;
                 traverseChildren(c.getChildList());
                 depth--;
@@ -93,11 +96,16 @@ public class LWTraversal {
     {
         // default behaviour of traversals is to traverse list in reverse so
         // that top-most components are seen first
+
+        // TODO: could more cleanly handle our slide-icon hack by having a special
+        // call to ask for the child list, and if someone has a slide icon, return
+        // a list with that always at the the end (on top)
             
-        for (java.util.ListIterator<LWComponent> i = children.listIterator(children.size()); i.hasPrevious();) {
+        for (ListIterator<LWComponent> i = children.listIterator(children.size()); i.hasPrevious();) {
             //traverse(i.previous().getView());
             traverse(i.previous());
-            if (done) return;
+            if (done)
+                return;
         }
     }
 
@@ -119,7 +127,7 @@ public class LWTraversal {
     }
 
     protected void eout(String s) {
-        for (int x = 0; x < depth; x++) System.out.print("    ");
+        for (int x = 0; x < depth; x++) System.out.print("          ");
         System.out.print(s);
     }
     protected void eoutln(String s) {
@@ -169,7 +177,8 @@ public class LWTraversal {
             // on pickDepth -- can we integrate with our
             // getPickLevel() feature?  Just throw it out if we gotta..
             //return pc.pickDepth >= c.getPickLevel();
-            return true;
+            //return true;
+            return c.hasChildren();
         }
         
 
@@ -229,11 +238,16 @@ public class LWTraversal {
 
         public void visit(LWComponent c) {
 
-            if (DEBUG.PICK && DEBUG.META) eoutln("PointPick VISITED: " + c);
+            //if (DEBUG.PICK && DEBUG.META) eout("PointPick VISITED: " + c);
+            if (DEBUG.PICK) eout("   VISIT: " + c);
 
             final Point2D p;
 
-            if (VUE.RELATIVE_COORDS && !c.hasAbsoluteMapLocation()) {
+            if (c.hasAbsoluteMapLocation()) {
+
+                p = mapPoint;
+
+            } else {
 
                 try {
                     // todo: can keep a cached transform for each parent encountered...
@@ -243,7 +257,8 @@ public class LWTraversal {
                     // children, so we could have one generic contains that always operates in the
                     // parent's space.  Only drawback is that contains/intersects will have do
                     // adjust for local scale, or, god forbid, a rotation, tho in the common cases
-                    // where there aren't any, it's probably alot faster...
+                    // where there aren't any, it's probably alot faster... (will never handle
+                    // rotation tho if we check in parent coords)
                     
                     p = c.getLocalTransform().inverseTransform(mapPoint, null);
                     if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + p);
@@ -251,13 +266,30 @@ public class LWTraversal {
                     e.printStackTrace();
                     return;
                 }
-            } else {
-                p = mapPoint;
+                
             }
 
             final float hitResult = c.pickDistance((float) p.getX(),
                                                    (float) p.getY(),
                                                    pc.zoom);
+
+            //if (DEBUG.PICK && DEBUG.META) {
+            if (DEBUG.PICK) {
+                if (hitResult > 0)
+                    System.out.format("; distance=%.2f\n", Math.sqrt(hitResult));
+                else
+                    System.out.println("");
+            }
+
+            // Note that as soon as a we have a direct-hit, we stop checking for close
+            // hits, even tho we may ultimately pick a close hit instead.  This sounds
+            // wrong at first because how can we know the closest if we haven't checked
+            // all possibilities?  This is okay because the only time we prioritize a
+            // close-hit over a direct hit is if the close hit is a descendent of the
+            // direct hit (the direct hit is the "background" of the close hit), and we
+            // can only get a direct hit on an ancestor (background) of a close hit once
+            // we've checked for close-hits on all it's descendents (picking is a
+            // depth-first visiting operation).
 
             if (hitResult == 0) {
                 // zero distance means direct hit within the visible bounds of the object
@@ -280,31 +312,9 @@ public class LWTraversal {
 //                 done = true;
 //                 return;
 //             }
+            
         }
         
-//         private void OLD_visitAbsolute(LWComponent c) {
-
-//             if (DEBUG.PICK && DEBUG.META) eoutln("PointPick VISITED: " + c);
-
-//             final float x = mapX;
-//             final float y = mapY;
-            
-//             if (c.contains(x, y)) {
-//                 // If we expand impl to handle the contained children optimization (non-strayChildren):
-//                 //      Since we're POST_ORDER, if strayChildren is false, we already know this
-//                 //      object contains the point, because acceptTraversal had to accept it.
-//                 hit = c;
-//                 done = true;
-//                 return;
-//             }
-//         }
-
-
-        /*protected boolean validPick(LWComponent c) {
-            if (c.hasAncestor
-            }*/
-
-        //public static LWComponent pick(PickContext pc, float mapX, float mapY) {
         public static LWComponent pick(PickContext pc) {
             return new PointPick(pc).traverseAndPick(pc.root);
         }
@@ -320,8 +330,6 @@ public class LWTraversal {
             return getPicked();
         }
 
-        private static final java.util.List<LWComponent> otherLinks = new java.util.ArrayList();
-        private static final java.util.List<LWComponent> looseHits = new java.util.ArrayList();
         public LWComponent getPicked() {
 
             if (DEBUG.PICK) {
@@ -329,14 +337,16 @@ public class LWTraversal {
                 eout(String.format("PointPick:  CLOSE-HIT: %s; distance=%.2f;", closeHit, Math.sqrt(closestDistSq)));
             }
 
-            if (hit == null
-                || (closeHit != null && closeHit.getParent() instanceof LWGroup && hit.getParent() != closeHit.getParent())
-                ) {
-                
-                // parent group check is for links in groups in nodes: don't want to
-                // pick past a close link to the node below, tho don't want to SKIP
-                // picking a node in the same group we're actually over just because
-                // a link is nearby.
+            if (hit == null || (closeHit != null && closeHit.hasAncestor(hit))) {
+
+                // Anytime we have a close-hit on something and a direct hit on any
+                // ancestor of the close-hit, we want to allow for the close-hit as
+                // ancestors are considered "background" and should get lower priority.
+                // We do NOT want to just always check for the close-hit, in case we
+                // have a direct hit on say, a node, and a close hit on a sibling such
+                // as a link that is connected to the node.  In that case we want to
+                // stay with the direct hit on the node and ignore the link, no matter
+                // how close we may be to it.
                 
                 final float closeEnoughSq;
                 if (pc.zoom < 1) {
