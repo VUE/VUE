@@ -54,7 +54,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.140 $ / $Date: 2007-06-11 12:21:15 $ / $Author: sfraize $
+ * @version $Revision: 1.141 $ / $Date: 2007-06-20 00:49:02 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -544,11 +544,12 @@ public class LWMap extends LWContainer
 
         final Collection<LWComponent> allRestored = getAllDescendents(ChildKind.ANY, new ArrayList(), Order.DEPTH);
 
-        for (LWComponent c : allRestored) {
-            if (DEBUG.IO) System.out.println("RESTORED: " + c);
-            // turn this back on until we're done here:
-            c.mXMLRestoreUnderway = true;
-        }
+//         // Not needed now that everyone keeps under-restore bit set till manually cleared
+//         for (LWComponent c : allRestored) {
+//             if (DEBUG.IO) System.out.println("RESTORED: " + c);
+//             // turn this back on until we're done here:
+//             c.mXMLRestoreUnderway = true;
+//         }
         
 
         if (mPathways != null) {
