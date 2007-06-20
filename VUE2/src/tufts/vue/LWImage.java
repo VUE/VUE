@@ -126,6 +126,14 @@ public class LWImage extends
         return i;
     }
 
+    /** @return true */
+    @Override
+    public boolean isImageNode() {
+        return true;
+    }
+    
+
+    @Override
     public boolean isAutoSized() {
         if (getClass().isAssignableFrom(LWNode.class))
             return super.isAutoSized();
@@ -133,6 +141,7 @@ public class LWImage extends
             return false;
     }
 
+    @Override
     public boolean isTransparent() {
         if (false)// && this instanceof LWNode)
             return super.isTransparent();
@@ -140,6 +149,7 @@ public class LWImage extends
             return false;
     }
     
+    @Override
     public boolean isTranslucent() {
         if (false)// && this instanceof LWNode) {
             return super.isTranslucent();

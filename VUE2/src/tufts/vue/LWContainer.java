@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.119 $ / $Date: 2007-06-11 10:55:09 $ / $Author: sfraize $
+ * @version $Revision: 1.120 $ / $Date: 2007-06-20 00:49:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -185,7 +185,7 @@ public abstract class LWContainer extends LWComponent
     {
         notify(LWKey.HierarchyChanging);
 
-        List<LWComponent> reparenting = new ArrayList();
+        final List<LWComponent> reparenting = new ArrayList();
         for (LWComponent c : possibleChildren) {
             if (c.getParent() == this)
                 reparenting.add(c);
@@ -310,9 +310,11 @@ public abstract class LWContainer extends LWComponent
         if (addedChildren.size() > 0) {
 
             // need to do this afterwords so everyone has a parent to check
-            // todo: should probably be a cleanup tasks in LWLink...
-            for (LWComponent c : addedChildren)
-                ensureLinksPaintOnTopOfAllParents(c);
+            // TODO: should be caught by the cleanup task in LWLink, but
+            // is somehow being missed -- this code should move their
+            // entirely.
+            //for (LWComponent c : addedChildren)
+            //ensureLinksPaintOnTopOfAllParents(c);
             
             notify(LWKey.ChildrenAdded, addedChildren);
 
@@ -384,7 +386,7 @@ public abstract class LWContainer extends LWComponent
                 // re-ordering & re-layout
             }
             c.notifyHierarchyChanging();
-            c.getParent().removeChild(c);
+            c.getParent().removeChild(c); // is LWGroup requesting cleanup???
         }
         if (c.getFont() == null)//todo: really want to do this? only if not manually set?
             c.setFont(getFont());
@@ -470,7 +472,8 @@ public abstract class LWContainer extends LWComponent
             if (c.getMap() != getMap())
                 Util.printStackTrace("different maps?");
             
-            if (c.getMap() == null) { 
+            if (c.getID() != null && c.getMap() == null) {
+                // if ID is null, the object is still being created (and we don't need to worry about undoing it's initializations)
                 if (oldParent == null || oldParent.getMap() == null) {
                     if (DEBUG.Enabled) Util.printStackTrace("FYI: no event source for: " + c
                                                             + ";\n\t           localizing new parent: " + this
@@ -600,9 +603,7 @@ public abstract class LWContainer extends LWComponent
     private void ensureLinksPaintOnTopOfAllParents()
     {
         ensureLinksPaintOnTopOfAllParents((LWComponent) this);
-        java.util.Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        for (LWComponent c : getChildList()) {
             ensureLinksPaintOnTopOfAllParents(c);
             if (c instanceof LWContainer)
                 ensureLinksPaintOnTopOfAllParents((LWContainer)c);
@@ -611,50 +612,55 @@ public abstract class LWContainer extends LWComponent
 
     private static void ensureLinksPaintOnTopOfAllParents(LWComponent component)
     {
-        for (LWLink l : component.getLinks()) {
-            LWContainer parent1 = null;
-            LWContainer parent2 = null;
-            if (l.getHead() != null)
-                parent1 = l.getHead().getParent();
-            if (l.getTail() != null)
-                parent2 = l.getTail().getParent();
-            // don't need to do anything if link doesn't cross a (logical) parent boundry
-            if (parent1 == parent2)
-                    continue;
+        for (LWLink link : component.getLinks())
+            ensureLinkPaintsOverAllAncestors(link, component);
+    }
+
+
+    static void ensureLinkPaintsOverAllAncestors(LWLink link, LWComponent component)
+    {
+        LWContainer parent1 = null;
+        LWContainer parent2 = null;
+        if (link.getHead() != null)
+            parent1 = link.getHead().getParent();
+        if (link.getTail() != null)
+            parent2 = link.getTail().getParent();
+        // don't need to do anything if link doesn't cross a (logical) parent boundry
+        if (parent1 == parent2)
+            return;
             
-            // also don't need to do anything if link is BETWEEN a parent and a child
-            // (in which case, at the moment, we don't even see the link)
-            if (l.isParentChildLink())
-                continue;
-            /*
-            System.err.println("*** ENSURING " + l);
-            System.err.println("    (parent) " + l.getParent());
-            System.err.println("  ep1 parent " + l.getHead().getParent());
-            System.err.println("  ep2 parent " + l.getTail().getParent());
-            */
-            LWContainer commonParent = l.getParent();
-            if (commonParent == null) {
-                System.out.println("ELPOTOAP: ignoring link with no parent: " + l + " for " + component);
-                continue;
-            }
-            if (commonParent != component.getParent()) {
-                // If we don't have the same parent, we may need to shuffle the deck
-                // so that any links to us will be sure to paint on top of the parent
-                // we do have, so you can see the link goes to us (this), and not our
-                // parent.  todo: nothing in runtime that later prevents user from
-                // sending link to back and creating a very confusing visual situation,
-                // unless all of our parents happen to be transparent.
-                LWComponent topMostParentThatIsSiblingOfLink = component.getParentWithParent(commonParent);
-                if (topMostParentThatIsSiblingOfLink == null) {
-                    // this could happen for stuff in cutbuffer w/out parent?
-                    String msg = "FYI; ELPOTOAP couldn't find common parent for " + component;
-                    if (DEBUG.LINK)
-                        tufts.Util.printStackTrace(msg);
-                    else
-                        VUE.Log.info(msg);
-                } else
-                    commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, l);
-            }
+        // also don't need to do anything if link is BETWEEN a parent and a child
+        // (in which case, at the moment, we don't even see the link)
+        if (link.isParentChildLink())
+            return;
+        /*
+          System.err.println("*** ENSURING " + l);
+          System.err.println("    (parent) " + l.getParent());
+          System.err.println("  ep1 parent " + l.getHead().getParent());
+          System.err.println("  ep2 parent " + l.getTail().getParent());
+        */
+        LWContainer commonParent = link.getParent();
+        if (commonParent == null) {
+            System.out.println("ELPOTOAP: ignoring link with no parent: " + link + " for " + component);
+            return;
+        }
+        if (commonParent != component.getParent()) {
+            // If we don't have the same parent, we may need to shuffle the deck
+            // so that any links to us will be sure to paint on top of the parent
+            // we do have, so you can see the link goes to us (this), and not our
+            // parent.  todo: nothing in runtime that later prevents user from
+            // sending link to back and creating a very confusing visual situation,
+            // unless all of our parents happen to be transparent.
+            LWComponent topMostParentThatIsSiblingOfLink = component.getParentWithParent(commonParent);
+            if (topMostParentThatIsSiblingOfLink == null) {
+                // this could happen for stuff in cutbuffer w/out parent?
+                String msg = "FYI; ELPOTOAP couldn't find common parent for " + component;
+                if (DEBUG.LINK)
+                    tufts.Util.printStackTrace(msg);
+                else
+                    VUE.Log.info(msg);
+            } else
+                commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, link);
         }
     }
     
@@ -985,11 +991,12 @@ public abstract class LWContainer extends LWComponent
         }
         //if (DEBUG.PARENTING) System.out.println("ENSUREPAINTSEQUENCE: " + onBottom + " " + onTop);
         if (topIndex == (bottomIndex - 1)) {
+            if (DEBUG.PARENTING) out("ensurePaintSequence: swapping adjacents " + onTop);
             notify(LWKey.HierarchyChanging);
             swap(topIndex, bottomIndex);
             notify("hier.sequence");
-            if (DEBUG.PARENTING) System.out.println("ensurePaintSequence: swapped " + onTop);
         } else if (topIndex < bottomIndex) {
+            if (DEBUG.PARENTING) out("ensurePaintSequence: re-inserting after botIndex " + onTop);
             notify(LWKey.HierarchyChanging);
             children.remove(topIndex);
             // don't forget that after above remove the indexes have all been shifted down one
@@ -998,9 +1005,8 @@ public abstract class LWContainer extends LWComponent
             else
                 children.add(bottomIndex, onTop);
             notify("hier.sequence");
-            if (DEBUG.PARENTING) System.out.println("ensurePaintSequence: inserted " + onTop);
         } else {
-            //if (DEBUG.PARENTING) System.out.println("ensurePaintSequence: already sequenced");
+            if (DEBUG.PARENTING) out("ensurePaintSequence: already sequenced: " + onTop);
         }
         //if (DEBUG.PARENTING) System.out.println("ensurepaintsequence: " + onBottom + " " + onTop);
         

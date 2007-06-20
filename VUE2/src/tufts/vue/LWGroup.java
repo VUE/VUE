@@ -35,11 +35,11 @@ import java.awt.geom.AffineTransform;
  * together.
  *
  * @author Scott Fraize
- * @version $Revision: 1.68 $ / $Date: 2007-06-11 11:08:59 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2007-06-20 00:49:49 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
-    private static final boolean FancyGroups = false;
+    private static final boolean FancyGroups = true;
     private static final boolean AbsoluteChildren = false;
 
     private static final boolean ZERO_SCALE = false;
@@ -139,8 +139,17 @@ public class LWGroup extends LWContainer
     public void importNodes(Collection<LWComponent> nodes)
     {
         // we enforce non-repeated memberships w/HashSet
-        final Collection<LWComponent> reparenting = new HashSet();
-        final Collection<LWComponent> allUniqueDescendents = new HashSet(); 
+        final Collection<LWComponent> allUniqueDescendents = new HashSet();
+        final Collection<LWComponent> reparenting = 
+            new HashSet<LWComponent>() {
+                @Override
+                public boolean add(LWComponent c) {
+                    if (LWLink.LOCAL_LINKS && c instanceof LWLink)
+                        return false;
+                    else
+                        return super.add(c);
+                }
+            }; 
         
         for (LWComponent c : nodes) {
             //if (c instanceof LWLink) // the only links allowed are ones we grab
@@ -150,31 +159,35 @@ public class LWGroup extends LWContainer
             c.getAllDescendents(ChildKind.PROPER, allUniqueDescendents);
         }
 
-        //----------------------------------------------------------------------------------------
-        // If both ends of any link are in the selection of what's being added to the
-        // group, or are descendents of what's be added to the group, and that link's
-        // parent is not already something other than the default link parent, scoop it
-        // up as a proper child of the new group.
-        //----------------------------------------------------------------------------------------
+        if (LWLink.LOCAL_LINKS == false) { // links auto-handle this with local-links
 
-        final HashSet uniqueLinks = new HashSet();
+            //----------------------------------------------------------------------------------------
+            // If both ends of any link are in the selection of what's being added to the
+            // group, or are descendents of what's be added to the group, and that link's
+            // parent is not already something other than the default link parent, scoop it
+            // up as a proper child of the new group.
+            //----------------------------------------------------------------------------------------
 
-        // TODO: need to update link membership when single items removed from groups...
-        // TODO: change this entirely to be handled by a clean-up task in LWLink --
-        //       will juse need an setEndpointHasReparented ala setEnpointMoved,
-        //       and a bunch of testing...
+            final HashSet uniqueLinks = new HashSet();
+
+            // TODO: need to update link membership when single items removed from groups...
+            // TODO: change this entirely to be handled by a clean-up task in LWLink --
+            //       will juse need an setEndpointHasReparented ala setEnpointMoved,
+            //       and a bunch of testing...
         
-        for (LWComponent c : allUniqueDescendents) {
-            if (DEBUG.PARENTING) out("ALL UNIQUE " + c);
-            for (LWLink l : c.getLinks()) {
-                boolean bothEndsInPlay = !uniqueLinks.add(l);
-                if (DEBUG.PARENTING) out("SEEING LINK " + l + " IN-PLAY=" + bothEndsInPlay);
-                //if (bothEndsInPlay && l.getParent() instanceof LWMap) { // why this LWMap check? is old in any case: need to allow slides
-                if (bothEndsInPlay && !(c.getParent() instanceof LWGroup)) { // don't pull out of embedded group
-                    if (DEBUG.PARENTING) out("GRABBING " + c + " (both ends in group)");
-                    reparenting.add(l);
+            for (LWComponent c : allUniqueDescendents) {
+                if (DEBUG.PARENTING) out("ALL UNIQUE " + c);
+                for (LWLink l : c.getLinks()) {
+                    boolean bothEndsInPlay = !uniqueLinks.add(l);
+                    if (DEBUG.PARENTING) out("SEEING LINK " + l + " IN-PLAY=" + bothEndsInPlay);
+                    //if (bothEndsInPlay && l.getParent() instanceof LWMap) { // why this LWMap check? is old in any case: need to allow slides
+                    if (bothEndsInPlay && !(c.getParent() instanceof LWGroup)) { // don't pull out of embedded group
+                        if (DEBUG.PARENTING) out("GRABBING " + c + " (both ends in group)");
+                        reparenting.add(l);
+                    }
                 }
             }
+
         }
 
         // TODO: we grab links, even if they were down in another sub-group...
@@ -392,7 +405,11 @@ public class LWGroup extends LWContainer
     }
 
     private Rectangle2D.Float getParentLocalPaintBounds(LWComponent c) {
-        if (c.hasAbsoluteMapLocation())
+        if (LWLink.LOCAL_LINKS && c instanceof LWLink) {
+            // since this is in the group, we know the paint bounds will be local to parent bounds,
+            // tho that API will probably be changing, and we'll need a getParentLocalPaintBounds on LWComponent
+            return c.getPaintBounds();
+        } if (c.hasAbsoluteMapLocation())
             throw new Error("re-impl; getLocalizedPaintBounds should have handled");
             //return c.getBounds();
         else
@@ -431,12 +448,15 @@ public class LWGroup extends LWContainer
 
     private void requestCleanup(Object srcMsg) {
         //super.addCleanupTask(new DisperseOrNormalize(srcMsg)); // always allocates the darn task..
+
+        if (DEBUG.CONTAINMENT) out("requestCleanup on " + srcMsg);
         
         final UndoManager um = getUndoManager();
-        if (um != null && !um.isUndoing() && !um.hasCleanupTask(this)) {
+        if (um != null && !um.isUndoing() && !um.hasLastTask(this)) {
             //if (DEBUG.Enabled) out(TERM_RED + "ADDING CLEANUP TASK on: " + srcMsg + TERM_CLEAR);
             //um.addCleanupTask(this, new DisperseOrNormalize(srcMsg));
-            super.addCleanupTask(new DisperseOrNormalize(srcMsg));
+            //super.addCleanupTask(new DisperseOrNormalize(srcMsg));
+            um.addLastTask(this, new DisperseOrNormalize(srcMsg));
         }
     }
     
@@ -742,9 +762,16 @@ public class LWGroup extends LWContainer
     }
 
     
+    /** @return false unless decordated: groups contain no points themselves --
+     * only a point over a child is "contained" by the group. If decorated,
+     * the standard impl applies of containing any point in the bounding box.
+     */
     @Override
     protected boolean containsImpl(final float x, final float y, float zoom) {
-        return false;
+        if (hasDecoratedFeatures())
+            return super.containsImpl(x, y, zoom);
+        else
+            return false;
     }
     
     @Override

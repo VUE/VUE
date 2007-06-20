@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.293 $ / $Date: 2007-06-11 10:53:45 $ / $Author: sfraize $
+ * @version $Revision: 1.294 $ / $Date: 2007-06-20 00:49:49 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1397,10 +1397,17 @@ u                    getSlot(c).setFromString((String)value);
             } else if (um.hasCleanupTask(taskKey)) {
                 if (DEBUG.Enabled) System.out.println("Ignoring duplicate cleanup task: " + task + " for " + this);
             } else {
-                if (DEBUG.Enabled) {
+
+                boolean debug = DEBUG.Enabled;
+                if (isDeleted()) {
+                    Util.printStackTrace("warning: adding cleanup task when deleted");
+                    debug = true;
+                }
+                
+                if (debug) {
                     System.out.println(TERM_RED + "ADDING CLEANUP TASK: " + task 
                                        + (srcMsg==null?"":("on " + srcMsg))
-                                       + " for " + this
+                                       + (task == this ? "" : (" for " + this))
                                        + TERM_CLEAR);
                 }
                 um.addCleanupTask(this, task);
@@ -1548,7 +1555,7 @@ u                    getSlot(c).setFromString((String)value);
     */
     public void setResource(Resource resource)
     {
-        if (DEBUG.CASTOR) out("SETTING RESOURCE TO " + resource.getClass() + " [" + resource + "]");
+        if (DEBUG.CASTOR) out("SETTING RESOURCE TO " + (resource==null?"":resource.getClass()) + " [" + resource + "]");
         Object old = this.resource;
         this.resource = resource;
         layout();
@@ -1754,6 +1761,7 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     /** Is component in the given pathway? */
+    // TODO: rename onPathway
     public boolean inPathway(LWPathway path)
     {
         if (pathwayRefs == null || path == null)
@@ -2068,12 +2076,16 @@ u                    getSlot(c).setFromString((String)value);
         //return y;
     }
     
-    void setParent(LWContainer parent) {
-        final boolean linkNotify = (parent != null);
-        this.parent = parent;
-        if (linkNotify && mLinks.size() > 0)
-            for (LWLink link : mLinks)
-                link.notifyEndpointReparented();
+    void setParent(LWContainer newParent) {
+        final boolean linkNotify = (!mXMLRestoreUnderway && parent != null);
+        if (parent == newParent) {
+            if (DEBUG.Enabled) out("redundant set-parent");
+            return;
+        }
+        parent = newParent;
+//         if (linkNotify && mLinks.size() > 0)
+//             for (LWLink link : mLinks)
+//                 link.notifyEndpointReparented(this);
     }
     
     //protected void reparentNotify(LWContainer parent) {}
@@ -2224,6 +2236,11 @@ u                    getSlot(c).setFromString((String)value);
     /** @return true - A single component always "has content" -- subclasses override to provide varying semantics */
     public boolean hasContent() {
         return true;
+    }
+
+    /** @return false by default */
+    public boolean isImageNode() {
+        return false;
     }
 
     /**
@@ -2588,7 +2605,7 @@ u                    getSlot(c).setFromString((String)value);
 
     /** @return a collection of our ancestors.  default impl returns a list with nearest ancestor first */
     public List<LWComponent> getAncestors() {
-        return (List) getAncestors(new ArrayList());
+        return (List) getAncestors(new ArrayList(8));
     }
 
     protected Collection<LWComponent> getAncestors(Collection bag) {
@@ -2731,8 +2748,8 @@ u                    getSlot(c).setFromString((String)value);
     protected void updateConnectedLinks()
     {
         if (mLinks.size() > 0)
-            for (LWLink link : mLinks) 
-                link.setEndpointMoved();
+            for (LWLink link : mLinks)
+                link.notifyEndpointMoved(this);
     }
     
     public void setFrame(Rectangle2D r)
@@ -2930,7 +2947,12 @@ u                    getSlot(c).setFromString((String)value);
     public void notifyHierarchyChanging() {}
     
     /** A notification to the component that it or some ancestor changed parentage */
-    public void notifyHierarchyChanged() {}
+    public void notifyHierarchyChanged() {
+        if (mLinks.size() > 0)
+            for (LWLink link : mLinks)
+                link.notifyEndpointHierarchyChanged(this);
+        
+    }
     
     public final void setLocation(double x, double y) {
         setLocation((float) x, (float) y);
@@ -3128,9 +3150,11 @@ u                    getSlot(c).setFromString((String)value);
     */
 
 
+    /** @return center x of the component in absolute map coordinates */
     public float getCenterX() {
         return getMapX() + getMapWidth() / 2;
     }
+    /** @return center y of the component in absolute map coordinates */
     public float getCenterY() {
         return getMapY() + getMapHeight() / 2;
     }
@@ -3170,18 +3194,20 @@ u                    getSlot(c).setFromString((String)value);
     public double getX(LWContainer ancestor) {
         if (ancestor == parent) // quick check for the common case
             return getX();
-        else if (parent == null)
-             throw new Error("wasn't shared parent");
-        else
+        else if (parent == null) {
+             Util.printStackTrace("didn't find ancestor " + ancestor + " for " + this);
+             return getX();
+        } else
             return parent.getX(ancestor) + getX() * parent.getMapScale();
     }
     
     public double getY(LWContainer ancestor) {
         if (ancestor == parent) // quick check for the common case
             return getY();
-        else if (parent == null)
-            throw new Error("wasn't shared parent");
-        else
+        else if (parent == null) {
+             Util.printStackTrace("didn't find ancestor " + ancestor + " for " + this);
+             return getY();
+        } else
             return parent.getY(ancestor) + getY() * parent.getMapScale();
     }
 
@@ -3390,25 +3416,32 @@ u                    getSlot(c).setFromString((String)value);
     // create and recursively set a transform to get to this object's coordinate space
     // note: structure is same in the differen transform methods
     public AffineTransform getLocalTransform() {
-
-        if (VUE.RELATIVE_COORDS) {
         
-            if (hasAbsoluteMapLocation()) {
-                return (AffineTransform) IDENTITY_TRANSFORM.clone();
-            } else {
-                final AffineTransform a;
-                if (getParent() == null) {
-                    a = new AffineTransform();
-                } else {
-                    a = getParent().getLocalTransform();
-                }
-                return transformLocal(a);
-            }
-            
+        if (hasAbsoluteMapLocation())
+            return (AffineTransform) IDENTITY_TRANSFORM.clone();
+
+        final AffineTransform a;
+        if (parent == null) {
+            a = new AffineTransform();
         } else {
-            return transformLocal(new AffineTransform());
+            a = parent.getLocalTransform();
         }
+        return transformLocal(a);
     }
+
+    /**
+     * @return the transform that takes us from the given ancestor down to our local coordinate space/scale
+     * @param ancestor -- the ancestor to get a transform relative to.  If null, this will return the
+     * same result as getLocalTransform (relative to the map)
+     */
+    public AffineTransform getRelativeTransform(LWContainer ancestor) {
+
+        if (parent == ancestor)
+            return transformLocal(new AffineTransform());
+        else
+            return transformLocal(parent.getRelativeTransform(ancestor));
+    }
+    
 
     public AffineTransform transformLocal(final AffineTransform a) {
 
@@ -3418,7 +3451,8 @@ u                    getSlot(c).setFromString((String)value);
         //if ("tiny".equals(label)) out(a + " Transforming to " + getX() + "," + getY());
         a.translate(getX(), getY());
         //if ("tiny".equals(label)) out(a.toString());
-        final double scale = VUE.RELATIVE_COORDS ? getScale() : getMapScale();
+        //final double scale = VUE.RELATIVE_COORDS ? getScale() : getMapScale();
+        final double scale = getScale();
         if (scale != 1)
             a.scale(scale, scale);
         //if (parent instanceof LWMap) a.rotate(Math.PI / 16); // test
@@ -3441,29 +3475,21 @@ u                    getSlot(c).setFromString((String)value);
 
     /** Will transform all the way from the the map down to the component, wherever nested/scaled */
     public void transformLocal(final Graphics2D g) {
-        if (VUE.RELATIVE_COORDS) {
-
-            if (hasAbsoluteMapLocation())
-                return;
+        
+        if (hasAbsoluteMapLocation())
+            return;
+        
+        // todo: need a relative to parent transform only for cascading application during drawing
+        // (and ultimate picking when impl is optimized)
             
-            // todo: need a relative to parent transform only for cascading application during drawing
-            // (and ultimate picking when impl is optimized)
-            
-            if (getParent() == null) {
-                ;
-            } else {
-                getParent().transformLocal(g);
-            }
-
-            transformRelative(g);
-            
-            
+        if (getParent() == null) {
+            ;
         } else {
-            g.translate(getX(), getY());
-            final double scale = getMapScale();
-            if (scale != 1)
-                g.scale(scale, scale);
+            getParent().transformLocal(g);
         }
+        
+        transformRelative(g);
+
     }
     
     /**
@@ -4456,7 +4482,9 @@ u                    getSlot(c).setFromString((String)value);
 
     /** interface {@link XMLUnmarshalListener} -- call's layout */
     public void XML_completed() {
-        mXMLRestoreUnderway = false;
+        // 2007-06-12 SMF -- do NOT turn this off yet -- let the LWMap
+        // turn it off when EVERYONE is done.
+        //mXMLRestoreUnderway = false;
 
         /*
         // TODO: TEMPORARY DEBUG: never restore slides as format changes at moment

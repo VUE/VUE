@@ -614,9 +614,13 @@ public class Actions implements VueConstants
             {
                 final List<LWComponent> removing = new ArrayList();
                 
-                for (LWComponent c : iterable)
-                    if (c.getParent() instanceof LWGroup)
+                for (LWComponent c : iterable) {
+                    if (c.getParent() instanceof LWGroup) {
+                        if (LWLink.LOCAL_LINKS && c instanceof LWLink) // links control their own parentage
+                            continue;
                         removing.add(c);
+                    }
+                }
 
                 // This action only enabled if all the selected components have
                 // exactly the same parent group.

@@ -12,7 +12,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 public class RecentlyOpenedFilesManager 
 {
-	private static final String maxSize = "10";
+	private static final String maxSize = "20";
 	 private static VuePreference openFilePref = StringPreference.create(
 				edu.tufts.vue.preferences.PreferenceConstants.FILES_CATEGORY,
 				"recentlyOpenedFiles", 
