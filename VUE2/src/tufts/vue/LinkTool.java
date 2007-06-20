@@ -501,7 +501,7 @@ public class LinkTool extends VueTool
                 @Override
                 public void setMapLocation(double x, double y) {
                     super.takeLocation((float)x, (float)y);
-                    creationLink.setEndpointMoved();
+                    creationLink.notifyEndpointMoved(this);
                 }
             };
         protected LWLink creationLink = new LWLink(invisibleLinkEndpoint);
