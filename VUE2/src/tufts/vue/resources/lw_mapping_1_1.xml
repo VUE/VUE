@@ -153,7 +153,9 @@
                   <bind-xml name="isStyleParent" node="attribute"/>
                 </field>
                 
-                <field name="nodeFilter" get-method="XMLnodeFilter">      <bind-xml name="nodeFilter" node="element"/></field>
+                <!-- temporarily(?) return to old node filter get method -->
+                <!-- <field name="nodeFilter" get-method="XMLnodeFilter">      <bind-xml name="nodeFilter" node="element"/></field> -->
+                <field name="nodeFilter">      <bind-xml name="nodeFilter" node="element"/></field> 
 
                 <!-- We can save a shape interface, but it won't restore properly -->
 		<!-- field name="shape" type="java.awt.Shape">
