@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.404 $ / $Date: 2007-06-11 10:11:22 $ / $Author: sfraize $ 
+ * @version $Revision: 1.405 $ / $Date: 2007-06-20 00:46:52 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1342,7 +1342,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //if (true) return k == LWKey.UserActionCompleted || k == LWKey.Location;
         
         return k != LWKey.HierarchyChanging
-            //&& k != LWKey.ChildrenRemoved
+            && k != LWKey.ChildrenRemoved
                 ;
         /*
         return k == LWKey.Size
@@ -1392,6 +1392,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         if (e.key == LWKey.RepaintAsync) {
             repaint();
+            return;
+        }
+
+        if (mMap != null && mMap.getUndoManager().hasCleanupTasks()) {
+            // once we have cleanup tasks, we're in an intermediate state:
+            // don't ever draw until we're complete.
             return;
         }
         
@@ -3073,8 +3079,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         indication.transformLocal(dc.g);
 
-        dc.g.setColor(COLOR_INDICATION);
-        dc.g.draw(indication.getLocalShape());
+        if (DEBUG.PICK &&
+            (indication instanceof LWLink || indication instanceof LWNode || indication instanceof LWImage)) {
+            dc.g.setColor(Color.green);
+            dc.setAlpha(0.5);
+            dc.g.fill(indication.getLocalShape());
+        } else {
+            dc.g.setColor(COLOR_INDICATION);
+            dc.g.draw(indication.getLocalShape());
+        }
 
         //dc.g.setColor(new Color(Color.white.getRGB() + (128<<24), true));
         //dc.g.fill(indication.getLocalShape());
@@ -3991,7 +4004,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (c == 'T') { DEBUG.TOOL = !DEBUG.TOOL; }
                 else if (c == 'U') { DEBUG.UNDO = !DEBUG.UNDO; }
                 else if (c == 'V') { DEBUG.VIEWER = !DEBUG.VIEWER; }
-                else if (c == 'W') { DEBUG.ROLLOVER = !DEBUG.ROLLOVER; }
+                else if (c == 'W') { DEBUG.WORK = !DEBUG.WORK; }
+                //else if (c == 'W') { DEBUG.ROLLOVER = !DEBUG.ROLLOVER; }
                 else if (c == 'X') { DEBUG.TEXT = !DEBUG.TEXT; }
                 else if (c == 'Z') { resetScrollRegion(); }
                 
