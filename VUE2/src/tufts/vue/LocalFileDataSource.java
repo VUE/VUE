@@ -17,7 +17,7 @@ package tufts.vue;
  * -----------------------------------------------------------------------------
  */
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.16 2007-05-19 21:13:21 anoop Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.17 2007-06-21 16:15:31 anoop Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -37,7 +37,7 @@ import tufts.vue.action.*;
 
 
 /**
- * @version $Revision: 1.16 $ / $Date: 2007-05-19 21:13:21 $ / $Author: anoop $
+ * @version $Revision: 1.17 $ / $Date: 2007-06-21 16:15:31 $ / $Author: anoop $
  * @author  rsaigal
  */
 
@@ -256,7 +256,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
             }
             File savedCMap = PublishUtil.createZip(map,Publisher.resourceVector);
             InputStream istream = new BufferedInputStream(new FileInputStream(savedCMap));
-            OutputStream ostream = new BufferedOutputStream(new FileOutputStream(ActionUtil.selectFile("IMSCP","zip"))); 
+            OutputStream ostream = new BufferedOutputStream(new FileOutputStream(ActionUtil.selectFile("Export to Zip File","zip"))); 
             int fileLength = (int)savedCMap.length();
             byte bytes[] = new  byte[fileLength];
             while (istream.read(bytes,0,fileLength) != -1)
