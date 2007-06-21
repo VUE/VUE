@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.153 $ / $Date: 2007-06-20 00:49:49 $ / $Author: sfraize $
+ * @version $Revision: 1.154 $ / $Date: 2007-06-21 00:26:19 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -71,18 +71,30 @@ public class LWLink extends LWComponent
     private final static RectangularShape HeadShape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
     private final static RectangularShape TailShape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
 
-    // member variables:
     
+    /**
+     * Holds data and defines basic functionality for each endpoint.  Currently, we
+     * always have exactly two endpoints, each of which may or not be connected to
+     * another node.
+     *
+     * If we ever support more than one endpoint on a link (e.g., fan-out links), this
+     * will give us a good start.
+     */
+
+    // consider subclassing Point2D.Float
     private static class End { 
         float x, y; // point at node where the connection is made, or disconnected map location
         LWComponent node; // if null, not connected
-        // maybe keep the parent of the endpoint node?
-        float lineX, lineY; // end of curve / line -- can be different than x / y if there is a connector shape
-        RectangularShape shape; // e.g. an arrow -- null means none
         boolean isPruned;
-        double rotation;
-        final AffineTransform tx = new AffineTransform();
-
+        double rotation; // normalizing rotation
+        
+        // maybe keep the parent of the endpoint node?
+        //float lineX, lineY; // end of curve / line -- can be different than x / y if there is a connector shape
+        //RectangularShape shape; // e.g. an arrow -- null means none
+        
+        final Point2D.Float point = new Point2D.Float();
+        final Point2D.Float mapPoint = new Point2D.Float();
+        
         // for control points
         float getX(LWContainer focal) {
             return node == null ? x : (float) node.getX(focal);
@@ -102,7 +114,50 @@ public class LWLink extends LWComponent
         boolean hasNode() {
             return node != null;
         }
+
+        Point2D.Float getPoint() {
+            point.x = x;
+            point.y = y;
+            return point;
+        }
+
+        Point2D.Float getMapPoint() {
+            if (LOCAL_LINKS == false) {
+                mapPoint.x = x;
+                mapPoint.y = y;
+            }
+            
+            return mapPoint;
+        }
+
+        //-----------------------------------------------------------------------------
+        // Prune control support
+        //-----------------------------------------------------------------------------
+
+        float pruneCtrlOffset;
+
+        private class PruneCtrl extends LWSelection.Controller {
+            final AffineTransform tx = new AffineTransform();
+            double ctrlRotation;
+            void update(double onScreenScale) {
+                super.x = super.y = 0;
+                tx.setToTranslation(mapPoint.x, mapPoint.y);
+                tx.rotate(rotation);
+                tx.translate(0, pruneCtrlOffset / onScreenScale);
+                tx.transform(this,this);
+                setColor(isPruned ? Color.red : Color.lightGray);
+                ctrlRotation = rotation + Math.PI / 4; // rotate to square parallel on line, plus 45 degrees to get diamond display
+            }
+        
+            public final RectangularShape getShape() { return PruneCtrlShape; }
+            public final double getRotation() { return ctrlRotation; }
+        }
+
+        // todo opt: could lazy create these...
+        final PruneCtrl pruneControl = new PruneCtrl();
+
     };
+    
     private final End head = new End();
     private final End tail = new End();
 
@@ -366,16 +421,11 @@ public class LWLink extends LWComponent
         }
     }
 
-//     /** @return 1 -- The text-box actually queries this, so it must be accurate */ NO LONGER: it now compenstates
-//     @Override
-//     public double getMapScale() {
-//         return 1;
-//     }
-//     /** @return 1 -- links never scaled by themselves */
-//     @Override
-//     public double getScale() {
-//         return 1;
-//     }
+    /** @return 1.0 -- links never scaled by themselves */
+    @Override
+    public double getScale() {
+        return 1.0;
+    }
 
     @Override
     void setScale(double scale) {
@@ -513,30 +563,35 @@ public class LWLink extends LWComponent
      * control in a link separatly.  If MapMouseEvent is null, ResizeControl is making use of this.
      */
     
-    private void setControllerLocation(int index, float x, float y, MapMouseEvent e)
+    private void setControllerLocation(int index, float mapX, float mapY, MapMouseEvent e)
     {
+        final Point2D.Float local = transformMapToLocalPoint(new Point2D.Float(mapX, mapY));
+        
         //System.out.println("LWLink: control point " + index + " moved");
+
+        // TODO: need to getLocalTransform().inverseTransform the x/y back down to local coords.
+        // Would be better if the coords were already translated to local coords?
         
         if (index == CHead && !head.isPruned) {
             setHead(null); // disconnect from node (already so if e == null)
-            setHeadPoint(x, y);
+            setHeadPoint(local.x, local.y);
             if (e != null)
                 LinkTool.setMapIndicationIfOverValidTarget(tail.node, this, e);
         } else if (index == CTail && !tail.isPruned) {
             setTail(null);  // disconnect from node (already so if e == null)
-            setTailPoint(x, y); 
+            setTailPoint(local.x, local.y); 
             if (e != null)
                 LinkTool.setMapIndicationIfOverValidTarget(head.node, this, e);
         } else if (index == CCurve1 || index == CCurve2) {
                 // optional control 0 for curve
             if (mCurveControls == 1) {
-                setCtrlPoint0(x, y);
+                setCtrlPoint0(local.x, local.y);
             } else {
                 // TODO: have LWSelection.Controller provide dx/dy, or maybe MapMouseEvent can,
-                // as I think these are trailing depending on fast we repaint!
+                // -- these are trailing behind by one repaint!
                 // Or just reflect the line once to double it's length.
-                float dx = x - mControlPoints[index].x;
-                float dy = y - mControlPoints[index].y;
+                float dx = mapX - mControlPoints[index].x;
+                float dy = mapY - mControlPoints[index].y;
 
                 Point2D p = index == CCurve1 ? getCtrlPoint0() : getCtrlPoint1();
 
@@ -584,11 +639,14 @@ public class LWLink extends LWComponent
     private static final RectangularShape ConnectCtrlShape = new Ellipse2D.Float(0,0, 9,9);
     private static final RectangularShape CurveCtrlShape = new Ellipse2D.Float(0,0, 8,8);
     private static final RectangularShape PruneCtrlShape = new Rectangle2D.Float(0,0,8,8);
-    
+
     private static class ConnectCtrl extends LWSelection.Controller {
+        //ConnectCtrl(End end) {
         ConnectCtrl(float x, float y, boolean isConnected) {
             super(x, y);
             setColor(isConnected ? null : COLOR_SELECTION_HANDLE);
+            //super(end.x, end.y);
+            //setColor(end.isConnected() ? null : COLOR_SELECTION_HANDLE);
         }
         public final RectangularShape getShape() { return ConnectCtrlShape; }
     }
@@ -607,57 +665,78 @@ public class LWLink extends LWComponent
         }
         public final RectangularShape getShape() { return CurveCtrlShape; }
     }
-    private static class PruneCtrl extends LWSelection.Controller {
-        private final double rotation;
-        PruneCtrl(AffineTransform tx, double rot, boolean active)
-        {
-            tx.transform(this,this);
-            setColor(active ? Color.red : Color.lightGray);
-            this.rotation = rot + Math.PI / 4; // rotate to square parallel on line, plus 45 degrees to get diamond display
-        }
-        public final RectangularShape getShape() { return PruneCtrlShape; }
-        public final double getRotation() { return rotation; }
-    }
+//     private static class PruneCtrl extends LWSelection.Controller {
+//         private final double rotation;
+//         //PruneCtrl(AffineTransform tx, double rot, boolean active)
+//         //PruneCtrl(double rot, boolean active)
+//         PruneCtrl(End end)
+//         {
+//             end.pruneCtrlTx.setToTranslation(end.mapPoint.x, end.mapPoint.y);
+//             end.pruneCtrlTx.rotate(end.rotation);
+//             end.pruneCtrlTx.translate(0, end.pruneCtrlOffset);
+//             end.pruneCtrlTx.transform(this,this);
+//             setColor(end.isPruned ? Color.red : Color.lightGray);
+//             this.rotation = end.rotation + Math.PI / 4; // rotate to square parallel on line, plus 45 degrees to get diamond display
+//         }
+//         public final RectangularShape getShape() { return PruneCtrlShape; }
+//         public final double getRotation() { return rotation; }
+//     }
     
     /** interface ControlListener */
-    public LWSelection.Controller[] getControlPoints() {
-        return getControls(false);
+    public LWSelection.Controller[] getControlPoints(double zoom) {
+        return getControls(zoom, false);
     }
     
     /** for ResizeControl */
     public LWSelection.Controller[] getMoveableControls() {
-        return getControls(true);
+        return getControls(1.0, true); // TODO: need zoom
     }
         
-    private LWSelection.Controller[] getControls(boolean moveableOnly)
+    private LWSelection.Controller[] getControls(double onScreenScale, boolean moveableOnly)
     {
         if (endpointMoved)
             computeLink();
+
+        // head, tail & curve controls are all in local coordinates
+        // (which for links is local to their parent) -- to produce
+        // map coordinates, we apply the local transform to the
+        // points to get the map location.
+
+        // TODO OPT: if parent is a map, getLocalTransform is just creating
+        // empty affine transforms, and we're calling transform here
+        // which is going to be a noop.
+
+        final AffineTransform mapTx = LOCAL_LINKS ? getLocalTransform() : new AffineTransform(); // noop if old impl
+        final Point2D.Float mapHead = head.getMapPoint();
+        final Point2D.Float mapTail = tail.getMapPoint();
+        
+        mapTx.transform(head.getPoint(), mapHead);
+        mapTx.transform(tail.getPoint(), mapTail);
 
         //-------------------------------------------------------
         // Connection control points
         //-------------------------------------------------------
 
-        if (/*false &&*/ head.hasPrunedNode() || (moveableOnly && head.hasNode()))
+        if (head.hasPrunedNode() || (moveableOnly && head.hasNode()))
             mControlPoints[CHead] = null;
         else 
-            mControlPoints[CHead] = new ConnectCtrl(head.x, head.y, head.hasNode());
+            mControlPoints[CHead] = new ConnectCtrl(mapHead.x, mapHead.y, head.isConnected());
 
-        if (/*false &&*/ tail.hasPrunedNode() || (moveableOnly && tail.hasNode()))
+        if (tail.hasPrunedNode() || (moveableOnly && tail.hasNode()))
             mControlPoints[CTail] = null;
         else
-            mControlPoints[CTail] = new ConnectCtrl(tail.x, tail.y, tail.hasNode());
+            mControlPoints[CTail] = new ConnectCtrl(mapTail.x, mapTail.y, tail.isConnected());
 
         //-------------------------------------------------------
         // Curve control points
         //-------------------------------------------------------
         
         if (mCurveControls == 1) {
-            mControlPoints[CCurve1] = new CurveCtrl(mQuad.getCtrlPt());
+            mControlPoints[CCurve1] = new CurveCtrl(mapTx.transform(mQuad.getCtrlPt(), null));
             mControlPoints[CCurve2] = null;
         } else if (mCurveControls == 2) {
-            mControlPoints[CCurve1] = new CurveCtrl(mCubic.getCtrlP1(), head.x, head.y);
-            mControlPoints[CCurve2] = new CurveCtrl(mCubic.getCtrlP2(), tail.x, tail.y);
+            mControlPoints[CCurve1] = new CurveCtrl(mapTx.transform(mCubic.getCtrlP1(), null),  mapHead.x, mapHead.y);
+            mControlPoints[CCurve2] = new CurveCtrl(mapTx.transform(mCubic.getCtrlP2(), null),  mapTail.x, mapTail.y);
         } else {
             mControlPoints[CCurve1] = null;
             mControlPoints[CCurve2] = null;
@@ -672,14 +751,16 @@ public class LWLink extends LWComponent
             mControlPoints[CPruneTail] = null;
         } else {
 
-            if (head.isPruned || getHead() != null)
-                mControlPoints[CPruneHead] = new PruneCtrl(head.tx, head.rotation, head.isPruned);
-            else
+            if (head.isPruned || getHead() != null) {
+                head.pruneControl.update(onScreenScale);
+                mControlPoints[CPruneHead] = head.pruneControl;
+            } else
                 mControlPoints[CPruneHead] = null;
             
-            if (tail.isPruned || getTail() != null)
-                mControlPoints[CPruneTail] = new PruneCtrl(tail.tx, tail.rotation, tail.isPruned);
-            else
+            if (tail.isPruned || getTail() != null) {
+                tail.pruneControl.update(onScreenScale);
+                mControlPoints[CPruneTail] = tail.pruneControl;
+            } else
                 mControlPoints[CPruneTail] = null;
         }
             
@@ -707,11 +788,11 @@ public class LWLink extends LWComponent
         final LWComponent commonAncestor = findCommonEndpointAncestor();
 
         if (commonAncestor == null || commonAncestor == parent) {
-            out("SAME COMMON ANCESTOR: " + commonAncestor);
+            if (DEBUG.LINK) out("SAME COMMON ANCESTOR: " + commonAncestor);
             return false;
         }
 
-        out(Util.TERM_GREEN + "REPARENTING TO NEW COMMON ANCESTOR: " + commonAncestor + Util.TERM_CLEAR);
+        if (DEBUG.LINK) out(Util.TERM_GREEN + "REPARENTING TO NEW COMMON ANCESTOR: " + commonAncestor + Util.TERM_CLEAR);
 
         commonAncestor.addChild(this);
         
@@ -1047,10 +1128,18 @@ public class LWLink extends LWComponent
         public Iterator<Line2D.Float> iterator() { return this; }
     }
     
+    @Override
     protected boolean intersectsImpl(Rectangle2D rect)
     {
         if (endpointMoved)
             computeLink();
+
+        if (LOCAL_LINKS && !(parent instanceof LWMap)) {
+            // For the moment, use default impl of paint bounds:
+            // TODO: need to take into account scaling / local coords on segments
+            return super.intersectsImpl(rect);
+        }
+        
 
         if (mCurve != null) {
             for (Line2D seg : new SegIterator())
@@ -1203,6 +1292,7 @@ public class LWLink extends LWComponent
             c.addLinkRef(this);
         //head_ID = null;
         endpointMoved = true;
+        addCleanupTask(this);        
         notify("link.head.connect", new Undoable(oldHead) { void undo() { setHead(oldHead); }} );
     }
     
@@ -1218,10 +1308,14 @@ public class LWLink extends LWComponent
             c.addLinkRef(this);
         //tail_ID = null;
         endpointMoved = true;
+        addCleanupTask(this);        
         notify("link.tail.connect", new Undoable(oldTail) { void undo() { setTail(oldTail); }} );
     }
 
 
+    public boolean isConnected() {
+        return head.isConnected() || tail.isConnected();
+    }
 
     public boolean isOrdered()
     {
@@ -1253,6 +1347,24 @@ public class LWLink extends LWComponent
         return getWeight();
     }
 
+    @Override
+    public void setLocation(float x, float y) {
+        final float dx = x - getX();
+        final float dy = y - getY();
+
+        if (DEBUG.CONTAINMENT) out(String.format("             setLocation %+.1f,%+.1f", x, y));
+        // TODO: adjust for scale???
+
+        translate(dx, dy);
+    }
+
+    @Override
+    protected void takeLocation(float x, float y) {
+        VUE.Log.debug("takeLocation on Link: " + this);
+        setLocation(x, y);
+    }
+    
+
     /**
 
      * Any free points on the link get translated by the given dx/dy.  This means as any
@@ -1265,13 +1377,20 @@ public class LWLink extends LWComponent
     @Override
     public void translate(float dx, float dy)
     {
-        if (DEBUG.CONTAINMENT) out(String.format("               translate %+.1f,%+.1f", dx, dy));
+        if (DEBUG.CONTAINMENT) out(String.format("           map translate %+.1f,%+.1f", dx, dy));
+
+// Handle this in the caller (e.g., nudge or reorder)
+//         final double scale = getMapScale();
+//         dx /= scale;
+//         dy /= scale;
+//         if (DEBUG.CONTAINMENT) out(String.format("         local translate %+.1f,%+.1f", dx, dy));
+        
         //if (DEBUG.CONTAINMENT) Util.printStackTrace(String.format("translate %+.1f,%+.1f", dx, dy));
         
-        if (head == null)
+        if (head.node == null)
             setHeadPoint(head.x + dx, head.y + dy);
 
-        if (tail == null)
+        if (tail.node == null)
             setTailPoint(tail.x + dx, tail.y + dy);
 
         if (mCurveControls == 1) {
@@ -1323,11 +1442,11 @@ public class LWLink extends LWComponent
         
         //out("px=" + px + ". py=" + py);
         
-        if (head == null)
+        if (head.node == null)
             setHeadPoint(px + (head.x - px) * scale,
                          py + (head.y - py) * scale);
 
-        if (tail == null)
+        if (tail.node == null)
             setTailPoint(px + (tail.x - px) * scale,
                          py + (tail.y - py) * scale);
 
@@ -1392,6 +1511,10 @@ public class LWLink extends LWComponent
     @Override
     public void notifyHierarchyChanged() {
         super.notifyHierarchyChanged();
+
+        if (LOCAL_LINKS)
+            return;
+        
         final double newScale = getMapScale();
         final double deltaScale = newScale / oldMapScale;
         if (DEBUG.WORK) {
@@ -1433,21 +1556,6 @@ public class LWLink extends LWComponent
         if (LOCAL_LINKS) return;
         
         translate((float)mdx, (float)mdy);
-    }
-    
-
-    @Override
-    public void setLocation(float x, float y) {
-        float dx = x - getX();
-        float dy = y - getY();
-
-        translate(dx, dy);
-    }
-
-    @Override
-    protected void takeLocation(float x, float y) {
-        VUE.Log.debug("takeLocation on Link: " + this);
-        setLocation(x, y);
     }
     
 
@@ -1665,6 +1773,8 @@ public class LWLink extends LWComponent
     private void computeLink()
     {
         endpointMoved = false;
+
+        if (DEBUG.LINK) out("computeLink");
         
         if (mCurveControls > 0 && mCurve == null)
             initCurveControlPoints();
@@ -1802,7 +1912,7 @@ public class LWLink extends LWComponent
         // Compute rotations for arrows or for moving linearly along the link
         //---------------------------------------------------------------------------------------------------
 
-        if (DEBUG.LINK) out("head " + head.x+","+head.y + " tail " + tail.x+","+tail.y + " line " + Util.out(mLine));
+        if (DEBUG.LINK && DEBUG.META) out("head " + head.x+","+head.y + " tail " + tail.x+","+tail.y + " line " + Util.out(mLine));
 
         if (mCurveControls == 1) {
             head.rotation = computeVerticalRotation(head.x, head.y, mQuad.ctrlx, mQuad.ctrly);
@@ -1815,9 +1925,9 @@ public class LWLink extends LWComponent
             tail.rotation = head.rotation + Math.PI;  // can just flip head rotation: add 180 degrees
         }
 
-        if (DEBUG.LINK) out("rotHead0 " + head.rotation + " rotTail0 " + tail.rotation);
+        if (DEBUG.LINK && DEBUG.META) out("rotHead0 " + head.rotation + " rotTail0 " + tail.rotation);
 
-        float controlOffset = (float) HeadShape.getHeight() * 2;
+        float controlOffset = (float) HeadShape.getHeight() * 3;
         //final int controlSize = 6;
         //final double minControlSize = MapViewer.SelectionHandleSize / dc.zoom;
         // can get zoom by passing into getControlPoints from MapViewer.drawSelection,
@@ -1828,16 +1938,12 @@ public class LWLink extends LWComponent
         if (room <= minControlSize*2)
             controlOffset = mLength/3;
 
-        if (DEBUG.LINK) out("controlOffset " + controlOffset);
+        if (DEBUG.LINK && DEBUG.META) out("controlOffset " + controlOffset);
         //if (room <= controlSize*2)
         //    controlOffset = mLength/2 - controlSize;
 
-        head.tx.setToTranslation(head.x, head.y);
-        head.tx.rotate(head.rotation);
-        head.tx.translate(0, controlOffset);
-        tail.tx.setToTranslation(tail.x, tail.y);
-        tail.tx.rotate(tail.rotation);
-        tail.tx.translate(0, controlOffset);
+        head.pruneCtrlOffset = controlOffset;
+        tail.pruneCtrlOffset = controlOffset;
 
         //----------------------------------------------------------------------------------------
         // We set the size & location here so LWComponent.getBounds can do something
@@ -2748,7 +2854,7 @@ public class LWLink extends LWComponent
     /** @deprecated -- no longer needed (now using castor references), always returns null */
     public String getTail_ID() { return null; }
     
-    /** @deprecated -- for persistance/init ONLY */
+    /** for persistance/init/undo ONLY */
     public void setHeadPoint(Point2D p) {
         if (mXMLRestoreUnderway) {
             head.x = (float) p.getX();
@@ -2757,7 +2863,7 @@ public class LWLink extends LWComponent
             setHeadPoint((float)p.getX(), (float)p.getY());
         }
     }
-    /** @deprecated -- for persistance/init ONLY  */
+    /** for persistance/init/undo ONLY  */
     public void setTailPoint(Point2D p) {
         if (mXMLRestoreUnderway) {
             tail.x = (float) p.getX();
