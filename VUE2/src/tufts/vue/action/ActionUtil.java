@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.65 $ / $Date: 2007-06-11 12:12:43 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2007-06-21 00:18:27 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -386,7 +386,7 @@ public class ActionUtil {
     {
         Marshaller marshaller = null;
 
-        map.setModelVersion(LWMap.CurrentModelVersion);
+        map.setModelVersion(LWMap.getCurrentModelVersion());
         try {  
             final String path = file.getAbsolutePath().replaceAll("%20"," ");
             final Writer writer;
@@ -763,10 +763,10 @@ public class ActionUtil {
             final File file = new File(url.getFile());
             final String fileName = file.getName();
             
-            if (map.getModelVersion() > LWMap.CurrentModelVersion) {
+            if (map.getModelVersion() > LWMap.getCurrentModelVersion()) {
                 VueUtil.alert(String.format("The file %s was saved in a newer version of VUE than is currently running.\n"
-                                            + "\nThe data model in this file is #%d, and this version of VUE only understands up to model #%d.\n",
-                                            file, map.getModelVersion(), LWMap.CurrentModelVersion)
+                                            + "\nThe data model in this map is #%d, and this version of VUE only understands up to model #%d.\n",
+                                            file, map.getModelVersion(), LWMap.getCurrentModelVersion())
                               + "\nVersion of VUE that saved this file:\n        " + savingVersion
                               + "\nCurrent running version of VUE:\n        " + "VUE: built " + tufts.vue.Version.AllInfo
                                 + " (public v" + VueResources.getString("vue.version") + ")"
