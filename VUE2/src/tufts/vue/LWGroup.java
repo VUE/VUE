@@ -35,7 +35,7 @@ import java.awt.geom.AffineTransform;
  * together.
  *
  * @author Scott Fraize
- * @version $Revision: 1.69 $ / $Date: 2007-06-20 00:49:49 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2007-06-21 00:26:27 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -76,9 +76,9 @@ public class LWGroup extends LWContainer
     
     @Override
     public boolean supportsUserResize() {
-        if (FancyGroups)
-            return !isTransparent();
-        else
+//         if (FancyGroups)
+//             return !isTransparent();
+//         else
             return false;
     }
 
