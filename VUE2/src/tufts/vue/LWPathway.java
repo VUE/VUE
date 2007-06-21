@@ -48,7 +48,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.167 $ / $Date: 2007-06-19 19:53:35 $ / $Author: sfraize $
+ * @version $Revision: 1.168 $ / $Date: 2007-06-21 00:22:32 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -649,7 +649,11 @@ public class LWPathway extends LWContainer
             LWComponent c = i.next();
             if (DEBUG.PATHWAY||DEBUG.PARENTING) out("adding " + c);
             Entry e = new Entry(this, c);
-            if (c instanceof LWGroup || c instanceof LWPortal || c instanceof LWImage || c.isTranslucent()) {
+            if (c instanceof LWGroup ||
+                c instanceof LWPortal ||
+                c instanceof LWImage ||
+                c instanceof LWSlide ||
+                c.isTranslucent()) {
                 // these either require map view, or are likely to want to start that way
                 e.setMapView(true);
             } else
