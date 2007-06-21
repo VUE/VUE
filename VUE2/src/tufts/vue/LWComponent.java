@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.294 $ / $Date: 2007-06-20 00:49:49 $ / $Author: sfraize $
+ * @version $Revision: 1.295 $ / $Date: 2007-06-21 00:27:23 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1393,12 +1393,12 @@ u                    getSlot(c).setFromString((String)value);
 
         if (um != null) {
             if (um.isUndoing()) {
-                if (DEBUG.Enabled) System.out.println("Ignoring cleanup task during undo: " + task + " for " + this);
+                if (DEBUG.WORK || DEBUG.UNDO) System.out.println("Ignoring cleanup task during undo: " + task + " for " + this);
             } else if (um.hasCleanupTask(taskKey)) {
-                if (DEBUG.Enabled) System.out.println("Ignoring duplicate cleanup task: " + task + " for " + this);
+                if (DEBUG.WORK || DEBUG.UNDO) System.out.println("Ignoring duplicate cleanup task: " + task + " for " + this);
             } else {
 
-                boolean debug = DEBUG.Enabled;
+                boolean debug = DEBUG.WORK || DEBUG.UNDO;
                 if (isDeleted()) {
                     Util.printStackTrace("warning: adding cleanup task when deleted");
                     debug = true;
@@ -2690,11 +2690,10 @@ u                    getSlot(c).setFromString((String)value);
         if (DEBUG.LAYOUT) tufts.Util.printClassTrace("tufts.vue", "setScale " + scale);
         this.scale = scale;
         
-//         // can only do this via debug inspector right now, and is causing lots of
-//         // suprious events during init:
-//         if (VUE.RELATIVE_COORDS) { 
-//             notify(LWKey.Scale, oldScale); // todo: make scale a real property
-//         }
+        // can only do this via debug inspector right now, and is causing lots of
+        // suprious events during init:
+        if (LWLink.LOCAL_LINKS && !mXMLRestoreUnderway)
+            notify(LWKey.Scale, oldScale); // todo: make scale a real property
         
         updateConnectedLinks();
         //System.out.println("Scale set to " + scale + " in " + this);
@@ -3415,6 +3414,7 @@ u                    getSlot(c).setFromString((String)value);
     
     // create and recursively set a transform to get to this object's coordinate space
     // note: structure is same in the differen transform methods
+    // TODO OPT: can cache this transform if track all ancestor hierarcy, location AND scale changes
     public AffineTransform getLocalTransform() {
         
         if (hasAbsoluteMapLocation())
@@ -3491,6 +3491,25 @@ u                    getSlot(c).setFromString((String)value);
         transformRelative(g);
 
     }
+
+    protected Point2D.Float transformMapToLocalPoint(Point2D.Float mapPoint) {
+
+        if (getParent() instanceof LWMap) {
+            // this is an optimization we'll want to remove if we ever
+            // ember maps in maps
+            return mapPoint;
+        }
+
+        try {
+            getLocalTransform().inverseTransform(mapPoint, mapPoint);
+        } catch (java.awt.geom.NoninvertibleTransformException e) {
+            Util.printStackTrace(e);
+        }
+
+        return mapPoint;
+        
+    }
+    
     
     /**
      * Default implementation: checks bounding box
@@ -3874,7 +3893,8 @@ u                    getSlot(c).setFromString((String)value);
             drawDecorated(dc);
 
         if (DEBUG.BOXES) {
-            if (!hasAbsoluteMapLocation()) {
+            //if (!hasAbsoluteMapLocation()) {
+            if (!(this instanceof LWLink)) {
                 
                 dc.g.setTransform(saveTransform);
                 
