@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.120 $ / $Date: 2007-06-20 00:49:49 $ / $Author: sfraize $
+ * @version $Revision: 1.121 $ / $Date: 2007-06-21 00:26:53 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -156,7 +156,7 @@ public abstract class LWContainer extends LWComponent
         super.notifyMapLocationChanged(mdx, mdy);
         if (hasChildren()) {
             for (LWComponent c : getChildList())
-                c.notifyMapLocationChanged(mdx, mdy); // is overcalling updateConnectedLinks, but it's cheap
+                c.notifyMapLocationChanged(mdx, mdy); // is overcalling updateConnectedLinks (+1 for each depth!), but it's cheap
         }
     }
     
@@ -539,9 +539,9 @@ public abstract class LWContainer extends LWComponent
         // TODO: better to handle this in LWNode removeChildImpl as that's only
         // place nodes actually get auto scaled right now -- either that or
         // when it's added back into it's new parent, which can set it based
-        // on whatever scale policy it implements.
-        if (c.getScale() != 1f)
-            c.setScale(1f);
+        // on whatever scale policy it implements. [ "scale policy" no longer makes sense w/relative contained drawing ]
+        //if (c.getScale() != 1f)
+        //    c.setScale(1f);
     }
     
 
@@ -1042,7 +1042,10 @@ public abstract class LWContainer extends LWComponent
     {
         // need this for undo of dropping a node into another node: when re-parented
         // back to the map, it needs to get it's default scale back.
-        c.setScale(scale);
+        //c.setScale(scale);
+        // actually, if setScale can now reasonable deliver an event, that will handle this
+        // crazy undo case we've got special code for (and elsewhere here in LWContainer...)
+        if (DEBUG.WORK) out("WARNING: setScaleOnChild ignored for " + c);
         
 //         // vanilla containers don't scale down their children -- only nodes do
 //         if (VUE.RELATIVE_COORDS)
