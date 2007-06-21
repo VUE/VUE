@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.405 $ / $Date: 2007-06-20 00:46:52 $ / $Author: sfraize $ 
+ * @version $Revision: 1.406 $ / $Date: 2007-06-21 00:21:47 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2957,53 +2957,51 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //dc.g.setStroke(STROKE_HALF);
         
         for (LWSelection.ControlListener cl : selection.getControlListeners()) {
-            LWSelection.Controller[] points = cl.getControlPoints();
+            LWSelection.Controller[] points = cl.getControlPoints(getZoomFactor());
             // draw them in reverse order, in case they overlap: will match hit detection forward-order
             for (int i = points.length - 1; i >= 0; i--) {
                 LWSelection.Controller ctrl = points[i];
                 if (ctrl == null)
                     continue;
 
-
-                if (true) {
-                    final AffineTransform saveTx = dc.g.getTransform();
-                    final RectangularShape shape = ctrl.getShape();
-                        
-                    double size = shape.getWidth(); // control shape forced to aspect of 1:1 for now (height ignored)
-//                     if (size <= 0)
-//                         size = 9;
-//                     if (dc.zoom < 0.5) size /= (3.0/2.0);
-
-                    dc.g.translate(mapToScreenX(ctrl.x), mapToScreenY(ctrl.y));
-                    dc.g.rotate(ctrl.getRotation());
-                    // now center the control on the point
-                    dc.g.translate(-size/2, -size/2);
-                    //shape.setFrame(0,0, size,size); // can't do this if shape is a constant object!
-                    final Color fillColor;
-                    if (false && sDragUnderway) // hilight the dragging control
-                        fillColor = Color.red; // don't do for ALL controls: just the active one...
-                    else
-                        fillColor = ctrl.getColor();
-                    if (fillColor != null) {
-                        dc.g.setColor(fillColor);
-                        dc.g.fill(shape);
-                    }
-                    if (fillColor == COLOR_SELECTION)
-                        dc.g.setColor(Color.white); // ensure border contrast
-                    else
-                        dc.g.setColor(COLOR_SELECTION);
-                    dc.g.draw(shape);
-
-                    dc.g.setTransform(saveTx);
-                } else {
+                final AffineTransform saveTx = dc.g.getTransform();
+                final RectangularShape shape = ctrl.getShape();
                 
-                    drawSelectionHandleCentered(dc.g,
-                                                mapToScreenX(ctrl.x),
-                                                mapToScreenY(ctrl.y),
-                                                ctrl.getColor(),
-                                                -(i+1)
-                                                );
+                double size = shape.getWidth(); // control shape forced to aspect of 1:1 for now (height ignored)
+                //if (size <= 0)
+                //    size = 9;
+                //if (dc.zoom < 0.5) size /= (3.0/2.0);
+
+                dc.g.translate(mapToScreenX(ctrl.x), mapToScreenY(ctrl.y));
+                dc.g.rotate(ctrl.getRotation());
+                // now center the control on the point
+                dc.g.translate(-size/2, -size/2);
+                //shape.setFrame(0,0, size,size); // can't do this if shape is a constant object!
+                final Color fillColor;
+                if (false && sDragUnderway) // hilight the dragging control
+                    fillColor = Color.red; // don't do for ALL controls: just the active one...
+                else
+                    fillColor = ctrl.getColor();
+                if (fillColor != null) {
+                    dc.g.setColor(fillColor);
+                    dc.g.fill(shape);
                 }
+                if (fillColor == COLOR_SELECTION)
+                    dc.g.setColor(Color.white); // ensure border contrast
+                else
+                    dc.g.setColor(COLOR_SELECTION);
+                dc.g.draw(shape);
+
+                dc.g.setTransform(saveTx);
+                
+//                     // Old loop contents:
+//                     drawSelectionHandleCentered(dc.g,
+//                                                 mapToScreenX(ctrl.x),
+//                                                 mapToScreenY(ctrl.y),
+//                                                 ctrl.getColor(),
+//                                                 -(i+1)
+//                                                 );
+
             }
         }
         
@@ -4121,7 +4119,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //             for (int i = 0; i < ctrlPoints.length; i++) {
 //                 Point2D.Double cp = ctrlPoints[i];
             int i = -1;
-            for (LWSelection.Controller cp : cl.getControlPoints()) {
+            for (LWSelection.Controller cp : cl.getControlPoints(getZoomFactor())) { // TODO OPT: already got them for drawing!
                 i++;
                 if (cp == null)
                     continue;
