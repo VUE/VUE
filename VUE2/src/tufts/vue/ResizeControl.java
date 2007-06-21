@@ -67,7 +67,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     /** interface ControlListener -- our control's are numbered starting at 0 in the upper left corner,
      * and increasing in index value in the clockwise direction.
      */
-    public LWSelection.Controller[] getControlPoints() {
+    public LWSelection.Controller[] getControlPoints(double zoom) {
         return handles;
     }
         
@@ -273,10 +273,10 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             if (moved) {
                 
                 if (!c.hasAbsoluteMapLocation()) {
-                    System.out.format("RC: new absolute loc: %6.1f,%-6.1f; %s\n", newX, newY, c);
+                    if (DEBUG.WORK) System.out.format("RC: new absolute loc: %6.1f,%-6.1f; %s\n", newX, newY, c);
                     newX -= c.getParent().getMapX();
                     newY -= c.getParent().getMapY();
-                    System.out.format("RC: new relative loc: %6.1f,%-6.1f; %s\n", newX, newY, c);
+                    if (DEBUG.WORK) System.out.format("RC: new relative loc: %6.1f,%-6.1f; %s\n", newX, newY, c);
                 }
                 
                 c.setLocation(newX, newY); // todo: setAbsoluteLocation would be nice
@@ -429,7 +429,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             if (repositioned && !c.hasAbsoluteMapLocation()) {
                 c_new_x -= c.getParent().getMapX();
                 c_new_y -= c.getParent().getMapY();
-                System.out.println("new relative loc: " + c_new_x + "," + c_new_y + " for " + c);
+                if (DEBUG.WORK) System.out.println("new relative loc: " + c_new_x + "," + c_new_y + " for " + c);
             }
 
 
