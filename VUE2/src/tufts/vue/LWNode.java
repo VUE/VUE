@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.170 $ / $Date: 2007-06-20 00:48:03 $ / $Author: sfraize $
+ * @version $Revision: 1.171 $ / $Date: 2007-06-21 00:23:09 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -725,14 +725,21 @@ public class LWNode extends LWContainer
     @Override
     protected void addChildImpl(LWComponent c)
     {
-
         // must set the scale before calling the super
         // handler, as scale must be in place before
         // notifyHierarchyChanging/Changed calls.
-        if (c instanceof LWNode)
+        if (c instanceof LWNode || c instanceof LWSlide) // slide testing
             c.setScale(LWNode.ChildScale);
         super.addChildImpl(c);
     }
+
+    @Override
+    protected void removeChildImpl(LWComponent c)
+    {
+        c.setScale(1.0); // just in case, get everything
+        super.removeChildImpl(c);
+    }
+    
 
 
 
