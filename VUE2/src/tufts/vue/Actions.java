@@ -547,9 +547,30 @@ public class Actions implements VueConstants
         new LWCAction("Group", keyStroke(KeyEvent.VK_G, COMMAND), "/tufts/vue/images/xGroup.gif") {
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) {
+            
+            // TODO: allow even if all DON'T have same parent: e.g., if you select
+            // all, and this includes the children of some nodes selected, still allow
+            // everything into one group, and just ignore the children of the non-map.
+            // E.g., implement as a special case: if multiple parents, and at least
+            // one has the map has a parent, grab all elements in selection that are also
+            // children of the map, and group them.
+
+            // Would be nice to fully know up front if we're going to allow the grouping tho.
+            // E.g., if either all have same parent, or there's at least two items in the
+            // group which have the map as a parent.  Could easily have the selection
+            // keep a count for each parent class type encountered (in a hash).
+
+            // As long as doing that, might as well keep a hash of all types in selection,
+            // tho we only appear to ever use this for checking the group count (maybe special
+            // case).
+            
+            //return s.size() >= 2;
+            
+            
             // enable only when two or more objects in selection,
             // and all share the same parent
             return s.size() >= 2 && s.allHaveSameParent();
+            
             // below condition doesn't allow explicit grouping of links, which cause's trouble somewhere...
             //return (s.size() - s.countTypes(LWLink.class)) >= 2 && s.allHaveSameParent();
         }
@@ -616,9 +637,11 @@ public class Actions implements VueConstants
                 
                 for (LWComponent c : iterable) {
                     if (c.getParent() instanceof LWGroup) {
-                        if (LWLink.LOCAL_LINKS && c instanceof LWLink) // links control their own parentage
+                        if (LWLink.LOCAL_LINKS && c instanceof LWLink && ((LWLink)c).isConnected()) {
+                            // links control their own parentage when connected
                             continue;
-                        removing.add(c);
+                        } else
+                            removing.add(c);
                     }
                 }
 
@@ -636,9 +659,11 @@ public class Actions implements VueConstants
                     // LWGroups now handle auto-dispersal themseleves if all children are removed,
                     // so we don't ened to worry about auto-dispersing any groups that end up
                     // up with less than two children in them.
+
                 }
 
-                VUE.getSelection().setTo(toSelect);
+                //VUE.getSelection().setTo(toSelect);
+                    
                 
             }
 
@@ -923,9 +948,12 @@ public class Actions implements VueConstants
             else
                 c.getParent().bringForward(c);
         } else {
-            float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
-            float dx = x * unit;
-            float dy = y * unit;
+            // With relative coords, if we want to enforce a certian on-screen pixel change,
+            // we need to adjust for the current zoom, as well as the net map scaling present
+            // in the parent of the moving object.
+            final double unit = VUE.getActiveViewer().getZoomFactor() * c.getParent().getMapScale();
+            final float dx = (float) (x / unit);
+            final float dy = (float) (y / unit);
             c.translate(dx, dy);
         }
     }
