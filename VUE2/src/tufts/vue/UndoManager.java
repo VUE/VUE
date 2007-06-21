@@ -62,8 +62,11 @@ public class UndoManager
     //private List mUndoSequence = new ArrayList(); 
     /** The last LWCEvent we didn't ignore since last mark -- used for guessing at good Undo action title names */
     private LWCEvent mLastEvent;
-    /** The total number of recorded or compressed changes since last mark (will be >= mUndoSequence.size()) */
+    
+    ///** The total number of recorded or compressed changes since last mark (will be >= mUndoSequence.size()) */
     //private int mChangeCount;
+
+    private int mEventsSeenSinceLastMark;
 
     /** The current collector of changes, to be permanently recorded and named when a user "mark" is established by a GUI */
     private UndoAction mCurrentUndo;
@@ -759,7 +762,7 @@ public class UndoManager
     }
 
     public void addLastTask(Object taskKey, Runnable task) {
-        if (DEBUG.Enabled) System.out.println(TERM_RED + "addLastTask " + taskKey + " " + task + TERM_CLEAR);
+        if (DEBUG.WORK || DEBUG.UNDO) System.out.println(TERM_RED + "addLastTask " + taskKey + " " + task + TERM_CLEAR);
         addTask(mLastTasks, taskKey, task);
     }
     
@@ -875,13 +878,13 @@ public class UndoManager
             
             debug = true;
         } else if (!debug)
-            debug = DEBUG.Enabled;
+            debug = DEBUG.WORK || DEBUG.UNDO;
         //debug = DEBUG.EVENTS || DEBUG.UNDO;
 
-        if (DEBUG.Enabled) System.out.println(TERM_CYAN + "\nRUNNING "
-                                              + (mCleanupTasks.size() + mLastTasks.size())
-                                              + " CLEANUP TASKS in "
-                                              + this + TERM_CLEAR);
+        if (debug) System.out.println(TERM_CYAN + "\nRUNNING "
+                                      + (mCleanupTasks.size() + mLastTasks.size())
+                                      + " CLEANUP TASKS in "
+                                      + this + TERM_CLEAR);
         
         for (Map.Entry<Object,Runnable> e : mCleanupTasks.entrySet()) {
             final Runnable task = e.getValue();
@@ -930,6 +933,7 @@ public class UndoManager
         mCurrentUndo = new UndoAction();
         mComponentChanges.clear();
         mLastEvent = null;
+        mEventsSeenSinceLastMark = 0;
         //mChangeCount = 0;
         return markedUndo;
     }
@@ -1108,7 +1112,12 @@ public class UndoManager
             if (DEBUG.UNDO) System.out.print("\tredo: " + e);
         } else if (!mCleanupUnderway) {
             if (DEBUG.UNDO) System.out.print(this + " " + e);
-            if (mCurrentUndo.size() == 0 && mCleanupTasks.size() > 0) {
+            if (mCurrentUndo.size() == 0 && mCleanupTasks.size() > 0 && mEventsSeenSinceLastMark <= 0) {
+                // This can happen if a task is adding during a new user action,
+                // and we've seen events, but none of them have had an old value
+                // (adding to the Undo queue).  Todo: track this so we know
+                // if we've seen ANY events, so we can still see this warning,
+                // which is important for catching undo/task bugs.
                 Util.printStackTrace("Undo Warning: have un-run cleanup tasks on first incoming event (running now):"
                                      + "\n\t       UndoManager: " + this
                                      + "\n\t# of cleanup tasks: " + mCleanupTasks.size()
@@ -1122,6 +1131,7 @@ public class UndoManager
                 runCleanupTasks(true);
             }
         }
+        mEventsSeenSinceLastMark++;
         processEvent(e);
     }
 
