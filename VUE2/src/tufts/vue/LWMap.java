@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.Util;
+
 import java.util.*;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
@@ -54,20 +56,11 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.141 $ / $Date: 2007-06-20 00:49:02 $ / $Author: sfraize $
+ * @version $Revision: 1.142 $ / $Date: 2007-06-21 00:23:51 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
 {
-    /**
-     * Model version 0: pre-model versions / unknown (assumed all absolute coordinates)
-     * Model version 1: relative children, including groups (excepting link members)
-     * Model version 2: relative children, groups back to absolute (excepting link members -- only a few days this version)
-     * Model version 3: relative children, groups back to relative with crude node-embedding support
-     */
-    public static final int CurrentModelVersion = 3;
-
-    
     /** file we were opened from of saved to, if any */
     private File file;
     
@@ -103,7 +96,7 @@ public class LWMap extends LWContainer
     private double userZoom = 1;
 
     private transient int mSaveFileModelVersion = -1;
-    private transient int mModelVersion = CurrentModelVersion;
+    private transient int mModelVersion = getCurrentModelVersion();
     
     
     // only to be used during a restore from persisted
@@ -186,6 +179,20 @@ public class LWMap extends LWContainer
     {
         child.drawInParent(dc);
     }
+
+
+    /**
+     * Model version 0: absolute children: pre-model versions / unknown (assumed all absolute coordinates)
+     * Model version 1: relative children, including groups (excepting link members)
+     * Model version 2: relative children, groups back to absolute (excepting link members -- only a few days this version)
+     * Model version 3: relative children, groups back to relative with crude node-embedding support
+     * Model version 4: relative children, groups relative, link points relative to parent (no longer have absolute map location)
+     */
+    //private static final int CurrentModelVersion = LWLink.LOCAL_LINKS ? 4 : 3;
+    public static int getCurrentModelVersion() {
+        return LWLink.LOCAL_LINKS ? 4 : 3;
+    }
+    
     
     
     /** for persistance */
@@ -195,6 +202,7 @@ public class LWMap extends LWContainer
     
     /** for persistance */
     public void setModelVersion(int version) {
+        if (DEBUG.Enabled) out("setModelVersion " + version + "; current=" + mModelVersion);
         mModelVersion = version;
         mSaveFileModelVersion = version;
     }
@@ -501,7 +509,7 @@ public class LWMap extends LWContainer
                 // CRAP: still need to process the damn children of the freakin group...
                 // need to go back to our prior method...
                 if (getModelVersion() == 1 && c instanceof LWGroup) {
-                    if (DEBUG.Enabled) System.out.println(" DM#1 ALREADY RELATIVE: " + c);
+                    if (DEBUG.Enabled) System.out.println(" DM#1 ALREADY RELATIVE: " + c); // now need to allow to to relativize links (actually, add new method)
                     // groups were relative in model version 1
                     //((LWGroup)c).normalize();
                     continue;
@@ -519,17 +527,25 @@ public class LWMap extends LWContainer
     private void changeAbsoluteToRelativeCoords(LWContainer container) {
         if (DEBUG.Enabled) System.out.println("CONVERTING TO RELATIVE in " + this + "; container: " + container);
         for (LWComponent c : container.getChildList()) {
-            if (c.hasAbsoluteMapLocation())
-                continue;
+            if (c instanceof LWLink) {
+                if (getCurrentModelVersion() >= 4 && getModelVersion() < 4) {
+                    System.out.println("NEED TO RELATIVIZE LINK IN " + this + ": " + c);
+                } else {
+                    // always have had absolute coords
+                    continue;
+                }
+            }
+//             if (c.hasAbsoluteMapLocation())
+//                 continue;
             c.takeLocation(c.getX() - container.getX(),
                            c.getY() - container.getY());
         }
     }
 
-    private static void changeRelativeToAbsoluteCoords(LWGroup container) {
+    private void changeRelativeToAbsoluteCoords(LWGroup container) {
         if (DEBUG.Enabled) System.out.println("CONVERTING TO ABSOLUTE: " + container);
         for (LWComponent c : container.getChildList()) {
-            if (c instanceof LWLink) // always have had absolute coords
+            if (c instanceof LWLink)
                 continue;
             c.takeLocation(c.getX() + container.getX(),
                            c.getY() + container.getY());
@@ -579,9 +595,9 @@ public class LWMap extends LWContainer
         // Now update the model the the most recent data version
         //----------------------------------------------------------------------------------------
         
-        if (getModelVersion() < CurrentModelVersion) {
+        if (getModelVersion() < getCurrentModelVersion()) {
             
-            if (true||getModelVersion() < 1) {
+            if (getModelVersion() < 3) {
                 //-----------------------------------------------------------------------------
                 // Upgrade from model version 0 -- make everything relative
                 //-----------------------------------------------------------------------------
@@ -641,8 +657,9 @@ public class LWMap extends LWContainer
             }
 
 
-            VUE.Log.info(this + " Updated from model version " + getModelVersion() + " to " + CurrentModelVersion);
-            mModelVersion = CurrentModelVersion;
+            VUE.Log.info(this + " Updated from model version " + getModelVersion() + " to " + getCurrentModelVersion());
+            mModelVersion = getCurrentModelVersion();
+            //VUE.Log.info(this + "   Updated to model version " + getModelVersion());
         }
 
         // TODO: REALLY need a depth-first ordered list for these
