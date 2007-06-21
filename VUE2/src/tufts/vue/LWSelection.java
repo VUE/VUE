@@ -29,7 +29,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.70 $ / $Date: 2007-05-25 21:47:47 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2007-06-21 00:22:03 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -149,7 +149,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         void controlPointPressed(int index, MapMouseEvent e);
         void controlPointMoved(int index, MapMouseEvent e);
         void controlPointDropped(int index, MapMouseEvent e);
-        Controller[] getControlPoints();
+        Controller[] getControlPoints(double zoom);
     }
     
 
