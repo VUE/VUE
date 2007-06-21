@@ -1,0 +1,167 @@
+<project name="TestForStringLiterals" default="jcsc" basedir=".">
+
+<!-- $Revision: 1.1 $ / $Date: 2007-06-21 15:37:20 $ -->
+
+<!-- 
+This ant build file:
+        Runs JCSC (Java  Coding Standards checker)
+-->
+
+<!-- ===================== Property Definitions =========================== -->
+<!--
+
+  Each of the following properties are used in the build script.
+  Values for these properties are set by the first place they are
+  defined, from the following list:
+
+  * Definitions on the "ant" command line (ant -Dfoo=bar compile).
+
+  * Definitions from a "build.properties" file in the top level
+    source directory of this application.
+
+  * Definitions from a "build.properties" file in the developer's
+    home directory.
+
+  * Default definitions in this build.xml file.
+
+-->
+  <property file="build.properties"/>
+  <property file="${user.home}/build.properties"/>
+
+  
+<!-- ==================== File and Directory Names ======================== -->
+<!--
+  These properties generally define file and directory names (or paths) that
+  affect where the build process stores its outputs.
+-->
+
+  <property name="build.home"    value="${basedir}/build"/>
+  <property name="results.home"  value="${basedir}/results"/>
+  <property name="src.home"      value="${basedir}/../src"/>
+
+  <property name="build.lib"   value="${build.home}/lib" />
+  <property name="dist.src"    value="${dist.home}/src"/>
+  <property name="home.src"    value="${basedir}/src"/>
+
+
+
+<!-- ================== Custom Ant Task Definitions ======================= -->
+<!--
+  These properties define custom tasks for the Ant build tool that interact
+  with JCSC.
+-->
+ 
+  <taskdef name="jcsc" classname="rj.tools.jcsc.ant.JCSCTask"
+    classpath="${basedir}/lib/JCSC.jar" />
+
+
+<!-- ==================== External Dependencies =========================== -->
+<!--
+  Use property values to define the locations of external JAR files on which
+  your application will depend.  In general, these values will be used for
+  two purposes:
+  * Inclusion on the classpath that is passed to the Javac compiler
+  * Being copied into a target directory during execution of a "deploy" target.
+
+  example:
+  
+  <property name="junit.jar"   value="${lib.home}/junit.jar" />
+-->
+	
+
+<!-- ==================== Compilation Classpath =========================== -->
+<!--
+  Rather than relying on the CLASSPATH environment variable, Ant includes
+  features that makes it easy to dynamically construct the classpath you
+  need for each compilation.
+-->
+  <path id="compile.classpath">
+    <pathelement location="${basedir}" />
+    <pathelement path="${build.class}"/>	
+    <pathelement location="${lib.home}/okiOSID-2.0.jar" />	
+
+    <!-- Include all elements that Tomcat exposes to applications -->
+    <pathelement location="${catalina.home}/common/classes"/> 
+	<fileset dir="${catalina.home}/common/endorsed">
+	  <include name="*.jar"/>
+	</fileset>
+
+  </path>
+
+<!-- ==================== All Target ====================================== -->
+<!--
+  The "all" target is a shortcut for running the "clean" target and the "codegen" 
+  target followed by the "compile" target, to force a complete recompile.
+-->
+  <target name="all" depends=""
+    description="Delete build and dist dirs, compile, and create WAR file">
+	
+		
+	</target>
+
+<!-- ==================== Clean Target ==================================== -->
+<!--
+  The "clean" target deletes any previous "build" and "dist" directory,
+  so that you can be ensured the application can be built from scratch.
+-->
+
+  <target name="clean-jcsc"
+   description="Delete old build and dist directories">
+
+    <delete dir="${results.home}/jcsc" />
+
+  </target>
+
+
+<!-- ==================== Prepare Target ================================== -->
+<!--
+  The "prepare" target is used to create the "build" destination directory,
+  and copy the static contents of your web application to it.  If you need
+  to copy static files from external dependencies, you can customize the
+  contents of this task.
+
+  Normally, this task is executed indirectly when needed.
+-->
+  <target name="prepare">
+
+    <!-- Create build directories as needed -->
+    <mkdir  dir="${results.home}/jcsc"/>
+    
+    <!-- Set Ant batch file based on test for platform -->
+    <condition property="ant.exec" value="ant.bat"> 
+      <os family="windows"/>
+    </condition>
+    <condition property="ant.exec" value="ant"> 
+      <not>
+        <os family="windows"/>
+      </not>
+    </condition>
+
+    <tstamp />
+  </target>
+
+
+<!-- ==================== JCSC Target(s) ================================== -->
+<!--
+-->
+
+  <target name="jcsc" depends="clean-jcsc, prepare"
+    description="run JCSC against Java sources.">
+    
+    <mkdir dir="${build.home}/"/>
+
+	<jcsc rules="${basedir}/jcsc.jcsc.xml"
+			destdir="${results.home}/jcsc"
+			worstcount="20"
+			startdate="2003-01-01 00:00:00"
+			failseverity="5"
+			copyassociatedfiles="true"
+			jcschome="${jcsc.home}"
+			resultsformatter="rj.tools.jcsc.formatter.XMLResultsFormatter">
+
+				<fileset dir="${src.home}"
+				 	includes="**/*.java"/>
+	  </jcsc>
+	</target>
+
+</project>
