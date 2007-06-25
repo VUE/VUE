@@ -37,6 +37,8 @@ import java.util.*;
 //import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
 
+import edu.tufts.vue.metadata.MetadataList;
+
 import edu.tufts.vue.style.Style;
 
 import edu.tufts.vue.preferences.implementations.BooleanPreference;
@@ -45,7 +47,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.295 $ / $Date: 2007-06-21 00:27:23 $ / $Author: sfraize $
+ * @version $Revision: 1.296 $ / $Date: 2007-06-25 16:18:49 $ / $Author: dan $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -162,6 +164,8 @@ public class LWComponent
     // object is laid out, or it's parent resizes.
     
     private boolean isFiltered = false; // replace with hidebits
+    
+    private MetadataList metadataList = new MetadataList();
     private NodeFilter nodeFilter = null; // don't know why we need this
     
     protected float width = NEEDS_DEFAULT;
@@ -1667,10 +1671,40 @@ u                    getSlot(c).setFromString((String)value);
             return getComponentTypeLabel() + "[" + getLabel() + "]";
     }
     
+    /**
+     * left in for (possible future) backward file compatibility
+     * do nothing with this data anymore for now.
+     *
+     * @deprecated
+     *
+     **/
     public void setNodeFilter(NodeFilter nodeFilter) {
         this.nodeFilter = nodeFilter;
     }
     
+    /**
+     *
+     * Metadata List for use with RDF Index
+     * It is sufficient for the minimal RDF functionality
+     * to be able to retrieve this list from the LWComponent
+     * using this method and add elements directly to the list as needed.
+     * LWComponent may choose to create notifications/modifcations
+     * for any data added directly through LWComponent itself
+     * in future.
+     *
+     **/
+     public MetadataList getMetadata()
+     {
+         return metadataList;
+     }
+    
+    /**
+     * left in for (possible future) backward file compatibility
+     * do nothing with this data anymore for now.
+     *
+     * @deprecated
+     *
+     **/
     public NodeFilter getNodeFilter() {
         //out(this + " getNodeFilter " + nodeFilter);
         return nodeFilter;
