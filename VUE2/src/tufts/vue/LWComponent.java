@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.296 $ / $Date: 2007-06-25 16:18:49 $ / $Author: dan $
+ * @version $Revision: 1.297 $ / $Date: 2007-06-25 16:29:59 $ / $Author: dan $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1693,7 +1693,7 @@ u                    getSlot(c).setFromString((String)value);
      * in future.
      *
      **/
-     public MetadataList getMetadata()
+     public MetadataList getMetadataList()
      {
          return metadataList;
      }
