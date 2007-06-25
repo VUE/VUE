@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.78 $ / $Date: 2007-06-05 13:00:51 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2007-06-25 19:32:49 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -44,7 +44,27 @@ public class VueUtil extends tufts.Util
     public static void openURL(String platformURL)
         throws java.io.IOException
     {
-        VUE.Log.info("openURL[" + platformURL + "]");
+        boolean isMailto = false;
+        String logURL = platformURL;
+        
+        if (platformURL != null && platformURL.startsWith("mailto:")) {
+            isMailto = true;
+            if (platformURL.length() > 80) {
+                // in case there's a big subject or body (e.g, ?subject=Foo&body=Bar in the URL), don't log the whole thing
+                logURL = platformURL.substring(0,80) + "...";
+            }
+            try {
+                // Putting the raw mailto: with ?/& chars into the log is
+                // apparently screwing up future mailto: calls because
+                // these chars appear in the body (even if we encode them!),
+                // so we always encode the mailto: in the log.
+                logURL = java.net.URLEncoder.encode(logURL, "UTF-8");
+            } catch (java.io.UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            VUE.Log.info("openURL[" + logURL + "]");
+        } else
+            VUE.Log.debug("openURL[" + logURL + "]");
 
         if (VUE.inNativeFullScreen())
             VUE.toggleFullScreen();
@@ -59,35 +79,35 @@ public class VueUtil extends tufts.Util
 
         // todo: spawn this in another thread just in case it hangs
         
-        String lowCaseURL = platformURL.toLowerCase();
+        if (!isMailto) {
+            String lowCaseURL = platformURL.toLowerCase();
                      
-        if (lowCaseURL.endsWith(VueExtension)
-            || lowCaseURL.endsWith(".zip")
-            || (DEBUG.Enabled && lowCaseURL.endsWith(".xml"))) {
+            if (lowCaseURL.endsWith(VueExtension)
+                || lowCaseURL.endsWith(".zip")
+                || (DEBUG.Enabled && lowCaseURL.endsWith(".xml"))) {
             
-            if (lowCaseURL.startsWith("resource:")) {
-                // Special case for startup.vue which can be embedded in the classpath
-                java.net.URL url = VueResources.getURL(platformURL.substring(9));
-                VUE.displayMap(tufts.vue.action.OpenAction.loadMap(url));
+                if (lowCaseURL.startsWith("resource:")) {
+                    // Special case for startup.vue which can be embedded in the classpath
+                    java.net.URL url = VueResources.getURL(platformURL.substring(9));
+                    VUE.displayMap(tufts.vue.action.OpenAction.loadMap(url));
+                    return;
+                }
+            
+                try {
+                    tufts.vue.VUE.displayMap(new File(new java.net.URL(platformURL).getFile()));
+                } catch (java.net.MalformedURLException e) {
+                    VUE.Log.error(e + " " + platformURL);
+                    try {
+                        tufts.vue.VUE.displayMap(new File(platformURL));
+                    } catch (Exception ex) {
+                        System.out.println(ex + " " + platformURL);
+                        tufts.Util.openURL(platformURL);
+                    }
+                }
                 return;
             }
-            
-            try {
-                tufts.vue.VUE.displayMap(new File(new java.net.URL(platformURL).getFile()));
-            } catch (java.net.MalformedURLException e) {
-                VUE.Log.error(e + " " + platformURL);
-                try {
-                    tufts.vue.VUE.displayMap(new File(platformURL));
-                } catch (Exception ex) {
-                    System.out.println(ex + " " + platformURL);
-                    tufts.Util.openURL(platformURL);
-                }
-            }
-            return;
         }
 
-        //if (lowCaseURL.endsWith(".zip")) {}
-        
         if (VUE.isApplet()) {
             java.net.URL url = null;
             try {
