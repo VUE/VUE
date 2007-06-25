@@ -20,13 +20,15 @@ import tufts.vue.*;
 
 import com.hp.hpl.jena.rdf.model.impl.*;
 
-public class RDFIndex {
+public class RDFIndex extends ModelCom {
+    public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
+        super(base);
+    }
     public void index(LWMap map) {
         
     }
     
-    public List search(String keyword) {
-        
+    public List search(String keyword) {        
         return null;
     }
     
