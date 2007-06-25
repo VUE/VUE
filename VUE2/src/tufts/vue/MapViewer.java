@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.406 $ / $Date: 2007-06-21 00:21:47 $ / $Author: sfraize $ 
+ * @version $Revision: 1.407 $ / $Date: 2007-06-25 19:32:13 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3744,7 +3744,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         Point2D.Float dragOffset = new Point2D.Float();
         
         private int kk = 0;
-        private DockWindow debugInspector;
+        private static DockWindow DebugInspector;
+        private static DockWindow DebugIntrospector;
         private DockWindow debugPanner;
         public void keyPressed(KeyEvent e) {
             if (DEBUG.KEYS) out("[" + e.paramString() + "] consumed=" + e.isConsumed());
@@ -4031,21 +4032,24 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 //else if (c == '|') { VUE.toggleFullScreen(true); // native full screen mode }
                 else if (c == '!') {
                     DockWindow introspector = null;
-                    if (true||debugInspector == null) {
-                        debugInspector
-                            = new DockWindow("Inspector",
-                                             SwingUtilities.getWindowAncestor(MapViewer.this),
-                                             new LWCInspector(),
-                                             false);
-                        introspector
-                            = new DockWindow("Introspector",
-                                             SwingUtilities.getWindowAncestor(MapViewer.this),
-                                             new LWCInspector.Introspector(),
-                                             false);
-                        debugInspector.setWidth(500);
+                    if (DebugInspector == null) {
+                        DebugInspector = GUI.createDockWindow("Inspector", new LWCInspector());
+                        DebugIntrospector = GUI.createDockWindow("Inspector", new LWCInspector.Introspector());
+                        DebugInspector.setWidth(500);
+                        // below code creates DockWindow's that screw up the DockWindow layering
+                        // in VUE, tho I think had the advantage of more reliably working in test cases
+                        // where we're running a stand-alone MapViewer.
+//                             = new DockWindow("Inspector",
+//                                              SwingUtilities.getWindowAncestor(MapViewer.this),
+//                                              new LWCInspector(),
+//                                              false);
+//                             = new DockWindow("Introspector",
+//                                              SwingUtilities.getWindowAncestor(MapViewer.this),
+//                                              new LWCInspector.Introspector(),
+//                                              false);
                     }
-                    debugInspector.setVisible(true);
-                    introspector.setVisible(true);
+                    DebugInspector.setVisible(true);
+                    DebugIntrospector.setVisible(true);
                 } else if (c == '@') {
                     if (debugPanner == null)
                         debugPanner = new DockWindow("Panner", new MapPanner());
