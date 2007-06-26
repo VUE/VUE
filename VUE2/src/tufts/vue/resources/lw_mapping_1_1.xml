@@ -637,6 +637,9 @@
           <bind-xml name = "password" node = "element" />
     </field>
 </class>
+ <class name="edu.tufts.vue.rss.RSSDataSource" extends="tufts.vue.VueDataSource">
+    <map-to xml="edu.tufts.vue.rss.RSSDataSource" />
+</class>
 <!--
 
  <class name="tufts.vue.GoogleDataSource" extends="tufts.vue.VueDataSource">
