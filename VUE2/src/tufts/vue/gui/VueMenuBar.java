@@ -1,29 +1,23 @@
 package tufts.vue.gui;
 
-import edu.tufts.vue.ontology.action.OntologyControlsOpenAction;
-import edu.tufts.vue.ontology.action.OwlOntologyOpenAction;
-import edu.tufts.vue.ontology.action.RDFSOntologyOpenAction;
+import tufts.Util;
 import tufts.vue.*;
 import tufts.vue.action.*;
 
-import java.awt.Component;
-import java.awt.Event;
-import java.awt.Color;
-import java.awt.Window;
-import java.awt.event.KeyEvent;
+import edu.tufts.vue.ontology.action.OntologyControlsOpenAction;
+import edu.tufts.vue.ontology.action.OwlOntologyOpenAction;
+import edu.tufts.vue.ontology.action.RDFSOntologyOpenAction;
+
 import java.io.File;
+
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.Action;
-import javax.swing.AbstractButton;
-import javax.swing.KeyStroke;
-import javax.swing.JComponent;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JScrollPane;
+import java.awt.*;
+import java.awt.event.*;
+
+import javax.swing.*;
+
 
 import edu.tufts.vue.preferences.VuePrefEvent;
 import edu.tufts.vue.preferences.VuePrefListener;
@@ -31,7 +25,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.41 $ / $Date: 2007-06-11 10:07:48 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2007-06-26 15:59:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -360,6 +354,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         helpMenu.addSeparator();
         helpMenu.add(new ShortcutsAction());
         
+        helpMenu.addSeparator();
+        helpMenu.add(new ShowLogAction());
+        
         
         //build out the main menus..
         add(fileMenu);
@@ -512,14 +509,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
 
 
-    private class RecentOpenAction extends VueAction {
-    	
+    private static class RecentOpenAction extends VueAction {
     	private File file;
-    	public RecentOpenAction(File f)
-    	{
-    		
-    		super(f.getName());
-    		file = f;
+    	public RecentOpenAction(File f) {
+            super(f.getName());
+            file = f;
     	}
 
         @Override
@@ -527,11 +521,80 @@ public class VueMenuBar extends javax.swing.JMenuBar
     	
     	public void act()
     	{
-    		//File f = new File(fileString);
-    		OpenAction.displayMap(file);
+            OpenAction.displayMap(file);
     	}
     	
     }
+
+    private static class ShowLogAction extends VueAction {
+        private static DockWindow errorDock;
+        private static JTextArea textArea;
+
+        //private static final String ReportAddress = "vue-help@elist.tufts.edu";
+        private static final String ReportAddress = "vue-report@fraize.org";
+        
+    	public ShowLogAction() {
+            super("VUE Log");
+    	}
+
+        @Override
+        public boolean isUserEnabled() { return true; }
+    	
+    	public void act() {
+            if (errorDock == null)
+                buildGUI();
+            textArea.setText(tufts.Util.getExceptionLog().toString());
+            errorDock.setVisible(true);
+    	}
+
+        private void buildGUI() {
+            final JPanel panel = new JPanel(new BorderLayout());
+            textArea = new JTextArea();
+            textArea.setFont(VueConstants.SmallFixedFont);
+            textArea.setLineWrap(true);
+            textArea.setEditable(false);
+            panel.add(new JScrollPane(textArea), BorderLayout.CENTER);
+
+            if (!Util.isWindowsPlatform())
+            // can't get enough log into the email for now on Windows to be useful.
+                panel.add(new JButton("Submit Report") {
+                    @Override
+                    protected void fireActionPerformed(ActionEvent ae) {                        
+                        //System.out.println("ACTION " + ae);
+                        
+                        final String body;
+
+                        if (Util.isWindowsPlatform()) {
+                            // There's a 2048 byte WinXP argument limit for url.dll,FileProtocolHandler,
+                            // so don't add anything extra...
+                            body = Util.getExceptionLog().toString();
+                        } else {
+                            body =
+                                "Thank you for submitting a problem report.\n"
+                                + "Please feel free to add any comments/feedback here:\n"
+                                + "\n\n\n"
+                                + Util.getExceptionLog()
+                                + "\nEnd report: " + new java.util.Date() + ".\n";
+                        }
+                            
+                        final String subject =
+                            "VUE Log Report from " + VUE.getSystemProperty("user.name");
+                        
+                        try {
+                            VueUtil.openURL(Util.makeQueryURL("mailto:" + ReportAddress,
+                                                              "subject", subject,
+                                                              "body", body));
+                        } catch (Throwable t) {
+                            t.printStackTrace();
+                        }
+                    }
+                },
+                BorderLayout.SOUTH);
+            errorDock = GUI.createDockWindow("VUE Log", panel);
+            errorDock.setSize(800,600);
+        }
+    }
+    
     private static class ShortcutsAction extends VueAction {
         private static DockWindow window;
         ShortcutsAction() {
