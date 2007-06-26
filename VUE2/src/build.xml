@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.135 $ / $Date: 2007-04-26 18:53:52 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.135 2007-04-26 18:53:52 jeff Exp $ -->
+<!-- $Revision: 1.136 $ / $Date: 2007-06-26 18:43:21 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.136 2007-06-26 18:43:21 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -195,6 +195,7 @@
 				   MIT-OTS.jar
 				   MITRepositoryTypes.jar
                    MITSearchTypes.jar
+                   rome-0.9.jar
                    okiSID_rc6_1.jar
                    okiSIDimpl.jar
 				   OsidProvider.jar
@@ -356,7 +357,7 @@
     <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
     <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
     <pathelement path="${lib.home}/dom.jar" />
-
+    <pathelement path="${lib.home}/rome-0.9.jar" />
     <!-- I'm not sure it's safe to include a prior build's class files in the current build's
          classpath - can we remove this? SMF 8/5/05.
       If we were to require this, the build would never work from scratch! -->
