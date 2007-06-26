@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.79 $ / $Date: 2007-06-25 19:32:49 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2007-06-26 15:59:12 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -52,15 +52,6 @@ public class VueUtil extends tufts.Util
             if (platformURL.length() > 80) {
                 // in case there's a big subject or body (e.g, ?subject=Foo&body=Bar in the URL), don't log the whole thing
                 logURL = platformURL.substring(0,80) + "...";
-            }
-            try {
-                // Putting the raw mailto: with ?/& chars into the log is
-                // apparently screwing up future mailto: calls because
-                // these chars appear in the body (even if we encode them!),
-                // so we always encode the mailto: in the log.
-                logURL = java.net.URLEncoder.encode(logURL, "UTF-8");
-            } catch (java.io.UnsupportedEncodingException e) {
-                e.printStackTrace();
             }
             VUE.Log.info("openURL[" + logURL + "]");
         } else
