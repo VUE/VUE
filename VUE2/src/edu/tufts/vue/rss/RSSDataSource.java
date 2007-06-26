@@ -21,16 +21,137 @@
 /**
  *
  * @author akumar03
+ * @author Daniel J. Heller
  */
 
 package edu.tufts.vue.rss;
 
 import tufts.vue.*;
 
+import java.awt.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.*;
+
+import com.sun.syndication.feed.synd.SyndEntry;
+import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.io.FeedException;
+import com.sun.syndication.io.SyndFeedInput;
+import com.sun.syndication.io.XmlReader;
+
 public class RSSDataSource  extends VueDataSource{
     
-    /** Creates a new instance of RSSDatasource */
-    public RSSDataSource() {
+    private JComponent resourceViewer;
+    
+    public RSSDataSource() {        
+    }
+    
+    public RSSDataSource(String displayName, String address) throws DataSourceException
+    {
+        this.setDisplayName(displayName);
+        this.setAddress(address);    
+    }
+    
+    public void setAddress(String address)  throws DataSourceException{
+        super.setAddress(address);
+        this.setResourceViewer();
+    }
+    
+    
+    public void setResourceViewer()
+    {
+        URL address = null;
+                
+        try
+        {
+          address = new URL(getAddress());
+        }
+        catch(MalformedURLException mue)
+        {
+            System.out.println("Malformed URL Exception while opening RSS Feed: " + mue);
+        }
+        
+        if(address == null)
+        {
+            System.out.println("Null URL for RSS Feed, aborting.. ");
+            return;
+        }
+        
+        SyndFeedInput feedBuilder = new SyndFeedInput();
+        SyndFeed rssFeed = null;
+        try          
+        {        
+          rssFeed = feedBuilder.build(new XmlReader(address));
+        }
+        catch(FeedException fe)
+        {
+            System.out.println("FeedException while building RSS feed: " + fe);
+        }
+        catch(java.io.IOException io)
+        {
+            System.out.println("IOException while building RSS feed: " + io);
+        }
+        
+        if(rssFeed == null)
+        {
+            System.out.println("Null rssFeed, aborting... ");
+            return;
+        }
+        
+        List<SyndEntry> itemList = rssFeed.getEntries();
+        
+        List<URLResource> resourceList = new ArrayList<URLResource>();
+        
+        Iterator<SyndEntry> i = itemList.iterator();
+        while(i.hasNext())
+        {
+            SyndEntry entry = i.next();
+            URLResource res = null;
+            try
+            {
+              res = new URLResource(new URL(entry.getUri()));
+            }
+            catch(MalformedURLException mue)
+            {
+                System.out.println("Malformed URL Exception while creating RSS feed resource: " + mue);
+            }
+            if(res == null)
+            {
+                System.out.println("null resource created for rss feed, aborting... ");
+                return;
+            }
+            res.setTitle(entry.getTitle());
+            resourceList.add(res);
+        }
+        
+        VueDragTree fileTree = new VueDragTree(resourceList.iterator(), this.getDisplayName());
+        fileTree.setRootVisible(true);
+        fileTree.setShowsRootHandles(true);
+        fileTree.expandRow(0);
+        fileTree.setRootVisible(false);
+
+        if (false) {
+            JPanel localPanel = new JPanel();
+            JScrollPane rSP = new JScrollPane(fileTree);
+            localPanel.setMinimumSize(new Dimension(290,100));
+            localPanel.setLayout(new BorderLayout());
+            localPanel.add(rSP,BorderLayout.CENTER);
+            this.resourceViewer = localPanel;
+        } else {
+            this.resourceViewer = fileTree;
+        }
+            
+        //DataSourceViewer.refreshDataSourcePanel(this);
+        
+    }
+    
+    public JComponent getResourceViewer(){
+        
+        return this.resourceViewer;
+        
     }
     
 }
