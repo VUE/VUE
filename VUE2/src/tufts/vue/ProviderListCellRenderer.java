@@ -35,10 +35,12 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
     private final Icon checkedIcon = VueResources.getImageIcon("addLibrary.checkMarkIcon");
     private final ImageIcon waitIcon = VueResources.getImageIcon("waitIcon");
+    private final Icon rssIcon = remoteIcon;
 	private static String MY_COMPUTER = VueResources.getString("addLibrary.mycomputer.label");
 	private static String LOADING = VueResources.getString("addLibrary.loading.label");
 	private static String MY_SAVED_CONTENT = "My Saved Content";
 	private static String FTP = "FTP";
+        private static String RSS = "RSS Feed";
 	
     private JPanel mRow = new JPanel();
     private JPanel mLabelPanel = new JPanel();
@@ -211,7 +213,11 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
 				mRow.setBorder(DividerBorder);
 				displayName = FTP;            
 				mIconLabel.setIcon(remoteIcon);
-			} else if (s.equals(LOADING)) {
+			} else if (s.equals(RSS)) {
+                                mRow.setBorder(DividerBorder);
+                                displayName = RSS;
+                                mIconLabel.setIcon(rssIcon);
+                         }  else if (s.equals(LOADING)) {
 				mRow.setBorder(DividerBorder);
 				displayName = LOADING;
 				mIconLabel.setIcon(null);

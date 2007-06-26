@@ -130,7 +130,11 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
             mRow.setBorder(DividerBorder);
             displayName = ((DataSource)value).getDisplayName();            
             mIconLabel.setIcon(remoteIcon);
-        } else
+        } else if ( value instanceof edu.tufts.vue.rss.RSSDataSource) { 
+            mRow.setBorder(DividerBorder);
+            displayName = ((DataSource)value).getDisplayName();            
+            mIconLabel.setIcon(remoteIcon);
+        }else
             mRow.setBorder(DividerBorder);
             
         if (value == DataSourceList.IndicatedDragOverValue)
