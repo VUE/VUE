@@ -20,16 +20,17 @@ package tufts;
 
 import tufts.macosx.MacOSX;
 
+import java.io.*;
+import java.net.*;
 import java.lang.ref.*;
 import java.util.*;
 import java.util.jar.*;
 import java.util.prefs.*;
-import java.net.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.*;
 import javax.swing.border.*;
 
@@ -176,19 +177,27 @@ public class Util
         return MacAquaLAF;
     }
 
-    public static void openURL(String platformURL)
+    /** @param url -- a url assumed to be in the platform default format (e.g., it may be
+     * formatted in a way only understood on the current platform).
+     */
+    public static void openURL(String url)
         throws java.io.IOException
     {
+        boolean isLocalFile = url.length() >= 5 && "file:".equalsIgnoreCase(url.substring(0,5));
+        boolean isMailTo = url.length() >= 7 && "mailto:".equalsIgnoreCase(url.substring(0,7));
+
+        if (DEBUG) System.err.println("openURL_PLAT [" + url + "] isLocalFile=" + isLocalFile + " isMailTo=" + isMailTo);
+        
         if (isMacPlatform())
-            openURL_Mac(platformURL);
+            openURL_Mac(url, isLocalFile, isMailTo);
         else if (isUnixPlatform())
-            openURL_Unix(platformURL);
+            openURL_Unix(url, isLocalFile, isMailTo);
         else // default is a windows platform
-            openURL_Windows(platformURL);
+            openURL_Windows(url, isLocalFile, isMailTo);
     }
 
     private static final String PC_OPENURL_CMD = "rundll32 url.dll,FileProtocolHandler";
-    private static void openURL_Windows(String url)
+    private static void openURL_Windows(String url, boolean isLocalFile, boolean isMailTo)
         throws java.io.IOException
     {
         System.err.println("openURL_Win  [" + url + "]");
@@ -202,9 +211,13 @@ public class Util
         // ALSO, file:// or // file:/// works BY ITSELF (file:/ by itself still doesn't work).
         
         //url = url.replaceAll("%20", " ");
-        url = decodeURL(url);
-        url = decodeURL(url); // run twice in case any %2520 double encoded spaces
-        if (url.toLowerCase().startsWith("file:")) {
+
+        if (!isMailTo) {
+            url = decodeURL(url);
+            url = decodeURL(url); // run twice in case any %2520 double encoded spaces
+        }
+
+        if (isLocalFile) {
             // below works, but we're doing a full conversion to windows path names now
             //url = url.replaceFirst("^file:/+", "file:");
             url = url.replaceFirst("^file:/+", "");
@@ -223,20 +236,63 @@ public class Util
             }
             // at this point, "url" is really just a local windows file
             // in full windows syntax (backslashes, drive specs, etc)
+            System.err.println("openURL_WinLF[" + url + "]");
         }
 
         String cmd = PC_OPENURL_CMD + " " + url;
-        System.err.println("exec[" + cmd + "]");
-        Process p = Runtime.getRuntime().exec(cmd);
-        if (false) {
-            try {
-                System.err.println("waiting...");
-                p.waitFor();
-            } catch (Exception ex) {
-                System.err.println(ex);
-            }
-            System.err.println("exit value=" + p.exitValue());
+        final int sizeURL = url.length();
+        final int sizeCommand = cmd.length();
+        final int sizeWinArgs = sizeCommand - 17; // subtract "rundll32 url.dll,"
+        boolean debug = DEBUG;
+        if (sizeURL > 2027 || sizeCommand > 2064 || sizeWinArgs >= 2048) {
+            System.err.println("\nWarning: WinXP buffer lengths likely exceeded: command not likely to run (arglen=" + sizeWinArgs + ")");
+            debug = true;
+        } else {
+            System.err.println();
         }
+        if (debug) {
+            System.err.println("exec       url length: " + sizeURL);
+            System.err.println("exec   command length: " + sizeCommand);
+            System.err.println("exec url.dll args len: " + sizeWinArgs);
+        }
+
+        if (sizeCommand > 2064) {
+            System.err.println("exec: truncating command and hoping for the best...");
+            cmd = cmd.substring(0,2063);
+        }
+
+        System.err.println("exec[" + cmd + "]");
+
+        Runtime.getRuntime().exec(cmd);
+
+//         final String mailto = "mailto:"
+//             + "foo@bar.com?"
+//             + "subject=TestSubject"
+//             + "&attachment="
+//             //+ "&Attach="
+//             + "\""
+//             + "c:\\\\foo.txt"
+//             + "\""
+//             ;
+//         System.err.println("MAILTO: ["+mailto+"]");
+//         Runtime.getRuntime().exec(new String[] {"rundll32", "url.dll,FileProtocolHandler", mailto
+//                                                 "mailto:"
+//                                                 + "&subject=TestSubject"
+//                                                 + "&attachment=" + "\"" + "c:\\\\foo.txt" + "\""
+//             },
+//             null);
+
+        
+//         if (false) {
+//             Process p = Runtime.getRuntime().exec(cmd);
+//             try {
+//                 System.err.println("waiting...");
+//                 p.waitFor();
+//             } catch (Exception ex) {
+//                 System.err.println(ex);
+//             }
+//             System.err.println("exit value=" + p.exitValue());
+//         }
     }
 
     /**
@@ -371,6 +427,63 @@ public class Util
         }
     }
 
+    /** Encode a query pair URL such that it will work with the current platform openURL code.
+     * E.g., construct a mailto: whose subject/body args are encoded such that they successfully
+     * pass through to the local mail client.
+     */
+    public static String makeQueryURL(String urlStart, String ... nameValuePairs) {
+
+        StringBuffer url = new StringBuffer(urlStart);
+
+        boolean isKey = true;
+        boolean isFirstKey = true;
+        String curKey = "<no-key!>";
+        for (String s : nameValuePairs) {
+            //System.out.format("TOKEN[%s]\n", s);
+            if (isKey) {
+                if (isFirstKey) {
+                    url.append('?');
+                    isFirstKey = false;
+                } else
+                    url.append('&');
+                curKey = s;
+                System.out.format("KEY[%s]\n", s);
+                url.append(s);
+                url.append('=');
+            } else if ("attachment".equals(curKey)) {
+                // append windows pathname raw:
+                // An "attachment" arg has been rumoured to work on Windows,
+                // but as far as I can tell, these rumours are total BS.
+                // Have yet to see this work in any configuration.
+                url.append('"' + s + '"');
+            } else {
+                // value field:
+                final String encodedValue = encodeURLData(s);
+                if (DEBUG) {
+                    System.out.format("    %-17s [%s]\n", curKey + "(RAW):", s);
+                    System.out.format("    %-17s [%s]\n", curKey + "(ENCODED):", encodedValue);
+                }
+                url.append(encodedValue);
+            }
+            isKey = !isKey;
+            
+        }
+        //if (DEBUG) System.out.println("QUERY URL: " + url);
+        return url.toString();
+    }
+    
+    private static String encodeURLData(String url) {
+        try {
+            url = URLEncoder.encode(url, "UTF-8");
+            url = url.replaceAll("\\+", "%20"); // Mail clients don't understand '+' as space
+        } catch (Throwable t) {
+            // should never happen:
+            printStackTrace(t);
+        }
+        return url;
+    }
+
+
 
     // GAK!  Move this code to URLResource, as it's going to have to be smart
     // about local file drops for mac URL's, to be sure to UTF-8 DECODE them
@@ -386,11 +499,9 @@ public class Util
 
 
     private static java.lang.reflect.Method macOpenURL_Method = null;
-    private static void openURL_Mac(String url)
+    private static void openURL_Mac(String url, boolean isLocalFile, boolean isMailTo)
     {
-        boolean isLocalFile = "file:".equalsIgnoreCase(url.substring(0,5));
-        
-        if (DEBUG) System.err.println("openURL_Mac0 [" + url + "] isLocalFile=" + isLocalFile);
+        if (DEBUG) System.err.println("openURL_Mac0 [" + url + "]");
 
         if (isLocalFile) {
             if (url.startsWith("file:////")) {
@@ -401,10 +512,27 @@ public class Util
             }
         }
 
-        try {
-            url = encodeSpecialChars_Mac(url);
-        } catch (Throwable t) {
-            printStackTrace(t);
+        if (isMailTo) {
+//             final String flatURL = url.toLowerCase();
+//             final int queryIndex = flatURL.indexOf('?') + 1;
+//             if (queryIndex > 1) {
+//                 final String query = flatURL.substring(queryIndex);
+//                 if (DEBUG) System.out.println("QUERY: [" + query + "]");
+//                 final int subjectIndex = query.indexOf("subject=");
+//             }
+            
+            //url = url.replaceAll(" ", "%20");
+//             try {
+//                 url = URLEncoder.encode(url, "UTF-8");
+//             } catch (Throwable t) {
+//                 printStackTrace(t);
+//             }
+        } else {
+            try {
+                url = encodeSpecialChars_Mac(url, isMailTo);
+            } catch (Throwable t) {
+                printStackTrace(t);
+            }
         }
 
         // In Mac OS X, local files MUST have %20 and NO spaces in the URL's -- reverse of Windows.
@@ -415,7 +543,7 @@ public class Util
         // not absolute, it which case we make it absolute by assuming the users home
         // directory.
         
-        if (url.indexOf(':') < 0 && !url.startsWith("/")) {
+        if (!isMailTo && url.indexOf(':') < 0 && !url.startsWith("/")) {
             // Hack to make relative references relative to user home directory.  OSX
             // won't default to use current directory for a relative references, so 
             // we're prepending the home directory manually as a bail out try-for-it.
@@ -426,7 +554,12 @@ public class Util
         execMacOpenURL(url);
     }
 
-    private static String encodeSpecialChars_Mac(String url)
+    // WHAT WE KNOW WORKS FOR MAILTO: '@' encoded, but ? / & decoded, except WITHIN
+    // the value of &field=value, which of course messes it up.
+    // Also in the working state: All spaces as %20, newlines %0A
+    // If we take out the colons tho, we're screwed.
+
+    private static String encodeSpecialChars_Mac(String url, boolean isMailTo)
         throws java.io.IOException
     {
         // In case there are any special characters (e.g., Unicode chars) in the
@@ -443,14 +576,14 @@ public class Util
         url = java.net.URLEncoder.encode(url, "UTF-8"); // URLEncoder is way overzealous...
         if (DEBUG) System.err.println("  ENCODE UTF [" + url + "]");
 
-        // now decode the over-coded stuff so it looks sane (has colon & slashes, etc)
+            // now decode the over-coded stuff so it looks sane (has colon & slashes, etc)
         url = url.replaceAll("%3A", ":"); // be sure to do ALL of these...
         url = url.replaceAll("%2F", "/");
         url = url.replaceAll("%3F", "?");
         url = url.replaceAll("%3D", "=");
         url = url.replaceAll("%26", "&");
-        url = url.replaceAll("\\+", "%20");
-        
+        url = url.replaceAll("\\+", "%20"); // Mac doesn't undestand '+' I think
+
         if (DEBUG) System.err.println("     CLEANUP [" + url + "]");
 
         return url;
@@ -494,13 +627,13 @@ public class Util
             //    com.apple.mrj.MRJFileUtils.openURL(url);
         }
 
-        if (DEBUG) System.err.println("execMacOpenURL returns (" + url + ")");
+        if (DEBUG) System.err.println("execMacOpenURL returns for (" + url + ")");
         
     }
 
     
 
-    private static void openURL_Unix(String url)
+    private static void openURL_Unix(String url, boolean isLocalFile, boolean isMailTo)
         throws java.io.IOException
     {
         // For now we just assume Netscape is installed.
@@ -1170,6 +1303,7 @@ public class Util
             //System.out.println("ENCODED [" + encoded + "]");
             return encoded;
         } catch (java.io.UnsupportedEncodingException e) {
+            // should never happen
             e.printStackTrace();
             return s;
         }
@@ -1204,35 +1338,62 @@ public class Util
     private final static String NO_CLASS_FILTER = "";
 
 
+    private static final StringWriter ExceptionLog = new StringWriter(1024);
+    private static final PrintWriter Log = new PrintWriter(ExceptionLog);
+
+    /**
+     * @eturn the contents of the exception log.  This is not a copy, it's
+     * the actual log, so don't modify the contents unless you really mean
+     * to.
+     */
+    public static StringBuffer getExceptionLog() {
+        return ExceptionLog.getBuffer();
+    }
+
+    /** @return the log writer for anyone else who might want to write to it */
+    public static Writer getLogWriter() {
+        return Log;
+    }
+    
+
+
     /** print stack trace items only from fully qualified class names that match the given prefix */
-    public static void printClassTrace(Throwable t, String prefix, String message, java.io.PrintStream s) {
+    public static void printClassTrace(Throwable t, String prefix, String message, java.io.PrintStream pst) {
 
         java.awt.Toolkit.getDefaultToolkit().beep();
         
         synchronized (System.out) {
         synchronized (System.err) {
-        synchronized (s) {
+        synchronized (pst) {
 
-            s.print(TERM_RED);
+            pst.print(TERM_RED);
+            Log.println();
 
-            if (message != null)
-                s.println(message);
+            if (message != null) {
+                pst.println(message);
+                Log.println(message);
+            }
             
             final String head;
             if (t.getClass().getName().equals("java.lang.Throwable"))
                 head = t.getMessage();
             else
                 head = t.toString();
-            if (prefix == null || prefix == NO_CLASS_FILTER)
-                s.print(head + ";");
-            else
-                s.print(head + " (stack element prefix \"" + prefix + "\") ");
+            if (prefix == null || prefix == NO_CLASS_FILTER) {
+                pst.println(head + ";");
+                Log.println(head + ";");
+            } else {
+                pst.println(head + " (stack element prefix \"" + prefix + "\") ");
+                Log.println(head + " (stack element prefix \"" + prefix + "\") ");
+            }
 
-            long now = System.currentTimeMillis();
+            final long now = System.currentTimeMillis();
+            final String stamp = "\tin " + Thread.currentThread() + " at " + now + " " + new java.util.Date(now);
 
-            s.print(" in " + Thread.currentThread() + " at " + now + " " + new java.util.Date(now));
+            pst.print(stamp);
+            Log.print(stamp);
 
-            s.print(TERM_CLEAR);
+            pst.print(TERM_CLEAR);
             
             if (prefix == null || prefix == NO_CLASS_FILTER)
                 prefix = "!tufts.Util.print";
@@ -1241,20 +1402,28 @@ public class Util
             int skipped = 0;
             for (int i = 0; i < trace.length; i++) {
                 if (includeInTrace(trace[i], prefix)) {
-                    s.print("\n\tat " + trace[i] + " ");
+                    pst.print("\n\tat " + trace[i] + " ");
+                    Log.print("\n\tat " + trace[i] + " ");
                 } else {
-                    s.print(".");
+                    pst.print(".");
+                    Log.print(".");
                 }
             }
-            s.println("");
+            pst.println();
+            Log.println();
 
             Throwable cause = t.getCause();
             if (cause != null) {
                 //ourCause.printStackTraceAsCause(s, trace);
-                s.print(TERM_RED + "    CAUSE: " + TERM_CLEAR);
-                cause.printStackTrace();
+                pst.print(TERM_RED);
+                pst.print("    CAUSE: ");
+                Log.print("    CAUSE: ");
+                pst.print(TERM_CLEAR);
+                cause.printStackTrace(pst);
+                cause.printStackTrace(Log);
             }
-            s.println("END " + t + "\n");
+            pst.println("END " + t + "\n");
+            Log.println("END " + t + "\n");
             
         }
         }}
@@ -1374,20 +1543,69 @@ public class Util
     public static void main(String args[])
         throws Exception
     {
-        int tries = 1;
-        for (int i = 0; i < tries; i++) {
-            if (i > 0)
-                Thread.sleep(2000);
-            System.err.print("Internet is reachable (DNS available): ");
-            System.err.println("" + isInternetReachable());
+
+        if (true) {
+            openURL(makeQueryURL("MAILTO:foo@foobar.com",
+                                 
+                                 "subject", "VUE Log Report",
+                                 
+                                 //"attachment", "c:\\\\foo.txt"
+                                 //,
+                                 
+                                 "body",
+                                 "I am the body.  Spic & Span?"
+                                 + "\nfoo@bar.com"
+                                 + "\nfile://local/file/"
+                                 + "\n\\\\.psf\\foobie\\"
+                                 + "\ncolons:are:no:problem"
+
+
++ "\nVUE 2007-06-25 18:32:43,187 [main] INFO   Startup; build: June 25 2007 at 1523 by sfraize on Mac OS X 10.4.10 i386 JVM 1.5.0_07-164"
++ "\nVUE 2007-06-25 18:32:43,197 [main] INFO   Running in Java VM: 1.5.0_11-b03; MaxMemory(-Xmx)=381.1M, CurMemory(-Xms)=1.9M"
++ "\nVUE 2007-06-25 18:32:43,197 [main] INFO   VUE version: 2.0 alpha-x"
++ "\nVUE 2007-06-25 18:32:43,197 [main] INFO   Current Working Directory: \\\\.psf\\vue"
++ "\nVUE 2007-06-25 18:32:43,197 [main] INFO   User/host: Scott Fraize@null"
++ "\nVUE 2007-06-25 18:32:43,197 [main] DEBUG GUI init"
++ "\nVUE 2007-06-25 18:32:43,257 [main] DEBUG GUI LAF  name: Windows"
++ "\nVUE 2007-06-25 18:32:43,257 [main] DEBUG GUI LAF descr: The Microsoft Windows Look and Feel"
++ "\nVUE 2007-06-25 18:32:43,257 [main] DEBUG GUI LAF class: class com.sun.java.swing.plaf.windows.WindowsLookAndFeel"
++ "\nVUE 2007-06-25 18:32:47,523 [main] DEBUG  loading disk cache..."
++ "\nVUE 2007-06-25 18:32:47,784 [main] DEBUG  Got cache directory: C:\\Documents and Settings\\Scott Fraize\\vue_2\\cache"
++ "\nVUE 2007-06-25 18:32:47,784 [main] DEBUG  listing disk cache..."
++ "\nVUE 2007-06-25 18:32:47,784 [main] DEBUG  listing disk cache: done; entries=21"
++ "\nVUE 2007-06-25 18:32:47,934 [main] DEBUG  loading disk cache: done"
++ "\nVUE 2007-06-25 18:32:48,064 [main] DEBUG  loading fonts."
++ "XXXXXXX"
++ "XXXXXXX"
++ "XXXXXXX"
++ "0"
++ "1" // 2064
++ "2" // 2065
+
+                                 + "\n\nEnd.\n"
+                                 ));
+            System.exit(0);
         }
+                         
+
+    
+        if (args.length > 0 && "network".equals(args[0])) {
+            int tries = 1;
+            for (int i = 0; i < tries; i++) {
+                if (i > 0)
+                    Thread.sleep(2000);
+                System.err.print("Internet is reachable (DNS available): ");
+                System.err.println("" + isInternetReachable());
+            }
         
-        Enumeration nie = NetworkInterface.getNetworkInterfaces();
-        while (nie.hasMoreElements()) {
-            NetworkInterface ni = (NetworkInterface) nie.nextElement();
-            System.err.println("\nNetwork Interface[" + ni + "]");
-            //Enumeration ie = ni.get
+            Enumeration nie = NetworkInterface.getNetworkInterfaces();
+            while (nie.hasMoreElements()) {
+                NetworkInterface ni = (NetworkInterface) nie.nextElement();
+                System.err.println("\nNetwork Interface[" + ni + "]");
+                //Enumeration ie = ni.get
             
+            }
+            System.exit(0);
         }
 
         //System.err.println("ServerSocket: " + new ServerSocket(0)); // not sensitive to network availability
