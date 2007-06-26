@@ -47,6 +47,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.NDC;
 import org.apache.log4j.Level;
 import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.WriterAppender;
 import org.apache.log4j.PatternLayout;
 
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
@@ -57,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.452 $ / $Date: 2007-06-11 10:07:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.453 $ / $Date: 2007-06-26 15:58:00 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -375,7 +376,9 @@ public class VUE
         Logger.getRootLogger().removeAllAppenders(); // need to do this or we get everything twice
         //BasicConfigurator.configure();
         //Logger.getRootLogger().addAppender(new ConsoleAppender(new PatternLayout("VUE %d [%t] %-5p %c:%x %m%n")));
-        Logger.getRootLogger().addAppender(new ConsoleAppender(new PatternLayout("VUE %d [%t] %-5p %x %m%n")));
+        final PatternLayout pattern = new PatternLayout("VUE %d [%t] %-5p %x %m%n");
+        Logger.getRootLogger().addAppender(new ConsoleAppender(pattern));
+        Logger.getRootLogger().addAppender(new WriterAppender(pattern, Util.getLogWriter()));
         //Log.addAppender(new ConsoleAppender(new PatternLayout("[%t] %-5p %c %x - %m%n")));
         Log.setLevel(Level.INFO);
 
@@ -388,8 +391,6 @@ public class VUE
     
     public static void main(String[] args)
     {
-        Log.debug("VUE: main entered");
-        
         VUE.isStartupUnderway = true;
 
         parseArgs(args);
@@ -402,6 +403,7 @@ public class VUE
 
         Log.info("VUE version: " + VueResources.getString("vue.version"));
         Log.info("Current Working Directory: " + getSystemProperty("user.dir"));
+        Log.info("User/host: " + getSystemProperty("user.name") + "@" + System.getenv("HOST"));
         
         if (DEBUG.Enabled)
             Log.setLevel(Level.DEBUG);
