@@ -85,7 +85,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 				String name = ds.getDisplayName();
 				xml = xml.replaceFirst("DEFAULT_NAME",name);
 			} else if (dataSource instanceof RemoteFileDataSource) {
-				xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Dane for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars>0<ui>0</ui></field><field><key>address</key><title>Address</title><description>FTP Address</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>256</maxChars><ui>0</ui></field><field><key>username</key><title>Username</title><description>FTP site username</description><default>DEFAULT_USERNAME</default><mandatory>true</mandatory><maxChars>64</maxChars><ui>9</ui></field><field><key>password</key><title>Password</title><description>FTP site password for username</description><default>DEFAULT_PASSWORD</default><mandatory>true</mandatory><maxChars></maxChars><ui>1</ui></field></configuration>";
+				xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars>0<ui>0</ui></field><field><key>address</key><title>Address</title><description>FTP Address</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>256</maxChars><ui>0</ui></field><field><key>username</key><title>Username</title><description>FTP site username</description><default>DEFAULT_USERNAME</default><mandatory>true</mandatory><maxChars>64</maxChars><ui>9</ui></field><field><key>password</key><title>Password</title><description>FTP site password for username</description><default>DEFAULT_PASSWORD</default><mandatory>true</mandatory><maxChars></maxChars><ui>1</ui></field></configuration>";
 				RemoteFileDataSource ds = (RemoteFileDataSource)dataSource;
 				String name = ds.getDisplayName();
 				if (name == null) name = "";
@@ -99,7 +99,16 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 				xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
 				xml = xml.replaceFirst("DEFAULT_USERNAME",username);
 				xml = xml.replaceFirst("DEFAULT_PASSWORD",password);
-			}
+			} else if (dataSource instanceof edu.tufts.vue.rss.RSSDataSource) {
+                            edu.tufts.vue.rss.RSSDataSource ds =  (edu.tufts.vue.rss.RSSDataSource) dataSource;
+                            xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>0</ui></field></configuration>";
+                            String name = ds.getDisplayName();
+                            if (name == null) name = "";
+                            String address = ds.getAddress();
+                            if (address == null) address = "";
+                            xml = xml.replaceFirst("DEFAULT_NAME",name);
+                            xml = xml.replaceFirst("DEFAULT_ADDRESS",address);	
+                        }
 			
 			cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
 			
@@ -150,7 +159,13 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 					ds.setAddress(p.getProperty("address")); // this must be set last
                                         ds.setPassword(p.getProperty("password"));
 					this.dsv.setActiveDataSource(this.oldDataSource); // refresh
-				}
+				} else if (this.oldDataSource instanceof edu.tufts.vue.rss.RSSDataSource) {
+                                        java.util.Properties p = cui.getProperties();
+                                        edu.tufts.vue.rss.RSSDataSource ds = (edu.tufts.vue.rss.RSSDataSource)this.oldDataSource;
+                                        ds.setDisplayName(p.getProperty("name"));
+                                        ds.setAddress(p.getProperty("address"));
+                                        this.dsv.setActiveDataSource(this.oldDataSource);
+                                }
 			}
                         DataSourceViewer.saveDataSourceViewer();
 		} catch (Throwable t) {
