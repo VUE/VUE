@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.407 $ / $Date: 2007-06-25 19:32:13 $ / $Author: sfraize $ 
+ * @version $Revision: 1.408 $ / $Date: 2007-06-27 20:56:32 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1794,83 +1794,84 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private double mZoomoverOldScale;
     private Point2D mZoomoverOldLoc = null;
     void setRollover(LWComponent c) {
-        //if (rollover != c && (c instanceof LWNode || c instanceof LWLink)) {
-        // link labels need more work to be zoomable
-        if (rollover != c && (c instanceof LWNode)) {
-            clearRollover();
-            // for moment rollover is really setTemporaryZoom
-            //rollover = c;
-            //c.setRollover(true);
-            mZoomoverOldScale = c.getScale();
+
+//         //if (rollover != c && (c instanceof LWNode || c instanceof LWLink)) {
+//         // link labels need more work to be zoomable
+//         if (rollover != c && (c instanceof LWNode)) {
+//             clearRollover();
+//             // for moment rollover is really setTemporaryZoom
+//             //rollover = c;
+//             //c.setRollover(true);
+//             mZoomoverOldScale = c.getScale();
             
-            double curZoom = getZoomFactor();
+//             double curZoom = getZoomFactor();
             
-            //double newScale = mZoomoverOldScale / curZoom;
-            double newScale = 1.0 / curZoom;
+//             //double newScale = mZoomoverOldScale / curZoom;
+//             double newScale = 1.0 / curZoom;
             
-            //if (newScale < 1.0) newScale = 1.0;
+//             //if (newScale < 1.0) newScale = 1.0;
             
-            //if (true||mZoomoverOldScale != 1f) {
-            if (newScale > mZoomoverOldScale &&
-            newScale - mZoomoverOldScale > RolloverMinZoomDeltaTrigger) {
-                //c.setScale(1f);
-                rollover = c;
-                if (DEBUG.ROLLOVER) System.out.println("setRollover: " + c);
-                c.setRollover(true);
-                c.setZoomedFocus(true);
-                if (false&&c instanceof LWNode) {
-                    // center the zoomed node on it's original center
-                    mZoomoverOldLoc = c.getLocation();
-                    Point2D oldCenter = c.getCenterPoint();
-                    c.setScale(newScale);
-                    c.setCenterAtQuietly(oldCenter);
-                } else
-                    c.setScale(newScale);
+//             //if (true||mZoomoverOldScale != 1f) {
+//             if (newScale > mZoomoverOldScale &&
+//             newScale - mZoomoverOldScale > RolloverMinZoomDeltaTrigger) {
+//                 //c.setScale(1f);
+//                 rollover = c;
+//                 if (DEBUG.ROLLOVER) System.out.println("setRollover: " + c);
+//                 c.setRollover(true);
+//                 c.setZoomedFocus(true);
+//                 if (false&&c instanceof LWNode) {
+//                     // center the zoomed node on it's original center
+//                     mZoomoverOldLoc = c.getLocation();
+//                     Point2D oldCenter = c.getCenterPoint();
+//                     c.setScale(newScale);
+//                     c.setCenterAtQuietly(oldCenter);
+//                 } else
+//                     c.setScale(newScale);
                 
-                repaintMapRegion(rollover.getBounds());
-            }
-        }
+//                 repaintMapRegion(rollover.getBounds());
+//             }
+//         }
     }
     void clearRollover() {
-        if (rollover != null) {
-            if (DEBUG.ROLLOVER) System.out.println("clrRollover: " + rollover);
-            if (rolloverTask != null) {
-                rolloverTask.cancel();
-                rolloverTask = null;
-            }
-            Rectangle2D bigBounds = rollover.getBounds();
-            rollover.setRollover(false);
-            rollover.setZoomedFocus(false);
-            if (true||mZoomoverOldScale != 1f) {
+//         if (rollover != null) {
+//             if (DEBUG.ROLLOVER) System.out.println("clrRollover: " + rollover);
+//             if (rolloverTask != null) {
+//                 rolloverTask.cancel();
+//                 rolloverTask = null;
+//             }
+//             Rectangle2D bigBounds = rollover.getBounds();
+//             rollover.setRollover(false);
+//             rollover.setZoomedFocus(false);
+//             if (true||mZoomoverOldScale != 1f) {
                 
-                // If deleted, don't put scale back or will throw
-                // zombie event exception (should be okay to leave
-                // scale in intermediate state on deleted node -- on
-                // restore it should have it's scale set back thru
-                // reparenting... if not, we'll need to clear rollover
-                // on nodes b4 they're deleted, or allow the setScale
-                // on a deleted node in LWComponent.
+//                 // If deleted, don't put scale back or will throw
+//                 // zombie event exception (should be okay to leave
+//                 // scale in intermediate state on deleted node -- on
+//                 // restore it should have it's scale set back thru
+//                 // reparenting... if not, we'll need to clear rollover
+//                 // on nodes b4 they're deleted, or allow the setScale
+//                 // on a deleted node in LWComponent.
                 
-                if (!rollover.isDeleted())
-                    rollover.setScale(mZoomoverOldScale);
+//                 if (!rollover.isDeleted())
+//                     rollover.setScale(mZoomoverOldScale);
                 
-                //if (rollover.getParent() instanceof LWNode)
-                // have the parent put it back in place
-                //rollover.getParent().layoutChildren();
-                //else
+//                 //if (rollover.getParent() instanceof LWNode)
+//                 // have the parent put it back in place
+//                 //rollover.getParent().layoutChildren();
+//                 //else
                 
-                // todo? also need to do this setLocation quietly: if they
-                // move mouse back and forth tween two link endpoints
-                // when no delay is on (easier to see in big curved link)
-                // we're seeing the connection point change (still seeing this?)
-                if (mZoomoverOldLoc != null) {
-                    rollover.setLocation(mZoomoverOldLoc);
-                    mZoomoverOldLoc = null;
-                }
-            }
-            repaintMapRegion(bigBounds);
-            rollover = null;
-        }
+//                 // todo? also need to do this setLocation quietly: if they
+//                 // move mouse back and forth tween two link endpoints
+//                 // when no delay is on (easier to see in big curved link)
+//                 // we're seeing the connection point change (still seeing this?)
+//                 if (mZoomoverOldLoc != null) {
+//                     rollover.setLocation(mZoomoverOldLoc);
+//                     mZoomoverOldLoc = null;
+//                 }
+//             }
+//             repaintMapRegion(bigBounds);
+//             rollover = null;
+//         }
     }
     
     /** The currently display JComponent in a tool-tip window.  Null if none is showing. */
@@ -4694,26 +4695,28 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //}
             
             //if (VUE.Prefs.doRolloverZoom() && RolloverAutoZoomDelay >= 0) {
-            if (getAutoZoomEnabled())
-            	if (RolloverAutoZoomDelay >= 0) {
-                    if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && !(activeTextEdit != null)) {
-                        if (RolloverAutoZoomDelay > 10) {
-                            if (rolloverTask != null)
-                                rolloverTask.cancel();
-                            rolloverTask = new RolloverTask();
-                            try {
-                                rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
-                            } catch (IllegalStateException ex) {
-                                // don't know why this happens somtimes...
-                                System.out.println(ex + " (fallback: creating new timer)");
-                                rolloverTimer = new Timer();
-                                rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
-                            }
-                        } else {
-                            runRolloverTask();
-                        }
-                    }
-            	}
+
+//             if (getAutoZoomEnabled()) {
+//             	if (RolloverAutoZoomDelay >= 0) {
+//                     if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && !(activeTextEdit != null)) {
+//                         if (RolloverAutoZoomDelay > 10) {
+//                             if (rolloverTask != null)
+//                                 rolloverTask.cancel();
+//                             rolloverTask = new RolloverTask();
+//                             try {
+//                                 rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+//                             } catch (IllegalStateException ex) {
+//                                 // don't know why this happens somtimes...
+//                                 System.out.println(ex + " (fallback: creating new timer)");
+//                                 rolloverTimer = new Timer();
+//                                 rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+//                             }
+//                         } else {
+//                             runRolloverTask();
+//                         }
+//                     }
+//             	}
+//             }
         }
         
         public void mouseEntered(MouseEvent e) {
