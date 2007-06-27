@@ -49,6 +49,7 @@ public class Util
     private static boolean MacAquaLAF = false;
     private static boolean MacAquaLAF_set = false;
     private static boolean UnixPlatform = false;
+    private static final String PlatformName;
     private static float javaVersion = 1.0f;
     
     private static int MacMRJVersion = -1;
@@ -64,6 +65,8 @@ public class Util
             
         String osName = System.getProperty("os.name");
         String javaSpec = System.getProperty("java.specification.version");
+
+        PlatformName = osName + " " + System.getProperty("os.version") + " " + System.getProperty("os.arch");
 
         try {
             javaVersion = Float.parseFloat(javaSpec);
@@ -139,6 +142,10 @@ public class Util
     /** return mac runtime for java version.  Will return -1 if we're not running on mac platform. */
     public static int getMacMRJVersion() {
         return MacMRJVersion;
+    }
+    
+    public static String getPlatformName() {
+        return PlatformName == null ? (System.getProperty("os.name") + "?") : PlatformName;
     }
        
 
@@ -1544,7 +1551,7 @@ public class Util
         throws Exception
     {
 
-        if (true) {
+        if (false) {
             openURL(makeQueryURL("MAILTO:foo@foobar.com",
                                  
                                  "subject", "VUE Log Report",
