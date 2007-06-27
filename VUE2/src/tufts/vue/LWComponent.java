@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.297 $ / $Date: 2007-06-25 16:29:59 $ / $Author: dan $
+ * @version $Revision: 1.298 $ / $Date: 2007-06-27 20:53:56 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -201,17 +201,29 @@ public class LWComponent
     protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore? (todo: eliminate this as a member variable)
     protected transient BufferedImage mCachedImage;
 
-    public static final java.util.Comparator XSorter = new java.util.Comparator<LWComponent>() {
+    public static final Comparator XSorter = new Comparator<LWComponent>() {
             public int compare(LWComponent c1, LWComponent c2) {
                 // we multiply up the result so as not to loose differential precision in the integer result
                 return (int) (128f * (c1.x - c2.x));
             }
         };
-    public static final java.util.Comparator YSorter = new java.util.Comparator<LWComponent>() {
+    public static final Comparator YSorter = new Comparator<LWComponent>() {
             public int compare(LWComponent c1, LWComponent c2) {
                 return (int) (128f * (c1.y - c2.y));
             }
         };
+
+    public static final Comparator GridSorter = new Comparator<LWComponent>() {
+            public int compare(LWComponent c1, LWComponent c2) {
+                if (c1.y == c2.y)
+                    return XSorter.compare(c1, c2);
+                else
+                    return YSorter.compare(c1, c2);
+                
+            }
+        };
+    
+    
 
     /** for save/restore only & internal use only */
     public LWComponent()
@@ -1630,6 +1642,8 @@ u                    getSlot(c).setFromString((String)value);
         
     	return noHTMLString;*/
     }
+
+    
     /**
      * @return a label suitable for displaying in a list: if this component
      * has no label set, generate a unique name for it, and if the label has any newlines
@@ -4409,7 +4423,8 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     public void setZoomedFocus(boolean tv) {
-        throw new UnsupportedOperationException();
+        return;
+        //throw new UnsupportedOperationException();
         /*
         if (this.isZoomedFocus != tv) {
             this.isZoomedFocus = tv;
