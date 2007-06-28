@@ -66,6 +66,9 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         //else if (description.equals("html"))
         //  extensions = html;
         
+        else if (description.equals("rdf"))
+            extensions = rdf;
+        
         else if (description.equals(IMAGEMAP_DESCRIPTION))
         {
           //extensions = imap;
