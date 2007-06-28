@@ -37,6 +37,12 @@ import tufts.vue.*;
 import com.hp.hpl.jena.rdf.model.*;
 
 public class RDFOpenAction extends VueAction {
+    
+    //todo: add constants for row length, starting position, y gaps and x gaps
+    //also make these all be read from properties file for ease of modification
+    //after compilation
+    public static final int NODE_LABEL_TRUNCATE_LENGTH = 8;
+    
     public RDFOpenAction(String label) {
         super(label, null, ":general/Open");
     }
@@ -70,7 +76,9 @@ public class RDFOpenAction extends VueAction {
             VUE.activateWaitCursor();
             try {
                 LWMap loadedMap = loadMap(file.getAbsolutePath());
-                VUE.displayMap(loadedMap);
+                
+                VUE.displayMap(loadedMap);                
+
             } finally {
                 VUE.clearWaitCursor();
             }
@@ -80,7 +88,18 @@ public class RDFOpenAction extends VueAction {
     // todo: have only one root loadMap that hanldes files & urls -- actually, make it ALL url's
        public static LWMap loadMap(String fileName) {
         try {
-            LWMap map = new LWMap(fileName);
+            
+            //probably don't want to save over original rdf
+            //LWMap map = new LWMap(fileName);
+            //so construct a name based on file name instead:
+            String mapName = fileName.substring(fileName.lastIndexOf("/")+1,fileName.length());
+            if(mapName.lastIndexOf(".")>0)
+                mapName = mapName.substring(0,mapName.lastIndexOf("."));
+            if(mapName.length() == 0)
+                mapName = "RDF Import";
+            LWMap map = new LWMap(mapName);
+            
+
             // create an empty model
             Model model = ModelFactory.createDefaultModel();
             
@@ -98,14 +117,66 @@ public class RDFOpenAction extends VueAction {
             model.write(System.out);
             ResIterator iter = model.listSubjects();
             float y = 20;
-            float x = 400;
+            float x = 0;
+            int count = 0;
+            
+            LWNode node = null;
+            
+            int toggle = 0;
+            
             // read the rdf statements and add metadata values and links
             while (iter.hasNext()) {
-                 com.hp.hpl.jena.rdf.model.Resource  r = iter.nextResource();                 
-                LWNode node = new LWNode(r.getURI());
+                 com.hp.hpl.jena.rdf.model.Resource  r = iter.nextResource();   
+                
+                float oldWidth = 0.0f;
+                if(node!=null)
+                    oldWidth = node.getWidth();
+                 
+                String uri = r.getURI();
+                String name = uri;
+                int lastSlash = name.lastIndexOf("/");
+                if(lastSlash > 1 && (lastSlash == name.length()-1) )
+                {
+                    name = name.substring(0,name.length()-1);
+                }
+                name = name.substring(name.lastIndexOf("/")+1,name.length());
+                if(name.length() == 0)
+                {
+                    name = uri;
+                }
+                if(name.length() > NODE_LABEL_TRUNCATE_LENGTH)
+                    name = name.substring(0,NODE_LABEL_TRUNCATE_LENGTH) + "...";
+                node = new LWNode(name);
                 com.hp.hpl.jena.rdf.model.StmtIterator stmtIterator = r.listProperties();
                 java.util.Properties properties = new java.util.Properties();
-                x += 80;
+                
+                // oldWidth can be used to seperate wide nodes from each other
+                // not perfectly reliable and not needed while node names are truncated
+                //if(oldWidth > 150)
+                //  x += oldWidth + 50;
+                //else
+                  x += 150;
+                
+                if(toggle == 0)
+                {
+                    toggle++;
+                    y = y + 50;
+                }
+                else
+                if(toggle == 1)
+                {
+                    toggle = 0;
+                    y = y - 50;
+                }
+                if(count % 5 == 0)
+                {
+                    y += 100;
+                    x = 400;
+                    toggle = 0;
+                }
+                
+                count++;
+                
                 node.setLocation(x,y);
                 tufts.vue.MapResource resource = new MapResource(r.getURI());
                 resource.setProperties(properties);
@@ -135,6 +206,7 @@ public class RDFOpenAction extends VueAction {
                 }
                
             }
+            
         
             return map;
         } catch (Exception e) {
