@@ -62,9 +62,29 @@ public class GetAssetsBySearchTest extends TestCase
 					org.w3c.dom.NodeList assetsNodeList = document.getElementsByTagName(OsidTester.SEARCH_TAG);
 				}
 					
-				// no support for SearchProperties at present
+				// search properties support
 				org.osid.shared.Properties searchProperties = new SharedProperties();
-					
+				java.util.Map map = new java.util.HashMap();
+				org.w3c.dom.NodeList nl = element.getElementsByTagName(OsidTester.PROPERTIES_TAG);
+				int numProperties = nl.getLength();
+				if (numProperties > 0) {
+					org.w3c.dom.Element propertiesElement = (org.w3c.dom.Element)nl.item(0);
+					nl = propertiesElement.getElementsByTagName(OsidTester.PROPERTY_TAG);
+					numProperties = nl.getLength();
+					for (int p=0; p < numProperties; p++) {
+						org.w3c.dom.Element el = (org.w3c.dom.Element)nl.item(p);
+						String key = el.getAttribute(OsidTester.KEY_ATTR);
+						// assume values are not encrypted
+						String value = el.getAttribute(OsidTester.VALUE_ATTR);
+						map.put(key,value);
+					}		
+					String propertiesTypeString = Utilities.expectedValue(propertiesElement,OsidTester.TYPE_TAG);
+					try {
+						searchProperties = new SharedProperties(map,Utilities.stringToType(propertiesTypeString));
+					} catch (Throwable t) {
+					}
+				}
+				
 				// is there a set of assets expected
 				org.w3c.dom.NodeList assetsNodeList = assetsBySearchElement.getElementsByTagName(OsidTester.ASSETS_TAG);
 				num = assetsNodeList.getLength();
@@ -148,8 +168,28 @@ public class GetAssetsBySearchTest extends TestCase
 						org.w3c.dom.NodeList assetsNodeList = document.getElementsByTagName(OsidTester.SEARCH_TAG);
 					}
 					
-					// no support for SearchProperties at present
+					// search properties support
 					org.osid.shared.Properties searchProperties = new SharedProperties();
+					java.util.Map map = new java.util.HashMap();
+					org.w3c.dom.NodeList nl = element.getElementsByTagName(OsidTester.PROPERTIES_TAG);
+					int numProperties = nl.getLength();
+					if (numProperties > 0) {
+						org.w3c.dom.Element propertiesElement = (org.w3c.dom.Element)nl.item(0);
+						nl = propertiesElement.getElementsByTagName(OsidTester.PROPERTY_TAG);
+						numProperties = nl.getLength();
+						for (int p=0; p < numProperties; p++) {
+							org.w3c.dom.Element el = (org.w3c.dom.Element)nl.item(p);
+							String key = el.getAttribute(OsidTester.KEY_ATTR);
+							// assume values are not encrypted
+							String value = el.getAttribute(OsidTester.VALUE_ATTR);
+							map.put(key,value);
+						}		
+						String propertiesTypeString = Utilities.expectedValue(propertiesElement,OsidTester.TYPE_TAG);
+						try {
+							searchProperties = new SharedProperties(map,Utilities.stringToType(propertiesTypeString));
+						} catch (Throwable t) {
+						}
+					}
 					
 					// is there a set of assets expected
 					org.w3c.dom.NodeList assetsNodeList = assetsBySearchElement.getElementsByTagName(OsidTester.ASSETS_TAG);

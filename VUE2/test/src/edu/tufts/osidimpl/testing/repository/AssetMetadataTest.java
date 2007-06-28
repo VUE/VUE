@@ -81,7 +81,10 @@ public class AssetMetadataTest extends TestCase
 			java.util.Vector partVector = new java.util.Vector();
 			
 			// store all the type / value part pairs for comparison
-			if (recordIterator.hasNextRecord()) {
+			if (!(recordIterator.hasNextRecord())) {
+				fail("No Records");
+			}
+			while (recordIterator.hasNextRecord()) {
 				org.osid.repository.PartIterator partIterator = recordIterator.nextRecord().getParts();
 				while (partIterator.hasNextPart()) {
 					org.osid.repository.Part nextPart = partIterator.nextPart();
@@ -93,9 +96,8 @@ public class AssetMetadataTest extends TestCase
 					}
 					typeVector.addElement(partStructureTypeString);
 					partVector.addElement(partValue);
+					System.out.println("Discovered Part Type " + partStructureTypeString + " with value " + partValue);
 				}
-			} else {
-				fail("No Records");
 			}
 			
 			// test the next part returned by the OSID against ANY part in the test

@@ -44,6 +44,7 @@ public class OsidTester extends TestCase
 	public static final String MANAGER_TAG = "managerImpl";
 	public static final String PACKAGENAME_TAG = "packagename";
 	public static final String PART_TYPE_TAG = "parttype";
+	public static final String PROPERTIES_TAG = "properties";
 	public static final String PROPERTY_TAG = "property";
 	public static final String REPOSITORIES_BY_TYPE_TAG = "repositoriesbytype";
 	public static final String REPOSITORIES_TAG = "repositories";
