@@ -38,7 +38,7 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         html = {"html","htm"},
         imap = {"imap"}, 
         vue = {"vue", "xml"},
-        rdf = {"rdf"},
+        rdf = {"rdf","owl","rdfs"},
         txt = {"txt"},
         zip = {"zip"},
 		rli = {"rli.xml"};
