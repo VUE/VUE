@@ -33,7 +33,9 @@ public class Osid2AssetResource extends MapResource
 {
     private static final org.osid.shared.Type BrowsePartType = new edu.tufts.vue.util.Type("mit.edu","partStructure","URL");
     private static final org.osid.shared.Type ThumbnailPartType = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
+    private static final org.osid.shared.Type ThumbnailPartType2 = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnailURL");
     private static final org.osid.shared.Type LargeImagePartType = new edu.tufts.vue.util.Type("mit.edu","partStructure","largeImage");
+    private static final org.osid.shared.Type LargeImagePartType2 = new edu.tufts.vue.util.Type("mit.edu","partStructure","largeImageURL");
 
 
     // SEE Fedora Impl: edu/tufts/osidimpl/repository/fedora_2_0/ImageRecordStructure.java
@@ -208,7 +210,7 @@ public class Osid2AssetResource extends MapResource
 						//setSpec(s);
 						////setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL(s))));
 						//this.icon = s;
-					} else if (ThumbnailPartType.isEqual(partStructureType)) {
+					} else if (ThumbnailPartType.isEqual(partStructureType) || ThumbnailPartType2.isEqual(partStructureType)) {
 						setURL_Thumb(value.toString());
 						
 						/*
@@ -220,7 +222,7 @@ public class Osid2AssetResource extends MapResource
 							 //this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
 						 }
 						 */
-					} else if (LargeImagePartType.isEqual(partStructureType) || FedoraImagePartType.isEqual(partStructureType)) {
+					} else if (LargeImagePartType.isEqual(partStructureType) || FedoraImagePartType.isEqual(partStructureType) || LargeImagePartType.isEqual(partStructureType2)) {
 						setURL_Image(value.toString());
 						// handle large image
 					}
