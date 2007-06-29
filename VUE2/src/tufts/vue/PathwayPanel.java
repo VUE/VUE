@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.94 $ / $Date: 2007-06-18 20:28:45 $ / $Author: mike $
+ * @version $Revision: 1.95 $ / $Date: 2007-06-29 20:36:34 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -923,7 +923,11 @@ public class PathwayPanel extends JPanel
         	}
         //	deletePathway(pathway); 
         }
-        else if (btn == btnPresentationCreate)   { new PathwayDialog(mParentFrame, mTableModel, getLocationOnScreen()).setVisible(true); }
+        else if (btn == btnPresentationCreate)   {
+        	setFocusable(false);
+        	new PathwayDialog(mParentFrame, mTableModel, getLocationOnScreen()).setVisible(true);
+        	setFocusable(true);
+        	}
      //   else if (btn == btnLockPresentation)     { pathway.setLocked(!pathway.isLocked()); }
         else if (btn == btnPathwayOnly) {
             toggleHideEverythingButCurrentPathway(!btnPathwayOnly.isSelected());
