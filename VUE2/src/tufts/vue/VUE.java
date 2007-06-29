@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.454 $ / $Date: 2007-06-27 20:59:37 $ / $Author: sfraize $ 
+ * @version $Revision: 1.455 $ / $Date: 2007-06-29 21:45:58 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -126,13 +126,21 @@ public class VUE
             // Only run the update if this isn't already an auxillary sync update from ActivePathwayHandler:
             if (e.source instanceof ActiveEvent && ((ActiveEvent)e.source).type == LWPathway.class)
                 return;
+            
             if (e.active != null)
                 ActivePathwayHandler.setActive(e, e.active.pathway);
             else
                 ActivePathwayHandler.setActive(e, null);
 
-            if (e.active != null && e.active.node != null)
-                VUE.getSelection().setTo(e.active.node);
+            if (e.active != null && e.active.node != null) {
+                final LWSelection s = VUE.getSelection();
+                if (!s.inNotify()) {
+                    synchronized (s) {
+                        if (!s.inNotify())
+                            s.setTo(e.active.node);
+                    }
+                }
+            }
         }
     };
 

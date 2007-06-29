@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.Util;
+
 import java.util.List;
 import java.util.Iterator;
 import java.util.Collection;
@@ -29,7 +31,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.71 $ / $Date: 2007-06-21 00:22:03 $ / $Author: sfraize $
+ * @version $Revision: 1.72 $ / $Date: 2007-06-29 21:45:58 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -182,6 +184,10 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         listeners.remove(l);
     }
 
+    public boolean inNotify() {
+        return inNotify;
+    }
+
     private Listener[] listener_buf = new Listener[128];
     private boolean inNotify = false;
     private synchronized void notifyListeners()
@@ -194,7 +200,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         try {
             inNotify = true;
         
-            if (DEBUG.SELECTION) {
+            if (DEBUG.SELECTION || DEBUG.EVENTS) {
                 System.out.println("-----------------------------------------------------------------------------");
                 System.out.println(this + " NOTIFYING " + listeners.size() + " LISTENERS from " + Thread.currentThread());
             }
@@ -235,8 +241,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     private boolean notifyUnderway() {
         if (inNotify) {
-            new Throwable(this + " attempt to change selection during selection change notification: denied.").printStackTrace();
-            java.awt.Toolkit.getDefaultToolkit().beep();            
+            Util.printStackTrace(this + " attempt to change selection during selection change notification: denied. src="+source);
             return true;
         } else {
             return false;
@@ -339,7 +344,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     
     private synchronized boolean addSilent(LWComponent c)
     {
-        if (DEBUG.SELECTION && DEBUG.META) System.out.println(this + " addSilent " + c);
+        if (DEBUG.SELECTION && DEBUG.META || DEBUG.EVENTS) System.out.println(this + " addSilent " + c + " src=" + source);
 
         if (c == null) {
             tufts.Util.printStackTrace("can't add null to a selection");

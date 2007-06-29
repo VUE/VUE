@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.95 $ / $Date: 2007-06-29 20:36:34 $ / $Author: mike $
+ * @version $Revision: 1.96 $ / $Date: 2007-06-29 21:45:58 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -288,7 +288,8 @@ public class PathwayPanel extends JPanel
                 public void selectionChanged(LWSelection s) {
                     final LWPathway curPath = getSelectedPathway();
                     if (s.size() == 1 && s.first().inPathway(curPath)) {
-                        curPath.setIndex(curPath.firstIndexOf(s.first()));
+                        if (DEBUG.Enabled) System.out.println("skipping unsafe current path index update of " + curPath);
+                        //curPath.setIndex(curPath.firstIndexOf(s.first()));
                     } else
                         updateEnabledStates();
                 }
