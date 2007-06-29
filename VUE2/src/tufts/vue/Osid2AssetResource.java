@@ -222,7 +222,7 @@ public class Osid2AssetResource extends MapResource
 							 //this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
 						 }
 						 */
-					} else if (LargeImagePartType.isEqual(partStructureType) || FedoraImagePartType.isEqual(partStructureType) || LargeImagePartType.isEqual(partStructureType2)) {
+					} else if (LargeImagePartType.isEqual(partStructureType) || FedoraImagePartType.isEqual(partStructureType) || LargeImagePartType2.isEqual(partStructureType)) {
 						setURL_Image(value.toString());
 						// handle large image
 					}
