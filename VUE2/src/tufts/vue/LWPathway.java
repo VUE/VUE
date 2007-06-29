@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import tufts.Util;
 import tufts.vue.DEBUG;
 import tufts.vue.NodeTool.NodeModeTool;
 import java.io.IOException;
@@ -48,7 +49,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.168 $ / $Date: 2007-06-21 00:22:32 $ / $Author: sfraize $
+ * @version $Revision: 1.169 $ / $Date: 2007-06-29 21:47:26 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -816,6 +817,7 @@ public class LWPathway extends LWContainer
     private void broadcastCurrentEntry() {
         if (VUE.getActivePathway() == this) {
             if (mCurrentIndex < 0) {
+                Util.printStackTrace(this + " set self as active");
                 VUE.setActive(LWPathway.Entry.class, this, this.asEntry());
             } else {
                 VUE.setActive(LWPathway.Entry.class, this, getEntry(mCurrentIndex));
@@ -1186,13 +1188,17 @@ public class LWPathway extends LWContainer
     
     // we don't support standard children: we shouldn't be calling any of these
     @Override
-    public void addChildren(Iterable i) { throw new UnsupportedOperationException(); }
+    public void addChildren(Iterable i) {
+        Util.printStackTrace("Unsupported: LWPathway.addChildren in " + this);
+    }
     
     @Override
     protected void addChildImpl(LWComponent c) { throw new UnsupportedOperationException(); }
     
     @Override
-    public void removeChildren(Iterable i) { throw new UnsupportedOperationException(); }
+    public void removeChildren(Iterable i) {
+        Util.printStackTrace("Unsupported: LWPathway.removeChildren in " + this);
+    }
     
     @Override
     void setScale(double scale) {}
