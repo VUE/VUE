@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.97 $ / $Date: 2007-07-02 04:09:25 $ / $Author: sfraize $
+ * @version $Revision: 1.98 $ / $Date: 2007-07-02 16:11:10 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -1113,8 +1113,15 @@ public class PathwayPanel extends JPanel
             removeDone = true;
         }
             
-        if (selection.size() > 0) {
+        if (selection.size() > 0 && !(selection.first() instanceof LWPathway)) {
+            
+            // Above instanceof check: pathways are single-select
+            // only, so if it's in the selection, it should be first,
+            // and there shouldn't be anything else.  We don't ever
+            // want to be able to add the pathway to itself!
+
             btnAddSlide.setEnabled(true);
+            
             if (!removeDone) {
                 // if at least one element in selection is on current path,
                 // enable remove.  Theoretically should only get here if
