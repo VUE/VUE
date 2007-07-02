@@ -49,7 +49,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.169 $ / $Date: 2007-06-29 21:47:26 $ / $Author: sfraize $
+ * @version $Revision: 1.170 $ / $Date: 2007-07-02 16:10:47 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -649,7 +649,17 @@ public class LWPathway extends LWContainer
         while (i.hasNext()) {
             LWComponent c = i.next();
             if (DEBUG.PATHWAY||DEBUG.PARENTING) out("adding " + c);
+
+            if (c instanceof LWPathway) {
+                if (c == this)
+                    Util.printStackTrace(this + ": Can't add a pathway to itself");
+                else
+                    Util.printStackTrace(this + ": Can't add a pathway to another pathway: " + c);
+                continue;
+            }
+            
             Entry e = new Entry(this, c);
+            
             if (c instanceof LWGroup ||
                 c instanceof LWPortal ||
                 c instanceof LWImage ||
@@ -817,7 +827,7 @@ public class LWPathway extends LWContainer
     private void broadcastCurrentEntry() {
         if (VUE.getActivePathway() == this) {
             if (mCurrentIndex < 0) {
-                Util.printStackTrace(this + " set self as active");
+                //if (DEBUG.Enabled) Util.printStackTrace(this + " set self as active");
                 VUE.setActive(LWPathway.Entry.class, this, this.asEntry());
             } else {
                 VUE.setActive(LWPathway.Entry.class, this, getEntry(mCurrentIndex));
