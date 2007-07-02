@@ -47,8 +47,7 @@ import javax.swing.*;
  *
  */
 public class PresentationTool extends VueTool
-    implements ActiveListener<LWPathway.Entry>,
-               LWComponent.Listener
+    implements LWComponent.Listener
 {
     private static final String FORWARD = "FORWARD";
     private static final String BACKWARD = "BACKWARD";
@@ -129,6 +128,14 @@ public class PresentationTool extends VueTool
                 return entry.isMapView();
         }
 
+        /** @return true if this is a map-view node that's on a pathway */
+        public boolean isMapViewNode() {
+            if (entry == null)
+                return false;
+            else
+                return entry.isMapView();
+        }
+        
         public boolean onPathway() {
             return entry != null;
         }
@@ -409,13 +416,13 @@ public class PresentationTool extends VueTool
         VUE.addActiveListener(LWPathway.Entry.class, this);
     }
     
-    public void activeChanged(ActiveEvent<LWPathway.Entry> e) {
+    public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
         if (isActive()) {
             // only do this if this is the active tool,
             // as we use the globally active viewer
             // when we change the page!
-            if (!e.active.isPathway())
-                setEntry(e.active, BACKING_UP);
+            if (!entry.isPathway())
+                setEntry(entry, BACKING_UP);
         }
      }
     
@@ -944,6 +951,12 @@ private static int OverviewMapSizeIndex = 5;
         }
         
         if (mCurrentPage.equals(hit)) {
+
+            if (mCurrentPage.isMapViewNode()) {
+                // a click on the current map-node page: stay put
+                return false;
+            }
+            
             // hit on what what we just clicked on: backup,
             // but only if it's not a full pathway entry
             // (meant for intra-slide clicking)
@@ -1129,7 +1142,7 @@ private static int OverviewMapSizeIndex = 5;
     }
 
     private void loadPathway(LWPathway pathway) {
-        if (DEBUG.PRESENT) Util.printStackTrace("loadPathway: " + pathway);
+        if (DEBUG.PRESENT) Util.printStackTrace("FYI, loadPathway: " + pathway);
         LWComponent.swapLWCListener(this, mPathway, pathway);
         mPathway = pathway;
     }
@@ -1148,8 +1161,11 @@ private static int OverviewMapSizeIndex = 5;
     private void recordPageTransition(final Page page, boolean recordBackup)
     {
         if (DEBUG.WORK||DEBUG.PRESENT) {
+            if (DEBUG.META) Util.printStackTrace("recordPageTransition");
             System.out.println("\n-----------------------------------------------------------------------------");
-            out("pageTransition " + page);
+            out("  mCurrentPage: " + mCurrentPage);
+            out("pageTransition: " + page);
+            out(" mVisited.prev: " + mVisited.prev());
         }
 
         if (page == null) // for now
@@ -1159,9 +1175,11 @@ private static int OverviewMapSizeIndex = 5;
 
         
         if (page.equals(mVisited.prev())) {
+            // [too aggressive: if click again ]
             // ANY time we record a page transtion to what's one back on
             // the queue, treat it as a rollback, even if recordBackup is true.
             // This may be too agressive, but it's worth a try for now.
+            if (DEBUG.PRESENT) out("ROLLBACK");
             mVisited.rollBack();
         } else if (recordBackup) {
             mVisited.push(page);
