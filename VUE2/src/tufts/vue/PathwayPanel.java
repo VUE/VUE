@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import tufts.Util;
 import tufts.vue.gui.*;
 import tufts.vue.gui.formattingpalette.ButtonlessComboBoxUI;
 
@@ -47,7 +48,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.96 $ / $Date: 2007-06-29 21:45:58 $ / $Author: sfraize $
+ * @version $Revision: 1.97 $ / $Date: 2007-07-02 04:09:25 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -288,7 +289,11 @@ public class PathwayPanel extends JPanel
                 public void selectionChanged(LWSelection s) {
                     final LWPathway curPath = getSelectedPathway();
                     if (s.size() == 1 && s.first().inPathway(curPath)) {
-                        if (DEBUG.Enabled) System.out.println("skipping unsafe current path index update of " + curPath);
+                        if (DEBUG.Enabled)
+                            System.out.println(Util.TERM_RED
+                                               + "PathwayPanel skipping unsafe current path index update of "
+                                               + curPath
+                                               + Util.TERM_CLEAR);
                         //curPath.setIndex(curPath.firstIndexOf(s.first()));
                     } else
                         updateEnabledStates();
