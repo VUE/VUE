@@ -87,7 +87,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.53 $ / $Date: 2007-06-11 10:56:37 $ / $Author: sfraize $
+ * @version $Revision: 1.54 $ / $Date: 2007-07-02 19:06:28 $ / $Author: sfraize $
  *
  */
 
@@ -247,17 +247,24 @@ public class TextBox extends JTextPane
             //setBorder(javax.swing.border.LineBorder.createGrayLineBorder());
         }
         java.awt.Container parent = getParent();
-        if (parent instanceof MapViewer) { // todo: could be a scroller!
+        if (parent instanceof MapViewer) { // todo: could be a scroller?
             double zoom = ((MapViewer)parent).getZoomFactor();
-            // todo: also account for getScale of children!
             zoom *= lwc.getMapScale();
             if (zoom != 1.0) {
-                Font f = lwc.getFont();
+                final Font f = lwc.getFont();
                 float zoomedPointSize = (float) (f.getSize() * zoom);
                 if (zoomedPointSize < MinEditSize)
                     zoomedPointSize = MinEditSize;
                 preZoomFont = f;
-                setDocumentFont(f.deriveFont(f.getStyle(), zoomedPointSize));
+                final Font screenFont = f.deriveFont(f.getStyle(), zoomedPointSize);
+                setDocumentFont(screenFont);
+                if (TestDebug||DEBUG.TEXT) {
+                    out("derived temporary screen font:"
+                        + "\n\t   net zoom: " + zoom
+                        + "\n\t  node font: " + f
+                        + "\n\tscreen font: " + screenFont + " size2D=" + screenFont.getSize2D()
+                        );
+                }
                 if (WrapText) {
                     double boxZoom = zoomedPointSize / preZoomFont.getSize();
                     size.width *= boxZoom;
@@ -351,10 +358,17 @@ public class TextBox extends JTextPane
         if (preZoomFont != null) {
             setDocumentFont(preZoomFont);
             preZoomFont = null;
-            if (WrapText)
+            if (WrapText) {
                 adjustSizeDynamically();
-            else
+            } else {
                 setSize(getPreferredSize());
+                // WE MUST DO THIS A SECOND TIME TO MAKE SURE THIS WORKS:
+                // JTextPane can actually produce inconsistent results
+                // when getPreferredSize() is called, especially if it's
+                // results were just use to set the size of the object.
+                // A second get/set produces more reliable results.
+                setSize(getPreferredSize());
+            }
         }
         
         if (wasOpaque != isOpaque())
@@ -1040,7 +1054,8 @@ public class TextBox extends JTextPane
     }
 
     private void out(String s) {
-        System.out.println("TextBox@" + id() + " " + s);
+        System.out.println("TextBox@" + id() + " [" + getText() + "] " + s);
+        //System.out.println("TextBox@" + id() + " " + s);
     }
     private void out(String s, Dimension d) {
         out(VueUtil.pad(' ', 9, s, true) + " " + tufts.Util.out(d));
