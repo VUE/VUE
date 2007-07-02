@@ -105,6 +105,16 @@ public class RSSDataSource  extends VueDataSource{
         
         List<URLResource> resourceList = new ArrayList<URLResource>();
         
+        // getUri did not work for Reuters (and Atom feeds in general?), 
+        // switched to getLink() instead (see below)
+        /*System.out.println("itemList length: " + itemList.size());
+        
+        for(int j=0;j<itemList.size();j++)
+        {
+            SyndEntry entry = itemList.get(j);
+            System.out.println(j + ":" + entry.getUri());
+        }*/
+        
         Iterator<SyndEntry> i = itemList.iterator();
         while(i.hasNext())
         {
@@ -112,7 +122,8 @@ public class RSSDataSource  extends VueDataSource{
             URLResource res = null;
             try
             {
-              res = new URLResource(new URL(entry.getUri()));
+              //res = new URLResource(new URL(entry.getUri()));
+              res = new URLResource(new URL(entry.getLink()));
             }
             catch(MalformedURLException mue)
             {
@@ -120,7 +131,7 @@ public class RSSDataSource  extends VueDataSource{
             }
             if(res == null)
             {
-                System.out.println("null resource created for rss feed, aborting... ");
+                System.out.println("null resource created for rss feed, aborting... " + entry.getLink());
                 return;
             }
             res.setTitle(entry.getTitle());
