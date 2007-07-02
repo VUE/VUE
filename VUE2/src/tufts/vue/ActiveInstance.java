@@ -2,6 +2,7 @@ package tufts.vue;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import tufts.Util;
 
 /**
  * This provides for tracking the single selection of a given typed
@@ -24,7 +25,7 @@ import java.util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.8 $ / $Date: 2007-05-23 23:55:18 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2007-07-02 17:19:35 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -164,12 +165,20 @@ public class ActiveInstance<T>
             }
         
             if (DEBUG.EVENTS) {
-                outf(this + " == %s (source is %s) old=%s listeners=%d in %s\n",
-                     newActive,
-                     sourceName(source),
-                     nowActive,
-                     listenerList.size(),
-                     Thread.currentThread().getName());
+//                 outf(Util.TERM_YELLOW + this + " == %s\n\tsource: %s\n\told: %s\n\tlisteners=%d in %s\n" + Util.TERM_CLEAR,
+//                      newActive,
+//                      sourceName(source),
+//                      nowActive,
+//                      listenerList.size(),
+//                      Thread.currentThread().getName());
+                System.out.println(Util.TERM_GREEN
+                                   + this
+                                   + "\n\tnewActive: " + newActive
+                                   + "\n\toldActive: " + nowActive
+                                   + "\n\t   source: " + sourceName(source)
+                                   + "\n\tlisteners: " + listenerList.size() + " in " + Thread.currentThread().getName()
+                                   + Util.TERM_CLEAR
+                                   );
             }
             final T oldActive = nowActive;
             this.nowActive = newActive;
