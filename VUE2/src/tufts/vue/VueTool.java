@@ -36,7 +36,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.74 $ / $Date: 2007-06-08 19:40:17 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2007-07-02 17:02:36 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -345,6 +345,10 @@ public abstract class VueTool extends AbstractAction
 
     /** does tool make use of a dragged box for selecting objects or regions of the map? */
     public boolean supportsDraggedSelector(MapMouseEvent e) { return true; }
+
+    /** @return true by deafult if tool supports drag operations -- override to change */
+    public boolean supportsDrag(MapMouseEvent e) { return true; }
+    
     
     /** does tool make use of the resize controls? If false, They will still be drawn, but
      * will not respond to mouse drags.*/

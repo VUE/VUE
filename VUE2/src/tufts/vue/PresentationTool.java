@@ -1839,10 +1839,17 @@ private static int OverviewMapSizeIndex = 5;
     }
     */
     
+    /** @return true */
     public boolean supportsSelection() { return true; }
+    /** @return false */
     public boolean supportsResizeControls() { return false; }
+    /** @return false */
+    public boolean supportsDrag(MapMouseEvent e) { return false; }
+    /** @return false */
     public boolean supportsDraggedSelector(MapMouseEvent e) { return false; }
+    /** @return true */
     public boolean hasDecorations() { return true; }
+    /** @return true */
     public boolean usesRightClick() { return true; }
 
     

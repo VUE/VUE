@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.408 $ / $Date: 2007-06-27 20:56:32 $ / $Author: sfraize $ 
+ * @version $Revision: 1.409 $ / $Date: 2007-07-02 17:02:36 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2403,6 +2403,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //setOpaque(true);
     }
 
+    protected static final Color DefaultFillColor = Color.white;
     protected Color getBackgroundFillColor(DrawContext dc)
     {
         final Color bgFill;
@@ -2416,7 +2417,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (entry != null)
                 bgFill = entry.getFullScreenFillColor(dc);
             else
-                bgFill = Color.gray;
+                bgFill = DefaultFillColor;
 
             // We CANNOT depend on looking to see if the focal is a slide
             // to know if we need a presentation full-screen fill color,
@@ -2425,7 +2426,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
         } else {
             if (mMap == null || mFocal != mMap)
-                bgFill = Color.gray;
+                bgFill = DefaultFillColor;
             else
                 bgFill = mMap.getFillColor();
         }
@@ -3698,7 +3699,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     protected void setToDrag(LWSelection s) {
         //if (s.only() instanceof LWSlide) s.clear(); // okay, this stopped us from picking up the slide, but too soon: can't change BG color
-        if (s.size() > 0 && s.first().isMoveable()) {
+        if (s.size() > 0 && s.first().isMoveable() && activeTool.supportsSelection()) {
             if (DEBUG.WORK) out("set to drag " + s);
             draggedSelectionGroup.useSelection(s);
             setDragger(draggedSelectionGroup);
