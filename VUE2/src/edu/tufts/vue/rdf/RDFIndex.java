@@ -29,6 +29,7 @@ public class RDFIndex extends ModelCom {
         for(LWComponent comp: map.getAllDescendents()) {
             rdfize(comp);
         }
+         System.out.println("Size of index:"+this.size());
     }
     
     public List search(String keyword) {        
@@ -51,7 +52,6 @@ public class RDFIndex extends ModelCom {
         if(component.getLabel() != null){
             r.addProperty(labelOf,component.getLabel());
         }
-        System.out.println("Size of index:"+this.size());
     }
     public static String getUniqueId() {
         return edu.tufts.vue.util.GUID.generate();
