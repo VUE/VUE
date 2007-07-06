@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.455 $ / $Date: 2007-06-29 21:45:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.456 $ / $Date: 2007-07-06 16:36:58 $ / $Author: anoop $ 
  */
 
 public class VUE
@@ -102,8 +102,8 @@ public class VUE
     private static FloatingZoomPanel floatingZoomPanel; 
     private static PathwayPanel pathwayPanel = null;
     private static MapInspectorPanel mapInspectorPanel = null;
-
-
+    public static edu.tufts.vue.rdf.RDFIndex index = edu.tufts.vue.rdf.RDFIndex.createDefaultIndex();
+   
     private static final ActiveInstance<LWPathway>
         ActivePathwayHandler = new ActiveInstance<LWPathway>(LWPathway.class) {
         protected void onChange(ActiveEvent<LWPathway> e) {
