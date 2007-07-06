@@ -25,6 +25,7 @@ public class RDFIndex extends ModelCom {
     com.hp.hpl.jena.rdf.model.Property idOf = createProperty("vue://","id");
     com.hp.hpl.jena.rdf.model.Property labelOf = createProperty("vue://","label");
     com.hp.hpl.jena.rdf.model.Property childOf = createProperty("vue://","child");
+     com.hp.hpl.jena.rdf.model.Property authorOf = createProperty("vue://","author");
     
     
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
@@ -33,6 +34,7 @@ public class RDFIndex extends ModelCom {
     public void index(LWMap map) {
         com.hp.hpl.jena.rdf.model.Resource mapR = this.createResource("vue://"+map.getURI().toString());
         mapR.addProperty(idOf,map.getID());
+        mapR.addProperty(authorOf,System.getProperty("user.name"));
         if(map.getLabel() != null){
             mapR.addProperty(labelOf,map.getLabel());
         }
