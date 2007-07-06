@@ -33,7 +33,7 @@ import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 
 import java.util.*;
-
+import java.net.*;
 //import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
 
@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.298 $ / $Date: 2007-06-27 20:53:56 $ / $Author: sfraize $
+ * @version $Revision: 1.299 $ / $Date: 2007-07-06 16:36:20 $ / $Author: anoop $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -167,7 +167,7 @@ public class LWComponent
     
     private MetadataList metadataList = new MetadataList();
     private NodeFilter nodeFilter = null; // don't know why we need this
-    
+    private URI uri;
     protected float width = NEEDS_DEFAULT;
     protected float height = NEEDS_DEFAULT;
     protected java.awt.Dimension textSize = null; // only for use with wrapped text
@@ -3285,6 +3285,25 @@ u                    getSlot(c).setFromString((String)value);
     /** @return true if when this this component draws, it draws and picks relative to it's parent's coordinate space (default is false) */
     public boolean hasParentLocation() { return false; }
     
+    /** @return uri
+     * returns an unique uri for a component. If component already has one it is returned else an new uri is created and returned.
+     * At present uris will be created through rdf index
+     */
+    public URI getURI() {
+        if(uri == null) {
+            try {
+                    uri = new URI(edu.tufts.vue.rdf.RDFIndex.getUniqueId());
+                } catch (Throwable t) {
+                    tufts.Util.printStackTrace(t, "Failed to create an uri for  "+label);
+                }
+           
+        }
+        return uri;
+    }
+    
+    public void setURI(URI uri) {
+       this.uri = uri; 
+    }
     /*
     public void setShape(Shape shape)
     {
