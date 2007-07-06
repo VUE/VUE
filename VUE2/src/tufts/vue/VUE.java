@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.456 $ / $Date: 2007-07-06 16:36:58 $ / $Author: anoop $ 
+ * @version $Revision: 1.457 $ / $Date: 2007-07-06 18:26:11 $ / $Author: anoop $ 
  */
 
 public class VUE
@@ -1614,15 +1614,25 @@ public class VUE
         LWMap ensureChecked = getActiveMap(); // in case of full-screen
         for (int i = 0; i < tabs; i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
+              
             if (map == ensureChecked)
                 ensureChecked = null;
             if (!askSaveIfModified(mMapTabsLeft.getMapAt(i)))
                 return false;
         }
+         try {
+             VUE.index.index(VUE.getActiveMap());
+            VUE.index.write(new FileWriter(VueUtil. getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file")));
+            System.out.println("Writing index to"+VueUtil. getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file"));
+         } catch (Throwable t) {
+           System.out.println("Exception attempting to save index " +t);
+           t.printStackTrace();
+         }  
         if (ensureChecked != null && !askSaveIfModified(ensureChecked))
             return false;
         else
             return true;
+             
     }
     
     /*
