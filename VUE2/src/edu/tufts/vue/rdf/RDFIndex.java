@@ -22,17 +22,29 @@ import com.hp.hpl.jena.rdf.model.impl.*;
 import com.hp.hpl.jena.graph.*;
 
 public class RDFIndex extends ModelCom {
+    com.hp.hpl.jena.rdf.model.Property idOf = createProperty("vue://","id");
+    com.hp.hpl.jena.rdf.model.Property labelOf = createProperty("vue://","label");
+    com.hp.hpl.jena.rdf.model.Property childOf = createProperty("vue://","child");
+    
+    
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
         super(base);
     }
     public void index(LWMap map) {
-        for(LWComponent comp: map.getAllDescendents()) {
-            rdfize(comp);
+        com.hp.hpl.jena.rdf.model.Resource mapR = this.createResource("vue://"+map.getURI().toString());
+        mapR.addProperty(idOf,map.getID());
+        if(map.getLabel() != null){
+            mapR.addProperty(labelOf,map.getLabel());
         }
-         System.out.println("Size of index:"+this.size());
+        for(LWComponent comp: map.getAllDescendents()) {
+            rdfize(comp,mapR);
+            
+
+        }
+        System.out.println("Size of index:"+this.size());
     }
     
-    public List search(String keyword) {        
+    public List search(String keyword) {
         return null;
     }
     
@@ -44,14 +56,14 @@ public class RDFIndex extends ModelCom {
         
     }
     
-    public void rdfize(LWComponent component) {
+    public void rdfize(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR) {
         com.hp.hpl.jena.rdf.model.Resource r = this.createResource("vue://"+component.getURI().toString());
-        com.hp.hpl.jena.rdf.model.Property idOf = this.createProperty("vue://","id");
-        com.hp.hpl.jena.rdf.model.Property labelOf = this.createProperty("vue://","label");
         r.addProperty(idOf,component.getID());
         if(component.getLabel() != null){
             r.addProperty(labelOf,component.getLabel());
         }
+         com.hp.hpl.jena.rdf.model.Statement statement = this.createStatement(r,childOf,mapR);
+         this.add(statement);
     }
     public static String getUniqueId() {
         return edu.tufts.vue.util.GUID.generate();
