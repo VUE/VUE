@@ -19,6 +19,7 @@ import java.io.*;
 import tufts.vue.*;
 
 import com.hp.hpl.jena.rdf.model.impl.*;
+import com.hp.hpl.jena.graph.*;
 
 public class RDFIndex extends ModelCom {
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
@@ -38,6 +39,14 @@ public class RDFIndex extends ModelCom {
     
     public void read() {
         
+    }
+    
+    public static String getUniqueId() {
+        return edu.tufts.vue.util.GUID.generate();
+    }
+    
+    public static RDFIndex createDefaultIndex() {
+        return new RDFIndex(com.hp.hpl.jena.graph.Factory.createGraphMem());
     }
     
 }
