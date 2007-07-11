@@ -1,21 +1,32 @@
-/*
- * RDFIndex.java
+/**
  *
- * Created on June 25, 2007, 12:02 PM
+ * * <p><b>License and Copyright: </b>The contents of this file are subject to the
+ * Mozilla Public License Version 1.1 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License
+ * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
+ * <p>Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+ * the specific language governing rights and limitations under the License.</p>
+ *
+ * <p>The entire file consists of original code.  Copyright &copy; 2003-2007
+ * Tufts University. All rights reserved.</p>
  */
 
 /**
  *
+ * RDFIndex.java
+ *
  * @author akumar03
+ * @author Daniel J. Heller
+ *
  */
 
 package edu.tufts.vue.rdf;
 
 import java.util.*;
 import java.io.*;
+import edu.tufts.vue.metadata.*;
 import tufts.vue.*;
 
 import com.hp.hpl.jena.rdf.model.impl.*;
@@ -25,7 +36,8 @@ public class RDFIndex extends ModelCom {
     com.hp.hpl.jena.rdf.model.Property idOf = createProperty("vue://","id");
     com.hp.hpl.jena.rdf.model.Property labelOf = createProperty("vue://","label");
     com.hp.hpl.jena.rdf.model.Property childOf = createProperty("vue://","child");
-     com.hp.hpl.jena.rdf.model.Property authorOf = createProperty("vue://","author");
+    com.hp.hpl.jena.rdf.model.Property authorOf = createProperty("vue://","author");
+    com.hp.hpl.jena.rdf.model.Property tagOf = createProperty("user://","tag");
     
     
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
@@ -64,9 +76,18 @@ public class RDFIndex extends ModelCom {
         if(component.getLabel() != null){
             r.addProperty(labelOf,component.getLabel());
         }
-         com.hp.hpl.jena.rdf.model.Statement statement = this.createStatement(r,childOf,mapR);
-         this.add(statement);
+        com.hp.hpl.jena.rdf.model.Statement statement = this.createStatement(r,childOf,mapR);
+        this.add(statement);
+        List<VueMetadataElement> metadata = component.getMetadataList().getMetadata();
+        Iterator<VueMetadataElement> i = metadata.iterator();
+        while(i.hasNext())
+        {
+          VueMetadataElement element = i.next();
+          statement = this.createStatement(r,tagOf,element.getObject().toString());
+          this.add(statement);
+        }
     }
+    
     public static String getUniqueId() {
         return edu.tufts.vue.util.GUID.generate();
     }
