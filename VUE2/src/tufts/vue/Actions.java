@@ -358,10 +358,7 @@ public class Actions implements VueConstants
         void act(LWComponent c) {
             LWComponent copy = c.duplicate(CopyContext);
             DupeList.add(copy);
-            final float x = c.getX();
-            final float y = c.getY();
-            copy.setLocation(x+CopyOffset,
-                             y+CopyOffset);
+            copy.translate(CopyOffset, CopyOffset);
             c.getParent().addChild(copy);
         }
         
