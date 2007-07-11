@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.jar.*;
 import java.util.prefs.*;
 import java.awt.*;
+import java.awt.geom.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -1181,6 +1182,33 @@ public class Util
         System.err.println(e + ": Not Mac OS X Platform, or VUE-MacOSX.jar and/or /System/Library/Java not in classpath");
     }
 
+
+    public static String fmt(final Shape shape) {
+
+        final Rectangle2D r;
+        final String name;
+        if (shape instanceof Rectangle2D) {
+            r = (Rectangle2D) shape;
+            name = "Rect";
+        } else {
+            name = "Shape";
+            if (shape == null)
+                r = null;
+            else
+                r = shape.getBounds2D();
+        }
+        
+        return shape == null
+            ? "<null-" + name + ">"
+            : String.format("%s@%x[%7.1f,%-7.1f %5.1fx%-5.1f]",
+                            name,
+                            shape == null ? 0 : System.identityHashCode(shape),
+                            r.getX(), r.getY(), r.getWidth(), r.getHeight());
+        
+    }
+
+    
+
     public static void out(Object o) {
         System.out.println((o==null?"null":o.toString()));
     }
@@ -1488,7 +1516,7 @@ public class Util
         if (o == null)
             return "null";
         else
-            return o.getClass().getName() + "@" + Integer.toHexString(o.hashCode());
+            return o.getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(o));
     }
     
     public static String tags(Object o) {
