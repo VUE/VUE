@@ -18,6 +18,9 @@
 
 package tufts.vue;
 
+import tufts.Util;
+import static tufts.Util.*;
+
 import java.awt.Color;
 import java.awt.Shape;
 import java.awt.Graphics;
@@ -32,7 +35,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.42 $ / $Date: 2007-06-11 10:59:07 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2007-07-11 21:32:05 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -97,6 +100,8 @@ public class DrawContext
         this.mapTransform = g.getTransform();
         setMasterClip(g.getClip());
 
+        if (DEBUG.PAINT) out("CONSTRUCTED");
+
         
         //setMasterClip(rawClip = g.getClip());
         
@@ -108,6 +113,7 @@ public class DrawContext
     public DrawContext(Graphics g, LWComponent focal)
     {
         this(g, 1.0, 0, 0, (Rectangle) null, focal, false);
+        setFill(focal.getRenderFillColor(null));
     }
     public DrawContext(Graphics g, double zoom)
     {
@@ -120,14 +126,19 @@ public class DrawContext
 
     public void fill(Color c) {
         if (fillColor != null)
-            tufts.Util.printStackTrace(this + " already filled with " + fillColor);
-        fillColor = c;
+            Util.printStackTrace(this + " already filled with " + fillColor);
+        setFill(c);
         g.setColor(c);
         g.fill(g.getClipBounds());
     }
 
     public Color getFill() {
         return fillColor;
+    }
+    
+    public void setFill(Color c) {
+        if (DEBUG.IMAGE) out("setFill: " + c);
+        fillColor = c;
     }
     
 
@@ -201,32 +212,38 @@ public class DrawContext
      
      */
     public boolean isClipOptimized() {
-        return !DEBUG.CONTAINMENT && isClipOptimized;
+        if (DEBUG.CONTAINMENT && DEBUG.META && DEBUG.WORK) // TODO: temporary weird case
+            return false;
+        else
+            return isClipOptimized;
     }
         
     public void setMasterClip(Shape clip)
     {
         g.setClip(clip);
         if (clip instanceof Rectangle2D) {
+            if (DEBUG.PAINT) out("SET MASTER CLIP RECT2D " + fmt(clip));
             masterClipRect = (Rectangle2D) clip;
-            //if (DEBUG.PAINT) System.out.println("MASTER CLIP RECT2D=" + tufts.Util.out(masterClipRect));
+            //masterClipRect = (Rectangle2D) ((Rectangle2D)clip).clone();
+            //if (DEBUG.PAINT) out("SET MASTER CLIP RECT2D DONE " + fmt(masterClipRect));
         } else {
             // we've set the shaped clip in the gc, now extract the master clip rectangle from the gc
             masterClipRect = g.getClipBounds();
             if (DEBUG.PAINT || DEBUG.CONTAINMENT) {
-                System.out.println("SET SHAPE CLIP: " + clip);
+                out("SET SHAPE CLIP: " + fmt(clip));
                 //System.out.println("MASTER CLIP RECT2D: " + Util.out(masterClipRect));
             }
         }
-        if (DEBUG.PAINT || (DEBUG.CONTAINMENT&&DEBUG.META) || DEBUG.PRESENT)
-            System.out.println("MASTER CLIP RECT2D=" + tufts.Util.out(masterClipRect));
+//         if (DEBUG.PAINT || (DEBUG.CONTAINMENT&&DEBUG.META) || DEBUG.PRESENT)
+//             out("SET MASTER CLIP RECT2D " + fmt(masterClipRect));
     }
 
     public Rectangle2D getMasterClipRect() {
         if (masterClipRect == null) {
-            tufts.Util.printStackTrace("DrawContext: null masterClipRect!");
+            Util.printStackTrace(this + " null masterClipRect!");
             masterClipRect = this.g.getClipBounds();
         }
+        //return (Rectangle2D) ((Rectangle2D)masterClipRect).clone();
         return masterClipRect;
     }
 
@@ -443,8 +460,24 @@ public class DrawContext
     }
 
     public String toString() {
-        return String.format("DrawContext[zoom=%.2f mapOffset=%.1f,%.1f focal=%s]", zoom, offsetX, offsetY, focal);
+        //return String.format("DrawContext@%x[zoom=%.2f mapOffset=%.1f,%.1f focal=%s]",
+        return String.format("DrawContext@%06X[z%.2f %s %s]",
+                             hashCode(),
+                             zoom,
+                             //offsetX, offsetY,
+                             focal == null ? "null focal" : focal.getUniqueComponentTypeLabel(),
+                             fmt(masterClipRect)
+                             );
+        
     }
+
+    protected void out(String s) {
+        System.err.println(Util.TERM_PURPLE
+                           + this
+                           + Util.TERM_CLEAR
+                           + " " + s);
+    }
+    
     
     // todo: replace with a faster clone op?
     public DrawContext(DrawContext dc)
@@ -476,6 +509,11 @@ public class DrawContext
         this.skipDraw = dc.skipDraw;
         this.fillColor = dc.fillColor;
         this.isClipOptimized = dc.isClipOptimized;
+
+        if (DEBUG.PAINT) out("CLONE of " + dc);
+        //out("CLONED: " + Util.tag(masterClipRect) + " from " + dc);
+        //Util.printClassTrace("tufts.vue", "CLONE " + this);        
+        
         //this.mAlpha = dc.mAlpha;
     }
 
