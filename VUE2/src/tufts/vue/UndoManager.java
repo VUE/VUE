@@ -433,6 +433,12 @@ public class UndoManager
             }
         }
             
+        // TODO: detect condition that indicates we've got an event/undo event generation problem
+        // on the front end: let us know if ever the same component get's multiple DIFFERENT
+        // reparentings during a single undo: e.g., it appears in more than one hier.changing event
+        // for different components, so whichever one comes last is the one it ends up being parented to...
+
+        
         private void undoHierarchyChange(LWContainer parent, Object oldValue)
         {
             if (DEBUG.UNDO) System.out.println("\trestoring children of " + parent + " to " + oldValue);
@@ -440,11 +446,11 @@ public class UndoManager
             parent.notify(LWKey.HierarchyChanging); // this event important for REDO
 
             // Create data for synthesized ChildrenAdded & ChildrenRemoved events
-            List newChildList = (List) oldValue;
-            List oldChildList = parent.children;
-            ArrayList childrenAdded = new ArrayList(newChildList);
+            final List newChildList = (List) oldValue;
+            final List oldChildList = parent.children;
+            final List childrenAdded = new ArrayList(newChildList);
             childrenAdded.removeAll(oldChildList);
-            ArrayList childrenRemoved = new ArrayList(oldChildList);
+            final List childrenRemoved = new ArrayList(oldChildList);
             childrenRemoved.removeAll(newChildList);
 
             // Do the swap in of the old list of children:
@@ -455,7 +461,7 @@ public class UndoManager
                 if (parent instanceof LWPathway) {
                     // Special case for pathways. todo: something cleaner (pathways don't "own" their children)
                     //((LWPathway)parent).addChildRefs(child);
-                    throw new UnsupportedOperationException("LWPathway's don't have real children");
+                    Util.printStackTrace("LWPathway's don't have real children: " + parent + "; for child " + child);
                 } else {
                     if (child.isDeleted())
                         child.restoreToModel();
@@ -463,7 +469,7 @@ public class UndoManager
                     //child.reparentNotify(parent);
                 }
             }
-            parent.setScale(parent.getScale());
+            // parent.setScale(parent.getScale()); // should no longer be needed now with non-cascading scale values
             parent.layout();
             // issue synthesized ChildrenAddded and/or ChildrenRemoved events
             if (childrenAdded.size() > 0) {
@@ -1342,14 +1348,19 @@ public class UndoManager
                 if (alreadyStoredValue != null) {
                     if (DEBUG.UNDO) System.out.println(" (compressed)");
                     compressed = true;
+                } else if (propertyKey == LWKey.HierarchyChanging && allChangesToComponent.containsKey(LWKey.Created)) {
+                    VUE.Log.info("UndoManager: compressing hier change event for newly created component: " + component);
+                    if (DEBUG.UNDO) System.out.println(" (compressed:NEW COMPONENT IGNORES HIER CHANGES)");
+                    compressed = true;
                 }
+
             }
         }
         
         if (compressed) {
             // If compressed, still make sure the current property change UndoItem is
             // marked as being at the current end of the undo sequence.
-            if (undoAction.size() > 1) {
+            if (undoAction.size() > 1 && alreadyStoredValue != null) {
                 //UndoItem undoItem = (UndoItem) undoSequence.get(alreadyStoredValue.index);
                 UndoItem undoItem = (UndoItem) undoAction.undoSequence.get(alreadyStoredValue.index);
                 if (DEBUG.UNDO&&DEBUG.META) System.out.println("Moving index "

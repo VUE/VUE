@@ -31,7 +31,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.72 $ / $Date: 2007-06-29 21:45:58 $ / $Author: sfraize $
+ * @version $Revision: 1.73 $ / $Date: 2007-07-12 04:02:08 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -201,7 +201,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             inNotify = true;
         
             if (DEBUG.SELECTION || DEBUG.EVENTS) {
-                System.out.println("-----------------------------------------------------------------------------");
+                if (DEBUG.SELECTION)
+                    System.out.println("\n-----------------------------------------------------------------------------");
                 System.out.println(this + " NOTIFYING " + listeners.size() + " LISTENERS from " + Thread.currentThread());
             }
             Listener[] listener_iter = (Listener[]) listeners.toArray(listener_buf);

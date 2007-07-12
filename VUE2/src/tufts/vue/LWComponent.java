@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.300 $ / $Date: 2007-07-12 02:11:59 $ / $Author: sfraize $
+ * @version $Revision: 1.301 $ / $Date: 2007-07-12 04:02:08 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2134,7 +2134,10 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     void setParent(LWContainer newParent) {
-        final boolean linkNotify = (!mXMLRestoreUnderway && parent != null);
+
+        if (DEBUG.UNDO) System.err.println("*** SET-PARENT: " + newParent + " for " + this);
+        
+        //final boolean linkNotify = (!mXMLRestoreUnderway && parent != null);
         if (parent == newParent) {
             // This is normal.
             // (e.g., one case: during undo of reparenting operations)
