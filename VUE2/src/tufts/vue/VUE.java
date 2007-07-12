@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.458 $ / $Date: 2007-07-06 18:31:58 $ / $Author: anoop $ 
+ * @version $Revision: 1.459 $ / $Date: 2007-07-12 02:04:37 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1775,6 +1775,7 @@ public class VUE
             if (loadedMap != null)
                 VUE.displayMap(loadedMap);
         } catch (Throwable t) {
+            Util.printStackTrace(t, "failed to load map[" + file + "]");
             VUE.clearWaitCursor();
             alerted = true;
             VueUtil.alert("Failed to load map: " + file + "  \n"
