@@ -22,6 +22,7 @@ import tufts.Util;
 import static tufts.Util.*;
 
 import java.awt.Shape;
+import java.awt.Rectangle;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Stroke;
@@ -47,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.299 $ / $Date: 2007-07-06 16:36:20 $ / $Author: anoop $
+ * @version $Revision: 1.300 $ / $Date: 2007-07-12 02:11:59 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1401,10 +1402,12 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     protected void addCleanupTask(Runnable task) {
-        addCleanupTask(task, this, null);
+        addCleanupTask(task, this);
+        //addCleanupTask(task, this, null);
     }
     
-    protected void addCleanupTask(Runnable task, Object taskKey, Object srcMsg) {
+    //    protected void addCleanupTask(Runnable task, Object taskKey, Object srcMsg) {
+    protected void addCleanupTask(Runnable task, Object taskKey) {
         final UndoManager um = getUndoManager();
 
         if (um != null) {
@@ -1420,12 +1423,13 @@ u                    getSlot(c).setFromString((String)value);
                     debug = true;
                 }
                 
-                if (debug) {
-                    System.out.println(TERM_RED + "ADDING CLEANUP TASK: " + task 
-                                       + (srcMsg==null?"":("on " + srcMsg))
-                                       + (task == this ? "" : (" for " + this))
-                                       + TERM_CLEAR);
-                }
+//                 if (debug) {
+//                     System.out.println(TERM_RED + "ADDING CLEANUP TASK: " + task 
+//                                        + (srcMsg==null?"":("on " + srcMsg))
+//                                        + (task == this ? "" : (" for " + this))
+//                                        + TERM_CLEAR);
+//                 }
+                
                 um.addCleanupTask(this, task);
             }
         }
@@ -2040,12 +2044,17 @@ u                    getSlot(c).setFromString((String)value);
     public Color getRenderFillColor(DrawContext dc) {
         if (mFillColor.isTransparent()) {
             if (dc != null && dc.focal == this) {
+                //System.out.println("     DC FILL: " + dc.getFill() + " " + this);
                 return dc.getFill();
-            } else if (parent != null)
+            } else if (parent != null) {
+                //System.out.println(" PARENT FILL: " + parent.getRenderFillColor(dc) + " " + this);
                 return parent.getRenderFillColor(dc);
-        } 
+            }
+        }
+        //System.out.println("DEFAULT FILL: " + mFillColor.get() + " " + this);
         return mFillColor.get();
     }
+    
     void takeFillColor(Color color) {
         mFillColor.take(color);
         //this.fillColor = color;
@@ -2127,7 +2136,9 @@ u                    getSlot(c).setFromString((String)value);
     void setParent(LWContainer newParent) {
         final boolean linkNotify = (!mXMLRestoreUnderway && parent != null);
         if (parent == newParent) {
-            if (DEBUG.Enabled) out("redundant set-parent");
+            // This is normal.
+            // (e.g., one case: during undo of reparenting operations)
+            //if (DEBUG.Enabled) Util.printStackTrace("redundant set-parent in " + this + "; parent=" + newParent);
             return;
         }
         parent = newParent;
@@ -2616,27 +2627,36 @@ u                    getSlot(c).setFromString((String)value);
         
         int count = 0;
         for (LWLink link : mLinks)
-            if (link.isConnectedTo(c))
+            if (link.hasEndpoint(c))
                 count++;
         return count;
     }
 
+    /** @return true if there are any links between us and the given component */
     public boolean hasLinkTo(LWComponent c)
     {
         if (c == null)
             return false;
         
         for (LWLink link : mLinks)
-            if (link.isConnectedTo(c))
+            if (link.hasEndpoint(c))
                 return true;
         return false;
     }
+
+    /** @return true of this component has any connections (links) to the given component.
+     *  LWLink overrides to include it's endpoints in the definition of "connected" to.
+     */
+    public boolean isConnectedTo(LWComponent c) {
+        return hasLinkTo(c);
+    }
+    
         
     public int countCurvedLinksTo(LWComponent c)
     {
         int count = 0;
         for (LWLink link : mLinks)
-            if (link.isConnectedTo(c) && link.isCurved())
+            if (link.hasEndpoint(c) && link.isCurved())
                 count++;
         return count;
     }
@@ -2735,7 +2755,7 @@ u                    getSlot(c).setFromString((String)value);
             return;
         final double oldScale = this.scale;
         if (DEBUG.LAYOUT) out("setScale " + scale);
-        if (DEBUG.LAYOUT) tufts.Util.printClassTrace("tufts.vue", "setScale " + scale);
+        //if (DEBUG.LAYOUT) tufts.Util.printClassTrace("tufts.vue", "setScale " + scale);
         this.scale = scale;
         
         // can only do this via debug inspector right now, and is causing lots of
@@ -3206,15 +3226,25 @@ u                    getSlot(c).setFromString((String)value);
         return getMapY() + getMapHeight() / 2;
     }
 
+    // these two don't handle scale properly yet
+    public float getCenterX(LWContainer ancestor) {
+        return (float) getX(ancestor) + getScaledWidth() / 2;
+    }
+    public float getCenterY(LWContainer ancestor) {
+        return (float) getY(ancestor) + getScaledHeight() / 2;
+    }
+
     protected double getMapXPrecise()
     {
-        if (parent == null || parent.hasAbsoluteChildren())
+        //if (parent == null || parent.hasAbsoluteChildren())
+        if (parent == null)
             return getX();
         else
             return parent.getMapXPrecise() + getX() * parent.getMapScale();
     }
     protected double getMapYPrecise() {
-        if (parent == null || parent.hasAbsoluteChildren())
+        //if (parent == null || parent.hasAbsoluteChildren())
+        if (parent == null)
             return getY();
         else
             return parent.getMapYPrecise() + getY() * parent.getMapScale();
@@ -3258,14 +3288,6 @@ u                    getSlot(c).setFromString((String)value);
             return parent.getY(ancestor) + getY() * parent.getMapScale();
     }
 
-    // these two don't handle scale propertly yet
-    public float getCenterX(LWContainer ancestor) {
-        return (float) getX(ancestor) + getScaledWidth() / 2;
-    }
-    public float getCenterY(LWContainer ancestor) {
-        return (float) getY(ancestor) + getScaledHeight() / 2;
-    }
-    
     
     //-----------------------------------------------------------------------------
     //-----------------------------------------------------------------------------
@@ -3503,7 +3525,7 @@ u                    getSlot(c).setFromString((String)value);
      */
     public AffineTransform getRelativeTransform(LWContainer ancestor) {
 
-        if (parent == ancestor)
+        if (parent == ancestor || parent == null)
             return transformLocal(new AffineTransform());
         else
             return transformLocal(parent.getRelativeTransform(ancestor));
@@ -3559,11 +3581,12 @@ u                    getSlot(c).setFromString((String)value);
 
     }
 
+    /** @param mapPoint will be transformed (written over) and returned */
     protected Point2D.Float transformMapToLocalPoint(Point2D.Float mapPoint) {
 
         if (getParent() instanceof LWMap) {
             // this is an optimization we'll want to remove if we ever
-            // ember maps in maps
+            // embed maps in maps
             return mapPoint;
         }
 
@@ -3576,6 +3599,42 @@ u                    getSlot(c).setFromString((String)value);
         return mapPoint;
         
     }
+
+    /** @param mapRect will be transformed (written over) and returned */
+    protected Rectangle2D transformMapToLocalRect(Rectangle2D mapRect) {
+
+        if (getParent() instanceof LWMap) {
+            // this is an optimization we'll want to remove if we ever
+            // embed maps in maps
+            return mapRect;
+        }
+
+        final AffineTransform tx = getLocalTransform();
+        double[] points = new double[8]; // todo: can do as len 4 & overwrite
+        points[0] = mapRect.getX();
+        points[1] = mapRect.getY();
+        points[2] = points[0] + mapRect.getWidth();
+        points[3] = points[1] + mapRect.getHeight();
+        try {
+            tx.inverseTransform(points, 0, points, 4, 2);
+        } catch (java.awt.geom.NoninvertibleTransformException e) {
+            Util.printStackTrace(e);
+        }
+
+        mapRect.setRect(points[4],
+                        points[5],
+                        points[6] - points[4],
+                        points[7] - points[5]
+                        );
+//         mapRect.x = (float) points[4];
+//         mapRect.y = (float) points[5];
+//         mapRect.width = (float) (points[6] - points[4]);
+//         mapRect.height = (float) (points[7] - points[5]);
+
+        return mapRect;
+        
+    }
+    
     
     
     /**
@@ -3585,12 +3644,10 @@ u                    getSlot(c).setFromString((String)value);
      */
     public final boolean intersects(Rectangle2D rect)
     {
-        // TODO: intersection wants to use render-bounds (with stroke) for paint testing,
+        final boolean hit = intersectsImpl(rect);
+        //if (DEBUG.PAINT) System.out.println("INTERSECTS " + fmt(rect) + " " + (hit?"YES":"NO ") + " for " + fmt(getPaintBounds()) + " " + this);
         
-        //boolean hit = intersectsImpl(rect);
-        //if (DEBUG.Enabled) System.out.println("INTERSECTS " + Util.out(rect) + " " + (hit?"YES":"NO ") + " for " + Util.out(bounds) + " " + this);
-        
-        if (intersectsImpl(rect))
+        if (hit)
             return true;
         else if (isDrawingSlideIcon() && getMapSlideIconBounds().intersects(rect))
             return true;
@@ -3613,8 +3670,9 @@ u                    getSlot(c).setFromString((String)value);
         if (isHidden() || (isFiltered() && !hasChildren()))
             return false;
 
-        if (getLayer() > dc.getMaxLayer())
-            return false;
+        // Not currently used:
+        //if (getLayer() > dc.getMaxLayer())
+        //    return false;
 
         if (!dc.isClipOptimized()) {
             // If we're drawing raw, always draw everything, don't
@@ -3637,9 +3695,11 @@ u                    getSlot(c).setFromString((String)value);
 
     /** default impl intersects the render/paint bounds, including any borders (we use this for draw clipping as well as selection) */
     protected boolean intersectsImpl(Rectangle2D rect) {
+        //if (DEBUG.CONTAINMENT) System.out.println("INTERSECTS " + Util.fmt(rect));
         final Rectangle2D bounds = getPaintBounds();
         final boolean hit = rect.intersects(bounds);
-        if (DEBUG.PAINT || DEBUG.PICK) System.out.println("INTERSECTS " + Util.out(rect) + " " + (hit?"YES":"NO ") + " for " + Util.out(bounds) + " of " + this);
+        if (DEBUG.PAINT || DEBUG.PICK) System.out.println("INTERSECTS " + Util.fmt(rect) + " " + (hit?"YES":"NO ") + " for " + Util.fmt(bounds) + " of " + this);
+        //Util.printClassTrace("tufts.vue.LW", "INTERSECTS " + this);
         return hit;
     }
     
@@ -3942,15 +4002,20 @@ u                    getSlot(c).setFromString((String)value);
      */
     public void drawInParent(DrawContext dc)
     {
-        if (VUE.RELATIVE_COORDS) {
-            if (hasAbsoluteMapLocation())
-                dc.setMapDrawing();
-            else// this will cascade to all children when they draw, combining with their calls to transformRelative
-                transformRelative(dc.g);
-        } else {
-            // this will be reset here for each child
-            transformLocal(dc.g);
-        }
+        if (hasAbsoluteMapLocation())
+            dc.setMapDrawing();
+        else// this will cascade to all children when they draw, combining with their calls to transformRelative
+            transformRelative(dc.g);
+        
+//         if (VUE.RELATIVE_COORDS) {
+//             if (hasAbsoluteMapLocation())
+//                 dc.setMapDrawing();
+//             else// this will cascade to all children when they draw, combining with their calls to transformRelative
+//                 transformRelative(dc.g);
+//         } else {
+//             // this will be reset here for each child
+//             transformLocal(dc.g);
+//         }
         
         final AffineTransform saveTransform = dc.g.getTransform();
 
@@ -4625,12 +4690,13 @@ u                    getSlot(c).setFromString((String)value);
         return r;
     }
 
-    private static Rectangle2D.Float getImageBounds(LWComponent c) {
-        final Rectangle2D.Float bounds = (Rectangle2D.Float) c.getBounds();
+    /** @return the map bounds to use for rendering when generating an image of this LWComponent */
+    protected Rectangle2D.Float getImageBounds() {
+        final Rectangle2D.Float bounds = (Rectangle2D.Float) getPaintBounds().clone();
 
         int growth = 1; // just in case / rounding errors
         
-        if (c instanceof LWMap)
+        if (this instanceof LWMap)
             growth += 15;
         
         if (growth > 0)
@@ -4672,20 +4738,23 @@ u                    getSlot(c).setFromString((String)value);
      */
     public BufferedImage createImage(double alpha, Dimension maxSize, Color fillColor, double zoomRequest)
     {
-        //tufts.Util.printStackTrace("CREATE IMAGE");
-        //if (DEBUG.IMAGE) out("createImage; MAX size " + maxSize);
+        final Rectangle2D.Float bounds = getImageBounds();
 
-        final Rectangle2D.Float bounds = getImageBounds(this);
-
-        if (DEBUG.IMAGE) out("createImage;"
-                             + " zoomRequst=" + (zoomRequest == 1.0 ? "none" : zoomRequest)
-                             + " maxSize=" + Util.out(maxSize)
-                             + " mapCoordBounds=" + Util.out(bounds)
-                             );
+        if (DEBUG.IMAGE)  {
+            System.out.println();
+            out(TERM_CYAN +
+                "createImage:"
+                + "\n\t zoomRequst: " + zoomRequest
+                + "\n\t    maxSize: " + maxSize
+                + "\n\t  mapBounds: " + fmt(bounds)
+                + "\n\t  fillColor: " + fillColor
+                + "\n\t      alpha: " + alpha
+                + TERM_CLEAR
+                );
+        }
         
-
-        Size imageSize = new Size(bounds);
-        computeZoomAndSize(bounds, maxSize, zoomRequest, imageSize);
+        final Size imageSize = new Size(bounds);
+        final double usedZoom = computeZoomAndSize(bounds, maxSize, zoomRequest, imageSize);
 
         // Image type ARGB is needed if at any point in the generated image,
         // there is a not 100% opaque pixel all the way through the background.
@@ -4703,10 +4772,13 @@ u                    getSlot(c).setFromString((String)value);
        final int width = imageSize.pixelWidth();
        final int height = imageSize.pixelHeight();
         
-        if (DEBUG.IMAGE) out("createImage; final size " + width + "x" + height
-                             + " fill=" + fillColor
-                             + " alpha=" + alpha
-                             + " type=" + (imageType == BufferedImage.TYPE_INT_RGB ? "OPAQUE" : "TRANSPARENT"));
+        if (DEBUG.IMAGE) out(TERM_CYAN
+                             + "createImage:"
+                             //+ "\n\tfinal size: " + width + "x" + height
+                             + "\n\t neededSize: " + imageSize
+                             + "\n\t   usedZoom: " + usedZoom
+                             + "\n\t       type: " + (imageType == BufferedImage.TYPE_INT_RGB ? "OPAQUE" : "TRANSPARENT")
+                             + TERM_CLEAR);
 
         if (mCachedImage != null &&
             mCachedImage.getWidth() == width &&
@@ -4717,10 +4789,10 @@ u                    getSlot(c).setFromString((String)value);
             // an ARGB and we fill it with full alpha first, tho we really shouldn't
             // have each component caching it's own image: some kind of small
             // recently used image buffers cache would make more sense.
-            if (DEBUG.DND || DEBUG.IMAGE) out("got cached image: " + mCachedImage);
+            if (DEBUG.DND || DEBUG.IMAGE) out(TERM_BLUE + "got cached image: " + mCachedImage + TERM_CLEAR);
         } else {
             mCachedImage = new BufferedImage(width, height, imageType);
-            if (DEBUG.DND || DEBUG.IMAGE) out("created image: " + mCachedImage);
+            if (DEBUG.DND || DEBUG.IMAGE) out(TERM_RED + "created image: " + mCachedImage + TERM_CLEAR);
         }
 
         drawImage((Graphics2D) mCachedImage.getGraphics(),
@@ -4745,28 +4817,36 @@ u                    getSlot(c).setFromString((String)value);
 
     public void drawImage(Graphics2D g, double alpha, Dimension maxSize, Color fillColor, double zoomRequest)
     {
-        if (DEBUG.IMAGE) out("drawImage; size " + maxSize);
+        //if (DEBUG.IMAGE) out("drawImage; size " + maxSize);
 
         final boolean drawBorder = this instanceof LWMap; // hack for dragged images of LWMaps
 
-        final Rectangle2D.Float bounds = getImageBounds(this);
-            
-        if (DEBUG.IMAGE) out("drawImage; mapCoordBounds " + bounds + " fill=" + fillColor + " alpha=" + alpha);
-
-        Size imageSize = new Size(bounds);
-        double zoom = computeZoomAndSize(bounds, maxSize, zoomRequest, imageSize);
+        final Rectangle2D.Float bounds = getImageBounds();
+        final Rectangle clip = g.getClipBounds();
+        final Size fillSize = new Size(bounds);
+        final double zoom = computeZoomAndSize(bounds, maxSize, zoomRequest, fillSize);
         
-        /*if (c instanceof LWGroup && ((LWGroup)c).numChildren() > 1) {
-            g.setColor(new Color(255,255,255,32)); // give a bit of background
-            //g.fillRect(0, 0, width, height);
-            }*/
+        if (DEBUG.IMAGE) out(TERM_GREEN
+                             + "drawImage:"
+                             + "\n\t   mapBounds: " + fmt(bounds)
+                             + "\n\t        fill: " + fillColor
+                             + "\n\t     maxSize: " + maxSize
+                             + "\n\t zoomRequest: " + zoomRequest
+                             + "\n\t     fitZoom: " + zoom
+                             + "\n\t    fillSize: " + fillSize
+                             + "\n\t          gc: " + g
+                             + "\n\t        clip: " + fmt(clip)
+                             + "\n\t       alpha: " + alpha
+                             + TERM_CLEAR
+                             );
 
-        final int width = imageSize.pixelWidth();
-        final int height = imageSize.pixelHeight();
+
+        final int width = fillSize.pixelWidth();
+        final int height = fillSize.pixelHeight();
         
-        if (DEBUG.IMAGE && DEBUG.META) fillColor = Color.red;
-
-        DrawContext dc = new DrawContext(g, this);
+        final DrawContext dc = new DrawContext(g, this);
+        dc.setClipOptimized(false); // always draw all children -- don't bother to check bounds
+        if (DEBUG.IMAGE) out(TERM_GREEN + "drawImage: " + dc + TERM_CLEAR);
 
         if (fillColor != null) {
             if (false && alpha != OPAQUE) {
@@ -4778,6 +4858,7 @@ u                    getSlot(c).setFromString((String)value);
             }
             if (alpha != OPAQUE) 
                 dc.setAlpha(alpha, AlphaComposite.SRC); // erase any underlying in cache
+            if (DEBUG.IMAGE) out("drawImage: fill=" + fillColor);
             g.setColor(fillColor);
             g.fillRect(0, 0, width, height);
         } else if (alpha != OPAQUE) {
@@ -4789,25 +4870,54 @@ u                    getSlot(c).setFromString((String)value);
         if (alpha != OPAQUE)
             dc.setAlpha(alpha, AlphaComposite.SRC);
 
-        dc.setAntiAlias(true);
-            
-        if (drawBorder) {
-            g.setColor(Color.darkGray);
-            g.drawRect(0, 0, width-1, height-1);
+        if (DEBUG.IMAGE && DEBUG.META) {
+            // Fill the entire imageable area
+            g.setColor(Color.green);
+            g.fillRect(0,0, Short.MAX_VALUE, Short.MAX_VALUE);
         }
 
+        dc.setAntiAlias(true);
+
+        final AffineTransform rawTransform = g.getTransform();
+            
         if (zoom != 1.0)
             dc.g.scale(zoom, zoom);
                 
-        // translate so that we're un the upper-left of the GC
-        g.translate(-(int)Math.floor(bounds.getX()),
-                    -(int)Math.floor(bounds.getY()));
+        // translate so that the upper left corner of the map region
+        // we're drawing is at 0,0 on the underlying image
+
+        g.translate(-bounds.getX(),
+                    -bounds.getY());
 
         // GC *must* have a bounds set or we get NPE's in JComponent (textBox) rendering
         dc.setMasterClip(bounds);
 
+        if (DEBUG.IMAGE && DEBUG.META) {
+            // fill the clipped area so we can check our clip bounds
+            dc.g.setColor(Color.red);
+            dc.g.fillRect(-Short.MAX_VALUE/2,-Short.MAX_VALUE/2, // larger values than this can blow out internal GC code and we get nothing
+                           Short.MAX_VALUE, Short.MAX_VALUE);
+        }
+        
+
         // render to the image through the DrawContext/GC pointing to it
         draw(dc);
+
+        if (drawBorder) {
+            g.setTransform(rawTransform);
+            //g.setColor(Color.red);
+            //g.fillRect(0,0, Short.MAX_VALUE, Short.MAX_VALUE);
+            if (DEBUG.IMAGE) {
+                g.setColor(Color.black);
+                dc.setAntiAlias(false);
+            } else
+                g.setColor(Color.darkGray);
+            g.drawRect(0, 0, width-1, height-1);
+        }
+
+        if (DEBUG.IMAGE) out(TERM_GREEN + "drawImage: completed\n" + TERM_CLEAR);
+        
+        
     }
     
 
