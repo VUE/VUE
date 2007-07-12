@@ -44,12 +44,12 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.154 $ / $Date: 2007-06-21 00:26:19 $ / $Author: sfraize $
+ * @version $Revision: 1.155 $ / $Date: 2007-07-12 02:14:08 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
 {
-    public static final boolean LOCAL_LINKS = false;
+    public static final boolean LOCAL_LINKS = true;
     
     // Ideally, we want this to be false: it's a more accurate representation of
     // what's displayed: the control points only show up when selected.
@@ -129,6 +129,26 @@ public class LWLink extends LWComponent
             
             return mapPoint;
         }
+
+        void setPoint(final LWLink link, final float newX, final float newY, final Key key) {
+
+            if (isConnected()) {
+                //VUE.Log.debug(this + "; setting pixel tail point for connected link: " + x + "," + y);
+                final UndoManager um = link.getUndoManager();
+                if (um != null && !um.isUndoing()) {
+                    if (DEBUG.Enabled) Util.printClassTrace("tufts.vue",
+                                                            this + "; setting pixel point for connected link: " + newX + "," + newY + "; " + key);
+                } else
+                    ; // this is needed during undo
+            }
+        
+            final Object old = new Point2D.Float(this.x, this.y);
+            this.x = newX;
+            this.y = newY;
+            link.endpointMoved = true;
+            link.notify(key, old);
+        }
+        
 
         //-----------------------------------------------------------------------------
         // Prune control support
@@ -373,21 +393,34 @@ public class LWLink extends LWComponent
     }
 
     public void setHeadPoint(float x, float y) {
-        if (head.isConnected()) throw new IllegalStateException("Can't set pixel start point for connected link");
-        Object old = new Point2D.Float(head.x, head.y);
-        head.x = x;
-        head.y = y;
-        endpointMoved = true;
-        notify(KEY_LinkHeadPoint, old);
+        head.setPoint(this, x, y, KEY_LinkHeadPoint);
+        
+//         if (head.isConnected()) {
+//             //VUE.Log.debug(this + "; setting pixel head point for connected link: " + x + "," + y);
+//             if (DEBUG.Enabled) Util.printClassTrace("tufts.vue", this + "; setting pixel head point for connected link: " + x + "," + y);
+//         }
+//         Object old = new Point2D.Float(head.x, head.y);
+//         head.x = x;
+//         head.y = y;
+//         endpointMoved = true;
+//         notify(KEY_LinkHeadPoint, old);
     }
 
     public void setTailPoint(float x, float y) {
-        if (tail.isConnected()) throw new IllegalStateException("Can't set pixel end point for connected link");
-        Object old = new Point2D.Float(tail.x, tail.y);
-        tail.x = x;
-        tail.y = y;
-        endpointMoved = true;
-        notify(KEY_LinkTailPoint, old);
+        tail.setPoint(this, x, y, KEY_LinkTailPoint);
+        
+//         if (tail.isConnected()) {
+//             //VUE.Log.debug(this + "; setting pixel tail point for connected link: " + x + "," + y);
+//             final UndoManager um = getUndoManager();
+//             if (um != null && !um.isUndoing()) {
+//                 if (DEBUG.Enabled) Util.printClassTrace("tufts.vue", this + "; setting pixel tail point for connected link: " + x + "," + y);
+//             }
+//         }
+//         Object old = new Point2D.Float(tail.x, tail.y);
+//         tail.x = x;
+//         tail.y = y;
+//         endpointMoved = true;
+//         notify(KEY_LinkTailPoint, old);
     }
     
     /** interface ControlListener handler */
@@ -442,6 +475,13 @@ public class LWLink extends LWComponent
         if (endpointMoved)
             computeLink();
 
+        return getImmediateBounds();
+    }
+
+    /** @return the current bounds, even if we are currently marked as needing to be recomputed due to endpoint movement
+     * This is for usage by LWGroup code [which is currently not in use]
+     */
+    Rectangle2D.Float getImmediateBounds() {
         // as we currently always have absolute map location, we can just use getX/getY
         // tho we use getMapWidth/getMapHeight just in case we're in a scaled context
         // (tho we're trying to avoid this for now...)
@@ -460,6 +500,7 @@ public class LWLink extends LWComponent
         
         return bounds;
     }
+    
 
     @Override
     public Rectangle2D.Float getPaintBounds()
@@ -746,7 +787,7 @@ public class LWLink extends LWComponent
         // Pruning control points
         //-------------------------------------------------------
 
-        if (moveableOnly) {
+        if (DEBUG.Enabled || moveableOnly) {
             mControlPoints[CPruneHead] = null;
             mControlPoints[CPruneTail] = null;
         } else {
@@ -768,7 +809,8 @@ public class LWLink extends LWComponent
     }
     
     /** This cleaup task can run so often, we put it right on the LWLink to prevent
-     * all the extra new object creation.
+     * all the extra new object creation.  If the endpoints of the link have
+     * been reparented, this will make sure we get reparented if need be.
      */
     public void run() {
         if (!isDeleted()) {
@@ -784,11 +826,13 @@ public class LWLink extends LWComponent
     }
 
     /** @return true if we reparented */
+    // TODO: if the link has been manually grouped during this action, do NOT reparent it at all...
     private boolean reparentBasedOnEndpoints() {
         final LWComponent commonAncestor = findCommonEndpointAncestor();
 
         if (commonAncestor == null || commonAncestor == parent) {
             if (DEBUG.LINK) out("SAME COMMON ANCESTOR: " + commonAncestor);
+            //if (DEBUG.LINK) System.out.println("SAME COMMON ANCESTOR: " + this + "; " + commonAncestor);
             return false;
         }
 
@@ -856,8 +900,11 @@ public class LWLink extends LWComponent
         
     }
     
+    /** @return true if either of the links endpoints are connected */
+    public boolean isBound() {
+        return head.isConnected() || tail.isConnected();
+    }
     
-
     public boolean isCurved()
     {
         return mCurveControls > 0;
@@ -1044,8 +1091,18 @@ public class LWLink extends LWComponent
         return head.node.getParent() == tail.node || tail.node.getParent() == head.node;
     }
 
+    /** @return true of this link has any links to the given component, or has it as one of our endpoints.
+     */
+    @Override
     public boolean isConnectedTo(LWComponent c) {
-        return head.node == c || tail.node == c;
+        if (c == null)
+            return false;
+        else
+            return hasEndpoint(c) || super.isConnectedTo(c);
+    }
+
+    public boolean hasEndpoint(LWComponent c) {
+        return c != null && (head.node == c || tail.node == c);
     }
 
     /** @return the endpoint of this link that is not the given source */
@@ -1129,17 +1186,30 @@ public class LWLink extends LWComponent
     }
     
     @Override
-    protected boolean intersectsImpl(Rectangle2D rect)
+    protected boolean intersectsImpl(Rectangle2D r)
     {
         if (endpointMoved)
             computeLink();
 
-        if (LOCAL_LINKS && !(parent instanceof LWMap)) {
-            // For the moment, use default impl of paint bounds:
-            // TODO: need to take into account scaling / local coords on segments
-            return super.intersectsImpl(rect);
-        }
+        final Rectangle2D rect;
         
+//         if (LOCAL_LINKS && !(parent instanceof LWMap)) {
+//             // For the moment, use default impl of paint bounds:
+//             // TODO: need to take into account scaling / local coords on segments
+//             return super.intersectsImpl(rect);
+//         }
+
+        if (LOCAL_LINKS && !(getParent() instanceof LWMap)) {
+            final Rectangle2D old = (Rectangle2D) r.clone();
+            rect = transformMapToLocalRect(old);
+            if (DEBUG.LINK && mXMLRestoreUnderway) {
+                System.out.println("TRANSFORMED " + this);
+                if (!rect.equals(old))
+                    System.out.println("\t" + Util.fmt(old) + " to:"
+                                       + "\n\t" + Util.fmt(rect));
+            }
+        } else
+            rect = r;
 
         if (mCurve != null) {
             for (Line2D seg : new SegIterator())
@@ -1352,7 +1422,7 @@ public class LWLink extends LWComponent
         final float dx = x - getX();
         final float dy = y - getY();
 
-        if (DEBUG.CONTAINMENT) out(String.format("             setLocation %+.1f,%+.1f", x, y));
+        if (DEBUG.CONTAINMENT || DEBUG.LINK) out(String.format("             setLocation %+.1f,%+.1f", x, y));
         // TODO: adjust for scale???
 
         translate(dx, dy);
@@ -1463,6 +1533,19 @@ public class LWLink extends LWComponent
         
     }
 
+//     public class Recompute implements Runnable {
+//         public void run() {
+//             if (endpointMoved)
+//                 computeLink();
+//         }
+
+//         public String toString() {
+//             return "RECOMPUTE[" + LWLink.this + "]";
+//         }
+//     };
+
+//     private final Runnable LinkEndpointMovedTask = new Recompute();
+
     
     /** called by LWComponent.updateConnectedLinks to let
      * us know something we're connected to has moved,
@@ -1470,17 +1553,44 @@ public class LWLink extends LWComponent
      */
     void notifyEndpointMoved(LWComponent end)
     {
-        if (DEBUG.CONTAINMENT) System.out.format("notifyEndpointMoved %-70s src=%s\n", this, end);
+        if (DEBUG.CONTAINMENT) {
+            if (DEBUG.LINK&&DEBUG.WORK)
+                System.out.format("notifyEndpointMoved %-70s src=%s\n", this, end);
+            else
+                System.err.print(";");
+            //if (end instanceof LWLink) Util.printStackTrace("notifyEndpointMoved " + this);
+            //Util.printClassTrace("tufts.vue", "notifyEndpointMoved " + this);
+        }
         
-        // TODO: can optimize and skip link recompute if
-        // our parent is the same as the moving parent,
-        // the the OTHER end of our link also has the same
-        // parent (cache a bit for this) (or other head/tail is null --
-        // we can only get this call if at least one endpoint
-        // is connected)
+//         if (end instanceof LWLink) {
+            
+//             // if an endpoint is a LWLink, we need to add a task to make
+//             // sure we get recomputed, as it's possible that the
+//             // normal link recomputation code will cause this
+//             // LWLink to recompute before it's endpoint link does,
+//             // which leaves us with an incorrectly positioned endpoint.
+
+//             // This I'm fairly certain is only required during Undo
+//             // operations.
+
+//             // TODO: okay, this is rediculous.  This is handling the link-to-link that's
+//             // getting out of sync, but the link it's CONNECTED to isn't updating when
+//             // you undo an grouping of one of it's endpoints....  I think we need to
+//             // just switch over to using all setHeadPoint/setTailPoint as real events
+//             // and just bite the damn bullet and live with it for now.
+            
+//             final UndoManager um = getUndoManager();
+//             if (um != null && um.isUndoing() && !um.hasCleanupTask(LinkEndpointMovedTask))
+//                 um.addCleanupTask(LinkEndpointMovedTask);
+//         }
         
-        // if (end.parent != parent && (head == null || 
-            this.endpointMoved = true;
+        // TODO: can optimize and skip link recompute if our parent is
+        // the same as the moving parent, the the OTHER end of our
+        // link also has the same parent (cache a bit for this) (or
+        // other head/tail is null -- we can only get this call if at
+        // least one endpoint is connected)
+
+        this.endpointMoved = true;
     }
 
 //     void notifyEndpointReparented(LWComponent end)
@@ -1495,6 +1605,14 @@ public class LWLink extends LWComponent
         //Util.printStackTrace("ENDPOINT REPARENTED: " + this + "; which=" +  end);
         //this.endpointReparented = true;
         addCleanupTask(this);
+
+        // in case of links to links, we can reasonable get cascading cleanup tasks
+        // (tasks that are added while tasks are being run), but the UndoManager
+        // doesn't safely support that yet, so this is a workaround for now.
+//         if (head.node instanceof LWLink)
+//             head.node.addCleanupTask((LWLink)head.node);
+//         if (tail.node instanceof LWLink)
+//             tail.node.addCleanupTask((LWLink)tail.node);
     }
 
     private double oldMapScale = 1.0;
@@ -1774,7 +1892,13 @@ public class LWLink extends LWComponent
     {
         endpointMoved = false;
 
-        if (DEBUG.LINK) out("computeLink");
+        if (DEBUG.LINK) {
+            System.out.println("computeLink " + this);
+//             if (mXMLRestoreUnderway)
+//                 System.out.println("computeLink " + this);
+//             else
+//                 out("computeLink");
+        }
         
         if (mCurveControls > 0 && mCurve == null)
             initCurveControlPoints();
@@ -1786,12 +1910,32 @@ public class LWLink extends LWComponent
         // flattened path transformed down to the local scale of that endpoint.
         
         if (LOCAL_LINKS) {
-            
+
             if (head.hasNode()) {
+
+                // If an endpoint is a link, make sure it's currently computed so we know exactly
+                // where it's center is.  Since we've already cleared our endpointMoved bit, we're
+                // safe against link-loops, tho we want to be careful not to create link networks
+                // that create unresolvable dependencies.  (E.g., a straight link is linked to a
+                // curved link: don't let the either of the curved link's endpoints connect back to
+                // the straight link).  We prevent these kinds of links in LinkTool.  If one is
+                // ever created, things don't actually completely fail since we've built in loop
+                // protection, but the links never reach a final state: they're constantly
+                // recomputing themseleves every single time something needs to know where the link
+                // is (e.g, a pick or a paint).
+                
+                if (!mXMLRestoreUnderway && head.node instanceof LWLink && ((LWLink)head.node).endpointMoved)
+                    ((LWLink)head.node).computeLink();
+                
                 head.x = head.node.getCenterX(parent);
                 head.y = head.node.getCenterY(parent);
             }
             if (tail.hasNode()) {
+
+                // see above comment
+                if (!mXMLRestoreUnderway && tail.node instanceof LWLink && ((LWLink)tail.node).endpointMoved)
+                    ((LWLink)tail.node).computeLink();
+                
                 tail.x = tail.node.getCenterX(parent);
                 tail.y = tail.node.getCenterY(parent);
             }
@@ -2006,6 +2150,7 @@ public class LWLink extends LWComponent
                             this.centerY - getHeight()/2);
             }
         }
+        //if (DEBUG.LINK) System.out.println("computeLink " + this + " COMPLETED.");
 
         layout();
         // if there are any links connected to this link, make sure they
@@ -2515,15 +2660,24 @@ public class LWLink extends LWComponent
     }
 
     @Override
-    public Color getRenderFillColor(DrawContext dc) {
+    public Color getRenderFillColor(DrawContext dc)
+    {
         if (dc != null && dc.isInteractive() && isSelected())
             return COLOR_HIGHLIGHT;
-        else {
-//             Color c = super.getRenderFillColor(dc);
-//             out("GOT SUPER RENDER FILL " + c);
-//             return c;
+        else
             return super.getRenderFillColor(dc);
-        }
+        
+//         if (dc != null) {
+//             if (dc.isInteractive() && isSelected())
+//                 return COLOR_HIGHLIGHT;
+//             else if (parent != null)
+//                 return parent.getRenderFillColor(dc);
+//             else
+//                 return null;
+//         } else {
+//             // fallback case: no fill at all is the safest
+//             return null;
+//         }
     }
 
     //private static final Color ContrastFillColor = new Color(255,255,255,224);
@@ -2599,8 +2753,16 @@ public class LWLink extends LWComponent
 //                     textBox.setOpaque(true);
 //                 }
 
-                textBox.setBackground(getRenderFillColor(dc));
-                textBox.setOpaque(true);
+                final Color textFill = getRenderFillColor(dc);
+                if (textFill != null || dc.isInteractive()) {
+                    textBox.setBackground(textFill == null ? Color.white : textFill);
+                    textBox.setOpaque(true);
+                    //if (DEBUG.IMAGE) out("textFill: " + textFill);
+                } else {
+                    textBox.setBackground(null);
+                    textBox.setOpaque(false);
+                    Util.printStackTrace(this + "; FYI: null (transparent) text fill");
+                }
                 
                 dc.g.translate(lx, ly);
 
@@ -2615,10 +2777,16 @@ public class LWLink extends LWComponent
                 // and patch contains to understand a scaled label box...
                 textBox.draw(dc);
 
-                if (LOCAL_LINKS && DEBUG.Enabled) {
+                if (LOCAL_LINKS && DEBUG.LINK) {
                     dc.g.setColor(Color.red);
-                    dc.g.setFont(getFont().deriveFont(Font.BOLD, 6f));
-                    dc.g.drawString("("+parent.getUniqueComponentTypeLabel()+")", 0, 15);
+                    //dc.g.setFont(getFont().deriveFont(Font.BOLD, 8f));
+                    dc.g.setFont(VueConstants.FixedSmallFont.deriveFont(Font.BOLD, 8f));
+                    final float inc = 8;
+                    float y = textBox.getMapHeight();
+                    dc.g.drawString(parent.getUniqueComponentTypeLabel(), 0, y += inc);
+                    dc.g.drawString(String.format("centerLoc: %+4.0f,%+4.0f", centerX, centerY),           0, y += inc);
+                    dc.g.drawString(String.format("centerMap: %+4.0f,%+4.0f", getCenterX(), getCenterY()), 0, y += inc);
+                    dc.g.drawString(String.format("     head: %+4.0f,%+4.0f", head.x, head.y),             0, y += inc);
                     //dc.g.drawString(parent.getDiagnosticLabel(), 0, 30);
                 }
 
@@ -2699,6 +2867,14 @@ public class LWLink extends LWComponent
     {
         final float cx;
         final float cy;
+
+        if (endpointMoved) {
+            // added 2007-07-02 to make sure links are computed
+            // during the map-restore layout call.
+            // watch this for causing problems, esp w/link label editing workflow
+            // -- SMF
+            computeLink();
+        }
 
         if (mCurveControls > 0) {
             cx = mCurveCenterX;
@@ -2803,6 +2979,22 @@ public class LWLink extends LWComponent
         else
             return mCurveControls > 0 ? mCurveCenterY : (head.y + tail.y) / 2;
     }
+
+    // We override these, which is what the links themseleves use to find the centerpoint
+    // of what they connect to, so that if one our our endpoints is another link,
+    // and it's curved, we'll connect to the curve center (where the label goes).
+    
+    @Override
+    public float getCenterX(LWContainer ancestor) {
+        //if (ancestor != parent) Util.printStackTrace("ancestor != parent: " + ancestor + "; " + parent);
+        return mCurveControls > 0 ? mCurveCenterX : (head.x + tail.x) / 2;
+    }
+    @Override
+    public float getCenterY(LWContainer ancestor) {
+        //if (ancestor != parent) Util.printStackTrace("ancestor != parent: " + ancestor + "; " + parent);
+        return mCurveControls > 0 ? mCurveCenterY : (head.y + tail.y) / 2;
+    }
+    
 
 
     /** Create a duplicate LWLink.  The new link will
