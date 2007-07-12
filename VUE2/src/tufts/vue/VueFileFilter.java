@@ -42,11 +42,16 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         txt = {"txt"},
         zip = {"zip"},
 		rli = {"rli.xml"};
-    private String[] extensions;
-    private String description;
+    private final String[] extensions;
+    private final String description;
     
-    public VueFileFilter() {
-        super();
+//     public VueFileFilter() {
+//         super();
+//     }
+    
+    public VueFileFilter(String desc, String ... ext) {
+        description = desc;
+        extensions = ext;
     }
     
     public VueFileFilter(String description)
@@ -85,7 +90,8 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
             this.extensions = zip;
         } else if( description.equals("txt")) {
             this.extensions = txt;
-        }
+        } else
+            extensions = null;
     }
     
     public boolean accept(java.io.File f)
