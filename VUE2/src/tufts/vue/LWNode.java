@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.171 $ / $Date: 2007-06-21 00:23:09 $ / $Author: sfraize $
+ * @version $Revision: 1.172 $ / $Date: 2007-07-12 02:06:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -514,6 +514,7 @@ public class LWNode extends LWContainer
         return getClass() == LWNode.class // sub-classes don't count
             && isTranslucent()
             && !hasChildren()
+            && getShape() instanceof Rectangle2D
             && !inPathway(); // heuristic to exclude LWNode portals (not likely to just put a piece of text alone on a pathway)
     }
     
@@ -728,9 +729,27 @@ public class LWNode extends LWContainer
         // must set the scale before calling the super
         // handler, as scale must be in place before
         // notifyHierarchyChanging/Changed calls.
-        if (c instanceof LWNode || c instanceof LWSlide) // slide testing
+        if (isScaledChildType(c))
             c.setScale(LWNode.ChildScale);
         super.addChildImpl(c);
+    }
+
+    @Override
+    public void XML_completed() {
+        super.XML_completed();
+        if (hasChildren()) {
+            if (DEBUG.WORK||DEBUG.XML||DEBUG.LAYOUT) System.out.println("Scaling down LWNode children in: " + this);
+            for (LWComponent c : getChildList()) {
+                if (isScaledChildType(c))
+                    c.setScale(LWNode.ChildScale);
+            }
+        }
+
+    }
+    
+
+    static boolean isScaledChildType(LWComponent c) {
+        return c instanceof LWNode || c instanceof LWSlide; // slide testing
     }
 
     @Override
@@ -775,26 +794,26 @@ public class LWNode extends LWContainer
         adjustDrawnShape();
     }
 
-    @Override
-    void setScale(double scale)
-    {
-        super.setScale(scale);
-        if (!VUE.RELATIVE_COORDS)
-            this.boundsShape.setFrame(getX(), getY(), getScaledWidth(), getScaledHeight());
-    }
-
-    @Override
-    void setScaleOnChild(double parentScale, LWComponent c) {
-        if (DEBUG.LAYOUT) out("setScaleOnChild " + parentScale + "*" + ChildScale + " " + c);
-        if (c instanceof LWImage) {
-            ; // we don't scale down images
-        } else {
-            if (VUE.RELATIVE_COORDS)
-                c.setScale(LWNode.ChildScale);
-            else
-                c.setScale(parentScale * LWNode.ChildScale);
-        }
-    }
+//     @Override
+//     void setScale(double scale)
+//     {
+//         super.setScale(scale);
+//         if (!VUE.RELATIVE_COORDS)
+//             this.boundsShape.setFrame(getX(), getY(), getScaledWidth(), getScaledHeight());
+//     }
+//     @Override
+//     void setScaleOnChild(double parentScale, LWComponent c) {
+//         if (DEBUG.LAYOUT) out("setScaleOnChild " + parentScale + "*" + ChildScale + " " + c);
+//         if (c instanceof LWImage) {
+//             ; // we don't scale down images
+//         } else {
+//             if (VUE.RELATIVE_COORDS)
+//                 c.setScale(LWNode.ChildScale);
+//             else
+//                 c.setScale(parentScale * LWNode.ChildScale);
+//         }
+//     }
+    
     public Size getMinimumSize() {
         return mMinSize;
     }
@@ -852,7 +871,7 @@ public class LWNode extends LWContainer
                 + " cur=" + curSize
                 + " request=" + request
                 + " isAutoSized=" + isAutoSized();
-            if (true)
+            if (DEBUG.META)
                 Util.printClassTrace("tufts.vue.LW", msg + " " + this);
             else
                 out(msg);
@@ -2252,7 +2271,9 @@ public class LWNode extends LWContainer
             baseY = mBoxedLayoutChildY;
             if (DEBUG.LAYOUT) out("*** childOffsetY starting with precomputed " + baseY + " to produce " + (baseY + ChildOffsetY));
         } else {
-            baseY = relativeLabelY() + getLabelBox().getHeight();
+            final int labelHeight = getLabelBox().getHeight();
+            //if (DEBUG.WORK) out("labelHeight: " + labelHeight);
+            baseY = relativeLabelY() + labelHeight;
         }
         baseY += ChildOffsetY;
         return baseY;
