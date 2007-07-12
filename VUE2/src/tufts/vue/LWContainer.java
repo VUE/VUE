@@ -38,13 +38,13 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.121 $ / $Date: 2007-06-21 00:26:53 $ / $Author: sfraize $
+ * @version $Revision: 1.122 $ / $Date: 2007-07-12 02:10:04 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
 {
     protected java.util.List<LWComponent> children = new java.util.ArrayList<LWComponent>();
-    protected LWComponent focusComponent;
+    //protected LWComponent focusComponent;
     
     public void XML_fieldAdded(String name, Object child) {
         super.XML_fieldAdded(name, child);
@@ -63,10 +63,10 @@ public abstract class LWContainer extends LWComponent
         return children == null ? 0 : children.size();
     }
 
-    /** @return false -- default impl is child coordinates are relatve to the parent -- overide if subclass impl changes this */
-    public boolean hasAbsoluteChildren() {
-        return false;
-    }
+//     /** @return false -- default impl is child coordinates are relatve to the parent -- overide if subclass impl changes this */
+//     public boolean hasAbsoluteChildren() {
+//         return false;
+//     }
 
     /** @return true: default allows children dragged in and out */
     @Override
@@ -463,7 +463,8 @@ public abstract class LWContainer extends LWComponent
         // TODO: this conditional should pretty much wind up reduced to only checking if
         // the component has absolute map location.
 
-        if (!c.hasAbsoluteMapLocation() && !hasAbsoluteChildren() && (oldParent == null || !oldParent.hasAbsoluteChildren())) {
+        //if (!c.hasAbsoluteMapLocation() && !hasAbsoluteChildren() && (oldParent == null || !oldParent.hasAbsoluteChildren())) {
+        if (!c.hasAbsoluteMapLocation() && oldParent != null) {
             if (DEBUG.PARENTING || DEBUG.CONTAINMENT) out("localizing coordinates: " + c + " oldParent=" + oldParent);
 
             final LWComponent eventSource;
@@ -788,11 +789,6 @@ public abstract class LWContainer extends LWComponent
         return list;
     }
 
-    public void setFocusComponent(LWComponent c)
-    {
-        this.focusComponent = c;
-    }
-    
     protected LWComponent defaultPickImpl(PickContext pc)
     {
         //return isDrawn() ? this : null; // should already be handled now in the PointPick traversal
@@ -1032,27 +1028,27 @@ public abstract class LWContainer extends LWComponent
         
         super.setScale(scale);
 
-        for (LWComponent c : getChildList()) 
-            setScaleOnChild(scale, c);
+//         for (LWComponent c : getChildList()) 
+//             setScaleOnChild(scale, c);
 
         layoutChildren(); // we do this for our rollover zoom hack so children are repositioned
     }
 
-    void setScaleOnChild(double scale, LWComponent c)
-    {
-        // need this for undo of dropping a node into another node: when re-parented
-        // back to the map, it needs to get it's default scale back.
-        //c.setScale(scale);
-        // actually, if setScale can now reasonable deliver an event, that will handle this
-        // crazy undo case we've got special code for (and elsewhere here in LWContainer...)
-        if (DEBUG.WORK) out("WARNING: setScaleOnChild ignored for " + c);
+//     void setScaleOnChild(double scale, LWComponent c)
+//     {
+//         // need this for undo of dropping a node into another node: when re-parented
+//         // back to the map, it needs to get it's default scale back.
+//         //c.setScale(scale);
+//         // actually, if setScale can now reasonable deliver an event, that will handle this
+//         // crazy undo case we've got special code for (and elsewhere here in LWContainer...)
+//         if (DEBUG.WORK) out("WARNING: setScaleOnChild ignored for " + c);
         
-//         // vanilla containers don't scale down their children -- only nodes do
-//         if (VUE.RELATIVE_COORDS)
-//             ; //throw new Error("relative coordinate impl doesn't apply parent scale to child scale");
-//         else
-//             c.setScale(scale);
-    }
+// //         // vanilla containers don't scale down their children -- only nodes do
+// //         if (VUE.RELATIVE_COORDS)
+// //             ; //throw new Error("relative coordinate impl doesn't apply parent scale to child scale");
+// //         else
+// //             c.setScale(scale);
+//     }
 
     /**
      * Default impl just fills the background and draws any children.
@@ -1078,28 +1074,28 @@ public abstract class LWContainer extends LWComponent
         if (this.children.size() <= 0)
             return;
 
-        if (!VUE.RELATIVE_COORDS && !hasAbsoluteMapLocation()) {
-            // restore us to absolute map coords for drawing the children
-            // if we were made relative
+//         if (!VUE.RELATIVE_COORDS && !hasAbsoluteMapLocation()) {
+//             // restore us to absolute map coords for drawing the children
+//             // if we were made relative
             
-            // TODO: change to a straight inversion of the local transform,
-            // or create a transformLocalInverse
-            // Actually: BETTER: keep a saveTransform we can simply
-            // restore -- either in the LWContainer, or the DrawContext
-            /*
-            try {
-                dc.g.transform(getLocalTransform().createInverse());
-            } catch (Throwable t) {
-                t.printStackTrace();
-            }
-            */
+//             // TODO: change to a straight inversion of the local transform,
+//             // or create a transformLocalInverse
+//             // Actually: BETTER: keep a saveTransform we can simply
+//             // restore -- either in the LWContainer, or the DrawContext
+//             /*
+//             try {
+//                 dc.g.transform(getLocalTransform().createInverse());
+//             } catch (Throwable t) {
+//                 t.printStackTrace();
+//             }
+//             */
             
-            if (getScale() != 1f) {
-                double scaleInverse = 1.0 / getScale();
-                dc.g.scale(scaleInverse, scaleInverse);
-            }
-            dc.g.translate(-getX(), -getY());
-        }
+//             if (getScale() != 1f) {
+//                 double scaleInverse = 1.0 / getScale();
+//                 dc.g.scale(scaleInverse, scaleInverse);
+//             }
+//             dc.g.translate(-getX(), -getY());
+//         }
         
 
         int nodes = 0;
@@ -1131,53 +1127,53 @@ public abstract class LWContainer extends LWComponent
         */
 
                 
-        LWComponent focused = null;
+        //LWComponent focused = null;
         for (LWComponent c : getChildList()) {
 
             // make sure the rollover is painted on top
             // a bit of a hack to do this here -- better MapViewer
             //if (c.isRollover() && c.getParent() instanceof LWNode) {
-            if (c.isZoomedFocus()) {
-                focused = c;
-                continue;
-            }
+//             if (c.isZoomedFocus()) {
+//                 focused = c;
+//                 continue;
+//             }
 
             //-------------------------------------------------------
-            // This is a huge speed optimzation.  Eliminating all
-            // the Graphics2D calls that would end up having to
-            // check the clipBounds internally makes a giant
+            // Using a requiresPaint is a huge speed optimzation.
+            // Eliminating all the Graphics2D calls that would end up
+            // having to check the clipBounds internally makes a big
             // difference.
             // -------------------------------------------------------
 
-            // if filtered, don't draw, unless has children, in which case
-            // we need to draw just in case any of the children are NOT filtered.
-//             if (!c.isVisible() || (c.isFiltered() && !c.hasChildren()))
-//                 continue;
-//             if (c.getLayer() > dc.getMaxLayer())
-//                 continue;
+            if (c.requiresPaint(dc)) {
 
-            if (!c.requiresPaint(dc))
-                continue;
-
-            drawChildSafely(dc, c);
+                drawChildSafely(dc, c);
             
-            if (DEBUG.PAINT) {
-                if (c instanceof LWLink) links++;
-                else if (c instanceof LWNode) nodes++;
-                else if (c instanceof LWImage) images++;
-                else other++;
+                if (DEBUG.PAINT) {
+                    if (c instanceof LWLink) links++;
+                    else if (c instanceof LWNode) nodes++;
+                    else if (c instanceof LWImage) images++;
+                    else other++;
+                }
             }
         }
 
-        if (focused != null) {
-            setFocusComponent(focused);
-            drawChildSafely(dc, focused);
-        } else
-            setFocusComponent(null);
+//         if (focused != null) {
+//             setFocusComponent(focused);
+//             drawChildSafely(dc, focused);
+//         } else
+//             setFocusComponent(null);
                 
         if (DEBUG.PAINT && (DEBUG.META || this instanceof LWMap)) 
             System.out.println("PAINTED " + links + " links, " + nodes + " nodes, " + images + " images, " + other + " other; for " + this);
     }
+
+//     public void setFocusComponent(LWComponent c)
+//     {
+//         this.focusComponent = c;
+//     }
+    
+    
 
     private void drawChildSafely(DrawContext _dc, LWComponent c)
     {
@@ -1208,6 +1204,8 @@ public abstract class LWContainer extends LWComponent
 
     protected void drawChild(LWComponent child, DrawContext dc)
     {
+        child.drawInParent(dc);
+        
         /*
         if (child.hasAbsoluteMapLocation()) {
             child.draw(dc);
@@ -1233,11 +1231,11 @@ public abstract class LWContainer extends LWComponent
         }
         */
 
-        if (hasAbsoluteChildren()) {
-            child.draw(dc);
-        } else {
-            child.drawInParent(dc);
-        }
+//         if (hasAbsoluteChildren()) {
+//             child.draw(dc);
+//         } else {
+//             child.drawInParent(dc);
+//         }
     }
 
     /**
