@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.409 $ / $Date: 2007-07-02 17:02:36 $ / $Author: sfraize $ 
+ * @version $Revision: 1.410 $ / $Date: 2007-07-12 02:05:00 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4020,6 +4020,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (c == '>') { DEBUG.DND = !DEBUG.DND; }
                 else if (c == '<') { DEBUG.PICK = !DEBUG.PICK; }
                 else if (c == '=') { DEBUG.THREAD = !DEBUG.THREAD; }
+                else if (c == ';') { DEBUG.LINK = !DEBUG.LINK; }
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
                 else if (c == '|') { VUE.toggleFullScreen(true); }
