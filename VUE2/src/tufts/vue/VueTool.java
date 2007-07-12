@@ -36,7 +36,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.75 $ / $Date: 2007-07-02 17:02:36 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2007-07-12 02:12:16 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -761,6 +761,9 @@ public abstract class VueTool extends AbstractAction
         System.out.println(this + ": " + s);
     }
 
+    protected static void outln(String s) {
+        System.out.println("VueTool: " + s);
+    }
     static class ToolIcon extends tufts.vue.gui.VueButtonIcon
     {
         static final int Width = 38;
