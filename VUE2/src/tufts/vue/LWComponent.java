@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.301 $ / $Date: 2007-07-12 04:02:08 $ / $Author: sfraize $
+ * @version $Revision: 1.302 $ / $Date: 2007-07-12 16:41:53 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -4739,6 +4739,24 @@ u                    getSlot(c).setFromString((String)value);
      * @param zoomRequest -- desired zoom; ignored if maxSize is non-null
      * also set, background fill will have transparency of alpha^3 to enhance contrast.
      */
+
+    // Note: as of Mac OS X 10.4.10 (Intel), when a java drag source declares it can
+    // generate an image (as we do when we Apple-drag something), if you drop it on the
+    // desktop, it will create a special mac "picture clipping", which is some kind of
+    // raw format, probabaly TIFF, tho you CANNOT open these in Preview.  Apparently
+    // there's some kind of bug in the special .pictClipping, where sometimes when
+    // opening it up it shows entirely as a blank space (I think if the image starts to
+    // get "very large"), tho the data is actually there -- if you drag the picture
+    // clipping into an Apple Mail message, it shows up again (and if you dragged from
+    // VUE to Apple Mail in the first place, it also works fine).  Note that AFTER
+    // dragging into Apple Mail, you can THEN double-click the attachment, and it will
+    // open it up in Preview as a .tiff file (Apple Mail appears to be converting the
+    // .pictClipping to tiff).  Note that uncompressed TIFF isn't exactly a friendly
+    // mail attachment format as it's huge.  But once you open the image in Preview, you
+    // have the option of saving it / exporting it as a jpeg, and you can even adjust
+    // the quality to your liking.
+
+    
     public BufferedImage createImage(double alpha, Dimension maxSize, Color fillColor, double zoomRequest)
     {
         final Rectangle2D.Float bounds = getImageBounds();
