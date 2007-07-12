@@ -138,53 +138,67 @@ public class LinkTool extends VueTool
 
     static void setMapIndicationIfOverValidTarget(LWComponent linkSource, LWLink link, MapMouseEvent e)
     {
-        LWComponent indication = e.getViewer().getIndication();
-        LWComponent over = findLWLinkTargetAt(linkSource, link, e);
-        if (DEBUG.CONTAINMENT || DEBUG.PICK) System.out.println("LINK-TARGET: " + over);
-        if (indication != null && indication != over) {
-            //repaintRegion.add(indication.getBounds());
-            e.getViewer().clearIndicated();
-        }
+        final MapViewer viewer = e.getViewer();
+        final LWComponent over = pickLinkTarget(link, e);
+        
+        if (DEBUG.CONTAINMENT || DEBUG.PICK || DEBUG.LINK)
+            System.out.println("LINK-TARGET-POTENTIAL: " + over + "; src=" + linkSource + "; link=" + link);
+        
         if (over != null && isValidLinkTarget(link, linkSource, over)) {
-            e.getViewer().setIndicated(over);
-            // todo: change drawing of indication to be handled here or by viewer
-            // instead of in each component's draw...
-            //repaintRegion.add(over.getBounds());
+            viewer.setIndicated(over);
+        } else {
+            final LWComponent currentIndication = viewer.getIndication();
+            if (currentIndication != null && currentIndication != over)
+                viewer.clearIndicated();
         }
+        
+
     }
+
+    private static LWComponent pickLinkTarget(LWLink link, MapMouseEvent e)
+    {
+        PickContext pc = e.getViewer().getPickContext(e.getMapX(), e.getMapY());
+        pc.excluded = link; // this will override default focal exclusion: check manually below
+        final LWComponent hit = LWTraversal.PointPick.pick(pc);
+        if (hit == e.getViewer().getFocal())
+            return null;
+        else
+            return hit;
+    }
+    
 
     
-    private static LWComponent findLWLinkTargetAt(LWComponent linkSource, LWLink link, MapMouseEvent e)
-    {
-        float mapX = e.getMapX();
-        float mapY = e.getMapY();
+//     private static LWComponent findLWLinkTargetAt(LWComponent linkSource, LWLink link, MapMouseEvent e)
+//     {
+//         float mapX = e.getMapX();
+//         float mapY = e.getMapY();
 
-        PickContext pc = e.getViewer().getPickContext(mapX, mapY);
-        pc.excluded = link;
-        LWComponent directHit = LWTraversal.PointPick.pick(pc);
+//         PickContext pc = e.getViewer().getPickContext(mapX, mapY);
+//         pc.excluded = link;
+//         LWComponent directHit = LWTraversal.PointPick.pick(pc);
 
-        if (directHit != null && isValidLinkTarget(link, linkSource, directHit))
-            return directHit;
+//         if (directHit != null && isValidLinkTarget(link, linkSource, directHit))
+//             return directHit;
 
-        // TODO: need a new PickTraversal type that handles target contains
+//         // TODO: need a new PickTraversal type that handles target contains
 
-        return null;
+//         return null;
 
-        /*
+//         /*
 
-          // This was the old code that let you link to something even when you just
-          // got near it.
+//           // This was the old code that let you link to something even when you just
+//           // got near it.
         
-        java.util.List targets = new java.util.ArrayList();
-        java.util.Iterator i = e.getMap().getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.targetContains(mapX, mapY) && isValidLinkTarget(linkSource, c))
-                targets.add(c);
-        }
-        return e.getViewer().findClosestEdge(targets, mapX, mapY);
-        */
-    }
+//         java.util.List targets = new java.util.ArrayList();
+//         java.util.Iterator i = e.getMap().getChildIterator();
+//         while (i.hasNext()) {
+//             LWComponent c = (LWComponent) i.next();
+//             if (c.targetContains(mapX, mapY) && isValidLinkTarget(linkSource, c))
+//                 targets.add(c);
+//         }
+//         return e.getViewer().findClosestEdge(targets, mapX, mapY);
+//         */
+//     }
 
     /*
     private static LWComponent findLWLinkTargetAt(LWComponent linkSource, LWLink link, MapMouseEvent e)
@@ -208,6 +222,10 @@ public class LinkTool extends VueTool
         return e.getViewer().findClosestEdge(targets, mapX, mapY);
     }
     */
+
+    private static void reject(LWComponent target, String reason) {
+        System.out.println("LinkTool; rejected: " + reason + "; " + target);
+    }
     
     /**
      * Make sure we don't create any links back on themselves.
@@ -221,37 +239,76 @@ public class LinkTool extends VueTool
      */
     static boolean isValidLinkTarget(LWLink link, LWComponent linkSource, LWComponent linkTarget)
     {
-        if (linkTarget == linkSource && linkSource != null)
+        if (linkTarget == linkSource && linkSource != null) {
+            if (DEBUG.LINK) reject(linkTarget, "source == target");
             return false;
+        }
         // TODO: allow loop-back link if it's a CURVED link...
 
         // don't allow links between parents & children
         if (linkSource != null) {
             if (linkTarget.getParent() == linkSource ||
-                linkSource.getParent() == linkTarget)
+                linkSource.getParent() == linkTarget) {
+                if (DEBUG.LINK) reject(linkTarget, "parent-child link");
                 return false;
-            if (linkTarget != null)
-                if (!linkSource.canLinkTo(linkTarget))
+            }
+            if (linkTarget != null) {
+                if (!linkSource.canLinkTo(linkTarget)) {
+                    if (DEBUG.LINK) reject(linkTarget, "source denies target; src=" + linkSource);
                     return false;
+                }
+            }
         }
 
-        if (link != null && linkTarget == link.getParent()) // if a link is inside something, don't link to it
+        if (link != null && linkTarget == link.getParent()) {
+            // if a link is inside something, don't link to it (?)
+            if (DEBUG.LINK) reject(linkTarget, "target is parent of the new link");
             return false;
-
-
-
-        boolean ok = true;
-        if (linkTarget instanceof LWLink) {
-            LWLink lwl = (LWLink) linkTarget;
-            ok &= (lwl.getHead() != linkSource &&
-                   lwl.getTail() != linkSource);
         }
-        if (linkSource instanceof LWLink) {
-            LWLink lwl = (LWLink) linkSource;
-            ok &= (lwl.getHead() != linkTarget &&
-                   lwl.getTail() != linkTarget);
+
+        if (link != null && linkTarget instanceof LWLink && linkTarget.isConnectedTo(link)) {
+            // Don't permit a link to link back to a link that's connected to it.
+            if (DEBUG.LINK) reject(linkTarget, "this link already connected to target");
+            return false;
         }
-        return ok;
+
+
+// New code, tho we don't actually need these constraints:
+//         if (linkTarget instanceof LWLink) {
+//             if (DEBUG.LINK) outln("target is link: " + linkTarget);
+//             if (linkTarget.isConnectedTo(linkSource)) {
+//                 if (DEBUG.LINK) reject(linkTarget, "target link-to-link loop");
+//                 return false;
+//             } else if (link != null && linkTarget.isConnectedTo(link)) {
+//                 if (DEBUG.LINK) reject(linkTarget, "this link already connected to target");
+//                 return false;
+//             }
+//         }
+    
+//         if (linkSource instanceof LWLink) {
+//             if (linkSource.isConnectedTo(linkTarget)) {
+//                 if (DEBUG.LINK) reject(linkTarget, "source link-to-link loop; src=" + linkSource);
+//                 return false;
+//             }// else if (link != null
+//         }
+
+
+        return true;
+
+
+// The old code:         
+//         boolean ok = true;
+//         if (linkTarget instanceof LWLink) {
+//             LWLink target = (LWLink) linkTarget;
+//             ok &= (target.getHead() != linkSource &&
+//                    target.getTail() != linkSource);
+//         }
+//         if (linkSource instanceof LWLink) {
+//             LWLink source = (LWLink) linkSource;
+//             ok &= (source.getHead() != linkTarget &&
+//                    source.getTail() != linkTarget);
+//         }
+//         return ok;
     }
     
     
