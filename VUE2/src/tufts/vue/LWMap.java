@@ -56,7 +56,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.142 $ / $Date: 2007-06-21 00:23:51 $ / $Author: sfraize $
+ * @version $Revision: 1.143 $ / $Date: 2007-07-12 02:08:14 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -181,20 +181,6 @@ public class LWMap extends LWContainer
     }
 
 
-    /**
-     * Model version 0: absolute children: pre-model versions / unknown (assumed all absolute coordinates)
-     * Model version 1: relative children, including groups (excepting link members)
-     * Model version 2: relative children, groups back to absolute (excepting link members -- only a few days this version)
-     * Model version 3: relative children, groups back to relative with crude node-embedding support
-     * Model version 4: relative children, groups relative, link points relative to parent (no longer have absolute map location)
-     */
-    //private static final int CurrentModelVersion = LWLink.LOCAL_LINKS ? 4 : 3;
-    public static int getCurrentModelVersion() {
-        return LWLink.LOCAL_LINKS ? 4 : 3;
-    }
-    
-    
-    
     /** for persistance */
     public int getModelVersion() {
         return mModelVersion;
@@ -508,32 +494,57 @@ public class LWMap extends LWContainer
             if (c instanceof LWContainer && c.hasChildren()) {
                 // CRAP: still need to process the damn children of the freakin group...
                 // need to go back to our prior method...
-                if (getModelVersion() == 1 && c instanceof LWGroup) {
-                    if (DEBUG.Enabled) System.out.println(" DM#1 ALREADY RELATIVE: " + c); // now need to allow to to relativize links (actually, add new method)
-                    // groups were relative in model version 1
+                if (isGroupRelative(getModelVersion()) && c instanceof LWGroup) {
+                    if (DEBUG.Enabled) System.out.println(" DM#1 ALREADY RELATIVE EXCEPT LINKS: " + c);
                     //((LWGroup)c).normalize();
                     continue;
                 }
                 
                 changeAbsoluteToRelativeCoords((LWContainer) c);
                 changeAbsoluteToRelativeCoords(c.getChildList());
-//                 if (c instanceof LWGroup)
-//                     ((LWGroup)c).normalize(); // TODO: may need to wait till everything is laid out? see test-pathway.vue
+                //if (c instanceof LWGroup)
+                //    ((LWGroup)c).normalize(); // TODO: may need to wait till everything is laid out? see test-pathway.vue
             }
         }
     }
+
+    private void changeLinksToParentRelative(Collection<LWComponent> nodes)
+    {
+        for (LWComponent c : nodes) {
+            if (! (c instanceof LWLink))
+                continue;
+
+            final LWLink link = (LWLink) c;
+            final LWContainer parent = link.getParent();
+
+            if (parent instanceof LWMap) {
+                if (DEBUG.Enabled) System.out.println("LINK ALREADY RELATIVE: " + link);
+            } else {
+                //if (DEBUG.Enabled) System.out.println("MAKING LINK PARENT RELATIVE: " + link);
+                if (DEBUG.Enabled) link.out("MAKING LINK PARENT RELATIVE");
+                // theoretically the parent could be scaled -- e.g., link is in a group that
+                // is in a node, tho this is rare case...
+                link.translate(-parent.getX(), -parent.getY());
+            }
+            
+            // Now make sure link is parented to it's common parent:
+            link.run();
+        }
+    }
+    
     
 
     private void changeAbsoluteToRelativeCoords(LWContainer container) {
         if (DEBUG.Enabled) System.out.println("CONVERTING TO RELATIVE in " + this + "; container: " + container);
         for (LWComponent c : container.getChildList()) {
             if (c instanceof LWLink) {
-                if (getCurrentModelVersion() >= 4 && getModelVersion() < 4) {
-                    System.out.println("NEED TO RELATIVIZE LINK IN " + this + ": " + c);
-                } else {
-                    // always have had absolute coords
-                    continue;
-                }
+                continue;
+//                 if (getCurrentModelVersion() >= 4 && getModelVersion() < 4) {
+//                     System.out.println("NEED TO RELATIVIZE LINK IN " + this + ": " + c);
+//                 } else {
+//                     // always have had absolute coords
+//                     continue;
+//                 }
             }
 //             if (c.hasAbsoluteMapLocation())
 //                 continue;
@@ -545,6 +556,7 @@ public class LWMap extends LWContainer
     private void changeRelativeToAbsoluteCoords(LWGroup container) {
         if (DEBUG.Enabled) System.out.println("CONVERTING TO ABSOLUTE: " + container);
         for (LWComponent c : container.getChildList()) {
+            //if (getModelVersion() == 1
             if (c instanceof LWLink)
                 continue;
             c.takeLocation(c.getX() + container.getX(),
@@ -594,91 +606,107 @@ public class LWMap extends LWContainer
         //----------------------------------------------------------------------------------------
         // Now update the model the the most recent data version
         //----------------------------------------------------------------------------------------
-        
+
+
         if (getModelVersion() < getCurrentModelVersion()) {
             
-            if (getModelVersion() < 3) {
-                //-----------------------------------------------------------------------------
-                // Upgrade from model version 0 -- make everything relative
-                //-----------------------------------------------------------------------------
-
+            if (isGroupAbsolute(getModelVersion()))
                 changeAbsoluteToRelativeCoords(getChildList());
-                
-//                 // Upgrade old save file to current state of relative coordinates (all but LWGroup's)
-//                 for (LWComponent c : allRestored) {
-//                     if (c instanceof LWSlide) {
 
-//                         // LWSlides are the only thing we need to upgrade now (as opposed to slides
-//                         // and groups, which were both upgraded for a while) Anyway, slides are the
-//                         // only objects left that have children with free layout.  LWNodes can also
-//                         // have children, but they enforce a particular layout location for their
-//                         // children, so no matter what the current model, LWNode child coordinates
-//                         // automatically get updated.  Of course, there shouldn't be many of these
-//                         // encountered, as VUE with slide supports was only around as an early
-//                         // mostly internal alpha before the default coordinate system went
-//                         // relative.
-                        
-//                         changeAbsoluteToRelativeCoords((LWSlide)c);
-//                     }
-//                 }
-
-                // Might want to auto-check in case the problem Bryce experienced pops up again...
-                // (e.g., somehow the model version got set to 0 (original absolute), even tho the
-                // coordinate system was in fact relative (model version 1).  This may have
-                // happened by opening the map in a prior version of VUE which didn't understand
-                // the relative coordinates, assumed they were absolute, reformed the groups at the
-                // child coordinates as if they were absolute, then saved out the map with those
-                // moved groups, and no model version recorded at all -- actually that could only
-                // have happened on one of our internal versions that temporarily went back to
-                // model 0?  Anyway...
-                
-// Ff ANY group has contents that are outside it's bounds (perhaps only if significantly so),
-// we may want to assume we've got a model version problem, and just "upgrade" automatically.
-//                 for (LWComponent c : allRestored) {
-//                     if (c instanceof LWGroup) {
-//                         // check for relative children...
-//                         changeRelativeToAbsoluteCoords((LWGroup)c);
-//                     }
-//                 }
-                
-            } else if (getModelVersion() == 1) {
-                
-                //-----------------------------------------------------------------------------
-                // Upgrade from model version 1:
-                //-----------------------------------------------------------------------------
-
-                // Change relative coords of LWGroup children back to absolute coords:
-                
-                for (LWComponent c : allRestored) {
-                    if (c instanceof LWGroup) {
-                        changeRelativeToAbsoluteCoords((LWGroup)c);
-                    }
-                }
-            }
-
+            if (getCurrentModelVersion() >= 4 && getModelVersion() < 4)
+                changeLinksToParentRelative(allRestored);
 
             VUE.Log.info(this + " Updated from model version " + getModelVersion() + " to " + getCurrentModelVersion());
             mModelVersion = getCurrentModelVersion();
-            //VUE.Log.info(this + "   Updated to model version " + getModelVersion());
-        }
-
-        // TODO: REALLY need a depth-first ordered list for these
-        // containment operations...
-
-        for (LWComponent c : allRestored) {
-            //if (DEBUG.XML || DEBUG.WORK) System.out.println("RESTORED: " + c);
-            // LWContainers handle recursively setting scale on children via special
-            // means to make sure everything happens properly and at the right time,
-            // using a setScaleOnChild call.
-            // E.g., LWNode overrides setScaleOnChild to apply proper scaling to all generations of children
-            // TODO: this should probably be done depth-first...
-            if (c instanceof LWContainer) {
-                if (DEBUG.WORK) System.out.println("SET-SCALE: " + c);
-                c.setScale(c.getScale());
-            }
         }
         
         
+//         if (getModelVersion() < getCurrentModelVersion()) {
+            
+//             if (getModelVersion() < 3) {
+//                 //-----------------------------------------------------------------------------
+//                 // Upgrade from model version 0 -- make everything relative
+//                 //-----------------------------------------------------------------------------
+
+//                 changeAbsoluteToRelativeCoords(getChildList());
+                
+// //                 // Upgrade old save file to current state of relative coordinates (all but LWGroup's)
+// //                 for (LWComponent c : allRestored) {
+// //                     if (c instanceof LWSlide) {
+
+// //                         // LWSlides are the only thing we need to upgrade now (as opposed to slides
+// //                         // and groups, which were both upgraded for a while) Anyway, slides are the
+// //                         // only objects left that have children with free layout.  LWNodes can also
+// //                         // have children, but they enforce a particular layout location for their
+// //                         // children, so no matter what the current model, LWNode child coordinates
+// //                         // automatically get updated.  Of course, there shouldn't be many of these
+// //                         // encountered, as VUE with slide supports was only around as an early
+// //                         // mostly internal alpha before the default coordinate system went
+// //                         // relative.
+                        
+// //                         changeAbsoluteToRelativeCoords((LWSlide)c);
+// //                     }
+// //                 }
+
+//                 // Might want to auto-check in case the problem Bryce experienced pops up again...
+//                 // (e.g., somehow the model version got set to 0 (original absolute), even tho the
+//                 // coordinate system was in fact relative (model version 1).  This may have
+//                 // happened by opening the map in a prior version of VUE which didn't understand
+//                 // the relative coordinates, assumed they were absolute, reformed the groups at the
+//                 // child coordinates as if they were absolute, then saved out the map with those
+//                 // moved groups, and no model version recorded at all -- actually that could only
+//                 // have happened on one of our internal versions that temporarily went back to
+//                 // model 0?  Anyway...
+                
+// // Ff ANY group has contents that are outside it's bounds (perhaps only if significantly so),
+// // we may want to assume we've got a model version problem, and just "upgrade" automatically.
+// //                 for (LWComponent c : allRestored) {
+// //                     if (c instanceof LWGroup) {
+// //                         // check for relative children...
+// //                         changeRelativeToAbsoluteCoords((LWGroup)c);
+// //                     }
+// //                 }
+                
+//             } else if (getModelVersion() == 1) {
+                
+//                 //-----------------------------------------------------------------------------
+//                 // Upgrade from model version 1:
+//                 //-----------------------------------------------------------------------------
+
+//                 // Change relative coords of LWGroup children back to absolute coords:
+                
+//                 for (LWComponent c : allRestored) {
+//                     if (c instanceof LWGroup) {
+//                         changeRelativeToAbsoluteCoords((LWGroup)c);
+//                     }
+//                 }
+//             }
+
+
+//             VUE.Log.info(this + " Updated from model version " + getModelVersion() + " to " + getCurrentModelVersion());
+//             mModelVersion = getCurrentModelVersion();
+//             //VUE.Log.info(this + "   Updated to model version " + getModelVersion());
+//         }
+
+    
+        // TODO: this is so that children of LWNode's get the node-child scale
+        // factor.  This would be better handled by actually saving the scale values,
+        // as we're eventually going to need that anyway.  Or, as this is a hack,
+        // get rid of the setScaleOnChild code completely, and consolodate the
+        // hack here by manually setting any LWNode children of LWNode's to
+        // the LWNode.ChildScale (we don't need the cascaded values anymore
+        // as VUE.RELATIVE_COORDS is firmly in place).  Or even better, handle
+        // it in LWNode.XML_completed.
+        
+//         for (LWComponent c : allRestored) {
+//             // LWNode overrides setScaleOnChild, as defined on LWContainer,
+//             // to apply proper scaling to all generations of children
+//             if (c instanceof LWNode && c.hasChildren()) {
+//                 if (DEBUG.WORK) System.out.println("SET-SCALE: " + c);
+//                 c.setScale(c.getScale());
+//             }
+//         }
+
         
         //----------------------------------------------------------------------------------------
         
@@ -701,7 +729,7 @@ public class LWMap extends LWContainer
         */
         
         for (LWComponent c : allRestored) {
-            if (DEBUG.LAYOUT||DEBUG.WORK) System.out.println("LAYOUT: " + c + " parent=" + c.getParent());
+            if (DEBUG.LAYOUT||DEBUG.WORK) System.out.println("LAYOUT: in " +  c.getParent() + ": " + c);
             // ideally, this should be done depth-first, but it appears to be
             // working for the moment...
             c.mXMLRestoreUnderway = false;
@@ -711,7 +739,7 @@ public class LWMap extends LWContainer
                 tufts.Util.printStackTrace(t, "RESTORE LAYOUT " + c);
             }
         }
-
+        
         for (LWComponent c : allRestored) {
             try {
                 if (c instanceof LWGroup)
@@ -775,7 +803,9 @@ public class LWMap extends LWContainer
 
         for (LWComponent c : components) {
             if (c.getID() == null) {
-                out("*** FOUND LWC WITH NULL ID " + c + " (reparent to fix)");
+                if (!(c instanceof LWPathway)) {
+                    out("Found an LWCopmonent persisted without an id: " + c);
+                }
                 continue;
             }
             if (typeToken != null && c.getTypeToken() != typeToken)
@@ -1073,6 +1103,10 @@ public class LWMap extends LWContainer
     
 //    public java.awt.geom.Rectangle2D.Float getBounds(int maxLayer) {
 
+    /**
+     * Return the bounds of the entire map.  NOTE THAT THE RETURNED OBJECT SHOULD NOT BE MODIFIED.
+     * This is called so often that we keep a single cached object with the current value.
+     */
     @Override
     public Rectangle2D.Float getBounds() {
 
@@ -1242,112 +1276,30 @@ public class LWMap extends LWContainer
     }
     
     
-    /*
-    public int print(Graphics gc, PageFormat format, int pageIndex)
-        throws java.awt.print.PrinterException
-    {
-        if (pageIndex > 0) {
-            out("page " + pageIndex + " requested, ending print job.");
-            return Printable.NO_SUCH_PAGE;
-        }
-     
-        out("asked to render page " + pageIndex + " in " + outpf(format));
-     
-        Dimension page = new Dimension((int) format.getImageableWidth() - 1,
-                                       (int) format.getImageableHeight() - 1);
-     
-        Graphics2D g = (Graphics2D) gc;
-     
-        if (DEBUG.Enabled) {
-            g.setColor(Color.lightGray);
-            g.fillRect(0,0, 9999,9999);
-        }
-     
-        g.translate(format.getImageableX(), format.getImageableY());
-     
-        // Don't need to clip if printing whole map, as computed zoom
-        // should have made sure everything is within page size
-        //if (!isPrintingView())
-        //g.clipRect(0, 0, page.width, page.height);
-     
-        if (DEBUG.Enabled) {
-            //g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-            // draw border outline of page
-            g.setColor(Color.gray);
-            g.setStroke(VueConstants.STROKE_TWO);
-            g.drawRect(0, 0, page.width, page.height);
-            //g.setComposite(AlphaComposite.Src);
-        }
-     
-        // compute zoom & offset for visible map components
-        Point2D offset = new Point2D.Double();
-        // center vertically only if landscape mode
-        //if (format.getOrientation() == PageFormat.LANDSCAPE)
-        double scale = ZoomTool.computeZoomFit(page, 0, bounds, offset, false);
-        out("rendering at scale " + scale);
-        g.translate(-offset.getX(), -offset.getY());
-        g.scale(scale,scale);
-     
-        if (isPrintingView())
-            g.clipRect((int) Math.floor(bounds.getX()),
-                       (int) Math.floor(bounds.getY()),
-                       (int) Math.ceil(bounds.getWidth()),
-                       (int) Math.ceil(bounds.getHeight()));
-     
-        if (DEBUG.Enabled) {
-            g.setColor(Color.red);
-            g.setStroke(VueConstants.STROKE_TWO);
-            g.draw(bounds);
-        }
-     
-        // set up the DrawContext
-        DrawContext dc = new DrawContext(g, scale);
-        dc.setPrinting(true);
-        dc.setAntiAlias(true);
-        // render the map
-        this.draw(dc);
-     
-        out("page " + pageIndex + " rendered.");
-        return Printable.PAGE_EXISTS;
+    private static boolean isGroupRelative(int dm) {
+        return dm == 1 || dm >= 3;
     }
-     */
-    
-    
-    /*public Dimension getSize()
-    {
-        return new Dimension(getWidth(), getHeight());
-        }*/
-    
-    /*
-    public static Rectangle2D getBounds(java.util.Iterator i)
-    {
-        float xMin = Float.POSITIVE_INFINITY;
-        float yMin = Float.POSITIVE_INFINITY;
-        float xMax = Float.NEGATIVE_INFINITY;
-        float yMax = Float.NEGATIVE_INFINITY;
-     
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            float x = c.getX();
-            float y = c.getY();
-            float mx = x + c.getWidth();
-            float my = y + c.getHeight();
-            if (x < xMin) xMin = x;
-            if (y < yMin) yMin = y;
-            if (mx > xMax) xMax = mx;
-            if (my > yMax) yMax = my;
-        }
-     
-        // In case there's nothing in there
-        if (xMin == Float.POSITIVE_INFINITY) xMin = 0;
-        if (yMin == Float.POSITIVE_INFINITY) yMin = 0;
-        if (xMax == Float.NEGATIVE_INFINITY) xMax = 0;
-        if (yMax == Float.NEGATIVE_INFINITY) yMax = 0;
-     
-        return new Rectangle2D.Float(xMin, yMin, xMax - xMin, yMax - yMin);
+
+    private static boolean isGroupAbsolute(int dm) {
+        return !isGroupRelative(dm);
     }
-     
+    
+    
+    /**
+     * @return the current deata-model version
+     *
+     * Model version 0: absolute children: pre-model versions / unknown (assumed all absolute coordinates)
+     * Model version 1: relative children, including groups (excepting link members)
+     * Model version 2: relative children, groups back to absolute (excepting link members -- only a few days this version)
+     * Model version 3: relative children, groups back to relative with crude node-embedding support
+     * Model version 4: relative children, groups relative, link points relative to parent (no longer have absolute map location)
      */
+    //private static final int CurrentModelVersion = LWLink.LOCAL_LINKS ? 4 : 3;
+    public static int getCurrentModelVersion() {
+        return 4;
+        //return LWLink.LOCAL_LINKS ? 4 : 3;
+    }
+    
     
     
     
