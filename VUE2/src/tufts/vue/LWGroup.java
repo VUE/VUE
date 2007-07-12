@@ -35,7 +35,7 @@ import java.awt.geom.AffineTransform;
  * together.
  *
  * @author Scott Fraize
- * @version $Revision: 1.70 $ / $Date: 2007-06-21 00:26:27 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2007-07-12 02:09:13 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -144,9 +144,10 @@ public class LWGroup extends LWContainer
             new HashSet<LWComponent>() {
                 @Override
                 public boolean add(LWComponent c) {
-                    if (LWLink.LOCAL_LINKS && c instanceof LWLink)
+                    if (LWLink.LOCAL_LINKS && c instanceof LWLink && ((LWLink)c).isBound()) {
+                        // don't add any links that are connected to anything: they'll reparent themselves
                         return false;
-                    else
+                    } else
                         return super.add(c);
                 }
             }; 
@@ -248,7 +249,7 @@ public class LWGroup extends LWContainer
 
     void normalize()
     {
-        if (DEBUG.WORK) out("NORMALIZING");
+        if (DEBUG.WORK) {System.out.println(); out("NORMALIZING");}
         
         final Rectangle2D.Float curBounds = super.getBounds();
         final Rectangle2D.Float preBounds = getPreNormalBounds();
@@ -271,6 +272,10 @@ public class LWGroup extends LWContainer
             // about changing the location of the group without changing the on-map
             // location of any of it's members, so we make the special call to
             // setLocation here that allows this.
+
+            // TODO: prevent all the link endpoint moved events?  The absolute position
+            // of no component in the map, except the group itself, should actually be
+            // changing as a result of the normalization...
             
             super.setLocation(getX() + dx,
                               getY() + dy,
@@ -306,6 +311,13 @@ public class LWGroup extends LWContainer
                     // So we're calling translate (instead of takeTranslation)
                     
                     c.translate(-dx, -dy);
+
+                    if (c instanceof LWLink) {
+                        // links to links can get out of sync with updates
+                        // depending on the order they exist in the child list.
+                        // this should help for at least most first tier cases:
+                        ((LWLink)c).layout();
+                    }
                 }
             }
             
@@ -408,7 +420,12 @@ public class LWGroup extends LWContainer
         if (LWLink.LOCAL_LINKS && c instanceof LWLink) {
             // since this is in the group, we know the paint bounds will be local to parent bounds,
             // tho that API will probably be changing, and we'll need a getParentLocalPaintBounds on LWComponent
+            // TODO: we should really get get
             return c.getPaintBounds();
+//             if (mXMLRestoreUnderway)
+//                 return c.getPaintBounds();
+//             else
+//                 return ((LWLink)c).getImmediateBounds();
         } if (c.hasAbsoluteMapLocation())
             throw new Error("re-impl; getLocalizedPaintBounds should have handled");
             //return c.getBounds();
@@ -506,7 +523,8 @@ public class LWGroup extends LWContainer
     {
         if (FancyGroups)
             return super.getRenderFillColor(dc);
-        else if (dc != null && (dc.focal == this || getParent() == null))
+        
+        if (dc != null && (dc.focal == this || getParent() == null))
             return dc.getFill();
         else if (getParent() != null)
             return getParent().getRenderFillColor(dc);
@@ -716,6 +734,18 @@ public class LWGroup extends LWContainer
 //         }
 //     }
 
+    /** Overridden in to handle special selection LWGroup: if is asked to draw itself into another context (e.g., on an image),
+     * it won't bother to transform locally -- just draw the children as they are.
+     */
+     
+    @Override
+    public void draw(DrawContext dc) {
+        if (isForSelection)
+            drawChildren(dc);
+        else
+            super.draw(dc);
+    }
+    
 
     @Override
     protected void drawImpl(DrawContext dc)
@@ -773,10 +803,13 @@ public class LWGroup extends LWContainer
         else
             return false;
     }
-    
+
     @Override
     protected boolean intersectsImpl(final Rectangle2D rect)
     {
+        if (isForSelection)
+            return true;
+        
         if (hasDecoratedFeatures()) {
             return super.intersectsImpl(rect);
         } else {
@@ -795,15 +828,15 @@ public class LWGroup extends LWContainer
             return getEntryToDisplay() != null;
     }
     
-    @Override
-    void setScaleOnChild(double scale, LWComponent c)
-    {
-        // group handles the entire scale: children not scaled down further
-        // need to make sure this happens so on reparentings, if this
-        // node was previously scaled down (was a vanilla child node),
-        // it's scale gets's set back.
-        c.setScale(1.0);
-    }
+//     @Override
+//     void setScaleOnChild(double scale, LWComponent c)
+//     {
+//         // group handles the entire scale: children not scaled down further
+//         // need to make sure this happens so on reparentings, if this
+//         // node was previously scaled down (was a vanilla child node),
+//         // it's scale gets's set back.
+//         c.setScale(1.0);
+//     }
     
     /** Currently ignored: always forces scale of 1.0 */
     @Override
