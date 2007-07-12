@@ -440,7 +440,7 @@ if (true) return;
 
     @Override
     protected Color getBackgroundFillColor(DrawContext dc) {
-        return Color.gray;
+        return DefaultFillColor;
 // this code produces "filled" slide viewer look,
 // tho then we can't make out the edge of the slide:
 //         final LWPathway.Entry entry = VUE.getActiveEntry();
