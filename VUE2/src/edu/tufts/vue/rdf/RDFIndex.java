@@ -37,7 +37,7 @@ public class RDFIndex extends ModelCom {
     com.hp.hpl.jena.rdf.model.Property labelOf = createProperty("vue://","label");
     com.hp.hpl.jena.rdf.model.Property childOf = createProperty("vue://","child");
     com.hp.hpl.jena.rdf.model.Property authorOf = createProperty("vue://","author");
-    com.hp.hpl.jena.rdf.model.Property tagOf = createProperty("user://","tag");
+    com.hp.hpl.jena.rdf.model.Property hasTag = createProperty("user://","tag");
     
     
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
@@ -83,7 +83,7 @@ public class RDFIndex extends ModelCom {
         while(i.hasNext())
         {
           VueMetadataElement element = i.next();
-          statement = this.createStatement(r,tagOf,element.getObject().toString());
+          statement = this.createStatement(r,hasTag,element.getObject().toString());
           this.add(statement);
         }
     }
