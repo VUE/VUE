@@ -115,7 +115,7 @@ public class RDFOpenAction extends VueAction {
             
 // write it to standard out
             model.write(System.out);
-            
+            int totalResources = 0;
             Map<String,LWNode> hashMap = new HashMap<String,LWNode>();
             ResIterator resIterator = model.listSubjects();
             while(resIterator.hasNext()) {
@@ -123,6 +123,7 @@ public class RDFOpenAction extends VueAction {
                 LWNode node = createNodeFromResource(res);
                 hashMap.put(res.getURI(),node);
                 map.add(node);
+                totalResources++;
             }
             
             com.hp.hpl.jena.rdf.model.NodeIterator nIterator = model.listObjects();
@@ -134,16 +135,19 @@ public class RDFOpenAction extends VueAction {
                         LWNode node = createNodeFromResource(nodeResource);
                         hashMap.put(nodeResource.getURI(),node);
                         map.add(node);
+                        totalResources++;
                     }
                 }
             }
+            float y = 20;
+            float x = 0;
+            int count = 0;
            com.hp.hpl.jena.rdf.model.StmtIterator iter = model.listStatements();
             while(iter.hasNext()){
                com.hp.hpl.jena.rdf.model.Statement stmt = iter.nextStatement();
                com.hp.hpl.jena.rdf.model.Resource stmtSubject = stmt.getSubject(); 
                com.hp.hpl.jena.rdf.model.Property stmtProperty = stmt.getPredicate();
                com.hp.hpl.jena.rdf.model.RDFNode  stmtObject = stmt.getObject();
-              
                if(stmtObject instanceof com.hp.hpl.jena.rdf.model.Resource) {
                     LWNode node1 = hashMap.get(stmtSubject.getURI());
                     LWNode node2 = hashMap.get(((com.hp.hpl.jena.rdf.model.Resource)stmtObject).getURI());
@@ -152,8 +156,7 @@ public class RDFOpenAction extends VueAction {
                 }else if(stmtObject instanceof com.hp.hpl.jena.rdf.model.Literal) {
                           tufts.vue.Resource mapResource = hashMap.get(stmtSubject.getURI()).getResource();
                           mapResource.setProperty(stmtProperty.getLocalName(), stmtObject);
-                       //   System.out.println("Resource: "+r.getURI()+" Literal:"+obj.toString()+" Predicate"+stmt.getPredicate());
-                      }
+                }
                       
             }
             /**
@@ -267,7 +270,8 @@ public class RDFOpenAction extends VueAction {
         tufts.vue.MapResource resource = new MapResource(r.getURI());
         LWNode node = new LWNode(r.getURI());
         node.setResource(resource);
-        node.setLocation(Math.random()*500,Math.random()*500);
+        double angle = Math.random()*Math.PI*4;
+        node.setLocation(200+200*Math.cos(angle),200+200*Math.sin(angle));
         return node;
     }
     
