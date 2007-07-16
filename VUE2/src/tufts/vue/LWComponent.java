@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.302 $ / $Date: 2007-07-12 16:41:53 $ / $Author: sfraize $
+ * @version $Revision: 1.303 $ / $Date: 2007-07-16 01:53:49 $ / $Author: peter $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -73,7 +73,7 @@ public class LWComponent
          * way to make sure you hit every active LWComponent in the runtime related
          * to a particular LWMap (not including the Undo queue)
          */
-        ANY,
+        ANY
 
        // VIRTUAL -- would be *just* what ANY currently adds, and exclude PROPER -- currently unsupported
     }
