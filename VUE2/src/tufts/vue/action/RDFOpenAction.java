@@ -41,7 +41,7 @@ public class RDFOpenAction extends VueAction {
     //todo: add constants for row length, starting position, y gaps and x gaps
     //also make these all be read from properties file for ease of modification
     //after compilation
-    public static final int NODE_LABEL_TRUNCATE_LENGTH = 30;
+    public static final int NODE_LABEL_TRUNCATE_LENGTH = 8;
     
     public RDFOpenAction(String label) {
         super(label, null, ":general/Open");
@@ -139,9 +139,10 @@ public class RDFOpenAction extends VueAction {
                     }
                 }
             }
-            float y = 20;
-            float x = 0;
-            int count = 0;
+            //float y = 20;
+            //float x = 0;
+            //int count = 0;
+           resetLayoutParameters();
            com.hp.hpl.jena.rdf.model.StmtIterator iter = model.listStatements();
             while(iter.hasNext()){
                com.hp.hpl.jena.rdf.model.Statement stmt = iter.nextStatement();
@@ -155,30 +156,86 @@ public class RDFOpenAction extends VueAction {
                     map.add(link);
                 }else if(stmtObject instanceof com.hp.hpl.jena.rdf.model.Literal) {
                           tufts.vue.Resource mapResource = hashMap.get(stmtSubject.getURI()).getResource();
-                          mapResource.setProperty(stmtProperty.getLocalName(), stmtObject);
+                          if(mapResource != null)
+                            mapResource.setProperty(stmtProperty.getLocalName(), stmtObject);
                 }
                       
             }
-            /**
-            float y = 20;
-            float x = 0;
-            int count = 0;
+        
+            return map;
+        } catch (Exception e) {
+            // out of the Open File dialog box.
+            System.err.println("OpenAction.loadMap[" + fileName + "]: " + e);
+            VueUtil.alert(null, "\"" + fileName + "\" cannot be opened in this version of VUE.", "Map Open Error");
+            e.printStackTrace();
+        }
             
-            LWNode node = null;
+        return null;
+    }
+    
+    private static LWNode createNodeFromResource(com.hp.hpl.jena.rdf.model.Resource r) {
+        
+        tufts.vue.MapResource resource = null;
+        try
+        {
+          resource = new MapResource(r.getURI());
+        }
+        catch(Error err)
+        {
+          System.out.println("Error in creation of Map Resource: " + err);
+        }
+        
+        LWNode node = new LWNode("Empty");
+        if(resource == null)
+        {
+          node = new LWNode("Resource Error");
+        }
+        else
+        {
+          node = new LWNode(r.getURI());
+          node.setResource(resource);
+        }
+        placeNode(node);
+        //double angle = Math.random()*Math.PI*4;
+        //node.setLocation(200+200*Math.cos(angle),200+200*Math.sin(angle));
+        return node;
+    }
+    
+    private static void resetLayoutParameters()
+    {
+        if(nodeLayout == CIRCLE)
+        {
             
-            int toggle = 0;
-            
-            // read the rdf statements and add metadata values and links
-            Iterator<com.hp.hpl.jena.rdf.model.Resource> iter = list.iterator();
-            while (iter.hasNext()) {
-                 com.hp.hpl.jena.rdf.model.Resource  r = iter.next();   
-                
-                float oldWidth = 0.0f;
-                if(node!=null)
-                    oldWidth = node.getWidth();
-                 
-                String uri = r.getURI();
-                String name = uri;
+        }
+        if(nodeLayout == STAGGERED_FLOW)
+        {
+           oldWidth = 0.0f;
+           y = 20;
+           x = 0;
+           count = 0; 
+        }
+    }
+    
+    static float oldWidth = 0.0f;
+    static float y = 20;
+    static float x = 0;
+    static int count = 0;
+    static int toggle = 0;
+    public final static int CIRCLE = 0;
+    public final static int STAGGERED_FLOW = 1;
+    public final static int nodeLayout = STAGGERED_FLOW;
+    
+    private static void placeNode(LWNode node)
+    {
+        if(nodeLayout == CIRCLE)
+        {
+           double angle = Math.random()*Math.PI*4;
+           node.setLocation(200+200*Math.cos(angle),200+200*Math.sin(angle));            
+        }
+        if(nodeLayout == STAGGERED_FLOW)
+        {        
+                String uri = node.getLabel();
+                String name = node.getLabel();
                 int lastSlash = name.lastIndexOf("/");
                 if(lastSlash > 1 && (lastSlash == name.length()-1) )
                 {
@@ -191,17 +248,17 @@ public class RDFOpenAction extends VueAction {
                 }
                 if(name.length() > NODE_LABEL_TRUNCATE_LENGTH)
                     name = name.substring(0,NODE_LABEL_TRUNCATE_LENGTH) + "...";
-                node = new LWNode(name);
-                System.out.println("Resource uri: "+r.getURI());
-                com.hp.hpl.jena.rdf.model.StmtIterator stmtIterator = r.listProperties();
-                java.util.Properties properties = new java.util.Properties();
+                //node = new LWNode(name);
+                //System.out.println("Resource uri: "+r.getURI());
+                //com.hp.hpl.jena.rdf.model.StmtIterator stmtIterator = r.listProperties();
+                //java.util.Properties properties = new java.util.Properties();
                 
                 // oldWidth can be used to seperate wide nodes from each other
                 // not perfectly reliable and not needed while node names are truncated
                 //if(oldWidth > 150)
                 //  x += oldWidth + 50;
                 //else
-                  x += 150;
+                x += 150;
                 
                 if(toggle == 0)
                 {
@@ -222,57 +279,11 @@ public class RDFOpenAction extends VueAction {
                 }
                 
                 count++;
-                
+                oldWidth = node.getWidth();
                 node.setLocation(x,y);
-                tufts.vue.MapResource resource = new MapResource(r.getURI());
-                //resource.setProperties(properties);
-                node.setResource(resource);
-                map.addNode(node);
-                while(stmtIterator.hasNext()){
-                      com.hp.hpl.jena.rdf.model.Statement stmt = stmtIterator.nextStatement();
-                      Object obj = stmt.getObject();
-                      if(obj instanceof com.hp.hpl.jena.rdf.model.Resource) {
-                          Iterator nodeIterator = map.getNodeIterator();
-                          while(nodeIterator.hasNext()) {
-                              LWNode nodeCon = (LWNode)nodeIterator.next();
-                              if(nodeCon.getResource().getSpec().equals(((com.hp.hpl.jena.rdf.model.Resource)obj).getURI())){
-                                    LWLink link = new LWLink(node,nodeCon);
-                                    link.setLabel(stmt.getPredicate().getLocalName());
-                                    System.out.println("Resource"+r.getURI()+"Predicate: "+stmt.getPredicate().getLocalName()+"Object:"+obj);
-                                    node.setLocation(node.getLocation().getX(),node.getLocation().getY()-20);
-                                    nodeCon.setLocation(nodeCon.getLocation().getX(),nodeCon.getLocation().getY()-20);
-                                    map.addLink(link);
-                              }
-                          }
-                          System.out.println("Resource: "+r.getURI()+" sub resource:"+obj.toString());
-                      }else if(obj instanceof com.hp.hpl.jena.rdf.model.Literal) {
-                          properties.setProperty(stmt.getPredicate().getLocalName(), obj.toString());
-                          System.out.println("Resource: "+r.getURI()+" Literal:"+obj.toString()+" Predicate"+stmt.getPredicate());
-                      }
-                      //System.out.println("Literal="+stmt.getLiteral()+"predicate ="+stmt.getPredicate());
-                }
-               
-            }
-            **/
-        
-            return map;
-        } catch (Exception e) {
-            // out of the Open File dialog box.
-            System.err.println("OpenAction.loadMap[" + fileName + "]: " + e);
-            VueUtil.alert(null, "\"" + fileName + "\" cannot be opened in this version of VUE.", "Map Open Error");
-            e.printStackTrace();
+                node.setLabel(name);
         }
-            
-        return null;
-    }
-    
-    private static LWNode createNodeFromResource(com.hp.hpl.jena.rdf.model.Resource r) {
-        tufts.vue.MapResource resource = new MapResource(r.getURI());
-        LWNode node = new LWNode(r.getURI());
-        node.setResource(resource);
-        double angle = Math.random()*Math.PI*4;
-        node.setLocation(200+200*Math.cos(angle),200+200*Math.sin(angle));
-        return node;
+        
     }
     
     public static void main(String args[]) throws Exception {
