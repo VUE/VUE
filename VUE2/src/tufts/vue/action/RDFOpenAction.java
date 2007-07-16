@@ -41,7 +41,7 @@ public class RDFOpenAction extends VueAction {
     //todo: add constants for row length, starting position, y gaps and x gaps
     //also make these all be read from properties file for ease of modification
     //after compilation
-    public static final int NODE_LABEL_TRUNCATE_LENGTH = 8;
+    public static final int NODE_LABEL_TRUNCATE_LENGTH = 30;
     
     public RDFOpenAction(String label) {
         super(label, null, ":general/Open");
@@ -115,7 +115,28 @@ public class RDFOpenAction extends VueAction {
             
 // write it to standard out
             model.write(System.out);
-            ResIterator iter = model.listSubjects();
+            
+            ArrayList<com.hp.hpl.jena.rdf.model.Resource> list = new ArrayList<com.hp.hpl.jena.rdf.model.Resource>();
+            ResIterator resIterator = model.listSubjects();
+            while(resIterator.hasNext()) {
+                com.hp.hpl.jena.rdf.model.Resource res = resIterator.nextResource();
+                list.add(res);
+            map.add(createNodeFromResource(res));
+            }
+            
+            com.hp.hpl.jena.rdf.model.NodeIterator nIterator = model.listObjects();
+            while(nIterator.hasNext()) {
+                RDFNode rdfNode = nIterator.nextNode();
+                if(rdfNode instanceof  com.hp.hpl.jena.rdf.model.Resource ) {
+                    com.hp.hpl.jena.rdf.model.Resource nodeResource = (com.hp.hpl.jena.rdf.model.Resource)rdfNode;
+                    if(!list.contains(nodeResource)) {
+                        list.add(nodeResource);
+                        map.add(createNodeFromResource(nodeResource));
+                    }
+                }
+                    
+            }
+            /**
             float y = 20;
             float x = 0;
             int count = 0;
@@ -125,8 +146,9 @@ public class RDFOpenAction extends VueAction {
             int toggle = 0;
             
             // read the rdf statements and add metadata values and links
+            Iterator<com.hp.hpl.jena.rdf.model.Resource> iter = list.iterator();
             while (iter.hasNext()) {
-                 com.hp.hpl.jena.rdf.model.Resource  r = iter.nextResource();   
+                 com.hp.hpl.jena.rdf.model.Resource  r = iter.next();   
                 
                 float oldWidth = 0.0f;
                 if(node!=null)
@@ -147,6 +169,7 @@ public class RDFOpenAction extends VueAction {
                 if(name.length() > NODE_LABEL_TRUNCATE_LENGTH)
                     name = name.substring(0,NODE_LABEL_TRUNCATE_LENGTH) + "...";
                 node = new LWNode(name);
+                System.out.println("Resource uri: "+r.getURI());
                 com.hp.hpl.jena.rdf.model.StmtIterator stmtIterator = r.listProperties();
                 java.util.Properties properties = new java.util.Properties();
                 
@@ -179,7 +202,7 @@ public class RDFOpenAction extends VueAction {
                 
                 node.setLocation(x,y);
                 tufts.vue.MapResource resource = new MapResource(r.getURI());
-                resource.setProperties(properties);
+                //resource.setProperties(properties);
                 node.setResource(resource);
                 map.addNode(node);
                 while(stmtIterator.hasNext()){
@@ -192,6 +215,7 @@ public class RDFOpenAction extends VueAction {
                               if(nodeCon.getResource().getSpec().equals(((com.hp.hpl.jena.rdf.model.Resource)obj).getURI())){
                                     LWLink link = new LWLink(node,nodeCon);
                                     link.setLabel(stmt.getPredicate().getLocalName());
+                                    System.out.println("Resource"+r.getURI()+"Predicate: "+stmt.getPredicate().getLocalName()+"Object:"+obj);
                                     node.setLocation(node.getLocation().getX(),node.getLocation().getY()-20);
                                     nodeCon.setLocation(nodeCon.getLocation().getX(),nodeCon.getLocation().getY()-20);
                                     map.addLink(link);
@@ -206,7 +230,7 @@ public class RDFOpenAction extends VueAction {
                 }
                
             }
-            
+            **/
         
             return map;
         } catch (Exception e) {
@@ -215,9 +239,17 @@ public class RDFOpenAction extends VueAction {
             VueUtil.alert(null, "\"" + fileName + "\" cannot be opened in this version of VUE.", "Map Open Error");
             e.printStackTrace();
         }
+            
         return null;
     }
     
+    private static LWNode createNodeFromResource(com.hp.hpl.jena.rdf.model.Resource r) {
+        tufts.vue.MapResource resource = new MapResource(r.getURI());
+        LWNode node = new LWNode(r.getURI());
+        node.setResource(resource);
+        node.setLocation(Math.random()*400,Math.random()*400);
+        return node;
+    }
     
     public static void main(String args[]) throws Exception {
         String file = args.length == 0 ? "test.xml" : args[0];
