@@ -116,12 +116,13 @@ public class RDFOpenAction extends VueAction {
 // write it to standard out
             model.write(System.out);
             
-            ArrayList<com.hp.hpl.jena.rdf.model.Resource> list = new ArrayList<com.hp.hpl.jena.rdf.model.Resource>();
+            Map<String,LWNode> hashMap = new HashMap<String,LWNode>();
             ResIterator resIterator = model.listSubjects();
             while(resIterator.hasNext()) {
                 com.hp.hpl.jena.rdf.model.Resource res = resIterator.nextResource();
-                list.add(res);
-            map.add(createNodeFromResource(res));
+                LWNode node = createNodeFromResource(res);
+                hashMap.put(res.getURI(),node);
+                map.add(node);
             }
             
             com.hp.hpl.jena.rdf.model.NodeIterator nIterator = model.listObjects();
@@ -129,12 +130,31 @@ public class RDFOpenAction extends VueAction {
                 RDFNode rdfNode = nIterator.nextNode();
                 if(rdfNode instanceof  com.hp.hpl.jena.rdf.model.Resource ) {
                     com.hp.hpl.jena.rdf.model.Resource nodeResource = (com.hp.hpl.jena.rdf.model.Resource)rdfNode;
-                    if(!list.contains(nodeResource)) {
-                        list.add(nodeResource);
-                        map.add(createNodeFromResource(nodeResource));
+                    if(!hashMap.containsKey(nodeResource.getURI())) {
+                        LWNode node = createNodeFromResource(nodeResource);
+                        hashMap.put(nodeResource.getURI(),node);
+                        map.add(node);
                     }
                 }
-                    
+            }
+           com.hp.hpl.jena.rdf.model.StmtIterator iter = model.listStatements();
+            while(iter.hasNext()){
+               com.hp.hpl.jena.rdf.model.Statement stmt = iter.nextStatement();
+               com.hp.hpl.jena.rdf.model.Resource stmtSubject = stmt.getSubject(); 
+               com.hp.hpl.jena.rdf.model.Property stmtProperty = stmt.getPredicate();
+               com.hp.hpl.jena.rdf.model.RDFNode  stmtObject = stmt.getObject();
+              
+               if(stmtObject instanceof com.hp.hpl.jena.rdf.model.Resource) {
+                    LWNode node1 = hashMap.get(stmtSubject.getURI());
+                    LWNode node2 = hashMap.get(((com.hp.hpl.jena.rdf.model.Resource)stmtObject).getURI());
+                    LWLink link = new LWLink(node1,node2);
+                    map.add(link);
+                }else if(stmtObject instanceof com.hp.hpl.jena.rdf.model.Literal) {
+                          tufts.vue.Resource mapResource = hashMap.get(stmtSubject.getURI()).getResource();
+                          mapResource.setProperty(stmtProperty.getLocalName(), stmtObject);
+                       //   System.out.println("Resource: "+r.getURI()+" Literal:"+obj.toString()+" Predicate"+stmt.getPredicate());
+                      }
+                      
             }
             /**
             float y = 20;
@@ -245,46 +265,9 @@ public class RDFOpenAction extends VueAction {
     
     private static LWNode createNodeFromResource(com.hp.hpl.jena.rdf.model.Resource r) {
         tufts.vue.MapResource resource = new MapResource(r.getURI());
-        
-        com.hp.hpl.jena.rdf.model.StmtIterator stmtIterator = r.listProperties();
-        java.util.Properties properties = new java.util.Properties();
-        
-        while(stmtIterator.hasNext()){
-                      com.hp.hpl.jena.rdf.model.Statement stmt = stmtIterator.nextStatement();
-                      Object obj = stmt.getObject();
-                      /*if(obj instanceof com.hp.hpl.jena.rdf.model.Resource) {
-                          Iterator nodeIterator = map.getNodeIterator();
-                          while(nodeIterator.hasNext()) {
-                              LWNode nodeCon = (LWNode)nodeIterator.next();
-                              if(nodeCon.getResource().getSpec().equals(((com.hp.hpl.jena.rdf.model.Resource)obj).getURI())){
-                                    LWLink link = new LWLink(node,nodeCon);
-                                    link.setLabel(stmt.getPredicate().getLocalName());
-                                    System.out.println("Resource"+r.getURI()+"Predicate: "+stmt.getPredicate().getLocalName()+"Object:"+obj);
-                                    node.setLocation(node.getLocation().getX(),node.getLocation().getY()-20);
-                                    nodeCon.setLocation(nodeCon.getLocation().getX(),nodeCon.getLocation().getY()-20);
-                                    map.addLink(link);
-                              }
-                          }
-                          System.out.println("Resource: "+r.getURI()+" sub resource:"+obj.toString());
-                      }else*/ if(obj instanceof com.hp.hpl.jena.rdf.model.Literal) {
-                          properties.setProperty(stmt.getPredicate().getLocalName(), obj.toString());
-                          System.out.println("Resource: "+r.getURI()+" Literal:"+obj.toString()+" Predicate"+stmt.getPredicate());
-                      }
-                      //System.out.println("Literal="+stmt.getLiteral()+"predicate ="+stmt.getPredicate());
-        }
-        
-        
-        java.util.Enumeration keys = properties.keys();
-        while(keys.hasMoreElements())
-        {
-                    String key = keys.nextElement().toString();
-                    System.out.println("RDFOpen adding property for key: " + key);
-                    resource.setProperty(key,properties.getProperty(key));
-        }
-        
         LWNode node = new LWNode(r.getURI());
         node.setResource(resource);
-        node.setLocation(Math.random()*400,Math.random()*400);
+        node.setLocation(Math.random()*500,Math.random()*500);
         return node;
     }
     
